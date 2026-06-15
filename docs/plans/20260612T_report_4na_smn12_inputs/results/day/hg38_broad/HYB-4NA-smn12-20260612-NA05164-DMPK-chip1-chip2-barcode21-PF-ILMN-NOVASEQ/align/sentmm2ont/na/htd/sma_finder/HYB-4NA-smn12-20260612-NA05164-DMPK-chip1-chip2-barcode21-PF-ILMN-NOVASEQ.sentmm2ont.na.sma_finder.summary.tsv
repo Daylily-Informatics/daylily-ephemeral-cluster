@@ -1,0 +1,2 @@
+filename_prefix	file_type	genome_version	sample_id	sma_status	confidence_score	c840_reads_with_smn1_base_C	c840_total_reads
+HYB-4NA-smn12-20260612-NA05164-DMPK-chip1-chip2-barcode21-PF-ILMN-NOVASEQ.sentmm2ont.na.sentdhiomr.sr_dedup	cram	hg38	HYB-4NA-smn12-20260612-NA05164-DMPK-chip1-chip2-barcode21-PF-ILMN-NOVASEQ	not enough coverage at SMN c.840 position	0	2	5

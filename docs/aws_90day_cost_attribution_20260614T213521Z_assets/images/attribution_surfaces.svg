@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="318" viewBox="0 0 980 318">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="24" y="36" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#17212b">Attribution Surfaces</text>
+<text x="24" y="82" font-family="Arial, sans-serif" font-size="14" fill="#17212b">DYEC cluster-name tagged</text>
+<rect x="260" y="64" width="620" height="20" rx="3" fill="#1f5f99"/>
+<text x="888" y="80" font-family="Arial, sans-serif" font-size="13" fill="#334155">$27,660.67</text>
+<text x="24" y="116" font-family="Arial, sans-serif" font-size="14" fill="#17212b">DYEC EC2 compute subset</text>
+<rect x="260" y="98" width="376" height="20" rx="3" fill="#1f5f99"/>
+<text x="644" y="114" font-family="Arial, sans-serif" font-size="13" fill="#334155">$16,815.51</text>
+<text x="24" y="150" font-family="Arial, sans-serif" font-size="14" fill="#17212b">DYEC FSx subset</text>
+<rect x="260" y="132" width="228" height="20" rx="3" fill="#1f5f99"/>
+<text x="496" y="148" font-family="Arial, sans-serif" font-size="13" fill="#334155">$10,198.94</text>
+<text x="24" y="184" font-family="Arial, sans-serif" font-size="14" fill="#17212b">Dayhoff/TapDB lsmc-project tagged</text>
+<rect x="260" y="166" width="51" height="20" rx="3" fill="#1f5f99"/>
+<text x="319" y="182" font-family="Arial, sans-serif" font-size="13" fill="#334155">$2,308.39</text>
+<text x="24" y="218" font-family="Arial, sans-serif" font-size="14" fill="#17212b">Dayhoff project tag</text>
+<rect x="260" y="200" width="29" height="20" rx="3" fill="#1f5f99"/>
+<text x="297" y="216" font-family="Arial, sans-serif" font-size="13" fill="#334155">$1,318.04</text>
+<text x="24" y="252" font-family="Arial, sans-serif" font-size="14" fill="#17212b">Aurora/RDS service total</text>
+<rect x="260" y="234" width="104" height="20" rx="3" fill="#1f5f99"/>
+<text x="372" y="250" font-family="Arial, sans-serif" font-size="13" fill="#334155">$4,641.79</text>
+<text x="24" y="286" font-family="Arial, sans-serif" font-size="14" fill="#17212b">Aurora/RDS instance compute subset</text>
+<rect x="260" y="268" width="97" height="20" rx="3" fill="#1f5f99"/>
+<text x="365" y="284" font-family="Arial, sans-serif" font-size="13" fill="#334155">$4,329.35</text>
+</svg>

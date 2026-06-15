@@ -1,0 +1,2827 @@
+{
+  "DimensionValueAttributes": [],
+  "GroupDefinitions": [
+    {
+      "Key": "SERVICE",
+      "Type": "DIMENSION"
+    },
+    {
+      "Key": "lsmc-project",
+      "Type": "TAG"
+    }
+  ],
+  "ResultsByTime": [
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "AWS CloudFormation",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Cost Explorer",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.3705480431",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.548387072",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000163",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.0051807267",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "98.2604380874",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000162",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS WAF",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "10.866514104",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS X-Ray",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000350307",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0067420982",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1777561881",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "395.9627186279",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "744.1555648471",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Container Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "9.4912876413",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "23.2480381051",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "793.0163059125",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000241",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.7538310848",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "205.8208699052",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.0882864",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "483.2036923466",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "53.348532143",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.1110101947",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CloudWatch Events",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Tax",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-04-01",
+        "Start": "2026-03-16"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "AWS Certificate Manager",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudFormation",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Cost Explorer",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.9391166236",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.000000024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000013567",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.4352410308",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "91.6659815437",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000018823",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Support (Developer)",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "261.0595463814",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS WAF",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "8.0212293499",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000001282",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.14175",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0256479646",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4761489983",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "685.8035060286",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2038.3250046005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Container Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "35.5698970163",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic File System",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000452052",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "18.9681630235",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3924.8280150815",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000026714",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "15.268142109",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Registrar",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "130",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "497.9875161126",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "14.3503452",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1479.5929508039",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "119.2068503224",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.8825031081",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CloudWatch Events",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Tax",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-05-01",
+        "Start": "2026-04-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "AWS Certificate Manager",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudFormation",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "32.533505",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Cost Explorer",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "60.8757636451",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.934997566",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000063428",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.7212617122",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "lsmc-project$dayhoff+us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1003393405",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "lsmc-project$dayhoff+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0451962896",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "lsmc-project$dayhoff-ddev80"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0073828029",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "lsmc-project$tapdb-us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0904225792",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "lsmc-project$tapdb-us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0903925792",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "191.551362364",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000002284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Support (Developer)",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "680.902151147",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS WAF",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.999999888",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.02925",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0380672189",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "lsmc-project$zebra-day+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.6906851222",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)",
+            "lsmc-project$dayhoff-inf9"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0133329433",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1143.817499333",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff+us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "8.1146939199",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.7952194805",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-ddev80"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.6324663425",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-ddev81"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0500546193",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-ddev89"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0025213979",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-ddev92"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0025281308",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-ddev94"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0025538459",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-ddev96"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0025234265",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-inf10"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0025525281",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-inf11"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0025569429",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-inf9"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.002614407",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "11093.9709716891",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff+us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "23.3607457043",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "50.5691185039",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-ddev80"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.0907753754",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-ddev81"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.6567822952",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-ddev89"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.2907554872",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-ddev92"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.8031371956",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-ddev94"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2988147021",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-ddev96"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.8587788242",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-inf10"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.8835306094",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-inf11"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.6856707949",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-inf9"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "8.1933791093",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Container Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "55.1299283869",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic File System",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000724317",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "23.2516283305",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing",
+            "lsmc-project$dayhoff+us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.7875",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing",
+            "lsmc-project$dayhoff-inf10"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.54",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing",
+            "lsmc-project$dayhoff-inf9"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.63",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4675.5496062546",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000032412",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "20.8700168735",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1714.7286265323",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "lsmc-project$dayhoff+us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "15.2135225062",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "lsmc-project$dayhoff+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "241.4376385211",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "lsmc-project$dayhoff-ddev80"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.916135215",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "lsmc-project$tapdb-us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "28.4047130769",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "lsmc-project$tapdb-us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "28.3935158642",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "14.752048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000061824",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "lsmc-project$dayhoff+us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000323",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "lsmc-project$dayhoff-inf10"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000326",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "lsmc-project$dayhoff-inf9"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000324",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3638.6915673942",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "lsmc-project$ultima-wgs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.4173938768",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "lsmc-project$zebra-day+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0058125044",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "135.8635139374",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff+us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00033334",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff-ddev80"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000602775",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff-ddev81"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000884725",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff-ddev89"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00031528",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff-ddev94"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00031389",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff-ddev96"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000230555",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff-inf10"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00031389",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff-inf11"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00031528",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff-inf9"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00031389",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "81.9202940286",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CloudWatch Events",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Tax",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-01",
+        "Start": "2026-05-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "AWS CloudFormation",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "88.479571",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Cost Explorer",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "199.8344126667",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.4976514583",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000036479",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.5585421457",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "lsmc-project$dayhoff+us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0011799277",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "lsmc-project$dayhoff+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1735483472",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "lsmc-project$tapdb-us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.3469766944",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "lsmc-project$tapdb-us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.3469466944",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "129.7401347856",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000009465",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Support (Developer)",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "345.0288933945",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS WAF",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.0333333576",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0122233747",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "lsmc-project$zebra-day+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.9523423785",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "366.9271818492",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff+us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.007943677",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "14.0736017212",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-day"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0284234165",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-ddev96"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0009344991",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-dev"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0132972504",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-inf"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0036597991",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-jemdev"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0101857671",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-jemdev2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.084785024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-jemdev3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4892264255",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-jemdev5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1270193462",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-joshdev"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0776638461",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "lsmc-project$dayhoff-tailnet-dns"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0013431134",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4416.3050015319",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff+us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "58.0418970945",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "187.706956124",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-day"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "91.2709162439",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-ddev96"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "103.6991530693",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-dev"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "85.9575291525",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-inf"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "81.9645175091",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-jemdev"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.2149309352",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-jemdev2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "18.2036690753",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-jemdev3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "16.8559873745",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-jemdev5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "38.2948788198",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-joshdev"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "55.1945298357",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "lsmc-project$dayhoff-tailnet-dns"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.3378499504",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Container Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "23.1340503581",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic File System",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000387575",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "14.0504670573",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "805.5502898008",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000001339",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.3483360774",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "800.0043159025",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "lsmc-project$dayhoff+us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1964223669",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "lsmc-project$dayhoff+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "896.8920943267",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "lsmc-project$tapdb-us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "106.3111442847",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "lsmc-project$tapdb-us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "105.4809118228",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "11.8630368",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "lsmc-project$dayhoff+us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "lsmc-project$dayhoff+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000016894",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2890.9867437924",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "lsmc-project$ultima-wgs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "20.1740726265",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "lsmc-project$zebra-day+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0746150783",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "66.7164149395",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff-dev"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000230555",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff-inf"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00031389",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff-jemdev"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00048195",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff-jemdev2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000663895",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff-jemdev3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001395855",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff-jemdev5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00048056",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "lsmc-project$dayhoff-joshdev"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000229165",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "88.7424773162",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CloudWatch Events",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Tax",
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-14",
+        "Start": "2026-06-01"
+      },
+      "Total": {}
+    }
+  ]
+}

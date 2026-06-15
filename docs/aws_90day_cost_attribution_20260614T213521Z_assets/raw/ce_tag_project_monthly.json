@@ -1,0 +1,106 @@
+{
+  "DimensionValueAttributes": [],
+  "GroupDefinitions": [
+    {
+      "Key": "project",
+      "Type": "TAG"
+    }
+  ],
+  "ResultsByTime": [
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2831.4357391244",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-04-01",
+        "Start": "2026-03-16"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "9334.5476065665",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-05-01",
+        "Start": "2026-04-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "24026.22153037",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-01",
+        "Start": "2026-05-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "10833.3905784958",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "project$dayhoff-all"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1318.0374949808",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-14",
+        "Start": "2026-06-01"
+      },
+      "Total": {}
+    }
+  ]
+}

@@ -1,0 +1,820 @@
+time_start,time_end,estimated,amount_usd,service,operation
+2026-03-16,2026-04-01,False,0.0,AWS CloudFormation,ProcessResourceHandlers
+2026-03-16,2026-04-01,False,0.3705480431,AWS Cost Explorer,CostDataStorage
+2026-03-16,2026-04-01,False,0.0,AWS Glue,Request
+2026-03-16,2026-04-01,False,0.0,AWS Key Management Service,CreateGrant
+2026-03-16,2026-04-01,False,1.548387072,AWS Key Management Service,CurrentKeys
+2026-03-16,2026-04-01,False,0.0,AWS Key Management Service,Decrypt
+2026-03-16,2026-04-01,False,0.0,AWS Key Management Service,DescribeKey
+2026-03-16,2026-04-01,False,0.0,AWS Key Management Service,GenerateDataKey
+2026-03-16,2026-04-01,False,0.0,AWS Key Management Service,GetKeyPolicy
+2026-03-16,2026-04-01,False,0.0,AWS Key Management Service,GetKeyRotationStatus
+2026-03-16,2026-04-01,False,0.0,AWS Key Management Service,ListAliases
+2026-03-16,2026-04-01,False,0.0,AWS Key Management Service,ListGrants
+2026-03-16,2026-04-01,False,0.0,AWS Key Management Service,ListKeys
+2026-03-16,2026-04-01,False,0.0,AWS Key Management Service,ListResourceTags
+2026-03-16,2026-04-01,False,1.63e-07,AWS Lambda,Invoke
+2026-03-16,2026-04-01,False,2.5e-05,AWS Secrets Manager,CreateSecret
+2026-03-16,2026-04-01,False,4.5e-05,AWS Secrets Manager,DeleteSecret
+2026-03-16,2026-04-01,False,0.000185,AWS Secrets Manager,DescribeSecret
+2026-03-16,2026-04-01,False,2e-05,AWS Secrets Manager,GetRandomPassword
+2026-03-16,2026-04-01,False,0.000125,AWS Secrets Manager,GetResourcePolicy
+2026-03-16,2026-04-01,False,0.03849,AWS Secrets Manager,GetSecretValue
+2026-03-16,2026-04-01,False,8e-05,AWS Secrets Manager,ListSecretVersionIds
+2026-03-16,2026-04-01,False,0.002745,AWS Secrets Manager,ListSecrets
+2026-03-16,2026-04-01,False,3e-05,AWS Secrets Manager,PutSecretValue
+2026-03-16,2026-04-01,False,2.9634357267,AWS Secrets Manager,SecretUsage
+2026-03-16,2026-04-01,False,6.87694828,AWS Security Hub,GuardDuty-CloudTrailEvents
+2026-03-16,2026-04-01,False,0.0019909009,AWS Security Hub,GuardDuty-LambdaNetworkLogs
+2026-03-16,2026-04-01,False,0.0409365,AWS Security Hub,GuardDuty-S3DataEvents
+2026-03-16,2026-04-01,False,0.1172879065,AWS Security Hub,GuardDuty-VPCFlowLogsDNSLogs
+2026-03-16,2026-04-01,False,89.7681581,AWS Security Hub,NoOperation
+2026-03-16,2026-04-01,False,1.4551164,AWS Security Hub,aws-partition
+2026-03-16,2026-04-01,False,0.0,AWS Service Catalog,SC-API-Call
+2026-03-16,2026-04-01,False,1.62e-07,AWS Step Functions,Unknown
+2026-03-16,2026-04-01,False,0.0278046,AWS WAF,ALB
+2026-03-16,2026-04-01,False,3.096774144,AWS WAF,RuleV2
+2026-03-16,2026-04-01,False,7.74193536,AWS WAF,WebACLV2
+2026-03-16,2026-04-01,False,0.0,AWS X-Ray,nil
+2026-03-16,2026-04-01,False,0.0,Amazon CloudFront,GET
+2026-03-16,2026-04-01,False,0.0,Amazon CloudFront,Invalidations
+2026-03-16,2026-04-01,False,3.50307e-05,Amazon CloudFront,POST
+2026-03-16,2026-04-01,False,0.0,Amazon Cognito,CognitoEssentialsOperation
+2026-03-16,2026-04-01,False,0.0067415,Amazon DynamoDB,PayPerRequestThroughput
+2026-03-16,2026-04-01,False,5.982e-07,Amazon DynamoDB,StandardPitrBackupStorage
+2026-03-16,2026-04-01,False,0.0,Amazon DynamoDB,StandardStorage
+2026-03-16,2026-04-01,False,0.1777561881,Amazon EC2 Container Registry (ECR),USW2-TimedStorage-ByteHrs
+2026-03-16,2026-04-01,False,1.5116487565,EC2 - Other,CreateSnapshot
+2026-03-16,2026-04-01,False,202.059112996,EC2 - Other,CreateVolume-Gp3
+2026-03-16,2026-04-01,False,0.0,EC2 - Other,Hourly
+2026-03-16,2026-04-01,False,0.0022505677,EC2 - Other,InterZone-In
+2026-03-16,2026-04-01,False,0.0082265397,EC2 - Other,InterZone-Out
+2026-03-16,2026-04-01,False,191.5171002317,EC2 - Other,NatGateway
+2026-03-16,2026-04-01,False,0.550572332,EC2 - Other,PublicIP-In
+2026-03-16,2026-04-01,False,0.0048718543,EC2 - Other,PublicIP-Out
+2026-03-16,2026-04-01,False,0.30893535,EC2 - Other,T3CPUCredits
+2026-03-16,2026-04-01,False,331.5284853038,Amazon Elastic Compute Cloud - Compute,RunInstances
+2026-03-16,2026-04-01,False,412.6270795433,Amazon Elastic Compute Cloud - Compute,RunInstances:SV080
+2026-03-16,2026-04-01,False,9.4912876413,Amazon Elastic Container Service,FargateTask
+2026-03-16,2026-04-01,False,0.0,Amazon Elastic Load Balancing,LoadBalancing
+2026-03-16,2026-04-01,False,3.55884e-05,Amazon Elastic Load Balancing,LoadBalancing-InterZone-In
+2026-03-16,2026-04-01,False,6.50356e-05,Amazon Elastic Load Balancing,LoadBalancing-InterZone-Out
+2026-03-16,2026-04-01,False,6.7692e-06,Amazon Elastic Load Balancing,LoadBalancing-PublicIP-In
+2026-03-16,2026-04-01,False,0.0002463166,Amazon Elastic Load Balancing,LoadBalancing-PublicIP-Out
+2026-03-16,2026-04-01,False,17.2851843953,Amazon Elastic Load Balancing,LoadBalancing:Application
+2026-03-16,2026-04-01,False,5.9625,Amazon Elastic Load Balancing,LoadBalancing:Network
+2026-03-16,2026-04-01,False,793.0163059125,Amazon FSx,CreateFileSystem:Lustre
+2026-03-16,2026-04-01,False,2.41e-07,Amazon Glacier,ListVaults
+2026-03-16,2026-04-01,False,3.4838709645,Amazon GuardDuty,CreateDBInstance:0014
+2026-03-16,2026-04-01,False,2.1048601001,Amazon GuardDuty,CreateDBInstance:0021
+2026-03-16,2026-04-01,False,0.1651000202,Amazon GuardDuty,none
+2026-03-16,2026-04-01,False,0.0,Amazon Inspector,active
+2026-03-16,2026-04-01,False,61.1572794432,Amazon Relational Database Service,CreateDBInstance:0014
+2026-03-16,2026-04-01,False,144.663590462,Amazon Relational Database Service,CreateDBInstance:0021
+2026-03-16,2026-04-01,False,0.0,Amazon Relational Database Service,Not Applicable
+2026-03-16,2026-04-01,False,0.0387116,Amazon Route 53,A
+2026-03-16,2026-04-01,False,0.015044,Amazon Route 53,AAAA
+2026-03-16,2026-04-01,False,0.0001,Amazon Route 53,ANY
+2026-03-16,2026-04-01,False,0.0003556,Amazon Route 53,CAA
+2026-03-16,2026-04-01,False,0.0009768,Amazon Route 53,CNAME
+2026-03-16,2026-04-01,False,2.4e-05,Amazon Route 53,DNAME
+2026-03-16,2026-04-01,False,0.0060564,Amazon Route 53,DNSKEY
+2026-03-16,2026-04-01,False,1.6e-06,Amazon Route 53,HINFO
+2026-03-16,2026-04-01,False,0.000586,Amazon Route 53,HTTPS
+2026-03-16,2026-04-01,False,2.0,Amazon Route 53,HostedZone
+2026-03-16,2026-04-01,False,0.0046792,Amazon Route 53,MX
+2026-03-16,2026-04-01,False,1.28e-05,Amazon Route 53,NAPTR
+2026-03-16,2026-04-01,False,0.0082224,Amazon Route 53,NS
+2026-03-16,2026-04-01,False,4e-07,Amazon Route 53,NSEC
+2026-03-16,2026-04-01,False,0.002122,Amazon Route 53,PTR
+2026-03-16,2026-04-01,False,0.0027468,Amazon Route 53,SOA
+2026-03-16,2026-04-01,False,1.68e-05,Amazon Route 53,SPF
+2026-03-16,2026-04-01,False,0.0019468,Amazon Route 53,SRV
+2026-03-16,2026-04-01,False,1.2e-05,Amazon Route 53,SVCB
+2026-03-16,2026-04-01,False,3.6e-06,Amazon Route 53,TLSA
+2026-03-16,2026-04-01,False,0.006662,Amazon Route 53,TXT
+2026-03-16,2026-04-01,False,5.6e-06,Amazon Route 53,UNSUPPORTED
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Notification Service,GetDataProtectionPolicy
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Notification Service,GetSMSSandboxAccountStatus
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Notification Service,GetTopicAttributes
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Notification Service,ListSubscriptions
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Notification Service,ListSubscriptionsByTopic
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Notification Service,ListTagsForResource
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Notification Service,ListTopics
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Notification Service,Publish
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Queue Service,DeleteQueue
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Queue Service,GetQueueAttributes
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Queue Service,List
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Queue Service,ListQueueTags
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Queue Service,Receive
+2026-03-16,2026-04-01,False,0.000615,Amazon Simple Storage Service,CompleteMultipartUpload
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Storage Service,GeneralPurposeBuckets
+2026-03-16,2026-04-01,False,6.4e-06,Amazon Simple Storage Service,GetLensConfiguration
+2026-03-16,2026-04-01,False,6.4e-06,Amazon Simple Storage Service,GetLensConfigurationTagging
+2026-03-16,2026-04-01,False,3.7514678036,Amazon Simple Storage Service,GetObject
+2026-03-16,2026-04-01,False,0.00257032,Amazon Simple Storage Service,HeadBucket
+2026-03-16,2026-04-01,False,0.0876052325,Amazon Simple Storage Service,HeadObject
+2026-03-16,2026-04-01,False,0.00062,Amazon Simple Storage Service,InitiateMultipartUpload
+2026-03-16,2026-04-01,False,0.01008,Amazon Simple Storage Service,ListAGGrants
+2026-03-16,2026-04-01,False,0.01008,Amazon Simple Storage Service,ListAGLocations
+2026-03-16,2026-04-01,False,0.01008,Amazon Simple Storage Service,ListAGs
+2026-03-16,2026-04-01,False,2.171e-07,Amazon Simple Storage Service,ListAccessPoints
+2026-03-16,2026-04-01,False,0.0026307955,Amazon Simple Storage Service,ListAllMyBuckets
+2026-03-16,2026-04-01,False,0.0011404,Amazon Simple Storage Service,ListAllMyDirectoryBuckets
+2026-03-16,2026-04-01,False,0.02701,Amazon Simple Storage Service,ListBucket
+2026-03-16,2026-04-01,False,1e-05,Amazon Simple Storage Service,ListBucketVersions
+2026-03-16,2026-04-01,False,0.0013100027,Amazon Simple Storage Service,ListLensConfigurations
+2026-03-16,2026-04-01,False,0.000165,Amazon Simple Storage Service,ListMRAPs
+2026-03-16,2026-04-01,False,0.0013053744,Amazon Simple Storage Service,ListStorageLensGroups
+2026-03-16,2026-04-01,False,0.0035008,Amazon Simple Storage Service,ListTableBuckets
+2026-03-16,2026-04-01,False,0.000160696,Amazon Simple Storage Service,ObjectTagCount
+2026-03-16,2026-04-01,False,0.012775,Amazon Simple Storage Service,PutObject
+2026-03-16,2026-04-01,False,0.00189572,Amazon Simple Storage Service,ReadACL
+2026-03-16,2026-04-01,False,3.2e-06,Amazon Simple Storage Service,ReadAccelerate
+2026-03-16,2026-04-01,False,0.000253615,Amazon Simple Storage Service,ReadAccountPublicAccessBlock
+2026-03-16,2026-04-01,False,3.2e-06,Amazon Simple Storage Service,ReadBucketCors
+2026-03-16,2026-04-01,False,2.246e-05,Amazon Simple Storage Service,ReadBucketLifecycle
+2026-03-16,2026-04-01,False,1.2e-06,Amazon Simple Storage Service,ReadBucketObjectLockConfig
+2026-03-16,2026-04-01,False,3.812e-05,Amazon Simple Storage Service,ReadBucketOwnershipControls
+2026-03-16,2026-04-01,False,4.572e-05,Amazon Simple Storage Service,ReadBucketPolicy
+2026-03-16,2026-04-01,False,6.4e-06,Amazon Simple Storage Service,ReadBucketPolicyStatus
+2026-03-16,2026-04-01,False,4.892e-05,Amazon Simple Storage Service,ReadBucketPublicAccessBlock
+2026-03-16,2026-04-01,False,2.246e-05,Amazon Simple Storage Service,ReadBucketReplication
+2026-03-16,2026-04-01,False,0.00012012,Amazon Simple Storage Service,ReadBucketServerSideEncryption
+2026-03-16,2026-04-01,False,2.886e-05,Amazon Simple Storage Service,ReadCostAllocation
+2026-03-16,2026-04-01,False,8.168e-05,Amazon Simple Storage Service,ReadLocation
+2026-03-16,2026-04-01,False,8.812e-05,Amazon Simple Storage Service,ReadLogProps
+2026-03-16,2026-04-01,False,0.00188372,Amazon Simple Storage Service,ReadNotificationProps
+2026-03-16,2026-04-01,False,8e-07,Amazon Simple Storage Service,ReadObjectTagging
+2026-03-16,2026-04-01,False,3.2e-06,Amazon Simple Storage Service,ReadRequestPaymentProps
+2026-03-16,2026-04-01,False,4.172e-05,Amazon Simple Storage Service,ReadVersioningProps
+2026-03-16,2026-04-01,False,479.1096336698,Amazon Simple Storage Service,StandardStorage
+2026-03-16,2026-04-01,False,0.16631,Amazon Simple Storage Service,UploadPart
+2026-03-16,2026-04-01,False,1e-05,Amazon Simple Storage Service,WriteCostAllocation
+2026-03-16,2026-04-01,False,1e-05,Amazon Simple Storage Service,WriteObjectTagging
+2026-03-16,2026-04-01,False,0.007425025,Amazon Virtual Private Cloud,AllocateAddressVPC
+2026-03-16,2026-04-01,False,32.94245138,Amazon Virtual Private Cloud,AssociateAddressVPC
+2026-03-16,2026-04-01,False,2.261484725,Amazon Virtual Private Cloud,RunInstances
+2026-03-16,2026-04-01,False,18.137171013,Amazon Virtual Private Cloud,VpcEndpoint
+2026-03-16,2026-04-01,False,0.0,AmazonCloudWatch,DashboardHour
+2026-03-16,2026-04-01,False,0.0,AmazonCloudWatch,DeleteDashboards
+2026-03-16,2026-04-01,False,0.0,AmazonCloudWatch,GetDashboard
+2026-03-16,2026-04-01,False,0.0,AmazonCloudWatch,HourlyStorageMetering
+2026-03-16,2026-04-01,False,0.0,AmazonCloudWatch,MetricStorage
+2026-03-16,2026-04-01,False,0.0,AmazonCloudWatch,MetricStorage:AWS/CloudWatchLogs
+2026-03-16,2026-04-01,False,0.0,AmazonCloudWatch,MetricStorage:AWS/EC2
+2026-03-16,2026-04-01,False,0.0,AmazonCloudWatch,PutDashboard
+2026-03-16,2026-04-01,False,0.0,AmazonCloudWatch,PutLogEvents
+2026-03-16,2026-04-01,False,0.0,AmazonCloudWatch,PutMetricData
+2026-03-16,2026-04-01,False,1.1110101947,AmazonCloudWatch,Unknown
+2026-03-16,2026-04-01,False,0.0,CloudWatch Events,Invocation
+2026-03-16,2026-04-01,False,0.0,Tax,RunInstances:SV080
+2026-04-01,2026-05-01,False,0.0,AWS Certificate Manager,REQUEST_CERTIFICATE
+2026-04-01,2026-05-01,False,0.0,AWS CloudFormation,ProcessResourceHandlers
+2026-04-01,2026-05-01,False,0.9391166236,AWS Cost Explorer,CostDataStorage
+2026-04-01,2026-05-01,False,0.0,AWS Glue,Request
+2026-04-01,2026-05-01,False,0.0,AWS Key Management Service,CreateGrant
+2026-04-01,2026-05-01,False,3.000000024,AWS Key Management Service,CurrentKeys
+2026-04-01,2026-05-01,False,0.0,AWS Key Management Service,Decrypt
+2026-04-01,2026-05-01,False,0.0,AWS Key Management Service,DescribeKey
+2026-04-01,2026-05-01,False,0.0,AWS Key Management Service,GenerateDataKey
+2026-04-01,2026-05-01,False,0.0,AWS Key Management Service,GenerateDataKeyWithoutPlaintext
+2026-04-01,2026-05-01,False,0.0,AWS Key Management Service,GetKeyPolicy
+2026-04-01,2026-05-01,False,0.0,AWS Key Management Service,GetKeyRotationStatus
+2026-04-01,2026-05-01,False,0.0,AWS Key Management Service,ListAliases
+2026-04-01,2026-05-01,False,0.0,AWS Key Management Service,ListGrants
+2026-04-01,2026-05-01,False,0.0,AWS Key Management Service,ListKeys
+2026-04-01,2026-05-01,False,0.0,AWS Key Management Service,ListResourceTags
+2026-04-01,2026-05-01,False,1.3567e-06,AWS Lambda,Invoke
+2026-04-01,2026-05-01,False,3e-05,AWS Secrets Manager,CreateSecret
+2026-04-01,2026-05-01,False,3e-05,AWS Secrets Manager,DeleteSecret
+2026-04-01,2026-05-01,False,0.000815,AWS Secrets Manager,DescribeSecret
+2026-04-01,2026-05-01,False,1e-05,AWS Secrets Manager,GetRandomPassword
+2026-04-01,2026-05-01,False,0.00191,AWS Secrets Manager,GetResourcePolicy
+2026-04-01,2026-05-01,False,0.00472,AWS Secrets Manager,GetSecretValue
+2026-04-01,2026-05-01,False,0.001495,AWS Secrets Manager,ListSecretVersionIds
+2026-04-01,2026-05-01,False,0.01876,AWS Secrets Manager,ListSecrets
+2026-04-01,2026-05-01,False,7e-05,AWS Secrets Manager,PutSecretValue
+2026-04-01,2026-05-01,False,5e-06,AWS Secrets Manager,RestoreSecret
+2026-04-01,2026-05-01,False,4.4073960308,AWS Secrets Manager,SecretUsage
+2026-04-01,2026-05-01,False,19.06827896,AWS Security Hub,GuardDuty-CloudTrailEvents
+2026-04-01,2026-05-01,False,2.15647e-05,AWS Security Hub,GuardDuty-LambdaNetworkLogs
+2026-04-01,2026-05-01,False,5.4774654,AWS Security Hub,GuardDuty-S3DataEvents
+2026-04-01,2026-05-01,False,0.302891079,AWS Security Hub,GuardDuty-VPCFlowLogsDNSLogs
+2026-04-01,2026-05-01,False,64.5341419,AWS Security Hub,NoOperation
+2026-04-01,2026-05-01,False,2.28318264,AWS Security Hub,aws-partition
+2026-04-01,2026-05-01,False,0.0,AWS Service Catalog,SC-API-Call
+2026-04-01,2026-05-01,False,1.8823e-06,AWS Step Functions,Unknown
+2026-04-01,2026-05-01,False,261.0595463814,AWS Support (Developer),NoOperation
+2026-04-01,2026-05-01,False,0.0040314,AWS WAF,ALB
+2026-04-01,2026-05-01,False,2.2906279859,AWS WAF,RuleV2
+2026-04-01,2026-05-01,False,5.726569964,AWS WAF,WebACLV2
+2026-04-01,2026-05-01,False,0.0,Amazon CloudFront,GET
+2026-04-01,2026-05-01,False,0.0,Amazon CloudFront,HEAD
+2026-04-01,2026-05-01,False,0.0,Amazon CloudFront,Invalidations
+2026-04-01,2026-05-01,False,1.282e-07,Amazon CloudFront,POST
+2026-04-01,2026-05-01,False,0.0,Amazon Cognito,CognitoEssentialsOperation
+2026-04-01,2026-05-01,False,0.0,Amazon Cognito,CognitoUserPoolsM2MAppClientOp
+2026-04-01,2026-05-01,False,0.14175,Amazon Cognito,CognitoUserPoolsM2MTokenOp
+2026-04-01,2026-05-01,False,0.0256468125,Amazon DynamoDB,PayPerRequestThroughput
+2026-04-01,2026-05-01,False,1.1521e-06,Amazon DynamoDB,StandardPitrBackupStorage
+2026-04-01,2026-05-01,False,0.0,Amazon DynamoDB,StandardStorage
+2026-04-01,2026-05-01,False,0.4761489983,Amazon EC2 Container Registry (ECR),USW2-TimedStorage-ByteHrs
+2026-04-01,2026-05-01,False,3.9781920354,EC2 - Other,CreateSnapshot
+2026-04-01,2026-05-01,False,276.7428299146,EC2 - Other,CreateVolume-Gp3
+2026-04-01,2026-05-01,False,0.0,EC2 - Other,Hourly
+2026-04-01,2026-05-01,False,0.0041754436,EC2 - Other,InterZone-In
+2026-04-01,2026-05-01,False,0.1007199732,EC2 - Other,InterZone-Out
+2026-04-01,2026-05-01,False,402.8662608265,EC2 - Other,NatGateway
+2026-04-01,2026-05-01,False,2.0807822039,EC2 - Other,PublicIP-In
+2026-04-01,2026-05-01,False,0.0305456314,EC2 - Other,PublicIP-Out
+2026-04-01,2026-05-01,False,1363.256117236,Amazon Elastic Compute Cloud - Compute,RunInstances
+2026-04-01,2026-05-01,False,675.0688873645,Amazon Elastic Compute Cloud - Compute,RunInstances:SV080
+2026-04-01,2026-05-01,False,35.5698970163,Amazon Elastic Container Service,FargateTask
+2026-04-01,2026-05-01,False,4.52052e-05,Amazon Elastic File System,Storage
+2026-04-01,2026-05-01,False,0.0,Amazon Elastic Load Balancing,LoadBalancing
+2026-04-01,2026-05-01,False,4.634e-07,Amazon Elastic Load Balancing,LoadBalancing-PublicIP-In
+2026-04-01,2026-05-01,False,2.66207e-05,Amazon Elastic Load Balancing,LoadBalancing-PublicIP-Out
+2026-04-01,2026-05-01,False,2.7681359394,Amazon Elastic Load Balancing,LoadBalancing:Application
+2026-04-01,2026-05-01,False,16.2,Amazon Elastic Load Balancing,LoadBalancing:Network
+2026-04-01,2026-05-01,False,3924.8280150815,Amazon FSx,CreateFileSystem:Lustre
+2026-04-01,2026-05-01,False,2.6714e-06,Amazon Glacier,ListVaults
+2026-04-01,2026-05-01,False,8.3222222772,Amazon GuardDuty,CreateDBInstance:0014
+2026-04-01,2026-05-01,False,4.986111151,Amazon GuardDuty,CreateDBInstance:0021
+2026-04-01,2026-05-01,False,1.9598086808,Amazon GuardDuty,none
+2026-04-01,2026-05-01,False,0.0,Amazon Inspector,active
+2026-04-01,2026-05-01,False,130.0,Amazon Registrar,RenewDomain
+2026-04-01,2026-05-01,False,161.8572990035,Amazon Relational Database Service,CreateDBInstance:0014
+2026-04-01,2026-05-01,False,336.1302171091,Amazon Relational Database Service,CreateDBInstance:0021
+2026-04-01,2026-05-01,False,0.0,Amazon Relational Database Service,Not Applicable
+2026-04-01,2026-05-01,False,0.104124,Amazon Route 53,A
+2026-04-01,2026-05-01,False,0.0374468,Amazon Route 53,AAAA
+2026-04-01,2026-05-01,False,0.0004748,Amazon Route 53,ANY
+2026-04-01,2026-05-01,False,0.0017612,Amazon Route 53,CAA
+2026-04-01,2026-05-01,False,1.2e-06,Amazon Route 53,CDS
+2026-04-01,2026-05-01,False,0.0060848,Amazon Route 53,CNAME
+2026-04-01,2026-05-01,False,0.0001204,Amazon Route 53,DNAME
+2026-04-01,2026-05-01,False,0.0203552,Amazon Route 53,DNSKEY
+2026-04-01,2026-05-01,False,3.2e-06,Amazon Route 53,HINFO
+2026-04-01,2026-05-01,False,0.0022892,Amazon Route 53,HTTPS
+2026-04-01,2026-05-01,False,14.1,Amazon Route 53,HostedZone
+2026-04-01,2026-05-01,False,0.0142368,Amazon Route 53,MX
+2026-04-01,2026-05-01,False,3.24e-05,Amazon Route 53,NAPTR
+2026-04-01,2026-05-01,False,0.0253292,Amazon Route 53,NS
+2026-04-01,2026-05-01,False,0.0065584,Amazon Route 53,PTR
+2026-04-01,2026-05-01,False,0.0086012,Amazon Route 53,SOA
+2026-04-01,2026-05-01,False,4.8e-05,Amazon Route 53,SPF
+2026-04-01,2026-05-01,False,0.0038448,Amazon Route 53,SRV
+2026-04-01,2026-05-01,False,2.84e-05,Amazon Route 53,SVCB
+2026-04-01,2026-05-01,False,3.6e-06,Amazon Route 53,TLSA
+2026-04-01,2026-05-01,False,0.0189764,Amazon Route 53,TXT
+2026-04-01,2026-05-01,False,2.52e-05,Amazon Route 53,UNSUPPORTED
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Notification Service,CreateTopic
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Notification Service,DeleteTopic
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Notification Service,GetDataProtectionPolicy
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Notification Service,GetSMSSandboxAccountStatus
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Notification Service,GetTopicAttributes
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Notification Service,ListSubscriptions
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Notification Service,ListSubscriptionsByTopic
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Notification Service,ListTagsForResource
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Notification Service,ListTopics
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Notification Service,Publish
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Notification Service,Subscribe
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Notification Service,SubscriptionConfirmation
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Queue Service,List
+2026-04-01,2026-05-01,False,0.1418,Amazon Simple Storage Service,CompleteMultipartUpload
+2026-04-01,2026-05-01,False,0.01203,Amazon Simple Storage Service,CopyObject
+2026-04-01,2026-05-01,False,3.438975,Amazon Simple Storage Service,CopyPart
+2026-04-01,2026-05-01,False,3e-05,Amazon Simple Storage Service,CreateBucket
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Storage Service,GeneralPurposeBuckets
+2026-04-01,2026-05-01,False,2.4e-06,Amazon Simple Storage Service,GetBucketMetadataConfig
+2026-04-01,2026-05-01,False,1.2e-05,Amazon Simple Storage Service,GetLensConfiguration
+2026-04-01,2026-05-01,False,1.2e-05,Amazon Simple Storage Service,GetLensConfigurationTagging
+2026-04-01,2026-05-01,False,0.1124524,Amazon Simple Storage Service,GetObject
+2026-04-01,2026-05-01,False,0.00924926,Amazon Simple Storage Service,HeadBucket
+2026-04-01,2026-05-01,False,0.7242608,Amazon Simple Storage Service,HeadObject
+2026-04-01,2026-05-01,False,0.14185,Amazon Simple Storage Service,InitiateMultipartUpload
+2026-04-01,2026-05-01,False,0.0189,Amazon Simple Storage Service,ListAGGrants
+2026-04-01,2026-05-01,False,0.0189,Amazon Simple Storage Service,ListAGLocations
+2026-04-01,2026-05-01,False,0.0189,Amazon Simple Storage Service,ListAGs
+2026-04-01,2026-05-01,False,2.3692e-06,Amazon Simple Storage Service,ListAccessPoints
+2026-04-01,2026-05-01,False,0.3905273045,Amazon Simple Storage Service,ListAllMyBuckets
+2026-04-01,2026-05-01,False,0.002117,Amazon Simple Storage Service,ListAllMyDirectoryBuckets
+2026-04-01,2026-05-01,False,0.136935,Amazon Simple Storage Service,ListBucket
+2026-04-01,2026-05-01,False,3.6e-06,Amazon Simple Storage Service,ListBucketTags
+2026-04-01,2026-05-01,False,0.00017,Amazon Simple Storage Service,ListBucketVersions
+2026-04-01,2026-05-01,False,0.0024500054,Amazon Simple Storage Service,ListLensConfigurations
+2026-04-01,2026-05-01,False,0.000765,Amazon Simple Storage Service,ListMRAPs
+2026-04-01,2026-05-01,False,0.0024307016,Amazon Simple Storage Service,ListStorageLensGroups
+2026-04-01,2026-05-01,False,0.006569,Amazon Simple Storage Service,ListTableBuckets
+2026-04-01,2026-05-01,False,0.000169,Amazon Simple Storage Service,ListVectorBuckets
+2026-04-01,2026-05-01,False,0.000318567,Amazon Simple Storage Service,ObjectTagCount
+2026-04-01,2026-05-01,False,1.79664,Amazon Simple Storage Service,PutObject
+2026-04-01,2026-05-01,False,0.0068919975,Amazon Simple Storage Service,ReadACL
+2026-04-01,2026-05-01,False,3.92e-05,Amazon Simple Storage Service,ReadAccelerate
+2026-04-01,2026-05-01,False,0.0010785568,Amazon Simple Storage Service,ReadAccountPublicAccessBlock
+2026-04-01,2026-05-01,False,2e-06,Amazon Simple Storage Service,ReadBucketAbac
+2026-04-01,2026-05-01,False,8e-07,Amazon Simple Storage Service,ReadBucketAnalytics
+2026-04-01,2026-05-01,False,3.8e-05,Amazon Simple Storage Service,ReadBucketCors
+2026-04-01,2026-05-01,False,2.4e-06,Amazon Simple Storage Service,ReadBucketIntelligentTiering
+2026-04-01,2026-05-01,False,1.6e-06,Amazon Simple Storage Service,ReadBucketInventory
+2026-04-01,2026-05-01,False,0.0003865503,Amazon Simple Storage Service,ReadBucketLifecycle
+2026-04-01,2026-05-01,False,1.20051e-05,Amazon Simple Storage Service,ReadBucketObjectLockConfig
+2026-04-01,2026-05-01,False,0.0007442884,Amazon Simple Storage Service,ReadBucketOwnershipControls
+2026-04-01,2026-05-01,False,0.0007628904,Amazon Simple Storage Service,ReadBucketPolicy
+2026-04-01,2026-05-01,False,2.04057e-05,Amazon Simple Storage Service,ReadBucketPolicyStatus
+2026-04-01,2026-05-01,False,0.0007580023,Amazon Simple Storage Service,ReadBucketPublicAccessBlock
+2026-04-01,2026-05-01,False,0.0003851504,Amazon Simple Storage Service,ReadBucketReplication
+2026-04-01,2026-05-01,False,0.0008688766,Amazon Simple Storage Service,ReadBucketServerSideEncryption
+2026-04-01,2026-05-01,False,4e-07,Amazon Simple Storage Service,ReadBucketWebsite
+2026-04-01,2026-05-01,False,0.0004038178,Amazon Simple Storage Service,ReadCostAllocation
+2026-04-01,2026-05-01,False,0.0007797068,Amazon Simple Storage Service,ReadLocation
+2026-04-01,2026-05-01,False,0.00079793,Amazon Simple Storage Service,ReadLogProps
+2026-04-01,2026-05-01,False,0.0068220822,Amazon Simple Storage Service,ReadNotificationProps
+2026-04-01,2026-05-01,False,6.4e-05,Amazon Simple Storage Service,ReadObjectTagging
+2026-04-01,2026-05-01,False,3.88e-05,Amazon Simple Storage Service,ReadRequestPaymentProps
+2026-04-01,2026-05-01,False,0.0008163972,Amazon Simple Storage Service,ReadVersioningProps
+2026-04-01,2026-05-01,False,1456.3961935387,Amazon Simple Storage Service,StandardStorage
+2026-04-01,2026-05-01,False,16.198465,Amazon Simple Storage Service,UploadPart
+2026-04-01,2026-05-01,False,5e-06,Amazon Simple Storage Service,WriteBucketOwnershipControls
+2026-04-01,2026-05-01,False,3e-05,Amazon Simple Storage Service,WriteBucketPolicy
+2026-04-01,2026-05-01,False,2.5e-05,Amazon Simple Storage Service,WriteBucketPublicAccessBlock
+2026-04-01,2026-05-01,False,1.5e-05,Amazon Simple Storage Service,WriteBucketServerSideEncryption
+2026-04-01,2026-05-01,False,5e-06,Amazon Simple Storage Service,WriteCostAllocation
+2026-04-01,2026-05-01,False,1e-05,Amazon Simple Storage Service,WriteObjectTagging
+2026-04-01,2026-05-01,False,1.5e-05,Amazon Simple Storage Service,WriteVersioningProps
+2026-04-01,2026-05-01,False,3.8744834,Amazon Virtual Private Cloud,AllocateAddressVPC
+2026-04-01,2026-05-01,False,57.781208345,Amazon Virtual Private Cloud,AssociateAddressVPC
+2026-04-01,2026-05-01,False,7.082533355,Amazon Virtual Private Cloud,RunInstances
+2026-04-01,2026-05-01,False,50.4686252224,Amazon Virtual Private Cloud,VpcEndpoint
+2026-04-01,2026-05-01,False,0.9500032443,AmazonCloudWatch,DashboardHour
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,DeleteDashboards
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,GetDashboard
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,HourlyStorageMetering
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,ListMetrics
+2026-04-01,2026-05-01,False,0.845,AmazonCloudWatch,MetricStorage
+2026-04-01,2026-05-01,False,0.0229166683,AmazonCloudWatch,MetricStorage:AWS/CloudWatchLogs
+2026-04-01,2026-05-01,False,0.5816664552,AmazonCloudWatch,MetricStorage:AWS/EC2
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,PutDashboard
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,PutLogEvents
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,PutMetricData
+2026-04-01,2026-05-01,False,2.4829167403,AmazonCloudWatch,Unknown
+2026-04-01,2026-05-01,False,0.0,CloudWatch Events,Invocation
+2026-04-01,2026-05-01,False,0.0,Tax,NoOperation
+2026-04-01,2026-05-01,False,0.0,Tax,CognitoUserPoolsM2MTokenOp
+2026-04-01,2026-05-01,False,0.0,Tax,CostDataStorage
+2026-04-01,2026-05-01,False,0.0,Tax,CreateDBInstance:0014
+2026-04-01,2026-05-01,False,0.0,Tax,CreateDBInstance:0021
+2026-04-01,2026-05-01,False,0.0,Tax,CreateFileSystem:Lustre
+2026-04-01,2026-05-01,False,0.0,Tax,DashboardHour
+2026-04-01,2026-05-01,False,0.0,Tax,LoadBalancing:Application
+2026-04-01,2026-05-01,False,0.0,Tax,LoadBalancing:Network
+2026-04-01,2026-05-01,False,0.0,Tax,NatGateway
+2026-04-01,2026-05-01,False,0.0,Tax,PayPerRequestThroughput
+2026-04-01,2026-05-01,False,0.0,Tax,RenewDomain
+2026-04-01,2026-05-01,False,0.0,Tax,RunInstances
+2026-04-01,2026-05-01,False,0.0,Tax,RunInstances:SV080
+2026-04-01,2026-05-01,False,0.0,Tax,VpcEndpoint
+2026-05-01,2026-06-01,False,0.0,AWS Certificate Manager,REQUEST_CERTIFICATE
+2026-05-01,2026-06-01,False,0.0,AWS CloudFormation,ProcessResourceHandlers
+2026-05-01,2026-06-01,False,32.533505,AWS CloudTrail,None
+2026-05-01,2026-06-01,False,1.1957636451,AWS Cost Explorer,CostDataStorage
+2026-05-01,2026-06-01,False,59.51,AWS Cost Explorer,GetCostAndUsage
+2026-05-01,2026-06-01,False,0.01,AWS Cost Explorer,GetCostForecast
+2026-05-01,2026-06-01,False,0.16,AWS Cost Explorer,GetTags
+2026-05-01,2026-06-01,False,0.0,AWS Glue,Request
+2026-05-01,2026-06-01,False,0.0,AWS Key Management Service,CreateAlias
+2026-05-01,2026-06-01,False,0.000453,AWS Key Management Service,CreateGrant
+2026-05-01,2026-06-01,False,0.0,AWS Key Management Service,CreateKey
+2026-05-01,2026-06-01,False,2.931451566,AWS Key Management Service,CurrentKeys
+2026-05-01,2026-06-01,False,0.000342,AWS Key Management Service,Decrypt
+2026-05-01,2026-06-01,False,0.0,AWS Key Management Service,DeleteAlias
+2026-05-01,2026-06-01,False,0.000489,AWS Key Management Service,DescribeKey
+2026-05-01,2026-06-01,False,0.0,AWS Key Management Service,EnableKeyRotation
+2026-05-01,2026-06-01,False,0.0,AWS Key Management Service,Encrypt
+2026-05-01,2026-06-01,False,6.6e-05,AWS Key Management Service,GenerateDataKey
+2026-05-01,2026-06-01,False,0.000225,AWS Key Management Service,GenerateDataKeyWithoutPlaintext
+2026-05-01,2026-06-01,False,0.0,AWS Key Management Service,GetKeyLastUsage
+2026-05-01,2026-06-01,False,0.000279,AWS Key Management Service,GetKeyPolicy
+2026-05-01,2026-06-01,False,4.5e-05,AWS Key Management Service,GetKeyRotationStatus
+2026-05-01,2026-06-01,False,0.0,AWS Key Management Service,GetPublicKey
+2026-05-01,2026-06-01,False,0.000276,AWS Key Management Service,ListAliases
+2026-05-01,2026-06-01,False,9.6e-05,AWS Key Management Service,ListGrants
+2026-05-01,2026-06-01,False,0.000942,AWS Key Management Service,ListKeys
+2026-05-01,2026-06-01,False,4.8e-05,AWS Key Management Service,ListResourceTags
+2026-05-01,2026-06-01,False,0.0,AWS Key Management Service,ScheduleKeyDeletion
+2026-05-01,2026-06-01,False,0.000285,AWS Key Management Service,Sign
+2026-05-01,2026-06-01,False,6.3428e-06,AWS Lambda,Invoke
+2026-05-01,2026-06-01,False,5e-06,AWS Secrets Manager,CancelRotateSecret
+2026-05-01,2026-06-01,False,4e-05,AWS Secrets Manager,CreateSecret
+2026-05-01,2026-06-01,False,2.5e-05,AWS Secrets Manager,DeleteSecret
+2026-05-01,2026-06-01,False,0.00093,AWS Secrets Manager,DescribeSecret
+2026-05-01,2026-06-01,False,5e-05,AWS Secrets Manager,GetRandomPassword
+2026-05-01,2026-06-01,False,0.002565,AWS Secrets Manager,GetResourcePolicy
+2026-05-01,2026-06-01,False,0.01879,AWS Secrets Manager,GetSecretValue
+2026-05-01,2026-06-01,False,0.00242,AWS Secrets Manager,ListSecretVersionIds
+2026-05-01,2026-06-01,False,0.023035,AWS Secrets Manager,ListSecrets
+2026-05-01,2026-06-01,False,5e-05,AWS Secrets Manager,PutSecretValue
+2026-05-01,2026-06-01,False,6.0070803036,AWS Secrets Manager,SecretUsage
+2026-05-01,2026-06-01,False,5e-06,AWS Secrets Manager,UpdateSecret
+2026-05-01,2026-06-01,False,81.78004052,AWS Security Hub,GuardDuty-CloudTrailEvents
+2026-05-01,2026-06-01,False,2.68406e-05,AWS Security Hub,GuardDuty-LambdaNetworkLogs
+2026-05-01,2026-06-01,False,25.71539421,AWS Security Hub,GuardDuty-S3DataEvents
+2026-05-01,2026-06-01,False,0.7659961896,AWS Security Hub,GuardDuty-VPCFlowLogsDNSLogs
+2026-05-01,2026-06-01,False,80.5876884438,AWS Security Hub,NoOperation
+2026-05-01,2026-06-01,False,2.70221616,AWS Security Hub,aws-partition
+2026-05-01,2026-06-01,False,0.0,AWS Service Catalog,SC-API-Call
+2026-05-01,2026-06-01,False,2.284e-06,AWS Step Functions,Unknown
+2026-05-01,2026-06-01,False,680.902151147,AWS Support (Developer),NoOperation
+2026-05-01,2026-06-01,False,1.999999968,AWS WAF,RuleV2
+2026-05-01,2026-06-01,False,4.99999992,AWS WAF,WebACLV2
+2026-05-01,2026-06-01,False,0.0,Amazon CloudFront,Execution
+2026-05-01,2026-06-01,False,0.0,Amazon CloudFront,GET
+2026-05-01,2026-06-01,False,0.0,Amazon CloudFront,HEAD
+2026-05-01,2026-06-01,False,0.0,Amazon CloudFront,Invalidations
+2026-05-01,2026-06-01,False,0.0,Amazon Cognito,CognitoEssentialsOperation
+2026-05-01,2026-06-01,False,0.0,Amazon Cognito,CognitoUserPoolsM2MAppClientOp
+2026-05-01,2026-06-01,False,0.02925,Amazon Cognito,CognitoUserPoolsM2MTokenOp
+2026-05-01,2026-06-01,False,0.0380660625,Amazon DynamoDB,PayPerRequestThroughput
+2026-05-01,2026-06-01,False,1.1564e-06,Amazon DynamoDB,StandardPitrBackupStorage
+2026-05-01,2026-06-01,False,0.0,Amazon DynamoDB,StandardStorage
+2026-05-01,2026-06-01,False,0.0373716792,Amazon EC2 Container Registry (ECR),TimedStorage-ByteHrs
+2026-05-01,2026-06-01,False,0.6666455514,Amazon EC2 Container Registry (ECR),USW2-TimedStorage-ByteHrs
+2026-05-01,2026-06-01,False,8.349e-07,Amazon EC2 Container Registry (ECR),downloadLayer
+2026-05-01,2026-06-01,False,7.1079046419,EC2 - Other,CreateSnapshot
+2026-05-01,2026-06-01,False,338.1174000971,EC2 - Other,CreateVolume-Gp3
+2026-05-01,2026-06-01,False,0.0,EC2 - Other,Hourly
+2026-05-01,2026-06-01,False,0.0083109069,EC2 - Other,InterZone-In
+2026-05-01,2026-06-01,False,0.0358868683,EC2 - Other,InterZone-Out
+2026-05-01,2026-06-01,False,798.7630567993,EC2 - Other,NatGateway
+2026-05-01,2026-06-01,False,12.2607024928,EC2 - Other,PublicIP-In
+2026-05-01,2026-06-01,False,0.134522568,EC2 - Other,PublicIP-Out
+2026-05-01,2026-06-01,False,2717.0189355641,Amazon Elastic Compute Cloud - Compute,RunInstances
+2026-05-01,2026-06-01,False,8488.6435247265,Amazon Elastic Compute Cloud - Compute,RunInstances:SV080
+2026-05-01,2026-06-01,False,55.1299283869,Amazon Elastic Container Service,FargateTask
+2026-05-01,2026-06-01,False,7.24317e-05,Amazon Elastic File System,Storage
+2026-05-01,2026-06-01,False,0.006048073,Amazon Elastic Load Balancing,LoadBalancing
+2026-05-01,2026-06-01,False,4.3929e-06,Amazon Elastic Load Balancing,LoadBalancing-PublicIP-In
+2026-05-01,2026-06-01,False,9.46972e-05,Amazon Elastic Load Balancing,LoadBalancing-PublicIP-Out
+2026-05-01,2026-06-01,False,8.4629811674,Amazon Elastic Load Balancing,LoadBalancing:Application
+2026-05-01,2026-06-01,False,16.74,Amazon Elastic Load Balancing,LoadBalancing:Network
+2026-05-01,2026-06-01,False,4675.5496062546,Amazon FSx,CreateFileSystem:Lustre
+2026-05-01,2026-06-01,False,3.2412e-06,Amazon Glacier,ListVaults
+2026-05-01,2026-06-01,False,8.6048387009,Amazon GuardDuty,CreateDBInstance:0014
+2026-05-01,2026-06-01,False,10.5208345962,Amazon GuardDuty,CreateDBInstance:0021
+2026-05-01,2026-06-01,False,1.7443435764,Amazon GuardDuty,none
+2026-05-01,2026-06-01,False,0.0,Amazon Inspector,active
+2026-05-01,2026-06-01,False,202.1044550322,Amazon Relational Database Service,CreateDBInstance:0014
+2026-05-01,2026-06-01,False,1826.9893664668,Amazon Relational Database Service,CreateDBInstance:0021
+2026-05-01,2026-06-01,False,0.0003302167,Amazon Relational Database Service,Not Applicable
+2026-05-01,2026-06-01,False,0.108856,Amazon Route 53,A
+2026-05-01,2026-06-01,False,0.0411888,Amazon Route 53,AAAA
+2026-05-01,2026-06-01,False,0.0003688,Amazon Route 53,ANY
+2026-05-01,2026-06-01,False,0.0016036,Amazon Route 53,CAA
+2026-05-01,2026-06-01,False,4.8e-06,Amazon Route 53,CDNSKEY
+2026-05-01,2026-06-01,False,2.4e-06,Amazon Route 53,CDS
+2026-05-01,2026-06-01,False,0.0050944,Amazon Route 53,CNAME
+2026-05-01,2026-06-01,False,8.52e-05,Amazon Route 53,DNAME
+2026-05-01,2026-06-01,False,0.0175204,Amazon Route 53,DNSKEY
+2026-05-01,2026-06-01,False,2e-06,Amazon Route 53,HINFO
+2026-05-01,2026-06-01,False,0.0018352,Amazon Route 53,HTTPS
+2026-05-01,2026-06-01,False,14.5,Amazon Route 53,HostedZone
+2026-05-01,2026-06-01,False,0.0154192,Amazon Route 53,MX
+2026-05-01,2026-06-01,False,1.24e-05,Amazon Route 53,NAPTR
+2026-05-01,2026-06-01,False,0.025024,Amazon Route 53,NS
+2026-05-01,2026-06-01,False,4e-07,Amazon Route 53,NSEC
+2026-05-01,2026-06-01,False,2e-06,Amazon Route 53,NSEC3
+2026-05-01,2026-06-01,False,5.6e-06,Amazon Route 53,NSEC3PARA
+2026-05-01,2026-06-01,False,0.0040056,Amazon Route 53,PTR
+2026-05-01,2026-06-01,False,0.0085672,Amazon Route 53,SOA
+2026-05-01,2026-06-01,False,4.48e-05,Amazon Route 53,SPF
+2026-05-01,2026-06-01,False,0.0036668,Amazon Route 53,SRV
+2026-05-01,2026-06-01,False,1.6e-06,Amazon Route 53,SSHFP
+2026-05-01,2026-06-01,False,3.2e-05,Amazon Route 53,SVCB
+2026-05-01,2026-06-01,False,1.12e-05,Amazon Route 53,TLSA
+2026-05-01,2026-06-01,False,0.0186364,Amazon Route 53,TXT
+2026-05-01,2026-06-01,False,5.72e-05,Amazon Route 53,UNSUPPORTED
+2026-05-01,2026-06-01,False,0.0,Amazon Simple Notification Service,CreateTopic
+2026-05-01,2026-06-01,False,0.0,Amazon Simple Notification Service,DeleteTopic
+2026-05-01,2026-06-01,False,0.0,Amazon Simple Notification Service,GetDataProtectionPolicy
+2026-05-01,2026-06-01,False,0.0,Amazon Simple Notification Service,GetTopicAttributes
+2026-05-01,2026-06-01,False,3.5099e-06,Amazon Simple Notification Service,ListSubscriptions
+2026-05-01,2026-06-01,False,1.619e-07,Amazon Simple Notification Service,ListSubscriptionsByTopic
+2026-05-01,2026-06-01,False,0.0,Amazon Simple Notification Service,ListTagsForResource
+2026-05-01,2026-06-01,False,1.018e-07,Amazon Simple Notification Service,ListTopics
+2026-05-01,2026-06-01,False,0.0,Amazon Simple Notification Service,Publish
+2026-05-01,2026-06-01,False,0.0,Amazon Simple Notification Service,Subscribe
+2026-05-01,2026-06-01,False,2.5061e-06,Amazon Simple Notification Service,SubscriptionConfirmation
+2026-05-01,2026-06-01,False,0.0,Amazon Simple Notification Service,Unsubscribe
+2026-05-01,2026-06-01,False,0.0,Amazon Simple Queue Service,List
+2026-05-01,2026-06-01,False,0.5938469874,Amazon Simple Storage Service,CompleteMultipartUpload
+2026-05-01,2026-06-01,False,1.4737431324,Amazon Simple Storage Service,CopyObject
+2026-05-01,2026-06-01,False,0.0405257284,Amazon Simple Storage Service,CopyObjectGet
+2026-05-01,2026-06-01,False,26.3404280869,Amazon Simple Storage Service,CopyPart
+2026-05-01,2026-06-01,False,4.5e-05,Amazon Simple Storage Service,CreateBucket
+2026-05-01,2026-06-01,False,0.0,Amazon Simple Storage Service,GeneralPurposeBuckets
+2026-05-01,2026-06-01,False,8.89e-07,Amazon Simple Storage Service,GetBucketMetadataConfig
+2026-05-01,2026-06-01,False,1.28e-05,Amazon Simple Storage Service,GetLensConfiguration
+2026-05-01,2026-06-01,False,1.28e-05,Amazon Simple Storage Service,GetLensConfigurationTagging
+2026-05-01,2026-06-01,False,36.2702436517,Amazon Simple Storage Service,GetObject
+2026-05-01,2026-06-01,False,0.026920808,Amazon Simple Storage Service,HeadBucket
+2026-05-01,2026-06-01,False,12.1994630587,Amazon Simple Storage Service,HeadObject
+2026-05-01,2026-06-01,False,0.5928933703,Amazon Simple Storage Service,InitiateMultipartUpload
+2026-05-01,2026-06-01,False,0.01878,Amazon Simple Storage Service,ListAGGrants
+2026-05-01,2026-06-01,False,0.01872,Amazon Simple Storage Service,ListAGLocations
+2026-05-01,2026-06-01,False,0.01881,Amazon Simple Storage Service,ListAGs
+2026-05-01,2026-06-01,False,2.8974e-06,Amazon Simple Storage Service,ListAccessPoints
+2026-05-01,2026-06-01,False,2.6865288194,Amazon Simple Storage Service,ListAllMyBuckets
+2026-05-01,2026-06-01,False,0.0022658,Amazon Simple Storage Service,ListAllMyDirectoryBuckets
+2026-05-01,2026-06-01,False,30.8751576305,Amazon Simple Storage Service,ListBucket
+2026-05-01,2026-06-01,False,8.934e-07,Amazon Simple Storage Service,ListBucketTags
+2026-05-01,2026-06-01,False,0.0002252108,Amazon Simple Storage Service,ListBucketVersions
+2026-05-01,2026-06-01,False,5e-06,Amazon Simple Storage Service,ListDirectoryAccessPoints
+2026-05-01,2026-06-01,False,5.038e-06,Amazon Simple Storage Service,ListJobs
+2026-05-01,2026-06-01,False,0.0026150045,Amazon Simple Storage Service,ListLensConfigurations
+2026-05-01,2026-06-01,False,0.000795,Amazon Simple Storage Service,ListMRAPs
+2026-05-01,2026-06-01,False,0.000148831,Amazon Simple Storage Service,ListMultipartUploads
+2026-05-01,2026-06-01,False,1.0139e-05,Amazon Simple Storage Service,ListParts
+2026-05-01,2026-06-01,False,0.0025707424,Amazon Simple Storage Service,ListStorageLensGroups
+2026-05-01,2026-06-01,False,0.0051766016,Amazon Simple Storage Service,ListTableBuckets
+2026-05-01,2026-06-01,False,0.00011,Amazon Simple Storage Service,ListVectorBuckets
+2026-05-01,2026-06-01,False,0.0005710545,Amazon Simple Storage Service,ObjectTagCount
+2026-05-01,2026-06-01,False,18.6376674159,Amazon Simple Storage Service,PutObject
+2026-05-01,2026-06-01,False,0.0415432422,Amazon Simple Storage Service,ReadACL
+2026-05-01,2026-06-01,False,0.0003513453,Amazon Simple Storage Service,ReadAccelerate
+2026-05-01,2026-06-01,False,0.0013131585,Amazon Simple Storage Service,ReadAccountPublicAccessBlock
+2026-05-01,2026-06-01,False,4.441e-07,Amazon Simple Storage Service,ReadBucketAbac
+2026-05-01,2026-06-01,False,4.137e-07,Amazon Simple Storage Service,ReadBucketAnalytics
+2026-05-01,2026-06-01,False,4.36316e-05,Amazon Simple Storage Service,ReadBucketCors
+2026-05-01,2026-06-01,False,8.867e-07,Amazon Simple Storage Service,ReadBucketIntelligentTiering
+2026-05-01,2026-06-01,False,0.0181967139,Amazon Simple Storage Service,ReadBucketLifecycle
+2026-05-01,2026-06-01,False,0.0084998701,Amazon Simple Storage Service,ReadBucketObjectLockConfig
+2026-05-01,2026-06-01,False,0.0185976166,Amazon Simple Storage Service,ReadBucketOwnershipControls
+2026-05-01,2026-06-01,False,0.0012149365,Amazon Simple Storage Service,ReadBucketPolicy
+2026-05-01,2026-06-01,False,0.0176859806,Amazon Simple Storage Service,ReadBucketPolicyStatus
+2026-05-01,2026-06-01,False,0.01873428,Amazon Simple Storage Service,ReadBucketPublicAccessBlock
+2026-05-01,2026-06-01,False,0.0181469737,Amazon Simple Storage Service,ReadBucketReplication
+2026-05-01,2026-06-01,False,0.0189017137,Amazon Simple Storage Service,ReadBucketServerSideEncryption
+2026-05-01,2026-06-01,False,0.008437499,Amazon Simple Storage Service,ReadBucketWebsite
+2026-05-01,2026-06-01,False,0.0183206396,Amazon Simple Storage Service,ReadCostAllocation
+2026-05-01,2026-06-01,False,0.0190562589,Amazon Simple Storage Service,ReadLocation
+2026-05-01,2026-06-01,False,0.0187024148,Amazon Simple Storage Service,ReadLogProps
+2026-05-01,2026-06-01,False,0.0138178009,Amazon Simple Storage Service,ReadNotificationProps
+2026-05-01,2026-06-01,False,2.12e-05,Amazon Simple Storage Service,ReadObjectAttributes
+2026-05-01,2026-06-01,False,0.0012186037,Amazon Simple Storage Service,ReadObjectTagging
+2026-05-01,2026-06-01,False,0.0176278159,Amazon Simple Storage Service,ReadRequestPaymentProps
+2026-05-01,2026-06-01,False,0.0187735232,Amazon Simple Storage Service,ReadVersioningProps
+2026-05-01,2026-06-01,False,3467.4937814182,Amazon Simple Storage Service,StandardStorage
+2026-05-01,2026-06-01,False,45.5321176028,Amazon Simple Storage Service,UploadPart
+2026-05-01,2026-06-01,False,5e-06,Amazon Simple Storage Service,WriteACL
+2026-05-01,2026-06-01,False,5e-06,Amazon Simple Storage Service,WriteAccelerate
+2026-05-01,2026-06-01,False,2e-05,Amazon Simple Storage Service,WriteBucketLifecycle
+2026-05-01,2026-06-01,False,3.5e-05,Amazon Simple Storage Service,WriteBucketOwnershipControls
+2026-05-01,2026-06-01,False,0.00017,Amazon Simple Storage Service,WriteBucketPolicy
+2026-05-01,2026-06-01,False,7.5e-05,Amazon Simple Storage Service,WriteBucketPublicAccessBlock
+2026-05-01,2026-06-01,False,2.5e-05,Amazon Simple Storage Service,WriteBucketServerSideEncryption
+2026-05-01,2026-06-01,False,6.54e-05,Amazon Simple Storage Service,WriteCostAllocation
+2026-05-01,2026-06-01,False,5e-06,Amazon Simple Storage Service,WriteLogProps
+2026-05-01,2026-06-01,False,0.00037,Amazon Simple Storage Service,WriteNotificationProps
+2026-05-01,2026-06-01,False,0.00057,Amazon Simple Storage Service,WriteObjectTagging
+2026-05-01,2026-06-01,False,2e-05,Amazon Simple Storage Service,WriteVersioningProps
+2026-05-01,2026-06-01,False,3.782322305,Amazon Virtual Private Cloud,AllocateAddressVPC
+2026-05-01,2026-06-01,False,68.070956925,Amazon Virtual Private Cloud,AssociateAddressVPC
+2026-05-01,2026-06-01,False,11.75883338,Amazon Virtual Private Cloud,RunInstances
+2026-05-01,2026-06-01,False,52.2550249524,Amazon Virtual Private Cloud,VpcEndpoint
+2026-05-01,2026-06-01,False,1.7701599624,AmazonCloudWatch,DashboardHour
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,DeleteDashboards
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,GetDashboard
+2026-05-01,2026-06-01,False,0.00054,AmazonCloudWatch,GetMetricData
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,GetMetricStatistics
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,HourlyStorageMetering
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,ListMetrics
+2026-05-01,2026-06-01,False,0.7334678481,AmazonCloudWatch,MetricStorage
+2026-05-01,2026-06-01,False,0.0580645152,AmazonCloudWatch,MetricStorage:AWS/CloudWatchLogs
+2026-05-01,2026-06-01,False,1.083870984,AmazonCloudWatch,MetricStorage:AWS/EC2
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,PutDashboard
+2026-05-01,2026-06-01,False,75.5112650336,AmazonCloudWatch,PutLogEvents
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,PutMetricData
+2026-05-01,2026-06-01,False,2.7629256853,AmazonCloudWatch,Unknown
+2026-05-01,2026-06-01,False,0.0,CloudWatch Events,Invocation
+2026-05-01,2026-06-01,False,0.0,Tax,NoOperation
+2026-05-01,2026-06-01,False,0.0,Tax,CognitoUserPoolsM2MTokenOp
+2026-05-01,2026-06-01,False,0.0,Tax,CostDataStorage
+2026-05-01,2026-06-01,False,0.0,Tax,CreateDBInstance:0014
+2026-05-01,2026-06-01,False,0.0,Tax,CreateDBInstance:0021
+2026-05-01,2026-06-01,False,0.0,Tax,CreateFileSystem:Lustre
+2026-05-01,2026-06-01,False,0.0,Tax,DashboardHour
+2026-05-01,2026-06-01,False,0.0,Tax,LoadBalancing:Application
+2026-05-01,2026-06-01,False,0.0,Tax,LoadBalancing:Network
+2026-05-01,2026-06-01,False,0.0,Tax,NatGateway
+2026-05-01,2026-06-01,False,0.0,Tax,PayPerRequestThroughput
+2026-05-01,2026-06-01,False,0.0,Tax,PutLogEvents
+2026-05-01,2026-06-01,False,0.0,Tax,RunInstances
+2026-05-01,2026-06-01,False,0.0,Tax,RunInstances:SV080
+2026-05-01,2026-06-01,False,0.0,Tax,VpcEndpoint
+2026-06-01,2026-06-14,True,0.0,AWS CloudFormation,ProcessResourceHandlers
+2026-06-01,2026-06-14,True,88.479571,AWS CloudTrail,None
+2026-06-01,2026-06-14,True,1.2544126667,AWS Cost Explorer,CostDataStorage
+2026-06-01,2026-06-14,True,198.5,AWS Cost Explorer,GetCostAndUsage
+2026-06-01,2026-06-14,True,0.01,AWS Cost Explorer,GetCostForecast
+2026-06-01,2026-06-14,True,0.04,AWS Cost Explorer,GetDimensionValues
+2026-06-01,2026-06-14,True,0.01,AWS Cost Explorer,GetReservationPurchaseRecs
+2026-06-01,2026-06-14,True,0.01,AWS Cost Explorer,GetSavingsPlansCoverage
+2026-06-01,2026-06-14,True,0.01,AWS Cost Explorer,GetSavingsPlansPurchaseRecs
+2026-06-01,2026-06-14,True,0.0,AWS Glue,Request
+2026-06-01,2026-06-14,True,0.002406,AWS Key Management Service,CreateGrant
+2026-06-01,2026-06-14,True,1.7319444583,AWS Key Management Service,CurrentKeys
+2026-06-01,2026-06-14,True,1.741236,AWS Key Management Service,Decrypt
+2026-06-01,2026-06-14,True,0.002082,AWS Key Management Service,DescribeKey
+2026-06-01,2026-06-14,True,0.011976,AWS Key Management Service,GenerateDataKey
+2026-06-01,2026-06-14,True,0.001203,AWS Key Management Service,GenerateDataKeyWithoutPlaintext
+2026-06-01,2026-06-14,True,0.001119,AWS Key Management Service,GetKeyPolicy
+2026-06-01,2026-06-14,True,0.00015,AWS Key Management Service,GetKeyRotationStatus
+2026-06-01,2026-06-14,True,0.001029,AWS Key Management Service,ListAliases
+2026-06-01,2026-06-14,True,0.000573,AWS Key Management Service,ListGrants
+2026-06-01,2026-06-14,True,0.00378,AWS Key Management Service,ListKeys
+2026-06-01,2026-06-14,True,0.000153,AWS Key Management Service,ListResourceTags
+2026-06-01,2026-06-14,True,3.6479e-06,AWS Lambda,Invoke
+2026-06-01,2026-06-14,True,3.5e-05,AWS Secrets Manager,CreateSecret
+2026-06-01,2026-06-14,True,5e-06,AWS Secrets Manager,DeleteSecret
+2026-06-01,2026-06-14,True,0.000385,AWS Secrets Manager,DescribeSecret
+2026-06-01,2026-06-14,True,5e-06,AWS Secrets Manager,GetRandomPassword
+2026-06-01,2026-06-14,True,0.00127,AWS Secrets Manager,GetResourcePolicy
+2026-06-01,2026-06-14,True,0.008905,AWS Secrets Manager,GetSecretValue
+2026-06-01,2026-06-14,True,0.00126,AWS Secrets Manager,ListSecretVersionIds
+2026-06-01,2026-06-14,True,0.00993,AWS Secrets Manager,ListSecrets
+2026-06-01,2026-06-14,True,2.5e-05,AWS Secrets Manager,PutSecretValue
+2026-06-01,2026-06-14,True,3.4053138094,AWS Secrets Manager,SecretUsage
+2026-06-01,2026-06-14,True,5e-05,AWS Secrets Manager,TagResource
+2026-06-01,2026-06-14,True,1e-05,AWS Secrets Manager,UpdateSecret
+2026-06-01,2026-06-14,True,51.4524704,AWS Security Hub,GuardDuty-CloudTrailEvents
+2026-06-01,2026-06-14,True,32.55434292,AWS Security Hub,GuardDuty-S3DataEvents
+2026-06-01,2026-06-14,True,0.5847461184,AWS Security Hub,GuardDuty-VPCFlowLogsDNSLogs
+2026-06-01,2026-06-14,True,43.9134765472,AWS Security Hub,NoOperation
+2026-06-01,2026-06-14,True,1.2350988,AWS Security Hub,aws-partition
+2026-06-01,2026-06-14,True,0.0,AWS Service Catalog,SC-API-Call
+2026-06-01,2026-06-14,True,9.465e-07,AWS Step Functions,Unknown
+2026-06-01,2026-06-14,True,345.0288933945,AWS Support (Developer),NoOperation
+2026-06-01,2026-06-14,True,0.8666666736,AWS WAF,RuleV2
+2026-06-01,2026-06-14,True,2.166666684,AWS WAF,WebACLV2
+2026-06-01,2026-06-14,True,0.0,Amazon CloudFront,Execution
+2026-06-01,2026-06-14,True,0.0,Amazon CloudFront,GET
+2026-06-01,2026-06-14,True,0.0,Amazon CloudFront,HEAD
+2026-06-01,2026-06-14,True,0.0,Amazon CloudFront,Invalidations
+2026-06-01,2026-06-14,True,0.0,Amazon CloudFront,OPTIONS
+2026-06-01,2026-06-14,True,0.0,Amazon CloudFront,POST
+2026-06-01,2026-06-14,True,0.0,Amazon Cognito,CognitoEssentialsOperation
+2026-06-01,2026-06-14,True,0.0,Amazon Cognito,CognitoUserPoolsM2MAppClientOp
+2026-06-01,2026-06-14,True,0.012222875,Amazon DynamoDB,PayPerRequestThroughput
+2026-06-01,2026-06-14,True,4.997e-07,Amazon DynamoDB,StandardPitrBackupStorage
+2026-06-01,2026-06-14,True,0.0,Amazon DynamoDB,StandardStorage
+2026-06-01,2026-06-14,True,1.3919471009,Amazon EC2 Container Registry (ECR),TimedStorage-ByteHrs
+2026-06-01,2026-06-14,True,0.5603952776,Amazon EC2 Container Registry (ECR),USW2-TimedStorage-ByteHrs
+2026-06-01,2026-06-14,True,0.0,Amazon EC2 Container Registry (ECR),downloadLayer
+2026-06-01,2026-06-14,True,3.5560615401,EC2 - Other,CreateSnapshot
+2026-06-01,2026-06-14,True,191.6278747028,EC2 - Other,CreateVolume-Gp3
+2026-06-01,2026-06-14,True,0.0,EC2 - Other,Hourly
+2026-06-01,2026-06-14,True,0.1104057384,EC2 - Other,InterZone-In
+2026-06-01,2026-06-14,True,0.0341965467,EC2 - Other,InterZone-Out
+2026-06-01,2026-06-14,True,181.111563474,EC2 - Other,NatGateway
+2026-06-01,2026-06-14,True,4.7867979201,EC2 - Other,PublicIP-In
+2026-06-01,2026-06-14,True,0.6183658127,EC2 - Other,PublicIP-Out
+2026-06-01,2026-06-14,True,1822.6115389343,Amazon Elastic Compute Cloud - Compute,RunInstances
+2026-06-01,2026-06-14,True,3335.4362777818,Amazon Elastic Compute Cloud - Compute,RunInstances:SV080
+2026-06-01,2026-06-14,True,23.1340503581,Amazon Elastic Container Service,FargateTask
+2026-06-01,2026-06-14,True,3.87575e-05,Amazon Elastic File System,Storage
+2026-06-01,2026-06-14,True,0.0069720974,Amazon Elastic Load Balancing,LoadBalancing
+2026-06-01,2026-06-14,True,6.6774e-06,Amazon Elastic Load Balancing,LoadBalancing-PublicIP-In
+2026-06-01,2026-06-14,True,0.0001344295,Amazon Elastic Load Balancing,LoadBalancing-PublicIP-Out
+2026-06-01,2026-06-14,True,7.023353853,Amazon Elastic Load Balancing,LoadBalancing:Application
+2026-06-01,2026-06-14,True,7.02,Amazon Elastic Load Balancing,LoadBalancing:Network
+2026-06-01,2026-06-14,True,805.5502898008,Amazon FSx,CreateFileSystem:Lustre
+2026-06-01,2026-06-14,True,1.339e-06,Amazon Glacier,ListVaults
+2026-06-01,2026-06-14,True,0.8722222292,Amazon GuardDuty,CreateDBInstance:0014
+2026-06-01,2026-06-14,True,4.3333333368,Amazon GuardDuty,CreateDBInstance:0021
+2026-06-01,2026-06-14,True,0.1427805114,Amazon GuardDuty,none
+2026-06-01,2026-06-14,True,0.0,Amazon Inspector,active
+2026-06-01,2026-06-14,True,69.7216655871,Amazon Relational Database Service,CreateDBInstance:0014
+2026-06-01,2026-06-14,True,1839.163129123,Amazon Relational Database Service,CreateDBInstance:0021
+2026-06-01,2026-06-14,True,9.39935e-05,Amazon Relational Database Service,Not Applicable
+2026-06-01,2026-06-14,True,0.0695608,Amazon Route 53,A
+2026-06-01,2026-06-14,True,0.0265092,Amazon Route 53,AAAA
+2026-06-01,2026-06-14,True,0.0001436,Amazon Route 53,ANY
+2026-06-01,2026-06-14,True,0.001896,Amazon Route 53,CAA
+2026-06-01,2026-06-14,True,0.0050548,Amazon Route 53,CNAME
+2026-06-01,2026-06-14,True,4.64e-05,Amazon Route 53,DNAME
+2026-06-01,2026-06-14,True,0.0126332,Amazon Route 53,DNSKEY
+2026-06-01,2026-06-14,True,4.8e-06,Amazon Route 53,DS
+2026-06-01,2026-06-14,True,2e-06,Amazon Route 53,HINFO
+2026-06-01,2026-06-14,True,0.0014876,Amazon Route 53,HTTPS
+2026-06-01,2026-06-14,True,12.7,Amazon Route 53,HostedZone
+2026-06-01,2026-06-14,True,0.0100592,Amazon Route 53,MX
+2026-06-01,2026-06-14,True,3.64e-05,Amazon Route 53,NAPTR
+2026-06-01,2026-06-14,True,0.0159416,Amazon Route 53,NS
+2026-06-01,2026-06-14,True,0.0010684,Amazon Route 53,PTR
+2026-06-01,2026-06-14,True,8e-07,Amazon Route 53,RP
+2026-06-01,2026-06-14,True,0.0053336,Amazon Route 53,SOA
+2026-06-01,2026-06-14,True,2.84e-05,Amazon Route 53,SPF
+2026-06-01,2026-06-14,True,0.0018492,Amazon Route 53,SRV
+2026-06-01,2026-06-14,True,5.2e-06,Amazon Route 53,SSHFP
+2026-06-01,2026-06-14,True,1.72e-05,Amazon Route 53,SVCB
+2026-06-01,2026-06-14,True,2.4e-06,Amazon Route 53,TLSA
+2026-06-01,2026-06-14,True,0.0113432,Amazon Route 53,TXT
+2026-06-01,2026-06-14,True,1.28e-05,Amazon Route 53,UNSUPPORTED
+2026-06-01,2026-06-14,True,0.0,Amazon Simple Notification Service,CreateTopic
+2026-06-01,2026-06-14,True,0.0,Amazon Simple Notification Service,DeleteTopic
+2026-06-01,2026-06-14,True,0.0,Amazon Simple Notification Service,GetDataProtectionPolicy
+2026-06-01,2026-06-14,True,0.0,Amazon Simple Notification Service,GetTopicAttributes
+2026-06-01,2026-06-14,True,1.008e-06,Amazon Simple Notification Service,ListSubscriptions
+2026-06-01,2026-06-14,True,0.0,Amazon Simple Notification Service,ListSubscriptionsByTopic
+2026-06-01,2026-06-14,True,0.0,Amazon Simple Notification Service,ListTagsForResource
+2026-06-01,2026-06-14,True,0.0,Amazon Simple Notification Service,ListTopics
+2026-06-01,2026-06-14,True,0.0,Amazon Simple Notification Service,Publish
+2026-06-01,2026-06-14,True,0.0,Amazon Simple Notification Service,Subscribe
+2026-06-01,2026-06-14,True,6.814e-07,Amazon Simple Notification Service,SubscriptionConfirmation
+2026-06-01,2026-06-14,True,0.0,Amazon Simple Queue Service,List
+2026-06-01,2026-06-14,True,0.0610723946,Amazon Simple Storage Service,CompleteMultipartUpload
+2026-06-01,2026-06-14,True,0.3919727133,Amazon Simple Storage Service,CopyObject
+2026-06-01,2026-06-14,True,11.9191046603,Amazon Simple Storage Service,CopyPart
+2026-06-01,2026-06-14,True,5e-06,Amazon Simple Storage Service,CreateBucket
+2026-06-01,2026-06-14,True,0.0,Amazon Simple Storage Service,GeneralPurposeBuckets
+2026-06-01,2026-06-14,True,0.00018,Amazon Simple Storage Service,GetAG
+2026-06-01,2026-06-14,True,5.2e-06,Amazon Simple Storage Service,GetLensConfiguration
+2026-06-01,2026-06-14,True,5.2e-06,Amazon Simple Storage Service,GetLensConfigurationTagging
+2026-06-01,2026-06-14,True,52.4674511267,Amazon Simple Storage Service,GetObject
+2026-06-01,2026-06-14,True,0.0240605544,Amazon Simple Storage Service,HeadBucket
+2026-06-01,2026-06-14,True,23.806318936,Amazon Simple Storage Service,HeadObject
+2026-06-01,2026-06-14,True,0.0616504436,Amazon Simple Storage Service,InitiateMultipartUpload
+2026-06-01,2026-06-14,True,0.00126,Amazon Simple Storage Service,ListAGGrants
+2026-06-01,2026-06-14,True,0.00114,Amazon Simple Storage Service,ListAGLocations
+2026-06-01,2026-06-14,True,0.00114,Amazon Simple Storage Service,ListAGs
+2026-06-01,2026-06-14,True,1.1869e-06,Amazon Simple Storage Service,ListAccessPoints
+2026-06-01,2026-06-14,True,0.2630815745,Amazon Simple Storage Service,ListAllMyBuckets
+2026-06-01,2026-06-14,True,0.0009222,Amazon Simple Storage Service,ListAllMyDirectoryBuckets
+2026-06-01,2026-06-14,True,28.3693224832,Amazon Simple Storage Service,ListBucket
+2026-06-01,2026-06-14,True,8.5e-05,Amazon Simple Storage Service,ListBucketVersions
+2026-06-01,2026-06-14,True,0.0010550009,Amazon Simple Storage Service,ListLensConfigurations
+2026-06-01,2026-06-14,True,0.000325,Amazon Simple Storage Service,ListMRAPs
+2026-06-01,2026-06-14,True,5.74e-05,Amazon Simple Storage Service,ListMultipartUploads
+2026-06-01,2026-06-14,True,0.0010453024,Amazon Simple Storage Service,ListStorageLensGroups
+2026-06-01,2026-06-14,True,7e-05,Amazon Simple Storage Service,ListTableBuckets
+2026-06-01,2026-06-14,True,0.0003389326,Amazon Simple Storage Service,ObjectTagCount
+2026-06-01,2026-06-14,True,13.7783500806,Amazon Simple Storage Service,PutObject
+2026-06-01,2026-06-14,True,0.2270569262,Amazon Simple Storage Service,ReadACL
+2026-06-01,2026-06-14,True,0.0002568313,Amazon Simple Storage Service,ReadAccelerate
+2026-06-01,2026-06-14,True,0.0006037558,Amazon Simple Storage Service,ReadAccountPublicAccessBlock
+2026-06-01,2026-06-14,True,3.2e-06,Amazon Simple Storage Service,ReadBucketCors
+2026-06-01,2026-06-14,True,0.2056061394,Amazon Simple Storage Service,ReadBucketLifecycle
+2026-06-01,2026-06-14,True,0.1722772702,Amazon Simple Storage Service,ReadBucketObjectLockConfig
+2026-06-01,2026-06-14,True,0.2058070877,Amazon Simple Storage Service,ReadBucketOwnershipControls
+2026-06-01,2026-06-14,True,0.0005522544,Amazon Simple Storage Service,ReadBucketPolicy
+2026-06-01,2026-06-14,True,0.2056227534,Amazon Simple Storage Service,ReadBucketPolicyStatus
+2026-06-01,2026-06-14,True,0.2062026642,Amazon Simple Storage Service,ReadBucketPublicAccessBlock
+2026-06-01,2026-06-14,True,0.2059189627,Amazon Simple Storage Service,ReadBucketReplication
+2026-06-01,2026-06-14,True,0.2063409534,Amazon Simple Storage Service,ReadBucketServerSideEncryption
+2026-06-01,2026-06-14,True,0.1720320591,Amazon Simple Storage Service,ReadBucketWebsite
+2026-06-01,2026-06-14,True,0.2058501934,Amazon Simple Storage Service,ReadCostAllocation
+2026-06-01,2026-06-14,True,0.2045407554,Amazon Simple Storage Service,ReadLocation
+2026-06-01,2026-06-14,True,0.2060000951,Amazon Simple Storage Service,ReadLogProps
+2026-06-01,2026-06-14,True,0.0101494748,Amazon Simple Storage Service,ReadNotificationProps
+2026-06-01,2026-06-14,True,0.000516246,Amazon Simple Storage Service,ReadObjectTagging
+2026-06-01,2026-06-14,True,0.2055586315,Amazon Simple Storage Service,ReadRequestPaymentProps
+2026-06-01,2026-06-14,True,0.2059817292,Amazon Simple Storage Service,ReadVersioningProps
+2026-06-01,2026-06-14,True,2772.1284230077,Amazon Simple Storage Service,StandardStorage
+2026-06-01,2026-06-14,True,5.109915,Amazon Simple Storage Service,UploadPart
+2026-06-01,2026-06-14,True,0.0001601163,Amazon Simple Storage Service,WriteBucketPolicy
+2026-06-01,2026-06-14,True,5e-06,Amazon Simple Storage Service,WriteBucketPublicAccessBlock
+2026-06-01,2026-06-14,True,5e-06,Amazon Simple Storage Service,WriteBucketServerSideEncryption
+2026-06-01,2026-06-14,True,2.5e-05,Amazon Simple Storage Service,WriteNotificationProps
+2026-06-01,2026-06-14,True,1.58351674,Amazon Virtual Private Cloud,AllocateAddressVPC
+2026-06-01,2026-06-14,True,34.92290139,Amazon Virtual Private Cloud,AssociateAddressVPC
+2026-06-01,2026-06-14,True,8.30190142,Amazon Virtual Private Cloud,RunInstances
+2026-06-01,2026-06-14,True,21.9118912595,Amazon Virtual Private Cloud,VpcEndpoint
+2026-06-01,2026-06-14,True,0.0,AmazonCloudWatch,DashboardHour
+2026-06-01,2026-06-14,True,0.0,AmazonCloudWatch,DeleteDashboards
+2026-06-01,2026-06-14,True,0.0,AmazonCloudWatch,GetDashboard
+2026-06-01,2026-06-14,True,0.00032,AmazonCloudWatch,GetMetricData
+2026-06-01,2026-06-14,True,0.0,AmazonCloudWatch,GetMetricStatistics
+2026-06-01,2026-06-14,True,0.0433001327,AmazonCloudWatch,HourlyStorageMetering
+2026-06-01,2026-06-14,True,0.0,AmazonCloudWatch,ListMetrics
+2026-06-01,2026-06-14,True,0.0,AmazonCloudWatch,MetricStorage
+2026-06-01,2026-06-14,True,0.0,AmazonCloudWatch,MetricStorage:AWS/CloudWatchLogs
+2026-06-01,2026-06-14,True,0.0,AmazonCloudWatch,MetricStorage:AWS/EC2
+2026-06-01,2026-06-14,True,0.0,AmazonCloudWatch,PutDashboard
+2026-06-01,2026-06-14,True,88.2963108789,AmazonCloudWatch,PutLogEvents
+2026-06-01,2026-06-14,True,0.0,AmazonCloudWatch,PutMetricData
+2026-06-01,2026-06-14,True,0.4025463046,AmazonCloudWatch,Unknown
+2026-06-01,2026-06-14,True,0.0,CloudWatch Events,Invocation
+2026-06-01,2026-06-14,True,0.0,Tax,NoOperation
+2026-06-01,2026-06-14,True,0.0,Tax,CostDataStorage
+2026-06-01,2026-06-14,True,0.0,Tax,CreateDBInstance:0014
+2026-06-01,2026-06-14,True,0.0,Tax,CreateDBInstance:0021
+2026-06-01,2026-06-14,True,0.0,Tax,CreateFileSystem:Lustre
+2026-06-01,2026-06-14,True,0.0,Tax,LoadBalancing:Application
+2026-06-01,2026-06-14,True,0.0,Tax,LoadBalancing:Network
+2026-06-01,2026-06-14,True,0.0,Tax,NatGateway
+2026-06-01,2026-06-14,True,0.0,Tax,PayPerRequestThroughput
+2026-06-01,2026-06-14,True,0.0,Tax,PutLogEvents
+2026-06-01,2026-06-14,True,0.0,Tax,RunInstances
+2026-06-01,2026-06-14,True,0.0,Tax,RunInstances:SV080
+2026-06-01,2026-06-14,True,0.0,Tax,VpcEndpoint

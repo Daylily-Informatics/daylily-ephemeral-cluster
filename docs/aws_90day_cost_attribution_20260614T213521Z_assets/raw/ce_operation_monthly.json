@@ -1,0 +1,8356 @@
+{
+  "DimensionValueAttributes": [],
+  "GroupDefinitions": [
+    {
+      "Key": "OPERATION",
+      "Type": "DIMENSION"
+    }
+  ],
+  "ResultsByTime": [
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "A"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0387116",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AAAA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.015044",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ALB"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0278046",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ANY"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0001",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AllocateAddressVPC"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.007425025",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AssociateAddressVPC"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "32.94245138",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CAA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0003556",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CNAME"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0009768",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CognitoEssentialsOperation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CompleteMultipartUpload"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000615",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.3705480431",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateDBInstance:0014"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "64.6411504077",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateDBInstance:0021"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "146.7684505621",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateFileSystem:Lustre"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "793.0163059125",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateGrant"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000025",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateSnapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.5116487565",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateVolume-Gp3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "202.059112996",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CurrentKeys"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.548387072",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DNAME"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DNSKEY"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0060564",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DashboardHour"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Decrypt"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DeleteDashboards"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DeleteQueue"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DeleteSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000045",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DescribeKey"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DescribeSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000185",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "FargateTask"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "9.4912876413",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GET"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GeneralPurposeBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GenerateDataKey"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetDashboard"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetDataProtectionPolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetKeyPolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetKeyRotationStatus"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetLensConfiguration"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000064",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetLensConfigurationTagging"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000064",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetObject"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.7514678036",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetQueueAttributes"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetRandomPassword"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00002",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetResourcePolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000125",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetSMSSandboxAccountStatus"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetSecretValue"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.03849",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetTopicAttributes"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GuardDuty-CloudTrailEvents"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.87694828",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GuardDuty-LambdaNetworkLogs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0019909009",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GuardDuty-S3DataEvents"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0409365",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GuardDuty-VPCFlowLogsDNSLogs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1172879065",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HINFO"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000016",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HTTPS"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000586",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HeadBucket"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00257032",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HeadObject"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0876052325",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HostedZone"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Hourly"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HourlyStorageMetering"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "InitiateMultipartUpload"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00062",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "InterZone-In"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0022505677",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "InterZone-Out"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0082265397",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Invalidations"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Invocation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Invoke"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000163",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "List"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAGGrants"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01008",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAGLocations"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01008",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAGs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01008",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAccessPoints"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000002171",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAliases"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAllMyBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0026307955",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAllMyDirectoryBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0011404",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListBucket"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.02701",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListBucketVersions"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00001",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListGrants"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListKeys"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListLensConfigurations"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0013100027",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListMRAPs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000165",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListQueueTags"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListResourceTags"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSecretVersionIds"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00008",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSecrets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.002745",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListStorageLensGroups"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0013053744",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSubscriptions"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSubscriptionsByTopic"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListTableBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0035008",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListTagsForResource"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListTopics"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListVaults"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000241",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing-InterZone-In"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000355884",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing-InterZone-Out"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000650356",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing-PublicIP-In"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000067692",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing-PublicIP-Out"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0002463166",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing:Application"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.2851843953",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing:Network"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.9625",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MX"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0046792",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MetricStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MetricStorage:AWS/CloudWatchLogs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MetricStorage:AWS/EC2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NAPTR"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000128",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NS"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0082224",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NSEC"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000004",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NatGateway"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "191.5171002317",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NoOperation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "89.7681581",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Not Applicable"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ObjectTagCount"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000160696",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "POST"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000350307",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PTR"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.002122",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PayPerRequestThroughput"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0067415",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ProcessResourceHandlers"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PublicIP-In"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.550572332",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PublicIP-Out"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0048718543",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Publish"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutDashboard"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutLogEvents"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutMetricData"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutObject"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.012775",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutSecretValue"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00003",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadACL"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00189572",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadAccelerate"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000032",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadAccountPublicAccessBlock"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000253615",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketCors"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000032",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketLifecycle"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00002246",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketObjectLockConfig"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketOwnershipControls"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00003812",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketPolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00004572",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketPolicyStatus"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000064",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketPublicAccessBlock"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00004892",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketReplication"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00002246",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketServerSideEncryption"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00012012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadCostAllocation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00002886",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadLocation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00008168",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadLogProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00008812",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadNotificationProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00188372",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadObjectTagging"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000008",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadRequestPaymentProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000032",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadVersioningProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00004172",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Receive"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Request"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "RuleV2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.096774144",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "RunInstances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "333.7899700288",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "RunInstances:SV080"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "412.6270795433",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SC-API-Call"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SOA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0027468",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SPF"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000168",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SRV"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0019468",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SVCB"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SecretUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.9634357267",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "StandardPitrBackupStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000005982",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "StandardStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "479.1096336698",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "T3CPUCredits"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.30893535",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "TLSA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000036",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "TXT"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.006662",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "UNSUPPORTED"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000056",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "USW2-TimedStorage-ByteHrs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1777561881",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Unknown"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.1110103567",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "UploadPart"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.16631",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "VpcEndpoint"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "18.137171013",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WebACLV2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.74193536",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteCostAllocation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00001",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteObjectTagging"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00001",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "active"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-partition"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.4551164",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "nil"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "none"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1651000202",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-04-01",
+        "Start": "2026-03-16"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "NoOperation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "261.0595463814",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "A"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.104124",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AAAA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0374468",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ALB"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0040314",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ANY"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004748",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AllocateAddressVPC"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.8744834",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AssociateAddressVPC"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "57.781208345",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CAA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0017612",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CDS"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CNAME"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0060848",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CognitoEssentialsOperation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CognitoUserPoolsM2MAppClientOp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CognitoUserPoolsM2MTokenOp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.14175",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CompleteMultipartUpload"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1418",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CopyObject"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01203",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CopyPart"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.438975",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.9391166236",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateBucket"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00003",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateDBInstance:0014"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "170.1795212807",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateDBInstance:0021"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "341.1163282601",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateFileSystem:Lustre"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3924.8280150815",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateGrant"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00003",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateSnapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.9781920354",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateTopic"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateVolume-Gp3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "276.7428299146",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CurrentKeys"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.000000024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DNAME"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0001204",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DNSKEY"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0203552",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DashboardHour"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.9500032443",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Decrypt"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DeleteDashboards"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DeleteSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00003",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DeleteTopic"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DescribeKey"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DescribeSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000815",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "FargateTask"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "35.5698970163",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GET"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GeneralPurposeBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GenerateDataKey"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GenerateDataKeyWithoutPlaintext"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetBucketMetadataConfig"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetDashboard"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetDataProtectionPolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetKeyPolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetKeyRotationStatus"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetLensConfiguration"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetLensConfigurationTagging"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetObject"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1124524",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetRandomPassword"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00001",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetResourcePolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00191",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetSMSSandboxAccountStatus"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetSecretValue"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00472",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetTopicAttributes"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GuardDuty-CloudTrailEvents"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "19.06827896",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GuardDuty-LambdaNetworkLogs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000215647",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GuardDuty-S3DataEvents"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.4774654",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GuardDuty-VPCFlowLogsDNSLogs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.302891079",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HEAD"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HINFO"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000032",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HTTPS"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0022892",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HeadBucket"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00924926",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HeadObject"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.7242608",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HostedZone"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "14.1",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Hourly"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HourlyStorageMetering"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "InitiateMultipartUpload"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.14185",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "InterZone-In"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0041754436",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "InterZone-Out"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1007199732",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Invalidations"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Invocation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Invoke"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000013567",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "List"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAGGrants"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0189",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAGLocations"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0189",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAGs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0189",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAccessPoints"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000023692",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAliases"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAllMyBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.3905273045",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAllMyDirectoryBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.002117",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListBucket"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.136935",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListBucketTags"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000036",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListBucketVersions"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00017",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListGrants"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListKeys"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListLensConfigurations"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0024500054",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListMRAPs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000765",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListMetrics"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListResourceTags"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSecretVersionIds"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001495",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSecrets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01876",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListStorageLensGroups"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0024307016",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSubscriptions"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSubscriptionsByTopic"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListTableBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.006569",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListTagsForResource"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListTopics"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListVaults"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000026714",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListVectorBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000169",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing-PublicIP-In"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000004634",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing-PublicIP-Out"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000266207",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing:Application"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.7681359394",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing:Network"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "16.2",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MX"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0142368",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MetricStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.845",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MetricStorage:AWS/CloudWatchLogs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0229166683",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MetricStorage:AWS/EC2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5816664552",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NAPTR"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000324",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NS"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0253292",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NatGateway"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "402.8662608265",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NoOperation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "64.5341419",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Not Applicable"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ObjectTagCount"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000318567",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "POST"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000001282",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PTR"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0065584",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PayPerRequestThroughput"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0256468125",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ProcessResourceHandlers"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PublicIP-In"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.0807822039",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PublicIP-Out"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0305456314",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Publish"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutDashboard"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutLogEvents"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutMetricData"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutObject"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.79664",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutSecretValue"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00007",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "REQUEST_CERTIFICATE"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadACL"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0068919975",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadAccelerate"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000392",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadAccountPublicAccessBlock"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0010785568",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketAbac"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000002",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketAnalytics"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000008",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketCors"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000038",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketIntelligentTiering"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketInventory"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000016",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketLifecycle"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0003865503",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketObjectLockConfig"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000120051",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketOwnershipControls"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0007442884",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketPolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0007628904",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketPolicyStatus"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000204057",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketPublicAccessBlock"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0007580023",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketReplication"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0003851504",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketServerSideEncryption"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0008688766",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketWebsite"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000004",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadCostAllocation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004038178",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadLocation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0007797068",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadLogProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00079793",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadNotificationProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0068220822",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadObjectTagging"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000064",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadRequestPaymentProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000388",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadVersioningProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0008163972",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "RenewDomain"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "130",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Request"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "RestoreSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "RuleV2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.2906279859",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "RunInstances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1370.338650591",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "RunInstances:SV080"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "675.0688873645",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SC-API-Call"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SOA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0086012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SPF"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SRV"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0038448",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SVCB"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SecretUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.4073960308",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "StandardPitrBackupStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000011521",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "StandardStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1456.3961935387",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Storage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000452052",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Subscribe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SubscriptionConfirmation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "TLSA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000036",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "TXT"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0189764",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "UNSUPPORTED"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000252",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "USW2-TimedStorage-ByteHrs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4761489983",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Unknown"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.4829186226",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "UploadPart"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "16.198465",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "VpcEndpoint"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "50.4686252224",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WebACLV2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.726569964",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteBucketOwnershipControls"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteBucketPolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00003",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteBucketPublicAccessBlock"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000025",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteBucketServerSideEncryption"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000015",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteCostAllocation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteObjectTagging"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00001",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteVersioningProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000015",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "active"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-partition"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.28318264",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "none"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.9598086808",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-05-01",
+        "Start": "2026-04-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "NoOperation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "680.902151147",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "A"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.108856",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AAAA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0411888",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ANY"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0003688",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AllocateAddressVPC"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.782322305",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AssociateAddressVPC"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "68.070956925",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CAA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0016036",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CDNSKEY"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CDS"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CNAME"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0050944",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CancelRotateSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CognitoEssentialsOperation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CognitoUserPoolsM2MAppClientOp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CognitoUserPoolsM2MTokenOp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.02925",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CompleteMultipartUpload"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5938469874",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CopyObject"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.4737431324",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CopyObjectGet"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0405257284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CopyPart"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "26.3404280869",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.1957636451",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateAlias"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateBucket"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000045",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateDBInstance:0014"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "210.7092937331",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateDBInstance:0021"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1837.510201063",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateFileSystem:Lustre"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4675.5496062546",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateGrant"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000453",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateKey"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00004",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateSnapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.1079046419",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateTopic"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateVolume-Gp3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "338.1174000971",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CurrentKeys"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.931451566",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DNAME"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000852",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DNSKEY"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0175204",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DashboardHour"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.7701599624",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Decrypt"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000342",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DeleteAlias"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DeleteDashboards"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DeleteSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000025",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DeleteTopic"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DescribeKey"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000489",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DescribeSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00093",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EnableKeyRotation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Encrypt"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Execution"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "FargateTask"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "55.1299283869",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GET"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GeneralPurposeBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GenerateDataKey"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000066",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GenerateDataKeyWithoutPlaintext"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000225",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetBucketMetadataConfig"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000889",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "59.51",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostForecast"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetDashboard"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetDataProtectionPolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetKeyLastUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetKeyPolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000279",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetKeyRotationStatus"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000045",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetLensConfiguration"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000128",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetLensConfigurationTagging"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000128",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetMetricData"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00054",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetMetricStatistics"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetObject"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "36.2702436517",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetPublicKey"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetRandomPassword"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetResourcePolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.002565",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetSecretValue"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01879",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetTags"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.16",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetTopicAttributes"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GuardDuty-CloudTrailEvents"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "81.78004052",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GuardDuty-LambdaNetworkLogs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000268406",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GuardDuty-S3DataEvents"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "25.71539421",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GuardDuty-VPCFlowLogsDNSLogs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.7659961896",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HEAD"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HINFO"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000002",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HTTPS"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0018352",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HeadBucket"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.026920808",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HeadObject"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "12.1994630587",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HostedZone"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "14.5",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Hourly"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HourlyStorageMetering"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "InitiateMultipartUpload"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5928933703",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "InterZone-In"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0083109069",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "InterZone-Out"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0358868683",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Invalidations"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Invocation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Invoke"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000063428",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "List"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAGGrants"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01878",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAGLocations"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01872",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAGs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01881",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAccessPoints"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000028974",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAliases"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000276",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAllMyBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.6865288194",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAllMyDirectoryBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0022658",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListBucket"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "30.8751576305",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListBucketTags"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000008934",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListBucketVersions"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0002252108",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListDirectoryAccessPoints"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListGrants"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000096",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListJobs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000005038",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListKeys"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000942",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListLensConfigurations"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0026150045",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListMRAPs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000795",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListMetrics"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListMultipartUploads"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000148831",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListParts"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000010139",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListResourceTags"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSecretVersionIds"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00242",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSecrets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.023035",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListStorageLensGroups"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0025707424",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSubscriptions"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000035099",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSubscriptionsByTopic"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000001619",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListTableBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0051766016",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListTagsForResource"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListTopics"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000001018",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListVaults"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000032412",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListVectorBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00011",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.006048073",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing-PublicIP-In"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000043929",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing-PublicIP-Out"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000946972",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing:Application"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "8.4629811674",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing:Network"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "16.74",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MX"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0154192",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MetricStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.7334678481",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MetricStorage:AWS/CloudWatchLogs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0580645152",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MetricStorage:AWS/EC2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.083870984",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NAPTR"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000124",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NS"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.025024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NSEC"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000004",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NSEC3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000002",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NSEC3PARA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000056",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NatGateway"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "798.7630567993",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NoOperation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "80.5876884438",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "None"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "32.533505",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Not Applicable"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0003302167",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ObjectTagCount"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0005710545",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PTR"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0040056",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PayPerRequestThroughput"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0380660625",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ProcessResourceHandlers"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PublicIP-In"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "12.2607024928",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PublicIP-Out"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.134522568",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Publish"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutDashboard"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutLogEvents"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "75.5112650336",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutMetricData"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutObject"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "18.6376674159",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutSecretValue"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "REQUEST_CERTIFICATE"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadACL"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0415432422",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadAccelerate"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0003513453",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadAccountPublicAccessBlock"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0013131585",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketAbac"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000004441",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketAnalytics"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000004137",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketCors"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000436316",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketIntelligentTiering"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000008867",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketLifecycle"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0181967139",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketObjectLockConfig"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0084998701",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketOwnershipControls"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0185976166",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketPolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0012149365",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketPolicyStatus"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0176859806",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketPublicAccessBlock"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01873428",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketReplication"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0181469737",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketServerSideEncryption"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0189017137",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketWebsite"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.008437499",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadCostAllocation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0183206396",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadLocation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0190562589",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadLogProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0187024148",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadNotificationProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0138178009",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadObjectAttributes"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000212",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadObjectTagging"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0012186037",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadRequestPaymentProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0176278159",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadVersioningProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0187735232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Request"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "RuleV2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.999999968",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "RunInstances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2728.7777689441",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "RunInstances:SV080"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "8488.6435247265",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SC-API-Call"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SOA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0085672",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SPF"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000448",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SRV"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0036668",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SSHFP"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000016",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SVCB"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000032",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ScheduleKeyDeletion"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SecretUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.0070803036",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Sign"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000285",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "StandardPitrBackupStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000011564",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "StandardStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3467.4937814182",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Storage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000724317",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Subscribe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SubscriptionConfirmation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000025061",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "TLSA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000112",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "TXT"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0186364",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "TimedStorage-ByteHrs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0373716792",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "UNSUPPORTED"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000572",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "USW2-TimedStorage-ByteHrs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.6666455514",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Unknown"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.7629279693",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Unsubscribe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "UpdateSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "UploadPart"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "45.5321176028",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "VpcEndpoint"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "52.2550249524",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WebACLV2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.99999992",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteACL"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteAccelerate"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteBucketLifecycle"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00002",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteBucketOwnershipControls"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000035",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteBucketPolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00017",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteBucketPublicAccessBlock"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000075",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteBucketServerSideEncryption"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000025",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteCostAllocation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000654",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteLogProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteNotificationProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00037",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteObjectTagging"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00057",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteVersioningProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00002",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "active"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-partition"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.70221616",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "downloadLayer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000008349",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "none"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.7443435764",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-01",
+        "Start": "2026-05-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "NoOperation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "345.0288933945",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "A"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0695608",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AAAA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0265092",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ANY"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0001436",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AllocateAddressVPC"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.58351674",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AssociateAddressVPC"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.92290139",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CAA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001896",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CNAME"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0050548",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CognitoEssentialsOperation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CognitoUserPoolsM2MAppClientOp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CompleteMultipartUpload"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0610723946",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CopyObject"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.3919727133",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CopyPart"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "11.9191046603",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.2544126667",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateBucket"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateDBInstance:0014"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "70.5938878163",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateDBInstance:0021"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1843.4964624598",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateFileSystem:Lustre"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "805.5502898008",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateGrant"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.002406",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000035",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateSnapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.5560615401",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateTopic"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CreateVolume-Gp3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "191.6278747028",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CurrentKeys"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.7319444583",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DNAME"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000464",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DNSKEY"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0126332",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DS"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DashboardHour"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Decrypt"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.741236",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DeleteDashboards"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DeleteSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DeleteTopic"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DescribeKey"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.002082",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "DescribeSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000385",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Execution"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "FargateTask"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "23.1340503581",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GET"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GeneralPurposeBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GenerateDataKey"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.011976",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GenerateDataKeyWithoutPlaintext"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001203",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetAG"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00018",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "198.5",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostForecast"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetDashboard"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetDataProtectionPolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetDimensionValues"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.04",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetKeyPolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001119",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetKeyRotationStatus"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00015",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetLensConfiguration"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000052",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetLensConfigurationTagging"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000052",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetMetricData"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00032",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetMetricStatistics"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetObject"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "52.4674511267",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetRandomPassword"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetReservationPurchaseRecs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetResourcePolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00127",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetSavingsPlansCoverage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetSavingsPlansPurchaseRecs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetSecretValue"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.008905",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetTopicAttributes"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GuardDuty-CloudTrailEvents"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "51.4524704",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GuardDuty-S3DataEvents"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "32.55434292",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GuardDuty-VPCFlowLogsDNSLogs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5847461184",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HEAD"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HINFO"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000002",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HTTPS"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0014876",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HeadBucket"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0240605544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HeadObject"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "23.806318936",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HostedZone"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "12.7",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Hourly"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "HourlyStorageMetering"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0433001327",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "InitiateMultipartUpload"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0616504436",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "InterZone-In"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1104057384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "InterZone-Out"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0341965467",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Invalidations"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Invocation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Invoke"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000036479",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "List"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAGGrants"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00126",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAGLocations"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00114",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAGs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00114",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAccessPoints"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000011869",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAliases"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001029",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAllMyBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2630815745",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListAllMyDirectoryBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0009222",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListBucket"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "28.3693224832",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListBucketVersions"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000085",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListGrants"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000573",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListKeys"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00378",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListLensConfigurations"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0010550009",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListMRAPs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000325",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListMetrics"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListMultipartUploads"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000574",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListResourceTags"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000153",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSecretVersionIds"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00126",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSecrets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00993",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListStorageLensGroups"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0010453024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSubscriptions"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000001008",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListSubscriptionsByTopic"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListTableBuckets"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00007",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListTagsForResource"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListTopics"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ListVaults"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000001339",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0069720974",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing-PublicIP-In"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000066774",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing-PublicIP-Out"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0001344295",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing:Application"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.023353853",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "LoadBalancing:Network"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.02",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MX"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0100592",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MetricStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MetricStorage:AWS/CloudWatchLogs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "MetricStorage:AWS/EC2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NAPTR"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000364",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NS"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0159416",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NatGateway"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "181.111563474",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "NoOperation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "43.9134765472",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "None"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "88.479571",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Not Applicable"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000939935",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "OPTIONS"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ObjectTagCount"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0003389326",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "POST"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PTR"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0010684",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PayPerRequestThroughput"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.012222875",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ProcessResourceHandlers"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PublicIP-In"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.7867979201",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PublicIP-Out"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.6183658127",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Publish"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutDashboard"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutLogEvents"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "88.2963108789",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutMetricData"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutObject"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "13.7783500806",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "PutSecretValue"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000025",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "RP"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000008",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadACL"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2270569262",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadAccelerate"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0002568313",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadAccountPublicAccessBlock"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0006037558",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketCors"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000032",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketLifecycle"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2056061394",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketObjectLockConfig"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1722772702",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketOwnershipControls"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2058070877",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketPolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0005522544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketPolicyStatus"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2056227534",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketPublicAccessBlock"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2062026642",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketReplication"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2059189627",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketServerSideEncryption"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2063409534",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadBucketWebsite"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1720320591",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadCostAllocation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2058501934",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadLocation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2045407554",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadLogProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2060000951",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadNotificationProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0101494748",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadObjectTagging"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000516246",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadRequestPaymentProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2055586315",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ReadVersioningProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2059817292",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Request"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "RuleV2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.8666666736",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "RunInstances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1830.9134403543",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "RunInstances:SV080"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3335.4362777818",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SC-API-Call"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SOA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0053336",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SPF"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SRV"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0018492",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SSHFP"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000052",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SVCB"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000172",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SecretUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.4053138094",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "StandardPitrBackupStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000004997",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "StandardStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2772.1284230077",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Storage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000387575",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Subscribe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "SubscriptionConfirmation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000006814",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "TLSA"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "TXT"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0113432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "TagResource"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "TimedStorage-ByteHrs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.3919471009",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "UNSUPPORTED"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000128",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "USW2-TimedStorage-ByteHrs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5603952776",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Unknown"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4025472511",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "UpdateSecret"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00001",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "UploadPart"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.109915",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "VpcEndpoint"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "21.9118912595",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WebACLV2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.166666684",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteBucketPolicy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0001601163",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteBucketPublicAccessBlock"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteBucketServerSideEncryption"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "WriteNotificationProps"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000025",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "active"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-partition"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.2350988",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "downloadLayer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "none"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1427805114",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-14",
+        "Start": "2026-06-01"
+      },
+      "Total": {}
+    }
+  ]
+}

@@ -1,0 +1,1466 @@
+hg38_samples_table: .test_data/data/0.01xwgs_HG002_hg38.samples.tsv
+hg38_units_table: .test_data/data/0.01xwgs_HG002_hg38.units.tsv
+hg38_broad_samples_table: config/samples.tsv
+hg38_broad_units_table: config/units.tsv
+b37_samples_table: .test_data/data/0.01xwgs_HG002_b37.samples.tsv
+b37_units_table: .test_data/data/0.01xwgs_HG002_b37.units.tsv
+profile_name: slurm
+valid_biome: AWSPC
+prep_input_sample_files:
+  source_read_method: ' ln -s  '
+  partition: i192,i128
+  threads: 48
+  use_threads: 48
+  mem_mb: 20000
+  constraint: ''
+  distribution: block
+  exclude: ''
+  include: ''
+  exclusive: ''
+  env_yaml: ../envs/prep_input_sample_files_v0.1.yaml
+malloc_alt:
+  ld_preload: '  '
+alignstats:
+  threads: 96
+  partition: i384nvme,i192nvme,i128nvme
+  num_reads_in_mem: ' '
+  env_yaml: ../envs/alignstats_v0.2.yaml
+  glances: ' '
+  ld_preload: '  '
+  mem_mb: 128000
+bcftools_vcfstat:
+  threads: 16
+bcl2fq:
+  bcl2fq_cmd:
+    use_bases_mask: ' --use-bases-mask  y150n1,i8,i8,y150n1 '
+    addl_flags: ' --fastq-compression-level 1  --create-fastq-for-index-reads  --ignore-missing-bcls
+      --adapter-stringency=0.9 --mask-short-adapter-reads 22  --minimum-trimmed-read-length
+      35 '
+    barcode_mismatch: 0
+    threads_loading: 96
+    threads_writing: 0
+    threads_processing: 180
+    env_yaml: ../envs/bcl2fq_v0.2.yaml
+    b2fq_addl_flags: ''
+    2fq_use_bases_mask: ''
+  env_yaml: ../envs/bcl2fq_v0.2.yaml
+  threads: 96
+  ex_uid: EX00000
+  have_you_double_checked_your_inputs_and_settings: true
+  lanes: L001,L002,L003,L004
+  ru_path: /fsx/
+  ru_uid: RU0000
+  sample_sheet: config/bcl2fastq_samplesheet.csv
+  ld_preload: '  '
+  b2fq_addl_flags: ''
+  2fq_use_bases_mask: ''
+  partition: i192
+  mem_mb: 3000
+bclconvert:
+  run_dir: ''
+  sample_sheet: SampleSheet.csv
+  output_root: results/bclconvert
+  run_id: ''
+  libprep: PCR-FREE
+  seq_vendor: ILMN
+  seq_platform_override: ''
+  force: false
+  merge_lane_fastqs: false
+  merge_tile_fastqs: false
+  keep_undetermined_fastqs: true
+  sampleproject_subdirectories: false
+  strict_mode: false
+  first_tile_only: false
+  extra_args: ''
+  threads: 48
+  mem_mb: 500000
+  partition: i192hugenvme
+  constraint: ''
+  exclusive: ''
+  tmpdir: /scratch/dayoa_bclconvert_tmp
+  scratch_output_root: /scratch/dayoa_bclconvert
+  scratch_available_bytes_min: 100000000000
+  parallel_tiles: 8
+  conversion_threads: 2
+  compression_threads: 24
+  decompression_threads: 8
+  tile_shard_level: '16'
+  tile_shard_lanes: ''
+  tile_shard_tile_limit: 0
+  tile_shard_tile_names: ''
+  tile_shard_threads: 48
+  tile_shard_mem_mb: 500000
+  tile_parallel_tiles: 8
+  tile_conversion_threads: 2
+  tile_compression_threads: 24
+  tile_decompression_threads: 8
+  fastq_gzip_compression_level: 1
+  shared_thread_odirect_output: true
+  output_legacy_stats: true
+  num_unknown_barcodes_reported: 1000
+  demux_qc_threads: 32
+  demux_qc_mem_mb: 64000
+  barcode_mismatches_index1: 0
+  barcode_mismatches_index2: 0
+bcl2fq_by_lane:
+  threads: 16
+  partition: i192
+  mem_mb: 3000
+bwa_mem2a_aln_sort:
+  env_yaml: ../envs/bwasamtools_v0.1.yaml
+  partition: i192nvme,i384nvme
+  threads: 384
+  bwa_threads: 254
+  orig_threads: 8
+  sort_threads: 48
+  mem_mb: 650000
+  igz: '  igzip -cd -T 64 '
+  benchmark_runs: 0
+  cmd: ' numactl --interleave=all env OMP_NUM_THREADS=384 OMP_PLACES=cores OMP_PROC_BIND=spread
+    OMP_DYNAMIC=false OMP_MAX_ACTIVE_LEVELS=1 OMP_SCHEDULE=dynamic OMP_WAIT_POLICY=ACTIVE
+    resources/bwa-mem2/bwa-mem2 '
+  bwa_opts: '  -k 19 -Y -M -K 2000000000  '
+  sort_thread_mem: 8G
+  mbuffer: ' | mbuffer -m 64G -q -s 2M  '
+  constraint: ''
+  partition_strategy: spot_price_runtime
+  allowed_partitions:
+  - i384nvme
+  - i192nvme
+  spot_price_region: us-west-2
+  spot_price_availability_zone: us-west-2d
+  partition_instance_catalog:
+    i384nvme:
+    - c8id.96xlarge
+    - c8id.metal-96xl
+    - m8id.96xlarge
+    - m8id.metal-96xl
+    - r8id.96xlarge
+    - r8id.metal-96xl
+    i192nvme:
+    - c8id.48xlarge
+    - c8id.metal-48xl
+    - m8id.48xlarge
+    - m8id.metal-48xl
+    - r8id.48xlarge
+    - r8id.metal-48xl
+sentmm2_align_sort:
+  env_yaml: ../envs/sentmm2_v0.1.yaml
+  partition: i384nvme,i192nvme
+  threads: 192
+  minimap2_threads: 160
+  sort_threads: 32
+  mem_mb: 200000
+  sort_thread_mem: 3G
+  minimap2_opts: ' -ax map-hifi '
+  mbuffer: ' | mbuffer -m 32G -q -s 2M '
+  constraint: ''
+sentmm2ont_align_sort:
+  env_yaml: ../envs/sentmm2ont_v0.1.yaml
+  partition: i384nvme
+  threads: 192
+  minimap2_threads: 160
+  sort_threads: 32
+  mem_mb: 650000
+  sort_thread_mem: 3G
+  minimap2_opts: ' -ax map-ont '
+  mbuffer: ' | mbuffer -m 32G -q -s 2M '
+  constraint: ''
+strobe_align_sort:
+  env_yaml: ../envs/strobe_aligner.yaml
+  partition: i384nvme,i192nvme
+  threads: 192
+  strobe_threads: 128
+  sort_threads: 64
+  tofq_threads: 2
+  mem_mb: 200000
+  benchmark_runs: 0
+  igz: '  igzip -cd -T 32 '
+  cmd: '  OMP_NUM_THREADS=192 OMP_PLACES=threads OMP_PROC_BIND=close OMP_DYNAMIC=true
+    OMP_MAX_ACTIVE_LEVELS=1 OMP_SCHEDULE=dynamic OMP_WAIT_POLICY=ACTIVE resources/strobealign/bin/strobealign  '
+  strobe_opts: ' -N 5   '
+  sort_thread_mem: 524M
+  mbuffer: '  | mbuffer -m 128G -q -s 2M '
+  constraint: ''
+clair3:
+  threads: 64
+  ont_threads: 96
+  clair3_threads: 64
+  partition: i384nvme,i192nvme,i192,i128
+  samview_threads: 8
+  partition_other: i384nvme,i192nvme,i192,i128
+  mem_mb: 85000
+  numa: ' '
+  hg38_clair3_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  hg38_broad_clair3_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  b37_clair3_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+clean:
+  env_yaml: envs/vanilla_v0.1.yaml
+  partition: i192
+  mem_mb: 3000
+deepvariant:
+  threads: 42
+  deep_threads: 42
+  deep_cmd: ' '
+  ld_preload: ' '
+  partition: i384nvme,i192nvme,i192,i128
+  partition_other: i384nvme,i192nvme,i192,i128
+  mem_mb: 85000
+  hg38_deep_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  hg38_broad_deep_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  b37_deep_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  numa: ' OMP_NUM_THREADS=42 OMP_PROC_BIND=close OMP_PLACES=threads  OMP_DYNAMIC=true
+    OMP_MAX_ACTIVE_LEVELS=1 OMP_SCHEDULE=dynamic OMP_WAIT_POLICY=ACTIVE '
+  deep19_conda: ../envs/vanilla_v0.1.yaml
+  deep19_container: docker://daylilyinformatics/deepvariant-avx512:1.9.0b
+  deep15_conda: ../envs/vanilla_v0.1.yaml
+  deep15_container: docker://daylilyinformatics/deepvariant-avx512:1.5.0
+  deepug_cv_container: docker://google/deepvariant:1.9.0
+  deepug_conda: ../envs/vanilla_v0.1.yaml
+  deepug_me_container: docker://google/deepvariant:1.9.0
+deepvariant_1_9_roche:
+  threads: 128
+  deep_threads: 128
+  deep_cmd: ' '
+  ld_preload: ' '
+  partition: i192hugenvme,i192nvme,i384nvme
+  partition_other: i192hugenvme,i192nvme,i384nvme
+  mem_mb: 85000
+  hg38_deep_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  hg38_broad_deep_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  b37_deep_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  numa: ' OMP_NUM_THREADS=128 OMP_PROC_BIND=close OMP_PLACES=threads  OMP_DYNAMIC=true
+    OMP_MAX_ACTIVE_LEVELS=1 OMP_SCHEDULE=dynamic OMP_WAIT_POLICY=ACTIVE '
+  conda: ../envs/vanilla_v0.1.yaml
+  container: docker://google/deepvariant:pangenome_aware_deepvariant-sbx
+deepsomatic:
+  threads: 42
+  deep_threads: 42
+  env_yaml: ../envs/deepvariant_v0.1.yaml
+  container: docker://google/deepsomatic:1.9.0
+  partition: i384nvme,i192nvme,i192,i128
+  partition_other: i384nvme,i192nvme,i192,i128
+  mem_mb: 85000
+  hg38_dvsom_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  hg38_broad_dvsom_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  b37_dvsom_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  numa: ' OMP_NUM_THREADS=42 OMP_PROC_BIND=close OMP_PLACES=threads  OMP_DYNAMIC=true
+    OMP_MAX_ACTIVE_LEVELS=1 OMP_SCHEDULE=dynamic OMP_WAIT_POLICY=ACTIVE '
+  dvsom_conda: ../envs/vanilla_v0.1.yaml
+mutect2:
+  threads: 42
+  container: docker://broadinstitute/gatk:4.5.0.0
+  partition: i384nvme,i192nvme,i192,i128
+  partition_other: i384nvme,i192nvme,i192,i128
+  mem_mb: 85000
+  hg38_mutect2_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  hg38_broad_mutect2_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  b37_mutect2_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  numa: ''
+  conda: ../envs/vanilla_v0.1.yaml
+duphold:
+  threads: 32
+  env_yaml: ../envs/duphold_v0.1.yaml
+  numactl: none
+  ld_preload: '  '
+  partition: i192
+  mem_mb: 3000
+doppelmark:
+  threads: 192
+  doppelmark_threads: 192
+  view_threads: 8
+  view_mem: 2G
+  mbuffer_mem: 1G
+  partition: i384nvme,i192nvme
+  mem_mb: 600000
+  clip_padding: 800
+  shard_size: 50000000
+  min_bases: 20000
+  queue_length: 1250
+  cram_compression: 1
+  ld_preload: '  '
+  compress_threads: 96
+  compress_mem: 2750M
+  env_yaml: ../envs/vanilla_v0.1.yaml
+  dop_opts: ' -max-depth 3000 '
+  numa: ' OMP_NUM_THREADS=192 OMP_PROC_BIND=close OMP_PLACES=threads OMP_DYNAMIC=true
+    OMP_MAX_ACTIVE_LEVELS=1 OMP_SCHEDULE=dynamic OMP_WAIT_POLICY=ACTIVE '
+  constraint: ''
+sent_dedup:
+  threads: 192
+  partition: i384nvme,i192nvme
+  mem_mb: 200000
+  env_yaml: ../envs/sentieon_v0.1.yaml
+  numactl: '  OMP_NUM_THREADS=192 OMP_PROC_BIND=close OMP_PLACES=threads OMP_DYNAMIC=true
+    OMP_MAX_ACTIVE_LEVELS=1 OMP_SCHEDULE=dynamic OMP_WAIT_POLICY=ACTIVE '
+  cram_opts: ' --cram_write_options version=3.0,compressor=rans '
+  tmp_base: /scratch
+  index_threads: 16
+  optical_distance: 2500
+  constraint: ''
+dysgu:
+  threads: 64
+  env_yaml: ../envs/dysgu_sv_v0.2.yaml
+  min_sv_size: 30
+  ld_preload: '  '
+  partition: i384nvme,i192nvme,i192,i128
+  mem_mb: 3000
+dysgu_sort_index:
+  threads: 8
+  partition: i192
+  mem_mb: 3000
+no_dedup:
+  env_yaml: ../envs/samtools_v0.1.yaml
+multiqc_qc:
+  enable_long_running: false
+  enable_tools: []
+  disable_tools: []
+  include_no_dedup_alignment_qc: true
+  runtime_gate_minutes: 45
+unmapped_metagenomics:
+  kraken2_db: /fsx/references/runtime_assets/tool_specific_resources/metagenomics/kraken2/k2_pluspfp_16_GB_20260226
+  ganon2_db_prefixes:
+  - /fsx/references/runtime_assets/tool_specific_resources/ganon2/dayoa_qc_refseq_abfv_complete_top1_20260528
+  sourmash_databases:
+  - /fsx/references/runtime_assets/tool_specific_resources/sourmash/gtdb-rs226/gtdb-reps-rs226-k31.dna.zip
+  sourmash_ksize: 31
+  sourmash_scaled: 1000
+  sourmash_moltype: DNA
+  sourmash_threshold_bp: 3000
+  threads: 16
+  mem_mb: 64000
+  partition: i192
+  read_limit: all
+  read_set: p
+  permissive_mapq_lt: 20
+  memory_mapping: false
+truvari_sv_benchmark:
+  env_yaml: ../envs/truvari_v0.1.yaml
+  threads: 32
+  mem_mb: 64000
+  partition: i192
+  extra_args: ''
+  truthsets:
+    HG002:
+      alt_id: HG002
+      regions:
+        giab_sv_v5_0q_hc:
+          truth_vcf: /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/sv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_stvar.vcf.gz
+          truth_tbi: /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/sv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_stvar.vcf.gz.tbi
+          truth_bed: /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/sv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_stvar.benchmark.bed
+htd_callers:
+- smn12
+- smaca
+- sma_finder
+- hapsma
+smaca:
+  command: smaca
+  extra_args: ''
+  summary_filename: SMAca_results.tsv
+  threads: 192
+  mem_mb: 250000
+  partition: i192hugenvme,i192nvme,i384nvme
+sma_finder:
+  command: sma_finder
+  extra_args: ''
+  threads: 192
+  mem_mb: 250000
+  partition: i192hugenvme,i192nvme,i384nvme
+gauchian:
+  threads: 1
+  mem_mb: 32000
+  partition: i192hugenvme,i192nvme,i384nvme
+cyrius:
+  threads: 128
+  mem_mb: 128000
+  partition: i192hugenvme,i192nvme,i384nvme
+smn12:
+  threads: 192
+  mem_mb: 250000
+  partition: i192hugenvme,i192nvme,i384nvme
+hapsma:
+  dev_exploratory: true
+  ploidy: '1'
+  start: bam_single_remap
+  smn_region: chr5:69949523-71054173
+  min_smn_region_mean_coverage: 4
+  calling_target_bed: /fsx/references/runtime_assets/tool_specific_resources/hapsma/hg38_broad/SMN_region_38.smn_only.bed
+  calling_target_region: chr5:69949523-71054173
+  phaseset_region: chr5:69949523-71054173
+  homopolymer_bed: /fsx/references/runtime_assets/tool_specific_resources/hapsma/hg38_broad/hg38_broad_smn_100kb_pad_homopolymer_run3.bed
+  clair3model: /fsx/references/runtime_assets/tool_specific_resources/clair3/models/r1041_e82_400bps_sup_v500
+  clair3_optional: --haploid_sensitive --platform=ont --enable_long_indel
+  minimap_index: /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.map-ont.mmi
+  minimap_param: -y -ax map-ont
+  fastq_tags: RG,Mm,Ml,MM,ML
+  min_read_length: 1000
+  threads: 192
+  mem_mb: 250000
+  partition: i192hugenvme,i192nvme,i384nvme
+verifybamid2_panels: []
+verifybamid2_panel_svd_prefixes: {}
+expansionhunter:
+  version: 5.0.0
+  threads: 16
+  mem_mb: 32000
+  partition: i384nvme,i192nvme,i192,i128
+  env_yaml: ../envs/expansionhunter_v0.1.yaml
+  variant_catalog: resources/strchive/STRchive-disease-loci.hg38.stranger.json
+  analysis_mode: seeking
+  region_extension_length: 1000
+  extra_args: ''
+longtr:
+  env_yaml: ../envs/longtr_v0.1.yaml
+  command: LongTR
+  threads: 8
+  mem_mb: 64000
+  partition: i384nvme,i192nvme,i192,i128
+  aligners:
+  - ont
+  - sentmm2ont
+  deduper: na
+  extra_args: ''
+  catalogs:
+    all:
+      name: trexplorer_catalog
+      regions_bed: /fsx/references/runtime_assets/tool_specific_resources/longtr/trexplorer_catalog/TRExplorer.repeat_catalog_v2.hg38.1_to_1000bp_motifs.LongTR.bed.gz
+    diseaser:
+      name: disease_repeat_catalog
+      regions_bed: /fsx/references/runtime_assets/tool_specific_resources/longtr/disease_repeat_catalog/dayoa_STRchive-disease-loci.hg38.longtr.bed.gz
+fastp:
+  threads: 16
+  env_yaml: ../envs/fastp_v0.1.yaml
+  filter_avg_q_score: 9
+  other_args: '  '
+  ld_preload: '  '
+  partition: i192
+  mem_mb: 3000
+fastqc:
+  threads: 32
+  fastqc_threads: 32
+  env_yaml: ../envs/fastqc_v0.1.yaml
+  extract: '  '
+  ld_preload: ' '
+  partition: i192,i128
+  mem_mb: 3000
+fastv:
+  threads: 16
+  env_yaml: ../envs/fastv_v0.1.yaml
+  ld_preload: '  '
+  partition: i192
+  mem_mb: 3000
+go_left:
+  env_yaml: ../envs/go_left_v0.1.yaml
+  threads: 16
+  partition: i192,i128
+  mem_mb: 3000
+genetocn:
+  env_yaml: ../envs/genetocn_v0.1.yaml
+  partition: i384nvme,i192nvme,i192,i128
+  threads: 32
+  mem_mb: 64000
+  reference: ''
+  panel: ''
+  intervals: ''
+  annotation: ''
+  extra_args: ''
+  command_template: ''
+kat:
+  threads: 64
+  heap_size: 3G
+  benchmark_rounds: 0
+  env_yaml: ../envs/kat_v0.1.yaml
+  partition: i192,i128
+  mem_mb: 3000
+lofreq2:
+  threads: 1
+  samview_threads: 1
+  lofreq_threads: 1
+  partition: i384nvme,i192nvme,i128,i192
+  mem_mb: 1100
+  hg38_lofreq_chrms: 1~1-50000000,1~50000001-100000000,1~100000001-150000000,1~150000001-200000000,1~200000001-248956422,2~1-50000000,2~50000001-100000000,2~100000001-150000000,2~150000001-200000000,2~200000001-242193529,3~1-50000000,3~50000001-100000000,3~100000001-150000000,3~150000001-198295559,4~1-50000000,4~50000001-100000000,4~100000001-150000000,4~150000001-190214555,5~1-50000000,5~50000001-100000000,5~100000001-150000000,5~150000001-181538259,6~1-50000000,6~50000001-100000000,6~100000001-150000000,6~150000001-170805979,7~1-50000000,7~50000001-100000000,7~100000001-150000000,7~150000001-159345973,8~1-50000000,8~50000001-100000000,8~100000001-145138636,9~1-50000000,9~50000001-100000000,9~100000001-138394717,10~1-50000000,10~50000001-100000000,10~100000001-133797422,11~1-50000000,11~50000001-100000000,11~100000001-135086622,12~1-50000000,12~50000001-100000000,12~100000001-133275309,13~1-50000000,13~50000001-100000000,13~100000001-114364328,14~1-50000000,14~50000001-100000000,14~100000001-107043718,15~1-50000000,15~50000001-100000000,15~100000001-101991189,16~1-50000000,16~50000001-90338345,17~1-50000000,17~50000001-83257441,18~1-50000000,18~50000001-80373285,19~1-50000000,19~50000001-58617616,20~1-50000000,20~50000001-64444167,21~1-46709983,22~1-50000000,22~50000001-50818468,23~1-50000000,23~50000001-100000000,23~100000001-150000000,23~150000001-156040895,24~1-50000000,24~50000001-57227415
+  hg38_broad_lofreq_chrms: 1~1-50000000,1~50000001-100000000,1~100000001-150000000,1~150000001-200000000,1~200000001-248956422,2~1-50000000,2~50000001-100000000,2~100000001-150000000,2~150000001-200000000,2~200000001-242193529,3~1-50000000,3~50000001-100000000,3~100000001-150000000,3~150000001-198295559,4~1-50000000,4~50000001-100000000,4~100000001-150000000,4~150000001-190214555,5~1-50000000,5~50000001-100000000,5~100000001-150000000,5~150000001-181538259,6~1-50000000,6~50000001-100000000,6~100000001-150000000,6~150000001-170805979,7~1-50000000,7~50000001-100000000,7~100000001-150000000,7~150000001-159345973,8~1-50000000,8~50000001-100000000,8~100000001-145138636,9~1-50000000,9~50000001-100000000,9~100000001-138394717,10~1-50000000,10~50000001-100000000,10~100000001-133797422,11~1-50000000,11~50000001-100000000,11~100000001-135086622,12~1-50000000,12~50000001-100000000,12~100000001-133275309,13~1-50000000,13~50000001-100000000,13~100000001-114364328,14~1-50000000,14~50000001-100000000,14~100000001-107043718,15~1-50000000,15~50000001-100000000,15~100000001-101991189,16~1-50000000,16~50000001-90338345,17~1-50000000,17~50000001-83257441,18~1-50000000,18~50000001-80373285,19~1-50000000,19~50000001-58617616,20~1-50000000,20~50000001-64444167,21~1-46709983,22~1-50000000,22~50000001-50818468,23~1-50000000,23~50000001-100000000,23~100000001-150000000,23~150000001-156040895,24~1-50000000,24~50000001-57227415
+  b37_lofreq_chrms: 1~1-50000000,1~50000001-100000000,1~100000001-150000000,1~150000001-200000000,1~200000001-249250621,2~1-50000000,2~50000001-100000000,2~100000001-150000000,2~150000001-200000000,2~200000001-243199373,3~1-50000000,3~50000001-100000000,3~100000001-150000000,3~150000001-198022430,4~1-50000000,4~50000001-100000000,4~100000001-150000000,4~150000001-191154276,5~1-50000000,5~50000001-100000000,5~100000001-150000000,5~150000001-180915260,6~1-50000000,6~50000001-100000000,6~100000001-150000000,6~150000001-171115067,7~1-50000000,7~50000001-100000000,7~100000001-150000000,7~150000001-159138663,8~1-50000000,8~50000001-100000000,8~100000001-146364022,9~1-50000000,9~50000001-100000000,9~100000001-141213431,10~1-50000000,10~50000001-100000000,10~100000001-135534747,11~1-50000000,11~50000001-100000000,11~100000001-135006516,12~1-50000000,12~50000001-100000000,12~100000001-133851895,13~1-50000000,13~50000001-100000000,13~100000001-115169878,14~1-50000000,14~50000001-100000000,14~100000001-107349540,15~1-50000000,15~50000001-100000000,15~100000001-102531392,16~1-50000000,16~50000001-90354753,17~1-50000000,17~50000001-81195210,18~1-50000000,18~50000001-78077248,19~1-50000000,19~50000001-59128983,20~1-50000000,20~50000001-63025520,21~1-48129895,22~1-50000000,22~50000001-51304566,23~1-50000000,23~50000001-100000000,23~100000001-150000000,23~150000001-155270560,24~1-50000000,24~50000001-59373566
+  numa: ' OMP_NUM_THREADS=1 OMP_PROC_BIND=close OMP_PLACES=threads OMP_DYNAMIC=true
+    OMP_MAX_ACTIVE_LEVELS=1 OMP_SCHEDULE=dynamic OMP_WAIT_POLICY=ACTIVE '
+parascopy:
+  threads: 8
+  partition: i384nvme,i192nvme,i192,i128
+  mem_mb: 16000
+  locus_config: ''
+  reference: ''
+  targets: ''
+  extra_args: ''
+aiv:
+  threads: 32
+  partition: i384nvme,i192nvme,i192,i128
+  partition_other: i384nvme,i192nvme,i192,i128
+  mem_mb: 64000
+  hg38_aiv_chrms: 1-24
+  hg38_broad_aiv_chrms: 1-24
+  b37_aiv_chrms: 1-24
+  numa: ''
+  conda: ../envs/vanilla_v0.1.yaml
+  aiv_container: docker://daylilyinformatics/aivariant:0.15
+varn:
+  threads: 32
+  partition: i384nvme,i192nvme,i192,i128
+  partition_other: i384nvme,i192nvme,i192,i128
+  mem_mb: 64000
+  hg38_varn_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  hg38_broad_varn_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  b37_varn_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  numa: ''
+  conda: ../envs/vanilla_v0.1.yaml
+  varn_container: docker://kiranchari/varnet:latest
+senttn:
+  threads: 42
+  partition: i384nvme,i192nvme,i192,i128
+  partition_other: i384nvme,i192nvme,i192,i128
+  mem_mb: 85000
+  hg38_senttn_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  hg38_broad_senttn_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  b37_senttn_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  numa: ' OMP_NUM_THREADS=42 OMP_PROC_BIND=close OMP_PLACES=threads  OMP_DYNAMIC=true
+    OMP_MAX_ACTIVE_LEVELS=1 OMP_SCHEDULE=dynamic OMP_WAIT_POLICY=ACTIVE '
+  env_yaml: ../envs/vanilla_v0.1.yaml
+  conda: ../envs/vanilla_v0.1.yaml
+manta_sort_and_index:
+  threads: 8
+  partition: i192,i128
+  mem_mb: 3000
+manta:
+  threads: 128
+  mem_mb: 128000
+  env_yaml: ../envs/manta_v0.1.yaml
+  numactl: none
+  ld_preload: '  '
+  partition: i384nvme,i192nvme,i192,i128
+legacy_cram_compat_bam:
+  threads: 32
+  mem_mb: 64000
+  env_yaml: ../envs/samtools_v0.1.yaml
+  partition: i192,i128
+mosdepth:
+  threads: 16
+  env_yaml: ../envs/mosdepth_v0.1.yaml
+  depth_bins: 0,1,3,5,10,15,20,30,40,50,60
+  partition: i384nvme,i192nvme,i128nvme
+  mem_mb: 64000
+quickmer2:
+  threads: 32
+  mem_mb: 128000
+  partition: i192,i128
+  time: '24:00:00'
+  repo_url: https://github.com/KiddLab/QuicK-mer2.git
+  repo_rev: main
+  repo_dir: resources/QuicK-mer2
+  env_yaml: ../envs/quickmer2_v0.1.yaml
+  work_root: '{MDIR}/{sample}/align/{alnr}/cnv/quickmer2/work'
+  kmer_catalog: config/quickmer2/example_kmers.tsv
+  normalization_table: config/quickmer2/example_normalization.tsv
+  additional_args: ''
+  update_repo: true
+  keep_work: false
+  clone_depth: 1
+  command_template: "python {repo_dir}/QuicK-mer2.py \\\n    --sample {sample} \\\n\
+    \    --bam {cram} \\\n    --reference {reference} \\\n    --kmer-db {kmer_catalog}\
+    \ \\\n    --normalization-table {normalization_table} \\\n    --threads {threads}\
+    \ \\\n    --output {run_dir} {additional_args}\n"
+duphold_sort_index:
+  threads: 4
+  partition: i192
+  mem_mb: 3000
+tiddit_sort_index:
+  threads: 4
+  ld_preload: ' '
+  partition: i192
+  mem_mb: 3000
+merge_bam:
+  threads: 127
+  smem: 400G
+  mmem: 400G
+  sthreads: 64
+  mthreads: 64
+  partition: i192
+  mem_mb: 3000
+multiqc:
+  config_yaml: config/external_tools/multiqc.yaml
+  threads: 4
+  lcwgs:
+    config_yaml: config/external_tools/multiqc_lcwgs_qc.yaml
+    env_yaml: ../envs/multiqc_v0.1.yaml
+  aln_qc:
+    config_yaml: config/external_tools/multiqc_align_cov_qc.yaml
+    env_yaml: ../envs/multiqc_v0.1.yaml
+  bcl2fq:
+    config_yaml: config/external_tools/multiqc_bcl2fq.yaml
+    env_yaml: ../envs/multiqc_v0.1.yaml
+  bclconvert:
+    config_yaml: config/external_tools/multiqc_config.yaml
+    env_yaml: ../envs/multiqc_v0.1.yaml
+  final:
+    config_yaml: config/external_tools/multiqc_final.yaml
+    env_yaml: ../envs/multiqc_v0.1.yaml
+  seqqc:
+    config_yaml: config/external_tools/multiqc_seqqc.yaml
+    env_yaml: ../envs/multiqc_v0.1.yaml
+  ld_preload: '  '
+  partition: i192,i128
+  mem_mb: 3000
+octopus:
+  threads: 64
+  samview_threads: 8
+  hg38_octo_chrms: 1~1-50000000,1~50000001-100000000,1~100000001-150000000,1~150000001-200000000,1~200000001-248956422,2~1-50000000,2~50000001-100000000,2~100000001-150000000,2~150000001-200000000,2~200000001-242193529,3~1-50000000,3~50000001-100000000,3~100000001-150000000,3~150000001-198295559,4~1-50000000,4~50000001-100000000,4~100000001-150000000,4~150000001-190214555,5~1-50000000,5~50000001-100000000,5~100000001-150000000,5~150000001-181538259,6~1-50000000,6~50000001-100000000,6~100000001-150000000,6~150000001-170805979,7~1-50000000,7~50000001-100000000,7~100000001-150000000,7~150000001-159345973,8~1-50000000,8~50000001-100000000,8~100000001-145138636,9~1-50000000,9~50000001-100000000,9~100000001-138394717,10~1-50000000,10~50000001-100000000,10~100000001-133797422,11~1-50000000,11~50000001-100000000,11~100000001-135086622,12~1-50000000,12~50000001-100000000,12~100000001-133275309,13~1-50000000,13~50000001-100000000,13~100000001-114364328,14~1-50000000,14~50000001-100000000,14~100000001-107043718,15~1-50000000,15~50000001-100000000,15~100000001-101991189,16~1-50000000,16~50000001-90338345,17~1-50000000,17~50000001-83257441,18~1-50000000,18~50000001-80373285,19~1-50000000,19~50000001-58617616,20~1-50000000,20~50000001-64444167,21~1-46709983,22~1-50000000,22~50000001-50818468,23~1-50000000,23~50000001-100000000,23~100000001-150000000,23~150000001-156040895,24~1-50000000,24~50000001-57227415
+  hg38_broad_octo_chrms: 1~1-50000000,1~50000001-100000000,1~100000001-150000000,1~150000001-200000000,1~200000001-248956422,2~1-50000000,2~50000001-100000000,2~100000001-150000000,2~150000001-200000000,2~200000001-242193529,3~1-50000000,3~50000001-100000000,3~100000001-150000000,3~150000001-198295559,4~1-50000000,4~50000001-100000000,4~100000001-150000000,4~150000001-190214555,5~1-50000000,5~50000001-100000000,5~100000001-150000000,5~150000001-181538259,6~1-50000000,6~50000001-100000000,6~100000001-150000000,6~150000001-170805979,7~1-50000000,7~50000001-100000000,7~100000001-150000000,7~150000001-159345973,8~1-50000000,8~50000001-100000000,8~100000001-145138636,9~1-50000000,9~50000001-100000000,9~100000001-138394717,10~1-50000000,10~50000001-100000000,10~100000001-133797422,11~1-50000000,11~50000001-100000000,11~100000001-135086622,12~1-50000000,12~50000001-100000000,12~100000001-133275309,13~1-50000000,13~50000001-100000000,13~100000001-114364328,14~1-50000000,14~50000001-100000000,14~100000001-107043718,15~1-50000000,15~50000001-100000000,15~100000001-101991189,16~1-50000000,16~50000001-90338345,17~1-50000000,17~50000001-83257441,18~1-50000000,18~50000001-80373285,19~1-50000000,19~50000001-58617616,20~1-50000000,20~50000001-64444167,21~1-46709983,22~1-50000000,22~50000001-50818468,23~1-50000000,23~50000001-100000000,23~100000001-150000000,23~150000001-156040895,24~1-50000000,24~50000001-57227415
+  b37_octo_chrms: 1~1-50000000,1~50000001-100000000,1~100000001-150000000,1~150000001-200000000,1~200000001-249250621,2~1-50000000,2~50000001-100000000,2~100000001-150000000,2~150000001-200000000,2~200000001-243199373,3~1-50000000,3~50000001-100000000,3~100000001-150000000,3~150000001-198022430,4~1-50000000,4~50000001-100000000,4~100000001-150000000,4~150000001-191154276,5~1-50000000,5~50000001-100000000,5~100000001-150000000,5~150000001-180915260,6~1-50000000,6~50000001-100000000,6~100000001-150000000,6~150000001-171115067,7~1-50000000,7~50000001-100000000,7~100000001-150000000,7~150000001-159138663,8~1-50000000,8~50000001-100000000,8~100000001-146364022,9~1-50000000,9~50000001-100000000,9~100000001-141213431,10~1-50000000,10~50000001-100000000,10~100000001-135534747,11~1-50000000,11~50000001-100000000,11~100000001-135006516,12~1-50000000,12~50000001-100000000,12~100000001-133851895,13~1-50000000,13~50000001-100000000,13~100000001-115169878,14~1-50000000,14~50000001-100000000,14~100000001-107349540,15~1-50000000,15~50000001-100000000,15~100000001-102531392,16~1-50000000,16~50000001-90354753,17~1-50000000,17~50000001-81195210,18~1-50000000,18~50000001-78077248,19~1-50000000,19~50000001-59128983,20~1-50000000,20~50000001-63025520,21~1-48129895,22~1-50000000,22~50000001-51304566,23~1-50000000,23~50000001-100000000,23~100000001-150000000,23~150000001-155270560,24~1-50000000,24~50000001-59373566
+  anno: ' AD ADP AF AFB ARF BQ CRF DP FRF GC GQ MC MF MQ MQ0 QD GQD QUAL SB STRL STRP
+    SMQ SB DC NC PP MP '
+  ld_pre: '   OMP_NUM_THREADS=64 OMP_PROC_BIND=close OMP_PLACES=threads  OMP_DYNAMIC=true
+    OMP_MAX_ACTIVE_LEVELS=1 OMP_SCHEDULE=dynamic OMP_WAIT_POLICY=ACTIVE '
+  env_yaml: ../envs/octopus_v0.7.yaml
+  oct_gather_env: ../envs/vanilla_v0.1.yaml
+  addl_options: '--max-indel-errors 48 \
+
+    --max-haplotypes 100 \
+
+    --max-variant-size 51 \
+
+    --downsample-above 41 \
+
+    --downsample-target 40 \
+
+    --min-mapping-quality 6 \
+
+    --use-wide-hmm-scores \
+
+    --assemble-all \
+
+    --ignore-unmapped-contigs \
+
+    --allow-supplementary-alignments \
+
+    --bad-region-tolerance LOW \
+
+    --sequence-error-model PCR-FREE.NOVASEQ \
+
+    --min-forest-quality 0 \
+
+    --model-posterior ALL \
+
+    --forest-model /fsx/references/runtime_assets/tool_specific_resources/H_sapiens/b37/octopus/forests/germline.v0.7.4.forest
+    \
+
+    '
+  partition: i384nvme,i192nvme,i192
+  mem_mb: 3000
+sentdhio:
+  threads: 192
+  use_threads: 188
+  hg38_sentdhio_chrms: 1-24
+  hg38_broad_sentdhio_chrms: 1-24
+  b37_sentdhio_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  sentD_gather_env: ../envs/sentieon_v0.3.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i192hugenvme,i192nvme,i384nvme
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaONT2.0.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 300000
+  mem_mb_medium: 75000
+  mem_mb_light: 16000
+  threads_medium: 48
+  threads_light: 8
+  use_threads_medium: 46
+  use_threads_light: 6
+  max_mem: 140G
+  igz: '  igzip -cd -T 32 '
+sentdhuo:
+  threads: 192
+  use_threads: 188
+  hg38_sentdhuo_chrms: 1-24
+  hg38_broad_sentdhuo_chrms: 1-24
+  b37_sentdhuo_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  sentD_gather_env: ../envs/sentieon_v0.3.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i192hugenvme,i192nvme,i384nvme
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridUltimaONT1.1.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 300000
+  mem_mb_medium: 75000
+  mem_mb_light: 16000
+  threads_medium: 48
+  threads_light: 8
+  use_threads_medium: 46
+  use_threads_light: 6
+  max_mem: 140G
+sentdhip:
+  threads: 192
+  use_threads: 190
+  hg38_sentdhip_chrms: 1-24
+  hg38_broad_sentdhip_chrms: 1-24
+  b37_sentdhip_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  sentD_gather_env: ../envs/sentieon_v0.3.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i192hugenvme,i192nvme,i384nvme
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaPacBio1.1.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 300000
+  max_mem: 140G
+  igz: '  igzip -cd -T 32 '
+sentdhup:
+  threads: 192
+  use_threads: 190
+  hg38_sentdhup_chrms: 1-24
+  hg38_broad_sentdhup_chrms: 1-24
+  b37_sentdhup_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  sentD_gather_env: ../envs/sentieon_v0.3.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i192hugenvme,i192nvme,i384nvme
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridUltimaPacBio1.0.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 300000
+  max_mem: 140G
+  igz: '  igzip -cd -T 32 '
+sentdhipm:
+  threads: 192
+  use_threads: 190
+  hg38_sentdhipm_chrms: 1-24
+  hg38_broad_sentdhipm_chrms: 1-24
+  b37_sentdhipm_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  sentD_gather_env: ../envs/sentieon_v0.3.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i192hugenvme,i192nvme,i384nvme
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaPacBio1.1.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 300000
+  mem_mb_medium: 75000
+  mem_mb_light: 16000
+  threads_medium: 48
+  threads_light: 8
+  use_threads_medium: 46
+  use_threads_light: 6
+  max_mem: 140G
+  igz: '  igzip -cd -T 32 '
+sentdhupm:
+  threads: 192
+  use_threads: 190
+  hg38_sentdhupm_chrms: 1-24
+  hg38_broad_sentdhupm_chrms: 1-24
+  b37_sentdhupm_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  sentD_gather_env: ../envs/sentieon_v0.3.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i192hugenvme,i192nvme,i384nvme
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridUltimaPacBio1.0.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 300000
+  mem_mb_medium: 75000
+  mem_mb_light: 16000
+  threads_medium: 48
+  threads_light: 8
+  use_threads_medium: 46
+  use_threads_light: 6
+  max_mem: 140G
+  igz: '  igzip -cd -T 32 '
+sentdhrom:
+  threads: 192
+  use_threads: 190
+  hg38_sentdhrom_chrms: 1-24
+  hg38_broad_sentdhrom_chrms: 1-24
+  b37_sentdhrom_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  sentD_gather_env: ../envs/sentieon_v0.3.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i192hugenvme,i192nvme,i384nvme
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridUltimaONT1.1.model.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 300000
+  mem_mb_medium: 75000
+  mem_mb_light: 16000
+  threads_medium: 48
+  threads_light: 8
+  use_threads_medium: 46
+  use_threads_light: 6
+  max_mem: 140G
+  igz: '  igzip -cd -T 32 '
+sentdhrpm:
+  threads: 192
+  use_threads: 190
+  hg38_sentdhrpm_chrms: 1-24
+  hg38_broad_sentdhrpm_chrms: 1-24
+  b37_sentdhrpm_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  sentD_gather_env: ../envs/sentieon_v0.3.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i192hugenvme,i192nvme,i384nvme
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridUltimaPacBio1.0.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 300000
+  mem_mb_medium: 75000
+  mem_mb_light: 16000
+  threads_medium: 48
+  threads_light: 8
+  use_threads_medium: 46
+  use_threads_light: 6
+  max_mem: 140G
+  igz: '  igzip -cd -T 32 '
+sentdhiomr:
+  threads: 192
+  use_threads: 188
+  hg38_sentdhiomr_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17-19,20-25
+  hg38_broad_sentdhiomr_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17-19,20-25
+  b37_sentdhiomr_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17-19,20-25
+  ld_preload: ' '
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  sentD_gather_env: ../envs/sentieon_v0.3.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i192hugenvme,i192nvme,i384nvme
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaONT2.0.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 300000
+  mem_mb_medium: 75000
+  mem_mb_light: 16000
+  threads_medium: 48
+  threads_light: 8
+  use_threads_medium: 46
+  use_threads_light: 6
+  threads_snv: 96
+  use_threads_snv: 94
+  mem_mb_snv: 128000
+  threads_snv_medium: 32
+  use_threads_snv_medium: 30
+  mem_mb_snv_medium: 64000
+  threads_snv_light: 4
+  use_threads_snv_light: 3
+  mem_mb_snv_light: 8000
+  sr_markdup_threads: 64
+  sr_markdup_mem_mb: 64000
+  segdup_threads: 192
+  segdup_mem_mb: 250000
+  max_mem: 140G
+  igz: '  igzip -cd -T 32 '
+  keep_sr_alignment: false
+  keep_tmp_dirs: false
+  segdup_sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaWGS2.2.bundle
+  segdup_lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.3.bundle
+  segdup_genes: SMN1
+  mt_fasta: /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/chrM/Homo_sapiens_assembly38.chrM.fasta
+  mt_shifted_fasta: /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/chrM/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta
+  mt_shift_back_chain: /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/chrM/ShiftBack.chain
+  mt_blacklist_bed: /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/chrM/blacklist_sites.hg38.chrM.bed
+sentdhipmr:
+  threads: 192
+  use_threads: 190
+  hg38_sentdhipmr_chrms: 1-24
+  hg38_broad_sentdhipmr_chrms: 1-24
+  b37_sentdhipmr_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  sentD_gather_env: ../envs/sentieon_v0.3.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i192hugenvme,i192nvme,i384nvme
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaPacBio1.1.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 300000
+  mem_mb_medium: 75000
+  mem_mb_light: 16000
+  threads_medium: 48
+  threads_light: 8
+  use_threads_medium: 46
+  use_threads_light: 6
+  max_mem: 140G
+  igz: '  igzip -cd -T 32 '
+sentdhupmr:
+  threads: 192
+  use_threads: 190
+  hg38_sentdhupmr_chrms: 1-24
+  hg38_broad_sentdhupmr_chrms: 1-24
+  b37_sentdhupmr_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  sentD_gather_env: ../envs/sentieon_v0.3.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i192hugenvme,i192nvme,i384nvme
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridUltimaPacBio1.0.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 300000
+  mem_mb_medium: 75000
+  mem_mb_light: 16000
+  threads_medium: 48
+  threads_light: 8
+  use_threads_medium: 46
+  use_threads_light: 6
+  max_mem: 140G
+  igz: '  igzip -cd -T 32 '
+sentdhuomr:
+  threads: 192
+  use_threads: 188
+  hg38_sentdhuomr_chrms: 1-24
+  hg38_broad_sentdhuomr_chrms: 1-24
+  b37_sentdhuomr_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  sentD_gather_env: ../envs/sentieon_v0.3.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i192hugenvme,i192nvme,i384nvme
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridUltimaONT1.1.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 300000
+  mem_mb_medium: 75000
+  mem_mb_light: 16000
+  threads_medium: 48
+  threads_light: 8
+  use_threads_medium: 46
+  use_threads_light: 6
+  max_mem: 140G
+sentdug:
+  threads: 192
+  use_threads: 190
+  hg38_sentdug_chrms: 1-24
+  hg38_broad_sentdug_chrms: 1-24
+  b37_sentdug_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  sentD_gather_env: ../envs/sentieon_v0.3.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i384nvme,i192nvme,i192
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonUltima1.1.bundle/dnascope.model
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 300000
+  max_mem: 140G
+  igz: '  igzip -cd -T 32 '
+sentdpb:
+  threads: 192
+  use_threads: 190
+  hg38_sentdpb_chrms: 1-24
+  hg38_broad_sentdpb_chrms: 1-24
+  b37_sentdpb_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  sentD_gather_env: ../envs/sentieon_v0.3.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i192hugenvme,i192nvme,i384nvme
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopePacBio2.1.bundle
+  dna_scope_apply_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopePacBio2.1.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 300000
+  max_mem: 140G
+  igz: '  igzip -cd -T 32 '
+sentdont:
+  threads: 191
+  use_threads: 191
+  hg38_sentdont_chrms: 1-24
+  hg38_broad_sentdont_chrms: 1-24
+  b37_sentdont_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  sentD_gather_env: ../envs/sentieon_v0.3.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i192hugenvme,i192nvme,i384nvme
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.3.bundle
+  dna_scope_apply_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.3.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 300000
+  max_mem: 140G
+  igz: '  igzip -cd -T 32 '
+  keep_tmp_dirs: false
+sentD:
+  threads: 192
+  hg38_sentD_chrms: 1-24
+  hg38_broad_sentD_chrms: 1-24
+  b37_sentD_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/vanilla_v0.1.yaml
+  sentD_gather_env: ../envs/vanilla_v0.1.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i384nvme,i192nvme
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaWGS2.2.bundle/dnascope.model
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 200000
+cgt7p:
+  threads: 192
+  gather_threads: 16
+  hg38_cgt7p_chrms: 1-24
+  hg38_broad_cgt7p_chrms: 1-24
+  b37_cgt7p_chrms: 1-24
+  ld_preload: ' '
+  env_yaml: ../envs/sentD_v0.2.yaml
+  sentD_gather_env: ../envs/vanilla_v0.1.yaml
+  bench_repeat: 0
+  numactl: ' '
+  partition: i384nvme,i192nvme,i192hugenvme,i192
+  dna_scope_snv_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeMGIWGS2.1.bundle/dnascope.model
+  max_mem: 100G
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  mem_mb: 200000
+  gather_mem_mb: 50000
+sort_index_sentD_chunk_vcf:
+  threads: 16
+  env_yaml: ../envs/vanilla_v0.1.yaml
+  partition: i384nvme,i192nvme
+  mem_mb: 3000
+concat_index_sentD_chunks:
+  threads: 16
+  env_yaml: ../envs/vanilla_v0.1.yaml
+  partition: i384nvme,i192nvme
+  mem_mb: 3000
+peddy:
+  threads: 16
+  env_yaml: ../envs/peddy_v0.1.yaml
+  ld_preload: ' '
+  partition: i192,i128
+  mem_mb: 3000
+prep_for_concordance_check:
+  threads: 4
+  partition: i192,i128
+  mem_mb: 3000
+picard:
+  threads: 32
+  env_yaml: ../envs/picard_v0.1.yaml
+  partition: i192,i128
+  mem_mb: 3000
+qualimap:
+  threads: 32
+  java_mem_size: 150000M
+  mem_mb: 160000
+  env_yaml: ../envs/qualimap_v0.1.yaml
+  glances: ' '
+  numactl: none
+  partition: i192,i128
+rtg_vcfeval:
+  threads: 16
+  sub_threads: 16
+  mem_mb: 64000
+  parse_mem_mb: 16000
+  env_yaml: ../envs/rtgtools_v0.1.yaml
+  ld_preload: ' '
+  partition: i192
+  partition_other: i192
+  rtg_region: ' '
+run_concordance:
+  threads: 8
+  env_yaml: ../envs/rtgtools_v0.1.yaml
+  partition: i192
+  mem_mb: 3000
+sentieon_haplocaller:
+  threads: 192
+  partition: i384nvme,i192nvme,i192
+  mem_mb: 3000
+rtg_vcfstats:
+  threads: 24
+  env_yaml: ../envs/rtgtools_v0.1.yaml
+  ld_preload: ' '
+  partition: i192,i128
+  mem_mb: 3000
+sambamba_markdups:
+  threads: 96
+  sort_buff_size: 1024
+  io_buff_size: 1024
+  overflow_list_si45ze: 800000
+  benchmark_runs: 0
+  ulimit: ' ulimit -Sn 810000 '
+  env_yaml: ../envs/sambamba_v0.1.yaml
+  ld_preload: '  '
+  partition: i192
+  mem_mb: 3000
+samtools_markdups:
+  threads: 32
+  ulimit: ' ulimit -Sn 810000 '
+  env_yaml: ../envs/samtools_v0.1.yaml
+  partition: i192
+  mem_mb: 3000
+sentieon_dnascope:
+  threads: 192
+  benchmark_runs: 0
+  env_yaml: ../envs/sentieon_v0.1.yaml
+  mask_regions: ' '
+  numactl: ' resources/numa/numactl --interleave all '
+  metrics_threads: 64
+  ld_preload: '   '
+  mem_mb: 200000
+  partition: i384nvme,i192nvme,i192
+sentieon:
+  driver_path: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/sentieon
+  threads: 192
+  bwa_threads: 96
+  benchmark_runs: 0
+  max_mem: 180G
+  sent_opts: '  -k 19 -Y -M -K 10000000 '
+  env_yaml: ../envs/sentieon_v0.1.yaml
+  mem_mb: 300000
+  block_size: 8G
+  partition: i384nvme,i192nvme
+  sort_threads: 96
+  igz: '  igzip -cd -T 32 '
+  sort_thread_mem: 4G
+  mbuffer: ' | mbuffer -m 128G -q -s 2M  '
+  bwa_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaWGS2.2.bundle/bwa.model
+  constraint: ''
+sentieon_cgt7p:
+  driver_path: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/sentieon
+  threads: 192
+  bwa_threads: 96
+  benchmark_runs: 0
+  max_mem: 180G
+  sent_opts: '  -k 19 -Y -M -K 10000000 '
+  env_yaml: ../envs/sentieon_v0.1.yaml
+  mem_mb: 300000
+  block_size: 8G
+  partition: i384nvme,i192nvme
+  sort_threads: 96
+  igz: '  igzip -cd -T 32 '
+  sort_thread_mem: 4G
+  mbuffer: ' | mbuffer -m 128G -q -s 2M  '
+  bwa_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeMGIWGS2.1.bundle/bwa.model
+  read_group_platform: DNBSEQ
+  constraint: ''
+sent_aln_sort_snv:
+  threads: 128
+  benchmark_runs: 0
+  env_yaml: ../envs/sent_pangenome_v0.1.yaml
+  mem_mb: 200000
+  partition: i384nvme,i192nvme,i128nvme
+  constraint: ''
+  distribution: block
+  exclude: ''
+  include: ''
+  exclusive: ''
+  bench_repeat: 0
+  hapl: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/hprc-v2.0-mc-grch38.hapl
+  gbz: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/hprc-v2.0-mc-grch38.gbz
+  model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaPangenomeRealignWGS1.2.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20-20260528.vcf.gz
+  canonical_bed: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/hg38_canonical.bed
+  dbsnp: /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/gatk/Homo_sapiens_assembly38.dbsnp138.vcf.gz
+  pcr_free: 'true'
+sentieon_pangenome_sr:
+  threads: 128
+  env_yaml: ../envs/sent_pangenome_v0.1.yaml
+  mem_mb: 200000
+  partition: i384nvme,i192nvme,i128nvme
+  constraint: ''
+  distribution: block
+  exclude: ''
+  include: ''
+  exclusive: ''
+  bench_repeat: 0
+  gbz: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/hprc-v2.0-mc-grch38.gbz
+  hapl: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/hprc-v2.0-mc-grch38.hapl
+  model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaPangenomeRealignWGS1.2.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20-20260528.vcf.gz
+  canonical_bed: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/hg38_canonical.bed
+  dbsnp: /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/gatk/Homo_sapiens_assembly38.dbsnp138.vcf.gz
+  pcr_free: 'true'
+sentieon_pangenome_ug:
+  threads: 128
+  env_yaml: ../envs/pangenome_ultima_v0.1.yaml
+  mem_mb: 200000
+  partition: i384nvme,i192nvme,i128nvme
+  constraint: ''
+  distribution: block
+  exclude: ''
+  include: ''
+  exclusive: ''
+  bench_repeat: 0
+  gbz: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/hprc-v2.0-mc-grch38.gbz
+  hapl: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/hprc-v2.0-mc-grch38.hapl
+  model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonUltimaPangenomeRealignWGS1.3.bundle
+  pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz
+  canonical_bed: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/hg38_canonical.bed
+  dbsnp: /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/gatk/Homo_sapiens_assembly38.dbsnp138.vcf.gz
+sentieon_gatk:
+  threads: 192
+  bwa_threads: 192
+  benchmark_runs: 0
+  max_mem: 240G
+  sent_opts: ' -k 19 -Y -M -K 10000000  '
+  env_yaml: ../envs/sentieon_gatk_v0.1.yaml
+  partition: i192hugenvme,i192nvme,i384nvme
+  sort_thread_mem: 100M
+  sort_threads: 32
+  mem_mb: 300000
+  igz: ' igzip -cd -T 2 '
+  mbuffer: ' | mbuffer -m 1G -q -s 128k '
+  bwa_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaWGS2.2.bundle/bwa.model
+  constraint: ''
+  hg38_sentieon_gatk_chrms: 1-12,13-24
+  hg38_broad_sentieon_gatk_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  b37_sentieon_gatk_chrms: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+  partition_other: i192hugenvme,i192nvme,i384nvme
+sentieon_markdups:
+  threads: 192
+  ulimit: ' ulimit -Sn 810000 '
+  env_yaml: ../envs/sentieon_v0.1.yaml
+  glances: ' '
+  ld_preload: ' '
+  numactl: '  OMP_NUM_THREADS=192 OMP_PROC_BIND=close OMP_PLACES=threads OMP_DYNAMIC=true
+    OMP_MAX_ACTIVE_LEVELS=1 OMP_SCHEDULE=dynamic OMP_WAIT_POLICY=ACTIVE '
+  partition: i192nvme,i192hugenvme
+  max_mem: 300G
+  sort_thread_mem: 150M
+  mem_mb: 3000
+stargazer:
+  threads: 16
+  benchmark_runs: 0
+  env_yaml: ../envs/stargazer_v0.1.yaml
+  partition: i192
+  mem_mb: 3000
+tiddit:
+  threads: 64
+  min_sv_size: 10
+  env_yaml: ../envs/tiddit_v0.1.yaml
+  ld_preload: ' '
+  partition: i384nvme,i192nvme,i192,i128
+  mem_mb: 3000
+surveyor:
+  threads: 32
+  partition: i384nvme,i192nvme,i192,i128
+  env_yaml: ../envs/surveyor_v0.1.yaml
+  extra_args: ''
+  ld_preload: '  '
+  mem_mb: 3000
+surveyor_sort_index:
+  threads: 8
+  partition: i192,i128
+  mem_mb: 3000
+vanilla:
+  threads: 8
+  env_yaml: ../envs/vanilla_v0.1.yaml
+  ld_preload: '   '
+  partition: i192
+  mem_mb: 3000
+verifybamid2_contam:
+  env_yaml: ../envs/verifybamid2_v0.1.yaml
+  threads: 8
+  mem_mb: 16000
+  ld_preload: ' '
+  partition: i192,i128
+  default_panel: 100k
+  active_panels:
+  - 100k
+  panels:
+    1k:
+      label: chr20_random1000
+      snp_count: 1000
+      svd_prefix:
+        name: /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/snp_vcfs/chr20_verbam/chr20.random1000.vcf.gz
+      threads: 8
+      mem_mb: 16000
+      partition: i192,i128
+    100k:
+      label: 1000g_phase3_100k
+      snp_count: 100000
+      svd_prefix:
+        name: /fsx/references/runtime_assets/tool_specific_resources/verifybamid/hg38/100k/1000g.phase3.100k.b38.vcf.gz.dat
+      threads: 64
+      mem_mb: 64000
+      partition: i192,i128
+    1m:
+      label: daylily_snp_subset_1M
+      snp_count: 1000000
+      svd_prefix:
+        name: /fsx/references/runtime_assets/tool_specific_resources/verifybam2/daylily.snp_subset_1M.b38.vcf.gz.dat
+      threads: 64
+      mem_mb: 128000
+      partition: i192,i128
+gatk_contam:
+  env_yaml: ../envs/gatkcontam_v0.1.yaml
+  threads: 24
+  mem_mb: 80000
+  java_heap_mb: 64000
+  exclusive: --exclusive
+  ld_preload: ' '
+  partition: i192,i128
+site_mix_contam:
+  env_yaml: ../envs/site_mix_contam_v0.1.yaml
+  threads: 1
+  partition: i192,i128
+  sites_vcf: /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/snp_vcfs/snp_subset_1M/filtered_vcfs/merged.500perchr.nosamp.sort.vcf.gz
+  candidate_manifest: ''
+  min_depth: 4
+  max_depth: 250
+  min_sites: 20
+  min_af: 0.01
+  max_af: 0.99
+  max_sites: 0
+  min_base_quality: 20
+  min_mapping_quality: 20
+  pileup_region_size: 25000000
+  donor_min_depth: 8
+  max_contamination: 0.5
+  grid_step: 0.001
+  max_candidate_sources: 8
+  mem_mb: 3000
+contam_identity:
+  primary_snv_caller: sentd
+haplocheck:
+  env_yaml: ../envs/haplocheck_v0.1.yaml
+  haplocheck_command: haplocheck
+  cloudgene_command: cloudgene
+  cloudgene_app: haplocheck@1.2.2
+  input_modes:
+  - vcf
+  threads: 96
+  mem_mb: 16000
+  partition: i192
+read_haps:
+  env_yaml: ../envs/read_haps_v0.1.yaml
+  read_haps_command: /fsx/references/runtime_assets/tool_specific_resources/read_haps/read_haps
+  reliable_snp_file: /fsx/references/runtime_assets/tool_specific_resources/read_haps/high_quality_markers_deCODE_2015.txt.gz
+  extra_args: ''
+  threads: 8
+  mem_mb: 32000
+  partition: i192,i128
+relatedness:
+  env_yaml: ../envs/somalier.yaml
+  report_env_yaml: ../envs/report.yaml
+  threads: 4
+  partition: i192,i128
+  somalier_sites_vcf: /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/snp_vcfs/snp_subset_1M/filtered_vcfs/merged.500perchr.nosamp.sort.vcf.gz
+  expected_relationships: ''
+  relationship_thresholds:
+    duplicate_min_relatedness: 0.95
+    first_degree_min_relatedness: 0.4
+    parent_child_max_ibs0: 2.0
+    unrelated_max_relatedness: 0.2
+  mem_mb: 3000
+gen_samstats:
+  threads: 16
+  run_threadsa: 10
+  run_threadsb: 3
+  ld_preload: '  '
+  partition: i192,i128
+  mem_mb: 3000
+sentieon_qc_metrics:
+  threads: 16
+  partition: i192
+  mem_mb: 3000
+svaba:
+  orig_threads: 96
+  threads: 96
+  ld_preload: ' '
+  cmd: ' ./resources/svaba/svaba '
+  partition: i384nvme,i192nvme,i192
+  mem_mb: 3000
+svaba_sort_index:
+  threads: 4
+  ld_preload: '  '
+  partition: i192
+  mem_mb: 3000
+calc_coverage_evenness:
+  threads: 16
+  ld_preload: ' '
+  partition: i192,i128
+  mem_mb: 3000
+calc_coverage_evenness_two:
+  threads: 16
+  ld_preload: ' '
+  partition: i192,i128
+  mem_mb: 3000
+produce_fastqs_from_bams:
+  threads: 4
+  samtools_view_threads: 88
+  partition: i192
+  mem_mb: 3000
+svim_asm:
+  threads: 16
+  env_yaml: ../envs/svim_asm_v0.1.yaml
+  ld_preload: '  '
+  partition: i384nvme,i192nvme,i192
+  mem_mb: 3000
+hisat2:
+  threads: 96
+  env_yaml: ../envs/hisat2_v0.1.yaml
+  ld_preload: '  '
+  partition: i192
+  sthreads: 32
+  smem: 26G
+  wthreads: 84
+  ldpre: ' '
+  mem_mb: 3000
+seqfu:
+  threads: 16
+  env_yaml: ../envs/fastqc_v0.1.yaml
+  ld_preload: '  '
+  partition: i192
+  mem_mb: 3000
+vep:
+  threads: 8
+  mem_mb: 128000
+  partition: i384nvme,i192nvme,i128nvme
+  concat_threads: 8
+  concat_mem_mb: 32000
+  concat_partition: i384nvme,i192nvme,i128nvme
+  hg38_vep_chrms: 1-25
+  hg38_broad_vep_chrms: 1-25
+  b37_vep_chrms: 1-25
+snpeff:
+  threads: 16
+  partition: i192,i128
+  xmx: 24g
+  mem_mb: 3000
+vpot:
+  threads: 16
+  env_yaml: ../envs/vpot_v0.1.yaml
+  partition: i192,i128
+  mem_mb: 16000
+  extra: ''
+roche_downsample_bam:
+  threads: 32
+  mem_mb: 64000
+  partition: i192
+  constraint: ''
+  distribution: block
+  exclude: ''
+  include: ''
+  exclusive: ''
+  env_yaml: ../envs/roche_v0.1.yaml
+roche_gatk_haplotypecaller:
+  threads: 192
+  mem_mb: 200000
+  partition: i384nvme,i192nvme,i192,i128
+  container: docker://broadinstitute/gatk-nightly:2025-08-19-4.6.2.0-17-g2a1f41bf3-NIGHTLY-SNAPSHOT
+  env_yaml: ../envs/sentieon_v0.3.yaml
+  native_pair_hmm_threads: 16
+roche_filter_variants:
+  threads: 16
+  mem_mb: 32000
+  partition: i384nvme,i192nvme,i192,i128
+  container: docker://roche/sbxd-small-variant-caller:latest
+  env_yaml: ../envs/roche_v0.1.yaml
+roche_rtg_vcfeval:
+  threads: 16
+  mem_mb: 32000
+  partition: i192,i128
+  env_yaml: ../envs/rtgtools_v0.1.yaml
+samples_table: config/samples.tsv
+units_table: config/units.tsv

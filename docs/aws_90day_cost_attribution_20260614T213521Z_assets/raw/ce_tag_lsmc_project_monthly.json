@@ -1,0 +1,436 @@
+{
+  "DimensionValueAttributes": [],
+  "GroupDefinitions": [
+    {
+      "Key": "lsmc-project",
+      "Type": "TAG"
+    }
+  ],
+  "ResultsByTime": [
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2831.4357391244",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-04-01",
+        "Start": "2026-03-16"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "9334.5476065665",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-05-01",
+        "Start": "2026-04-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "23580.8228349056",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff+us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "47.5771348432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "295.8471727951",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-ddev80"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.6473625108",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-ddev81"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.7077216395",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-ddev89"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.2935921651",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-ddev92"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.8056653264",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-ddev94"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.301682438",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-ddev96"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.8615328057",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-inf10"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "8.4263970601",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-inf11"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.6885430178",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-inf9"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "8.839640382",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$tapdb-us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "28.4951356561",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$tapdb-us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "28.4839084434",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$ultima-wgs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.4173938768",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$zebra-day+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0058125044",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-01",
+        "Start": "2026-05-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "lsmc-project$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "10263.7654663672",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff+us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "58.7474430661",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1099.3462005191",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-day"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "91.2993396604",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-ddev96"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "103.7000875684",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-dev"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "85.9710569579",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-inf"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "81.9684911982",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-jemdev"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.2255986523",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-jemdev2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "18.2891179943",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-jemdev3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.346609655",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-jemdev5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "38.422378726",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-joshdev"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "55.2724228468",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$dayhoff-tailnet-dns"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.3391930638",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$tapdb-us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "106.6581209791",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$tapdb-us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "105.8278585172",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$ultima-wgs"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "20.1740726265",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "lsmc-project$zebra-day+us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0746150783",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-14",
+        "Start": "2026-06-01"
+      },
+      "Total": {}
+    }
+  ]
+}
