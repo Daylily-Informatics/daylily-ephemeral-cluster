@@ -23,5 +23,5 @@ and corrected active Sentieon hybrid model bundle pins.
 | --- | --- | --- | --- |
 | PIN-001 | Update active and packaged DYEC command catalogs plus pyproject/test contracts from DayOA `10.0.19` to `10.0.20`. | DONE | Updated `pyproject.toml`, active/packaged command catalogs, and catalog/fork tests. |
 | TEST-001 | Run focused DYEC catalog/fork tests and diff check. | DONE | `python -m pytest tests/test_lsmc_bio_fork_contract.py tests/test_repository_catalog.py -q` -> `15 passed`; `git diff --check` passed. |
-| RELEASE-001 | Commit, push, and tag the DayOA pin commit. | OPEN | Pending. |
-| SELF-001 | Update DYEC self-pin to the new pin release tag and create the final release tag. | OPEN | Pending. |
+| RELEASE-001 | Commit, push, and tag the DayOA pin commit. | DONE | Commit `467525b9` pushed to `origin/jem-dev`; annotated tag `10.0.33` pushed. |
+| SELF-001 | Update DYEC self-pin to the new pin release tag and create the final release tag. | DONE | Active and packaged `daylily_cli_global.yaml` now point at DYEC `10.0.33`; `python -m pytest tests/test_lsmc_bio_fork_contract.py tests/test_repository_catalog.py -q` -> `15 passed`; `git diff --check` passed; this commit is released as `10.0.34`. |
