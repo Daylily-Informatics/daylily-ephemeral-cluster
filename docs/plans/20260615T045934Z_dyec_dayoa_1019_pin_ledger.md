@@ -29,7 +29,7 @@ Update DYEC `jem-dev` so future workflow launches can use clean, pushed code for
 | PIN-002 | Update active and packaged command catalog DayOA refs to `10.0.19`. | DONE | `config/daylily_pipeline_command_catalog.yaml` and packaged payload catalog now use `10.0.19` for DayOA default refs/git tags/validated versions. |
 | PIN-003 | Include active and packaged global Sentieon runtime path `sentieon-genomics-202503.03`. | DONE | `config/daylily_cli_global.yaml` and packaged payload config now use `/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/`. |
 | REL-001 | Commit/tag/push DYEC DayOA pin release. | DONE | Commit `ab525829`, annotated tag `10.0.30`, pushed to `origin/jem-dev` and `origin/10.0.30`. |
-| REL-002 | Commit/tag/push DYEC self-pin release. | DONE | Commit `ed9fabbe` updates active and packaged `git_ephemeral_cluster_repo_tag` / `git_ephemeral_cluster_repo_release_tag` to `10.0.30`; planned annotated tag `10.0.31`. |
+| REL-002 | Commit/tag/push DYEC self-pin release. | DONE | Amended commit `f1002add` updates active and packaged `git_ephemeral_cluster_repo_tag` / `git_ephemeral_cluster_repo_release_tag` to `10.0.30`; annotated tag `10.0.31` was pushed. |
 
 ## Validation Plan
 
