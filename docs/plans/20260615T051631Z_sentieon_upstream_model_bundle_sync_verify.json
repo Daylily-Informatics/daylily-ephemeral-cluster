@@ -1,0 +1,305 @@
+{
+  "backup_prefix": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/",
+  "counts": {
+    "backup_and_replace": 0,
+    "copy_missing": 0,
+    "match": 17,
+    "total": 17
+  },
+  "destination_prefix": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/",
+  "execute": false,
+  "models_updated_on": "2026-06-01",
+  "models_url": "https://raw.githubusercontent.com/Sentieon/sentieon-models/main/sentieon_models.yaml",
+  "profile": "lsmc",
+  "rows": [
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/SentieonIlluminaWGS2.2.bundle",
+      "before": {
+        "ContentLength": 127015170,
+        "ETag": "\"44b2fbd0ad0f254ab25b83d276b7e5cb\"",
+        "LastModified": "2026-06-15T05:18:39+00:00"
+      },
+      "bundle": "SentieonIlluminaWGS2.2.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle",
+      "source": {
+        "ContentLength": 127015170,
+        "ETag": "\"afecd57d30ccc8a77ca3cd6fc9983c91-16\"",
+        "LastModified": "2025-07-08T21:29:34+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/SentieonIlluminaWGS2.2.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/DNAscopeIlluminaWES2.1.bundle",
+      "before": {
+        "ContentLength": 39690274,
+        "ETag": "\"65000f8b7f409a861e66106699a2ca61\"",
+        "LastModified": "2026-06-15T05:19:07+00:00"
+      },
+      "bundle": "DNAscopeIlluminaWES2.1.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeIlluminaWES2.1.bundle",
+      "source": {
+        "ContentLength": 39690274,
+        "ETag": "\"9bd2005e2e9b4ce048a30907ae001799-5\"",
+        "LastModified": "2025-07-08T21:21:19+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/DNAscopeIlluminaWES2.1.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/DNAscopeMGIWGS2.1.bundle",
+      "before": {
+        "ContentLength": 83363096,
+        "ETag": "\"0d66ce67ef0a093b06d1445ae6db5516-2\"",
+        "LastModified": "2026-06-15T04:57:53+00:00"
+      },
+      "bundle": "DNAscopeMGIWGS2.1.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeMGIWGS2.1.bundle",
+      "source": {
+        "ContentLength": 83363096,
+        "ETag": "\"0877161863039e1380133a751a32fa6a-10\"",
+        "LastModified": "2025-07-08T21:22:32+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/DNAscopeMGIWGS2.1.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/DNAscopeMGIWES2.1.bundle",
+      "before": {
+        "ContentLength": 15958278,
+        "ETag": "\"bac3582733f0ede6835fb92d5f70e66e\"",
+        "LastModified": "2026-06-15T04:57:58+00:00"
+      },
+      "bundle": "DNAscopeMGIWES2.1.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeMGIWES2.1.bundle",
+      "source": {
+        "ContentLength": 15958278,
+        "ETag": "\"30240328a124a979c5b84b22f12043a3-2\"",
+        "LastModified": "2025-07-08T21:22:04+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/DNAscopeMGIWES2.1.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/DNAscopeElementBioWGS2.1.bundle",
+      "before": {
+        "ContentLength": 84642776,
+        "ETag": "\"7e043efe14b632362af918cf220c1389\"",
+        "LastModified": "2026-06-15T05:19:16+00:00"
+      },
+      "bundle": "DNAscopeElementBioWGS2.1.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeElementBioWGS2.1.bundle",
+      "source": {
+        "ContentLength": 84642776,
+        "ETag": "\"98ba1983374d9b33fdf775c1f9a04fd6-11\"",
+        "LastModified": "2025-07-08T21:20:05+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/DNAscopeElementBioWGS2.1.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/DNAscopeElementBioWES2.1.bundle",
+      "before": {
+        "ContentLength": 16642806,
+        "ETag": "\"3b8d12b01742223908bd9f2ed0786f72\"",
+        "LastModified": "2026-06-15T04:57:54+00:00"
+      },
+      "bundle": "DNAscopeElementBioWES2.1.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeElementBioWES2.1.bundle",
+      "source": {
+        "ContentLength": 16642806,
+        "ETag": "\"13377bf19dc569da182ecc726fe14798-3\"",
+        "LastModified": "2025-10-08T20:33:48+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/DNAscopeElementBioWES2.1.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/SentieonUltima1.1.bundle",
+      "before": {
+        "ContentLength": 161243128,
+        "ETag": "\"383a69d513dd0f9821b1cc98d16316f2-4\"",
+        "LastModified": "2026-06-15T04:57:47+00:00"
+      },
+      "bundle": "SentieonUltima1.1.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonUltima1.1.bundle",
+      "source": {
+        "ContentLength": 161243128,
+        "ETag": "\"ef6bbdd700377ad24a9ed2211ad91a6c-20\"",
+        "LastModified": "2025-07-23T21:43:22+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/SentieonUltima1.1.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/DNAscopeONT2.3.bundle",
+      "before": {
+        "ContentLength": 925744416,
+        "ETag": "\"c8fade2710426cc51ef9729f60c736f5-23\"",
+        "LastModified": "2026-06-15T04:57:49+00:00"
+      },
+      "bundle": "DNAscopeONT2.3.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle",
+      "source": {
+        "ContentLength": 925744416,
+        "ETag": "\"12fee33cbd345c800c2f14579fa03145-127\"",
+        "LastModified": "2026-03-10T22:35:39+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/DNAscopeONT2.3.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/DNAscopePacBio2.3.bundle",
+      "before": {
+        "ContentLength": 501831346,
+        "ETag": "\"0eef545369446b734cd926897ff7ff04-12\"",
+        "LastModified": "2026-06-15T04:57:48+00:00"
+      },
+      "bundle": "DNAscopePacBio2.3.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopePacBio2.3.bundle",
+      "source": {
+        "ContentLength": 501831346,
+        "ETag": "\"553dd0da6ec484156b899ea43f15fb8a-69\"",
+        "LastModified": "2026-02-09T17:20:44+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/DNAscopePacBio2.3.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/DNAscopeSalusWGS1.0.bundle",
+      "before": {
+        "ContentLength": 73907122,
+        "ETag": "\"577cafda18a5915299cefbc128c6dbc8\"",
+        "LastModified": "2026-06-15T05:19:36+00:00"
+      },
+      "bundle": "DNAscopeSalusWGS1.0.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeSalusWGS1.0.bundle",
+      "source": {
+        "ContentLength": 73907122,
+        "ETag": "\"935eaf642ee68ad61ed7e296812c07d3-9\"",
+        "LastModified": "2025-07-11T15:05:32+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/DNAscopeSalusWGS1.0.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/DNAscopeSalusWES1.0.bundle",
+      "before": {
+        "ContentLength": 9070450,
+        "ETag": "\"b8b60fd1be2eab841c0e69f6768d21c6\"",
+        "LastModified": "2026-06-15T05:19:52+00:00"
+      },
+      "bundle": "DNAscopeSalusWES1.0.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeSalusWES1.0.bundle",
+      "source": {
+        "ContentLength": 9070450,
+        "ETag": "\"3926363f985c2e373273e63d3241cfd2-2\"",
+        "LastModified": "2025-07-11T15:04:50+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/DNAscopeSalusWES1.0.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/SentieonIlluminaPangenomeRealignWGS1.2.bundle",
+      "before": {
+        "ContentLength": 1217079274,
+        "ETag": "\"e253c47a082557cdc4abe657deea42ed\"",
+        "LastModified": "2026-06-15T05:20:15+00:00"
+      },
+      "bundle": "SentieonIlluminaPangenomeRealignWGS1.2.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaPangenomeRealignWGS1.2.bundle",
+      "source": {
+        "ContentLength": 1217079274,
+        "ETag": "\"3b2a262dac2a8b2ced98ec735d4fe837-146\"",
+        "LastModified": "2026-06-10T22:31:50+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/SentieonIlluminaPangenomeRealignWGS1.2.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/SentieonUltimaPangenomeRealignWGS1.3.bundle",
+      "before": {
+        "ContentLength": 919927022,
+        "ETag": "\"e11e63eb884c5504e0e256c8aef29832-22\"",
+        "LastModified": "2026-06-15T04:57:47+00:00"
+      },
+      "bundle": "SentieonUltimaPangenomeRealignWGS1.3.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonUltimaPangenomeRealignWGS1.3.bundle",
+      "source": {
+        "ContentLength": 919927022,
+        "ETag": "\"8f0866ef980f681cd5105581957f8348-126\"",
+        "LastModified": "2026-05-23T02:46:48+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/SentieonUltimaPangenomeRealignWGS1.3.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/HybridIlluminaPacBio1.1.bundle",
+      "before": {
+        "ContentLength": 93633262,
+        "ETag": "\"bc1ee2c021d6dcf33ba4123cf5d5a2fc\"",
+        "LastModified": "2026-06-15T05:24:27+00:00"
+      },
+      "bundle": "HybridIlluminaPacBio1.1.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/HybridIlluminaPacBio1.1.bundle",
+      "source": {
+        "ContentLength": 93633262,
+        "ETag": "\"01db8cb6c3a8e769b4eb029bc2ac9a3d-12\"",
+        "LastModified": "2025-07-08T21:28:16+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/HybridIlluminaPacBio1.1.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/HybridIlluminaONT2.0.bundle",
+      "before": {
+        "ContentLength": 125883640,
+        "ETag": "\"b76ab249909e23ab4b4bb5c6069f88fe-4\"",
+        "LastModified": "2026-06-15T04:57:47+00:00"
+      },
+      "bundle": "HybridIlluminaONT2.0.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/HybridIlluminaONT2.0.bundle",
+      "source": {
+        "ContentLength": 125883640,
+        "ETag": "\"0db223e01d044c1324f924c58aecea46-16\"",
+        "LastModified": "2025-08-06T19:07:35+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/HybridIlluminaONT2.0.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/HybridUltimaONT1.1.bundle",
+      "before": {
+        "ContentLength": 63491156,
+        "ETag": "\"689b26c77211766e82a11c8508d889de-2\"",
+        "LastModified": "2026-06-15T04:57:57+00:00"
+      },
+      "bundle": "HybridUltimaONT1.1.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/HybridUltimaONT1.1.bundle",
+      "source": {
+        "ContentLength": 63491156,
+        "ETag": "\"3f6f7373d43911849589cd011de8ca05-8\"",
+        "LastModified": "2025-07-08T21:28:54+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/HybridUltimaONT1.1.bundle"
+    },
+    {
+      "action": "match",
+      "backup_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/backups/sentieon-genomics-202503.03/20260615T051631Z/bundles/HybridUltimaPacBio1.0.bundle",
+      "before": {
+        "ContentLength": 303064528,
+        "ETag": "\"c104db1786c2130b4c8f38ab0cab424c-8\"",
+        "LastModified": "2026-06-15T04:57:47+00:00"
+      },
+      "bundle": "HybridUltimaPacBio1.0.bundle",
+      "dest_key": "s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/HybridUltimaPacBio1.0.bundle",
+      "source": {
+        "ContentLength": 303064528,
+        "ETag": "\"de3650d2fa76edcfbe368fce11a530ea-42\"",
+        "LastModified": "2026-01-23T22:15:18+00:00"
+      },
+      "source_key": "s3://sentieon-release/other/HybridUltimaPacBio1.0.bundle"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+---  # Sentieon model files
+  Updated on: "2026-06-01"
+  DNAscope_bundles:  # Model bundles for alignment and variant calling
+    Illumina:
+      WGS: https://s3.amazonaws.com/sentieon-release/other/SentieonIlluminaWGS2.2.bundle
+      WES: https://s3.amazonaws.com/sentieon-release/other/DNAscopeIlluminaWES2.1.bundle
+    MGI:
+      WGS: https://s3.amazonaws.com/sentieon-release/other/DNAscopeMGIWGS2.1.bundle
+      WES: https://s3.amazonaws.com/sentieon-release/other/DNAscopeMGIWES2.1.bundle
+    Element_Biosciences:
+      WGS: https://s3.amazonaws.com/sentieon-release/other/DNAscopeElementBioWGS2.1.bundle
+      WES: https://s3.amazonaws.com/sentieon-release/other/DNAscopeElementBioWES2.1.bundle
+    Ultima_Genomics:
+      WGS: https://s3.amazonaws.com/sentieon-release/other/SentieonUltima1.1.bundle
+    Oxford_Nanopore:
+      WGS: https://s3.amazonaws.com/sentieon-release/other/DNAscopeONT2.3.bundle
+    PacBio_HiFi:
+      WGS: https://s3.amazonaws.com/sentieon-release/other/DNAscopePacBio2.3.bundle
+    Salus:
+      WGS: https://s3.amazonaws.com/sentieon-release/other/DNAscopeSalusWGS1.0.bundle
+      WES: https://s3.amazonaws.com/sentieon-release/other/DNAscopeSalusWES1.0.bundle
+  Pangenome_DNAscope_bundles:
+    Illumina:
+      WGS: https://s3.amazonaws.com/sentieon-release/other/SentieonIlluminaPangenomeRealignWGS1.2.bundle
+    Ultima_Genomics:
+      WGS: https://s3.amazonaws.com/sentieon-release/other/SentieonUltimaPangenomeRealignWGS1.3.bundle
+  TNscope_bundles:
+    Ultima_Genomics:
+      WGS: https://s3.amazonaws.com/sentieon-release/other/SentieonUltima1.1.bundle
+  Hybrid_bundles:
+    Illumina_PacBio:
+      WGS: https://s3.amazonaws.com/sentieon-release/other/HybridIlluminaPacBio1.1.bundle
+    Illumina_ONT:
+      WGS: https://s3.amazonaws.com/sentieon-release/other/HybridIlluminaONT2.0.bundle
+    Ultima_ONT:
+      WGS: https://s3.amazonaws.com/sentieon-release/other/HybridUltimaONT1.1.bundle
+    Ultima_PacBio:
+      WGS: https://s3.amazonaws.com/sentieon-release/other/HybridUltimaPacBio1.0.bundle
