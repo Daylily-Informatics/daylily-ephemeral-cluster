@@ -6,4 +6,4 @@ daylily:
   analysis_root: /fsx/analysis_results/
   sentieon_lic_path: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
   sentieon_tmpdir: /dev/shm/
-  sentieon_install_dir: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/
+  sentieon_install_dir: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/
