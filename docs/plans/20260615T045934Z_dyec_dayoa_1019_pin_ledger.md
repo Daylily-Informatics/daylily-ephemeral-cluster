@@ -28,8 +28,8 @@ Update DYEC `jem-dev` so future workflow launches can use clean, pushed code for
 | PIN-001 | Update `pyproject.toml` DayOA dependency to `10.0.19`. | DONE | `pyproject.toml` dependency now references `git+https://github.com/lsmc-bio/daylily-omics-analysis.git@10.0.19`. |
 | PIN-002 | Update active and packaged command catalog DayOA refs to `10.0.19`. | DONE | `config/daylily_pipeline_command_catalog.yaml` and packaged payload catalog now use `10.0.19` for DayOA default refs/git tags/validated versions. |
 | PIN-003 | Include active and packaged global Sentieon runtime path `sentieon-genomics-202503.03`. | DONE | `config/daylily_cli_global.yaml` and packaged payload config now use `/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/`. |
-| REL-001 | Commit/tag/push DYEC DayOA pin release. | IN_PROGRESS | Planned tag `10.0.30`. |
-| REL-002 | Commit/tag/push DYEC self-pin release. | OPEN | Planned tag `10.0.31`. |
+| REL-001 | Commit/tag/push DYEC DayOA pin release. | DONE | Commit `ab525829`, annotated tag `10.0.30`, pushed to `origin/jem-dev` and `origin/10.0.30`. |
+| REL-002 | Commit/tag/push DYEC self-pin release. | DONE | Commit `ed9fabbe` updates active and packaged `git_ephemeral_cluster_repo_tag` / `git_ephemeral_cluster_repo_release_tag` to `10.0.30`; planned annotated tag `10.0.31`. |
 
 ## Validation Plan
 
@@ -41,4 +41,9 @@ git diff --check
 Validation result before `10.0.30` commit:
 
 - `tests/test_lsmc_bio_fork_contract.py tests/test_repository_catalog.py`: `15 passed in 0.60s`.
+- `git diff --check`: passed.
+
+Validation result before `10.0.31` self-pin commit:
+
+- `tests/test_lsmc_bio_fork_contract.py tests/test_repository_catalog.py`: `15 passed in 0.48s`.
 - `git diff --check`: passed.
