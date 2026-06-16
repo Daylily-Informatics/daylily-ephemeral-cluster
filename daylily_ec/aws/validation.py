@@ -24,8 +24,13 @@ from daylily_ec.aws.quotas import (
     check_all_quotas,
 )
 from daylily_ec.aws.s3 import normalize_role_s3_uri
-from daylily_ec.config.triplets import get_effective_default, load_config, resolve_value
-from daylily_ec.render.renderer import ALL_SUBSTITUTION_KEYS, render_template
+from daylily_ec.config.triplets import (
+    get_effective_default,
+    load_config,
+    resolve_derived_max_count,
+    resolve_value,
+)
+from daylily_ec.render.renderer import ALL_SUBSTITUTION_KEYS, REQUIRED_KEYS, render_template
 from daylily_ec.resources import resource_path
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
 from daylily_ec.workflow.create_cluster import (
@@ -548,7 +553,7 @@ def render_effective_cluster_yaml(cfg: Any, aws_ctx: AWSContext) -> tuple[str, P
         render_template(
             template_text,
             substitutions,
-            required_keys=ALL_SUBSTITUTION_KEYS,
+            required_keys=REQUIRED_KEYS,
         ),
         template_path,
         cluster_name,
@@ -1464,6 +1469,32 @@ def _validation_substitutions(
     aws_ctx: AWSContext,
     cluster_name: str,
 ) -> dict[str, str]:
+    max_8i = _int_config_value(cfg, "max_count_8I", 1)
+    max_128i = _int_config_value(cfg, "max_count_128I", 1)
+    max_192i = _int_config_value(cfg, "max_count_192I", 1)
+    max_384i = _int_config_value(cfg, "max_count_384I", 1)
+    max_count_values = {
+        "max_count_8I": str(max_8i),
+        "max_count_128I": str(max_128i),
+        "max_count_192I": str(max_192i),
+        "max_count_384I": str(max_384i),
+        "max_count_128I_C": resolve_derived_max_count(cfg, "max_count_128I_C", max_128i),
+        "max_count_128I_M": resolve_derived_max_count(cfg, "max_count_128I_M", max_128i),
+        "max_count_128I_R": resolve_derived_max_count(cfg, "max_count_128I_R", max_128i),
+        "max_count_128I_NVME": resolve_derived_max_count(cfg, "max_count_128I_NVME", max_128i),
+        "max_count_192I_C": resolve_derived_max_count(cfg, "max_count_192I_C", max_192i),
+        "max_count_192I_M": resolve_derived_max_count(cfg, "max_count_192I_M", max_192i),
+        "max_count_192I_R": resolve_derived_max_count(cfg, "max_count_192I_R", max_192i),
+        "max_count_192I_NVME_C": resolve_derived_max_count(cfg, "max_count_192I_NVME_C", max_192i),
+        "max_count_192I_NVME_M": resolve_derived_max_count(cfg, "max_count_192I_NVME_M", max_192i),
+        "max_count_192I_NVME_R": resolve_derived_max_count(cfg, "max_count_192I_NVME_R", max_192i),
+        "max_count_192I_HUGENVME": resolve_derived_max_count(
+            cfg, "max_count_192I_HUGENVME", max_192i
+        ),
+        "max_count_384I_NVME_C": resolve_derived_max_count(cfg, "max_count_384I_NVME_C", max_384i),
+        "max_count_384I_NVME_M": resolve_derived_max_count(cfg, "max_count_384I_NVME_M", max_384i),
+        "max_count_384I_NVME_R": resolve_derived_max_count(cfg, "max_count_384I_NVME_R", max_384i),
+    }
     reference = normalize_role_s3_uri(
         _effective_config_value(cfg, "reference_s3_uri", "daylily-validation-references"),
         role="reference",
@@ -1475,6 +1506,14 @@ def _validation_substitutions(
     staging = normalize_role_s3_uri(
         _effective_config_value(cfg, "stage_s3_uri", "daylily-validation-staging"),
         role="staging",
+    )
+    export_destination = normalize_role_s3_uri(
+        _effective_config_value(
+            cfg,
+            "export_destination_s3_uri",
+            "daylily-validation-export",
+        ),
+        role="export_destination",
     )
     cluster_boot_s3_uri = f"{reference.uri.rstrip('/')}/runtime_assets/cluster_boot_config"
     substitutions = {
@@ -1499,6 +1538,7 @@ def _validation_substitutions(
         "REGSUB_S3_REFERENCE_BUCKET": reference.bucket,
         "REGSUB_S3_CONTROL_DATA_BUCKET": control_data.bucket,
         "REGSUB_S3_STAGE_BUCKET": staging.bucket,
+        "REGSUB_S3_EXPORT_BUCKET": export_destination.bucket,
         "REGSUB_S3_REFERENCE_URI": reference.uri.rstrip("/"),
         "REGSUB_S3_CONTROL_DATA_URI": control_data.uri.rstrip("/"),
         "REGSUB_S3_STAGE_URI": staging.uri.rstrip("/"),
@@ -1525,40 +1565,24 @@ def _validation_substitutions(
             "price-capacity-optimized",
         ),
         "REGSUB_DAYLILY_GIT_DEETS": "aws-validate",
-        "REGSUB_MAX_COUNT_8I": _effective_config_value(cfg, "max_count_8I", "1"),
-        "REGSUB_MAX_COUNT_128I": _effective_config_value(cfg, "max_count_128I", "1"),
-        "REGSUB_MAX_COUNT_192I": _effective_config_value(cfg, "max_count_192I", "1"),
-        "REGSUB_MAX_COUNT_384I": _effective_config_value(cfg, "max_count_384I", "1"),
-        "REGSUB_MAX_COUNT_128I_C": _effective_config_value(cfg, "max_count_128I_C", "1"),
-        "REGSUB_MAX_COUNT_128I_M": _effective_config_value(cfg, "max_count_128I_M", "1"),
-        "REGSUB_MAX_COUNT_128I_R": _effective_config_value(cfg, "max_count_128I_R", "1"),
-        "REGSUB_MAX_COUNT_128I_NVME": _effective_config_value(
-            cfg, "max_count_128I_NVME", "1"
-        ),
-        "REGSUB_MAX_COUNT_192I_C": _effective_config_value(cfg, "max_count_192I_C", "1"),
-        "REGSUB_MAX_COUNT_192I_M": _effective_config_value(cfg, "max_count_192I_M", "1"),
-        "REGSUB_MAX_COUNT_192I_R": _effective_config_value(cfg, "max_count_192I_R", "1"),
-        "REGSUB_MAX_COUNT_192I_NVME_C": _effective_config_value(
-            cfg, "max_count_192I_NVME_C", "1"
-        ),
-        "REGSUB_MAX_COUNT_192I_NVME_M": _effective_config_value(
-            cfg, "max_count_192I_NVME_M", "1"
-        ),
-        "REGSUB_MAX_COUNT_192I_NVME_R": _effective_config_value(
-            cfg, "max_count_192I_NVME_R", "1"
-        ),
-        "REGSUB_MAX_COUNT_192I_HUGENVME": _effective_config_value(
-            cfg, "max_count_192I_HUGENVME", "1"
-        ),
-        "REGSUB_MAX_COUNT_384I_NVME_C": _effective_config_value(
-            cfg, "max_count_384I_NVME_C", "1"
-        ),
-        "REGSUB_MAX_COUNT_384I_NVME_M": _effective_config_value(
-            cfg, "max_count_384I_NVME_M", "1"
-        ),
-        "REGSUB_MAX_COUNT_384I_NVME_R": _effective_config_value(
-            cfg, "max_count_384I_NVME_R", "1"
-        ),
+        "REGSUB_MAX_COUNT_8I": max_count_values["max_count_8I"],
+        "REGSUB_MAX_COUNT_128I": max_count_values["max_count_128I"],
+        "REGSUB_MAX_COUNT_192I": max_count_values["max_count_192I"],
+        "REGSUB_MAX_COUNT_384I": max_count_values["max_count_384I"],
+        "REGSUB_MAX_COUNT_128I_C": max_count_values["max_count_128I_C"],
+        "REGSUB_MAX_COUNT_128I_M": max_count_values["max_count_128I_M"],
+        "REGSUB_MAX_COUNT_128I_R": max_count_values["max_count_128I_R"],
+        "REGSUB_MAX_COUNT_128I_NVME": max_count_values["max_count_128I_NVME"],
+        "REGSUB_MAX_COUNT_192I_C": max_count_values["max_count_192I_C"],
+        "REGSUB_MAX_COUNT_192I_M": max_count_values["max_count_192I_M"],
+        "REGSUB_MAX_COUNT_192I_R": max_count_values["max_count_192I_R"],
+        "REGSUB_MAX_COUNT_192I_NVME_C": max_count_values["max_count_192I_NVME_C"],
+        "REGSUB_MAX_COUNT_192I_NVME_M": max_count_values["max_count_192I_NVME_M"],
+        "REGSUB_MAX_COUNT_192I_NVME_R": max_count_values["max_count_192I_NVME_R"],
+        "REGSUB_MAX_COUNT_192I_HUGENVME": max_count_values["max_count_192I_HUGENVME"],
+        "REGSUB_MAX_COUNT_384I_NVME_C": max_count_values["max_count_384I_NVME_C"],
+        "REGSUB_MAX_COUNT_384I_NVME_M": max_count_values["max_count_384I_NVME_M"],
+        "REGSUB_MAX_COUNT_384I_NVME_R": max_count_values["max_count_384I_NVME_R"],
         "REGSUB_HEADNODE_INSTANCE_TYPE": _effective_config_value(
             cfg,
             "headnode_instance_type",

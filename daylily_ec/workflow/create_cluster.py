@@ -242,8 +242,7 @@ def _build_headnode_repo_sync_command(repo_name: str, repo_url: str, repo_ref: s
         f"cd {repo_name_q} && "
         "git fetch origin --tags --prune && "
         "git reset --hard HEAD && "
-        "git clean -fdx && "
-        + checkout_cmd
+        "git clean -fdx && " + checkout_cmd
     )
 
 
@@ -753,6 +752,17 @@ def _resolve_nonprompt_config_value(cfg: Any, key: str, default_value: str = "")
     return (get_effective_default(cfg, key, default_value) or "").strip()
 
 
+def _resolve_derived_max_count(
+    cfg: Any,
+    key: str,
+    parent_value: int,
+) -> str:
+    """Return an explicit subtype max count or inherit the parent family count."""
+    from daylily_ec.config.triplets import resolve_derived_max_count
+
+    return resolve_derived_max_count(cfg, key, parent_value)
+
+
 def _resolve_nonprompt_bool_config(cfg: Any, key: str, default_value: str = "false") -> bool:
     """Resolve a non-interactive boolean config value with strict validation."""
     raw = _resolve_nonprompt_config_value(cfg, key, default_value).strip().lower()
@@ -1182,6 +1192,28 @@ def run_create_workflow(
         )
         or "1"
     )
+    max_count_values: Dict[str, str] = {
+        "max_count_8I": str(max_8i),
+        "max_count_128I": str(max_128i),
+        "max_count_192I": str(max_192i),
+        "max_count_384I": str(max_384i),
+        "max_count_128I_C": _resolve_derived_max_count(cfg, "max_count_128I_C", max_128i),
+        "max_count_128I_M": _resolve_derived_max_count(cfg, "max_count_128I_M", max_128i),
+        "max_count_128I_R": _resolve_derived_max_count(cfg, "max_count_128I_R", max_128i),
+        "max_count_128I_NVME": _resolve_derived_max_count(cfg, "max_count_128I_NVME", max_128i),
+        "max_count_192I_C": _resolve_derived_max_count(cfg, "max_count_192I_C", max_192i),
+        "max_count_192I_M": _resolve_derived_max_count(cfg, "max_count_192I_M", max_192i),
+        "max_count_192I_R": _resolve_derived_max_count(cfg, "max_count_192I_R", max_192i),
+        "max_count_192I_NVME_C": _resolve_derived_max_count(cfg, "max_count_192I_NVME_C", max_192i),
+        "max_count_192I_NVME_M": _resolve_derived_max_count(cfg, "max_count_192I_NVME_M", max_192i),
+        "max_count_192I_NVME_R": _resolve_derived_max_count(cfg, "max_count_192I_NVME_R", max_192i),
+        "max_count_192I_HUGENVME": _resolve_derived_max_count(
+            cfg, "max_count_192I_HUGENVME", max_192i
+        ),
+        "max_count_384I_NVME_C": _resolve_derived_max_count(cfg, "max_count_384I_NVME_C", max_384i),
+        "max_count_384I_NVME_M": _resolve_derived_max_count(cfg, "max_count_384I_NVME_M", max_384i),
+        "max_count_384I_NVME_R": _resolve_derived_max_count(cfg, "max_count_384I_NVME_R", max_384i),
+    }
 
     reference_s3_uri = _resolve_s3_role_config_value(
         cfg,
@@ -1642,66 +1674,24 @@ def run_create_workflow(
         or "price-capacity-optimized",
         # Tag value must be non-empty (AWS min length = 1).
         "REGSUB_DAYLILY_GIT_DEETS": "none",
-        "REGSUB_MAX_COUNT_8I": str(max_8i),
-        "REGSUB_MAX_COUNT_128I": str(max_128i),
-        "REGSUB_MAX_COUNT_192I": str(max_192i),
-        "REGSUB_MAX_COUNT_384I": str(max_384i),
-        "REGSUB_MAX_COUNT_128I_C": _resolve_nonprompt_config_value(
-            cfg, "max_count_128I_C", "1"
-        )
-        or "1",
-        "REGSUB_MAX_COUNT_128I_M": _resolve_nonprompt_config_value(
-            cfg, "max_count_128I_M", "1"
-        )
-        or "1",
-        "REGSUB_MAX_COUNT_128I_R": _resolve_nonprompt_config_value(
-            cfg, "max_count_128I_R", "1"
-        )
-        or "1",
-        "REGSUB_MAX_COUNT_128I_NVME": _resolve_nonprompt_config_value(
-            cfg, "max_count_128I_NVME", "1"
-        )
-        or "1",
-        "REGSUB_MAX_COUNT_192I_C": _resolve_nonprompt_config_value(
-            cfg, "max_count_192I_C", "1"
-        )
-        or "1",
-        "REGSUB_MAX_COUNT_192I_M": _resolve_nonprompt_config_value(
-            cfg, "max_count_192I_M", "1"
-        )
-        or "1",
-        "REGSUB_MAX_COUNT_192I_R": _resolve_nonprompt_config_value(
-            cfg, "max_count_192I_R", "1"
-        )
-        or "1",
-        "REGSUB_MAX_COUNT_192I_NVME_C": _resolve_nonprompt_config_value(
-            cfg, "max_count_192I_NVME_C", "1"
-        )
-        or "1",
-        "REGSUB_MAX_COUNT_192I_NVME_M": _resolve_nonprompt_config_value(
-            cfg, "max_count_192I_NVME_M", "1"
-        )
-        or "1",
-        "REGSUB_MAX_COUNT_192I_NVME_R": _resolve_nonprompt_config_value(
-            cfg, "max_count_192I_NVME_R", "1"
-        )
-        or "1",
-        "REGSUB_MAX_COUNT_192I_HUGENVME": _resolve_nonprompt_config_value(
-            cfg, "max_count_192I_HUGENVME", "1"
-        )
-        or "1",
-        "REGSUB_MAX_COUNT_384I_NVME_C": _resolve_nonprompt_config_value(
-            cfg, "max_count_384I_NVME_C", "1"
-        )
-        or "1",
-        "REGSUB_MAX_COUNT_384I_NVME_M": _resolve_nonprompt_config_value(
-            cfg, "max_count_384I_NVME_M", "1"
-        )
-        or "1",
-        "REGSUB_MAX_COUNT_384I_NVME_R": _resolve_nonprompt_config_value(
-            cfg, "max_count_384I_NVME_R", "1"
-        )
-        or "1",
+        "REGSUB_MAX_COUNT_8I": max_count_values["max_count_8I"],
+        "REGSUB_MAX_COUNT_128I": max_count_values["max_count_128I"],
+        "REGSUB_MAX_COUNT_192I": max_count_values["max_count_192I"],
+        "REGSUB_MAX_COUNT_384I": max_count_values["max_count_384I"],
+        "REGSUB_MAX_COUNT_128I_C": max_count_values["max_count_128I_C"],
+        "REGSUB_MAX_COUNT_128I_M": max_count_values["max_count_128I_M"],
+        "REGSUB_MAX_COUNT_128I_R": max_count_values["max_count_128I_R"],
+        "REGSUB_MAX_COUNT_128I_NVME": max_count_values["max_count_128I_NVME"],
+        "REGSUB_MAX_COUNT_192I_C": max_count_values["max_count_192I_C"],
+        "REGSUB_MAX_COUNT_192I_M": max_count_values["max_count_192I_M"],
+        "REGSUB_MAX_COUNT_192I_R": max_count_values["max_count_192I_R"],
+        "REGSUB_MAX_COUNT_192I_NVME_C": max_count_values["max_count_192I_NVME_C"],
+        "REGSUB_MAX_COUNT_192I_NVME_M": max_count_values["max_count_192I_NVME_M"],
+        "REGSUB_MAX_COUNT_192I_NVME_R": max_count_values["max_count_192I_NVME_R"],
+        "REGSUB_MAX_COUNT_192I_HUGENVME": max_count_values["max_count_192I_HUGENVME"],
+        "REGSUB_MAX_COUNT_384I_NVME_C": max_count_values["max_count_384I_NVME_C"],
+        "REGSUB_MAX_COUNT_384I_NVME_M": max_count_values["max_count_384I_NVME_M"],
+        "REGSUB_MAX_COUNT_384I_NVME_R": max_count_values["max_count_384I_NVME_R"],
         "REGSUB_HEADNODE_INSTANCE_TYPE": _resolve_headnode_instance_type(
             cfg,
             non_interactive=non_interactive,
@@ -1958,6 +1948,7 @@ def run_create_workflow(
             if accounting_db
             else ""
         ),
+        **max_count_values,
     }
     next_run_path = CONFIG_DIR / f"{cluster_name}_next_run_{ts}.yaml"
     write_next_run_template(cfg, final_values, next_run_path)

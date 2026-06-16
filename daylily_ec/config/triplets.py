@@ -27,10 +27,10 @@ from daylily_ec.config.models import (
     Triplet,
 )
 
-
 # ---------------------------------------------------------------------------
 # Loading
 # ---------------------------------------------------------------------------
+
 
 def load_config(path: str | Path) -> ConfigFile:
     """Load and parse a daylily config YAML file.
@@ -88,6 +88,7 @@ def ensure_required_keys(cfg: ConfigFile) -> bool:
 # Auto-select logic (exact parity with Bash ``should_auto_apply_config_value``)
 # ---------------------------------------------------------------------------
 
+
 def is_auto_select_disabled() -> bool:
     """Check if ``DAY_DISABLE_AUTO_SELECT`` is set to ``"1"``."""
     return os.environ.get("DAY_DISABLE_AUTO_SELECT", "") == "1"
@@ -127,9 +128,7 @@ def resolve_value(triplet: Triplet) -> str:
     return ""
 
 
-def get_effective_default(
-    cfg: ConfigFile, key: str, fallback: str = ""
-) -> str:
+def get_effective_default(cfg: ConfigFile, key: str, fallback: str = "") -> str:
     """Return the effective default for *key*.
 
     Cascade: ``config[key].default_value`` → ``template_defaults[key]`` → *fallback*.
@@ -144,9 +143,21 @@ def get_effective_default(
     return fallback
 
 
+def resolve_derived_max_count(cfg: ConfigFile, key: str, parent_value: int) -> str:
+    """Return an explicit subtype max count or inherit the parent family count."""
+    triplet = cfg.ephemeral_cluster.config.get(key)
+    if triplet is not None:
+        resolved = resolve_value(triplet).strip()
+        if resolved:
+            int(resolved)
+            return resolved
+    return str(parent_value)
+
+
 # ---------------------------------------------------------------------------
 # Write-back
 # ---------------------------------------------------------------------------
+
 
 def write_config(cfg: ConfigFile, path: str | Path) -> None:
     """Serialize *cfg* back to YAML at *path*, using list triplet format."""
@@ -200,4 +211,3 @@ def write_next_run_template(
         yaml.dump(out_data, fh, default_flow_style=None, sort_keys=False)
 
     return dest
-

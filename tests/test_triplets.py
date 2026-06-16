@@ -26,12 +26,12 @@ from daylily_ec.config.triplets import (
     has_effective_set_value,
     is_auto_select_disabled,
     load_config,
+    resolve_derived_max_count,
     resolve_value,
     should_auto_apply,
     write_config,
     write_next_run_template,
 )
-
 
 # ── Triplet parsing (AC-5) ──────────────────────────────────────────────
 
@@ -291,16 +291,14 @@ class TestLoadConfig:
 
     def test_load_from_yaml(self, tmp_path):
         p = tmp_path / "test.yaml"
-        p.write_text(
-            textwrap.dedent("""\
+        p.write_text(textwrap.dedent("""\
             ephemeral_cluster:
               config:
                 reference_s3_uri: [USESETVALUE, "", "my-bucket"]
                 cluster_name: PROMPTUSER
               template_defaults:
                 fsx_fs_size: "7200"
-        """)
-        )
+        """))
         cfg = load_config(p)
         assert cfg.ephemeral_cluster.config["reference_s3_uri"].set_value == "my-bucket"
         assert cfg.ephemeral_cluster.config["cluster_name"].action == "PROMPTUSER"
@@ -333,6 +331,48 @@ class TestLoadConfig:
         assert ec.template_defaults["max_count_192I_HUGENVME"] == "1"
         assert ec.config["max_count_384I"].default_value == "1"
         assert ec.config["max_count_384I_NVME_R"].default_value == "1"
+
+
+class TestDerivedMaxCount:
+    def test_inherits_parent_when_subtype_has_no_set_value(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {
+                        "max_count_128I_C": ["USESETVALUE", "1", ""],
+                    }
+                }
+            }
+        )
+
+        assert resolve_derived_max_count(cfg, "max_count_128I_C", 16) == "16"
+
+    def test_explicit_subtype_set_value_wins(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {
+                        "max_count_128I_C": ["USESETVALUE", "1", "7"],
+                    }
+                }
+            }
+        )
+
+        assert resolve_derived_max_count(cfg, "max_count_128I_C", 16) == "7"
+
+    def test_invalid_explicit_subtype_set_value_fails(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {
+                        "max_count_128I_C": ["USESETVALUE", "1", "sixteen"],
+                    }
+                }
+            }
+        )
+
+        with pytest.raises(ValueError):
+            resolve_derived_max_count(cfg, "max_count_128I_C", 16)
 
 
 # ── write_config ─────────────────────────────────────────────────────

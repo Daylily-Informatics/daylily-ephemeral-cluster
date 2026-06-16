@@ -61,7 +61,6 @@ from daylily_ec.workflow.create_cluster import (
     _validate_cluster_name,
 )
 
-
 # ── Exit code constants ─────────────────────────────────────────────────
 
 
@@ -277,7 +276,9 @@ class TestNoopHeartbeatResult:
 class TestRepositoryCatalogPreflight:
     def test_valid_checked_in_catalog_passes(self):
         catalog_path = (
-            Path(__file__).resolve().parents[1] / "config" / ("daylily_pipeline_command_catalog.yaml")
+            Path(__file__).resolve().parents[1]
+            / "config"
+            / ("daylily_pipeline_command_catalog.yaml")
         )
         report = PreflightReport()
 
@@ -907,6 +908,101 @@ class TestRunCreateWorkflow:
         assert records["next_run_values"]["heartbeat_scheduler_role_arn"] == ""
         assert records["resolve_scheduler_role_kwargs"]["preconfigured"] == ""
 
+    def test_broad_max_counts_populate_rendered_subtype_counts(self, tmp_path, monkeypatch):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            config_overrides={
+                "max_count_8I": ["USESETVALUE", "1", "16"],
+                "max_count_128I": ["USESETVALUE", "1", "16"],
+                "max_count_192I": ["USESETVALUE", "1", "16"],
+                "max_count_384I": ["USESETVALUE", "1", "16"],
+                "max_count_128I_C": ["USESETVALUE", "1", ""],
+                "max_count_128I_M": ["USESETVALUE", "1", ""],
+                "max_count_128I_R": ["USESETVALUE", "1", ""],
+                "max_count_128I_NVME": ["USESETVALUE", "1", ""],
+                "max_count_192I_C": ["USESETVALUE", "1", ""],
+                "max_count_192I_M": ["USESETVALUE", "1", ""],
+                "max_count_192I_R": ["USESETVALUE", "1", ""],
+                "max_count_192I_NVME_C": ["USESETVALUE", "1", ""],
+                "max_count_192I_NVME_M": ["USESETVALUE", "1", ""],
+                "max_count_192I_NVME_R": ["USESETVALUE", "1", ""],
+                "max_count_192I_HUGENVME": ["USESETVALUE", "1", ""],
+                "max_count_384I_NVME_C": ["USESETVALUE", "1", ""],
+                "max_count_384I_NVME_M": ["USESETVALUE", "1", ""],
+                "max_count_384I_NVME_R": ["USESETVALUE", "1", ""],
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        substitutions = records["render_substitutions"]
+        for key in [
+            "REGSUB_MAX_COUNT_8I",
+            "REGSUB_MAX_COUNT_128I",
+            "REGSUB_MAX_COUNT_192I",
+            "REGSUB_MAX_COUNT_384I",
+            "REGSUB_MAX_COUNT_128I_C",
+            "REGSUB_MAX_COUNT_128I_M",
+            "REGSUB_MAX_COUNT_128I_R",
+            "REGSUB_MAX_COUNT_128I_NVME",
+            "REGSUB_MAX_COUNT_192I_C",
+            "REGSUB_MAX_COUNT_192I_M",
+            "REGSUB_MAX_COUNT_192I_R",
+            "REGSUB_MAX_COUNT_192I_NVME_C",
+            "REGSUB_MAX_COUNT_192I_NVME_M",
+            "REGSUB_MAX_COUNT_192I_NVME_R",
+            "REGSUB_MAX_COUNT_192I_HUGENVME",
+            "REGSUB_MAX_COUNT_384I_NVME_C",
+            "REGSUB_MAX_COUNT_384I_NVME_M",
+            "REGSUB_MAX_COUNT_384I_NVME_R",
+        ]:
+            assert substitutions[key] == "16"
+
+        next_run_values = records["next_run_values"]
+        for key in [
+            "max_count_8I",
+            "max_count_128I",
+            "max_count_192I",
+            "max_count_384I",
+            "max_count_128I_C",
+            "max_count_128I_M",
+            "max_count_128I_R",
+            "max_count_128I_NVME",
+            "max_count_192I_C",
+            "max_count_192I_M",
+            "max_count_192I_R",
+            "max_count_192I_NVME_C",
+            "max_count_192I_NVME_M",
+            "max_count_192I_NVME_R",
+            "max_count_192I_HUGENVME",
+            "max_count_384I_NVME_C",
+            "max_count_384I_NVME_M",
+            "max_count_384I_NVME_R",
+        ]:
+            assert next_run_values[key] == "16"
+
+    def test_explicit_subtype_max_count_overrides_broad_count(self, tmp_path, monkeypatch):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            config_overrides={
+                "max_count_128I": ["USESETVALUE", "1", "16"],
+                "max_count_128I_C": ["USESETVALUE", "1", "7"],
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        substitutions = records["render_substitutions"]
+        assert substitutions["REGSUB_MAX_COUNT_128I"] == "16"
+        assert substitutions["REGSUB_MAX_COUNT_128I_C"] == "7"
+        assert substitutions["REGSUB_MAX_COUNT_128I_M"] == "16"
+
     def test_prints_ssh_command_then_fin_and_runs_say_when_available(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
             tmp_path,
@@ -1001,11 +1097,11 @@ class TestRunCreateWorkflow:
 
         assert records["rc"] == EXIT_SUCCESS
         assert records["next_run_values"]["slurm_accounting_enabled"] == "false"
-        assert any("No usable Slurm accounting DB candidates found" in w for w in records["warnings"])
+        assert any(
+            "No usable Slurm accounting DB candidates found" in w for w in records["warnings"]
+        )
 
-    def test_scan_slurm_accounting_non_interactive_warns_and_skips(
-        self, tmp_path, monkeypatch
-    ):
+    def test_scan_slurm_accounting_non_interactive_warns_and_skips(self, tmp_path, monkeypatch):
         accounting_db = SlurmAccountingDb(
             stack_name="dayec-sacct-db",
             status="CREATE_COMPLETE",
@@ -1960,14 +2056,23 @@ def _run_stubbed_create_workflow(
         "configure_headnode",
         lambda **_kwargs: True,
     )
-    monkeypatch.setattr(
-        renderer,
-        "write_init_artifacts",
-        lambda *_args, **_kwargs: (
+
+    def fake_write_init_artifacts(
+        cluster_name: str,
+        run_id: str,
+        template_yaml: str,
+        substitutions: dict[str, str],
+    ):
+        records["render_cluster_name"] = cluster_name
+        records["render_run_id"] = run_id
+        records["render_template_yaml"] = template_yaml
+        records["render_substitutions"] = dict(substitutions)
+        return (
             str(tmp_path / "cluster.yaml.init"),
             str(tmp_path / "init-template.yaml"),
-        ),
-    )
+        )
+
+    monkeypatch.setattr(renderer, "write_init_artifacts", fake_write_init_artifacts)
 
     def fake_apply_spot_prices(_init_template_path, cluster_yaml_path, *_args, **_kwargs):
         Path(cluster_yaml_path).write_text(
