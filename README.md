@@ -173,6 +173,52 @@ Use `dyec --help` for the current root command list. Current major groups includ
 - `repositories`, `mounts`, `mount`, `export`, `exports`
 - `slurm-accounting`, `aws`, `pricing`, `runtime`, `env`, `state`, `resources-dir`
 
+```rtf
+dyec
+
+ Usage: dyec [OPTIONS] COMMAND [ARGS]...
+
+ Create and manage ephemeral AWS ParallelCluster environments for bioinformatics workloads.
+
+╭─ Options ─────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --json                        Emit machine-readable JSON.                                                 │
+│ --dry-run                     Plan the command without making persistent changes.                         │
+│ --no-color                    Disable ANSI styling.                                                       │
+│ --debug                       Enable debug diagnostics.                                                   │
+│ --install-completion          Install completion for the current shell.                                   │
+│ --show-completion             Show completion for the current shell, to copy it or customize the          │
+│                               installation.                                                               │
+│ --help                        Show this message and exit.                                                 │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ version           Show version.                                                                           │
+│ info              Show system info.                                                                       │
+│ create            Create an ephemeral AWS ParallelCluster environment.                                    │
+│ preflight         Run preflight validation only (no cluster creation).                                    │
+│ drift             Check for drift against a previous run's state.                                         │
+│ cluster-info      List ParallelCluster clusters and their status.                                         │
+│ export            Export FSx outputs through an explicit temporary DRA.                                   │
+│ delete            Delete a cluster and monitor teardown to completion.                                    │
+│ resources-dir     Print the extracted resource directory used by Daylily.                                 │
+│ env               Environment guidance.                                                                   │
+│ runtime           Runtime inspection.                                                                     │
+│ pricing           Spot pricing inspection helpers.                                                        │
+│ aws               AWS readiness validation helpers.                                                       │
+│ slurm-accounting  Slurm accounting database helpers.                                                      │
+│ cluster           ParallelCluster inspection helpers.                                                     │
+│ headnode          Headnode bootstrap and shell-context helpers.                                           │
+│ samples           Sample staging helpers.                                                                 │
+│ workflow          Headnode workflow helpers.                                                              │
+│ repositories      Repository catalog and blessed analysis command helpers.                                │
+│ tests             Local and cluster prep-test helpers.                                                    │
+│ exports           Explicit FSx output DRA export helpers.                                                 │
+│ mounts            FSx run-directory mount helpers.                                                        │
+│ mount             Run-directory mount aliases.                                                            │
+│ state             Local Daylily state inspection helpers.                                                 │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+
 Important inspection commands:
 
 ```bash
