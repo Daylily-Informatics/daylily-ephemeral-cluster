@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from importlib.metadata import version as dist_version
 import json
+from pathlib import Path
+from types import SimpleNamespace
 import sys
 
 from typer.testing import CliRunner
@@ -30,6 +32,24 @@ def test_get_version_falls_back_to_installed_metadata(monkeypatch):
     )
 
     assert versioning.get_version() == "2.3.4"
+
+
+def test_source_tree_version_uses_repo_root_without_relative_to(monkeypatch):
+    calls = {}
+
+    def fake_get_version(**kwargs):
+        calls.update(kwargs)
+        return "8.9.10"
+
+    monkeypatch.setitem(
+        sys.modules,
+        "setuptools_scm",
+        SimpleNamespace(get_version=fake_get_version),
+    )
+
+    assert versioning._source_tree_version() == "8.9.10"
+    assert calls["root"] == str(Path(versioning.__file__).resolve().parents[1])
+    assert "relative_to" not in calls
 
 
 def test_import_daylily_ec_is_lightweight_and_exports_create_cluster():
