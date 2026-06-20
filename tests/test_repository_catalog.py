@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.32"
+DAYOA_BLESSED_TAG = "10.0.33"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG_PATH = (
