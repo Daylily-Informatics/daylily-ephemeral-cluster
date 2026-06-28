@@ -1,0 +1,31 @@
+{
+  "ReturnSize": 25,
+  "Tags": [
+    "",
+    "dayhoff+us-east-1",
+    "dayhoff+us-west-2",
+    "dayhoff-day",
+    "dayhoff-ddev80",
+    "dayhoff-ddev81",
+    "dayhoff-ddev89",
+    "dayhoff-ddev92",
+    "dayhoff-ddev94",
+    "dayhoff-ddev96",
+    "dayhoff-dev",
+    "dayhoff-inf",
+    "dayhoff-inf10",
+    "dayhoff-inf11",
+    "dayhoff-inf9",
+    "dayhoff-jemdev",
+    "dayhoff-jemdev2",
+    "dayhoff-jemdev3",
+    "dayhoff-jemdev5",
+    "dayhoff-joshdev",
+    "dayhoff-tailnet-dns",
+    "tapdb-us-east-1",
+    "tapdb-us-west-2",
+    "ultima-wgs",
+    "zebra-day+us-west-2"
+  ],
+  "TotalSize": 25
+}

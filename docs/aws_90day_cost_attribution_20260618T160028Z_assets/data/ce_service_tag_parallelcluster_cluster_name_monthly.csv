@@ -1,0 +1,727 @@
+time_start,time_end,estimated,amount_usd,service,tag_parallelcluster_cluster_name,tag_parallelcluster_cluster_name_value
+2026-03-21,2026-04-01,False,0.0,AWS CloudFormation,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,0.2686503011,AWS Cost Explorer,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,0.0,AWS Glue,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,1.064516112,AWS Key Management Service,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,1.63e-07,AWS Lambda,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$daylily-1773059211,daylily-1773059211
+2026-03-21,2026-04-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$ifx-go,ifx-go
+2026-03-21,2026-04-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-03-21,2026-04-01,False,1.9528276787,AWS Secrets Manager,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,88.224917683,AWS Security Hub,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,0.0,AWS Service Catalog,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,1.62e-07,AWS Step Functions,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,7.471338384,AWS WAF,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,0.0,AWS X-Ray,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,2.13635e-05,Amazon CloudFront,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,0.0,Amazon Cognito,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,3.27863e-05,Amazon DynamoDB,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,0.0015549375,Amazon DynamoDB,parallelcluster:cluster-name$daylily-1773059211,daylily-1773059211
+2026-03-21,2026-04-01,False,0.0005545625,Amazon DynamoDB,parallelcluster:cluster-name$ifx-go,ifx-go
+2026-03-21,2026-04-01,False,0.002778875,Amazon DynamoDB,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-03-21,2026-04-01,False,0.1231504824,Amazon EC2 Container Registry (ECR),parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,246.802850512,EC2 - Other,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,11.9509677408,EC2 - Other,parallelcluster:cluster-name$day-test-uswest2d,day-test-uswest2d
+2026-03-21,2026-04-01,False,12.0197083729,EC2 - Other,parallelcluster:cluster-name$daylily-1773059211,daylily-1773059211
+2026-03-21,2026-04-01,False,9.7374197321,EC2 - Other,parallelcluster:cluster-name$ifx-go,ifx-go
+2026-03-21,2026-04-01,False,8.3765599433,EC2 - Other,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-03-21,2026-04-01,False,135.1343933162,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,42.3171188974,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$daylily-1773059211,daylily-1773059211
+2026-03-21,2026-04-01,False,31.5579035033,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$ifx-go,ifx-go
+2026-03-21,2026-04-01,False,452.5339002822,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-03-21,2026-04-01,False,6.5211423895,Amazon Elastic Container Service,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,17.8235367274,Amazon Elastic Load Balancing,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,59.6234601975,Amazon FSx,parallelcluster:cluster-name$daylily-1773057991,daylily-1773057991
+2026-03-21,2026-04-01,False,59.6234630095,Amazon FSx,parallelcluster:cluster-name$daylily-1773059211,daylily-1773059211
+2026-03-21,2026-04-01,False,386.7889917799,Amazon FSx,parallelcluster:cluster-name$ifx-go,ifx-go
+2026-03-21,2026-04-01,False,232.7772472983,Amazon FSx,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-03-21,2026-04-01,False,2.41e-07,Amazon Glacier,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,4.0483168403,Amazon GuardDuty,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,0.0,Amazon Inspector,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,142.5877785492,Amazon Relational Database Service,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,1.0609576,Amazon Route 53,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,0.5,Amazon Route 53,parallelcluster:cluster-name$ifx-go,ifx-go
+2026-03-21,2026-04-01,False,0.5,Amazon Route 53,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-03-21,2026-04-01,False,0.0,Amazon Simple Notification Service,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,0.0,Amazon Simple Queue Service,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,333.991371299,Amazon Simple Storage Service,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,41.463882133,Amazon Virtual Private Cloud,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,0.49687639,Amazon Virtual Private Cloud,parallelcluster:cluster-name$daylily-1773059211,daylily-1773059211
+2026-03-21,2026-04-01,False,0.18054445,Amazon Virtual Private Cloud,parallelcluster:cluster-name$ifx-go,ifx-go
+2026-03-21,2026-04-01,False,0.85983194,Amazon Virtual Private Cloud,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-03-21,2026-04-01,False,0.8989247215,AmazonCloudWatch,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$daylily-1773059211,daylily-1773059211
+2026-03-21,2026-04-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$ifx-go,ifx-go
+2026-03-21,2026-04-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-03-21,2026-04-01,False,0.0,CloudWatch Events,parallelcluster:cluster-name$,
+2026-03-21,2026-04-01,False,0.0,Tax,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,0.0,AWS Certificate Manager,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,0.0,AWS CloudFormation,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,0.9391166236,AWS Cost Explorer,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,0.0,AWS Glue,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,3.000000024,AWS Key Management Service,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,1.3567e-06,AWS Lambda,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$and-again,and-again
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$day-ssm-e2e-20260412103613,day-ssm-e2e-20260412103613
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$dec215-0426,dec215-0426
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$lsmc-20260413,lsmc-20260413
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$mk-cluster,mk-cluster
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$mk-gotime,mk-gotime
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$mk-gotime2,mk-gotime2
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$mk-majors-cluster,mk-majors-cluster
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$mk-test-202604-cluster,mk-test-202604-cluster
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$mk426dec215,mk426dec215
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$mkdec219,mkdec219
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$test-del-me,test-del-me
+2026-04-01,2026-05-01,False,4.4352410308,AWS Secrets Manager,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,91.6659815437,AWS Security Hub,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,0.0,AWS Service Catalog,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,1.8823e-06,AWS Step Functions,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,261.0595463814,AWS Support (Developer),parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,8.0212293499,AWS WAF,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,1.282e-07,Amazon CloudFront,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,0.14175,Amazon Cognito,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,0.0001662146,Amazon DynamoDB,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,0.000873125,Amazon DynamoDB,parallelcluster:cluster-name$and-again,and-again
+2026-04-01,2026-05-01,False,0.0003986875,Amazon DynamoDB,parallelcluster:cluster-name$day-ssm-e2e-20260412103613,day-ssm-e2e-20260412103613
+2026-04-01,2026-05-01,False,0.00049075,Amazon DynamoDB,parallelcluster:cluster-name$dec215-0426,dec215-0426
+2026-04-01,2026-05-01,False,0.0010585625,Amazon DynamoDB,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-04-01,2026-05-01,False,0.0052024375,Amazon DynamoDB,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-04-01,2026-05-01,False,0.0027385,Amazon DynamoDB,parallelcluster:cluster-name$lsmc-20260413,lsmc-20260413
+2026-04-01,2026-05-01,False,0.000709875,Amazon DynamoDB,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-04-01,2026-05-01,False,0.001197375,Amazon DynamoDB,parallelcluster:cluster-name$mk-cluster,mk-cluster
+2026-04-01,2026-05-01,False,0.002653125,Amazon DynamoDB,parallelcluster:cluster-name$mk-gotime,mk-gotime
+2026-04-01,2026-05-01,False,2.5e-05,Amazon DynamoDB,parallelcluster:cluster-name$mk-gotime2,mk-gotime2
+2026-04-01,2026-05-01,False,0.0047876875,Amazon DynamoDB,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-04-01,2026-05-01,False,0.00148675,Amazon DynamoDB,parallelcluster:cluster-name$mk-majors-cluster,mk-majors-cluster
+2026-04-01,2026-05-01,False,0.001225375,Amazon DynamoDB,parallelcluster:cluster-name$mk-test-202604-cluster,mk-test-202604-cluster
+2026-04-01,2026-05-01,False,0.000320875,Amazon DynamoDB,parallelcluster:cluster-name$mk426dec215,mk426dec215
+2026-04-01,2026-05-01,False,0.000328375,Amazon DynamoDB,parallelcluster:cluster-name$mkdec219,mkdec219
+2026-04-01,2026-05-01,False,0.00198525,Amazon DynamoDB,parallelcluster:cluster-name$test-del-me,test-del-me
+2026-04-01,2026-05-01,False,0.4761489983,Amazon EC2 Container Registry (ECR),parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,496.9024657122,EC2 - Other,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,2.7641490277,EC2 - Other,parallelcluster:cluster-name$and-again,and-again
+2026-04-01,2026-05-01,False,1.1543013631,EC2 - Other,parallelcluster:cluster-name$day-ssm-e2e-20260412103613,day-ssm-e2e-20260412103613
+2026-04-01,2026-05-01,False,33.680000016,EC2 - Other,parallelcluster:cluster-name$day-test-uswest2d,day-test-uswest2d
+2026-04-01,2026-05-01,False,33.680000016,EC2 - Other,parallelcluster:cluster-name$daylily-1773059211,daylily-1773059211
+2026-04-01,2026-05-01,False,1.5322169349,EC2 - Other,parallelcluster:cluster-name$dec215-0426,dec215-0426
+2026-04-01,2026-05-01,False,3.3546384529,EC2 - Other,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-04-01,2026-05-01,False,33.680000016,EC2 - Other,parallelcluster:cluster-name$ifx-go,ifx-go
+2026-04-01,2026-05-01,False,16.1767584902,EC2 - Other,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-04-01,2026-05-01,False,8.5388126587,EC2 - Other,parallelcluster:cluster-name$lsmc-20260413,lsmc-20260413
+2026-04-01,2026-05-01,False,2.2257307142,EC2 - Other,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-04-01,2026-05-01,False,3.7278275626,EC2 - Other,parallelcluster:cluster-name$mk-cluster,mk-cluster
+2026-04-01,2026-05-01,False,8.2574216003,EC2 - Other,parallelcluster:cluster-name$mk-gotime,mk-gotime
+2026-04-01,2026-05-01,False,0.0832865389,EC2 - Other,parallelcluster:cluster-name$mk-gotime2,mk-gotime2
+2026-04-01,2026-05-01,False,12.3149799095,EC2 - Other,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-04-01,2026-05-01,False,4.6259024631,EC2 - Other,parallelcluster:cluster-name$mk-majors-cluster,mk-majors-cluster
+2026-04-01,2026-05-01,False,3.8137899955,EC2 - Other,parallelcluster:cluster-name$mk-test-202604-cluster,mk-test-202604-cluster
+2026-04-01,2026-05-01,False,1.0013924308,EC2 - Other,parallelcluster:cluster-name$mk426dec215,mk426dec215
+2026-04-01,2026-05-01,False,1.0245884681,EC2 - Other,parallelcluster:cluster-name$mkdec219,mkdec219
+2026-04-01,2026-05-01,False,17.2652436579,EC2 - Other,parallelcluster:cluster-name$test-del-me,test-del-me
+2026-04-01,2026-05-01,False,560.3337595136,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,30.8063493604,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$and-again,and-again
+2026-04-01,2026-05-01,False,20.788327337,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$day-ssm-e2e-20260412103613,day-ssm-e2e-20260412103613
+2026-04-01,2026-05-01,False,17.2748519491,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dec215-0426,dec215-0426
+2026-04-01,2026-05-01,False,97.7800052848,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-04-01,2026-05-01,False,183.839017004,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-04-01,2026-05-01,False,96.0536220119,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$lsmc-20260413,lsmc-20260413
+2026-04-01,2026-05-01,False,24.8221262516,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-04-01,2026-05-01,False,42.1185872962,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$mk-cluster,mk-cluster
+2026-04-01,2026-05-01,False,93.3639630042,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$mk-gotime,mk-gotime
+2026-04-01,2026-05-01,False,0.8827353572,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$mk-gotime2,mk-gotime2
+2026-04-01,2026-05-01,False,726.661958265,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-04-01,2026-05-01,False,52.2795210083,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$mk-majors-cluster,mk-majors-cluster
+2026-04-01,2026-05-01,False,43.0915802438,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$mk-test-202604-cluster,mk-test-202604-cluster
+2026-04-01,2026-05-01,False,11.2756348941,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$mk426dec215,mk426dec215
+2026-04-01,2026-05-01,False,11.5331790698,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$mkdec219,mkdec219
+2026-04-01,2026-05-01,False,25.4197867495,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$test-del-me,test-del-me
+2026-04-01,2026-05-01,False,35.5698970163,Amazon Elastic Container Service,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,4.52052e-05,Amazon Elastic File System,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,18.9681630235,Amazon Elastic Load Balancing,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,54.6837431394,Amazon FSx,parallelcluster:cluster-name$and-again,and-again
+2026-04-01,2026-05-01,False,22.9856170141,Amazon FSx,parallelcluster:cluster-name$day-ssm-e2e-20260412103613,day-ssm-e2e-20260412103613
+2026-04-01,2026-05-01,False,168.0278835717,Amazon FSx,parallelcluster:cluster-name$daylily-1773057991,daylily-1773057991
+2026-04-01,2026-05-01,False,168.0278845246,Amazon FSx,parallelcluster:cluster-name$daylily-1773059211,daylily-1773059211
+2026-04-01,2026-05-01,False,30.8552812071,Amazon FSx,parallelcluster:cluster-name$dec215-0426,dec215-0426
+2026-04-01,2026-05-01,False,159.5595350469,Amazon FSx,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-04-01,2026-05-01,False,1344.069492284,Amazon FSx,parallelcluster:cluster-name$ifx-go,ifx-go
+2026-04-01,2026-05-01,False,484.8185571242,Amazon FSx,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-04-01,2026-05-01,False,170.672417507,Amazon FSx,parallelcluster:cluster-name$lsmc-20260413,lsmc-20260413
+2026-04-01,2026-05-01,False,23.019969665,Amazon FSx,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-04-01,2026-05-01,False,46.978085874,Amazon FSx,parallelcluster:cluster-name$mk-cluster,mk-cluster
+2026-04-01,2026-05-01,False,330.0815751208,Amazon FSx,parallelcluster:cluster-name$mk-gotime,mk-gotime
+2026-04-01,2026-05-01,False,4.857861109,Amazon FSx,parallelcluster:cluster-name$mk-gotime2,mk-gotime2
+2026-04-01,2026-05-01,False,543.6703939912,Amazon FSx,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-04-01,2026-05-01,False,111.8916447132,Amazon FSx,parallelcluster:cluster-name$mk-majors-cluster,mk-majors-cluster
+2026-04-01,2026-05-01,False,95.6770185001,Amazon FSx,parallelcluster:cluster-name$mk-test-202604-cluster,mk-test-202604-cluster
+2026-04-01,2026-05-01,False,20.2585615719,Amazon FSx,parallelcluster:cluster-name$mk426dec215,mk426dec215
+2026-04-01,2026-05-01,False,20.7338238616,Amazon FSx,parallelcluster:cluster-name$mkdec219,mkdec219
+2026-04-01,2026-05-01,False,123.9586692557,Amazon FSx,parallelcluster:cluster-name$test-del-me,test-del-me
+2026-04-01,2026-05-01,False,2.6714e-06,Amazon Glacier,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,15.268142109,Amazon GuardDuty,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,0.0,Amazon Inspector,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,130.0,Amazon Registrar,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,497.9875161126,Amazon Relational Database Service,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,12.0503452,Amazon Route 53,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$and-again,and-again
+2026-04-01,2026-05-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$day-ssm-e2e-20260412103613,day-ssm-e2e-20260412103613
+2026-04-01,2026-05-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$dec215-0426,dec215-0426
+2026-04-01,2026-05-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-04-01,2026-05-01,False,0.5,Amazon Route 53,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-04-01,2026-05-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$lsmc-20260413,lsmc-20260413
+2026-04-01,2026-05-01,False,0.5,Amazon Route 53,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-04-01,2026-05-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$mk-cluster,mk-cluster
+2026-04-01,2026-05-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$mk-gotime,mk-gotime
+2026-04-01,2026-05-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-04-01,2026-05-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$mk-majors-cluster,mk-majors-cluster
+2026-04-01,2026-05-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$mk-test-202604-cluster,mk-test-202604-cluster
+2026-04-01,2026-05-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$mk426dec215,mk426dec215
+2026-04-01,2026-05-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$mkdec219,mkdec219
+2026-04-01,2026-05-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$test-del-me,test-del-me
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Notification Service,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Queue Service,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,1479.5929508039,Amazon Simple Storage Service,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,110.8268669624,Amazon Virtual Private Cloud,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,0.293615275,Amazon Virtual Private Cloud,parallelcluster:cluster-name$and-again,and-again
+2026-04-01,2026-05-01,False,0.12390139,Amazon Virtual Private Cloud,parallelcluster:cluster-name$day-ssm-e2e-20260412103613,day-ssm-e2e-20260412103613
+2026-04-01,2026-05-01,False,0.16602917,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dec215-0426,dec215-0426
+2026-04-01,2026-05-01,False,0.342881945,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-04-01,2026-05-01,False,1.731422225,Amazon Virtual Private Cloud,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-04-01,2026-05-01,False,0.914986115,Amazon Virtual Private Cloud,parallelcluster:cluster-name$lsmc-20260413,lsmc-20260413
+2026-04-01,2026-05-01,False,0.24238195,Amazon Virtual Private Cloud,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-04-01,2026-05-01,False,0.50376944,Amazon Virtual Private Cloud,parallelcluster:cluster-name$mk-cluster,mk-cluster
+2026-04-01,2026-05-01,False,0.88500556,Amazon Virtual Private Cloud,parallelcluster:cluster-name$mk-gotime,mk-gotime
+2026-04-01,2026-05-01,False,0.011325,Amazon Virtual Private Cloud,parallelcluster:cluster-name$mk-gotime2,mk-gotime2
+2026-04-01,2026-05-01,False,1.16574028,Amazon Virtual Private Cloud,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-04-01,2026-05-01,False,0.599998615,Amazon Virtual Private Cloud,parallelcluster:cluster-name$mk-majors-cluster,mk-majors-cluster
+2026-04-01,2026-05-01,False,0.51319861,Amazon Virtual Private Cloud,parallelcluster:cluster-name$mk-test-202604-cluster,mk-test-202604-cluster
+2026-04-01,2026-05-01,False,0.109247225,Amazon Virtual Private Cloud,parallelcluster:cluster-name$mk426dec215,mk426dec215
+2026-04-01,2026-05-01,False,0.11168889,Amazon Virtual Private Cloud,parallelcluster:cluster-name$mkdec219,mkdec219
+2026-04-01,2026-05-01,False,0.66479167,Amazon Virtual Private Cloud,parallelcluster:cluster-name$test-del-me,test-del-me
+2026-04-01,2026-05-01,False,4.8825031081,AmazonCloudWatch,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$and-again,and-again
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$day-ssm-e2e-20260412103613,day-ssm-e2e-20260412103613
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$dec215-0426,dec215-0426
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$inflextion-g24,inflextion-g24
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$lsmc-20260413,lsmc-20260413
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$mk-cluster,mk-cluster
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$mk-gotime,mk-gotime
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$mk-gotime2,mk-gotime2
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$mk-majors-cluster,mk-majors-cluster
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$mk-test-202604-cluster,mk-test-202604-cluster
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$mk426dec215,mk426dec215
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$mkdec219,mkdec219
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$test-del-me,test-del-me
+2026-04-01,2026-05-01,False,0.0,CloudWatch Events,parallelcluster:cluster-name$,
+2026-04-01,2026-05-01,False,0.0,Tax,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,0.0,AWS Certificate Manager,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,0.0,AWS CloudFormation,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,32.533505,AWS CloudTrail,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,60.8757636451,AWS Cost Explorer,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,0.0,AWS Glue,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,2.934997566,AWS Key Management Service,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,6.3428e-06,AWS Lambda,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$XL-pilot,XL-pilot
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$XLpilot,XLpilot
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$and-again,and-again
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$at-sanity,at-sanity
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$blahab44,blahab44
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$bucketsamok,bucketsamok
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$daylily-demo-cluster,daylily-demo-cluster
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$dra-enabled,dra-enabled
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$dra-test2,dra-test2
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$dra-test4,dra-test4
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$dyec-515,dyec-515
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$fk-260509-use,fk-260509-use
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$fork-fixer,fork-fixer
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$goodole3,goodole3
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$hyb-hg003,hyb-hg003
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$jem-bucktst1,jem-bucktst1
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$jem-bucktst2,jem-bucktst2
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$jem-bucktst3,jem-bucktst3
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$jemx2,jemx2
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$lsbio-fork-260509-124701,lsbio-fork-260509-124701
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$may26-d,may26-d
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$pilot-largecluster,pilot-largecluster
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$pilot-mk,pilot-mk
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$pilot-xfer,pilot-xfer
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$splitdra-ref-20260526,splitdra-ref-20260526
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$splitdra-smoke-20260526,splitdra-smoke-20260526
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$test-clstr,test-clstr
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$tstClu-4-1-1c,tstClu-4-1-1c
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$tstVer4-1-1,tstVer4-1-1
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$tstVer4-1-1b,tstVer4-1-1b
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$xfer-cluster,xfer-cluster
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,parallelcluster:cluster-name$y260609-frz,y260609-frz
+2026-05-01,2026-06-01,False,6.0549953036,AWS Secrets Manager,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,191.551362364,AWS Security Hub,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,0.0,AWS Service Catalog,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,2.284e-06,AWS Step Functions,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,680.902151147,AWS Support (Developer),parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,6.999999888,AWS WAF,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,0.0,Amazon CloudFront,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,0.02925,Amazon Cognito,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,0.0003780314,Amazon DynamoDB,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,0.0013174375,Amazon DynamoDB,parallelcluster:cluster-name$XL-pilot,XL-pilot
+2026-05-01,2026-06-01,False,1.625e-05,Amazon DynamoDB,parallelcluster:cluster-name$XLpilot,XLpilot
+2026-05-01,2026-06-01,False,0.00088,Amazon DynamoDB,parallelcluster:cluster-name$and-again,and-again
+2026-05-01,2026-06-01,False,0.0031161875,Amazon DynamoDB,parallelcluster:cluster-name$at-sanity,at-sanity
+2026-05-01,2026-06-01,False,0.000399875,Amazon DynamoDB,parallelcluster:cluster-name$blahab44,blahab44
+2026-05-01,2026-06-01,False,7.525e-05,Amazon DynamoDB,parallelcluster:cluster-name$daylily-demo-cluster,daylily-demo-cluster
+2026-05-01,2026-06-01,False,0.002994125,Amazon DynamoDB,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-05-01,2026-06-01,False,0.0016530625,Amazon DynamoDB,parallelcluster:cluster-name$dra-enabled,dra-enabled
+2026-05-01,2026-06-01,False,6.25e-07,Amazon DynamoDB,parallelcluster:cluster-name$dra-test2,dra-test2
+2026-05-01,2026-06-01,False,0.000508625,Amazon DynamoDB,parallelcluster:cluster-name$dra-test4,dra-test4
+2026-05-01,2026-06-01,False,0.0002216875,Amazon DynamoDB,parallelcluster:cluster-name$dyec-515,dyec-515
+2026-05-01,2026-06-01,False,0.002394375,Amazon DynamoDB,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-05-01,2026-06-01,False,0.00421675,Amazon DynamoDB,parallelcluster:cluster-name$fk-260509-use,fk-260509-use
+2026-05-01,2026-06-01,False,0.001094125,Amazon DynamoDB,parallelcluster:cluster-name$fork-fixer,fork-fixer
+2026-05-01,2026-06-01,False,0.001020625,Amazon DynamoDB,parallelcluster:cluster-name$goodole3,goodole3
+2026-05-01,2026-06-01,False,0.002683875,Amazon DynamoDB,parallelcluster:cluster-name$hyb-hg003,hyb-hg003
+2026-05-01,2026-06-01,False,6.25e-07,Amazon DynamoDB,parallelcluster:cluster-name$jem-bucktst1,jem-bucktst1
+2026-05-01,2026-06-01,False,6.25e-07,Amazon DynamoDB,parallelcluster:cluster-name$jem-bucktst2,jem-bucktst2
+2026-05-01,2026-06-01,False,0.0003618125,Amazon DynamoDB,parallelcluster:cluster-name$jem-bucktst3,jem-bucktst3
+2026-05-01,2026-06-01,False,3.6125e-05,Amazon DynamoDB,parallelcluster:cluster-name$jemx2,jemx2
+2026-05-01,2026-06-01,False,0.0018853125,Amazon DynamoDB,parallelcluster:cluster-name$lsbio-fork-260509-124701,lsbio-fork-260509-124701
+2026-05-01,2026-06-01,False,0.001814375,Amazon DynamoDB,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-05-01,2026-06-01,False,0.00352375,Amazon DynamoDB,parallelcluster:cluster-name$may26-d,may26-d
+2026-05-01,2026-06-01,False,0.0029995,Amazon DynamoDB,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-05-01,2026-06-01,False,0.00100575,Amazon DynamoDB,parallelcluster:cluster-name$pilot-largecluster,pilot-largecluster
+2026-05-01,2026-06-01,False,0.001780875,Amazon DynamoDB,parallelcluster:cluster-name$pilot-mk,pilot-mk
+2026-05-01,2026-06-01,False,0.000190375,Amazon DynamoDB,parallelcluster:cluster-name$pilot-xfer,pilot-xfer
+2026-05-01,2026-06-01,False,5.825e-05,Amazon DynamoDB,parallelcluster:cluster-name$splitdra-ref-20260526,splitdra-ref-20260526
+2026-05-01,2026-06-01,False,8.625e-06,Amazon DynamoDB,parallelcluster:cluster-name$splitdra-smoke-20260526,splitdra-smoke-20260526
+2026-05-01,2026-06-01,False,2.875e-06,Amazon DynamoDB,parallelcluster:cluster-name$test-clstr,test-clstr
+2026-05-01,2026-06-01,False,0.0002316875,Amazon DynamoDB,parallelcluster:cluster-name$tstClu-4-1-1c,tstClu-4-1-1c
+2026-05-01,2026-06-01,False,0.000107625,Amazon DynamoDB,parallelcluster:cluster-name$tstVer4-1-1,tstVer4-1-1
+2026-05-01,2026-06-01,False,0.000501375,Amazon DynamoDB,parallelcluster:cluster-name$tstVer4-1-1b,tstVer4-1-1b
+2026-05-01,2026-06-01,False,0.0003945,Amazon DynamoDB,parallelcluster:cluster-name$xfer-cluster,xfer-cluster
+2026-05-01,2026-06-01,False,0.00019225,Amazon DynamoDB,parallelcluster:cluster-name$y260609-frz,y260609-frz
+2026-05-01,2026-06-01,False,0.7040180655,Amazon EC2 Container Registry (ECR),parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,920.3390281027,EC2 - Other,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,4.5260583316,EC2 - Other,parallelcluster:cluster-name$XL-pilot,XL-pilot
+2026-05-01,2026-06-01,False,0.0657634723,EC2 - Other,parallelcluster:cluster-name$XLpilot,XLpilot
+2026-05-01,2026-06-01,False,2.6193798259,EC2 - Other,parallelcluster:cluster-name$and-again,and-again
+2026-05-01,2026-06-01,False,8.1762784701,EC2 - Other,parallelcluster:cluster-name$at-sanity,at-sanity
+2026-05-01,2026-06-01,False,0.9886153732,EC2 - Other,parallelcluster:cluster-name$blahab44,blahab44
+2026-05-01,2026-06-01,False,33.6799999968,EC2 - Other,parallelcluster:cluster-name$day-test-uswest2d,day-test-uswest2d
+2026-05-01,2026-06-01,False,33.6799999968,EC2 - Other,parallelcluster:cluster-name$daylily-1773059211,daylily-1773059211
+2026-05-01,2026-06-01,False,0.2266671995,EC2 - Other,parallelcluster:cluster-name$daylily-demo-cluster,daylily-demo-cluster
+2026-05-01,2026-06-01,False,8.9791532973,EC2 - Other,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-05-01,2026-06-01,False,4.9726981012,EC2 - Other,parallelcluster:cluster-name$dra-enabled,dra-enabled
+2026-05-01,2026-06-01,False,0.0071845408,EC2 - Other,parallelcluster:cluster-name$dra-test2,dra-test2
+2026-05-01,2026-06-01,False,1.4994521679,EC2 - Other,parallelcluster:cluster-name$dra-test4,dra-test4
+2026-05-01,2026-06-01,False,0.5935603094,EC2 - Other,parallelcluster:cluster-name$dyec-515,dyec-515
+2026-05-01,2026-06-01,False,3.9896107994,EC2 - Other,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-05-01,2026-06-01,False,9.7989454646,EC2 - Other,parallelcluster:cluster-name$fk-260509-use,fk-260509-use
+2026-05-01,2026-06-01,False,3.2352986233,EC2 - Other,parallelcluster:cluster-name$fork-fixer,fork-fixer
+2026-05-01,2026-06-01,False,2.1368193199,EC2 - Other,parallelcluster:cluster-name$goodole3,goodole3
+2026-05-01,2026-06-01,False,6.5032381334,EC2 - Other,parallelcluster:cluster-name$hyb-hg003,hyb-hg003
+2026-05-01,2026-06-01,False,33.6799999968,EC2 - Other,parallelcluster:cluster-name$ifx-go,ifx-go
+2026-05-01,2026-06-01,False,0.0116413097,EC2 - Other,parallelcluster:cluster-name$jem-bucktst1,jem-bucktst1
+2026-05-01,2026-06-01,False,0.0117327145,EC2 - Other,parallelcluster:cluster-name$jem-bucktst2,jem-bucktst2
+2026-05-01,2026-06-01,False,0.971441657,EC2 - Other,parallelcluster:cluster-name$jem-bucktst3,jem-bucktst3
+2026-05-01,2026-06-01,False,0.1131108062,EC2 - Other,parallelcluster:cluster-name$jemx2,jemx2
+2026-05-01,2026-06-01,False,5.6602038265,EC2 - Other,parallelcluster:cluster-name$lsbio-fork-260509-124701,lsbio-fork-260509-124701
+2026-05-01,2026-06-01,False,5.4825022474,EC2 - Other,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-05-01,2026-06-01,False,9.0869111856,EC2 - Other,parallelcluster:cluster-name$may26-d,may26-d
+2026-05-01,2026-06-01,False,9.0210959297,EC2 - Other,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-05-01,2026-06-01,False,3.0330943199,EC2 - Other,parallelcluster:cluster-name$pilot-largecluster,pilot-largecluster
+2026-05-01,2026-06-01,False,5.358379067,EC2 - Other,parallelcluster:cluster-name$pilot-mk,pilot-mk
+2026-05-01,2026-06-01,False,0.5783928044,EC2 - Other,parallelcluster:cluster-name$pilot-xfer,pilot-xfer
+2026-05-01,2026-06-01,False,0.1804073617,EC2 - Other,parallelcluster:cluster-name$splitdra-ref-20260526,splitdra-ref-20260526
+2026-05-01,2026-06-01,False,0.0864470046,EC2 - Other,parallelcluster:cluster-name$splitdra-smoke-20260526,splitdra-smoke-20260526
+2026-05-01,2026-06-01,False,0.0176271829,EC2 - Other,parallelcluster:cluster-name$test-clstr,test-clstr
+2026-05-01,2026-06-01,False,33.6799999968,EC2 - Other,parallelcluster:cluster-name$test-del-me,test-del-me
+2026-05-01,2026-06-01,False,0.3781656259,EC2 - Other,parallelcluster:cluster-name$tstClu-4-1-1c,tstClu-4-1-1c
+2026-05-01,2026-06-01,False,0.333497541,EC2 - Other,parallelcluster:cluster-name$tstVer4-1-1,tstVer4-1-1
+2026-05-01,2026-06-01,False,1.0481298058,EC2 - Other,parallelcluster:cluster-name$tstVer4-1-1b,tstVer4-1-1b
+2026-05-01,2026-06-01,False,1.1466539941,EC2 - Other,parallelcluster:cluster-name$xfer-cluster,xfer-cluster
+2026-05-01,2026-06-01,False,0.5305984707,EC2 - Other,parallelcluster:cluster-name$y260609-frz,y260609-frz
+2026-05-01,2026-06-01,False,765.5241085873,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,557.2011542548,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$XL-pilot,XL-pilot
+2026-05-01,2026-06-01,False,0.7166337012,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$XLpilot,XLpilot
+2026-05-01,2026-06-01,False,31.032288,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$and-again,and-again
+2026-05-01,2026-06-01,False,613.8793264405,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$at-sanity,at-sanity
+2026-05-01,2026-06-01,False,80.1423907527,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$blahab44,blahab44
+2026-05-01,2026-06-01,False,10.380563806,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$daylily-demo-cluster,daylily-demo-cluster
+2026-05-01,2026-06-01,False,105.4780930795,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-05-01,2026-06-01,False,843.4557292779,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dra-enabled,dra-enabled
+2026-05-01,2026-06-01,False,0.0311676364,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dra-test2,dra-test2
+2026-05-01,2026-06-01,False,17.4768393686,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dra-test4,dra-test4
+2026-05-01,2026-06-01,False,26.7017148667,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dyec-515,dyec-515
+2026-05-01,2026-06-01,False,597.5130926927,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-05-01,2026-06-01,False,1484.5764531169,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$fk-260509-use,fk-260509-use
+2026-05-01,2026-06-01,False,53.3239039821,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$fork-fixer,fork-fixer
+2026-05-01,2026-06-01,False,148.0649160889,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$goodole3,goodole3
+2026-05-01,2026-06-01,False,1705.9143707571,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$hyb-hg003,hyb-hg003
+2026-05-01,2026-06-01,False,0.0835032309,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$jem-bucktst1,jem-bucktst1
+2026-05-01,2026-06-01,False,0.0840918957,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$jem-bucktst2,jem-bucktst2
+2026-05-01,2026-06-01,False,22.9189361844,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$jem-bucktst3,jem-bucktst3
+2026-05-01,2026-06-01,False,1.2649351594,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$jemx2,jemx2
+2026-05-01,2026-06-01,False,81.8104680473,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$lsbio-fork-260509-124701,lsbio-fork-260509-124701
+2026-05-01,2026-06-01,False,64.2700530496,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-05-01,2026-06-01,False,3464.9342855831,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$may26-d,may26-d
+2026-05-01,2026-06-01,False,105.6584709961,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-05-01,2026-06-01,False,106.5445160249,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$pilot-largecluster,pilot-largecluster
+2026-05-01,2026-06-01,False,62.5720672204,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$pilot-mk,pilot-mk
+2026-05-01,2026-06-01,False,97.6000600067,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$pilot-xfer,pilot-xfer
+2026-05-01,2026-06-01,False,2.0553113289,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$splitdra-ref-20260526,splitdra-ref-20260526
+2026-05-01,2026-06-01,False,0.9493472073,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$splitdra-smoke-20260526,splitdra-smoke-20260526
+2026-05-01,2026-06-01,False,0.1532860636,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$test-clstr,test-clstr
+2026-05-01,2026-06-01,False,23.6788659752,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$tstClu-4-1-1c,tstClu-4-1-1c
+2026-05-01,2026-06-01,False,10.0196152547,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$tstVer4-1-1,tstVer4-1-1
+2026-05-01,2026-06-01,False,97.2319142807,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$tstVer4-1-1b,tstVer4-1-1b
+2026-05-01,2026-06-01,False,13.366876444,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$xfer-cluster,xfer-cluster
+2026-05-01,2026-06-01,False,9.0531099284,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$y260609-frz,y260609-frz
+2026-05-01,2026-06-01,False,55.1299283869,Amazon Elastic Container Service,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,7.24317e-05,Amazon Elastic File System,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,25.2091283305,Amazon Elastic Load Balancing,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,232.77701529,Amazon FSx,parallelcluster:cluster-name$XL-pilot,XL-pilot
+2026-05-01,2026-06-01,False,3.8764352995,Amazon FSx,parallelcluster:cluster-name$XLpilot,XLpilot
+2026-05-01,2026-06-01,False,52.9886451188,Amazon FSx,parallelcluster:cluster-name$and-again,and-again
+2026-05-01,2026-06-01,False,207.4544898911,Amazon FSx,parallelcluster:cluster-name$at-sanity,at-sanity
+2026-05-01,2026-06-01,False,17.2294274889,Amazon FSx,parallelcluster:cluster-name$blahab44,blahab44
+2026-05-01,2026-06-01,False,96.9647840438,Amazon FSx,parallelcluster:cluster-name$daylily-1773057991,daylily-1773057991
+2026-05-01,2026-06-01,False,96.9660225222,Amazon FSx,parallelcluster:cluster-name$daylily-1773059211,daylily-1773059211
+2026-05-01,2026-06-01,False,11.9783386074,Amazon FSx,parallelcluster:cluster-name$daylily-demo-cluster,daylily-demo-cluster
+2026-05-01,2026-06-01,False,450.182084255,Amazon FSx,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-05-01,2026-06-01,False,198.2426077299,Amazon FSx,parallelcluster:cluster-name$dra-enabled,dra-enabled
+2026-05-01,2026-06-01,False,0.0622949821,Amazon FSx,parallelcluster:cluster-name$dra-test2,dra-test2
+2026-05-01,2026-06-01,False,9.5820140322,Amazon FSx,parallelcluster:cluster-name$dra-test4,dra-test4
+2026-05-01,2026-06-01,False,22.8849827698,Amazon FSx,parallelcluster:cluster-name$dyec-515,dyec-515
+2026-05-01,2026-06-01,False,125.202619479,Amazon FSx,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-05-01,2026-06-01,False,288.1952869144,Amazon FSx,parallelcluster:cluster-name$fk-260509-use,fk-260509-use
+2026-05-01,2026-06-01,False,127.9663739825,Amazon FSx,parallelcluster:cluster-name$fork-fixer,fork-fixer
+2026-05-01,2026-06-01,False,38.0798376907,Amazon FSx,parallelcluster:cluster-name$goodole3,goodole3
+2026-05-01,2026-06-01,False,166.0278810855,Amazon FSx,parallelcluster:cluster-name$hyb-hg003,hyb-hg003
+2026-05-01,2026-06-01,False,775.6582041302,Amazon FSx,parallelcluster:cluster-name$ifx-go,ifx-go
+2026-05-01,2026-06-01,False,0.22697415,Amazon FSx,parallelcluster:cluster-name$jem-bucktst1,jem-bucktst1
+2026-05-01,2026-06-01,False,0.2187206766,Amazon FSx,parallelcluster:cluster-name$jem-bucktst2,jem-bucktst2
+2026-05-01,2026-06-01,False,18.8902108262,Amazon FSx,parallelcluster:cluster-name$jem-bucktst3,jem-bucktst3
+2026-05-01,2026-06-01,False,0.6309566754,Amazon FSx,parallelcluster:cluster-name$jemx2,jemx2
+2026-05-01,2026-06-01,False,112.4732108693,Amazon FSx,parallelcluster:cluster-name$lsbio-fork-260509-124701,lsbio-fork-260509-124701
+2026-05-01,2026-06-01,False,109.8000313926,Amazon FSx,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-05-01,2026-06-01,False,213.6624307843,Amazon FSx,parallelcluster:cluster-name$may26-d,may26-d
+2026-05-01,2026-06-01,False,450.9268515845,Amazon FSx,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-05-01,2026-06-01,False,364.7599466373,Amazon FSx,parallelcluster:cluster-name$pilot-largecluster,pilot-largecluster
+2026-05-01,2026-06-01,False,321.5621477831,Amazon FSx,parallelcluster:cluster-name$pilot-mk,pilot-mk
+2026-05-01,2026-06-01,False,28.8235310033,Amazon FSx,parallelcluster:cluster-name$pilot-xfer,pilot-xfer
+2026-05-01,2026-06-01,False,3.5828465162,Amazon FSx,parallelcluster:cluster-name$splitdra-ref-20260526,splitdra-ref-20260526
+2026-05-01,2026-06-01,False,1.890223173,Amazon FSx,parallelcluster:cluster-name$splitdra-smoke-20260526,splitdra-smoke-20260526
+2026-05-01,2026-06-01,False,0.0867520786,Amazon FSx,parallelcluster:cluster-name$test-clstr,test-clstr
+2026-05-01,2026-06-01,False,16.910827466,Amazon FSx,parallelcluster:cluster-name$tstClu-4-1-1c,tstClu-4-1-1c
+2026-05-01,2026-06-01,False,6.5400788256,Amazon FSx,parallelcluster:cluster-name$tstVer4-1-1,tstVer4-1-1
+2026-05-01,2026-06-01,False,46.5488976685,Amazon FSx,parallelcluster:cluster-name$tstVer4-1-1b,tstVer4-1-1b
+2026-05-01,2026-06-01,False,34.3437022038,Amazon FSx,parallelcluster:cluster-name$xfer-cluster,xfer-cluster
+2026-05-01,2026-06-01,False,21.3519206273,Amazon FSx,parallelcluster:cluster-name$y260609-frz,y260609-frz
+2026-05-01,2026-06-01,False,3.2412e-06,Amazon Glacier,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,20.8700168735,Amazon GuardDuty,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,0.0,Amazon Inspector,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,2029.0941517157,Amazon Relational Database Service,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,10.252048,Amazon Route 53,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$XL-pilot,XL-pilot
+2026-05-01,2026-06-01,False,0.5,Amazon Route 53,parallelcluster:cluster-name$and-again,and-again
+2026-05-01,2026-06-01,False,0.5,Amazon Route 53,parallelcluster:cluster-name$at-sanity,at-sanity
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$blahab44,blahab44
+2026-05-01,2026-06-01,False,0.5,Amazon Route 53,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$dra-enabled,dra-enabled
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$dra-test4,dra-test4
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$fk-260509-use,fk-260509-use
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$fork-fixer,fork-fixer
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$goodole3,goodole3
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$hyb-hg003,hyb-hg003
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$jem-bucktst3,jem-bucktst3
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$lsbio-fork-260509-124701,lsbio-fork-260509-124701
+2026-05-01,2026-06-01,False,0.5,Amazon Route 53,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$may26-d,may26-d
+2026-05-01,2026-06-01,False,0.5,Amazon Route 53,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$pilot-largecluster,pilot-largecluster
+2026-05-01,2026-06-01,False,0.5,Amazon Route 53,parallelcluster:cluster-name$pilot-mk,pilot-mk
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$tstVer4-1-1b,tstVer4-1-1b
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,parallelcluster:cluster-name$xfer-cluster,xfer-cluster
+2026-05-01,2026-06-01,False,6.2797e-06,Amazon Simple Notification Service,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,0.0,Amazon Simple Queue Service,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,3643.1147737754,Amazon Simple Storage Service,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,126.1776083074,Amazon Virtual Private Cloud,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,0.43036389,Amazon Virtual Private Cloud,parallelcluster:cluster-name$XL-pilot,XL-pilot
+2026-05-01,2026-06-01,False,0.00805,Amazon Virtual Private Cloud,parallelcluster:cluster-name$XLpilot,XLpilot
+2026-05-01,2026-06-01,False,0.293358335,Amazon Virtual Private Cloud,parallelcluster:cluster-name$and-again,and-again
+2026-05-01,2026-06-01,False,0.766352785,Amazon Virtual Private Cloud,parallelcluster:cluster-name$at-sanity,at-sanity
+2026-05-01,2026-06-01,False,0.09609445,Amazon Virtual Private Cloud,parallelcluster:cluster-name$blahab44,blahab44
+2026-05-01,2026-06-01,False,0.000291665,Amazon Virtual Private Cloud,parallelcluster:cluster-name$bucketsamok,bucketsamok
+2026-05-01,2026-06-01,False,0.027398615,Amazon Virtual Private Cloud,parallelcluster:cluster-name$daylily-demo-cluster,daylily-demo-cluster
+2026-05-01,2026-06-01,False,0.99678889,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-05-01,2026-06-01,False,0.43978056,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dra-enabled,dra-enabled
+2026-05-01,2026-06-01,False,0.001245835,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dra-test2,dra-test2
+2026-05-01,2026-06-01,False,0.16614028,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dra-test4,dra-test4
+2026-05-01,2026-06-01,False,0.064202775,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dyec-515,dyec-515
+2026-05-01,2026-06-01,False,0.347325,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-05-01,2026-06-01,False,0.79843195,Amazon Virtual Private Cloud,parallelcluster:cluster-name$fk-260509-use,fk-260509-use
+2026-05-01,2026-06-01,False,0.355050005,Amazon Virtual Private Cloud,parallelcluster:cluster-name$fork-fixer,fork-fixer
+2026-05-01,2026-06-01,False,0.21154861,Amazon Virtual Private Cloud,parallelcluster:cluster-name$goodole3,goodole3
+2026-05-01,2026-06-01,False,0.460222225,Amazon Virtual Private Cloud,parallelcluster:cluster-name$hyb-hg003,hyb-hg003
+2026-05-01,2026-06-01,False,0.001994445,Amazon Virtual Private Cloud,parallelcluster:cluster-name$jem-bucktst1,jem-bucktst1
+2026-05-01,2026-06-01,False,0.0019125,Amazon Virtual Private Cloud,parallelcluster:cluster-name$jem-bucktst2,jem-bucktst2
+2026-05-01,2026-06-01,False,0.105312505,Amazon Virtual Private Cloud,parallelcluster:cluster-name$jem-bucktst3,jem-bucktst3
+2026-05-01,2026-06-01,False,0.0146625,Amazon Virtual Private Cloud,parallelcluster:cluster-name$jemx2,jemx2
+2026-05-01,2026-06-01,False,0.623334725,Amazon Virtual Private Cloud,parallelcluster:cluster-name$lsbio-fork-260509-124701,lsbio-fork-260509-124701
+2026-05-01,2026-06-01,False,0.60852917,Amazon Virtual Private Cloud,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-05-01,2026-06-01,False,0.473998615,Amazon Virtual Private Cloud,parallelcluster:cluster-name$may26-d,may26-d
+2026-05-01,2026-06-01,False,0.99844306,Amazon Virtual Private Cloud,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-05-01,2026-06-01,False,0.337686115,Amazon Virtual Private Cloud,parallelcluster:cluster-name$pilot-largecluster,pilot-largecluster
+2026-05-01,2026-06-01,False,0.59425417,Amazon Virtual Private Cloud,parallelcluster:cluster-name$pilot-mk,pilot-mk
+2026-05-01,2026-06-01,False,0.064918055,Amazon Virtual Private Cloud,parallelcluster:cluster-name$pilot-xfer,pilot-xfer
+2026-05-01,2026-06-01,False,0.02053056,Amazon Virtual Private Cloud,parallelcluster:cluster-name$splitdra-ref-20260526,splitdra-ref-20260526
+2026-05-01,2026-06-01,False,0.01215834,Amazon Virtual Private Cloud,parallelcluster:cluster-name$splitdra-smoke-20260526,splitdra-smoke-20260526
+2026-05-01,2026-06-01,False,0.002481945,Amazon Virtual Private Cloud,parallelcluster:cluster-name$test-clstr,test-clstr
+2026-05-01,2026-06-01,False,0.038419445,Amazon Virtual Private Cloud,parallelcluster:cluster-name$tstClu-4-1-1c,tstClu-4-1-1c
+2026-05-01,2026-06-01,False,0.036923615,Amazon Virtual Private Cloud,parallelcluster:cluster-name$tstVer4-1-1,tstVer4-1-1
+2026-05-01,2026-06-01,False,0.103958335,Amazon Virtual Private Cloud,parallelcluster:cluster-name$tstVer4-1-1b,tstVer4-1-1b
+2026-05-01,2026-06-01,False,0.12747778,Amazon Virtual Private Cloud,parallelcluster:cluster-name$xfer-cluster,xfer-cluster
+2026-05-01,2026-06-01,False,0.059887505,Amazon Virtual Private Cloud,parallelcluster:cluster-name$y260609-frz,y260609-frz
+2026-05-01,2026-06-01,False,40.0744644076,AmazonCloudWatch,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,0.0174473586,AmazonCloudWatch,parallelcluster:cluster-name$XL-pilot,XL-pilot
+2026-05-01,2026-06-01,False,0.0005295665,AmazonCloudWatch,parallelcluster:cluster-name$XLpilot,XLpilot
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$and-again,and-again
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$at-sanity,at-sanity
+2026-05-01,2026-06-01,False,0.0114831066,AmazonCloudWatch,parallelcluster:cluster-name$blahab44,blahab44
+2026-05-01,2026-06-01,False,2.9076e-06,AmazonCloudWatch,parallelcluster:cluster-name$bucketsamok,bucketsamok
+2026-05-01,2026-06-01,False,0.0008164823,AmazonCloudWatch,parallelcluster:cluster-name$daylily-demo-cluster,daylily-demo-cluster
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$dec215-0426,dec215-0426
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$dec219-cluster,dec219-cluster
+2026-05-01,2026-06-01,False,0.0696931534,AmazonCloudWatch,parallelcluster:cluster-name$dra-enabled,dra-enabled
+2026-05-01,2026-06-01,False,0.0004293453,AmazonCloudWatch,parallelcluster:cluster-name$dra-test2,dra-test2
+2026-05-01,2026-06-01,False,0.0029196188,AmazonCloudWatch,parallelcluster:cluster-name$dra-test4,dra-test4
+2026-05-01,2026-06-01,False,0.0018662769,AmazonCloudWatch,parallelcluster:cluster-name$dyec-515,dyec-515
+2026-05-01,2026-06-01,False,0.1314446242,AmazonCloudWatch,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-05-01,2026-06-01,False,40.8571085793,AmazonCloudWatch,parallelcluster:cluster-name$fk-260509-use,fk-260509-use
+2026-05-01,2026-06-01,False,0.0112371047,AmazonCloudWatch,parallelcluster:cluster-name$fork-fixer,fork-fixer
+2026-05-01,2026-06-01,False,0.0371603295,AmazonCloudWatch,parallelcluster:cluster-name$goodole3,goodole3
+2026-05-01,2026-06-01,False,0.224437961,AmazonCloudWatch,parallelcluster:cluster-name$hyb-hg003,hyb-hg003
+2026-05-01,2026-06-01,False,0.0004427286,AmazonCloudWatch,parallelcluster:cluster-name$jem-bucktst1,jem-bucktst1
+2026-05-01,2026-06-01,False,0.0004406483,AmazonCloudWatch,parallelcluster:cluster-name$jem-bucktst2,jem-bucktst2
+2026-05-01,2026-06-01,False,0.0062402779,AmazonCloudWatch,parallelcluster:cluster-name$jem-bucktst3,jem-bucktst3
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$jemx2,jemx2
+2026-05-01,2026-06-01,False,0.0053880102,AmazonCloudWatch,parallelcluster:cluster-name$lsbio-fork-260509-124701,lsbio-fork-260509-124701
+2026-05-01,2026-06-01,False,0.0004630919,AmazonCloudWatch,parallelcluster:cluster-name$majors-cluster,majors-cluster
+2026-05-01,2026-06-01,False,0.4310827153,AmazonCloudWatch,parallelcluster:cluster-name$may26-d,may26-d
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$mk-gotime,mk-gotime
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$mk-gotime3,mk-gotime3
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$mk426dec215,mk426dec215
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$mkdec219,mkdec219
+2026-05-01,2026-06-01,False,0.0051678203,AmazonCloudWatch,parallelcluster:cluster-name$pilot-largecluster,pilot-largecluster
+2026-05-01,2026-06-01,False,0.0006273031,AmazonCloudWatch,parallelcluster:cluster-name$pilot-mk,pilot-mk
+2026-05-01,2026-06-01,False,0.0013884221,AmazonCloudWatch,parallelcluster:cluster-name$pilot-xfer,pilot-xfer
+2026-05-01,2026-06-01,False,0.0007632238,AmazonCloudWatch,parallelcluster:cluster-name$splitdra-ref-20260526,splitdra-ref-20260526
+2026-05-01,2026-06-01,False,0.0013215511,AmazonCloudWatch,parallelcluster:cluster-name$splitdra-smoke-20260526,splitdra-smoke-20260526
+2026-05-01,2026-06-01,False,0.0004695319,AmazonCloudWatch,parallelcluster:cluster-name$test-clstr,test-clstr
+2026-05-01,2026-06-01,False,0.0099515321,AmazonCloudWatch,parallelcluster:cluster-name$tstClu-4-1-1c,tstClu-4-1-1c
+2026-05-01,2026-06-01,False,0.0018821985,AmazonCloudWatch,parallelcluster:cluster-name$tstVer4-1-1,tstVer4-1-1
+2026-05-01,2026-06-01,False,0.0113254338,AmazonCloudWatch,parallelcluster:cluster-name$tstVer4-1-1b,tstVer4-1-1b
+2026-05-01,2026-06-01,False,0.0022987174,AmazonCloudWatch,parallelcluster:cluster-name$xfer-cluster,xfer-cluster
+2026-05-01,2026-06-01,False,0.0,AmazonCloudWatch,parallelcluster:cluster-name$y260609-frz,y260609-frz
+2026-05-01,2026-06-01,False,0.0,CloudWatch Events,parallelcluster:cluster-name$,
+2026-05-01,2026-06-01,False,0.0,Tax,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,0.0,AWS CloudFormation,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,124.86978,AWS CloudTrail,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,244.5372646666,AWS Cost Explorer,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,0.0,AWS Glue,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,5.4698956854,AWS Key Management Service,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,3.9319e-06,AWS Lambda,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$BigB-4-mk,BigB-4-mk
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$altairval,altairval
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$dhyb-NA03986,dhyb-NA03986
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$dyec-515,dyec-515
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$dyec0602bcl,dyec0602bcl
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$dyec5115,dyec5115
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$dyec5117,dyec5117
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$dyec5123,dyec5123
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$dyec5128,dyec5128
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$dyec800,dyec800
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$dyec8c,dyec8c
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$dyec8xxx,dyec8xxx
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$dyecX4,dyecX4
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$dyegotime,dyegotime
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$forked,forked
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$hyb-only,hyb-only
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$test-smn1-case1,test-smn1-case1
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$ultimarerun,ultimarerun
+2026-06-01,2026-06-19,True,0.0,AWS Lambda,parallelcluster:cluster-name$xfer0613,xfer0613
+2026-06-01,2026-06-19,True,4.8418044774,AWS Secrets Manager,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,198.7730404691,AWS Security Hub,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,0.0,AWS Service Catalog,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,1.281e-06,AWS Step Functions,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,614.906181015,AWS Support (Developer),parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,4.1027778106,AWS WAF,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,3.4e-09,Amazon CloudFront,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,0.0,Amazon Cognito,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,4.78022e-05,Amazon DynamoDB,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,0.0003673125,Amazon DynamoDB,parallelcluster:cluster-name$BigB-4-mk,BigB-4-mk
+2026-06-01,2026-06-19,True,0.00251025,Amazon DynamoDB,parallelcluster:cluster-name$altairval,altairval
+2026-06-01,2026-06-19,True,0.00030875,Amazon DynamoDB,parallelcluster:cluster-name$dhyb-NA03986,dhyb-NA03986
+2026-06-01,2026-06-19,True,5.2375e-05,Amazon DynamoDB,parallelcluster:cluster-name$dyec-515,dyec-515
+2026-06-01,2026-06-19,True,0.0004465625,Amazon DynamoDB,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-06-01,2026-06-19,True,0.000224,Amazon DynamoDB,parallelcluster:cluster-name$dyec0602bcl,dyec0602bcl
+2026-06-01,2026-06-19,True,0.000175125,Amazon DynamoDB,parallelcluster:cluster-name$dyec5115,dyec5115
+2026-06-01,2026-06-19,True,0.00071,Amazon DynamoDB,parallelcluster:cluster-name$dyec5117,dyec5117
+2026-06-01,2026-06-19,True,0.000163625,Amazon DynamoDB,parallelcluster:cluster-name$dyec5123,dyec5123
+2026-06-01,2026-06-19,True,0.000533875,Amazon DynamoDB,parallelcluster:cluster-name$dyec5128,dyec5128
+2026-06-01,2026-06-19,True,0.000110375,Amazon DynamoDB,parallelcluster:cluster-name$dyec800,dyec800
+2026-06-01,2026-06-19,True,0.0014570625,Amazon DynamoDB,parallelcluster:cluster-name$dyec8c,dyec8c
+2026-06-01,2026-06-19,True,0.00033525,Amazon DynamoDB,parallelcluster:cluster-name$dyec8xxx,dyec8xxx
+2026-06-01,2026-06-19,True,0.0031371875,Amazon DynamoDB,parallelcluster:cluster-name$dyecX4,dyecX4
+2026-06-01,2026-06-19,True,6.5e-06,Amazon DynamoDB,parallelcluster:cluster-name$dyegotime,dyegotime
+2026-06-01,2026-06-19,True,0.0012340625,Amazon DynamoDB,parallelcluster:cluster-name$forked,forked
+2026-06-01,2026-06-19,True,0.002496125,Amazon DynamoDB,parallelcluster:cluster-name$hyb-only,hyb-only
+2026-06-01,2026-06-19,True,0.001227625,Amazon DynamoDB,parallelcluster:cluster-name$test-smn1-case1,test-smn1-case1
+2026-06-01,2026-06-19,True,0.0039569375,Amazon DynamoDB,parallelcluster:cluster-name$ultimarerun,ultimarerun
+2026-06-01,2026-06-19,True,0.000263125,Amazon DynamoDB,parallelcluster:cluster-name$xfer0613,xfer0613
+2026-06-01,2026-06-19,True,3.5944261358,Amazon EC2 Container Registry (ECR),parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,431.0853473298,EC2 - Other,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,1.5968950512,EC2 - Other,parallelcluster:cluster-name$BigB-4-mk,BigB-4-mk
+2026-06-01,2026-06-19,True,5.8811373512,EC2 - Other,parallelcluster:cluster-name$altairval,altairval
+2026-06-01,2026-06-19,True,19.5531111204,EC2 - Other,parallelcluster:cluster-name$day-test-uswest2d,day-test-uswest2d
+2026-06-01,2026-06-19,True,19.5531111204,EC2 - Other,parallelcluster:cluster-name$daylily-1773059211,daylily-1773059211
+2026-06-01,2026-06-19,True,0.9660224343,EC2 - Other,parallelcluster:cluster-name$dhyb-NA03986,dhyb-NA03986
+2026-06-01,2026-06-19,True,0.135928426,EC2 - Other,parallelcluster:cluster-name$dyec-515,dyec-515
+2026-06-01,2026-06-19,True,1.0162520017,EC2 - Other,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-06-01,2026-06-19,True,0.6035698641,EC2 - Other,parallelcluster:cluster-name$dyec0602bcl,dyec0602bcl
+2026-06-01,2026-06-19,True,0.5385022807,EC2 - Other,parallelcluster:cluster-name$dyec5115,dyec5115
+2026-06-01,2026-06-19,True,1.8327501711,EC2 - Other,parallelcluster:cluster-name$dyec5117,dyec5117
+2026-06-01,2026-06-19,True,0.4960974843,EC2 - Other,parallelcluster:cluster-name$dyec5123,dyec5123
+2026-06-01,2026-06-19,True,1.051628955,EC2 - Other,parallelcluster:cluster-name$dyec5128,dyec5128
+2026-06-01,2026-06-19,True,0.3363383364,EC2 - Other,parallelcluster:cluster-name$dyec800,dyec800
+2026-06-01,2026-06-19,True,4.5471355816,EC2 - Other,parallelcluster:cluster-name$dyec8c,dyec8c
+2026-06-01,2026-06-19,True,1.0555784243,EC2 - Other,parallelcluster:cluster-name$dyec8xxx,dyec8xxx
+2026-06-01,2026-06-19,True,8.496762998,EC2 - Other,parallelcluster:cluster-name$dyecX4,dyecX4
+2026-06-01,2026-06-19,True,0.0306590208,EC2 - Other,parallelcluster:cluster-name$dyegotime,dyegotime
+2026-06-01,2026-06-19,True,2.6277301538,EC2 - Other,parallelcluster:cluster-name$forked,forked
+2026-06-01,2026-06-19,True,5.5397995033,EC2 - Other,parallelcluster:cluster-name$hyb-only,hyb-only
+2026-06-01,2026-06-19,True,19.5531111204,EC2 - Other,parallelcluster:cluster-name$ifx-go,ifx-go
+2026-06-01,2026-06-19,True,19.5531111204,EC2 - Other,parallelcluster:cluster-name$test-del-me,test-del-me
+2026-06-01,2026-06-19,True,3.8009685098,EC2 - Other,parallelcluster:cluster-name$test-smn1-case1,test-smn1-case1
+2026-06-01,2026-06-19,True,7.7574191801,EC2 - Other,parallelcluster:cluster-name$ultimarerun,ultimarerun
+2026-06-01,2026-06-19,True,0.8302037217,EC2 - Other,parallelcluster:cluster-name$xfer0613,xfer0613
+2026-06-01,2026-06-19,True,1152.4256467175,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,717.8224917237,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$BigB-4-mk,BigB-4-mk
+2026-06-01,2026-06-19,True,1896.444868354,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$altairval,altairval
+2026-06-01,2026-06-19,True,72.5292540934,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dhyb-NA03986,dhyb-NA03986
+2026-06-01,2026-06-19,True,6.9783847056,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dyec-515,dyec-515
+2026-06-01,2026-06-19,True,75.9212746999,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-06-01,2026-06-19,True,40.1230799404,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dyec0602bcl,dyec0602bcl
+2026-06-01,2026-06-19,True,24.1520995736,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dyec5115,dyec5115
+2026-06-01,2026-06-19,True,205.6258538087,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dyec5117,dyec5117
+2026-06-01,2026-06-19,True,22.234043811,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dyec5123,dyec5123
+2026-06-01,2026-06-19,True,193.0670791102,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dyec5128,dyec5128
+2026-06-01,2026-06-19,True,14.5617918732,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dyec800,dyec800
+2026-06-01,2026-06-19,True,113.2166439764,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dyec8c,dyec8c
+2026-06-01,2026-06-19,True,23.7970141149,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dyec8xxx,dyec8xxx
+2026-06-01,2026-06-19,True,946.8802117415,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dyecX4,dyecX4
+2026-06-01,2026-06-19,True,0.6062907087,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$dyegotime,dyegotime
+2026-06-01,2026-06-19,True,351.4678848656,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$forked,forked
+2026-06-01,2026-06-19,True,1457.0625619471,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$hyb-only,hyb-only
+2026-06-01,2026-06-19,True,313.1422128059,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$test-smn1-case1,test-smn1-case1
+2026-06-01,2026-06-19,True,4520.7452059695,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$ultimarerun,ultimarerun
+2026-06-01,2026-06-19,True,9.5485171511,Amazon Elastic Compute Cloud - Compute,parallelcluster:cluster-name$xfer0613,xfer0613
+2026-06-01,2026-06-19,True,31.285903183,Amazon Elastic Container Service,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,5.24745e-05,Amazon Elastic File System,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,19.0084592812,Amazon Elastic Load Balancing,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,23.0974421471,Amazon FSx,parallelcluster:cluster-name$BigB-4-mk,BigB-4-mk
+2026-06-01,2026-06-19,True,123.2893338182,Amazon FSx,parallelcluster:cluster-name$altairval,altairval
+2026-06-01,2026-06-19,True,17.3611150618,Amazon FSx,parallelcluster:cluster-name$dhyb-NA03986,dhyb-NA03986
+2026-06-01,2026-06-19,True,6.196998889,Amazon FSx,parallelcluster:cluster-name$dyec-515,dyec-515
+2026-06-01,2026-06-19,True,39.475655334,Amazon FSx,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-06-01,2026-06-19,True,17.3968809721,Amazon FSx,parallelcluster:cluster-name$dyec0602bcl,dyec0602bcl
+2026-06-01,2026-06-19,True,16.0966221111,Amazon FSx,parallelcluster:cluster-name$dyec5115,dyec5115
+2026-06-01,2026-06-19,True,47.6969303235,Amazon FSx,parallelcluster:cluster-name$dyec5117,dyec5117
+2026-06-01,2026-06-19,True,14.8312818143,Amazon FSx,parallelcluster:cluster-name$dyec5123,dyec5123
+2026-06-01,2026-06-19,True,22.6293678641,Amazon FSx,parallelcluster:cluster-name$dyec5128,dyec5128
+2026-06-01,2026-06-19,True,13.2543097913,Amazon FSx,parallelcluster:cluster-name$dyec800,dyec800
+2026-06-01,2026-06-19,True,88.7100986716,Amazon FSx,parallelcluster:cluster-name$dyec8c,dyec8c
+2026-06-01,2026-06-19,True,21.0670016744,Amazon FSx,parallelcluster:cluster-name$dyec8xxx,dyec8xxx
+2026-06-01,2026-06-19,True,232.4229106495,Amazon FSx,parallelcluster:cluster-name$dyecX4,dyecX4
+2026-06-01,2026-06-19,True,0.9160645608,Amazon FSx,parallelcluster:cluster-name$dyegotime,dyegotime
+2026-06-01,2026-06-19,True,65.1550056696,Amazon FSx,parallelcluster:cluster-name$forked,forked
+2026-06-01,2026-06-19,True,135.6270347879,Amazon FSx,parallelcluster:cluster-name$hyb-only,hyb-only
+2026-06-01,2026-06-19,True,106.5456367048,Amazon FSx,parallelcluster:cluster-name$test-smn1-case1,test-smn1-case1
+2026-06-01,2026-06-19,True,126.2888367022,Amazon FSx,parallelcluster:cluster-name$ultimarerun,ultimarerun
+2026-06-01,2026-06-19,True,16.5756129071,Amazon FSx,parallelcluster:cluster-name$xfer0613,xfer0613
+2026-06-01,2026-06-19,True,1.8058e-06,Amazon Glacier,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,7.0660311593,Amazon GuardDuty,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,0.0,Amazon Inspector,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,2577.0392707347,Amazon Relational Database Service,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,9.2373672,Amazon Route 53,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,0.1,Amazon Route 53,parallelcluster:cluster-name$altairval,altairval
+2026-06-01,2026-06-19,True,0.5,Amazon Route 53,parallelcluster:cluster-name$dhyb-NA03986,dhyb-NA03986
+2026-06-01,2026-06-19,True,0.5,Amazon Route 53,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-06-01,2026-06-19,True,0.5,Amazon Route 53,parallelcluster:cluster-name$dyec5117,dyec5117
+2026-06-01,2026-06-19,True,0.5,Amazon Route 53,parallelcluster:cluster-name$dyec8c,dyec8c
+2026-06-01,2026-06-19,True,0.1,Amazon Route 53,parallelcluster:cluster-name$dyec8xxx,dyec8xxx
+2026-06-01,2026-06-19,True,0.1,Amazon Route 53,parallelcluster:cluster-name$dyecX4,dyecX4
+2026-06-01,2026-06-19,True,0.5,Amazon Route 53,parallelcluster:cluster-name$forked,forked
+2026-06-01,2026-06-19,True,0.5,Amazon Route 53,parallelcluster:cluster-name$hyb-only,hyb-only
+2026-06-01,2026-06-19,True,0.5,Amazon Route 53,parallelcluster:cluster-name$test-smn1-case1,test-smn1-case1
+2026-06-01,2026-06-19,True,0.1,Amazon Route 53,parallelcluster:cluster-name$ultimarerun,ultimarerun
+2026-06-01,2026-06-19,True,2.6115e-06,Amazon Simple Notification Service,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,0.0,Amazon Simple Queue Service,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,3890.9782625577,Amazon Simple Storage Service,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,87.6410377773,Amazon Virtual Private Cloud,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,0.05036111,Amazon Virtual Private Cloud,parallelcluster:cluster-name$BigB-4-mk,BigB-4-mk
+2026-06-01,2026-06-19,True,0.44109028,Amazon Virtual Private Cloud,parallelcluster:cluster-name$altairval,altairval
+2026-06-01,2026-06-19,True,0.093651395,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dhyb-NA03986,dhyb-NA03986
+2026-06-01,2026-06-19,True,0.01664306,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dyec-515,dyec-515
+2026-06-01,2026-06-19,True,0.105759725,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-06-01,2026-06-19,True,0.062877785,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dyec0602bcl,dyec0602bcl
+2026-06-01,2026-06-19,True,0.058250005,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dyec5115,dyec5115
+2026-06-01,2026-06-19,True,0.171122225,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dyec5117,dyec5117
+2026-06-01,2026-06-19,True,0.05371806,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dyec5123,dyec5123
+2026-06-01,2026-06-19,True,0.08149722,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dyec5128,dyec5128
+2026-06-01,2026-06-19,True,0.03752084,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dyec800,dyec800
+2026-06-01,2026-06-19,True,0.47586806,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dyec8c,dyec8c
+2026-06-01,2026-06-19,True,0.113601395,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dyec8xxx,dyec8xxx
+2026-06-01,2026-06-19,True,0.83069167,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dyecX4,dyecX4
+2026-06-01,2026-06-19,True,0.00406389,Amazon Virtual Private Cloud,parallelcluster:cluster-name$dyegotime,dyegotime
+2026-06-01,2026-06-19,True,0.233438895,Amazon Virtual Private Cloud,parallelcluster:cluster-name$forked,forked
+2026-06-01,2026-06-19,True,0.364022225,Amazon Virtual Private Cloud,parallelcluster:cluster-name$hyb-only,hyb-only
+2026-06-01,2026-06-19,True,0.381250005,Amazon Virtual Private Cloud,parallelcluster:cluster-name$test-smn1-case1,test-smn1-case1
+2026-06-01,2026-06-19,True,0.27143889,Amazon Virtual Private Cloud,parallelcluster:cluster-name$ultimarerun,ultimarerun
+2026-06-01,2026-06-19,True,0.08944584,Amazon Virtual Private Cloud,parallelcluster:cluster-name$xfer0613,xfer0613
+2026-06-01,2026-06-19,True,127.5090484229,AmazonCloudWatch,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,0.0565044354,AmazonCloudWatch,parallelcluster:cluster-name$BigB-4-mk,BigB-4-mk
+2026-06-01,2026-06-19,True,0.3322519004,AmazonCloudWatch,parallelcluster:cluster-name$altairval,altairval
+2026-06-01,2026-06-19,True,0.0076499124,AmazonCloudWatch,parallelcluster:cluster-name$dhyb-NA03986,dhyb-NA03986
+2026-06-01,2026-06-19,True,1.8617e-06,AmazonCloudWatch,parallelcluster:cluster-name$dyec-515,dyec-515
+2026-06-01,2026-06-19,True,0.0009207067,AmazonCloudWatch,parallelcluster:cluster-name$dyec-test,dyec-test
+2026-06-01,2026-06-19,True,0.0073842872,AmazonCloudWatch,parallelcluster:cluster-name$dyec0602bcl,dyec0602bcl
+2026-06-01,2026-06-19,True,3.1041e-06,AmazonCloudWatch,parallelcluster:cluster-name$dyec5115,dyec5115
+2026-06-01,2026-06-19,True,0.0246027535,AmazonCloudWatch,parallelcluster:cluster-name$dyec5117,dyec5117
+2026-06-01,2026-06-19,True,0.0014415265,AmazonCloudWatch,parallelcluster:cluster-name$dyec5123,dyec5123
+2026-06-01,2026-06-19,True,0.0510557569,AmazonCloudWatch,parallelcluster:cluster-name$dyec5128,dyec5128
+2026-06-01,2026-06-19,True,0.0017540105,AmazonCloudWatch,parallelcluster:cluster-name$dyec800,dyec800
+2026-06-01,2026-06-19,True,0.0154382177,AmazonCloudWatch,parallelcluster:cluster-name$dyec8c,dyec8c
+2026-06-01,2026-06-19,True,0.0023924986,AmazonCloudWatch,parallelcluster:cluster-name$dyec8xxx,dyec8xxx
+2026-06-01,2026-06-19,True,0.1730901465,AmazonCloudWatch,parallelcluster:cluster-name$dyecX4,dyecX4
+2026-06-01,2026-06-19,True,0.0006343762,AmazonCloudWatch,parallelcluster:cluster-name$dyegotime,dyegotime
+2026-06-01,2026-06-19,True,0.0764677587,AmazonCloudWatch,parallelcluster:cluster-name$forked,forked
+2026-06-01,2026-06-19,True,0.2864521692,AmazonCloudWatch,parallelcluster:cluster-name$hyb-only,hyb-only
+2026-06-01,2026-06-19,True,0.0161360825,AmazonCloudWatch,parallelcluster:cluster-name$test-smn1-case1,test-smn1-case1
+2026-06-01,2026-06-19,True,0.8249437493,AmazonCloudWatch,parallelcluster:cluster-name$ultimarerun,ultimarerun
+2026-06-01,2026-06-19,True,0.0,AmazonCloudWatch,parallelcluster:cluster-name$xfer-cluster,xfer-cluster
+2026-06-01,2026-06-19,True,0.0020098768,AmazonCloudWatch,parallelcluster:cluster-name$xfer0613,xfer0613
+2026-06-01,2026-06-19,True,0.0,CloudWatch Events,parallelcluster:cluster-name$,
+2026-06-01,2026-06-19,True,0.0,Tax,parallelcluster:cluster-name$,

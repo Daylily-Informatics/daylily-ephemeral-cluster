@@ -1,0 +1,2698 @@
+[
+  {
+    "arn": "",
+    "classification": "unallocated",
+    "id": "eipalloc-0dc16bbf830c83d81",
+    "kind": "eip",
+    "name": "",
+    "region": "ap-south-1",
+    "service": "EC2",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGatewayEIP",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:ap-south-1:108782052779:stack/pcluster-vpc-stack-1c/f2fd90b0-072e-11f1-9298-02a68a59f20b",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-1c"
+    }
+  },
+  {
+    "arn": "",
+    "classification": "unallocated",
+    "id": "eipalloc-033c9e0da1444ac1b",
+    "kind": "eip",
+    "name": "",
+    "region": "ap-south-1",
+    "service": "EC2",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGatewayEIP",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:ap-south-1:108782052779:stack/pcluster-vpc-stack-1a/769891e0-fcc2-11ef-9a8e-0ad1d3b859f3",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-1a"
+    }
+  },
+  {
+    "State": "available",
+    "arn": "arn:aws:ec2:ap-south-1:108782052779:natgateway/nat-05f85018216cac061",
+    "classification": "unallocated",
+    "id": "nat-05f85018216cac061",
+    "kind": "nat_gateway",
+    "name": "",
+    "region": "ap-south-1",
+    "service": "VPC",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGateway",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:ap-south-1:108782052779:stack/pcluster-vpc-stack-1c/f2fd90b0-072e-11f1-9298-02a68a59f20b",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-1c"
+    }
+  },
+  {
+    "State": "available",
+    "arn": "arn:aws:ec2:ap-south-1:108782052779:natgateway/nat-01dc061291fc51e75",
+    "classification": "unallocated",
+    "id": "nat-01dc061291fc51e75",
+    "kind": "nat_gateway",
+    "name": "",
+    "region": "ap-south-1",
+    "service": "VPC",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGateway",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:ap-south-1:108782052779:stack/pcluster-vpc-stack-1a/769891e0-fcc2-11ef-9a8e-0ad1d3b859f3",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-1a"
+    }
+  },
+  {
+    "arn": "",
+    "classification": "unallocated",
+    "id": "eipalloc-064b4a732e3617a01",
+    "kind": "eip",
+    "name": "",
+    "region": "eu-central-1",
+    "service": "EC2",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGatewayEIP",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:eu-central-1:108782052779:stack/pcluster-vpc-stack-1a/5c28aa80-0009-11f0-b2da-023a831da7a7",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-1a"
+    }
+  },
+  {
+    "arn": "",
+    "classification": "unallocated",
+    "id": "eipalloc-0a47cd6baa930d38f",
+    "kind": "eip",
+    "name": "",
+    "region": "eu-central-1",
+    "service": "EC2",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGatewayEIP",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:eu-central-1:108782052779:stack/pcluster-vpc-stack-1c/6ecb58d0-fcc2-11ef-9f3b-02eaee40b12f",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-1c"
+    }
+  },
+  {
+    "State": "available",
+    "arn": "arn:aws:ec2:eu-central-1:108782052779:natgateway/nat-0ec6ae9605269bef4",
+    "classification": "unallocated",
+    "id": "nat-0ec6ae9605269bef4",
+    "kind": "nat_gateway",
+    "name": "",
+    "region": "eu-central-1",
+    "service": "VPC",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGateway",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:eu-central-1:108782052779:stack/pcluster-vpc-stack-1a/5c28aa80-0009-11f0-b2da-023a831da7a7",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-1a"
+    }
+  },
+  {
+    "State": "available",
+    "arn": "arn:aws:ec2:eu-central-1:108782052779:natgateway/nat-0a2bfbfedf38f8e87",
+    "classification": "unallocated",
+    "id": "nat-0a2bfbfedf38f8e87",
+    "kind": "nat_gateway",
+    "name": "",
+    "region": "eu-central-1",
+    "service": "VPC",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGateway",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:eu-central-1:108782052779:stack/pcluster-vpc-stack-1c/6ecb58d0-fcc2-11ef-9f3b-02eaee40b12f",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-1c"
+    }
+  },
+  {
+    "InstanceType": "m7i-flex.2xlarge",
+    "State": "stopped",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:instance/i-02a5b297000e82966",
+    "classification": "unallocated",
+    "id": "i-02a5b297000e82966",
+    "kind": "ec2_instance",
+    "name": "lsmc-web",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "Name": "lsmc-web"
+    }
+  },
+  {
+    "InstanceType": "t3a.2xlarge",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:instance/i-09126000eb19643b0",
+    "classification": "dyec_cluster",
+    "id": "i-09126000eb19643b0",
+    "kind": "ec2_instance",
+    "name": "Dayhoff-aws3041-Compute/Hostprimary",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "aws3041",
+      "Host": "primary",
+      "Name": "Dayhoff-aws3041-Compute/Hostprimary",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Roles": "atlas,bloom,ursa,dewey,zebra_day,kahlo",
+      "System": "dayhoff",
+      "aws-parallelcluster-project": "dayhoff-production-server",
+      "aws:cloudformation:logical-id": "Hostprimary8A9E85D2",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-aws3041-Compute/4b8ad200-4d99-11f1-89af-02d0bd94fd23",
+      "aws:cloudformation:stack-name": "Dayhoff-aws3041-Compute",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jmajor",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-west-2",
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "InstanceType": "t3.small",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:instance/i-09f66b3f11ea42c60",
+    "classification": "unallocated",
+    "id": "i-09f66b3f11ea42c60",
+    "kind": "ec2_instance",
+    "name": "labplatform-mvp-simulation",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "Name": "labplatform-mvp-simulation"
+    }
+  },
+  {
+    "InstanceType": "t3.micro",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:instance/i-0cc9dcb0db2f9d205",
+    "classification": "terrarium",
+    "id": "i-0cc9dcb0db2f9d205",
+    "kind": "ec2_instance",
+    "name": "terrarium-prod-tailscale-router",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "Environment": "prod",
+      "Name": "terrarium-prod-tailscale-router",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "InstanceType": "t3a.2xlarge",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:instance/i-0a70e6af119b993f3",
+    "classification": "dayhoff",
+    "id": "i-0a70e6af119b993f3",
+    "kind": "ec2_instance",
+    "name": "Dayhoff-lsmcq7-Compute/Hostprimary",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "lsmcq7",
+      "Host": "primary",
+      "Name": "Dayhoff-lsmcq7-Compute/Hostprimary",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Roles": "atlas,bloom,ursa,dewey,zebra_day",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "Hostprimary8A9E85D2",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-lsmcq7-Compute/08ce3790-4f01-11f1-90ac-0a1da76cb771",
+      "aws:cloudformation:stack-name": "Dayhoff-lsmcq7-Compute",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "ubuntu",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-west-2",
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "InstanceType": "t3.micro",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:instance/i-0c0d07d66b039cebe",
+    "classification": "terrarium",
+    "id": "i-0c0d07d66b039cebe",
+    "kind": "ec2_instance",
+    "name": "terrarium-dev-tailscale-router",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "Environment": "dev",
+      "Name": "terrarium-dev-tailscale-router",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "InstanceType": "t3.2xlarge",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:instance/i-07df3a933e4839f52",
+    "classification": "dayhoff",
+    "id": "i-07df3a933e4839f52",
+    "kind": "ec2_instance",
+    "name": "Dayhoff-day-Compute/Hostprimary",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "day",
+      "Host": "primary",
+      "Name": "Dayhoff-day-Compute/Hostprimary",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Roles": "lsmc-oauth-login,atlas,bloom,ursa,dewey,qeo,zebra_day",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "Hostprimary8A9E85D20db1f345cfb64f91",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-day-Compute/d3d6e610-5e8a-11f1-b6e4-02f97802c06b",
+      "aws:cloudformation:stack-name": "Dayhoff-day-Compute",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jmajor",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff-day",
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "InstanceType": "t4g.micro",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:instance/i-0fec5d1a28b6d27aa",
+    "classification": "unallocated",
+    "id": "i-0fec5d1a28b6d27aa",
+    "kind": "ec2_instance",
+    "name": "dayec-slurm-accounting-us-west-2d-mariadb",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "Name": "dayec-slurm-accounting-us-west-2d-mariadb",
+      "aws:cloudformation:logical-id": "AccountingDbHost",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/dayec-slurm-accounting-us-west-2d/6b46e130-5cfb-11f1-b170-06b46de19d01",
+      "aws:cloudformation:stack-name": "dayec-slurm-accounting-us-west-2d",
+      "daylily-ec:component": "slurm-accounting-mysql",
+      "daylily-ec:managed-by": "daylily-ephemeral-cluster",
+      "daylily-ec:region-az": "us-west-2d",
+      "daylily-ec:vpc-id": "vpc-06b01782f2abece1c"
+    }
+  },
+  {
+    "InstanceType": "t4g.medium",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:instance/i-0cce1c2d935e86786",
+    "classification": "unallocated",
+    "id": "i-0cce1c2d935e86786",
+    "kind": "ec2_instance",
+    "name": "flowcore-dev",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "Environment": "v1",
+      "Name": "flowcore-dev"
+    }
+  },
+  {
+    "InstanceType": "r7i.8xlarge",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:instance/i-0fd49ae30fc10b04e",
+    "classification": "dyec_cluster",
+    "id": "i-0fd49ae30fc10b04e",
+    "kind": "ec2_instance",
+    "name": "HeadNode",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "Name": "HeadNode",
+      "aws-parallelcluster-clustername": "ultimarerun",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "skip",
+      "aws-parallelcluster-jobid": "aws_profile-lsmc",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config",
+      "aws-parallelcluster-project": "ultimarerun",
+      "aws-parallelcluster-username": "jmajor-root",
+      "aws:cloudformation:logical-id": "HeadNode",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/ultimarerun/f381f3c0-6956-11f1-9069-0a0b8b330b8d",
+      "aws:cloudformation:stack-name": "ultimarerun",
+      "aws:ec2launchtemplate:id": "lt-0eb3a51123cf6ad62",
+      "aws:ec2launchtemplate:version": "1",
+      "parallelcluster:attributes": "ubuntu2204, slurm, 3.15.0, x86_64",
+      "parallelcluster:cluster-name": "ultimarerun",
+      "parallelcluster:filesystem": "efs=0, multiebs=0, raid=0, fsx=1",
+      "parallelcluster:networking": "EFA=NONE",
+      "parallelcluster:node-type": "HeadNode",
+      "parallelcluster:version": "3.15.0"
+    }
+  },
+  {
+    "InstanceType": "m8idb.96xlarge",
+    "State": "terminated",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:instance/i-0cf2d9cda0083765f",
+    "classification": "dyec_cluster",
+    "id": "i-0cf2d9cda0083765f",
+    "kind": "ec2_instance",
+    "name": "Compute",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "Name": "Compute",
+      "aws-parallelcluster-clustername": "ultimarerun",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "skip",
+      "aws-parallelcluster-jobid": "",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config",
+      "aws-parallelcluster-project": "",
+      "aws-parallelcluster-username": "",
+      "aws:ec2:fleet-id": "fleet-86169c1f-e627-44a7-a632-21a2685e7e83",
+      "aws:ec2launchtemplate:id": "lt-07e26f59f944fbf8e",
+      "aws:ec2launchtemplate:version": "2",
+      "parallelcluster:attributes": "ubuntu2204, slurm, 3.15.0, NONE",
+      "parallelcluster:cluster-name": "ultimarerun",
+      "parallelcluster:compute-resource-name": "price384nvme",
+      "parallelcluster:filesystem": "efs=0, multiebs=0, raid=0, fsx=1",
+      "parallelcluster:networking": "EFA=NONE",
+      "parallelcluster:node-type": "Compute",
+      "parallelcluster:queue-name": "i384nvme",
+      "parallelcluster:version": "3.15.0"
+    }
+  },
+  {
+    "InstanceType": "m8idb.96xlarge",
+    "State": "terminated",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:instance/i-05e8708f53f5a3150",
+    "classification": "dyec_cluster",
+    "id": "i-05e8708f53f5a3150",
+    "kind": "ec2_instance",
+    "name": "Compute",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "Name": "Compute",
+      "aws-parallelcluster-clustername": "ultimarerun",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "skip",
+      "aws-parallelcluster-jobid": "",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config",
+      "aws-parallelcluster-project": "",
+      "aws-parallelcluster-username": "",
+      "aws:ec2:fleet-id": "fleet-120fa90c-891e-cb34-0c18-24a2ff7fff4d",
+      "aws:ec2launchtemplate:id": "lt-07e26f59f944fbf8e",
+      "aws:ec2launchtemplate:version": "2",
+      "parallelcluster:attributes": "ubuntu2204, slurm, 3.15.0, NONE",
+      "parallelcluster:cluster-name": "ultimarerun",
+      "parallelcluster:compute-resource-name": "price384nvme",
+      "parallelcluster:filesystem": "efs=0, multiebs=0, raid=0, fsx=1",
+      "parallelcluster:networking": "EFA=NONE",
+      "parallelcluster:node-type": "Compute",
+      "parallelcluster:queue-name": "i384nvme",
+      "parallelcluster:version": "3.15.0"
+    }
+  },
+  {
+    "InstanceType": "m8idb.96xlarge",
+    "State": "terminated",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:instance/i-00505cd09f2710a56",
+    "classification": "dyec_cluster",
+    "id": "i-00505cd09f2710a56",
+    "kind": "ec2_instance",
+    "name": "Compute",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "Name": "Compute",
+      "aws-parallelcluster-clustername": "ultimarerun",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "skip",
+      "aws-parallelcluster-jobid": "",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config",
+      "aws-parallelcluster-project": "",
+      "aws-parallelcluster-username": "",
+      "aws:ec2:fleet-id": "fleet-120fa90c-891e-cb34-0c18-24a2ff7fff4d",
+      "aws:ec2launchtemplate:id": "lt-07e26f59f944fbf8e",
+      "aws:ec2launchtemplate:version": "2",
+      "parallelcluster:attributes": "ubuntu2204, slurm, 3.15.0, NONE",
+      "parallelcluster:cluster-name": "ultimarerun",
+      "parallelcluster:compute-resource-name": "price384nvme",
+      "parallelcluster:filesystem": "efs=0, multiebs=0, raid=0, fsx=1",
+      "parallelcluster:networking": "EFA=NONE",
+      "parallelcluster:node-type": "Compute",
+      "parallelcluster:queue-name": "i384nvme",
+      "parallelcluster:version": "3.15.0"
+    }
+  },
+  {
+    "InstanceType": "m8idb.96xlarge",
+    "State": "terminated",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:instance/i-08821ce25ef41983f",
+    "classification": "dyec_cluster",
+    "id": "i-08821ce25ef41983f",
+    "kind": "ec2_instance",
+    "name": "Compute",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "Name": "Compute",
+      "aws-parallelcluster-clustername": "ultimarerun",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "skip",
+      "aws-parallelcluster-jobid": "",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config",
+      "aws-parallelcluster-project": "",
+      "aws-parallelcluster-username": "",
+      "aws:ec2:fleet-id": "fleet-120fa90c-891e-cb34-0c18-24a2ff7fff4d",
+      "aws:ec2launchtemplate:id": "lt-07e26f59f944fbf8e",
+      "aws:ec2launchtemplate:version": "2",
+      "parallelcluster:attributes": "ubuntu2204, slurm, 3.15.0, NONE",
+      "parallelcluster:cluster-name": "ultimarerun",
+      "parallelcluster:compute-resource-name": "price384nvme",
+      "parallelcluster:filesystem": "efs=0, multiebs=0, raid=0, fsx=1",
+      "parallelcluster:networking": "EFA=NONE",
+      "parallelcluster:node-type": "Compute",
+      "parallelcluster:queue-name": "i384nvme",
+      "parallelcluster:version": "3.15.0"
+    }
+  },
+  {
+    "Size": 8,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-0b6a14b3d2c01264d",
+    "classification": "unallocated",
+    "id": "vol-0b6a14b3d2c01264d",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EBS",
+    "tags": {}
+  },
+  {
+    "Size": 20,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-02caa6b741e86c280",
+    "classification": "unallocated",
+    "id": "vol-02caa6b741e86c280",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EBS",
+    "tags": {}
+  },
+  {
+    "Size": 30,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-0725e7ce2db54e386",
+    "classification": "unallocated",
+    "id": "vol-0725e7ce2db54e386",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EBS",
+    "tags": {}
+  },
+  {
+    "Size": 336,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-0c69ba6b467620e14",
+    "classification": "dayhoff",
+    "id": "vol-0c69ba6b467620e14",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EBS",
+    "tags": {
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "Size": 30,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-0bff19625e45e6e4c",
+    "classification": "unallocated",
+    "id": "vol-0bff19625e45e6e4c",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EBS",
+    "tags": {}
+  },
+  {
+    "Size": 336,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-0ea36895cc2b979ac",
+    "classification": "dyec_cluster",
+    "id": "vol-0ea36895cc2b979ac",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EBS",
+    "tags": {
+      "aws-parallelcluster-project": "dayhoff-production-server",
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "Size": 421,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-0d4b94b775f2d04d8",
+    "classification": "dyec_cluster",
+    "id": "vol-0d4b94b775f2d04d8",
+    "kind": "ebs_volume",
+    "name": "HeadNode",
+    "region": "us-west-2",
+    "service": "EBS",
+    "tags": {
+      "Name": "HeadNode",
+      "aws-parallelcluster-clustername": "ultimarerun",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "skip",
+      "aws-parallelcluster-jobid": "aws_profile-lsmc",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config",
+      "aws-parallelcluster-project": "ultimarerun",
+      "aws-parallelcluster-username": "jmajor-root",
+      "aws:cloudformation:logical-id": "HeadNode",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/ultimarerun/f381f3c0-6956-11f1-9069-0a0b8b330b8d",
+      "aws:cloudformation:stack-name": "ultimarerun",
+      "parallelcluster:attributes": "ubuntu2204, slurm, 3.15.0, x86_64",
+      "parallelcluster:cluster-name": "ultimarerun",
+      "parallelcluster:filesystem": "efs=0, multiebs=0, raid=0, fsx=1",
+      "parallelcluster:networking": "EFA=NONE",
+      "parallelcluster:node-type": "HeadNode",
+      "parallelcluster:version": "3.15.0"
+    }
+  },
+  {
+    "Size": 421,
+    "State": "available",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-067169329e7a92af1",
+    "classification": "dyec_cluster",
+    "id": "vol-067169329e7a92af1",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EBS",
+    "tags": {
+      "aws-parallelcluster-clustername": "day-test-uswest2d",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "true",
+      "aws-parallelcluster-jobid": "aws_profile-daylily-service-lsmc",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-omics-analysis-us-west-2",
+      "aws-parallelcluster-project": "day-test-uswest2d",
+      "aws-parallelcluster-username": "jmajor-daylily-service",
+      "parallelcluster:cluster-name": "day-test-uswest2d",
+      "parallelcluster:node-type": "HeadNode",
+      "parallelcluster:version": "3.13.2"
+    }
+  },
+  {
+    "Size": 421,
+    "State": "available",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-0f5e5d7eec5982fa8",
+    "classification": "dyec_cluster",
+    "id": "vol-0f5e5d7eec5982fa8",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EBS",
+    "tags": {
+      "aws-parallelcluster-clustername": "test-del-me",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "skip",
+      "aws-parallelcluster-jobid": "aws_profile-lsmc",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-omics-analysis-us-west-2",
+      "aws-parallelcluster-project": "test-del-me",
+      "aws-parallelcluster-username": "jmajor-root",
+      "parallelcluster:cluster-name": "test-del-me",
+      "parallelcluster:node-type": "HeadNode",
+      "parallelcluster:version": "3.13.2"
+    }
+  },
+  {
+    "Size": 336,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-04646998d6f1fd325",
+    "classification": "dayhoff",
+    "id": "vol-04646998d6f1fd325",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EBS",
+    "tags": {
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "Size": 234,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-0c26833469cf6995a",
+    "classification": "unallocated",
+    "id": "vol-0c26833469cf6995a",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EBS",
+    "tags": {}
+  },
+  {
+    "Size": 421,
+    "State": "available",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-0c90d4fbaada3820a",
+    "classification": "dyec_cluster",
+    "id": "vol-0c90d4fbaada3820a",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EBS",
+    "tags": {
+      "aws-parallelcluster-clustername": "ifx-go",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "skip",
+      "aws-parallelcluster-jobid": "aws_profile-daylily-service-lsmc",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-omics-analysis-us-west-2",
+      "aws-parallelcluster-project": "ifx-go",
+      "aws-parallelcluster-username": "jmajor-daylily-service",
+      "parallelcluster:cluster-name": "ifx-go",
+      "parallelcluster:node-type": "HeadNode",
+      "parallelcluster:version": "3.13.2"
+    }
+  },
+  {
+    "Size": 421,
+    "State": "available",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-042a5f5daead20490",
+    "classification": "dyec_cluster",
+    "id": "vol-042a5f5daead20490",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EBS",
+    "tags": {
+      "aws-parallelcluster-clustername": "daylily-1773059211",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "skip",
+      "aws-parallelcluster-jobid": "aws_profile-lsmc",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-omics-analysis-us-west-2",
+      "aws-parallelcluster-project": "daylily-1773059211",
+      "aws-parallelcluster-username": "jmajor-root",
+      "parallelcluster:cluster-name": "daylily-1773059211",
+      "parallelcluster:node-type": "HeadNode",
+      "parallelcluster:version": "3.13.2"
+    }
+  },
+  {
+    "Size": 8,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-0af8f94e0cd058ddf",
+    "classification": "unallocated",
+    "id": "vol-0af8f94e0cd058ddf",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EBS",
+    "tags": {}
+  },
+  {
+    "arn": "",
+    "classification": "unallocated",
+    "id": "eipalloc-067f0cbee9744a997",
+    "kind": "eip",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {}
+  },
+  {
+    "arn": "",
+    "classification": "unallocated",
+    "id": "eipalloc-0afac19bd56e88559",
+    "kind": "eip",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {}
+  },
+  {
+    "arn": "",
+    "classification": "terrarium",
+    "id": "eipalloc-0cdb6bbf96e46e997",
+    "kind": "eip",
+    "name": "terrarium-prod-us-west-2a",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "Environment": "prod",
+      "Name": "terrarium-prod-us-west-2a",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "",
+    "classification": "unallocated",
+    "id": "eipalloc-02ef5760f8f8700fd",
+    "kind": "eip",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGatewayEIP",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/pcluster-vpc-stack-2c/11672150-35cb-11f0-846b-068dd27e67c7",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-2c"
+    }
+  },
+  {
+    "arn": "",
+    "classification": "dayhoff",
+    "id": "eipalloc-0f161b935ca179087",
+    "kind": "eip",
+    "name": "Dayhoff-aws3041-Network/Vpc/publicSubnet1",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "aws3041",
+      "Name": "Dayhoff-aws3041-Network/Vpc/publicSubnet1",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "VpcpublicSubnet1EIP411541E6",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-aws3041-Network/f3c44510-4d98-11f1-8609-02caba97073f",
+      "aws:cloudformation:stack-name": "Dayhoff-aws3041-Network",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jmajor",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-west-2",
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "arn": "",
+    "classification": "terrarium",
+    "id": "eipalloc-08c21fdc4e4f6bf6c",
+    "kind": "eip",
+    "name": "terrarium-dev-us-west-2a",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "Environment": "dev",
+      "Name": "terrarium-dev-us-west-2a",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "",
+    "classification": "unallocated",
+    "id": "eipalloc-08aa7ee07f8adf8dc",
+    "kind": "eip",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {}
+  },
+  {
+    "arn": "",
+    "classification": "dyec_cluster",
+    "id": "eipalloc-06e2140899b7680a8",
+    "kind": "eip",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "aws-parallelcluster-clustername": "ultimarerun",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "skip",
+      "aws-parallelcluster-jobid": "aws_profile-lsmc",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config",
+      "aws-parallelcluster-project": "ultimarerun",
+      "aws-parallelcluster-username": "jmajor-root",
+      "aws:cloudformation:logical-id": "HeadNodeEIP",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/ultimarerun/f381f3c0-6956-11f1-9069-0a0b8b330b8d",
+      "aws:cloudformation:stack-name": "ultimarerun",
+      "parallelcluster:cluster-name": "ultimarerun",
+      "parallelcluster:version": "3.15.0"
+    }
+  },
+  {
+    "arn": "",
+    "classification": "unallocated",
+    "id": "eipalloc-0404170040b2023eb",
+    "kind": "eip",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {}
+  },
+  {
+    "arn": "",
+    "classification": "dayhoff",
+    "id": "eipalloc-04969423b36b3de9b",
+    "kind": "eip",
+    "name": "Dayhoff-lsmcok1-day-lsmc-bio-eip",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "DNSName": "day.lsmc.bio",
+      "Environment": "lsmcok1",
+      "Name": "Dayhoff-lsmcok1-day-lsmc-bio-eip",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "PublicService": "day.lsmc.bio",
+      "Purpose": "day.lsmc.bio-public-approved-ingress",
+      "ServiceNamespace": "day.lsmc.bio",
+      "System": "dayhoff",
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "arn": "",
+    "classification": "unallocated",
+    "id": "eipalloc-0eba4901f0a660eee",
+    "kind": "eip",
+    "name": "",
+    "region": "us-west-2",
+    "service": "EC2",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGatewayEIP",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/pcluster-vpc-stack-2d/12bfabe0-ee8f-11ef-91a4-0a3f3530209f",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-2d"
+    }
+  },
+  {
+    "State": "available",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:natgateway/nat-00f3c26e43ede9b10",
+    "classification": "unallocated",
+    "id": "nat-00f3c26e43ede9b10",
+    "kind": "nat_gateway",
+    "name": "",
+    "region": "us-west-2",
+    "service": "VPC",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGateway",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/pcluster-vpc-stack-2d/12bfabe0-ee8f-11ef-91a4-0a3f3530209f",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-2d"
+    }
+  },
+  {
+    "State": "available",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:natgateway/nat-00246c8ef3b9087f1",
+    "classification": "dayhoff",
+    "id": "nat-00246c8ef3b9087f1",
+    "kind": "nat_gateway",
+    "name": "Dayhoff-aws3041-Network/Vpc/publicSubnet1",
+    "region": "us-west-2",
+    "service": "VPC",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "aws3041",
+      "Name": "Dayhoff-aws3041-Network/Vpc/publicSubnet1",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "VpcpublicSubnet1NATGatewayA036E8A6",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-aws3041-Network/f3c44510-4d98-11f1-8609-02caba97073f",
+      "aws:cloudformation:stack-name": "Dayhoff-aws3041-Network",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jmajor",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-west-2",
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "State": "available",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:natgateway/nat-00ac08b685fea726f",
+    "classification": "terrarium",
+    "id": "nat-00ac08b685fea726f",
+    "kind": "nat_gateway",
+    "name": "terrarium-prod-us-west-2a",
+    "region": "us-west-2",
+    "service": "VPC",
+    "tags": {
+      "Environment": "prod",
+      "Name": "terrarium-prod-us-west-2a",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "State": "available",
+    "arn": "arn:aws:ec2:us-west-2:108782052779:natgateway/nat-0234e77781575cced",
+    "classification": "terrarium",
+    "id": "nat-0234e77781575cced",
+    "kind": "nat_gateway",
+    "name": "terrarium-dev-us-west-2a",
+    "region": "us-west-2",
+    "service": "VPC",
+    "tags": {
+      "Environment": "dev",
+      "Name": "terrarium-dev-us-west-2a",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "LifeCycle": "AVAILABLE",
+    "StorageCapacity": 12000,
+    "arn": "arn:aws:fsx:us-west-2:108782052779:file-system/fs-0c75a39059ff389cd",
+    "classification": "dyec_cluster",
+    "id": "fs-0c75a39059ff389cd",
+    "kind": "fsx_file_system",
+    "name": "fsx-ultimarerun",
+    "region": "us-west-2",
+    "service": "FSx",
+    "tags": {
+      "Name": "fsx-ultimarerun",
+      "aws-parallelcluster-clustername": "ultimarerun",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "skip",
+      "aws-parallelcluster-jobid": "aws_profile-lsmc",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config",
+      "aws-parallelcluster-project": "ultimarerun",
+      "aws-parallelcluster-username": "jmajor-root",
+      "aws:cloudformation:logical-id": "FSXD3dea34c0fba8896",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/ultimarerun/f381f3c0-6956-11f1-9069-0a0b8b330b8d",
+      "aws:cloudformation:stack-name": "ultimarerun",
+      "parallelcluster:cluster-name": "ultimarerun",
+      "parallelcluster:version": "3.15.0"
+    }
+  },
+  {
+    "LifeCycle": "AVAILABLE",
+    "arn": "arn:aws:fsx:us-west-2:108782052779:association/fs-0c75a39059ff389cd/dra-070ae4569dc56478d",
+    "classification": "unallocated",
+    "id": "dra-070ae4569dc56478d",
+    "kind": "fsx_dra",
+    "name": "",
+    "region": "us-west-2",
+    "service": "FSx",
+    "tags": {
+      "lsmc:purpose": "run-dir-mount"
+    }
+  },
+  {
+    "LifeCycle": "AVAILABLE",
+    "arn": "arn:aws:fsx:us-west-2:108782052779:association/fs-0c75a39059ff389cd/dra-0c09dc96be5cdca1e",
+    "classification": "unallocated",
+    "id": "dra-0c09dc96be5cdca1e",
+    "kind": "fsx_dra",
+    "name": "",
+    "region": "us-west-2",
+    "service": "FSx",
+    "tags": {
+      "Cohort": "23andMePilot",
+      "Project": "ultimarerun_23andme_ilmn",
+      "Role": "supplemental_94_missing_HG003",
+      "lsmc:purpose": "run-dir-mount"
+    }
+  },
+  {
+    "LifeCycle": "AVAILABLE",
+    "arn": "arn:aws:fsx:us-west-2:108782052779:association/fs-0c75a39059ff389cd/dra-010d1f42b61550079",
+    "classification": "unallocated",
+    "id": "dra-010d1f42b61550079",
+    "kind": "fsx_dra",
+    "name": "",
+    "region": "us-west-2",
+    "service": "FSx",
+    "tags": {
+      "Cohort": "23andMePilot",
+      "Project": "ultimarerun_23andme_ilmn",
+      "Role": "primary_95_with_lsmc_HG003_alias",
+      "lsmc:purpose": "run-dir-mount"
+    }
+  },
+  {
+    "LifeCycle": "AVAILABLE",
+    "arn": "arn:aws:fsx:us-west-2:108782052779:association/fs-0c75a39059ff389cd/dra-0da14b73415432e44",
+    "classification": "dyec_cluster",
+    "id": "dra-0da14b73415432e44",
+    "kind": "fsx_dra",
+    "name": "reference-data",
+    "region": "us-west-2",
+    "service": "FSx",
+    "tags": {
+      "Name": "reference-data",
+      "aws-parallelcluster-clustername": "ultimarerun",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "skip",
+      "aws-parallelcluster-jobid": "aws_profile-lsmc",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config",
+      "aws-parallelcluster-project": "ultimarerun",
+      "aws-parallelcluster-username": "jmajor-root",
+      "aws:cloudformation:logical-id": "referencedataD48241ae41bef295",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/ultimarerun/f381f3c0-6956-11f1-9069-0a0b8b330b8d",
+      "aws:cloudformation:stack-name": "ultimarerun",
+      "parallelcluster:cluster-name": "ultimarerun",
+      "parallelcluster:version": "3.15.0"
+    }
+  },
+  {
+    "DBInstanceClass": "db.t4g.micro",
+    "Engine": "postgres",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db",
+    "classification": "aquarium",
+    "id": "aquarium-dev-db",
+    "kind": "rds_instance",
+    "name": "aquarium-dev-db",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {
+      "Environment": "dev",
+      "Project": "aquarium"
+    }
+  },
+  {
+    "DBInstanceClass": "db.r5.large",
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-instance-1",
+    "classification": "dayhoff",
+    "id": "dayhoff-dr-drill-20260521-instance-1",
+    "kind": "rds_instance",
+    "name": "dayhoff-dr-drill-20260521-instance-1",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {}
+  },
+  {
+    "DBInstanceClass": "db.r5.large",
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-api",
+    "classification": "dayhoff",
+    "id": "dayhoff-dr-drill-20260521-reader-api",
+    "kind": "rds_instance",
+    "name": "dayhoff-dr-drill-20260521-reader-api",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {}
+  },
+  {
+    "DBInstanceClass": "db.r5.large",
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-ha",
+    "classification": "dayhoff",
+    "id": "dayhoff-dr-drill-20260521-reader-ha",
+    "kind": "rds_instance",
+    "name": "dayhoff-dr-drill-20260521-reader-ha",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {}
+  },
+  {
+    "DBInstanceClass": "db.r8g.large",
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer",
+    "classification": "dyec_cluster",
+    "id": "dayhoff-lsmcok1-tapdb-writer",
+    "kind": "rds_instance",
+    "name": "dayhoff-lsmcok1-tapdb-writer",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {
+      "Environment": "lsmcok1",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "System": "dayhoff",
+      "aws-parallelcluster-project": "dayhoff-production-server",
+      "aws:cloudformation:logical-id": "WriterInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-lsmcok1-Data/80940010-5353-11f1-84e9-0679063ee0d5",
+      "aws:cloudformation:stack-name": "Dayhoff-lsmcok1-Data",
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "DBInstanceClass": "db.r8g.xlarge",
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api",
+    "classification": "dayhoff",
+    "id": "dayhoff-lsmcq7-tapdb-reader-api",
+    "kind": "rds_instance",
+    "name": "dayhoff-lsmcq7-tapdb-reader-api",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "lsmcq7",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Role": "reader-api",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "ApiReaderInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-lsmcq7-Data/c931b3a0-51ee-11f1-835f-061daeca8d2f",
+      "aws:cloudformation:stack-name": "Dayhoff-lsmcq7-Data",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-west-2",
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "DBInstanceClass": "db.r8g.xlarge",
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha",
+    "classification": "dayhoff",
+    "id": "dayhoff-lsmcq7-tapdb-reader-ha",
+    "kind": "rds_instance",
+    "name": "dayhoff-lsmcq7-tapdb-reader-ha",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "lsmcq7",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Role": "reader-ha",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "HaReaderInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-lsmcq7-Data/c931b3a0-51ee-11f1-835f-061daeca8d2f",
+      "aws:cloudformation:stack-name": "Dayhoff-lsmcq7-Data",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-west-2",
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "DBInstanceClass": "db.r8g.2xlarge",
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer",
+    "classification": "dayhoff",
+    "id": "dayhoff-lsmcq7-tapdb-writer",
+    "kind": "rds_instance",
+    "name": "dayhoff-lsmcq7-tapdb-writer",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "lsmcq7",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Role": "writer",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "WriterInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-lsmcq7-Data/c931b3a0-51ee-11f1-835f-061daeca8d2f",
+      "aws:cloudformation:stack-name": "Dayhoff-lsmcq7-Data",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-west-2",
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "DBInstanceClass": "db.r6g.large",
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:dev-writer",
+    "classification": "dayhoff",
+    "id": "dev-writer",
+    "kind": "rds_instance",
+    "name": "dev-writer",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {
+      "aws:cloudformation:logical-id": "WriterInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/tapdb-dev/13b49db0-16bd-11f1-ac4f-02ee9e12c98f",
+      "aws:cloudformation:stack-name": "tapdb-dev",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-west-2"
+    }
+  },
+  {
+    "DBInstanceClass": "db.t4g.medium",
+    "Engine": "postgres",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:dr-drill-standalone-20260521",
+    "classification": "unallocated",
+    "id": "dr-drill-standalone-20260521",
+    "kind": "rds_instance",
+    "name": "dr-drill-standalone-20260521",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {}
+  },
+  {
+    "DBInstanceClass": "db.serverless",
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1",
+    "classification": "unallocated",
+    "id": "labcore-dev-instance-1",
+    "kind": "rds_instance",
+    "name": "labcore-dev-instance-1",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {}
+  },
+  {
+    "DBInstanceClass": "db.t4g.medium",
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:staging-writer",
+    "classification": "dayhoff",
+    "id": "staging-writer",
+    "kind": "rds_instance",
+    "name": "staging-writer",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {
+      "aws:cloudformation:logical-id": "WriterInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/tapdb-staging/a149d9b0-4d9a-11f1-9577-0a57bdb61851",
+      "aws:cloudformation:stack-name": "tapdb-staging",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-west-2"
+    }
+  },
+  {
+    "DBInstanceClass": "db.t4g.micro",
+    "Engine": "postgres",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db",
+    "classification": "terrarium",
+    "id": "terrarium-dev-db",
+    "kind": "rds_instance",
+    "name": "terrarium-dev-db",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {
+      "Environment": "dev",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "DBInstanceClass": "db.t4g.micro",
+    "Engine": "postgres",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db",
+    "classification": "terrarium",
+    "id": "terrarium-prod-db",
+    "kind": "rds_instance",
+    "name": "terrarium-prod-db",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {
+      "Environment": "prod",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-dr-drill-20260521",
+    "classification": "dayhoff",
+    "id": "dayhoff-dr-drill-20260521",
+    "kind": "rds_cluster",
+    "name": "dayhoff-dr-drill-20260521",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "lsmcq7",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "System": "dayhoff",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-west-2",
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-lsmcok1-tapdb",
+    "classification": "dyec_cluster",
+    "id": "dayhoff-lsmcok1-tapdb",
+    "kind": "rds_cluster",
+    "name": "dayhoff-lsmcok1-tapdb",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {
+      "Environment": "lsmcok1",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "System": "dayhoff",
+      "aws-parallelcluster-project": "dayhoff-production-server",
+      "aws:cloudformation:logical-id": "DatabaseCluster",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-lsmcok1-Data/80940010-5353-11f1-84e9-0679063ee0d5",
+      "aws:cloudformation:stack-name": "Dayhoff-lsmcok1-Data",
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-lsmcq7-tapdb",
+    "classification": "dayhoff",
+    "id": "dayhoff-lsmcq7-tapdb",
+    "kind": "rds_cluster",
+    "name": "dayhoff-lsmcq7-tapdb",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "lsmcq7",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "AuroraCluster",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-lsmcq7-Data/c931b3a0-51ee-11f1-835f-061daeca8d2f",
+      "aws:cloudformation:stack-name": "Dayhoff-lsmcq7-Data",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-west-2",
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true"
+    }
+  },
+  {
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:cluster:dev",
+    "classification": "dayhoff",
+    "id": "dev",
+    "kind": "rds_cluster",
+    "name": "dev",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {
+      "aws:cloudformation:logical-id": "AuroraCluster",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/tapdb-dev/13b49db0-16bd-11f1-ac4f-02ee9e12c98f",
+      "aws:cloudformation:stack-name": "tapdb-dev",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-west-2"
+    }
+  },
+  {
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:cluster:labcore-dev",
+    "classification": "unallocated",
+    "id": "labcore-dev",
+    "kind": "rds_cluster",
+    "name": "labcore-dev",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {
+      "in-use": "labcore-jstone"
+    }
+  },
+  {
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-west-2:108782052779:cluster:staging",
+    "classification": "dayhoff",
+    "id": "staging",
+    "kind": "rds_cluster",
+    "name": "staging",
+    "region": "us-west-2",
+    "service": "RDS",
+    "tags": {
+      "aws:cloudformation:logical-id": "AuroraCluster",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/tapdb-staging/a149d9b0-4d9a-11f1-9577-0a57bdb61851",
+      "aws:cloudformation:stack-name": "tapdb-staging",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-west-2"
+    }
+  },
+  {
+    "arn": "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8",
+    "classification": "unallocated",
+    "id": "lsmc-mvp-dev-alb",
+    "kind": "load_balancer",
+    "name": "lsmc-mvp-dev-alb",
+    "region": "us-west-2",
+    "service": "ELBv2",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:ecs:us-west-2:108782052779:cluster/aquarium-dev-cluster",
+    "classification": "aquarium",
+    "id": "aquarium-dev-cluster",
+    "kind": "ecs_cluster",
+    "name": "aquarium-dev-cluster",
+    "region": "us-west-2",
+    "service": "ECS",
+    "tags": {
+      "Environment": "dev",
+      "Project": "aquarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecs:us-west-2:108782052779:service/aquarium-dev-cluster/aquarium-dev-app",
+    "classification": "aquarium",
+    "id": "aquarium-dev-app",
+    "kind": "ecs_service",
+    "name": "aquarium-dev-app",
+    "region": "us-west-2",
+    "service": "ECS",
+    "tags": {
+      "Environment": "dev",
+      "Project": "aquarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecs:us-west-2:108782052779:cluster/lsmc-dev",
+    "classification": "unallocated",
+    "id": "lsmc-dev",
+    "kind": "ecs_cluster",
+    "name": "lsmc-dev",
+    "region": "us-west-2",
+    "service": "ECS",
+    "tags": {
+      "aws:cloudformation:logical-id": "ECSCluster",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Infra-ECS-Cluster-lsmc-dev-bb4d1fb1/50cfd700-6a8c-11f1-aabb-02c72c07b24b",
+      "aws:cloudformation:stack-name": "Infra-ECS-Cluster-lsmc-dev-bb4d1fb1",
+      "env": "lsmc-dev"
+    }
+  },
+  {
+    "arn": "arn:aws:ecs:us-west-2:108782052779:cluster/terrarium-dev-cluster",
+    "classification": "terrarium",
+    "id": "terrarium-dev-cluster",
+    "kind": "ecs_cluster",
+    "name": "terrarium-dev-cluster",
+    "region": "us-west-2",
+    "service": "ECS",
+    "tags": {
+      "Environment": "dev",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecs:us-west-2:108782052779:service/terrarium-dev-cluster/terrarium-dev-api",
+    "classification": "terrarium",
+    "id": "terrarium-dev-api",
+    "kind": "ecs_service",
+    "name": "terrarium-dev-api",
+    "region": "us-west-2",
+    "service": "ECS",
+    "tags": {
+      "Environment": "dev",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecs:us-west-2:108782052779:cluster/terrarium-prod-cluster",
+    "classification": "terrarium",
+    "id": "terrarium-prod-cluster",
+    "kind": "ecs_cluster",
+    "name": "terrarium-prod-cluster",
+    "region": "us-west-2",
+    "service": "ECS",
+    "tags": {
+      "Environment": "prod",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecs:us-west-2:108782052779:service/terrarium-prod-cluster/terrarium-prod-api",
+    "classification": "terrarium",
+    "id": "terrarium-prod-api",
+    "kind": "ecs_service",
+    "name": "terrarium-prod-api",
+    "region": "us-west-2",
+    "service": "ECS",
+    "tags": {
+      "Environment": "prod",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "InstanceType": "t3.micro",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:instance/i-0ab7116abc8229a16",
+    "classification": "unallocated",
+    "id": "i-0ab7116abc8229a16",
+    "kind": "ec2_instance",
+    "name": "dr-drill-relay-use1-20260522",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {
+      "Name": "dr-drill-relay-use1-20260522"
+    }
+  },
+  {
+    "InstanceType": "t3.2xlarge",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:instance/i-0b6713cc15f74d360",
+    "classification": "dayhoff",
+    "id": "i-0b6713cc15f74d360",
+    "kind": "ec2_instance",
+    "name": "Dayhoff-ddev96-Compute/Hostprimary",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "ddev96",
+      "Host": "primary",
+      "Name": "Dayhoff-ddev96-Compute/Hostprimary",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Roles": "lsmc-oauth-login,atlas,bloom,ursa,dewey,qeo,zebra_day,kahlo",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "Hostprimary8A9E85D2d44d5773ebdbe61c",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/Dayhoff-ddev96-Compute/0c017760-5cfd-11f1-ab2c-26a4cf9bbcf5",
+      "aws:cloudformation:stack-name": "Dayhoff-ddev96-Compute",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jmajor",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff-ddev96",
+      "project": "dayhoff-all",
+      "project:dayhoff-dev": "true"
+    }
+  },
+  {
+    "InstanceType": "t3.nano",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:instance/i-04d3a8c6aae87f818",
+    "classification": "dayhoff",
+    "id": "i-04d3a8c6aae87f818",
+    "kind": "ec2_instance",
+    "name": "Dayhoff-tailnet-dns-use1",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "tailnet-dns",
+      "Name": "Dayhoff-tailnet-dns-use1",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Purpose": "dayhoff-tailnet-splitdns",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "ResolverInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/Dayhoff-tailnet-dns-use1/2805dcd0-5f19-11f1-bfca-0e430692daa9",
+      "aws:cloudformation:stack-name": "Dayhoff-tailnet-dns-use1",
+      "lsmc-project": "dayhoff-tailnet-dns",
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true",
+      "project:dayhoff-dev": "true",
+      "project:dayhoff-inf": "true"
+    }
+  },
+  {
+    "InstanceType": "t3.2xlarge",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:instance/i-0de9e3f8d3208cf03",
+    "classification": "dayhoff",
+    "id": "i-0de9e3f8d3208cf03",
+    "kind": "ec2_instance",
+    "name": "Dayhoff-dev-Compute/Hostprimary",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "dev",
+      "Host": "primary",
+      "Name": "Dayhoff-dev-Compute/Hostprimary",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Roles": "lsmc-oauth-login,atlas,bloom,ursa,dewey,qeo,zebra_day,kahlo",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "Hostprimary8A9E85D228fd48233d50681f",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/Dayhoff-dev-Compute/2d6fd9e0-5f0b-11f1-bd99-12de41f84f37",
+      "aws:cloudformation:stack-name": "Dayhoff-dev-Compute",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jmajor",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff-dev",
+      "project": "dayhoff-all",
+      "project:dayhoff-dev": "true"
+    }
+  },
+  {
+    "InstanceType": "t3a.2xlarge",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:instance/i-068f3aad2bedb9fa6",
+    "classification": "dayhoff",
+    "id": "i-068f3aad2bedb9fa6",
+    "kind": "ec2_instance",
+    "name": "Dayhoff-josh-dev-Compute/Hostprimary",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "josh-dev",
+      "Host": "primary",
+      "Name": "Dayhoff-josh-dev-Compute/Hostprimary",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Roles": "lsmc-oauth-login,atlas,bloom,ursa,dewey,zebra_day,kahlo",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "Hostprimary8A9E85D2",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/Dayhoff-josh-dev-Compute/95cf7420-6143-11f1-954b-0ecbebe41cc7",
+      "aws:cloudformation:stack-name": "Dayhoff-josh-dev-Compute",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jdurham38",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-east-1"
+    }
+  },
+  {
+    "InstanceType": "t3.2xlarge",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:instance/i-0fe5b945859eba18e",
+    "classification": "dayhoff",
+    "id": "i-0fe5b945859eba18e",
+    "kind": "ec2_instance",
+    "name": "Dayhoff-jemdev5-Compute/Hostprimary",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "jemdev5",
+      "Host": "primary",
+      "Name": "Dayhoff-jemdev5-Compute/Hostprimary",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Roles": "lsmc-oauth-login,atlas,bloom,ursa,dewey,qeo,zebra_day,kahlo",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "Hostprimary8A9E85D2156b4be2595d8358",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/Dayhoff-jemdev5-Compute/081ffd10-63c4-11f1-aa86-0e4a7d53ffdb",
+      "aws:cloudformation:stack-name": "Dayhoff-jemdev5-Compute",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jmajor",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff-jemdev5"
+    }
+  },
+  {
+    "InstanceType": "t3.2xlarge",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:instance/i-0e70fab85d559c615",
+    "classification": "dayhoff",
+    "id": "i-0e70fab85d559c615",
+    "kind": "ec2_instance",
+    "name": "Dayhoff-inf-Compute/Hostprimary",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "inf",
+      "Host": "primary",
+      "Name": "Dayhoff-inf-Compute/Hostprimary",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Roles": "lsmc-oauth-login,atlas,bloom,ursa,dewey,qeo,zebra_day,kahlo",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "Hostprimary8A9E85D235ed93cf8c52e8ca",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/Dayhoff-inf-Compute/f4d67950-5f68-11f1-b41b-0affe27bd7f5",
+      "aws:cloudformation:stack-name": "Dayhoff-inf-Compute",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jmajor",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff-inf"
+    }
+  },
+  {
+    "InstanceType": "t3.2xlarge",
+    "State": "running",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:instance/i-05de16a24310099c5",
+    "classification": "dayhoff",
+    "id": "i-05de16a24310099c5",
+    "kind": "ec2_instance",
+    "name": "Dayhoff-joshdev-Compute/Hostprimary",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "joshdev",
+      "Host": "primary",
+      "Name": "Dayhoff-joshdev-Compute/Hostprimary",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Roles": "lsmc-oauth-login,atlas,bloom,ursa,dewey,qeo,zebra_day,kahlo",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "Hostprimary8A9E85D2096dd0cf89b0ac96",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/Dayhoff-joshdev-Compute/4611c240-620a-11f1-b892-0e43b5d0b09f",
+      "aws:cloudformation:stack-name": "Dayhoff-joshdev-Compute",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jdurham38",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff-joshdev"
+    }
+  },
+  {
+    "Size": 336,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:volume/vol-0aa3f5a0f5cdca9a0",
+    "classification": "unallocated",
+    "id": "vol-0aa3f5a0f5cdca9a0",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-east-1",
+    "service": "EBS",
+    "tags": {}
+  },
+  {
+    "Size": 336,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:volume/vol-0392bc7824a1e81e8",
+    "classification": "dayhoff",
+    "id": "vol-0392bc7824a1e81e8",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-east-1",
+    "service": "EBS",
+    "tags": {
+      "project": "dayhoff-all",
+      "project:dayhoff-dev": "true"
+    }
+  },
+  {
+    "Size": 8,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:volume/vol-0941af554a7184c73",
+    "classification": "dayhoff",
+    "id": "vol-0941af554a7184c73",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-east-1",
+    "service": "EBS",
+    "tags": {
+      "project": "dayhoff-all",
+      "project:dayhoff-day": "true",
+      "project:dayhoff-dev": "true",
+      "project:dayhoff-inf": "true"
+    }
+  },
+  {
+    "Size": 336,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:volume/vol-0b99a6dcae2700982",
+    "classification": "dayhoff",
+    "id": "vol-0b99a6dcae2700982",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-east-1",
+    "service": "EBS",
+    "tags": {
+      "project": "dayhoff-all",
+      "project:dayhoff-dev": "true"
+    }
+  },
+  {
+    "Size": 336,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:volume/vol-00cbb7ba932dbd3a4",
+    "classification": "unallocated",
+    "id": "vol-00cbb7ba932dbd3a4",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-east-1",
+    "service": "EBS",
+    "tags": {}
+  },
+  {
+    "Size": 336,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:volume/vol-0720ce0f8aadb778a",
+    "classification": "unallocated",
+    "id": "vol-0720ce0f8aadb778a",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-east-1",
+    "service": "EBS",
+    "tags": {}
+  },
+  {
+    "Size": 8,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:volume/vol-09454929e2c583ae7",
+    "classification": "unallocated",
+    "id": "vol-09454929e2c583ae7",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-east-1",
+    "service": "EBS",
+    "tags": {}
+  },
+  {
+    "Size": 336,
+    "State": "in-use",
+    "VolumeType": "gp3",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:volume/vol-0f9efeb41e207d738",
+    "classification": "unallocated",
+    "id": "vol-0f9efeb41e207d738",
+    "kind": "ebs_volume",
+    "name": "",
+    "region": "us-east-1",
+    "service": "EBS",
+    "tags": {}
+  },
+  {
+    "arn": "",
+    "classification": "dayhoff",
+    "id": "eipalloc-05ae2b5e83f6942d5",
+    "kind": "eip",
+    "name": "",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {
+      "project": "dayhoff-all",
+      "project:dayhoff-dev": "true"
+    }
+  },
+  {
+    "arn": "",
+    "classification": "dayhoff",
+    "id": "eipalloc-0b6cc46ecf8c48bd3",
+    "kind": "eip",
+    "name": "Dayhoff-inf-inf-lsmc-bio-eip",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "DNSName": "inf.lsmc.bio",
+      "Environment": "inf",
+      "Name": "Dayhoff-inf-inf-lsmc-bio-eip",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Purpose": "inf.lsmc.bio-public-approved-ingress",
+      "ServiceNamespace": "inf.lsmc.bio",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "PublicServiceEipprimary",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/Dayhoff-inf-Compute/f4d67950-5f68-11f1-b41b-0affe27bd7f5",
+      "aws:cloudformation:stack-name": "Dayhoff-inf-Compute",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jmajor",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff-inf"
+    }
+  },
+  {
+    "arn": "",
+    "classification": "dayhoff",
+    "id": "eipalloc-0e5344572ea8cc7d0",
+    "kind": "eip",
+    "name": "Dayhoff-jemdev5-jemdev5-dev-lsmc-bio-eip",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "DNSName": "jemdev5.dev.lsmc.bio",
+      "Environment": "jemdev5",
+      "Name": "Dayhoff-jemdev5-jemdev5-dev-lsmc-bio-eip",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Purpose": "jemdev5.dev.lsmc.bio-public-approved-ingress",
+      "ServiceNamespace": "jemdev5.dev.lsmc.bio",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "PublicServiceEipprimary",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/Dayhoff-jemdev5-Compute/081ffd10-63c4-11f1-aa86-0e4a7d53ffdb",
+      "aws:cloudformation:stack-name": "Dayhoff-jemdev5-Compute",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jmajor",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff-jemdev5"
+    }
+  },
+  {
+    "arn": "",
+    "classification": "unallocated",
+    "id": "eipalloc-05ec07b8b3f8ab7a0",
+    "kind": "eip",
+    "name": "",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {}
+  },
+  {
+    "arn": "",
+    "classification": "dayhoff",
+    "id": "eipalloc-0004f38c8ac45ff0f",
+    "kind": "eip",
+    "name": "Dayhoff-dev-dev-lsmc-bio-eip",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "DNSName": "dev.lsmc.bio",
+      "Environment": "dev",
+      "Name": "Dayhoff-dev-dev-lsmc-bio-eip",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Purpose": "dev.lsmc.bio-public-approved-ingress",
+      "ServiceNamespace": "dev.lsmc.bio",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "PublicServiceEipprimary",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/Dayhoff-dev-Compute/2d6fd9e0-5f0b-11f1-bd99-12de41f84f37",
+      "aws:cloudformation:stack-name": "Dayhoff-dev-Compute",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jmajor",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff-dev",
+      "project": "dayhoff-all",
+      "project:dayhoff-dev": "true"
+    }
+  },
+  {
+    "arn": "",
+    "classification": "dayhoff",
+    "id": "eipalloc-0b43d16bdf1e9f3df",
+    "kind": "eip",
+    "name": "dayhoff-dev-eip-us-east-1a",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {
+      "Name": "dayhoff-dev-eip-us-east-1a"
+    }
+  },
+  {
+    "arn": "",
+    "classification": "dayhoff",
+    "id": "eipalloc-0279920cf8bf8ec52",
+    "kind": "eip",
+    "name": "Dayhoff-joshdev-joshdev-lsmc-bio-eip",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "DNSName": "joshdev.lsmc.bio",
+      "Environment": "joshdev",
+      "Name": "Dayhoff-joshdev-joshdev-lsmc-bio-eip",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Purpose": "joshdev.lsmc.bio-public-approved-ingress",
+      "ServiceNamespace": "joshdev.lsmc.bio",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "PublicServiceEipprimary",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/Dayhoff-joshdev-Compute/4611c240-620a-11f1-b892-0e43b5d0b09f",
+      "aws:cloudformation:stack-name": "Dayhoff-joshdev-Compute",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jdurham38",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff-joshdev"
+    }
+  },
+  {
+    "arn": "",
+    "classification": "dayhoff",
+    "id": "eipalloc-0ecefed5b63745717",
+    "kind": "eip",
+    "name": "Dayhoff-ddev96-ddev96-lsmc-bio-eip",
+    "region": "us-east-1",
+    "service": "EC2",
+    "tags": {
+      "CostCenter": "platform",
+      "DNSName": "ddev96.lsmc.bio",
+      "Environment": "ddev96",
+      "Name": "Dayhoff-ddev96-ddev96-lsmc-bio-eip",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Purpose": "ddev96.lsmc.bio-public-approved-ingress",
+      "ServiceNamespace": "ddev96.lsmc.bio",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "PublicServiceEipprimary",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/Dayhoff-ddev96-Compute/0c017760-5cfd-11f1-ab2c-26a4cf9bbcf5",
+      "aws:cloudformation:stack-name": "Dayhoff-ddev96-Compute",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jmajor",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff-ddev96",
+      "project": "dayhoff-all",
+      "project:dayhoff-dev": "true"
+    }
+  },
+  {
+    "State": "available",
+    "arn": "arn:aws:ec2:us-east-1:108782052779:natgateway/nat-089a96601cfd34f9d",
+    "classification": "dayhoff",
+    "id": "nat-089a96601cfd34f9d",
+    "kind": "nat_gateway",
+    "name": "dayhoff-dev-nat-public1-us-east-1a",
+    "region": "us-east-1",
+    "service": "VPC",
+    "tags": {
+      "Name": "dayhoff-dev-nat-public1-us-east-1a"
+    }
+  },
+  {
+    "DBInstanceClass": "db.r6g.large",
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-east-1:108782052779:db:auruse1-writer",
+    "classification": "dayhoff",
+    "id": "auruse1-writer",
+    "kind": "rds_instance",
+    "name": "auruse1-writer",
+    "region": "us-east-1",
+    "service": "RDS",
+    "tags": {
+      "aws:cloudformation:logical-id": "WriterInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/tapdb-auruse1/81988040-3953-11f1-b01d-0ecde9c2e61b",
+      "aws:cloudformation:stack-name": "tapdb-auruse1",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-east-1"
+    }
+  },
+  {
+    "DBInstanceClass": "db.r5.large",
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-instance-1",
+    "classification": "dayhoff",
+    "id": "dayhoff-dr-drill-use1-20260522-instance-1",
+    "kind": "rds_instance",
+    "name": "dayhoff-dr-drill-use1-20260522-instance-1",
+    "region": "us-east-1",
+    "service": "RDS",
+    "tags": {}
+  },
+  {
+    "DBInstanceClass": "db.r5.large",
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-api",
+    "classification": "dayhoff",
+    "id": "dayhoff-dr-drill-use1-20260522-reader-api",
+    "kind": "rds_instance",
+    "name": "dayhoff-dr-drill-use1-20260522-reader-api",
+    "region": "us-east-1",
+    "service": "RDS",
+    "tags": {}
+  },
+  {
+    "DBInstanceClass": "db.r5.large",
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-ha",
+    "classification": "dayhoff",
+    "id": "dayhoff-dr-drill-use1-20260522-reader-ha",
+    "kind": "rds_instance",
+    "name": "dayhoff-dr-drill-use1-20260522-reader-ha",
+    "region": "us-east-1",
+    "service": "RDS",
+    "tags": {}
+  },
+  {
+    "DBInstanceClass": "db.t4g.medium",
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-east-1:108782052779:db:dev-writer",
+    "classification": "dayhoff",
+    "id": "dev-writer",
+    "kind": "rds_instance",
+    "name": "dev-writer",
+    "region": "us-east-1",
+    "service": "RDS",
+    "tags": {
+      "aws:cloudformation:logical-id": "WriterInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/tapdb-dev/bae9fcb0-1497-11f1-828d-0affd19328cd",
+      "aws:cloudformation:stack-name": "tapdb-dev",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-east-1",
+      "project": "dayhoff-all",
+      "project:dayhoff-dev": "true"
+    }
+  },
+  {
+    "DBInstanceClass": "db.t4g.medium",
+    "Engine": "postgres",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-east-1:108782052779:db:dr-drill-standalone-use1-20260526",
+    "classification": "unallocated",
+    "id": "dr-drill-standalone-use1-20260526",
+    "kind": "rds_instance",
+    "name": "dr-drill-standalone-use1-20260526",
+    "region": "us-east-1",
+    "service": "RDS",
+    "tags": {}
+  },
+  {
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-east-1:108782052779:cluster:auruse1",
+    "classification": "dayhoff",
+    "id": "auruse1",
+    "kind": "rds_cluster",
+    "name": "auruse1",
+    "region": "us-east-1",
+    "service": "RDS",
+    "tags": {
+      "aws:cloudformation:logical-id": "AuroraCluster",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/tapdb-auruse1/81988040-3953-11f1-b01d-0ecde9c2e61b",
+      "aws:cloudformation:stack-name": "tapdb-auruse1",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-east-1"
+    }
+  },
+  {
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-east-1:108782052779:cluster:dayhoff-dr-drill-use1-20260522",
+    "classification": "dayhoff",
+    "id": "dayhoff-dr-drill-use1-20260522",
+    "kind": "rds_cluster",
+    "name": "dayhoff-dr-drill-use1-20260522",
+    "region": "us-east-1",
+    "service": "RDS",
+    "tags": {}
+  },
+  {
+    "Engine": "aurora-postgresql",
+    "Status": "available",
+    "arn": "arn:aws:rds:us-east-1:108782052779:cluster:dev",
+    "classification": "dayhoff",
+    "id": "dev",
+    "kind": "rds_cluster",
+    "name": "dev",
+    "region": "us-east-1",
+    "service": "RDS",
+    "tags": {
+      "aws:cloudformation:logical-id": "AuroraCluster",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/tapdb-dev/bae9fcb0-1497-11f1-828d-0affd19328cd",
+      "aws:cloudformation:stack-name": "tapdb-dev",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-east-1",
+      "project": "dayhoff-all",
+      "project:dayhoff-dev": "true"
+    }
+  },
+  {
+    "arn": "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679",
+    "classification": "dayhoff",
+    "id": "lsmc-privatelink-nlb",
+    "kind": "load_balancer",
+    "name": "lsmc-privatelink-nlb",
+    "region": "us-east-1",
+    "service": "ELBv2",
+    "tags": {
+      "Environment": "staging",
+      "Project": "LSMC",
+      "System": "dayhoff",
+      "project": "dayhoff-all"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::aquarium-tfstate-dev",
+    "classification": "aquarium",
+    "has_lifecycle": false,
+    "id": "aquarium-tfstate-dev",
+    "kind": "s3_bucket",
+    "name": "aquarium-tfstate-dev",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::aquarium-tfstate-prod",
+    "classification": "aquarium",
+    "has_lifecycle": false,
+    "id": "aquarium-tfstate-prod",
+    "kind": "s3_bucket",
+    "name": "aquarium-tfstate-prod",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::asterism-note-screenshots-dev",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "asterism-note-screenshots-dev",
+    "kind": "s3_bucket",
+    "name": "asterism-note-screenshots-dev",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "Environment": "dev",
+      "ManagedBy": "cdk",
+      "Project": "asterism",
+      "aws-cdk:auto-delete-objects": "true",
+      "aws:cloudformation:logical-id": "ScreenshotBucketFF8D3867",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Asterism-Storage-dev/f7067180-fde8-11f0-9a7f-0292663bc4bf",
+      "aws:cloudformation:stack-name": "Asterism-Storage-dev"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp",
+    "kind": "s3_bucket",
+    "name": "aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "ManagedStackSource": "AwsSamCli",
+      "aws:cloudformation:logical-id": "SamCliSourceBucket",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/aws-sam-cli-managed-default/8b3dd530-1ac9-11f1-b879-12196f819c81",
+      "aws:cloudformation:stack-name": "aws-sam-cli-managed-default"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::cdk-hnb659fds-assets-108782052779-us-east-1",
+    "classification": "unallocated",
+    "has_lifecycle": true,
+    "id": "cdk-hnb659fds-assets-108782052779-us-east-1",
+    "kind": "s3_bucket",
+    "name": "cdk-hnb659fds-assets-108782052779-us-east-1",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "aws:cloudformation:logical-id": "StagingBucket",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/CDKToolkit/07fd2860-fe22-11f0-801d-0e746ff49753",
+      "aws:cloudformation:stack-name": "CDKToolkit"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::cdk-hnb659fds-assets-108782052779-us-west-2",
+    "classification": "unallocated",
+    "has_lifecycle": true,
+    "id": "cdk-hnb659fds-assets-108782052779-us-west-2",
+    "kind": "s3_bucket",
+    "name": "cdk-hnb659fds-assets-108782052779-us-west-2",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "aws:cloudformation:logical-id": "StagingBucket",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/CDKToolkit/cf6ca810-fde8-11f0-8dfc-02fdeda563e9",
+      "aws:cloudformation:stack-name": "CDKToolkit"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::cf-templates-pfrobpqqun1c-us-east-2",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "cf-templates-pfrobpqqun1c-us-east-2",
+    "kind": "s3_bucket",
+    "name": "cf-templates-pfrobpqqun1c-us-east-2",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::daylily-customer-lsmc-a0477268",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "daylily-customer-lsmc-a0477268",
+    "kind": "s3_bucket",
+    "name": "daylily-customer-lsmc-a0477268",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "CostCenter": "GENa",
+      "Customer": "lsmc-a0477268",
+      "ManagedBy": "daylily-ursa"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-atlas-demo",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "lsmc-atlas-demo",
+    "kind": "s3_bucket",
+    "name": "lsmc-atlas-demo",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-atlas-dev",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "lsmc-atlas-dev",
+    "kind": "s3_bucket",
+    "name": "lsmc-atlas-dev",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-bio-oauth-static-site-108782052779-us-east-1",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "lsmc-bio-oauth-static-site-108782052779-us-east-1",
+    "kind": "s3_bucket",
+    "name": "lsmc-bio-oauth-static-site-108782052779-us-east-1",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-copy-ultimagen-lsmc-cro-316",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "lsmc-copy-ultimagen-lsmc-cro-316",
+    "kind": "s3_bucket",
+    "name": "lsmc-copy-ultimagen-lsmc-cro-316",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "lsmc-project": "ultima-wgs"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-dayoa-analysis-results-usw2",
+    "classification": "dyec_cluster",
+    "has_lifecycle": false,
+    "id": "lsmc-dayoa-analysis-results-usw2",
+    "kind": "s3_bucket",
+    "name": "lsmc-dayoa-analysis-results-usw2",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "aws-parallelcluster-project": "dayoa-analysis-results"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-dayoa-control-data-usw2",
+    "classification": "dyec_cluster",
+    "has_lifecycle": false,
+    "id": "lsmc-dayoa-control-data-usw2",
+    "kind": "s3_bucket",
+    "name": "lsmc-dayoa-control-data-usw2",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "aws-parallelcluster-project": "dayoa-control-data"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-dayoa-omics-analysis-us-west-2",
+    "classification": "dyec_cluster",
+    "has_lifecycle": false,
+    "id": "lsmc-dayoa-omics-analysis-us-west-2",
+    "kind": "s3_bucket",
+    "name": "lsmc-dayoa-omics-analysis-us-west-2",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "aws-parallelcluster-project": "daylily-omics-analysis-references"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-dayoa-references-usw2",
+    "classification": "dyec_cluster",
+    "has_lifecycle": false,
+    "id": "lsmc-dayoa-references-usw2",
+    "kind": "s3_bucket",
+    "name": "lsmc-dayoa-references-usw2",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "aws-parallelcluster-project": "dayoa-references"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-dayoa-runtime-assets-usw2",
+    "classification": "dyec_cluster",
+    "has_lifecycle": false,
+    "id": "lsmc-dayoa-runtime-assets-usw2",
+    "kind": "s3_bucket",
+    "name": "lsmc-dayoa-runtime-assets-usw2",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "aws-parallelcluster-project": "dayoa-runtime-assets"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-dayoa-staging-usw2",
+    "classification": "dyec_cluster",
+    "has_lifecycle": false,
+    "id": "lsmc-dayoa-staging-usw2",
+    "kind": "s3_bucket",
+    "name": "lsmc-dayoa-staging-usw2",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "aws-parallelcluster-project": "dayoa-staging"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-dewey-0",
+    "classification": "dyec_cluster",
+    "has_lifecycle": false,
+    "id": "lsmc-dewey-0",
+    "kind": "s3_bucket",
+    "name": "lsmc-dewey-0",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "aws-parallelcluster-project": "dewey-production"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-healthomics-failiover",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "lsmc-healthomics-failiover",
+    "kind": "s3_bucket",
+    "name": "lsmc-healthomics-failiover",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-healthomics-results",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "lsmc-healthomics-results",
+    "kind": "s3_bucket",
+    "name": "lsmc-healthomics-results",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-illumina-public-data",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "lsmc-illumina-public-data",
+    "kind": "s3_bucket",
+    "name": "lsmc-illumina-public-data",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-meridian-governance-registry",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "lsmc-meridian-governance-registry",
+    "kind": "s3_bucket",
+    "name": "lsmc-meridian-governance-registry",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-public-ont-data",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "lsmc-public-ont-data",
+    "kind": "s3_bucket",
+    "name": "lsmc-public-ont-data",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-ssf-sequencing-data",
+    "classification": "dyec_cluster",
+    "has_lifecycle": false,
+    "id": "lsmc-ssf-sequencing-data",
+    "kind": "s3_bucket",
+    "name": "lsmc-ssf-sequencing-data",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "aws-parallelcluster-project": "raw-sequence-data"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-terraform-state",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "lsmc-terraform-state",
+    "kind": "s3_bucket",
+    "name": "lsmc-terraform-state",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "ManagedBy": "terraform"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-twenty-prod-storage",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "lsmc-twenty-prod-storage",
+    "kind": "s3_bucket",
+    "name": "lsmc-twenty-prod-storage",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-ursa-customers-usw2",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "lsmc-ursa-customers-usw2",
+    "kind": "s3_bucket",
+    "name": "lsmc-ursa-customers-usw2",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::parallelcluster-4da281c1dc024f1c-v1-do-not-delete",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "parallelcluster-4da281c1dc024f1c-v1-do-not-delete",
+    "kind": "s3_bucket",
+    "name": "parallelcluster-4da281c1dc024f1c-v1-do-not-delete",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::parallelcluster-730cb6d53cf2deec-v1-do-not-delete",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "parallelcluster-730cb6d53cf2deec-v1-do-not-delete",
+    "kind": "s3_bucket",
+    "name": "parallelcluster-730cb6d53cf2deec-v1-do-not-delete",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::parallelcluster-e781c59d26140bab-v1-do-not-delete",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "parallelcluster-e781c59d26140bab-v1-do-not-delete",
+    "kind": "s3_bucket",
+    "name": "parallelcluster-e781c59d26140bab-v1-do-not-delete",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::terrarium-dev-media",
+    "classification": "terrarium",
+    "has_lifecycle": false,
+    "id": "terrarium-dev-media",
+    "kind": "s3_bucket",
+    "name": "terrarium-dev-media",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "Environment": "dev",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::terrarium-dev-web",
+    "classification": "terrarium",
+    "has_lifecycle": false,
+    "id": "terrarium-dev-web",
+    "kind": "s3_bucket",
+    "name": "terrarium-dev-web",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "Environment": "dev",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::terrarium-prod-media",
+    "classification": "terrarium",
+    "has_lifecycle": false,
+    "id": "terrarium-prod-media",
+    "kind": "s3_bucket",
+    "name": "terrarium-prod-media",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "Environment": "prod",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::terrarium-prod-web",
+    "classification": "terrarium",
+    "has_lifecycle": false,
+    "id": "terrarium-prod-web",
+    "kind": "s3_bucket",
+    "name": "terrarium-prod-web",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "Environment": "prod",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::terrarium-tfstate-dev",
+    "classification": "terrarium",
+    "has_lifecycle": false,
+    "id": "terrarium-tfstate-dev",
+    "kind": "s3_bucket",
+    "name": "terrarium-tfstate-dev",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::terrarium-tfstate-prod",
+    "classification": "terrarium",
+    "has_lifecycle": false,
+    "id": "terrarium-tfstate-prod",
+    "kind": "s3_bucket",
+    "name": "terrarium-tfstate-prod",
+    "region": "",
+    "service": "S3",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::ursa-us-west-2-052779-default-customer-1d8c14",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "ursa-us-west-2-052779-default-customer-1d8c14",
+    "kind": "s3_bucket",
+    "name": "ursa-us-west-2-052779-default-customer-1d8c14",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "ManagedBy": "Ursa",
+      "ProvisionedBy": "PortalOnboarding"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::zebra-day-cfg-us-west-2",
+    "classification": "unallocated",
+    "has_lifecycle": false,
+    "id": "zebra-day-cfg-us-west-2",
+    "kind": "s3_bucket",
+    "name": "zebra-day-cfg-us-west-2",
+    "region": "",
+    "service": "S3",
+    "tags": {
+      "lsmc-cost-center": "global",
+      "lsmc-project": "zebra-day+us-west-2"
+    }
+  }
+]

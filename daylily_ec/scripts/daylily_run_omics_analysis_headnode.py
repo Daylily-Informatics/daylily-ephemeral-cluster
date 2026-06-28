@@ -106,7 +106,7 @@ for row in rows:
     else:
         link_path.symlink_to(run_dir_resolved, target_is_directory=True)
 
-    row["RUN_DIR"] = str(link_abs)
+    row["RUN_DIR"] = str(link_abs) + "/"
     for key, value in list(row.items()):
         if key == "RUN_DIR":
             continue
@@ -228,12 +228,12 @@ replace_required_scalar("tmpdir", "/dev/shm")
 replace_required_scalar("force", "true")
 upsert_scalar("merge_lane_fastqs", "false")
 upsert_scalar("merge_tile_fastqs", "false")
-replace_required_scalar("threads", "192")
+replace_required_scalar("threads", "48")
 replace_required_scalar("partition", "i192hugenvme")
-replace_required_scalar("parallel_tiles", "24")
-replace_required_scalar("conversion_threads", "4")
-replace_required_scalar("compression_threads", "64")
-replace_required_scalar("decompression_threads", "32")
+replace_required_scalar("parallel_tiles", "8")
+replace_required_scalar("conversion_threads", "2")
+replace_required_scalar("compression_threads", "24")
+replace_required_scalar("decompression_threads", "8")
 replace_required_scalar("fastq_gzip_compression_level", "1")
 upsert_scalar("shared_thread_odirect_output", "false")
 upsert_scalar("output_legacy_stats", "true")
@@ -1219,6 +1219,54 @@ ont_run_qc_runtime_repair_requested() {{
   esac
 }}
 
+patch_run_qc_reports_numpy_dependency() {{
+  python3 - <<'PYRUNQCENV'
+from pathlib import Path
+
+env_path = Path("workflow/envs/run_qc_reports_v0.1.yaml")
+if not env_path.is_file():
+    raise SystemExit(f"[ERROR] ONT runQC env repair target missing: {{env_path}}")
+
+text = env_path.read_text(encoding="utf-8")
+if "\\n  - numpy\\n" in text or "\\n  - numpy=" in text or "\\n  - numpy<" in text or "\\n  - numpy>" in text:
+    print(f"[INFO] ONT runQC env already includes numpy: {{env_path}}")
+    raise SystemExit(0)
+
+anchor = "\\n  - pandas\\n"
+if anchor not in text:
+    raise SystemExit(
+        f"[ERROR] ONT runQC env repair anchor not found in {{env_path}}: {{anchor.strip()}}"
+    )
+
+env_path.write_text(text.replace(anchor, anchor + "  - numpy\\n", 1), encoding="utf-8")
+print(f"[INFO] Patched ONT runQC env numpy dependency: {{env_path}}")
+PYRUNQCENV
+}}
+
+patch_run_qc_reports_pycoqc_python() {{
+  python3 - <<'PYRUNQCPY'
+from pathlib import Path
+
+rule_path = Path("workflow/rules/run_qc_reports.smk")
+if not rule_path.is_file():
+    raise SystemExit(f"[ERROR] ONT runQC pycoQC rule repair target missing: {{rule_path}}")
+
+old = "python workflow/scripts/run_pycoqc_compat.py"
+new = '"$(dirname "$(command -v pycoQC)")/python" workflow/scripts/run_pycoqc_compat.py'
+text = rule_path.read_text(encoding="utf-8")
+if new in text:
+    print(f"[INFO] ONT runQC pycoQC interpreter repair already present: {{rule_path}}")
+    raise SystemExit(0)
+if old not in text:
+    raise SystemExit(
+        f"[ERROR] ONT runQC pycoQC interpreter repair target not found in {{rule_path}}"
+    )
+
+rule_path.write_text(text.replace(old, new, 1), encoding="utf-8")
+print(f"[INFO] Patched ONT runQC pycoQC interpreter: {{rule_path}}")
+PYRUNQCPY
+}}
+
 patch_pycoqc_readonly_sort() {{
   python3 - <<'PYPYCOQC'
 from pathlib import Path
@@ -1272,8 +1320,8 @@ for path in sorted(set(matches)):
         continue
     if readonly_only in text:
         target = readonly_only
-    elif old in text:
-        target = old
+    elif parse_old in text:
+        target = parse_old
     else:
         raise SystemExit(
             f"[ERROR] pycoQC readonly-sort repair target not found in {{path}}"
@@ -1798,6 +1846,8 @@ if [[ "$BCLCONVERT_PROFILE_PATCH_REQUESTED" == "true" ]]; then
   patch_bclconvert_lane_split
 fi
 	if ont_run_qc_runtime_repair_requested; then
+	  patch_run_qc_reports_numpy_dependency
+	  patch_run_qc_reports_pycoqc_python
 	  patch_pycoqc_readonly_sort
 	fi
 	if goleft_indexcov_runtime_repair_requested; then

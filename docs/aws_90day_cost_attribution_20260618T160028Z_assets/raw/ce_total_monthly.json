@@ -1,0 +1,61 @@
+{
+  "DimensionValueAttributes": [],
+  "ResultsByTime": [
+    {
+      "Estimated": false,
+      "Groups": [],
+      "TimePeriod": {
+        "End": "2026-04-01",
+        "Start": "2026-03-21"
+      },
+      "Total": {
+        "UnblendedCost": {
+          "Amount": "2339.2874913573",
+          "Unit": "USD"
+        }
+      }
+    },
+    {
+      "Estimated": false,
+      "Groups": [],
+      "TimePeriod": {
+        "End": "2026-05-01",
+        "Start": "2026-04-01"
+      },
+      "Total": {
+        "UnblendedCost": {
+          "Amount": "9334.5476065665",
+          "Unit": "USD"
+        }
+      }
+    },
+    {
+      "Estimated": false,
+      "Groups": [],
+      "TimePeriod": {
+        "End": "2026-06-01",
+        "Start": "2026-05-01"
+      },
+      "Total": {
+        "UnblendedCost": {
+          "Amount": "24026.22153037",
+          "Unit": "USD"
+        }
+      }
+    },
+    {
+      "Estimated": true,
+      "Groups": [],
+      "TimePeriod": {
+        "End": "2026-06-19",
+        "Start": "2026-06-01"
+      },
+      "Total": {
+        "UnblendedCost": {
+          "Amount": "21812.0235477242",
+          "Unit": "USD"
+        }
+      }
+    }
+  ]
+}

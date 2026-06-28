@@ -158,6 +158,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert parsed["bclconvert"]["adapter_read1"] == ""
         assert parsed["bclconvert"]["sample_sheet_settings"] == "{}"
         assert parsed["bclconvert"]["barcode_mismatches_index1"] == "0"
+        assert parsed["bclconvert"]["threads"] == "48"
+        assert parsed["bclconvert"]["parallel_tiles"] == "8"
+        assert parsed["bclconvert"]["conversion_threads"] == "2"
+        assert parsed["bclconvert"]["compression_threads"] == "24"
+        assert parsed["bclconvert"]["decompression_threads"] == "8"
         assert "\n  adapter_read1:" in text
         assert "\n    adapter_read1:" not in text
 
@@ -560,6 +565,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "RUN_CONTEXT_MODE=true" in script
         assert "RUN-1" in script
         assert "printf '%s' \"$RUN_CONTEXT_PAYLOAD\" > config/runs.tsv" in script
+        assert 'row["RUN_DIR"] = str(link_abs) + "/"' in script
         assert "materialize_runtime_table samples_table config/samples.tsv" in script
         assert "materialize_runtime_table units_table config/units.tsv" in script
         assert "[ERROR] Runtime config $key points to missing file: $source_path" in script
@@ -722,10 +728,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'upsert_scalar("merge_lane_fastqs", "false")' in script
         assert 'upsert_scalar("merge_tile_fastqs", "false")' in script
         assert 'replace_required_scalar("partition", "i192hugenvme")' in script
-        assert 'replace_required_scalar("parallel_tiles", "24")' in script
-        assert 'replace_required_scalar("conversion_threads", "4")' in script
-        assert 'replace_required_scalar("compression_threads", "64")' in script
-        assert 'replace_required_scalar("decompression_threads", "32")' in script
+        assert 'replace_required_scalar("parallel_tiles", "8")' in script
+        assert 'replace_required_scalar("conversion_threads", "2")' in script
+        assert 'replace_required_scalar("compression_threads", "24")' in script
+        assert 'replace_required_scalar("decompression_threads", "8")' in script
         assert 'upsert_scalar("shared_thread_odirect_output", "false")' in script
         assert 'upsert_scalar("num_unknown_barcodes_reported", "1000")' in script
         assert 'upsert_scalar("output_legacy_stats", "true")' in script
@@ -899,6 +905,14 @@ class TestRunOmicsAnalysisHeadnodeScript:
         mock_discover.assert_not_called()
         script = mock_run_shell.call_args.args[2]
         assert "ont_run_qc_runtime_repair_requested" in script
+        assert "patch_run_qc_reports_numpy_dependency" in script
+        assert "workflow/envs/run_qc_reports_v0.1.yaml" in script
+        assert 'anchor = "' in script
+        assert "  - pandas" in script
+        assert 'anchor + "  - numpy' in script
+        assert "patch_run_qc_reports_pycoqc_python" in script
+        assert "workflow/rules/run_qc_reports.smk" in script
+        assert '$(dirname "$(command -v pycoQC)")/python' in script
         assert "patch_pycoqc_readonly_sort" in script
         assert "data = data.dropna().values" in script
         assert 'data = data.dropna().astype("int64").to_numpy(copy=True)' in script

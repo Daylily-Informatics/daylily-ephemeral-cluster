@@ -1,0 +1,1063 @@
+{
+  "DimensionValueAttributes": [],
+  "GroupDefinitions": [
+    {
+      "Key": "REGION",
+      "Type": "DIMENSION"
+    }
+  ],
+  "ResultsByTime": [
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "NoRegion"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.025627",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.02699312",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.380475442",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.379681637",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.381933442",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "39.0626550145",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0226556",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.379711042",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.379703645",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0236124",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.37969901",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "45.5776298058",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.37748761",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.3786771735",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.37853921",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.37855241",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.543908448",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.393530065",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "199.0666032115",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.3851616243",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.37857441",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2044.9860800367",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-04-01",
+        "Start": "2026-03-21"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "NoRegion"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.65757517",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.693451705",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6910381168",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6723919848",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.7309474368",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "107.7431940348",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.57629724",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6722886368",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.672327868",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.6035454475",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.671798504",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "126.3241378533",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.610363104",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6418170322",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.641526104",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.641420504",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "415.6430775217",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.040375676",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "693.4284147507",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.5895102548",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.638607704",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7966.9634999173",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-05-01",
+        "Start": "2026-04-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "NoRegion"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.9248322108",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.9750350502",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6216118075",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.5954746647",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6736892275",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "111.3250890557",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.8107822496",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.5953475275",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.5951900652",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.8487646589",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.5939842976",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "129.7063567572",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.5128858976",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.5694944976",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.5576030976",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.5548831976",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "707.1265751574",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.1119478164",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "989.4182601117",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.5461972273",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.5528081976",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "22064.0047175968",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-01",
+        "Start": "2026-05-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "NoRegion"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.6738801224",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.7056936756",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.655258714",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.640608659",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.688822294",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "55.8413872558",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5546650288",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.640365894",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.641526715",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.6126272342",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.639759854",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "52.9409877279",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.590208254",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.6156170574",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.615688854",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.615671854",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "633.8814648256",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.936533455",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1629.158916963",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.7051067073",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.615583254",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "19428.0531733252",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-19",
+        "Start": "2026-06-01"
+      },
+      "Total": {}
+    }
+  ]
+}

@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.35"
+DAYOA_BLESSED_TAG = "10.0.36"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG_PATH = (
@@ -484,7 +484,6 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "produce_relatedness",
         "produce_gatk_contam_estimate",
         "produce_site_mix_contam_estimate",
-        "produce_global_contam_check",
         "produce_vep",
         "produce_expansionhunter",
         "produce_htd_calls",
@@ -505,7 +504,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_multiqc_all" in illumina_kitchensink.dy_command
     assert "results/day/hg38/reports/DAY_final_multiqc.html" in illumina_kitchensink.dy_command
     assert "results/day/hg38/reports/dayoa_evidence_manifest.json" in illumina_kitchensink.dy_command
-    assert "contam_identity" in illumina_kitchensink.dy_command
+    assert "produce_global_contam_check" not in illumina_kitchensink.dy_command
+    assert "contam_identity" not in illumina_kitchensink.dy_command
 
     ultima_kitchensink = catalog.get_command("ultima_snv_alignstats_kitchensink")
     assert ultima_kitchensink.validation_runs == []
