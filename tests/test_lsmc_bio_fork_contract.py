@@ -8,7 +8,7 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_BLESSED_TAG = "10.0.36"
+DAYOA_BLESSED_TAG = "10.0.37"
 DYEC_BLESSED_TAG = "10.0.66"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
