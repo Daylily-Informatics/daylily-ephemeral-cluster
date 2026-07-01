@@ -23,7 +23,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.47"
+DAYOA_BLESSED_TAG = "10.0.48"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -76,6 +76,13 @@ EXPECTED_COMMANDS = {
     ("mount", "rundir"),
     ("state", "list"),
     ("state", "show"),
+    ("analysis", "visit"),
+    ("analysis", "guard"),
+    ("analysis", "lock", "status"),
+    ("analysis", "lock", "acquire"),
+    ("analysis", "lock", "release"),
+    ("analysis", "lock", "heartbeat"),
+    ("analysis", "lock", "takeover"),
 }
 
 
@@ -201,6 +208,13 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     mount_rundir_cmd = registry.get_command(("mount", "rundir"))
     state_list_cmd = registry.get_command(("state", "list"))
     state_show_cmd = registry.get_command(("state", "show"))
+    analysis_visit_cmd = registry.get_command(("analysis", "visit"))
+    analysis_guard_cmd = registry.get_command(("analysis", "guard"))
+    analysis_lock_status_cmd = registry.get_command(("analysis", "lock", "status"))
+    analysis_lock_acquire_cmd = registry.get_command(("analysis", "lock", "acquire"))
+    analysis_lock_release_cmd = registry.get_command(("analysis", "lock", "release"))
+    analysis_lock_heartbeat_cmd = registry.get_command(("analysis", "lock", "heartbeat"))
+    analysis_lock_takeover_cmd = registry.get_command(("analysis", "lock", "takeover"))
     pricing_snapshot_cmd = registry.get_command(("pricing", "snapshot"))
     aws_validate_permissions_cmd = registry.get_command(("aws", "validate", "permissions"))
     aws_validate_quotas_cmd = registry.get_command(("aws", "validate", "quotas"))
@@ -353,6 +367,27 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert state_show_cmd is not None
     assert state_show_cmd.policy.supports_json is True
     assert state_show_cmd.policy.runtime_guard == "exempt"
+
+    assert analysis_visit_cmd is not None
+    assert analysis_visit_cmd.policy.supports_json is True
+    assert analysis_visit_cmd.policy.mutates_state is True
+
+    assert analysis_guard_cmd is not None
+    assert analysis_guard_cmd.policy.mutates_state is True
+
+    assert analysis_lock_status_cmd is not None
+    assert analysis_lock_status_cmd.policy.supports_json is True
+    assert analysis_lock_status_cmd.policy.mutates_state is False
+
+    for analysis_lock_cmd in (
+        analysis_lock_acquire_cmd,
+        analysis_lock_release_cmd,
+        analysis_lock_heartbeat_cmd,
+        analysis_lock_takeover_cmd,
+    ):
+        assert analysis_lock_cmd is not None
+        assert analysis_lock_cmd.policy.supports_json is True
+        assert analysis_lock_cmd.policy.mutates_state is True
 
     assert pricing_snapshot_cmd is not None
     assert pricing_snapshot_cmd.policy.supports_json is True

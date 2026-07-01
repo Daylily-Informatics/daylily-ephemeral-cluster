@@ -19,6 +19,17 @@
 - Example DayOA smoke/dry-run command: `dy-r help -p -k -j 1 -n`.
 - For BCL/DayOA execution, send these commands into the persistent `tmux` pane as separate commands. Do not collapse setup and execution into a one-shot non-interactive SSM script.
 
+# Analysis-Root Agent Locking
+
+- Before touching `/fsx/analysis_results/**`, record a visit with `dyec analysis visit --analysis-root <root> --mode <read|export|write|unlock|delete|kill> --intent "<reason>"`.
+- Read/search/monitor/log review and no-delete S3 export do not require write-lock ownership, but they must leave visit logs under `<analysis_root>/.dayoa_agent/visits/` and `/fsx/analysis_results/.dayoa_agent_visits/`.
+- Live workflow writes, `dy-r --unlock`, file edits/touches/moves in the analysis root, local FSx deletes, job kill/cancel, DRA detach tied to that root, and cluster/resource teardown tied to that root require the current agent to own `<analysis_root>/.dayoa_agent/write.lock/`.
+- Acquire with `dyec analysis lock acquire --analysis-root <root> --operation write --intent "<reason>"`; release with `dyec analysis lock release --analysis-root <root>`.
+- Use `dyec analysis guard --analysis-root <root> --operation <write|unlock|delete|kill> -- <command...>` for protected shell actions such as `scancel`, local deletes, and recovery commands.
+- Do not take over another owner silently. Use `dyec analysis lock takeover --request`, show the exact owner/path/action to the user, and proceed only after explicit double approval with the printed token.
+- Set a stable `DAYOA_AGENT_ID`, `DAYOA_AGENT_KIND`, `DAYOA_HUMAN_REQUESTOR`, `DAYOA_TMUX_SESSION`, and `DAYOA_LEDGER_PATH` before long-lived headnode work.
+- Full command reference: `docs/analysis_root_agent_locking.md`.
+
 # DayOA Benchmark Collection
 
 When comparing DayOA workflow runtime, threads, instance mix, or task cost from DAY-EC/headnode work, collect the combined benchmark report from the target DayOA analysis repo root instead of scraping partial summaries. Run from the headnode as `ubuntu` in an interactive bash login shell after initializing DayOA:

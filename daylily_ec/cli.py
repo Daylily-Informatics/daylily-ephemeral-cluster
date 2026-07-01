@@ -3702,6 +3702,291 @@ def state_show(
     typer.echo(json.dumps(payload, indent=2, sort_keys=False))
 
 
+def _emit_analysis_payload(payload: Any, *, text: Optional[str] = None) -> None:
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    if text is not None:
+        typer.echo(text)
+        return
+    typer.echo(json.dumps(payload, indent=2, sort_keys=True, default=str))
+
+
+def analysis_visit(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Analysis root path."),
+    intent: str = typer.Option(..., "--intent", help="Reason for the visit."),
+    mode: str = typer.Option(
+        "read",
+        "--mode",
+        help="Visit mode: read, monitor, log, search, query, export, write, unlock, delete, kill.",
+    ),
+    note: Optional[str] = typer.Option(None, "--note", help="Short visit note."),
+    human_requestor: Optional[str] = typer.Option(
+        None,
+        "--human-requestor",
+        "--human",
+        help="Human on whose behalf this visit is happening.",
+    ),
+    s3_visit_uri: Optional[str] = typer.Option(
+        None,
+        "--s3-visit-uri",
+        help="Optional S3 analysis/report prefix where a no-delete visit marker is written.",
+    ),
+) -> None:
+    """Record an analysis-root visit without requiring write-lock ownership."""
+
+    try:
+        from daylily_ec.analysis_lock import write_visit
+
+        payload = write_visit(
+            analysis_root,
+            mode=mode,
+            intent=intent,
+            note=note,
+            human_requestor=human_requestor,
+            s3_visit_uri=s3_visit_uri,
+        )
+        _emit_analysis_payload(
+            payload,
+            text=f"recorded {mode} visit for {payload['analysis_root']}",
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def analysis_guard(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Analysis root path."),
+    operation: str = typer.Option(
+        ...,
+        "--operation",
+        help="Operation to guard: read, export, write, unlock, delete, or kill.",
+    ),
+    intent: str = typer.Option(..., "--intent", help="Reason for the guarded operation."),
+    human_requestor: Optional[str] = typer.Option(
+        None,
+        "--human-requestor",
+        "--human",
+        help="Human on whose behalf this operation is happening.",
+    ),
+    command: List[str] = typer.Argument(
+        [],
+        metavar="[-- COMMAND...]",
+        help="Optional command to execute only after the guard passes.",
+    ),
+) -> None:
+    """Guard a read/write-like operation against the analysis-root lock state."""
+
+    try:
+        from daylily_ec.analysis_lock import assert_operation_allowed, guarded_run
+
+        if command:
+            rc = guarded_run(
+                analysis_root,
+                operation=operation,
+                intent=intent,
+                command=command,
+                human_requestor=human_requestor,
+            )
+            raise typer.Exit(rc)
+        payload = assert_operation_allowed(
+            analysis_root,
+            operation=operation,
+            intent=intent,
+            human_requestor=human_requestor,
+            command_summary=None,
+        )
+        _emit_analysis_payload(payload, text=f"allowed {operation} for {analysis_root}")
+    except typer.Exit:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def analysis_lock_status(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Analysis root path."),
+) -> None:
+    """Show the current write-lock owner for an analysis root."""
+
+    try:
+        from daylily_ec.analysis_lock import lock_status
+
+        payload = lock_status(analysis_root)
+        text = "unlocked"
+        if payload["locked"]:
+            owner = payload["owner"] or {}
+            text = "locked by " + str(owner.get("agent_id", "unknown"))
+        _emit_analysis_payload(payload, text=text)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def analysis_lock_acquire(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Analysis root path."),
+    operation: str = typer.Option(
+        "write",
+        "--operation",
+        help="Protected operation scope: write, unlock, delete, or kill.",
+    ),
+    intent: str = typer.Option(..., "--intent", help="Reason for acquiring the lock."),
+    human_requestor: Optional[str] = typer.Option(
+        None,
+        "--human-requestor",
+        "--human",
+        help="Human on whose behalf this lock is acquired.",
+    ),
+    command_summary: Optional[str] = typer.Option(
+        None,
+        "--command-summary",
+        help="Short summary of the controller/workflow command protected by this lock.",
+    ),
+    operation_scope: Optional[str] = typer.Option(
+        None,
+        "--operation-scope",
+        help="Optional narrower scope recorded in owner metadata.",
+    ),
+) -> None:
+    """Acquire an atomic analysis-root write lock with mkdir semantics."""
+
+    try:
+        from daylily_ec.analysis_lock import acquire_lock
+
+        payload = acquire_lock(
+            analysis_root,
+            operation=operation,
+            intent=intent,
+            human_requestor=human_requestor,
+            command_summary=command_summary,
+            operation_scope=operation_scope,
+        )
+        _emit_analysis_payload(payload, text=f"acquired {operation} lock for {analysis_root}")
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def analysis_lock_release(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Analysis root path."),
+    human_requestor: Optional[str] = typer.Option(
+        None,
+        "--human-requestor",
+        "--human",
+        help="Human on whose behalf this lock is released.",
+    ),
+    note: Optional[str] = typer.Option(None, "--note", help="Release note."),
+) -> None:
+    """Release the current agent's analysis-root write lock."""
+
+    try:
+        from daylily_ec.analysis_lock import release_lock
+
+        payload = release_lock(
+            analysis_root,
+            human_requestor=human_requestor,
+            note=note,
+        )
+        _emit_analysis_payload(payload, text=f"released lock for {analysis_root}")
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def analysis_lock_heartbeat(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Analysis root path."),
+    human_requestor: Optional[str] = typer.Option(
+        None,
+        "--human-requestor",
+        "--human",
+        help="Human on whose behalf this heartbeat is recorded.",
+    ),
+    note: Optional[str] = typer.Option(None, "--note", help="Heartbeat note."),
+) -> None:
+    """Append a heartbeat for the current agent's active write lock."""
+
+    try:
+        from daylily_ec.analysis_lock import heartbeat_lock
+
+        payload = heartbeat_lock(
+            analysis_root,
+            human_requestor=human_requestor,
+            note=note,
+        )
+        _emit_analysis_payload(payload, text=f"heartbeat recorded for {analysis_root}")
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def analysis_lock_takeover(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Analysis root path."),
+    operation: str = typer.Option(
+        "write",
+        "--operation",
+        help="Protected operation scope: write, unlock, delete, or kill.",
+    ),
+    reason: str = typer.Option(..., "--reason", help="Reason takeover is being requested."),
+    request: bool = typer.Option(
+        False,
+        "--request/--no-request",
+        help="Print the takeover token and current owner without mutating the lock.",
+    ),
+    confirm_token: Optional[str] = typer.Option(
+        None,
+        "--confirm-token",
+        help="Token from a prior --request output.",
+    ),
+    approved_by: Optional[str] = typer.Option(
+        None,
+        "--approved-by",
+        help="Human approver for the explicit takeover.",
+    ),
+    intent: str = typer.Option(
+        "explicit approved takeover",
+        "--intent",
+        help="Intent recorded for the new lock owner.",
+    ),
+    human_requestor: Optional[str] = typer.Option(
+        None,
+        "--human-requestor",
+        "--human",
+        help="Human on whose behalf the takeover is happening.",
+    ),
+    command_summary: Optional[str] = typer.Option(
+        None,
+        "--command-summary",
+        help="Short summary of the command protected after takeover.",
+    ),
+) -> None:
+    """Request or execute a double-approved lock takeover."""
+
+    try:
+        from daylily_ec.analysis_lock import takeover_lock, takeover_request
+
+        if request:
+            payload = takeover_request(analysis_root, operation=operation, reason=reason)
+            _emit_analysis_payload(
+                payload,
+                text=(
+                    "takeover token "
+                    + str(payload["token"])
+                    + " for "
+                    + str(payload["analysis_root"])
+                ),
+            )
+            return
+        if not confirm_token:
+            raise typer.BadParameter("--confirm-token is required unless --request is set")
+        payload = takeover_lock(
+            analysis_root,
+            operation=operation,
+            confirm_token=confirm_token,
+            approved_by=approved_by or "",
+            reason=reason,
+            intent=intent,
+            human_requestor=human_requestor,
+            command_summary=command_summary,
+        )
+        _emit_analysis_payload(payload, text=f"took over {operation} lock for {analysis_root}")
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
 def tests_pytest(
     coverage: bool = typer.Option(
         False,
@@ -4061,6 +4346,43 @@ def register(registry, cli_spec) -> None:
         [
             ("list", state_list, EXEMPT_JSON),
             ("show", state_show, EXEMPT_JSON),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "analysis",
+        "Analysis-root visit logging and ownership guards.",
+        [
+            ("visit", analysis_visit, required_policy(supports_json=True, mutates_state=True)),
+            ("guard", analysis_guard, required_policy(mutates_state=True)),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "analysis/lock",
+        "Analysis-root write-lock helpers.",
+        [
+            ("status", analysis_lock_status, required_policy(supports_json=True)),
+            (
+                "acquire",
+                analysis_lock_acquire,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
+                "release",
+                analysis_lock_release,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
+                "heartbeat",
+                analysis_lock_heartbeat,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
+                "takeover",
+                analysis_lock_takeover,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
         ],
     )
 
