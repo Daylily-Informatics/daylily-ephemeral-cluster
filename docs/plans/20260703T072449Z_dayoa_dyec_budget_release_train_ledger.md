@@ -25,12 +25,17 @@ Created: 2026-07-03T07:24:49Z
 
 | ID | Area | Requirement | Status | Category | Approval Gate | Owner | Evidence | Root Cause | Terminal Note |
 |---|---|---|---|---|---|---|---|---|---|
-| ORCH-001 | Ledger | Record Gate 0, selected versions, and terminal row counts. | IN_PROGRESS | feature_implementation | Gate 0 | orchestrator | This ledger. |  |  |
+| ORCH-001 | Ledger | Record Gate 0, selected versions, and terminal row counts. | SUCCESS | feature_implementation | Gate 0 | orchestrator | This ledger records Gate 0, selected versions, and final terminal row counts. |  | 5 rows total; 5 rows terminal after final tag push. |
 | DAYOA-001 | DayOA | Stage dirty DayOA work, commit to `jem-dev`, push branch, create annotated tag `10.0.52`, push tag. | SUCCESS | feature_implementation | Gate 1 | orchestrator | Commit `0b5e912`; `git push origin jem-dev` succeeded; annotated tag `10.0.52` pushed; `git cat-file -t 10.0.52 -> tag`; focused DayOA tests `99 passed`. |  | DayOA dirty release is pushed and tagged as `10.0.52`. |
-| DYEC-001 | DYEC DayOA pin | Update DYEC DayOA pins to `10.0.52`, include current DYEC dirty budget-enforcement work, commit to `jem-dev`, push branch, tag `10.0.79`, push tag. | IN_PROGRESS | feature_implementation | Gate 2 | orchestrator | DYEC DayOA pins updated from `10.0.51` to `10.0.52`; focused DYEC suite `335 passed`. |  |  |
-| DYEC-002 | DYEC self pin | Update DYEC self pin to `10.0.79`, commit to `jem-dev`, push branch, tag `10.0.80`, push tag. | OPEN | feature_implementation | Gate 2 | orchestrator | DYEC self-pin config and tests. |  |  |
-| VAL-001 | Validation | Run focused local checks sufficient for the release train and verify annotated tags. | OPEN | contract_test | Gate 5 | orchestrator | Test commands and `git cat-file -t`. |  |  |
+| DYEC-001 | DYEC DayOA pin | Update DYEC DayOA pins to `10.0.52`, include current DYEC dirty budget-enforcement work, commit to `jem-dev`, push branch, tag `10.0.79`, push tag. | SUCCESS | feature_implementation | Gate 2 | orchestrator | Commit `df950c61`; `git push origin jem-dev` succeeded; annotated tag `10.0.79` pushed; `git cat-file -t 10.0.79 -> tag`; focused DYEC suite `335 passed`. |  | DYEC DayOA-pin and budget-enforcement release is pushed and tagged as `10.0.79`. |
+| DYEC-002 | DYEC self pin | Update DYEC self pin to `10.0.79`, commit to `jem-dev`, push branch, tag `10.0.80`, push tag. | SUCCESS | feature_implementation | Gate 2 | orchestrator | Self-pin config and blessed-tag test constant updated from `10.0.77` to `10.0.79`; focused DYEC suite `335 passed`; release tag `10.0.80` cut from this self-pin commit. |  | DYEC self-pin follow-up release is pushed and tagged as `10.0.80`. |
+| VAL-001 | Validation | Run focused local checks sufficient for the release train and verify annotated tags. | SUCCESS | contract_test | Gate 5 | orchestrator | DayOA focused tests `99 passed`; DYEC focused suite `335 passed` before `10.0.79`; DYEC focused suite `335 passed` before `10.0.80`; `git diff --check` passed; annotated tag types verified with `git cat-file -t`. |  | No live cluster creation, AWS resource mutation, Slurm job submission, PR merge, or package publication performed. |
 
 ## Final Terminal Report
 
-Pending execution.
+- Rows terminal: 5/5.
+- DayOA: commit `0b5e912`; branch `jem-dev` pushed; annotated tag `10.0.52` pushed.
+- DYEC DayOA-pin/budget release: commit `df950c61`; branch `jem-dev` pushed; annotated tag `10.0.79` pushed.
+- DYEC self-pin follow-up: self pins updated to `10.0.79`; branch `jem-dev` pushed; annotated tag `10.0.80` pushed.
+- Validation: DayOA focused suite `99 passed`; DYEC focused suite `335 passed` before `10.0.79`; DYEC focused suite `335 passed` before `10.0.80`; `git diff --check` passed.
+- Live-system boundary maintained: no cluster creation, AWS resource mutation, Slurm job submission, PR merge, or package publication.
