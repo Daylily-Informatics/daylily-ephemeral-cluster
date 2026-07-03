@@ -236,9 +236,13 @@ dyec --json version
 dyec --json cluster describe --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 dyec --json repositories commands
 dyec repositories commands --command-id illumina_snv_alignstats
+dyec pricing spot-logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" > spot_prices.csv
+dyec pricing spot-logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --path /fsx/logs --path /fsx/scratch --name-glob "*.log" -o spot_prices.csv
 dyec workflow status --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session>
 dyec workflow logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session> --lines 100
 ```
+
+`dyec pricing spot-logs` scans `/fsx/logs`, `/fsx/scratch`, and `/fsx/tmp` by default. It emits one CSV row per parsed spot-price log event with `slurm_partition`, `compute_resource`, `instance_type`, `spot_price_usd_per_hour`, `source_path`, and node identity columns.
 
 Local and cluster prep-test commands:
 
@@ -261,14 +265,14 @@ The Slurm accounting helper manages external accounting infrastructure when conf
 
 ## Repository Catalog
 
-`config/daylily_pipeline_command_catalog.yaml` is the source of truth for blessed repositories and commands. The packaged copy under `daylily_ec/resources/payload/config/` must match it. The current catalog default for DayOA is `9.0.0`; `daylily-sarek` is also present as a Nextflow/nf-core Sarek repository entry.
+`config/daylily_pipeline_command_catalog.yaml` is the source of truth for blessed repositories and commands. The packaged copy under `daylily_ec/resources/payload/config/` must match it. The current catalog default for DayOA is `10.0.56`; `daylily-sarek` is also present as a Nextflow/nf-core Sarek repository entry.
 
 On the headnode, `day-clone` consumes the same repository catalog:
 
 ```bash
 day-clone --list
-day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 9.0.0 --executing-entity "$EXECUTING_ENTITY"
-day-clone -d "$ANALYSIS_ID" -t 9.0.0
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 10.0.56 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 10.0.56
 ```
 
 `-t` is the short form of `--git-tag`; `-d` is the short form of the required `--destination`. For operator-launched analyses, do not omit `--git-tag`/`-t`: resolve the intended DayOA release tag first, record it in the ledger, and pass it explicitly. When `--git-tag`/`-t` is omitted, `day-clone` falls back to the selected repository's `default_ref`; that fallback is for catalog implementation behavior, not live analysis runbooks. The checkout lands at `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`, where `relative_path` comes from the catalog row.
@@ -280,6 +284,8 @@ Catalog command classes:
 - `utility`: no sample or run inputs, usually used for smoke tests.
 - `sample_analysis`: consumes `analysis_samples.tsv`, stages sample/unit manifests, and launches a repository command.
 - `run_analysis`: consumes `runs.tsv` and requires a matching `/fsx/run_dir_mounts/<mount_id>` input mount.
+
+Each command also declares `compatible_cluster_types`, using `daywgs` for the standard DayOA/Sentieon whole-genome clusters and `dragen` for DRAGEN f2 clusters.
 
 ## Reference Bucket Contract
 

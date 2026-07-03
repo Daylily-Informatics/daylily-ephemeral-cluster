@@ -12,6 +12,8 @@ export HOME="${HOME:-/root}"
 
 timestamp="$(date +"%Y%m%d_%H%M%S")"
 node_type="${cfn_node_type:-unknown}"
+slurm_partition="${cfn_scheduler_queue_name:-${cfn_queue_name:-}}"
+compute_resource="${cfn_scheduler_compute_resource_name:-${cfn_compute_resource_name:-}}"
 node_type_slug="$(echo "${node_type}" | tr '[:upper:]' '[:lower:]')"
 local_log_dir="/var/log/daylily"
 local_log_fn="${local_log_dir}/$(hostname)_${node_type_slug}_${timestamp}_rhel8_dragen_configure.log"
@@ -36,7 +38,6 @@ esac
 
 references_root="/fsx/references"
 runtime_assets_root="${references_root}/runtime_assets"
-reference_compat_root="/fsx/data"
 environment_cache_root="/fsx/resources/environments"
 work_root="/fsx/work"
 run_mounts_root="/fsx/run_dir_mounts"
@@ -165,11 +166,13 @@ EOF
 
 log_spot_price() {
   local instance_type
+  local instance_id
   local availability_zone
   local spot_price
   local log_file
 
   instance_type="$(metadata instance-type)"
+  instance_id="$(metadata instance-id)"
   availability_zone="$(metadata placement/availability-zone)"
   spot_price="$(aws ec2 describe-spot-price-history \
     --instance-types "${instance_type}" \
@@ -184,7 +187,7 @@ log_spot_price() {
   else
     log_file="/var/log/daylily/$(hostname)_spot_price.log"
   fi
-  echo "$(date '+%Y-%m-%d %H:%M:%S') - Region: ${region}, AZ: ${availability_zone}, Instance type: ${instance_type}, Spot price: ${spot_price} USD/hour" >> "${log_file}"
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - Node type: ${node_type}, Partition: ${slurm_partition}, Compute resource: ${compute_resource}, Hostname: $(hostname), Instance id: ${instance_id}, Region: ${region}, AZ: ${availability_zone}, Instance type: ${instance_type}, Spot price: ${spot_price} USD/hour" >> "${log_file}"
 }
 
 disable_slurm_partition_exclusivity() {
@@ -288,23 +291,6 @@ make_role_data_read_only() {
     chmod a-w "${role_root}"
     stat -c "Role data permissions: %A %n" "${role_root}"
   done
-}
-
-prepare_reference_compat_symlink() {
-  if [ -e "${reference_compat_root}" ] && [ ! -L "${reference_compat_root}" ]; then
-    if [ "$(readlink -f "${reference_compat_root}")" != "${references_root}" ]; then
-      echo "ERROR: reference compatibility path ${reference_compat_root} does not resolve to ${references_root}" >&2
-      exit 1
-    fi
-  else
-    ln -sfn "${references_root}" "${reference_compat_root}"
-  fi
-
-  if [ "$(readlink -f "${reference_compat_root}")" != "${references_root}" ]; then
-    echo "ERROR: reference compatibility path ${reference_compat_root} does not resolve to ${references_root}" >&2
-    exit 1
-  fi
-  stat -c "Reference compatibility path: %N" "${reference_compat_root}"
 }
 
 prepare_common_writable_dirs() {
@@ -589,18 +575,29 @@ EOF
 }
 
 validate_dragen_host() {
+  case "${node_type}" in
+    HeadNode)
+      echo "Skipping DRAGEN host validation on HeadNode; DRAGEN is required only on ComputeFleet nodes."
+      return 0
+      ;;
+    ComputeFleet)
+      ;;
+    *)
+      echo "ERROR: unsupported ParallelCluster node type for DRAGEN validation: ${node_type}" >&2
+      exit 1
+      ;;
+  esac
+
   if [ ! -x /opt/edico/bin/dragen ]; then
     echo "ERROR: /opt/edico/bin/dragen is missing or not executable on $(hostname)" >&2
     exit 1
   fi
   /opt/edico/bin/dragen --version
-  if [ "${node_type}" = "ComputeFleet" ]; then
-    if [ ! -e /dev/dragen ]; then
-      echo "ERROR: /dev/dragen is missing on DRAGEN compute node $(hostname)" >&2
-      exit 1
-    fi
-    ls -l /dev/dragen
+  if [ ! -e /dev/dragen ]; then
+    echo "ERROR: /dev/dragen is missing on DRAGEN compute node $(hostname)" >&2
+    exit 1
   fi
+  ls -l /dev/dragen
 }
 
 aws configure set region "${region}"
@@ -619,7 +616,6 @@ validate_dragen_host
 if [ "${storage_mode}" = "fsx" ]; then
   wait_for_reference_data
   make_role_data_read_only
-  prepare_reference_compat_symlink
   prepare_dayoa_environment_cache
   install_cromwell_links
   install_apptainer_if_available

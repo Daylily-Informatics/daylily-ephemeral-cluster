@@ -675,9 +675,7 @@ def slurm_accounting_ensure(
         aws_ctx = AWSContext.build(region_az, profile=profile)
         cfn_outputs = ensure_pcluster_env_stack(aws_ctx, region_az)
         if not cfn_outputs.vpc_id or not cfn_outputs.private_subnet_id:
-            raise SlurmAccountingError(
-                "Baseline stack is missing VPC or private subnet outputs."
-            )
+            raise SlurmAccountingError("Baseline stack is missing VPC or private subnet outputs.")
         db = ensure_slurm_accounting_db(
             aws_ctx,
             region_az=region_az,
@@ -1142,7 +1140,9 @@ def _emit_cluster_tags_text(payload: dict[str, Any]) -> None:
     output.print_text(f"Stack:  {payload['stack_id']}")
     output.print_text(f"Status: {payload['stack_status']}")
     if payload["set"]:
-        output.print_text("Set:    " + ", ".join(f"{k}={v}" for k, v in sorted(payload["set"].items())))
+        output.print_text(
+            "Set:    " + ", ".join(f"{k}={v}" for k, v in sorted(payload["set"].items()))
+        )
     if payload["deleted"]:
         output.print_text("Delete: " + ", ".join(payload["deleted"]))
     if payload["updated"] and payload["waited"]:
@@ -1740,6 +1740,146 @@ def pricing_snapshot(
         output.emit_json(payload)
         return
     typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+
+
+def pricing_spot_logs(
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+    path: Optional[List[str]] = typer.Option(
+        None,
+        "--path",
+        help="Remote directory to scan. Repeatable. Defaults to /fsx/logs, /fsx/scratch, and /fsx/tmp.",
+    ),
+    name_glob: Optional[List[str]] = typer.Option(
+        None,
+        "--name-glob",
+        help="Remote file-name glob to scan. Repeatable. Defaults to *.log.",
+    ),
+    output_file: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Write CSV to this local file instead of stdout.",
+    ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote login user for SSM Run Command: auto, ubuntu, or ec2-user.",
+    ),
+    timeout: int = typer.Option(
+        300,
+        "--timeout",
+        help="SSM command timeout in seconds.",
+    ),
+    allow_empty: bool = typer.Option(
+        False,
+        "--allow-empty",
+        help="Emit an empty CSV/JSON payload instead of failing when no rows are found.",
+    ),
+) -> None:
+    """Fetch cluster spot-price logs from the head node as one CSV."""
+
+    from daylily_ec.aws.ssm import (
+        SsmCommandFailedError,
+        SsmError,
+        run_shell,
+        wait_for_ssm_online,
+    )
+    from daylily_ec.scripts.common import CommandError
+    from daylily_ec.spot_price_logs import (
+        DEFAULT_SPOT_LOG_NAME_GLOBS,
+        DEFAULT_SPOT_LOG_PATHS,
+        build_remote_spot_price_log_script,
+        extract_remote_spot_price_payload,
+        normalize_spot_price_rows,
+        spot_price_rows_to_csv,
+    )
+
+    _warn_if_dayec_env_inactive()
+    remote_paths = path or list(DEFAULT_SPOT_LOG_PATHS)
+    remote_name_globs = name_glob or list(DEFAULT_SPOT_LOG_NAME_GLOBS)
+    try:
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        result = run_shell(
+            target.instance_id,
+            resolved_region,
+            build_remote_spot_price_log_script(
+                paths=remote_paths,
+                name_globs=remote_name_globs,
+            ),
+            profile=resolved_profile,
+            as_user=remote_user,
+            timeout=timeout,
+            comment="Daylily spot price log export",
+        )
+        remote_payload = extract_remote_spot_price_payload(result.stdout)
+    except SsmCommandFailedError as exc:
+        if exc.result.stderr.strip():
+            typer.echo(exc.result.stderr.rstrip(), err=True)
+        _exit_headnode_error(exc)
+    except (CommandError, SsmError, TimeoutError, ValueError, json.JSONDecodeError) as exc:
+        _exit_headnode_error(exc)
+
+    rows = normalize_spot_price_rows(
+        remote_payload["rows"],
+        cluster=resolved_cluster,
+        headnode_instance_id=target.instance_id,
+    )
+    if not rows and not allow_empty:
+        _exit_headnode_error(
+            RuntimeError(
+                "No spot price log rows found under "
+                + ", ".join(remote_paths)
+                + " with name globs "
+                + ", ".join(remote_name_globs)
+            )
+        )
+
+    payload = {
+        "cluster": resolved_cluster,
+        "headnode_instance_id": target.instance_id,
+        "region": resolved_region,
+        "paths": remote_payload.get("paths", remote_paths),
+        "name_globs": remote_payload.get("name_globs", remote_name_globs),
+        "visited_files": remote_payload.get("visited_files", 0),
+        "row_count": len(rows),
+        "rows": rows,
+    }
+    if _json_mode():
+        output.emit_json(payload)
+        return
+
+    csv_text = spot_price_rows_to_csv(rows)
+    if output_file is not None:
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        output_file.write_text(csv_text, encoding="utf-8")
+        typer.echo(str(output_file))
+        return
+    typer.echo(csv_text.rstrip("\n"))
 
 
 def _run_aws_validate_command(
@@ -2532,8 +2672,7 @@ def samples_run(
         DEFAULT_JOB_MAX_RUNTIME_MINUTES,
         "--max-runtime-minutes",
         help=(
-            "Deprecated compatibility option. DYEC does not append Snakemake "
-            "--default-resources."
+            "Deprecated compatibility option. DYEC does not append Snakemake --default-resources."
         ),
     ),
     export_destination_s3_uri: Optional[str] = typer.Option(
@@ -2726,6 +2865,7 @@ def samples_run(
             "analysis_samples": str(analysis_path),
             "command_id": command.command_id,
             "compatible_data_modes": command.compatible_data_modes,
+            "compatible_cluster_types": command.compatible_cluster_types,
             "detected_data_modes": data_modes,
             "analysis_id": analysis_id,
             "executing_entity": resolved_executing_entity,
@@ -2870,8 +3010,7 @@ def workflow_launch(
         DEFAULT_JOB_MAX_RUNTIME_MINUTES,
         "--max-runtime-minutes",
         help=(
-            "Deprecated compatibility option. DYEC does not append Snakemake "
-            "--default-resources."
+            "Deprecated compatibility option. DYEC does not append Snakemake --default-resources."
         ),
     ),
     no_containerized: bool = typer.Option(
@@ -4442,8 +4581,7 @@ def tests_command_catalog(
         DEFAULT_JOB_MAX_RUNTIME_MINUTES,
         "--max-runtime-minutes",
         help=(
-            "Deprecated compatibility option. DYEC does not append Snakemake "
-            "--default-resources."
+            "Deprecated compatibility option. DYEC does not append Snakemake --default-resources."
         ),
     ),
     executing_entity: str = typer.Option(
@@ -4587,7 +4725,10 @@ def register(registry, cli_spec) -> None:
         registry,
         "pricing",
         "Spot pricing inspection helpers.",
-        [("snapshot", pricing_snapshot, REQUIRED_JSON)],
+        [
+            ("snapshot", pricing_snapshot, REQUIRED_JSON),
+            ("spot-logs", pricing_spot_logs, required_policy(supports_json=True)),
+        ],
     )
     register_group_commands(
         registry,

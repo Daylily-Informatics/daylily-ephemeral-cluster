@@ -17,6 +17,7 @@ CATALOG_VERSION = 2
 SUPPORTED_CATALOG_VERSIONS = {1, CATALOG_VERSION}
 COMMAND_CLASSES = {"sample_analysis", "run_analysis", "utility"}
 COMMAND_TYPES = {"prod", "test", "dev"}
+CLUSTER_TYPES = {"daywgs", "dragen"}
 INPUT_CONTRACTS = {"sample_manifest", "run_context", "none"}
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 VALIDATION_STATUSES = {"success", "failed", "blocked", "not_run"}
@@ -473,6 +474,7 @@ class AnalysisCommand(BaseModel):
     dy_command: str
     dryrun_dy_command: str
     compatible_platforms: List[str]
+    compatible_cluster_types: List[str]
     compatible_data_modes: List[str]
     git_tag: str = "main"
     no_containerized: bool = False
@@ -514,6 +516,7 @@ class AnalysisCommand(BaseModel):
         "snv_callers",
         "sv_callers",
         "compatible_platforms",
+        "compatible_cluster_types",
         "compatible_data_modes",
     )
     @classmethod
@@ -564,6 +567,14 @@ class AnalysisCommand(BaseModel):
                 raise ValueError("utility commands must not require run mounts")
         if not self.compatible_platforms:
             raise ValueError("compatible_platforms must not be empty")
+        if not self.compatible_cluster_types:
+            raise ValueError("compatible_cluster_types must not be empty")
+        unknown_cluster_types = set(self.compatible_cluster_types) - CLUSTER_TYPES
+        if unknown_cluster_types:
+            raise ValueError(
+                "compatible_cluster_types must use known cluster types: "
+                + ", ".join(sorted(unknown_cluster_types))
+            )
         if not self.compatible_data_modes:
             raise ValueError("compatible_data_modes must not be empty")
         return self
@@ -942,6 +953,7 @@ def _migrate_v1_analysis_commands(raw: Dict[str, Any]) -> Dict[str, Any]:
                 command["requires_staging"] = True
                 command["requires_run_mount"] = False
                 command["runtime_parameters"] = {}
+                command.setdefault("compatible_cluster_types", ["daywgs"])
                 migrated_commands.append(command)
             repo["analysis_commands"] = migrated_commands
         migrated_repositories[repo_key] = repo

@@ -114,6 +114,7 @@ repositories:
         dy_command: bin/day_run produce_illumina_run_qc
         dryrun_dy_command: bin/day_run produce_illumina_run_qc -n
         compatible_platforms: [ILMN]
+        compatible_cluster_types: [daywgs]
         compatible_data_modes: [run_directory_mount]
 """
 
@@ -213,6 +214,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert validation_run.dryrun_status == "success"
     assert validation_run.live_status == "success"
     assert command.compatible_platforms == ["ILMN"]
+    assert command.compatible_cluster_types == ["daywgs"]
     assert command.compatible_data_modes == ["ilmn_solo"]
     assert "bin/day_run" in command.dy_command
     assert command.dryrun_dy_command.endswith(" -n")
@@ -366,6 +368,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert command.dryrun_dy_command.startswith("bin/day_run ")
             assert command.dryrun_dy_command.endswith(" -n")
             assert command.compatible_platforms
+            assert command.compatible_cluster_types == ["daywgs"]
             assert command.compatible_data_modes
             assert command.git_tag == DAYOA_BLESSED_TAG
             assert (
@@ -395,6 +398,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.startswith("bin/day_run ")
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
+        assert command.compatible_cluster_types == ["daywgs"]
         assert command.compatible_data_modes
         assert command.git_tag == DAYOA_BLESSED_TAG
         assert (
@@ -405,6 +409,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     complete_genomics = catalog.get_command("complete_genomics_mgi_snv_concordance")
     assert complete_genomics.type == "dev"
     assert complete_genomics.compatible_platforms == ["CG/MGI"]
+    assert complete_genomics.compatible_cluster_types == ["daywgs"]
     assert complete_genomics.compatible_data_modes == ["complete_genomics_solo"]
     assert complete_genomics.aligners == ["sentcg"]
     assert complete_genomics.dedupers == ["dmd"]
@@ -421,6 +426,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert illumina_pangenome.targets == ["produce_sentpg_snv_vcf"]
     assert illumina_pangenome.snv_callers == ["sentpg"]
     assert illumina_pangenome.compatible_platforms == ["ILMN"]
+    assert illumina_pangenome.compatible_cluster_types == ["daywgs"]
     assert illumina_pangenome.compatible_data_modes == ["ilmn_solo"]
 
     ultima_pangenome = catalog.get_command("ultima_pangenome_snv")
@@ -431,6 +437,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert ultima_pangenome.aligners == ["pangenome_ug"]
     assert ultima_pangenome.snv_callers == ["sentpg"]
     assert ultima_pangenome.compatible_platforms == ["ULTIMA"]
+    assert ultima_pangenome.compatible_cluster_types == ["daywgs"]
     assert ultima_pangenome.compatible_data_modes == ["ultima_solo"]
 
     hybrid_ilmn_ont = catalog.get_command("hybrid_ilmn_ont_snv")
@@ -679,6 +686,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert command.input_requirements.required_run_context_values == {"PLATFORM": "ILMN"}
     assert command.targets == ["produce_illumina_run_qc"]
     assert command.compatible_platforms == ["ILMN"]
+    assert command.compatible_cluster_types == ["daywgs"]
 
     with pytest.raises(ValueError, match="run_context_file is required"):
         command.launch_argv(analysis_id="run-qc", executing_entity="johnm")
@@ -807,6 +815,7 @@ def test_repository_catalog_v1_migrates_to_sample_analysis(tmp_path: Path) -> No
     assert command.requires_run_mount is False
     assert command.runtime_parameters == {}
     assert command.input_requirements.required_source_columns == []
+    assert command.compatible_cluster_types == ["daywgs"]
 
 
 def test_repository_catalog_v2_requires_command_class(tmp_path: Path) -> None:
@@ -834,11 +843,26 @@ def test_repository_catalog_v2_requires_command_class(tmp_path: Path) -> None:
         "        dy_command: bin/day_run produce_alignstats\n"
         "        dryrun_dy_command: bin/day_run produce_alignstats -n\n"
         "        compatible_platforms: [ILMN]\n"
+        "        compatible_cluster_types: [daywgs]\n"
         "        compatible_data_modes: [ilmn_solo]\n",
         encoding="utf-8",
     )
 
     with pytest.raises(ValueError, match="command_class"):
+        load_repository_catalog(path)
+
+
+def test_repository_catalog_rejects_unknown_cluster_type(tmp_path: Path) -> None:
+    path = tmp_path / "bad-cluster-type.yaml"
+    path.write_text(
+        _minimal_run_catalog_yaml().replace(
+            "compatible_cluster_types: [daywgs]",
+            "compatible_cluster_types: [gpu]",
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="compatible_cluster_types"):
         load_repository_catalog(path)
 
 
@@ -917,6 +941,7 @@ def test_repositories_commands_json_cli_lists_blessed_command() -> None:
     ]
     assert [item["command_id"] for item in payload["commands"]] == ["illumina_snv_alignstats"]
     assert payload["commands"][0]["compatible_platforms"] == ["ILMN"]
+    assert payload["commands"][0]["compatible_cluster_types"] == ["daywgs"]
     assert payload["commands"][0]["command_class"] == "sample_analysis"
     assert payload["commands"][0]["input_requirements"]["required_source_columns"] == [
         "ILMN_R1_FQ",

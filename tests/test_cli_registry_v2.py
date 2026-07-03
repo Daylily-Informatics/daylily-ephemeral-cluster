@@ -51,6 +51,7 @@ EXPECTED_COMMANDS = {
     ("runtime", "check"),
     ("runtime", "explain"),
     ("pricing", "snapshot"),
+    ("pricing", "spot-logs"),
     ("aws", "validate", "permissions"),
     ("aws", "validate", "quotas"),
     ("aws", "validate", "all"),
@@ -220,6 +221,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     analysis_lock_heartbeat_cmd = registry.get_command(("analysis", "lock", "heartbeat"))
     analysis_lock_takeover_cmd = registry.get_command(("analysis", "lock", "takeover"))
     pricing_snapshot_cmd = registry.get_command(("pricing", "snapshot"))
+    pricing_spot_logs_cmd = registry.get_command(("pricing", "spot-logs"))
     aws_validate_permissions_cmd = registry.get_command(("aws", "validate", "permissions"))
     aws_validate_quotas_cmd = registry.get_command(("aws", "validate", "quotas"))
     aws_validate_all_cmd = registry.get_command(("aws", "validate", "all"))
@@ -405,6 +407,8 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
 
     assert pricing_snapshot_cmd is not None
     assert pricing_snapshot_cmd.policy.supports_json is True
+    assert pricing_spot_logs_cmd is not None
+    assert pricing_spot_logs_cmd.policy.supports_json is True
 
     for aws_validate_cmd in (
         aws_validate_permissions_cmd,
@@ -1003,6 +1007,167 @@ def test_pricing_snapshot_command_passes_collection_options(monkeypatch, tmp_pat
         "cluster_config_path": str(config_path),
         "profile": "dev",
     }
+
+
+def test_pricing_spot_logs_exports_csv_via_ssm(monkeypatch, tmp_path) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+    from daylily_ec.spot_price_logs import (
+        SPOT_PRICE_LOG_JSON_BEGIN,
+        SPOT_PRICE_LOG_JSON_END,
+    )
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda _cluster, _region, *, profile=None: HeadNodeTarget(
+            "cluster-a",
+            "us-west-2",
+            "i-abc123",
+        ),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+
+    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+        calls["run_shell"] = (instance_id, region, script, kwargs)
+        payload = {
+            "rows": [
+                {
+                    "source_path": "/fsx/scratch/ip-10-0-0-1_spot_price.log",
+                    "line_number": "4",
+                    "recorded_at": "2026-07-03 12:01:02",
+                    "region": "us-west-2",
+                    "availability_zone": "us-west-2c",
+                    "instance_type": "f2.6xlarge",
+                    "spot_price_usd_per_hour": "1.234",
+                    "node_type": "ComputeFleet",
+                    "slurm_partition": "dragen",
+                    "compute_resource": "f26xlarge",
+                    "hostname": "ip-10-0-0-1",
+                    "instance_id": "i-node",
+                    "raw_line": "spot row",
+                }
+            ],
+            "paths": ["/fsx/logs", "/fsx/scratch"],
+            "name_globs": ["*.log"],
+            "visited_files": 2,
+        }
+        stdout = "\n".join(
+            [
+                "noise before payload",
+                SPOT_PRICE_LOG_JSON_BEGIN,
+                json.dumps(payload),
+                SPOT_PRICE_LOG_JSON_END,
+                "",
+            ]
+        )
+        return SsmCommandResult("cmd-1", instance_id, "Success", 0, stdout, "")
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+
+    result = runner.invoke(
+        app,
+        [
+            "pricing",
+            "spot-logs",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--path",
+            "/fsx/logs",
+            "--path",
+            "/fsx/scratch",
+            "--output",
+            str(tmp_path / "spot.csv"),
+        ],
+    )
+
+    assert result.exit_code == 0
+    output_path = tmp_path / "spot.csv"
+    assert result.stdout.strip() == str(output_path)
+    text = output_path.read_text(encoding="utf-8")
+    assert "cluster,headnode_instance_id,source_path" in text
+    assert "cluster-a,i-abc123,/fsx/scratch/ip-10-0-0-1_spot_price.log" in text
+    assert ",dragen,f26xlarge," in text
+    instance_id, region, script, kwargs = calls["run_shell"]
+    assert instance_id == "i-abc123"
+    assert region == "us-west-2"
+    assert 'roots = ["/fsx/logs", "/fsx/scratch"]' in script
+    assert 'name_globs = ["*.log"]' in script
+    assert kwargs["profile"] == "dev"
+    assert kwargs["as_user"] == "auto"
+    assert kwargs["timeout"] == 300
+    assert kwargs["comment"] == "Daylily spot price log export"
+
+
+def test_pricing_spot_logs_supports_json(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+    from daylily_ec.spot_price_logs import (
+        SPOT_PRICE_LOG_JSON_BEGIN,
+        SPOT_PRICE_LOG_JSON_END,
+    )
+
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda _cluster, _region, *, profile=None: HeadNodeTarget(
+            "cluster-a",
+            "us-west-2",
+            "i-abc123",
+        ),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    stdout = "\n".join(
+        [
+            SPOT_PRICE_LOG_JSON_BEGIN,
+            '{"rows": [], "paths": ["/fsx/tmp"], "name_globs": ["*.log"], "visited_files": 0}',
+            SPOT_PRICE_LOG_JSON_END,
+        ]
+    )
+    monkeypatch.setattr(
+        ssm_module,
+        "run_shell",
+        lambda instance_id, region, script, **kwargs: SsmCommandResult(
+            "cmd-1",
+            instance_id,
+            "Success",
+            0,
+            stdout,
+            "",
+        ),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "pricing",
+            "spot-logs",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--path",
+            "/fsx/tmp",
+            "--allow-empty",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["cluster"] == "cluster-a"
+    assert payload["headnode_instance_id"] == "i-abc123"
+    assert payload["paths"] == ["/fsx/tmp"]
+    assert payload["row_count"] == 0
 
 
 def test_aws_validate_all_passes_options_and_json(monkeypatch, tmp_path) -> None:
@@ -1731,6 +1896,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     receipt = config_dir / "20260425T000000Z_samples_run_receipt.json"
     payload = json.loads(receipt.read_text(encoding="utf-8"))
     assert payload["detected_data_modes"] == ["complete_genomics_solo"]
+    assert payload["compatible_cluster_types"] == ["daywgs"]
     assert payload["max_runtime_minutes"] == 240
     assert payload["workflow_launch"]["session_name"] == "cg-session"
 
@@ -2423,9 +2589,7 @@ def test_workflow_collect_benchmarks_runs_remote_dayoa_collector(monkeypatch) ->
 
     assert result.exit_code == 0, result.stdout + result.stderr
     payload = json.loads(result.stdout)
-    assert payload["summary_tsv"].endswith(
-        "results/day/hg38_broad/reports/benchmarks_summary.tsv"
-    )
+    assert payload["summary_tsv"].endswith("results/day/hg38_broad/reports/benchmarks_summary.tsv")
     instance_id, region, script, kwargs = calls["run_shell"]
     assert instance_id == "i-abc123"
     assert region == "us-west-2"
@@ -2439,9 +2603,7 @@ def test_workflow_collect_benchmarks_runs_remote_dayoa_collector(monkeypatch) ->
     assert "collect_day_benchmark_data.sh" in script
     assert kwargs["profile"] == "dev"
     assert kwargs["timeout"] == 900
-    assert kwargs["comment"] == (
-        "Collect DayOA benchmarks for /fsx/analysis_results/ubuntu/run-1"
-    )
+    assert kwargs["comment"] == ("Collect DayOA benchmarks for /fsx/analysis_results/ubuntu/run-1")
 
 
 def test_workflow_collect_benchmarks_rejects_invalid_genome_build(monkeypatch) -> None:

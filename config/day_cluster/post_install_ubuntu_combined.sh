@@ -15,6 +15,8 @@ export HOME="${HOME:-/root}"
 
 timestamp=$(date +"%Y%m%d_%H%M%S")
 node_type="${cfn_node_type:-unknown}"
+slurm_partition="${cfn_scheduler_queue_name:-${cfn_queue_name:-}}"
+compute_resource="${cfn_scheduler_compute_resource_name:-${cfn_compute_resource_name:-}}"
 node_type_slug="$(echo "${node_type}" | tr '[:upper:]' '[:lower:]')"
 local_log_dir="/var/log/daylily"
 local_log_fn="${local_log_dir}/$(hostname)_${node_type_slug}_${timestamp}_postinstall.log"
@@ -71,6 +73,7 @@ log_spot_price() {
 
   TOKEN=$(curl -X PUT 'http://169.254.169.254/latest/api/token' -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600')
   instance_type=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-type)
+  instance_id=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
   availability_zone=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone)
 
   # Get the current spot price for the running instance type in the specific AZ
@@ -84,7 +87,7 @@ log_spot_price() {
 
   # Log the spot price and AZ to a file in the FSx scratch directory
   log_file="/fsx/scratch/$(hostname)_spot_price.log"
-  echo "$(date '+%Y-%m-%d %H:%M:%S') - Region: $region, AZ: $availability_zone, Instance type: $instance_type, Spot price: $spot_price USD/hour" >> "$log_file"
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - Node type: ${node_type}, Partition: ${slurm_partition}, Compute resource: ${compute_resource}, Hostname: $(hostname), Instance id: ${instance_id}, Region: $region, AZ: $availability_zone, Instance type: $instance_type, Spot price: $spot_price USD/hour" >> "$log_file"
 }
 
 append_once() {
