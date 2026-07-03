@@ -557,12 +557,17 @@ class TestWorkflowResolutionHelpers:
 
         values = _resolve_post_create_inputs(
             cfg,
+            cluster_name="cluster-a",
             non_interactive=True,
+            budget_project_override=None,
+            disable_budget_enforcement=False,
             budget_email_default="ops@example.com",
             allowed_budget_users_default="ubuntu",
         )
 
         assert values.allowed_budget_users == "ubuntu"
+        assert values.budget_project == "cluster-a"
+        assert values.enforce_budget == "true"
 
     def test_build_connection_command_uses_ssm_helper(self):
         cmd = _build_connection_command(
@@ -884,10 +889,12 @@ class TestRunCreateWorkflow:
             "Heartbeat email",
             "Heartbeat schedule",
             "Heartbeat scheduler role ARN (leave blank to skip)",
+            "DRAGEN PCluster AMI (leave blank to skip)",
         ]
 
         dry_run_phase_index = records["events"].index(("phase", "DRY-RUN VALIDATION"))
         create_phase_index = records["events"].index(("phase", "CREATE CLUSTER"))
+        budget_index = records["events"].index(("ensure_cluster_budget", None))
         resolve_role_index = records["events"].index(("resolve_scheduler_role", None))
         prompt_indices = [
             idx for idx, event in enumerate(records["events"]) if event[0] == "prompt"
@@ -895,18 +902,43 @@ class TestRunCreateWorkflow:
 
         assert prompt_indices
         assert max(prompt_indices) < dry_run_phase_index
+        assert budget_index < dry_run_phase_index
         assert create_phase_index < resolve_role_index
         assert records["global_budget_kwargs"]["email"] == "johnm@lsmc.com"
         assert records["global_budget_kwargs"]["amount"] == "200"
         assert records["global_budget_kwargs"]["allowed_users"] == "root"
         assert records["cluster_budget_kwargs"]["email"] == "johnm@lsmc.com"
+        assert records["cluster_budget_kwargs"]["budget_name"] == "majors-cluster"
         assert records["heartbeat_kwargs"]["email"] == "johnm@lsmc.com"
         assert records["heartbeat_kwargs"]["schedule_expression"] == "rate(60 minutes)"
+        assert records["next_run_values"]["budget_project"] == "majors-cluster"
+        assert records["next_run_values"]["enforce_budget"] == "true"
         assert records["next_run_values"]["budget_email"] == "johnm@lsmc.com"
         assert records["next_run_values"]["heartbeat_email"] == "johnm@lsmc.com"
         assert records["next_run_values"]["heartbeat_schedule"] == "rate(60 minutes)"
         assert records["next_run_values"]["heartbeat_scheduler_role_arn"] == ""
         assert records["resolve_scheduler_role_kwargs"]["preconfigured"] == ""
+
+    def test_budget_project_override_and_disable_flag_render(self, tmp_path, monkeypatch):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            run_kwargs={
+                "budget_project": "project-alpha",
+                "disable_budget_enforcement": True,
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert records["cluster_budget_kwargs"]["budget_name"] == "project-alpha"
+        substitutions = records["render_substitutions"]
+        assert substitutions["REGSUB_PROJECT"] == "project-alpha"
+        assert substitutions["REGSUB_ENFORCE_BUDGET"] == '"skip"'
+        assert records["next_run_values"]["budget_project"] == "project-alpha"
+        assert records["next_run_values"]["enforce_budget"] == "skip"
 
     def test_broad_max_counts_populate_rendered_subtype_counts(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
@@ -1867,6 +1899,7 @@ def _run_stubbed_create_workflow(
     scan_candidates: list[object] | None = None,
     selection_answer: str = "1",
     config_overrides: dict[str, list[str]] | None = None,
+    run_kwargs: dict[str, object] | None = None,
 ) -> dict[str, object]:
     template_path = tmp_path / "template.yaml"
     template_path.write_text("Region: REGSUB_REGION\n", encoding="utf-8")
@@ -1920,6 +1953,7 @@ def _run_stubbed_create_workflow(
             "Budget amount": "200",
             "Global budget amount": "200",
             "Allowed budget users": "root",
+            "DRAGEN PCluster AMI (leave blank to skip)": "",
             "Heartbeat email": "johnm@lsmc.com",
             "Heartbeat schedule": "rate(60 minutes)",
             "Heartbeat scheduler role ARN (leave blank to skip)": "",
@@ -1983,12 +2017,14 @@ def _run_stubbed_create_workflow(
         )
 
     def fake_ensure_global_budget(*_args, **kwargs):
+        records["events"].append(("ensure_global_budget", None))
         records["global_budget_kwargs"] = kwargs
         return "daylily-global"
 
     def fake_ensure_cluster_budget(*_args, **kwargs):
+        records["events"].append(("ensure_cluster_budget", None))
         records["cluster_budget_kwargs"] = kwargs
-        return "da-us-west-2d-majors-cluster"
+        return kwargs.get("budget_name") or "da-us-west-2d-majors-cluster"
 
     def fake_ensure_heartbeat(*_args, **kwargs):
         records["heartbeat_kwargs"] = kwargs
@@ -2184,5 +2220,6 @@ SharedStorage:
         config_path=str(tmp_path / "config.yaml"),
         non_interactive=not interactive,
         scan_slurm_accounting_db=scan_slurm_accounting_db,
+        **(run_kwargs or {}),
     )
     return records

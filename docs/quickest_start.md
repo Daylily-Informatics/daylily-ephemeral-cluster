@@ -108,6 +108,8 @@ exit
 
 Expected user is `ubuntu` and the login shell starts in `/home/ubuntu`. `day-clone --list` must print the repository rows and clone syntax from the headnode catalog.
 
+For any new DayOA analysis, resolve the intended DayOA release tag before launch and pass it explicitly. Manual launches use `day-clone -t <dayoa_version> -d <analysis_id>`; DYEC launches use `--git-tag <dayoa_version>`. Do not rely on default refs.
+
 ## 5. Sample-Manifest Analysis
 
 Use this path when inputs are represented by `analysis_samples.tsv`. `dyec samples run` is the preferred command because it stages manifests, validates the catalog command, launches the workflow, and can trigger export.

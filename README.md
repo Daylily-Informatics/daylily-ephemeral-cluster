@@ -69,6 +69,8 @@ pcluster version
 
 `pcluster version` must report `3.15.0`. Refresh the pinned checkout environment with `python -m pip install --upgrade pip` followed by `python -m pip install -e .`; do not install `aws-parallelcluster` unpinned or from `latest`.
 
+Current DYEC examples use the `dyec` executable and the `--cluster` flag for cluster/headnode commands. Keep `--cluster-name` for tools such as `pcluster` that require it. If a configured headnode is missing `dyec analysis`, refresh it with `dyec headnode configure --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"` from this activated checkout before DayOA workflow writes.
+
 Use placeholders in examples until your environment has real values:
 
 ```bash
@@ -104,6 +106,14 @@ dyec headnode connect \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"
 ```
+
+Budget enforcement is enabled by default on new clusters. `dyec create` uses
+the cluster name as the default budget project, or `--budget-project <project>`
+when supplied, and stages the Slurm wrapper that requires
+`sbatch --comment <project>`. Use `--disable-budget-enforcement` only when the
+AWS Budget lookup should be skipped; the `--comment` requirement still applies.
+The exact project `RnD` is the only budget-lookup bypass. For per-run overrides,
+pass `--project <project>` to `dyec samples run` or `dyec workflow launch`.
 
 After connection, the supported headnode user is `ubuntu` in an interactive bash login shell. Manual DayOA workflow work belongs in a persistent `tmux` session and uses separate commands:
 
@@ -261,7 +271,9 @@ day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git
 day-clone -d "$ANALYSIS_ID" -t 9.0.0
 ```
 
-`-t` is the short form of `--git-tag`; `-d` is the short form of the required `--destination`. When `--repository` is omitted, `day-clone` uses the catalog `default_repository`. When `--git-tag`/`-t` is omitted, it uses the selected repository's `default_ref`. The checkout lands at `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`, where `relative_path` comes from the catalog row.
+`-t` is the short form of `--git-tag`; `-d` is the short form of the required `--destination`. For operator-launched analyses, do not omit `--git-tag`/`-t`: resolve the intended DayOA release tag first, record it in the ledger, and pass it explicitly. When `--git-tag`/`-t` is omitted, `day-clone` falls back to the selected repository's `default_ref`; that fallback is for catalog implementation behavior, not live analysis runbooks. The checkout lands at `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`, where `relative_path` comes from the catalog row.
+
+The DYEC launch equivalent is also explicit: pass `--git-tag <dayoa_version>` to `dyec workflow launch` or `dyec samples run`. Do not rely on their default `--git-tag` value for new analyses.
 
 Catalog command classes:
 

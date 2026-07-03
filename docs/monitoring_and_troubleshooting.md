@@ -56,6 +56,8 @@ dyec headnode configure \
   --cluster "$CLUSTER_NAME"
 ```
 
+If DayOA `dy-r` reports `No such command 'analysis'`, the headnode DYEC command surface is stale. Re-run `dyec headnode configure --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"` from the activated local DYEC checkout, reconnect, and verify `dyec analysis --help` before any workflow write.
+
 ## 4. Reference DRA
 
 The cluster template creates `/fsx/references` from `reference_s3_uri`. If reference files are missing, check:

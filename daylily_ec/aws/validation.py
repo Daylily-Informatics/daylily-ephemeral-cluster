@@ -36,6 +36,8 @@ from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
 from daylily_ec.workflow.create_cluster import (
     EXIT_SUCCESS,
     EXIT_VALIDATION_FAILURE,
+    normalize_enforce_budget,
+    validate_budget_project,
 )
 
 ValidationMode = Literal["permissions", "quotas", "all"]
@@ -1550,14 +1552,23 @@ def _validation_substitutions(
         ),
         "REGSUB_CLUSTER_NAME": cluster_name,
         "REGSUB_USERNAME": "daylily-validation",
-        "REGSUB_PROJECT": cluster_name,
+        "REGSUB_PROJECT": validate_budget_project(
+            _effective_config_value(cfg, "budget_project", cluster_name) or cluster_name
+        ),
         "REGSUB_DELETE_LOCAL_ROOT": _effective_config_value(
             cfg,
             "delete_local_root",
             "true",
         ),
+        "REGSUB_DRAGEN_PCLUSTER_AMI": _effective_config_value(
+            cfg,
+            "dragen_pcluster_ami",
+            "",
+        ),
         "REGSUB_SAVE_FSX": _effective_config_value(cfg, "auto_delete_fsx", "Delete"),
-        "REGSUB_ENFORCE_BUDGET": _effective_config_value(cfg, "enforce_budget", "skip"),
+        "REGSUB_ENFORCE_BUDGET": normalize_enforce_budget(
+            _effective_config_value(cfg, "enforce_budget", "true")
+        ),
         "REGSUB_AWS_ACCOUNT_ID": aws_ctx.account_id,
         "REGSUB_ALLOCATION_STRATEGY": _effective_config_value(
             cfg,

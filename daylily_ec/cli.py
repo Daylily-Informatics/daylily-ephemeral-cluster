@@ -577,6 +577,16 @@ def create(
         "--non-interactive",
         help="Disable interactive prompts; use config defaults or fail.",
     ),
+    disable_budget_enforcement: bool = typer.Option(
+        False,
+        "--disable-budget-enforcement",
+        help="Render budget checking as skipped; sbatch --comment remains required.",
+    ),
+    budget_project: Optional[str] = typer.Option(
+        None,
+        "--budget-project",
+        help="Budget/project string rendered into the cluster project tag. Defaults to cluster name.",
+    ),
     create_slurm_accounting_db: bool = typer.Option(
         False,
         "--create-slurm-accounting-db",
@@ -609,6 +619,8 @@ def create(
         pass_on_warn=pass_on_warn,
         debug=debug,
         non_interactive=non_interactive,
+        disable_budget_enforcement=disable_budget_enforcement,
+        budget_project=budget_project,
         create_slurm_accounting_db=create_slurm_accounting_db,
         scan_slurm_accounting_db=scan_slurm_accounting_db,
     )

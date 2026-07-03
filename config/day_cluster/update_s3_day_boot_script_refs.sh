@@ -6,6 +6,7 @@ ACTIVE_PATH="daylily-service-lsmc:lsmc-dayoa-references-usw2/runtime_assets/clus
 
 # List of files to copy
 FILES=(
+    "post_install_rhel8_dragen.sh"
     "sbatch"
 )
 
@@ -42,5 +43,4 @@ rclone ls "$REF_PATH"
 # List the contents of the remote active directory
 echo "Listing contents of $ACTIVE_PATH..."
 rclone ls "$ACTIVE_PATH"
-
 

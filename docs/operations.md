@@ -31,7 +31,7 @@ dyec headnode configure \
   --cluster "$CLUSTER_NAME"
 ```
 
-Use this after a cluster exists but the DayEC headnode tools, catalog, or login shell need repair.
+Use this after a cluster exists but the DayEC headnode tools, catalog, analysis guard surface, or login shell need repair. In particular, if a DayOA run reports `No such command 'analysis'`, rerun this command from an activated local checkout and then verify `dyec analysis --help` on the headnode before workflow writes.
 
 ## Inspect Cluster And Jobs
 
@@ -74,6 +74,11 @@ dyec samples run "$ANALYSIS_SAMPLES" \
 ```
 
 The catalog pin for DayOA commands is `9.0.0`.
+
+Use `--project <project>` on `dyec samples run` or `dyec workflow launch` when
+the budget/comment string should differ from the cluster name. DYEC passes that
+value to `dyoainit`, DayOA exports it as `DAY_PROJECT`, and Slurm receives it as
+`sbatch --comment "$DAY_PROJECT"`.
 
 ## Attach Run Folders
 
@@ -167,6 +172,24 @@ dyec workflow launch \
 ```
 
 The launcher creates `/home/ubuntu/daylily-runs/<session>/` with `launch.sh`, `tmux.log`, and `status.json`.
+
+## Budget Enforcement
+
+New clusters enforce budgets by default. `dyec create` uses the cluster name as
+the default budget project, or `--budget-project <project>` when supplied, and
+renders that value into the `aws-parallelcluster-project` tag. It renders
+`aws-parallelcluster-enforce-budget=true` unless `--disable-budget-enforcement`
+is explicitly set.
+
+The staged Slurm wrapper always requires `sbatch --comment <project>`. With
+enforcement enabled, the exact `RnD` project bypasses AWS Budget lookup; every
+other project must be present in the S3-backed user allow-list, match an AWS
+Budget exactly, and be under 100% spend. When a job is blocked, the wrapper
+prints the Ursa budget monitor URL:
+`https://ursa.day.lsmc.bio/ursa-actions#budgets?budget=<project>`.
+
+Disabling budget enforcement skips the S3 allow-list and AWS Budget checks, but
+does not remove the `--comment <project>` requirement.
 
 For repo-native work that is not a catalog workflow command, clone the pinned repository on the headnode and then follow that repository's documented launch path:
 

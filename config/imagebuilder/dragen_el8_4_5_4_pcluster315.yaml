@@ -1,0 +1,21 @@
+Region: us-west-2
+Image:
+  Name: dragen-el8-454-pcluster-315
+  RootVolume:
+    Size: 100
+Build:
+  ParentImage: ami-044bef021cb86a54c
+  InstanceType: f2.6xlarge
+  SubnetId: subnet-007038832fae23321
+  SecurityGroupIds:
+  - sg-0844dfdda1ec5a305
+  UpdateOsPackages:
+    Enabled: false
+  Installation:
+    LustreClient:
+      Enabled: true
+  Imds:
+    ImdsSupport: v2.0
+DevSettings:
+  DisableKernelUpdate: true
+  TerminateInstanceOnFailure: false

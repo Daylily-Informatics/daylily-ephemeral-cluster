@@ -57,6 +57,7 @@ CLUSTER_NAME_RULE_TEXT = (
     f"{CLUSTER_NAME_MAX_LENGTH} characters, start with a letter, "
     "and contain only letters, digits, and hyphens"
 )
+RND_BUDGET_PROJECT = "RnD"
 
 # ---------------------------------------------------------------------------
 # Preflight gate ordering — validators are registered in spec §10.5 order
@@ -70,6 +71,7 @@ PreflightStep = Callable[[PreflightReport], PreflightReport]
 _PREFLIGHT_STEPS: List[PreflightStep] = []
 
 CLUSTER_BOOT_CONFIG_FILENAMES = (
+    "post_install_rhel8_dragen.sh",
     "post_install_ubuntu_combined.sh",
     "sbatch",
     "sleep_test.sh",
@@ -851,6 +853,27 @@ def validate_cluster_name(cluster_name: str) -> str:
     return value
 
 
+def validate_budget_project(project: str) -> str:
+    value = str(project or "").strip()
+    if not value:
+        raise ValueError("Budget project must be non-empty.")
+    if any(ch.isspace() for ch in value):
+        raise ValueError("Budget project must not contain whitespace.")
+    return value
+
+
+def normalize_enforce_budget(value: str) -> str:
+    text = str(value or "").strip().strip('"').strip("'").lower()
+    if text in {"true", "1", "yes", "enforce", "enforced"}:
+        return "true"
+    if text in {"skip", "false", "0", "no"}:
+        return "skip"
+    raise ValueError(
+        "enforce_budget must be one of true, enforce, skip, or false; "
+        f"got {value!r}"
+    )
+
+
 def _validate_cluster_name(cluster_name: str) -> str:
     return validate_cluster_name(cluster_name)
 
@@ -888,6 +911,8 @@ def _require_values(values: Dict[str, str]) -> Optional[str]:
 
 @dataclass(frozen=True)
 class _PostCreateInputs:
+    budget_project: str
+    enforce_budget: str
     budget_email: str
     budget_amount: str
     global_budget_amount: str
@@ -903,8 +928,29 @@ def _resolve_post_create_inputs(
     non_interactive: bool,
     budget_email_default: str,
     allowed_budget_users_default: str,
+    cluster_name: str,
+    budget_project_override: Optional[str],
+    disable_budget_enforcement: bool,
 ) -> _PostCreateInputs:
     """Resolve budget and heartbeat inputs once before the create phase."""
+    resolved_budget_project = validate_budget_project(
+        budget_project_override
+        or _resolve_nonprompt_config_value(cfg, "budget_project", cluster_name)
+        or cluster_name
+    )
+    if disable_budget_enforcement:
+        enforce_budget = "skip"
+    else:
+        enforce_budget = normalize_enforce_budget(
+            _resolve_config_value(
+                cfg,
+                "enforce_budget",
+                "Enforce budget",
+                non_interactive=non_interactive,
+                default_fallback="true",
+            )
+            or "true"
+        )
     budget_email = (
         _resolve_config_value(
             cfg,
@@ -981,6 +1027,8 @@ def _resolve_post_create_inputs(
     )
 
     return _PostCreateInputs(
+        budget_project=resolved_budget_project,
+        enforce_budget=enforce_budget,
         budget_email=budget_email,
         budget_amount=budget_amount,
         global_budget_amount=global_budget_amount,
@@ -1043,6 +1091,8 @@ def run_create_workflow(
     non_interactive: bool = False,
     create_slurm_accounting_db: bool = False,
     scan_slurm_accounting_db: bool = False,
+    disable_budget_enforcement: bool = False,
+    budget_project: Optional[str] = None,
 ) -> int:
     """End-to-end cluster creation: preflight → create → post-create.
 
@@ -1577,7 +1627,55 @@ def run_create_workflow(
         non_interactive=non_interactive,
         budget_email_default=_os.environ.get("DAY_CONTACT_EMAIL", ""),
         allowed_budget_users_default="ubuntu",
+        cluster_name=cluster_name,
+        budget_project_override=budget_project,
+        disable_budget_enforcement=disable_budget_enforcement,
     )
+
+    # Budget resources and the project allow-list live in the reference bucket
+    # that FSx imports during cluster startup. They must exist before launch.
+    ui.phase("PRE-CREATE: BUDGETS")
+    budgets_client = aws_ctx.client("budgets")
+    s3_client = aws_ctx.client("s3")
+    global_budget = ""
+    cluster_budget = ""
+    ui.step("Ensuring budgets and project allow-list ...")
+    try:
+        global_budget = ensure_global_budget(
+            budgets_client,
+            s3_client,
+            aws_ctx.account_id,
+            amount=post_create_inputs.global_budget_amount,
+            cluster_name=cluster_name,
+            email=post_create_inputs.budget_email,
+            region=aws_ctx.region,
+            region_az=region_az,
+            bucket_name=reference_storage_bucket_name,
+            allowed_users=post_create_inputs.allowed_budget_users,
+        )
+        if post_create_inputs.budget_project == RND_BUDGET_PROJECT:
+            cluster_budget = RND_BUDGET_PROJECT
+            ui.info("Cluster project uses exact RnD budget-check bypass; no project budget created.")
+        else:
+            cluster_budget = ensure_cluster_budget(
+                budgets_client,
+                s3_client,
+                aws_ctx.account_id,
+                amount=post_create_inputs.budget_amount,
+                cluster_name=cluster_name,
+                email=post_create_inputs.budget_email,
+                region=aws_ctx.region,
+                region_az=region_az,
+                bucket_name=reference_storage_bucket_name,
+                allowed_users=post_create_inputs.allowed_budget_users,
+                budget_name=post_create_inputs.budget_project,
+            )
+        logger.info("Budgets: global=%s project=%s", global_budget, cluster_budget)
+        ui.ok(f"Budgets: global={global_budget}, project={cluster_budget}")
+    except Exception as exc:
+        logger.error("Budget setup failed: %s", exc)
+        ui.fail(f"Budget setup failed: {exc}")
+        return EXIT_AWS_FAILURE
 
     # -- 5. RENDER YAML (Phase 2a) -------------------------------------------
     ui.phase("RENDER CLUSTER YAML")
@@ -1625,7 +1723,7 @@ def run_create_workflow(
         or "false",
         "REGSUB_CLUSTER_NAME": cluster_name,
         "REGSUB_USERNAME": f"{_os.environ.get('USER', 'unknown')}-{aws_ctx.iam_username}",
-        "REGSUB_PROJECT": cluster_name,
+        "REGSUB_PROJECT": post_create_inputs.budget_project,
         "REGSUB_DELETE_LOCAL_ROOT": _resolve_config_value(
             cfg,
             "delete_local_root",
@@ -1634,6 +1732,16 @@ def run_create_workflow(
             default_fallback="false",
         )
         or "false",
+        "REGSUB_DRAGEN_PCLUSTER_AMI": _resolve_config_value(
+            cfg,
+            "dragen_pcluster_ami",
+            "DRAGEN PCluster AMI",
+            non_interactive=non_interactive,
+            default_fallback="",
+            required=False,
+            allow_empty=True,
+        )
+        or "",
         # DeletionPolicy requires "Retain" or "Delete", not bool.
         "REGSUB_SAVE_FSX": (
             "Delete"
@@ -1651,18 +1759,7 @@ def run_create_workflow(
             else "Retain"
         ),
         # Tag values must be quoted strings, not bare YAML booleans.
-        "REGSUB_ENFORCE_BUDGET": '"'
-        + (
-            _resolve_config_value(
-                cfg,
-                "enforce_budget",
-                "Enforce budget",
-                non_interactive=non_interactive,
-                default_fallback="true",
-            )
-            or "true"
-        )
-        + '"',
+        "REGSUB_ENFORCE_BUDGET": '"' + post_create_inputs.enforce_budget + '"',
         "REGSUB_AWS_ACCOUNT_ID": f"aws_profile-{aws_ctx.profile}",
         "REGSUB_ALLOCATION_STRATEGY": _resolve_config_value(
             cfg,
@@ -1836,47 +1933,7 @@ def run_create_workflow(
     logger.info("Headnode configuration succeeded.")
     ui.ok("Headnode configured")
 
-    # -- 9. POST-CREATE: Budgets (Phase 3a) -----------------------------------
-    ui.phase("POST-CREATE: BUDGETS")
-
-    budgets_client = aws_ctx.client("budgets")
-    s3_client = aws_ctx.client("s3")
-
-    global_budget = ""
-    cluster_budget = ""
-    ui.step("Ensuring budgets ...")
-    try:
-        global_budget = ensure_global_budget(
-            budgets_client,
-            s3_client,
-            aws_ctx.account_id,
-            amount=post_create_inputs.global_budget_amount,
-            cluster_name=cluster_name,
-            email=post_create_inputs.budget_email,
-            region=aws_ctx.region,
-            region_az=region_az,
-            bucket_name=reference_storage_bucket_name,
-            allowed_users=post_create_inputs.allowed_budget_users,
-        )
-        cluster_budget = ensure_cluster_budget(
-            budgets_client,
-            s3_client,
-            aws_ctx.account_id,
-            amount=post_create_inputs.budget_amount,
-            cluster_name=cluster_name,
-            email=post_create_inputs.budget_email,
-            region=aws_ctx.region,
-            region_az=region_az,
-            bucket_name=reference_storage_bucket_name,
-            allowed_users=post_create_inputs.allowed_budget_users,
-        )
-        logger.info("Budgets: global=%s cluster=%s", global_budget, cluster_budget)
-        ui.ok(f"Budgets: global={global_budget}, cluster={cluster_budget}")
-    except Exception as exc:
-        logger.warning("Budget setup failed (non-fatal): %s", exc)
-        ui.warn(f"Budget setup failed (non-fatal): {exc}")
-
-    # -- 10. POST-CREATE: Heartbeat (Phase 3b) --------------------------------
+    # -- 9. POST-CREATE: Heartbeat --------------------------------------------
     ui.phase("POST-CREATE: HEARTBEAT")
     scheduler_role_arn, role_source = resolve_scheduler_role(
         iam_client,
@@ -1927,6 +1984,8 @@ def run_create_workflow(
         "public_subnet_id": public_subnet,
         "private_subnet_id": private_subnet,
         "iam_policy_arn": policy_arn,
+        "budget_project": post_create_inputs.budget_project,
+        "enforce_budget": post_create_inputs.enforce_budget,
         "budget_email": post_create_inputs.budget_email,
         "budget_amount": post_create_inputs.budget_amount,
         "global_budget_amount": post_create_inputs.global_budget_amount,

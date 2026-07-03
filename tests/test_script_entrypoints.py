@@ -399,6 +399,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "analysis",
                 "--executing-entity",
                 "johnm",
+                "--project",
+                "project-alpha",
                 "--dry-run",
             ]
         )
@@ -452,7 +454,9 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'rm -rf -- "$clone_root"' in script
         assert 'if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then' in script
         assert '. "$HOME/miniconda3/etc/profile.d/conda.sh"' in script
-        assert "unset PROJECT || true" in script
+        assert "PROJECT_VALUE=project-alpha" in script
+        assert "dyoa_args+=(--project project-alpha)" in script
+        assert 'export PROJECT="$PROJECT_VALUE"' in script
         assert "dyoa_args+=(--skip-project-check)" in script
         assert "set +u" in script
         assert "set -u" in script

@@ -1,6 +1,6 @@
 # CLI Reference
 
-This reference is grounded in the current `dyec` / `daylily-ec` command surface. Both executable names use the same entrypoint.
+This reference is grounded in the current `dyec` command surface. `daylily-ec` may exist as a compatibility alias, but new docs, ledgers, and runbooks should use `dyec`.
 
 ## Global Options
 
@@ -82,8 +82,19 @@ Important options:
 - `--pass-on-warn`
 - `--debug`
 - `--non-interactive`
+- `--budget-project <project>`: override the Slurm budget/comment project; defaults to the cluster name
+- `--disable-budget-enforcement`: render the cluster budget-enforcement tag as `skip`
 - `--create-slurm-accounting-db`
 - `--scan-slurm-accounting-db`
+
+Budget enforcement is on by default for new clusters. `dyec create` renders
+`aws-parallelcluster-project=<budget_project>` and
+`aws-parallelcluster-enforce-budget=true`, ensures the matching AWS Budget and
+S3 allow-list before launch, and stages the `sbatch` wrapper used by Slurm.
+The wrapper requires every submission to include `--comment <project>`. The
+exact project `RnD` is the only budget-lookup bypass. Other projects must be
+allowed for the submitting user and must be below 100% spend. Failed checks
+point users to `https://ursa.day.lsmc.bio/ursa-actions#budgets?budget=<project>`.
 
 ## Cluster
 
@@ -105,6 +116,8 @@ dyec headnode jobs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUST
 ```
 
 Supported headnode command payloads run as `ubuntu`. Interactive sessions use AWS Session Manager and must land in `/home/ubuntu` in a bash login shell.
+
+Use `--cluster` for DYEC headnode commands. `--cluster-name` is for command surfaces such as `pcluster` that require that spelling. After `headnode configure`, verify workflow-lock support with `dyec analysis --help` on the headnode; current DayOA `dy-r` locking expects `analysis visit`, `analysis guard`, and `analysis lock`.
 
 ## Samples
 
@@ -138,7 +151,9 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --dry-run
 ```
 
-Important options include `--command-id`, `--analysis-id`, `--executing-entity`, `--export-destination-s3-uri`, `--export-trigger`, `--artifact-registration-command-id`, `--dewey-url`, `--dewey-token-env`, and `--git-tag`.
+Important options include `--command-id`, `--analysis-id`, `--executing-entity`, `--export-destination-s3-uri`, `--export-trigger`, `--artifact-registration-command-id`, `--dewey-url`, `--dewey-token-env`, `--git-tag`, and `--project`.
+
+`--project <project>` is passed through to DayOA as `dyoainit --project <project>`, which sets `DAY_PROJECT`; DayOA's Slurm profile submits `sbatch ... --comment "$DAY_PROJECT"`. Omit `--project` to use the cluster-name default.
 
 ## Run Mounts
 
@@ -220,7 +235,7 @@ dyec workflow launch \
   --snakemake-extra "--config run_context_file=config/runs.tsv"
 ```
 
-`workflow launch` requires `--analysis-id`; `--executing-entity` should be a stable safe path segment. The headnode checkout root is `/fsx/analysis_results/<executing_entity>/<analysis_id>/`, and the repository checkout sits below it.
+`workflow launch` requires `--analysis-id`; `--executing-entity` should be a stable safe path segment. The headnode checkout root is `/fsx/analysis_results/<executing_entity>/<analysis_id>/`, and the repository checkout sits below it. Use `--project <project>` to override the DayOA `DAY_PROJECT` value and therefore the Slurm `--comment` budget string for this launch.
 
 Auto-export options:
 

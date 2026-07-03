@@ -70,6 +70,7 @@ def _resources_need_refresh(dest: Path, src: Path) -> bool:
         "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml",
         "config/day_cluster/pcluster_env.yml",
         "config/day_cluster/slurm_accounting_mysql_ec2.yml",
+        "config/day_cluster/post_install_rhel8_dragen.sh",
         "config/day_cluster/post_install_ubuntu_combined.sh",
         "config/day_cluster/sbatch",
         "config/day_cluster/sleep_test.sh",

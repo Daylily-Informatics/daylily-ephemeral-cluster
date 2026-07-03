@@ -48,7 +48,7 @@ def _full_subs() -> dict[str, str]:
 
 class TestConstants:
     def test_all_keys_count(self):
-        assert len(ALL_SUBSTITUTION_KEYS) == 48
+        assert len(ALL_SUBSTITUTION_KEYS) == 49
 
     def test_required_keys_subset(self):
         assert REQUIRED_KEYS.issubset(ALL_SUBSTITUTION_KEYS)
@@ -163,6 +163,7 @@ class TestAllSubstitutionKeys:
             "REGSUB_USERNAME",
             "REGSUB_PROJECT",
             "REGSUB_DELETE_LOCAL_ROOT",
+            "REGSUB_DRAGEN_PCLUSTER_AMI",
             "REGSUB_SAVE_FSX",
             "REGSUB_ENFORCE_BUDGET",
             "REGSUB_AWS_ACCOUNT_ID",

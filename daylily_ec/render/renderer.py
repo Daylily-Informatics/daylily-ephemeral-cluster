@@ -39,6 +39,7 @@ ALL_SUBSTITUTION_KEYS: FrozenSet[str] = frozenset(
         "REGSUB_USERNAME",
         "REGSUB_PROJECT",
         "REGSUB_DELETE_LOCAL_ROOT",
+        "REGSUB_DRAGEN_PCLUSTER_AMI",
         "REGSUB_SAVE_FSX",
         "REGSUB_ENFORCE_BUDGET",
         "REGSUB_AWS_ACCOUNT_ID",

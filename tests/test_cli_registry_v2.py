@@ -23,7 +23,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.51"
+DAYOA_BLESSED_TAG = "10.0.52"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -519,6 +519,9 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
             "--pass-on-warn",
             "--debug",
             "--non-interactive",
+            "--disable-budget-enforcement",
+            "--budget-project",
+            "rna-seq-prod",
             "--create-slurm-accounting-db",
         ],
     )
@@ -531,6 +534,8 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "pass_on_warn": True,
         "debug": True,
         "non_interactive": True,
+        "disable_budget_enforcement": True,
+        "budget_project": "rna-seq-prod",
         "create_slurm_accounting_db": True,
         "scan_slurm_accounting_db": False,
     }
@@ -569,6 +574,8 @@ def test_create_command_passes_scan_slurm_accounting_option(monkeypatch, tmp_pat
     assert calls["region_az"] == "us-west-2d"
     assert calls["kwargs"]["scan_slurm_accounting_db"] is True
     assert calls["kwargs"]["create_slurm_accounting_db"] is False
+    assert calls["kwargs"]["disable_budget_enforcement"] is False
+    assert calls["kwargs"]["budget_project"] is None
 
 
 def test_create_command_rejects_scan_and_create_slurm_accounting_flags(
@@ -1652,6 +1659,8 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
             str(config_dir),
             "--run-metric-staging",
             "CGT7P:CG:/tmp/cgt7p.fofn",
+            "--project",
+            "project-alpha",
             "--session-name",
             "cg-session",
             "--max-runtime-minutes",
@@ -1689,6 +1698,8 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
     assert DAYOA_BLESSED_TAG in launch_argv
+    assert "--project" in launch_argv
+    assert "project-alpha" in launch_argv
     assert "--max-runtime-minutes" in launch_argv
     assert launch_argv[launch_argv.index("--max-runtime-minutes") + 1] == "240"
     assert "--dy-command" in launch_argv
@@ -1949,6 +1960,8 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
             "johnm",
             "--git-tag",
             "release-1",
+            "--project",
+            "project-alpha",
             "--session-name",
             "sess-1",
             "--export-destination-s3-uri",
@@ -1990,6 +2003,8 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "johnm" in argv
     assert "--git-tag" in argv
     assert "release-1" in argv
+    assert "--project" in argv
+    assert "project-alpha" in argv
     assert "--session-name" in argv
     assert "sess-1" in argv
     assert "--export-destination-s3-uri" in argv
