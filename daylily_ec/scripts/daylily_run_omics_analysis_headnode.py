@@ -974,7 +974,7 @@ bootstrap_test_config() {{
 
 bclconvert_runtime_tables_requested() {{
   case "$DY_COMMAND" in
-    *produce_bclconvert_fastqs*|*produce_bclconvert_fastqs_and_metrics*|*produce_illumina_run_qc_and_bclconvert*|*run_bclconvert*)
+    *produce_illumina_run_qc*|*produce_bclconvert_fastqs*|*produce_bclconvert_fastqs_and_metrics*|*produce_illumina_run_qc_and_bclconvert*|*run_bclconvert*)
       return 0
       ;;
     *)
