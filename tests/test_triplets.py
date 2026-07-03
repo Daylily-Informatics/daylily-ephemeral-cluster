@@ -319,7 +319,7 @@ class TestLoadConfig:
             pytest.skip("template file not found")
         cfg = load_config(tpl)
         ec = cfg.ephemeral_cluster
-        assert len(ec.config) == 48
+        assert set(ec.config) == set(REQUIRED_CONFIG_KEYS)
         assert "ssh_key_name" not in ec.config
         assert ec.config["export_destination_s3_uri"].action == "PROMPTUSER"
         assert ec.config["slurm_accounting_enabled"].default_value == "false"

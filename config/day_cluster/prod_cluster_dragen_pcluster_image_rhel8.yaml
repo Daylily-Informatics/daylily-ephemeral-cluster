@@ -62,7 +62,6 @@ Scheduling:
       - InstanceType: f2.6xlarge
       MinCount: 0
       MaxCount: 2
-      SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
       SchedulableMemory: 249036
       Networking:
@@ -117,19 +116,19 @@ SharedStorage:
       - DELETED
 Tags:
 - Key: aws-parallelcluster-username
-  Value: ${REGSUB_USERNAME}
+  Value: "${REGSUB_USERNAME}"
 - Key: aws-parallelcluster-jobid
-  Value: ${REGSUB_AWS_ACCOUNT_ID}
+  Value: "${REGSUB_AWS_ACCOUNT_ID}"
 - Key: aws-parallelcluster-project
-  Value: ${REGSUB_PROJECT}
+  Value: "${REGSUB_PROJECT}"
 - Key: aws-parallelcluster-clustername
-  Value: ${REGSUB_CLUSTER_NAME}
+  Value: "${REGSUB_CLUSTER_NAME}"
 - Key: aws-parallelcluster-enforce-budget
   Value: ${REGSUB_ENFORCE_BUDGET}
 - Key: aws-parallelcluster-daylily-git-deets
-  Value: ${REGSUB_DAYLILY_GIT_DEETS}
+  Value: "${REGSUB_DAYLILY_GIT_DEETS}"
 - Key: aws-parallelcluster-monitor-bucket
-  Value: ${REGSUB_S3_BUCKET_INIT}
+  Value: "${REGSUB_S3_BUCKET_INIT}"
 DevSettings:
   Timeouts:
     HeadNodeBootstrapTimeout: 3600

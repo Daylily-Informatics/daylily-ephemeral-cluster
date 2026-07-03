@@ -909,6 +909,43 @@ def _require_values(values: Dict[str, str]) -> Optional[str]:
     return "Missing required values: " + ", ".join(missing)
 
 
+def _resolve_explicit_subnet_id(
+    ec2_client: Any,
+    cfg: Any,
+    key: str,
+    *,
+    label: str,
+    region_az: str,
+) -> str:
+    """Return an explicit configured subnet after live EC2/AZ validation."""
+    from daylily_ec.config.triplets import resolve_value
+
+    triplet = cfg.ephemeral_cluster.config.get(key)
+    configured = resolve_value(triplet) if triplet is not None else ""
+    configured = configured.strip()
+    if not configured:
+        return ""
+
+    try:
+        response = ec2_client.describe_subnets(SubnetIds=[configured])
+    except Exception as exc:
+        raise ValueError(f"Configured {label} does not exist or is inaccessible: {configured}") from exc
+
+    subnets = response.get("Subnets", [])
+    if not subnets:
+        raise ValueError(f"Configured {label} does not exist: {configured}")
+    subnet = subnets[0]
+    actual_az = str(subnet.get("AvailabilityZone", ""))
+    if actual_az != region_az:
+        raise ValueError(
+            f"Configured {label} {configured} is in {actual_az}, expected {region_az}."
+        )
+    state = str(subnet.get("State", ""))
+    if state != "available":
+        raise ValueError(f"Configured {label} {configured} is {state}, expected available.")
+    return configured
+
+
 @dataclass(frozen=True)
 class _PostCreateInputs:
     budget_project: str
@@ -1395,6 +1432,20 @@ def run_create_workflow(
             "public subnet",
             [subnet.subnet_id for subnet in pub_list],
         )
+    try:
+        explicit_public_subnet = _resolve_explicit_subnet_id(
+            ec2,
+            cfg,
+            "public_subnet_id",
+            label="public subnet",
+            region_az=region_az,
+        )
+        if explicit_public_subnet:
+            public_subnet = explicit_public_subnet
+    except ValueError as exc:
+        logger.error("Public subnet validation failed: %s", exc)
+        ui.fail(str(exc))
+        return EXIT_VALIDATION_FAILURE
 
     private_subnet = (
         select_subnet(
@@ -1410,6 +1461,20 @@ def run_create_workflow(
             "private subnet",
             [subnet.subnet_id for subnet in priv_list],
         )
+    try:
+        explicit_private_subnet = _resolve_explicit_subnet_id(
+            ec2,
+            cfg,
+            "private_subnet_id",
+            label="private subnet",
+            region_az=region_az,
+        )
+        if explicit_private_subnet:
+            private_subnet = explicit_private_subnet
+    except ValueError as exc:
+        logger.error("Private subnet validation failed: %s", exc)
+        ui.fail(str(exc))
+        return EXIT_VALIDATION_FAILURE
 
     # 3c. Policy ARN selection
     iam_client = aws_ctx.client("iam")
@@ -2256,7 +2321,13 @@ def run_preflight_only(
     from daylily_ec.aws.context import AWSContext
     from daylily_ec.aws.iam import make_iam_preflight_step
     from daylily_ec.aws.quotas import make_quota_preflight_step
-    from daylily_ec.aws.s3 import make_s3_bucket_preflight_step
+    from daylily_ec.aws.s3 import (
+        ROLE_CONTROL_DATA,
+        ROLE_EXPORT_DESTINATION,
+        ROLE_REFERENCE,
+        ROLE_STAGING,
+        make_s3_bucket_preflight_step,
+    )
     from daylily_ec.config.triplets import get_effective_default, load_config
 
     if debug:
@@ -2301,6 +2372,38 @@ def run_preflight_only(
     max_128i = int(get_effective_default(cfg, "max_count_128I", "1") or "1")
     max_192i = int(get_effective_default(cfg, "max_count_192I", "1") or "1")
     max_384i = int(get_effective_default(cfg, "max_count_384I", "1") or "1")
+    reference_s3_uri = _resolve_s3_role_config_value(
+        cfg,
+        "reference_s3_uri",
+        "Reference S3 URI",
+        role=ROLE_REFERENCE,
+        aws_ctx=aws_ctx,
+        non_interactive=non_interactive,
+    )
+    control_data_s3_uri = _resolve_s3_role_config_value(
+        cfg,
+        "control_data_s3_uri",
+        "Control-data S3 URI",
+        role=ROLE_CONTROL_DATA,
+        aws_ctx=aws_ctx,
+        non_interactive=non_interactive,
+    )
+    stage_s3_uri = _resolve_s3_role_config_value(
+        cfg,
+        "stage_s3_uri",
+        "Stage S3 URI",
+        role=ROLE_STAGING,
+        aws_ctx=aws_ctx,
+        non_interactive=non_interactive,
+    )
+    export_destination_s3_uri = _resolve_s3_role_config_value(
+        cfg,
+        "export_destination_s3_uri",
+        "Export destination S3 URI",
+        role=ROLE_EXPORT_DESTINATION,
+        aws_ctx=aws_ctx,
+        non_interactive=non_interactive,
+    )
 
     preflight_steps: List[PreflightStep] = [
         make_iam_preflight_step(aws_ctx, interactive=not non_interactive),
@@ -2315,14 +2418,10 @@ def run_preflight_only(
         ),
         make_s3_bucket_preflight_step(
             aws_ctx,
-            reference_s3_uri=get_effective_default(cfg, "reference_s3_uri", ""),
-            control_data_s3_uri=get_effective_default(cfg, "control_data_s3_uri", ""),
-            stage_s3_uri=get_effective_default(cfg, "stage_s3_uri", ""),
-            export_destination_s3_uri=get_effective_default(
-                cfg,
-                "export_destination_s3_uri",
-                "",
-            ),
+            reference_s3_uri=reference_s3_uri,
+            control_data_s3_uri=control_data_s3_uri,
+            stage_s3_uri=stage_s3_uri,
+            export_destination_s3_uri=export_destination_s3_uri,
             profile=aws_ctx.profile,
             interactive=not non_interactive,
         ),

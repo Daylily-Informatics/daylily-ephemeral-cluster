@@ -175,6 +175,19 @@ def test_sbatch_wrapper_allows_under_budget_project(tmp_path: Path) -> None:
     )
 
 
+def test_sbatch_wrapper_strips_exclusive_allocation(tmp_path: Path) -> None:
+    wrapper = _prepared_wrapper(tmp_path, enforce_budget="skip", budget_tags=None)
+    result = _run(wrapper, "--comment=project-a", "--exclusive", "--partition", "i8", "job.sh")
+
+    assert result.returncode == 0
+    assert "ALERT WARNING: DYEC sbatch stripped exclusive allocation request '--exclusive'" in result.stderr
+    assert (
+        "REAL_SLURM [--comment=project-a] [--export=ALL] [--partition] [i8] [job.sh]"
+        in result.stdout
+    )
+    assert "--exclusive" not in result.stdout
+
+
 def test_sbatch_wrapper_rejects_unknown_enforcement_value(tmp_path: Path) -> None:
     wrapper = _prepared_wrapper(tmp_path, enforce_budget="maybe")
     result = _run(wrapper, "--comment", "project-a", "job.sh")

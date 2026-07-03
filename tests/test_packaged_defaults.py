@@ -27,6 +27,11 @@ DAYOA_RUNTIME_SPOT_ACTIONS = (
     "ec2:DescribeInstanceTypeOfferings",
     "ec2:DescribeSpotPriceHistory",
 )
+BOOT_CONFIG_FILES = (
+    "config/day_cluster/post_install_ubuntu_combined.sh",
+    "config/day_cluster/post_install_rhel8_dragen.sh",
+    "config/day_cluster/sbatch",
+)
 
 
 def test_create_workflow_loads_default_config_outside_repo(tmp_path, monkeypatch):
@@ -154,6 +159,38 @@ def test_packaged_cluster_templates_match_source_templates() -> None:
             encoding="utf-8"
         )
         assert packaged == source
+
+
+def test_packaged_boot_config_matches_source_and_disables_exclusivity() -> None:
+    for relative_path in BOOT_CONFIG_FILES:
+        source = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        packaged = (REPO_ROOT / "daylily_ec/resources/payload" / relative_path).read_text(
+            encoding="utf-8"
+        )
+        assert packaged == source
+
+    for relative_path in (
+        "config/day_cluster/post_install_ubuntu_combined.sh",
+        "config/day_cluster/post_install_rhel8_dragen.sh",
+    ):
+        script = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        assert "disable_slurm_partition_exclusivity" in script
+        assert "OverSubscribe=YES" in script
+        assert "SelectTypeParameters=CR_CPU_Memory" in script
+        assert "exclusive Slurm partition allocation survived boot rewrite" in script
+
+    sbatch = (REPO_ROOT / "config/day_cluster/sbatch").read_text(encoding="utf-8")
+    assert "DYEC sbatch stripped exclusive allocation request" in sbatch
+    assert "--exclusive|--exclusive=*" in sbatch
+
+
+def test_dayoa_headnode_generators_do_not_emit_exclusive_rules() -> None:
+    script = (
+        REPO_ROOT / "daylily_ec/scripts/daylily_run_omics_analysis_headnode.py"
+    ).read_text(encoding="utf-8")
+
+    assert 'exclusive="--exclusive"' not in script
+    assert 'exclusive=""' in script
 
 
 def test_packaged_cfn_templates_match_source_templates() -> None:

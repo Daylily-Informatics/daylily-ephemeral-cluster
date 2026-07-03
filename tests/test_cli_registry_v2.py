@@ -23,7 +23,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.52"
+DAYOA_BLESSED_TAG = "10.0.53"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -64,6 +64,7 @@ EXPECTED_COMMANDS = {
     ("workflow", "launch"),
     ("workflow", "status"),
     ("workflow", "logs"),
+    ("workflow", "collect-benchmarks"),
     ("workflow", "stop"),
     ("repositories", "commands"),
     ("tests", "pytest"),
@@ -196,6 +197,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     workflow_launch_cmd = registry.get_command(("workflow", "launch"))
     workflow_status_cmd = registry.get_command(("workflow", "status"))
     workflow_logs_cmd = registry.get_command(("workflow", "logs"))
+    workflow_collect_benchmarks_cmd = registry.get_command(("workflow", "collect-benchmarks"))
     workflow_stop_cmd = registry.get_command(("workflow", "stop"))
     repositories_commands_cmd = registry.get_command(("repositories", "commands"))
     tests_pytest_cmd = registry.get_command(("tests", "pytest"))
@@ -317,6 +319,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
 
     assert workflow_logs_cmd is not None
     assert workflow_logs_cmd.policy.mutates_state is False
+
+    assert workflow_collect_benchmarks_cmd is not None
+    assert workflow_collect_benchmarks_cmd.policy.supports_json is True
+    assert workflow_collect_benchmarks_cmd.policy.mutates_state is True
+    assert workflow_collect_benchmarks_cmd.policy.long_running is True
 
     assert workflow_stop_cmd is not None
     assert workflow_stop_cmd.policy.supports_json is True
@@ -2337,6 +2344,208 @@ def test_workflow_logs_tails_tmux_log_via_ssm(monkeypatch) -> None:
     assert "line 1" in result.stdout
     assert "tmux.log" in calls["script"]
     assert "tail -n 50" in calls["script"]
+
+
+def test_workflow_collect_benchmarks_runs_remote_dayoa_collector(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+    monkeypatch.setenv("USER", "jmajor")
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda _cluster, _region, *, profile=None: HeadNodeTarget(
+            "cluster-a",
+            "us-west-2",
+            "i-abc123",
+        ),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+
+    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+        calls["run_shell"] = (instance_id, region, script, kwargs)
+        payload = {
+            "analysis_root": "/fsx/analysis_results/ubuntu/run-1",
+            "dayoa_root": "/fsx/analysis_results/ubuntu/run-1/daylily-omics-analysis",
+            "genome_build": "hg38_broad",
+            "report_dir": (
+                "/fsx/analysis_results/ubuntu/run-1/daylily-omics-analysis/"
+                "results/day/hg38_broad/reports"
+            ),
+            "summary_tsv": (
+                "/fsx/analysis_results/ubuntu/run-1/daylily-omics-analysis/"
+                "results/day/hg38_broad/reports/benchmarks_summary.tsv"
+            ),
+            "row_count": 42,
+            "bytes": 2048,
+        }
+        return SsmCommandResult(
+            "cmd-1",
+            instance_id,
+            "Success",
+            0,
+            "__DAYLILY_BENCHMARK_COLLECTION__=" + json.dumps(payload, sort_keys=True) + "\n",
+            "",
+        )
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "workflow",
+            "collect-benchmarks",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--analysis-root",
+            "/fsx/analysis_results/ubuntu/run-1",
+            "--genome-build",
+            "hg38_broad",
+            "--timeout",
+            "900",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout + result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["summary_tsv"].endswith(
+        "results/day/hg38_broad/reports/benchmarks_summary.tsv"
+    )
+    instance_id, region, script, kwargs = calls["run_shell"]
+    assert instance_id == "i-abc123"
+    assert region == "us-west-2"
+    assert "ANALYSIS_ROOT=/fsx/analysis_results/ubuntu/run-1" in script
+    assert 'DAYOA_ROOT="${ANALYSIS_ROOT}/daylily-omics-analysis"' in script
+    assert "source dyoainit" in script
+    assert 'dy-a local "$GENOME_BUILD"' in script
+    assert 'bash "$COLLECTOR" "$GENOME_BUILD"' in script
+    assert "dyec analysis lock acquire" in script
+    assert "dyec analysis lock release" in script
+    assert "collect_day_benchmark_data.sh" in script
+    assert kwargs["profile"] == "dev"
+    assert kwargs["timeout"] == 900
+    assert kwargs["comment"] == (
+        "Collect DayOA benchmarks for /fsx/analysis_results/ubuntu/run-1"
+    )
+
+
+def test_workflow_collect_benchmarks_rejects_invalid_genome_build(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    _activate_dayec_runtime(monkeypatch)
+    calls: list[str] = []
+    monkeypatch.setattr(ssm_module, "run_shell", lambda *args, **kwargs: calls.append("run"))
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "collect-benchmarks",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--analysis-root",
+            "/fsx/analysis_results/ubuntu/run-1",
+            "--genome-build",
+            "GRCh38",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "--genome-build must be one of" in (result.stdout + result.stderr)
+    assert calls == []
+
+
+def test_workflow_collect_benchmarks_rejects_dayoa_root_as_analysis_root(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    _activate_dayec_runtime(monkeypatch)
+    calls: list[str] = []
+    monkeypatch.setattr(ssm_module, "run_shell", lambda *args, **kwargs: calls.append("run"))
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "collect-benchmarks",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--analysis-root",
+            "/fsx/analysis_results/ubuntu/run-1/daylily-omics-analysis",
+            "--genome-build",
+            "hg38",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "parent analysis directory" in (result.stdout + result.stderr)
+    assert calls == []
+
+
+def test_workflow_collect_benchmarks_surfaces_remote_failures(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda _cluster, _region, *, profile=None: HeadNodeTarget(
+            "cluster-a",
+            "us-west-2",
+            "i-abc123",
+        ),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    failed_result = SsmCommandResult(
+        "cmd-1",
+        "i-abc123",
+        "Failed",
+        66,
+        "",
+        "DayOA benchmark collector missing",
+    )
+
+    def fake_run_shell(*args, **kwargs):
+        raise SsmCommandFailedError("SSM command 'cmd-1' failed", failed_result)
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "collect-benchmarks",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--analysis-root",
+            "/fsx/analysis_results/ubuntu/run-1",
+            "--genome-build",
+            "hg38",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "DayOA benchmark collector missing" in result.stderr
+    assert "SSM command 'cmd-1' failed" in result.stderr
 
 
 def test_workflow_stop_kills_controller_via_ssm(monkeypatch) -> None:

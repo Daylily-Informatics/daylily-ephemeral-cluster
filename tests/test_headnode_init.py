@@ -702,7 +702,7 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert 'chmod a-w "${role_root}"' in script
     assert 'stat -c "Role data permissions: %A %n" "${role_root}"' in script
     assert "fd-find ripgrep docker.io" in script
-    assert "f9c437528235435c0c8dc47e19ce664df56fd54df9d45f8de45fb91d60aaa037" in script
+    assert "7d03b2b2848438729d27a61b820210521553764c53093219af337253a7fd3ecf" in script
     assert "024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae" in script
     assert "cached Apptainer deb not found" in script
     assert 'apt-get install -y "${apptainer_deb}"' in script
@@ -769,6 +769,10 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert 'install_verified_s3_executable "sbatch"' in script
     assert 'install_verified_s3_executable "sleep_test.sh"' in script
     assert 'install -m 0755 "${temp_path}" "${destination}"' in script
+    assert "disable_slurm_partition_exclusivity" in script
+    assert "OverSubscribe=YES" in script
+    assert "SelectTypeParameters=CR_CPU_Memory" in script
+    assert "exclusive Slurm partition allocation survived boot rewrite" in script
     assert 'append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf' in script
     assert "mv /opt/slurm/bin/sbatch /opt/slurm/sbin/sbatch" in script
     assert "mv /opt/slurm/bin/srun /opt/slurm/sbin/srun" in script

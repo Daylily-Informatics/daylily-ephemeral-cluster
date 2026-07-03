@@ -155,6 +155,23 @@ Important options include `--command-id`, `--analysis-id`, `--executing-entity`,
 
 `--project <project>` is passed through to DayOA as `dyoainit --project <project>`, which sets `DAY_PROJECT`; DayOA's Slurm profile submits `sbatch ... --comment "$DAY_PROJECT"`. Omit `--project` to use the cluster-name default.
 
+Collect benchmark summaries from a completed DayOA checkout on the headnode:
+
+```bash
+dyec --json workflow collect-benchmarks \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --analysis-root "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
+  --genome-build hg38_broad
+```
+
+The command runs from `<analysis-root>/daylily-omics-analysis`, initializes DayOA with
+`source dyoainit` and `dy-a local <genome-build>`, then runs
+`bash bin/util/benchmarks/collect_day_benchmark_data.sh <genome-build>`.
+Supported builds are `hg38`, `hg38_broad`, and `b37`. The expected output is
+`results/day/<genome-build>/reports/benchmarks_summary.tsv`.
+
 ## Run Mounts
 
 Run mounts are FSx Data Repository Associations from selected S3 run prefixes to `/run_dir_mounts/<mount_id>/`, visible on the headnode as `/fsx/run_dir_mounts/<mount_id>/`. The mount id defaults to the final folder in the S3 URI unless explicitly supplied.

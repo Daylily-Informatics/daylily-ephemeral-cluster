@@ -12,7 +12,7 @@ import subprocess
 import sys
 import traceback
 import time
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, List, Optional
 
 import click
@@ -52,6 +52,7 @@ from daylily_ec.workflow.snakemake_resources import DEFAULT_JOB_MAX_RUNTIME_MINU
 
 
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
+BENCHMARK_GENOME_BUILDS = {"hg38", "hg38_broad", "b37"}
 
 
 def _validate_analysis_launch_options(
@@ -3417,6 +3418,275 @@ def workflow_logs(
         typer.echo(result.stderr.rstrip(), err=True)
 
 
+def _normalize_benchmark_genome_build(genome_build: str) -> str:
+    resolved = str(genome_build or "").strip()
+    if resolved not in BENCHMARK_GENOME_BUILDS:
+        raise typer.BadParameter(
+            "--genome-build must be one of: " + ", ".join(sorted(BENCHMARK_GENOME_BUILDS))
+        )
+    return resolved
+
+
+def _normalize_benchmark_analysis_root(analysis_root: str) -> str:
+    raw = str(analysis_root or "").strip().rstrip("/")
+    if not raw:
+        raise typer.BadParameter("--analysis-root is required")
+    if "\x00" in raw or "\n" in raw or "\r" in raw:
+        raise typer.BadParameter("--analysis-root must be a single POSIX path")
+    path = PurePosixPath(raw)
+    if not path.is_absolute():
+        raise typer.BadParameter("--analysis-root must be an absolute headnode path")
+    if any(part in {".", ".."} for part in path.parts):
+        raise typer.BadParameter("--analysis-root must not contain . or .. path segments")
+    if path.parts[:3] != ("/", "fsx", "analysis_results"):
+        raise typer.BadParameter(
+            "--analysis-root must be under /fsx/analysis_results/<owner>/<analysis_id>"
+        )
+    if path.name == "daylily-omics-analysis":
+        raise typer.BadParameter(
+            "--analysis-root must be the parent analysis directory, not the DayOA clone. "
+            "Use /fsx/analysis_results/<owner>/<analysis_id>."
+        )
+    if len(path.parts) != 5:
+        raise typer.BadParameter(
+            "--analysis-root must be /fsx/analysis_results/<owner>/<analysis_id>"
+        )
+    return path.as_posix()
+
+
+def _build_workflow_collect_benchmarks_script(
+    *,
+    analysis_root: str,
+    genome_build: str,
+    cluster: str,
+    human_requestor: str,
+) -> str:
+    return f"""
+set -euo pipefail
+if [[ "$(id -un)" != "ubuntu" ]]; then
+  echo "DYEC benchmark collection must run as ubuntu; got $(id -un)." >&2
+  exit 64
+fi
+
+ANALYSIS_ROOT={shlex.quote(analysis_root)}
+GENOME_BUILD={shlex.quote(genome_build)}
+DYEC_CLUSTER_NAME={shlex.quote(cluster)}
+export DAYOA_HUMAN_REQUESTOR={shlex.quote(human_requestor)}
+agent_stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+export DAYOA_AGENT_ID="dyec-benchmark-${{GENOME_BUILD}}-${{agent_stamp}}-$$"
+export DAYOA_AGENT_KIND="dyec-cli"
+export DAYOA_TMUX_SESSION=""
+export DAYOA_LEDGER_PATH=""
+export DYEC_CLUSTER="$DYEC_CLUSTER_NAME"
+
+DAYOA_ROOT="${{ANALYSIS_ROOT}}/daylily-omics-analysis"
+COLLECTOR="bin/util/benchmarks/collect_day_benchmark_data.sh"
+REPORT_DIR="${{DAYOA_ROOT}}/results/day/${{GENOME_BUILD}}/reports"
+SUMMARY_TSV="${{REPORT_DIR}}/benchmarks_summary.tsv"
+
+case "$GENOME_BUILD" in
+  hg38|hg38_broad|b37) ;;
+  *)
+    echo "Unsupported genome build: $GENOME_BUILD. Expected hg38, hg38_broad, or b37." >&2
+    exit 64
+    ;;
+esac
+if [[ "$ANALYSIS_ROOT" != /fsx/analysis_results/* ]]; then
+  echo "Analysis root must be under /fsx/analysis_results: $ANALYSIS_ROOT" >&2
+  exit 64
+fi
+if [[ ! -d "$ANALYSIS_ROOT" ]]; then
+  echo "Analysis root does not exist on the headnode: $ANALYSIS_ROOT" >&2
+  exit 66
+fi
+if [[ ! -d "$DAYOA_ROOT" ]]; then
+  echo "DayOA clone does not exist: $DAYOA_ROOT" >&2
+  exit 66
+fi
+if [[ ! -f "$DAYOA_ROOT/dayoainit" ]]; then
+  echo "DayOA initializer missing: $DAYOA_ROOT/dayoainit" >&2
+  exit 66
+fi
+if [[ ! -f "$DAYOA_ROOT/$COLLECTOR" ]]; then
+  echo "DayOA benchmark collector missing: $DAYOA_ROOT/$COLLECTOR" >&2
+  exit 66
+fi
+if ! command -v dyec >/dev/null 2>&1; then
+  echo "dyec CLI is required on the headnode for analysis lock auditing. Run dyec headnode configure, then retry." >&2
+  exit 66
+fi
+
+lock_acquired=0
+release_lock() {{
+  local rc="$1"
+  if [[ "$lock_acquired" == "1" ]]; then
+    if ! dyec analysis lock release \\
+      --analysis-root "$ANALYSIS_ROOT" \\
+      --human-requestor "$DAYOA_HUMAN_REQUESTOR" \\
+      --note "benchmark collector finished rc=${{rc}}" >/dev/null; then
+      echo "Warning: failed to release DYEC analysis lock for $ANALYSIS_ROOT" >&2
+    fi
+  fi
+}}
+trap 'rc=$?; release_lock "$rc"; exit "$rc"' EXIT
+
+dyec analysis lock acquire \\
+  --analysis-root "$ANALYSIS_ROOT" \\
+  --operation write \\
+  --intent "collect DayOA benchmark summary for $GENOME_BUILD" \\
+  --human-requestor "$DAYOA_HUMAN_REQUESTOR" \\
+  --command-summary "bash $COLLECTOR $GENOME_BUILD" \\
+  --operation-scope "benchmark-collection:$GENOME_BUILD" >/dev/null
+lock_acquired=1
+
+cd "$DAYOA_ROOT"
+source dyoainit
+if ! type dy-a >/dev/null 2>&1; then
+  echo "DayOA activation did not define dy-a after source dyoainit." >&2
+  exit 66
+fi
+dy-a local "$GENOME_BUILD"
+bash "$COLLECTOR" "$GENOME_BUILD"
+
+if [[ ! -s "$SUMMARY_TSV" ]]; then
+  echo "Benchmark summary was not created or is empty: $SUMMARY_TSV" >&2
+  exit 1
+fi
+
+export DAYLILY_BENCHMARK_ANALYSIS_ROOT="$ANALYSIS_ROOT"
+export DAYLILY_BENCHMARK_DAYOA_ROOT="$DAYOA_ROOT"
+export DAYLILY_BENCHMARK_GENOME_BUILD="$GENOME_BUILD"
+export DAYLILY_BENCHMARK_REPORT_DIR="$REPORT_DIR"
+export DAYLILY_BENCHMARK_SUMMARY_TSV="$SUMMARY_TSV"
+export DAYLILY_BENCHMARK_ROW_COUNT="$(wc -l < "$SUMMARY_TSV" | tr -d ' ')"
+export DAYLILY_BENCHMARK_BYTES="$(wc -c < "$SUMMARY_TSV" | tr -d ' ')"
+python3 - <<'PY'
+import json
+import os
+
+payload = {{
+    "analysis_root": os.environ["DAYLILY_BENCHMARK_ANALYSIS_ROOT"],
+    "dayoa_root": os.environ["DAYLILY_BENCHMARK_DAYOA_ROOT"],
+    "genome_build": os.environ["DAYLILY_BENCHMARK_GENOME_BUILD"],
+    "report_dir": os.environ["DAYLILY_BENCHMARK_REPORT_DIR"],
+    "summary_tsv": os.environ["DAYLILY_BENCHMARK_SUMMARY_TSV"],
+    "row_count": int(os.environ["DAYLILY_BENCHMARK_ROW_COUNT"] or "0"),
+    "bytes": int(os.environ["DAYLILY_BENCHMARK_BYTES"] or "0"),
+}}
+print("__DAYLILY_BENCHMARK_COLLECTION__=" + json.dumps(payload, sort_keys=True))
+PY
+"""
+
+
+def _parse_benchmark_collection_payload(stdout: str) -> dict[str, Any]:
+    from daylily_ec.scripts.common import CommandError
+
+    marker = "__DAYLILY_BENCHMARK_COLLECTION__="
+    for line in stdout.splitlines():
+        if line.startswith(marker):
+            payload = json.loads(line.split("=", 1)[1])
+            if not isinstance(payload, dict):
+                raise CommandError("Benchmark collection payload contained non-object JSON.")
+            return payload
+    raise CommandError("Benchmark collection output did not include a payload marker.")
+
+
+def workflow_collect_benchmarks(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    analysis_root: str = typer.Option(
+        ...,
+        "--analysis-root",
+        help="/fsx/analysis_results/<owner>/<analysis_id> directory containing daylily-omics-analysis.",
+    ),
+    genome_build: str = typer.Option(
+        ...,
+        "--genome-build",
+        "--build",
+        help="DayOA genome build: hg38, hg38_broad, or b37.",
+    ),
+    human_requestor: Optional[str] = typer.Option(
+        None,
+        "--human-requestor",
+        "--human",
+        help="Human recorded in analysis-root lock and visit metadata.",
+    ),
+    timeout: int = typer.Option(
+        1800,
+        "--timeout",
+        help="Maximum seconds for the remote benchmark collection command.",
+    ),
+) -> None:
+    """Collect DayOA benchmark TSVs into results/day/<genome-build>/reports."""
+
+    from daylily_ec.aws.ssm import (
+        SsmCommandFailedError,
+        SsmError,
+        run_shell,
+        wait_for_ssm_online,
+    )
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_build = _normalize_benchmark_genome_build(genome_build)
+        resolved_analysis_root = _normalize_benchmark_analysis_root(analysis_root)
+        resolved_human = (
+            str(human_requestor or "").strip()
+            or os.environ.get("DAYOA_HUMAN_REQUESTOR", "").strip()
+            or os.environ.get("USER", "").strip()
+            or os.environ.get("LOGNAME", "").strip()
+            or "dyec"
+        )
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        script = _build_workflow_collect_benchmarks_script(
+            analysis_root=resolved_analysis_root,
+            genome_build=resolved_build,
+            cluster=resolved_cluster,
+            human_requestor=resolved_human,
+        )
+        result = run_shell(
+            target.instance_id,
+            resolved_region,
+            script,
+            profile=resolved_profile,
+            timeout=timeout,
+            comment=f"Collect DayOA benchmarks for {resolved_analysis_root}",
+        )
+        payload = _parse_benchmark_collection_payload(result.stdout)
+    except SsmCommandFailedError as exc:
+        if exc.result.stdout.strip():
+            typer.echo(exc.result.stdout.rstrip())
+        if exc.result.stderr.strip():
+            typer.echo(exc.result.stderr.rstrip(), err=True)
+        _exit_headnode_error(exc)
+    except (CommandError, SsmError, TimeoutError, json.JSONDecodeError) as exc:
+        _exit_headnode_error(exc)
+
+    if result.stderr:
+        typer.echo(result.stderr.rstrip(), err=True)
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    output.success("Benchmark summary collected.")
+    output.print_text(f"Analysis root: {payload['analysis_root']}")
+    output.print_text(f"DayOA root:    {payload['dayoa_root']}")
+    output.print_text(f"Genome build:  {payload['genome_build']}")
+    output.print_text(f"Summary TSV:   {payload['summary_tsv']}")
+    output.print_text(f"Rows:          {payload['row_count']}")
+
+
 def _parse_workflow_stop_payload(stdout: str) -> dict[str, Any]:
     from daylily_ec.scripts.common import CommandError
 
@@ -4270,6 +4540,11 @@ def register(registry, cli_spec) -> None:
             ("launch", workflow_launch, REQUIRED_MUTATING_LONG_RUNNING),
             ("status", workflow_status, REQUIRED_JSON),
             ("logs", workflow_logs, required_policy()),
+            (
+                "collect-benchmarks",
+                workflow_collect_benchmarks,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
             ("stop", workflow_stop, required_policy(supports_json=True, mutates_state=True)),
         ],
     )

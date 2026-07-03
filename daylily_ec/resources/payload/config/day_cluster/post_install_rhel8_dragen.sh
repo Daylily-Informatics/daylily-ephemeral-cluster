@@ -60,6 +60,55 @@ ensure_user() {
   fi
 }
 
+disable_slurm_partition_exclusivity() {
+  local slurm_conf="/opt/slurm/etc/slurm.conf"
+  if [ ! -f "${slurm_conf}" ]; then
+    echo "ERROR: Slurm config not found while disabling partition exclusivity: ${slurm_conf}" >&2
+    exit 1
+  fi
+
+  echo "ALERT WARNING: Enforcing non-exclusive Slurm scheduling in ${slurm_conf}; PartitionName lines will use OverSubscribe=YES and SelectTypeParameters=CR_CPU_Memory."
+  python3 - "${slurm_conf}" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+lines = path.read_text(encoding="utf-8").splitlines()
+rewritten = []
+has_select_type_parameters = False
+for line in lines:
+    if line.startswith("SelectTypeParameters="):
+        rewritten.append("SelectTypeParameters=CR_CPU_Memory")
+        has_select_type_parameters = True
+        continue
+    if line.startswith("PartitionName="):
+        fields = line.split()
+        saw_oversubscribe = False
+        next_fields = []
+        for field in fields:
+            if field.startswith("OverSubscribe="):
+                next_fields.append("OverSubscribe=YES")
+                saw_oversubscribe = True
+            else:
+                next_fields.append(field)
+        if not saw_oversubscribe:
+            next_fields.append("OverSubscribe=YES")
+        rewritten.append(" ".join(next_fields))
+        continue
+    rewritten.append(line)
+if not has_select_type_parameters:
+    rewritten.append("SelectTypeParameters=CR_CPU_Memory")
+path.write_text("\n".join(rewritten) + "\n", encoding="utf-8")
+PY
+
+  if grep -Eq '^PartitionName=.*OverSubscribe=EXCLUSIVE' "${slurm_conf}"; then
+    echo "ERROR: exclusive Slurm partition allocation survived boot rewrite in ${slurm_conf}" >&2
+    grep -E '^PartitionName=' "${slurm_conf}" >&2
+    exit 1
+  fi
+  grep -E '^(SelectTypeParameters=|PartitionName=)' "${slurm_conf}" || true
+}
+
 ensure_user ubuntu ubuntu /home/ubuntu
 ensure_user daylily daylily /home/daylily
 
@@ -69,6 +118,11 @@ install -d -m 0775 -o ubuntu -g ubuntu /fsx/analysis_results/ubuntu /fsx/analysi
 install -d -m 0775 -o daylily -g daylily /fsx/analysis_results/daylily
 install -d -m 0775 -o ubuntu -g ubuntu "${work_root}/ubuntu"
 install -d -m 0775 -o daylily -g daylily "${work_root}/daylily"
+
+if [ "${node_type}" != "ComputeFleet" ]; then
+  disable_slurm_partition_exclusivity
+  systemctl restart slurmctld
+fi
 
 cat <<'EOF' > /etc/profile.d/daylily-rhel8-dragen.sh
 export DAYLILY_WORK_ROOT="${DAYLILY_WORK_ROOT:-/fsx/work/${USER}}"

@@ -42,7 +42,7 @@ apptainer_deb="${runtime_assets_root}/cached_envs/apptainer_1.4.5_amd64.deb"
 apptainer_deb_sha256="70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05"
 reference_wait_timeout_seconds=1800
 reference_wait_interval_seconds=30
-sbatch_wrapper_sha256="f9c437528235435c0c8dc47e19ce664df56fd54df9d45f8de45fb91d60aaa037"
+sbatch_wrapper_sha256="7d03b2b2848438729d27a61b820210521553764c53093219af337253a7fd3ecf"
 sleep_test_sha256="024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae"
 
 echo "[$timestamp] Running post_install_ubuntu_combined.sh ${region} ${boot_s3_uri} on $(hostname) as ${node_type}"
@@ -91,6 +91,55 @@ append_once() {
   local line="$1"
   local file="$2"
   grep -Fxq "$line" "$file" 2>/dev/null || echo "$line" >> "$file"
+}
+
+disable_slurm_partition_exclusivity() {
+  local slurm_conf="/opt/slurm/etc/slurm.conf"
+  if [ ! -f "${slurm_conf}" ]; then
+    echo "ERROR: Slurm config not found while disabling partition exclusivity: ${slurm_conf}" >&2
+    exit 1
+  fi
+
+  echo "ALERT WARNING: Enforcing non-exclusive Slurm scheduling in ${slurm_conf}; PartitionName lines will use OverSubscribe=YES and SelectTypeParameters=CR_CPU_Memory."
+  python3 - "${slurm_conf}" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+lines = path.read_text(encoding="utf-8").splitlines()
+rewritten = []
+has_select_type_parameters = False
+for line in lines:
+    if line.startswith("SelectTypeParameters="):
+        rewritten.append("SelectTypeParameters=CR_CPU_Memory")
+        has_select_type_parameters = True
+        continue
+    if line.startswith("PartitionName="):
+        fields = line.split()
+        saw_oversubscribe = False
+        next_fields = []
+        for field in fields:
+            if field.startswith("OverSubscribe="):
+                next_fields.append("OverSubscribe=YES")
+                saw_oversubscribe = True
+            else:
+                next_fields.append(field)
+        if not saw_oversubscribe:
+            next_fields.append("OverSubscribe=YES")
+        rewritten.append(" ".join(next_fields))
+        continue
+    rewritten.append(line)
+if not has_select_type_parameters:
+    rewritten.append("SelectTypeParameters=CR_CPU_Memory")
+path.write_text("\n".join(rewritten) + "\n", encoding="utf-8")
+PY
+
+  if grep -Eq '^PartitionName=.*OverSubscribe=EXCLUSIVE' "${slurm_conf}"; then
+    echo "ERROR: exclusive Slurm partition allocation survived boot rewrite in ${slurm_conf}" >&2
+    grep -E '^PartitionName=' "${slurm_conf}" >&2
+    exit 1
+  fi
+  grep -E '^(SelectTypeParameters=|PartitionName=)' "${slurm_conf}" || true
 }
 
 link_cached_entries() {
@@ -531,6 +580,7 @@ EOF
    chmod a+x /opt/slurm/sbin/epilog.sh
    
    # Configure slurm to use Prolog and Epilog
+   disable_slurm_partition_exclusivity
    append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf
    append_once "Prolog=/opt/slurm/sbin/prolog.sh" /opt/slurm/etc/slurm.conf
    append_once "Epilog=/opt/slurm/sbin/epilog.sh" /opt/slurm/etc/slurm.conf

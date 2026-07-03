@@ -80,6 +80,26 @@ the budget/comment string should differ from the cluster name. DYEC passes that
 value to `dyoainit`, DayOA exports it as `DAY_PROJECT`, and Slurm receives it as
 `sbatch --comment "$DAY_PROJECT"`.
 
+## Collect DayOA Benchmark Summary
+
+Use this after a DayOA checkout already exists under an analysis result root:
+
+```bash
+dyec --json workflow collect-benchmarks \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --analysis-root "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
+  --genome-build hg38_broad
+```
+
+DYEC runs the collector on the headnode as `ubuntu`, from
+`<analysis-root>/daylily-omics-analysis`. The remote command acquires an
+analysis-root write lock, runs `source dyoainit`, `dy-a local <genome-build>`,
+then runs `bash bin/util/benchmarks/collect_day_benchmark_data.sh <genome-build>`.
+The combined output is
+`results/day/<genome-build>/reports/benchmarks_summary.tsv`.
+
 ## Attach Run Folders
 
 Use run DRAs for raw run folders that should stay in S3 until read by the workflow:

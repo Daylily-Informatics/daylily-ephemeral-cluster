@@ -37,6 +37,11 @@ info() {
     echo "Budget enforcement: $*" >&2
 }
 
+strip_exclusive() {
+    local argument="$1"
+    echo "ALERT WARNING: DYEC sbatch stripped exclusive allocation request '${argument}'. Exclusive Slurm allocation is disabled globally; request CPU and memory resources explicitly instead." >&2
+}
+
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --comment)
@@ -57,6 +62,9 @@ while [ "$#" -gt 0 ]; do
             if [ -z "${project}" ]; then
                 fail "--comment requires a project/budget value"
             fi
+            ;;
+        --exclusive|--exclusive=*)
+            strip_exclusive "$1"
             ;;
         *)
             passthrough_args+=("$1")
