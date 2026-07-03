@@ -23,7 +23,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.53"
+DAYOA_BLESSED_TAG = "10.0.54"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -35,6 +35,7 @@ EXPECTED_COMMANDS = {
     ("cluster", "list"),
     ("cluster", "describe"),
     ("cluster", "wait"),
+    ("cluster", "tags"),
     ("export",),
     ("exports", "attach"),
     ("exports", "run"),
@@ -181,6 +182,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     cluster_list_cmd = registry.get_command(("cluster", "list"))
     cluster_describe_cmd = registry.get_command(("cluster", "describe"))
     cluster_wait_cmd = registry.get_command(("cluster", "wait"))
+    cluster_tags_cmd = registry.get_command(("cluster", "tags"))
     env_status_cmd = registry.get_command(("env", "status"))
     env_activate_cmd = registry.get_command(("env", "activate"))
     env_deactivate_cmd = registry.get_command(("env", "deactivate"))
@@ -268,6 +270,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert cluster_wait_cmd is not None
     assert cluster_wait_cmd.policy.long_running is True
     assert cluster_wait_cmd.policy.mutates_state is False
+
+    assert cluster_tags_cmd is not None
+    assert cluster_tags_cmd.policy.supports_json is True
+    assert cluster_tags_cmd.policy.mutates_state is True
+    assert cluster_tags_cmd.policy.long_running is True
 
     assert env_status_cmd is not None
     assert env_status_cmd.policy.supports_json is True

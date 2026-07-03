@@ -41,6 +41,23 @@ dyec --json cluster describe --profile "$AWS_PROFILE" --region "$REGION" --clust
 dyec headnode jobs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 ```
 
+To expose Ursa scheduling eligibility without changing Slurm state, use cluster
+stack tags:
+
+```bash
+dyec --json cluster tags --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec cluster tags --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" \
+  --set daylily-accept-jobs=false \
+  --set ursa-drain-reason=maintenance
+dyec cluster tags --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" \
+  --set daylily-accept-jobs=true \
+  --delete ursa-drain-reason
+```
+
+`cluster tags` updates only the CloudFormation stack tags identified by
+ParallelCluster `describe-cluster`. It does not cancel, hold, release, drain, or
+resume jobs or nodes.
+
 ## Stage Sample Inputs
 
 Use `samples stage` for sample-manifest workflows:

@@ -102,9 +102,21 @@ point users to `https://ursa.day.lsmc.bio/ursa-actions#budgets?budget=<project>`
 dyec cluster list --profile "$AWS_PROFILE" --region "$REGION" --verbose
 dyec --json cluster describe --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 dyec cluster wait --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec --json cluster tags --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec cluster tags --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" \
+  --set daylily-accept-jobs=false \
+  --set ursa-drain-reason=maintenance
 ```
 
 `cluster-info` remains available, but `cluster list` and `cluster describe` are the preferred current inspection surfaces.
+
+`cluster tags` reads and edits the CloudFormation stack tags returned by
+ParallelCluster `describe-cluster` as `cloudformationStackArn`. Use repeated
+`--set KEY=VALUE` to add or replace tags and repeated `--delete KEY` to remove
+existing tags. With no `--set` or `--delete`, it lists the current tags. Ursa
+can use a conventional tag such as `daylily-accept-jobs=true|false` to decide
+whether a cluster is eligible for new jobs; DYEC only records the tag and does
+not change Slurm state.
 
 ## Headnode
 

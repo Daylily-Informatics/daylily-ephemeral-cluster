@@ -13,16 +13,37 @@ local_log_dir="/var/log/daylily"
 local_log_fn="${local_log_dir}/$(hostname)_${node_type_slug}_${timestamp}_dragen_postinstall.log"
 mkdir -p "${local_log_dir}"
 
-if [ ! -d /fsx ]; then
-  exec > >(tee -a "${local_log_fn}") 2>&1
-  echo "ERROR: expected /fsx mount is missing"
-  exit 1
-fi
+exec > >(tee -a "${local_log_fn}") 2>&1
+trap 'rc=$?; echo "[$(date +%Y%m%d_%H%M%S)] ERROR rc=${rc} line=${LINENO}: ${BASH_COMMAND}"; exit ${rc}' ERR
+
+wait_for_dir() {
+  local path="$1"
+  local label="$2"
+  local timeout_seconds="$3"
+  local interval_seconds="$4"
+  local waited_seconds=0
+
+  until [ -d "${path}" ]; do
+    if [ "${waited_seconds}" -ge "${timeout_seconds}" ]; then
+      echo "ERROR: expected ${label} is missing after ${timeout_seconds}s: ${path}" >&2
+      local parent_dir
+      parent_dir="$(dirname "${path}")"
+      if [ -e "${parent_dir}" ]; then
+        ls -la "${parent_dir}" >&2 || true
+      fi
+      exit 1
+    fi
+    echo "Waiting for ${label}: ${path} (${waited_seconds}/${timeout_seconds}s)"
+    sleep "${interval_seconds}"
+    waited_seconds=$((waited_seconds + interval_seconds))
+  done
+}
+
+wait_for_dir /fsx "/fsx mount" 600 10
 
 install -d -m 1777 /fsx/logs
 fsx_log_fn="/fsx/logs/$(hostname)_${node_type_slug}_${timestamp}_dragen_postinstall.log"
 exec > >(tee -a "${local_log_fn}" "${fsx_log_fn}") 2>&1
-trap 'rc=$?; echo "[$(date +%Y%m%d_%H%M%S)] ERROR rc=${rc} line=${LINENO}: ${BASH_COMMAND}"; exit ${rc}' ERR
 
 region="$1"
 boot_s3_uri="${2%/}"
@@ -38,15 +59,8 @@ echo "[$timestamp] FSx log: ${fsx_log_fn}"
 
 aws configure set region "${region}"
 
-if [ ! -d "${references_root}" ]; then
-  echo "ERROR: expected reference DRA path is missing: ${references_root}" >&2
-  exit 1
-fi
-
-if [ ! -d "${runtime_assets_root}" ]; then
-  echo "ERROR: expected runtime assets path is missing: ${runtime_assets_root}" >&2
-  exit 1
-fi
+wait_for_dir "${references_root}" "reference DRA path" 3600 15
+wait_for_dir "${runtime_assets_root}" "runtime assets path" 3600 15
 
 ensure_user() {
   local user_name="$1"

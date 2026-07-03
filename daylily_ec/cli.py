@@ -1129,6 +1129,123 @@ def cluster_wait(
         time.sleep(max(poll_interval, 1))
 
 
+def _emit_cluster_tags_text(payload: dict[str, Any]) -> None:
+    cluster = payload["cluster"]
+    region = payload["region"]
+    if payload["dry_run"]:
+        output.heading(f"Cluster tag dry-run: {cluster} ({region})")
+    elif payload["updated"]:
+        output.heading(f"Cluster tags updated: {cluster} ({region})")
+    else:
+        output.heading(f"Cluster tags: {cluster} ({region})")
+    output.print_text(f"Stack:  {payload['stack_id']}")
+    output.print_text(f"Status: {payload['stack_status']}")
+    if payload["set"]:
+        output.print_text("Set:    " + ", ".join(f"{k}={v}" for k, v in sorted(payload["set"].items())))
+    if payload["deleted"]:
+        output.print_text("Delete: " + ", ".join(payload["deleted"]))
+    if payload["updated"] and payload["waited"]:
+        output.print_text("Update: complete")
+    elif payload["updated"]:
+        output.print_text("Update: requested")
+    elif payload["dry_run"]:
+        output.print_text("Update: not submitted")
+    else:
+        output.print_text("Update: no changes")
+
+    output.print_text("")
+    output.print_text("%-42s %s" % ("KEY", "VALUE"))
+    output.print_text("%s %s" % ("-" * 42, "-" * 32))
+    for key, value in sorted(payload["after"].items()):
+        output.print_text("%-42s %s" % (key, value))
+
+
+def cluster_tags(
+    region: str = typer.Option(
+        ...,
+        "--region",
+        help="AWS region to query (e.g. us-west-2).",
+    ),
+    cluster: str = typer.Option(
+        ...,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    set_values: Optional[List[str]] = typer.Option(
+        None,
+        "--set",
+        metavar="KEY=VALUE",
+        help="Set or replace a cluster tag. Repeat for multiple tags.",
+    ),
+    delete_values: Optional[List[str]] = typer.Option(
+        None,
+        "--delete",
+        metavar="KEY",
+        help="Delete an existing cluster tag. Repeat for multiple tags.",
+    ),
+    wait: bool = typer.Option(
+        True,
+        "--wait/--no-wait",
+        help="Wait for the CloudFormation tag update to complete.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Show the requested tag result without updating AWS.",
+    ),
+) -> None:
+    """List or edit tags on the CloudFormation stack backing a cluster."""
+
+    import boto3
+
+    from daylily_ec.aws.cluster_tags import (
+        ClusterTagError,
+        parse_tag_assignments,
+        parse_tag_deletions,
+        stack_id_from_describe_cluster,
+        update_cluster_stack_tags,
+    )
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile = _resolved_aws_profile(profile)
+        describe_payload = _describe_cluster_payload(
+            profile=resolved_profile,
+            region=region,
+            cluster=cluster,
+        )
+        stack_id = stack_id_from_describe_cluster(describe_payload)
+        set_tags = parse_tag_assignments(set_values)
+        delete_keys = parse_tag_deletions(delete_values)
+        cfn_client = boto3.Session(
+            profile_name=resolved_profile,
+            region_name=region,
+        ).client("cloudformation")
+        result = update_cluster_stack_tags(
+            cfn_client,
+            stack_id=stack_id,
+            set_tags=set_tags,
+            delete_keys=delete_keys,
+            wait=wait,
+            dry_run=dry_run,
+        )
+    except (ClusterTagError, CommandError) as exc:
+        _exit_headnode_error(exc)
+
+    payload = result.to_payload(cluster=cluster, region=region)
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    _emit_cluster_tags_text(payload)
+
+
 def _validate_dewey_analysis_directory_link_options(
     *,
     artifact_registration_command_id: Optional[str],
@@ -4509,6 +4626,11 @@ def register(registry, cli_spec) -> None:
             ("list", cluster_list, REQUIRED_JSON),
             ("describe", cluster_describe, REQUIRED_JSON),
             ("wait", cluster_wait, REQUIRED_LONG_RUNNING),
+            (
+                "tags",
+                cluster_tags,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
         ],
     )
     register_group_commands(
