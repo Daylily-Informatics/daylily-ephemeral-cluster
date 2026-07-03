@@ -342,6 +342,7 @@ def _cluster_headnode_config_status(
             region,
             script,
             profile=profile,
+            as_user="auto",
             timeout=60,
             comment=f"Check headnode configuration for {row['name']}",
         )
@@ -2158,6 +2159,11 @@ def headnode_jobs(
         "--cluster-name",
         help="ParallelCluster name. Prompts when omitted.",
     ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote login user for SSM Run Command: auto, ubuntu, or ec2-user.",
+    ),
 ) -> None:
     """Print Slurm jobs from the headnode using the Daylily sq format."""
 
@@ -2188,6 +2194,7 @@ def headnode_jobs(
             resolved_region,
             "set -euo pipefail\nsqueue -o " + shlex.quote(SQUEUE_FORMAT),
             profile=resolved_profile,
+            as_user=remote_user,
             timeout=120,
             comment="Daylily headnode Slurm jobs",
         )

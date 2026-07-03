@@ -23,7 +23,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.54"
+DAYOA_BLESSED_TAG = "10.0.55"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -1401,6 +1401,7 @@ def test_headnode_jobs_runs_squeue_with_sq_format(monkeypatch) -> None:
     assert "squeue -o" in script
     assert SQUEUE_FORMAT in script
     assert kwargs["profile"] == "dev"
+    assert kwargs["as_user"] == "auto"
     assert kwargs["timeout"] == 120
 
 
