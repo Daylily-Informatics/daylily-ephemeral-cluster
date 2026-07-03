@@ -56,7 +56,7 @@ Scheduling:
         EphemeralVolume:
           MountDir: /scratch
     Image:
-      CustomAmi: ami-044bef021cb86a54c
+      CustomAmi: ${REGSUB_DRAGEN_PCLUSTER_AMI}
     ComputeResources:
     - Name: f26xlarge
       Instances:

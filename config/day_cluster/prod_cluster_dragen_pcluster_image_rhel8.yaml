@@ -23,6 +23,7 @@ HeadNode:
       Args:
       - ${REGSUB_REGION}
       - ${REGSUB_S3_BUCKET_INIT}
+      - fsx
   Iam:
     S3Access:
     - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
@@ -78,6 +79,7 @@ Scheduling:
         Args:
         - ${REGSUB_REGION}
         - ${REGSUB_S3_BUCKET_INIT}
+        - fsx
     Iam:
       S3Access:
       - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
