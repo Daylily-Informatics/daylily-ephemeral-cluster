@@ -33,10 +33,15 @@ REQUIRED_HEADNODE_WORK_DIRECTORIES = (
 )
 
 
-def build_headnode_readiness_script(repo_name: str = DEFAULT_HEADNODE_REPO_NAME) -> str:
+def build_headnode_readiness_script(
+    repo_name: str = DEFAULT_HEADNODE_REPO_NAME,
+    *,
+    remote_user: str = "ubuntu",
+) -> str:
     """Return the remote script that proves the headnode is ready for workflows."""
 
     repo_name_q = shlex.quote(repo_name)
+    remote_user_q = shlex.quote(remote_user)
     file_checks = "\n".join(f"test -s {path}" for path in REQUIRED_ROLE_FILES)
     dir_checks = "\n".join(f"test -d {path}" for path in REQUIRED_ROLE_DIRECTORIES)
     writable_cache_checks = "\n".join(
@@ -53,7 +58,7 @@ readiness_script="$(mktemp /tmp/daylily-headnode-readiness-XXXXXX.sh)"
 trap 'rm -f "$readiness_script"' EXIT
 cat >"$readiness_script" <<'DAYLILY_HEADNODE_READINESS'
 set -euo pipefail
-test "$(id -un)" = ubuntu
+test "$(id -un)" = {remote_user_q}
 test "${{DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}}" = 1
 test "${{CONDA_DEFAULT_ENV:-}}" = DAY-EC
 command -v daylily-ec >/dev/null 2>&1
@@ -89,15 +94,16 @@ def validate_headnode_readiness(
     timeout: Optional[int] = 120,
     comment: str = "Validate DAY-EC headnode readiness",
     repo_name: str = DEFAULT_HEADNODE_REPO_NAME,
+    remote_user: str = "ubuntu",
 ) -> SsmCommandResult:
-    """Run the shared readiness validation on a headnode via SSM as ubuntu."""
+    """Run the shared readiness validation on a headnode via SSM."""
 
     return run_shell(
         instance_id,
         region,
-        build_headnode_readiness_script(repo_name=repo_name),
+        build_headnode_readiness_script(repo_name=repo_name, remote_user=remote_user),
         profile=profile,
-        as_user="ubuntu",
+        as_user=remote_user,
         timeout=timeout,
         comment=comment,
     )

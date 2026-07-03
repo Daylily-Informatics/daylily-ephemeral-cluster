@@ -1775,6 +1775,16 @@ def pricing_spot_logs(
         "-o",
         help="Write CSV to this local file instead of stdout.",
     ),
+    cost_output: Optional[Path] = typer.Option(
+        None,
+        "--cost-output",
+        help="Write per-instance compute cost interval summary CSV to this local file.",
+    ),
+    cost_price_source: str = typer.Option(
+        "history",
+        "--cost-price-source",
+        help="Price source for cost intervals: history or logged.",
+    ),
     remote_user: str = typer.Option(
         "auto",
         "--remote-user",
@@ -1803,9 +1813,11 @@ def pricing_spot_logs(
     from daylily_ec.spot_price_logs import (
         DEFAULT_SPOT_LOG_NAME_GLOBS,
         DEFAULT_SPOT_LOG_PATHS,
+        build_spot_cost_intervals,
         build_remote_spot_price_log_script,
         extract_remote_spot_price_payload,
         normalize_spot_price_rows,
+        spot_cost_intervals_to_csv,
         spot_price_rows_to_csv,
     )
 
@@ -1859,6 +1871,26 @@ def pricing_spot_logs(
             )
         )
 
+    ec2_client = None
+    if cost_price_source == "history" and any(
+        row.get("node_type") == "ComputeFleet" for row in rows
+    ):
+        import boto3
+
+        ec2_client = boto3.Session(
+            profile_name=resolved_profile,
+            region_name=resolved_region,
+        ).client("ec2")
+    try:
+        cost_intervals = build_spot_cost_intervals(
+            rows,
+            price_source=cost_price_source,
+            ec2_client=ec2_client,
+            compute_only=True,
+        )
+    except ValueError as exc:
+        _exit_headnode_error(exc)
+
     payload = {
         "cluster": resolved_cluster,
         "headnode_instance_id": target.instance_id,
@@ -1868,7 +1900,12 @@ def pricing_spot_logs(
         "visited_files": remote_payload.get("visited_files", 0),
         "row_count": len(rows),
         "rows": rows,
+        "cost_interval_count": len(cost_intervals),
+        "cost_intervals": cost_intervals,
     }
+    if cost_output is not None:
+        cost_output.parent.mkdir(parents=True, exist_ok=True)
+        cost_output.write_text(spot_cost_intervals_to_csv(cost_intervals), encoding="utf-8")
     if _json_mode():
         output.emit_json(payload)
         return
@@ -1877,8 +1914,13 @@ def pricing_spot_logs(
     if output_file is not None:
         output_file.parent.mkdir(parents=True, exist_ok=True)
         output_file.write_text(csv_text, encoding="utf-8")
-        typer.echo(str(output_file))
+        if cost_output is not None:
+            typer.echo(f"{output_file}\n{cost_output}")
+        else:
+            typer.echo(str(output_file))
         return
+    if cost_output is not None:
+        typer.echo(f"cost intervals: {cost_output}", err=True)
     typer.echo(csv_text.rstrip("\n"))
 
 
@@ -2351,31 +2393,14 @@ def headnode_jobs(
         typer.echo(result.stderr.rstrip(), err=True)
 
 
-def headnode_configure(
-    profile: Optional[str] = typer.Option(
-        None,
-        "--profile",
-        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
-    ),
-    region: Optional[str] = typer.Option(
-        None,
-        "--region",
-        help="AWS region. Prompts when omitted.",
-    ),
-    cluster: Optional[str] = typer.Option(
-        None,
-        "--cluster",
-        "--cluster-name",
-        help="ParallelCluster name. Prompts when omitted.",
-    ),
-    repo_overrides: Optional[Path] = typer.Option(
-        None,
-        "--repo-overrides",
-        help="File containing repo overrides as repo-key:git-ref lines.",
-    ),
+def _configure_headnode_command(
+    *,
+    profile: Optional[str],
+    region: Optional[str],
+    cluster: Optional[str],
+    repo_overrides: Optional[Path],
+    remote_user: str,
 ) -> None:
-    """Configure a cluster headnode through the supported SSM bootstrap."""
-
     from daylily_ec.aws.ssm import SsmError, wait_for_ssm_online
     from daylily_ec.scripts.common import CommandError
     from daylily_ec.scripts.daylily_cfg_headnode import _load_repo_overrides
@@ -2401,6 +2426,7 @@ def headnode_configure(
             region=resolved_region,
             profile=resolved_profile,
             repo_overrides=overrides or None,
+            remote_user=remote_user,
         )
         if not ok:
             raise CommandError(f"Headnode configuration failed for cluster '{resolved_cluster}'.")
@@ -2408,6 +2434,74 @@ def headnode_configure(
         _exit_headnode_error(exc)
 
     output.success(f"Headnode configured via SSM for cluster '{resolved_cluster}'.")
+
+
+def headnode_configure(
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+    repo_overrides: Optional[Path] = typer.Option(
+        None,
+        "--repo-overrides",
+        help="File containing repo overrides as repo-key:git-ref lines.",
+    ),
+) -> None:
+    """Configure a cluster headnode through the supported Ubuntu SSM bootstrap."""
+
+    _configure_headnode_command(
+        profile=profile,
+        region=region,
+        cluster=cluster,
+        repo_overrides=repo_overrides,
+        remote_user="ubuntu",
+    )
+
+
+def headnode_configure_dragen(
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+    repo_overrides: Optional[Path] = typer.Option(
+        None,
+        "--repo-overrides",
+        help="File containing repo overrides as repo-key:git-ref lines.",
+    ),
+) -> None:
+    """Configure a RHEL/DRAGEN cluster headnode through SSM as ec2-user."""
+
+    _configure_headnode_command(
+        profile=profile,
+        region=region,
+        cluster=cluster,
+        repo_overrides=repo_overrides,
+        remote_user="ec2-user",
+    )
 
 
 def _invoke_stage_samples(argv: list[str]) -> int:
@@ -4791,6 +4885,7 @@ def register(registry, cli_spec) -> None:
             ("info", headnode_info, REQUIRED_JSON),
             ("jobs", headnode_jobs, required_policy()),
             ("configure", headnode_configure, REQUIRED_MUTATING_LONG_RUNNING),
+            ("configure-dragen", headnode_configure_dragen, REQUIRED_MUTATING_LONG_RUNNING),
         ],
     )
     register_group_commands(

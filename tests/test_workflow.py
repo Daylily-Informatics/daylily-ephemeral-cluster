@@ -1230,6 +1230,12 @@ class TestConfigureHeadnode:
             None,
             None,
         ]
+        assert [call.kwargs["as_user"] for call in mock_run_shell.call_args_list] == [
+            "ubuntu",
+            "ubuntu",
+            "ubuntu",
+            "ubuntu",
+        ]
         tos_cmd = mock_run_shell.call_args_list[2].args[2]
         assert "conda tos accept --override-channels" in tos_cmd
         assert "https://repo.anaconda.com/pkgs/main" in tos_cmd
@@ -1245,6 +1251,56 @@ class TestConfigureHeadnode:
             timeout=120,
             comment="Validate DAY-EC headnode readiness",
             repo_name="daylily-ephemeral-cluster",
+            remote_user="ubuntu",
+        )
+        mock_write_remote_text.assert_not_called()
+
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
+    def test_can_configure_headnode_as_ec2_user(
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
+
+        mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+        ]
+        mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
+
+        ok = configure_headnode(
+            cluster_name="dragen-cluster",
+            head_node_instance_id="i-drg123",
+            region="us-west-2",
+            profile="test",
+            remote_user="ec2-user",
+        )
+
+        assert ok is True
+        assert [call.kwargs["as_user"] for call in mock_run_shell.call_args_list] == [
+            "ec2-user",
+            "ec2-user",
+            "ec2-user",
+            "ec2-user",
+        ]
+        mock_validate_headnode_readiness.assert_called_once_with(
+            "i-drg123",
+            "us-west-2",
+            profile="test",
+            timeout=120,
+            comment="Validate DAY-EC headnode readiness",
+            repo_name="daylily-ephemeral-cluster",
+            remote_user="ec2-user",
         )
         mock_write_remote_text.assert_not_called()
 

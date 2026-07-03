@@ -868,10 +868,7 @@ def normalize_enforce_budget(value: str) -> str:
         return "true"
     if text in {"skip", "false", "0", "no"}:
         return "skip"
-    raise ValueError(
-        "enforce_budget must be one of true, enforce, skip, or false; "
-        f"got {value!r}"
-    )
+    raise ValueError(f"enforce_budget must be one of true, enforce, skip, or false; got {value!r}")
 
 
 def _validate_cluster_name(cluster_name: str) -> str:
@@ -929,7 +926,9 @@ def _resolve_explicit_subnet_id(
     try:
         response = ec2_client.describe_subnets(SubnetIds=[configured])
     except Exception as exc:
-        raise ValueError(f"Configured {label} does not exist or is inaccessible: {configured}") from exc
+        raise ValueError(
+            f"Configured {label} does not exist or is inaccessible: {configured}"
+        ) from exc
 
     subnets = response.get("Subnets", [])
     if not subnets:
@@ -1720,7 +1719,9 @@ def run_create_workflow(
         )
         if post_create_inputs.budget_project == RND_BUDGET_PROJECT:
             cluster_budget = RND_BUDGET_PROJECT
-            ui.info("Cluster project uses exact RnD budget-check bypass; no project budget created.")
+            ui.info(
+                "Cluster project uses exact RnD budget-check bypass; no project budget created."
+            )
         else:
             cluster_budget = ensure_cluster_budget(
                 budgets_client,
@@ -1752,8 +1753,7 @@ def run_create_workflow(
             "Cluster template YAML",
             non_interactive=non_interactive,
             default_fallback=(
-                "config/day_cluster/"
-                "prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+                "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
             ),
         )
         or "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
@@ -2149,6 +2149,7 @@ def configure_headnode(
     profile: str,
     *,
     repo_overrides: Optional[Dict[str, str]] = None,
+    remote_user: str = "ubuntu",
 ) -> bool:
     """Configure the headnode after a successful cluster creation."""
     import yaml
@@ -2231,6 +2232,7 @@ def configure_headnode(
                 region,
                 remote_cmd,
                 profile=profile,
+                as_user=remote_user,
                 timeout=timeout,
                 comment=label,
             )
@@ -2267,6 +2269,7 @@ def configure_headnode(
                     "~/.config/daylily/daylily_pipeline_command_catalog.yaml",
                     yaml.safe_dump(repos_cfg, default_flow_style=False, sort_keys=False),
                     profile=profile,
+                    as_user=remote_user,
                 )
                 logger.info("  ✓ Repository overrides deployed")
             except Exception as exc:
@@ -2285,6 +2288,7 @@ def configure_headnode(
             timeout=120,
             comment="Validate DAY-EC headnode readiness",
             repo_name=repo_name,
+            remote_user=remote_user,
         )
         logger.info("  ✓ DAY-EC headnode readiness validated")
     except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:

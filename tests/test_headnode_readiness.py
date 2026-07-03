@@ -19,8 +19,8 @@ from daylily_ec.headnode_readiness import (
 def test_readiness_script_requires_day_ec_tools_and_fsx_reference_assets():
     script = build_headnode_readiness_script()
 
-    assert "script -q -c \"bash -lc" in script
-    assert "test \"$(id -un)\" = ubuntu" in script
+    assert 'script -q -c "bash -lc' in script
+    assert 'test "$(id -un)" = ubuntu' in script
     assert "DAYLILY_EC_HEADNODE_BOOTSTRAPPED" in script
     assert "CONDA_DEFAULT_ENV:-}" in script
     assert "= DAY-EC" in script
@@ -46,6 +46,15 @@ def test_readiness_script_requires_day_ec_tools_and_fsx_reference_assets():
     assert "DAYLILY_APPTAINER_CACHE" in script
     assert "DAYLILY_NEXTFLOW_SEED_CACHE" in script
     assert "NXF_SINGULARITY_CACHEDIR" in script
+
+
+def test_readiness_script_can_target_ec2_user():
+    script = build_headnode_readiness_script(remote_user="ec2-user")
+
+    assert 'test "$(id -un)" = ec2-user' in script
+    assert 'test "$(id -un)" = ubuntu' not in script
+    assert "DAYLILY_EC_HEADNODE_BOOTSTRAPPED" in script
+    assert "day-clone --list >/dev/null" in script
 
 
 def test_validate_headnode_readiness_runs_shared_script_as_ubuntu():
@@ -84,6 +93,23 @@ def test_validate_headnode_readiness_runs_shared_script_as_ubuntu():
         "timeout": 99,
         "comment": "custom readiness",
     }
+
+
+def test_validate_headnode_readiness_can_run_as_ec2_user():
+    expected = SimpleNamespace(command_id="cmd-ready")
+
+    with patch("daylily_ec.headnode_readiness.run_shell", return_value=expected) as mock_run_shell:
+        result = validate_headnode_readiness(
+            "i-drg123",
+            "us-west-2",
+            profile="test",
+            remote_user="ec2-user",
+        )
+
+    assert result is expected
+    _instance_id, _region, script = mock_run_shell.call_args.args
+    assert 'test "$(id -un)" = ec2-user' in script
+    assert mock_run_shell.call_args.kwargs["as_user"] == "ec2-user"
 
 
 def test_validate_headnode_readiness_propagates_ssm_failures():

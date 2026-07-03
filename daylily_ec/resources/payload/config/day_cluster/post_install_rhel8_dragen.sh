@@ -45,6 +45,8 @@ reference_wait_timeout_seconds=3600
 reference_wait_interval_seconds=15
 sbatch_wrapper_sha256="7d03b2b2848438729d27a61b820210521553764c53093219af337253a7fd3ecf"
 sleep_test_sha256="024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae"
+spot_lifecycle_state_dir="/var/lib/daylily/spot_lifecycle"
+spot_lifecycle_state_file="${spot_lifecycle_state_dir}/metadata.env"
 
 echo "[$timestamp] Running post_install_rhel8_dragen.sh ${region} ${boot_s3_uri} ${storage_mode} on $(hostname) as ${node_type}"
 echo "[$timestamp] Local log: ${local_log_fn}"
@@ -170,6 +172,8 @@ log_spot_price() {
   local availability_zone
   local spot_price
   local log_file
+  local recorded_at
+  local recorded_at_epoch
 
   instance_type="$(metadata instance-type)"
   instance_id="$(metadata instance-id)"
@@ -187,7 +191,163 @@ log_spot_price() {
   else
     log_file="/var/log/daylily/$(hostname)_spot_price.log"
   fi
-  echo "$(date '+%Y-%m-%d %H:%M:%S') - Node type: ${node_type}, Partition: ${slurm_partition}, Compute resource: ${compute_resource}, Hostname: $(hostname), Instance id: ${instance_id}, Region: ${region}, AZ: ${availability_zone}, Instance type: ${instance_type}, Spot price: ${spot_price} USD/hour" >> "${log_file}"
+  recorded_at="$(date -u '+%Y-%m-%d %H:%M:%S')"
+  recorded_at_epoch="$(date -u +%s)"
+  echo "${recorded_at} - Node type: ${node_type}, Partition: ${slurm_partition}, Compute resource: ${compute_resource}, Hostname: $(hostname), Instance id: ${instance_id}, Region: ${region}, AZ: ${availability_zone}, Instance type: ${instance_type}, Spot price: ${spot_price} USD/hour" >> "${log_file}"
+
+  install -d -m 0755 "${spot_lifecycle_state_dir}"
+  {
+    printf 'NODE_TYPE=%s\n' "${node_type}"
+    printf 'SLURM_PARTITION=%s\n' "${slurm_partition}"
+    printf 'COMPUTE_RESOURCE=%s\n' "${compute_resource}"
+    printf 'HOSTNAME=%s\n' "$(hostname)"
+    printf 'INSTANCE_ID=%s\n' "${instance_id}"
+    printf 'REGION=%s\n' "${region}"
+    printf 'AVAILABILITY_ZONE=%s\n' "${availability_zone}"
+    printf 'INSTANCE_TYPE=%s\n' "${instance_type}"
+    printf 'SPOT_PRICE=%s\n' "${spot_price}"
+    printf 'LOG_FILE=%s\n' "${log_file}"
+    printf 'START_RECORDED_AT=%s\n' "${recorded_at}"
+    printf 'START_RECORDED_AT_EPOCH=%s\n' "${recorded_at_epoch}"
+  } > "${spot_lifecycle_state_file}"
+  chmod 0644 "${spot_lifecycle_state_file}"
+}
+
+install_spot_lifecycle_hooks() {
+  if [ "${node_type}" != "ComputeFleet" ]; then
+    echo "Spot lifecycle shutdown logging is enabled only on ComputeFleet nodes; skipping for ${node_type}."
+    return 0
+  fi
+  if [ ! -s "${spot_lifecycle_state_file}" ]; then
+    echo "ERROR: spot lifecycle metadata was not persisted: ${spot_lifecycle_state_file}" >&2
+    exit 1
+  fi
+
+  install -d -m 0755 /opt/daylily/bin "${spot_lifecycle_state_dir}" /var/log/daylily
+  cat > /opt/daylily/bin/daylily-spot-lifecycle-event <<'EOF'
+#!/bin/bash
+set -Eeuo pipefail
+
+event="${1:?event argument is required}"
+shutdown_reason="${2:-}"
+state_file="/var/lib/daylily/spot_lifecycle/metadata.env"
+state_dir="/var/lib/daylily/spot_lifecycle"
+error_log="/var/log/daylily/spot_lifecycle_shutdown_errors.log"
+
+if [ ! -s "${state_file}" ]; then
+  printf '%s ERROR: missing spot lifecycle state: %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "${state_file}" >> "${error_log}"
+  exit 0
+fi
+
+# shellcheck disable=SC1090
+source "${state_file}"
+
+recorded_at="$(date -u '+%Y-%m-%d %H:%M:%S')"
+recorded_at_epoch="$(date -u +%s)"
+line="${recorded_at} - Event: ${event}, Node type: ${NODE_TYPE}, Partition: ${SLURM_PARTITION}, Compute resource: ${COMPUTE_RESOURCE}, Hostname: ${HOSTNAME}, Instance id: ${INSTANCE_ID}, Region: ${REGION}, AZ: ${AVAILABILITY_ZONE}, Instance type: ${INSTANCE_TYPE}, Spot price: ${SPOT_PRICE} USD/hour, Recorded epoch: ${recorded_at_epoch}"
+
+case "${event}" in
+  interruption_notice)
+    interruption_action=""
+    interruption_time=""
+    if [ -s "${state_dir}/interruption_action" ]; then
+      read -r interruption_action < "${state_dir}/interruption_action"
+    fi
+    if [ -s "${state_dir}/interruption_time" ]; then
+      read -r interruption_time < "${state_dir}/interruption_time"
+    fi
+    if [ -z "${interruption_action}" ] || [ -z "${interruption_time}" ]; then
+      printf '%s ERROR: interruption_notice missing action/time metadata\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" >> "${error_log}"
+      exit 1
+    fi
+    line="${line}, Interruption action: ${interruption_action}, Interruption time: ${interruption_time}"
+    ;;
+  shutdown)
+    if [ -z "${shutdown_reason}" ]; then
+      shutdown_reason="systemd-stop"
+    fi
+    line="${line}, Shutdown reason: ${shutdown_reason}"
+    ;;
+  *)
+    printf '%s ERROR: unsupported spot lifecycle event: %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "${event}" >> "${error_log}"
+    exit 1
+    ;;
+esac
+
+if ! printf '%s\n' "${line}" >> "${LOG_FILE}"; then
+  printf '%s ERROR: failed writing lifecycle event to %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "${LOG_FILE}" >> "${error_log}"
+fi
+EOF
+  chmod 0755 /opt/daylily/bin/daylily-spot-lifecycle-event
+
+  cat > /opt/daylily/bin/daylily-spot-interruption-watch <<'EOF'
+#!/bin/bash
+set -Eeuo pipefail
+
+state_dir="/var/lib/daylily/spot_lifecycle"
+notice_marker="${state_dir}/interruption_notice_logged"
+
+imds_token() {
+  curl -fsS -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"
+}
+
+while true; do
+  token="$(imds_token)"
+  if body="$(curl -fsS -H "X-aws-ec2-metadata-token: ${token}" "http://169.254.169.254/latest/meta-data/spot/instance-action" 2>/dev/null)"; then
+    action="$(printf '%s\n' "${body}" | sed -n 's/.*"action"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+    interruption_time="$(printf '%s\n' "${body}" | sed -n 's/.*"time"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+    if [ -z "${action}" ] || [ -z "${interruption_time}" ]; then
+      echo "ERROR: IMDS spot instance-action did not include action and time: ${body}" >&2
+      exit 1
+    fi
+    if [ ! -f "${notice_marker}" ]; then
+      printf '%s\n' "${action}" > "${state_dir}/interruption_action"
+      printf '%s\n' "${interruption_time}" > "${state_dir}/interruption_time"
+      /opt/daylily/bin/daylily-spot-lifecycle-event interruption_notice
+      touch "${notice_marker}"
+    fi
+  fi
+  sleep 5
+done
+EOF
+  chmod 0755 /opt/daylily/bin/daylily-spot-interruption-watch
+
+  cat > /etc/systemd/system/daylily-spot-lifecycle-shutdown.service <<'EOF'
+[Unit]
+Description=Daylily spot lifecycle shutdown logger
+DefaultDependencies=no
+Before=shutdown.target reboot.target halt.target poweroff.target umount.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/true
+ExecStop=/opt/daylily/bin/daylily-spot-lifecycle-event shutdown systemd-stop
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  cat > /etc/systemd/system/daylily-spot-interruption-watch.service <<'EOF'
+[Unit]
+Description=Daylily spot interruption watcher
+After=network-online.target daylily-spot-lifecycle-shutdown.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/opt/daylily/bin/daylily-spot-interruption-watch
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  systemctl daemon-reload
+  systemctl enable --now daylily-spot-lifecycle-shutdown.service
+  systemctl enable --now daylily-spot-interruption-watch.service
 }
 
 disable_slurm_partition_exclusivity() {
@@ -611,6 +771,7 @@ install_runtime_profiles
 prepare_common_writable_dirs
 configure_kernel_and_shm
 log_spot_price
+install_spot_lifecycle_hooks
 validate_dragen_host
 
 if [ "${storage_mode}" = "fsx" ]; then

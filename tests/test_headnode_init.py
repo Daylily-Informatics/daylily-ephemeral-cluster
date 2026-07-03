@@ -678,7 +678,8 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     )
 
     assert "set -Ee -o pipefail" in script
-    assert "set -Eeuo pipefail" not in script
+    outer_script = script.split("install_spot_lifecycle_hooks()")[0]
+    assert "set -Eeuo pipefail" not in outer_script
     assert 'export HOME="${HOME:-/root}"' in script
     assert "trap 'rc=$?; echo \"[$(date +%Y%m%d_%H%M%S)] ERROR rc=${rc}" in script
     assert 'exec > >(tee -a "${local_log_fn}" "${fsx_log_fn}") 2>&1' in script
@@ -710,6 +711,12 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert 'ln -sfn "${runtime_assets_root}/tool_specific_resources/cromwell_87.jar"' in script
     assert 'ln -sfn "${runtime_assets_root}/tool_specific_resources/womtool_87.jar"' in script
     assert "prepare_common_writable_dirs" in script
+    assert 'spot_lifecycle_state_dir="/var/lib/daylily/spot_lifecycle"' in script
+    assert "daylily-spot-lifecycle-shutdown.service" in script
+    assert "daylily-spot-interruption-watch.service" in script
+    assert "ExecStop=/opt/daylily/bin/daylily-spot-lifecycle-event shutdown systemd-stop" in script
+    assert "latest/meta-data/spot/instance-action" in script
+    assert "install_spot_lifecycle_hooks" in script
     assert "prepare_headnode_writable_dirs" in script
     assert "prepare_dayoa_environment_cache" in script
     assert 'install -d -m 1777 \\' in script

@@ -23,7 +23,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.56"
+DAYOA_BLESSED_TAG = "10.0.60"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -61,6 +61,7 @@ EXPECTED_COMMANDS = {
     ("headnode", "info"),
     ("headnode", "jobs"),
     ("headnode", "configure"),
+    ("headnode", "configure-dragen"),
     ("samples", "stage"),
     ("samples", "run"),
     ("workflow", "launch"),
@@ -196,6 +197,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     headnode_info_cmd = registry.get_command(("headnode", "info"))
     headnode_jobs_cmd = registry.get_command(("headnode", "jobs"))
     headnode_configure_cmd = registry.get_command(("headnode", "configure"))
+    headnode_configure_dragen_cmd = registry.get_command(("headnode", "configure-dragen"))
     samples_stage_cmd = registry.get_command(("samples", "stage"))
     workflow_launch_cmd = registry.get_command(("workflow", "launch"))
     workflow_status_cmd = registry.get_command(("workflow", "status"))
@@ -314,6 +316,9 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert headnode_configure_cmd is not None
     assert headnode_configure_cmd.policy.mutates_state is True
     assert headnode_configure_cmd.policy.long_running is True
+    assert headnode_configure_dragen_cmd is not None
+    assert headnode_configure_dragen_cmd.policy.mutates_state is True
+    assert headnode_configure_dragen_cmd.policy.long_running is True
 
     assert samples_stage_cmd is not None
     assert samples_stage_cmd.policy.mutates_state is True
@@ -1048,7 +1053,25 @@ def test_pricing_spot_logs_exports_csv_via_ssm(monkeypatch, tmp_path) -> None:
                     "hostname": "ip-10-0-0-1",
                     "instance_id": "i-node",
                     "raw_line": "spot row",
-                }
+                },
+                {
+                    "source_path": "/fsx/scratch/ip-10-0-0-1_spot_price.log",
+                    "line_number": "5",
+                    "recorded_at": "2026-07-03 12:31:02",
+                    "recorded_at_epoch": "1783081862",
+                    "region": "us-west-2",
+                    "availability_zone": "us-west-2c",
+                    "instance_type": "f2.6xlarge",
+                    "spot_price_usd_per_hour": "1.234",
+                    "node_type": "ComputeFleet",
+                    "slurm_partition": "dragen",
+                    "compute_resource": "f26xlarge",
+                    "hostname": "ip-10-0-0-1",
+                    "instance_id": "i-node",
+                    "event": "shutdown",
+                    "shutdown_reason": "systemd-stop",
+                    "raw_line": "shutdown row",
+                },
             ],
             "paths": ["/fsx/logs", "/fsx/scratch"],
             "name_globs": ["*.log"],
@@ -1084,16 +1107,25 @@ def test_pricing_spot_logs_exports_csv_via_ssm(monkeypatch, tmp_path) -> None:
             "/fsx/scratch",
             "--output",
             str(tmp_path / "spot.csv"),
+            "--cost-output",
+            str(tmp_path / "cost.csv"),
+            "--cost-price-source",
+            "logged",
         ],
     )
 
     assert result.exit_code == 0
     output_path = tmp_path / "spot.csv"
-    assert result.stdout.strip() == str(output_path)
+    cost_path = tmp_path / "cost.csv"
+    assert result.stdout.strip().splitlines() == [str(output_path), str(cost_path)]
     text = output_path.read_text(encoding="utf-8")
     assert "cluster,headnode_instance_id,source_path" in text
     assert "cluster-a,i-abc123,/fsx/scratch/ip-10-0-0-1_spot_price.log" in text
     assert ",dragen,f26xlarge," in text
+    cost_text = cost_path.read_text(encoding="utf-8")
+    assert "instance_id,hostname,node_type" in cost_text
+    assert "i-node,ip-10-0-0-1,ComputeFleet" in cost_text
+    assert "0.61700000" in cost_text
     instance_id, region, script, kwargs = calls["run_shell"]
     assert instance_id == "i-abc123"
     assert region == "us-west-2"
@@ -1168,6 +1200,8 @@ def test_pricing_spot_logs_supports_json(monkeypatch) -> None:
     assert payload["headnode_instance_id"] == "i-abc123"
     assert payload["paths"] == ["/fsx/tmp"]
     assert payload["row_count"] == 0
+    assert payload["cost_interval_count"] == 0
+    assert payload["cost_intervals"] == []
 
 
 def test_aws_validate_all_passes_options_and_json(monkeypatch, tmp_path) -> None:
@@ -1661,6 +1695,60 @@ def test_headnode_configure_uses_workflow_configure(monkeypatch, tmp_path) -> No
         "region": "us-west-2",
         "profile": "dev",
         "repo_overrides": {"daylily-omics-analysis": "release-1"},
+        "remote_user": "ubuntu",
+    }
+
+
+def test_headnode_configure_dragen_uses_ec2_user(monkeypatch, tmp_path) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+    import daylily_ec.workflow.create_cluster as workflow_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch, cluster="dragen-cluster")
+    override_file = tmp_path / "repos.txt"
+    override_file.write_text("daylily-omics-analysis:release-1\n", encoding="utf-8")
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda _cluster, _region, *, profile=None: HeadNodeTarget(
+            "dragen-cluster",
+            "us-west-2",
+            "i-drg123",
+        ),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+
+    def fake_configure_headnode(**kwargs):
+        calls["configure"] = kwargs
+        return True
+
+    monkeypatch.setattr(workflow_module, "configure_headnode", fake_configure_headnode)
+
+    result = runner.invoke(
+        app,
+        [
+            "headnode",
+            "configure-dragen",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "dragen-cluster",
+            "--repo-overrides",
+            str(override_file),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert calls["configure"] == {
+        "cluster_name": "dragen-cluster",
+        "head_node_instance_id": "i-drg123",
+        "region": "us-west-2",
+        "profile": "dev",
+        "repo_overrides": {"daylily-omics-analysis": "release-1"},
+        "remote_user": "ec2-user",
     }
 
 

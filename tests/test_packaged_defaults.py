@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import subprocess
 
 import yaml
 
@@ -178,10 +179,39 @@ def test_packaged_boot_config_matches_source_and_disables_exclusivity() -> None:
         assert "OverSubscribe=YES" in script
         assert "SelectTypeParameters=CR_CPU_Memory" in script
         assert "exclusive Slurm partition allocation survived boot rewrite" in script
+        assert 'spot_lifecycle_state_dir="/var/lib/daylily/spot_lifecycle"' in script
+        assert "daylily-spot-lifecycle-shutdown.service" in script
+        assert "daylily-spot-interruption-watch.service" in script
+        assert "ExecStop=/opt/daylily/bin/daylily-spot-lifecycle-event shutdown systemd-stop" in script
+        assert "latest/meta-data/spot/instance-action" in script
 
     sbatch = (REPO_ROOT / "config/day_cluster/sbatch").read_text(encoding="utf-8")
     assert "DYEC sbatch stripped exclusive allocation request" in sbatch
     assert "--exclusive|--exclusive=*" in sbatch
+
+
+def test_spot_lifecycle_helper_heredocs_are_bash_syntax_valid() -> None:
+    helper_paths = (
+        "/opt/daylily/bin/daylily-spot-lifecycle-event",
+        "/opt/daylily/bin/daylily-spot-interruption-watch",
+    )
+    for relative_path in (
+        "config/day_cluster/post_install_ubuntu_combined.sh",
+        "config/day_cluster/post_install_rhel8_dragen.sh",
+    ):
+        script = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        for helper_path in helper_paths:
+            heredoc = _extract_single_quoted_heredoc(script, f"cat > {helper_path} <<'EOF'")
+            subprocess.run(["bash", "-n"], input=heredoc, text=True, check=True)
+
+
+def _extract_single_quoted_heredoc(script: str, marker: str) -> str:
+    start = script.index(marker) + len(marker)
+    remainder = script[start:]
+    if remainder.startswith("\n"):
+        remainder = remainder[1:]
+    end = remainder.index("\nEOF\n")
+    return remainder[:end]
 
 
 def test_dayoa_headnode_generators_do_not_emit_exclusive_rules() -> None:
