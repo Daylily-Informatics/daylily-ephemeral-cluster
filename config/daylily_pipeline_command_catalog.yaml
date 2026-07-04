@@ -1152,6 +1152,36 @@ repositories:
           - run_directory_mount
         git_tag: 10.0.61
         no_containerized: false
+        artifact_registration:
+          enabled: true
+          manifest_source: s3_inventory
+          evidence_manifest_path: results/runs/{analysis_id}/dayoa_evidence_manifest.json
+          include_classifications:
+            - multiqc_html
+            - multiqc_data_json
+            - multiqc_general_stats
+            - multiqc_sources
+            - multiqc_log
+            - multiqc_data_file
+          include_paths:
+            - results/runs/**/run_qc/illumina/multiqc_report.html
+            - results/runs/**/run_qc/illumina/multiqc_report_data/**
+            - results/runs/**/run_qc/illumina/summary.html
+            - results/runs/**/run_qc/illumina/summary.tsv
+            - results/runs/**/run_qc/illumina/illumina_run_qc.json
+          require_existing: true
+          allow_s3_body_sha256: true
+          s3_body_sha256_max_bytes: 50000000
+          parser_family_hint: multiqc
+          multiqc_report_kind: run_qc_illumina
+          multiqc_version: "1.35"
+          multiqc_reports:
+            - report_kind: run_qc_illumina
+              html_path: results/runs/**/run_qc/illumina/multiqc_report.html
+              data_dir_path: results/runs/**/run_qc/illumina/multiqc_report_data/
+          identity:
+            analysis_euid: "{analysis_id}"
+            run_euid: "{analysis_id}"
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
             generated_at: "2026-05-25T20:04:39Z"

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -18,6 +19,7 @@ from daylily_ec.workflow.dewey_registration import (
     DeweyRegistrationError,
     analysis_parts_from_receipt,
     build_registration_requests,
+    canonical_sha256,
     dayoa_s3_root,
     directory_artifact,
     file_artifact_from_record,
@@ -25,6 +27,7 @@ from daylily_ec.workflow.dewey_registration import (
     load_json,
     mime_type_for_path,
     register_exported_analysis_directory_links,
+    register_with_dewey,
     s3_join,
     selected_manifest_files,
     validate_relative_path,
@@ -205,10 +208,18 @@ class FakeS3Client:
 
         class Body:
             def __init__(self, text: str) -> None:
-                self.text = text
+                self.data = text.encode("utf-8")
+                self.offset = 0
 
-            def read(self) -> bytes:
-                return self.text.encode("utf-8")
+            def read(self, *_args: Any) -> bytes:
+                if self.offset >= len(self.data):
+                    return b""
+                chunk = self.data[self.offset :]
+                self.offset = len(self.data)
+                return chunk
+
+            def close(self) -> None:
+                return None
 
         return {"Body": Body(self.objects[key])}
 
@@ -217,6 +228,31 @@ class FakeS3Client:
         if self.listed_objects is None or key not in self.listed_objects:
             raise RuntimeError(f"missing fake s3 head: {key}")
         return self.listed_objects[key]
+
+
+def _with_dayoa_git_provenance(
+    listed: dict[str, dict[str, Any]],
+    objects: dict[str, str],
+    dayoa_prefix: str,
+    *,
+    git_sha: str = "b" * 40,
+    tag: str = "10.0.61",
+) -> None:
+    head_uri = dayoa_prefix + ".git/HEAD"
+    packed_refs_uri = dayoa_prefix + ".git/packed-refs"
+    listed[head_uri] = {"ContentLength": len(git_sha), "Metadata": {}, "ETag": '"head"'}
+    packed_refs = (
+        "# pack-refs with: peeled fully-peeled sorted\n"
+        f"{'c' * 40} refs/tags/{tag}\n"
+        f"^{git_sha}\n"
+    )
+    listed[packed_refs_uri] = {
+        "ContentLength": len(packed_refs),
+        "Metadata": {},
+        "ETag": '"packed"',
+    }
+    objects[head_uri] = git_sha
+    objects[packed_refs_uri] = packed_refs
 
 
 @pytest.mark.parametrize(
@@ -349,9 +385,11 @@ def test_s3_inventory_manifest_selects_policy_files_with_sha_metadata() -> None:
             "ETag": '"ignored"',
         },
     }
+    objects: dict[str, str] = {}
+    _with_dayoa_git_provenance(listed, objects, dayoa_prefix)
 
     manifest = _build_s3_inventory_manifest(
-        client=FakeS3Client(listed_objects=listed),
+        client=FakeS3Client(listed_objects=listed, objects=objects),
         export_receipt={
             "status": "success",
             "analysis_dir": "ubuntu/ccv20260530r57_illumina_run_qc_bclconvert",
@@ -372,6 +410,47 @@ def test_s3_inventory_manifest_selects_policy_files_with_sha_metadata() -> None:
     assert by_path[
         "results/runs/RUN1/run_qc/illumina/multiqc_report.html"
     ]["metadata"]["result_scope"] == "runs"
+    assert manifest["workflow"]["pipeline_version"] == "10.0.61"
+    assert manifest["workflow"]["git_sha"] == "b" * 40
+    assert manifest["workflow"]["snakemake_version"] == "snakemake-version-not-recorded"
+
+
+def test_s3_inventory_manifest_can_hash_small_policy_files_from_s3_body() -> None:
+    command = load_repository_catalog().get_command("illumina_run_qc")
+    dayoa_prefix = "s3://bucket/ubuntu/illumina_run_qc/daylily-omics-analysis/"
+    html_uri = dayoa_prefix + "results/runs/RUN1/run_qc/illumina/multiqc_report.html"
+    data_uri = (
+        dayoa_prefix
+        + "results/runs/RUN1/run_qc/illumina/multiqc_report_data/multiqc_data.json"
+    )
+    listed = {
+        html_uri: {"ContentLength": 12, "Metadata": {"user-agent": "aws-fsx-lustre"}},
+        data_uri: {"ContentLength": 14, "Metadata": {"user-agent": "aws-fsx-lustre"}},
+    }
+    objects = {html_uri: "html-content", data_uri: '{"id": "run"}'}
+    _with_dayoa_git_provenance(listed, objects, dayoa_prefix, git_sha="d" * 40, tag="10.0.62")
+
+    manifest = _build_s3_inventory_manifest(
+        client=FakeS3Client(listed_objects=listed, objects=objects),
+        export_receipt={
+            "status": "success",
+            "analysis_dir": "ubuntu/illumina_run_qc",
+            "dayoa_s3_root": dayoa_prefix,
+        },
+        policy=command.artifact_registration,
+        genome=command.genome,
+        command_id=command.command_id,
+    )
+
+    by_path = {record["relative_path"]: record for record in manifest["files"]}
+    assert by_path[
+        "results/runs/RUN1/run_qc/illumina/multiqc_report.html"
+    ]["sha256"] == hashlib.sha256(b"html-content").hexdigest()
+    assert by_path[
+        "results/runs/RUN1/run_qc/illumina/multiqc_report_data/multiqc_data.json"
+    ]["sha256"] == hashlib.sha256(b'{"id": "run"}').hexdigest()
+    assert manifest["workflow"]["pipeline_version"] == "10.0.62"
+    assert manifest["workflow"]["git_sha"] == "d" * 40
 
 
 def test_sha256_from_head_object_accepts_metadata_and_s3_checksum() -> None:
@@ -965,19 +1044,23 @@ def test_registration_only_s3_inventory_requires_sha256_metadata(tmp_path, monke
     fake = FakeFsxClient()
     prefix = "s3://bucket/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/"
     dayoa_prefix = prefix + "daylily-omics-analysis/"
+    listed = {
+        dayoa_prefix + ".test_data/data/ultima_run_qc/ultima_demux_summary_mqc.tsv": {
+            "ContentLength": 9,
+            "Metadata": {"user-agent": "aws-fsx-lustre"},
+            "ETag": '"testdata"',
+        },
+        dayoa_prefix + "results/runs/RUN1/run_qc/illumina/multiqc_report.html": {
+            "ContentLength": 10,
+            "Metadata": {"user-agent": "aws-fsx-lustre"},
+            "ETag": '"abc"',
+        },
+    }
+    objects: dict[str, str] = {}
+    _with_dayoa_git_provenance(listed, objects, dayoa_prefix)
     fake_s3 = FakeS3Client(
-        listed_objects={
-            dayoa_prefix + ".test_data/data/ultima_run_qc/ultima_demux_summary_mqc.tsv": {
-                "ContentLength": 9,
-                "Metadata": {"user-agent": "aws-fsx-lustre"},
-                "ETag": '"testdata"',
-            },
-            dayoa_prefix + "results/runs/RUN1/run_qc/illumina/multiqc_report.html": {
-                "ContentLength": 10,
-                "Metadata": {"user-agent": "aws-fsx-lustre"},
-                "ETag": '"abc"',
-            }
-        }
+        listed_objects=listed,
+        objects=objects,
     )
     monkeypatch.setenv("DEWEY_TOKEN", "token-1")
     monkeypatch.setattr(
@@ -1211,6 +1294,51 @@ def test_register_exported_analysis_directory_links_posts_external_object_and_re
         or call["idempotency_key"].startswith("dyec-ursa-analysis-external-")
         for call in calls[1:]
     )
+
+
+def test_register_with_dewey_uses_request_hash_idempotency(monkeypatch) -> None:
+    import daylily_ec.workflow.dewey_registration as dewey_registration
+
+    calls: list[dict[str, Any]] = []
+
+    def fake_post_json(
+        url: str,
+        token: str,
+        payload: dict[str, Any],
+        *,
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        calls.append(
+            {
+                "url": url,
+                "token": token,
+                "payload": payload,
+                "idempotency_key": idempotency_key,
+            }
+        )
+        return {"artifact_set_euid": f"Z-ASET-{len(calls)}"}
+
+    monkeypatch.setattr(dewey_registration, "post_json", fake_post_json)
+    requests = {
+        "analysis": {
+            "analysis_euid": "M-RGX-1",
+            "manifest_sha256": "a" * 64,
+            "artifacts": [],
+        },
+        "multiqc": [
+            {
+                "analysis_euid": "M-RGX-1",
+                "report_kind": "run_qc_illumina",
+                "manifest_sha256": "b" * 64,
+                "artifacts": [],
+            }
+        ],
+    }
+
+    register_with_dewey(dewey_url="https://dewey.example", token="token-1", requests=requests)
+
+    assert calls[0]["idempotency_key"] == canonical_sha256(requests["analysis"])
+    assert calls[1]["idempotency_key"] == canonical_sha256(requests["multiqc"][0])
 
 
 def test_run_export_workflow_links_dewey_analysis_directory_after_registration(

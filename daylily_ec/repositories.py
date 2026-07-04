@@ -380,6 +380,8 @@ class ArtifactRegistrationPolicy(BaseModel):
     include_classifications: List[str] = Field(default_factory=list)
     include_paths: List[str] = Field(default_factory=list)
     require_existing: bool = True
+    allow_s3_body_sha256: bool = False
+    s3_body_sha256_max_bytes: int = 50_000_000
     parser_family_hint: str
     multiqc_report_kind: str
     multiqc_version: str
@@ -436,6 +438,8 @@ class ArtifactRegistrationPolicy(BaseModel):
             raise ValueError(
                 "enabled artifact_registration requires include_classifications or include_paths"
             )
+        if self.s3_body_sha256_max_bytes <= 0:
+            raise ValueError("artifact_registration.s3_body_sha256_max_bytes must be positive")
         if self.enabled and self.parser_family_hint == "multiqc" and not self.multiqc_reports:
             raise ValueError("enabled MultiQC artifact_registration requires multiqc_reports")
         report_kinds = [report.report_kind for report in self.multiqc_reports]

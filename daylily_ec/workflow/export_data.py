@@ -5,9 +5,11 @@ from __future__ import annotations
 import dataclasses
 import base64
 import fnmatch
+import hashlib
 import json
 import logging
 import os
+import re
 import time
 from datetime import datetime, timezone
 from pathlib import PurePosixPath, Path
@@ -541,6 +543,144 @@ def _sha256_from_head_object(head: dict[str, Any], *, uri: str) -> str:
     raise ExportError(f"S3 object is missing SHA-256 metadata required by Dewey: {uri}")
 
 
+def _sha256_from_s3_object_body(
+    client: Any,
+    *,
+    bucket: str,
+    key: str,
+    uri: str,
+    size_bytes: int,
+    max_bytes: int,
+) -> str:
+    if size_bytes > max_bytes:
+        raise ExportError(
+            "S3 object is missing SHA-256 metadata and exceeds "
+            f"artifact_registration.s3_body_sha256_max_bytes ({max_bytes} bytes): {uri}"
+        )
+    try:
+        response = client.get_object(Bucket=bucket, Key=key)
+    except (BotoCoreError, ClientError) as exc:
+        raise ExportError(f"Unable to read S3 object for SHA-256 computation {uri}: {exc}") from exc
+    digest = hashlib.sha256()
+    body = response.get("Body")
+    try:
+        while True:
+            chunk = body.read(1024 * 1024) if body is not None else b""
+            if not chunk:
+                break
+            digest.update(chunk)
+    finally:
+        close = getattr(body, "close", None)
+        if callable(close):
+            close()
+    return digest.hexdigest()
+
+
+def _read_s3_text_if_present(
+    client: Any,
+    *,
+    bucket: str,
+    key: str,
+    max_bytes: int = 1_000_000,
+) -> str:
+    try:
+        head = client.head_object(Bucket=bucket, Key=key)
+    except ClientError as exc:
+        code = str(exc.response.get("Error", {}).get("Code") or "")
+        if code in {"404", "NoSuchKey", "NotFound"}:
+            return ""
+        raise ExportError(f"Unable to inspect S3 object s3://{bucket}/{key}: {exc}") from exc
+    except RuntimeError:
+        return ""
+    size_bytes = int(head.get("ContentLength") or 0)
+    if size_bytes > max_bytes:
+        raise ExportError(
+            f"S3 provenance object is too large to read ({size_bytes} bytes): s3://{bucket}/{key}"
+        )
+    try:
+        response = client.get_object(Bucket=bucket, Key=key)
+    except ClientError as exc:
+        code = str(exc.response.get("Error", {}).get("Code") or "")
+        if code in {"404", "NoSuchKey", "NotFound"}:
+            return ""
+        raise ExportError(f"Unable to read S3 object s3://{bucket}/{key}: {exc}") from exc
+    except RuntimeError:
+        return ""
+    body = response.get("Body")
+    try:
+        raw = body.read(max_bytes + 1) if body is not None else b""
+    finally:
+        close = getattr(body, "close", None)
+        if callable(close):
+            close()
+    if len(raw) > max_bytes:
+        raise ExportError(f"S3 provenance object exceeds read limit: s3://{bucket}/{key}")
+    return raw.decode("utf-8", errors="replace")
+
+
+_HEX_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+_SEMVER_TAG_RE = re.compile(r"^\d+(?:\.\d+){1,3}(?:[-+][0-9A-Za-z.-]+)?$")
+
+
+def _semver_sort_key(tag: str) -> tuple[int, ...]:
+    numeric = tag.split("-", 1)[0].split("+", 1)[0].split(".")
+    return tuple(int(part) for part in numeric)
+
+
+def _tag_for_git_sha(packed_refs: str, git_sha: str) -> str:
+    direct_tags: list[str] = []
+    peeled_tags: list[str] = []
+    previous_tag = ""
+    for raw_line in packed_refs.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("^"):
+            if line[1:] == git_sha and previous_tag:
+                peeled_tags.append(previous_tag)
+            continue
+        previous_tag = ""
+        parts = line.split()
+        if len(parts) != 2:
+            continue
+        sha, ref = parts
+        if not ref.startswith("refs/tags/"):
+            continue
+        tag = ref.removeprefix("refs/tags/")
+        previous_tag = tag
+        if sha == git_sha:
+            direct_tags.append(tag)
+    candidates = [tag for tag in direct_tags + peeled_tags if _SEMVER_TAG_RE.match(tag)]
+    if not candidates:
+        return ""
+    return sorted(candidates, key=_semver_sort_key)[-1]
+
+
+def _s3_inventory_workflow_metadata(client: Any, *, bucket: str, prefix: str) -> dict[str, str]:
+    head_key = f"{prefix}.git/HEAD"
+    packed_refs_key = f"{prefix}.git/packed-refs"
+    head = _read_s3_text_if_present(client, bucket=bucket, key=head_key).strip()
+    if head.startswith("ref: "):
+        ref = head.removeprefix("ref: ").strip()
+        head = _read_s3_text_if_present(client, bucket=bucket, key=f"{prefix}.git/{ref}").strip()
+    if not _HEX_SHA_RE.match(head):
+        raise ExportError(
+            "S3 inventory registration requires exported DayOA .git/HEAD with a 40-character SHA"
+        )
+    packed_refs = _read_s3_text_if_present(client, bucket=bucket, key=packed_refs_key)
+    tag = _tag_for_git_sha(packed_refs, head)
+    if not tag:
+        raise ExportError(
+            "S3 inventory registration requires exported DayOA .git/packed-refs with a tag "
+            f"for commit {head}"
+        )
+    return {
+        "pipeline_version": tag,
+        "git_sha": head,
+        "snakemake_version": "snakemake-version-not-recorded",
+    }
+
+
 def _classify_exported_artifact(relative_path: str) -> str:
     rel = str(relative_path)
     if rel == "config/samples.tsv":
@@ -644,6 +784,7 @@ def _build_s3_inventory_manifest(
     root = dayoa_s3_root(export_receipt)
     bucket, prefix = _s3_parts(root)
     objects = _iter_s3_objects(client, bucket=bucket, prefix=prefix)
+    workflow_metadata = _s3_inventory_workflow_metadata(client, bucket=bucket, prefix=prefix)
     files: list[dict[str, Any]] = []
     for obj in objects:
         key = str(obj.get("Key") or "")
@@ -669,11 +810,24 @@ def _build_s3_inventory_manifest(
             head = client.head_object(Bucket=bucket, Key=key)
         except (BotoCoreError, ClientError) as exc:
             raise ExportError(f"Unable to inspect S3 object {uri}: {exc}") from exc
-        sha256 = _sha256_from_head_object(head, uri=uri)
+        size_bytes = int(head.get("ContentLength") or obj.get("Size") or 0)
+        try:
+            sha256 = _sha256_from_head_object(head, uri=uri)
+        except ExportError:
+            if not policy.allow_s3_body_sha256:
+                raise
+            sha256 = _sha256_from_s3_object_body(
+                client,
+                bucket=bucket,
+                key=key,
+                uri=uri,
+                size_bytes=size_bytes,
+                max_bytes=int(policy.s3_body_sha256_max_bytes),
+            )
         files.append(
             {
                 "relative_path": relative_path,
-                "size_bytes": int(head.get("ContentLength") or obj.get("Size") or 0),
+                "size_bytes": size_bytes,
                 "sha256": sha256,
                 "classification": classification,
                 "parser_relevant": _parser_relevant(classification, relative_path),
@@ -698,9 +852,9 @@ def _build_s3_inventory_manifest(
         "analysis": {"genome_build": genome},
         "workflow": {
             "pipeline_name": "daylily-omics-analysis",
-            "pipeline_version": "",
-            "git_sha": "",
-            "snakemake_version": "",
+            "pipeline_version": workflow_metadata["pipeline_version"],
+            "git_sha": workflow_metadata["git_sha"],
+            "snakemake_version": workflow_metadata["snakemake_version"],
             "workflow_config_hash": canonical_sha256(
                 {
                     "source": "dyec_s3_export_inventory",

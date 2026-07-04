@@ -237,6 +237,17 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert multiqc_command.artifact_registration.multiqc_reports[0].report_kind == "final"
     assert multiqc_command.artifact_registration.identity.analysis_euid == "{analysis_id}"
 
+    plain_run_qc_command = catalog.get_command("illumina_run_qc")
+    assert plain_run_qc_command.artifact_registration is not None
+    assert plain_run_qc_command.artifact_registration.manifest_source == "s3_inventory"
+    assert plain_run_qc_command.artifact_registration.allow_s3_body_sha256 is True
+    assert plain_run_qc_command.artifact_registration.s3_body_sha256_max_bytes == 50_000_000
+    assert {
+        report.report_kind for report in plain_run_qc_command.artifact_registration.multiqc_reports
+    } == {"run_qc_illumina"}
+    assert "config/samples.tsv" not in plain_run_qc_command.artifact_registration.include_paths
+    assert "config/units.tsv" not in plain_run_qc_command.artifact_registration.include_paths
+
     run_qc_command = catalog.get_command("illumina_run_qc_bclconvert")
     assert run_qc_command.artifact_registration is not None
     assert run_qc_command.artifact_registration.manifest_source == "s3_inventory"
