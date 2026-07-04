@@ -723,7 +723,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
         mock_discover.assert_not_called()
         script = mock_run_shell.call_args.args[2]
         assert "bclconvert_runtime_tables_requested" in script
-        assert "*produce_illumina_run_qc*" in script
+        assert "*produce_illumina_run_qc*|" not in script
+        assert "*produce_illumina_run_qc_and_bclconvert*" in script
         assert "generate_bclconvert_runtime_tables" in script
         assert "project_run_context_mounts" in script
         assert "patch_bclconvert_profile_config" in script
