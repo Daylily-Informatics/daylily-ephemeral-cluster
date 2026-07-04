@@ -50,7 +50,6 @@ Scheduling:
   - Name: dragen
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
-    JobExclusiveAllocation: false
     ComputeSettings:
       LocalStorage:
         EphemeralVolume:

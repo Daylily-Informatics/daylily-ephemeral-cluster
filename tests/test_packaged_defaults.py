@@ -140,7 +140,7 @@ def test_active_cluster_template_uses_expected_partition_contract() -> None:
     assert "bcl-convert" not in names
     assert "bcl2fq-i384-nvme-test" not in names
     for queue in queues:
-        assert queue["JobExclusiveAllocation"] is False
+        assert "JobExclusiveAllocation" not in queue
         if queue["Name"].endswith("nvme"):
             assert (
                 queue["ComputeSettings"]["LocalStorage"]["EphemeralVolume"]["MountDir"]

@@ -49,7 +49,6 @@ Scheduling:
   - Name: i8
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
-    JobExclusiveAllocation: false
     ComputeResources:
     - Name: price8
       Instances:
@@ -98,7 +97,6 @@ Scheduling:
   - Name: i128
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
-    JobExclusiveAllocation: false
     ComputeResources:
     - Name: price128
       Instances:
@@ -220,7 +218,6 @@ Scheduling:
   - Name: i128nvme
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
-    JobExclusiveAllocation: false
     ComputeSettings:
       LocalStorage:
         EphemeralVolume:
@@ -265,7 +262,6 @@ Scheduling:
   - Name: i192
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
-    JobExclusiveAllocation: false
     ComputeResources:
     - Name: price192
       Instances:
@@ -370,7 +366,6 @@ Scheduling:
   - Name: i192nvme
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
-    JobExclusiveAllocation: false
     ComputeSettings:
       LocalStorage:
         EphemeralVolume:
@@ -449,7 +444,6 @@ Scheduling:
   - Name: i384nvme
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
-    JobExclusiveAllocation: false
     ComputeSettings:
       LocalStorage:
         EphemeralVolume:
@@ -541,7 +535,6 @@ Scheduling:
   - Name: i192hugenvme
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
-    JobExclusiveAllocation: false
     ComputeSettings:
       LocalStorage:
         EphemeralVolume:

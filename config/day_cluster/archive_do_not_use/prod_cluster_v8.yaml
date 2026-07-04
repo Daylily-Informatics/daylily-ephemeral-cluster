@@ -151,7 +151,6 @@ Scheduling:
     - Name: i128nvme
       CapacityType: SPOT
       AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
-      JobExclusiveAllocation: true
       ComputeSettings:
         LocalStorage:
           # /scratch is node-local instance-store. It is ephemeral and not durable.
@@ -255,7 +254,6 @@ Scheduling:
     - Name: i192nvme
       CapacityType: SPOT
       AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
-      JobExclusiveAllocation: true
       ComputeSettings:
         LocalStorage:
           # /scratch is node-local instance-store. It is ephemeral and not durable.
@@ -322,7 +320,6 @@ Scheduling:
     - Name: i384nvme
       CapacityType: SPOT
       AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
-      JobExclusiveAllocation: true
       ComputeSettings:
         LocalStorage:
           # /scratch is node-local instance-store. It is ephemeral and not durable.
@@ -389,7 +386,6 @@ Scheduling:
     - Name: i192hugenvme
       CapacityType: SPOT
       AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
-      JobExclusiveAllocation: true
       ComputeSettings:
         LocalStorage:
           # /scratch is node-local instance-store. It is ephemeral and not durable.
