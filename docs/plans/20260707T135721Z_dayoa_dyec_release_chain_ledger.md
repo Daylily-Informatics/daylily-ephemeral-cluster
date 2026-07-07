@@ -28,8 +28,8 @@ Release the current DayOA state to a new version tag, update DYEC DayOA pins, re
 | GATE0 | Baseline | Record repo state, dirty files, and planned tags. | SUCCESS | Orchestrator | Gate 0 table above. |  | Ready to release. |
 | DAYOA-RELEASE | DayOA | Commit dirty DayOA changes if present, push `jem-dev`, create and push new DayOA tag. | SUCCESS | Agent 1 | DayOA was clean, so no commit was created. `git push origin jem-dev` -> up to date; `git tag -a 10.0.64 -m 'Release 10.0.64'`; `git push origin 10.0.64`; `git cat-file -t 10.0.64` -> `tag`; tag resolves to `9c8c014`. |  | DayOA release tag `10.0.64` is pushed. |
 | DYEC-DAYOA-PIN | DYEC | Update DYEC DayOA pins in `pyproject.toml` and `config/**` to new DayOA tag. | SUCCESS | Agent 2 | Updated DayOA pins from `10.0.63` to `10.0.64` in `pyproject.toml`, `config/daylily_pipeline_command_catalog.yaml`, `daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml`, and blessed-tag tests. Full DYEC `pytest -q` -> `1211 passed, 8 skipped`. |  | DYEC now pins DayOA `10.0.64`. |
-| DYEC-RELEASE-1 | DYEC | Commit/push dirty DYEC state and DayOA pin update, then create/push first DYEC tag. | OPEN | Agent 2 | Planned tag `10.0.102`. |  |  |
-| DYEC-SELF-PIN | DYEC | Update DYEC self-pinned version to the first new DYEC tag. | OPEN | Agent 3 | Planned self-pin `10.0.102`. |  |  |
+| DYEC-RELEASE-1 | DYEC | Commit/push dirty DYEC state and DayOA pin update, then create/push first DYEC tag. | SUCCESS | Agent 2 | Commit `62fe32d7 Release DYEC 10.0.102 with DayOA 10.0.64`; included DayOA pin updates plus dirty ledger files; `git push origin HEAD:jem-dev`; `git tag -a 10.0.102 -m 'Release 10.0.102'`; `git push origin 10.0.102`; `git cat-file -t 10.0.102` -> `tag`. |  | DYEC first release tag `10.0.102` is pushed. |
+| DYEC-SELF-PIN | DYEC | Update DYEC self-pinned version to the first new DYEC tag. | SUCCESS | Agent 3 | Updated `config/daylily_cli_global.yaml`, `daylily_ec/resources/payload/config/daylily_cli_global.yaml`, and `tests/test_lsmc_bio_fork_contract.py` from `10.0.100` to `10.0.102`. Full DYEC `pytest -q` -> `1211 passed, 8 skipped`. |  | DYEC self-pins now target `10.0.102`. |
 | DYEC-RELEASE-2 | DYEC | Commit/push self-pin update, then create/push final DYEC tag. | OPEN | Agent 3 | Planned tag `10.0.103`. |  |  |
 | FINAL | Closeout | Report pushed tags, commits, tests, and final versions. | OPEN | Orchestrator |  |  |  |
 
@@ -38,3 +38,5 @@ Release the current DayOA state to a new version tag, update DYEC DayOA pins, re
 - 2026-07-07T13:57Z: Ledger created. DayOA is clean; DYEC has one pre-existing untracked ledger file plus this new release-chain ledger.
 - 2026-07-07T14:00Z: DayOA tag `10.0.64` created and pushed on clean `jem-dev` commit `9c8c014`.
 - 2026-07-07T14:03Z: DYEC DayOA pins updated to `10.0.64`; full DYEC tests passed: `1211 passed, 8 skipped`.
+- 2026-07-07T14:04Z: DYEC commit `62fe32d7` pushed to `origin/jem-dev`; annotated tag `10.0.102` pushed.
+- 2026-07-07T14:06Z: DYEC self-pins updated to `10.0.102`; full DYEC tests passed again: `1211 passed, 8 skipped`.
