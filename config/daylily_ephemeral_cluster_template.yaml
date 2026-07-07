@@ -8,7 +8,6 @@ ephemeral_cluster:
     private_subnet_id: [PROMPTUSER, "", ""]
     iam_policy_arn: [PROMPTUSER, "", ""]
     cluster_name: [PROMPTUSER, "majors-cluster", ""]
-    budget_project: [PROMPTUSER, "", ""]
     budget_email: [PROMPTUSER, "", ""]
     allowed_budget_users: [PROMPTUSER, "ubuntu", ""]
     budget_amount: [PROMPTUSER, "200", ""]

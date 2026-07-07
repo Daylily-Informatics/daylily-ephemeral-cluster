@@ -107,13 +107,13 @@ dyec headnode connect \
   --cluster "$CLUSTER_NAME"
 ```
 
-Budget enforcement is enabled by default on new clusters. `dyec create` uses
-the cluster name as the default budget project, or `--budget-project <project>`
-when supplied, and stages the Slurm wrapper that requires
-`sbatch --comment <project>`. Use `--disable-budget-enforcement` only when the
-AWS Budget lookup should be skipped; the `--comment` requirement still applies.
-The exact project `RnD` is the only budget-lookup bypass. For per-run overrides,
-pass `--project <project>` to `dyec samples run` or `dyec workflow launch`.
+Cluster AWS Budget enforcement is enabled by default on new clusters and the
+budget name is the cluster name. The staged Slurm wrapper always requires
+`sbatch --comment <cost-center>`; that value is validated against the global
+cost-center registry and usage cap. Use `--disable-budget-enforcement` only
+when the cluster AWS Budget lookup should be skipped. Cost-center validation
+and the `--comment` requirement still apply. For per-run cost-center overrides,
+pass `--project <cost-center>` to `dyec samples run` or `dyec workflow launch`.
 
 After connection, the supported headnode user is `ubuntu` in an interactive bash login shell. Manual DayOA workflow work belongs in a persistent `tmux` session and uses separate commands:
 

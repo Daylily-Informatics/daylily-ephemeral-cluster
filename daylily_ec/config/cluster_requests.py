@@ -25,7 +25,6 @@ def build_noninteractive_cluster_config(
         "control_data_s3_uri": control_data_s3_uri,
         "stage_s3_uri": stage_s3_uri,
         "export_destination_s3_uri": export_destination_s3_uri,
-        "budget_project": cluster_name,
         "enforce_budget": "true",
     }
     if contact_email:

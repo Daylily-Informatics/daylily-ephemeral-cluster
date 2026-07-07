@@ -61,6 +61,15 @@ IN_PROGRESS_STATUSES = frozenset({
     "UPDATE_COMPLETE_CLEANUP_IN_PROGRESS",
 })
 
+#: Stack statuses that keep the stack name reserved but are not reusable.
+BLOCKING_TERMINAL_STATUSES = frozenset({
+    "CREATE_FAILED",
+    "ROLLBACK_COMPLETE",
+    "ROLLBACK_FAILED",
+    "DELETE_FAILED",
+    "UPDATE_ROLLBACK_FAILED",
+})
+
 
 # ---------------------------------------------------------------------------
 # Stack outputs dataclass
@@ -251,6 +260,14 @@ def ensure_pcluster_env_stack(
         waiter = cfn.get_waiter("stack_create_complete")
         waiter.wait(StackName=stack_name)
         return get_stack_outputs(cfn, stack_name)
+
+    if status in BLOCKING_TERMINAL_STATUSES:
+        raise RuntimeError(
+            f"CFN stack {stack_name} already exists in {status}; "
+            "delete or repair that stack before creating a baseline stack, "
+            "or provide explicit public_subnet_id, private_subnet_id, and "
+            "iam_policy_arn config values."
+        )
 
     # 2. Read template. When installed via pip, fall back to packaged resources.
     if not os.path.isfile(template_path):

@@ -96,13 +96,12 @@ class TestConstants:
 
 class TestBuildBudgetDict:
     def test_shape_matches_bash(self):
-        d = _build_budget_dict("mybudget", "200", "myproject", "mycluster")
+        d = _build_budget_dict("mybudget", "200", "mycluster")
         assert d["BudgetLimit"] == {"Amount": "200", "Unit": "USD"}
         assert d["BudgetName"] == "mybudget"
         assert d["BudgetType"] == "COST"
         assert d["TimeUnit"] == "MONTHLY"
         assert d["CostFilters"]["TagKeyValue"] == [
-            "user:aws-parallelcluster-project$myproject",
             "user:aws-parallelcluster-clustername$mycluster",
         ]
         ct = d["CostTypes"]
@@ -121,7 +120,7 @@ class TestBuildBudgetDict:
         assert ct["UseBlended"] is False
 
     def test_amount_is_string(self):
-        d = _build_budget_dict("b", 300, "p", "c")
+        d = _build_budget_dict("b", 300, "c")
         assert d["BudgetLimit"]["Amount"] == "300"
 
 
@@ -180,10 +179,10 @@ class TestBudgetExists:
 
 class TestClusterBudgetName:
     def test_format(self):
-        assert cluster_budget_name("us-west-2b", "mycluster") == "da-us-west-2b-mycluster"
+        assert cluster_budget_name("us-west-2b", "mycluster") == "mycluster"
 
     def test_different_az(self):
-        assert cluster_budget_name("us-east-1a", "cl") == "da-us-east-1a-cl"
+        assert cluster_budget_name("us-east-1a", "cl") == "cl"
 
 
 # ===================================================================
@@ -194,7 +193,7 @@ class TestClusterBudgetName:
 class TestCreateBudget:
     def test_creates_when_not_exists(self):
         c = _budgets_client([])
-        create_budget(c, "111", "b1", "200", "p1", "c1")
+        create_budget(c, "111", "b1", "200", "c1")
         c.create_budget.assert_called_once()
         call_kw = c.create_budget.call_args
         budget_arg = (
@@ -209,7 +208,7 @@ class TestCreateBudget:
 
     def test_skips_when_exists(self):
         c = _budgets_client([{"BudgetName": "b1"}])
-        create_budget(c, "111", "b1", "200", "p1", "c1")
+        create_budget(c, "111", "b1", "200", "c1")
         c.create_budget.assert_not_called()
 
 
@@ -236,6 +235,11 @@ class TestCreateNotifications:
         c.create_notification.side_effect = Exception("duplicate")
         # Should not raise
         create_notifications(c, "111", "b1", [50], "a@b.com")
+
+    def test_blank_email_skips_notifications(self):
+        c = MagicMock()
+        create_notifications(c, "111", "b1", [75], "")
+        c.create_notification.assert_not_called()
 
 
 # ===================================================================
@@ -351,14 +355,14 @@ class TestEnsureClusterBudget:
             bucket_name="bkt",
             allowed_users="u1",
         )
-        assert name == "da-us-west-2b-cl1"
+        assert name == "cl1"
         bc.create_budget.assert_called_once()
         # 1 notification for cluster: 75
         assert bc.create_notification.call_count == 1
         sc.put_object.assert_called_once()
 
     def test_skips_when_exists(self):
-        bc = _budgets_client([{"BudgetName": "da-us-west-2b-cl1"}])
+        bc = _budgets_client([{"BudgetName": "cl1"}])
         sc = _s3_client()
         name = ensure_cluster_budget(
             bc,
@@ -372,11 +376,11 @@ class TestEnsureClusterBudget:
             bucket_name="bkt",
             allowed_users="u1",
         )
-        assert name == "da-us-west-2b-cl1"
+        assert name == "cl1"
         bc.create_budget.assert_not_called()
         sc.put_object.assert_called_once()
 
-    def test_uses_explicit_budget_name(self):
+    def test_cluster_budget_ignores_project_tag_filter(self):
         bc = _budgets_client([])
         sc = _s3_client(existing_body=None)
         name = ensure_cluster_budget(
@@ -390,13 +394,11 @@ class TestEnsureClusterBudget:
             region_az="us-west-2b",
             bucket_name="bkt",
             allowed_users="u1",
-            budget_name="project-a",
         )
-        assert name == "project-a"
+        assert name == "cl1"
         budget_arg = bc.create_budget.call_args.kwargs["Budget"]
-        assert budget_arg["BudgetName"] == "project-a"
+        assert budget_arg["BudgetName"] == "cl1"
         assert budget_arg["CostFilters"]["TagKeyValue"] == [
-            "user:aws-parallelcluster-project$project-a",
             "user:aws-parallelcluster-clustername$cl1",
         ]
 
@@ -411,7 +413,7 @@ class TestMakeBudgetPreflightStep:
         bc = _budgets_client(
             [
                 {"BudgetName": GLOBAL_BUDGET_NAME},
-                {"BudgetName": "da-us-west-2b-cl"},
+                {"BudgetName": "cl"},
             ]
         )
         r = make_budget_preflight_step(
@@ -434,7 +436,7 @@ class TestMakeBudgetPreflightStep:
             region_az="us-west-2b",
         )
         assert r.status == CheckStatus.WARN
-        assert "da-us-west-2b-cl" in r.remediation
+        assert "cl" in r.remediation
 
     def test_neither_exist_warn(self):
         bc = _budgets_client([])
@@ -446,10 +448,10 @@ class TestMakeBudgetPreflightStep:
         )
         assert r.status == CheckStatus.WARN
         assert GLOBAL_BUDGET_NAME in r.remediation
-        assert "da-us-west-2b-cl" in r.remediation
+        assert "cl" in r.remediation
 
     def test_cluster_only_warn(self):
-        bc = _budgets_client([{"BudgetName": "da-us-west-2b-cl"}])
+        bc = _budgets_client([{"BudgetName": "cl"}])
         r = make_budget_preflight_step(
             bc,
             "111",

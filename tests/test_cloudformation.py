@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -371,6 +372,19 @@ class TestEnsurePclusterEnvStack:
                 ctx, "us-west-2a", template_path="/no/such/file.yml",
             )
 
+    def test_blocking_terminal_stack_status_raises_clear_error(self):
+        cfn = self._cfn_with_status("ROLLBACK_COMPLETE")
+        iam = MagicMock()
+        ctx = _make_aws_ctx(cfn, iam)
+
+        with pytest.raises(
+            RuntimeError,
+            match="pcluster-vpc-stack-2b.*ROLLBACK_COMPLETE.*explicit public_subnet_id",
+        ):
+            ensure_pcluster_env_stack(ctx, "us-west-2b")
+
+        cfn.create_stack.assert_not_called()
+
 
 # ===================================================================
 # make_cfn_preflight_step
@@ -436,3 +450,14 @@ class TestConstants:
     def test_in_progress_statuses(self):
         assert "CREATE_IN_PROGRESS" in IN_PROGRESS_STATUSES
 
+    def test_pcluster_policy_templates_allow_cost_center_reads(self):
+        root = Path(__file__).resolve().parents[1]
+        templates = [
+            root / "config/day_cluster/pcluster_env.yml",
+            root / "daylily_ec/resources/payload/config/day_cluster/pcluster_env.yml",
+        ]
+        for template in templates:
+            body = template.read_text(encoding="utf-8")
+            assert "dynamodb:GetItem" in body
+            assert "table/dayec-cost-centers" in body
+            assert "table/dayec-cost-center-usage" in body

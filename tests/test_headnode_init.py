@@ -703,7 +703,7 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert 'chmod a-w "${role_root}"' in script
     assert 'stat -c "Role data permissions: %A %n" "${role_root}"' in script
     assert "fd-find ripgrep docker.io" in script
-    assert "7d03b2b2848438729d27a61b820210521553764c53093219af337253a7fd3ecf" in script
+    assert "690b8ce1de6f7afd6aed754a50315dbde440fbcad1432743a415b6a7ef43e301" in script
     assert "024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae" in script
     assert "cached Apptainer deb not found" in script
     assert 'apt-get install -y "${apptainer_deb}"' in script
@@ -780,6 +780,7 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "OverSubscribe=YES" in script
     assert "SelectTypeParameters=CR_CPU_Memory" in script
     assert "exclusive Slurm partition allocation survived boot rewrite" in script
+    assert 'append_once "AccountingStoreFlags=job_comment" /opt/slurm/etc/slurm.conf' in script
     assert 'append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf' in script
     assert "mv /opt/slurm/bin/sbatch /opt/slurm/sbin/sbatch" in script
     assert "mv /opt/slurm/bin/srun /opt/slurm/sbin/srun" in script
@@ -789,6 +790,7 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "chmod a+x /opt/slurm/bin/sleep_test.sh" not in script
     assert "ln -s /fsx/data/cached_envs/conda/*" not in script
     assert 'echo "PrologFlags=Alloc" >> /opt/slurm/etc/slurm.conf' not in script
+    assert 'echo "AccountingStoreFlags=job_comment" >> /opt/slurm/etc/slurm.conf' not in script
     assert "ppa:apptainer/ppa" not in script
     assert "command -v apptainer" in script
     assert "command -v singularity" in script
@@ -820,3 +822,21 @@ def test_packaged_post_install_bootstrap_matches_source() -> None:
     )
 
     assert packaged.read_text(encoding="utf-8") == source.read_text(encoding="utf-8")
+
+
+def test_rhel_dragen_post_install_removes_cromwell_and_requires_womtool() -> None:
+    source = (REPO_ROOT / "config/day_cluster/post_install_rhel8_dragen.sh").read_text(
+        encoding="utf-8"
+    )
+    packaged = (
+        REPO_ROOT
+        / "daylily_ec/resources/payload/config/day_cluster/post_install_rhel8_dragen.sh"
+    ).read_text(encoding="utf-8")
+
+    for script in (source, packaged):
+        assert 'wait_for_dir "${runtime_assets_root}/tool_specific_resources"' in script
+        assert "cromwell_87.jar" not in script
+        assert "cromwell.jar" not in script
+        assert "/fsx/analysis_results/cromwell_executions" not in script
+        assert "ERROR: womtool_87.jar missing" in script
+        assert "install_womtool_link" in script

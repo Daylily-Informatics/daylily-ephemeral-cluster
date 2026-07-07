@@ -23,7 +23,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.62"
+DAYOA_BLESSED_TAG = "10.0.63"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -56,6 +56,14 @@ EXPECTED_COMMANDS = {
     ("aws", "validate", "quotas"),
     ("aws", "validate", "all"),
     ("slurm-accounting", "ensure"),
+    ("cost-centers", "ensure-registry"),
+    ("cost-centers", "create"),
+    ("cost-centers", "edit"),
+    ("cost-centers", "disable"),
+    ("cost-centers", "show"),
+    ("cost-centers", "list"),
+    ("cost-centers", "usage"),
+    ("cost-centers", "ensure-cur-export"),
     ("headnode", "init"),
     ("headnode", "connect"),
     ("headnode", "info"),
@@ -228,6 +236,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     aws_validate_quotas_cmd = registry.get_command(("aws", "validate", "quotas"))
     aws_validate_all_cmd = registry.get_command(("aws", "validate", "all"))
     slurm_accounting_ensure_cmd = registry.get_command(("slurm-accounting", "ensure"))
+    cost_centers_ensure_cur_export_cmd = registry.get_command(("cost-centers", "ensure-cur-export"))
 
     assert version_cmd is not None
     assert version_cmd.policy.runtime_guard == "exempt"
@@ -429,6 +438,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert slurm_accounting_ensure_cmd.policy.mutates_state is True
     assert slurm_accounting_ensure_cmd.policy.long_running is True
 
+    assert cost_centers_ensure_cur_export_cmd is not None
+    assert cost_centers_ensure_cur_export_cmd.policy.supports_json is True
+    assert cost_centers_ensure_cur_export_cmd.policy.mutates_state is True
+    assert cost_centers_ensure_cur_export_cmd.policy.long_running is True
+
 
 @pytest.mark.parametrize("argv", sorted(EXPECTED_COMMANDS))
 def test_registered_cli_commands_render_help(argv: tuple[str, ...]) -> None:
@@ -543,9 +557,9 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
             "--debug",
             "--non-interactive",
             "--disable-budget-enforcement",
-            "--budget-project",
-            "rna-seq-prod",
             "--create-slurm-accounting-db",
+            "--slurm-accounting-stack-name",
+            "dayec-costacct-20260705T000000Z",
         ],
     )
 
@@ -558,10 +572,29 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "debug": True,
         "non_interactive": True,
         "disable_budget_enforcement": True,
-        "budget_project": "rna-seq-prod",
+        "budget_project": None,
         "create_slurm_accounting_db": True,
         "scan_slurm_accounting_db": False,
+        "slurm_accounting_stack_name": "dayec-costacct-20260705T000000Z",
     }
+
+
+def test_create_command_rejects_retired_budget_project(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            "--budget-project",
+            "rna-seq-prod",
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert "--budget-project is retired" in result.output
 
 
 def test_create_command_passes_scan_slurm_accounting_option(monkeypatch, tmp_path) -> None:

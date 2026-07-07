@@ -3,11 +3,11 @@
         "Amount": "<amount>",
         "Unit": "USD"
     },
-    "BudgetName": "<project_name>",
+    "BudgetName": "<cluster_name>",
     "BudgetType": "COST",
     "CostFilters": {
         "TagKeyValue": [
-            "user:aws-parallelcluster-project$<project_name>"
+            "user:aws-parallelcluster-clustername$<cluster_name>"
         ]
     },
     "CostTypes": {

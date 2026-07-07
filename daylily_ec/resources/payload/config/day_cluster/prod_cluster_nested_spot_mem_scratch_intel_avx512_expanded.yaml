@@ -612,6 +612,12 @@ Tags:
   Value: ${REGSUB_CLUSTER_NAME}
 - Key: aws-parallelcluster-enforce-budget
   Value: ${REGSUB_ENFORCE_BUDGET}
+- Key: aws-parallelcluster-cost-center-region
+  Value: ${REGSUB_COST_CENTER_REGION}
+- Key: aws-parallelcluster-cost-center-table
+  Value: ${REGSUB_COST_CENTER_TABLE}
+- Key: aws-parallelcluster-cost-center-usage-table
+  Value: ${REGSUB_COST_CENTER_USAGE_TABLE}
 - Key: aws-parallelcluster-daylily-git-deets
   Value: ${REGSUB_DAYLILY_GIT_DEETS}
 - Key: aws-parallelcluster-monitor-bucket

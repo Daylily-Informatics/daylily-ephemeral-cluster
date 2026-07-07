@@ -57,7 +57,6 @@ CLUSTER_NAME_RULE_TEXT = (
     f"{CLUSTER_NAME_MAX_LENGTH} characters, start with a letter, "
     "and contain only letters, digits, and hyphens"
 )
-RND_BUDGET_PROJECT = "RnD"
 
 # ---------------------------------------------------------------------------
 # Preflight gate ordering — validators are registered in spec §10.5 order
@@ -432,6 +431,16 @@ def _role_uri(roles: Dict[str, Dict[str, str]], role: str) -> str:
 
 def _role_bucket(roles: Dict[str, Dict[str, str]], role: str) -> str:
     return str((roles.get(role) or {}).get("bucket") or "")
+
+
+def _has_explicit_set_value(cfg: Any, key: str) -> bool:
+    triplet = cfg.ephemeral_cluster.config.get(key)
+    return bool(
+        triplet
+        and triplet.action == "USESETVALUE"
+        and triplet.set_value.strip()
+        and triplet.set_value.strip() != "PROMPTUSER"
+    )
 
 
 def _s3_uri_join(base_uri: str, *parts: str) -> str:
@@ -853,15 +862,6 @@ def validate_cluster_name(cluster_name: str) -> str:
     return value
 
 
-def validate_budget_project(project: str) -> str:
-    value = str(project or "").strip()
-    if not value:
-        raise ValueError("Budget project must be non-empty.")
-    if any(ch.isspace() for ch in value):
-        raise ValueError("Budget project must not contain whitespace.")
-    return value
-
-
 def normalize_enforce_budget(value: str) -> str:
     text = str(value or "").strip().strip('"').strip("'").lower()
     if text in {"true", "1", "yes", "enforce", "enforced"}:
@@ -947,7 +947,6 @@ def _resolve_explicit_subnet_id(
 
 @dataclass(frozen=True)
 class _PostCreateInputs:
-    budget_project: str
     enforce_budget: str
     budget_email: str
     budget_amount: str
@@ -965,15 +964,9 @@ def _resolve_post_create_inputs(
     budget_email_default: str,
     allowed_budget_users_default: str,
     cluster_name: str,
-    budget_project_override: Optional[str],
     disable_budget_enforcement: bool,
 ) -> _PostCreateInputs:
     """Resolve budget and heartbeat inputs once before the create phase."""
-    resolved_budget_project = validate_budget_project(
-        budget_project_override
-        or _resolve_nonprompt_config_value(cfg, "budget_project", cluster_name)
-        or cluster_name
-    )
     if disable_budget_enforcement:
         enforce_budget = "skip"
     else:
@@ -1063,7 +1056,6 @@ def _resolve_post_create_inputs(
     )
 
     return _PostCreateInputs(
-        budget_project=resolved_budget_project,
         enforce_budget=enforce_budget,
         budget_email=budget_email,
         budget_amount=budget_amount,
@@ -1129,6 +1121,7 @@ def run_create_workflow(
     scan_slurm_accounting_db: bool = False,
     disable_budget_enforcement: bool = False,
     budget_project: Optional[str] = None,
+    slurm_accounting_stack_name: str = "",
 ) -> int:
     """End-to-end cluster creation: preflight → create → post-create.
 
@@ -1136,6 +1129,7 @@ def run_create_workflow(
     """
     from daylily_ec.aws.budgets import ensure_cluster_budget, ensure_global_budget
     from daylily_ec.aws.cloudformation import (
+        StackOutputs,
         derive_stack_name,
         ensure_pcluster_env_stack,
     )
@@ -1188,6 +1182,10 @@ def run_create_workflow(
 
     if debug:
         logging.getLogger("daylily_ec").setLevel(logging.DEBUG)
+    if budget_project:
+        logger.error("--budget-project is retired; cluster budgets are named by cluster name.")
+        ui.fail("--budget-project is retired; cluster budgets are named by cluster name.")
+        return EXIT_VALIDATION_FAILURE
 
     ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
 
@@ -1397,17 +1395,48 @@ def run_create_workflow(
         "cluster_boot_config",
     )
 
-    # 3a. Baseline CFN stack
-    ui.step("Ensuring baseline CFN stack ...")
     try:
-        cfn_outputs = ensure_pcluster_env_stack(aws_ctx, region_az)
-    except (FileNotFoundError, RuntimeError) as exc:
-        logger.error("CFN stack ensure failed: %s", exc)
-        ui.fail(f"CFN stack: {exc}")
-        return EXIT_AWS_FAILURE
-    ui.ok("CFN stack ready")
+        config_accounting_create_requested = _resolve_nonprompt_bool_config(
+            cfg,
+            "slurm_accounting_create_db",
+            "false",
+        )
+        config_accounting_enabled_for_baseline = _resolve_nonprompt_bool_config(
+            cfg,
+            "slurm_accounting_enabled",
+            "false",
+        )
+    except ValueError as exc:
+        logger.error("Slurm accounting config validation failed: %s", exc)
+        ui.fail(f"Slurm accounting config: {exc}")
+        return EXIT_VALIDATION_FAILURE
 
+    explicit_core_resources = all(
+        _has_explicit_set_value(cfg, key)
+        for key in ("public_subnet_id", "private_subnet_id", "iam_policy_arn")
+    )
+    needs_baseline_vpc = (
+        scan_slurm_accounting_db
+        or create_slurm_accounting_db
+        or config_accounting_create_requested
+        or config_accounting_enabled_for_baseline
+    )
+
+    # 3a. Baseline CFN stack
     stack_name = derive_stack_name(region_az)
+    if explicit_core_resources and not needs_baseline_vpc:
+        cfn_outputs = StackOutputs()
+        ui.step("Skipping baseline CFN stack; explicit subnet and IAM policy config present.")
+        ui.ok("Baseline CFN stack not required")
+    else:
+        ui.step("Ensuring baseline CFN stack ...")
+        try:
+            cfn_outputs = ensure_pcluster_env_stack(aws_ctx, region_az)
+        except (FileNotFoundError, RuntimeError) as exc:
+            logger.error("CFN stack ensure failed: %s", exc)
+            ui.fail(f"CFN stack: {exc}")
+            return EXIT_AWS_FAILURE
+        ui.ok("CFN stack ready")
 
     # 3b. Subnet selection (from live EC2)
     ec2 = aws_ctx.client("ec2")
@@ -1488,6 +1517,8 @@ def run_create_workflow(
         )
         or cfn_outputs.policy_arn
     )
+    if not policy_arn and iam_t and _has_explicit_set_value(cfg, "iam_policy_arn"):
+        policy_arn = iam_t.set_value.strip()
     if not policy_arn and not non_interactive and policy_arns:
         policy_arn = _prompt_select("IAM policy ARN", policy_arns)
 
@@ -1618,7 +1649,7 @@ def run_create_workflow(
             ui.fail("Slurm accounting requires the baseline VPC output.")
             return EXIT_VALIDATION_FAILURE
 
-        accounting_stack_name = _resolve_nonprompt_config_value(
+        accounting_stack_name = slurm_accounting_stack_name.strip() or _resolve_nonprompt_config_value(
             cfg,
             "slurm_accounting_stack_name",
             "",
@@ -1692,7 +1723,6 @@ def run_create_workflow(
         budget_email_default=_os.environ.get("DAY_CONTACT_EMAIL", ""),
         allowed_budget_users_default="ubuntu",
         cluster_name=cluster_name,
-        budget_project_override=budget_project,
         disable_budget_enforcement=disable_budget_enforcement,
     )
 
@@ -1717,25 +1747,18 @@ def run_create_workflow(
             bucket_name=reference_storage_bucket_name,
             allowed_users=post_create_inputs.allowed_budget_users,
         )
-        if post_create_inputs.budget_project == RND_BUDGET_PROJECT:
-            cluster_budget = RND_BUDGET_PROJECT
-            ui.info(
-                "Cluster project uses exact RnD budget-check bypass; no project budget created."
-            )
-        else:
-            cluster_budget = ensure_cluster_budget(
-                budgets_client,
-                s3_client,
-                aws_ctx.account_id,
-                amount=post_create_inputs.budget_amount,
-                cluster_name=cluster_name,
-                email=post_create_inputs.budget_email,
-                region=aws_ctx.region,
-                region_az=region_az,
-                bucket_name=reference_storage_bucket_name,
-                allowed_users=post_create_inputs.allowed_budget_users,
-                budget_name=post_create_inputs.budget_project,
-            )
+        cluster_budget = ensure_cluster_budget(
+            budgets_client,
+            s3_client,
+            aws_ctx.account_id,
+            amount=post_create_inputs.budget_amount,
+            cluster_name=cluster_name,
+            email=post_create_inputs.budget_email,
+            region=aws_ctx.region,
+            region_az=region_az,
+            bucket_name=reference_storage_bucket_name,
+            allowed_users=post_create_inputs.allowed_budget_users,
+        )
         logger.info("Budgets: global=%s project=%s", global_budget, cluster_budget)
         ui.ok(f"Budgets: global={global_budget}, project={cluster_budget}")
     except Exception as exc:
@@ -1788,7 +1811,7 @@ def run_create_workflow(
         or "false",
         "REGSUB_CLUSTER_NAME": cluster_name,
         "REGSUB_USERNAME": f"{_os.environ.get('USER', 'unknown')}-{aws_ctx.iam_username}",
-        "REGSUB_PROJECT": post_create_inputs.budget_project,
+        "REGSUB_PROJECT": cluster_name,
         "REGSUB_DELETE_LOCAL_ROOT": _resolve_config_value(
             cfg,
             "delete_local_root",
@@ -1825,6 +1848,9 @@ def run_create_workflow(
         ),
         # Tag values must be quoted strings, not bare YAML booleans.
         "REGSUB_ENFORCE_BUDGET": '"' + post_create_inputs.enforce_budget + '"',
+        "REGSUB_COST_CENTER_REGION": "us-west-2",
+        "REGSUB_COST_CENTER_TABLE": "dayec-cost-centers",
+        "REGSUB_COST_CENTER_USAGE_TABLE": "dayec-cost-center-usage",
         "REGSUB_AWS_ACCOUNT_ID": f"aws_profile-{aws_ctx.profile}",
         "REGSUB_ALLOCATION_STRATEGY": _resolve_config_value(
             cfg,
@@ -2049,7 +2075,6 @@ def run_create_workflow(
         "public_subnet_id": public_subnet,
         "private_subnet_id": private_subnet,
         "iam_policy_arn": policy_arn,
-        "budget_project": post_create_inputs.budget_project,
         "enforce_budget": post_create_inputs.enforce_budget,
         "budget_email": post_create_inputs.budget_email,
         "budget_amount": post_create_inputs.budget_amount,

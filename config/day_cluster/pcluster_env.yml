@@ -61,6 +61,12 @@ Resources:
             Resource: 'arn:aws:budgets::*:budget/*'
           - Effect: Allow
             Action:
+              - 'dynamodb:GetItem'
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:dynamodb:*:${AWS::AccountId}:table/dayec-cost-centers'
+              - !Sub 'arn:${AWS::Partition}:dynamodb:*:${AWS::AccountId}:table/dayec-cost-center-usage'
+          - Effect: Allow
+            Action:
               - 'fsx:DescribeFileSystems'
               - 'fsx:DescribeDataRepositoryAssociations'
               - 'fsx:CreateDataRepositoryAssociation'

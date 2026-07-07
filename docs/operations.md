@@ -93,9 +93,9 @@ dyec samples run "$ANALYSIS_SAMPLES" \
 The catalog pin for DayOA commands is `9.0.0`.
 
 Use `--project <project>` on `dyec samples run` or `dyec workflow launch` when
-the budget/comment string should differ from the cluster name. DYEC passes that
+the cost-center/comment string should differ from the default. DYEC passes that
 value to `dyoainit`, DayOA exports it as `DAY_PROJECT`, and Slurm receives it as
-`sbatch --comment "$DAY_PROJECT"`.
+`sbatch --comment "$DAY_PROJECT"`. The value is not the cluster AWS Budget name.
 
 ## Collect DayOA Benchmark Summary
 
@@ -212,21 +212,46 @@ The launcher creates `/home/ubuntu/daylily-runs/<session>/` with `launch.sh`, `t
 
 ## Budget Enforcement
 
-New clusters enforce budgets by default. `dyec create` uses the cluster name as
-the default budget project, or `--budget-project <project>` when supplied, and
-renders that value into the `aws-parallelcluster-project` tag. It renders
-`aws-parallelcluster-enforce-budget=true` unless `--disable-budget-enforcement`
-is explicitly set.
+New clusters enforce the cluster AWS Budget by default. `dyec create` creates or
+checks an AWS Budget whose name is the cluster name, renders
+`aws-parallelcluster-project` as the cluster name, and renders
+`aws-parallelcluster-enforce-budget=true` unless
+`--disable-budget-enforcement` is explicitly set.
 
-The staged Slurm wrapper always requires `sbatch --comment <project>`. With
-enforcement enabled, the exact `RnD` project bypasses AWS Budget lookup; every
-other project must be present in the S3-backed user allow-list, match an AWS
-Budget exactly, and be under 100% spend. When a job is blocked, the wrapper
-prints the Ursa budget monitor URL:
-`https://ursa.day.lsmc.bio/ursa-actions#budgets?budget=<project>`.
+The staged Slurm wrapper always requires `sbatch --comment <cost-center>`.
+That cost center must be active in the global DynamoDB registry, allowed for
+the submitting user or group, have a usage snapshot newer than 36 hours, and be
+below its monthly cap. When a job is blocked, the wrapper prints the Ursa
+cluster budget monitor URL and the cost-center report URL.
 
-Disabling budget enforcement skips the S3 allow-list and AWS Budget checks, but
-does not remove the `--comment <project>` requirement.
+Disabling budget enforcement skips only the cluster AWS Budget lookup. It does
+not remove the `--comment <cost-center>` requirement or cost-center validation.
+
+## Hourly Cost-Center Accounting
+
+Cost-center spend is computed from hourly CUR EC2 instance cost joined to
+Slurm accounting job intervals. Allocation is time-weighted within each
+instance-hour. If one cost center runs for the full hour and a second cost
+center overlaps for 10 minutes, the first receives 50 minutes solo plus half of
+the 10-minute overlap, or 55/60 of that instance-hour. The second receives
+5/60. Time with no jobs is assigned to the reserved system cost center `idle`.
+
+Before live CUR-backed allocation can run in a new AWS account, create or
+validate the billing source:
+
+```bash
+dyec --json cost-centers ensure-cur-export --profile "$AWS_PROFILE"
+```
+
+The command creates or validates the dedicated S3 delivery bucket, BCM Data
+Export, Glue database/table, and current billing-period Athena partition. It is
+configured for the CUR 2.0 normalized resource tag key
+`user_parallelcluster_cluster_name`, which corresponds to EC2 tag
+`parallelcluster:cluster-name`. It is
+explicit about drift: a same-name export with a different definition requires
+`--update-existing-export`, and a same-name Glue table not marked
+`dayec:managed=true` requires `--adopt-glue-table`. New exports may have no
+queryable rows until AWS Data Exports refreshes the current CUR partition.
 
 For repo-native work that is not a catalog workflow command, clone the pinned repository on the headnode and then follow that repository's documented launch path:
 

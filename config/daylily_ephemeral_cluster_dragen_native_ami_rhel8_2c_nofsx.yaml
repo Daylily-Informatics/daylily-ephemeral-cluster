@@ -8,7 +8,6 @@ ephemeral_cluster:
     private_subnet_id: [USESETVALUE, "", "subnet-0310303ef3bcb8669"]
     iam_policy_arn: [USESETVALUE, "", "arn:aws:iam::108782052779:policy/pclusterTagsAndBudget"]
     cluster_name: [USESETVALUE, "", "dragen-f2-native-nofsx-2c"]
-    budget_project: [USESETVALUE, "", "dragen-f2-native-nofsx-2c"]
     budget_email: [USESETVALUE, "", ""]
     allowed_budget_users: [USESETVALUE, "", "ubuntu"]
     budget_amount: [USESETVALUE, "", "200"]

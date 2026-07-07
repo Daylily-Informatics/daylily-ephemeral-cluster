@@ -559,14 +559,12 @@ class TestWorkflowResolutionHelpers:
             cfg,
             cluster_name="cluster-a",
             non_interactive=True,
-            budget_project_override=None,
             disable_budget_enforcement=False,
             budget_email_default="ops@example.com",
             allowed_budget_users_default="ubuntu",
         )
 
         assert values.allowed_budget_users == "ubuntu"
-        assert values.budget_project == "cluster-a"
         assert values.enforce_budget == "true"
 
     def test_build_connection_command_uses_ssm_helper(self):
@@ -908,10 +906,10 @@ class TestRunCreateWorkflow:
         assert records["global_budget_kwargs"]["amount"] == "200"
         assert records["global_budget_kwargs"]["allowed_users"] == "root"
         assert records["cluster_budget_kwargs"]["email"] == "johnm@lsmc.com"
-        assert records["cluster_budget_kwargs"]["budget_name"] == "majors-cluster"
+        assert records["cluster_budget_kwargs"]["cluster_name"] == "majors-cluster"
         assert records["heartbeat_kwargs"]["email"] == "johnm@lsmc.com"
         assert records["heartbeat_kwargs"]["schedule_expression"] == "rate(60 minutes)"
-        assert records["next_run_values"]["budget_project"] == "majors-cluster"
+        assert "budget_project" not in records["next_run_values"]
         assert records["next_run_values"]["enforce_budget"] == "true"
         assert records["next_run_values"]["budget_email"] == "johnm@lsmc.com"
         assert records["next_run_values"]["heartbeat_email"] == "johnm@lsmc.com"
@@ -919,7 +917,7 @@ class TestRunCreateWorkflow:
         assert records["next_run_values"]["heartbeat_scheduler_role_arn"] == ""
         assert records["resolve_scheduler_role_kwargs"]["preconfigured"] == ""
 
-    def test_budget_project_override_and_disable_flag_render(self, tmp_path, monkeypatch):
+    def test_budget_project_override_is_rejected(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
             tmp_path,
             monkeypatch,
@@ -932,12 +930,26 @@ class TestRunCreateWorkflow:
             },
         )
 
+        assert records["rc"] == EXIT_VALIDATION_FAILURE
+
+    def test_disable_budget_enforcement_renders_skip_without_budget_project(self, tmp_path, monkeypatch):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            run_kwargs={
+                "disable_budget_enforcement": True,
+            },
+        )
+
         assert records["rc"] == EXIT_SUCCESS
-        assert records["cluster_budget_kwargs"]["budget_name"] == "project-alpha"
+        assert records["cluster_budget_kwargs"]["cluster_name"] == "majors-cluster"
         substitutions = records["render_substitutions"]
-        assert substitutions["REGSUB_PROJECT"] == "project-alpha"
+        assert substitutions["REGSUB_PROJECT"] == "majors-cluster"
         assert substitutions["REGSUB_ENFORCE_BUDGET"] == '"skip"'
-        assert records["next_run_values"]["budget_project"] == "project-alpha"
+        assert "budget_project" not in records["next_run_values"]
         assert records["next_run_values"]["enforce_budget"] == "skip"
 
     def test_broad_max_counts_populate_rendered_subtype_counts(self, tmp_path, monkeypatch):
@@ -1187,6 +1199,37 @@ class TestRunCreateWorkflow:
 
         assert records["rc"] == EXIT_VALIDATION_FAILURE
         assert any("cannot be combined" in failure for failure in records["failures"])
+
+    def test_explicit_network_and_policy_config_skip_baseline_stack(
+        self, tmp_path, monkeypatch
+    ):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            config_overrides={
+                "public_subnet_id": ["USESETVALUE", "", "subnet-explicit-pub"],
+                "private_subnet_id": ["USESETVALUE", "", "subnet-explicit-priv"],
+                "iam_policy_arn": [
+                    "USESETVALUE",
+                    "",
+                    "arn:aws:iam::123456789012:policy/pclusterTagsAndBudget",
+                ],
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert records["baseline_stack_calls"] == 0
+        assert (
+            "Subnets",
+            "pub=subnet-explicit-pub  priv=subnet-explicit-priv",
+        ) in records["details"]
+        assert (
+            "Policy",
+            "arn:aws:iam::123456789012:policy/pclusterTagsAndBudget",
+        ) in records["details"]
 
 
 # ── configure_headnode ───────────────────────────────────────────────
@@ -1969,6 +2012,7 @@ def _run_stubbed_create_workflow(
         "warnings": [],
         "details": [],
         "failures": [],
+        "baseline_stack_calls": 0,
     }
     cfg = _build_workflow_config(template_path, config_overrides=config_overrides)
 
@@ -1980,7 +2024,19 @@ def _run_stubbed_create_workflow(
         caller_arn = "arn:aws:iam::123456789012:root"
 
         def __init__(self) -> None:
-            shared_client = object()
+            class FakeSharedClient:
+                def describe_subnets(self, SubnetIds):
+                    return {
+                        "Subnets": [
+                            {
+                                "SubnetId": SubnetIds[0],
+                                "AvailabilityZone": "us-west-2d",
+                                "State": "available",
+                            }
+                        ]
+                    }
+
+            shared_client = FakeSharedClient()
             self._clients = {
                 "ec2": shared_client,
                 "iam": shared_client,
@@ -2080,7 +2136,7 @@ def _run_stubbed_create_workflow(
     def fake_ensure_cluster_budget(*_args, **kwargs):
         records["events"].append(("ensure_cluster_budget", None))
         records["cluster_budget_kwargs"] = kwargs
-        return kwargs.get("budget_name") or "da-us-west-2d-majors-cluster"
+        return kwargs.get("cluster_name") or "majors-cluster"
 
     def fake_ensure_heartbeat(*_args, **kwargs):
         records["heartbeat_kwargs"] = kwargs
@@ -2125,15 +2181,19 @@ def _run_stubbed_create_workflow(
         "should_abort",
         lambda *_args, **_kwargs: False,
     )
-    monkeypatch.setattr(
-        cloudformation,
-        "ensure_pcluster_env_stack",
-        lambda *_args, **_kwargs: SimpleNamespace(
+    def fake_ensure_pcluster_env_stack(*_args, **_kwargs):
+        records["baseline_stack_calls"] += 1
+        return SimpleNamespace(
             public_subnet_id="subnet-pub",
             private_subnet_id="subnet-priv",
             policy_arn="arn:policy:default",
             vpc_id="vpc-123",
-        ),
+        )
+
+    monkeypatch.setattr(
+        cloudformation,
+        "ensure_pcluster_env_stack",
+        fake_ensure_pcluster_env_stack,
     )
     monkeypatch.setattr(cloudformation, "derive_stack_name", lambda _region_az: "daylily-stack")
     monkeypatch.setattr(aws_ec2, "list_public_subnets", lambda *_args, **_kwargs: [])

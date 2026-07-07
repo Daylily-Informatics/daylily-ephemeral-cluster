@@ -74,7 +74,6 @@ def test_validate_headnode_readiness_runs_shared_script_as_ubuntu():
     assert instance_id == "i-abc123"
     assert region == "us-west-2"
     assert "day-clone --list" in script
-    assert "/fsx/references/runtime_assets/tool_specific_resources/cromwell_87.jar" in script
     assert "/fsx/references/genomic_data" in script
     assert "/fsx/resources/environments/conda/ubuntu/$(hostname)" in script
     assert "/fsx/resources/environments/containers/ubuntu/$(hostname)" in script

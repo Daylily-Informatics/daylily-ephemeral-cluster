@@ -8,7 +8,7 @@ Exact-parity with the Bash script::
 
 Two budget types:
 - **Global**: ``daylily-global`` with thresholds [25, 50, 75, 99]
-- **Cluster/project**: rendered Slurm project string with threshold [75]
+- **Cluster**: cluster-name budget with threshold [75]
 """
 
 from __future__ import annotations
@@ -45,17 +45,15 @@ TAGS_FILE_S3_SUFFIX = "runtime_assets/budget_tags/pcluster-project-budget-tags.t
 def _build_budget_dict(
     budget_name: str,
     amount: str,
-    project_name: str,
     cluster_name: str,
 ) -> Dict[str, Any]:
-    """Return a budget dict matching the Bash BUDGET_TEMPLATE exactly."""
+    """Return a cluster-tag-scoped AWS Budget dict."""
     return {
         "BudgetLimit": {"Amount": str(amount), "Unit": "USD"},
         "BudgetName": budget_name,
         "BudgetType": "COST",
         "CostFilters": {
             "TagKeyValue": [
-                f"user:aws-parallelcluster-project${project_name}",
                 f"user:aws-parallelcluster-clustername${cluster_name}",
             ],
         },
@@ -155,14 +153,13 @@ def create_budget(
     account_id: str,
     budget_name: str,
     amount: str,
-    project_name: str,
     cluster_name: str,
 ) -> None:
     """Create a single AWS Budget (idempotent — no-op if exists)."""
     if budget_exists(budgets_client, account_id, budget_name):
         log.info("Budget '%s' already exists, skipping creation", budget_name)
         return
-    budget = _build_budget_dict(budget_name, amount, project_name, cluster_name)
+    budget = _build_budget_dict(budget_name, amount, cluster_name)
     budgets_client.create_budget(AccountId=account_id, Budget=budget)
     log.info("Created budget '%s' (%s USD/month)", budget_name, amount)
 
@@ -175,6 +172,10 @@ def create_notifications(
     email: str,
 ) -> None:
     """Add threshold notifications to an existing budget."""
+    email = email.strip()
+    if not email:
+        log.info("No budget notification email configured for '%s'; skipping notifications.", budget_name)
+        return
     for thr in thresholds:
         try:
             budgets_client.create_notification(
@@ -260,8 +261,9 @@ def _normalize_allowed_budget_users(users: str) -> str:
 
 
 def cluster_budget_name(region_az: str, cluster_name: str) -> str:
-    """Derive the per-cluster budget name (Bash: ``da-<region_az>-<cluster>``)."""
-    return f"da-{region_az}-{cluster_name}"
+    """Derive the per-cluster budget name."""
+    _ = region_az
+    return cluster_name
 
 
 def ensure_global_budget(
@@ -284,7 +286,7 @@ def ensure_global_budget(
     name = GLOBAL_BUDGET_NAME
     already = budget_exists(budgets_client, account_id, name)
     if not already:
-        create_budget(budgets_client, account_id, name, amount, name, cluster_name)
+        create_budget(budgets_client, account_id, name, amount, cluster_name)
         create_notifications(budgets_client, account_id, name, GLOBAL_THRESHOLDS, email)
     else:
         log.info("Global budget '%s' already exists", name)
@@ -304,16 +306,15 @@ def ensure_cluster_budget(
     region_az: str,
     bucket_name: str,
     allowed_users: str,
-    budget_name: str | None = None,
 ) -> str:
-    """Ensure the per-cluster/project budget exists.
+    """Ensure the per-cluster budget exists.
 
     Returns the budget name.
     """
-    name = budget_name or cluster_budget_name(region_az, cluster_name)
+    name = cluster_budget_name(region_az, cluster_name)
     already = budget_exists(budgets_client, account_id, name)
     if not already:
-        create_budget(budgets_client, account_id, name, amount, name, cluster_name)
+        create_budget(budgets_client, account_id, name, amount, cluster_name)
         create_notifications(budgets_client, account_id, name, CLUSTER_THRESHOLDS, email)
     else:
         log.info("Cluster budget '%s' already exists", name)

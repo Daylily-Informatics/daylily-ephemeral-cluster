@@ -82,19 +82,48 @@ Important options:
 - `--pass-on-warn`
 - `--debug`
 - `--non-interactive`
-- `--budget-project <project>`: override the Slurm budget/comment project; defaults to the cluster name
+- `--budget-project <project>`: retired; cluster budgets are named by cluster name
 - `--disable-budget-enforcement`: render the cluster budget-enforcement tag as `skip`
 - `--create-slurm-accounting-db`
 - `--scan-slurm-accounting-db`
+- `--slurm-accounting-stack-name <name>`
 
-Budget enforcement is on by default for new clusters. `dyec create` renders
-`aws-parallelcluster-project=<budget_project>` and
-`aws-parallelcluster-enforce-budget=true`, ensures the matching AWS Budget and
-S3 allow-list before launch, and stages the `sbatch` wrapper used by Slurm.
-The wrapper requires every submission to include `--comment <project>`. The
-exact project `RnD` is the only budget-lookup bypass. Other projects must be
-allowed for the submitting user and must be below 100% spend. Failed checks
-point users to `https://ursa.day.lsmc.bio/ursa-actions#budgets?budget=<project>`.
+Budget enforcement is on by default for new clusters. `dyec create` ensures an
+AWS Budget named by the cluster name, renders `aws-parallelcluster-project` as
+the cluster name, and stages the `sbatch` wrapper used by Slurm. The wrapper
+requires every submission to include `--comment <cost-center>`. The cost center
+must be active in the global DynamoDB registry, authorized for the submitting
+user or group, have a fresh usage snapshot, and be under its monthly cap. Failed
+checks point users to the Ursa cluster budget monitor and cost-center report.
+
+## Cost Centers
+
+```bash
+dyec cost-centers ensure-registry --profile "$AWS_PROFILE"
+dyec cost-centers create project-a --monthly-cap-usd 200 --allowed-user ubuntu
+dyec cost-centers edit project-a --monthly-cap-usd 300
+dyec cost-centers disable project-a --reason "closed"
+dyec --json cost-centers show project-a
+dyec --json cost-centers list --status active
+dyec --json cost-centers usage project-a --month 2026-07
+dyec --json cost-centers ensure-cur-export --profile "$AWS_PROFILE"
+```
+
+The registry defaults to DynamoDB tables `dayec-cost-centers` and
+`dayec-cost-center-usage` in `us-west-2`. The reserved `idle` cost center is
+system-owned and cannot be used in Slurm submissions.
+
+`ensure-cur-export` creates or validates the explicit CUR 2.0 billing source
+used by hourly cost-center accounting: a dedicated S3 bucket, the required BCM
+Data Exports bucket policy, an hourly/resource CUR 2.0 Data Export with
+Parquet/Parquet overwrite delivery, a Glue database/table, and the current
+monthly Athena partition. The default CUR 2.0 cluster tag key is
+`user_parallelcluster_cluster_name`, which is the normalized Data Exports map
+key for EC2 tag `parallelcluster:cluster-name`. Existing same-name exports with different definitions
+fail unless `--update-existing-export` is passed. Existing same-name Glue tables
+that are not marked `dayec:managed=true` fail unless `--adopt-glue-table` is
+passed. New Data Exports can take until AWS refreshes billing data before CUR
+files are available to Athena.
 
 ## Cluster
 
@@ -165,7 +194,7 @@ dyec samples run "$ANALYSIS_SAMPLES" \
 
 Important options include `--command-id`, `--analysis-id`, `--executing-entity`, `--export-destination-s3-uri`, `--export-trigger`, `--artifact-registration-command-id`, `--dewey-url`, `--dewey-token-env`, `--git-tag`, and `--project`.
 
-`--project <project>` is passed through to DayOA as `dyoainit --project <project>`, which sets `DAY_PROJECT`; DayOA's Slurm profile submits `sbatch ... --comment "$DAY_PROJECT"`. Omit `--project` to use the cluster-name default.
+`--project <project>` is passed through to DayOA as `dyoainit --project <project>`, which sets `DAY_PROJECT`; DayOA's Slurm profile submits `sbatch ... --comment "$DAY_PROJECT"`. The value is a cost-center string, not the cluster AWS Budget name.
 
 Collect benchmark summaries from a completed DayOA checkout on the headnode:
 
@@ -264,7 +293,7 @@ dyec workflow launch \
   --snakemake-extra "--config run_context_file=config/runs.tsv"
 ```
 
-`workflow launch` requires `--analysis-id`; `--executing-entity` should be a stable safe path segment. The headnode checkout root is `/fsx/analysis_results/<executing_entity>/<analysis_id>/`, and the repository checkout sits below it. Use `--project <project>` to override the DayOA `DAY_PROJECT` value and therefore the Slurm `--comment` budget string for this launch.
+`workflow launch` requires `--analysis-id`; `--executing-entity` should be a stable safe path segment. The headnode checkout root is `/fsx/analysis_results/<executing_entity>/<analysis_id>/`, and the repository checkout sits below it. Use `--project <project>` to override the DayOA `DAY_PROJECT` value and therefore the Slurm `--comment` cost-center string for this launch.
 
 Auto-export options:
 

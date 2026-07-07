@@ -44,7 +44,7 @@ apptainer_deb="${runtime_assets_root}/cached_envs/apptainer_1.4.5_amd64.deb"
 apptainer_deb_sha256="70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05"
 reference_wait_timeout_seconds=1800
 reference_wait_interval_seconds=30
-sbatch_wrapper_sha256="7d03b2b2848438729d27a61b820210521553764c53093219af337253a7fd3ecf"
+sbatch_wrapper_sha256="690b8ce1de6f7afd6aed754a50315dbde440fbcad1432743a415b6a7ef43e301"
 sleep_test_sha256="024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae"
 spot_lifecycle_state_dir="/var/lib/daylily/spot_lifecycle"
 spot_lifecycle_state_file="${spot_lifecycle_state_dir}/metadata.env"
@@ -56,6 +56,43 @@ if [ "${fsx_log_fn:-}" ]; then
 fi
 
 aws configure set region $region
+
+resolve_cluster_name_for_tags() {
+  if [ -n "${cfn_cluster_name:-}" ]; then
+    echo "${cfn_cluster_name}"
+    return 0
+  fi
+  if [ -n "${stack_name:-}" ]; then
+    echo "${stack_name}"
+    return 0
+  fi
+  echo "ERROR: unable to resolve cluster name from /etc/parallelcluster/cfnconfig" >&2
+  return 1
+}
+
+repair_compute_cluster_tags() {
+  if [ "${cfn_node_type:-}" != "ComputeFleet" ]; then
+    return 0
+  fi
+  local cluster_name_for_tags
+  local token
+  local instance_id
+  cluster_name_for_tags="$(resolve_cluster_name_for_tags)"
+  token="$(curl -fsS -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")"
+  instance_id="$(curl -fsS -H "X-aws-ec2-metadata-token: ${token}" http://169.254.169.254/latest/meta-data/instance-id)"
+  if [ -z "${region}" ] || [ -z "${instance_id}" ]; then
+    echo "ERROR: region or instance id missing; cannot repair compute cluster tags" >&2
+    exit 1
+  fi
+  aws ec2 create-tags \
+    --resources "${instance_id}" \
+    --tags \
+      Key=parallelcluster:cluster-name,Value="${cluster_name_for_tags}" \
+      Key=aws-parallelcluster-clustername,Value="${cluster_name_for_tags}" \
+    --region "${region}"
+}
+
+repair_compute_cluster_tags
 
 # Configure rclone to use AWS environment credentials in the current region
 mkdir -p "$HOME/.config/rclone"
@@ -618,7 +655,6 @@ aws configure set region $region
 update=0
 tag_userid=""
 tag_jobid=""
-tag_project=""
 
 if [ ! -f /tmp/jobs/jobs_users ] || [ ! -f /tmp/jobs/jobs_ids ]; then
   exit 0
@@ -628,31 +664,19 @@ active_users=$(cat /tmp/jobs/jobs_users | sort | uniq )
 active_jobs=$(cat /tmp/jobs/jobs_ids | sort )
 echo $active_users > /tmp/jobs/tmp_jobs_users
 echo $active_jobs > /tmp/jobs/tmp_jobs_ids
-if [ -f /tmp/jobs/jobs_projects ]; then
-  active_projects=$(cat /tmp/jobs/jobs_projects | sort | uniq )
-  echo $active_projects > /tmp/jobs/tmp_jobs_projects
-fi
-
 
 if [ ! -f /tmp/jobs/tag_userid ] || [ ! -f /tmp/jobs/tag_jobid ]; then
 
   echo $active_users > /tmp/jobs/tag_userid
   echo $active_jobs > /tmp/jobs/tag_jobid
-  echo $active_projects > /tmp/jobs/tag_project
   update=1
 
 else
 
   active_users=$(cat /tmp/jobs/tmp_jobs_users)
   active_jobs=$(cat /tmp/jobs/tmp_jobs_ids)
-  if [ -f /tmp/jobs/tmp_jobs_projects ]; then
-    active_projects=$(cat /tmp/jobs/tmp_jobs_projects)
-  fi 
   tag_userid=$(cat /tmp/jobs/tag_userid)
   tag_jobid=$(cat /tmp/jobs/tag_jobid)
-  if [ -f /tmp/jobs/tag_project ]; then
-    tag_project=$(cat /tmp/jobs/tag_project)
-  fi
   
   if [ "${active_users}" != "${tag_userid}" ]; then
     tag_userid="${active_users}"
@@ -663,12 +687,6 @@ else
   if [ "${active_jobs}" != "${tag_jobid}" ]; then
     tag_jobid="${active_jobs}"
     echo ${tag_jobid} > /tmp/jobs/tag_jobid
-    update=1
-  fi
-  
-  if [ "${active_projects}" != "${tag_project}" ]; then
-    tag_project="${active_projects}"
-    echo ${tag_project} > /tmp/jobs/tag_project
     update=1
   fi
 
@@ -682,10 +700,8 @@ if [ ${update} -eq 1 ]; then
   MyInstID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
   tag_userid=$(cat /tmp/jobs/tag_userid)
   tag_jobid=$(cat /tmp/jobs/tag_jobid)
-  tag_project=$(cat /tmp/jobs/tag_project)
   aws ec2 create-tags --resources ${MyInstID} --tags Key=aws-parallelcluster-username,Value="${tag_userid}" --region ${region}
   aws ec2 create-tags --resources ${MyInstID} --tags Key=aws-parallelcluster-jobid,Value="${tag_jobid}" --region ${region}
-  aws ec2 create-tags --resources ${MyInstID} --tags Key=aws-parallelcluster-project,Value="${tag_project}" --region ${region}  
 fi
 
 EOF
@@ -713,13 +729,6 @@ export SLURM_ROOT=/opt/slurm
 echo "${SLURM_JOB_USER}" >> /tmp/jobs/jobs_users
 echo "${SLURM_JOBID}" >> /tmp/jobs/jobs_ids
 
-#load the comment of the job.
-Project=$($SLURM_ROOT/bin/scontrol show job ${SLURM_JOB_ID} | grep Comment | awk -F'=' '{print $2}')
-Project_Tag=""
-if [ ! -z "${Project}" ];then
-  echo "${Project}" >> /tmp/jobs/jobs_projects
-fi
-
 EOF
 
    cat <<'EOF' > /opt/slurm/sbin/epilog.sh
@@ -729,13 +738,6 @@ export SLURM_ROOT=/opt/slurm
 sed -i "0,/${SLURM_JOB_USER}/d" /tmp/jobs/jobs_users
 sed -i "0,/${SLURM_JOBID}/d" /tmp/jobs/jobs_ids
 
-#load the comment of the job.
-Project=$($SLURM_ROOT/bin/scontrol show job ${SLURM_JOB_ID} | grep Comment | awk -F'=' '{print $2}')
-Project_Tag=""
-if [ ! -z "${Project}" ];then
-  sed -i "0,/${Project}/d" /tmp/jobs/jobs_projects
-fi
-
 EOF
 
    chmod a+x /opt/slurm/sbin/prolog.sh
@@ -743,6 +745,7 @@ EOF
    
    # Configure slurm to use Prolog and Epilog
    disable_slurm_partition_exclusivity
+   append_once "AccountingStoreFlags=job_comment" /opt/slurm/etc/slurm.conf
    append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf
    append_once "Prolog=/opt/slurm/sbin/prolog.sh" /opt/slurm/etc/slurm.conf
    append_once "Epilog=/opt/slurm/sbin/epilog.sh" /opt/slurm/etc/slurm.conf

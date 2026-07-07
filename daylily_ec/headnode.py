@@ -374,7 +374,6 @@ def _create_missing_budgets(
             account_id,
             GLOBAL_BUDGET_NAME,
             global_amount,
-            GLOBAL_BUDGET_NAME,
             cluster_name,
         )
         create_notifications(
@@ -400,31 +399,30 @@ def _create_missing_budgets(
     create_budget(
         budgets_client,
         account_id,
-        project_name,
+        cluster_name,
         budget_amount,
-        project_name,
         cluster_name,
     )
     create_notifications(
         budgets_client,
         account_id,
-        project_name,
+        cluster_name,
         CLUSTER_THRESHOLDS,
         budget_email,
     )
     update_tags_file(
         s3_client,
         bucket_name,
-        project_name,
+        cluster_name,
         allowed_users.replace(" ", ""),
         state.region,
     )
 
     refreshed = budgets_client.describe_budgets(AccountId=account_id)
     for budget in refreshed.get("Budgets", []):
-        if budget.get("BudgetName") == project_name:
+        if budget.get("BudgetName") == cluster_name:
             return _build_budget_summary(budget)
-    return BudgetSummary(name=project_name, exists=True)
+    return BudgetSummary(name=cluster_name, exists=True)
 
 
 def _print_state(state: HeadnodeState) -> None:

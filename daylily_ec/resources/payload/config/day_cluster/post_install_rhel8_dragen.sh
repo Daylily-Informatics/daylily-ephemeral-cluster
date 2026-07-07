@@ -43,7 +43,7 @@ work_root="/fsx/work"
 run_mounts_root="/fsx/run_dir_mounts"
 reference_wait_timeout_seconds=3600
 reference_wait_interval_seconds=15
-sbatch_wrapper_sha256="7d03b2b2848438729d27a61b820210521553764c53093219af337253a7fd3ecf"
+sbatch_wrapper_sha256="690b8ce1de6f7afd6aed754a50315dbde440fbcad1432743a415b6a7ef43e301"
 sleep_test_sha256="024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae"
 spot_lifecycle_state_dir="/var/lib/daylily/spot_lifecycle"
 spot_lifecycle_state_file="${spot_lifecycle_state_dir}/metadata.env"
@@ -80,6 +80,39 @@ metadata() {
   local token
   token="$(curl -fsS -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")"
   curl -fsS -H "X-aws-ec2-metadata-token: ${token}" "http://169.254.169.254/latest/meta-data/${path}"
+}
+
+resolve_cluster_name_for_tags() {
+  if [ -n "${cfn_cluster_name:-}" ]; then
+    echo "${cfn_cluster_name}"
+    return 0
+  fi
+  if [ -n "${stack_name:-}" ]; then
+    echo "${stack_name}"
+    return 0
+  fi
+  echo "ERROR: unable to resolve cluster name from /etc/parallelcluster/cfnconfig" >&2
+  return 1
+}
+
+repair_compute_cluster_tags() {
+  if [ "${node_type}" != "ComputeFleet" ]; then
+    return 0
+  fi
+  local cluster_name_for_tags
+  local instance_id
+  cluster_name_for_tags="$(resolve_cluster_name_for_tags)"
+  instance_id="$(metadata instance-id)"
+  if [ -z "${region}" ] || [ -z "${instance_id}" ]; then
+    echo "ERROR: region or instance id missing; cannot repair compute cluster tags" >&2
+    exit 1
+  fi
+  aws ec2 create-tags \
+    --resources "${instance_id}" \
+    --tags \
+      Key=parallelcluster:cluster-name,Value="${cluster_name_for_tags}" \
+      Key=aws-parallelcluster-clustername,Value="${cluster_name_for_tags}" \
+    --region "${region}"
 }
 
 wait_for_dir() {
@@ -432,10 +465,7 @@ wait_for_reference_data() {
   wait_for_dir "${runtime_assets_root}" "runtime assets path" "${reference_wait_timeout_seconds}" "${reference_wait_interval_seconds}"
   wait_for_dir "${runtime_assets_root}/cached_envs/conda" "cached conda environments" "${reference_wait_timeout_seconds}" "${reference_wait_interval_seconds}"
   wait_for_dir "${references_root}/genomic_data" "genomic reference data" "${reference_wait_timeout_seconds}" "${reference_wait_interval_seconds}"
-  if [ ! -s "${runtime_assets_root}/tool_specific_resources/cromwell_87.jar" ]; then
-    echo "ERROR: cromwell_87.jar missing under ${runtime_assets_root}/tool_specific_resources" >&2
-    exit 1
-  fi
+  wait_for_dir "${runtime_assets_root}/tool_specific_resources" "tool-specific runtime resources" "${reference_wait_timeout_seconds}" "${reference_wait_interval_seconds}"
   if [ ! -s "${runtime_assets_root}/tool_specific_resources/womtool_87.jar" ]; then
     echo "ERROR: womtool_87.jar missing under ${runtime_assets_root}/tool_specific_resources" >&2
     exit 1
@@ -476,7 +506,6 @@ prepare_common_writable_dirs() {
 
 prepare_headnode_writable_dirs() {
   install -d -m 0775 -o ubuntu -g ubuntu /fsx/analysis_results/ubuntu
-  install -d -m 0775 -o ubuntu -g ubuntu /fsx/analysis_results/cromwell_executions
   install -d -m 0775 -o daylily -g daylily /fsx/analysis_results/daylily
   install -d -m 0775 -o ubuntu -g ubuntu \
     "${work_root}/ubuntu" \
@@ -556,10 +585,15 @@ EOF
   chmod 0644 /etc/profile.d/daylily-runtime-cache.sh
 }
 
-install_cromwell_links() {
-  ln -sfn "${runtime_assets_root}/tool_specific_resources/cromwell_87.jar" /usr/local/bin/cromwell.jar
-  ln -sfn "${runtime_assets_root}/tool_specific_resources/womtool_87.jar" /usr/local/bin/womtool.jar
-  chmod a+r /usr/local/bin/cromwell.jar /usr/local/bin/womtool.jar
+install_womtool_link() {
+  local source_path="${runtime_assets_root}/tool_specific_resources/womtool_87.jar"
+  if [ ! -s "${source_path}" ]; then
+    echo "ERROR: womtool_87.jar missing under ${runtime_assets_root}/tool_specific_resources" >&2
+    exit 1
+  fi
+  ln -sfn "${source_path}" /usr/local/bin/womtool.jar
+  chmod a+r /usr/local/bin/womtool.jar
+  echo "Linked Womtool: /usr/local/bin/womtool.jar -> ${source_path}"
 }
 
 install_apptainer_if_available() {
@@ -603,10 +637,8 @@ aws configure set region "$region"
 update=0
 active_users=""
 active_jobs=""
-active_projects=""
 tag_userid=""
 tag_jobid=""
-tag_project=""
 
 if [ ! -f /tmp/jobs/jobs_users ] || [ ! -f /tmp/jobs/jobs_ids ]; then
   exit 0
@@ -616,30 +648,20 @@ active_users=$(sort -u /tmp/jobs/jobs_users | tr '\n' ' ' | sed 's/[[:space:]]*$
 active_jobs=$(sort /tmp/jobs/jobs_ids | tr '\n' ' ' | sed 's/[[:space:]]*$//')
 echo "$active_users" > /tmp/jobs/tmp_jobs_users
 echo "$active_jobs" > /tmp/jobs/tmp_jobs_ids
-if [ -f /tmp/jobs/jobs_projects ]; then
-  active_projects=$(sort -u /tmp/jobs/jobs_projects | tr '\n' ' ' | sed 's/[[:space:]]*$//')
-  echo "$active_projects" > /tmp/jobs/tmp_jobs_projects
-fi
 
 if [ ! -f /tmp/jobs/tag_userid ] || [ ! -f /tmp/jobs/tag_jobid ]; then
   echo "$active_users" > /tmp/jobs/tag_userid
   echo "$active_jobs" > /tmp/jobs/tag_jobid
-  echo "$active_projects" > /tmp/jobs/tag_project
   update=1
 else
   tag_userid=$(cat /tmp/jobs/tag_userid)
   tag_jobid=$(cat /tmp/jobs/tag_jobid)
-  [ -f /tmp/jobs/tag_project ] && tag_project=$(cat /tmp/jobs/tag_project)
   if [ "$active_users" != "$tag_userid" ]; then
     echo "$active_users" > /tmp/jobs/tag_userid
     update=1
   fi
   if [ "$active_jobs" != "$tag_jobid" ]; then
     echo "$active_jobs" > /tmp/jobs/tag_jobid
-    update=1
-  fi
-  if [ "$active_projects" != "$tag_project" ]; then
-    echo "$active_projects" > /tmp/jobs/tag_project
     update=1
   fi
 fi
@@ -649,7 +671,6 @@ if [ "$update" -eq 1 ]; then
   MyInstID=$(curl -fsS -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
   aws ec2 create-tags --resources "$MyInstID" --tags Key=aws-parallelcluster-username,Value="$(cat /tmp/jobs/tag_userid)" --region "$region"
   aws ec2 create-tags --resources "$MyInstID" --tags Key=aws-parallelcluster-jobid,Value="$(cat /tmp/jobs/tag_jobid)" --region "$region"
-  aws ec2 create-tags --resources "$MyInstID" --tags Key=aws-parallelcluster-project,Value="$(cat /tmp/jobs/tag_project)" --region "$region"
 fi
 EOF
   chmod 0755 /opt/slurm/sbin/check_tags.sh
@@ -690,10 +711,6 @@ export SLURM_ROOT=/opt/slurm
 install -d -m 1777 /tmp/jobs
 echo "${SLURM_JOB_USER}" >> /tmp/jobs/jobs_users
 echo "${SLURM_JOBID}" >> /tmp/jobs/jobs_ids
-Project=$($SLURM_ROOT/bin/scontrol show job "${SLURM_JOB_ID}" | grep Comment | awk -F'=' '{print $2}' || true)
-if [ -n "${Project}" ]; then
-  echo "${Project}" >> /tmp/jobs/jobs_projects
-fi
 EOF
 
   cat <<'EOF' > /opt/slurm/sbin/epilog.sh
@@ -702,14 +719,11 @@ set -euo pipefail
 export SLURM_ROOT=/opt/slurm
 sed -i "0,/${SLURM_JOB_USER}/d" /tmp/jobs/jobs_users 2>/dev/null || true
 sed -i "0,/${SLURM_JOBID}/d" /tmp/jobs/jobs_ids 2>/dev/null || true
-Project=$($SLURM_ROOT/bin/scontrol show job "${SLURM_JOB_ID}" | grep Comment | awk -F'=' '{print $2}' || true)
-if [ -n "${Project}" ]; then
-  sed -i "0,/${Project}/d" /tmp/jobs/jobs_projects 2>/dev/null || true
-fi
 EOF
 
   chmod 0755 /opt/slurm/sbin/prolog.sh /opt/slurm/sbin/epilog.sh
   disable_slurm_partition_exclusivity
+  append_once "AccountingStoreFlags=job_comment" /opt/slurm/etc/slurm.conf
   append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf
   append_once "Prolog=/opt/slurm/sbin/prolog.sh" /opt/slurm/etc/slurm.conf
   append_once "Epilog=/opt/slurm/sbin/epilog.sh" /opt/slurm/etc/slurm.conf
@@ -761,6 +775,7 @@ validate_dragen_host() {
 }
 
 aws configure set region "${region}"
+repair_compute_cluster_tags
 ulimit -n 16384
 
 install_required_rhel_packages
@@ -778,11 +793,11 @@ if [ "${storage_mode}" = "fsx" ]; then
   wait_for_reference_data
   make_role_data_read_only
   prepare_dayoa_environment_cache
-  install_cromwell_links
+  install_womtool_link
   install_apptainer_if_available
   echo "DayOA conda, container, and Nextflow caches are seeded from ${runtime_assets_root}/cached_envs into ${environment_cache_root}"
 else
-  echo "No-FSx DRAGEN mode selected; skipped FSx reference, cache, Cromwell, Womtool, and Apptainer setup."
+  echo "No-FSx DRAGEN mode selected; skipped FSx reference, cache, Womtool, and Apptainer setup."
 fi
 
 if [ "${node_type}" = "HeadNode" ]; then

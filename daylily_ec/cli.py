@@ -582,12 +582,12 @@ def create(
     disable_budget_enforcement: bool = typer.Option(
         False,
         "--disable-budget-enforcement",
-        help="Render budget checking as skipped; sbatch --comment remains required.",
+        help="Skip cluster AWS Budget enforcement; sbatch cost-center validation remains required.",
     ),
     budget_project: Optional[str] = typer.Option(
         None,
         "--budget-project",
-        help="Budget/project string rendered into the cluster project tag. Defaults to cluster name.",
+        help="Retired. Cluster budgets are named by cluster name.",
     ),
     create_slurm_accounting_db: bool = typer.Option(
         False,
@@ -598,6 +598,11 @@ def create(
         False,
         "--scan-slurm-accounting-db",
         help="Scan same-VPC EC2 instances for an existing Slurm accounting DB to reuse.",
+    ),
+    slurm_accounting_stack_name: str = typer.Option(
+        "",
+        "--slurm-accounting-stack-name",
+        help="Explicit DayEC Slurm accounting stack name for create/ensure.",
     ),
 ) -> None:
     """Create an ephemeral AWS ParallelCluster environment."""
@@ -610,6 +615,8 @@ def create(
         raise typer.BadParameter(
             "--scan-slurm-accounting-db cannot be combined with --create-slurm-accounting-db."
         )
+    if budget_project:
+        raise typer.BadParameter("--budget-project is retired; cluster budgets are named by cluster name.")
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -625,6 +632,7 @@ def create(
         budget_project=budget_project,
         create_slurm_accounting_db=create_slurm_accounting_db,
         scan_slurm_accounting_db=scan_slurm_accounting_db,
+        slurm_accounting_stack_name=slurm_accounting_stack_name,
     )
     raise SystemExit(rc)
 
@@ -715,6 +723,313 @@ def slurm_accounting_ensure(
     output.print_text(f"Client SG: {db.client_security_group_id}")
     if db.instance_id:
         output.print_text(f"Instance:  {db.instance_id}")
+
+
+def _cost_center_context(profile: Optional[str], home_region: str):
+    from daylily_ec.aws.context import AWSContext
+
+    aws_ctx = AWSContext.build_region(home_region, profile=profile)
+    return aws_ctx, aws_ctx.client("dynamodb")
+
+
+def cost_centers_ensure_registry(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    table_name: str = typer.Option("dayec-cost-centers", "--table-name", help="Registry table name."),
+    usage_table_name: str = typer.Option(
+        "dayec-cost-center-usage",
+        "--usage-table-name",
+        help="Usage summary table name.",
+    ),
+) -> None:
+    """Ensure global cost-center registry DynamoDB tables exist."""
+    from daylily_ec.aws.cost_centers import ensure_cost_center_registry
+
+    _warn_if_dayec_env_inactive()
+    try:
+        aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        payload = ensure_cost_center_registry(
+            dynamodb,
+            table_name=table_name,
+            usage_table_name=usage_table_name,
+            actor_arn=aws_ctx.caller_arn,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(payload, f"Cost-center registry ready: {payload}")
+
+
+def cost_centers_create(
+    name: str = typer.Argument(..., help="Cost-center name."),
+    monthly_cap_usd: str = typer.Option(..., "--monthly-cap-usd", help="Monthly cap in USD."),
+    allowed_user: Optional[List[str]] = typer.Option(None, "--allowed-user", help="Allowed user."),
+    allowed_group: Optional[List[str]] = typer.Option(None, "--allowed-group", help="Allowed group."),
+    owner_email: Optional[List[str]] = typer.Option(None, "--owner-email", help="Owner email."),
+    notes: str = typer.Option("", "--notes", help="Free-text notes."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    table_name: str = typer.Option("dayec-cost-centers", "--table-name", help="Registry table name."),
+) -> None:
+    """Create an active cost center."""
+    from daylily_ec.aws.cost_centers import create_cost_center
+
+    _warn_if_dayec_env_inactive()
+    try:
+        aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        item = create_cost_center(
+            dynamodb,
+            name,
+            monthly_cap_usd=monthly_cap_usd,
+            allowed_users=allowed_user or (),
+            allowed_groups=allowed_group or (),
+            owner_emails=owner_email or (),
+            notes=notes,
+            actor_arn=aws_ctx.caller_arn,
+            table_name=table_name,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(item.to_dict(), f"Created cost center: {item.name}")
+
+
+def cost_centers_edit(
+    name: str = typer.Argument(..., help="Cost-center name."),
+    monthly_cap_usd: Optional[str] = typer.Option(None, "--monthly-cap-usd", help="Monthly cap in USD."),
+    allowed_user: Optional[List[str]] = typer.Option(None, "--allowed-user", help="Replacement allowed user list."),
+    allowed_group: Optional[List[str]] = typer.Option(None, "--allowed-group", help="Replacement allowed group list."),
+    owner_email: Optional[List[str]] = typer.Option(None, "--owner-email", help="Replacement owner email list."),
+    notes: Optional[str] = typer.Option(None, "--notes", help="Replacement notes."),
+    status: Optional[str] = typer.Option(None, "--status", help="Replacement status: active or disabled."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    table_name: str = typer.Option("dayec-cost-centers", "--table-name", help="Registry table name."),
+) -> None:
+    """Edit provided cost-center fields."""
+    from daylily_ec.aws.cost_centers import edit_cost_center
+
+    _warn_if_dayec_env_inactive()
+    try:
+        aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        item = edit_cost_center(
+            dynamodb,
+            name,
+            monthly_cap_usd=monthly_cap_usd,
+            allowed_users=allowed_user,
+            allowed_groups=allowed_group,
+            owner_emails=owner_email,
+            notes=notes,
+            status=status,
+            actor_arn=aws_ctx.caller_arn,
+            table_name=table_name,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(item.to_dict(), f"Updated cost center: {item.name}")
+
+
+def cost_centers_disable(
+    name: str = typer.Argument(..., help="Cost-center name."),
+    reason: str = typer.Option(..., "--reason", help="Disable reason."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    table_name: str = typer.Option("dayec-cost-centers", "--table-name", help="Registry table name."),
+) -> None:
+    """Disable a cost center."""
+    from daylily_ec.aws.cost_centers import disable_cost_center
+
+    _warn_if_dayec_env_inactive()
+    try:
+        aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        item = disable_cost_center(
+            dynamodb,
+            name,
+            reason=reason,
+            actor_arn=aws_ctx.caller_arn,
+            table_name=table_name,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(item.to_dict(), f"Disabled cost center: {item.name}")
+
+
+def cost_centers_show(
+    name: str = typer.Argument(..., help="Cost-center name."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    table_name: str = typer.Option("dayec-cost-centers", "--table-name", help="Registry table name."),
+) -> None:
+    """Show one cost center."""
+    from daylily_ec.aws.cost_centers import get_cost_center
+
+    _warn_if_dayec_env_inactive()
+    try:
+        _aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        item = get_cost_center(dynamodb, name, table_name=table_name)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(item.to_dict(), json.dumps(item.to_dict(), indent=2))
+
+
+def cost_centers_list(
+    status: str = typer.Option("all", "--status", help="active, disabled, system, or all."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    table_name: str = typer.Option("dayec-cost-centers", "--table-name", help="Registry table name."),
+) -> None:
+    """List cost centers."""
+    from daylily_ec.aws.cost_centers import list_cost_centers
+
+    _warn_if_dayec_env_inactive()
+    try:
+        _aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        items = list_cost_centers(dynamodb, table_name=table_name, status=status)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    payload = {"cost_centers": [item.to_dict() for item in items]}
+    _emit_payload(payload, json.dumps(payload, indent=2))
+
+
+def cost_centers_usage(
+    name: Optional[str] = typer.Argument(None, help="Optional cost-center name."),
+    month: str = typer.Option(..., "--month", help="Usage month YYYY-MM."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    usage_table_name: str = typer.Option(
+        "dayec-cost-center-usage",
+        "--usage-table-name",
+        help="Usage summary table name.",
+    ),
+) -> None:
+    """Show latest monthly usage snapshot for one or all cost centers."""
+    from daylily_ec.aws.cost_centers import get_cost_center_usage, list_cost_center_usage
+
+    _warn_if_dayec_env_inactive()
+    try:
+        _aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        if name:
+            item = get_cost_center_usage(
+                dynamodb,
+                name,
+                month=month,
+                usage_table_name=usage_table_name,
+                allow_missing=True,
+            )
+            payload: dict[str, object] = {"usage": item.to_dict() if item else None}
+        else:
+            payload = {
+                "usage": [
+                    item.to_dict()
+                    for item in list_cost_center_usage(
+                        dynamodb,
+                        month=month,
+                        usage_table_name=usage_table_name,
+                    )
+                ]
+            }
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(payload, json.dumps(payload, indent=2))
+
+
+def cost_centers_ensure_cur_export(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    billing_region: str = typer.Option(
+        "us-east-1",
+        "--billing-region",
+        help="BCM Data Exports home region.",
+    ),
+    bucket: Optional[str] = typer.Option(
+        None,
+        "--bucket",
+        help="S3 bucket for the CUR 2.0 export. Defaults to dayec-cur-<account>-us-east-1.",
+    ),
+    bucket_region: str = typer.Option(
+        "us-east-1",
+        "--bucket-region",
+        help="Region for the CUR export bucket.",
+    ),
+    athena_region: Optional[str] = typer.Option(
+        None,
+        "--athena-region",
+        help="Region for Glue/Athena metadata. Defaults to --bucket-region.",
+    ),
+    export_name: str = typer.Option(
+        "dayec-cur2-hourly",
+        "--export-name",
+        help="BCM Data Export name.",
+    ),
+    s3_prefix: str = typer.Option(
+        "dayec-cur",
+        "--s3-prefix",
+        help="S3 prefix for delivered export data.",
+    ),
+    database: str = typer.Option(
+        "dayec_cur",
+        "--database",
+        help="Glue database for Athena CUR queries.",
+    ),
+    table: str = typer.Option(
+        "cur2_hourly",
+        "--table",
+        help="Glue table for Athena CUR queries.",
+    ),
+    athena_output_s3_uri: str = typer.Option(
+        "",
+        "--athena-output-s3-uri",
+        help="Athena query result output URI. Defaults under the CUR bucket/prefix.",
+    ),
+    cluster_tag_key: str = typer.Option(
+        "user_parallelcluster_cluster_name",
+        "--cluster-tag-key",
+        help="CUR resource_tags key used for cluster attribution.",
+    ),
+    update_existing_export: bool = typer.Option(
+        False,
+        "--update-existing-export",
+        help="Explicitly update an existing same-name Data Export if its definition differs.",
+    ),
+    adopt_glue_table: bool = typer.Option(
+        False,
+        "--adopt-glue-table",
+        help="Explicitly adopt an existing same-name Glue table that is not dayec-managed.",
+    ),
+) -> None:
+    """Ensure the CUR 2.0 Data Export and Athena table used for cost-center accounting."""
+    from daylily_ec.aws.context import AWSContext
+    from daylily_ec.aws.cur_export import (
+        CurExportConfig,
+        default_cur_export_bucket,
+        ensure_cur2_athena_source,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        aws_ctx = AWSContext.build_region(billing_region, profile=profile)
+        resolved_bucket = bucket or default_cur_export_bucket(aws_ctx.account_id)
+        resolved_athena_region = athena_region or bucket_region
+        payload = ensure_cur2_athena_source(
+            s3_client=aws_ctx.session.client("s3", region_name=bucket_region),
+            bcm_client=aws_ctx.client("bcm-data-exports"),
+            glue_client=aws_ctx.session.client("glue", region_name=resolved_athena_region),
+            config=CurExportConfig(
+                account_id=aws_ctx.account_id,
+                bucket=resolved_bucket,
+                bucket_region=bucket_region,
+                billing_region=billing_region,
+                athena_region=resolved_athena_region,
+                export_name=export_name,
+                s3_prefix=s3_prefix,
+                database=database,
+                table=table,
+                athena_output_s3_uri=athena_output_s3_uri,
+                cluster_tag_key=cluster_tag_key,
+            ),
+            update_existing_export=update_existing_export,
+            adopt_glue_table=adopt_glue_table,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(payload, json.dumps(payload, indent=2, sort_keys=True))
 
 
 def preflight(
@@ -4856,6 +5171,41 @@ def register(registry, cli_spec) -> None:
             (
                 "ensure",
                 slurm_accounting_ensure,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "cost-centers",
+        "Global cost-center registry helpers.",
+        [
+            (
+                "ensure-registry",
+                cost_centers_ensure_registry,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "create",
+                cost_centers_create,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
+                "edit",
+                cost_centers_edit,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
+                "disable",
+                cost_centers_disable,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            ("show", cost_centers_show, REQUIRED_JSON),
+            ("list", cost_centers_list, REQUIRED_JSON),
+            ("usage", cost_centers_usage, REQUIRED_JSON),
+            (
+                "ensure-cur-export",
+                cost_centers_ensure_cur_export,
                 required_policy(supports_json=True, mutates_state=True, long_running=True),
             ),
         ],

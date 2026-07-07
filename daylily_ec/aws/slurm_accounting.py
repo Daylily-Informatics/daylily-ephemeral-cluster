@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -22,6 +23,8 @@ DEFAULT_TEMPLATE_PATH = "config/day_cluster/slurm_accounting_mysql_ec2.yml"
 DEFAULT_ACCOUNTING_DATABASE_NAME = "dayec_slurm_acct"
 DEFAULT_ACCOUNTING_USERNAME = "slurm_acct"
 DEFAULT_ACCOUNTING_INSTANCE_TYPE = "t4g.micro"
+VALIDATION_ACCOUNTING_STACK_PREFIX = "dayec-costacct-"
+VALIDATION_IGNORE_BEFORE_UTC = datetime(2026, 7, 4, tzinfo=timezone.utc)
 
 ACCOUNTING_COMPONENT_TAG_KEY = "daylily-ec:component"
 ACCOUNTING_COMPONENT_TAG_VALUE = "slurm-accounting-mysql"
@@ -114,6 +117,55 @@ def derive_slurm_accounting_stack_name(region_az: str) -> str:
     if not region_az:
         raise ValueError("region_az must not be empty")
     return f"dayec-slurm-accounting-{region_az}"
+
+
+def derive_validation_slurm_accounting_stack_name(utcstamp: str) -> str:
+    value = utcstamp.strip()
+    if not re.fullmatch(r"\d{8}T\d{6}Z", value):
+        raise SlurmAccountingError("Validation accounting UTC stamp must be YYYYMMDDTHHMMSSZ.")
+    return f"{VALIDATION_ACCOUNTING_STACK_PREFIX}{value}"
+
+
+def list_active_validation_slurm_accounting_stacks(
+    aws_ctx: Any,
+    *,
+    created_after: datetime = VALIDATION_IGNORE_BEFORE_UTC,
+) -> list[dict[str, Any]]:
+    """List active post-cutoff `dayec-costacct-*` stacks for live-validation guardrails."""
+    cfn = aws_ctx.client("cloudformation")
+    cutoff = _as_utc(created_after)
+    matches: list[dict[str, Any]] = []
+    for summary in _list_stack_summaries(cfn):
+        name = str(summary.get("StackName") or "")
+        if not name.startswith(VALIDATION_ACCOUNTING_STACK_PREFIX):
+            continue
+        status = str(summary.get("StackStatus") or "")
+        if status == "DELETE_COMPLETE":
+            continue
+        created = _as_utc(summary.get("CreationTime"))
+        if created < cutoff:
+            continue
+        stack = _describe_stack_or_none(cfn, name)
+        if stack is not None:
+            matches.append(stack)
+    return sorted(matches, key=lambda stack: str(stack.get("StackName") or ""))
+
+
+def require_no_active_validation_slurm_accounting_stacks(
+    aws_ctx: Any,
+    *,
+    created_after: datetime = VALIDATION_IGNORE_BEFORE_UTC,
+) -> None:
+    matches = list_active_validation_slurm_accounting_stacks(
+        aws_ctx,
+        created_after=created_after,
+    )
+    if matches:
+        names = ", ".join(str(stack.get("StackName") or "") for stack in matches)
+        raise SlurmAccountingError(
+            "Active post-2026-07-04 validation Slurm accounting stack exists: "
+            f"{names}. Delete or finish that validation resource before creating another."
+        )
 
 
 def validate_database_name(database_name: str) -> str:
@@ -477,6 +529,18 @@ def _is_stack_not_found(exc: BaseException) -> bool:
     code = str(response.get("Error", {}).get("Code", ""))
     message = str(response.get("Error", {}).get("Message", ""))
     return code == "ValidationError" and "does not exist" in message
+
+
+def _as_utc(value: Any) -> datetime:
+    if isinstance(value, datetime):
+        dt = value
+    elif isinstance(value, str):
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    else:
+        raise SlurmAccountingError(f"Expected datetime, got {value!r}.")
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
 
 
 def _stack_has_accounting_tags(stack: dict[str, Any], *, region_az: str, vpc_id: str) -> bool:

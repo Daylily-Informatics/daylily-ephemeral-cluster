@@ -11,7 +11,6 @@ from daylily_ec.aws.ssm import SsmCommandResult, run_shell
 DEFAULT_HEADNODE_REPO_NAME = "daylily-ephemeral-cluster"
 REQUIRED_ROLE_FILES = (
     "/fsx/references/runtime_assets/cached_envs/apptainer_1.4.5_amd64.deb",
-    "/fsx/references/runtime_assets/tool_specific_resources/cromwell_87.jar",
     "/fsx/references/runtime_assets/tool_specific_resources/womtool_87.jar",
 )
 REQUIRED_ROLE_DIRECTORIES = (

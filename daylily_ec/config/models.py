@@ -102,7 +102,6 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "auto_delete_fsx",
     "budget_amount",
     "budget_email",
-    "budget_project",
     "cluster_name",
     "cluster_template_yaml",
     "delete_local_root",
