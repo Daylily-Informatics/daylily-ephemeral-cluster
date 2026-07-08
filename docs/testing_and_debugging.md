@@ -59,7 +59,7 @@ The source and packaged catalogs must match:
 cmp -s config/daylily_pipeline_command_catalog.yaml daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml
 ```
 
-The current DayOA pin should be `8.0.0` everywhere in the catalog:
+The current DayOA pin should be `10.0.69` everywhere in the catalog:
 
 ```bash
 rg -n "2\\.0\\.29|0\\.7\\.758|\\b1\\.0\\.[0-9]\\b" \

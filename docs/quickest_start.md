@@ -146,7 +146,7 @@ can be a full destination or an export root. Export roots are expanded to
 
 ## 6. Run-Folder Analysis
 
-Use this path when raw run directories should stay in S3 and be read through an ephemeral run DRA. Run mounts can legitimately spend many minutes in `CREATING`, especially for large run directories; use a timeout comfortably above 30 minutes when the CLI supports one.
+Use this path when raw run directories should stay in S3 and be read through an ephemeral run DRA. Run mounts can legitimately spend more than 40 minutes in `CREATING`, especially for large run directories; use a timeout comfortably above that window when the CLI supports one.
 
 ```bash
 dyec --json mounts create "s3://<sequencing-run-bucket>/<run-prefix>/" \
@@ -156,7 +156,7 @@ dyec --json mounts create "s3://<sequencing-run-bucket>/<run-prefix>/" \
   --platform ILMN \
   --read-only \
   --wait \
-  --timeout-seconds 3600
+  --timeout-seconds 5400
 
 dyec --json mounts verify \
   --profile "$AWS_PROFILE" \
@@ -173,7 +173,7 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --repository daylily-omics-analysis \
-  --git-tag 9.0.0 \
+  --git-tag 10.0.69 \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "$EXECUTING_ENTITY" \

@@ -91,7 +91,7 @@ flowchart LR
 
 ## Pipeline Catalog Flow
 
-`config/daylily_pipeline_command_catalog.yaml` defines repositories and launch profiles. The DayOA repository and every DayOA command are pinned to `8.0.0`.
+`config/daylily_pipeline_command_catalog.yaml` defines repositories and launch profiles. The DayOA repository and every DayOA command are pinned to `10.0.69`.
 
 Catalog `test_data_profile` entries make the source-mount contract explicit.
 `default_mounted` profiles read from default cluster DRAs such as `/fsx/references`
@@ -102,7 +102,7 @@ external source data.
 
 ```mermaid
 flowchart TB
-  Catalog["Repository catalog v2"] --> Repo["daylily-omics-analysis @ 8.0.0"]
+  Catalog["Repository catalog v2"] --> Repo["daylily-omics-analysis @ 10.0.69"]
   Repo --> Sample["sample_analysis"]
   Repo --> Run["run_analysis"]
 

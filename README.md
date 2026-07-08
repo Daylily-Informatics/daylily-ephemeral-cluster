@@ -153,7 +153,7 @@ dyec --json mounts create "s3://<sequencing-run-bucket>/<run-prefix>/" \
   --platform ILMN \
   --read-only \
   --wait \
-  --timeout-seconds 3600
+  --timeout-seconds 5400
 
 dyec --json mounts verify \
   --profile "$AWS_PROFILE" \
@@ -268,18 +268,22 @@ dyec tests command-catalog \
 
 `dyec tests command-catalog` writes local command evidence under `docs/plans/<stamp>_dyec_tests_command_catalog_logs` unless `--output-dir` is set. Successful workflow phases export to `<evidence-s3-uri>/<cluster>/command_catalog_results/<dayoa-version>-<UTCSTAMP>/ubuntu/<analysis-id>/`. Missing run-directory DRAs fail hard unless `--create-missing-mounts` is supplied.
 
+The command-catalog runner launches in source-availability groups. Commands that use no external data, default-mounted data, or an already available run DRA launch immediately. When `--create-missing-mounts` is supplied, commands for a missing `SOURCE_S3_URI` wait only for that source's run DRA and launch as soon as that directory is available; unrelated ready commands do not wait behind it. New run-DRA creation waits up to 5400 seconds by default.
+
+By default `dyec tests command-catalog` uses `--parallel 16` for concurrent launched phases and renders DayOA commands with `--jobs 150`. Catalog command text may contain smaller `-j` values for individual live run-analysis recipes, but the command-catalog renderer normalizes the launched test phases to `-j 150` unless `--jobs` is set explicitly.
+
 The Slurm accounting helper manages external accounting infrastructure when configured. A running cluster can have the `sacct` binary installed while accounting storage is disabled; in that state `sacct` cannot provide job accounting records even though the command exists.
 
 ## Repository Catalog
 
-`config/daylily_pipeline_command_catalog.yaml` is the source of truth for blessed repositories and commands. The packaged copy under `daylily_ec/resources/payload/config/` must match it. The current catalog default for DayOA is `10.0.56`; `daylily-sarek` is also present as a Nextflow/nf-core Sarek repository entry.
+`config/daylily_pipeline_command_catalog.yaml` is the source of truth for blessed repositories and commands. The packaged copy under `daylily_ec/resources/payload/config/` must match it. The current catalog default for DayOA is `10.0.69`; `daylily-sarek` is also present as a Nextflow/nf-core Sarek repository entry.
 
 On the headnode, `day-clone` consumes the same repository catalog:
 
 ```bash
 day-clone --list
-day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 10.0.56 --executing-entity "$EXECUTING_ENTITY"
-day-clone -d "$ANALYSIS_ID" -t 10.0.56
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 10.0.69 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 10.0.69
 ```
 
 `-t` is the short form of `--git-tag`; `-d` is the short form of the required `--destination`. For operator-launched analyses, do not omit `--git-tag`/`-t`: resolve the intended DayOA release tag first, record it in the ledger, and pass it explicitly. When `--git-tag`/`-t` is omitted, `day-clone` falls back to the selected repository's `default_ref`; that fallback is for catalog implementation behavior, not live analysis runbooks. The checkout lands at `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`, where `relative_path` comes from the catalog row.

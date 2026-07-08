@@ -75,6 +75,8 @@ PANGENOME_COMMAND_IDS = frozenset(
 
 LIVE_VALIDATION_COMMAND_IDS = KITCHEN_SINK_COMMAND_IDS | PANGENOME_COMMAND_IDS
 COVERAGE_GATE_OVERRIDE_FLAGS = ("--no-cov", "--cov-fail-under")
+DEFAULT_COMMAND_CATALOG_PARALLEL = 16
+RUN_DRA_CREATE_WAIT_TIMEOUT_SECONDS = 90 * 60
 
 MODE_MANIFESTS = {
     "ilmn_solo": Path("examples/staging/ilmn_solo/analysis_samples_manifest.tsv"),
@@ -111,7 +113,7 @@ class CommandCatalogOptions:
     evidence_s3_uri: str
     dry_run_only: bool = False
     create_missing_mounts: bool = False
-    parallel: int = 3
+    parallel: int = DEFAULT_COMMAND_CATALOG_PARALLEL
     jobs: int = 150
     max_runtime_minutes: int = DEFAULT_JOB_MAX_RUNTIME_MINUTES
     executing_entity: str = "ubuntu"
@@ -469,59 +471,97 @@ def run_command_catalog(
         },
     )
 
-    run_mounts = prepare_run_mounts(
+    run_mounts, pending_run_commands = inspect_run_mounts(
         selected,
         catalog=catalog,
         cluster=cluster,
         profile=options.profile,
         region=options.region,
-        create_missing=options.create_missing_mounts,
         mount_list_func=mount_list_func,
-        mount_create_func=mount_create_func,
     )
-    manifests = prepare_command_inputs(
-        selected,
-        catalog=catalog,
-        output_dir=output_dir,
-        role_uris=role_uris,
-        evidence_prefix_s3_uri=evidence_prefix,
-        profile=options.profile,
-        region=options.region,
-        cluster=cluster,
-        run_mounts=run_mounts,
-        stage_func=stage_func or default_stage_func,
-    )
-    write_json(
-        output_dir / "run_mounts.json",
-        {source: record_to_payload(record) for source, record in sorted(run_mounts.items())},
-    )
+    if pending_run_commands and not options.create_missing_mounts:
+        raise TestsRunnerError(
+            "Missing run-directory DRA mounts for: " + ", ".join(sorted(pending_run_commands))
+        )
+    write_run_mounts(output_dir, run_mounts)
 
-    phases = render_phases(
-        selected,
-        manifests=manifests,
-        evidence_prefix_s3_uri=evidence_prefix,
-        executing_entity=executing_entity,
-        profile=options.profile,
-        region=options.region,
-        cluster=cluster,
-        jobs=options.jobs,
-        dry_run_only=options.dry_run_only,
-        output_dir=output_dir,
-        stamp=stamp,
-        max_runtime_minutes=options.max_runtime_minutes,
-    )
-    write_phase_plan(output_dir / "phase_plan.json", phases)
+    all_phases: list[RenderedPhase] = []
+    results: list[PhaseResult] = []
+    effective_stage_func = stage_func or default_stage_func
+    effective_launch_func = launch_func or default_launch_func
 
-    results = execute_phases(
-        phases,
-        dry_run_only=options.dry_run_only,
-        parallel=options.parallel,
-        launch_func=launch_func or default_launch_func,
-        status_func=status_func,
-        timeout_minutes=options.timeout_minutes,
-        poll_interval_seconds=options.poll_interval_seconds,
-        output_dir=output_dir,
-    )
+    def run_ready_commands(commands_to_run: Sequence[AnalysisCommand]) -> None:
+        if not commands_to_run:
+            return
+        manifests = prepare_command_inputs(
+            commands_to_run,
+            catalog=catalog,
+            output_dir=output_dir,
+            role_uris=role_uris,
+            evidence_prefix_s3_uri=evidence_prefix,
+            profile=options.profile,
+            region=options.region,
+            cluster=cluster,
+            run_mounts=run_mounts,
+            stage_func=effective_stage_func,
+        )
+        phases = render_phases(
+            commands_to_run,
+            manifests=manifests,
+            evidence_prefix_s3_uri=evidence_prefix,
+            executing_entity=executing_entity,
+            profile=options.profile,
+            region=options.region,
+            cluster=cluster,
+            jobs=options.jobs,
+            dry_run_only=options.dry_run_only,
+            output_dir=output_dir,
+            stamp=stamp,
+            max_runtime_minutes=options.max_runtime_minutes,
+        )
+        all_phases.extend(phases)
+        write_phase_plan(output_dir / "phase_plan.json", all_phases)
+        results.extend(
+            execute_phases(
+                phases,
+                dry_run_only=options.dry_run_only,
+                parallel=options.parallel,
+                launch_func=effective_launch_func,
+                status_func=status_func,
+                timeout_minutes=options.timeout_minutes,
+                poll_interval_seconds=options.poll_interval_seconds,
+                output_dir=output_dir,
+            )
+        )
+
+    initially_ready = [
+        command
+        for command in selected
+        if command.input_contract != "run_context" or run_profile_source(command, catalog) in run_mounts
+    ]
+    run_ready_commands(initially_ready)
+
+    for source, source_commands in sorted(pending_run_commands.items()):
+        command = source_commands[0]
+        mount_id = run_id_from_source(source)
+        request = CreateRunMountRequest(
+            source_s3_uri=source,
+            cluster_name=cluster,
+            fsx_file_system_id=None,
+            region=options.region,
+            profile=options.profile,
+            mount_id=mount_id,
+            run_id=mount_id,
+            platform=run_platform(command),
+            purpose=MOUNT_PURPOSE_RUN,
+            read_only=True,
+            wait=True,
+            timeout_seconds=RUN_DRA_CREATE_WAIT_TIMEOUT_SECONDS,
+        )
+        run_mounts[source] = mount_create_func(request)
+        write_run_mounts(output_dir, run_mounts)
+        run_ready_commands(source_commands)
+
     rc = 0 if all(result.succeeded for result in results) else 1
     final = CommandCatalogResult(
         rc=rc,
@@ -574,20 +614,18 @@ def role_root_uri(*, mount_path: str, data_root: str, s3_uri: str) -> str:
     return f"s3://{parsed.netloc}/{key}/" if key else f"s3://{parsed.netloc}/"
 
 
-def prepare_run_mounts(
+def inspect_run_mounts(
     commands: Sequence[AnalysisCommand],
     *,
     catalog: RepositoryCatalog,
     cluster: str,
     profile: str,
     region: str,
-    create_missing: bool,
     mount_list_func: MountListFunc,
-    mount_create_func: MountCreateFunc,
-) -> dict[str, RunMountRecord]:
+) -> tuple[dict[str, RunMountRecord], dict[str, list[AnalysisCommand]]]:
     run_commands = [command for command in commands if command.input_contract == "run_context"]
     if not run_commands:
-        return {}
+        return {}, {}
     existing = mount_list_func(
         cluster_name=cluster,
         fsx_file_system_id=None,
@@ -600,16 +638,39 @@ def prepare_run_mounts(
         for record in existing
         if str(record.lifecycle).upper() == "AVAILABLE"
     }
-    missing: dict[str, AnalysisCommand] = {}
+    missing: dict[str, list[AnalysisCommand]] = {}
     for command in run_commands:
         source = run_profile_source(command, catalog)
         if source not in records_by_source:
-            missing[source] = command
+            missing.setdefault(source, []).append(command)
+    return records_by_source, missing
+
+
+def prepare_run_mounts(
+    commands: Sequence[AnalysisCommand],
+    *,
+    catalog: RepositoryCatalog,
+    cluster: str,
+    profile: str,
+    region: str,
+    create_missing: bool,
+    mount_list_func: MountListFunc,
+    mount_create_func: MountCreateFunc,
+) -> dict[str, RunMountRecord]:
+    records_by_source, missing = inspect_run_mounts(
+        commands,
+        catalog=catalog,
+        cluster=cluster,
+        profile=profile,
+        region=region,
+        mount_list_func=mount_list_func,
+    )
     if missing and not create_missing:
         raise TestsRunnerError(
             "Missing run-directory DRA mounts for: " + ", ".join(sorted(missing))
         )
-    for source, command in sorted(missing.items()):
+    for source, source_commands in sorted(missing.items()):
+        command = source_commands[0]
         mount_id = run_id_from_source(source)
         request = CreateRunMountRequest(
             source_s3_uri=source,
@@ -623,10 +684,17 @@ def prepare_run_mounts(
             purpose=MOUNT_PURPOSE_RUN,
             read_only=True,
             wait=True,
-            timeout_seconds=3600,
+            timeout_seconds=RUN_DRA_CREATE_WAIT_TIMEOUT_SECONDS,
         )
         records_by_source[source] = mount_create_func(request)
     return records_by_source
+
+
+def write_run_mounts(output_dir: Path, run_mounts: Mapping[str, RunMountRecord]) -> None:
+    write_json(
+        output_dir / "run_mounts.json",
+        {source: record_to_payload(record) for source, record in sorted(run_mounts.items())},
+    )
 
 
 def run_profile_source(command: AnalysisCommand, catalog: Optional[RepositoryCatalog] = None) -> str:

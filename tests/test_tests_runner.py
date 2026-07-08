@@ -12,9 +12,11 @@ from daylily_ec.cli import app
 from daylily_ec.repositories import load_repository_catalog
 from daylily_ec.run_mounts import MOUNT_PURPOSE_RUN, RunMountRecord
 from daylily_ec.tests_runner import (
+    DEFAULT_COMMAND_CATALOG_PARALLEL,
     DYEC800_COMMAND_IDS,
     CommandCatalogOptions,
     PhaseResult,
+    RUN_DRA_CREATE_WAIT_TIMEOUT_SECONDS,
     RenderedPhase,
     TestsRunnerError as RunnerError,
     build_evidence_prefix,
@@ -49,7 +51,7 @@ from daylily_ec.tests_runner import (
 
 
 runner = CliRunner()
-DAYOA_BLESSED_TAG = "10.0.67"
+DAYOA_BLESSED_TAG = "10.0.69"
 
 
 def _run_mount_record(
@@ -321,7 +323,7 @@ def test_prepare_run_mounts_blocks_then_creates_missing() -> None:
 
     request = captured["request"]
     assert request.wait is True
-    assert request.timeout_seconds == 3600
+    assert request.timeout_seconds == RUN_DRA_CREATE_WAIT_TIMEOUT_SECONDS
     assert request.read_only is True
     assert source in records
 
@@ -379,6 +381,54 @@ def test_run_command_catalog_dry_run_only_renders_and_exports(tmp_path: Path) ->
     )
     assert (tmp_path / "command_registry.json").is_file()
     assert (tmp_path / "summary.json").is_file()
+
+
+def test_run_command_catalog_launches_ready_commands_before_missing_run_dras(
+    tmp_path: Path,
+) -> None:
+    catalog = load_repository_catalog()
+    ont = catalog.get_command("ont_run_qc")
+    ont_source = catalog.test_data_profiles[ont.test_data_profile].source_s3_uri_template
+    events: list[str] = []
+
+    def fake_create(request):
+        events.append(f"mount_create:{request.mount_id}")
+        return _run_mount_record(
+            source_s3_uri=ont_source,
+            mount_id=request.mount_id,
+            platform=request.platform,
+        )
+
+    def fake_launch(argv: list[str]) -> int:
+        analysis_id = argv[argv.index("--analysis-id") + 1]
+        events.append(f"launch:{analysis_id}")
+        print(f"__DAYLILY_SESSION__={analysis_id}")
+        return 0
+
+    result = run_command_catalog(
+        CommandCatalogOptions(
+            cluster="dyec800",
+            profile="lsmc",
+            region="us-west-2",
+            command_codes="illumina_snv_alignstats ont_run_qc",
+            evidence_s3_uri="s3://evidence-root/validation",
+            dry_run_only=True,
+            create_missing_mounts=True,
+            output_dir=tmp_path,
+            stamp="20260607T000000Z",
+            poll_interval_seconds=1,
+        ),
+        stage_func=_fake_stage,
+        launch_func=fake_launch,
+        status_func=lambda _metadata, _phase: {"exit_code": 0},
+        mount_list_func=lambda **_kwargs: [],
+        mount_create_func=fake_create,
+    )
+
+    assert result.rc == 0
+    assert events[0] == "launch:ccv_dryrun_illumina_snv_alignstats_20260607T000000Z"
+    assert events[1].startswith("mount_create:")
+    assert events[2] == "launch:ccv_dryrun_ont_run_qc_20260607T000000Z"
 
 
 def test_run_command_catalog_live_runs_all_requested_after_dryrun(tmp_path: Path) -> None:
@@ -562,7 +612,8 @@ def test_command_catalog_cli_emits_json(monkeypatch: pytest.MonkeyPatch, tmp_pat
         captured_read.update(kwargs)
         return SimpleNamespace(stdout='{"exit_code": 0}')
 
-    def fake_run_command_catalog(*_args, **kwargs):
+    def fake_run_command_catalog(options, **kwargs):
+        captured_read["parallel"] = options.parallel
         status_func = kwargs["status_func"]
         status_func(
             SimpleNamespace(
@@ -613,6 +664,7 @@ def test_command_catalog_cli_emits_json(monkeypatch: pytest.MonkeyPatch, tmp_pat
     assert json.loads(result.stdout) == payload
     assert captured_read["session"] == "ccv_dryrun_illumina_snv_alignstats"
     assert captured_read["run_dir"] is None
+    assert captured_read["parallel"] == DEFAULT_COMMAND_CATALOG_PARALLEL
 
 
 def test_runner_payloads_and_small_helpers(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

@@ -303,7 +303,7 @@ dyec --json mounts create "s3://<sequencing-run-bucket>/<run-prefix>/" \
   --batch-import-metadata-on-create \
   --auto-import NEW,CHANGED \
   --wait \
-  --timeout-seconds 3600
+  --timeout-seconds 5400
 
 dyec --json mounts list \
   --profile "$AWS_PROFILE" \
@@ -330,7 +330,7 @@ Default behavior is read-oriented:
 - no deletion of S3 objects on detach
 - overlapping active FSx paths or S3 prefixes are rejected
 
-Do not treat run-mount creation as failed only because it has been in `CREATING` for a few minutes. Large dynamic FSx associations can legitimately take around 30 minutes; use an explicit timeout comfortably above that when waiting.
+Do not treat run-mount creation as failed only because it has been in `CREATING` for a few minutes. Large dynamic FSx associations can legitimately take more than 40 minutes; use an explicit timeout comfortably above that when waiting.
 
 ## Workflow
 
@@ -345,7 +345,7 @@ dyec workflow launch \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
   --repository daylily-omics-analysis \
-  --git-tag 9.0.0 \
+  --git-tag 10.0.69 \
   --genome hg38_broad \
   --jobs 20 \
   --target produce_alignstats
@@ -362,7 +362,7 @@ dyec workflow launch \
   --analysis-id run-qc \
   --executing-entity "$EXECUTING_ENTITY" \
   --repository daylily-omics-analysis \
-  --git-tag 9.0.0 \
+  --git-tag 10.0.69 \
   --genome hg38_broad \
   --jobs 5 \
   --target produce_illumina_run_qc \
@@ -395,14 +395,14 @@ dyec repositories commands --config config/daylily_pipeline_command_catalog.yaml
 dyec repositories commands --command-id illumina_snv_alignstats
 ```
 
-The catalog is version 2. The current DayOA repository default and DayOA command pins are `9.0.0`; `daylily-sarek` is present as a Nextflow/nf-core Sarek repository entry.
+The catalog is version 2. The current DayOA repository default and DayOA command pins are `10.0.69`; `daylily-sarek` is present as a Nextflow/nf-core Sarek repository entry.
 
 Headnode repository cloning uses the same catalog:
 
 ```bash
 day-clone --list
-day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 9.0.0 --executing-entity "$EXECUTING_ENTITY"
-day-clone -d "$ANALYSIS_ID" -t 9.0.0
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 10.0.69 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 10.0.69
 ```
 
 `-t` is the short form of `--git-tag`; `-d` is the short form of `--destination` and is required for every clone. If `--repository` is omitted, `day-clone` uses `default_repository` from `daylily_pipeline_command_catalog.yaml`. If `--git-tag`/`-t` is omitted, it uses the selected repository row's `default_ref`. Missing catalog rows, missing URLs, missing cluster identity, unsafe path segments, or an existing destination directory are hard failures.

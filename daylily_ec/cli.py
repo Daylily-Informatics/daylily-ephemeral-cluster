@@ -5080,7 +5080,7 @@ def tests_command_catalog(
         "--create-missing-mounts",
         help="Create missing unique run-directory DRAs after read-only preflight.",
     ),
-    parallel: int = typer.Option(3, "--parallel", help="Maximum concurrent launched phases."),
+    parallel: int = typer.Option(16, "--parallel", help="Maximum concurrent launched phases."),
     jobs: int = typer.Option(150, "--jobs", help="Snakemake job count for rendered commands."),
     max_runtime_minutes: int = typer.Option(
         DEFAULT_JOB_MAX_RUNTIME_MINUTES,
