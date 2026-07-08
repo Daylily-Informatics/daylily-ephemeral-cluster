@@ -197,6 +197,106 @@ def get_stack_outputs(cfn_client: Any, stack_name: str) -> StackOutputs:
         return StackOutputs()
 
 
+def _stale_stack_error(stack_name: str, detail: str) -> RuntimeError:
+    return RuntimeError(
+        f"Baseline CFN stack {stack_name} is stale or drifted: {detail}. "
+        "Delete or repair that stack before creating a baseline stack, "
+        "or provide explicit public_subnet_id, private_subnet_id, and "
+        "iam_policy_arn config values."
+    )
+
+
+def validate_stack_outputs(
+    ec2_client: Any,
+    stack_name: str,
+    region_az: str,
+    outputs: StackOutputs,
+) -> None:
+    """Fail if complete baseline stack outputs do not exist in live EC2."""
+
+    required = {
+        "VPC": outputs.vpc_id,
+        "PublicSubnets": outputs.public_subnet_id,
+        "PrivateSubnet": outputs.private_subnet_id,
+    }
+    missing = [key for key, value in required.items() if not value]
+    if missing:
+        raise _stale_stack_error(
+            stack_name,
+            "missing output(s): " + ", ".join(missing),
+        )
+
+    try:
+        vpc_response = ec2_client.describe_vpcs(VpcIds=[outputs.vpc_id])
+    except Exception as exc:
+        raise _stale_stack_error(
+            stack_name,
+            f"output VPC {outputs.vpc_id} is not present or accessible in EC2",
+        ) from exc
+    if not vpc_response.get("Vpcs", []):
+        raise _stale_stack_error(
+            stack_name,
+            f"output VPC {outputs.vpc_id} was not returned by EC2",
+        )
+
+    expected_subnets = {
+        outputs.public_subnet_id: "public subnet",
+        outputs.private_subnet_id: "private subnet",
+    }
+    try:
+        subnet_response = ec2_client.describe_subnets(SubnetIds=list(expected_subnets))
+    except Exception as exc:
+        raise _stale_stack_error(
+            stack_name,
+            "one or more output subnets are not present or accessible in EC2: "
+            + ", ".join(expected_subnets),
+        ) from exc
+
+    subnets = {
+        str(subnet.get("SubnetId", "")): subnet
+        for subnet in subnet_response.get("Subnets", [])
+    }
+    for subnet_id, label in expected_subnets.items():
+        subnet = subnets.get(subnet_id)
+        if not subnet:
+            raise _stale_stack_error(
+                stack_name,
+                f"output {label} {subnet_id} was not returned by EC2",
+            )
+        actual_vpc = str(subnet.get("VpcId", "")).strip()
+        if actual_vpc != outputs.vpc_id:
+            raise _stale_stack_error(
+                stack_name,
+                f"output {label} {subnet_id} belongs to {actual_vpc or '<missing>'}, "
+                f"expected {outputs.vpc_id}",
+            )
+        actual_az = str(subnet.get("AvailabilityZone", "")).strip()
+        if actual_az != region_az:
+            raise _stale_stack_error(
+                stack_name,
+                f"output {label} {subnet_id} is in {actual_az or '<missing>'}, "
+                f"expected {region_az}",
+            )
+        state = str(subnet.get("State", "")).strip()
+        if state != "available":
+            raise _stale_stack_error(
+                stack_name,
+                f"output {label} {subnet_id} is {state or '<missing>'}, "
+                "expected available",
+            )
+
+
+def _validated_stack_outputs(
+    aws_ctx: Any,
+    cfn_client: Any,
+    stack_name: str,
+    region_az: str,
+) -> StackOutputs:
+    outputs = get_stack_outputs(cfn_client, stack_name)
+    validate_stack_outputs(aws_ctx.client("ec2"), stack_name, region_az, outputs)
+    return outputs
+
+
 # ---------------------------------------------------------------------------
 # describe / status helpers
 # ---------------------------------------------------------------------------
@@ -251,7 +351,7 @@ def ensure_pcluster_env_stack(
         logger.info(
             "Stack %s already in %s — skipping creation.", stack_name, status,
         )
-        return get_stack_outputs(cfn, stack_name)
+        return _validated_stack_outputs(aws_ctx, cfn, stack_name, region_az)
 
     if status in IN_PROGRESS_STATUSES:
         logger.info(
@@ -259,7 +359,7 @@ def ensure_pcluster_env_stack(
         )
         waiter = cfn.get_waiter("stack_create_complete")
         waiter.wait(StackName=stack_name)
-        return get_stack_outputs(cfn, stack_name)
+        return _validated_stack_outputs(aws_ctx, cfn, stack_name, region_az)
 
     if status in BLOCKING_TERMINAL_STATUSES:
         raise RuntimeError(
@@ -329,7 +429,7 @@ def ensure_pcluster_env_stack(
         )
 
     logger.info("Stack %s creation succeeded.", stack_name)
-    return get_stack_outputs(cfn, stack_name)
+    return _validated_stack_outputs(aws_ctx, cfn, stack_name, region_az)
 
 
 # ---------------------------------------------------------------------------

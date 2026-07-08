@@ -31,7 +31,25 @@ def _mock_ec2(price: float = 1.5) -> MagicMock:
     client.describe_spot_price_history.return_value = {
         "SpotPriceHistory": [{"SpotPrice": str(price)}],
     }
+    _set_instance_vcpus(client, {})
     return client
+
+
+def _set_instance_vcpus(client: MagicMock, counts: dict[str, int], default: int = 128) -> None:
+    def _instance_types_for(InstanceTypes, **_kwargs):
+        return {
+            "InstanceTypes": [
+                {
+                    "InstanceType": instance_type,
+                    "VCpuInfo": {
+                        "DefaultVCpus": counts.get(instance_type, default),
+                    },
+                }
+                for instance_type in InstanceTypes
+            ]
+        }
+
+    client.describe_instance_types.side_effect = _instance_types_for
 
 
 def _resource(
@@ -159,6 +177,14 @@ class TestProcessSlurmQueues:
             return {"SpotPriceHistory": [{"SpotPrice": prices[InstanceTypes[0]]}]}
 
         ec2.describe_spot_price_history.side_effect = _price_for
+        _set_instance_vcpus(
+            ec2,
+            {
+                "c6i.32xlarge": 128,
+                "c6i.metal": 128,
+                "r6i.32xlarge": 128,
+            },
+        )
         cfg = _config(
             [
                 _queue(
@@ -178,6 +204,7 @@ class TestProcessSlurmQueues:
         assert resources[1]["SpotPrice"] == 7.5
         assert summary["schema_version"] == SPOT_PRICE_SUMMARY_SCHEMA_VERSION
         assert summary["partitions"][0]["queue"] == "i128"
+        assert summary["partitions"][0]["max_final_bid_usd_per_vcpu_hour"] == 0.0586
         assert summary["partitions"][0]["global_limiter_applied"] is True
         assert summary["partitions"][0]["warn_threshold_exceeded"] is True
 
@@ -192,6 +219,7 @@ class TestProcessSlurmQueues:
             return {"SpotPriceHistory": [{"SpotPrice": prices[InstanceTypes[0]]}]}
 
         ec2.describe_spot_price_history.side_effect = _price_for
+        _set_instance_vcpus(ec2, {"c7i.48xlarge": 192, "c8i.96xlarge": 384})
         cfg = _config(
             [
                 _queue("i192nvme", [_resource("price192nvme", ["c7i.48xlarge"])]),
@@ -207,6 +235,7 @@ class TestProcessSlurmQueues:
         assert i384_row["reference_queue"] == "i192nvme"
         assert i384_row["reference_resource"] == "price192nvme"
         assert i384_row["reference_source"] == "i192_reference"
+        assert i384_row["max_final_bid_usd_per_vcpu_hour"] == 0.0031
 
     def test_i384_missing_reference_fails_hard(self) -> None:
         ec2 = _mock_ec2(9.0)
@@ -233,6 +262,7 @@ class TestProcessSlurmQueues:
             return {"SpotPriceHistory": [{"SpotPrice": prices[InstanceTypes[0]]}]}
 
         ec2.describe_spot_price_history.side_effect = _price_for
+        _set_instance_vcpus(ec2, {"c6i.16xlarge": 64, "c6i.32xlarge": 128})
         cfg = _config(
             [
                 _queue(
@@ -265,6 +295,8 @@ class TestProcessSlurmQueues:
         assert row["warn_threshold_exceeded"] is False
         assert partition["raw_min_hourly_cost_without_limiter"] == 6.0
         assert partition["raw_max_hourly_cost_without_limiter"] == 18.0
+        assert partition["max_reference_median_spot_price"] == 6.0
+        assert partition["max_final_bid_usd_per_vcpu_hour"] == 0.1125
         assert partition["max_uncapped_pct_bid"] == 7.2
         assert partition["warn_threshold_exceeded"] is False
 

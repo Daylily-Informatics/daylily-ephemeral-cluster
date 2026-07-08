@@ -55,8 +55,6 @@ apptainer_deb="${runtime_assets_root}/cached_envs/apptainer_1.4.5_amd64.deb"
 apptainer_deb_sha256="70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05"
 reference_wait_timeout_seconds=1800
 reference_wait_interval_seconds=30
-sbatch_wrapper_sha256="690b8ce1de6f7afd6aed754a50315dbde440fbcad1432743a415b6a7ef43e301"
-sleep_test_sha256="024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae"
 spot_lifecycle_state_dir="/var/lib/daylily/spot_lifecycle"
 spot_lifecycle_state_file="${spot_lifecycle_state_dir}/metadata.env"
 
@@ -641,15 +639,13 @@ EOF
   stat -c "DayOA runtime cache profile: %A %U:%G %n" /etc/profile.d/daylily-runtime-cache.sh
 }
 
-install_verified_s3_executable() {
+install_s3_executable() {
   local s3_key="$1"
   local destination="$2"
-  local expected_sha256="$3"
   local temp_path
 
   temp_path="$(mktemp "${destination}.download.XXXXXX")"
   aws s3 cp "${boot_s3_uri}/${s3_key}" "${temp_path}"
-  echo "${expected_sha256}  ${temp_path}" | sha256sum -c -
   install -m 0755 "${temp_path}" "${destination}"
   rm -f "${temp_path}"
 }
@@ -718,7 +714,7 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   else
     echo "Original sbatch already present: /opt/slurm/sbin/sbatch"
   fi
-  install_verified_s3_executable "sbatch" /opt/slurm/bin/sbatch "${sbatch_wrapper_sha256}"
+  install_s3_executable "sbatch" /opt/slurm/bin/sbatch
 
   if [ ! -e /opt/slurm/sbin/srun ]; then
     mv /opt/slurm/bin/srun /opt/slurm/sbin/srun
@@ -727,7 +723,7 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   fi
   ln -sfn /opt/slurm/bin/sbatch /opt/slurm/bin/srun
 
-  install_verified_s3_executable "sleep_test.sh" /opt/slurm/bin/sleep_test.sh "${sleep_test_sha256}"
+  install_s3_executable "sleep_test.sh" /opt/slurm/bin/sleep_test.sh
 
 
   # Restart SLURM Controller

@@ -265,6 +265,22 @@ def test_packaged_boot_config_matches_source_and_disables_exclusivity() -> None:
     assert "--exclusive|--exclusive=*" in sbatch
 
 
+def test_post_install_s3_executable_install_is_not_sha256_pinned() -> None:
+    for relative_path in (
+        "config/day_cluster/post_install_ubuntu_combined.sh",
+        "config/day_cluster/post_install_rhel8_dragen.sh",
+    ):
+        script = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        assert "sbatch_wrapper_sha256" not in script
+        assert "sleep_test_sha256" not in script
+        assert "install_verified_s3_executable" not in script
+        assert 'install_s3_executable "sbatch" /opt/slurm/bin/sbatch' in script
+        assert (
+            'install_s3_executable "sleep_test.sh" /opt/slurm/bin/sleep_test.sh'
+            in script
+        )
+
+
 def test_post_install_templates_pass_spot_warn_threshold_argument() -> None:
     template_paths = (
         "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml",

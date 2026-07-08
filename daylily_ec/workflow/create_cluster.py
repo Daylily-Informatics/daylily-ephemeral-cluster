@@ -31,7 +31,7 @@ import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Iterable, List, Optional
 from urllib.parse import urlparse
 
 import typer
@@ -442,7 +442,89 @@ def _role_bucket(roles: Dict[str, Dict[str, str]], role: str) -> str:
     return str((roles.get(role) or {}).get("bucket") or "")
 
 
-def _emit_spot_price_partition_table(summary: Dict[str, Any]) -> None:
+SPOT_PRICE_PARTITION_TABLE_HEADERS = (
+    "Partition",
+    "Min Inst",
+    "Max Inst",
+    "Raw Min $/hr",
+    "Raw Max $/hr",
+    "Median $/hr",
+    "Max Bid $/vCPU-hr",
+    "Uncapped Bid",
+    "Final Bid",
+    "Global Max",
+    "Warn >$",
+    "Limiter",
+    "Warn",
+    "Reference",
+)
+
+
+def _spot_price_partition_table_values(row: Dict[str, Any]) -> list[str]:
+    return [
+        str(row.get("queue", "")),
+        str(row.get("min_instances", "")),
+        str(row.get("max_instances", "")),
+        f"{float(row.get('raw_min_hourly_cost_without_limiter') or 0):.4f}",
+        f"{float(row.get('raw_max_hourly_cost_without_limiter') or 0):.4f}",
+        f"{float(row.get('max_reference_median_spot_price') or 0):.4f}",
+        f"{float(row.get('max_final_bid_usd_per_vcpu_hour') or 0):.4f}",
+        f"{float(row.get('max_uncapped_pct_bid') or 0):.4f}",
+        f"{float(row.get('max_final_bid') or 0):.4f}",
+        f"{float(row.get('global_spot_max_cost') or 0):.2f}",
+        f"{float(row.get('write_spot_pricing_warn_threshold') or 0):.2f}",
+        "yes" if row.get("global_limiter_applied") else "no",
+        "yes" if row.get("warn_threshold_exceeded") else "no",
+        str(row.get("reference_partitions", "")),
+    ]
+
+
+def _markdown_cell(value: str) -> str:
+    return value.replace("\n", " ").replace("|", r"\|")
+
+
+def _format_markdown_table(headers: Iterable[str], rows: Iterable[Iterable[str]]) -> str:
+    header_values = [_markdown_cell(str(value)) for value in headers]
+    lines = [
+        "| " + " | ".join(header_values) + " |",
+        "| " + " | ".join("---" for _ in header_values) + " |",
+    ]
+    for row in rows:
+        lines.append("| " + " | ".join(_markdown_cell(str(value)) for value in row) + " |")
+    return "\n".join(lines)
+
+
+def _write_spot_price_partition_markdown(
+    summary: Dict[str, Any],
+    *,
+    cluster_name: str,
+    output_path: Path,
+) -> None:
+    partitions = summary.get("partitions") or []
+    rows = [_spot_price_partition_table_values(row) for row in partitions]
+    body = "\n".join(
+        [
+            f"# DYEC create spot price summary: {cluster_name}",
+            "",
+            f"- Generated at: {summary.get('generated_at', '')}",
+            f"- Availability zone: {summary.get('availability_zone', '')}",
+            "",
+            _format_markdown_table(SPOT_PRICE_PARTITION_TABLE_HEADERS, rows),
+            "",
+        ]
+    )
+    try:
+        output_path.write_text(body, encoding="utf-8")
+    except OSError as exc:
+        raise RuntimeError(f"Failed to write spot price markdown table {output_path}: {exc}") from exc
+
+
+def _emit_spot_price_partition_table(
+    summary: Dict[str, Any],
+    *,
+    cluster_name: str,
+    markdown_output_path: Path,
+) -> None:
     """Print the Ursa-facing partition spot-price summary."""
 
     from rich.table import Table
@@ -453,34 +535,18 @@ def _emit_spot_price_partition_table(summary: Dict[str, Any]) -> None:
         return
 
     table = Table(title="DYEC create spot price summary")
-    table.add_column("Partition")
-    table.add_column("Min Inst", justify="right")
-    table.add_column("Max Inst", justify="right")
-    table.add_column("Raw Min $/hr", justify="right")
-    table.add_column("Raw Max $/hr", justify="right")
-    table.add_column("Uncapped Bid", justify="right")
-    table.add_column("Final Bid", justify="right")
-    table.add_column("Global Max", justify="right")
-    table.add_column("Warn >$", justify="right")
-    table.add_column("Limiter")
-    table.add_column("Warn")
-    table.add_column("Reference")
+    for header in SPOT_PRICE_PARTITION_TABLE_HEADERS:
+        justify = "right" if header not in {"Partition", "Limiter", "Warn", "Reference"} else "left"
+        table.add_column(header, justify=justify)
     for row in partitions:
-        table.add_row(
-            str(row.get("queue", "")),
-            str(row.get("min_instances", "")),
-            str(row.get("max_instances", "")),
-            f"{float(row.get('raw_min_hourly_cost_without_limiter') or 0):.4f}",
-            f"{float(row.get('raw_max_hourly_cost_without_limiter') or 0):.4f}",
-            f"{float(row.get('max_uncapped_pct_bid') or 0):.4f}",
-            f"{float(row.get('max_final_bid') or 0):.4f}",
-            f"{float(row.get('global_spot_max_cost') or 0):.2f}",
-            f"{float(row.get('write_spot_pricing_warn_threshold') or 0):.2f}",
-            "yes" if row.get("global_limiter_applied") else "no",
-            "yes" if row.get("warn_threshold_exceeded") else "no",
-            str(row.get("reference_partitions", "")),
-        )
+        table.add_row(*_spot_price_partition_table_values(row))
     ui.console.print(table)
+    _write_spot_price_partition_markdown(
+        summary,
+        cluster_name=cluster_name,
+        output_path=markdown_output_path,
+    )
+    ui.info(f"Spot price summary table markdown: {markdown_output_path}")
 
 
 def _has_explicit_set_value(cfg: Any, key: str) -> bool:
@@ -2141,6 +2207,7 @@ def run_create_workflow(
     # 4b. Apply spot prices
     cluster_yaml_path = str(CONFIG_DIR / f"{cluster_name}_cluster_{ts}.yaml")
     spot_price_summary_path = str(CONFIG_DIR / f"{cluster_name}_spot_price_summary_{ts}.json")
+    spot_price_summary_table_path = CONFIG_DIR / f"{cluster_name}-{ts}.md"
     ui.step("Applying spot prices ...")
     try:
         spot_price_summary = apply_spot_prices(
@@ -2162,7 +2229,16 @@ def run_create_workflow(
     ui.ok(f"Cluster YAML ready: {cluster_yaml_path}")
     logger.info("Spot price summary ready: %s", spot_price_summary_path)
     ui.ok(f"Spot price summary ready: {spot_price_summary_path}")
-    _emit_spot_price_partition_table(spot_price_summary)
+    try:
+        _emit_spot_price_partition_table(
+            spot_price_summary,
+            cluster_name=cluster_name,
+            markdown_output_path=spot_price_summary_table_path,
+        )
+    except RuntimeError as exc:
+        logger.error("Spot price table export failed: %s", exc)
+        ui.fail(f"Spot price table: {exc}")
+        return EXIT_VALIDATION_FAILURE
     try:
         validate_startup_dra_contract(cluster_yaml_path)
     except ValueError as exc:

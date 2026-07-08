@@ -1084,6 +1084,14 @@ class TestRunCreateWorkflow:
         assert records["rc"] == EXIT_SUCCESS
         substitutions = records["render_substitutions"]
         assert substitutions["REGSUB_SPOT_PRICE_WARN_THRESHOLD"] == '"6.00"'
+        table_path = (
+            records["config_dir"]
+            / f"{records['render_cluster_name']}-{records['render_run_id']}.md"
+        )
+        table_text = table_path.read_text(encoding="utf-8")
+        assert "| Max Bid $/vCPU-hr |" in table_text
+        assert "| i128 | 0 | 1 | 0.0000 | 0.0000 | 1.0000 | 0.0094 |" in table_text
+        assert any(str(table_path) in info for info in records["infos"])
 
     def test_broad_max_counts_populate_rendered_subtype_counts(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
@@ -2197,6 +2205,9 @@ def _run_stubbed_create_workflow(
         "failures": [],
         "baseline_stack_calls": 0,
     }
+    config_dir = tmp_path / "daylily-config"
+    config_dir.mkdir()
+    records["config_dir"] = config_dir
     cfg = _build_workflow_config(template_path, config_overrides=config_overrides)
 
     class FakeAWSContext:
@@ -2380,6 +2391,7 @@ def _run_stubbed_create_workflow(
 
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
     monkeypatch.setenv("DAY_CONTACT_EMAIL", "johnm@lsmc.com")
+    monkeypatch.setattr(renderer, "CONFIG_DIR", config_dir)
     monkeypatch.setattr(aws_context.AWSContext, "build", classmethod(fake_build))
     monkeypatch.setattr(triplets, "load_config", lambda _path: cfg)
     monkeypatch.setattr(create_cluster_module, "run_preflight", fake_run_preflight)
@@ -2457,6 +2469,8 @@ SharedStorage:
                     "max_instances": 1,
                     "raw_min_hourly_cost_without_limiter": 0.0,
                     "raw_max_hourly_cost_without_limiter": 0.0,
+                    "max_reference_median_spot_price": 1.0,
+                    "max_final_bid_usd_per_vcpu_hour": 0.0094,
                     "max_uncapped_pct_bid": 1.2,
                     "max_final_bid": 1.2,
                     "global_spot_max_cost": 7.5,
@@ -2506,7 +2520,11 @@ SharedStorage:
         "warn",
         lambda message, *_args, **_kwargs: records["warnings"].append(message),
     )
-    monkeypatch.setattr(create_cluster_module.ui, "info", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        create_cluster_module.ui,
+        "info",
+        lambda message, *_args, **_kwargs: records.setdefault("infos", []).append(message),
+    )
     monkeypatch.setattr(
         create_cluster_module.ui,
         "detail",

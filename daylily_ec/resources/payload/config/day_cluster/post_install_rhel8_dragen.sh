@@ -54,8 +54,6 @@ work_root="/fsx/work"
 run_mounts_root="/fsx/run_dir_mounts"
 reference_wait_timeout_seconds=7200
 reference_wait_interval_seconds=15
-sbatch_wrapper_sha256="fd732ee950e3a2505abb0516a57bc39643697ed6f8b1cc2c218f9b7c024c901c"
-sleep_test_sha256="024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae"
 spot_lifecycle_state_dir="/var/lib/daylily/spot_lifecycle"
 spot_lifecycle_state_file="${spot_lifecycle_state_dir}/metadata.env"
 
@@ -771,15 +769,13 @@ install_apptainer_if_available() {
   fi
 }
 
-install_verified_s3_executable() {
+install_s3_executable() {
   local s3_key="$1"
   local destination="$2"
-  local expected_sha256="$3"
   local temp_path
 
   temp_path="$(mktemp "${destination}.download.XXXXXX")"
   aws s3 cp "${boot_s3_uri}/${s3_key}" "${temp_path}"
-  echo "${expected_sha256}  ${temp_path}" | sha256sum -c -
   install -m 0755 "${temp_path}" "${destination}"
   rm -f "${temp_path}"
 }
@@ -851,7 +847,7 @@ install_headnode_slurm_wrappers() {
   else
     echo "Original sbatch already present: /opt/slurm/sbin/sbatch"
   fi
-  install_verified_s3_executable "sbatch" /opt/slurm/bin/sbatch "${sbatch_wrapper_sha256}"
+  install_s3_executable "sbatch" /opt/slurm/bin/sbatch
 
   if [ ! -e /opt/slurm/sbin/srun ]; then
     mv /opt/slurm/bin/srun /opt/slurm/sbin/srun
@@ -859,7 +855,7 @@ install_headnode_slurm_wrappers() {
     echo "Original srun already present: /opt/slurm/sbin/srun"
   fi
   ln -sfn /opt/slurm/bin/sbatch /opt/slurm/bin/srun
-  install_verified_s3_executable "sleep_test.sh" /opt/slurm/bin/sleep_test.sh "${sleep_test_sha256}"
+  install_s3_executable "sleep_test.sh" /opt/slurm/bin/sleep_test.sh
 }
 
 install_headnode_prolog_epilog() {

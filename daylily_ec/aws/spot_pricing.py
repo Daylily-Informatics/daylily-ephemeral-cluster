@@ -87,6 +87,48 @@ def get_spot_price(ec2_client: Any, instance_type: str, az: str) -> float:
         ) from exc
 
 
+def get_instance_vcpu_counts(ec2_client: Any, instance_types: Iterable[str]) -> dict[str, int]:
+    """Return EC2 default vCPU counts for each instance type."""
+
+    unique_instance_types = list(dict.fromkeys(instance_types))
+    if not unique_instance_types:
+        return {}
+
+    try:
+        resp = ec2_client.describe_instance_types(InstanceTypes=unique_instance_types)
+    except Exception as exc:
+        joined = ", ".join(unique_instance_types)
+        raise RuntimeError(
+            "Instance type vCPU lookup failed for "
+            f"{joined}. Confirm ec2:DescribeInstanceTypes is allowed. Detail: {exc}"
+        ) from exc
+
+    counts: dict[str, int] = {}
+    for item in resp.get("InstanceTypes", []) or []:
+        instance_type = str(item.get("InstanceType") or "")
+        vcpu_info = item.get("VCpuInfo") or {}
+        try:
+            vcpus = int(vcpu_info["DefaultVCpus"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise RuntimeError(
+                f"Instance type vCPU lookup returned invalid VCpuInfo for {instance_type}: "
+                f"{item!r}"
+            ) from exc
+        if vcpus <= 0:
+            raise RuntimeError(
+                f"Instance type vCPU lookup returned non-positive DefaultVCpus for "
+                f"{instance_type}: {vcpus}"
+            )
+        counts[instance_type] = vcpus
+
+    missing = sorted(set(unique_instance_types) - set(counts))
+    if missing:
+        raise RuntimeError(
+            "Instance type vCPU lookup returned no details for: " + ", ".join(missing)
+        )
+    return counts
+
+
 def calculate_compute_resource_spot_price(
     ec2_client: Any,
     resource_config: Dict[str, Any],
@@ -277,6 +319,9 @@ def _build_spot_price_summary(
                 "queue": queue_name,
                 "resource": resource_name,
                 "instance_types": list(stats["instance_types"]),
+                "instance_vcpus": dict(stats["instance_vcpus"]),
+                "min_instance_vcpus": int(stats["min_instance_vcpus"]),
+                "max_instance_vcpus": int(stats["max_instance_vcpus"]),
                 "raw_min_spot_price": _round_price(float(stats["raw_min_spot_price"])),
                 "raw_max_spot_price": _round_price(float(stats["raw_max_spot_price"])),
                 "raw_median_spot_price": _round_price(float(stats["raw_median_spot_price"])),
@@ -286,6 +331,9 @@ def _build_spot_price_summary(
                 "reference_source": reference_source,
                 "uncapped_pct_bid": uncapped_bid,
                 "final_bid": final_bid,
+                "max_final_bid_usd_per_vcpu_hour": _round_price(
+                    final_bid / int(stats["min_instance_vcpus"])
+                ),
                 "spot_cost_limit_pct": spot_cost_limit_pct,
                 "global_spot_max_cost": global_spot_max_cost,
                 "global_limiter_applied": global_limiter_applied,
@@ -333,8 +381,12 @@ def _collect_resource_price_stats(
         return None
 
     prices = [get_spot_price(ec2_client, instance_type, az) for instance_type in instance_types]
+    instance_vcpus = get_instance_vcpu_counts(ec2_client, instance_types)
     return {
         "instance_types": instance_types,
+        "instance_vcpus": instance_vcpus,
+        "min_instance_vcpus": min(instance_vcpus.values()),
+        "max_instance_vcpus": max(instance_vcpus.values()),
         "raw_min_spot_price": min(prices),
         "raw_max_spot_price": max(prices),
         "raw_median_spot_price": statistics.median(prices),
@@ -364,6 +416,8 @@ def _partition_summary_row(
             "max_instances": 0,
             "raw_min_hourly_cost_without_limiter": 0.0,
             "raw_max_hourly_cost_without_limiter": 0.0,
+            "max_reference_median_spot_price": 0.0,
+            "max_final_bid_usd_per_vcpu_hour": 0.0,
             "max_uncapped_pct_bid": 0.0,
             "max_final_bid": 0.0,
             "global_spot_max_cost": _round_price(global_spot_max_cost),
@@ -397,6 +451,12 @@ def _partition_summary_row(
         "max_instances": max_instances,
         "raw_min_hourly_cost_without_limiter": _round_price(raw_min_cost),
         "raw_max_hourly_cost_without_limiter": _round_price(raw_max_cost),
+        "max_reference_median_spot_price": _round_price(
+            max(float(row["reference_median_spot_price"]) for row in row_list)
+        ),
+        "max_final_bid_usd_per_vcpu_hour": _round_price(
+            max(float(row["max_final_bid_usd_per_vcpu_hour"]) for row in row_list)
+        ),
         "max_uncapped_pct_bid": _round_price(
             max(float(row["uncapped_pct_bid"]) for row in row_list)
         ),
