@@ -55,7 +55,7 @@ Assumptions:
 | BC-003 | DayOA | Consolidate `lsmc-bio` DayOA `jem-dev` and `jemdev10`. | SUCCESS | not_applicable_after_inspection | Gate 0 | Codex | `origin/jemdev10` is absent; `origin/jem-dev` is clean at `ce41c6cc`. |  | No DayOA `jemdev10` branch exists in `lsmc-bio`, so there is nothing to merge or close there. |
 | BC-004 | DYEC/DayOA | Delete `lsmc-bio` remote `jemdev10` refs after safe consolidation. | SUCCESS | feature_implementation | Gate 1 | Codex | DYEC `git push origin --delete jemdev10` initially failed because `jemdev10` was the default branch; `gh api -X PATCH /repos/lsmc-bio/daylily-ephemeral-cluster -f default_branch=jem-dev` succeeded; deletion then succeeded; final GitHub API scan shows `has_jemdev10 False` for both `lsmc-bio` DayOA and DYEC. |  | `lsmc-bio/daylily-ephemeral-cluster` default branch is now `jem-dev`; both requested `lsmc-bio` `jemdev10` refs are absent. |
 | BC-005 | All four repos | Verify whether any other `lsmc-bio` or `Daylily-Informatics` DayOA/DYEC branch tips changed in the last four days. | SUCCESS | contract_test | Gate 0 | Codex | GitHub API scan found recent non-`jemdev10` branches in `lsmc-bio`; none in `Daylily-Informatics`. |  | Verification found other recent `lsmc-bio` branches: `jem-dev-dragen` and `codex/dragen-headnode-launch-fix` in both DayOA and DYEC. |
-| BC-006 | DYEC | Preserve this ledger in the branch consolidation commit. | SUCCESS | contract_test | Gate 5 | Codex | Ledger path: `docs/plans/20260708T073026Z_lsmc_branch_consolidation_ledger.md`; final ledger update staged for follow-up commit after remote branch closure evidence. |  | Ledger records terminal state for all rows. |
+| BC-006 | DYEC | Preserve this ledger in the branch consolidation commit. | SUCCESS | contract_test | Gate 5 | Codex | Ledger path: `docs/plans/20260708T073026Z_lsmc_branch_consolidation_ledger.md`; final ledger evidence committed and pushed to `jem-dev` after remote branch closure. |  | Ledger records terminal state for all rows. |
 
 ## Final Branch Verification
 
@@ -74,7 +74,7 @@ Final scan time: 2026-07-08T07:34:31Z
   - default branch: `jem-dev`
   - `jemdev10`: absent
   - recent branches since 2026-07-04T07:34:31Z:
-    - `jem-dev` `f524eeb0` 2026-07-08 00:33:23 PDT `Consolidate DYEC jem-dev branch changes`
+    - `jem-dev` included `f524eeb0` 2026-07-08 00:33:23 PDT `Consolidate DYEC jem-dev branch changes`, then this ledger-only closure update advanced the branch again.
     - `jem-dev-dragen` `67ae16e2` 2026-07-08 00:20:14 PDT `Enable DRAGEN command catalog launch path`
     - `codex/dragen-headnode-launch-fix` `da03e07d` 2026-07-07 21:25:42 PDT `Allow ubuntu IMDS access on DRAGEN headnodes`
 
