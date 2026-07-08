@@ -22,6 +22,7 @@ WARN aborts unless ``--pass-on-warn`` is set.
 
 from __future__ import annotations
 
+import json
 import logging
 import os as _os
 import re
@@ -2116,7 +2117,11 @@ def run_create_workflow(
         "REGSUB_HEARTBEAT_EMAIL": post_create_inputs.heartbeat_email,
         "REGSUB_HEARTBEAT_SCHEDULE": post_create_inputs.heartbeat_schedule,
         "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN": (post_create_inputs.heartbeat_scheduler_role_arn),
-        "REGSUB_SPOT_PRICE_WARN_THRESHOLD": f"{write_spot_pricing_warn_threshold:.2f}",
+        # ParallelCluster CustomActions Args must be strings. The template places
+        # this token in YAML lists, so quote it before text substitution.
+        "REGSUB_SPOT_PRICE_WARN_THRESHOLD": json.dumps(
+            f"{write_spot_pricing_warn_threshold:.2f}"
+        ),
         **accounting_render_blocks,
     }
 

@@ -269,7 +269,7 @@ class TestAllSubstitutionKeys:
                 "REGSUB_S3_BUCKET_INIT": (
                     "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
                 ),
-                "REGSUB_SPOT_PRICE_WARN_THRESHOLD": "6.00",
+                "REGSUB_SPOT_PRICE_WARN_THRESHOLD": '"6.00"',
                 "REGSUB_DRAGEN_PCLUSTER_AMI": "ami-0123456789abcdef0",
             }
         )
@@ -288,7 +288,7 @@ class TestAllSubstitutionKeys:
             "Args": [
                 "us-west-2",
                 "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config",
-                6.0,
+                "6.00",
                 "fsx",
             ],
         }

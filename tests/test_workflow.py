@@ -1070,6 +1070,21 @@ class TestRunCreateWorkflow:
         assert "budget_project" not in records["next_run_values"]
         assert records["next_run_values"]["enforce_budget"] == "skip"
 
+    def test_spot_warn_threshold_renders_as_custom_action_string_arg(
+        self, tmp_path, monkeypatch
+    ):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        substitutions = records["render_substitutions"]
+        assert substitutions["REGSUB_SPOT_PRICE_WARN_THRESHOLD"] == '"6.00"'
+
     def test_broad_max_counts_populate_rendered_subtype_counts(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
             tmp_path,

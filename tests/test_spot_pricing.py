@@ -276,9 +276,24 @@ def test_apply_spot_prices_writes_cluster_yaml_and_summary(tmp_path: Path) -> No
     summary_path = tmp_path / "summary.json"
     source.write_text(
         """
+HeadNode:
+  CustomActions:
+    OnNodeConfigured:
+      Script: s3://references/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+      Args:
+        - us-west-2
+        - s3://references/runtime_assets/cluster_boot_config
+        - "6.00"
 Scheduling:
   SlurmQueues:
     - Name: i128
+      CustomActions:
+        OnNodeConfigured:
+          Script: s3://references/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+          Args:
+            - us-west-2
+            - s3://references/runtime_assets/cluster_boot_config
+            - "6.00"
       ComputeResources:
         - Name: price128
           MinCount: 0
@@ -300,6 +315,14 @@ Scheduling:
     yaml = YAML(typ="safe")
     written = yaml.load(output.read_text(encoding="utf-8"))
     assert written["Scheduling"]["SlurmQueues"][0]["ComputeResources"][0]["SpotPrice"] == 7.5
+    headnode_args = written["HeadNode"]["CustomActions"]["OnNodeConfigured"]["Args"]
+    queue_args = written["Scheduling"]["SlurmQueues"][0]["CustomActions"][
+        "OnNodeConfigured"
+    ]["Args"]
+    assert headnode_args[2] == "6.00"
+    assert queue_args[2] == "6.00"
+    assert all(isinstance(arg, str) for arg in headnode_args)
+    assert all(isinstance(arg, str) for arg in queue_args)
     persisted = json.loads(summary_path.read_text(encoding="utf-8"))
     assert persisted == summary
     assert persisted["resources"][0]["final_bid"] == 7.5
