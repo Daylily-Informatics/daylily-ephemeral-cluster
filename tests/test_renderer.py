@@ -256,6 +256,47 @@ class TestAllSubstitutionKeys:
             "DatabaseName": "dayec_slurm_acct",
         }
 
+    def test_rhel_dragen_template_renders_rhel_boot_script_with_full_arg_contract(self):
+        template = (
+            Path(__file__).resolve().parents[1]
+            / "config/day_cluster/prod_cluster_dragen_pcluster_image_rhel8.yaml"
+        ).read_text(encoding="utf-8")
+        subs = _full_subs()
+        subs.update(empty_slurm_accounting_render_blocks())
+        subs.update(
+            {
+                "REGSUB_REGION": "us-west-2",
+                "REGSUB_S3_BUCKET_INIT": (
+                    "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
+                ),
+                "REGSUB_SPOT_PRICE_WARN_THRESHOLD": "6.00",
+                "REGSUB_DRAGEN_PCLUSTER_AMI": "ami-0123456789abcdef0",
+            }
+        )
+
+        rendered = render_template(template, subs)
+
+        assert "post_install_ubuntu_combined.sh" not in rendered
+        payload = yaml.safe_load(rendered)
+        assert payload["Image"]["Os"] == "rhel8"
+        headnode_action = payload["HeadNode"]["CustomActions"]["OnNodeConfigured"]
+        assert headnode_action == {
+            "Script": (
+                "s3://lsmc-dayoa-references-usw2/runtime_assets/"
+                "cluster_boot_config/post_install_rhel8_dragen.sh"
+            ),
+            "Args": [
+                "us-west-2",
+                "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config",
+                6.0,
+                "fsx",
+            ],
+        }
+        queue_action = payload["Scheduling"]["SlurmQueues"][0]["CustomActions"][
+            "OnNodeConfigured"
+        ]
+        assert queue_action == headnode_action
+
 
 # ── TestWriteInitArtifacts ───────────────────────────────────────────
 
