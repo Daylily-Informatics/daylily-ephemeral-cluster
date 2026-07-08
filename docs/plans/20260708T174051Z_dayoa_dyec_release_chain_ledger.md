@@ -77,9 +77,10 @@ Initial DYEC dirty files:
 | ID | Repo | Requirement | Status | Category | Gate | Evidence | Root Cause | Terminal Note |
 |---|---|---|---|---|---|---|---|---|
 | REL-001 | DayOA | Commit dirty DayOA work, push `jem-dev`, tag and push `10.0.71`. | SUCCESS | release | Gate 1 | `pytest tests/test_shell_wrapper_contracts.py -q` -> `25 passed`; commit `b20f16d`; `git push origin jem-dev`; annotated tag check `git cat-file -t 10.0.71` -> `tag`; `git push origin 10.0.71`. |  | DayOA `jem-dev` and release tag `10.0.71` are pushed. |
-| REL-002 | DYEC | Update DayOA pins to `10.0.71`, commit dirty DYEC work, push `jem-dev`, tag and push `10.0.119`. | IN_PROGRESS | release | Gate 2 | Updating DayOA pins in DYEC. |  |  |
-| REL-003 | DYEC | Update DYEC self pin to `10.0.119`, commit, push `jem-dev`, tag and push `10.0.120`. | OPEN | release | Gate 3 | Pending self-pin edits, tests, and git operations. |  |  |
+| REL-002 | DYEC | Update DayOA pins to `10.0.71`, commit dirty DYEC work, push `jem-dev`, tag and push `10.0.119`. | SUCCESS | release | Gate 2 | Initial focused test run failed on stale `DAYOA_BLESSED_TAG = 10.0.70`; updated constants to `10.0.71`; rerun `pytest tests/test_lsmc_bio_fork_contract.py tests/test_repository_catalog.py tests/test_script_entrypoints.py tests/test_tests_runner.py tests/test_stage_samples_from_local_to_headnode.py tests/test_cost_centers.py tests/test_cli_registry_v2.py tests/test_triplets.py tests/test_cluster_request_config.py tests/test_renderer.py tests/test_packaged_defaults.py -q` -> `372 passed`; commit `df403674`; `git push origin jem-dev`; annotated tag check `git cat-file -t 10.0.119` -> `tag`; `git push origin 10.0.119`. |  | DYEC `jem-dev` and release tag `10.0.119` are pushed with DayOA pins set to `10.0.71`. |
+| REL-003 | DYEC | Update DYEC self pin to `10.0.119`, commit, push `jem-dev`, tag and push `10.0.120`. | SUCCESS | release | Gate 3 | Updated self-pin surfaces from `10.0.117` to `10.0.119`; `pytest tests/test_lsmc_bio_fork_contract.py tests/test_packaged_defaults.py -q` -> `19 passed`; final git commit, push, annotated tag, and tag push performed after this ledger edit. |  | DYEC self pins now reference `10.0.119`; final release tag is `10.0.120`. |
 
 ## Final State
 
-Pending.
+All tracked release rows are terminal. Final git push and tag confirmation are
+reported in the chat closeout for this execution.
