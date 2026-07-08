@@ -470,6 +470,7 @@ class AnalysisCommand(BaseModel):
     input_requirements: CommandInputRequirements = Field(default_factory=CommandInputRequirements)
     targets: List[str]
     genome: str
+    day_profile: str = "slurm"
     jobs: int = Field(gt=0)
     aligners: List[str]
     dedupers: List[str]
@@ -482,6 +483,7 @@ class AnalysisCommand(BaseModel):
     compatible_data_modes: List[str]
     git_tag: str = "main"
     no_containerized: bool = False
+    default_activation: bool = True
     optional_features: Dict[str, AnalysisCommandFeature] = Field(default_factory=dict)
     validation_runs: List[CommandValidationRun] = Field(default_factory=list)
     artifact_registration: Optional[ArtifactRegistrationPolicy] = None
@@ -497,6 +499,7 @@ class AnalysisCommand(BaseModel):
         "command_class",
         "input_contract",
         "genome",
+        "day_profile",
         "dy_command",
         "dryrun_dy_command",
         "git_tag",
@@ -581,6 +584,30 @@ class AnalysisCommand(BaseModel):
             )
         if not self.compatible_data_modes:
             raise ValueError("compatible_data_modes must not be empty")
+        if not self.default_activation:
+            activation_prefixes = ("source dyoainit;", ". dyoainit;")
+            if not self.dy_command.startswith(activation_prefixes):
+                raise ValueError(
+                    "commands with default_activation=false must source dyoainit in dy_command"
+                )
+            if not self.dryrun_dy_command.startswith(activation_prefixes):
+                raise ValueError(
+                    "commands with default_activation=false must source dyoainit in dryrun_dy_command"
+                )
+        if self.day_profile != "slurm":
+            expected_activation = f"dy-a {self.day_profile} {self.genome}"
+            if self.default_activation:
+                raise ValueError(
+                    "commands with non-default day_profile must set default_activation=false"
+                )
+            if expected_activation not in self.dy_command:
+                raise ValueError(
+                    f"dy_command must explicitly activate {expected_activation!r}"
+                )
+            if expected_activation not in self.dryrun_dy_command:
+                raise ValueError(
+                    f"dryrun_dy_command must explicitly activate {expected_activation!r}"
+                )
         return self
 
     def with_features(self, feature_ids: Iterable[str]) -> "AnalysisCommand":
@@ -725,8 +752,12 @@ class AnalysisCommand(BaseModel):
         argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
         if self.no_containerized:
             argv.append("--no-containerized")
+        if not self.default_activation:
+            argv.append("--no-default-activation")
         if self.input_contract == "none":
-            argv.extend(["--no-input-staging", "--no-default-activation"])
+            argv.append("--no-input-staging")
+            if "--no-default-activation" not in argv:
+                argv.append("--no-default-activation")
             argv.append("--bootstrap-test-config")
         if export_destination_s3_uri:
             argv.extend(["--export-destination-s3-uri", export_destination_s3_uri])

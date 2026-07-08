@@ -55,6 +55,7 @@ from daylily_ec.workflow.snakemake_resources import DEFAULT_JOB_MAX_RUNTIME_MINU
 
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 BENCHMARK_GENOME_BUILDS = {"hg38", "hg38_broad", "b37"}
+DEFAULT_CREATE_REGION_AZ = "us-west-2d"
 
 
 def _validate_analysis_launch_options(
@@ -556,9 +557,9 @@ def _emit_cluster_table(
 
 def create(
     region_az: str = typer.Option(
-        ...,
+        DEFAULT_CREATE_REGION_AZ,
         "--region-az",
-        help="AWS region + availability zone (e.g. us-west-2b).",
+        help=f"AWS region + availability zone. Defaults to {DEFAULT_CREATE_REGION_AZ}.",
     ),
     profile: Optional[str] = typer.Option(
         None,

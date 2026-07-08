@@ -14,6 +14,7 @@ runner = CliRunner()
 
 
 DAYOA_BLESSED_TAG = "10.0.65"
+DRAGEN_DAYOA_REF = "codex/dragen-headnode-launch-fix"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG_PATH = (
@@ -41,6 +42,7 @@ UNVALIDATED_COMMAND_IDS = {
     "hybrid_ilmn_ont_snv_kitchensink",
     "inflection-bjuice-product-v0.1",
     "illumina_pangenome_snv",
+    "illumina_dragen_pangenome_snv_concordance",
     "ultima_pangenome_snv",
 }
 SIMPLE_TEST_DY_COMMAND = "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
@@ -353,6 +355,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "hybrid_ilmn_ont_snv",
         "hybrid_ilmn_ont_snv_kitchensink",
         "illumina_pangenome_snv",
+        "illumina_dragen_pangenome_snv_concordance",
         "ultima_pangenome_snv",
         "complete_genomics_mgi_snv_concordance",
     } <= command_ids
@@ -439,6 +442,36 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert illumina_pangenome.compatible_platforms == ["ILMN"]
     assert illumina_pangenome.compatible_cluster_types == ["daywgs"]
     assert illumina_pangenome.compatible_data_modes == ["ilmn_solo"]
+
+    dragen_pangenome = catalog.get_command("illumina_dragen_pangenome_snv_concordance")
+    assert dragen_pangenome.type == "dev"
+    assert dragen_pangenome.git_tag == DRAGEN_DAYOA_REF
+    assert dragen_pangenome.test_data_profile == "default_reads_slim"
+    assert dragen_pangenome.genome == "hg38"
+    assert dragen_pangenome.day_profile == "slurm_rhel"
+    assert dragen_pangenome.default_activation is False
+    assert dragen_pangenome.targets == [
+        "produce_drgpg_snv_vcf",
+        "produce_snv_concordances",
+    ]
+    assert dragen_pangenome.aligners == ["drbwa"]
+    assert dragen_pangenome.dedupers == ["na"]
+    assert dragen_pangenome.snv_callers == ["drgpg"]
+    assert dragen_pangenome.compatible_platforms == ["ILMN"]
+    assert dragen_pangenome.compatible_cluster_types == ["dragen"]
+    assert dragen_pangenome.compatible_data_modes == ["ilmn_solo"]
+    assert dragen_pangenome.input_requirements.required_source_columns == [
+        "ILMN_R1_FQ",
+        "ILMN_R2_FQ",
+    ]
+    assert dragen_pangenome.dy_command.startswith("source dyoainit;")
+    assert "dy-a slurm_rhel hg38" in dragen_pangenome.dy_command
+    assert "dy-r produce_drgpg_snv_vcf produce_snv_concordances" in dragen_pangenome.dy_command
+    assert "produce_drgpg_snv_vcf" in dragen_pangenome.dy_command
+    assert "produce_snv_concordances" in dragen_pangenome.dy_command
+    assert 'aligners=["drbwa"]' in dragen_pangenome.dy_command
+    assert 'dedupers=["na"]' in dragen_pangenome.dy_command
+    assert 'snv_callers=["drgpg"]' in dragen_pangenome.dy_command
 
     ultima_pangenome = catalog.get_command("ultima_pangenome_snv")
     assert ultima_pangenome.type == "dev"

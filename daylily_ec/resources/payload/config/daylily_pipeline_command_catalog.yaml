@@ -520,6 +520,47 @@ repositories:
           - ilmn_solo
         git_tag: 10.0.65
         no_containerized: false
+      - command_id: illumina_dragen_pangenome_snv_concordance
+        type: dev
+        validated_version: 10.0.65
+        test_data_profile: default_reads_slim
+        display_name: "Illumina DRAGEN Pangenome SNV Concordance"
+        description: "DRAGEN pangenome HG003 slim-read SNV concordance profile using pre-mounted /fsx/references reads, reference assets, and GIAB truth resources."
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+            - ILMN_R1_FQ
+            - ILMN_R2_FQ
+        targets:
+          - produce_drgpg_snv_vcf
+          - produce_snv_concordances
+        genome: hg38
+        day_profile: slurm_rhel
+        jobs: 6
+        aligners:
+          - drbwa
+        dedupers:
+          - na
+        snv_callers:
+          - drgpg
+        sv_callers: []
+        dy_command: "source dyoainit; dy-a slurm_rhel hg38; dy-r produce_drgpg_snv_vcf produce_snv_concordances -p -j 6 -k -T 0 --rerun-triggers mtime --config 'aligners=[\"drbwa\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"drgpg\"]'"
+        dryrun_dy_command: "source dyoainit; dy-a slurm_rhel hg38; dy-r produce_drgpg_snv_vcf produce_snv_concordances -p -j 6 -k -T 0 --rerun-triggers mtime --config 'aligners=[\"drbwa\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"drgpg\"]' -n"
+        compatible_platforms:
+          - ILMN
+        compatible_cluster_types:
+          - dragen
+        compatible_data_modes:
+          - ilmn_solo
+        git_tag: codex/dragen-headnode-launch-fix
+        no_containerized: false
+        default_activation: false
       - command_id: ultima_snv_alignstats
         type: prod
         validated_version: 10.0.65
