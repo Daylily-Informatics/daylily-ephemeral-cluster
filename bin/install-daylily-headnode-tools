@@ -140,6 +140,19 @@ target.write_text(rendered, encoding="utf-8")
 PY
 }
 
+ensure_python_yaml() {
+    if python3 - <<'PY' >/dev/null 2>&1
+import yaml
+PY
+    then
+        return 0
+    fi
+    python3 -m pip install --user PyYAML
+    python3 - <<'PY' >/dev/null
+import yaml
+PY
+}
+
 REPO_ROOT="$(resolve_daylily_res_dir)" || exit 1
 CONFIG_SOURCE_DIR="$REPO_ROOT/config"
 TARGET_CONFIG_DIR="$HOME/.config/daylily"
@@ -148,6 +161,8 @@ USER_BIN_DIR="$HOME/.local/bin"
 CLUSTER_CONFIG_PATH="${DAYLILY_EC_CLUSTER_CONFIG_PATH:-/opt/parallelcluster/shared/cluster-config.yaml}"
 
 mkdir -p "$TARGET_CONFIG_DIR" "$USER_BIN_DIR"
+
+ensure_python_yaml
 
 cp "$CONFIG_SOURCE_DIR/daylily_cli_global.yaml" "$TARGET_CONFIG_DIR/daylily_cli_global.yaml"
 cp "$CONFIG_SOURCE_DIR/daylily_pipeline_command_catalog.yaml" "$TARGET_CONFIG_DIR/daylily_pipeline_command_catalog.yaml"
