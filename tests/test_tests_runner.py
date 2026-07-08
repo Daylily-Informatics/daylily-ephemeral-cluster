@@ -49,6 +49,7 @@ from daylily_ec.tests_runner import (
 
 
 runner = CliRunner()
+DAYOA_BLESSED_TAG = "10.0.67"
 
 
 def _run_mount_record(
@@ -355,9 +356,10 @@ def test_run_command_catalog_dry_run_only_renders_and_exports(tmp_path: Path) ->
     )
 
     assert result.rc == 0
+    selected_commands = [catalog.get_command(command_id) for command_id in result.command_ids]
     assert result.evidence_prefix_s3_uri == (
         "s3://evidence-root/validation/dyec800/command_catalog_results/"
-        f"{selected_dayoa_version(catalog.commands())}-20260607T000000Z/"
+        f"{selected_dayoa_version(selected_commands)}-20260607T000000Z/"
     )
     assert [phase.phase.phase for phase in result.phases] == ["dryrun", "dryrun", "dryrun"]
     assert all("20260607T000000Z" in call[call.index("--analysis-id") + 1] for call in launch_calls)
@@ -460,6 +462,61 @@ def test_run_command_catalog_live_runs_pangenome_dev_commands(tmp_path: Path) ->
     live_ids = {phase.phase.command_id for phase in result.phases if phase.phase.phase == "live"}
     assert live_ids == {"illumina_pangenome_snv", "ultima_pangenome_snv"}
     assert all(phase.phase.command_type == "dev" for phase in result.phases)
+
+
+def test_run_command_catalog_renders_dragen_dev_command_with_rhel_profile(
+    tmp_path: Path,
+) -> None:
+    launch_calls: list[list[str]] = []
+
+    result = run_command_catalog(
+        CommandCatalogOptions(
+            cluster="dragen-fix",
+            profile="lsmc",
+            region="us-west-2",
+            command_codes="illumina_dragen_pangenome_snv_concordance",
+            evidence_s3_uri="s3://evidence-root/validation",
+            dry_run_only=True,
+            output_dir=tmp_path,
+            stamp="20260607T000000Z",
+            parallel=1,
+            poll_interval_seconds=1,
+        ),
+        stage_func=_fake_stage,
+        launch_func=_fake_launch_factory(launch_calls),
+        status_func=lambda _metadata, _phase: {"exit_code": 0},
+        mount_list_func=lambda **_kwargs: [],
+    )
+
+    assert result.rc == 0
+    assert len(launch_calls) == 1
+    launch = launch_calls[0]
+    dy_command = launch[launch.index("--dy-command") + 1]
+    assert launch[launch.index("--git-tag") + 1] == DAYOA_BLESSED_TAG
+    assert launch[launch.index("--genome") + 1] == "hg38"
+    assert "--no-default-activation" in launch
+    assert dy_command.startswith("source dyoainit;")
+    assert "dy-a slurm_rhel hg38" in dy_command
+    assert "dy-r produce_drgpg_snv_vcf produce_snv_concordances" in dy_command
+    assert "-n" in dy_command
+    assert "bin/day_run" not in dy_command
+    rendered = json.loads(
+        (tmp_path / "illumina_dragen_pangenome_snv_concordance" / "dryrun_rendered.json")
+        .read_text(encoding="utf-8")
+    )
+    assert rendered["command_type"] == "dev"
+    assert rendered["day_profile"] == "slurm_rhel"
+    with (
+        tmp_path / "illumina_dragen_pangenome_snv_concordance" / "analysis_samples.tsv"
+    ).open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert rows[0]["ILMN_R1_FQ"].startswith(
+        "/fsx/references/genomic_data/organism_reads_slim/"
+    )
+    assert rows[0]["ILMN_R2_FQ"].startswith(
+        "/fsx/references/genomic_data/organism_reads_slim/"
+    )
+    assert rows[0]["STAGE_DIRECTIVE"] == "pass_through"
 
 
 def test_run_command_catalog_counts_dev_commands_for_aggregate_rc(tmp_path: Path) -> None:

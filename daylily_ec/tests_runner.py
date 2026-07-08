@@ -976,6 +976,8 @@ def render_phase(
     ]
     if command.no_containerized:
         argv.append("--no-containerized")
+    if not getattr(command, "default_activation", True):
+        argv.append("--no-default-activation")
     if dry_run:
         argv.append("--dry-run")
     if command.input_contract == "sample_manifest":
@@ -984,12 +986,16 @@ def render_phase(
     elif command.input_contract == "run_context":
         argv.extend(["--run-context-file", manifests["run_context_path"]])
     elif command.input_contract == "none":
-        argv.extend(["--no-input-staging", "--no-default-activation", "--bootstrap-test-config"])
+        argv.append("--no-input-staging")
+        if "--no-default-activation" not in argv:
+            argv.append("--no-default-activation")
+        argv.append("--bootstrap-test-config")
     write_json(
         output_dir / command.command_id / f"{phase}_rendered.json",
         {
             "analysis_id": analysis_id,
             "command_type": command.type,
+            "day_profile": getattr(command, "day_profile", "slurm"),
             "dy_command": dy_command,
             "workflow_argv": argv,
             "export_destination_s3_uri": export_destination,

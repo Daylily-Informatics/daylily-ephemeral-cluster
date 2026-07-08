@@ -140,5 +140,5 @@ Tags:
   Value: "${REGSUB_S3_BUCKET_INIT}"
 DevSettings:
   Timeouts:
-    HeadNodeBootstrapTimeout: 3600
-    ComputeNodeBootstrapTimeout: 3600
+    HeadNodeBootstrapTimeout: 7200
+    ComputeNodeBootstrapTimeout: 7200

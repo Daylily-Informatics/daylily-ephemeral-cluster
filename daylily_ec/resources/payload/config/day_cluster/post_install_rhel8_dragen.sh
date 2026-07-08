@@ -52,9 +52,9 @@ runtime_assets_root="${references_root}/runtime_assets"
 environment_cache_root="/fsx/resources/environments"
 work_root="/fsx/work"
 run_mounts_root="/fsx/run_dir_mounts"
-reference_wait_timeout_seconds=3600
+reference_wait_timeout_seconds=7200
 reference_wait_interval_seconds=15
-sbatch_wrapper_sha256="690b8ce1de6f7afd6aed754a50315dbde440fbcad1432743a415b6a7ef43e301"
+sbatch_wrapper_sha256="fd732ee950e3a2505abb0516a57bc39643697ed6f8b1cc2c218f9b7c024c901c"
 sleep_test_sha256="024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae"
 spot_lifecycle_state_dir="/var/lib/daylily/spot_lifecycle"
 spot_lifecycle_state_file="${spot_lifecycle_state_dir}/metadata.env"
@@ -151,6 +151,51 @@ wait_for_dir() {
   done
 }
 
+wait_for_file() {
+  local path="$1"
+  local label="$2"
+  local timeout_seconds="$3"
+  local interval_seconds="$4"
+  local start
+  local elapsed
+
+  start="$(date +%s)"
+  until [ -s "${path}" ]; do
+    elapsed="$(($(date +%s) - start))"
+    if [ "${elapsed}" -ge "${timeout_seconds}" ]; then
+      echo "ERROR: ${label} not found or empty after ${timeout_seconds}s: ${path}" >&2
+      ls -la "$(dirname "${path}")" >&2 || true
+      exit 1
+    fi
+    echo "Waiting for ${label}: ${path} (${elapsed}/${timeout_seconds}s)"
+    sleep "${interval_seconds}"
+  done
+}
+
+rebuild_rhel_rpmdb() {
+  echo "Rebuilding RHEL rpm database before package install retry."
+  rm -f /var/lib/rpm/__db*
+  rpm --rebuilddb
+  rpm -qa >/dev/null
+  dnf clean all
+}
+
+dnf_install_with_rpmdb_repair() {
+  local log_file="/var/log/daylily/dnf_install_required_rhel_packages_${timestamp}.log"
+  if dnf -y install "$@" 2>&1 | tee "${log_file}"; then
+    return 0
+  fi
+
+  if ! grep -Eq "rpmdb|DB_RUNRECOVERY|rpmdb open failed|cannot open Packages database|cannot open Packages index" "${log_file}"; then
+    echo "ERROR: dnf install failed without an rpmdb corruption signature; see ${log_file}" >&2
+    return 1
+  fi
+
+  echo "RHEL rpm database failure detected during dnf install; repairing rpmdb and retrying once."
+  rebuild_rhel_rpmdb
+  dnf -y install "$@"
+}
+
 install_required_rhel_packages() {
   local marker="/var/lib/daylily/rhel8_dragen_packages_done"
   if [ -f "${marker}" ]; then
@@ -161,12 +206,9 @@ install_required_rhel_packages() {
   install -d -m 0755 /var/lib/daylily
   if ! rpm -qa >/dev/null 2>&1; then
     echo "RHEL rpm database validation failed; rebuilding rpmdb before dnf install."
-    rm -f /var/lib/rpm/__db*
-    rpm --rebuilddb
-    rpm -qa >/dev/null
-    dnf clean all
+    rebuild_rhel_rpmdb
   fi
-  dnf -y install \
+  dnf_install_with_rpmdb_repair \
     atop \
     bzip2 \
     cronie \
@@ -200,6 +242,23 @@ ensure_user() {
   if ! id "${user_name}" >/dev/null 2>&1; then
     useradd --create-home --home-dir "${home_dir}" --gid "${group_name}" --groups wheel "${user_name}"
   fi
+}
+
+allow_imds_for_user() {
+  local user_name="$1"
+  local uid
+
+  uid="$(id -u "${user_name}")"
+  if ! iptables -S PARALLELCLUSTER_IMDS >/dev/null 2>&1; then
+    echo "ParallelCluster IMDS owner chain is absent; no user-specific IMDS rule needed for ${user_name}."
+    return 0
+  fi
+  if iptables -C PARALLELCLUSTER_IMDS -d 169.254.169.254/32 -m owner --uid-owner "${uid}" -j ACCEPT 2>/dev/null; then
+    echo "IMDS access already allowed for ${user_name} uid ${uid}."
+    return 0
+  fi
+  echo "Allowing IMDS access for ${user_name} uid ${uid} through PARALLELCLUSTER_IMDS."
+  iptables -I PARALLELCLUSTER_IMDS 1 -d 169.254.169.254/32 -m owner --uid-owner "${uid}" -j ACCEPT
 }
 
 configure_rclone_if_available() {
@@ -571,10 +630,7 @@ wait_for_reference_data() {
   wait_for_dir "${runtime_assets_root}/cached_envs/conda" "cached conda environments" "${reference_wait_timeout_seconds}" "${reference_wait_interval_seconds}"
   wait_for_dir "${references_root}/genomic_data" "genomic reference data" "${reference_wait_timeout_seconds}" "${reference_wait_interval_seconds}"
   wait_for_dir "${runtime_assets_root}/tool_specific_resources" "tool-specific runtime resources" "${reference_wait_timeout_seconds}" "${reference_wait_interval_seconds}"
-  if [ ! -s "${runtime_assets_root}/tool_specific_resources/womtool_87.jar" ]; then
-    echo "ERROR: womtool_87.jar missing under ${runtime_assets_root}/tool_specific_resources" >&2
-    exit 1
-  fi
+  wait_for_file "${runtime_assets_root}/tool_specific_resources/womtool_87.jar" "womtool_87.jar" "${reference_wait_timeout_seconds}" "${reference_wait_interval_seconds}"
 }
 
 make_role_data_read_only() {
@@ -887,6 +943,7 @@ install_required_rhel_packages
 configure_rclone_if_available
 ensure_user ubuntu ubuntu /home/ubuntu
 ensure_user daylily daylily /home/daylily
+allow_imds_for_user ubuntu
 install_runtime_profiles
 prepare_common_writable_dirs
 configure_kernel_and_shm

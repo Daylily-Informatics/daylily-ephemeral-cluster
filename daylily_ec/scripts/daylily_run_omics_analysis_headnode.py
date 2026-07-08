@@ -2015,10 +2015,7 @@ cat <<'PAYLOAD' > "$work_script"
 PAYLOAD
 chmod 0700 "$work_script"
 nohup tmux new-session -d -s "$tmux_session_name" \
-  -e "DAYLILY_RUN_DIR=$run_dir" \
-  -e "DAYLILY_REPO_PATH=$repo_path" \
-  -e "DAYLILY_TMUX_LOG=$tmux_log" \
-  "bash -lc 'source \"$work_script\" >>\"$tmux_log\" 2>&1'" >"$bootstrap_log" 2>&1 &
+  "env DAYLILY_RUN_DIR=\"$run_dir\" DAYLILY_REPO_PATH=\"$repo_path\" DAYLILY_TMUX_LOG=\"$tmux_log\" bash -lc 'source \"$work_script\" >>\"$tmux_log\" 2>&1'" >"$bootstrap_log" 2>&1 &
 SESSION_START_DEADLINE=$((SECONDS + 60))
 session_ready=false
 quick_status=""
