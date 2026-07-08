@@ -26,6 +26,6 @@ Ledger path: `docs/plans/20260708T122519Z_dayoa_dyec_release_chain_ledger.md`
 | ID | Repo | Requirement | Status | Evidence |
 |---|---|---|---|---|
 | REL-001 | DayOA | Push `jem-dev` and create annotated `10.0.68` tag | SUCCESS | `git push origin jem-dev` was up to date; `git tag -a 10.0.68`; `git cat-file -t 10.0.68 -> tag`; pushed tag to `origin`. |
-| REL-002 | DYEC | Pin DayOA `10.0.68` in `pyproject.toml` and `config/**`, commit dirty work, push `jem-dev`, create annotated `10.0.113` tag | IN_PROGRESS | Updating pins. |
-| REL-003 | DYEC | Update DYEC self pin to `10.0.113`, commit, push `jem-dev`, create annotated `10.0.114` tag | OPEN | Pending |
+| REL-002 | DYEC | Pin DayOA `10.0.68` in `pyproject.toml` and `config/**`, commit dirty work, push `jem-dev`, create annotated `10.0.113` tag | SUCCESS | Commit `20e9a96f`; pushed `origin/jem-dev`; `git cat-file -t 10.0.113 -> tag`; pushed tag `10.0.113`. |
+| REL-003 | DYEC | Update DYEC self pin to `10.0.113`, commit, push `jem-dev`, create annotated `10.0.114` tag | SUCCESS | Updated `config/daylily_cli_global.yaml`, packaged global config, and `config/dragen_fix5_repo_overrides.txt` to `10.0.113`; `pytest tests/test_packaged_defaults.py tests/test_workflow.py -q -> 113 passed`; this commit is the `10.0.114` release commit. |
 | REL-004 | DYEC | Run focused verification before DYEC release | SUCCESS | `pytest tests/test_cloudformation.py tests/test_headnode_init.py tests/test_packaged_defaults.py tests/test_spot_pricing.py tests/test_workflow.py -q -> 189 passed`; `ruff check ... -> All checks passed`; `bash -n` for source and packaged boot scripts; `git diff --check`. |
