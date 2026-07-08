@@ -23,7 +23,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.65"
+DAYOA_BLESSED_TAG = "10.0.66"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -2245,6 +2245,82 @@ def test_samples_run_rejects_export_policy_before_staging(monkeypatch, tmp_path)
     assert "stage_argv" not in calls
 
 
+def test_samples_run_expands_export_root_to_cluster_analysis(monkeypatch, tmp_path) -> None:
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    manifest = tmp_path / "analysis_samples.tsv"
+    config_dir = tmp_path / "cfg"
+    catalog = tmp_path / "catalog.yaml"
+    catalog.write_text(
+        (
+            Path(__file__).resolve().parents[1] / "config" / "daylily_pipeline_command_catalog.yaml"
+        ).read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    _write_complete_genomics_manifest(manifest)
+
+    def fake_stage(argv: list[str]) -> int:
+        calls["stage_argv"] = argv
+        print("Remote staging completed successfully.")
+        print(
+            "Remote FSx stage directory: /fsx/staging/staged_external_sequencing_data/remote_stage_20260425T000000Z"
+        )
+        return 0
+
+    def fake_launch(argv: list[str]) -> int:
+        calls["launch_argv"] = argv
+        print("__DAYLILY_SESSION__=cg-session")
+        return 0
+
+    monkeypatch.setattr(cli_module, "_invoke_stage_samples", fake_stage)
+    monkeypatch.setattr(cli_module, "_invoke_workflow_launch", fake_launch)
+
+    result = runner.invoke(
+        app,
+        [
+            "samples",
+            "run",
+            str(manifest),
+            "--catalog-config",
+            str(catalog),
+            "--command-id",
+            "complete_genomics_mgi_snv_concordance",
+            "--analysis-id",
+            "cg-run",
+            "--executing-entity",
+            "johnm",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--reference-s3-uri",
+            "s3://reference-bucket",
+            "--control-data-s3-uri",
+            "s3://control-data-bucket",
+            "--stage-s3-uri",
+            "s3://stage-bucket",
+            "--config-dir",
+            str(config_dir),
+            "--export-destination-s3-uri",
+            "s3://bucket/derived/",
+            "--export-trigger",
+            "on-success",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    launch_argv = calls["launch_argv"]
+    assert launch_argv[launch_argv.index("--export-destination-s3-uri") + 1] == (
+        "s3://bucket/derived/cluster-a/cg-run/"
+    )
+    receipt = config_dir / "20260425T000000Z_samples_run_receipt.json"
+    payload = json.loads(receipt.read_text(encoding="utf-8"))
+    assert payload["export_destination_s3_uri"] == "s3://bucket/derived/cluster-a/cg-run/"
+
+
 def test_samples_run_rejects_unknown_command(monkeypatch, tmp_path) -> None:
     _activate_dayec_runtime(monkeypatch)
     manifest = tmp_path / "analysis_samples.tsv"
@@ -2411,6 +2487,48 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "100" in argv
     assert "--strict-project-check" in argv
     assert "--dry-run" in argv
+
+
+def test_workflow_launch_expands_export_root_to_cluster_analysis(monkeypatch) -> None:
+    import daylily_ec.scripts.daylily_run_omics_analysis_headnode as launch_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+
+    def fake_launch(argv: list[str]) -> int:
+        calls["argv"] = argv
+        return 0
+
+    monkeypatch.setattr(launch_module, "main", fake_launch)
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "launch",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--analysis-id",
+            "run-1",
+            "--executing-entity",
+            "johnm",
+            "--export-destination-s3-uri",
+            "s3://bucket/derived/",
+            "--export-trigger",
+            "on-success",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    argv = calls["argv"]
+    assert argv[argv.index("--export-destination-s3-uri") + 1] == (
+        "s3://bucket/derived/cluster-a/run-1/"
+    )
 
 
 def test_workflow_launch_rejects_dewey_options_without_policy(monkeypatch) -> None:

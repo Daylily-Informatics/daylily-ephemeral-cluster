@@ -69,12 +69,13 @@ def _validate_analysis_launch_options(
     *,
     analysis_id: str,
     executing_entity: str,
+    cluster: Optional[str],
     export_destination_s3_uri: Optional[str],
     export_trigger: str,
     delete_on_export_success: bool,
-) -> None:
+) -> Optional[str]:
     from daylily_ec.analysis_identity import analysis_source_path, validate_analysis_segment
-    from daylily_ec.workflow.export_data import validate_export_destination_s3_uri
+    from daylily_ec.workflow.export_data import resolve_launch_export_destination_s3_uri
 
     try:
         resolved_analysis_id = validate_analysis_segment(
@@ -95,15 +96,18 @@ def _validate_analysis_launch_options(
             raise ValueError("--export-destination-s3-uri is required when --export-trigger is set")
         if delete_on_export_success and not export_destination_s3_uri:
             raise ValueError("--delete-on-export-success requires --export-destination-s3-uri")
+        resolved_export_destination_s3_uri = None
         if export_destination_s3_uri:
-            validate_export_destination_s3_uri(
+            resolved_export_destination_s3_uri = resolve_launch_export_destination_s3_uri(
                 export_destination_s3_uri,
                 source_path=analysis_source_path(
                     executing_entity=resolved_executing_entity,
                     analysis_id=resolved_analysis_id,
                     headnode=True,
                 ),
+                cluster_name=cluster,
             )
+        return resolved_export_destination_s3_uri
     except (RuntimeError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc
 
@@ -1870,6 +1874,7 @@ def exports_run(
             fsx_file_system_id=resolved_fsx_id,
             source_path=source_path,
             destination_s3_uri=destination_s3_uri,
+            cluster_name=cluster_name,
             wait=wait,
             timeout_seconds=timeout_seconds,
             fsx_client=client,
@@ -3152,7 +3157,10 @@ def samples_run(
     export_destination_s3_uri: Optional[str] = typer.Option(
         None,
         "--export-destination-s3-uri",
-        help="Full S3 prefix ending in <executing-entity>/<analysis-id>/ for auto-export.",
+        help=(
+            "S3 auto-export destination. A full destination is preserved; an export root "
+            "is expanded to <root>/<cluster>/<analysis-id>/."
+        ),
     ),
     export_trigger: str = typer.Option(
         "none",
@@ -3221,9 +3229,10 @@ def samples_run(
             executing_entity=executing_entity,
             cluster=cluster,
         )
-        _validate_analysis_launch_options(
+        resolved_export_destination_s3_uri = _validate_analysis_launch_options(
             analysis_id=analysis_id,
             executing_entity=resolved_executing_entity,
+            cluster=cluster,
             export_destination_s3_uri=export_destination_s3_uri,
             export_trigger=export_trigger,
             delete_on_export_success=delete_on_export_success,
@@ -3310,7 +3319,7 @@ def samples_run(
             project=project,
             dry_run=dry_run,
             skip_project_check=skip_project_check,
-            export_destination_s3_uri=export_destination_s3_uri,
+            export_destination_s3_uri=resolved_export_destination_s3_uri,
             export_trigger=export_trigger,
             delete_on_export_success=delete_on_export_success,
             replace_existing_analysis_dir=replace_existing_analysis_dir,
@@ -3345,7 +3354,7 @@ def samples_run(
             "executing_entity": resolved_executing_entity,
             "dry_run": dry_run,
             "dy_command": command.dryrun_dy_command if dry_run else command.dy_command,
-            "export_destination_s3_uri": export_destination_s3_uri,
+            "export_destination_s3_uri": resolved_export_destination_s3_uri,
             "export_trigger": export_trigger,
             "max_runtime_minutes": max_runtime_minutes,
             "delete_on_export_success": delete_on_export_success,
@@ -3495,7 +3504,10 @@ def workflow_launch(
     export_destination_s3_uri: Optional[str] = typer.Option(
         None,
         "--export-destination-s3-uri",
-        help="Full S3 prefix ending in <executing-entity>/<analysis-id>/ for auto-export.",
+        help=(
+            "S3 auto-export destination. A full destination is preserved; an export root "
+            "is expanded to <root>/<cluster>/<analysis-id>/."
+        ),
     ),
     export_trigger: str = typer.Option(
         "none",
@@ -3556,9 +3568,10 @@ def workflow_launch(
         executing_entity=executing_entity,
         cluster=cluster,
     )
-    _validate_analysis_launch_options(
+    resolved_export_destination_s3_uri = _validate_analysis_launch_options(
         analysis_id=analysis_id,
         executing_entity=resolved_executing_entity,
+        cluster=cluster,
         export_destination_s3_uri=export_destination_s3_uri,
         export_trigger=export_trigger,
         delete_on_export_success=delete_on_export_success,
@@ -3608,7 +3621,7 @@ def workflow_launch(
         ("--dy-command", dy_command),
         ("--snakemake-extra", snakemake_extra),
         ("--max-runtime-minutes", str(max_runtime_minutes)),
-        ("--export-destination-s3-uri", export_destination_s3_uri),
+        ("--export-destination-s3-uri", resolved_export_destination_s3_uri),
         ("--export-trigger", export_trigger),
         ("--artifact-registration-command-id", artifact_registration_command_id),
         ("--dewey-url", dewey_url),

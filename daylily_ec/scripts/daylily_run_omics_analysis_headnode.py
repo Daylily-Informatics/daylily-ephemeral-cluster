@@ -577,7 +577,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--export-destination-s3-uri",
-        help="Full S3 prefix ending in <executing-entity>/<analysis-id>/ for auto-export",
+        help=(
+            "S3 auto-export destination. A full destination is preserved; an export root "
+            "is expanded to <root>/<cluster>/<analysis-id>/."
+        ),
     )
     parser.add_argument(
         "--export-trigger",
@@ -698,12 +701,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         args.session_name = analysis_id
     if args.export_destination_s3_uri:
         from daylily_ec.workflow.export_data import (
-            validate_export_destination_s3_uri,
+            resolve_launch_export_destination_s3_uri,
         )
 
-        validate_export_destination_s3_uri(
+        args.export_destination_s3_uri = resolve_launch_export_destination_s3_uri(
             args.export_destination_s3_uri,
             source_path=source_path,
+            cluster_name=cluster_name,
         )
     target = resolve_headnode_instance_id(cluster_name, region, profile=args.profile)
     wait_for_ssm_online(target.instance_id, region, profile=args.profile, timeout=120)

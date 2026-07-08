@@ -41,7 +41,8 @@ export ANALYSIS_ID=<analysis-id>
 export ANALYSIS_SAMPLES=./analysis_samples.tsv
 export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
 export EXPORT_DIR="$PWD/tmp-export/$ANALYSIS_ID"
-export EXPORT_S3_URI="$ANALYSIS_RESULTS_S3_URI/$EXECUTING_ENTITY/$ANALYSIS_ID/"
+export EXPORT_S3_ROOT="$ANALYSIS_RESULTS_S3_URI/"
+export EXPORT_S3_URI="$EXPORT_S3_ROOT$CLUSTER_NAME/$ANALYSIS_ID/"
 ```
 
 Sanity checks:
@@ -132,12 +133,16 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --config-dir "$STAGE_CFG_DIR" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
-  --export-destination-s3-uri "$EXPORT_S3_URI" \
+  --export-destination-s3-uri "$EXPORT_S3_ROOT" \
   --export-trigger on-success \
   --dry-run
 ```
 
 Remove `--dry-run` only after the rendered command, staging paths, export destination, and cluster state are correct.
+
+For `dyec samples run` and `dyec workflow launch`, `--export-destination-s3-uri`
+can be a full destination or an export root. Export roots are expanded to
+`<root>/<cluster>/<analysis-id>/`.
 
 ## 6. Run-Folder Analysis
 
@@ -225,9 +230,9 @@ Expected receipt values:
 - `detached: true`
 - `delete_data_in_file_system: false`
 - `source_path: /analysis_results/<executing_entity>/<analysis_id>/`
-- `destination_s3_uri` ending in `<executing_entity>/<analysis_id>/`
+- `destination_s3_uri` ending in `<cluster>/<analysis_id>/` for launch auto-export, or `<executing_entity>/<analysis_id>/` for explicit direct export
 - `fsx_root: /fsx/analysis_results/<executing_entity>/<analysis_id>/`
-- `s3_root: s3://.../<executing_entity>/<analysis_id>/`
+- `s3_root: s3://.../<cluster>/<analysis_id>/` for launch auto-export, or `s3://.../<executing_entity>/<analysis_id>/` for explicit direct export
 - `dayoa_analysis_root` under `fsx_root` when exporting DayOA
 - `dayoa_s3_root` under `s3_root` when exporting DayOA
 

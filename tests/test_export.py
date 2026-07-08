@@ -38,11 +38,11 @@ from daylily_ec.workflow.export_data import (
     _build_s3_inventory_manifest,
     _classify_exported_artifact,
     _parser_relevant,
-    _selected_by_policy,
     _sha256_from_head_object,
     attach_export_dra,
     detach_export_dra,
     normalize_export_source_path,
+    resolve_launch_export_destination_s3_uri,
     run_dewey_registration_for_existing_export,
     run_export_task,
     run_export_workflow,
@@ -295,6 +295,28 @@ def test_validate_export_destination_requires_matching_suffix() -> None:
             "s3://bucket/analysis_results/ubuntu/other/",
             source_path="/fsx/analysis_results/johnm/illumina_run_qc",
         )
+
+
+def test_validate_export_destination_accepts_cluster_analysis_suffix() -> None:
+    assert (
+        validate_export_destination_s3_uri(
+            "s3://bucket/derived/cluster-a/illumina_run_qc",
+            source_path="/fsx/analysis_results/johnm/illumina_run_qc",
+            cluster_name="cluster-a",
+        )
+        == "s3://bucket/derived/cluster-a/illumina_run_qc/"
+    )
+
+
+def test_resolve_launch_export_destination_expands_root_to_cluster_analysis() -> None:
+    assert (
+        resolve_launch_export_destination_s3_uri(
+            "s3://bucket/derived/lsmc/ssf-hq/",
+            source_path="/fsx/analysis_results/johnm/illumina_run_qc",
+            cluster_name="cluster-a",
+        )
+        == "s3://bucket/derived/lsmc/ssf-hq/cluster-a/illumina_run_qc/"
+    )
 
 
 def test_validate_s3_destination_prefix_rejects_existing_objects() -> None:
@@ -664,6 +686,7 @@ def test_run_export_task_starts_exact_analysis_path_and_report() -> None:
         fsx_file_system_id="fs-123",
         source_path="/analysis_results/johnm/illumina_run_qc/",
         destination_s3_uri="s3://bucket/analysis_results/johnm/illumina_run_qc/",
+        cluster_name=None,
         wait=True,
         timeout_seconds=1,
         fsx_client=fake,

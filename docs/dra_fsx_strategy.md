@@ -12,7 +12,8 @@ This is the current DayEC data-plane model. FSx for Lustre is the high-performan
 | Staging | `/fsx/staging/staged_external_sequencing_data/...` | `/staging/staged_external_sequencing_data/...` | `<raw-seq-bucket>/staged_external_data/...` | Created on demand |
 | Run inputs | `/fsx/run_dir_mounts/<mount_id>/` | `/run_dir_mounts/<mount_id>/` | selected run prefix | Created and deleted on demand |
 | Workflow outputs | `/fsx/analysis_results/...` | `/analysis_results/...` | none by default | Local to the FSx filesystem until exported |
-| Direct analysis export | `/fsx/analysis_results/<executing_entity>/<analysis_id>/` | `/analysis_results/<executing_entity>/<analysis_id>/` | `s3://bucket/prefix/<executing_entity>/<analysis_id>/` | Temporary output DRA |
+| Launch auto-export | `/fsx/analysis_results/<executing_entity>/<analysis_id>/` | `/analysis_results/<executing_entity>/<analysis_id>/` | `s3://bucket/prefix/<cluster>/<analysis_id>/` when an export root is supplied | Temporary output DRA after workflow exit |
+| Direct analysis export | `/fsx/analysis_results/<executing_entity>/<analysis_id>/` | `/analysis_results/<executing_entity>/<analysis_id>/` | Explicit `s3://bucket/prefix/<executing_entity>/<analysis_id>/` or `<cluster>/<analysis_id>/` | Temporary output DRA |
 
 Run-directory DRAs are read-oriented by default. They configure AutoImport events and no AutoExport policy. Export DRAs are created directly on one completed analysis directory, run one explicit FSx export task, and are detached after the task completes.
 

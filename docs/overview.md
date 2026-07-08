@@ -45,7 +45,7 @@ The namespace is intentionally explicit:
 | `/fsx/run_dir_mounts/<mount_id>` | Read-oriented run-folder input DRA |
 | `/fsx/analysis_results/...` | Workflow checkout and result workspace |
 
-Run-directory mounts are inputs. They do not define the export destination and are rejected as export sources. Export is a separate output DRA task from `/analysis_results/<executing_entity>/<analysis_id>/` to the requested S3 URI ending in the same `<executing_entity>/<analysis_id>/` suffix.
+Run-directory mounts are inputs. They do not define the export destination and are rejected as export sources. Export is a separate output DRA task from `/analysis_results/<executing_entity>/<analysis_id>/`. Launch auto-export may take an S3 root and expands it to `<root>/<cluster>/<analysis_id>/`; direct `dyec export` takes an explicit final S3 destination.
 
 The export receipt records `fsx_root`, `s3_root`, `dayoa_analysis_root`, and
 `dayoa_s3_root`. DYEC uses those fields for Dewey registration. DayOA remains a

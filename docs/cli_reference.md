@@ -222,6 +222,8 @@ dyec samples stage "$ANALYSIS_SAMPLES" \
 
 `samples run` stages the manifest, validates it against a catalog command, and launches the workflow:
 
+Set `EXPORT_S3_ROOT` to the S3 prefix that should receive auto-exported analysis directories; DYEC appends `<cluster>/<analysis-id>/`.
+
 ```bash
 dyec samples run "$ANALYSIS_SAMPLES" \
   --command-id illumina_snv_alignstats \
@@ -233,12 +235,12 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --stage-s3-uri "$STAGE_S3_URI" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
-  --export-destination-s3-uri "$EXPORT_S3_URI" \
+  --export-destination-s3-uri "$EXPORT_S3_ROOT" \
   --export-trigger on-success \
   --dry-run
 ```
 
-Important options include `--command-id`, `--analysis-id`, `--executing-entity`, `--export-destination-s3-uri`, `--export-trigger`, `--artifact-registration-command-id`, `--dewey-url`, `--dewey-token-env`, `--git-tag`, and `--project`.
+Important options include `--command-id`, `--analysis-id`, `--executing-entity`, `--export-destination-s3-uri`, `--export-trigger`, `--artifact-registration-command-id`, `--dewey-url`, `--dewey-token-env`, `--git-tag`, and `--project`. For `samples run` and `workflow launch`, `--export-destination-s3-uri` may be a full destination or an export root; export roots are expanded to `<root>/<cluster>/<analysis-id>/`.
 
 `--project <project>` is passed through to DayOA as `dyoainit --project <project>`, which sets `DAY_PROJECT`; DayOA's Slurm profile submits `sbatch ... --comment "$DAY_PROJECT"`. The value is a cost-center string, not the cluster AWS Budget name.
 
@@ -371,7 +373,7 @@ dyec workflow launch \
 
 Auto-export options:
 
-- `--export-destination-s3-uri`: full S3 destination prefix ending in `<executing_entity>/<analysis_id>/`
+- `--export-destination-s3-uri`: full S3 destination prefix or export root; export roots are expanded to `<root>/<cluster>/<analysis-id>/`
 - `--export-trigger`: one of `none`, `on-success`, `on-fail`, or `all`; default `none`
 - `--delete-on-export-success`: deletes only the FSx analysis directory after a successful requested export
 - `--artifact-registration-command-id`: command-catalog policy to apply after successful export
@@ -440,7 +442,7 @@ Optional artifact registration:
 - `--dewey-url`
 - `--dewey-token-env`
 
-The source path must be `/fsx/analysis_results/<executing_entity>/<analysis_id>` or `/analysis_results/<executing_entity>/<analysis_id>`. The destination must be an explicit S3 URI ending in `<executing_entity>/<analysis_id>/`. Run mounts, reference data, nested paths, old export staging paths, unsafe path segments, and non-empty destination prefixes are rejected.
+The source path must be `/fsx/analysis_results/<executing_entity>/<analysis_id>` or `/analysis_results/<executing_entity>/<analysis_id>`. Direct `dyec export` destinations must be explicit S3 URIs ending in `<executing_entity>/<analysis_id>/` or, when `--cluster` is supplied, `<cluster>/<analysis_id>/`. Run mounts, reference data, nested paths, old export staging paths, unsafe path segments, and non-empty destination prefixes are rejected.
 
 Lower-level helpers:
 

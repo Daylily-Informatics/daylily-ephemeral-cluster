@@ -40,7 +40,8 @@ flowchart LR
 | `/fsx/control_data` | optional cluster config | Repeated-test or control assets when configured. |
 | `/fsx/run_dir_mounts/<mount_id>` | `dyec mounts` | Read-oriented S3 run-folder Data Repository Associations. |
 | `/fsx/analysis_results/<executing_entity>/<analysis_id>` | workflow repository | Repository checkout, logs, work state, outputs, reports, and benchmarks. |
-| `s3://<analysis-bucket>/<prefix>/<executing_entity>/<analysis_id>/` | `dyec export` | Durable export destination for one completed analysis directory. |
+| `s3://<analysis-bucket>/<prefix>/<cluster>/<analysis_id>/` | `dyec workflow launch` auto-export | Durable export destination derived from an export root. |
+| `s3://<analysis-bucket>/<prefix>/<executing_entity>/<analysis_id>/` | `dyec export` | Durable explicit export destination for one completed analysis directory. |
 
 Run mounts and references are inputs. They are not export sources. The export source is exactly one completed analysis directory under `/fsx/analysis_results/<executing_entity>/<analysis_id>`.
 
@@ -85,7 +86,8 @@ export STAGE_S3_URI=s3://<staging-bucket>/<prefix>
 export ANALYSIS_RESULTS_S3_URI=s3://<analysis-results-bucket>/<prefix>
 export EXECUTING_ENTITY=ubuntu
 export ANALYSIS_ID=<analysis-id>
-export EXPORT_S3_URI="$ANALYSIS_RESULTS_S3_URI/$EXECUTING_ENTITY/$ANALYSIS_ID/"
+export EXPORT_S3_ROOT="$ANALYSIS_RESULTS_S3_URI/"
+export EXPORT_S3_URI="$EXPORT_S3_ROOT$CLUSTER_NAME/$ANALYSIS_ID/"
 ```
 
 ## Lifecycle
@@ -136,7 +138,7 @@ dyec samples run ./analysis_samples.tsv \
   --stage-s3-uri "$STAGE_S3_URI" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
-  --export-destination-s3-uri "$EXPORT_S3_URI" \
+  --export-destination-s3-uri "$EXPORT_S3_ROOT" \
   --export-trigger on-success \
   --dry-run
 ```
@@ -171,6 +173,11 @@ dyec export \
   --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "./tmp-export/$ANALYSIS_ID"
 ```
+
+For `dyec samples run` and `dyec workflow launch`, `--export-destination-s3-uri` may be
+either a full destination or an export root. If it is a root, DYEC appends
+`<cluster>/<analysis-id>/`. Direct `dyec export` remains explicit and should be
+given the final S3 destination.
 
 Inspect `fsx_export.yaml` before cleanup. Delete is destructive; run `dyec delete --dry-run` first and perform live deletion only after the intended effect is approved and understood.
 
