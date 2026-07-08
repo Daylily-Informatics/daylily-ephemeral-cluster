@@ -258,15 +258,17 @@ dyec tests pytest
 dyec tests pytest --coverage
 
 dyec tests command-catalog \
-  --cluster dyec800 \
+  --cluster "$CLUSTER_NAME" \
   --profile lsmc \
   --region us-west-2 \
-  --command-codes "illumina_snv_alignstats,illumina_hg002_kitchensink_multiqc,ultima_snv_alignstats,ultima_snv_alignstats_kitchensink,ont_snv_alignstats,ont_snv_alignstats_kitchensink,hybrid_ilmn_ont_snv,hybrid_ilmn_ont_snv_kitchensink,illumina_run_qc,ont_run_qc,ultima_run_qc" \
+  --command-codes dyec-released-core \
   --evidence-s3-uri "s3://<evidence-root>/" \
   --dry-run
 ```
 
 `dyec tests command-catalog` writes local command evidence under `docs/plans/<stamp>_dyec_tests_command_catalog_logs` unless `--output-dir` is set. Successful workflow phases export to `<evidence-s3-uri>/<cluster>/command_catalog_results/<dayoa-version>-<UTCSTAMP>/ubuntu/<analysis-id>/`. Missing run-directory DRAs fail hard unless `--create-missing-mounts` is supplied.
+
+Use `--command-codes dyec-released-core` for the released core validation set and `--command-codes dyec-released-all` for every released non-research catalog command. The BCL Convert commands remain `research` type and are excluded from `dyec-released-all`; launch them only by explicit command id when research validation is intended.
 
 The command-catalog runner launches in source-availability groups. Commands that use no external data, default-mounted data, or an already available run DRA launch immediately. When `--create-missing-mounts` is supplied, commands for a missing `SOURCE_S3_URI` wait only for that source's run DRA and launch as soon as that directory is available; unrelated ready commands do not wait behind it. New run-DRA creation waits up to 5400 seconds by default.
 

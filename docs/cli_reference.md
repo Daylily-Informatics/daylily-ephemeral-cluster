@@ -261,6 +261,23 @@ The command runs from `<analysis-root>/daylily-omics-analysis`, initializes DayO
 Supported builds are `hg38`, `hg38_broad`, and `b37`. The expected output is
 `results/day/<genome-build>/reports/benchmarks_summary.tsv`.
 
+Run command-catalog validation with explicit selectors:
+
+```bash
+dyec tests command-catalog \
+  --cluster "$CLUSTER_NAME" \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --command-codes dyec-released-core \
+  --evidence-s3-uri "s3://<evidence-root>/" \
+  --dry-run
+```
+
+`dyec-released-core` selects the released core validation set.
+`dyec-released-all` selects all released non-research catalog commands. BCL
+Convert commands are `research` type and are excluded from `dyec-released-all`;
+launch them only by explicit command id when research validation is intended.
+
 Summarize command-catalog benchmark evidence and update the version-keyed
 performance comparator profile:
 

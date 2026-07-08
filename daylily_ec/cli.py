@@ -5063,7 +5063,10 @@ def tests_command_catalog(
     command_codes: str = typer.Option(
         ...,
         "--command-codes",
-        help="Comma/space-separated catalog command ids, or all non-research commands.",
+        help=(
+            "Comma/space-separated catalog command ids, dyec-released-core, "
+            "or dyec-released-all."
+        ),
     ),
     evidence_s3_uri: str = typer.Option(
         ...,

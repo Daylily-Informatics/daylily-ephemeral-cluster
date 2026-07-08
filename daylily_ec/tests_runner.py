@@ -43,7 +43,10 @@ class TestsRunnerError(RuntimeError):
     """Raised when a DYEC tests subcommand cannot complete its contract."""
 
 
-DYEC800_COMMAND_IDS = (
+DYEC_RELEASED_CORE_COMMAND_TOKEN = "dyec-released-core"
+DYEC_RELEASED_ALL_COMMAND_TOKEN = "dyec-released-all"
+
+DYEC_RELEASED_CORE_COMMAND_IDS = (
     "illumina_snv_alignstats",
     "illumina_hg002_kitchensink_multiqc",
     "ultima_snv_alignstats",
@@ -245,7 +248,10 @@ def parse_command_codes(command_codes: str, catalog: RepositoryCatalog) -> tuple
     requested = str(command_codes or "").strip()
     if not requested:
         raise TestsRunnerError("--command-codes is required.")
-    if requested.lower() == "all":
+    lowered = requested.lower()
+    if lowered == DYEC_RELEASED_CORE_COMMAND_TOKEN:
+        return tuple(catalog.get_command(command_id) for command_id in DYEC_RELEASED_CORE_COMMAND_IDS)
+    if lowered == DYEC_RELEASED_ALL_COMMAND_TOKEN:
         return tuple(command for command in catalog.commands() if command.type != "research")
     tokens = [token for token in requested.replace(",", " ").split() if token]
     commands: list[AnalysisCommand] = []
@@ -262,9 +268,9 @@ def parse_command_codes(command_codes: str, catalog: RepositoryCatalog) -> tuple
     return tuple(commands)
 
 
-def dyec800_command_codes() -> str:
-    """Return the default dyec800 validation command-code string."""
-    return ",".join(DYEC800_COMMAND_IDS)
+def dyec_released_core_command_codes() -> str:
+    """Return the released core validation command-code selector."""
+    return DYEC_RELEASED_CORE_COMMAND_TOKEN
 
 
 def command_ids(commands: Iterable[AnalysisCommand]) -> tuple[str, ...]:

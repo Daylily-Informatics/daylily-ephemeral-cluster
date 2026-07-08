@@ -13,7 +13,9 @@ from daylily_ec.repositories import load_repository_catalog
 from daylily_ec.run_mounts import MOUNT_PURPOSE_RUN, RunMountRecord
 from daylily_ec.tests_runner import (
     DEFAULT_COMMAND_CATALOG_PARALLEL,
-    DYEC800_COMMAND_IDS,
+    DYEC_RELEASED_ALL_COMMAND_TOKEN,
+    DYEC_RELEASED_CORE_COMMAND_IDS,
+    DYEC_RELEASED_CORE_COMMAND_TOKEN,
     CommandCatalogOptions,
     PhaseResult,
     RUN_DRA_CREATE_WAIT_TIMEOUT_SECONDS,
@@ -25,7 +27,7 @@ from daylily_ec.tests_runner import (
     convert_manifest_path,
     convert_sample_row,
     convert_manifest_value,
-    dyec800_command_codes,
+    dyec_released_core_command_codes,
     execute_batch,
     execute_phases,
     generated_config_paths,
@@ -51,7 +53,7 @@ from daylily_ec.tests_runner import (
 
 
 runner = CliRunner()
-DAYOA_BLESSED_TAG = "10.0.69"
+DAYOA_BLESSED_TAG = "10.0.70"
 
 
 def _run_mount_record(
@@ -173,7 +175,7 @@ def test_tests_pytest_cli_rejects_coverage_gate_overrides(monkeypatch: pytest.Mo
     assert "--cov-fail-under=0" in result.output
 
 
-def test_command_code_parser_exact_all_duplicate_and_unknown() -> None:
+def test_command_code_parser_exact_released_sets_duplicate_and_unknown() -> None:
     catalog = load_repository_catalog()
 
     parsed = parse_command_codes("illumina_snv_alignstats, ont_snv_alignstats", catalog)
@@ -181,7 +183,10 @@ def test_command_code_parser_exact_all_duplicate_and_unknown() -> None:
         "illumina_snv_alignstats",
         "ont_snv_alignstats",
     ]
-    all_commands = parse_command_codes("all", catalog)
+    core_commands = parse_command_codes(DYEC_RELEASED_CORE_COMMAND_TOKEN, catalog)
+    assert [command.command_id for command in core_commands] == list(DYEC_RELEASED_CORE_COMMAND_IDS)
+    assert dyec_released_core_command_codes() == DYEC_RELEASED_CORE_COMMAND_TOKEN
+    all_commands = parse_command_codes(DYEC_RELEASED_ALL_COMMAND_TOKEN, catalog)
     assert len(all_commands) == len(
         tuple(command for command in catalog.commands() if command.type != "research")
     )
@@ -191,6 +196,8 @@ def test_command_code_parser_exact_all_duplicate_and_unknown() -> None:
     assert "illumina_pangenome_snv" in all_command_ids
     assert "illumina_bclconvert" not in all_command_ids
     assert "illumina_run_qc_bclconvert" not in all_command_ids
+    with pytest.raises(RunnerError, match="Unknown analysis command"):
+        parse_command_codes("all", catalog)
     assert (
         parse_command_codes("complete_genomics_mgi_snv_concordance", catalog)[0].command_id
         == "complete_genomics_mgi_snv_concordance"
@@ -203,7 +210,6 @@ def test_command_code_parser_exact_all_duplicate_and_unknown() -> None:
         parse_command_codes("ont_snv_alignstats ont_snv_alignstats", catalog)
     with pytest.raises(RunnerError, match="Unknown analysis command"):
         parse_command_codes("missing_command", catalog)
-    assert dyec800_command_codes() == ",".join(DYEC800_COMMAND_IDS)
 
 
 def test_kitchen_sinks_order_first() -> None:
