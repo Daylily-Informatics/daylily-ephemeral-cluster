@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.65"
+DAYOA_BLESSED_TAG = "10.0.66"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG_PATH = (
@@ -448,6 +448,16 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert ultima_pangenome.aligners == ["pangenome_ug"]
     assert ultima_pangenome.snv_callers == ["sentpg"]
     assert ultima_pangenome.compatible_platforms == ["ULTIMA"]
+
+    bclconvert = catalog.get_command("illumina_bclconvert")
+    assert bclconvert.type == "research"
+    assert bclconvert.command_class == "run_analysis"
+    assert bclconvert.requires_run_mount is True
+
+    run_qc_bclconvert = catalog.get_command("illumina_run_qc_bclconvert")
+    assert run_qc_bclconvert.type == "research"
+    assert run_qc_bclconvert.command_class == "run_analysis"
+    assert run_qc_bclconvert.requires_run_mount is True
     assert ultima_pangenome.compatible_cluster_types == ["daywgs"]
     assert ultima_pangenome.compatible_data_modes == ["ultima_solo"]
 

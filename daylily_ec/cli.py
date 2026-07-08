@@ -49,12 +49,20 @@ from daylily_ec._registry_v2 import (
     required_policy,
 )
 from daylily_ec import versioning
+from daylily_ec.aws.spot_pricing import (
+    DEFAULT_GLOBAL_SPOT_MAX_COST,
+    DEFAULT_SPOT_COST_LIMIT_PCT,
+    DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+    MAX_GLOBAL_SPOT_MAX_COST,
+    validate_spot_pricing_limits,
+)
 from daylily_ec.resources import ensure_extracted
 from daylily_ec.workflow.snakemake_resources import DEFAULT_JOB_MAX_RUNTIME_MINUTES
 
 
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 BENCHMARK_GENOME_BUILDS = {"hg38", "hg38_broad", "b37"}
+DEFAULT_CREATE_REGION_AZ = "us-west-2d"
 
 
 def _validate_analysis_launch_options(
@@ -556,9 +564,9 @@ def _emit_cluster_table(
 
 def create(
     region_az: str = typer.Option(
-        ...,
+        DEFAULT_CREATE_REGION_AZ,
         "--region-az",
-        help="AWS region + availability zone (e.g. us-west-2b).",
+        help=f"AWS region + availability zone. Defaults to {DEFAULT_CREATE_REGION_AZ}.",
     ),
     profile: Optional[str] = typer.Option(
         None,
@@ -620,6 +628,32 @@ def create(
         "--slurm-accounting-stack-name",
         help="Explicit DayEC Slurm accounting stack name for create/ensure.",
     ),
+    global_spot_max_cost: float = typer.Option(
+        DEFAULT_GLOBAL_SPOT_MAX_COST,
+        "--global-spot-max-cost",
+        help=(
+            "Global maximum PCluster SpotPrice bid per compute resource. "
+            f"Defaults to {DEFAULT_GLOBAL_SPOT_MAX_COST:.2f}; hard limit "
+            f"0 < value <= {MAX_GLOBAL_SPOT_MAX_COST:.2f}."
+        ),
+    ),
+    spot_cost_limit_pct: float = typer.Option(
+        DEFAULT_SPOT_COST_LIMIT_PCT,
+        "--spot-cost-limit-pct",
+        help=(
+            "Multiplier applied to each reference median spot price before the global cap. "
+            f"Defaults to {DEFAULT_SPOT_COST_LIMIT_PCT:.1f}."
+        ),
+    ),
+    write_spot_pricing_warn_threshold: float = typer.Option(
+        DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+        "--write-spot-pricing-warn-threshold",
+        help=(
+            "Runtime observed spot price threshold that writes "
+            "spot_price_warn_exception_messages.log rows. "
+            f"Defaults to {DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD:.2f}."
+        ),
+    ),
 ) -> None:
     """Create an ephemeral AWS ParallelCluster environment."""
 
@@ -633,6 +667,18 @@ def create(
         )
     if budget_project:
         raise typer.BadParameter("--budget-project is retired; cluster budgets are named by cluster name.")
+    try:
+        (
+            global_spot_max_cost,
+            spot_cost_limit_pct,
+            write_spot_pricing_warn_threshold,
+        ) = validate_spot_pricing_limits(
+            global_spot_max_cost=global_spot_max_cost,
+            spot_cost_limit_pct=spot_cost_limit_pct,
+            write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -649,6 +695,9 @@ def create(
         create_slurm_accounting_db=create_slurm_accounting_db,
         scan_slurm_accounting_db=scan_slurm_accounting_db,
         slurm_accounting_stack_name=slurm_accounting_stack_name,
+        global_spot_max_cost=global_spot_max_cost,
+        spot_cost_limit_pct=spot_cost_limit_pct,
+        write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
     )
     raise SystemExit(rc)
 
@@ -4970,10 +5019,14 @@ def tests_pytest(
 ) -> None:
     """Run the local pytest suite through the active Python environment."""
 
-    from daylily_ec.tests_runner import run_pytest
+    from daylily_ec.tests_runner import TestsRunnerError, run_pytest
 
     _warn_if_dayec_env_inactive()
-    raise typer.Exit(run_pytest(coverage=coverage, pytest_args=pytest_args or []))
+    try:
+        rc = run_pytest(coverage=coverage, pytest_args=pytest_args or [])
+    except TestsRunnerError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    raise typer.Exit(rc)
 
 
 def tests_command_catalog(
@@ -4983,7 +5036,7 @@ def tests_command_catalog(
     command_codes: str = typer.Option(
         ...,
         "--command-codes",
-        help="Comma/space-separated catalog command ids, or all.",
+        help="Comma/space-separated catalog command ids, or all non-research commands.",
     ),
     evidence_s3_uri: str = typer.Option(
         ...,
@@ -5100,6 +5153,111 @@ def tests_command_catalog(
     else:
         typer.echo(json.dumps(payload, indent=2, sort_keys=True))
     raise typer.Exit(result.rc)
+
+
+def tests_command_catalog_performance(
+    benchmark_rows_tsv: Path = typer.Option(
+        ...,
+        "--benchmark-rows",
+        help="Command-catalog benchmark_rows.tsv produced from DayOA benchmark files.",
+    ),
+    rule_summary_tsv: Optional[Path] = typer.Option(
+        None,
+        "--rule-summary",
+        help="Optional rule_resource_summary.tsv with per-rule recommendations and packing.",
+    ),
+    slurm_jobs_tsv: Optional[Path] = typer.Option(
+        None,
+        "--slurm-jobs",
+        help="Optional slurm_jobs_with_packing.tsv with job/node packing evidence.",
+    ),
+    dyec_version: str = typer.Option(..., "--dyec-version", help="DYEC version key to record."),
+    dayoa_version: str = typer.Option("", "--dayoa-version", help="DayOA version/ref under test."),
+    cluster: str = typer.Option("", "--cluster", "--cluster-name", help="Cluster name."),
+    run_id: str = typer.Option("", "--run-id", help="Command-catalog run id or stamp."),
+    output_dir: Path = typer.Option(
+        ...,
+        "--output-dir",
+        help="Directory for command_catalog_performance_profile.json and summary TSV.",
+    ),
+    history_json: Optional[Path] = typer.Option(
+        None,
+        "--history-json",
+        help="Historical comparator JSON keyed by DYEC version.",
+    ),
+    catalog_config: Optional[Path] = typer.Option(
+        None,
+        "--catalog-config",
+        help="Path to daylily_pipeline_command_catalog.yaml.",
+    ),
+    command_id: Optional[List[str]] = typer.Option(
+        None,
+        "--command-id",
+        help="Explicit command id to include; repeatable. Defaults to ids present in TSVs.",
+    ),
+    include_all_catalog_commands: bool = typer.Option(
+        False,
+        "--include-all-catalog-commands",
+        help="Include every catalog command even if no benchmark rows were captured.",
+    ),
+    dev_command_id: Optional[List[str]] = typer.Option(
+        None,
+        "--dev-command-id",
+        help="Command id to classify as the dev evidence cohort; repeatable.",
+    ),
+    prod_command_id: Optional[List[str]] = typer.Option(
+        None,
+        "--prod-command-id",
+        help="Command id to force into the prod evidence cohort; repeatable.",
+    ),
+    captured_at: Optional[str] = typer.Option(
+        None,
+        "--captured-at",
+        help="Optional UTC timestamp to store in the profile.",
+    ),
+    replace_existing_version: bool = typer.Option(
+        False,
+        "--replace-existing-version",
+        help="Replace an existing dyec_versions[--dyec-version] history entry.",
+    ),
+) -> None:
+    """Summarize command-catalog benchmarks and update the performance history."""
+
+    from daylily_ec.command_catalog_performance import (
+        CommandCatalogPerformanceError,
+        CommandCatalogPerformanceOptions,
+        build_command_catalog_performance_profile,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        profile = build_command_catalog_performance_profile(
+            CommandCatalogPerformanceOptions(
+                benchmark_rows_tsv=benchmark_rows_tsv,
+                rule_summary_tsv=rule_summary_tsv,
+                slurm_jobs_tsv=slurm_jobs_tsv,
+                dyec_version=dyec_version,
+                dayoa_version=dayoa_version,
+                cluster=cluster,
+                run_id=run_id,
+                output_dir=output_dir,
+                history_json=history_json,
+                catalog_config=catalog_config,
+                command_ids=tuple(command_id or []),
+                include_all_catalog_commands=include_all_catalog_commands,
+                dev_command_ids=frozenset(dev_command_id or []),
+                prod_command_ids=frozenset(prod_command_id or []),
+                captured_at=captured_at,
+                replace_existing_version=replace_existing_version,
+            )
+        )
+    except (CommandCatalogPerformanceError, RuntimeError, ValueError) as exc:
+        _exit_headnode_error(exc)
+
+    if _json_mode():
+        output.emit_json(profile)
+    else:
+        typer.echo(json.dumps(profile, indent=2, sort_keys=True))
 
 
 def register(registry, cli_spec) -> None:
@@ -5295,6 +5453,11 @@ def register(registry, cli_spec) -> None:
                 "command-catalog",
                 tests_command_catalog,
                 required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "command-catalog-performance",
+                tests_command_catalog_performance,
+                EXEMPT_JSON,
             ),
         ],
     )

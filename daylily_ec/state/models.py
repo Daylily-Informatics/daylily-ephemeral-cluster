@@ -176,6 +176,8 @@ class StateRecord(BaseModel):
     cluster_yaml_path: str = ""
     resolved_cli_config_path: str = ""
     preflight_report_path: str = ""
+    spot_price_summary_path: str = ""
+    spot_price_partitions: List[Dict[str, Any]] = Field(default_factory=list)
 
     # -- CloudFormation ------------------------------------------------------
     cfn_stack_name: str = ""

@@ -23,6 +23,8 @@ class TestStateRecordModel:
         assert rec.region == ""
         assert rec.cfn_stack_name == ""
         assert rec.heartbeat_topic_arn == ""
+        assert rec.spot_price_summary_path == ""
+        assert rec.spot_price_partitions == []
 
     def test_full_construction(self):
         rec = StateRecord(
@@ -37,10 +39,19 @@ class TestStateRecordModel:
             global_budget_name="daylily-global",
             cluster_budget_name="test-cls",
             cfn_stack_name="pcluster-vpc-stack-2b",
+            spot_price_summary_path="config/test-cls_spot_price_summary_20260101120000.json",
+            spot_price_partitions=[
+                {
+                    "queue": "i128",
+                    "max_final_bid": 7.5,
+                    "global_limiter_applied": True,
+                }
+            ],
         )
         assert rec.cluster_name == "test-cls"
         assert rec.bucket == "my-bucket"
         assert rec.cfn_stack_name == "pcluster-vpc-stack-2b"
+        assert rec.spot_price_partitions[0]["queue"] == "i128"
 
     def test_to_sorted_json_deterministic(self):
         """Same inputs → byte-identical JSON."""
@@ -66,6 +77,8 @@ class TestStateRecordModel:
             cluster_name="rt",
             bucket="b1",
             heartbeat_email="a@b.com",
+            spot_price_summary_path="config/rt_spot_price_summary_20260101120000.json",
+            spot_price_partitions=[{"queue": "i192"}],
         )
         dumped = rec.model_dump(mode="json")
         restored = StateRecord(**dumped)
@@ -134,4 +147,3 @@ class TestWriteLoadStateRecord:
         d1 = json.loads(p1.read_text())
         d2 = json.loads(p2.read_text())
         assert list(d1.keys()) == list(d2.keys())
-

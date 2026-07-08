@@ -16,7 +16,7 @@ from daylily_ec.resources import resource_path
 CATALOG_VERSION = 2
 SUPPORTED_CATALOG_VERSIONS = {1, CATALOG_VERSION}
 COMMAND_CLASSES = {"sample_analysis", "run_analysis", "utility"}
-COMMAND_TYPES = {"prod", "test", "dev"}
+COMMAND_TYPES = {"prod", "test", "dev", "research"}
 CLUSTER_TYPES = {"daywgs", "dragen"}
 INPUT_CONTRACTS = {"sample_manifest", "run_context", "none"}
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}

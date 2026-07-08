@@ -22,7 +22,13 @@ export EXPORT_DIR="$PWD/tmp-export/$ANALYSIS_ID"
 export EXPORT_S3_URI="$ANALYSIS_RESULTS_S3_URI/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID/"
 
 dyec preflight --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
-dyec create --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
+dyec create \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --config "$DAY_EX_CFG" \
+  --global-spot-max-cost 7.50 \
+  --spot-cost-limit-pct 1.2 \
+  --write-spot-pricing-warn-threshold 6.00
 
 dyec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \

@@ -48,7 +48,7 @@ def _full_subs() -> dict[str, str]:
 
 class TestConstants:
     def test_all_keys_count(self):
-        assert len(ALL_SUBSTITUTION_KEYS) == 52
+        assert len(ALL_SUBSTITUTION_KEYS) == 53
 
     def test_required_keys_subset(self):
         assert REQUIRED_KEYS.issubset(ALL_SUBSTITUTION_KEYS)
@@ -196,6 +196,7 @@ class TestAllSubstitutionKeys:
             "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN",
             "REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING",
             "REGSUB_SLURM_ACCOUNTING_DATABASE",
+            "REGSUB_SPOT_PRICE_WARN_THRESHOLD",
         }
         assert ALL_SUBSTITUTION_KEYS == expected
 

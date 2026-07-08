@@ -1,0 +1,35 @@
+Wed Jul  8 00:48:59 UTC 2026
+command_id=ont_snv_alignstats_kitchensink
+session=ccv_live_ont_snv_alignstats_kitchensink_20260707T165057Z
+source_path=/fsx/analysis_results/ubuntu/ccv_live_ont_snv_alignstats_kitchensink_20260707T165057Z
+destination_s3_uri=s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.64/20260707T144453Z/ubuntu/ccv_live_ont_snv_alignstats_kitchensink_20260707T165057Z/
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+2026-07-07 17:48:59,451 INFO Found credentials in shared credentials file: ~/.aws/credentials
+  · Attached export DRA dra-0520c470181948baf at 
+/fsx/analysis_results/ubuntu/ccv_live_ont_snv_alignstats_kitchensink_20260707T16
+5057Z/
+2026-07-07 17:52:08,115 INFO Task task-06f3dfb0b1ea3a5ea status: PENDING
+2026-07-07 17:52:38,456 INFO Task task-06f3dfb0b1ea3a5ea status: EXECUTING
+2026-07-07 17:53:08,935 INFO Task task-06f3dfb0b1ea3a5ea status: EXECUTING
+2026-07-07 17:53:39,290 INFO Task task-06f3dfb0b1ea3a5ea status: SUCCEEDED
+2026-07-07 17:53:55,402 INFO Wrote export status to /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260707T144453Z_success_exports/ont_snv_alignstats_kitchensink/fsx_export.yaml
+
+╭────────────────────────────── Export complete ───────────────────────────────╮
+│                                                                              │
+│  Cluster: cmdcat-103-all-20260707                                            │
+│  FSx: fs-0e89a93ffac2f0d93                                                   │
+│  Source:                                                                     │
+│  /analysis_results/ubuntu/ccv_live_ont_snv_alignstats_kitchensink_20260707T  │
+│  165057Z/                                                                    │
+│  S3:                                                                         │
+│  s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-  │
+│  10.0.64/20260707T144453Z/ubuntu/ccv_live_ont_snv_alignstats_kitchensink_20  │
+│  260707T165057Z/                                                             │
+│  Status file:                                                                │
+│  /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260707T  │
+│  144453Z_success_exports/ont_snv_alignstats_kitchensink/fsx_export.yaml      │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Wed Jul  8 00:53:55 UTC 2026

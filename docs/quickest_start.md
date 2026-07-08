@@ -77,10 +77,16 @@ Do not run `pcluster create-cluster`, `pcluster update-cluster`, or `pcluster de
 dyec create \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
-  --config "$DAY_EX_CFG"
+  --config "$DAY_EX_CFG" \
+  --global-spot-max-cost 7.50 \
+  --spot-cost-limit-pct 1.2 \
+  --write-spot-pricing-warn-threshold 6.00
 ```
 
 Wait for the CLI to return successfully. The cluster is not DayEC-ready just because ParallelCluster reports that infrastructure exists.
+`dyec create` writes `config/<cluster>_spot_price_summary_<run_id>.json` and
+runtime compute nodes append high-price JSONL exceptions to
+`spot_price_warn_exception_messages.log` beside the normal spot logs.
 
 Sanity checks:
 

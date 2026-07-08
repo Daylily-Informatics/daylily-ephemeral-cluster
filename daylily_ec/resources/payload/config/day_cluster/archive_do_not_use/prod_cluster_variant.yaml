@@ -23,6 +23,7 @@ HeadNode:
       Args:
         - ${REGSUB_REGION}
         - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
   Iam:
     S3Access: &dayoa_s3_access
       - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
@@ -81,6 +82,7 @@ Scheduling:
           Args:
             - ${REGSUB_REGION}
             - ${REGSUB_S3_BUCKET_INIT}
+            - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
       Iam:
         S3Access: *dayoa_s3_access
         AdditionalIamPolicies:
@@ -147,6 +149,7 @@ Scheduling:
           Args:
             - ${REGSUB_REGION}
             - ${REGSUB_S3_BUCKET_INIT}
+            - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
       Iam:
         S3Access: *dayoa_s3_access
         AdditionalIamPolicies:
@@ -201,6 +204,7 @@ Scheduling:
           Args:
             - ${REGSUB_REGION}
             - ${REGSUB_S3_BUCKET_INIT}
+            - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
       Iam:
         S3Access: *dayoa_s3_access
         AdditionalIamPolicies:
@@ -271,6 +275,7 @@ Scheduling:
           Args:
             - ${REGSUB_REGION}
             - ${REGSUB_S3_BUCKET_INIT}
+            - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
       Iam:
         S3Access: *dayoa_s3_access
         AdditionalIamPolicies:
@@ -315,6 +320,7 @@ Scheduling:
           Args:
             - ${REGSUB_REGION}
             - ${REGSUB_S3_BUCKET_INIT}
+            - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
       Iam:
         S3Access: *dayoa_s3_access
         AdditionalIamPolicies:
@@ -357,6 +363,7 @@ Scheduling:
           Args:
             - ${REGSUB_REGION}
             - ${REGSUB_S3_BUCKET_INIT}
+            - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
       Iam:
         S3Access: *dayoa_s3_access
         AdditionalIamPolicies:
@@ -403,6 +410,7 @@ Scheduling:
           Args:
             - ${REGSUB_REGION}
             - ${REGSUB_S3_BUCKET_INIT}
+            - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
       Iam:
         S3Access: *dayoa_s3_access
         AdditionalIamPolicies:

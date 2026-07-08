@@ -80,6 +80,7 @@ EXPECTED_COMMANDS = {
     ("repositories", "commands"),
     ("tests", "pytest"),
     ("tests", "command-catalog"),
+    ("tests", "command-catalog-performance"),
     ("mounts", "list"),
     ("mounts", "create"),
     ("mounts", "describe"),
@@ -215,6 +216,9 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     repositories_commands_cmd = registry.get_command(("repositories", "commands"))
     tests_pytest_cmd = registry.get_command(("tests", "pytest"))
     tests_command_catalog_cmd = registry.get_command(("tests", "command-catalog"))
+    tests_command_catalog_performance_cmd = registry.get_command(
+        ("tests", "command-catalog-performance")
+    )
     mounts_list_cmd = registry.get_command(("mounts", "list"))
     mounts_create_cmd = registry.get_command(("mounts", "create"))
     mounts_describe_cmd = registry.get_command(("mounts", "describe"))
@@ -364,6 +368,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert tests_command_catalog_cmd.policy.supports_json is True
     assert tests_command_catalog_cmd.policy.mutates_state is True
     assert tests_command_catalog_cmd.policy.long_running is True
+
+    assert tests_command_catalog_performance_cmd is not None
+    assert tests_command_catalog_performance_cmd.policy.supports_json is True
+    assert tests_command_catalog_performance_cmd.policy.runtime_guard == "exempt"
+    assert tests_command_catalog_performance_cmd.policy.mutates_state is False
 
     assert mounts_list_cmd is not None
     assert mounts_list_cmd.policy.supports_json is True
@@ -577,7 +586,83 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "create_slurm_accounting_db": True,
         "scan_slurm_accounting_db": False,
         "slurm_accounting_stack_name": "dayec-costacct-20260705T000000Z",
+        "global_spot_max_cost": 7.5,
+        "spot_cost_limit_pct": 1.2,
+        "write_spot_pricing_warn_threshold": 6.0,
     }
+
+
+def test_create_command_defaults_region_az_to_us_west_2d(monkeypatch, tmp_path) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+
+    def fake_run_create_workflow(region_az: str, **kwargs) -> int:
+        calls["region_az"] = region_az
+        calls["kwargs"] = kwargs
+        return 0
+
+    monkeypatch.setattr(create_module, "run_create_workflow", fake_run_create_workflow)
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--profile",
+            "dev",
+            "--config",
+            str(config_path),
+            "--non-interactive",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert calls["region_az"] == cli_module.DEFAULT_CREATE_REGION_AZ == "us-west-2d"
+    assert calls["kwargs"]["profile"] == "dev"
+    assert calls["kwargs"]["config_path"] == str(config_path)
+    assert calls["kwargs"]["non_interactive"] is True
+    assert calls["kwargs"]["global_spot_max_cost"] == 7.5
+    assert calls["kwargs"]["spot_cost_limit_pct"] == 1.2
+    assert calls["kwargs"]["write_spot_pricing_warn_threshold"] == 6.0
+
+
+@pytest.mark.parametrize(
+    ("flag", "value", "message"),
+    [
+        ("--global-spot-max-cost", "10.01", "--global-spot-max-cost"),
+        ("--spot-cost-limit-pct", "0.99", "--spot-cost-limit-pct"),
+        ("--spot-cost-limit-pct", "1.41", "--spot-cost-limit-pct"),
+        (
+            "--write-spot-pricing-warn-threshold",
+            "0",
+            "--write-spot-pricing-warn-threshold",
+        ),
+    ],
+)
+def test_create_command_rejects_invalid_spot_pricing_options(
+    monkeypatch,
+    flag: str,
+    value: str,
+    message: str,
+) -> None:
+    _activate_dayec_runtime(monkeypatch)
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            flag,
+            value,
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert message in result.output
 
 
 def test_create_command_rejects_retired_budget_project(monkeypatch) -> None:

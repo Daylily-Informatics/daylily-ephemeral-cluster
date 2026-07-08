@@ -113,6 +113,33 @@ def test_run_pytest_uses_current_python_and_coverage(monkeypatch: pytest.MonkeyP
     assert captured["cmd"][-2:] == ["tests/test_cli_registry_v2.py", "-q"]
 
 
+def test_run_pytest_defaults_to_quiet_current_python(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, list[str]] = {}
+
+    def fake_run(cmd: list[str]):
+        captured["cmd"] = cmd
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr("daylily_ec.tests_runner.subprocess.run", fake_run)
+
+    assert run_pytest(coverage=False, pytest_args=[]) == 0
+    assert captured["cmd"][1:] == ["-m", "pytest", "-q"]
+
+
+@pytest.mark.parametrize("override_arg", ["--no-cov", "--cov-fail-under", "--cov-fail-under=0"])
+def test_run_pytest_coverage_rejects_gate_overrides(
+    monkeypatch: pytest.MonkeyPatch,
+    override_arg: str,
+) -> None:
+    def fail_if_called(_cmd: list[str]):
+        raise AssertionError("pytest subprocess should not run after a coverage gate override")
+
+    monkeypatch.setattr("daylily_ec.tests_runner.subprocess.run", fail_if_called)
+
+    with pytest.raises(RunnerError, match="coverage source and 80% fail-under gate"):
+        run_pytest(coverage=True, pytest_args=[override_arg])
+
+
 def test_tests_pytest_cli_passes_arguments(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, object] = {}
 
@@ -129,6 +156,20 @@ def test_tests_pytest_cli_passes_arguments(monkeypatch: pytest.MonkeyPatch) -> N
     assert captured == {"coverage": True, "pytest_args": ["-k", "smoke"]}
 
 
+def test_tests_pytest_cli_rejects_coverage_gate_overrides(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CONDA_PREFIX", "/tmp/dayec")
+    monkeypatch.setenv("CONDA_DEFAULT_ENV", "DAY-EC")
+
+    result = runner.invoke(
+        app,
+        ["tests", "pytest", "--coverage", "--", "--cov-fail-under=0"],
+    )
+
+    assert result.exit_code != 0
+    assert "pytest-cov override flags" in result.output
+    assert "--cov-fail-under=0" in result.output
+
+
 def test_command_code_parser_exact_all_duplicate_and_unknown() -> None:
     catalog = load_repository_catalog()
 
@@ -138,14 +179,22 @@ def test_command_code_parser_exact_all_duplicate_and_unknown() -> None:
         "ont_snv_alignstats",
     ]
     all_commands = parse_command_codes("all", catalog)
-    assert len(all_commands) == len(tuple(catalog.commands()))
+    assert len(all_commands) == len(
+        tuple(command for command in catalog.commands() if command.type != "research")
+    )
     all_command_ids = {command.command_id for command in all_commands}
     assert "complete_genomics_mgi_snv_concordance" in all_command_ids
     assert "simple-test" in all_command_ids
     assert "illumina_pangenome_snv" in all_command_ids
+    assert "illumina_bclconvert" not in all_command_ids
+    assert "illumina_run_qc_bclconvert" not in all_command_ids
     assert (
         parse_command_codes("complete_genomics_mgi_snv_concordance", catalog)[0].command_id
         == "complete_genomics_mgi_snv_concordance"
+    )
+    assert (
+        parse_command_codes("illumina_bclconvert", catalog)[0].command_id
+        == "illumina_bclconvert"
     )
     with pytest.raises(RunnerError, match="Duplicate command id"):
         parse_command_codes("ont_snv_alignstats ont_snv_alignstats", catalog)

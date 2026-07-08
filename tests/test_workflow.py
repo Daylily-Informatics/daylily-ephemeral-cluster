@@ -857,6 +857,37 @@ class TestRunPreflightOnly:
 
 
 class TestRunCreateWorkflow:
+    @pytest.mark.parametrize(
+        "kwargs",
+        [
+            {"global_spot_max_cost": 10.01},
+            {"spot_cost_limit_pct": 0.99},
+            {"spot_cost_limit_pct": 1.41},
+            {"write_spot_pricing_warn_threshold": 0},
+        ],
+    )
+    @patch("daylily_ec.aws.context.AWSContext.build")
+    def test_spot_pricing_validation_failure_before_aws(
+        self,
+        mock_build,
+        kwargs,
+        tmp_path,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+
+        from daylily_ec.workflow.create_cluster import run_create_workflow
+
+        rc = run_create_workflow(
+            "us-west-2b",
+            profile="test",
+            non_interactive=True,
+            **kwargs,
+        )
+
+        assert rc == EXIT_VALIDATION_FAILURE
+        mock_build.assert_not_called()
+
     @patch("daylily_ec.aws.context.AWSContext.build")
     def test_aws_context_failure(self, mock_build, tmp_path, monkeypatch):
         """AWS context build failure returns EXIT_AWS_FAILURE."""
@@ -2314,6 +2345,26 @@ SharedStorage:
 """,
             encoding="utf-8",
         )
+        return {
+            "schema_version": "dyec.spot_price_summary.v1",
+            "resources": [],
+            "partitions": [
+                {
+                    "queue": "i128",
+                    "min_instances": 0,
+                    "max_instances": 1,
+                    "raw_min_hourly_cost_without_limiter": 0.0,
+                    "raw_max_hourly_cost_without_limiter": 0.0,
+                    "max_uncapped_pct_bid": 1.2,
+                    "max_final_bid": 1.2,
+                    "global_spot_max_cost": 7.5,
+                    "write_spot_pricing_warn_threshold": 6.0,
+                    "global_limiter_applied": False,
+                    "warn_threshold_exceeded": False,
+                    "reference_partitions": "i128",
+                }
+            ],
+        }
 
     monkeypatch.setattr(spot_pricing, "apply_spot_prices", fake_apply_spot_prices)
     monkeypatch.setattr(

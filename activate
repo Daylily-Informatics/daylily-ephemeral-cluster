@@ -121,6 +121,14 @@ __daylily_activate_ensure_env_bin_first() {
   export PATH
 }
 
+__daylily_activate_ensure_repo_pythonpath_first() {
+  case ":${PYTHONPATH:-}:" in
+    :"${DAYLILY_EC_REPO_ROOT}":*) ;;
+    *) PYTHONPATH="${DAYLILY_EC_REPO_ROOT}${PYTHONPATH:+:${PYTHONPATH}}" ;;
+  esac
+  export PYTHONPATH
+}
+
 __daylily_activate_dayec_exists() {
   conda env list 2>/dev/null | awk '{print $1}' | grep -qx 'DAY-EC'
 }
@@ -154,6 +162,7 @@ conda activate DAY-EC || {
   return 1
 }
 __daylily_activate_ensure_env_bin_first || return 1
+__daylily_activate_ensure_repo_pythonpath_first || return 1
 __daylily_activate_refresh_command_cache
 
 if [ "${__daylily_activate_created_dayec}" = "1" ]; then
@@ -176,6 +185,7 @@ unset -f __daylily_activate_conda_exe
 unset -f __daylily_activate_load_conda
 unset -f __daylily_activate_refresh_command_cache
 unset -f __daylily_activate_ensure_env_bin_first
+unset -f __daylily_activate_ensure_repo_pythonpath_first
 unset -f __daylily_activate_dayec_exists
 
 echo "DAY-EC activated."

@@ -227,6 +227,27 @@ cluster budget monitor URL and the cost-center report URL.
 Disabling budget enforcement skips only the cluster AWS Budget lookup. It does
 not remove the `--comment <cost-center>` requirement or cost-center validation.
 
+## Create-Time Spot Bid Safeguards
+
+`dyec create` caps generated ParallelCluster `SpotPrice` values with:
+
+```text
+min(reference_median_spot_price * spot_cost_limit_pct, global_spot_max_cost)
+```
+
+The default flags are `--global-spot-max-cost 7.50`,
+`--spot-cost-limit-pct 1.2`, and
+`--write-spot-pricing-warn-threshold 6.00`. Values outside the hard limits fail
+before cluster submission. i384 resources use matching i192 reference medians;
+missing reference prices fail hard.
+
+Each create writes `config/<cluster>_spot_price_summary_<run_id>.json` and the
+state record stores the summary path plus partition rows for Ursa cluster-card
+rendering. Compute nodes append runtime high-price JSONL rows to
+`/fsx/scratch/spot_price_warn_exception_messages.log`, or
+`/var/log/daylily/spot_price_warn_exception_messages.log` for DRAGEN no-FSx
+mode.
+
 ## Hourly Cost-Center Accounting
 
 Cost-center spend is computed from hourly CUR EC2 instance cost joined to

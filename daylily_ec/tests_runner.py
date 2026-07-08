@@ -74,6 +74,7 @@ PANGENOME_COMMAND_IDS = frozenset(
 )
 
 LIVE_VALIDATION_COMMAND_IDS = KITCHEN_SINK_COMMAND_IDS | PANGENOME_COMMAND_IDS
+COVERAGE_GATE_OVERRIDE_FLAGS = ("--no-cov", "--cov-fail-under")
 
 MODE_MANIFESTS = {
     "ilmn_solo": Path("examples/staging/ilmn_solo/analysis_samples_manifest.tsv"),
@@ -213,11 +214,28 @@ def run_pytest(*, coverage: bool, pytest_args: Sequence[str]) -> int:
     args = list(pytest_args)
     if not args:
         args = ["-q"]
+    if coverage:
+        _reject_coverage_gate_overrides(args)
     cmd = [sys.executable, "-m", "pytest"]
     if coverage:
         cmd.extend(["--cov=daylily_ec", "--cov-branch", "--cov-fail-under=80"])
     cmd.extend(args)
     return subprocess.run(cmd).returncode
+
+
+def _reject_coverage_gate_overrides(pytest_args: Sequence[str]) -> None:
+    offenders = [
+        arg
+        for arg in pytest_args
+        if arg == "--no-cov"
+        or arg == "--cov-fail-under"
+        or arg.startswith("--cov-fail-under=")
+    ]
+    if offenders:
+        raise TestsRunnerError(
+            "dyec tests pytest --coverage owns the coverage source and 80% fail-under gate; "
+            "do not pass pytest-cov override flags: " + ", ".join(offenders)
+        )
 
 
 def parse_command_codes(command_codes: str, catalog: RepositoryCatalog) -> tuple[AnalysisCommand, ...]:
@@ -226,7 +244,7 @@ def parse_command_codes(command_codes: str, catalog: RepositoryCatalog) -> tuple
     if not requested:
         raise TestsRunnerError("--command-codes is required.")
     if requested.lower() == "all":
-        return tuple(catalog.commands())
+        return tuple(command for command in catalog.commands() if command.type != "research")
     tokens = [token for token in requested.replace(",", " ").split() if token]
     commands: list[AnalysisCommand] = []
     seen: set[str] = set()

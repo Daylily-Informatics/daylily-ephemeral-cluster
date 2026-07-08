@@ -36,6 +36,12 @@ from urllib.parse import urlparse
 import typer
 
 from daylily_ec import ui
+from daylily_ec.aws.spot_pricing import (
+    DEFAULT_GLOBAL_SPOT_MAX_COST,
+    DEFAULT_SPOT_COST_LIMIT_PCT,
+    DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+    validate_spot_pricing_limits,
+)
 from daylily_ec.headnode_readiness import validate_headnode_readiness
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport, StateRecord
 from daylily_ec.state.store import write_preflight_report, write_state_record
@@ -431,6 +437,47 @@ def _role_uri(roles: Dict[str, Dict[str, str]], role: str) -> str:
 
 def _role_bucket(roles: Dict[str, Dict[str, str]], role: str) -> str:
     return str((roles.get(role) or {}).get("bucket") or "")
+
+
+def _emit_spot_price_partition_table(summary: Dict[str, Any]) -> None:
+    """Print the Ursa-facing partition spot-price summary."""
+
+    from rich.table import Table
+
+    partitions = summary.get("partitions") or []
+    if not partitions:
+        ui.info("No spot price partition rows were generated.")
+        return
+
+    table = Table(title="DYEC create spot price summary")
+    table.add_column("Partition")
+    table.add_column("Min Inst", justify="right")
+    table.add_column("Max Inst", justify="right")
+    table.add_column("Raw Min $/hr", justify="right")
+    table.add_column("Raw Max $/hr", justify="right")
+    table.add_column("Uncapped Bid", justify="right")
+    table.add_column("Final Bid", justify="right")
+    table.add_column("Global Max", justify="right")
+    table.add_column("Warn >$", justify="right")
+    table.add_column("Limiter")
+    table.add_column("Warn")
+    table.add_column("Reference")
+    for row in partitions:
+        table.add_row(
+            str(row.get("queue", "")),
+            str(row.get("min_instances", "")),
+            str(row.get("max_instances", "")),
+            f"{float(row.get('raw_min_hourly_cost_without_limiter') or 0):.4f}",
+            f"{float(row.get('raw_max_hourly_cost_without_limiter') or 0):.4f}",
+            f"{float(row.get('max_uncapped_pct_bid') or 0):.4f}",
+            f"{float(row.get('max_final_bid') or 0):.4f}",
+            f"{float(row.get('global_spot_max_cost') or 0):.2f}",
+            f"{float(row.get('write_spot_pricing_warn_threshold') or 0):.2f}",
+            "yes" if row.get("global_limiter_applied") else "no",
+            "yes" if row.get("warn_threshold_exceeded") else "no",
+            str(row.get("reference_partitions", "")),
+        )
+    ui.console.print(table)
 
 
 def _has_explicit_set_value(cfg: Any, key: str) -> bool:
@@ -1184,6 +1231,9 @@ def run_create_workflow(
     disable_budget_enforcement: bool = False,
     budget_project: Optional[str] = None,
     slurm_accounting_stack_name: str = "",
+    global_spot_max_cost: float = DEFAULT_GLOBAL_SPOT_MAX_COST,
+    spot_cost_limit_pct: float = DEFAULT_SPOT_COST_LIMIT_PCT,
+    write_spot_pricing_warn_threshold: float = DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
 ) -> int:
     """End-to-end cluster creation: preflight → create → post-create.
 
@@ -1247,6 +1297,20 @@ def run_create_workflow(
     if budget_project:
         logger.error("--budget-project is retired; cluster budgets are named by cluster name.")
         ui.fail("--budget-project is retired; cluster budgets are named by cluster name.")
+        return EXIT_VALIDATION_FAILURE
+    try:
+        (
+            global_spot_max_cost,
+            spot_cost_limit_pct,
+            write_spot_pricing_warn_threshold,
+        ) = validate_spot_pricing_limits(
+            global_spot_max_cost=global_spot_max_cost,
+            spot_cost_limit_pct=spot_cost_limit_pct,
+            write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+        )
+    except ValueError as exc:
+        logger.error("Spot pricing validation failed: %s", exc)
+        ui.fail(str(exc))
         return EXIT_VALIDATION_FAILURE
 
     ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
@@ -1976,6 +2040,7 @@ def run_create_workflow(
         "REGSUB_HEARTBEAT_EMAIL": post_create_inputs.heartbeat_email,
         "REGSUB_HEARTBEAT_SCHEDULE": post_create_inputs.heartbeat_schedule,
         "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN": (post_create_inputs.heartbeat_scheduler_role_arn),
+        "REGSUB_SPOT_PRICE_WARN_THRESHOLD": f"{write_spot_pricing_warn_threshold:.2f}",
         **accounting_render_blocks,
     }
 
@@ -1994,13 +2059,18 @@ def run_create_workflow(
 
     # 4b. Apply spot prices
     cluster_yaml_path = str(CONFIG_DIR / f"{cluster_name}_cluster_{ts}.yaml")
+    spot_price_summary_path = str(CONFIG_DIR / f"{cluster_name}_spot_price_summary_{ts}.json")
     ui.step("Applying spot prices ...")
     try:
-        apply_spot_prices(
+        spot_price_summary = apply_spot_prices(
             init_template_path,
             cluster_yaml_path,
             region_az,
             ec2_client=ec2,
+            global_spot_max_cost=global_spot_max_cost,
+            spot_cost_limit_pct=spot_cost_limit_pct,
+            write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+            summary_output_path=spot_price_summary_path,
         )
     except Exception as exc:
         logger.error("Spot price application failed: %s", exc)
@@ -2009,6 +2079,9 @@ def run_create_workflow(
 
     logger.info("Cluster YAML ready: %s", cluster_yaml_path)
     ui.ok(f"Cluster YAML ready: {cluster_yaml_path}")
+    logger.info("Spot price summary ready: %s", spot_price_summary_path)
+    ui.ok(f"Spot price summary ready: {spot_price_summary_path}")
+    _emit_spot_price_partition_table(spot_price_summary)
     try:
         validate_startup_dra_contract(cluster_yaml_path)
     except ValueError as exc:
@@ -2226,6 +2299,8 @@ def run_create_workflow(
         cluster_yaml_path=cluster_yaml_path,
         resolved_cli_config_path=str(next_run_path),
         cfn_stack_name=stack_name,
+        spot_price_summary_path=spot_price_summary_path,
+        spot_price_partitions=spot_price_summary.get("partitions", []),
     )
     state_path = write_state_record(state)
     logger.info("State written: %s", state_path)

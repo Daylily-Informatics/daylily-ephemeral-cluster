@@ -1,0 +1,33 @@
+Wed Jul  8 00:53:55 UTC 2026
+command_id=pacbio_snv_alignstats
+session=ccv_live_pacbio_snv_alignstats_20260707T190607Z
+source_path=/fsx/analysis_results/ubuntu/ccv_live_pacbio_snv_alignstats_20260707T190607Z
+destination_s3_uri=s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.64/20260707T144453Z/ubuntu/ccv_live_pacbio_snv_alignstats_20260707T190607Z/
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+2026-07-07 17:53:55,724 INFO Found credentials in shared credentials file: ~/.aws/credentials
+  · Attached export DRA dra-05c09f023d877e640 at 
+/fsx/analysis_results/ubuntu/ccv_live_pacbio_snv_alignstats_20260707T190607Z/
+2026-07-07 17:57:34,850 INFO Task task-03a34a9b46a4151df status: PENDING
+2026-07-07 17:58:05,258 INFO Task task-03a34a9b46a4151df status: EXECUTING
+2026-07-07 17:58:35,726 INFO Task task-03a34a9b46a4151df status: EXECUTING
+2026-07-07 17:59:06,470 INFO Task task-03a34a9b46a4151df status: SUCCEEDED
+2026-07-07 17:59:23,606 INFO Wrote export status to /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260707T144453Z_success_exports/pacbio_snv_alignstats/fsx_export.yaml
+
+╭────────────────────────────── Export complete ───────────────────────────────╮
+│                                                                              │
+│  Cluster: cmdcat-103-all-20260707                                            │
+│  FSx: fs-0e89a93ffac2f0d93                                                   │
+│  Source:                                                                     │
+│  /analysis_results/ubuntu/ccv_live_pacbio_snv_alignstats_20260707T190607Z/   │
+│  S3:                                                                         │
+│  s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-  │
+│  10.0.64/20260707T144453Z/ubuntu/ccv_live_pacbio_snv_alignstats_20260707T19  │
+│  0607Z/                                                                      │
+│  Status file:                                                                │
+│  /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260707T  │
+│  144453Z_success_exports/pacbio_snv_alignstats/fsx_export.yaml               │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Wed Jul  8 00:59:23 UTC 2026

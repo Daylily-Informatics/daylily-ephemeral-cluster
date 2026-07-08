@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 """Thin CLI wrapper around ``daylily_ec.aws.spot_pricing``.
 
-This script preserves full backward compatibility with the original
-command-line interface::
+This script uses the DYEC capped spot bid policy::
 
     python bin/calcuate_spotprice_for_cluster_yaml.py \\
         -i init_template.yaml -o final.yaml \\
-        --az us-west-2a --profile myprofile -b 4.14
+        --az us-west-2a --profile myprofile
 
 All core logic now lives in ``daylily_ec.aws.spot_pricing`` (CP-012).
 """
@@ -21,7 +20,9 @@ import sys
 # Imports from the new library module
 # ---------------------------------------------------------------------------
 from daylily_ec.aws.spot_pricing import (  # noqa: E402
-    DEFAULT_BUMP_PRICE,
+    DEFAULT_GLOBAL_SPOT_MAX_COST,
+    DEFAULT_SPOT_COST_LIMIT_PCT,
+    DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
     apply_spot_prices,
 )
 
@@ -30,29 +31,42 @@ def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Insert SpotPrice into pcluster_config.yaml using "
-            "median(spot) + BUMP_PRICE strategy."
+            "DYEC capped median spot bid strategy."
         ),
     )
     parser.add_argument("-i", "--input", required=True, help="Input YAML file.")
     parser.add_argument(
-        "-b",
-        "--bump-price",
+        "--global-spot-max-cost",
         type=float,
-        default=DEFAULT_BUMP_PRICE,
-        help=f"Price bump added to median spot price (default {DEFAULT_BUMP_PRICE}).",
+        default=DEFAULT_GLOBAL_SPOT_MAX_COST,
+        help=(
+            "Global maximum PCluster SpotPrice bid "
+            f"(default {DEFAULT_GLOBAL_SPOT_MAX_COST:.2f})."
+        ),
+    )
+    parser.add_argument(
+        "--spot-cost-limit-pct",
+        type=float,
+        default=DEFAULT_SPOT_COST_LIMIT_PCT,
+        help=(
+            "Multiplier applied to the reference median spot price "
+            f"(default {DEFAULT_SPOT_COST_LIMIT_PCT:.1f})."
+        ),
+    )
+    parser.add_argument(
+        "--write-spot-pricing-warn-threshold",
+        type=float,
+        default=DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+        help=(
+            "Observed runtime spot price threshold for warning rows "
+            f"(default {DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD:.2f})."
+        ),
     )
     parser.add_argument("-o", "--output", required=True, help="Output YAML file.")
     parser.add_argument("--az", required=True, help="Availability zone.")
     parser.add_argument(
         "--profile",
         help="AWS CLI profile (defaults to AWS_PROFILE env var).",
-    )
-    # Legacy flag kept for backward compat; library always uses spot via boto3.
-    parser.add_argument(
-        "--avg-price-of",
-        choices=["spot", "dedicated"],
-        default="spot",
-        help="(legacy) Type of price to calculate.",
     )
     return parser.parse_args()
 
@@ -74,9 +88,13 @@ def main() -> None:
             output_path=args.output,
             az=args.az,
             profile=profile,
-            bump_price=float(args.bump_price),
+            global_spot_max_cost=float(args.global_spot_max_cost),
+            spot_cost_limit_pct=float(args.spot_cost_limit_pct),
+            write_spot_pricing_warn_threshold=float(
+                args.write_spot_pricing_warn_threshold
+            ),
         )
-    except RuntimeError as exc:
+    except (RuntimeError, ValueError) as exc:
         print(f"❌ {exc}", file=sys.stderr)
         sys.exit(1)
 

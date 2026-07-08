@@ -1,48 +1,63 @@
-"""Spot-price heuristics for ParallelCluster compute resources.
-
-Replaces the core logic of ``bin/calcuate_spotprice_for_cluster_yaml.py``
-as an importable library module (CP-012, Option A).
-
-The standalone script continues to work by importing from here.
-"""
+"""Spot-price bid generation for ParallelCluster compute resources."""
 
 from __future__ import annotations
 
+import json
 import statistics
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterable, Optional
 
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 
-# ── constants ────────────────────────────────────────────────────────
+SPOT_PRICE_SUMMARY_SCHEMA_VERSION = "dyec.spot_price_summary.v1"
 
-#: Default bump price added to median spot price (matches Bash invocation).
-DEFAULT_BUMP_PRICE: float = 4.14
-
-#: Fallback spot price when the API returns an unparseable result.
-FALLBACK_SPOT_PRICE: float = 5.55
-
-
-# ── low-level price lookup ───────────────────────────────────────────
+DEFAULT_GLOBAL_SPOT_MAX_COST: float = 7.50
+MAX_GLOBAL_SPOT_MAX_COST: float = 10.00
+DEFAULT_SPOT_COST_LIMIT_PCT: float = 1.2
+MIN_SPOT_COST_LIMIT_PCT: float = 1.0
+MAX_SPOT_COST_LIMIT_PCT: float = 1.4
+DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD: float = 6.00
 
 
-def get_spot_price(
-    ec2_client: Any,
-    instance_type: str,
-    az: str,
-) -> float:
-    """Return the current spot price for *instance_type* in *az*.
+def validate_spot_pricing_limits(
+    *,
+    global_spot_max_cost: float = DEFAULT_GLOBAL_SPOT_MAX_COST,
+    spot_cost_limit_pct: float = DEFAULT_SPOT_COST_LIMIT_PCT,
+    write_spot_pricing_warn_threshold: float = DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+) -> tuple[float, float, float]:
+    """Validate and normalize DYEC create spot pricing limits."""
 
-    Uses ``describe_spot_price_history`` via boto3.  Falls back to
-    :data:`FALLBACK_SPOT_PRICE` when the API returns no data or a
-    non-numeric result (matching the Bash script behaviour).
+    try:
+        global_max = float(global_spot_max_cost)
+        pct = float(spot_cost_limit_pct)
+        warn_threshold = float(write_spot_pricing_warn_threshold)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Spot pricing limits must be numeric.") from exc
 
-    Raises
-    ------
-    RuntimeError
-        If the API call itself fails (permissions, network, etc.).
-    """
+    if global_max <= 0 or global_max > MAX_GLOBAL_SPOT_MAX_COST:
+        raise ValueError(
+            "--global-spot-max-cost must be > 0 and <= "
+            f"{MAX_GLOBAL_SPOT_MAX_COST:.2f}; got {global_max:.4f}."
+        )
+    if pct < MIN_SPOT_COST_LIMIT_PCT or pct > MAX_SPOT_COST_LIMIT_PCT:
+        raise ValueError(
+            "--spot-cost-limit-pct must be between "
+            f"{MIN_SPOT_COST_LIMIT_PCT:.1f} and {MAX_SPOT_COST_LIMIT_PCT:.1f}; "
+            f"got {pct:.4f}."
+        )
+    if warn_threshold <= 0:
+        raise ValueError(
+            "--write-spot-pricing-warn-threshold must be > 0; "
+            f"got {warn_threshold:.4f}."
+        )
+    return global_max, pct, warn_threshold
+
+
+def get_spot_price(ec2_client: Any, instance_type: str, az: str) -> float:
+    """Return the latest Linux/UNIX spot price for one instance type and AZ."""
+
     try:
         resp = ec2_client.describe_spot_price_history(
             InstanceTypes=[instance_type],
@@ -53,88 +68,92 @@ def get_spot_price(
     except Exception as exc:
         raise RuntimeError(
             f"Spot price lookup failed for {instance_type} in {az}. "
-            f"Confirm instance type is valid and you have ec2:DescribeSpotPriceHistory permission. "
+            "Confirm the instance type is valid and ec2:DescribeSpotPriceHistory is allowed. "
             f"Detail: {exc}"
         ) from exc
 
     prices = resp.get("SpotPriceHistory", [])
     if not prices:
-        return FALLBACK_SPOT_PRICE
+        raise RuntimeError(
+            f"Spot price lookup returned no price history for {instance_type} in {az}."
+        )
 
     try:
         return float(prices[0]["SpotPrice"])
-    except (KeyError, ValueError, TypeError):
-        return FALLBACK_SPOT_PRICE
-
-
-# ── compute-resource-level calculation ───────────────────────────────
+    except (KeyError, ValueError, TypeError) as exc:
+        raise RuntimeError(
+            "Spot price lookup returned a non-numeric SpotPrice for "
+            f"{instance_type} in {az}: {prices[0]!r}"
+        ) from exc
 
 
 def calculate_compute_resource_spot_price(
     ec2_client: Any,
     resource_config: Dict[str, Any],
     az: str,
-    bump_price: float = DEFAULT_BUMP_PRICE,
+    *,
+    global_spot_max_cost: float = DEFAULT_GLOBAL_SPOT_MAX_COST,
+    spot_cost_limit_pct: float = DEFAULT_SPOT_COST_LIMIT_PCT,
+    write_spot_pricing_warn_threshold: float = DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
 ) -> Optional[float]:
-    """Return the bumped median spot price for one compute resource.
+    """Return the capped spot bid for one compute resource using its own median."""
 
-    Iterates over ``Instances[].InstanceType`` within one
-    ``ComputeResources[]`` entry, looks up the current spot price, then
-    returns ``round(median + bump_price, 4)``.
-
-    Returns ``None`` if no prices could be collected.
-    """
-    prices: List[float] = []
-    for inst in resource_config.get("Instances", []):
-        itype = inst.get("InstanceType")
-        if itype:
-            price = get_spot_price(ec2_client, itype, az)
-            prices.append(price)
-
-    if not prices:
+    global_max, pct, _warn_threshold = validate_spot_pricing_limits(
+        global_spot_max_cost=global_spot_max_cost,
+        spot_cost_limit_pct=spot_cost_limit_pct,
+        write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+    )
+    stats = _collect_resource_price_stats(ec2_client, resource_config, az)
+    if stats is None:
         return None
-
-    return round(statistics.median(prices) + bump_price, 4)
+    return _final_bid(
+        reference_median=float(stats["raw_median_spot_price"]),
+        spot_cost_limit_pct=pct,
+        global_spot_max_cost=global_max,
+    )
 
 
 def apply_spot_to_queue(
     ec2_client: Any,
     queue_config: Dict[str, Any],
     az: str,
-    bump_price: float = DEFAULT_BUMP_PRICE,
-) -> None:
-    """Set resource-specific ``SpotPrice`` values in *queue_config* (in-place).
+    *,
+    global_spot_max_cost: float = DEFAULT_GLOBAL_SPOT_MAX_COST,
+    spot_cost_limit_pct: float = DEFAULT_SPOT_COST_LIMIT_PCT,
+    write_spot_pricing_warn_threshold: float = DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+) -> dict[str, Any]:
+    """Set resource-specific ``SpotPrice`` values in one queue in place."""
 
-    Adds a YAML end-of-line comment when the config is a
-    :class:`~ruamel.yaml.comments.CommentedMap`.
-    """
-    for resource in queue_config.get("ComputeResources", []):
-        spot = calculate_compute_resource_spot_price(ec2_client, resource, az, bump_price)
-        if spot is None:
-            continue
-        resource["SpotPrice"] = spot
-        if isinstance(resource, CommentedMap):
-            resource.yaml_add_eol_comment(
-                "Calculated using resource median spot price.",
-                key="SpotPrice",
-                column=0,
-            )
+    summary = _build_spot_price_summary(
+        {"Scheduling": {"SlurmQueues": [queue_config]}},
+        az,
+        ec2_client,
+        global_spot_max_cost=global_spot_max_cost,
+        spot_cost_limit_pct=spot_cost_limit_pct,
+        write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+    )
+    return summary
 
 
 def process_slurm_queues(
     config: Dict[str, Any],
     az: str,
     ec2_client: Any,
-    bump_price: float = DEFAULT_BUMP_PRICE,
-) -> None:
-    """Process **all** Slurm queues in *config* to add SpotPrice values (in-place)."""
-    for queue in config.get("Scheduling", {}).get("SlurmQueues", []):
-        if not isinstance(queue, CommentedMap):
-            queue = CommentedMap(queue)
-        apply_spot_to_queue(ec2_client, queue, az, bump_price)
+    *,
+    global_spot_max_cost: float = DEFAULT_GLOBAL_SPOT_MAX_COST,
+    spot_cost_limit_pct: float = DEFAULT_SPOT_COST_LIMIT_PCT,
+    write_spot_pricing_warn_threshold: float = DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+) -> dict[str, Any]:
+    """Process all Slurm queues in *config* and return a structured summary."""
 
-
-# ── top-level convenience ────────────────────────────────────────────
+    return _build_spot_price_summary(
+        config,
+        az,
+        ec2_client,
+        global_spot_max_cost=global_spot_max_cost,
+        spot_cost_limit_pct=spot_cost_limit_pct,
+        write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+    )
 
 
 def apply_spot_prices(
@@ -144,14 +163,18 @@ def apply_spot_prices(
     *,
     ec2_client: Any = None,
     profile: Optional[str] = None,
-    bump_price: float = DEFAULT_BUMP_PRICE,
-) -> None:
-    """Read init-template YAML, set SpotPrice, write final cluster YAML.
+    global_spot_max_cost: float = DEFAULT_GLOBAL_SPOT_MAX_COST,
+    spot_cost_limit_pct: float = DEFAULT_SPOT_COST_LIMIT_PCT,
+    write_spot_pricing_warn_threshold: float = DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+    summary_output_path: str | Path | None = None,
+) -> dict[str, Any]:
+    """Read init-template YAML, set ``SpotPrice`` values, and write outputs."""
 
-    Either *ec2_client* (boto3 EC2 client) **or** *profile* must be
-    provided.  When *ec2_client* is ``None``, a new client is created
-    from *profile*.
-    """
+    global_max, pct, warn_threshold = validate_spot_pricing_limits(
+        global_spot_max_cost=global_spot_max_cost,
+        spot_cost_limit_pct=spot_cost_limit_pct,
+        write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+    )
     if ec2_client is None:
         import boto3
 
@@ -166,10 +189,246 @@ def apply_spot_prices(
     yaml.preserve_quotes = True
     config = yaml.load(Path(input_path))
 
-    process_slurm_queues(config, az, ec2_client, bump_price)
+    summary = process_slurm_queues(
+        config,
+        az,
+        ec2_client,
+        global_spot_max_cost=global_max,
+        spot_cost_limit_pct=pct,
+        write_spot_pricing_warn_threshold=warn_threshold,
+    )
 
     out_yaml = YAML()
     out_yaml.explicit_start = True
     out_yaml.explicit_end = True
     with open(output_path, "w", encoding="utf-8") as fh:
         out_yaml.dump(config, fh)
+
+    if summary_output_path is not None:
+        Path(summary_output_path).write_text(
+            json.dumps(summary, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+    return summary
+
+
+def _build_spot_price_summary(
+    config: Dict[str, Any],
+    az: str,
+    ec2_client: Any,
+    *,
+    global_spot_max_cost: float,
+    spot_cost_limit_pct: float,
+    write_spot_pricing_warn_threshold: float,
+) -> dict[str, Any]:
+    queues = config.get("Scheduling", {}).get("SlurmQueues", []) or []
+    resource_stats: dict[tuple[str, str], dict[str, Any]] = {}
+    resource_refs: dict[tuple[str, str], Any] = {}
+
+    for queue_index, queue in enumerate(queues):
+        queue_name = str(queue.get("Name") or f"queue_{queue_index}")
+        for resource_index, resource in enumerate(queue.get("ComputeResources", []) or []):
+            resource_name = str(resource.get("Name") or f"resource_{resource_index}")
+            stats = _collect_resource_price_stats(ec2_client, resource, az)
+            if stats is None:
+                raise RuntimeError(
+                    f"Compute resource {queue_name}/{resource_name} has no Instances[].InstanceType."
+                )
+            resource_key = (queue_name, resource_name)
+            resource_stats[resource_key] = stats
+            resource_refs[resource_key] = resource
+
+    resource_rows: list[dict[str, Any]] = []
+    partition_accumulators: dict[str, dict[str, Any]] = {}
+
+    for queue_index, queue in enumerate(queues):
+        queue_name = str(queue.get("Name") or f"queue_{queue_index}")
+        queue_rows: list[dict[str, Any]] = []
+        for resource_index, resource in enumerate(queue.get("ComputeResources", []) or []):
+            resource_name = str(resource.get("Name") or f"resource_{resource_index}")
+            resource_key = (queue_name, resource_name)
+            stats = resource_stats[resource_key]
+            ref_key = _reference_key_for_resource(queue_name, resource_name)
+            if ref_key not in resource_stats:
+                raise RuntimeError(
+                    "i384 reference spot data missing for "
+                    f"{queue_name}/{resource_name}: expected {ref_key[0]}/{ref_key[1]}."
+                )
+            ref_stats = resource_stats[ref_key]
+            reference_source = "self" if ref_key == resource_key else "i192_reference"
+            reference_median = float(ref_stats["raw_median_spot_price"])
+            uncapped_bid = _round_price(reference_median * spot_cost_limit_pct)
+            final_bid = min(uncapped_bid, _round_price(global_spot_max_cost))
+            final_bid = _round_price(final_bid)
+            global_limiter_applied = uncapped_bid > final_bid
+            warn_threshold_exceeded = final_bid > write_spot_pricing_warn_threshold
+
+            resource["SpotPrice"] = final_bid
+            if isinstance(resource, CommentedMap):
+                resource.yaml_add_eol_comment(
+                    "Calculated from reference median spot price with DYEC create cap.",
+                    key="SpotPrice",
+                    column=0,
+                )
+
+            min_count = _parse_int(resource.get("MinCount", 0))
+            max_count = _parse_int(resource.get("MaxCount", 0))
+            row = {
+                "queue": queue_name,
+                "resource": resource_name,
+                "instance_types": list(stats["instance_types"]),
+                "raw_min_spot_price": _round_price(float(stats["raw_min_spot_price"])),
+                "raw_max_spot_price": _round_price(float(stats["raw_max_spot_price"])),
+                "raw_median_spot_price": _round_price(float(stats["raw_median_spot_price"])),
+                "reference_queue": ref_key[0],
+                "reference_resource": ref_key[1],
+                "reference_median_spot_price": _round_price(reference_median),
+                "reference_source": reference_source,
+                "uncapped_pct_bid": uncapped_bid,
+                "final_bid": final_bid,
+                "spot_cost_limit_pct": spot_cost_limit_pct,
+                "global_spot_max_cost": global_spot_max_cost,
+                "global_limiter_applied": global_limiter_applied,
+                "write_spot_pricing_warn_threshold": write_spot_pricing_warn_threshold,
+                "warn_threshold_exceeded": warn_threshold_exceeded,
+                "min_count": min_count,
+                "max_count": max_count,
+            }
+            resource_rows.append(row)
+            queue_rows.append(row)
+
+        partition_accumulators[queue_name] = _partition_summary_row(
+            queue_name,
+            queue_rows,
+            global_spot_max_cost=global_spot_max_cost,
+            spot_cost_limit_pct=spot_cost_limit_pct,
+            write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+        )
+
+    return {
+        "schema_version": SPOT_PRICE_SUMMARY_SCHEMA_VERSION,
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "availability_zone": az,
+        "global_spot_max_cost": _round_price(global_spot_max_cost),
+        "spot_cost_limit_pct": spot_cost_limit_pct,
+        "write_spot_pricing_warn_threshold": _round_price(
+            write_spot_pricing_warn_threshold
+        ),
+        "resources": resource_rows,
+        "partitions": list(partition_accumulators.values()),
+    }
+
+
+def _collect_resource_price_stats(
+    ec2_client: Any,
+    resource_config: Dict[str, Any],
+    az: str,
+) -> dict[str, Any] | None:
+    instance_types = [
+        str(inst.get("InstanceType"))
+        for inst in resource_config.get("Instances", []) or []
+        if inst.get("InstanceType")
+    ]
+    if not instance_types:
+        return None
+
+    prices = [get_spot_price(ec2_client, instance_type, az) for instance_type in instance_types]
+    return {
+        "instance_types": instance_types,
+        "raw_min_spot_price": min(prices),
+        "raw_max_spot_price": max(prices),
+        "raw_median_spot_price": statistics.median(prices),
+    }
+
+
+def _reference_key_for_resource(queue_name: str, resource_name: str) -> tuple[str, str]:
+    if queue_name.startswith("i384") or "384" in resource_name:
+        return (queue_name.replace("384", "192", 1), resource_name.replace("384", "192", 1))
+    return (queue_name, resource_name)
+
+
+def _partition_summary_row(
+    queue_name: str,
+    rows: Iterable[dict[str, Any]],
+    *,
+    global_spot_max_cost: float,
+    spot_cost_limit_pct: float,
+    write_spot_pricing_warn_threshold: float,
+) -> dict[str, Any]:
+    row_list = list(rows)
+    if not row_list:
+        return {
+            "queue": queue_name,
+            "resource_count": 0,
+            "min_instances": 0,
+            "max_instances": 0,
+            "raw_min_hourly_cost_without_limiter": 0.0,
+            "raw_max_hourly_cost_without_limiter": 0.0,
+            "max_uncapped_pct_bid": 0.0,
+            "max_final_bid": 0.0,
+            "global_spot_max_cost": _round_price(global_spot_max_cost),
+            "spot_cost_limit_pct": spot_cost_limit_pct,
+            "write_spot_pricing_warn_threshold": _round_price(
+                write_spot_pricing_warn_threshold
+            ),
+            "global_limiter_applied": False,
+            "warn_threshold_exceeded": False,
+            "reference_partitions": "",
+        }
+
+    min_instances = sum(int(row["min_count"]) for row in row_list)
+    max_instances = sum(int(row["max_count"]) for row in row_list)
+    raw_min_cost = sum(
+        int(row["min_count"]) * float(row["raw_median_spot_price"]) for row in row_list
+    )
+    raw_max_cost = sum(
+        int(row["max_count"]) * float(row["raw_median_spot_price"]) for row in row_list
+    )
+    reference_partitions = sorted(
+        {str(row["reference_queue"]) for row in row_list if row["reference_queue"] != queue_name}
+    )
+    if not reference_partitions:
+        reference_partitions = [queue_name]
+
+    return {
+        "queue": queue_name,
+        "resource_count": len(row_list),
+        "min_instances": min_instances,
+        "max_instances": max_instances,
+        "raw_min_hourly_cost_without_limiter": _round_price(raw_min_cost),
+        "raw_max_hourly_cost_without_limiter": _round_price(raw_max_cost),
+        "max_uncapped_pct_bid": _round_price(
+            max(float(row["uncapped_pct_bid"]) for row in row_list)
+        ),
+        "max_final_bid": _round_price(max(float(row["final_bid"]) for row in row_list)),
+        "global_spot_max_cost": _round_price(global_spot_max_cost),
+        "spot_cost_limit_pct": spot_cost_limit_pct,
+        "write_spot_pricing_warn_threshold": _round_price(
+            write_spot_pricing_warn_threshold
+        ),
+        "global_limiter_applied": any(bool(row["global_limiter_applied"]) for row in row_list),
+        "warn_threshold_exceeded": any(bool(row["warn_threshold_exceeded"]) for row in row_list),
+        "reference_partitions": ",".join(reference_partitions),
+    }
+
+
+def _final_bid(
+    *,
+    reference_median: float,
+    spot_cost_limit_pct: float,
+    global_spot_max_cost: float,
+) -> float:
+    return _round_price(min(reference_median * spot_cost_limit_pct, global_spot_max_cost))
+
+
+def _round_price(value: float) -> float:
+    return round(float(value), 4)
+
+
+def _parse_int(value: Any) -> int:
+    if value in (None, ""):
+        return 0
+    try:
+        return int(value)
+    except (TypeError, ValueError) as exc:
+        raise RuntimeError(f"Expected integer MinCount/MaxCount value, got {value!r}.") from exc

@@ -134,7 +134,7 @@ def test_active_cluster_template_uses_expected_partition_contract() -> None:
     queues = payload["Scheduling"]["SlurmQueues"]
     names = [queue["Name"] for queue in queues]
     assert names == ["i8", "i128", "i128nvme", "i192", "i192nvme", "i384nvme", "i192hugenvme"]
-    assert payload["Scheduling"]["SlurmSettings"]["EnableMemoryBasedScheduling"] is True
+    assert payload["Scheduling"]["SlurmSettings"]["EnableMemoryBasedScheduling"] is False
     assert "i192mem" not in names
     assert "i192bigmem" not in names
     assert "bcl-convert" not in names
@@ -180,14 +180,45 @@ def test_packaged_boot_config_matches_source_and_disables_exclusivity() -> None:
         assert "SelectTypeParameters=CR_CPU_Memory" in script
         assert "exclusive Slurm partition allocation survived boot rewrite" in script
         assert 'spot_lifecycle_state_dir="/var/lib/daylily/spot_lifecycle"' in script
+        assert "spot_price_warn_exception_messages.log" in script
+        assert "dyec.spot_price_warn_exception.v1" in script
+        assert "write_spot_price_warn_exception" in script
         assert "daylily-spot-lifecycle-shutdown.service" in script
         assert "daylily-spot-interruption-watch.service" in script
         assert "ExecStop=/opt/daylily/bin/daylily-spot-lifecycle-event shutdown systemd-stop" in script
         assert "latest/meta-data/spot/instance-action" in script
 
+    ubuntu_script = (
+        REPO_ROOT / "config/day_cluster/post_install_ubuntu_combined.sh"
+    ).read_text(encoding="utf-8")
+    assert 'spot_price_warn_threshold="${3:?spot price warn threshold argument is required}"' in ubuntu_script
+    rhel_script = (
+        REPO_ROOT / "config/day_cluster/post_install_rhel8_dragen.sh"
+    ).read_text(encoding="utf-8")
+    assert 'spot_price_warn_threshold="${4:?spot price warn threshold argument is required}"' in rhel_script
+
     sbatch = (REPO_ROOT / "config/day_cluster/sbatch").read_text(encoding="utf-8")
     assert "DYEC sbatch stripped exclusive allocation request" in sbatch
     assert "--exclusive|--exclusive=*" in sbatch
+
+
+def test_post_install_templates_pass_spot_warn_threshold_argument() -> None:
+    template_paths = (
+        "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml",
+        "config/day_cluster/prod_cluster_dragen_native_ami_rhel8.yaml",
+        "config/day_cluster/prod_cluster_dragen_native_ami_rhel8_nofsx.yaml",
+        "config/day_cluster/prod_cluster_dragen_pcluster_image_rhel8.yaml",
+        "config/day_cluster/prod_cluster_dragen_pcluster_image_rhel8_nofsx.yaml",
+    )
+    for relative_path in template_paths:
+        text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        assert "${REGSUB_SPOT_PRICE_WARN_THRESHOLD}" in text
+        for index, line in enumerate(text.splitlines()):
+            if line.strip() == "- ${REGSUB_S3_BUCKET_INIT}":
+                assert (
+                    text.splitlines()[index + 1].strip()
+                    == "- ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}"
+                )
 
 
 def test_spot_lifecycle_helper_heredocs_are_bash_syntax_valid() -> None:

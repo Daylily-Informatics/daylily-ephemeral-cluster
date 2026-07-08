@@ -23,6 +23,7 @@ HeadNode:
       Args:
       - ${REGSUB_REGION}
       - ${REGSUB_S3_BUCKET_INIT}
+      - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
   Iam:
     S3Access:
     - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
@@ -39,7 +40,7 @@ HeadNode:
 Scheduling:
   Scheduler: slurm
   SlurmSettings:
-    EnableMemoryBasedScheduling: true
+    EnableMemoryBasedScheduling: false
     ScaledownIdletime: 5
     Dns:
       DisableManagedDns: false
@@ -81,6 +82,7 @@ Scheduling:
         Args:
         - ${REGSUB_REGION}
         - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
     Iam:
       S3Access:
       - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
@@ -202,6 +204,7 @@ Scheduling:
         Args:
         - ${REGSUB_REGION}
         - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
     Iam:
       S3Access:
       - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
@@ -246,6 +249,7 @@ Scheduling:
         Args:
         - ${REGSUB_REGION}
         - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
     Iam:
       S3Access:
       - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
@@ -350,6 +354,7 @@ Scheduling:
         Args:
         - ${REGSUB_REGION}
         - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
     Iam:
       S3Access:
       - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
@@ -428,6 +433,7 @@ Scheduling:
         Args:
         - ${REGSUB_REGION}
         - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
     Iam:
       S3Access:
       - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
@@ -519,6 +525,7 @@ Scheduling:
         Args:
         - ${REGSUB_REGION}
         - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
     Iam:
       S3Access:
       - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
@@ -565,6 +572,7 @@ Scheduling:
         Args:
         - ${REGSUB_REGION}
         - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
     Iam:
       S3Access:
       - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}

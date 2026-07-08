@@ -229,7 +229,9 @@ def test_activate_reuses_existing_dayec_without_create_update_pip_or_smoke_tests
 
     result = _source_activate_and_run(
         env,
-        'printf "prefix=%s\\n" "$CONDA_PREFIX" && daylily-ec --help',
+        'printf "prefix=%s\\n" "$CONDA_PREFIX" && '
+        'printf "pythonpath=%s\\n" "$PYTHONPATH" && '
+        "daylily-ec --help",
     )
 
     expected_prefix = fake_root / "envs" / "DAY-EC"
@@ -237,6 +239,7 @@ def test_activate_reuses_existing_dayec_without_create_update_pip_or_smoke_tests
 
     assert result.returncode == 0
     assert f"prefix={expected_prefix}" in result.stdout
+    assert f"pythonpath={REPO_ROOT}" in result.stdout
     assert "existing-env:--help" in result.stdout
     assert "env create -n DAY-EC" not in log
     assert "env update" not in log
