@@ -1,0 +1,22 @@
+{
+    "CommandId": "401a1ac5-8cc6-4389-8108-2f72f28446ae",
+    "InstanceId": "i-06e429d2a68a0b1ec",
+    "Comment": "dyec103-headnode-version-probe",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 1,
+    "ExecutionStartDateTime": "2026-07-07T16:08:44.772Z",
+    "ExecutionElapsedTime": "PT6.84S",
+    "ExecutionEndDateTime": "2026-07-07T16:08:50.772Z",
+    "Status": "Failed",
+    "StatusDetails": "Failed",
+    "StandardOutputContent": "DAY-EC activated.\nDAY-EC activated.\n__TYPE__\ndyec is /home/ubuntu/miniconda3/envs/DAY-EC/bin/dyec\ndyec is /home/ubuntu/miniconda3/envs/DAY-EC/bin/dyec\ndyec is /home/ubuntu/miniconda3/envs/DAY-EC/bin/dyec\n__PIP_SHOW__\nName: daylily-ephemeral-cluster\nVersion: 10.0.99\nSummary: Infrastructure-as-code for ephemeral AWS ParallelCluster environments for bioinformatics\nHome-page: \nAuthor: \nAuthor-email: Daylily Informatics <daylily@daylilyinformatics.com>\nLicense-Expression: GPL-3.0-only\nLocation: /home/ubuntu/miniconda3/envs/DAY-EC/lib/python3.11/site-packages\nEditable project location: /home/ubuntu/projects/daylily-ephemeral-cluster\nRequires: aws-parallelcluster, black, boto3, boto3-stubs, cli-core-yo, daylily-omics-analysis, ipython, moto, mypy, prompt-toolkit, pydantic, pydantic-settings, pytest, pytest-cov, python-dateutil, pyyaml, requests, ruamel.yaml, ruff, setuptools, tabulate, typeguard, typer, yamllint\nRequired-by: \n__MODULE__\n/home/ubuntu/projects/daylily-ephemeral-cluster/daylily_ec/__init__.py\n/home/ubuntu/projects/daylily-ephemeral-cluster/daylily_ec/versioning.py\n10.0.99\n10.0.99\n__GIT__\nbf6593926287a0b2cd035e37c6069e6e7752e140\n10.0.103\n__SETUPTOOLS_SCM__\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nModuleNotFoundError: No module named 'setuptools_scm'\nfailed to run commands: exit status 1",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}

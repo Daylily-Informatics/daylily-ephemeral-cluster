@@ -378,6 +378,7 @@ def ensure_slurm_accounting_db(
     database_name: str = DEFAULT_ACCOUNTING_DATABASE_NAME,
     username: str = DEFAULT_ACCOUNTING_USERNAME,
     instance_type: str = DEFAULT_ACCOUNTING_INSTANCE_TYPE,
+    assign_public_ip: bool = False,
     template_path: str = DEFAULT_TEMPLATE_PATH,
 ) -> SlurmAccountingDb:
     """Resolve one accounting DB stack, creating it only when explicitly allowed."""
@@ -415,6 +416,7 @@ def ensure_slurm_accounting_db(
         database_name=database_name,
         username=username,
         instance_type=instance_type or DEFAULT_ACCOUNTING_INSTANCE_TYPE,
+        assign_public_ip=assign_public_ip,
         template_path=template_path,
     )
 
@@ -429,6 +431,7 @@ def create_slurm_accounting_stack(
     database_name: str,
     username: str,
     instance_type: str,
+    assign_public_ip: bool = False,
     template_path: str = DEFAULT_TEMPLATE_PATH,
 ) -> SlurmAccountingDb:
     """Create the standalone DayEC Slurm accounting DB CloudFormation stack."""
@@ -459,6 +462,10 @@ def create_slurm_accounting_stack(
                 {"ParameterKey": "InstanceType", "ParameterValue": instance_type},
                 {"ParameterKey": "DatabaseName", "ParameterValue": database_name},
                 {"ParameterKey": "DatabaseUserName", "ParameterValue": username},
+                {
+                    "ParameterKey": "AssignPublicIpAddress",
+                    "ParameterValue": "true" if assign_public_ip else "false",
+                },
             ],
             Tags=tags,
         )

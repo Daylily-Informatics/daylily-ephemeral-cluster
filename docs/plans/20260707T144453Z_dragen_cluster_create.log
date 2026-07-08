@@ -1,0 +1,107 @@
+→ Creating cluster in us-west-2c ...
+
+── INIT · dragen-103-pg-20260707 ──
+    Account: 108782052779
+    User: root
+    Region: us-west-2 (us-west-2c)
+
+── PREFLIGHT ──
+  ✓ iam.policy.global
+  ✓ iam.policy.regional
+  ✓ iam.pcluster_omics_policy
+  ✓ config.repository_catalog
+  ✓ quota.ondemand_vcpu
+  ✓ quota.spot_vcpu
+  ✓ quota.vpcs
+  ✓ quota.elastic_ips
+  ✓ quota.nat_gateways
+  ✓ quota.internet_gateways
+  ✓ s3.role_config
+  ✓ s3.role_verify
+  ✓ Preflight passed — 12 checks OK
+
+── RESOURCE RESOLUTION ──
+  › Skipping baseline CFN stack; explicit subnet and IAM policy config present.
+  ✓ Baseline CFN stack not required
+  ✓ Resources resolved
+    Reference: s3://lsmc-dayoa-references-usw2/
+    Control data: s3://lsmc-dayoa-control-data-usw2/
+    Runtime assets: s3://lsmc-dayoa-references-usw2/runtime_assets
+    Staging: s3://lsmc-ssf-sequencing-data/staged_external_data/
+    Export destination: s3://lsmc-ssf-sequencing-data/derived/
+    Subnets: pub=subnet-0310303ef3bcb8669  priv=subnet-0310303ef3bcb8669
+    Policy: arn:aws:iam::108782052779:policy/pclusterTagsAndBudget
+  › Publishing cluster boot config to runtime assets ...
+  ✓ Cluster boot config published: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_
+rhel8_dragen.sh
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_
+ubuntu_combined.sh
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/sbatch
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/sleep_test.sh
+
+── PRE-CREATE: BUDGETS & HEARTBEAT ──
+
+── PRE-CREATE: BUDGETS ──
+  › Ensuring budgets and project allow-list ...
+  ✓ Budgets: global=daylily-global, project=dragen-103-pg-20260707
+
+── RENDER CLUSTER YAML ──
+  › Rendering YAML template ...
+  › Applying spot prices ...
+  ✓ Cluster YAML ready: 
+/Users/jmajor/.config/daylily/dragen-103-pg-20260707_cluster_20260707145222.yaml
+
+── DRY-RUN VALIDATION ──
+  › Running pcluster dry-run ...
+  ✓ Dry-run passed
+
+── CREATE CLUSTER ──
+  › Submitting cluster creation: dragen-103-pg-20260707 ...
+  ✓ Cluster creation submitted
+
+── MONITOR ──
+  › Waiting for CREATE_COMPLETE ...
+  › Cluster creating ... 2s
+  › Cluster creating ... 34s
+  › Cluster creating ... 1m 6s
+  › Cluster creating ... 1m 38s
+  › Cluster creating ... 2m 10s
+  › Cluster creating ... 2m 42s
+  › Cluster creating ... 3m 14s
+  › Cluster creating ... 3m 46s
+  › Cluster creating ... 4m 18s
+  › Cluster creating ... 4m 50s
+  › Cluster creating ... 5m 22s
+  › Cluster creating ... 5m 55s
+  › Cluster creating ... 6m 27s
+  › Cluster creating ... 6m 59s
+  › Cluster creating ... 7m 31s
+  › Cluster creating ... 8m 2s
+  › Cluster creating ... 8m 34s
+  › Cluster creating ... 9m 6s
+  › Cluster creating ... 9m 38s
+  › Cluster creating ... 10m 10s
+  › Cluster creating ... 10m 42s
+  › Cluster creating ... 11m 14s
+  › Cluster creating ... 11m 46s
+  › Cluster creating ... 12m 19s
+  › Cluster creating ... 12m 51s
+  › Cluster creating ... 13m 23s
+  › Cluster creating ... 13m 55s
+  › Cluster creating ... 14m 28s
+  › Cluster creating ... 15m 1s
+  › Cluster creating ... 15m 33s
+  › Cluster creating ... 16m 5s
+  › Cluster creating ... 16m 37s
+  › Cluster creating ... 17m 9s
+  › Cluster creating ... 17m 42s
+  › Cluster creating ... 18m 13s
+  › Cluster creating ... 18m 46s
+Cluster did not reach CREATE_COMPLETE: status=CREATE_FAILED error=Cluster entered unexpected status: CREATE_FAILED
+  ✗ Did not reach CREATE_COMPLETE: CREATE_FAILED

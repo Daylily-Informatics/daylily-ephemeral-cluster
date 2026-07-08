@@ -214,7 +214,18 @@ import os
 import sys
 from decimal import Decimal, InvalidOperation
 
-payload = json.loads(os.environ["COST_CENTER_JSON"])
+raw_payload = os.environ["COST_CENTER_JSON"]
+if not raw_payload.strip():
+    print("cost-center registry lookup returned empty JSON")
+    sys.exit(14)
+try:
+    payload = json.loads(raw_payload)
+except json.JSONDecodeError as exc:
+    print(f"cost-center registry lookup returned invalid JSON: {exc.msg}")
+    sys.exit(14)
+if not isinstance(payload, dict):
+    print("cost-center registry lookup returned JSON that is not an object")
+    sys.exit(14)
 item = payload.get("Item") or {}
 if not item:
     print(f"cost center '{os.environ.get('COST_CENTER', '')}' does not exist")
@@ -260,7 +271,18 @@ import sys
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 
-payload = json.loads(os.environ["USAGE_JSON"])
+raw_payload = os.environ["USAGE_JSON"]
+if not raw_payload.strip():
+    print("cost-center usage lookup returned empty JSON")
+    sys.exit(26)
+try:
+    payload = json.loads(raw_payload)
+except json.JSONDecodeError as exc:
+    print(f"cost-center usage lookup returned invalid JSON: {exc.msg}")
+    sys.exit(26)
+if not isinstance(payload, dict):
+    print("cost-center usage lookup returned JSON that is not an object")
+    sys.exit(26)
 item = payload.get("Item") or {}
 if not item:
     print("no monthly usage snapshot exists for this cost center")

@@ -148,6 +148,13 @@ install_required_rhel_packages() {
   fi
 
   install -d -m 0755 /var/lib/daylily
+  if ! rpm -qa >/dev/null 2>&1; then
+    echo "RHEL rpm database validation failed; rebuilding rpmdb before dnf install."
+    rm -f /var/lib/rpm/__db*
+    rpm --rebuilddb
+    rpm -qa >/dev/null
+    dnf clean all
+  fi
   dnf -y install \
     atop \
     bzip2 \

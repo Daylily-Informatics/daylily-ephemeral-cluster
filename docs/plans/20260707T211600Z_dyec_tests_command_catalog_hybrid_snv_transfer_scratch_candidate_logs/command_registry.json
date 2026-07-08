@@ -1,0 +1,10 @@
+{
+  "command_ids": [
+    "hybrid_ilmn_ont_snv"
+  ],
+  "dayoa_version": "9c2d540cd968bf45207bd8acd5a26d61048e750f",
+  "dry_run_only": false,
+  "evidence_prefix_s3_uri": "s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.65-candidate/20260707T144453Z/cmdcat-103-all-20260707/command_catalog_results/9c2d540cd968bf45207bd8acd5a26d61048e750f-20260707T211600Z/",
+  "jobs": 250,
+  "parallel": 1
+}

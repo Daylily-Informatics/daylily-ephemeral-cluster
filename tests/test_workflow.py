@@ -1200,6 +1200,56 @@ class TestRunCreateWorkflow:
         assert records["rc"] == EXIT_VALIDATION_FAILURE
         assert any("cannot be combined" in failure for failure in records["failures"])
 
+    def test_slurm_accounting_create_uses_explicit_private_subnet_vpc(
+        self, tmp_path, monkeypatch
+    ):
+        calls = []
+
+        def fake_ensure_slurm_accounting_db(_aws_ctx, **kwargs):
+            calls.append(kwargs)
+            return SlurmAccountingDb(
+                stack_name="dayec-sacct-db",
+                status="CREATE_COMPLETE",
+                uri="10.0.1.39:3306",
+                private_ip="10.0.1.39",
+                database_name="dayec_slurm_acct",
+                username="slurm_acct",
+                password_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:sacct",
+                client_security_group_id="sg-client",
+                instance_id="i-acct",
+            )
+
+        monkeypatch.setattr(
+            aws_slurm_accounting,
+            "ensure_slurm_accounting_db",
+            fake_ensure_slurm_accounting_db,
+        )
+
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            config_overrides={
+                "public_subnet_id": ["USESETVALUE", "", "subnet-explicit-pub"],
+                "private_subnet_id": ["USESETVALUE", "", "subnet-explicit-priv"],
+                "iam_policy_arn": [
+                    "USESETVALUE",
+                    "",
+                    "arn:aws:iam::123456789012:policy/pclusterTagsAndBudget",
+                ],
+                "slurm_accounting_create_db": ["USESETVALUE", "", "true"],
+                "slurm_accounting_enabled": ["USESETVALUE", "", "true"],
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert calls
+        assert calls[0]["vpc_id"] == "vpc-explicit-priv"
+        assert calls[0]["private_subnet_id"] == "subnet-explicit-priv"
+        assert calls[0]["assign_public_ip"] is True
+
     def test_explicit_network_and_policy_config_skip_baseline_stack(
         self, tmp_path, monkeypatch
     ):
@@ -2026,12 +2076,36 @@ def _run_stubbed_create_workflow(
         def __init__(self) -> None:
             class FakeSharedClient:
                 def describe_subnets(self, SubnetIds):
+                    subnet_id = SubnetIds[0]
+                    vpc_id = (
+                        "vpc-explicit-priv"
+                        if subnet_id == "subnet-explicit-priv"
+                        else "vpc-123"
+                    )
                     return {
                         "Subnets": [
                             {
-                                "SubnetId": SubnetIds[0],
+                                "SubnetId": subnet_id,
                                 "AvailabilityZone": "us-west-2d",
                                 "State": "available",
+                                "VpcId": vpc_id,
+                            }
+                        ]
+                    }
+
+                def describe_route_tables(self, Filters):
+                    _ = Filters
+                    return {
+                        "RouteTables": [
+                            {
+                                "Associations": [{"Main": True}],
+                                "Routes": [
+                                    {
+                                        "DestinationCidrBlock": "0.0.0.0/0",
+                                        "GatewayId": "igw-123",
+                                        "State": "active",
+                                    }
+                                ],
                             }
                         ]
                     }

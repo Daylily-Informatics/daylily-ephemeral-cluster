@@ -1,0 +1,22 @@
+{
+    "CommandId": "3ad3a299-ffb6-45c4-9c5e-e7f789b59d97",
+    "InstanceId": "i-06e429d2a68a0b1ec",
+    "Comment": "hybrid kitchensink transfer log tails",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 137,
+    "ExecutionStartDateTime": "2026-07-07T20:33:51.081Z",
+    "ExecutionElapsedTime": "PT3M19.457S",
+    "ExecutionEndDateTime": "2026-07-07T20:37:10.081Z",
+    "Status": "Cancelled",
+    "StatusDetails": "Cancelled",
+    "StandardOutputContent": "DAY-EC activated.\nDAY-EC activated.\n==== results/day/hg38_broad/HIOa-HG003-SR1x-ONT1x-0-D0-PF-ILMN-NOVASEQ/align/ont/na/snv/sentdhiomr/log/HIOa-HG003-SR1x-ONT1x-0-D0-PF-ILMN-NOVASEQ.ont.na.5.transfer.14.log\nStarting annotation transfer shard 14 (regions: chr14) at Tue Jul  7 20:24:09 UTC 2026\nAnno VCF original sample: HIOa-HG003-SR1x-ONT1x-0-D0-PF-ILMN-NOVASEQ, target sample: HIOa-HG003-SR1x-ONT1x-0-D0-PF-ILMN-NOVASEQ\nAnno VCF sample already matches target; using existing indexed input without reheader\nTransferring annotations from pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz for regions-file: /tmp/sentdhiomr_transfer_5_14_20260707202409_145480/transfer.14.bed\nTransfer merge step started at Tue Jul  7 20:24:09 UTC 2026\n[W::bcf_hdr_check_sanity] LPL should be declared as Number=LG\n[W::bcf_hdr_check_sanity] LAD should be declared as Number=LR\nTransfer merge BCF to VCF step started at Tue Jul  7 20:26:18 UTC 2026\n[W::bcf_hdr_check_sanity] LPL should be declared as Number=LG\n[W::bcf_hdr_check_sanity] LAD should be declared as Number=LR\n[main_vcfview] Error: cannot write to /tmp/sentdhiomr_transfer_5_14_20260707202409_145480/transfer_merged.14.vcf\n==== results/day/hg38_broad/HIOa-HG003-SR1x-ONT1x-0-D0-PF-ILMN-NOVASEQ/align/ont/na/snv/sentdhiomr/log/HIOa-HG003-SR1x-ONT1x-0-D0-PF-ILMN-NOVASEQ.ont.na.10.transfer.8.log\nStarting annotation transfer shard 8 (regions: chr8) at Tue Jul  7 20:22:02 UTC 2026\nAnno VCF original sample: HIOa-HG003-SR1x-ONT1x-0-D0-PF-ILMN-NOVASEQ, target sample: HIOa-HG003-SR1x-ONT1x-0-D0-PF-ILMN-NOVASEQ\nAnno VCF sample already matches target; using existing indexed input without reheader\nTransferring annotations from pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz for regions-file: /tmp/sentdhiomr_transfer_10_8_20260707202202_124210/transfer.8.bed\nTransfer merge step started at Tue Jul  7 20:22:02 UTC 2026\n[W::bcf_hdr_check_sanity] LPL should be declared as Number=LG\n[W::bcf_hdr_check_sanity] LAD should be declared as Number=LR\nTransfer merge BCF to VCF step started at Tue Jul  7 20:24:52 UTC 2026\n[W::bcf_hdr_check_sanity] LPL should be declared as Number=LG\n[W::bcf_hdr_check_sanity] LAD should be declared as Number=LR\n[main_vcfview] Error: cannot write to /tmp/sentdhiomr_transfer_10_8_20260707202202_124210/transfer_merged.8.vcf\nERROR_LINES\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}

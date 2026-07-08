@@ -322,6 +322,11 @@ def test_create_when_missing_uses_expected_parameters_and_no_destructive_calls()
     assert create_call["EnableTerminationProtection"] is True
     assert {"Key": ACCOUNTING_VPC_TAG_KEY, "Value": "vpc-123"} in create_call["Tags"]
     assert {"Key": ACCOUNTING_REGION_AZ_TAG_KEY, "Value": "us-west-2b"} in create_call["Tags"]
+    params = {
+        item["ParameterKey"]: item["ParameterValue"]
+        for item in create_call["Parameters"]
+    }
+    assert params["AssignPublicIpAddress"] == "false"
     assert db.stack_name == "dayec-slurm-accounting-us-west-2b"
     destructive = [
         name
@@ -329,6 +334,26 @@ def test_create_when_missing_uses_expected_parameters_and_no_destructive_calls()
         if name.startswith(("delete", "drop", "reset"))
     ]
     assert destructive == []
+
+
+def test_create_can_assign_public_ip_for_public_single_subnet_accounting() -> None:
+    cfn = FakeCloudFormation([])
+
+    ensure_slurm_accounting_db(
+        FakeAwsContext(cfn),
+        region_az="us-west-2b",
+        vpc_id="vpc-123",
+        private_subnet_id="subnet-public",
+        create_if_missing=True,
+        assign_public_ip=True,
+    )
+
+    create_call = next(kwargs for name, kwargs in cfn.calls if name == "create_stack")
+    params = {
+        item["ParameterKey"]: item["ParameterValue"]
+        for item in create_call["Parameters"]
+    }
+    assert params["AssignPublicIpAddress"] == "true"
 
 
 def test_explicit_stack_name_rejects_untagged_stack() -> None:

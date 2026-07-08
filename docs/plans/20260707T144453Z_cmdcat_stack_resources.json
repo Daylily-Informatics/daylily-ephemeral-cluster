@@ -1,0 +1,332 @@
+[
+    {
+        "Logical": "AssociateEIP",
+        "Type": "AWS::EC2::EIPAssociation",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "eipassoc-08ee75e13dd0baabe"
+    },
+    {
+        "Logical": "CleanupResourcesFunction",
+        "Type": "AWS::Lambda::Function",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "pcluster-CleanupResources-a95a69a0-7a16-11f1-acb1-0a4675df858b"
+    },
+    {
+        "Logical": "CleanupResourcesFunctionExecutionRole",
+        "Type": "AWS::IAM::Role",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "cmdcat-103-all-20260707-CleanupResourcesFunctionExe-btZDXpGejwOe"
+    },
+    {
+        "Logical": "CleanupResourcesFunctionLogGroup",
+        "Type": "AWS::Logs::LogGroup",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "/aws/lambda/pcluster-CleanupResources-a95a69a0-7a16-11f1-acb1-0a4675df858b"
+    },
+    {
+        "Logical": "CleanupResourcesS3BucketCustomResource",
+        "Type": "AWS::CloudFormation::CustomResource",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "cmdcat-103-all-20260707_CleanupResourcesS3BucketCustomResource_NZOZL4G0"
+    },
+    {
+        "Logical": "CleanupRoute53CustomResource",
+        "Type": "AWS::CloudFormation::CustomResource",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "cmdcat-103-all-20260707_CleanupRoute53CustomResource_IN03YSM9"
+    },
+    {
+        "Logical": "CleanupRoute53Function",
+        "Type": "AWS::Lambda::Function",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "pcluster-CleanupRoute53-a95a69a0-7a16-11f1-acb1-0a4675df858b"
+    },
+    {
+        "Logical": "CleanupRoute53FunctionExecutionRole",
+        "Type": "AWS::IAM::Role",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "cmdcat-103-all-20260707-CleanupRoute53FunctionExecu-kPySfCaMKkXM"
+    },
+    {
+        "Logical": "CleanupRoute53FunctionLogGroup",
+        "Type": "AWS::Logs::LogGroup",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "/aws/lambda/pcluster-CleanupRoute53-a95a69a0-7a16-11f1-acb1-0a4675df858b"
+    },
+    {
+        "Logical": "CloudWatchLogGroup",
+        "Type": "AWS::Logs::LogGroup",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "/aws/parallelcluster/cmdcat-103-all-20260707-202607071515"
+    },
+    {
+        "Logical": "ClustermgtdHeartbeatFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "ClustermgtdHeartbeatFilter-MwxLg7t8jbTq"
+    },
+    {
+        "Logical": "ComputeFleetTerminateComputeFleetCustomResource9CE1795B",
+        "Type": "AWS::CloudFormation::CustomResource",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "cmdcat-103-all-20260707_ComputeFleetTerminateComputeFleetCustomResource9CE1795B_1G44RPJP"
+    },
+    {
+        "Logical": "ComputeSecurityGroup",
+        "Type": "AWS::EC2::SecurityGroup",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "sg-01e82ab106025ed40"
+    },
+    {
+        "Logical": "ComputeSecurityGroupEgress",
+        "Type": "AWS::EC2::SecurityGroupEgress",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "sgr-0c9eb5872356fd37d"
+    },
+    {
+        "Logical": "ComputeSecurityGroupHeadNodeIngress0",
+        "Type": "AWS::EC2::SecurityGroupIngress",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "sgr-035ed39d19cb8ba68"
+    },
+    {
+        "Logical": "ComputeSecurityGroupIngress",
+        "Type": "AWS::EC2::SecurityGroupIngress",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "sgr-0aaf0b49b0a0b37a3"
+    },
+    {
+        "Logical": "ComputeSecurityGroupNormalEgress",
+        "Type": "AWS::EC2::SecurityGroupEgress",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "sgr-07765da0a7d12ce23"
+    },
+    {
+        "Logical": "DynamoDBTable",
+        "Type": "AWS::DynamoDB::Table",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "parallelcluster-cmdcat-103-all-20260707"
+    },
+    {
+        "Logical": "EC2HealthCheckErrorsFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "EC2HealthCheckErrorsFilter-uOCyiH9jqAcS"
+    },
+    {
+        "Logical": "FSX8d9b0a784b144951",
+        "Type": "AWS::FSx::FileSystem",
+        "Status": "CREATE_IN_PROGRESS",
+        "Physical": "fs-0e89a93ffac2f0d93"
+    },
+    {
+        "Logical": "FSX8d9b0a784b144951SecurityGroup",
+        "Type": "AWS::EC2::SecurityGroup",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "sg-0f554bf3c07759bd2"
+    },
+    {
+        "Logical": "FSX8d9b0a784b144951SecurityGroupComputeEgress0",
+        "Type": "AWS::EC2::SecurityGroupEgress",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "sgr-07f2e85db1cbf142f"
+    },
+    {
+        "Logical": "FSX8d9b0a784b144951SecurityGroupComputeIngress0",
+        "Type": "AWS::EC2::SecurityGroupIngress",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "sgr-07386fcbaf3047a61"
+    },
+    {
+        "Logical": "FSX8d9b0a784b144951SecurityGroupHeadEgress0",
+        "Type": "AWS::EC2::SecurityGroupEgress",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "sgr-0c2638ba3f12464d2"
+    },
+    {
+        "Logical": "FSX8d9b0a784b144951SecurityGroupHeadIngress0",
+        "Type": "AWS::EC2::SecurityGroupIngress",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "sgr-0c1c65ed2464ab15f"
+    },
+    {
+        "Logical": "FSX8d9b0a784b144951SecurityGroupStorageEgress0",
+        "Type": "AWS::EC2::SecurityGroupEgress",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "sgr-066ebfe8a6bd14661"
+    },
+    {
+        "Logical": "FSX8d9b0a784b144951SecurityGroupStorageIngress0",
+        "Type": "AWS::EC2::SecurityGroupIngress",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "sgr-09d6109adbcb9420e"
+    },
+    {
+        "Logical": "HeadNodeEIP",
+        "Type": "AWS::EC2::EIP",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "32.184.181.4"
+    },
+    {
+        "Logical": "HeadNodeENI",
+        "Type": "AWS::EC2::NetworkInterface",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "eni-0c4f7e7b1ba7b0a5c"
+    },
+    {
+        "Logical": "HeadNodeSecurityGroup",
+        "Type": "AWS::EC2::SecurityGroup",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "sg-09f939f32b79bcae7"
+    },
+    {
+        "Logical": "HeadNodeSecurityGroupComputeIngress0",
+        "Type": "AWS::EC2::SecurityGroupIngress",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "sgr-061244e8ee49656a3"
+    },
+    {
+        "Logical": "HeadNodeWaitCondition20260707151516",
+        "Type": "AWS::CloudFormation::WaitCondition",
+        "Status": "CREATE_IN_PROGRESS",
+        "Physical": "arn:aws:cloudformation:us-west-2:108782052779:stack/cmdcat-103-all-20260707/a95a69a0-7a16-11f1-acb1-0a4675df858b/a95ba220-7a16-11f1-acb1-0a4675df858b/HeadNodeWaitConditionHandle20260707151516"
+    },
+    {
+        "Logical": "HeadNodeWaitConditionHandle20260707151516",
+        "Type": "AWS::CloudFormation::WaitConditionHandle",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "https://cloudformation-waitcondition-us-west-2.s3-us-west-2.amazonaws.com/arn%3Aaws%3Acloudformation%3Aus-west-2%3A108782052779%3Astack/cmdcat-103-all-20260707/a95a69a0-7a16-11f1-acb1-0a4675df858b/a95ba220-7a16-11f1-acb1-0a4675df858b/HeadNodeWaitConditionHandle20260707151516?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEKf%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJGMEQCIGIrKVmo2d%2Fz0vqeSrRTCgIUHLvqlru8RbpGAAVDlUj0AiBv67fIlg9V3h3ecei3aPQwe4LLeQASswfKroDXh2HKnCrqAghwEAAaDDk1NDYyODYxMjAwNCIMTNyDri2dzURGhDerKscCPX03kBE4fhI171OzY0ebsjdtDm9natzl31p7mzq06NqW8feIQ60RVPZznaEKCjaBqzlr2TPWgQ%2Fo3qjbph%2FvIq%2BZ2EtFBnTieugj80GJD4RYTXSJT0sYt78Ks8rljmBh%2FlDDOBAqKCrC1BehoKToQMWET3GzrCRyBE%2BIWHlwEJwVNwc%2BbO%2FOPd0z%2BS08sr3cc4WzT1uAZceFPdbKHWVrrlwZ3x5RvyVb1k1xKfpgPLR83x6E2G7do1M%2F%2FilmY7cw1spMB4MCf%2Fg%2B8Wk3yvJimxWFaJ2AvAPoitvvAvCIkEWRnPV7e3M9VTlThOiZSswvuE2XgbIT7jEDZZ8so4YSLHlGjSvROnm7W3TT%2F1cxGa7gYBkLFkrmeGuVwfheG9JwkTIo6PnMYIrUY8VwgH9gXNJ1dr1cSqSpX%2FuDyc1n37slfbkGLO%2BDMI6wtNIGOr4B7ZdQmk5BI3BePrAqYAkJLTyhCO6bKZ4BerWjEUTaNUofKf7Wrt9rbhtI4gtbVhPyLHO8EZYrJIluBLapRpWRWCtEcQrov1WPjVlfm6ftaqVUKp782kQpR8xB0C9eUlHtOQF4cmULfVBLokSJ7iIhVWMnluMDNr%2Flgaweg9Y%2FcQAtBPlhQwfxmjosC5LLnpQuXzz6orUfaE2j2O0jmH22LQRG8Piazwhh9tjXp%2FxvqmN5tzRPBLqxgRcU7kP%2FPw%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260707T151526Z&X-Amz-SignedHeaders=host&X-Amz-Expires=43199&X-Amz-Credential=ASIA54RCMT6SJAFD3YQ6%2F20260707%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=dad895a639ed3177d0e8347745662d3f5015d4795c960c506c12df54bbcd6804"
+    },
+    {
+        "Logical": "IamPolicyErrorsFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "IamPolicyErrorsFilter-SRPDY4CLHPcr"
+    },
+    {
+        "Logical": "InstanceBootstrapTimeoutErrorsFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "InstanceBootstrapTimeoutErrorsFilter-fGiVLMtFwhvo"
+    },
+    {
+        "Logical": "InstanceProfileHeadNode",
+        "Type": "AWS::IAM::InstanceProfile",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "cmdcat-103-all-20260707-InstanceProfileHeadNode-43VMRpxkimjK"
+    },
+    {
+        "Logical": "InsufficientCapacityErrorsFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "InsufficientCapacityErrorsFilter-jJktrQTrWfWY"
+    },
+    {
+        "Logical": "MaxDynamicNodeIdleTimeFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "MaxDynamicNodeIdleTimeFilter-eWjgqrfgdbbc"
+    },
+    {
+        "Logical": "NoCorrespondingInstanceErrorsFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "NoCorrespondingInstanceErrorsFilter-6A00e8dCerL0"
+    },
+    {
+        "Logical": "OnNodeConfiguredDownloadErrorsFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "OnNodeConfiguredDownloadErrorsFilter-bfYTslVkKXwD"
+    },
+    {
+        "Logical": "OnNodeConfiguredRunErrorsFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "OnNodeConfiguredRunErrorsFilter-3p2ibtYqzeTs"
+    },
+    {
+        "Logical": "OnNodeStartDownloadErrorsFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "OnNodeStartDownloadErrorsFilter-V39q9yUjOeJN"
+    },
+    {
+        "Logical": "OnNodeStartRunErrorsFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "OnNodeStartRunErrorsFilter-2Tp6UHIKjCLu"
+    },
+    {
+        "Logical": "OtherInstanceLaunchFailuresFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "OtherInstanceLaunchFailuresFilter-KK8Y9HSUU7i0"
+    },
+    {
+        "Logical": "ParallelClusterPoliciesHeadNode",
+        "Type": "AWS::IAM::Policy",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "cmdca-Paral-obUvYKH5pU5z"
+    },
+    {
+        "Logical": "ParallelClusterSlurmRoute53Policies",
+        "Type": "AWS::IAM::Policy",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "cmdca-Paral-uK9IYdJkalkZ"
+    },
+    {
+        "Logical": "RoleHeadNode",
+        "Type": "AWS::IAM::Role",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "cmdcat-103-all-20260707-RoleHeadNode-uYsxITE49r8P"
+    },
+    {
+        "Logical": "Route53HostedZone",
+        "Type": "AWS::Route53::HostedZone",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "Z013423525XC8IRYRN2LB"
+    },
+    {
+        "Logical": "S3AccessPoliciesHeadNode",
+        "Type": "AWS::IAM::Policy",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "cmdca-S3Acc-Pd1YTUWxPToJ"
+    },
+    {
+        "Logical": "ScheduledEventHealthCheckErrorsFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "ScheduledEventHealthCheckErrorsFilter-yDQ82bJSwIQi"
+    },
+    {
+        "Logical": "SlurmDynamoDBTable",
+        "Type": "AWS::DynamoDB::Table",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "parallelcluster-slurm-cmdcat-103-all-20260707"
+    },
+    {
+        "Logical": "SlurmNodeNotRespondingErrorsFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "SlurmNodeNotRespondingErrorsFilter-enh4FlKeTWTj"
+    },
+    {
+        "Logical": "SlurmPoliciesHeadNode",
+        "Type": "AWS::IAM::Policy",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "cmdca-Slurm-5UNhjIS3a102"
+    },
+    {
+        "Logical": "VcpuLimitErrorsFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "VcpuLimitErrorsFilter-jgZA5waA5MP7"
+    },
+    {
+        "Logical": "VolumeLimitErrorsFilter",
+        "Type": "AWS::Logs::MetricFilter",
+        "Status": "CREATE_COMPLETE",
+        "Physical": "VolumeLimitErrorsFilter-npVmUq1czcgc"
+    }
+]

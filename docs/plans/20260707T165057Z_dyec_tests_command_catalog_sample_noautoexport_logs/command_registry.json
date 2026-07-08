@@ -1,0 +1,25 @@
+{
+  "command_ids": [
+    "illumina_hg002_kitchensink_multiqc",
+    "ultima_snv_alignstats_kitchensink",
+    "ont_snv_alignstats_kitchensink",
+    "hybrid_ilmn_ont_snv_kitchensink",
+    "simple-test",
+    "illumina_snv_alignstats",
+    "illumina_snv_alignstats_relatedness_vep_multiqc",
+    "illumina_pangenome_snv",
+    "ultima_snv_alignstats",
+    "ultima_pangenome_snv",
+    "ont_snv_alignstats",
+    "pacbio_snv_alignstats",
+    "roche_snv_alignstats",
+    "hybrid_ilmn_ont_snv",
+    "inflection-bjuice-product-v0.1",
+    "complete_genomics_mgi_snv_concordance"
+  ],
+  "dayoa_version": "10.0.64",
+  "dry_run_only": false,
+  "evidence_prefix_s3_uri": "s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.64/20260707T144453Z/cmdcat-103-all-20260707/command_catalog_results/10.0.64-20260707T165057Z/",
+  "jobs": 250,
+  "parallel": 8
+}

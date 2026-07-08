@@ -1,0 +1,36 @@
+Wed Jul  8 00:15:22 UTC 2026
+command_id=illumina_snv_alignstats_relatedness_vep_multiqc
+session=ccv_live_illumina_snv_alignstats_relatedness_vep_multiqc_20260707T165057Z
+source_path=/fsx/analysis_results/ubuntu/ccv_live_illumina_snv_alignstats_relatedness_vep_multiqc_20260707T165057Z
+destination_s3_uri=s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.64/20260707T144453Z/ubuntu/ccv_live_illumina_snv_alignstats_relatedness_vep_multiqc_20260707T165057Z/
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+2026-07-07 17:15:22,503 INFO Found credentials in shared credentials file: ~/.aws/credentials
+  · Attached export DRA dra-082a2fbf1608f19cc at 
+/fsx/analysis_results/ubuntu/ccv_live_illumina_snv_alignstats_relatedness_vep_mu
+ltiqc_20260707T165057Z/
+2026-07-07 17:18:47,590 INFO Task task-01c765a2821a2596a status: PENDING
+2026-07-07 17:19:17,900 INFO Task task-01c765a2821a2596a status: EXECUTING
+2026-07-07 17:19:48,133 INFO Task task-01c765a2821a2596a status: EXECUTING
+2026-07-07 17:20:18,526 INFO Task task-01c765a2821a2596a status: SUCCEEDED
+2026-07-07 17:20:35,147 INFO Wrote export status to /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260707T144453Z_success_exports/illumina_snv_alignstats_relatedness_vep_multiqc/fsx_export.yaml
+
+╭────────────────────────────── Export complete ───────────────────────────────╮
+│                                                                              │
+│  Cluster: cmdcat-103-all-20260707                                            │
+│  FSx: fs-0e89a93ffac2f0d93                                                   │
+│  Source:                                                                     │
+│  /analysis_results/ubuntu/ccv_live_illumina_snv_alignstats_relatedness_vep_  │
+│  multiqc_20260707T165057Z/                                                   │
+│  S3:                                                                         │
+│  s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-  │
+│  10.0.64/20260707T144453Z/ubuntu/ccv_live_illumina_snv_alignstats_relatedne  │
+│  ss_vep_multiqc_20260707T165057Z/                                            │
+│  Status file:                                                                │
+│  /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260707T  │
+│  144453Z_success_exports/illumina_snv_alignstats_relatedness_vep_multiqc/fs  │
+│  x_export.yaml                                                               │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Wed Jul  8 00:20:35 UTC 2026

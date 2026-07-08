@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.64"
+DAYOA_BLESSED_TAG = "10.0.65"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG_PATH = (
@@ -453,14 +453,14 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     hybrid_ilmn_ont = catalog.get_command("hybrid_ilmn_ont_snv")
     assert hybrid_ilmn_ont.aligners == ["sent"]
-    assert hybrid_ilmn_ont.dedupers == ["dmd"]
+    assert hybrid_ilmn_ont.dedupers == ["na"]
     assert hybrid_ilmn_ont.snv_callers == ["sentdhiomr"]
     assert hybrid_ilmn_ont.sv_callers == ["sentdhiomr"]
     assert "produce_sentdhiomr_sv" in hybrid_ilmn_ont.dy_command
     assert "produce_sentdhiomr_snv_vcf" in hybrid_ilmn_ont.dy_command
     assert "produce_sentdhiom_sv" not in hybrid_ilmn_ont.dy_command
     assert "produce_sentdhiom_snv_vcf" not in hybrid_ilmn_ont.dy_command
-    assert "dedupers=[" in hybrid_ilmn_ont.dy_command
+    assert 'dedupers=["na"]' in hybrid_ilmn_ont.dy_command
     assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
         hybrid_ilmn_ont.input_requirements.accepted_source_column_sets
     )
@@ -590,7 +590,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "produce_multiqc_all",
     ]
     assert hybrid_kitchensink.aligners == ["sent"]
-    assert hybrid_kitchensink.dedupers == ["dmd"]
+    assert hybrid_kitchensink.dedupers == ["na"]
     assert hybrid_kitchensink.snv_callers == ["sentdhiomr"]
     assert hybrid_kitchensink.sv_callers == ["sentdhiomr"]
     assert "produce_sentdhiomr_sv" in hybrid_kitchensink.dy_command
@@ -598,6 +598,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_sentdhiom_sv" not in hybrid_kitchensink.dy_command
     assert "produce_sentdhiom_snv_vcf" not in hybrid_kitchensink.dy_command
     assert "produce_multiqc_all" in hybrid_kitchensink.dy_command
+    assert 'dedupers=["na"]' in hybrid_kitchensink.dy_command
     assert "multiqc_qc=" in hybrid_kitchensink.dy_command
     assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
         hybrid_kitchensink.input_requirements.accepted_source_column_sets
@@ -618,7 +619,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     ]
     assert inflection_bjuice.jobs == 250
     assert inflection_bjuice.aligners == ["sent"]
-    assert inflection_bjuice.dedupers == ["dmd"]
+    assert inflection_bjuice.dedupers == ["dmd", "na"]
     assert inflection_bjuice.snv_callers == ["sentdhiomr"]
     assert inflection_bjuice.sv_callers == ["sentdhiomr"]
     assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
@@ -627,7 +628,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_sentdhiomr_segdup" in inflection_bjuice.dy_command
     assert 'sentdhiomr={"segdup_genes":"CYP11B1,NCF1,SMN1"}' in (inflection_bjuice.dy_command)
     assert 'aligners=["sent"]' in inflection_bjuice.dy_command
-    assert 'dedupers=["dmd"]' in inflection_bjuice.dy_command
+    assert 'dedupers=["dmd","na"]' in inflection_bjuice.dy_command
     assert 'snv_callers=["sentdhiomr"]' in inflection_bjuice.dy_command
     assert 'sv_callers=["sentdhiomr"]' in inflection_bjuice.dy_command
     assert " -j 250 -p -k --rerun-triggers mtime -T 0" in inflection_bjuice.dy_command

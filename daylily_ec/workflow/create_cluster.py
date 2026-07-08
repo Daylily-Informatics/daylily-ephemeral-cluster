@@ -945,6 +945,68 @@ def _resolve_explicit_subnet_id(
     return configured
 
 
+def _resolve_subnet_vpc_id(ec2_client: Any, subnet_id: str, *, label: str) -> str:
+    """Return the VPC that owns a resolved subnet."""
+    subnet_id = subnet_id.strip()
+    if not subnet_id:
+        return ""
+    try:
+        response = ec2_client.describe_subnets(SubnetIds=[subnet_id])
+    except Exception as exc:
+        raise ValueError(f"Unable to resolve VPC for {label} {subnet_id}.") from exc
+    subnets = response.get("Subnets", [])
+    if not subnets:
+        raise ValueError(f"Unable to resolve VPC for {label} {subnet_id}: subnet not found.")
+    vpc_id = str(subnets[0].get("VpcId", "")).strip()
+    if not vpc_id:
+        raise ValueError(f"Unable to resolve VPC for {label} {subnet_id}: missing VpcId.")
+    return vpc_id
+
+
+def _subnet_has_public_default_route(ec2_client: Any, subnet_id: str, *, label: str) -> bool:
+    """Return whether a subnet's active default route targets an internet gateway."""
+    subnet_id = subnet_id.strip()
+    if not subnet_id:
+        return False
+    try:
+        subnet_response = ec2_client.describe_subnets(SubnetIds=[subnet_id])
+    except Exception as exc:
+        raise ValueError(f"Unable to inspect route table for {label} {subnet_id}.") from exc
+    subnets = subnet_response.get("Subnets", [])
+    if not subnets:
+        raise ValueError(f"Unable to inspect route table for {label} {subnet_id}: subnet not found.")
+    vpc_id = str(subnets[0].get("VpcId", "")).strip()
+    if not vpc_id:
+        raise ValueError(f"Unable to inspect route table for {label} {subnet_id}: missing VpcId.")
+
+    try:
+        associated = ec2_client.describe_route_tables(
+            Filters=[{"Name": "association.subnet-id", "Values": [subnet_id]}]
+        ).get("RouteTables", [])
+        route_tables = associated
+        if not route_tables:
+            vpc_tables = ec2_client.describe_route_tables(
+                Filters=[{"Name": "vpc-id", "Values": [vpc_id]}]
+            ).get("RouteTables", [])
+            route_tables = [
+                table
+                for table in vpc_tables
+                if any(assoc.get("Main") for assoc in table.get("Associations", []) or [])
+            ]
+    except Exception as exc:
+        raise ValueError(f"Unable to inspect route table for {label} {subnet_id}.") from exc
+
+    for table in route_tables:
+        for route in table.get("Routes", []) or []:
+            if str(route.get("State", "")) != "active":
+                continue
+            destination = str(route.get("DestinationCidrBlock", ""))
+            gateway = str(route.get("GatewayId", ""))
+            if destination == "0.0.0.0/0" and gateway.startswith("igw-"):
+                return True
+    return False
+
+
 @dataclass(frozen=True)
 class _PostCreateInputs:
     enforce_budget: str
@@ -1557,6 +1619,21 @@ def run_create_workflow(
     ui.detail("Subnets", f"pub={public_subnet}  priv={private_subnet}")
     ui.detail("Policy", policy_arn)
 
+    accounting_vpc_id = ""
+    if private_subnet:
+        try:
+            accounting_vpc_id = _resolve_subnet_vpc_id(
+                ec2,
+                private_subnet,
+                label="private subnet",
+            )
+        except ValueError as exc:
+            logger.error("Private subnet VPC resolution failed: %s", exc)
+            ui.fail(str(exc))
+            return EXIT_VALIDATION_FAILURE
+    if not accounting_vpc_id:
+        accounting_vpc_id = cfn_outputs.vpc_id
+
     accounting_db: Optional[SlurmAccountingDb] = None
     accounting_render_blocks = empty_slurm_accounting_render_blocks()
     try:
@@ -1585,9 +1662,9 @@ def run_create_workflow(
         return EXIT_VALIDATION_FAILURE
 
     if scan_slurm_accounting_db:
-        if not cfn_outputs.vpc_id:
-            logger.error("Slurm accounting scan requires the baseline VPC output.")
-            ui.fail("Slurm accounting scan requires the baseline VPC output.")
+        if not accounting_vpc_id:
+            logger.error("Slurm accounting scan requires a resolved VPC id.")
+            ui.fail("Slurm accounting scan requires a resolved VPC id.")
             return EXIT_VALIDATION_FAILURE
 
         ui.step("Scanning EC2 for reusable Slurm accounting DB hosts ...")
@@ -1595,7 +1672,7 @@ def run_create_workflow(
             scan_candidates = scan_slurm_accounting_ec2_candidates(
                 aws_ctx,
                 region_az=region_az,
-                vpc_id=cfn_outputs.vpc_id,
+                vpc_id=accounting_vpc_id,
             )
         except SlurmAccountingError as exc:
             logger.error("Slurm accounting EC2 scan failed: %s", exc)
@@ -1644,9 +1721,9 @@ def run_create_workflow(
             ui.detail("Accounting client SG", accounting_db.client_security_group_id)
 
     elif accounting_create_requested or config_accounting_enabled:
-        if not cfn_outputs.vpc_id:
-            logger.error("Slurm accounting requires the baseline VPC output.")
-            ui.fail("Slurm accounting requires the baseline VPC output.")
+        if not accounting_vpc_id:
+            logger.error("Slurm accounting requires a resolved VPC id.")
+            ui.fail("Slurm accounting requires a resolved VPC id.")
             return EXIT_VALIDATION_FAILURE
 
         accounting_stack_name = slurm_accounting_stack_name.strip() or _resolve_nonprompt_config_value(
@@ -1669,19 +1746,30 @@ def run_create_workflow(
             "slurm_accounting_instance_type",
             DEFAULT_ACCOUNTING_INSTANCE_TYPE,
         )
+        try:
+            accounting_assign_public_ip = _subnet_has_public_default_route(
+                ec2,
+                private_subnet,
+                label="private subnet",
+            )
+        except ValueError as exc:
+            logger.error("Private subnet route-table inspection failed: %s", exc)
+            ui.fail(str(exc))
+            return EXIT_VALIDATION_FAILURE
 
         ui.step("Resolving Slurm accounting DB ...")
         try:
             accounting_db = ensure_slurm_accounting_db(
                 aws_ctx,
                 region_az=region_az,
-                vpc_id=cfn_outputs.vpc_id,
+                vpc_id=accounting_vpc_id,
                 private_subnet_id=private_subnet,
                 create_if_missing=accounting_create_requested,
                 stack_name=accounting_stack_name,
                 database_name=accounting_database_name,
                 username=accounting_username,
                 instance_type=accounting_instance_type,
+                assign_public_ip=accounting_assign_public_ip,
             )
         except SlurmAccountingError as exc:
             logger.error("Slurm accounting DB resolution failed: %s", exc)
@@ -1690,6 +1778,7 @@ def run_create_workflow(
         accounting_render_blocks = slurm_accounting_render_blocks(accounting_db)
         ui.ok("Slurm accounting DB ready")
         ui.detail("Accounting stack", accounting_db.stack_name)
+        ui.detail("Accounting assign public IP", str(accounting_assign_public_ip).lower())
         ui.detail("Accounting URI", accounting_db.uri)
         ui.detail("Accounting database", accounting_db.database_name)
         ui.detail("Accounting user", accounting_db.username)

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from importlib.metadata import version as dist_version
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -72,20 +71,22 @@ def test_import_daylily_ec_is_lightweight_and_exports_create_cluster():
     assert "daylily_ec.create" in sys.modules
 
 
-def test_cli_version_uses_installed_dist_metadata():
+def test_cli_version_uses_source_aware_version():
     from daylily_ec.cli import app
 
+    versioning.get_version.cache_clear()
     result = runner.invoke(app, ["--json", "version"])
 
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
-    assert payload["version"] == dist_version("daylily-ephemeral-cluster")
+    assert payload["version"] == versioning.get_version()
     assert payload["app"] == "Daylily Ephemeral Cluster"
 
 
-def test_cli_info_uses_installed_dist_metadata(monkeypatch, tmp_path):
+def test_cli_info_uses_source_aware_version(monkeypatch, tmp_path):
     from daylily_ec.cli import spec
 
+    versioning.get_version.cache_clear()
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))
     monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
@@ -98,7 +99,7 @@ def test_cli_info_uses_installed_dist_metadata(monkeypatch, tmp_path):
 
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
-    assert payload["Version"] == dist_version("daylily-ephemeral-cluster")
+    assert payload["Version"] == versioning.get_version()
     assert payload["Config Dir"] == str((tmp_path / "config" / "daylily").resolve())
     assert "CLI Core" in payload
 

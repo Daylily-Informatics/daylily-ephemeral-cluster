@@ -1,0 +1,22 @@
+{
+    "CommandId": "7fa43ec3-11c4-442f-9c7f-9fc4ce2802e4",
+    "InstanceId": "i-06e429d2a68a0b1ec",
+    "Comment": "dyec103-warmup-log-probe-literal",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 0,
+    "ExecutionStartDateTime": "2026-07-07T16:22:01.826Z",
+    "ExecutionElapsedTime": "PT5.622S",
+    "ExecutionEndDateTime": "2026-07-07T16:22:06.826Z",
+    "Status": "Success",
+    "StatusDetails": "Success",
+    "StandardOutputContent": "DAY-EC activated.\nDAY-EC activated.\nROOT=/home/ubuntu/daylily-runs/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z\n/home/ubuntu/daylily-runs/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z/status.json\n/home/ubuntu/daylily-runs/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z/tmux-bootstrap.log\n/home/ubuntu/daylily-runs/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z/tmux.log\nROOT=/fsx/analysis_results/ubuntu/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z/daylily-omics-analysis\n/fsx/analysis_results/ubuntu/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z/daylily-omics-analysis/.snakemake/log/2026-07-07T162007.716498.snakemake.log\n/fsx/analysis_results/ubuntu/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z/daylily-omics-analysis/bin/helpers/fetch_b37_giabvcf.log\n/fsx/analysis_results/ubuntu/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z/daylily-omics-analysis/bin/helpers/fetch_hg38_giabvcf.log\n/fsx/analysis_results/ubuntu/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z/daylily-omics-analysis/day_cmd.log\n/fsx/analysis_results/ubuntu/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z/daylily-omics-analysis/logs/about.log\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}

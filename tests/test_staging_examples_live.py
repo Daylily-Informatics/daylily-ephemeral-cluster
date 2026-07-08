@@ -70,11 +70,11 @@ WORKFLOW_COMMANDS = {
     "hybrid_ilmn_ont": WorkflowCommandSpec(
         dy_command=(
             "bin/day_run produce_snv_concordances produce_sentdhiomr_sv "
-            "produce_sentdhiomr_snv_vcf --config 'dedupers=[\"dmd\"]' -p -j 100 -k"
+            "produce_sentdhiomr_snv_vcf --config 'dedupers=[\"na\"]' -p -j 100 -k"
         ),
         dryrun_dy_command=(
             "bin/day_run produce_snv_concordances produce_sentdhiomr_sv "
-            "produce_sentdhiomr_snv_vcf --config 'dedupers=[\"dmd\"]' -p -j 100 -k -n"
+            "produce_sentdhiomr_snv_vcf --config 'dedupers=[\"na\"]' -p -j 100 -k -n"
         ),
     ),
     "pacbio_solo": WorkflowCommandSpec(

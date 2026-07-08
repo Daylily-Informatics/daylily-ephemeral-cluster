@@ -1,0 +1,22 @@
+{
+    "CommandId": "3f16b946-c9d7-4d02-989b-d323c204af98",
+    "InstanceId": "i-06e429d2a68a0b1ec",
+    "Comment": "dyec103-cmdcat-headnode-readiness-after-control-data",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 0,
+    "ExecutionStartDateTime": "2026-07-07T16:05:41.809Z",
+    "ExecutionElapsedTime": "PT7.466S",
+    "ExecutionEndDateTime": "2026-07-07T16:05:48.809Z",
+    "Status": "Success",
+    "StatusDetails": "Success",
+    "StandardOutputContent": "DAY-EC activated.\nDAY-EC activated.\n__DYEC_VERSION__\n{\n  \"app\": \"Daylily Ephemeral Cluster\",\n  \"version\": \"10.0.99\"\n}\n__DYEC_REPO__\nbf6593926287a0b2cd035e37c6069e6e7752e140\n10.0.103\n__DAYOA_DEP__\n10.0.64\n__DAYOA_CATALOG_HEAD__\n200:    default_ref: 10.0.64\n205:        validated_version: 10.0.64\n238:        validated_version: 10.0.64\n300:        validated_version: 10.0.64\n413:        validated_version: 10.0.64\n488:        validated_version: 10.0.64\n525:        validated_version: 10.0.64\n586:        validated_version: 10.0.64\n631:        validated_version: 10.0.64\n668:        validated_version: 10.0.64\n730:        validated_version: 10.0.64\n779:        validated_version: 10.0.64\n841:        validated_version: 10.0.64\n901:        validated_version: 10.0.64\n964:        validated_version: 10.0.64\n1011:        validated_version: 10.0.64\n__TOOLS__\n/home/ubuntu/miniconda3/envs/DAY-EC/bin/dyec\n/home/ubuntu/.local/bin/day-clone\nDYEC_ANALYSIS_OK\nDAY_CLONE_OK\ntmux 3.2a\n__SQUEUE__\nJOBID  PARTITION  CPUS  ST  NODELIST  MIN_CPUS  STATE  MIN_MEMORY  TIME  NODES  NAME\n__MOUNTS__\nREFERENCES_OK\nCONTROL_DATA_OK\nFilesystem                  Size  Used Avail Use% Mounted on\n172.31.7.157@tcp:/3xr6vb4v   11T  108M   11T   1% /fsx\n172.31.7.157@tcp:/3xr6vb4v   11T  108M   11T   1% /fsx\n172.31.7.157@tcp:/3xr6vb4v   11T  108M   11T   1% /fsx\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from importlib.metadata import version as dist_version
 import json
 from pathlib import Path
 from subprocess import CompletedProcess
@@ -11,6 +10,7 @@ import pytest
 from typer.testing import CliRunner
 
 import daylily_ec.cli as cli_module
+from daylily_ec import versioning
 from daylily_ec.aws.ssm import (
     HeadNodeTarget,
     SsmCommandFailedError,
@@ -23,7 +23,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.64"
+DAYOA_BLESSED_TAG = "10.0.65"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -493,12 +493,13 @@ def test_runtime_commands_emit_json(monkeypatch, subcommand: str) -> None:
 
 
 def test_root_json_is_global_for_version() -> None:
+    versioning.get_version.cache_clear()
     result = runner.invoke(app, ["--json", "version"])
 
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert payload["app"] == "Daylily Ephemeral Cluster"
-    assert payload["version"] == dist_version("daylily-ephemeral-cluster")
+    assert payload["version"] == versioning.get_version()
 
 
 def test_root_json_is_global_for_info(monkeypatch, tmp_path) -> None:

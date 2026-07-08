@@ -18,6 +18,7 @@ from typing import Any, List, Optional
 import click
 import typer
 from cli_core_yo import output
+from cli_core_yo import app as cli_core_app
 from cli_core_yo.app import create_app
 from cli_core_yo.errors import CliCoreYoError
 from cli_core_yo.runtime import get_context
@@ -47,6 +48,7 @@ from daylily_ec._registry_v2 import (
     register_root_command,
     required_policy,
 )
+from daylily_ec import versioning
 from daylily_ec.resources import ensure_extracted
 from daylily_ec.workflow.snakemake_resources import DEFAULT_JOB_MAX_RUNTIME_MINUTES
 
@@ -116,6 +118,20 @@ def _resolve_executing_entity_option(
 
 def _dayec_info_hook() -> list[tuple[str, str]]:
     return [("Project Root", str(Path(__file__).resolve().parents[1]))]
+
+
+def _install_dayec_version_provider() -> None:
+    original_get_dist_version = cli_core_app._get_dist_version
+
+    def _get_dist_version(dist_name: str) -> str:
+        if dist_name == versioning.DIST_NAME:
+            return versioning.get_version()
+        return original_get_dist_version(dist_name)
+
+    cli_core_app._get_dist_version = _get_dist_version
+
+
+_install_dayec_version_provider()
 
 
 spec = CliSpec(

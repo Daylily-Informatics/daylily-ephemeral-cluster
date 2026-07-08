@@ -1,0 +1,39 @@
+→ Creating cluster in us-west-2c ...
+
+── INIT · cmdcat-103-all-20260707 ──
+    Account: 108782052779
+    User: root
+    Region: us-west-2 (us-west-2c)
+
+── PREFLIGHT ──
+  ✓ iam.policy.global
+  ✓ iam.policy.regional
+  ✓ iam.pcluster_omics_policy
+  ✓ config.repository_catalog
+  ✓ quota.ondemand_vcpu
+  ✓ quota.spot_vcpu
+  ✓ quota.vpcs
+  ✓ quota.elastic_ips
+  ✓ quota.nat_gateways
+  ✓ quota.internet_gateways
+  ✓ s3.role_config
+  ✓ s3.role_verify
+  ✓ Preflight passed — 12 checks OK
+
+── RESOURCE RESOLUTION ──
+  › Ensuring baseline CFN stack ...
+  ✓ CFN stack ready
+  ✓ Resources resolved
+    Reference: s3://lsmc-dayoa-references-usw2/
+    Control data: s3://lsmc-dayoa-control-data-usw2/
+    Runtime assets: s3://lsmc-dayoa-references-usw2/runtime_assets
+    Staging: s3://lsmc-ssf-sequencing-data/staged_external_data/
+    Export destination: s3://lsmc-ssf-sequencing-data/derived/
+    Subnets: pub=subnet-0310303ef3bcb8669  priv=subnet-0310303ef3bcb8669
+    Policy: arn:aws:iam::108782052779:policy/pclusterTagsAndBudget
+  › Resolving Slurm accounting DB ...
+Slurm accounting DB resolution failed: Failed to create Slurm accounting stack 'dayec-slurm-accounting-cmdcat-103b': Waiter StackCreateComplete failed: Waiter encountered a terminal failure state: For expression "Stacks[].StackStatus" we matched expected path: "ROLLBACK_COMPLETE" at least once
+  ✗ Slurm accounting DB: Failed to create Slurm accounting stack 
+'dayec-slurm-accounting-cmdcat-103b': Waiter StackCreateComplete failed: Waiter 
+encountered a terminal failure state: For expression "Stacks[].StackStatus" we 
+matched expected path: "ROLLBACK_COMPLETE" at least once

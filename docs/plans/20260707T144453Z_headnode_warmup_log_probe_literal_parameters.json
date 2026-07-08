@@ -1,0 +1,8 @@
+{
+  "commands": [
+    "sudo -iu ubuntu bash -lc 'echo ROOT=/home/ubuntu/daylily-runs/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z; find /home/ubuntu/daylily-runs/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z -maxdepth 5 -type f \\( -name \"*.log\" -o -name \"*.out\" -o -name \"*.err\" -o -name \"status.json\" -o -name \"*.status\" -o -name \"*.done\" \\) | sort | sed -n \"1,160p\"; echo ROOT=/fsx/analysis_results/ubuntu/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z/daylily-omics-analysis; find /fsx/analysis_results/ubuntu/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z/daylily-omics-analysis -maxdepth 5 -type f \\( -name \"*.log\" -o -name \"*.out\" -o -name \"*.err\" -o -name \"status.json\" -o -name \"*.status\" -o -name \"*.done\" \\) | sort | sed -n \"1,200p\"'"
+  ],
+  "executionTimeout": [
+    "120"
+  ]
+}

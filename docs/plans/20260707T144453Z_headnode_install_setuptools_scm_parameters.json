@@ -1,0 +1,8 @@
+{
+  "commands": [
+    "sudo -iu ubuntu bash -lc 'set -euo pipefail; cd ~/projects/daylily-ephemeral-cluster; source ./activate >/dev/null; python -m pip install \"setuptools-scm>=8\"; dyec --json version'"
+  ],
+  "executionTimeout": [
+    "300"
+  ]
+}

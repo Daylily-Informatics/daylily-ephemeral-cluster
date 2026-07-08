@@ -226,7 +226,7 @@ def parse_command_codes(command_codes: str, catalog: RepositoryCatalog) -> tuple
     if not requested:
         raise TestsRunnerError("--command-codes is required.")
     if requested.lower() == "all":
-        return tuple(command for command in catalog.commands() if command.type == "prod")
+        return tuple(catalog.commands())
     tokens = [token for token in requested.replace(",", " ").split() if token]
     commands: list[AnalysisCommand] = []
     seen: set[str] = set()
@@ -504,8 +504,7 @@ def run_command_catalog(
         poll_interval_seconds=options.poll_interval_seconds,
         output_dir=output_dir,
     )
-    reportable_results = [result for result in results if result.phase.command_type != "dev"]
-    rc = 0 if all(result.succeeded for result in reportable_results) else 1
+    rc = 0 if all(result.succeeded for result in results) else 1
     final = CommandCatalogResult(
         rc=rc,
         output_dir=output_dir,
@@ -838,25 +837,24 @@ def render_phases(
     phases: list[RenderedPhase] = []
     if not dry_run_only:
         for command in commands:
-            if command.command_id in LIVE_VALIDATION_COMMAND_IDS:
-                phases.append(
-                    render_phase(
-                        command,
-                        phase="warmup",
-                        manifests=manifests[command.command_id],
-                        evidence_prefix_s3_uri=evidence_prefix_s3_uri,
-                        executing_entity=executing_entity,
-                        profile=profile,
-                        region=region,
-                        cluster=cluster,
-                        jobs=jobs,
-                        output_dir=output_dir,
-                        stamp=stamp,
-                        max_runtime_minutes=max_runtime_minutes,
-                        warmup=True,
-                        dry_run=False,
-                    )
+            phases.append(
+                render_phase(
+                    command,
+                    phase="warmup",
+                    manifests=manifests[command.command_id],
+                    evidence_prefix_s3_uri=evidence_prefix_s3_uri,
+                    executing_entity=executing_entity,
+                    profile=profile,
+                    region=region,
+                    cluster=cluster,
+                    jobs=jobs,
+                    output_dir=output_dir,
+                    stamp=stamp,
+                    max_runtime_minutes=max_runtime_minutes,
+                    warmup=True,
+                    dry_run=False,
                 )
+            )
     for command in commands:
         phases.append(
             render_phase(
@@ -878,25 +876,24 @@ def render_phases(
         )
     if not dry_run_only:
         for command in commands:
-            if command.command_id in LIVE_VALIDATION_COMMAND_IDS:
-                phases.append(
-                    render_phase(
-                        command,
-                        phase="live",
-                        manifests=manifests[command.command_id],
-                        evidence_prefix_s3_uri=evidence_prefix_s3_uri,
-                        executing_entity=executing_entity,
-                        profile=profile,
-                        region=region,
-                        cluster=cluster,
-                        jobs=jobs,
-                        output_dir=output_dir,
-                        stamp=stamp,
-                        max_runtime_minutes=max_runtime_minutes,
-                        warmup=False,
-                        dry_run=False,
-                    )
+            phases.append(
+                render_phase(
+                    command,
+                    phase="live",
+                    manifests=manifests[command.command_id],
+                    evidence_prefix_s3_uri=evidence_prefix_s3_uri,
+                    executing_entity=executing_entity,
+                    profile=profile,
+                    region=region,
+                    cluster=cluster,
+                    jobs=jobs,
+                    output_dir=output_dir,
+                    stamp=stamp,
+                    max_runtime_minutes=max_runtime_minutes,
+                    warmup=False,
+                    dry_run=False,
                 )
+            )
     return tuple(phases)
 
 
@@ -957,10 +954,6 @@ def render_phase(
         cluster,
         "--session-name",
         session_name,
-        "--export-destination-s3-uri",
-        export_destination,
-        "--export-trigger",
-        "on-success",
         "--skip-project-check",
     ]
     if command.no_containerized:
@@ -1035,10 +1028,10 @@ def execute_phases(
     warmups = [phase for phase in phases if phase.phase == "warmup"]
     dryruns = [phase for phase in phases if phase.phase == "dryrun"]
     lives = [phase for phase in phases if phase.phase == "live"]
-    for phase in warmups:
+    for batch in chunked(warmups, parallel):
         results.extend(
             execute_batch(
-                [phase],
+                batch,
                 launch_func=launch_func,
                 status_func=status_func,
                 timeout_minutes=timeout_minutes,

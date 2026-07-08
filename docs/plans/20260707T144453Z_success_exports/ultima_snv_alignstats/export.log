@@ -1,0 +1,32 @@
+Wed Jul  8 00:29:58 UTC 2026
+command_id=ultima_snv_alignstats
+session=ccv_live_ultima_snv_alignstats_20260707T190607Z
+source_path=/fsx/analysis_results/ubuntu/ccv_live_ultima_snv_alignstats_20260707T190607Z
+destination_s3_uri=s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.64/20260707T144453Z/ubuntu/ccv_live_ultima_snv_alignstats_20260707T190607Z/
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+2026-07-07 17:29:58,432 INFO Found credentials in shared credentials file: ~/.aws/credentials
+  · Attached export DRA dra-090e676cef349f90b at 
+/fsx/analysis_results/ubuntu/ccv_live_ultima_snv_alignstats_20260707T190607Z/
+2026-07-07 17:32:51,609 INFO Task task-0c72fd42e04222fff status: PENDING
+2026-07-07 17:33:21,972 INFO Task task-0c72fd42e04222fff status: EXECUTING
+2026-07-07 17:33:52,401 INFO Task task-0c72fd42e04222fff status: SUCCEEDED
+2026-07-07 17:34:24,280 INFO Wrote export status to /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260707T144453Z_success_exports/ultima_snv_alignstats/fsx_export.yaml
+
+╭────────────────────────────── Export complete ───────────────────────────────╮
+│                                                                              │
+│  Cluster: cmdcat-103-all-20260707                                            │
+│  FSx: fs-0e89a93ffac2f0d93                                                   │
+│  Source:                                                                     │
+│  /analysis_results/ubuntu/ccv_live_ultima_snv_alignstats_20260707T190607Z/   │
+│  S3:                                                                         │
+│  s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-  │
+│  10.0.64/20260707T144453Z/ubuntu/ccv_live_ultima_snv_alignstats_20260707T19  │
+│  0607Z/                                                                      │
+│  Status file:                                                                │
+│  /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260707T  │
+│  144453Z_success_exports/ultima_snv_alignstats/fsx_export.yaml               │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Wed Jul  8 00:34:24 UTC 2026

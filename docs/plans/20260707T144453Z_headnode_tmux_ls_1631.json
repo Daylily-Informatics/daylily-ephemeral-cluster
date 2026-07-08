@@ -1,0 +1,22 @@
+{
+    "CommandId": "981639fb-40d9-4979-a17c-22cba45f8255",
+    "InstanceId": "i-06e429d2a68a0b1ec",
+    "Comment": "dyec103-headnode-tmux-ls-3",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 0,
+    "ExecutionStartDateTime": "2026-07-07T16:32:10.008Z",
+    "ExecutionElapsedTime": "PT5.428S",
+    "ExecutionEndDateTime": "2026-07-07T16:32:15.008Z",
+    "Status": "Success",
+    "StatusDetails": "Success",
+    "StandardOutputContent": "DAY-EC activated.\nDAY-EC activated.\nccv_dryrun_ultima_run_qc_20260707T144453Z: 1 windows (created Tue Jul  7 16:25:36 2026)\nccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z: 1 windows (created Tue Jul  7 16:17:07 2026)\nccv_warmup_ultima_run_qc_20260707T144453Z: 1 windows (created Tue Jul  7 16:23:56 2026)\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}

@@ -1,0 +1,42 @@
+{
+    "Associations": [
+        {
+            "AssociationId": "dra-00fe71946c0703b5a",
+            "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-0e89a93ffac2f0d93/dra-00fe71946c0703b5a",
+            "FileSystemId": "fs-0e89a93ffac2f0d93",
+            "Lifecycle": "AVAILABLE",
+            "FileSystemPath": "/control_data/",
+            "DataRepositoryPath": "s3://lsmc-dayoa-control-data-usw2",
+            "BatchImportMetaDataOnCreate": true,
+            "ImportedFileChunkSize": 1024,
+            "S3": {
+                "AutoImportPolicy": {
+                    "Events": [
+                        "NEW",
+                        "CHANGED",
+                        "DELETED"
+                    ]
+                }
+            },
+            "Tags": [
+                {
+                    "Key": "parallelcluster:cluster-name",
+                    "Value": "cmdcat-103-all-20260707"
+                },
+                {
+                    "Key": "aws-parallelcluster-clustername",
+                    "Value": "cmdcat-103-all-20260707"
+                },
+                {
+                    "Key": "aws-parallelcluster-project",
+                    "Value": "cmdcat-103-all-20260707"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "control-data"
+                }
+            ],
+            "CreationTime": "2026-07-07T08:51:38.348000-07:00"
+        }
+    ]
+}

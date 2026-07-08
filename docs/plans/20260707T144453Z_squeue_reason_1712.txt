@@ -1,0 +1,31 @@
+DAY-EC activated.
+DAY-EC activated.
+JOBID PARTITION CPUS ST NODELIST NODELIST(REASON) NAME
+25 i192 48 CF i192-dy-price192-1 i192-dy-price192-1 pre_prep_ont_cram-On1-HG003-3x-2-D0-PF-ONT-PROMETHION
+23 i192 32 CF i192-dy-price192-2 i192-dy-price192-2 fastqc_subsampled-I2-HG003-1x-1-D0-PF-ILMN-NOVASEQ
+22 i192 16 CF i192-dy-price192-1 i192-dy-price192-1 seqfu-I2-HG003-1x-1-D0-PF-ILMN-NOVASEQ
+20 i192 48 CF i192-dy-price192-1 i192-dy-price192-1 pre_prep_ont_cram-On1-HG003-3x-2-D0-PF-ONT-PROMETHION
+18 i192 32 CF i192-dy-price192-1 i192-dy-price192-1 fastqc_subsampled-I2-HG003-1x-1-D0-PF-ILMN-NOVASEQ
+17 i192 16 CF i192-dy-price192-1 i192-dy-price192-1 seqfu-I2-HG003-1x-1-D0-PF-ILMN-NOVASEQ
+16 i192hugenvme 48 PD  (ReqNodeNotAvail, UnavailableNodes:i192hugenvme-dy-price192hugenvme-1) run_bclconvert_lane-run_bclconvert_L004
+15 i192hugenvme 48 PD  (ReqNodeNotAvail, UnavailableNodes:i192hugenvme-dy-price192hugenvme-1) run_bclconvert_lane-run_bclconvert_L001
+14 i192hugenvme 48 PD  (ReqNodeNotAvail, UnavailableNodes:i192hugenvme-dy-price192hugenvme-1) run_bclconvert_lane-run_bclconvert_L008
+13 i192hugenvme 48 PD  (ReqNodeNotAvail, UnavailableNodes:i192hugenvme-dy-price192hugenvme-1) run_bclconvert_lane-run_bclconvert_L005
+12 i192hugenvme 48 PD  (ReqNodeNotAvail, UnavailableNodes:i192hugenvme-dy-price192hugenvme-1) run_bclconvert_lane-run_bclconvert_L002
+11 i192hugenvme 48 PD  (ReqNodeNotAvail, UnavailableNodes:i192hugenvme-dy-price192hugenvme-1) run_bclconvert_lane-run_bclconvert_L003
+10 i192hugenvme 48 PD  (ReqNodeNotAvail, UnavailableNodes:i192hugenvme-dy-price192hugenvme-1) run_bclconvert_lane-run_bclconvert_L007
+9 i192hugenvme 48 PD  (ReqNodeNotAvail, UnavailableNodes:i192hugenvme-dy-price192hugenvme-1) run_bclconvert_lane-run_bclconvert_L006
+8 i192hugenvme 48 PD  (Priority) run_bclconvert_lane-run_bclconvert_L003
+7 i192hugenvme 48 PD  (Priority) run_bclconvert_lane-run_bclconvert_L007
+6 i192hugenvme 48 PD  (Priority) run_bclconvert_lane-run_bclconvert_L001
+5 i192hugenvme 48 PD  (Priority) run_bclconvert_lane-run_bclconvert_L005
+4 i192hugenvme 48 PD  (Priority) run_bclconvert_lane-run_bclconvert_L004
+3 i192hugenvme 48 PD  (Nodes required for job are DOWN, DRAINED or reserved for jobs in higher priority partitions) run_bclconvert_lane-run_bclconvert_L008
+2 i192hugenvme 48 PD  (Priority) run_bclconvert_lane-run_bclconvert_L002
+1 i192hugenvme 48 PD  (Priority) run_bclconvert_lane-run_bclconvert_L006
+26 i384nvme 192 CF i384nvme-dy-mem384nvme-1 i384nvme-dy-mem384nvme-1 sentieon_cgt7p_bwa_sort-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI
+24 i384nvme 96 CF i384nvme-dy-mem384nvme-1 i384nvme-dy-mem384nvme-1 sentieon_bwa_sort-I2-HG003-1x-1-D0-PF-ILMN-NOVASEQ
+21 i384nvme 96 CF i384nvme-dy-price384nvme-1 i384nvme-dy-price384nvme-1 sentieon_bwa_sort-I2-HG003-1x-1-D0-PF-ILMN-NOVASEQ
+19 i384nvme 96 CF i384nvme-dy-price384nvme-1 i384nvme-dy-price384nvme-1 sentieon_bwa_sort-I2-HG003-1x-1-D0-PF-ILMN-NOVASEQ
+
+

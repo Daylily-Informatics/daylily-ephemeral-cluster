@@ -1,0 +1,8 @@
+{
+  "commands": [
+    "sudo -iu ubuntu bash -lc 'echo __STATUS__; cat /home/ubuntu/daylily-runs/ccv_warmup_ultima_run_qc_20260707T163300Z/status.json; echo __TMUX_LOG__; tail -n 180 /home/ubuntu/daylily-runs/ccv_warmup_ultima_run_qc_20260707T163300Z/tmux.log; echo __DAY_CMD__; tail -n 120 /fsx/analysis_results/ubuntu/ccv_warmup_ultima_run_qc_20260707T163300Z/daylily-omics-analysis/day_cmd.log; log=$(ls -1 /fsx/analysis_results/ubuntu/ccv_warmup_ultima_run_qc_20260707T163300Z/daylily-omics-analysis/.snakemake/log/*.snakemake.log 2>/dev/null | tail -n 1); if [ -n \"$log\" ]; then echo __SNAKEMAKE__=$log; tail -n 160 \"$log\"; fi'"
+  ],
+  "executionTimeout": [
+    "120"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "cluster": "cmdcat-103-all-20260707",
+  "cost_center": "cmdcat-103-deny-20260707",
+  "expected_message": "cost-center monthly cap exceeded",
+  "instance_id": "i-06e429d2a68a0b1ec",
+  "ssm_command_id": "5c36cb61-8300-4fc4-af51-531e460c9528",
+  "status": "pass",
+  "stderr": "DYEC sbatch enforcement: cluster 'cmdcat-103-all-20260707' budget in region 'us-west-2': total=5000.0 USD, used=0.0 USD, percent=0.00%.\nDYEC sbatch enforcement: cluster budget monitor: https://ursa.day.lsmc.bio/ursa-actions#budgets?budget=cmdcat-103-all-20260707\nERROR: cost-center monthly cap exceeded: spend=1, cap=1, latest_processed_hour=2026-07-07T17:00:00Z\nCluster budget: cmdcat-103-all-20260707\nCluster budget monitor: https://ursa.day.lsmc.bio/ursa-actions#budgets?budget=cmdcat-103-all-20260707\nCost center: cmdcat-103-deny-20260707\nCost-center report: https://ursa.day.lsmc.bio/ursa-actions#cost-centers?cost_center=cmdcat-103-deny-20260707",
+  "stdout": "DAY-EC activated.\nDAY-EC activated.\nsbatch_rc=1"
+}

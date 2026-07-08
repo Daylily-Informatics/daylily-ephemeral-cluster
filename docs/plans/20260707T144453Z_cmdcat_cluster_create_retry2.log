@@ -1,0 +1,152 @@
+→ Creating cluster in us-west-2c ...
+
+── INIT · cmdcat-103-all-20260707 ──
+    Account: 108782052779
+    User: root
+    Region: us-west-2 (us-west-2c)
+
+── PREFLIGHT ──
+  ✓ iam.policy.global
+  ✓ iam.policy.regional
+  ✓ iam.pcluster_omics_policy
+  ✓ config.repository_catalog
+  ✓ quota.ondemand_vcpu
+  ✓ quota.spot_vcpu
+  ✓ quota.vpcs
+  ✓ quota.elastic_ips
+  ✓ quota.nat_gateways
+  ✓ quota.internet_gateways
+  ✓ s3.role_config
+  ✓ s3.role_verify
+  ✓ Preflight passed — 12 checks OK
+
+── RESOURCE RESOLUTION ──
+  › Ensuring baseline CFN stack ...
+  ✓ CFN stack ready
+  ✓ Resources resolved
+    Reference: s3://lsmc-dayoa-references-usw2/
+    Control data: s3://lsmc-dayoa-control-data-usw2/
+    Runtime assets: s3://lsmc-dayoa-references-usw2/runtime_assets
+    Staging: s3://lsmc-ssf-sequencing-data/staged_external_data/
+    Export destination: s3://lsmc-ssf-sequencing-data/derived/
+    Subnets: pub=subnet-0310303ef3bcb8669  priv=subnet-0310303ef3bcb8669
+    Policy: arn:aws:iam::108782052779:policy/pclusterTagsAndBudget
+  › Resolving Slurm accounting DB ...
+  ✓ Slurm accounting DB ready
+    Accounting stack: dayec-slurm-accounting-cmdcat-103c
+    Accounting assign public IP: true
+    Accounting URI: 172.31.8.74:3306
+    Accounting database: dayec_slurm_acct
+    Accounting user: slurm_acct
+    Accounting secret: 
+arn:aws:secretsmanager:us-west-2:108782052779㊙AccountingPasswordSecret-92BEr4g2
+XZHh-nTwoQn
+    Accounting client SG: sg-03f4d4b7fc608b7ea
+  › Publishing cluster boot config to runtime assets ...
+  ✓ Cluster boot config published: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_
+rhel8_dragen.sh
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_
+ubuntu_combined.sh
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/sbatch
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/sleep_test.sh
+
+── PRE-CREATE: BUDGETS & HEARTBEAT ──
+
+── PRE-CREATE: BUDGETS ──
+  › Ensuring budgets and project allow-list ...
+  ✓ Budgets: global=daylily-global, project=cmdcat-103-all-20260707
+
+── RENDER CLUSTER YAML ──
+  › Rendering YAML template ...
+  › Applying spot prices ...
+  ✓ Cluster YAML ready: 
+/Users/jmajor/.config/daylily/cmdcat-103-all-20260707_cluster_20260707150913.yam
+l
+
+── DRY-RUN VALIDATION ──
+  › Running pcluster dry-run ...
+  ✓ Dry-run passed
+
+── CREATE CLUSTER ──
+  › Submitting cluster creation: cmdcat-103-all-20260707 ...
+  ✓ Cluster creation submitted
+
+── MONITOR ──
+  › Waiting for CREATE_COMPLETE ...
+  › Cluster creating ... 1s
+  › Cluster creating ... 33s
+  › Cluster creating ... 1m 5s
+  › Cluster creating ... 1m 37s
+  › Cluster creating ... 2m 9s
+  › Cluster creating ... 2m 41s
+  › Cluster creating ... 3m 13s
+  › Cluster creating ... 3m 45s
+  › Cluster creating ... 4m 17s
+  › Cluster creating ... 4m 49s
+  › Cluster creating ... 5m 21s
+  › Cluster creating ... 5m 53s
+  › Cluster creating ... 6m 25s
+  › Cluster creating ... 6m 57s
+  › Cluster creating ... 7m 29s
+  › Cluster creating ... 8m 1s
+  › Cluster creating ... 8m 33s
+  › Cluster creating ... 9m 5s
+  › Cluster creating ... 9m 37s
+  › Cluster creating ... 10m 9s
+  › Cluster creating ... 10m 41s
+  › Cluster creating ... 11m 13s
+  › Cluster creating ... 11m 45s
+  › Cluster creating ... 12m 17s
+  › Cluster creating ... 12m 49s
+  › Cluster creating ... 13m 21s
+  › Cluster creating ... 13m 53s
+  › Cluster creating ... 14m 26s
+  › Cluster creating ... 14m 58s
+  › Cluster creating ... 15m 30s
+  › Cluster creating ... 16m 3s
+  › Cluster creating ... 16m 35s
+  › Cluster creating ... 17m 7s
+  › Cluster creating ... 17m 39s
+  › Cluster creating ... 18m 11s
+  › Cluster creating ... 18m 43s
+  › Cluster creating ... 19m 15s
+  › Cluster creating ... 19m 47s
+  › Cluster creating ... 20m 19s
+  › Cluster creating ... 20m 52s
+  › Cluster creating ... 21m 24s
+  › Cluster creating ... 21m 56s
+  › Cluster creating ... 22m 28s
+  › Cluster creating ... 23m 1s
+  › Cluster creating ... 23m 33s
+  › Cluster creating ... 24m 5s
+  ✓ Cluster created in 24m 39s
+
+── HEADNODE CONFIGURATION ──
+  › Waiting for headnode SSM registration ...
+  › Configuring headnode ...
+  ✓ Headnode configured
+
+── POST-CREATE: HEARTBEAT ──
+  · Heartbeat skipped: 
+role=arn:aws:iam::108782052779:role/eventbridge-scheduler-to-sns
+
+── STATE SNAPSHOT ──
+  › Writing state record ...
+  ✓ State written: 
+/Users/jmajor/.config/daylily/state_cmdcat-103-all-20260707_20260707150913.json
+
+╭───────────────────────── CLUSTER CREATION COMPLETE ──────────────────────────╮
+│                                                                              │
+│  Cluster:  cmdcat-103-all-20260707                                           │
+│  Region:   us-west-2 (us-west-2c)                                            │
+│  Elapsed:  24m 39s                                                           │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster cmdcat-103-all-20260707
+...fin!

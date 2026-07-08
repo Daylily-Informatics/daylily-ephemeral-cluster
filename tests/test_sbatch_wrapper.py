@@ -76,6 +76,8 @@ if [ "$1" = "dynamodb" ] && [ "$2" = "get-item" ]; then
       unauthorized) printf '{{"Item":{{"cost_center":{{"S":"project-a"}},"status":{{"S":"active"}},"monthly_cap_usd":{{"N":"200"}},"allowed_users":{{"SS":["alice"]}}}}}}\\n' ;;
       disabled) printf '{{"Item":{{"cost_center":{{"S":"project-a"}},"status":{{"S":"disabled"}},"monthly_cap_usd":{{"N":"200"}},"allowed_users":{{"SS":["ubuntu"]}}}}}}\\n' ;;
       malformed) printf '{{"Item":{{"cost_center":{{"S":"project-a"}},"status":{{"S":"active"}},"monthly_cap_usd":{{"N":"NaN"}},"allowed_users":{{"SS":["ubuntu"]}}}}}}\\n' ;;
+      empty_json) : ;;
+      invalid_json) printf '{{"Item":' ;;
       *) echo 'bad registry mode' >&2; exit 2 ;;
     esac
     exit 0
@@ -88,6 +90,8 @@ if [ "$1" = "dynamodb" ] && [ "$2" = "get-item" ]; then
       exceeded) printf '{{"Item":{{"cost_center":{{"S":"project-a"}},"month":{{"S":"2026-07"}},"monthly_spend_usd":{{"N":"200"}},"latest_processed_hour":{{"S":"%s"}}}}}}\\n' "$latest" ;;
       stale) printf '{{"Item":{{"cost_center":{{"S":"project-a"}},"month":{{"S":"2026-07"}},"monthly_spend_usd":{{"N":"50"}},"latest_processed_hour":{{"S":"%s"}}}}}}\\n' "$stale" ;;
       missing) printf '{{}}\\n' ;;
+      empty_json) : ;;
+      invalid_json) printf '{{"Item":' ;;
       *) echo 'bad usage mode' >&2; exit 2 ;;
     esac
     exit 0
@@ -180,6 +184,22 @@ def test_sbatch_wrapper_rejects_unknown_cost_center(tmp_path: Path) -> None:
     assert "https://ursa.day.lsmc.bio/ursa-actions#cost-centers?cost_center=project-a" in result.stderr
 
 
+def test_sbatch_wrapper_rejects_empty_cost_center_registry_json(tmp_path: Path) -> None:
+    wrapper = _prepared_wrapper(tmp_path, registry_mode="empty_json")
+    result = _run(wrapper, "--comment", "project-a", "job.sh")
+    assert result.returncode == 1
+    assert "cost-center registry lookup returned empty JSON" in result.stderr
+    assert "JSONDecodeError" not in result.stderr
+
+
+def test_sbatch_wrapper_rejects_invalid_cost_center_registry_json(tmp_path: Path) -> None:
+    wrapper = _prepared_wrapper(tmp_path, registry_mode="invalid_json")
+    result = _run(wrapper, "--comment", "project-a", "job.sh")
+    assert result.returncode == 1
+    assert "cost-center registry lookup returned invalid JSON" in result.stderr
+    assert "JSONDecodeError" not in result.stderr
+
+
 def test_sbatch_wrapper_rejects_unauthorized_user(tmp_path: Path) -> None:
     wrapper = _prepared_wrapper(tmp_path, registry_mode="unauthorized")
     result = _run(wrapper, "--comment", "project-a", "job.sh")
@@ -214,6 +234,22 @@ def test_sbatch_wrapper_rejects_exceeded_cost_center_cap(tmp_path: Path) -> None
     result = _run(wrapper, "--comment", "project-a", "job.sh")
     assert result.returncode == 1
     assert "cost-center monthly cap exceeded" in result.stderr
+
+
+def test_sbatch_wrapper_rejects_empty_cost_center_usage_json(tmp_path: Path) -> None:
+    wrapper = _prepared_wrapper(tmp_path, usage_mode="empty_json")
+    result = _run(wrapper, "--comment", "project-a", "job.sh")
+    assert result.returncode == 1
+    assert "cost-center usage lookup returned empty JSON" in result.stderr
+    assert "JSONDecodeError" not in result.stderr
+
+
+def test_sbatch_wrapper_rejects_invalid_cost_center_usage_json(tmp_path: Path) -> None:
+    wrapper = _prepared_wrapper(tmp_path, usage_mode="invalid_json")
+    result = _run(wrapper, "--comment", "project-a", "job.sh")
+    assert result.returncode == 1
+    assert "cost-center usage lookup returned invalid JSON" in result.stderr
+    assert "JSONDecodeError" not in result.stderr
 
 
 def test_sbatch_wrapper_rejects_stale_cost_center_usage(tmp_path: Path) -> None:

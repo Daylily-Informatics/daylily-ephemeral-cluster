@@ -1,0 +1,6 @@
+{
+  "captured_at": "2026-07-07T22:49:05.849446+00:00",
+  "instance_id": "i-06e429d2a68a0b1ec",
+  "stdout": "DAY-EC activated.\nDAY-EC activated.\nTue Jul  7 22:49:05 UTC 2026\nSTART1\nrc=0\nPING1\nrc=9\nFailed to REDACTED REDACTED refused\nSTART2\nrc=0\nPING2\nrc=9\nFailed to REDACTED REDACTED refused\nPROCS\nubuntu   1695051       1  0 22:49 ?        00:00:00 /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/libexec/licsrvr --start --linger 300 -l /tmp/dayoa-licsrvr-probe300-1.log REDACTED.lic\nubuntu   1695053 1695051  0 22:49 ?        00:00:00 /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/libexec/licsrvr --start --linger 300 -l /tmp/dayoa-licsrvr-probe300-1.log REDACTED.lic\nubuntu   1695061       1  0 22:49 ?        00:00:00 /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/libexec/licsrvr --start --linger 300 -l /tmp/dayoa-licsrvr-probe300-2.log REDACTED.lic\nubuntu   1695062 1695061  0 22:49 ?        00:00:00 /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/libexec/licsrvr --start --linger 300 -l /tmp/dayoa-licsrvr-probe300-2.log REDACTED.lic\nSTOP\nrc=9\nFailed to REDACTED REDACTED refused\nFailed to signal the server to stop\n",
+  "stderr": ""
+}

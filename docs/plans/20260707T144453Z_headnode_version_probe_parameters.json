@@ -1,0 +1,8 @@
+{
+  "commands": [
+    "sudo -iu ubuntu bash -lc 'set -euo pipefail; cd ~/projects/daylily-ephemeral-cluster; source ./activate >/dev/null; echo __TYPE__; type -a dyec; echo __PIP_SHOW__; python -m pip show daylily-ephemeral-cluster; echo __MODULE__; python -c \"import daylily_ec, daylily_ec.versioning as v, importlib.metadata as m; print(daylily_ec.__file__); print(v.__file__); print(v.get_version()); print(m.version(\\\"daylily-ephemeral-cluster\\\"))\"; echo __GIT__; git rev-parse HEAD; git describe --tags --always; git status --short; echo __SETUPTOOLS_SCM__; python -c \"from setuptools_scm import get_version; print(get_version(root=\\\".\\\", tag_regex=r\\\"^(?P<version>\\\\d+\\\\.\\\\d+\\\\.\\\\d+(?:\\\\.\\\\d+)?)$\\\", version_scheme=\\\"guess-next-dev\\\", local_scheme=\\\"node-and-date\\\", fallback_version=\\\"0.0.0.dev0\\\"))\"'"
+  ],
+  "executionTimeout": [
+    "120"
+  ]
+}

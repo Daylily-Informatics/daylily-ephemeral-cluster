@@ -1,0 +1,18 @@
+DAY-EC activated.
+DAY-EC activated.
+PARTITION AVAIL TIMELIMIT NODES STATE NODELIST
+i8* up infinite 20 idle~ i8-dy-price8-[1-20]
+i128 up infinite 14 idle~ i128-dy-bigmem128-[1-2],i128-dy-mem128-[1-4],i128-dy-price128-[1-8]
+i128nvme up infinite 4 idle~ i128nvme-dy-price128nvme-[1-4]
+i192 up infinite 7 idle~ i192-dy-bigmem192-[1-2],i192-dy-mem192-[1-3],i192-dy-price192-[3-4]
+i192 up infinite 2 mix i192-dy-price192-[1-2]
+i192nvme up infinite 5 idle~ i192nvme-dy-bigmem192nvme-1,i192nvme-dy-mem192nvme-[1-2],i192nvme-dy-price192nvme-[1-2]
+i384nvme up infinite 1 mix# i384nvme-dy-bigmem384nvme-1
+i384nvme up infinite 1 mix i384nvme-dy-price384nvme-1
+i384nvme up infinite 1 alloc i384nvme-dy-mem384nvme-1
+i192hugenvme up infinite 1 down# i192hugenvme-dy-price192hugenvme-1
+-- reasons --
+REASON               USER      TIMESTAMP           NODELIST
+(Code:InsufficientIn root      2026-07-07T17:08:31 i192hugenvme-dy-price192hugenvme-1
+
+

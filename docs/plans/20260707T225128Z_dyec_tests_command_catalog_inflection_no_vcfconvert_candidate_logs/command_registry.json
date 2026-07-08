@@ -1,0 +1,10 @@
+{
+  "command_ids": [
+    "inflection-bjuice-product-v0.1"
+  ],
+  "dayoa_version": "7d519f966be5b489a055a2f2e510eec10c952a8d",
+  "dry_run_only": false,
+  "evidence_prefix_s3_uri": "s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.65-candidate/20260707T144453Z/cmdcat-103-all-20260707/command_catalog_results/7d519f966be5b489a055a2f2e510eec10c952a8d-20260707T225128Z/",
+  "jobs": 250,
+  "parallel": 1
+}

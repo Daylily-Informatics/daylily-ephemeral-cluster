@@ -13,7 +13,6 @@ from daylily_ec.repositories import load_repository_catalog
 from daylily_ec.run_mounts import MOUNT_PURPOSE_RUN, RunMountRecord
 from daylily_ec.tests_runner import (
     DYEC800_COMMAND_IDS,
-    LIVE_VALIDATION_COMMAND_IDS,
     CommandCatalogOptions,
     PhaseResult,
     RenderedPhase,
@@ -139,10 +138,11 @@ def test_command_code_parser_exact_all_duplicate_and_unknown() -> None:
         "ont_snv_alignstats",
     ]
     all_commands = parse_command_codes("all", catalog)
-    assert len(all_commands) == sum(1 for command in catalog.commands() if command.type == "prod")
-    assert "complete_genomics_mgi_snv_concordance" not in {
-        command.command_id for command in all_commands
-    }
+    assert len(all_commands) == len(tuple(catalog.commands()))
+    all_command_ids = {command.command_id for command in all_commands}
+    assert "complete_genomics_mgi_snv_concordance" in all_command_ids
+    assert "simple-test" in all_command_ids
+    assert "illumina_pangenome_snv" in all_command_ids
     assert (
         parse_command_codes("complete_genomics_mgi_snv_concordance", catalog)[0].command_id
         == "complete_genomics_mgi_snv_concordance"
@@ -314,6 +314,8 @@ def test_run_command_catalog_dry_run_only_renders_and_exports(tmp_path: Path) ->
     assert all("20260607T000000Z" in call[call.index("--analysis-id") + 1] for call in launch_calls)
     assert all("--dry-run" in call for call in launch_calls)
     assert all("-n" in call[call.index("--dy-command") + 1] for call in launch_calls)
+    assert all("--export-destination-s3-uri" not in call for call in launch_calls)
+    assert all("--export-trigger" not in call for call in launch_calls)
     ont_call = next(call for call in launch_calls if "ont_run_qc" in call[call.index("--analysis-id") + 1])
     ont_command = ont_call[ont_call.index("--dy-command") + 1]
     assert "run_context_file=config/runs.tsv" in ont_command
@@ -328,7 +330,7 @@ def test_run_command_catalog_dry_run_only_renders_and_exports(tmp_path: Path) ->
     assert (tmp_path / "summary.json").is_file()
 
 
-def test_run_command_catalog_live_only_runs_kitchen_sinks_after_dryrun(tmp_path: Path) -> None:
+def test_run_command_catalog_live_runs_all_requested_after_dryrun(tmp_path: Path) -> None:
     launch_calls: list[list[str]] = []
 
     result = run_command_catalog(
@@ -355,11 +357,15 @@ def test_run_command_catalog_live_only_runs_kitchen_sinks_after_dryrun(tmp_path:
     )
 
     phase_names = [phase.phase.phase for phase in result.phases]
-    assert phase_names[:2] == ["warmup", "warmup"]
+    assert phase_names[:3] == ["warmup", "warmup", "warmup"]
     assert phase_names.count("dryrun") == 3
-    assert phase_names.count("live") == 2
+    assert phase_names.count("live") == 3
     live_ids = {phase.phase.command_id for phase in result.phases if phase.phase.phase == "live"}
-    assert live_ids <= LIVE_VALIDATION_COMMAND_IDS
+    assert live_ids == {
+        "illumina_snv_alignstats",
+        "illumina_hg002_kitchensink_multiqc",
+        "ont_snv_alignstats_kitchensink",
+    }
     warmup_commands = [
         call[call.index("--dy-command") + 1]
         for call in launch_calls
@@ -367,6 +373,14 @@ def test_run_command_catalog_live_only_runs_kitchen_sinks_after_dryrun(tmp_path:
     ]
     assert warmup_commands
     assert all("--conda-create-envs-only" in command for command in warmup_commands)
+    assert all("--export-destination-s3-uri" not in call for call in launch_calls)
+    assert json.loads(
+        (tmp_path / "illumina_snv_alignstats" / "live_rendered.json").read_text(
+            encoding="utf-8"
+        )
+    )["export_destination_s3_uri"].endswith(
+        "/ubuntu/ccv_live_illumina_snv_alignstats_20260607T000000Z/"
+    )
 
 
 def test_run_command_catalog_live_runs_pangenome_dev_commands(tmp_path: Path) -> None:
@@ -399,7 +413,7 @@ def test_run_command_catalog_live_runs_pangenome_dev_commands(tmp_path: Path) ->
     assert all(phase.phase.command_type == "dev" for phase in result.phases)
 
 
-def test_run_command_catalog_ignores_dev_commands_for_aggregate_rc(tmp_path: Path) -> None:
+def test_run_command_catalog_counts_dev_commands_for_aggregate_rc(tmp_path: Path) -> None:
     launch_calls: list[list[str]] = []
 
     result = run_command_catalog(
@@ -421,7 +435,7 @@ def test_run_command_catalog_ignores_dev_commands_for_aggregate_rc(tmp_path: Pat
         mount_list_func=lambda **_kwargs: [],
     )
 
-    assert result.rc == 0
+    assert result.rc == 1
     assert len(result.phases) == 1
     assert result.phases[0].phase.command_type == "dev"
     assert result.phases[0].succeeded is False
@@ -811,3 +825,48 @@ def test_render_phase_none_contract_and_execution_failure_paths(tmp_path: Path) 
     )
     assert [result.phase.phase for result in gated] == ["dryrun", "live"]
     assert gated[1].status_payload["reason"] == "dryrun did not succeed"
+
+
+def test_execute_phases_batches_warmups_by_parallel(tmp_path: Path) -> None:
+    launches: list[str] = []
+    status_launch_counts: list[int] = []
+
+    phases = [
+        RenderedPhase(
+            command_id=f"cmd{i}",
+            command_type="prod",
+            phase="warmup",
+            analysis_id=f"warmup-{i}",
+            session_name=f"warmup-{i}",
+            dy_command="dy-r all --conda-create-envs-only",
+            workflow_argv=("workflow", "launch", "--analysis-id", f"warmup-{i}"),
+            export_destination_s3_uri=f"s3://bucket/ubuntu/warmup-{i}/",
+        )
+        for i in range(3)
+    ]
+
+    def launch(argv: list[str]) -> int:
+        launches.append(argv[argv.index("--analysis-id") + 1])
+        return 0
+
+    def status(_metadata, _phase) -> dict[str, int]:
+        status_launch_counts.append(len(launches))
+        return {"exit_code": 0}
+
+    results = execute_phases(
+        phases,
+        dry_run_only=True,
+        parallel=2,
+        launch_func=launch,
+        status_func=status,
+        timeout_minutes=1,
+        poll_interval_seconds=1,
+        output_dir=tmp_path,
+    )
+
+    assert [result.phase.analysis_id for result in results] == [
+        "warmup-0",
+        "warmup-1",
+        "warmup-2",
+    ]
+    assert status_launch_counts == [2, 2, 3]
