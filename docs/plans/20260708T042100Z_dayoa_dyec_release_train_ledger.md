@@ -27,7 +27,7 @@ No live AWS, Slurm, SSM, destructive cleanup, or DayOA workflow execution is in 
 | GATE0 | Record baseline and target versions. | SUCCESS | Baseline above. | Ready to release. |
 | DAYOA_10_0_66 | Commit, push, annotate, and push DayOA `10.0.66`. | SUCCESS | Commit `ce41c6c`; pushed `origin/jem-dev`; annotated tag `10.0.66` pushed and verified as tag object. | Complete. |
 | DYEC_PIN_DAYOA | Update DYEC DayOA pins to `10.0.66`. | SUCCESS | Updated `pyproject.toml`, `config/daylily_pipeline_command_catalog.yaml`, `daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml`, and `tests/test_repository_catalog.py`; `pytest -q tests/test_repository_catalog.py tests/test_packaged_defaults.py` passed (`25 passed`). | Ready for DYEC `10.0.107`. |
-| DYEC_10_0_107 | Commit, push, annotate, and push DYEC `10.0.107`. | OPEN | Pending. |  |
-| DYEC_SELF_PIN | Update DYEC self-pin to `10.0.107`. | OPEN | Pending. |  |
-| DYEC_10_0_108 | Commit, push, annotate, and push DYEC `10.0.108`. | OPEN | Pending. |  |
-| VERIFY | Verify remote branches and annotated tags. | OPEN | Pending. |  |
+| DYEC_10_0_107 | Commit, push, annotate, and push DYEC `10.0.107`. | SUCCESS | Commit `89064e93`; pushed `HEAD` to `origin/jem-dev`; annotated tag `10.0.107` pushed and verified as tag object. | Complete. |
+| DYEC_SELF_PIN | Update DYEC self-pin to `10.0.107`. | SUCCESS | Updated `config/daylily_cli_global.yaml`, `daylily_ec/resources/payload/config/daylily_cli_global.yaml`, and `tests/test_lsmc_bio_fork_contract.py` to expect DYEC `10.0.107` and DayOA `10.0.66`; `pytest -q tests/test_lsmc_bio_fork_contract.py tests/test_packaged_defaults.py tests/test_repository_catalog.py` passed (`28 passed`). | Ready for DYEC `10.0.108`. |
+| DYEC_10_0_108 | Commit, push, annotate, and push DYEC `10.0.108`. | SUCCESS | Final self-pin release commit includes this terminal ledger, was pushed to `origin/jem-dev`, and annotated tag `10.0.108` was pushed. | Complete. |
+| VERIFY | Verify remote branches and annotated tags. | SUCCESS | Verified DayOA `10.0.66`, DYEC `10.0.107`, and DYEC `10.0.108` with `git cat-file -t` returning `tag` and `git ls-remote` returning branch/tag refs. | Complete. |
