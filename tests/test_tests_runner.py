@@ -53,7 +53,7 @@ from daylily_ec.tests_runner import (
 
 
 runner = CliRunner()
-DAYOA_BLESSED_TAG = "10.0.70"
+DAYOA_BLESSED_TAG = "10.0.71"
 
 
 def _run_mount_record(
@@ -567,10 +567,10 @@ def test_run_command_catalog_renders_dragen_dev_command_with_rhel_profile(
     ).open(newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle, delimiter="\t"))
     assert rows[0]["ILMN_R1_FQ"].startswith(
-        "/fsx/references/genomic_data/organism_reads_slim/"
+        "/fsx/data/genomic_data/organism_reads_slim/"
     )
     assert rows[0]["ILMN_R2_FQ"].startswith(
-        "/fsx/references/genomic_data/organism_reads_slim/"
+        "/fsx/data/genomic_data/organism_reads_slim/"
     )
     assert rows[0]["STAGE_DIRECTIVE"] == "pass_through"
 
@@ -770,6 +770,14 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
     ) == "s3://bucket/root/dyec800/command_catalog_results/10.0.0-20260607T000000Z/"
     assert (
         role_root_uri(
+            mount_path="/fsx/data",
+            data_root="/fsx/data/genomic_data/organism_reads_slim",
+            s3_uri="s3://bucket/genomic_data/organism_reads_slim/",
+        )
+        == "s3://bucket/"
+    )
+    assert (
+        role_root_uri(
             mount_path="/fsx/references",
             data_root="/fsx/references",
             s3_uri="s3://bucket/",
@@ -876,12 +884,17 @@ def test_manifest_conversion_and_stage_failure(tmp_path: Path) -> None:
     converted = convert_sample_row(
         {
             None: "ignored",
+            "SLIM": (
+                "s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/"
+                "HG003/R1.fastq.gz"
+            ),
             "REFERENCE": "s3://lsmc-dayoa-references-usw2/hg38/file.fa",
             "CONTROL": "s3://lsmc-dayoa-control-data-usw2/truth.vcf.gz",
             "MIXED": "plain,s3://lsmc-dayoa-references-usw2/index",
         }
     )
     assert None not in converted
+    assert converted["SLIM"] == "/fsx/data/genomic_data/organism_reads_slim/HG003/R1.fastq.gz"
     assert converted["REFERENCE"] == "/fsx/references/hg38/file.fa"
     assert converted["CONTROL"] == "/fsx/control_data/truth.vcf.gz"
     assert converted["MIXED"] == "plain,/fsx/references/index"

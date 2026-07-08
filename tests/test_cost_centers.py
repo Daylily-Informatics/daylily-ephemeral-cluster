@@ -15,6 +15,7 @@ from daylily_ec.aws.cost_centers import (
     list_cost_centers,
     put_cost_center_usage,
     validate_cost_center_name,
+    validate_latest_processed_hour,
     CostCenterUsage,
 )
 
@@ -158,7 +159,7 @@ def test_list_and_usage():
         "b-project",
     ]
 
-    put_cost_center_usage(
+    written = put_cost_center_usage(
         dynamo,
         CostCenterUsage(
             name="a-project",
@@ -169,5 +170,24 @@ def test_list_and_usage():
         ),
         usage_table_name="usage",
     )
+    assert written.latest_processed_hour == "2026-07-05T00:00:00Z"
     usage = get_cost_center_usage(dynamo, "a-project", month="2026-07", usage_table_name="usage")
     assert str(usage.monthly_spend_usd) == "5"
+
+    assert validate_latest_processed_hour("2026-07-05T01:00:00+00:00") == (
+        "2026-07-05T01:00:00Z"
+    )
+    with pytest.raises(CostCenterError, match="rounded to the UTC hour"):
+        validate_latest_processed_hour("2026-07-05T01:30:00Z")
+    with pytest.raises(CostCenterError, match="monthly_spend_usd"):
+        put_cost_center_usage(
+            dynamo,
+            CostCenterUsage(
+                name="a-project",
+                month="2026-07",
+                monthly_spend_usd="-1",
+                latest_processed_hour="2026-07-05T00:00:00Z",
+                updated_at="2026-07-05T01:00:00Z",
+            ),
+            usage_table_name="usage",
+        )

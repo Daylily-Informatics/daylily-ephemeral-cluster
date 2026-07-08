@@ -23,7 +23,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.70"
+DAYOA_BLESSED_TAG = "10.0.71"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -63,6 +63,7 @@ EXPECTED_COMMANDS = {
     ("cost-centers", "show"),
     ("cost-centers", "list"),
     ("cost-centers", "usage"),
+    ("cost-centers", "put-usage"),
     ("cost-centers", "ensure-cur-export"),
     ("headnode", "init"),
     ("headnode", "connect"),
@@ -240,6 +241,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     aws_validate_quotas_cmd = registry.get_command(("aws", "validate", "quotas"))
     aws_validate_all_cmd = registry.get_command(("aws", "validate", "all"))
     slurm_accounting_ensure_cmd = registry.get_command(("slurm-accounting", "ensure"))
+    cost_centers_put_usage_cmd = registry.get_command(("cost-centers", "put-usage"))
     cost_centers_ensure_cur_export_cmd = registry.get_command(("cost-centers", "ensure-cur-export"))
 
     assert version_cmd is not None
@@ -446,6 +448,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert slurm_accounting_ensure_cmd.policy.supports_json is True
     assert slurm_accounting_ensure_cmd.policy.mutates_state is True
     assert slurm_accounting_ensure_cmd.policy.long_running is True
+
+    assert cost_centers_put_usage_cmd is not None
+    assert cost_centers_put_usage_cmd.policy.supports_json is True
+    assert cost_centers_put_usage_cmd.policy.mutates_state is True
+    assert cost_centers_put_usage_cmd.policy.long_running is False
 
     assert cost_centers_ensure_cur_export_cmd is not None
     assert cost_centers_ensure_cur_export_cmd.policy.supports_json is True

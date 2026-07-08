@@ -426,6 +426,26 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'DAYLILY_TMUX_LOG="$tmux_log"' in script
         assert 'tmux_session_name="${SESSION_NAME//[^A-Za-z0-9_-]/_}"' in script
         assert 'tmux has-session -t "=$tmux_session_name"' in script
+        assert 'runtime_tmp_name="${SESSION_NAME//[^A-Za-z0-9_-]/_}"' in script
+        assert (
+            'export DAYOA_RUNTIME_TMPDIR="${DAYOA_RUNTIME_TMPDIR:-/tmp/dayoa-conda-tmp-$runtime_tmp_name}"'
+            in script
+        )
+        assert 'export TMPDIR="$DAYOA_RUNTIME_TMPDIR"' in script
+        assert 'export TMP="$DAYOA_RUNTIME_TMPDIR"' in script
+        assert 'export TEMP="$DAYOA_RUNTIME_TMPDIR"' in script
+        assert 'export PIP_CACHE_DIR="${PIP_CACHE_DIR:-$DAYOA_RUNTIME_TMPDIR/pip-cache}"' in script
+        assert 'export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$DAYOA_RUNTIME_TMPDIR/xdg-cache}"' in script
+        assert 'export PIP_BUILD_TRACKER="${PIP_BUILD_TRACKER:-$DAYOA_RUNTIME_TMPDIR/pip-build-tracker}"' in script
+        assert "patch_dayoa_runtime_tmpdir_wrappers()" in script
+        assert "DayOA runtime TMPDIR wrapper repair" in script
+        assert "configured_tmpdir=$(yq -r '.daylily.sentieon_tmpdir'" in script
+        assert script.index("patch_dayoa_runtime_tmpdir_wrappers") < script.index(
+            '. "$HOME/miniconda3/etc/profile.d/conda.sh"'
+        )
+        assert script.index("patch_dayoa_runtime_tmpdir_wrappers") < script.index(
+            ". bin/day_activate slurm hg38 remote"
+        )
         assert 'repo_key = "daylily-omics-analysis"' in script
         assert "DAY_CONTAINERIZED=true" in script
         assert "DY_COMMAND='DAY_CONTAINERIZED=true" in script

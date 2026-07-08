@@ -594,20 +594,31 @@ def default_launch_func(argv: list[str]) -> int:
 
 
 def catalog_role_uris(catalog: RepositoryCatalog) -> dict[str, str]:
-    roles: dict[str, str] = {}
+    reference_uri = ""
+    control_data_uri = ""
     for location in catalog.test_data_locations:
-        if location.mount_path in {"/fsx/references", "/fsx/control_data"}:
-            roles[location.mount_path] = role_root_uri(
+        if location.mount_path in {"/fsx/data", "/fsx/references"}:
+            reference_uri = role_root_uri(
                 mount_path=location.mount_path,
                 data_root=location.data_root,
                 s3_uri=location.s3_uri,
             )
-    missing = [path for path in ("/fsx/references", "/fsx/control_data") if path not in roles]
+        elif location.mount_path == "/fsx/control_data":
+            control_data_uri = role_root_uri(
+                mount_path=location.mount_path,
+                data_root=location.data_root,
+                s3_uri=location.s3_uri,
+            )
+    missing = []
+    if not reference_uri:
+        missing.append("/fsx/data")
+    if not control_data_uri:
+        missing.append("/fsx/control_data")
     if missing:
         raise TestsRunnerError("Catalog is missing test data locations for: " + ", ".join(missing))
     return {
-        "reference_s3_uri": roles["/fsx/references"],
-        "control_data_s3_uri": roles["/fsx/control_data"],
+        "reference_s3_uri": reference_uri,
+        "control_data_s3_uri": control_data_uri,
     }
 
 
@@ -858,6 +869,9 @@ def convert_manifest_value(value: str) -> str:
 def convert_manifest_path(value: str) -> str:
     text = value.strip()
     replacements = {
+        "s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/": (
+            "/fsx/data/genomic_data/organism_reads_slim/"
+        ),
         "s3://lsmc-dayoa-references-usw2/": "/fsx/references/",
         "s3://lsmc-dayoa-control-data-usw2/": "/fsx/control_data/",
     }

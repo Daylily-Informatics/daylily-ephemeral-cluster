@@ -19,7 +19,7 @@ ephemeral_cluster:
     fsx_fs_size: [USESETVALUE, "", "4800"]
     enable_detailed_monitoring: [USESETVALUE, "", "false"]
     delete_local_root: [USESETVALUE, "", "true"]
-    dragen_pcluster_ami: [USESETVALUE, "", ""]
+    dragen_pcluster_ami: [USESETVALUE, "", "ami-09fd9c3c129952e5f"]
     auto_delete_fsx: [USESETVALUE, "", "Delete"]
     heartbeat_email: [USESETVALUE, "", ""]
     heartbeat_schedule: [USESETVALUE, "", "rate(60 minutes)"]

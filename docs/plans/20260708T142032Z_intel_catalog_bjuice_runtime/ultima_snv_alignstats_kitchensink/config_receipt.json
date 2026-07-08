@@ -1,0 +1,7 @@
+{
+  "analysis_id": "ccv_live_ultima_snv_alignstats_kitchensink_20260708T142032Z",
+  "command_id": "ultima_snv_alignstats_kitchensink",
+  "manifest": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/ultima_snv_alignstats_kitchensink/analysis_samples.tsv",
+  "samples": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/ultima_snv_alignstats_kitchensink/config/20260708T144414Z_f7e24386_samples.tsv",
+  "units": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/ultima_snv_alignstats_kitchensink/config/20260708T144414Z_f7e24386_units.tsv"
+}

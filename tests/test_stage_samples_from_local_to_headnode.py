@@ -225,10 +225,10 @@ def test_main_config_only_writes_local_configs_without_remote_stage(
                     "1",
                     "D0",
                     concordance,
-                    "/fsx/references/genomic_data/organism_reads_slim/fastq/"
+                    "/fsx/data/genomic_data/organism_reads_slim/fastq/"
                     "H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/"
                     "downsampled/HG003_5x_R1.fastq.gz",
-                    "/fsx/references/genomic_data/organism_reads_slim/fastq/"
+                    "/fsx/data/genomic_data/organism_reads_slim/fastq/"
                     "H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/"
                     "downsampled/HG003_5x_R2.fastq.gz",
                     "pass_through",
@@ -275,7 +275,7 @@ def test_main_config_only_writes_local_configs_without_remote_stage(
     assert rc == 0
     generated = sorted(config_dir.glob("*_*.tsv"))
     assert [path.name.rsplit("_", 1)[-1] for path in generated] == ["samples.tsv", "units.tsv"]
-    assert "/fsx/references/genomic_data/organism_reads_slim" in generated[1].read_text(
+    assert "/fsx/data/genomic_data/organism_reads_slim" in generated[1].read_text(
         encoding="utf-8"
     )
     out = capsys.readouterr().out
@@ -355,11 +355,17 @@ def test_main_config_only_rejects_stage_data_rows(
 def test_headnode_visible_path_rejects_legacy_data_prefix() -> None:
     with pytest.raises(module.CommandError, match="explicit role roots"):
         module.headnode_visible_path("/data")
-    with pytest.raises(module.CommandError, match="explicit role roots"):
-        module.headnode_visible_path("/fsx/data")
+    assert module.headnode_visible_path("/fsx/data") == "/fsx/data"
+    assert (
+        module.headnode_visible_path("/fsx/data/genomic_data/organism_reads_slim")
+        == "/fsx/data/genomic_data/organism_reads_slim"
+    )
     assert (
         module.headnode_visible_path("/fsx/staging/staged_external_sequencing_data/remote_stage_1")
         == "/fsx/staging/staged_external_sequencing_data/remote_stage_1"
+    )
+    assert module.is_headnode_visible_path(
+        "/fsx/data/genomic_data/organism_reads_slim/HG003/R1.fastq.gz"
     )
     assert module.is_headnode_visible_path("/fsx/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz")
     assert module.is_headnode_visible_path("/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz")
@@ -739,6 +745,13 @@ def test_retired_staging_paths_are_rejected() -> None:
             module.headnode_visible_path(path)
         with pytest.raises(module.CommandError, match="retired staging path"):
             module.build_reference_uri(path, _s3_role_uris())
+
+
+def test_build_reference_uri_supports_fsx_data_reference_namespace() -> None:
+    assert module.build_reference_uri(
+        "/fsx/data/genomic_data/organism_reads_slim/HG003/R1.fastq.gz",
+        _s3_role_uris(),
+    ) == "s3://reference-bucket/genomic_data/organism_reads_slim/HG003/R1.fastq.gz"
 
 
 def test_stage_target_only_allows_external_sequencing_data_root() -> None:

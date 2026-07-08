@@ -871,6 +871,22 @@ export DAYLILY_STATUS_FILE="$STATUS_FILE"
 export DAYLILY_STATUS_SESSION="$SESSION_NAME"
 export DAYLILY_STATUS_REPO_PATH="${{DAYLILY_REPO_PATH}}"
 export DAYLILY_STATUS_COMMAND="$DY_COMMAND"
+runtime_tmp_name="${{SESSION_NAME//[^A-Za-z0-9_-]/_}}"
+if [[ -z "$runtime_tmp_name" ]]; then
+  echo "__DAYLILY_ERROR__=invalid_runtime_tmp_name"
+  exit 8
+fi
+export DAYOA_RUNTIME_TMPDIR="${{DAYOA_RUNTIME_TMPDIR:-/tmp/dayoa-conda-tmp-$runtime_tmp_name}}"
+mkdir -p "$DAYOA_RUNTIME_TMPDIR" \
+  "$DAYOA_RUNTIME_TMPDIR/pip-cache" \
+  "$DAYOA_RUNTIME_TMPDIR/xdg-cache" \
+  "$DAYOA_RUNTIME_TMPDIR/pip-build-tracker"
+export TMPDIR="$DAYOA_RUNTIME_TMPDIR"
+export TMP="$DAYOA_RUNTIME_TMPDIR"
+export TEMP="$DAYOA_RUNTIME_TMPDIR"
+export PIP_CACHE_DIR="${{PIP_CACHE_DIR:-$DAYOA_RUNTIME_TMPDIR/pip-cache}}"
+export XDG_CACHE_HOME="${{XDG_CACHE_HOME:-$DAYOA_RUNTIME_TMPDIR/xdg-cache}}"
+export PIP_BUILD_TRACKER="${{PIP_BUILD_TRACKER:-$DAYOA_RUNTIME_TMPDIR/pip-build-tracker}}"
 export DAYLILY_STATUS_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export DAYLILY_STATUS_COMPLETED_AT=""
 export DAYLILY_STATUS_EXIT_CODE="__PENDING__"
@@ -1209,7 +1225,76 @@ payload = "run_qc=" + json.dumps(
 print(shlex.quote(payload))
 PYULTIMACFG
 )"
-  DY_COMMAND="$DY_COMMAND --config $extra_config"
+	DY_COMMAND="$DY_COMMAND --config $extra_config"
+}}
+
+patch_dayoa_runtime_tmpdir_wrappers() {{
+  python3 - <<'PYRUNTMP'
+from pathlib import Path
+
+edits = {{
+    "bin/day_run": [
+        (
+            "export TMPDIR=$(yq -r '.daylily.sentieon_tmpdir' \\"$CONFIG_FILE\\")\\n"
+            "mkdir -p \\"$TMPDIR\\";\\n"
+            "export TMP=$TMPDIR\\n"
+            "export TEMP=$TMPDIR",
+            "configured_tmpdir=$(yq -r '.daylily.sentieon_tmpdir' \\"$CONFIG_FILE\\")\\n"
+            "export TMPDIR=\\"${{DAYOA_RUNTIME_TMPDIR:-$configured_tmpdir}}\\"\\n"
+            "mkdir -p \\"$TMPDIR\\";\\n"
+            "export TMP=\\"$TMPDIR\\"\\n"
+            "export TEMP=\\"$TMPDIR\\"",
+        ),
+    ],
+    "bin/day_activate": [
+        (
+            "    export SENTIEON_TMPDIR=\\"$DAYOA_MAC_STATE_DIR/sentieon_tmp\\"\\n"
+            "    mkdir -p \\"$SENTIEON_TMPDIR\\" || return 3\\n"
+            "    export TMPDIR=\\"$SENTIEON_TMPDIR\\"",
+            "    export SENTIEON_TMPDIR=\\"$DAYOA_MAC_STATE_DIR/sentieon_tmp\\"\\n"
+            "    mkdir -p \\"$SENTIEON_TMPDIR\\" || return 3\\n"
+            "    export TMPDIR=\\"${{DAYOA_RUNTIME_TMPDIR:-$SENTIEON_TMPDIR}}\\"\\n"
+            "    mkdir -p \\"$TMPDIR\\" || return 3\\n"
+            "    export TMP=\\"$TMPDIR\\"\\n"
+            "    export TEMP=\\"$TMPDIR\\"",
+        ),
+        (
+            "    export SENTIEON_TMPDIR=$(yq -r '.daylily.sentieon_tmpdir' \\"$CONFIG_FILE\\")\\n"
+            "    export TMPDIR=$SENTIEON_TMPDIR",
+            "    export SENTIEON_TMPDIR=$(yq -r '.daylily.sentieon_tmpdir' \\"$CONFIG_FILE\\")\\n"
+            "    export TMPDIR=\\"${{DAYOA_RUNTIME_TMPDIR:-$SENTIEON_TMPDIR}}\\"\\n"
+            "    mkdir -p \\"$TMPDIR\\" || return 3\\n"
+            "    export TMP=\\"$TMPDIR\\"\\n"
+            "    export TEMP=\\"$TMPDIR\\"",
+        ),
+    ],
+}}
+
+changed = []
+for name, replacements in edits.items():
+    path = Path(name)
+    if not path.is_file():
+        raise SystemExit(f"[ERROR] DayOA runtime TMPDIR repair target missing: {{path}}")
+    original = path.read_text(encoding="utf-8")
+    text = original
+    for old, new in replacements:
+        if old in text:
+            text = text.replace(old, new, 1)
+            changed.append(name)
+        elif new in text:
+            continue
+        else:
+            raise SystemExit(
+                f"[ERROR] DayOA runtime TMPDIR repair target not found in {{path}}"
+            )
+    if text != original:
+        path.write_text(text, encoding="utf-8")
+
+print(
+    "[INFO] DayOA runtime TMPDIR wrapper repair: "
+    + (",".join(sorted(set(changed))) if changed else "already-present")
+)
+PYRUNTMP
 }}
 
 ont_run_qc_runtime_repair_requested() {{
@@ -1780,6 +1865,8 @@ PYCONTAMZERO
 	else
 	  echo "[INFO] Input staging skipped for this catalog command."
 	fi
+
+patch_dayoa_runtime_tmpdir_wrappers
 
 if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then
   echo "[ERROR] Missing conda profile script at $HOME/miniconda3/etc/profile.d/conda.sh"

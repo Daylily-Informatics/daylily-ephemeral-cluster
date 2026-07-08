@@ -94,8 +94,11 @@ class ConfigFile(BaseModel):
 
 # ---------------------------------------------------------------------------
 # Required config keys — must exist in the config section.  If missing,
-# ``ensure_required_keys`` adds them as ``[PROMPTUSER, "", ""]``.
+# ``ensure_required_keys`` adds them as promptable triplets with the defaults
+# declared here.
 # ---------------------------------------------------------------------------
+
+DEFAULT_DRAGEN_PCLUSTER_AMI = "ami-09fd9c3c129952e5f"
 
 REQUIRED_CONFIG_KEYS: list[str] = [
     "allowed_budget_users",

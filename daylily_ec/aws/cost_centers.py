@@ -102,6 +102,22 @@ def validate_month(month: str) -> str:
     return value
 
 
+def validate_latest_processed_hour(value: str) -> str:
+    text = str(value or "").strip()
+    if not text:
+        raise CostCenterError("latest_processed_hour must be non-empty.")
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise CostCenterError("latest_processed_hour must be an ISO-8601 timestamp.") from exc
+    if parsed.tzinfo is None:
+        raise CostCenterError("latest_processed_hour must include a timezone.")
+    utc = parsed.astimezone(timezone.utc).replace(microsecond=0)
+    if utc.minute != 0 or utc.second != 0:
+        raise CostCenterError("latest_processed_hour must be rounded to the UTC hour.")
+    return utc.isoformat().replace("+00:00", "Z")
+
+
 def ensure_cost_center_registry(
     dynamodb_client: Any,
     *,
@@ -374,8 +390,15 @@ def put_cost_center_usage(
     *,
     usage_table_name: str = DEFAULT_COST_CENTER_USAGE_TABLE,
 ) -> CostCenterUsage:
-    dynamodb_client.put_item(TableName=usage_table_name, Item=_usage_to_item(usage))
-    return usage
+    normalized = CostCenterUsage(
+        name=validate_cost_center_name(usage.name, allow_idle=True),
+        month=validate_month(usage.month),
+        monthly_spend_usd=_validate_decimal(usage.monthly_spend_usd, field="monthly_spend_usd"),
+        latest_processed_hour=validate_latest_processed_hour(usage.latest_processed_hour),
+        updated_at=str(usage.updated_at or utc_now_iso()).strip(),
+    )
+    dynamodb_client.put_item(TableName=usage_table_name, Item=_usage_to_item(normalized))
+    return normalized
 
 
 def authorize_cost_center(

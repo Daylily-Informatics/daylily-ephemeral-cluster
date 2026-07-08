@@ -1014,6 +1014,57 @@ def cost_centers_usage(
     _emit_payload(payload, json.dumps(payload, indent=2))
 
 
+def cost_centers_put_usage(
+    name: str = typer.Argument(..., help="Cost-center name."),
+    month: str = typer.Option(..., "--month", help="Usage month YYYY-MM."),
+    monthly_spend_usd: str = typer.Option(
+        ...,
+        "--monthly-spend-usd",
+        help="Monthly spend snapshot in USD.",
+    ),
+    latest_processed_hour: str = typer.Option(
+        ...,
+        "--latest-processed-hour",
+        help="Latest processed UTC hour, for example 2026-07-08T15:00:00Z.",
+    ),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    table_name: str = typer.Option("dayec-cost-centers", "--table-name", help="Registry table name."),
+    usage_table_name: str = typer.Option(
+        "dayec-cost-center-usage",
+        "--usage-table-name",
+        help="Usage summary table name.",
+    ),
+) -> None:
+    """Create or replace one monthly cost-center usage snapshot."""
+    from daylily_ec.aws.cost_centers import (
+        CostCenterUsage,
+        get_cost_center,
+        put_cost_center_usage,
+        utc_now_iso,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        _aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        get_cost_center(dynamodb, name, table_name=table_name)
+        item = put_cost_center_usage(
+            dynamodb,
+            CostCenterUsage(
+                name=name,
+                month=month,
+                monthly_spend_usd=monthly_spend_usd,
+                latest_processed_hour=latest_processed_hour,
+                updated_at=utc_now_iso(),
+            ),
+            usage_table_name=usage_table_name,
+        )
+        payload: dict[str, object] = {"usage": item.to_dict()}
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(payload, json.dumps(payload, indent=2))
+
+
 def cost_centers_ensure_cur_export(
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     billing_region: str = typer.Option(
@@ -5407,6 +5458,11 @@ def register(registry, cli_spec) -> None:
             ("show", cost_centers_show, REQUIRED_JSON),
             ("list", cost_centers_list, REQUIRED_JSON),
             ("usage", cost_centers_usage, REQUIRED_JSON),
+            (
+                "put-usage",
+                cost_centers_put_usage,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
             (
                 "ensure-cur-export",
                 cost_centers_ensure_cur_export,

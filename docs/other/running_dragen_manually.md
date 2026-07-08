@@ -1,11 +1,123 @@
-# Running DRAGEN Manually On The Standalone EC2 Instance
+# DRAGEN Run Notes
 
-This is the quick guide for rerunning the standalone DRAGEN EC2 path that was
-used for the NA19235 SMN12 pangenome validation. It is intentionally explicit:
-missing instance IDs, keys, inputs, references, license credentials, or S3
-destinations are hard blockers.
+This document covers two DRAGEN execution paths:
 
-## Known Handles
+- DYEC RHEL/f2 ParallelCluster, which is the preferred path for new
+  cluster-managed native DRAGEN runs.
+- The older standalone DRAGEN EC2 instance path used for the NA19235 and HG002
+  validation work.
+
+Both paths are intentionally explicit: missing cluster names, instance IDs,
+keys, inputs, references, license credentials, or S3 destinations are hard
+blockers.
+
+## DYEC RHEL DRAGEN Cluster Example
+
+Use this shape when creating a DRAGEN f2 ParallelCluster through DYEC. The
+example below is the `dragain9b` create flow from 2026-07-08.
+
+Run from the laptop:
+
+```bash
+cd /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster
+source ./activate
+dyec create --profile lsmc --region-az us-west-2c --cluster-type rhel
+```
+
+Known-good prompt responses:
+
+```text
+Cluster name [majors-cluster]: dragain9b
+Max 8xlarge count [1]: 3
+Max 128xlarge count [1]: 3
+Max 192xlarge count [1]: 3
+Max 384xlarge count [1]: 3
+Reference S3 URI: auto-selected only valid candidate s3://lsmc-dayoa-references-usw2/
+Control-data S3 URI: auto-selected only valid candidate s3://lsmc-dayoa-control-data-usw2/
+Stage S3 URI: auto-selected only valid candidate s3://lsmc-ssf-sequencing-data/staged_external_data/
+Export destination S3 URI: auto-selected only valid candidate s3://lsmc-ssf-sequencing-data/derived/
+Enforce budget [true]:
+Budget email: johnm@lsmc.com
+Budget amount [200]:
+Global budget amount [200]:
+Allowed budget users [ubuntu]:
+Heartbeat email [johnm@lsmc.com]:
+Heartbeat schedule [rate(60 minutes)]:
+Heartbeat scheduler role ARN (leave blank to skip) []:
+Enter selection number or explicit size [4800]: 5
+Enable detailed monitoring [false]:
+Delete local root [true]:
+DRAGEN PCluster AMI [ami-09fd9c3c129952e5f]:
+Auto delete FSx [Delete]:
+Spot allocation strategy [price-capacity-optimized]:
+Enter selection number or approved instance type [r7i.2xlarge]: 2
+```
+
+Those responses mean:
+
+- Cluster: `dragain9b`
+- Region/AZ: `us-west-2c`
+- Cluster type: `rhel`
+- DRAGEN PCluster AMI: `ami-09fd9c3c129952e5f`
+- Headnode instance type: `r7i.4xlarge`
+- FSx Lustre size: `9600` GiB
+- Queue max counts: `3` for the prompted 8xlarge, 128xlarge, 192xlarge, and
+  384xlarge capacity classes
+- Budget names: global `daylily-global`, project `dragain9b`
+- Budget amounts: global `$200`, project `$200`
+- Allowed budget user: `ubuntu`
+- FSx deletion policy: `Delete`
+- Spot allocation strategy: `price-capacity-optimized`
+
+Expected render and submission landmarks:
+
+```text
+Cluster template: config/day_cluster/rhel/us-west-2/us-west-2c/prod_cluster_rhel_us-west-2c.yaml
+Cluster YAML ready: /Users/jmajor/.config/daylily/dragain9b_cluster_<stamp>.yaml
+Spot price summary ready: /Users/jmajor/.config/daylily/dragain9b_spot_price_summary_<stamp>.json
+Dry-run passed
+Cluster creation submitted
+Waiting for CREATE_COMPLETE
+```
+
+For the `dragain9b` create transcript, the local render stamp was
+`20260708172717`, producing:
+
+```text
+/Users/jmajor/.config/daylily/dragain9b_cluster_20260708172717.yaml
+/Users/jmajor/.config/daylily/dragain9b_spot_price_summary_20260708172717.json
+/Users/jmajor/.config/daylily/dragain9b-20260708172717.md
+```
+
+Use `us-west-2c` or another AZ that has both an RHEL DRAGEN cluster template and
+f2 capacity. Do not use `us-west-2d` for this path unless a matching
+`config/day_cluster/rhel/us-west-2/us-west-2d/` template and f2 offering have
+been added and verified.
+
+After creation reaches `CREATE_COMPLETE`, use the supported DYEC surfaces:
+
+```bash
+dyec cluster-info --profile lsmc --region us-west-2
+dyec headnode jobs --profile lsmc --region us-west-2 --cluster dragain9b
+dyec headnode configure-dragen --profile lsmc --region us-west-2 --cluster dragain9b
+dyec headnode connect --profile lsmc --region us-west-2 --cluster dragain9b
+```
+
+For standard Ubuntu DayOA clusters, use `dyec headnode configure`. For RHEL
+DRAGEN clusters, use `dyec headnode configure-dragen` when a post-create
+headnode refresh is required. Do not use `root` for workflow or operator shell
+work.
+
+Cluster deletion is destructive when `Auto delete FSx` is `Delete`. Inspect
+first, verify exports and any required S3 copies, then delete only after the
+operator approves the exact cluster and FSx effect:
+
+```bash
+dyec delete --dry-run --profile lsmc --region us-west-2 --cluster-name dragain9b
+dyec delete --profile lsmc --region us-west-2 --cluster-name dragain9b
+```
+
+## Standalone EC2 Known Handles
 
 - AWS profile: `lsmc`
 - Region: `us-west-2`

@@ -1,2 +1,2 @@
 daylily-ephemeral-cluster:10.0.117
-daylily-omics-analysis:10.0.70
+daylily-omics-analysis:10.0.71

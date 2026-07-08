@@ -1,0 +1,7 @@
+{
+  "analysis_id": "ccv_live_hybrid_ilmn_ont_snv_20260708T142032Z",
+  "command_id": "hybrid_ilmn_ont_snv",
+  "manifest": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/hybrid_ilmn_ont_snv/analysis_samples.tsv",
+  "samples": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/hybrid_ilmn_ont_snv/config/20260708T144509Z_d4b52dfc_samples.tsv",
+  "units": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/hybrid_ilmn_ont_snv/config/20260708T144509Z_d4b52dfc_units.tsv"
+}

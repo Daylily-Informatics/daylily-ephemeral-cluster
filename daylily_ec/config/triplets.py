@@ -22,10 +22,15 @@ import yaml
 
 from daylily_ec.config.models import (
     ConfigFile,
+    DEFAULT_DRAGEN_PCLUSTER_AMI,
     EphemeralClusterConfig,
     REQUIRED_CONFIG_KEYS,
     Triplet,
 )
+
+REQUIRED_CONFIG_DEFAULTS = {
+    "dragen_pcluster_ami": DEFAULT_DRAGEN_PCLUSTER_AMI,
+}
 
 # ---------------------------------------------------------------------------
 # Loading
@@ -78,7 +83,9 @@ def ensure_required_keys(cfg: ConfigFile) -> bool:
     for key in REQUIRED_CONFIG_KEYS:
         if key not in cfg.ephemeral_cluster.config:
             cfg.ephemeral_cluster.config[key] = Triplet(
-                action="PROMPTUSER", default_value="", set_value=""
+                action="PROMPTUSER",
+                default_value=REQUIRED_CONFIG_DEFAULTS.get(key, ""),
+                set_value="",
             )
             added = True
     return added

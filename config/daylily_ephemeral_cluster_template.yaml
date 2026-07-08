@@ -19,7 +19,7 @@ ephemeral_cluster:
     fsx_fs_size: [PROMPTUSER, "4800", ""]
     enable_detailed_monitoring: [PROMPTUSER, "false", ""]
     delete_local_root: [PROMPTUSER, "true", ""] # false or true
-    dragen_pcluster_ami: [PROMPTUSER, "", ""]
+    dragen_pcluster_ami: [PROMPTUSER, "ami-09fd9c3c129952e5f", ""]
     auto_delete_fsx: [PROMPTUSER, "Delete", ""] # Delete or Retain
     heartbeat_email: [PROMPTUSER, "", ""]
     heartbeat_schedule: [PROMPTUSER, "rate(60 minutes)", ""]

@@ -316,9 +316,61 @@ DYEC does not choose alternate references at runtime. If a command catalog row p
 
 - **Dewey**: DYEC can register exported DayOA evidence after a successful export when the command catalog declares an explicit `artifact_registration` policy.
 - **QEO**: QEO loading is requested through Dewey/outbox events. DayOA emits local evidence; DYEC maps that evidence to exported S3 artifacts.
-- **Ursa**: Ursa can own operator worksets and launch UX above DYEC. DYEC remains the cluster and export control plane.
+- **Ursa**: Ursa can own operator worksets and launch UX above DYEC. DYEC remains the cluster and export control plane. DRAGEN cluster creation and run notes live in [running_dragen_manually.md](docs/other/running_dragen_manually.md).
 - **PCUI**: PCUI-style interfaces should call the same catalog and CLI/API surfaces rather than duplicating launch policy.
 - **Slurm**: Slurm is cluster infrastructure. Monitoring with `squeue`, `sacct` when configured, logs, and DYEC status commands is allowed. Scheduler, node, job, drain/resume, requeue, cancel, or service interventions require explicit operator approval.
+
+### Ursa Service User Cluster Management
+
+When Ursa is managing two live cluster families, keep the cluster family
+explicit in workset and launch metadata. The two families are not
+interchangeable:
+
+- Standard DayOA/Sentieon cluster: command catalog rows declare
+  `compatible_cluster_types: [daywgs]`; launch through the standard Ubuntu
+  cluster path and keep DayOA workflow execution inside the supported
+  `day-clone`, `dy-a`, and `dy-r` path.
+- DRAGEN RHEL/f2 cluster: command catalog rows declare
+  `compatible_cluster_types: [dragen]`; create with
+  `dyec create --profile lsmc --region-az us-west-2c --cluster-type rhel` or a
+  verified equivalent RHEL/f2 AZ, then run native DRAGEN work on the DRAGEN
+  Slurm partition.
+
+Ursa should persist these fields for every cluster-backed workset:
+
+- AWS profile: usually `lsmc`
+- AWS region: usually `us-west-2`
+- Cluster name: for example `dragain9b`
+- Cluster family: `daywgs` or `dragen`
+- Cluster type used at creation: for example `rhel` for DRAGEN
+- DayOA/DYEC git tag or ref used for launched workflows
+- Cost-center or Slurm comment used for submitted jobs
+
+Useful inspect and supported post-create commands:
+
+```bash
+dyec cluster-info --profile lsmc --region us-west-2
+dyec headnode jobs --profile lsmc --region us-west-2 --cluster <cluster>
+dyec headnode connect --profile lsmc --region us-west-2 --cluster <cluster>
+dyec headnode configure --profile lsmc --region us-west-2 --cluster <standard-ubuntu-cluster>
+dyec headnode configure-dragen --profile lsmc --region us-west-2 --cluster <rhel-dragen-cluster>
+```
+
+Do not silently reroute a workset from one family to the other. If a requested
+command's `compatible_cluster_types` does not match the selected cluster, fail
+the launch with the mismatch and require an operator decision. Likewise, do not
+fall back from a missing RHEL DRAGEN template or AMI to another AZ, AMI, or
+cluster type without an explicit operator request.
+
+Before deleting either cluster family, verify the export receipt, expected S3
+objects, and any run-specific S3 syncs. For DRAGEN clusters created with
+`Auto delete FSx [Delete]`, `dyec delete` removes the FSx file system with the
+cluster, so deletion requires explicit approval of that data-loss boundary:
+
+```bash
+dyec delete --dry-run --profile lsmc --region us-west-2 --cluster-name <cluster>
+dyec delete --profile lsmc --region us-west-2 --cluster-name <cluster>
+```
 
 ## Contributing
 

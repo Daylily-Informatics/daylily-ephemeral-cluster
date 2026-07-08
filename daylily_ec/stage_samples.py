@@ -447,7 +447,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--reference-s3-uri",
         required=True,
-        help="S3 URI (s3://bucket[/prefix]) mapped to /fsx/references",
+        help="S3 URI (s3://bucket[/prefix]) mapped to /fsx/references and /fsx/data",
     )
     parser.add_argument(
         "--control-data-s3-uri",
@@ -635,12 +635,7 @@ def create_staged_prefix_mount(
 
 
 def headnode_visible_path(path: str) -> str:
-    if (
-        path == "/data"
-        or path.startswith("/data/")
-        or path == "/fsx/data"
-        or path.startswith("/fsx/data/")
-    ):
+    if path == "/data" or path.startswith("/data/"):
         raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
     reject_retired_stage_path(path)
     return path
@@ -878,6 +873,8 @@ def is_headnode_visible_path(path: str) -> bool:
     return (
         path == "/fsx/references"
         or path.startswith("/fsx/references/")
+        or path == "/fsx/data"
+        or path.startswith("/fsx/data/")
         or path == "/fsx/control_data"
         or path.startswith("/fsx/control_data/")
         or path == "/fsx/staging"
@@ -954,12 +951,7 @@ def build_reference_uri(path: str, reference_s3_uri: str | S3RoleUris) -> str:
         raise CommandError(
             f"Mounted run-directory paths are not static role-bucket objects: {path}"
         )
-    if (
-        path == "/data"
-        or path.startswith("/data/")
-        or path == "/fsx/data"
-        or path.startswith("/fsx/data/")
-    ):
+    if path == "/data" or path.startswith("/data/"):
         raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
     if path == "/fsx/runtime_assets" or path.startswith("/fsx/runtime_assets/"):
         raise CommandError(
@@ -969,6 +961,8 @@ def build_reference_uri(path: str, reference_s3_uri: str | S3RoleUris) -> str:
     explicit_uri = _explicit_mapped_s3_uri(path, roles)
     if explicit_uri:
         return explicit_uri
+    if path == "/fsx/data" or path.startswith("/fsx/data/"):
+        return _join_s3_uri(roles.reference_s3_uri, _role_relative(path, "/fsx/data"))
     if path == "/fsx/references" or path.startswith("/fsx/references/"):
         return _join_s3_uri(roles.reference_s3_uri, _role_relative(path, "/fsx/references"))
     if path == "/fsx/control_data" or path.startswith("/fsx/control_data/"):
@@ -2181,12 +2175,7 @@ def deduplicate_rows(rows: Sequence[Dict[str, str]], header: Sequence[str]) -> L
 
 
 def _normalise_headnode_data_path(value: str) -> str:
-    if (
-        value == "/data"
-        or value.startswith("/data/")
-        or value == "/fsx/data"
-        or value.startswith("/fsx/data/")
-    ):
+    if value == "/data" or value.startswith("/data/"):
         raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
     return value
 
@@ -2201,8 +2190,6 @@ def normalise_units_paths(rows: Sequence[Dict[str, str]]) -> None:
                 if any(
                     part.startswith("/data/")
                     or part == "/data"
-                    or part.startswith("/fsx/data/")
-                    or part == "/fsx/data"
                     for part in parts
                 ):
                     row[field] = ",".join(_normalise_headnode_data_path(part) for part in parts)

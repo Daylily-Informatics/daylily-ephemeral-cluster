@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.70"
+DAYOA_BLESSED_TAG = "10.0.71"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -132,12 +132,12 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         "default_control_reads_slim",
         "default_control_run_data",
     ]
-    assert catalog.test_data_locations[0].mount_path == "/fsx/references"
+    assert catalog.test_data_locations[0].mount_path == "/fsx/data"
     assert (
         catalog.test_data_locations[0].data_root
-        == "/fsx/references/genomic_data/organism_reads_slim"
+        == "/fsx/data/genomic_data/organism_reads_slim"
     )
-    assert "default reference mount" in catalog.test_data_locations[0].description
+    assert "default /fsx/data path" in catalog.test_data_locations[0].description
     default_reads = catalog.test_data_profiles["default_reads_slim"]
     assert default_reads.source_mount_mode == "default_mounted"
     assert (
@@ -145,7 +145,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         == "s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/"
     )
     assert default_reads.source_fsx_prefix == (
-        "/fsx/references/genomic_data/organism_reads_slim/"
+        "/fsx/data/genomic_data/organism_reads_slim/"
     )
     assert default_reads.run_context_source_s3_column == ""
     assert default_reads.run_context_mount_id_column == ""
@@ -974,7 +974,7 @@ def test_repositories_commands_json_cli_lists_blessed_command() -> None:
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert payload["test_data_locations"][0]["data_root"] == (
-        "/fsx/references/genomic_data/organism_reads_slim"
+        "/fsx/data/genomic_data/organism_reads_slim"
     )
     assert payload["test_data_profiles"]["default_reads_slim"]["source_mount_mode"] == (
         "default_mounted"
@@ -982,7 +982,7 @@ def test_repositories_commands_json_cli_lists_blessed_command() -> None:
     assert payload["test_data_profiles"]["illumina_run_directory"]["source_mount_mode"] == (
         "run_dra_required"
     )
-    assert "default reference mount" in payload["test_data_locations"][0]["description"]
+    assert "default /fsx/data path" in payload["test_data_locations"][0]["description"]
     assert payload["input_contracts"]["sample_manifest"]["source_table"]["required_columns"] == [
         "RUN_ID",
         "SAMPLE_ID",
