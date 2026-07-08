@@ -27,6 +27,7 @@ region="${1:?region argument is required}"
 boot_s3_uri="${2:?cluster boot-config S3 URI is required}"
 boot_s3_uri="${boot_s3_uri%/}"
 storage_mode="${3:?storage mode argument is required; use fsx or nofsx}"
+spot_price_warn_threshold="${4:?spot price warn threshold argument is required}"
 case "${storage_mode}" in
   fsx|nofsx) ;;
   *)
@@ -35,6 +36,16 @@ case "${storage_mode}" in
     exit 64
     ;;
 esac
+python3 - "${spot_price_warn_threshold}" <<'PY'
+import sys
+
+try:
+    value = float(sys.argv[1])
+except ValueError as exc:
+    raise SystemExit(f"spot price warn threshold must be numeric: {sys.argv[1]!r}") from exc
+if value <= 0:
+    raise SystemExit(f"spot price warn threshold must be > 0: {value}")
+PY
 
 references_root="/fsx/references"
 runtime_assets_root="${references_root}/runtime_assets"
@@ -48,7 +59,7 @@ sleep_test_sha256="024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4
 spot_lifecycle_state_dir="/var/lib/daylily/spot_lifecycle"
 spot_lifecycle_state_file="${spot_lifecycle_state_dir}/metadata.env"
 
-echo "[$timestamp] Running post_install_rhel8_dragen.sh ${region} ${boot_s3_uri} ${storage_mode} on $(hostname) as ${node_type}"
+echo "[$timestamp] Running post_install_rhel8_dragen.sh ${region} ${boot_s3_uri} ${storage_mode} ${spot_price_warn_threshold} on $(hostname) as ${node_type}"
 echo "[$timestamp] Local log: ${local_log_fn}"
 
 if [ "${storage_mode}" = "fsx" ]; then
@@ -228,12 +239,30 @@ log_spot_price() {
 
   if [ "${storage_mode}" = "fsx" ]; then
     log_file="/fsx/scratch/$(hostname)_spot_price.log"
+    warn_log_file="/fsx/scratch/spot_price_warn_exception_messages.log"
   else
     log_file="/var/log/daylily/$(hostname)_spot_price.log"
+    warn_log_file="/var/log/daylily/spot_price_warn_exception_messages.log"
   fi
   recorded_at="$(date -u '+%Y-%m-%d %H:%M:%S')"
   recorded_at_epoch="$(date -u +%s)"
   echo "${recorded_at} - Node type: ${node_type}, Partition: ${slurm_partition}, Compute resource: ${compute_resource}, Hostname: $(hostname), Instance id: ${instance_id}, Region: ${region}, AZ: ${availability_zone}, Instance type: ${instance_type}, Spot price: ${spot_price} USD/hour" >> "${log_file}"
+  write_spot_price_warn_exception \
+    "${spot_price}" \
+    "${spot_price_warn_threshold}" \
+    "${warn_log_file}" \
+    "${recorded_at}" \
+    "${recorded_at_epoch}" \
+    "${node_type}" \
+    "${slurm_partition}" \
+    "${compute_resource}" \
+    "$(hostname)" \
+    "${instance_id}" \
+    "${region}" \
+    "${availability_zone}" \
+    "${instance_type}" \
+    "${log_file}" \
+    "$(resolve_cluster_name_for_tags)"
 
   install -d -m 0755 "${spot_lifecycle_state_dir}"
   {
@@ -251,6 +280,75 @@ log_spot_price() {
     printf 'START_RECORDED_AT_EPOCH=%s\n' "${recorded_at_epoch}"
   } > "${spot_lifecycle_state_file}"
   chmod 0644 "${spot_lifecycle_state_file}"
+}
+
+write_spot_price_warn_exception() {
+  local spot_price="$1"
+  local threshold="$2"
+  local warn_log_file="$3"
+  local recorded_at="$4"
+  local recorded_at_epoch="$5"
+  local current_node_type="$6"
+  local current_partition="$7"
+  local current_compute_resource="$8"
+  local current_hostname="$9"
+  local current_instance_id="${10}"
+  local current_region="${11}"
+  local current_availability_zone="${12}"
+  local current_instance_type="${13}"
+  local source_log_file="${14}"
+  local current_cluster="${15}"
+
+  if [ "${current_node_type}" != "ComputeFleet" ]; then
+    return 0
+  fi
+  install -d -m 1777 "$(dirname "${warn_log_file}")"
+  python3 - \
+    "${spot_price}" \
+    "${threshold}" \
+    "${warn_log_file}" \
+    "${recorded_at}" \
+    "${recorded_at_epoch}" \
+    "${current_node_type}" \
+    "${current_partition}" \
+    "${current_compute_resource}" \
+    "${current_hostname}" \
+    "${current_instance_id}" \
+    "${current_region}" \
+    "${current_availability_zone}" \
+    "${current_instance_type}" \
+    "${source_log_file}" \
+    "${current_cluster}" <<'PY'
+import json
+import sys
+
+spot_price = float(sys.argv[1])
+threshold = float(sys.argv[2])
+if spot_price <= threshold:
+    raise SystemExit(0)
+
+path = sys.argv[3]
+row = {
+    "schema_version": "dyec.spot_price_warn_exception.v1",
+    "recorded_at": sys.argv[4],
+    "recorded_at_epoch": sys.argv[5],
+    "event": "node_start",
+    "node_type": sys.argv[6],
+    "slurm_partition": sys.argv[7],
+    "compute_resource": sys.argv[8],
+    "hostname": sys.argv[9],
+    "instance_id": sys.argv[10],
+    "region": sys.argv[11],
+    "availability_zone": sys.argv[12],
+    "instance_type": sys.argv[13],
+    "spot_price_usd_per_hour": spot_price,
+    "warn_threshold_usd_per_hour": threshold,
+    "source_log_file": sys.argv[14],
+    "cluster": sys.argv[15],
+}
+with open(path, "a", encoding="utf-8") as handle:
+    handle.write(json.dumps(row, sort_keys=True) + "\n")
+PY
 }
 
 install_spot_lifecycle_hooks() {

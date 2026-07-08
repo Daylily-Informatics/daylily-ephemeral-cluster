@@ -23,6 +23,7 @@ HeadNode:
       Args:
       - ${REGSUB_REGION}
       - ${REGSUB_S3_BUCKET_INIT}
+      - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
       - fsx
   Iam:
     S3Access:
@@ -40,7 +41,7 @@ HeadNode:
 Scheduling:
   Scheduler: slurm
   SlurmSettings:
-    EnableMemoryBasedScheduling: true
+    EnableMemoryBasedScheduling: false
     ScaledownIdletime: 5
     Dns:
       DisableManagedDns: false
@@ -78,6 +79,7 @@ Scheduling:
         Args:
         - ${REGSUB_REGION}
         - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
         - fsx
     Iam:
       S3Access:

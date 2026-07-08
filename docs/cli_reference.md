@@ -69,7 +69,10 @@ dyec preflight \
 dyec create \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
-  --config "$DAY_EX_CFG"
+  --config "$DAY_EX_CFG" \
+  --global-spot-max-cost 7.50 \
+  --spot-cost-limit-pct 1.2 \
+  --write-spot-pricing-warn-threshold 6.00
 ```
 
 `create` runs preflight, renders the ParallelCluster YAML, creates the cluster, waits for the headnode, configures DayEC on the headnode over SSM, and validates the supported `ubuntu` login shell. In non-interactive automation, storage URIs and identity values must be explicit in config or flags.
@@ -87,6 +90,49 @@ Important options:
 - `--create-slurm-accounting-db`
 - `--scan-slurm-accounting-db`
 - `--slurm-accounting-stack-name <name>`
+- `--global-spot-max-cost <usd>`: default `7.50`; hard fails if `<= 0` or `> 10.00`
+- `--spot-cost-limit-pct <multiplier>`: default `1.2`; hard fails if `< 1.0` or `> 1.4`
+- `--write-spot-pricing-warn-threshold <usd>`: default `6.00`; hard fails if `<= 0`
+
+Spot bid policy is deterministic and capped. For each compute resource, DYEC
+looks up the current Linux/UNIX spot prices for the configured instance types in
+the selected AZ, calculates the reference median, and writes the PCluster
+`SpotPrice` as:
+
+```text
+min(reference_median_spot_price * spot_cost_limit_pct, global_spot_max_cost)
+```
+
+The old median-plus-dollar bump behavior and `--bump-price` helper flag are
+removed. i384 partitions use the matching i192 reference resource median for
+the bid calculation; missing i192 reference data is a hard failure before
+cluster submission.
+
+Each create run writes an Ursa-readable summary JSON:
+
+```text
+config/<cluster>_spot_price_summary_<run_id>.json
+```
+
+The same partition summary is printed as a table after spot prices are applied.
+The state record stores `spot_price_summary_path` and `spot_price_partitions`
+so Ursa can render the values in its cluster card view.
+
+Compute nodes also write normal per-node spot lifecycle logs. When a
+`ComputeFleet` node observes a runtime spot price above
+`--write-spot-pricing-warn-threshold`, it appends a JSONL row to the special
+Ursa exception log beside the per-node spot logs:
+
+```text
+/fsx/scratch/spot_price_warn_exception_messages.log
+/var/log/daylily/spot_price_warn_exception_messages.log   # DRAGEN no-FSx mode
+```
+
+Each warning row uses schema `dyec.spot_price_warn_exception.v1` and includes
+timestamp, event, cluster, partition, compute resource, hostname, instance id,
+region/AZ, instance type, observed spot price, warning threshold, and source
+host log path. The warning log is intentionally separate from
+`dyec pricing spot-logs` lifecycle cost rows.
 
 Budget enforcement is on by default for new clusters. `dyec create` ensures an
 AWS Budget named by the cluster name, renders `aws-parallelcluster-project` as
@@ -212,6 +258,34 @@ The command runs from `<analysis-root>/daylily-omics-analysis`, initializes DayO
 `bash bin/util/benchmarks/collect_day_benchmark_data.sh <genome-build>`.
 Supported builds are `hg38`, `hg38_broad`, and `b37`. The expected output is
 `results/day/<genome-build>/reports/benchmarks_summary.tsv`.
+
+Summarize command-catalog benchmark evidence and update the version-keyed
+performance comparator profile:
+
+```bash
+dyec --json tests command-catalog-performance \
+  --benchmark-rows docs/plans/<run>_benchmark_resource_review/benchmark_rows.tsv \
+  --rule-summary docs/plans/<run>_benchmark_resource_review/rule_resource_summary.tsv \
+  --slurm-jobs docs/plans/<run>_benchmark_resource_review/slurm_jobs_with_packing.tsv \
+  --catalog-config config/daylily_pipeline_command_catalog.yaml \
+  --dyec-version 10.0.103 \
+  --dayoa-version 10.0.65 \
+  --cluster cmdcat-103-all-20260707 \
+  --run-id 20260707T144453Z \
+  --include-all-catalog-commands \
+  --dev-command-id illumina_bclconvert \
+  --dev-command-id illumina_run_qc_bclconvert \
+  --dev-command-id inflection-bjuice-product-v0.1 \
+  --output-dir docs/plans/<run>_benchmark_resource_review \
+  --history-json config/command_catalog_performance_history.json
+```
+
+The command writes `command_catalog_performance_summary.tsv`,
+`command_catalog_performance_profile.json`, and updates
+`config/command_catalog_performance_history.json`. The history file is keyed by
+DYEC version under `dyec_versions`, so later runs can compare wall time,
+allocated vCPU-hours, observed CPU-hours, cost, peak RSS, and I/O against the
+latest prior profile.
 
 ## Run Mounts
 
