@@ -39,7 +39,6 @@ Version plan:
 |---|---|---|---|---|---|
 | REL-001 | DayOA | Commit dirty DayOA changes to `jem-dev`, push, tag, and push the tag. | NO_LONGER_NEEDED | `git status --short --branch -> ## jem-dev...origin/jem-dev`; `git describe -> 10.0.66-0-gce41c6c`; `git cat-file -t 10.0.66 -> tag`. | DayOA is already clean and released at annotated tag `10.0.66`; no empty commit or duplicate release tag was created. |
 | REL-002 | DYEC | Verify DYEC DayOA pin surfaces already match the selected DayOA tag. | SUCCESS | `pyproject.toml` and catalog/test searches show DayOA pin `10.0.66`. | No DayOA pin edit required because DayOA did not advance past `10.0.66`. |
-| REL-003 | DYEC | Commit/push/tag the current DYEC release state as `10.0.109`. | IN_PROGRESS | This ledger commit records the release state before tagging. |  |
-| REL-004 | DYEC | Update DYEC self-pin to `10.0.109`, commit/push, tag as `10.0.110`, and push the tag. | OPEN | Self-pin surfaces identified: `config/daylily_cli_global.yaml`, `daylily_ec/resources/payload/config/daylily_cli_global.yaml`, `tests/test_lsmc_bio_fork_contract.py`. |  |
+| REL-003 | DYEC | Commit/push/tag the current DYEC release state as `10.0.109`. | SUCCESS | Commit `f7a077a9`; `git tag -a 10.0.109 -m "Release 10.0.109"`; `git push origin jem-dev`; `git push origin 10.0.109`; `git cat-file -t 10.0.109 -> tag`. | DYEC `10.0.109` is an annotated tag on `jem-dev`. |
+| REL-004 | DYEC | Update DYEC self-pin to `10.0.109`, commit/push, tag as `10.0.110`, and push the tag. | IN_PROGRESS | Edited `config/daylily_cli_global.yaml`, `daylily_ec/resources/payload/config/daylily_cli_global.yaml`, `tests/test_lsmc_bio_fork_contract.py`; `pytest tests/test_lsmc_bio_fork_contract.py tests/test_repository_catalog.py tests/test_cli_registry_v2.py tests/test_packaged_defaults.py -q -> 171 passed`. |  |
 | REL-005 | DYEC | Verify final branch/tag state and report versions. | OPEN |  |  |
-
