@@ -26,8 +26,8 @@ touch "/tmp/$(hostname).dragen_configureBEGIN"
 region="${1:?region argument is required}"
 boot_s3_uri="${2:?cluster boot-config S3 URI is required}"
 boot_s3_uri="${boot_s3_uri%/}"
-storage_mode="${3:?storage mode argument is required; use fsx or nofsx}"
-spot_price_warn_threshold="${4:?spot price warn threshold argument is required}"
+spot_price_warn_threshold="${3:?spot price warn threshold argument is required}"
+storage_mode="${4:?storage mode argument is required; use fsx or nofsx}"
 case "${storage_mode}" in
   fsx|nofsx) ;;
   *)

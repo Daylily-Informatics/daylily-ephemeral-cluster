@@ -559,6 +559,8 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
             "create",
             "--region-az",
             "us-west-2d",
+            "--cluster-type",
+            "rhel",
             "--profile",
             "dev",
             "--config",
@@ -578,6 +580,7 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
     assert calls["kwargs"] == {
         "profile": "dev",
         "config_path": str(config_path),
+        "cluster_type": "rhel",
         "pass_on_warn": True,
         "debug": True,
         "non_interactive": True,
@@ -623,6 +626,7 @@ def test_create_command_defaults_region_az_to_us_west_2d(monkeypatch, tmp_path) 
     assert calls["region_az"] == cli_module.DEFAULT_CREATE_REGION_AZ == "us-west-2d"
     assert calls["kwargs"]["profile"] == "dev"
     assert calls["kwargs"]["config_path"] == str(config_path)
+    assert calls["kwargs"]["cluster_type"] == "intel"
     assert calls["kwargs"]["non_interactive"] is True
     assert calls["kwargs"]["global_spot_max_cost"] == 7.5
     assert calls["kwargs"]["spot_cost_limit_pct"] == 1.2
@@ -663,6 +667,24 @@ def test_create_command_rejects_invalid_spot_pricing_options(
 
     assert result.exit_code == 2
     assert message in result.output
+
+
+def test_create_command_rejects_invalid_cluster_type(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            "--cluster-type",
+            "dragen",
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert "--cluster-type must be one of" in result.output
 
 
 def test_create_command_rejects_retired_budget_project(monkeypatch) -> None:

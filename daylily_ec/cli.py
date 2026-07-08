@@ -63,6 +63,7 @@ from daylily_ec.workflow.snakemake_resources import DEFAULT_JOB_MAX_RUNTIME_MINU
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 BENCHMARK_GENOME_BUILDS = {"hg38", "hg38_broad", "b37"}
 DEFAULT_CREATE_REGION_AZ = "us-west-2d"
+DEFAULT_CREATE_CLUSTER_TYPE = "intel"
 
 
 def _validate_analysis_launch_options(
@@ -572,6 +573,11 @@ def create(
         "--region-az",
         help=f"AWS region + availability zone. Defaults to {DEFAULT_CREATE_REGION_AZ}.",
     ),
+    cluster_type: str = typer.Option(
+        DEFAULT_CREATE_CLUSTER_TYPE,
+        "--cluster-type",
+        help="Cluster template family to autoselect when config does not set cluster_template_yaml. One of: intel, rhel.",
+    ),
     profile: Optional[str] = typer.Option(
         None,
         "--profile",
@@ -661,10 +667,17 @@ def create(
 ) -> None:
     """Create an ephemeral AWS ParallelCluster environment."""
 
-    from daylily_ec.workflow.create_cluster import run_create_workflow
+    from daylily_ec.workflow.create_cluster import (
+        normalize_create_cluster_type,
+        run_create_workflow,
+    )
 
     _warn_if_dayec_env_inactive()
     _ = repo_override
+    try:
+        cluster_type = normalize_create_cluster_type(cluster_type)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
     if create_slurm_accounting_db and scan_slurm_accounting_db:
         raise typer.BadParameter(
             "--scan-slurm-accounting-db cannot be combined with --create-slurm-accounting-db."
@@ -691,6 +704,7 @@ def create(
         region_az,
         profile=profile,
         config_path=config,
+        cluster_type=cluster_type,
         pass_on_warn=pass_on_warn,
         debug=debug,
         non_interactive=non_interactive,

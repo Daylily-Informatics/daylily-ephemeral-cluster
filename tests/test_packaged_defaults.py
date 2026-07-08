@@ -14,6 +14,17 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 ACTIVE_CLUSTER_TEMPLATES = (
     "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml",
 )
+US_WEST_2D_INTEL_PRUNED_TYPES = {
+    "c6in.32xlarge",
+    "c6in.metal",
+    "r5n.2xlarge",
+    "r8idb.96xlarge",
+    "r8idn.96xlarge",
+    "x2idn.32xlarge",
+    "x2idn.metal",
+    "x2iedn.32xlarge",
+    "x2iedn.metal",
+}
 ACTIVE_CFN_TEMPLATES = (
     "config/day_cluster/slurm_accounting_mysql_ec2.yml",
 )
@@ -162,6 +173,58 @@ def test_packaged_cluster_templates_match_source_templates() -> None:
         assert packaged == source
 
 
+def test_packaged_az_scoped_cluster_templates_match_source_templates() -> None:
+    source_paths = sorted(
+        (REPO_ROOT / "config/day_cluster").glob("*/*/*/prod_cluster_*.yaml")
+    )
+    assert len(source_paths) == 19
+    for source_path in source_paths:
+        relative_path = source_path.relative_to(REPO_ROOT)
+        source = source_path.read_text(encoding="utf-8")
+        packaged = (REPO_ROOT / "daylily_ec/resources/payload" / relative_path).read_text(
+            encoding="utf-8"
+        )
+        assert packaged == source
+
+
+def test_us_west_2d_intel_template_prunes_unavailable_spot_types() -> None:
+    base_text = (
+        REPO_ROOT
+        / "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+    ).read_text(encoding="utf-8")
+    west_2d_text = (
+        REPO_ROOT
+        / "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+    ).read_text(encoding="utf-8")
+
+    for instance_type in US_WEST_2D_INTEL_PRUNED_TYPES:
+        assert f"InstanceType: {instance_type}" in base_text
+        assert f"InstanceType: {instance_type}" not in west_2d_text
+
+    payload = yaml.safe_load(west_2d_text)
+    rendered_types = {
+        instance["InstanceType"]
+        for queue in payload["Scheduling"]["SlurmQueues"]
+        for compute in queue["ComputeResources"]
+        for instance in compute.get("Instances", [])
+    }
+    assert len(rendered_types) == 55
+    assert rendered_types.isdisjoint(US_WEST_2D_INTEL_PRUNED_TYPES)
+
+
+def test_rhel_az_scoped_templates_only_exist_for_viable_azs() -> None:
+    present = {
+        path.parent.name
+        for path in (REPO_ROOT / "config/day_cluster/rhel").glob("*/*/prod_cluster_rhel_*.yaml")
+    }
+    assert present == {
+        "eu-central-1b",
+        "eu-central-1c",
+        "us-west-2b",
+        "us-west-2c",
+    }
+
+
 def test_packaged_boot_config_matches_source_and_disables_exclusivity() -> None:
     for relative_path in BOOT_CONFIG_FILES:
         source = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
@@ -195,7 +258,7 @@ def test_packaged_boot_config_matches_source_and_disables_exclusivity() -> None:
     rhel_script = (
         REPO_ROOT / "config/day_cluster/post_install_rhel8_dragen.sh"
     ).read_text(encoding="utf-8")
-    assert 'spot_price_warn_threshold="${4:?spot price warn threshold argument is required}"' in rhel_script
+    assert 'spot_price_warn_threshold="${3:?spot price warn threshold argument is required}"' in rhel_script
 
     sbatch = (REPO_ROOT / "config/day_cluster/sbatch").read_text(encoding="utf-8")
     assert "DYEC sbatch stripped exclusive allocation request" in sbatch

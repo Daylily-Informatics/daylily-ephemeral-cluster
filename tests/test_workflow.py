@@ -32,7 +32,7 @@ import daylily_ec.pcluster.monitor as pcluster_monitor
 import daylily_ec.pcluster.runner as pcluster_runner
 import daylily_ec.render.renderer as renderer
 from daylily_ec.aws.slurm_accounting import SlurmAccountingDb
-from daylily_ec.config.models import ConfigFile
+from daylily_ec.config.models import ConfigFile, Triplet
 from daylily_ec.state import store as state_store
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
 import daylily_ec.workflow.create_cluster as create_cluster_module
@@ -42,6 +42,7 @@ from daylily_ec.workflow.create_cluster import (
     EXIT_SUCCESS,
     EXIT_TOOLCHAIN,
     EXIT_VALIDATION_FAILURE,
+    az_cluster_template_relative_path,
     _build_connection_command,
     _is_valid_fsx_size,
     _is_valid_headnode_instance_type,
@@ -54,8 +55,10 @@ from daylily_ec.workflow.create_cluster import (
     _resolve_cluster_name,
     _resolve_config_value,
     _resolve_post_create_inputs,
+    resolve_cluster_template_yaml,
     configure_headnode,
     make_repository_catalog_preflight_step,
+    normalize_create_cluster_type,
     run_preflight,
     validate_startup_dra_contract,
     _validate_cluster_name,
@@ -174,6 +177,90 @@ class TestClusterBootConfigPublish:
                 FakeS3(),
                 cluster_boot_s3_uri="s3://references/runtime_assets/cluster_boot_config",
                 source_dir=source_dir,
+            )
+
+
+class TestAzClusterTemplateResolution:
+    def test_normalizes_known_cluster_types(self) -> None:
+        assert normalize_create_cluster_type("intel") == "intel"
+        assert normalize_create_cluster_type("RHEL") == "rhel"
+
+    def test_rejects_unknown_cluster_type(self) -> None:
+        with pytest.raises(ValueError, match="--cluster-type"):
+            normalize_create_cluster_type("dragen")
+
+    def test_az_cluster_template_relative_path_uses_region_and_region_az(self) -> None:
+        assert az_cluster_template_relative_path("intel", "us-west-2d") == Path(
+            "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+        )
+        assert az_cluster_template_relative_path("rhel", "us-west-2c") == Path(
+            "config/day_cluster/rhel/us-west-2/us-west-2c/prod_cluster_rhel_us-west-2c.yaml"
+        )
+
+    def test_resolves_az_template_when_config_has_no_explicit_template(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        template = (
+            tmp_path
+            / "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+        )
+        template.parent.mkdir(parents=True)
+        template.write_text("Region: ${REGSUB_REGION}\n", encoding="utf-8")
+        monkeypatch.chdir(tmp_path)
+
+        cfg = ConfigFile()
+
+        resolved = resolve_cluster_template_yaml(
+            cfg,
+            region_az="us-west-2d",
+            cluster_type="intel",
+            resource_path_fn=lambda rel: (_ for _ in ()).throw(FileNotFoundError(rel)),
+        )
+
+        assert resolved == (
+            "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+        )
+
+    def test_explicit_cluster_template_set_value_wins(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        explicit = tmp_path / "custom.yaml"
+        explicit.write_text("Region: ${REGSUB_REGION}\n", encoding="utf-8")
+        monkeypatch.chdir(tmp_path)
+        cfg = ConfigFile()
+        cfg.ephemeral_cluster.config["cluster_template_yaml"] = Triplet(
+            action="USESETVALUE",
+            default_value="",
+            set_value=str(explicit),
+        )
+
+        resolved = resolve_cluster_template_yaml(
+            cfg,
+            region_az="us-west-2d",
+            cluster_type="intel",
+            resource_path_fn=lambda rel: (_ for _ in ()).throw(FileNotFoundError(rel)),
+        )
+
+        assert resolved == str(explicit)
+
+    def test_missing_az_template_fails_hard(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.chdir(tmp_path)
+        cfg = ConfigFile()
+
+        with pytest.raises(FileNotFoundError, match="prod_cluster_rhel_us-west-2d.yaml"):
+            resolve_cluster_template_yaml(
+                cfg,
+                region_az="us-west-2d",
+                cluster_type="rhel",
+                resource_path_fn=lambda rel: (_ for _ in ()).throw(FileNotFoundError(rel)),
             )
 
 

@@ -45,6 +45,15 @@ def _expected_subpaths(root: Path) -> Iterable[Path]:
         / "day_cluster"
         / "prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
     )
+    yield (
+        root
+        / "config"
+        / "day_cluster"
+        / "intel"
+        / "us-west-2"
+        / "us-west-2d"
+        / "prod_cluster_intel_us-west-2d.yaml"
+    )
     yield root / "config" / "day_cluster" / "pcluster_env.yml"
     yield root / "config" / "day_cluster" / "slurm_accounting_mysql_ec2.yml"
     yield root / "environment.yaml"
@@ -68,6 +77,7 @@ def _resources_need_refresh(dest: Path, src: Path) -> bool:
     for rel in (
         "config/daylily_pipeline_command_catalog.yaml",
         "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml",
+        "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml",
         "config/day_cluster/pcluster_env.yml",
         "config/day_cluster/slurm_accounting_mysql_ec2.yml",
         "config/day_cluster/post_install_rhel8_dragen.sh",

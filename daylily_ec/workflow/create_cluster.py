@@ -82,6 +82,8 @@ CLUSTER_BOOT_CONFIG_FILENAMES = (
     "sleep_test.sh",
 )
 BOOT_CONFIG_REFERENCE_COMPAT_LINE = b'reference_compat_root="/fsx/data"'
+DEFAULT_CREATE_CLUSTER_TYPE = "intel"
+CREATE_CLUSTER_TYPES = frozenset({"intel", "rhel"})
 
 
 @dataclass(frozen=True)
@@ -488,6 +490,74 @@ def _has_explicit_set_value(cfg: Any, key: str) -> bool:
         and triplet.set_value.strip()
         and triplet.set_value.strip() != "PROMPTUSER"
     )
+
+
+def normalize_create_cluster_type(cluster_type: str) -> str:
+    """Validate and normalize the create-time cluster template family."""
+
+    normalized = str(cluster_type or "").strip().lower()
+    if normalized not in CREATE_CLUSTER_TYPES:
+        allowed = ", ".join(sorted(CREATE_CLUSTER_TYPES))
+        raise ValueError(f"--cluster-type must be one of: {allowed}")
+    return normalized
+
+
+def az_cluster_template_relative_path(cluster_type: str, region_az: str) -> Path:
+    """Return the exact AZ-scoped cluster template path for create."""
+
+    from daylily_ec.aws.context import parse_region_az
+
+    normalized_type = normalize_create_cluster_type(cluster_type)
+    region, _az = parse_region_az(region_az)
+    return (
+        Path("config/day_cluster")
+        / normalized_type
+        / region
+        / region_az
+        / f"prod_cluster_{normalized_type}_{region_az}.yaml"
+    )
+
+
+def _explicit_cluster_template_yaml(cfg: Any) -> str:
+    triplet = cfg.ephemeral_cluster.config.get("cluster_template_yaml")
+    if triplet is None:
+        return ""
+    candidate = str(triplet.set_value or "").strip()
+    if candidate and candidate != "PROMPTUSER":
+        return candidate
+    return ""
+
+
+def _resolve_existing_template_path(template_path: str, resource_path_fn: Callable[[str], Path]) -> str:
+    candidate = Path(template_path).expanduser()
+    if candidate.is_file():
+        return str(candidate)
+    if candidate.is_absolute():
+        raise FileNotFoundError(f"Cluster template YAML not found: {candidate}")
+    return str(resource_path_fn(template_path))
+
+
+def resolve_cluster_template_yaml(
+    cfg: Any,
+    *,
+    region_az: str,
+    cluster_type: str = DEFAULT_CREATE_CLUSTER_TYPE,
+    resource_path_fn: Callable[[str], Path],
+) -> str:
+    """Resolve the cluster template for create.
+
+    Explicit non-empty ``cluster_template_yaml`` set values are honored. When no
+    explicit template is set, the exact cluster-type/AZ-scoped template path is
+    required; missing paths fail hard instead of falling back to a generic
+    template.
+    """
+
+    explicit = _explicit_cluster_template_yaml(cfg)
+    if explicit:
+        return _resolve_existing_template_path(explicit, resource_path_fn)
+
+    relative_path = az_cluster_template_relative_path(cluster_type, region_az)
+    return _resolve_existing_template_path(str(relative_path), resource_path_fn)
 
 
 def _s3_uri_join(base_uri: str, *parts: str) -> str:
@@ -1223,6 +1293,7 @@ def run_create_workflow(
     *,
     profile: Optional[str] = None,
     config_path: Optional[str] = None,
+    cluster_type: str = DEFAULT_CREATE_CLUSTER_TYPE,
     pass_on_warn: bool = False,
     debug: bool = False,
     non_interactive: bool = False,
@@ -1294,6 +1365,12 @@ def run_create_workflow(
 
     if debug:
         logging.getLogger("daylily_ec").setLevel(logging.DEBUG)
+    try:
+        cluster_type = normalize_create_cluster_type(cluster_type)
+    except ValueError as exc:
+        logger.error("Cluster type validation failed: %s", exc)
+        ui.fail(str(exc))
+        return EXIT_VALIDATION_FAILURE
     if budget_project:
         logger.error("--budget-project is retired; cluster budgets are named by cluster name.")
         ui.fail("--budget-project is retired; cluster budgets are named by cluster name.")
@@ -1348,6 +1425,7 @@ def run_create_workflow(
     ui.detail("Account", aws_ctx.account_id)
     ui.detail("User", aws_ctx.iam_username)
     ui.detail("Region", f"{aws_ctx.region} ({region_az})")
+    ui.detail("Cluster type", cluster_type)
 
     # -- 2. PREFLIGHT (Phase 1) -----------------------------------------------
     ui.phase("PREFLIGHT")
@@ -1922,20 +2000,18 @@ def run_create_workflow(
     # -- 5. RENDER YAML (Phase 2a) -------------------------------------------
     ui.phase("RENDER CLUSTER YAML")
 
-    template_yaml = (
-        _resolve_config_value(
+    try:
+        template_yaml = resolve_cluster_template_yaml(
             cfg,
-            "cluster_template_yaml",
-            "Cluster template YAML",
-            non_interactive=non_interactive,
-            default_fallback=(
-                "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
-            ),
+            region_az=region_az,
+            cluster_type=cluster_type,
+            resource_path_fn=resource_path,
         )
-        or "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
-    )
-    if not Path(template_yaml).is_file():
-        template_yaml = str(resource_path(template_yaml))
+    except (FileNotFoundError, ValueError) as exc:
+        logger.error("Cluster template resolution failed: %s", exc)
+        ui.fail(f"Cluster template YAML: {exc}")
+        return EXIT_VALIDATION_FAILURE
+    ui.detail("Cluster template", template_yaml)
 
     substitutions: Dict[str, str] = {
         "REGSUB_REGION": aws_ctx.region,

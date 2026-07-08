@@ -1,0 +1,1612 @@
+{
+  "all_types": [
+    "c6i.32xlarge",
+    "c6i.metal",
+    "c6in.32xlarge",
+    "c6in.metal",
+    "c7i.48xlarge",
+    "c7i.metal-48xl",
+    "c8i.32xlarge",
+    "c8i.48xlarge",
+    "c8i.metal-48xl",
+    "c8id.96xlarge",
+    "c8id.metal-96xl",
+    "f2.6xlarge",
+    "i4i.2xlarge",
+    "i4i.32xlarge",
+    "i4i.metal",
+    "i7i.2xlarge",
+    "i7i.48xlarge",
+    "i7i.metal-48xl",
+    "i7ie.2xlarge",
+    "i7ie.48xlarge",
+    "i7ie.metal-48xl",
+    "m6i.32xlarge",
+    "m6i.metal",
+    "m6id.32xlarge",
+    "m6id.metal",
+    "m6idn.32xlarge",
+    "m6idn.metal",
+    "m6in.32xlarge",
+    "m6in.metal",
+    "m7i.48xlarge",
+    "m7i.metal-48xl",
+    "m8i.32xlarge",
+    "m8i.48xlarge",
+    "m8i.metal-48xl",
+    "m8id.96xlarge",
+    "m8id.metal-96xl",
+    "m8idb.96xlarge",
+    "m8idn.96xlarge",
+    "r5.2xlarge",
+    "r5n.2xlarge",
+    "r6i.2xlarge",
+    "r6i.32xlarge",
+    "r6i.metal",
+    "r6id.2xlarge",
+    "r6id.32xlarge",
+    "r6id.metal",
+    "r7i.2xlarge",
+    "r7i.48xlarge",
+    "r7i.metal-48xl",
+    "r8i.2xlarge",
+    "r8i.32xlarge",
+    "r8i.48xlarge",
+    "r8i.metal-48xl",
+    "r8id.96xlarge",
+    "r8id.metal-96xl",
+    "r8idb.96xlarge",
+    "r8idn.96xlarge",
+    "x2idn.32xlarge",
+    "x2idn.metal",
+    "x2iedn.32xlarge",
+    "x2iedn.metal",
+    "x8i.2xlarge",
+    "x8i.32xlarge",
+    "x8i.48xlarge",
+    "x8i.metal-48xl"
+  ],
+  "azs_by_region": {
+    "ap-south-1": [
+      "ap-south-1a",
+      "ap-south-1b",
+      "ap-south-1c"
+    ],
+    "eu-central-1": [
+      "eu-central-1a",
+      "eu-central-1b",
+      "eu-central-1c"
+    ],
+    "us-east-1": [
+      "us-east-1a",
+      "us-east-1b",
+      "us-east-1c",
+      "us-east-1d",
+      "us-east-1e",
+      "us-east-1f"
+    ],
+    "us-east-2": [
+      "us-east-2a",
+      "us-east-2b",
+      "us-east-2c"
+    ],
+    "us-west-1": [
+      "us-west-1a",
+      "us-west-1b"
+    ],
+    "us-west-2": [
+      "us-west-2a",
+      "us-west-2b",
+      "us-west-2c",
+      "us-west-2d"
+    ]
+  },
+  "output_files": {
+    "long_csv": "docs/plans/20260708T094839Z_intel_dragen_spot_az_matrix_long.csv",
+    "price_matrix_csv": "docs/plans/20260708T094839Z_intel_dragen_spot_az_matrix_price_matrix.csv",
+    "status_matrix_csv": "docs/plans/20260708T094839Z_intel_dragen_spot_az_matrix_status_matrix.csv",
+    "summary_md": "docs/plans/20260708T094839Z_intel_dragen_spot_az_matrix.md"
+  },
+  "profile": "lsmc",
+  "regions": [
+    "us-east-1",
+    "us-east-2",
+    "us-west-1",
+    "us-west-2",
+    "ap-south-1",
+    "eu-central-1"
+  ],
+  "stamp_utc": "20260708T094839Z",
+  "summary": {
+    "all": {
+      "ap-south-1a": {
+        "coverage_pct": 81.5,
+        "missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "f2.6xlarge",
+          "m6i.metal",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "missing_count": 12,
+        "not_offered_missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "f2.6xlarge",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "offered_missing": [
+          "m6i.metal"
+        ],
+        "present_count": 53,
+        "total_count": 65
+      },
+      "ap-south-1b": {
+        "coverage_pct": 83.1,
+        "missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "f2.6xlarge",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "missing_count": 11,
+        "not_offered_missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "f2.6xlarge",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 54,
+        "total_count": 65
+      },
+      "ap-south-1c": {
+        "coverage_pct": 69.2,
+        "missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "f2.6xlarge",
+          "i7ie.2xlarge",
+          "i7ie.48xlarge",
+          "i7ie.metal-48xl",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x2iedn.32xlarge",
+          "x2iedn.metal",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "missing_count": 20,
+        "not_offered_missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "f2.6xlarge",
+          "i7ie.2xlarge",
+          "i7ie.48xlarge",
+          "i7ie.metal-48xl",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x2iedn.32xlarge",
+          "x2iedn.metal",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "offered_missing": [],
+        "present_count": 45,
+        "total_count": 65
+      },
+      "eu-central-1a": {
+        "coverage_pct": 92.3,
+        "missing": [
+          "f2.6xlarge",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "missing_count": 5,
+        "not_offered_missing": [
+          "f2.6xlarge",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 60,
+        "total_count": 65
+      },
+      "eu-central-1b": {
+        "coverage_pct": 93.8,
+        "missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "missing_count": 4,
+        "not_offered_missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 61,
+        "total_count": 65
+      },
+      "eu-central-1c": {
+        "coverage_pct": 93.8,
+        "missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "missing_count": 4,
+        "not_offered_missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 61,
+        "total_count": 65
+      },
+      "us-east-1a": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 65,
+        "total_count": 65
+      },
+      "us-east-1b": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 65,
+        "total_count": 65
+      },
+      "us-east-1c": {
+        "coverage_pct": 95.4,
+        "missing": [
+          "m8idb.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "missing_count": 3,
+        "not_offered_missing": [
+          "m8idb.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 62,
+        "total_count": 65
+      },
+      "us-east-1d": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 65,
+        "total_count": 65
+      },
+      "us-east-1e": {
+        "coverage_pct": 0.0,
+        "missing": [
+          "c6i.32xlarge",
+          "c6i.metal",
+          "c6in.32xlarge",
+          "c6in.metal",
+          "c7i.48xlarge",
+          "c7i.metal-48xl",
+          "c8i.32xlarge",
+          "c8i.48xlarge",
+          "c8i.metal-48xl",
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "f2.6xlarge",
+          "i4i.2xlarge",
+          "i4i.32xlarge",
+          "i4i.metal",
+          "i7i.2xlarge",
+          "i7i.48xlarge",
+          "i7i.metal-48xl",
+          "i7ie.2xlarge",
+          "i7ie.48xlarge",
+          "i7ie.metal-48xl",
+          "m6i.32xlarge",
+          "m6i.metal",
+          "m6id.32xlarge",
+          "m6id.metal",
+          "m6idn.32xlarge",
+          "m6idn.metal",
+          "m6in.32xlarge",
+          "m6in.metal",
+          "m7i.48xlarge",
+          "m7i.metal-48xl",
+          "m8i.32xlarge",
+          "m8i.48xlarge",
+          "m8i.metal-48xl",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r5.2xlarge",
+          "r5n.2xlarge",
+          "r6i.2xlarge",
+          "r6i.32xlarge",
+          "r6i.metal",
+          "r6id.2xlarge",
+          "r6id.32xlarge",
+          "r6id.metal",
+          "r7i.2xlarge",
+          "r7i.48xlarge",
+          "r7i.metal-48xl",
+          "r8i.2xlarge",
+          "r8i.32xlarge",
+          "r8i.48xlarge",
+          "r8i.metal-48xl",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x2idn.32xlarge",
+          "x2idn.metal",
+          "x2iedn.32xlarge",
+          "x2iedn.metal",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "missing_count": 65,
+        "not_offered_missing": [
+          "c6i.32xlarge",
+          "c6i.metal",
+          "c6in.32xlarge",
+          "c6in.metal",
+          "c7i.48xlarge",
+          "c7i.metal-48xl",
+          "c8i.32xlarge",
+          "c8i.48xlarge",
+          "c8i.metal-48xl",
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "f2.6xlarge",
+          "i4i.2xlarge",
+          "i4i.32xlarge",
+          "i4i.metal",
+          "i7i.2xlarge",
+          "i7i.48xlarge",
+          "i7i.metal-48xl",
+          "i7ie.2xlarge",
+          "i7ie.48xlarge",
+          "i7ie.metal-48xl",
+          "m6i.32xlarge",
+          "m6i.metal",
+          "m6id.32xlarge",
+          "m6id.metal",
+          "m6idn.32xlarge",
+          "m6idn.metal",
+          "m6in.32xlarge",
+          "m6in.metal",
+          "m7i.48xlarge",
+          "m7i.metal-48xl",
+          "m8i.32xlarge",
+          "m8i.48xlarge",
+          "m8i.metal-48xl",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r5.2xlarge",
+          "r5n.2xlarge",
+          "r6i.2xlarge",
+          "r6i.32xlarge",
+          "r6i.metal",
+          "r6id.2xlarge",
+          "r6id.32xlarge",
+          "r6id.metal",
+          "r7i.2xlarge",
+          "r7i.48xlarge",
+          "r7i.metal-48xl",
+          "r8i.2xlarge",
+          "r8i.32xlarge",
+          "r8i.48xlarge",
+          "r8i.metal-48xl",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x2idn.32xlarge",
+          "x2idn.metal",
+          "x2iedn.32xlarge",
+          "x2iedn.metal",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "offered_missing": [],
+        "present_count": 0,
+        "total_count": 65
+      },
+      "us-east-1f": {
+        "coverage_pct": 92.3,
+        "missing": [
+          "f2.6xlarge",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "missing_count": 5,
+        "not_offered_missing": [
+          "f2.6xlarge",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 60,
+        "total_count": 65
+      },
+      "us-east-2a": {
+        "coverage_pct": 95.4,
+        "missing": [
+          "f2.6xlarge",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge"
+        ],
+        "missing_count": 3,
+        "not_offered_missing": [
+          "f2.6xlarge",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 62,
+        "total_count": 65
+      },
+      "us-east-2b": {
+        "coverage_pct": 95.4,
+        "missing": [
+          "f2.6xlarge",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge"
+        ],
+        "missing_count": 3,
+        "not_offered_missing": [
+          "f2.6xlarge",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 62,
+        "total_count": 65
+      },
+      "us-east-2c": {
+        "coverage_pct": 95.4,
+        "missing": [
+          "f2.6xlarge",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge"
+        ],
+        "missing_count": 3,
+        "not_offered_missing": [
+          "f2.6xlarge",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 62,
+        "total_count": 65
+      },
+      "us-west-1a": {
+        "coverage_pct": 72.3,
+        "missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "f2.6xlarge",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r6id.2xlarge",
+          "r6id.32xlarge",
+          "r6id.metal",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "missing_count": 18,
+        "not_offered_missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "f2.6xlarge",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r6id.2xlarge",
+          "r6id.32xlarge",
+          "r6id.metal",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "offered_missing": [],
+        "present_count": 47,
+        "total_count": 65
+      },
+      "us-west-1b": {
+        "coverage_pct": 72.3,
+        "missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "f2.6xlarge",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r6id.2xlarge",
+          "r6id.32xlarge",
+          "r6id.metal",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "missing_count": 18,
+        "not_offered_missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "f2.6xlarge",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r6id.2xlarge",
+          "r6id.32xlarge",
+          "r6id.metal",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "offered_missing": [],
+        "present_count": 47,
+        "total_count": 65
+      },
+      "us-west-2a": {
+        "coverage_pct": 98.5,
+        "missing": [
+          "f2.6xlarge"
+        ],
+        "missing_count": 1,
+        "not_offered_missing": [
+          "f2.6xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 64,
+        "total_count": 65
+      },
+      "us-west-2b": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 65,
+        "total_count": 65
+      },
+      "us-west-2c": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 65,
+        "total_count": 65
+      },
+      "us-west-2d": {
+        "coverage_pct": 84.6,
+        "missing": [
+          "c6in.32xlarge",
+          "c6in.metal",
+          "f2.6xlarge",
+          "r5n.2xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x2idn.32xlarge",
+          "x2idn.metal",
+          "x2iedn.32xlarge",
+          "x2iedn.metal"
+        ],
+        "missing_count": 10,
+        "not_offered_missing": [
+          "c6in.32xlarge",
+          "c6in.metal",
+          "f2.6xlarge",
+          "r5n.2xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x2idn.32xlarge",
+          "x2idn.metal",
+          "x2iedn.32xlarge",
+          "x2iedn.metal"
+        ],
+        "offered_missing": [],
+        "present_count": 55,
+        "total_count": 65
+      }
+    },
+    "dragen": {
+      "ap-south-1a": {
+        "coverage_pct": 0.0,
+        "missing": [
+          "f2.6xlarge"
+        ],
+        "missing_count": 1,
+        "not_offered_missing": [
+          "f2.6xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 0,
+        "total_count": 1
+      },
+      "ap-south-1b": {
+        "coverage_pct": 0.0,
+        "missing": [
+          "f2.6xlarge"
+        ],
+        "missing_count": 1,
+        "not_offered_missing": [
+          "f2.6xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 0,
+        "total_count": 1
+      },
+      "ap-south-1c": {
+        "coverage_pct": 0.0,
+        "missing": [
+          "f2.6xlarge"
+        ],
+        "missing_count": 1,
+        "not_offered_missing": [
+          "f2.6xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 0,
+        "total_count": 1
+      },
+      "eu-central-1a": {
+        "coverage_pct": 0.0,
+        "missing": [
+          "f2.6xlarge"
+        ],
+        "missing_count": 1,
+        "not_offered_missing": [
+          "f2.6xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 0,
+        "total_count": 1
+      },
+      "eu-central-1b": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 1,
+        "total_count": 1
+      },
+      "eu-central-1c": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 1,
+        "total_count": 1
+      },
+      "us-east-1a": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 1,
+        "total_count": 1
+      },
+      "us-east-1b": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 1,
+        "total_count": 1
+      },
+      "us-east-1c": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 1,
+        "total_count": 1
+      },
+      "us-east-1d": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 1,
+        "total_count": 1
+      },
+      "us-east-1e": {
+        "coverage_pct": 0.0,
+        "missing": [
+          "f2.6xlarge"
+        ],
+        "missing_count": 1,
+        "not_offered_missing": [
+          "f2.6xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 0,
+        "total_count": 1
+      },
+      "us-east-1f": {
+        "coverage_pct": 0.0,
+        "missing": [
+          "f2.6xlarge"
+        ],
+        "missing_count": 1,
+        "not_offered_missing": [
+          "f2.6xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 0,
+        "total_count": 1
+      },
+      "us-east-2a": {
+        "coverage_pct": 0.0,
+        "missing": [
+          "f2.6xlarge"
+        ],
+        "missing_count": 1,
+        "not_offered_missing": [
+          "f2.6xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 0,
+        "total_count": 1
+      },
+      "us-east-2b": {
+        "coverage_pct": 0.0,
+        "missing": [
+          "f2.6xlarge"
+        ],
+        "missing_count": 1,
+        "not_offered_missing": [
+          "f2.6xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 0,
+        "total_count": 1
+      },
+      "us-east-2c": {
+        "coverage_pct": 0.0,
+        "missing": [
+          "f2.6xlarge"
+        ],
+        "missing_count": 1,
+        "not_offered_missing": [
+          "f2.6xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 0,
+        "total_count": 1
+      },
+      "us-west-1a": {
+        "coverage_pct": 0.0,
+        "missing": [
+          "f2.6xlarge"
+        ],
+        "missing_count": 1,
+        "not_offered_missing": [
+          "f2.6xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 0,
+        "total_count": 1
+      },
+      "us-west-1b": {
+        "coverage_pct": 0.0,
+        "missing": [
+          "f2.6xlarge"
+        ],
+        "missing_count": 1,
+        "not_offered_missing": [
+          "f2.6xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 0,
+        "total_count": 1
+      },
+      "us-west-2a": {
+        "coverage_pct": 0.0,
+        "missing": [
+          "f2.6xlarge"
+        ],
+        "missing_count": 1,
+        "not_offered_missing": [
+          "f2.6xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 0,
+        "total_count": 1
+      },
+      "us-west-2b": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 1,
+        "total_count": 1
+      },
+      "us-west-2c": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 1,
+        "total_count": 1
+      },
+      "us-west-2d": {
+        "coverage_pct": 0.0,
+        "missing": [
+          "f2.6xlarge"
+        ],
+        "missing_count": 1,
+        "not_offered_missing": [
+          "f2.6xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 0,
+        "total_count": 1
+      }
+    },
+    "intel": {
+      "ap-south-1a": {
+        "coverage_pct": 82.8,
+        "missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "m6i.metal",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "missing_count": 11,
+        "not_offered_missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "offered_missing": [
+          "m6i.metal"
+        ],
+        "present_count": 53,
+        "total_count": 64
+      },
+      "ap-south-1b": {
+        "coverage_pct": 84.4,
+        "missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "missing_count": 10,
+        "not_offered_missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 54,
+        "total_count": 64
+      },
+      "ap-south-1c": {
+        "coverage_pct": 70.3,
+        "missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "i7ie.2xlarge",
+          "i7ie.48xlarge",
+          "i7ie.metal-48xl",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x2iedn.32xlarge",
+          "x2iedn.metal",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "missing_count": 19,
+        "not_offered_missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "i7ie.2xlarge",
+          "i7ie.48xlarge",
+          "i7ie.metal-48xl",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x2iedn.32xlarge",
+          "x2iedn.metal",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "offered_missing": [],
+        "present_count": 45,
+        "total_count": 64
+      },
+      "eu-central-1a": {
+        "coverage_pct": 93.8,
+        "missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "missing_count": 4,
+        "not_offered_missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 60,
+        "total_count": 64
+      },
+      "eu-central-1b": {
+        "coverage_pct": 93.8,
+        "missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "missing_count": 4,
+        "not_offered_missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 60,
+        "total_count": 64
+      },
+      "eu-central-1c": {
+        "coverage_pct": 93.8,
+        "missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "missing_count": 4,
+        "not_offered_missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 60,
+        "total_count": 64
+      },
+      "us-east-1a": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 64,
+        "total_count": 64
+      },
+      "us-east-1b": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 64,
+        "total_count": 64
+      },
+      "us-east-1c": {
+        "coverage_pct": 95.3,
+        "missing": [
+          "m8idb.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "missing_count": 3,
+        "not_offered_missing": [
+          "m8idb.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 61,
+        "total_count": 64
+      },
+      "us-east-1d": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 64,
+        "total_count": 64
+      },
+      "us-east-1e": {
+        "coverage_pct": 0.0,
+        "missing": [
+          "c6i.32xlarge",
+          "c6i.metal",
+          "c6in.32xlarge",
+          "c6in.metal",
+          "c7i.48xlarge",
+          "c7i.metal-48xl",
+          "c8i.32xlarge",
+          "c8i.48xlarge",
+          "c8i.metal-48xl",
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "i4i.2xlarge",
+          "i4i.32xlarge",
+          "i4i.metal",
+          "i7i.2xlarge",
+          "i7i.48xlarge",
+          "i7i.metal-48xl",
+          "i7ie.2xlarge",
+          "i7ie.48xlarge",
+          "i7ie.metal-48xl",
+          "m6i.32xlarge",
+          "m6i.metal",
+          "m6id.32xlarge",
+          "m6id.metal",
+          "m6idn.32xlarge",
+          "m6idn.metal",
+          "m6in.32xlarge",
+          "m6in.metal",
+          "m7i.48xlarge",
+          "m7i.metal-48xl",
+          "m8i.32xlarge",
+          "m8i.48xlarge",
+          "m8i.metal-48xl",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r5.2xlarge",
+          "r5n.2xlarge",
+          "r6i.2xlarge",
+          "r6i.32xlarge",
+          "r6i.metal",
+          "r6id.2xlarge",
+          "r6id.32xlarge",
+          "r6id.metal",
+          "r7i.2xlarge",
+          "r7i.48xlarge",
+          "r7i.metal-48xl",
+          "r8i.2xlarge",
+          "r8i.32xlarge",
+          "r8i.48xlarge",
+          "r8i.metal-48xl",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x2idn.32xlarge",
+          "x2idn.metal",
+          "x2iedn.32xlarge",
+          "x2iedn.metal",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "missing_count": 64,
+        "not_offered_missing": [
+          "c6i.32xlarge",
+          "c6i.metal",
+          "c6in.32xlarge",
+          "c6in.metal",
+          "c7i.48xlarge",
+          "c7i.metal-48xl",
+          "c8i.32xlarge",
+          "c8i.48xlarge",
+          "c8i.metal-48xl",
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "i4i.2xlarge",
+          "i4i.32xlarge",
+          "i4i.metal",
+          "i7i.2xlarge",
+          "i7i.48xlarge",
+          "i7i.metal-48xl",
+          "i7ie.2xlarge",
+          "i7ie.48xlarge",
+          "i7ie.metal-48xl",
+          "m6i.32xlarge",
+          "m6i.metal",
+          "m6id.32xlarge",
+          "m6id.metal",
+          "m6idn.32xlarge",
+          "m6idn.metal",
+          "m6in.32xlarge",
+          "m6in.metal",
+          "m7i.48xlarge",
+          "m7i.metal-48xl",
+          "m8i.32xlarge",
+          "m8i.48xlarge",
+          "m8i.metal-48xl",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r5.2xlarge",
+          "r5n.2xlarge",
+          "r6i.2xlarge",
+          "r6i.32xlarge",
+          "r6i.metal",
+          "r6id.2xlarge",
+          "r6id.32xlarge",
+          "r6id.metal",
+          "r7i.2xlarge",
+          "r7i.48xlarge",
+          "r7i.metal-48xl",
+          "r8i.2xlarge",
+          "r8i.32xlarge",
+          "r8i.48xlarge",
+          "r8i.metal-48xl",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x2idn.32xlarge",
+          "x2idn.metal",
+          "x2iedn.32xlarge",
+          "x2iedn.metal",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "offered_missing": [],
+        "present_count": 0,
+        "total_count": 64
+      },
+      "us-east-1f": {
+        "coverage_pct": 93.8,
+        "missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "missing_count": 4,
+        "not_offered_missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 60,
+        "total_count": 64
+      },
+      "us-east-2a": {
+        "coverage_pct": 96.9,
+        "missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge"
+        ],
+        "missing_count": 2,
+        "not_offered_missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 62,
+        "total_count": 64
+      },
+      "us-east-2b": {
+        "coverage_pct": 96.9,
+        "missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge"
+        ],
+        "missing_count": 2,
+        "not_offered_missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 62,
+        "total_count": 64
+      },
+      "us-east-2c": {
+        "coverage_pct": 96.9,
+        "missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge"
+        ],
+        "missing_count": 2,
+        "not_offered_missing": [
+          "m8idb.96xlarge",
+          "m8idn.96xlarge"
+        ],
+        "offered_missing": [],
+        "present_count": 62,
+        "total_count": 64
+      },
+      "us-west-1a": {
+        "coverage_pct": 73.4,
+        "missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r6id.2xlarge",
+          "r6id.32xlarge",
+          "r6id.metal",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "missing_count": 17,
+        "not_offered_missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r6id.2xlarge",
+          "r6id.32xlarge",
+          "r6id.metal",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "offered_missing": [],
+        "present_count": 47,
+        "total_count": 64
+      },
+      "us-west-1b": {
+        "coverage_pct": 73.4,
+        "missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r6id.2xlarge",
+          "r6id.32xlarge",
+          "r6id.metal",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "missing_count": 17,
+        "not_offered_missing": [
+          "c8id.96xlarge",
+          "c8id.metal-96xl",
+          "m8id.96xlarge",
+          "m8id.metal-96xl",
+          "m8idb.96xlarge",
+          "m8idn.96xlarge",
+          "r6id.2xlarge",
+          "r6id.32xlarge",
+          "r6id.metal",
+          "r8id.96xlarge",
+          "r8id.metal-96xl",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x8i.2xlarge",
+          "x8i.32xlarge",
+          "x8i.48xlarge",
+          "x8i.metal-48xl"
+        ],
+        "offered_missing": [],
+        "present_count": 47,
+        "total_count": 64
+      },
+      "us-west-2a": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 64,
+        "total_count": 64
+      },
+      "us-west-2b": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 64,
+        "total_count": 64
+      },
+      "us-west-2c": {
+        "coverage_pct": 100.0,
+        "missing": [],
+        "missing_count": 0,
+        "not_offered_missing": [],
+        "offered_missing": [],
+        "present_count": 64,
+        "total_count": 64
+      },
+      "us-west-2d": {
+        "coverage_pct": 85.9,
+        "missing": [
+          "c6in.32xlarge",
+          "c6in.metal",
+          "r5n.2xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x2idn.32xlarge",
+          "x2idn.metal",
+          "x2iedn.32xlarge",
+          "x2iedn.metal"
+        ],
+        "missing_count": 9,
+        "not_offered_missing": [
+          "c6in.32xlarge",
+          "c6in.metal",
+          "r5n.2xlarge",
+          "r8idb.96xlarge",
+          "r8idn.96xlarge",
+          "x2idn.32xlarge",
+          "x2idn.metal",
+          "x2iedn.32xlarge",
+          "x2iedn.metal"
+        ],
+        "offered_missing": [],
+        "present_count": 55,
+        "total_count": 64
+      }
+    }
+  },
+  "template_types": {
+    "dragen_native_ami_rhel8": [
+      "f2.6xlarge"
+    ],
+    "dragen_native_ami_rhel8_nofsx": [
+      "f2.6xlarge"
+    ],
+    "dragen_pcluster_image_rhel8": [
+      "f2.6xlarge"
+    ],
+    "dragen_pcluster_image_rhel8_nofsx": [
+      "f2.6xlarge"
+    ],
+    "intel": [
+      "r5.2xlarge",
+      "r5n.2xlarge",
+      "r6i.2xlarge",
+      "r6id.2xlarge",
+      "r7i.2xlarge",
+      "r8i.2xlarge",
+      "i4i.2xlarge",
+      "i7i.2xlarge",
+      "i7ie.2xlarge",
+      "x8i.2xlarge",
+      "c6i.32xlarge",
+      "c6i.metal",
+      "c6in.32xlarge",
+      "c6in.metal",
+      "m6i.32xlarge",
+      "m6i.metal",
+      "m6id.32xlarge",
+      "m6id.metal",
+      "m6in.32xlarge",
+      "m6in.metal",
+      "m6idn.32xlarge",
+      "m6idn.metal",
+      "r6i.32xlarge",
+      "r6i.metal",
+      "r6id.32xlarge",
+      "r6id.metal",
+      "i4i.32xlarge",
+      "i4i.metal",
+      "x2idn.32xlarge",
+      "x2idn.metal",
+      "x2iedn.32xlarge",
+      "x2iedn.metal",
+      "c8i.32xlarge",
+      "m8i.32xlarge",
+      "r8i.32xlarge",
+      "x8i.32xlarge",
+      "c7i.48xlarge",
+      "c7i.metal-48xl",
+      "m7i.48xlarge",
+      "m7i.metal-48xl",
+      "r7i.48xlarge",
+      "r7i.metal-48xl",
+      "c8i.48xlarge",
+      "c8i.metal-48xl",
+      "m8i.48xlarge",
+      "m8i.metal-48xl",
+      "r8i.48xlarge",
+      "r8i.metal-48xl",
+      "i7i.48xlarge",
+      "i7i.metal-48xl",
+      "i7ie.48xlarge",
+      "i7ie.metal-48xl",
+      "x8i.48xlarge",
+      "x8i.metal-48xl",
+      "c8id.96xlarge",
+      "c8id.metal-96xl",
+      "m8id.96xlarge",
+      "m8id.metal-96xl",
+      "m8idn.96xlarge",
+      "m8idb.96xlarge",
+      "r8id.96xlarge",
+      "r8id.metal-96xl",
+      "r8idn.96xlarge",
+      "r8idb.96xlarge"
+    ]
+  },
+  "templates": {
+    "dragen_native_ami_rhel8": "config/day_cluster/prod_cluster_dragen_native_ami_rhel8.yaml",
+    "dragen_native_ami_rhel8_nofsx": "config/day_cluster/prod_cluster_dragen_native_ami_rhel8_nofsx.yaml",
+    "dragen_pcluster_image_rhel8": "config/day_cluster/prod_cluster_dragen_pcluster_image_rhel8.yaml",
+    "dragen_pcluster_image_rhel8_nofsx": "config/day_cluster/prod_cluster_dragen_pcluster_image_rhel8_nofsx.yaml",
+    "intel": "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+  }
+}
