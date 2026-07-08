@@ -835,8 +835,16 @@ def test_rhel_dragen_post_install_removes_cromwell_and_requires_womtool() -> Non
 
     for script in (source, packaged):
         assert 'wait_for_dir "${runtime_assets_root}/tool_specific_resources"' in script
+        assert "wait_for_file()" in script
+        assert (
+            'wait_for_file "${runtime_assets_root}/tool_specific_resources/womtool_87.jar"'
+            in script
+        )
         assert "cromwell_87.jar" not in script
         assert "cromwell.jar" not in script
         assert "/fsx/analysis_results/cromwell_executions" not in script
-        assert "ERROR: womtool_87.jar missing" in script
+        assert "not found or empty after" in script
         assert "install_womtool_link" in script
+        assert "dnf_install_with_rpmdb_repair" in script
+        assert "RHEL rpm database failure detected during dnf install" in script
+        assert "DB_RUNRECOVERY" in script
