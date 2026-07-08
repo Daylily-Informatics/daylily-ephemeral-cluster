@@ -233,6 +233,23 @@ ensure_user() {
   fi
 }
 
+allow_imds_for_user() {
+  local user_name="$1"
+  local uid
+
+  uid="$(id -u "${user_name}")"
+  if ! iptables -S PARALLELCLUSTER_IMDS >/dev/null 2>&1; then
+    echo "ParallelCluster IMDS owner chain is absent; no user-specific IMDS rule needed for ${user_name}."
+    return 0
+  fi
+  if iptables -C PARALLELCLUSTER_IMDS -d 169.254.169.254/32 -m owner --uid-owner "${uid}" -j ACCEPT 2>/dev/null; then
+    echo "IMDS access already allowed for ${user_name} uid ${uid}."
+    return 0
+  fi
+  echo "Allowing IMDS access for ${user_name} uid ${uid} through PARALLELCLUSTER_IMDS."
+  iptables -I PARALLELCLUSTER_IMDS 1 -d 169.254.169.254/32 -m owner --uid-owner "${uid}" -j ACCEPT
+}
+
 configure_rclone_if_available() {
   if ! command -v rclone >/dev/null 2>&1; then
     echo "RHEL package set does not provide rclone; skipping rclone.conf creation."
@@ -828,6 +845,7 @@ install_required_rhel_packages
 configure_rclone_if_available
 ensure_user ubuntu ubuntu /home/ubuntu
 ensure_user daylily daylily /home/daylily
+allow_imds_for_user ubuntu
 install_runtime_profiles
 prepare_common_writable_dirs
 configure_kernel_and_shm
