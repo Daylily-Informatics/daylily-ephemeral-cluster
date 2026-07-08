@@ -91,6 +91,24 @@ class TestGetSpotPrice:
         ec2 = _mock_ec2(2.0)
         assert get_spot_price(ec2, "m5.xlarge", "us-west-2a") == 2.0
 
+    def test_returns_named_product_price(self) -> None:
+        ec2 = _mock_ec2(2.0)
+        assert (
+            get_spot_price(
+                ec2,
+                "f2.6xlarge",
+                "us-west-2a",
+                product_description="Red Hat Enterprise Linux",
+            )
+            == 2.0
+        )
+        ec2.describe_spot_price_history.assert_called_once_with(
+            InstanceTypes=["f2.6xlarge"],
+            AvailabilityZone="us-west-2a",
+            ProductDescriptions=["Red Hat Enterprise Linux"],
+            MaxResults=1,
+        )
+
     def test_empty_history_fails_hard(self) -> None:
         ec2 = MagicMock()
         ec2.describe_spot_price_history.return_value = {"SpotPriceHistory": []}
@@ -243,6 +261,127 @@ class TestProcessSlurmQueues:
 
         with pytest.raises(RuntimeError, match="i384 reference spot data missing"):
             process_slurm_queues(cfg, "us-west-2a", ec2)
+
+    def test_f2_low_diversity_partition_uses_rhel_spot_price(self) -> None:
+        ec2 = MagicMock()
+        prices = {
+            ("f2.6xlarge", "Linux/UNIX"): "0.8013",
+            ("f2.6xlarge", "Red Hat Enterprise Linux"): "1.0604",
+        }
+
+        def _price_for(InstanceTypes, ProductDescriptions, **_kwargs):
+            return {
+                "SpotPriceHistory": [
+                    {"SpotPrice": prices[(InstanceTypes[0], ProductDescriptions[0])]}
+                ]
+            }
+
+        ec2.describe_spot_price_history.side_effect = _price_for
+        _set_instance_vcpus(ec2, {"f2.6xlarge": 24})
+        cfg = _config(
+            [
+                _queue(
+                    "dragen",
+                    [_resource("f26xlarge", ["f2.6xlarge"], max_count=2)],
+                )
+            ]
+        )
+
+        summary = process_slurm_queues(cfg, "us-west-2c", ec2)
+
+        resource = cfg["Scheduling"]["SlurmQueues"][0]["ComputeResources"][0]
+        row = summary["resources"][0]
+        assert resource["SpotPrice"] == 1.2725
+        assert row["raw_max_spot_price"] == 1.0604
+        assert row["reference_resource"] == "partition_max"
+        assert row["reference_source"] == "f2_partition_max"
+        assert row["reference_median_spot_price"] == 1.0604
+        assert (
+            ec2.describe_spot_price_history.call_args_list[0].kwargs["ProductDescriptions"]
+            == ["Linux/UNIX"]
+        )
+        assert (
+            ec2.describe_spot_price_history.call_args_list[1].kwargs["ProductDescriptions"]
+            == ["Red Hat Enterprise Linux"]
+        )
+
+    def test_f2_low_diversity_partition_uses_partition_max_price(self) -> None:
+        ec2 = MagicMock()
+        prices = {
+            ("f2.6xlarge", "Linux/UNIX"): "0.80",
+            ("f2.6xlarge", "Red Hat Enterprise Linux"): "1.00",
+            ("c6i.8xlarge", "Linux/UNIX"): "2.00",
+        }
+
+        def _price_for(InstanceTypes, ProductDescriptions, **_kwargs):
+            return {
+                "SpotPriceHistory": [
+                    {"SpotPrice": prices[(InstanceTypes[0], ProductDescriptions[0])]}
+                ]
+            }
+
+        ec2.describe_spot_price_history.side_effect = _price_for
+        _set_instance_vcpus(ec2, {"f2.6xlarge": 24, "c6i.8xlarge": 32})
+        cfg = _config(
+            [
+                _queue(
+                    "dragen",
+                    [
+                        _resource("f26xlarge", ["f2.6xlarge"], max_count=1),
+                        _resource("i8xlarge", ["c6i.8xlarge"], max_count=1),
+                    ],
+                )
+            ]
+        )
+
+        summary = process_slurm_queues(cfg, "us-west-2c", ec2)
+
+        resources = cfg["Scheduling"]["SlurmQueues"][0]["ComputeResources"]
+        f2_row = next(row for row in summary["resources"] if row["resource"] == "f26xlarge")
+        non_f2_row = next(row for row in summary["resources"] if row["resource"] == "i8xlarge")
+        assert resources[0]["SpotPrice"] == 2.4
+        assert f2_row["reference_resource"] == "partition_max"
+        assert f2_row["reference_median_spot_price"] == 2.0
+        assert non_f2_row["reference_source"] == "self"
+        assert non_f2_row["reference_median_spot_price"] == 2.0
+
+    def test_f2_partition_max_rule_requires_less_than_three_max_instances(self) -> None:
+        ec2 = MagicMock()
+        prices = {
+            ("f2.6xlarge", "Linux/UNIX"): "0.80",
+            ("f2.6xlarge", "Red Hat Enterprise Linux"): "1.00",
+            ("c6i.8xlarge", "Linux/UNIX"): "2.00",
+        }
+
+        def _price_for(InstanceTypes, ProductDescriptions, **_kwargs):
+            return {
+                "SpotPriceHistory": [
+                    {"SpotPrice": prices[(InstanceTypes[0], ProductDescriptions[0])]}
+                ]
+            }
+
+        ec2.describe_spot_price_history.side_effect = _price_for
+        _set_instance_vcpus(ec2, {"f2.6xlarge": 24, "c6i.8xlarge": 32})
+        cfg = _config(
+            [
+                _queue(
+                    "dragen",
+                    [
+                        _resource("f26xlarge", ["f2.6xlarge"], max_count=3),
+                        _resource("i8xlarge", ["c6i.8xlarge"], max_count=1),
+                    ],
+                )
+            ]
+        )
+
+        summary = process_slurm_queues(cfg, "us-west-2c", ec2)
+
+        f2_resource = cfg["Scheduling"]["SlurmQueues"][0]["ComputeResources"][0]
+        f2_row = next(row for row in summary["resources"] if row["resource"] == "f26xlarge")
+        assert f2_resource["SpotPrice"] == 1.2
+        assert f2_row["reference_resource"] == "f26xlarge"
+        assert f2_row["reference_source"] == "self"
+        assert f2_row["reference_median_spot_price"] == 1.0
 
     def test_apply_spot_to_queue_uses_default_cap(self) -> None:
         ec2 = _mock_ec2(99.0)

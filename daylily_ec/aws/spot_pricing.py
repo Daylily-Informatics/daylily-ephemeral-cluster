@@ -13,6 +13,13 @@ from ruamel.yaml.comments import CommentedMap
 
 SPOT_PRICE_SUMMARY_SCHEMA_VERSION = "dyec.spot_price_summary.v1"
 
+DEFAULT_SPOT_PRODUCT_DESCRIPTION = "Linux/UNIX"
+F2_SPOT_PRODUCT_DESCRIPTIONS = (
+    DEFAULT_SPOT_PRODUCT_DESCRIPTION,
+    "Red Hat Enterprise Linux",
+)
+F2_PARTITION_MAX_INSTANCE_THRESHOLD = 3
+
 DEFAULT_GLOBAL_SPOT_MAX_COST: float = 7.50
 MAX_GLOBAL_SPOT_MAX_COST: float = 10.00
 DEFAULT_SPOT_COST_LIMIT_PCT: float = 1.2
@@ -55,19 +62,25 @@ def validate_spot_pricing_limits(
     return global_max, pct, warn_threshold
 
 
-def get_spot_price(ec2_client: Any, instance_type: str, az: str) -> float:
-    """Return the latest Linux/UNIX spot price for one instance type and AZ."""
+def get_spot_price(
+    ec2_client: Any,
+    instance_type: str,
+    az: str,
+    *,
+    product_description: str = DEFAULT_SPOT_PRODUCT_DESCRIPTION,
+) -> float:
+    """Return the latest spot price for one product, instance type, and AZ."""
 
     try:
         resp = ec2_client.describe_spot_price_history(
             InstanceTypes=[instance_type],
             AvailabilityZone=az,
-            ProductDescriptions=["Linux/UNIX"],
+            ProductDescriptions=[product_description],
             MaxResults=1,
         )
     except Exception as exc:
         raise RuntimeError(
-            f"Spot price lookup failed for {instance_type} in {az}. "
+            f"Spot price lookup failed for {product_description} {instance_type} in {az}. "
             "Confirm the instance type is valid and ec2:DescribeSpotPriceHistory is allowed. "
             f"Detail: {exc}"
         ) from exc
@@ -75,7 +88,8 @@ def get_spot_price(ec2_client: Any, instance_type: str, az: str) -> float:
     prices = resp.get("SpotPriceHistory", [])
     if not prices:
         raise RuntimeError(
-            f"Spot price lookup returned no price history for {instance_type} in {az}."
+            "Spot price lookup returned no price history for "
+            f"{product_description} {instance_type} in {az}."
         )
 
     try:
@@ -83,7 +97,7 @@ def get_spot_price(ec2_client: Any, instance_type: str, az: str) -> float:
     except (KeyError, ValueError, TypeError) as exc:
         raise RuntimeError(
             "Spot price lookup returned a non-numeric SpotPrice for "
-            f"{instance_type} in {az}: {prices[0]!r}"
+            f"{product_description} {instance_type} in {az}: {prices[0]!r}"
         ) from exc
 
 
@@ -265,12 +279,11 @@ def _build_spot_price_summary(
 ) -> dict[str, Any]:
     queues = config.get("Scheduling", {}).get("SlurmQueues", []) or []
     resource_stats: dict[tuple[str, str], dict[str, Any]] = {}
-    resource_refs: dict[tuple[str, str], Any] = {}
 
     for queue_index, queue in enumerate(queues):
         queue_name = str(queue.get("Name") or f"queue_{queue_index}")
-        for resource_index, resource in enumerate(queue.get("ComputeResources", []) or []):
-            resource_name = str(resource.get("Name") or f"resource_{resource_index}")
+        for resource_index, resource in enumerate(_queue_resources(queue)):
+            resource_name = _resource_name(resource, resource_index)
             stats = _collect_resource_price_stats(ec2_client, resource, az)
             if stats is None:
                 raise RuntimeError(
@@ -278,27 +291,45 @@ def _build_spot_price_summary(
                 )
             resource_key = (queue_name, resource_name)
             resource_stats[resource_key] = stats
-            resource_refs[resource_key] = resource
 
     resource_rows: list[dict[str, Any]] = []
     partition_accumulators: dict[str, dict[str, Any]] = {}
 
     for queue_index, queue in enumerate(queues):
         queue_name = str(queue.get("Name") or f"queue_{queue_index}")
+        resources = _queue_resources(queue)
+        queue_max_instances = _queue_max_instances(resources)
+        queue_partition_max_price = _queue_partition_max_spot_price(
+            queue_name,
+            resources,
+            resource_stats,
+        )
         queue_rows: list[dict[str, Any]] = []
-        for resource_index, resource in enumerate(queue.get("ComputeResources", []) or []):
-            resource_name = str(resource.get("Name") or f"resource_{resource_index}")
+        for resource_index, resource in enumerate(resources):
+            resource_name = _resource_name(resource, resource_index)
             resource_key = (queue_name, resource_name)
             stats = resource_stats[resource_key]
             ref_key = _reference_key_for_resource(queue_name, resource_name)
-            if ref_key not in resource_stats:
-                raise RuntimeError(
-                    "i384 reference spot data missing for "
-                    f"{queue_name}/{resource_name}: expected {ref_key[0]}/{ref_key[1]}."
-                )
-            ref_stats = resource_stats[ref_key]
-            reference_source = "self" if ref_key == resource_key else "i192_reference"
-            reference_median = float(ref_stats["raw_median_spot_price"])
+            use_f2_partition_max = _uses_f2_partition_max(
+                stats,
+                queue_max_instances=queue_max_instances,
+            )
+            if use_f2_partition_max:
+                reference_queue = queue_name
+                reference_resource = "partition_max"
+                reference_source = "f2_partition_max"
+                reference_median = queue_partition_max_price
+            else:
+                if ref_key not in resource_stats:
+                    raise RuntimeError(
+                        "i384 reference spot data missing for "
+                        f"{queue_name}/{resource_name}: expected {ref_key[0]}/{ref_key[1]}."
+                    )
+                ref_stats = resource_stats[ref_key]
+                reference_queue = ref_key[0]
+                reference_resource = ref_key[1]
+                reference_source = "self" if ref_key == resource_key else "i192_reference"
+                reference_median = float(ref_stats["raw_median_spot_price"])
             uncapped_bid = _round_price(reference_median * spot_cost_limit_pct)
             final_bid = min(uncapped_bid, _round_price(global_spot_max_cost))
             final_bid = _round_price(final_bid)
@@ -307,8 +338,13 @@ def _build_spot_price_summary(
 
             resource["SpotPrice"] = final_bid
             if isinstance(resource, CommentedMap):
+                comment_source = (
+                    "f2 partition max spot price"
+                    if use_f2_partition_max
+                    else "reference median spot price"
+                )
                 resource.yaml_add_eol_comment(
-                    "Calculated from reference median spot price with DYEC create cap.",
+                    f"Calculated from {comment_source} with DYEC create cap.",
                     key="SpotPrice",
                     column=0,
                 )
@@ -325,8 +361,8 @@ def _build_spot_price_summary(
                 "raw_min_spot_price": _round_price(float(stats["raw_min_spot_price"])),
                 "raw_max_spot_price": _round_price(float(stats["raw_max_spot_price"])),
                 "raw_median_spot_price": _round_price(float(stats["raw_median_spot_price"])),
-                "reference_queue": ref_key[0],
-                "reference_resource": ref_key[1],
+                "reference_queue": reference_queue,
+                "reference_resource": reference_resource,
                 "reference_median_spot_price": _round_price(reference_median),
                 "reference_source": reference_source,
                 "uncapped_pct_bid": uncapped_bid,
@@ -380,7 +416,10 @@ def _collect_resource_price_stats(
     if not instance_types:
         return None
 
-    prices = [get_spot_price(ec2_client, instance_type, az) for instance_type in instance_types]
+    prices = [
+        _effective_spot_price(ec2_client, instance_type, az)
+        for instance_type in instance_types
+    ]
     instance_vcpus = get_instance_vcpu_counts(ec2_client, instance_types)
     return {
         "instance_types": instance_types,
@@ -397,6 +436,65 @@ def _reference_key_for_resource(queue_name: str, resource_name: str) -> tuple[st
     if queue_name.startswith("i384") or "384" in resource_name:
         return (queue_name.replace("384", "192", 1), resource_name.replace("384", "192", 1))
     return (queue_name, resource_name)
+
+
+def _queue_resources(queue: Dict[str, Any]) -> list[Dict[str, Any]]:
+    return list(queue.get("ComputeResources", []) or [])
+
+
+def _resource_name(resource: Dict[str, Any], index: int) -> str:
+    return str(resource.get("Name") or f"resource_{index}")
+
+
+def _queue_max_instances(resources: Iterable[Dict[str, Any]]) -> int:
+    return sum(_parse_int(resource.get("MaxCount", 0)) for resource in resources)
+
+
+def _queue_partition_max_spot_price(
+    queue_name: str,
+    resources: Iterable[Dict[str, Any]],
+    resource_stats: dict[tuple[str, str], dict[str, Any]],
+) -> float:
+    prices = []
+    for resource_index, resource in enumerate(resources):
+        resource_name = _resource_name(resource, resource_index)
+        stats = resource_stats[(queue_name, resource_name)]
+        prices.append(float(stats["raw_max_spot_price"]))
+    return max(prices) if prices else 0.0
+
+
+def _uses_f2_partition_max(
+    stats: dict[str, Any],
+    *,
+    queue_max_instances: int,
+) -> bool:
+    return (
+        queue_max_instances < F2_PARTITION_MAX_INSTANCE_THRESHOLD
+        and any(_is_f2_instance_type(instance_type) for instance_type in stats["instance_types"])
+    )
+
+
+def _effective_spot_price(ec2_client: Any, instance_type: str, az: str) -> float:
+    prices = [
+        get_spot_price(
+            ec2_client,
+            instance_type,
+            az,
+            product_description=product_description,
+        )
+        for product_description in _spot_product_descriptions(instance_type)
+    ]
+    return max(prices)
+
+
+def _spot_product_descriptions(instance_type: str) -> tuple[str, ...]:
+    if _is_f2_instance_type(instance_type):
+        return F2_SPOT_PRODUCT_DESCRIPTIONS
+    return (DEFAULT_SPOT_PRODUCT_DESCRIPTION,)
+
+
+def _is_f2_instance_type(instance_type: str) -> bool:
+    return instance_type.startswith("f2.")
 
 
 def _partition_summary_row(

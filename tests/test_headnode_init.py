@@ -778,7 +778,9 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert 'install -m 0755 "${temp_path}" "${destination}"' in script
     assert "disable_slurm_partition_exclusivity" in script
     assert "OverSubscribe=YES" in script
-    assert "SelectTypeParameters=CR_CPU_Memory" in script
+    assert "SelectTypeParameters remains under ParallelCluster config control" in script
+    assert "SelectTypeParameters=CR_CPU_Memory" not in script
+    assert 'line.startswith("SelectTypeParameters=")' not in script
     assert "exclusive Slurm partition allocation survived boot rewrite" in script
     assert 'append_once "AccountingStoreFlags=job_comment" /opt/slurm/etc/slurm.conf' in script
     assert 'append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf' in script

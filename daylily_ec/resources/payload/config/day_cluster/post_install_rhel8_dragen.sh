@@ -552,7 +552,7 @@ disable_slurm_partition_exclusivity() {
     exit 1
   fi
 
-  echo "ALERT WARNING: Enforcing non-exclusive Slurm scheduling in ${slurm_conf}; PartitionName lines will use OverSubscribe=YES and SelectTypeParameters=CR_CPU_Memory."
+  echo "ALERT WARNING: Enforcing non-exclusive Slurm scheduling in ${slurm_conf}; PartitionName lines will use OverSubscribe=YES. SelectTypeParameters remains under ParallelCluster config control."
   python3 - "${slurm_conf}" <<'PY'
 from pathlib import Path
 import sys
@@ -560,12 +560,7 @@ import sys
 path = Path(sys.argv[1])
 lines = path.read_text(encoding="utf-8").splitlines()
 rewritten = []
-has_select_type_parameters = False
 for line in lines:
-    if line.startswith("SelectTypeParameters="):
-        rewritten.append("SelectTypeParameters=CR_CPU_Memory")
-        has_select_type_parameters = True
-        continue
     if line.startswith("PartitionName="):
         fields = line.split()
         saw_oversubscribe = False
@@ -581,8 +576,6 @@ for line in lines:
         rewritten.append(" ".join(next_fields))
         continue
     rewritten.append(line)
-if not has_select_type_parameters:
-    rewritten.append("SelectTypeParameters=CR_CPU_Memory")
 path.write_text("\n".join(rewritten) + "\n", encoding="utf-8")
 PY
 
@@ -591,7 +584,7 @@ PY
     grep -E '^PartitionName=' "${slurm_conf}" >&2
     exit 1
   fi
-  grep -E '^(SelectTypeParameters=|PartitionName=)' "${slurm_conf}" || true
+  grep -E '^PartitionName=' "${slurm_conf}" || true
 }
 
 link_cached_entries() {

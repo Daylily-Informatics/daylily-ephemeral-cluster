@@ -240,7 +240,9 @@ def test_packaged_boot_config_matches_source_and_disables_exclusivity() -> None:
         script = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
         assert "disable_slurm_partition_exclusivity" in script
         assert "OverSubscribe=YES" in script
-        assert "SelectTypeParameters=CR_CPU_Memory" in script
+        assert "SelectTypeParameters remains under ParallelCluster config control" in script
+        assert "SelectTypeParameters=CR_CPU_Memory" not in script
+        assert 'line.startswith("SelectTypeParameters=")' not in script
         assert "exclusive Slurm partition allocation survived boot rewrite" in script
         assert 'spot_lifecycle_state_dir="/var/lib/daylily/spot_lifecycle"' in script
         assert "spot_price_warn_exception_messages.log" in script
