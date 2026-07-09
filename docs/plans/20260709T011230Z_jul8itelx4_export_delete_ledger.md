@@ -68,6 +68,42 @@ the export is complete.
   `dyec-jul8itelx4-agent12-20260708T152112Z`; kill/cancel therefore needs
   explicit takeover/kill approval.
 
+## 2026-07-09T05:52Z Deletion Request Refresh
+
+User requested deletion of `jul8itelx4`. Per the destructive AWS guardrail, this
+refresh is read-only and does not perform live deletion.
+
+- AWS identity check with `AWS_PROFILE=lsmc AWS_DEFAULT_REGION=us-west-2 aws sts
+  get-caller-identity --output json` returned account `108782052779`.
+- `dyec --json cluster-info --profile lsmc --region us-west-2` listed
+  `jul8itelx4` as `CREATE_COMPLETE`; `ifx-reworkB` is the only other listed
+  active cluster.
+- `pcluster describe-cluster --cluster-name jul8itelx4 --region us-west-2`
+  with profile `lsmc` reported `clusterStatus=CREATE_COMPLETE`,
+  `computeFleetStatus=RUNNING`, headnode `i-02946c880916d6dbc`, and
+  CloudFormation stack `CREATE_COMPLETE`. The temporary signed cluster-config
+  URL was intentionally not copied into this ledger.
+- `pcluster describe-cluster-instances --cluster-name jul8itelx4 --region
+  us-west-2` reported one running headnode plus five running compute nodes:
+  - `i-00f0e5b515fdf146d`, `i192nvme`, `i7i.48xlarge`
+  - `i-004eaefba079626d9`, `i192hugenvme`, `i7i.48xlarge`
+  - `i-0454335e0230b3ef4`, `i128`, `c6i.metal`
+  - `i-011a486a1e6d31a96`, `i128`, `c6i.metal`
+  - `i-0d53379c942b44038`, `i128`, `c6i.metal`
+- `dyec delete --dry-run --cluster-name jul8itelx4 --region us-west-2
+  --profile lsmc` changed no AWS resources and still warned that managed FSx
+  `fs-021b9667d227d3f65` is associated with the cluster and four active DRAs
+  are attached:
+  - `dra-0e31c89df77176d37` at `/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/`
+  - `dra-0a60db320f05c1eb1` at `/run_dir_mounts/20260513_ONT_HG003/`
+  - `dra-03ebcc27fecb99c6f` at `/run_dir_mounts/602221-20260417_2346/`
+  - `dra-0b397d39dd1536375` at `/references/`
+- `dyec headnode jobs --profile lsmc --region us-west-2 --cluster
+  jul8itelx4` showed active Slurm work. Compact count from the same command:
+  `64` total jobs: `13` `RUNNING`, `23` `CONFIGURING`, and `28` `PENDING`.
+  Visible job names include `sentdhiomr_transfer`, `sentdhiomr_stage3`,
+  `sentdhiomr_anno`, and `sent_DNAscope`.
+
 ## Export Scope
 
 DYEC export validates source paths at
@@ -140,14 +176,14 @@ The following are intentionally not executed before explicit approval:
 | ID | Area | Requirement | Status | Category | Gate | Owner | Evidence | Root Cause | Terminal Note |
 |---|---|---|---|---|---|---|---|---|---|
 | INV-001 | Inventory | Capture cluster, FSx, controller, Slurm, DRA, and export-source baseline before destructive action. | SUCCESS | plan_amendment | Gate 0 | orchestrator | Gate 0 sections above; `dyec delete --dry-run` changed no resources; `/fsx/analysis_results` inventory captured 33 `ubuntu` roots. |  | Baseline complete. |
-| STOP-001 | Controllers | Stop active catalog controllers and cancel remaining Slurm work so exports are quiescent. | BLOCKED | legitimate_safety_handling | Gate 1 | orchestrator | Six active `ccv_live_*` tmux sessions and live Slurm jobs present at Gate 0. | Requires fresh explicit approval for kill/cancel plus lock takeover of active analysis roots. | Not performed. |
+| STOP-001 | Controllers | Stop active catalog controllers and cancel remaining Slurm work so exports are quiescent. | BLOCKED | legitimate_safety_handling | Gate 1 | orchestrator | Six active `ccv_live_*` tmux sessions and live Slurm jobs present at Gate 0. 2026-07-09T05:52Z refresh: `dyec headnode jobs` showed `64` total jobs: `13` `RUNNING`, `23` `CONFIGURING`, `28` `PENDING`. | Requires fresh explicit approval for kill/cancel plus lock takeover of active analysis roots. | Not performed. |
 | EXP-001 | Export | Export all 33 `/fsx/analysis_results/ubuntu/<analysis_id>` roots to the proposed S3 export root and verify object/byte counts. | BLOCKED | feature_implementation | Gate 2 | orchestrator | Export scope table above; DYEC export source validation requires per-root exports. | Waiting for workflow quiescence after STOP-001 approval/completion. | Not performed. |
-| DEL-001 | Cluster delete | Delete `jul8itelx4` after successful export verification and poll teardown. | BLOCKED | legitimate_safety_handling | Gate 3 | orchestrator | Dry-run reports cluster `CREATE_COMPLETE`, FSx `fs-021b9667d227d3f65`, active DRAs. | Requires fresh explicit approval after export verification; live delete will destroy the cluster stack, headnode, compute nodes, and managed FSx data. | Not performed. |
+| DEL-001 | Cluster delete | Delete `jul8itelx4` after successful export verification and poll teardown. | BLOCKED | legitimate_safety_handling | Gate 3 | orchestrator | Dry-run reports cluster `CREATE_COMPLETE`, FSx `fs-021b9667d227d3f65`, active DRAs. 2026-07-09T05:52Z refresh: cluster still `CREATE_COMPLETE`, compute fleet `RUNNING`, one running headnode plus five running compute nodes; dry-run still reports FSx `fs-021b9667d227d3f65` and four active DRAs. | Requires fresh explicit approval after export verification; live delete will destroy the cluster stack, headnode, compute nodes, and managed FSx data. | Not performed. |
 
 ## Approval Boundary
 
 No live controller kill, Slurm cancellation, FSx export, or cluster deletion has
-been performed in this ledger yet.
+been performed in this ledger yet. The 2026-07-09T05:52Z refresh was read-only.
 
 The next required user action is explicit approval for the destructive step:
 

@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.74"
+DAYOA_BLESSED_TAG = "10.0.75"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -436,7 +436,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     illumina_pangenome = catalog.get_command("illumina_pangenome_snv")
     assert illumina_pangenome.type == "dev"
     assert illumina_pangenome.git_tag == DAYOA_BLESSED_TAG
-    assert illumina_pangenome.genome == "hg38_broad"
+    assert illumina_pangenome.genome == "hg38"
     assert illumina_pangenome.targets == ["produce_sentpg_snv_vcf"]
     assert illumina_pangenome.snv_callers == ["sentpg"]
     assert illumina_pangenome.compatible_platforms == ["ILMN"]
@@ -476,7 +476,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     ultima_pangenome = catalog.get_command("ultima_pangenome_snv")
     assert ultima_pangenome.type == "dev"
     assert ultima_pangenome.git_tag == DAYOA_BLESSED_TAG
-    assert ultima_pangenome.genome == "hg38_broad"
+    assert ultima_pangenome.genome == "hg38"
     assert ultima_pangenome.targets == ["produce_pangenome_ug_vcf"]
     assert ultima_pangenome.aligners == ["pangenome_ug"]
     assert ultima_pangenome.snv_callers == ["sentpg"]
@@ -605,8 +605,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "produce_relatedness",
         "produce_vep",
         "produce_multiqc_all",
-        "results/day/hg38_broad/reports/DAY_final_multiqc.html",
-        "results/day/hg38_broad/reports/dayoa_evidence_manifest.json",
+        "results/day/hg38/reports/DAY_final_multiqc.html",
+        "results/day/hg38/reports/dayoa_evidence_manifest.json",
     ]
     assert ont_kitchensink.jobs == 250
     assert ont_kitchensink.aligners == ["ont"]
@@ -618,8 +618,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "--rerun-triggers mtime -n" in ont_kitchensink.dryrun_dy_command
     assert " -j 250 " in ont_kitchensink.dy_command
     assert "produce_multiqc_all" in ont_kitchensink.dy_command
-    assert "results/day/hg38_broad/reports/DAY_final_multiqc.html" in ont_kitchensink.dy_command
-    assert "results/day/hg38_broad/reports/dayoa_evidence_manifest.json" in ont_kitchensink.dy_command
+    assert "results/day/hg38/reports/DAY_final_multiqc.html" in ont_kitchensink.dy_command
+    assert "results/day/hg38/reports/dayoa_evidence_manifest.json" in ont_kitchensink.dy_command
     assert "multiqc_qc=" in ont_kitchensink.dy_command
 
     hybrid_kitchensink = catalog.get_command("hybrid_ilmn_ont_snv_kitchensink")
