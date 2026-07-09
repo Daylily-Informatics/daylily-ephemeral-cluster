@@ -1,0 +1,9 @@
+| partition | reference_partition_rule | initial_reference_median_maxprice | old_1p2_maxprice | live_config_spotprice_before | candidate_new_1p55_maxprice | global_cap_applied |
+| --- | --- | --- | --- | --- | --- | --- |
+| i8 | i8 | 0.1904 | 0.2285 | 0.2285 | 0.2951 | no |
+| i128 | i128 | 2.7986 | 3.3583 | 3.3583 | 4.3378 | no |
+| i128nvme | i128nvme | 2.8995 | 3.4794 | 3.4794 | 4.4942 | no |
+| i192 | i192 | 2.7002 | 3.2402 | 3.2402 | 4.1853 | no |
+| i192nvme | i192nvme | 5.3994 | 6.4793 | 6.5141 | 8.3691 | no |
+| i384nvme | i192nvme | 5.3994 | 6.4793 | 6.5141 | 8.3691 | no |
+| i192hugenvme | i192hugenvme | 5.3994 | 6.4793 | 6.5141 | 8.3691 | no |

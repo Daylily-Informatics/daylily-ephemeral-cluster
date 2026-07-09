@@ -23,6 +23,8 @@ from daylily_ec.aws.spot_pricing import (  # noqa: E402
     DEFAULT_GLOBAL_SPOT_MAX_COST,
     DEFAULT_SPOT_COST_LIMIT_PCT,
     DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+    MAX_SPOT_COST_LIMIT_PCT,
+    MIN_SPOT_COST_LIMIT_PCT,
     apply_spot_prices,
 )
 
@@ -50,7 +52,8 @@ def parse_arguments() -> argparse.Namespace:
         default=DEFAULT_SPOT_COST_LIMIT_PCT,
         help=(
             "Multiplier applied to the reference median spot price "
-            f"(default {DEFAULT_SPOT_COST_LIMIT_PCT:.1f})."
+            f"(default {DEFAULT_SPOT_COST_LIMIT_PCT:.2f}; hard limit "
+            f"{MIN_SPOT_COST_LIMIT_PCT:.1f} <= value <= {MAX_SPOT_COST_LIMIT_PCT:.1f})."
         ),
     )
     parser.add_argument(

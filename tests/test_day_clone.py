@@ -381,3 +381,19 @@ def test_packaged_day_clone_matches_source_day_clone():
     )
 
     assert packaged.read_text(encoding="utf-8") == source.read_text(encoding="utf-8")
+
+
+def test_packaged_squeue_helpers_match_source_helpers():
+    for helper in ("sq", "sqq"):
+        source = REPO_ROOT / "bin" / "headnode_utils" / helper
+        packaged = (
+            REPO_ROOT
+            / "daylily_ec"
+            / "resources"
+            / "payload"
+            / "bin"
+            / "headnode_utils"
+            / helper
+        )
+
+        assert packaged.read_text(encoding="utf-8") == source.read_text(encoding="utf-8")

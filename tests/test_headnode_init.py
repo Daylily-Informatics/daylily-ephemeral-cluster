@@ -51,6 +51,31 @@ def _write_executable(path: Path, content: str) -> None:
     path.chmod(0o755)
 
 
+def _write_headnode_utils(path: Path, marker: str = "helper") -> None:
+    _write_executable(path / "day-clone", f"#!/usr/bin/env bash\necho {marker}\n")
+    _write_executable(path / "sq", "#!/usr/bin/env bash\nexec sqq \"$@\"\n")
+    _write_executable(
+        path / "sqq",
+        (
+            "#!/usr/bin/env bash\n"
+            "set -euo pipefail\n"
+            "format=\"SQ_FORMAT\"\n"
+            "if [[ \"$#\" -eq 0 ]]; then\n"
+            "    exec squeue -o \"$format\"\n"
+            "fi\n"
+            "jobs=\"\"\n"
+            "for job in \"$@\"; do\n"
+            "    if [[ -z \"$jobs\" ]]; then\n"
+            "        jobs=\"$job\"\n"
+            "    else\n"
+            "        jobs=\"${jobs},${job}\"\n"
+            "    fi\n"
+            "done\n"
+            "exec squeue -o \"$format\" -j \"$jobs\"\n"
+        ),
+    )
+
+
 def test_collect_headnode_state_reads_project_budget_and_bucket(
     monkeypatch, tmp_path: Path
 ) -> None:
@@ -378,9 +403,10 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         encoding="utf-8",
     )
 
+    _write_headnode_utils(resources_dir / "bin" / "headnode_utils", marker="day-clone")
     _write_executable(
-        resources_dir / "bin" / "headnode_utils" / "day-clone",
-        "#!/usr/bin/env bash\necho day-clone\n",
+        fake_bin / "squeue",
+        "#!/usr/bin/env bash\nprintf '%s\\n' \"$@\" >\"${SQUEUE_ARG_LOG}\"\n",
     )
     _write_executable(
         resources_dir / "bin" / "install_miniconda",
@@ -437,6 +463,7 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
             "FAKE_DAYLILY_BIN": str(fake_bin),
             "HEADNODE_TEST_LOG": str(log_dir / "installer.log"),
             "HOME": str(home_dir),
+            "SQUEUE_ARG_LOG": str(log_dir / "squeue.args"),
             "PATH": f"{fake_bin}:{env.get('PATH', '')}",
         }
     )
@@ -487,6 +514,22 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
     assert legacy_catalog.is_symlink()
     assert legacy_catalog.readlink() == Path("daylily_pipeline_command_catalog.yaml")
     assert (user_bin_dir / "day-clone").is_file()
+    assert (user_bin_dir / "sq").is_file()
+    assert (user_bin_dir / "sqq").is_file()
+    sq_result = subprocess.run(
+        ["/bin/sh", "-c", "sq 123 456"],
+        env={**env, "PATH": f"{user_bin_dir}:{fake_bin}:{env.get('PATH', '')}"},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert sq_result.returncode == 0, sq_result.stderr
+    assert (log_dir / "squeue.args").read_text(encoding="utf-8").splitlines() == [
+        "-o",
+        "SQ_FORMAT",
+        "-j",
+        "123,456",
+    ]
     assert log_text.count("install_miniconda") >= 2
     assert log_text.count("activate") == 2
     assert (
@@ -528,10 +571,7 @@ def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Pat
         encoding="utf-8",
     )
 
-    _write_executable(
-        resources_dir / "bin" / "headnode_utils" / "day-clone",
-        "#!/usr/bin/env bash\necho day-clone\n",
-    )
+    _write_headnode_utils(resources_dir / "bin" / "headnode_utils", marker="day-clone")
     _write_executable(
         resources_dir / "bin" / "install_miniconda",
         "#!/usr/bin/env bash\nexit 42\n",
@@ -596,10 +636,7 @@ def test_install_headnode_tools_prefers_checkout_over_installed_resources(
             "<REF-S3-URI>\n",
             encoding="utf-8",
         )
-        _write_executable(
-            root / "bin" / "headnode_utils" / "day-clone",
-            f"#!/usr/bin/env bash\necho {marker}\n",
-        )
+        _write_headnode_utils(root / "bin" / "headnode_utils", marker=marker)
     _write_executable(
         repo_root / "bin" / "install_miniconda",
         "#!/usr/bin/env bash\nexit 42\n",
@@ -670,6 +707,47 @@ def test_packaged_install_headnode_tools_matches_source() -> None:
     packaged = REPO_ROOT / "daylily_ec/resources/payload/bin/install-daylily-headnode-tools"
 
     assert packaged.read_text(encoding="utf-8") == source.read_text(encoding="utf-8")
+
+
+def test_headnode_squeue_helpers_are_watchable_from_non_interactive_shell(
+    tmp_path: Path,
+) -> None:
+    fake_bin = tmp_path / "fake-bin"
+    fake_bin.mkdir()
+    arg_log = tmp_path / "squeue.args"
+    _write_executable(
+        fake_bin / "squeue",
+        "#!/usr/bin/env bash\nprintf '%s\\n' \"$@\" >\"${SQUEUE_ARG_LOG}\"\n",
+    )
+    env = os.environ.copy()
+    env.update(
+        {
+            "PATH": f"{REPO_ROOT / 'bin' / 'headnode_utils'}:{fake_bin}:{env.get('PATH', '')}",
+            "SQUEUE_ARG_LOG": str(arg_log),
+        }
+    )
+
+    result = subprocess.run(
+        ["/bin/sh", "-c", "sq 123 456"],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert arg_log.read_text(encoding="utf-8").splitlines() == [
+        "-o",
+        headnode.SQUEUE_FORMAT,
+        "-j",
+        "123,456",
+    ]
+
+
+def test_headnode_squeue_helper_format_matches_headnode_init_constant() -> None:
+    script = (REPO_ROOT / "bin" / "headnode_utils" / "sqq").read_text(encoding="utf-8")
+
+    assert f'format="{headnode.SQUEUE_FORMAT}"' in script
 
 
 def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> None:

@@ -1,0 +1,277 @@
+{
+  "validationMessages": [
+    {
+      "level": "INFO",
+      "type": "SchedulableMemoryValidator",
+      "message": "SchedulableMemory was set lower than 95% of EC2 Memory for selected instance type c7i.48xlarge (393216 MiB)."
+    },
+    {
+      "level": "INFO",
+      "type": "SchedulableMemoryValidator",
+      "message": "SchedulableMemory was set lower than 95% of EC2 Memory for selected instance type i7i.48xlarge (1572864 MiB)."
+    },
+    {
+      "level": "INFO",
+      "type": "SchedulableMemoryValidator",
+      "message": "SchedulableMemory was set lower than 95% of EC2 Memory for selected instance type i7i.48xlarge (1572864 MiB)."
+    },
+    {
+      "level": "INFO",
+      "type": "DeletionPolicyValidator",
+      "message": "The DeletionPolicy is set to Delete. The storage 'fsx-ifx-reworkB' will be deleted when you remove it from the configuration when performing a cluster update or deleting the cluster."
+    },
+    {
+      "level": "WARNING",
+      "type": "KeyPairValidator",
+      "message": "If you do not specify a key pair, you can't connect to the instance unless you choose an AMI that is configured to allow users another way to log in"
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesEFAValidator",
+      "message": "The EC2 instance type(s) selected (c6i.32xlarge,c6i.metal,i4i.32xlarge,i4i.metal,m6i.32xlarge,m6i.metal,m6id.32xlarge,m6id.metal,m6idn.32xlarge,m6idn.metal,m6in.32xlarge,m6in.metal,r6i.32xlarge,r6i.metal,r6id.32xlarge,r6id.metal) for the Compute Resource price128 support enhanced networking capabilities using Elastic Fabric Adapter (EFA). EFA enables you to run applications requiring high levels of inter-node communications at scale on AWS at no additional charge. You can update the cluster's configuration to enable EFA (https://docs.aws.amazon.com/parallelcluster/latest/ug/efa-v3.html)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesNetworkingValidator",
+      "message": "Compute Resource price128 has instance types with varying numbers of network cards (Min: 1, Max: 2). Compute Resource will be created with 1 network cards."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesNetworkingValidator",
+      "message": "Compute Resource price128 has instance types with varying numbers of maximum EFA interfaces (Min: 0, Max: 2). EFA network configuration will be based on the instance type with the fewest EFA interfaces (0)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesNetworkingValidator",
+      "message": "Compute Resource price128 mixes instance types where NCI-0 supports EFA (c6i.32xlarge, c6i.metal, m6i.32xlarge, m6i.metal, m6id.32xlarge, m6id.metal, m6in.32xlarge, m6in.metal, m6idn.32xlarge, m6idn.metal, r6i.32xlarge, r6i.metal, r6id.32xlarge, r6id.metal, i4i.32xlarge, i4i.metal) with instance types where it does not (c8i.32xlarge, m8i.32xlarge, r8i.32xlarge, x8i.32xlarge). This may result in a suboptimal EFA network configuration for some instance types."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesEFAValidator",
+      "message": "The EC2 instance type(s) selected (i4i.32xlarge,i4i.metal,m6i.32xlarge,m6i.metal,m6id.32xlarge,m6id.metal,m6idn.32xlarge,m6idn.metal,m6in.32xlarge,m6in.metal,r6i.32xlarge,r6i.metal,r6id.32xlarge,r6id.metal) for the Compute Resource mem128 support enhanced networking capabilities using Elastic Fabric Adapter (EFA). EFA enables you to run applications requiring high levels of inter-node communications at scale on AWS at no additional charge. You can update the cluster's configuration to enable EFA (https://docs.aws.amazon.com/parallelcluster/latest/ug/efa-v3.html)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesNetworkingValidator",
+      "message": "Compute Resource mem128 has instance types with varying numbers of network cards (Min: 1, Max: 2). Compute Resource will be created with 1 network cards."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesNetworkingValidator",
+      "message": "Compute Resource mem128 has instance types with varying numbers of maximum EFA interfaces (Min: 0, Max: 2). EFA network configuration will be based on the instance type with the fewest EFA interfaces (0)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesNetworkingValidator",
+      "message": "Compute Resource mem128 mixes instance types where NCI-0 supports EFA (m6i.32xlarge, m6i.metal, m6id.32xlarge, m6id.metal, m6in.32xlarge, m6in.metal, m6idn.32xlarge, m6idn.metal, r6i.32xlarge, r6i.metal, r6id.32xlarge, r6id.metal, i4i.32xlarge, i4i.metal) with instance types where it does not (m8i.32xlarge, r8i.32xlarge, x8i.32xlarge). This may result in a suboptimal EFA network configuration for some instance types."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesEFAValidator",
+      "message": "The EC2 instance type(s) selected (i4i.32xlarge,i4i.metal,r6i.32xlarge,r6i.metal,r6id.32xlarge,r6id.metal) for the Compute Resource bigmem128 support enhanced networking capabilities using Elastic Fabric Adapter (EFA). EFA enables you to run applications requiring high levels of inter-node communications at scale on AWS at no additional charge. You can update the cluster's configuration to enable EFA (https://docs.aws.amazon.com/parallelcluster/latest/ug/efa-v3.html)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesNetworkingValidator",
+      "message": "Compute Resource bigmem128 has instance types with varying numbers of maximum EFA interfaces (Min: 0, Max: 1). EFA network configuration will be based on the instance type with the fewest EFA interfaces (0)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesNetworkingValidator",
+      "message": "Compute Resource bigmem128 mixes instance types where NCI-0 supports EFA (r6i.32xlarge, r6i.metal, r6id.32xlarge, r6id.metal, i4i.32xlarge, i4i.metal) with instance types where it does not (r8i.32xlarge, x8i.32xlarge). This may result in a suboptimal EFA network configuration for some instance types."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesEFAValidator",
+      "message": "The EC2 instance type(s) selected (i4i.32xlarge,i4i.metal) for the Compute Resource price128nvme support enhanced networking capabilities using Elastic Fabric Adapter (EFA). EFA enables you to run applications requiring high levels of inter-node communications at scale on AWS at no additional charge. You can update the cluster's configuration to enable EFA (https://docs.aws.amazon.com/parallelcluster/latest/ug/efa-v3.html)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesEFAValidator",
+      "message": "The EC2 instance type(s) selected (c7i.48xlarge,c7i.metal-48xl,c8i.48xlarge,c8i.metal-48xl,i7i.48xlarge,i7i.metal-48xl,i7ie.48xlarge,i7ie.metal-48xl,m7i.48xlarge,m7i.metal-48xl,m8i.48xlarge,m8i.metal-48xl,r7i.48xlarge,r7i.metal-48xl,r8i.48xlarge,r8i.metal-48xl,x8i.48xlarge,x8i.metal-48xl) for the Compute Resource price192 support enhanced networking capabilities using Elastic Fabric Adapter (EFA). EFA enables you to run applications requiring high levels of inter-node communications at scale on AWS at no additional charge. You can update the cluster's configuration to enable EFA (https://docs.aws.amazon.com/parallelcluster/latest/ug/efa-v3.html)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesEFAValidator",
+      "message": "The EC2 instance type(s) selected (i7i.48xlarge,i7i.metal-48xl,i7ie.48xlarge,i7ie.metal-48xl,m7i.48xlarge,m7i.metal-48xl,m8i.48xlarge,m8i.metal-48xl,r7i.48xlarge,r7i.metal-48xl,r8i.48xlarge,r8i.metal-48xl,x8i.48xlarge,x8i.metal-48xl) for the Compute Resource mem192 support enhanced networking capabilities using Elastic Fabric Adapter (EFA). EFA enables you to run applications requiring high levels of inter-node communications at scale on AWS at no additional charge. You can update the cluster's configuration to enable EFA (https://docs.aws.amazon.com/parallelcluster/latest/ug/efa-v3.html)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesEFAValidator",
+      "message": "The EC2 instance type(s) selected (i7i.48xlarge,i7i.metal-48xl,i7ie.48xlarge,i7ie.metal-48xl,r7i.48xlarge,r7i.metal-48xl,r8i.48xlarge,r8i.metal-48xl,x8i.48xlarge,x8i.metal-48xl) for the Compute Resource bigmem192 support enhanced networking capabilities using Elastic Fabric Adapter (EFA). EFA enables you to run applications requiring high levels of inter-node communications at scale on AWS at no additional charge. You can update the cluster's configuration to enable EFA (https://docs.aws.amazon.com/parallelcluster/latest/ug/efa-v3.html)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesEFAValidator",
+      "message": "The EC2 instance type(s) selected (i7i.48xlarge,i7i.metal-48xl,i7ie.48xlarge,i7ie.metal-48xl) for the Compute Resource price192nvme support enhanced networking capabilities using Elastic Fabric Adapter (EFA). EFA enables you to run applications requiring high levels of inter-node communications at scale on AWS at no additional charge. You can update the cluster's configuration to enable EFA (https://docs.aws.amazon.com/parallelcluster/latest/ug/efa-v3.html)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesEFAValidator",
+      "message": "The EC2 instance type(s) selected (i7i.48xlarge,i7i.metal-48xl,i7ie.48xlarge,i7ie.metal-48xl) for the Compute Resource mem192nvme support enhanced networking capabilities using Elastic Fabric Adapter (EFA). EFA enables you to run applications requiring high levels of inter-node communications at scale on AWS at no additional charge. You can update the cluster's configuration to enable EFA (https://docs.aws.amazon.com/parallelcluster/latest/ug/efa-v3.html)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesEFAValidator",
+      "message": "The EC2 instance type(s) selected (i7i.48xlarge,i7i.metal-48xl,i7ie.48xlarge,i7ie.metal-48xl) for the Compute Resource bigmem192nvme support enhanced networking capabilities using Elastic Fabric Adapter (EFA). EFA enables you to run applications requiring high levels of inter-node communications at scale on AWS at no additional charge. You can update the cluster's configuration to enable EFA (https://docs.aws.amazon.com/parallelcluster/latest/ug/efa-v3.html)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesEFAValidator",
+      "message": "The EC2 instance type(s) selected (c8id.96xlarge,c8id.metal-96xl,m8id.96xlarge,m8id.metal-96xl,m8idb.96xlarge,m8idn.96xlarge,r8id.96xlarge,r8id.metal-96xl) for the Compute Resource price384nvme support enhanced networking capabilities using Elastic Fabric Adapter (EFA). EFA enables you to run applications requiring high levels of inter-node communications at scale on AWS at no additional charge. You can update the cluster's configuration to enable EFA (https://docs.aws.amazon.com/parallelcluster/latest/ug/efa-v3.html)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesNetworkingValidator",
+      "message": "Compute Resource price384nvme has instance types with varying numbers of network cards (Min: 1, Max: 2). Compute Resource will be created with 1 network cards."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesNetworkingValidator",
+      "message": "Compute Resource price384nvme has instance types with varying numbers of maximum EFA interfaces (Min: 1, Max: 2). EFA network configuration will be based on the instance type with the fewest EFA interfaces (1)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesEFAValidator",
+      "message": "The EC2 instance type(s) selected (m8id.96xlarge,m8id.metal-96xl,m8idb.96xlarge,m8idn.96xlarge,r8id.96xlarge,r8id.metal-96xl) for the Compute Resource mem384nvme support enhanced networking capabilities using Elastic Fabric Adapter (EFA). EFA enables you to run applications requiring high levels of inter-node communications at scale on AWS at no additional charge. You can update the cluster's configuration to enable EFA (https://docs.aws.amazon.com/parallelcluster/latest/ug/efa-v3.html)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesNetworkingValidator",
+      "message": "Compute Resource mem384nvme has instance types with varying numbers of network cards (Min: 1, Max: 2). Compute Resource will be created with 1 network cards."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesNetworkingValidator",
+      "message": "Compute Resource mem384nvme has instance types with varying numbers of maximum EFA interfaces (Min: 1, Max: 2). EFA network configuration will be based on the instance type with the fewest EFA interfaces (1)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesEFAValidator",
+      "message": "The EC2 instance type(s) selected (r8id.96xlarge,r8id.metal-96xl) for the Compute Resource bigmem384nvme support enhanced networking capabilities using Elastic Fabric Adapter (EFA). EFA enables you to run applications requiring high levels of inter-node communications at scale on AWS at no additional charge. You can update the cluster's configuration to enable EFA (https://docs.aws.amazon.com/parallelcluster/latest/ug/efa-v3.html)."
+    },
+    {
+      "level": "WARNING",
+      "type": "InstancesEFAValidator",
+      "message": "The EC2 instance type(s) selected (i7i.48xlarge,i7i.metal-48xl,i7ie.48xlarge,i7ie.metal-48xl) for the Compute Resource price192hugenvme support enhanced networking capabilities using Elastic Fabric Adapter (EFA). EFA enables you to run applications requiring high levels of inter-node communications at scale on AWS at no additional charge. You can update the cluster's configuration to enable EFA (https://docs.aws.amazon.com/parallelcluster/latest/ug/efa-v3.html)."
+    }
+  ],
+  "message": "Request would have succeeded, but DryRun flag is set.",
+  "changeSet": [
+    {
+      "parameter": "HeadNode.Iam.S3Access",
+      "requestedValue": "-",
+      "currentValue": "{'BucketName': 'lsmc-ssf-sequencing-data', 'EnableWriteAccess': True}"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i8].Iam.S3Access",
+      "requestedValue": "-",
+      "currentValue": "{'BucketName': 'lsmc-ssf-sequencing-data', 'EnableWriteAccess': True}"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i8].ComputeResources[price8].SpotPrice",
+      "requestedValue": "0.2951",
+      "currentValue": "0.2285"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i128].Iam.S3Access",
+      "requestedValue": "-",
+      "currentValue": "{'BucketName': 'lsmc-ssf-sequencing-data', 'EnableWriteAccess': True}"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i128].ComputeResources[price128].SpotPrice",
+      "requestedValue": "3.0584",
+      "currentValue": "2.3678"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i128].ComputeResources[mem128].SpotPrice",
+      "requestedValue": "3.6685",
+      "currentValue": "2.8363"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i128].ComputeResources[bigmem128].SpotPrice",
+      "requestedValue": "4.3378",
+      "currentValue": "3.3583"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i128nvme].Iam.S3Access",
+      "requestedValue": "-",
+      "currentValue": "{'BucketName': 'lsmc-ssf-sequencing-data', 'EnableWriteAccess': True}"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i128nvme].ComputeResources[price128nvme].SpotPrice",
+      "requestedValue": "4.4942",
+      "currentValue": "3.4794"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i192].Iam.S3Access",
+      "requestedValue": "-",
+      "currentValue": "{'BucketName': 'lsmc-ssf-sequencing-data', 'EnableWriteAccess': True}"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i192].ComputeResources[price192].SpotPrice",
+      "requestedValue": "4.013",
+      "currentValue": "3.1168"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i192].ComputeResources[mem192].SpotPrice",
+      "requestedValue": "4.0123",
+      "currentValue": "3.1063"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i192].ComputeResources[bigmem192].SpotPrice",
+      "requestedValue": "4.1853",
+      "currentValue": "3.2402"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i192nvme].Iam.S3Access",
+      "requestedValue": "-",
+      "currentValue": "{'BucketName': 'lsmc-ssf-sequencing-data', 'EnableWriteAccess': True}"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i192nvme].ComputeResources[price192nvme].SpotPrice",
+      "requestedValue": "8.3691",
+      "currentValue": "6.5141"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i192nvme].ComputeResources[mem192nvme].SpotPrice",
+      "requestedValue": "8.3691",
+      "currentValue": "6.5141"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i192nvme].ComputeResources[bigmem192nvme].SpotPrice",
+      "requestedValue": "8.3691",
+      "currentValue": "6.5141"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i384nvme].Iam.S3Access",
+      "requestedValue": "-",
+      "currentValue": "{'BucketName': 'lsmc-ssf-sequencing-data', 'EnableWriteAccess': True}"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i384nvme].ComputeResources[price384nvme].SpotPrice",
+      "requestedValue": "8.3691",
+      "currentValue": "6.5141"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i384nvme].ComputeResources[mem384nvme].SpotPrice",
+      "requestedValue": "8.3691",
+      "currentValue": "6.5141"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i384nvme].ComputeResources[bigmem384nvme].SpotPrice",
+      "requestedValue": "8.3691",
+      "currentValue": "6.5141"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i192hugenvme].Iam.S3Access",
+      "requestedValue": "-",
+      "currentValue": "{'BucketName': 'lsmc-ssf-sequencing-data', 'EnableWriteAccess': True}"
+    },
+    {
+      "parameter": "Scheduling.SlurmQueues[i192hugenvme].ComputeResources[price192hugenvme].SpotPrice",
+      "requestedValue": "8.3691",
+      "currentValue": "6.5141"
+    }
+  ]
+}

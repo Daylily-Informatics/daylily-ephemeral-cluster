@@ -1,0 +1,75 @@
+{
+  "cloudFormationStackStatus": "CREATE_COMPLETE",
+  "cloudformationStackArn": "arn:aws:cloudformation:us-west-2:108782052779:stack/ifx-reworkB/6ed2bfa0-7b0e-11f1-92d9-0687fc0c97bd",
+  "clusterConfiguration": {
+    "url": "<redacted presigned config URL>"
+  },
+  "clusterName": "ifx-reworkB",
+  "clusterStatus": "CREATE_COMPLETE",
+  "computeFleetStatus": "RUNNING",
+  "creationTime": "2026-07-08T20:48:54.558Z",
+  "headNode": {
+    "instanceId": "i-059642d9ee4d5c9ea",
+    "instanceType": "r7i.8xlarge",
+    "launchTime": "2026-07-08T21:01:31.000Z",
+    "privateIpAddress": "10.0.0.180",
+    "publicIpAddress": "54.69.12.35",
+    "state": "running"
+  },
+  "lastUpdatedTime": "2026-07-08T20:48:54.558Z",
+  "region": "us-west-2",
+  "scheduler": {
+    "type": "slurm"
+  },
+  "tags": [
+    {
+      "key": "aws-parallelcluster-daylily-git-deets",
+      "value": "none"
+    },
+    {
+      "key": "parallelcluster:version",
+      "value": "3.15.0"
+    },
+    {
+      "key": "aws-parallelcluster-enforce-budget",
+      "value": "true"
+    },
+    {
+      "key": "aws-parallelcluster-jobid",
+      "value": "aws_profile-lsmc"
+    },
+    {
+      "key": "aws-parallelcluster-monitor-bucket",
+      "value": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
+    },
+    {
+      "key": "aws-parallelcluster-cost-center-region",
+      "value": "us-west-2"
+    },
+    {
+      "key": "aws-parallelcluster-cost-center-table",
+      "value": "dayec-cost-centers"
+    },
+    {
+      "key": "parallelcluster:cluster-name",
+      "value": "ifx-reworkB"
+    },
+    {
+      "key": "aws-parallelcluster-clustername",
+      "value": "ifx-reworkB"
+    },
+    {
+      "key": "aws-parallelcluster-project",
+      "value": "ifx-reworkB"
+    },
+    {
+      "key": "aws-parallelcluster-username",
+      "value": "jmajor-root"
+    },
+    {
+      "key": "aws-parallelcluster-cost-center-usage-table",
+      "value": "dayec-cost-center-usage"
+    }
+  ],
+  "version": "3.15.0"
+}

@@ -54,6 +54,8 @@ from daylily_ec.aws.spot_pricing import (
     DEFAULT_SPOT_COST_LIMIT_PCT,
     DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
     MAX_GLOBAL_SPOT_MAX_COST,
+    MAX_SPOT_COST_LIMIT_PCT,
+    MIN_SPOT_COST_LIMIT_PCT,
     validate_spot_pricing_limits,
 )
 from daylily_ec.resources import ensure_extracted
@@ -652,7 +654,8 @@ def create(
         "--spot-cost-limit-pct",
         help=(
             "Multiplier applied to each reference median spot price before the global cap. "
-            f"Defaults to {DEFAULT_SPOT_COST_LIMIT_PCT:.1f}."
+            f"Defaults to {DEFAULT_SPOT_COST_LIMIT_PCT:.2f}; hard limit "
+            f"{MIN_SPOT_COST_LIMIT_PCT:.1f} <= value <= {MAX_SPOT_COST_LIMIT_PCT:.1f}."
         ),
     ),
     write_spot_pricing_warn_threshold: float = typer.Option(

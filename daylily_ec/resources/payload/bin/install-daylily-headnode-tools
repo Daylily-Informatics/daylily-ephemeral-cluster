@@ -7,7 +7,7 @@ Usage: install-daylily-headnode-tools [-h|--help]
 
 Installs a small set of Daylily helper assets on a ParallelCluster head node:
   - Copies daylily CLI config files into ~/.config/daylily
-  - Installs the `day-clone` helper into ~/.local/bin
+  - Installs `day-clone`, `sq`, and `sqq` helpers into ~/.local/bin
   - Writes a managed bootstrap file that loads the DAY-EC shell context for fresh login shells
 
 This script is safe to run from any working directory as long as the
@@ -170,6 +170,9 @@ ln -sfn daylily_pipeline_command_catalog.yaml "$TARGET_CONFIG_DIR/daylily_availa
 
 install -m 0755 "$REPO_ROOT/bin/headnode_utils/day-clone" "$USER_BIN_DIR/day-clone"
 echo "day-clone installed to $USER_BIN_DIR/day-clone"
+install -m 0755 "$REPO_ROOT/bin/headnode_utils/sqq" "$USER_BIN_DIR/sqq"
+install -m 0755 "$REPO_ROOT/bin/headnode_utils/sq" "$USER_BIN_DIR/sq"
+echo "sq and sqq installed to $USER_BIN_DIR"
 
 cd "$REPO_ROOT"
 "$REPO_ROOT/bin/install_miniconda"
