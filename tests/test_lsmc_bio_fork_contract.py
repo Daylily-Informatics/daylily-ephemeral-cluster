@@ -9,7 +9,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
 DAYOA_BLESSED_TAG = "10.0.75"
-DYEC_BLESSED_TAG = "10.0.125"
+DYEC_BLESSED_TAG = "10.0.127"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
     f"{_OLD_ORG}/daylily-omics-analysis",
