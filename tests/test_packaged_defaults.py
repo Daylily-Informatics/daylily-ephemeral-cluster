@@ -144,12 +144,50 @@ def test_active_cluster_template_uses_expected_partition_contract() -> None:
     payload = yaml.safe_load(text)
     queues = payload["Scheduling"]["SlurmQueues"]
     names = [queue["Name"] for queue in queues]
-    assert names == ["i8", "i128", "i128nvme", "i192", "i192nvme", "i384nvme", "i192hugenvme"]
+    assert names == [
+        "i8",
+        "i128",
+        "i128mem",
+        "i128bigmem",
+        "i128nvme",
+        "i192",
+        "i192mem",
+        "i192bigmem",
+        "i192nvme",
+        "i384nvme",
+        "i192hugenvme",
+    ]
     assert payload["Scheduling"]["SlurmSettings"]["EnableMemoryBasedScheduling"] is False
-    assert "i192mem" not in names
-    assert "i192bigmem" not in names
     assert "bcl-convert" not in names
     assert "bcl2fq-i384-nvme-test" not in names
+    queues_by_name = {queue["Name"]: queue for queue in queues}
+
+    def _compute_resource(queue_name: str, resource_name: str) -> dict:
+        for resource in queues_by_name[queue_name]["ComputeResources"]:
+            if resource["Name"] == resource_name:
+                return resource
+        raise AssertionError(f"{queue_name} lacks {resource_name}")
+
+    for parent_name, resource_name, alias_name in (
+        ("i128", "mem128", "i128mem"),
+        ("i128", "bigmem128", "i128bigmem"),
+        ("i192", "mem192", "i192mem"),
+        ("i192", "bigmem192", "i192bigmem"),
+    ):
+        parent_top_level = {
+            key: value
+            for key, value in queues_by_name[parent_name].items()
+            if key not in {"Name", "ComputeResources"}
+        }
+        alias_top_level = {
+            key: value
+            for key, value in queues_by_name[alias_name].items()
+            if key not in {"Name", "ComputeResources"}
+        }
+        assert alias_top_level == parent_top_level
+        assert queues_by_name[alias_name]["ComputeResources"] == [
+            _compute_resource(parent_name, resource_name)
+        ]
     for queue in queues:
         assert "JobExclusiveAllocation" not in queue
         if queue["Name"].endswith("nvme"):
