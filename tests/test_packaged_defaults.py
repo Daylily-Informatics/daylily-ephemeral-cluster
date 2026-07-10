@@ -12,19 +12,11 @@ from daylily_ec.workflow import create_cluster
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ACTIVE_CLUSTER_TEMPLATES = (
-    "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml",
+    "config/day_cluster/intel/us-west-2/us-west-2a/prod_cluster_intel_us-west-2a.yaml",
+    "config/day_cluster/intel/us-west-2/us-west-2b/prod_cluster_intel_us-west-2b.yaml",
+    "config/day_cluster/intel/us-west-2/us-west-2c/prod_cluster_intel_us-west-2c.yaml",
+    "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml",
 )
-US_WEST_2D_INTEL_PRUNED_TYPES = {
-    "c6in.32xlarge",
-    "c6in.metal",
-    "r5n.2xlarge",
-    "r8idb.96xlarge",
-    "r8idn.96xlarge",
-    "x2idn.32xlarge",
-    "x2idn.metal",
-    "x2iedn.32xlarge",
-    "x2iedn.metal",
-}
 ACTIVE_CFN_TEMPLATES = (
     "config/day_cluster/slurm_accounting_mysql_ec2.yml",
 )
@@ -74,7 +66,7 @@ def test_write_init_artifacts_accepts_packaged_template(tmp_path, monkeypatch):
 
     template = str(
         resource_path(
-            "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+            "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
         )
     )
     substitutions = {
@@ -137,69 +129,67 @@ def test_active_cluster_templates_use_contract_role_dras() -> None:
 
 
 def test_active_cluster_template_uses_expected_partition_contract() -> None:
-    text = (
-        REPO_ROOT
-        / "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
-    ).read_text(encoding="utf-8")
-    payload = yaml.safe_load(text)
-    queues = payload["Scheduling"]["SlurmQueues"]
-    names = [queue["Name"] for queue in queues]
-    assert names == [
-        "i8",
-        "i128",
-        "i128mem",
-        "i128bigmem",
-        "i128nvme",
-        "i192",
-        "i192mem",
-        "i192bigmem",
-        "i192nvme",
-        "i384nvme",
-        "i192hugenvme",
-    ]
-    assert payload["Scheduling"]["SlurmSettings"]["EnableMemoryBasedScheduling"] is False
-    assert "bcl-convert" not in names
-    assert "bcl2fq-i384-nvme-test" not in names
-    queues_by_name = {queue["Name"]: queue for queue in queues}
-
-    def _compute_resource(queue_name: str, resource_name: str) -> dict:
-        for resource in queues_by_name[queue_name]["ComputeResources"]:
-            if resource["Name"] == resource_name:
-                return resource
-        raise AssertionError(f"{queue_name} lacks {resource_name}")
-
-    for parent_name, resource_name, alias_name in (
-        ("i128", "mem128", "i128mem"),
-        ("i128", "bigmem128", "i128bigmem"),
-        ("i192", "mem192", "i192mem"),
-        ("i192", "bigmem192", "i192bigmem"),
-    ):
-        parent_top_level = {
-            key: value
-            for key, value in queues_by_name[parent_name].items()
-            if key not in {"Name", "ComputeResources"}
-        }
-        alias_top_level = {
-            key: value
-            for key, value in queues_by_name[alias_name].items()
-            if key not in {"Name", "ComputeResources"}
-        }
-        assert alias_top_level == parent_top_level
-        assert queues_by_name[alias_name]["ComputeResources"] == [
-            _compute_resource(parent_name, resource_name)
+    for relative_path in ACTIVE_CLUSTER_TEMPLATES:
+        text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        payload = yaml.safe_load(text)
+        queues = payload["Scheduling"]["SlurmQueues"]
+        names = [queue["Name"] for queue in queues]
+        assert names == [
+            "i8",
+            "i128",
+            "i128mem",
+            "i128bigmem",
+            "i128nvme",
+            "i192",
+            "i192mem",
+            "i192bigmem",
+            "i192nvme",
+            "i384nvme",
+            "i192hugenvme",
         ]
-    for queue in queues:
-        assert "JobExclusiveAllocation" not in queue
-        if queue["Name"].endswith("nvme"):
-            assert (
-                queue["ComputeSettings"]["LocalStorage"]["EphemeralVolume"]["MountDir"]
-                == "/scratch"
-            )
-        else:
-            assert "ComputeSettings" not in queue
-    assert "c8a." not in text
-    assert "r8in.48xlarge" not in text
-    assert "r8ib.48xlarge" not in text
+        assert payload["Scheduling"]["SlurmSettings"]["EnableMemoryBasedScheduling"] is False
+        assert "bcl-convert" not in names
+        assert "bcl2fq-i384-nvme-test" not in names
+        queues_by_name = {queue["Name"]: queue for queue in queues}
+
+        def _compute_resource(queue_name: str, resource_name: str) -> dict:
+            for resource in queues_by_name[queue_name]["ComputeResources"]:
+                if resource["Name"] == resource_name:
+                    return resource
+            raise AssertionError(f"{relative_path}: {queue_name} lacks {resource_name}")
+
+        for parent_name, resource_name, alias_name in (
+            ("i128", "mem128", "i128mem"),
+            ("i128", "bigmem128", "i128bigmem"),
+            ("i192", "mem192", "i192mem"),
+            ("i192", "bigmem192", "i192bigmem"),
+        ):
+            parent_top_level = {
+                key: value
+                for key, value in queues_by_name[parent_name].items()
+                if key not in {"Name", "ComputeResources"}
+            }
+            alias_top_level = {
+                key: value
+                for key, value in queues_by_name[alias_name].items()
+                if key not in {"Name", "ComputeResources"}
+            }
+            assert alias_top_level == parent_top_level
+            assert queues_by_name[alias_name]["ComputeResources"] == [
+                _compute_resource(parent_name, resource_name)
+            ]
+        for queue in queues:
+            assert "JobExclusiveAllocation" not in queue
+            if queue["Name"].endswith("nvme"):
+                assert (
+                    queue["ComputeSettings"]["LocalStorage"]["EphemeralVolume"]["MountDir"]
+                    == "/scratch"
+                )
+            else:
+                assert "ComputeSettings" not in queue
+        assert "c8a." not in text
+        assert "r8in.48xlarge" not in text
+        assert "r8ib.48xlarge" not in text
 
 
 def test_packaged_cluster_templates_match_source_templates() -> None:
@@ -225,29 +215,12 @@ def test_packaged_az_scoped_cluster_templates_match_source_templates() -> None:
         assert packaged == source
 
 
-def test_us_west_2d_intel_template_prunes_unavailable_spot_types() -> None:
-    base_text = (
-        REPO_ROOT
-        / "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
-    ).read_text(encoding="utf-8")
-    west_2d_text = (
-        REPO_ROOT
-        / "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
-    ).read_text(encoding="utf-8")
-
-    for instance_type in US_WEST_2D_INTEL_PRUNED_TYPES:
-        assert f"InstanceType: {instance_type}" in base_text
-        assert f"InstanceType: {instance_type}" not in west_2d_text
-
-    payload = yaml.safe_load(west_2d_text)
-    rendered_types = {
-        instance["InstanceType"]
-        for queue in payload["Scheduling"]["SlurmQueues"]
-        for compute in queue["ComputeResources"]
-        for instance in compute.get("Instances", [])
-    }
-    assert len(rendered_types) == 55
-    assert rendered_types.isdisjoint(US_WEST_2D_INTEL_PRUNED_TYPES)
+def test_generic_intel_cluster_template_is_not_an_active_template() -> None:
+    generic_relpath = (
+        "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+    )
+    assert not (REPO_ROOT / generic_relpath).exists()
+    assert not (REPO_ROOT / "daylily_ec/resources/payload" / generic_relpath).exists()
 
 
 def test_rhel_az_scoped_templates_only_exist_for_viable_azs() -> None:
@@ -323,7 +296,7 @@ def test_post_install_s3_executable_install_is_not_sha256_pinned() -> None:
 
 def test_post_install_templates_pass_spot_warn_threshold_argument() -> None:
     template_paths = (
-        "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml",
+        *ACTIVE_CLUSTER_TEMPLATES,
         "config/day_cluster/prod_cluster_dragen_native_ami_rhel8.yaml",
         "config/day_cluster/prod_cluster_dragen_native_ami_rhel8_nofsx.yaml",
         "config/day_cluster/prod_cluster_dragen_pcluster_image_rhel8.yaml",

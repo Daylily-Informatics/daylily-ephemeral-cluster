@@ -111,7 +111,7 @@ def parse_arguments():
         "-i", "--input", 
         default=str(
             resource_path(
-                "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+                "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
             )
         ),
         help="YAML config path (default: %(default)s)."

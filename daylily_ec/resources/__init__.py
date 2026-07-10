@@ -27,6 +27,12 @@ import importlib.resources as ir
 from daylily_ec import versioning
 
 RES_DIR_ENV = "DAYLILY_EC_RESOURCES_DIR"
+INTEL_US_WEST_2_TEMPLATE_RELPATHS = (
+    "config/day_cluster/intel/us-west-2/us-west-2a/prod_cluster_intel_us-west-2a.yaml",
+    "config/day_cluster/intel/us-west-2/us-west-2b/prod_cluster_intel_us-west-2b.yaml",
+    "config/day_cluster/intel/us-west-2/us-west-2c/prod_cluster_intel_us-west-2c.yaml",
+    "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml",
+)
 
 
 def _xdg_config_home() -> Path:
@@ -39,21 +45,8 @@ def _xdg_config_home() -> Path:
 def _expected_subpaths(root: Path) -> Iterable[Path]:
     # Minimum layout required for the CLI + legacy scripts.
     yield root / "config"
-    yield (
-        root
-        / "config"
-        / "day_cluster"
-        / "prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
-    )
-    yield (
-        root
-        / "config"
-        / "day_cluster"
-        / "intel"
-        / "us-west-2"
-        / "us-west-2d"
-        / "prod_cluster_intel_us-west-2d.yaml"
-    )
+    for relative_path in INTEL_US_WEST_2_TEMPLATE_RELPATHS:
+        yield root / relative_path
     yield root / "config" / "day_cluster" / "pcluster_env.yml"
     yield root / "config" / "day_cluster" / "slurm_accounting_mysql_ec2.yml"
     yield root / "environment.yaml"
@@ -74,17 +67,17 @@ def _validate_resources_dir(root: Path) -> None:
 
 
 def _resources_need_refresh(dest: Path, src: Path) -> bool:
-    for rel in (
+    refresh_rels = (
         "config/daylily_pipeline_command_catalog.yaml",
-        "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml",
-        "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml",
+        *INTEL_US_WEST_2_TEMPLATE_RELPATHS,
         "config/day_cluster/pcluster_env.yml",
         "config/day_cluster/slurm_accounting_mysql_ec2.yml",
         "config/day_cluster/post_install_rhel8_dragen.sh",
         "config/day_cluster/post_install_ubuntu_combined.sh",
         "config/day_cluster/sbatch",
         "config/day_cluster/sleep_test.sh",
-    ):
+    )
+    for rel in refresh_rels:
         dest_file = dest / rel
         src_file = src / rel
         if not dest_file.is_file() or not src_file.is_file():

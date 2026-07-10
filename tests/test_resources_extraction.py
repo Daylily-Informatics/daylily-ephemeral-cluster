@@ -15,10 +15,15 @@ def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
     root = ensure_extracted()
     assert root.is_dir()
 
-    assert (
+    for az in ("us-west-2a", "us-west-2b", "us-west-2c", "us-west-2d"):
+        assert (
+            root
+            / f"config/day_cluster/intel/us-west-2/{az}/prod_cluster_intel_{az}.yaml"
+        ).is_file()
+    assert not (
         root
         / "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
-    ).is_file()
+    ).exists()
     assert (root / "config/day_cluster/pcluster_env.yml").is_file()
     assert (root / "environment.yaml").is_file()
     assert (root / "etc/analysis_samples_template.tsv").is_file()
@@ -28,7 +33,7 @@ def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
 
     # resource_path should return the same filesystem location.
     p = resource_path(
-        "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+        "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
     )
     assert isinstance(p, Path)
     assert p.is_file()

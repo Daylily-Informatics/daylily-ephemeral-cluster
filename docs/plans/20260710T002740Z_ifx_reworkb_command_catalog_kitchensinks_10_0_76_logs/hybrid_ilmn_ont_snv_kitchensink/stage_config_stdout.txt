@@ -1,0 +1,4 @@
+Precheck passed: rows checked=1, samples checked=1, source objects checked=22, concordance directories checked=1.
+Generated configuration files:
+  samples.tsv -> docs/plans/20260710T002740Z_ifx_reworkb_command_catalog_kitchensinks_10_0_76_logs/hybrid_ilmn_ont_snv_kitchensink/config/20260710T002841Z_8b9f78fe_samples.tsv
+  units.tsv   -> docs/plans/20260710T002740Z_ifx_reworkb_command_catalog_kitchensinks_10_0_76_logs/hybrid_ilmn_ont_snv_kitchensink/config/20260710T002841Z_8b9f78fe_units.tsv

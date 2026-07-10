@@ -203,7 +203,7 @@ class TestAllSubstitutionKeys:
     def test_accounting_disabled_template_has_no_dangling_tokens(self):
         template = (
             Path(__file__).resolve().parents[1]
-            / "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+            / "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
         ).read_text(encoding="utf-8")
         subs = _full_subs()
         subs.update(empty_slurm_accounting_render_blocks())
@@ -219,7 +219,7 @@ class TestAllSubstitutionKeys:
     def test_accounting_enabled_template_includes_slurm_database(self):
         template = (
             Path(__file__).resolve().parents[1]
-            / "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+            / "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
         ).read_text(encoding="utf-8")
         db = SlurmAccountingDb(
             stack_name="dayec-slurm-accounting-us-west-2b",

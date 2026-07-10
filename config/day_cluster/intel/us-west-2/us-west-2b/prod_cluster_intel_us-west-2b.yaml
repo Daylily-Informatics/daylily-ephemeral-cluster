@@ -63,6 +63,13 @@ Scheduling:
       - InstanceType: i7i.2xlarge
       - InstanceType: i7ie.2xlarge
       - InstanceType: x8i.2xlarge
+      - InstanceType: r6idn.2xlarge
+      - InstanceType: r6in.2xlarge
+      - InstanceType: r7iz.2xlarge
+      - InstanceType: r8id.2xlarge
+      - InstanceType: r8idb.2xlarge
+      - InstanceType: r8idn.2xlarge
+      - InstanceType: x2iedn.2xlarge
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_8I}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
@@ -128,6 +135,19 @@ Scheduling:
       - InstanceType: m8i.32xlarge
       - InstanceType: r8i.32xlarge
       - InstanceType: x8i.32xlarge
+      - InstanceType: c8id.32xlarge
+      - InstanceType: m8id.32xlarge
+      - InstanceType: m8idb.32xlarge
+      - InstanceType: m8idn.32xlarge
+      - InstanceType: r6idn.32xlarge
+      - InstanceType: r6idn.metal
+      - InstanceType: r6in.32xlarge
+      - InstanceType: r6in.metal
+      - InstanceType: r7iz.32xlarge
+      - InstanceType: r7iz.metal-32xl
+      - InstanceType: r8id.32xlarge
+      - InstanceType: r8idb.32xlarge
+      - InstanceType: r8idn.32xlarge
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_128I_C}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
@@ -161,6 +181,18 @@ Scheduling:
       - InstanceType: m8i.32xlarge
       - InstanceType: r8i.32xlarge
       - InstanceType: x8i.32xlarge
+      - InstanceType: m8id.32xlarge
+      - InstanceType: m8idb.32xlarge
+      - InstanceType: m8idn.32xlarge
+      - InstanceType: r6idn.32xlarge
+      - InstanceType: r6idn.metal
+      - InstanceType: r6in.32xlarge
+      - InstanceType: r6in.metal
+      - InstanceType: r7iz.32xlarge
+      - InstanceType: r7iz.metal-32xl
+      - InstanceType: r8id.32xlarge
+      - InstanceType: r8idb.32xlarge
+      - InstanceType: r8idn.32xlarge
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_128I_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
@@ -185,6 +217,15 @@ Scheduling:
       - InstanceType: x2iedn.metal
       - InstanceType: r8i.32xlarge
       - InstanceType: x8i.32xlarge
+      - InstanceType: r6idn.32xlarge
+      - InstanceType: r6idn.metal
+      - InstanceType: r6in.32xlarge
+      - InstanceType: r6in.metal
+      - InstanceType: r7iz.32xlarge
+      - InstanceType: r7iz.metal-32xl
+      - InstanceType: r8id.32xlarge
+      - InstanceType: r8idb.32xlarge
+      - InstanceType: r8idn.32xlarge
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_128I_R}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
@@ -245,6 +286,18 @@ Scheduling:
       - InstanceType: m8i.32xlarge
       - InstanceType: r8i.32xlarge
       - InstanceType: x8i.32xlarge
+      - InstanceType: m8id.32xlarge
+      - InstanceType: m8idb.32xlarge
+      - InstanceType: m8idn.32xlarge
+      - InstanceType: r6idn.32xlarge
+      - InstanceType: r6idn.metal
+      - InstanceType: r6in.32xlarge
+      - InstanceType: r6in.metal
+      - InstanceType: r7iz.32xlarge
+      - InstanceType: r7iz.metal-32xl
+      - InstanceType: r8id.32xlarge
+      - InstanceType: r8idb.32xlarge
+      - InstanceType: r8idn.32xlarge
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_128I_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
@@ -296,6 +349,15 @@ Scheduling:
       - InstanceType: x2iedn.metal
       - InstanceType: r8i.32xlarge
       - InstanceType: x8i.32xlarge
+      - InstanceType: r6idn.32xlarge
+      - InstanceType: r6idn.metal
+      - InstanceType: r6in.32xlarge
+      - InstanceType: r6in.metal
+      - InstanceType: r7iz.32xlarge
+      - InstanceType: r7iz.metal-32xl
+      - InstanceType: r8id.32xlarge
+      - InstanceType: r8idb.32xlarge
+      - InstanceType: r8idn.32xlarge
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_128I_R}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
@@ -341,6 +403,17 @@ Scheduling:
       Instances:
       - InstanceType: i4i.32xlarge
       - InstanceType: i4i.metal
+      - InstanceType: r6id.32xlarge
+      - InstanceType: r6id.metal
+      - InstanceType: r6idn.32xlarge
+      - InstanceType: r6idn.metal
+      - InstanceType: r8id.32xlarge
+      - InstanceType: r8idb.32xlarge
+      - InstanceType: r8idn.32xlarge
+      - InstanceType: x2idn.32xlarge
+      - InstanceType: x2idn.metal
+      - InstanceType: x2iedn.32xlarge
+      - InstanceType: x2iedn.metal
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_128I_NVME}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
@@ -398,6 +471,16 @@ Scheduling:
       - InstanceType: i7ie.metal-48xl
       - InstanceType: x8i.48xlarge
       - InstanceType: x8i.metal-48xl
+      - InstanceType: c8id.48xlarge
+      - InstanceType: c8id.metal-48xl
+      - InstanceType: m8id.48xlarge
+      - InstanceType: m8id.metal-48xl
+      - InstanceType: m8idb.48xlarge
+      - InstanceType: m8idn.48xlarge
+      - InstanceType: r8id.48xlarge
+      - InstanceType: r8id.metal-48xl
+      - InstanceType: r8idb.48xlarge
+      - InstanceType: r8idn.48xlarge
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_192I_C}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
@@ -424,6 +507,14 @@ Scheduling:
       - InstanceType: i7ie.metal-48xl
       - InstanceType: x8i.48xlarge
       - InstanceType: x8i.metal-48xl
+      - InstanceType: m8id.48xlarge
+      - InstanceType: m8id.metal-48xl
+      - InstanceType: m8idb.48xlarge
+      - InstanceType: m8idn.48xlarge
+      - InstanceType: r8id.48xlarge
+      - InstanceType: r8id.metal-48xl
+      - InstanceType: r8idb.48xlarge
+      - InstanceType: r8idn.48xlarge
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_192I_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
@@ -446,6 +537,10 @@ Scheduling:
       - InstanceType: i7ie.metal-48xl
       - InstanceType: x8i.48xlarge
       - InstanceType: x8i.metal-48xl
+      - InstanceType: r8id.48xlarge
+      - InstanceType: r8id.metal-48xl
+      - InstanceType: r8idb.48xlarge
+      - InstanceType: r8idn.48xlarge
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_192I_R}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
@@ -499,6 +594,14 @@ Scheduling:
       - InstanceType: i7ie.metal-48xl
       - InstanceType: x8i.48xlarge
       - InstanceType: x8i.metal-48xl
+      - InstanceType: m8id.48xlarge
+      - InstanceType: m8id.metal-48xl
+      - InstanceType: m8idb.48xlarge
+      - InstanceType: m8idn.48xlarge
+      - InstanceType: r8id.48xlarge
+      - InstanceType: r8id.metal-48xl
+      - InstanceType: r8idb.48xlarge
+      - InstanceType: r8idn.48xlarge
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_192I_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
@@ -548,6 +651,10 @@ Scheduling:
       - InstanceType: i7ie.metal-48xl
       - InstanceType: x8i.48xlarge
       - InstanceType: x8i.metal-48xl
+      - InstanceType: r8id.48xlarge
+      - InstanceType: r8id.metal-48xl
+      - InstanceType: r8idb.48xlarge
+      - InstanceType: r8idn.48xlarge
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_192I_R}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
@@ -595,6 +702,16 @@ Scheduling:
       - InstanceType: i7i.metal-48xl
       - InstanceType: i7ie.48xlarge
       - InstanceType: i7ie.metal-48xl
+      - InstanceType: c8id.48xlarge
+      - InstanceType: c8id.metal-48xl
+      - InstanceType: m8id.48xlarge
+      - InstanceType: m8id.metal-48xl
+      - InstanceType: m8idb.48xlarge
+      - InstanceType: m8idn.48xlarge
+      - InstanceType: r8id.48xlarge
+      - InstanceType: r8id.metal-48xl
+      - InstanceType: r8idb.48xlarge
+      - InstanceType: r8idn.48xlarge
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_192I_NVME_C}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
@@ -611,6 +728,14 @@ Scheduling:
       - InstanceType: i7i.metal-48xl
       - InstanceType: i7ie.48xlarge
       - InstanceType: i7ie.metal-48xl
+      - InstanceType: m8id.48xlarge
+      - InstanceType: m8id.metal-48xl
+      - InstanceType: m8idb.48xlarge
+      - InstanceType: m8idn.48xlarge
+      - InstanceType: r8id.48xlarge
+      - InstanceType: r8id.metal-48xl
+      - InstanceType: r8idb.48xlarge
+      - InstanceType: r8idn.48xlarge
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_192I_NVME_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
@@ -627,6 +752,10 @@ Scheduling:
       - InstanceType: i7i.metal-48xl
       - InstanceType: i7ie.48xlarge
       - InstanceType: i7ie.metal-48xl
+      - InstanceType: r8id.48xlarge
+      - InstanceType: r8id.metal-48xl
+      - InstanceType: r8idb.48xlarge
+      - InstanceType: r8idn.48xlarge
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_192I_NVME_R}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
@@ -766,6 +895,10 @@ Scheduling:
       - InstanceType: i7i.metal-48xl
       - InstanceType: i7ie.48xlarge
       - InstanceType: i7ie.metal-48xl
+      - InstanceType: r8id.48xlarge
+      - InstanceType: r8id.metal-48xl
+      - InstanceType: r8idb.48xlarge
+      - InstanceType: r8idn.48xlarge
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_192I_HUGENVME}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE

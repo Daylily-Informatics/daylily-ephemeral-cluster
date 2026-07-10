@@ -22,6 +22,9 @@ DEFAULT_PRODUCTION_PARTITIONS: tuple[str, ...] = (
     "i192hugenvme",
 )
 _INSTANCE_TYPE_BATCH_SIZE = 100
+DEFAULT_CLUSTER_CONFIG_RELPATH = (
+    "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+)
 
 
 def _now_iso() -> str:
@@ -29,9 +32,7 @@ def _now_iso() -> str:
 
 
 def _default_cluster_config_path() -> Path:
-    return resource_path(
-        "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
-    )
+    return resource_path(DEFAULT_CLUSTER_CONFIG_RELPATH)
 
 
 def resolve_cluster_config_path(cluster_config_path: Optional[str] = None) -> Path:

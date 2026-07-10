@@ -36,6 +36,7 @@ from daylily_ec.aws.validation import (
 )
 import daylily_ec.aws.validation as validation_module
 from daylily_ec.aws.validation import AwsValidationReport
+from daylily_ec.config.models import ConfigFile, Triplet
 from daylily_ec.state.models import CheckResult, CheckStatus
 
 
@@ -99,6 +100,44 @@ def test_options_reject_default_profile() -> None:
             profile="default",
             region_az="us-west-2b",
         )
+
+
+def test_render_effective_cluster_yaml_uses_az_scoped_intel_default() -> None:
+    cfg = ConfigFile()
+    ctx = _Clients(region="us-west-2", region_az="us-west-2b", account_id="123456789012")
+
+    _rendered, template_path, _cluster_name = validation_module.render_effective_cluster_yaml(
+        cfg,
+        ctx,
+    )
+
+    assert template_path.name == "prod_cluster_intel_us-west-2b.yaml"
+    assert "intel/us-west-2/us-west-2b" in template_path.as_posix()
+
+
+def test_render_effective_cluster_yaml_honors_explicit_template(tmp_path) -> None:
+    explicit = tmp_path / "explicit.yaml"
+    explicit.write_text(
+        "Region: ${REGSUB_REGION}\n"
+        "SubnetPublic: ${REGSUB_PUB_SUBNET}\n"
+        "SubnetPrivate: ${REGSUB_PRIVATE_SUBNET}\n"
+        "ClusterName: ${REGSUB_CLUSTER_NAME}\n",
+        encoding="utf-8",
+    )
+    cfg = ConfigFile()
+    cfg.ephemeral_cluster.config["cluster_template_yaml"] = Triplet(
+        action="USESETVALUE",
+        default_value="",
+        set_value=str(explicit),
+    )
+    ctx = _Clients(region="us-west-2", region_az="us-west-2b", account_id="123456789012")
+
+    _rendered, template_path, _cluster_name = validation_module.render_effective_cluster_yaml(
+        cfg,
+        ctx,
+    )
+
+    assert template_path == explicit
 
 
 def test_pcluster_omics_policy_check_is_read_only() -> None:

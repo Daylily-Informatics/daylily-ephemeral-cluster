@@ -34,17 +34,16 @@ from daylily_ec.render.renderer import ALL_SUBSTITUTION_KEYS, REQUIRED_KEYS, ren
 from daylily_ec.resources import resource_path
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
 from daylily_ec.workflow.create_cluster import (
+    DEFAULT_CREATE_CLUSTER_TYPE,
     EXIT_SUCCESS,
     EXIT_VALIDATION_FAILURE,
+    az_cluster_template_relative_path,
     normalize_enforce_budget,
 )
 
 ValidationMode = Literal["permissions", "quotas", "all"]
 SUPPORTED_MODES: tuple[str, ...] = ("permissions", "quotas", "all")
 DEFAULT_CONFIG_PATH = "config/daylily_ephemeral_cluster_template.yaml"
-DEFAULT_CLUSTER_TEMPLATE_PATH = (
-    "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
-)
 SSM_SESSION_DOCUMENT = "SSM-SessionManagerRunShell"
 
 
@@ -539,14 +538,14 @@ def render_effective_cluster_yaml(cfg: Any, aws_ctx: AWSContext) -> tuple[str, P
     """Render the configured ParallelCluster template without writing files."""
 
     cluster_name = _effective_config_value(cfg, "cluster_name", "prod") or "prod"
-    template_value = (
-        _effective_config_value(
-            cfg,
-            "cluster_template_yaml",
-            DEFAULT_CLUSTER_TEMPLATE_PATH,
+    template_value = _explicit_cluster_template_yaml(cfg)
+    if not template_value:
+        template_value = str(
+            az_cluster_template_relative_path(
+                DEFAULT_CREATE_CLUSTER_TYPE,
+                aws_ctx.region_az,
+            )
         )
-        or DEFAULT_CLUSTER_TEMPLATE_PATH
-    )
     template_path = _resolve_data_path(template_value)
     substitutions = _validation_substitutions(cfg, aws_ctx, cluster_name)
     template_text = template_path.read_text(encoding="utf-8")
@@ -559,6 +558,13 @@ def render_effective_cluster_yaml(cfg: Any, aws_ctx: AWSContext) -> tuple[str, P
         template_path,
         cluster_name,
     )
+
+
+def _explicit_cluster_template_yaml(cfg: Any) -> str:
+    triplet = cfg.ephemeral_cluster.config.get("cluster_template_yaml")
+    if triplet is None:
+        return ""
+    return str(resolve_value(triplet) or "").strip()
 
 
 def extract_cluster_shape(

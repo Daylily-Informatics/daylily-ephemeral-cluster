@@ -14,7 +14,7 @@ ephemeral_cluster:
     global_allowed_budget_users: [USESETVALUE, "", "ubuntu"]
     global_budget_amount: [USESETVALUE, "", "5000"]
     enforce_budget: [USESETVALUE, "", "true"]
-    cluster_template_yaml: [USESETVALUE, "", "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"]
+    cluster_template_yaml: [PROMPTUSER, "", ""]
     headnode_instance_type: [USESETVALUE, "", "r7i.4xlarge"]
     fsx_fs_size: [USESETVALUE, "", "12000"]
     enable_detailed_monitoring: [USESETVALUE, "", "true"]
