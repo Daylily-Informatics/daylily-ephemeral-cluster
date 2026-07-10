@@ -20,3 +20,4 @@ Companion CLI PR: aws/aws-parallelcluster#7483
 - EFA skip behavior passed focused ChefSpec coverage
 - 66 changed Ruby files passed Cookstyle
 - changed Ruby and Python files passed syntax checks
+- an ImageBuilder build from an official AlmaLinux 8 x86_64 parent completed, and the resulting custom AMI passed the ImageBuilder boot/test phase

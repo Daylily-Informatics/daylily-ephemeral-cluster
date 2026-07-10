@@ -17,4 +17,5 @@ Companion cookbook PR: aws/aws-parallelcluster-cookbook#3222
 
 - 755 focused schema, validator, configure, and ImageBuilder tests passed
 - AlmaLinux EFA validation covers x86_64, arm64, and EFA-disabled configurations
+- an ImageBuilder build from an official AlmaLinux 8 x86_64 parent completed, and the resulting custom AMI passed the ImageBuilder boot/test phase
 - changed ImageBuilder components and generic AlmaLinux fixtures passed diff and leak checks

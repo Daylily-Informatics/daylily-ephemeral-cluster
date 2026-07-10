@@ -71,6 +71,12 @@ def _write_manifest(tmp_path: Path, **overrides: str) -> Path:
             "source_root": str(source_root),
             "executable": str(executable),
         },
+        "node": {
+            "repository": "https://github.com/aws/aws-parallelcluster-node.git",
+            "commit": "d" * 40,
+            "bundle_uri": "s3://private-assets/backports/node-dddddddd.tgz",
+            "bundle_sha256": "e" * 64,
+        },
         "cookbook": {
             "repository": "https://github.com/iamh2o/aws-parallelcluster-cookbook.git",
             "commit": "b" * 40,
@@ -104,6 +110,7 @@ def test_load_operational_backport_requires_exact_pins(tmp_path: Path) -> None:
         text=True,
     ).stdout.strip()
     assert spec.cli_executable.is_relative_to(spec.cli_source_root)
+    assert spec.node_commit == "d" * 40
     assert spec.cookbook_commit == "b" * 40
     assert spec.image_ami_id == "ami-0123456789abcdef0"
     assert spec.image_qualification_id == "qualification-20260710"
@@ -116,6 +123,7 @@ def test_load_operational_backport_requires_exact_pins(tmp_path: Path) -> None:
         ({"parallelcluster__source_root": "relative/path"}, "existing absolute directory"),
         ({"parallelcluster__version": "3.14.0"}, "must be 3.15.0"),
         ({"cookbook__bundle_sha256": "not-a-digest"}, "SHA-256"),
+        ({"node__bundle_sha256": "not-a-digest"}, "SHA-256"),
         ({"image__qualification_status": "pending"}, "exactly 'passed'"),
         ({"image__ami_id": "ami-pending"}, "explicit AMI id"),
         ({"image__parent_ami_id": "ami-pending"}, "explicit AMI id"),
@@ -232,16 +240,37 @@ def _report() -> PreflightReport:
     )
 
 
-def _artifact_clients(spec, *, cookbook_sha: str | None = None, tag_overrides=None):
+def _artifact_clients(
+    spec,
+    *,
+    cookbook_sha: str | None = None,
+    node_sha: str | None = None,
+    tag_overrides=None,
+):
     s3 = MagicMock()
-    s3.head_object.return_value = {
-        "Metadata": {"sha256": cookbook_sha or spec.cookbook_bundle_sha256}
-    }
+    s3.head_object.side_effect = [
+        {
+            "Metadata": {
+                "sha256": cookbook_sha or spec.cookbook_bundle_sha256,
+                "pcluster-cli-commit": spec.cli_commit,
+                "pcluster-cookbook-commit": spec.cookbook_commit,
+            }
+        },
+        {
+            "Metadata": {
+                "sha256": node_sha or spec.node_bundle_sha256,
+                "pcluster-node-commit": spec.node_commit,
+                "pcluster-node-version": spec.parallelcluster_version,
+            }
+        },
+    ]
     tags = {
         "dayec:qualification-status": "passed",
         "dayec:qualification-id": spec.image_qualification_id,
         "dayec:source-parent-ami": spec.image_parent_ami_id,
         "dayec:pcluster-cli-commit": spec.cli_commit,
+        "dayec:pcluster-node-commit": spec.node_commit,
+        "dayec:node-package-sha256": spec.node_bundle_sha256,
         "dayec:pcluster-cookbook-commit": spec.cookbook_commit,
         "dayec:cookbook-sha256": spec.cookbook_bundle_sha256,
     }
@@ -276,17 +305,23 @@ def test_operational_backport_preflight_verifies_cookbook_and_image_tags(
 
     assert result.status == CheckStatus.PASS
     assert result.details["cookbook_sha256_verified"] is True
+    assert result.details["node_package_sha256_verified"] is True
     assert result.details["qualified_image_verified"] is True
 
 
-@pytest.mark.parametrize("failure", ["checksum", "qualification"])
+@pytest.mark.parametrize(
+    "failure",
+    ["cookbook_checksum", "node_checksum", "qualification"],
+)
 def test_operational_backport_preflight_rejects_artifact_drift(
     tmp_path: Path,
     failure: str,
 ) -> None:
     spec = load_operational_backport(_write_manifest(tmp_path))
-    if failure == "checksum":
+    if failure == "cookbook_checksum":
         s3, ec2 = _artifact_clients(spec, cookbook_sha="d" * 64)
+    elif failure == "node_checksum":
+        s3, ec2 = _artifact_clients(spec, node_sha="f" * 64)
     else:
         s3, ec2 = _artifact_clients(
             spec,

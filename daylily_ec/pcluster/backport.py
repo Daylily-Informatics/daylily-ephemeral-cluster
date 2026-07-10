@@ -33,6 +33,10 @@ class OperationalBackport:
     cli_commit: str
     cli_source_root: Path
     cli_executable: Path
+    node_repository: str
+    node_commit: str
+    node_bundle_uri: str
+    node_bundle_sha256: str
     cookbook_repository: str
     cookbook_commit: str
     cookbook_bundle_uri: str
@@ -59,6 +63,7 @@ def load_operational_backport(path: str | Path) -> OperationalBackport:
         )
 
     cli = _required_mapping(raw, "parallelcluster")
+    node = _required_mapping(raw, "node")
     cookbook = _required_mapping(raw, "cookbook")
     image = _required_mapping(raw, "image")
 
@@ -162,6 +167,26 @@ def load_operational_backport(path: str | Path) -> OperationalBackport:
             f"{version}: {cli_executable}"
         )
 
+    node_repository = _validate_https_repository(
+        _required_string(node, "repository", "node.repository"),
+        "node.repository",
+    )
+    node_commit = _validate_commit(
+        _required_string(node, "commit", "node.commit"),
+        "node.commit",
+    )
+    node_bundle_uri = _validate_s3_uri(
+        _required_string(node, "bundle_uri", "node.bundle_uri"),
+        "node.bundle_uri",
+    )
+    node_bundle_sha256 = _required_string(
+        node,
+        "bundle_sha256",
+        "node.bundle_sha256",
+    )
+    if not _SHA256_PATTERN.fullmatch(node_bundle_sha256):
+        raise ValueError("node.bundle_sha256 must be a lowercase SHA-256 digest.")
+
     cookbook_repository = _validate_https_repository(
         _required_string(cookbook, "repository", "cookbook.repository"),
         "cookbook.repository",
@@ -213,6 +238,10 @@ def load_operational_backport(path: str | Path) -> OperationalBackport:
         cli_commit=cli_commit,
         cli_source_root=cli_source_root,
         cli_executable=cli_executable,
+        node_repository=node_repository,
+        node_commit=node_commit,
+        node_bundle_uri=node_bundle_uri,
+        node_bundle_sha256=node_bundle_sha256,
         cookbook_repository=cookbook_repository,
         cookbook_commit=cookbook_commit,
         cookbook_bundle_uri=cookbook_bundle_uri,
@@ -242,9 +271,39 @@ def make_operational_backport_preflight_step(
                 str(name).lower(): str(value).lower()
                 for name, value in (head.get("Metadata") or {}).items()
             }
-            if metadata.get("sha256") != backport.cookbook_bundle_sha256:
+            expected_cookbook_metadata = {
+                "sha256": backport.cookbook_bundle_sha256,
+                "pcluster-cli-commit": backport.cli_commit,
+                "pcluster-cookbook-commit": backport.cookbook_commit,
+            }
+            if any(
+                metadata.get(name) != expected
+                for name, expected in expected_cookbook_metadata.items()
+            ):
                 raise ValueError(
-                    "Cookbook object sha256 metadata does not match the operational manifest."
+                    "Cookbook object metadata does not match the operational manifest."
+                )
+
+            node_parsed = urlparse(backport.node_bundle_uri)
+            node_head = s3_client.head_object(
+                Bucket=node_parsed.netloc,
+                Key=node_parsed.path.lstrip("/"),
+            )
+            node_metadata = {
+                str(name).lower(): str(value).lower()
+                for name, value in (node_head.get("Metadata") or {}).items()
+            }
+            expected_node_metadata = {
+                "sha256": backport.node_bundle_sha256,
+                "pcluster-node-commit": backport.node_commit,
+                "pcluster-node-version": backport.parallelcluster_version,
+            }
+            if any(
+                node_metadata.get(name) != expected
+                for name, expected in expected_node_metadata.items()
+            ):
+                raise ValueError(
+                    "Node package object metadata does not match the operational manifest."
                 )
 
             images = ec2_client.describe_images(ImageIds=[backport.image_ami_id]).get(
@@ -269,6 +328,8 @@ def make_operational_backport_preflight_step(
                 "dayec:qualification-id": backport.image_qualification_id,
                 "dayec:source-parent-ami": backport.image_parent_ami_id,
                 "dayec:pcluster-cli-commit": backport.cli_commit,
+                "dayec:pcluster-node-commit": backport.node_commit,
+                "dayec:node-package-sha256": backport.node_bundle_sha256,
                 "dayec:pcluster-cookbook-commit": backport.cookbook_commit,
                 "dayec:cookbook-sha256": backport.cookbook_bundle_sha256,
             }
@@ -302,6 +363,7 @@ def make_operational_backport_preflight_step(
                 status=CheckStatus.PASS,
                 details={
                     "cookbook_sha256_verified": True,
+                    "node_package_sha256_verified": True,
                     "qualified_image_verified": True,
                     "qualification_id": backport.image_qualification_id,
                 },
