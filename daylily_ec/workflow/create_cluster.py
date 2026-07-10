@@ -791,7 +791,7 @@ def validate_dragen_cluster_contract(
     cluster_yaml_path: str | Path,
     inputs: DragenCreateInputs,
 ) -> None:
-    """Require the single-node private DRAGEN topology after rendering."""
+    """Require the private mixed DRAGEN/CPU topology after rendering."""
 
     import yaml
 
@@ -808,18 +808,35 @@ def validate_dragen_cluster_contract(
     head_ami = ((headnode.get("Image") or {}).get("CustomAmi") or "").strip()
     if head_ami != inputs.backport.image_ami_id:
         raise ValueError("DRAGEN headnode AMI does not match the qualified manifest image.")
-    _validate_dragen_node_policy_and_action(headnode, inputs, label="HeadNode")
+    _validate_dragen_node_policy_and_action(
+        headnode,
+        inputs,
+        label="HeadNode",
+        expected_role="headnode",
+    )
 
     queues = ((payload.get("Scheduling") or {}).get("SlurmQueues") or [])
-    if not isinstance(queues, list) or len(queues) != 1:
-        raise ValueError("DRAGEN cluster must render exactly one Slurm queue.")
-    queue = queues[0]
+    if not isinstance(queues, list):
+        raise ValueError("DRAGEN cluster SlurmQueues must be a list.")
+    queue_names = [str(queue.get("Name") or "") for queue in queues]
+    if queue_names != ["dragen", "i192", "i192nvme"]:
+        raise ValueError(
+            "DRAGEN cluster must render exactly the dragen, i192, and i192nvme "
+            f"queues; rendered queues were {queue_names}."
+        )
+    queues_by_name = {str(queue.get("Name") or ""): queue for queue in queues}
+    queue = queues_by_name["dragen"]
     if queue.get("Name") != "dragen" or queue.get("CapacityType") != "SPOT":
         raise ValueError("DRAGEN cluster must render one SPOT queue named dragen.")
     queue_ami = ((queue.get("Image") or {}).get("CustomAmi") or "").strip()
     if queue_ami != inputs.backport.image_ami_id:
         raise ValueError("DRAGEN compute AMI does not match the qualified manifest image.")
-    _validate_dragen_node_policy_and_action(queue, inputs, label="dragen queue")
+    _validate_dragen_node_policy_and_action(
+        queue,
+        inputs,
+        label="dragen queue",
+        expected_role="dragen",
+    )
 
     resources = queue.get("ComputeResources") or []
     if not isinstance(resources, list) or len(resources) != 1:
@@ -832,6 +849,44 @@ def validate_dragen_cluster_contract(
         raise ValueError("DRAGEN compute resource must contain only f2.6xlarge.")
     if resource.get("MinCount") != 0 or resource.get("MaxCount") != 1:
         raise ValueError("DRAGEN compute resource must set MinCount 0 and MaxCount 1.")
+
+    for queue_name, resource_name, instance_types in (
+        ("i192", "mem192", ["m7i.48xlarge", "r7i.48xlarge"]),
+        ("i192nvme", "mem192nvme", ["i7i.48xlarge", "i7ie.48xlarge"]),
+    ):
+        cpu_queue = queues_by_name[queue_name]
+        if cpu_queue.get("CapacityType") != "SPOT":
+            raise ValueError(f"DRAGEN CPU queue {queue_name} must use SPOT capacity.")
+        cpu_ami = ((cpu_queue.get("Image") or {}).get("CustomAmi") or "").strip()
+        if cpu_ami != inputs.backport.image_ami_id:
+            raise ValueError(
+                f"DRAGEN CPU queue {queue_name} AMI does not match the qualified image."
+            )
+        _validate_dragen_cpu_node(cpu_queue, inputs, label=f"{queue_name} queue")
+        cpu_resources = cpu_queue.get("ComputeResources") or []
+        if not isinstance(cpu_resources, list) or len(cpu_resources) != 1:
+            raise ValueError(
+                f"DRAGEN CPU queue {queue_name} must render exactly one compute resource."
+            )
+        cpu_resource = cpu_resources[0]
+        if cpu_resource.get("Name") != resource_name:
+            raise ValueError(
+                f"DRAGEN CPU queue {queue_name} must use compute resource {resource_name}."
+            )
+        rendered_types = [
+            str(item.get("InstanceType") or "")
+            for item in cpu_resource.get("Instances") or []
+        ]
+        if rendered_types != instance_types:
+            raise ValueError(
+                f"DRAGEN CPU queue {queue_name} instance types must be {instance_types}."
+            )
+        if cpu_resource.get("MinCount") != 0:
+            raise ValueError(f"DRAGEN CPU queue {queue_name} must set MinCount 0.")
+        if not isinstance(cpu_resource.get("MaxCount"), int) or cpu_resource["MaxCount"] < 1:
+            raise ValueError(f"DRAGEN CPU queue {queue_name} must set MaxCount at least 1.")
+        if ((cpu_resource.get("Efa") or {}).get("Enabled")) is not False:
+            raise ValueError(f"DRAGEN CPU queue {queue_name} must keep EFA disabled.")
 
     cookbook_uri = (
         (((payload.get("DevSettings") or {}).get("Cookbook") or {}).get("ChefCookbook"))
@@ -846,6 +901,7 @@ def _validate_dragen_node_policy_and_action(
     inputs: DragenCreateInputs,
     *,
     label: str,
+    expected_role: str,
 ) -> None:
     policies = [
         str(item.get("Policy") or "")
@@ -859,8 +915,37 @@ def _validate_dragen_node_policy_and_action(
     if not script.endswith("/post_install_almalinux8_dragen.sh"):
         raise ValueError(f"{label} must use the AlmaLinux DRAGEN bootstrap wrapper.")
     args = [str(value) for value in action.get("Args") or []]
-    if len(args) != 5 or args[-1] != inputs.license_secret_arn:
-        raise ValueError(f"{label} must pass the configured license secret ARN as arg 5.")
+    if (
+        len(args) != 6
+        or args[-2] != inputs.license_secret_arn
+        or args[-1] != expected_role
+    ):
+        raise ValueError(
+            f"{label} must pass the configured license secret ARN as arg 5 "
+            f"and role {expected_role!r} as arg 6."
+        )
+
+
+def _validate_dragen_cpu_node(
+    node: dict[str, Any],
+    inputs: DragenCreateInputs,
+    *,
+    label: str,
+) -> None:
+    policies = [
+        str(item.get("Policy") or "")
+        for item in ((node.get("Iam") or {}).get("AdditionalIamPolicies") or [])
+    ]
+    if inputs.license_policy_arn in policies:
+        raise ValueError(f"{label} must not attach the DRAGEN license policy.")
+
+    action = ((node.get("CustomActions") or {}).get("OnNodeConfigured") or {})
+    script = str(action.get("Script") or "")
+    if not script.endswith("/post_install_rhel8_dragen.sh"):
+        raise ValueError(f"{label} must use the base AlmaLinux-compatible bootstrap.")
+    args = [str(value) for value in action.get("Args") or []]
+    if len(args) != 5 or args[-1] != "cpu":
+        raise ValueError(f"{label} must pass explicit CPU role as arg 5.")
 
 
 def _noop_heartbeat_result() -> Any:

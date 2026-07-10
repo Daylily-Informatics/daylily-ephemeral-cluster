@@ -18,6 +18,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
+import yaml
 
 import daylily_ec.aws.cloudformation as cloudformation
 import daylily_ec.aws.context as aws_context
@@ -259,7 +260,7 @@ class TestAzClusterTemplateResolution:
         assert inputs.backport is load_backport.return_value
         assert inputs.license_secret_arn.endswith(":secret:dayec/dragen")
 
-    def test_dragen_template_enforces_single_spot_f2_contract(self, tmp_path: Path) -> None:
+    def test_dragen_template_enforces_mixed_spot_contract(self, tmp_path: Path) -> None:
         template = Path(
             "config/day_cluster/dragen/us-west-2/us-west-2b/"
             "prod_cluster_dragen_us-west-2b.yaml"
@@ -295,6 +296,8 @@ class TestAzClusterTemplateResolution:
                 "REGSUB_DETAILED_MONITORING": "false",
                 "REGSUB_DELETE_LOCAL_ROOT": "true",
                 "REGSUB_SAVE_FSX": "Delete",
+                "REGSUB_MAX_COUNT_192I_M": "1",
+                "REGSUB_MAX_COUNT_192I_NVME_M": "1",
                 "REGSUB_ENFORCE_BUDGET": '"true"',
                 "REGSUB_SPOT_PRICE_WARN_THRESHOLD": '"8.00"',
                 "REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING": "",
@@ -315,6 +318,18 @@ class TestAzClusterTemplateResolution:
 
         validate_dragen_cluster_contract(cluster_yaml, inputs)
 
+        payload = yaml.safe_load(rendered)
+        queues = payload["Scheduling"]["SlurmQueues"]
+        assert [queue["Name"] for queue in queues] == ["dragen", "i192", "i192nvme"]
+        assert queues[0]["CustomActions"]["OnNodeConfigured"]["Args"][-1] == "dragen"
+        for queue in queues[1:]:
+            assert queue["CustomActions"]["OnNodeConfigured"]["Args"][-1] == "cpu"
+            policies = [
+                item["Policy"] for item in queue["Iam"]["AdditionalIamPolicies"]
+            ]
+            assert policy_arn not in policies
+            assert queue["ComputeResources"][0]["Efa"]["Enabled"] is False
+
         missing_cluster_ami = rendered.replace(
             f"  CustomAmi: {ami_id}\nHeadNode:",
             "HeadNode:",
@@ -327,6 +342,19 @@ class TestAzClusterTemplateResolution:
         broken = rendered.replace("MaxCount: 1", "MaxCount: 2")
         cluster_yaml.write_text(broken, encoding="utf-8")
         with pytest.raises(ValueError, match="MinCount 0 and MaxCount 1"):
+            validate_dragen_cluster_contract(cluster_yaml, inputs)
+
+        missing_cpu_queue = yaml.safe_load(rendered)
+        missing_cpu_queue["Scheduling"]["SlurmQueues"] = missing_cpu_queue[
+            "Scheduling"
+        ]["SlurmQueues"][:2]
+        cluster_yaml.write_text(yaml.safe_dump(missing_cpu_queue), encoding="utf-8")
+        with pytest.raises(ValueError, match="dragen, i192, and i192nvme"):
+            validate_dragen_cluster_contract(cluster_yaml, inputs)
+
+        bad_cpu_role = rendered.replace("        - cpu\n", "        - dragen\n", 1)
+        cluster_yaml.write_text(bad_cpu_role, encoding="utf-8")
+        with pytest.raises(ValueError, match="explicit CPU role"):
             validate_dragen_cluster_contract(cluster_yaml, inputs)
 
     def test_resolves_az_template_when_config_has_no_explicit_template(

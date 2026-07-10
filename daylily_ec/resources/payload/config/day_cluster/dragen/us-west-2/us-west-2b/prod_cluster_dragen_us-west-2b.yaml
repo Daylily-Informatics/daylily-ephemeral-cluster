@@ -29,6 +29,7 @@ HeadNode:
       - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
       - fsx
       - ${REGSUB_DRAGEN_LICENSE_SECRET_ARN}
+      - headnode
   Iam:
     S3Access:
     - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
@@ -87,6 +88,7 @@ Scheduling:
         - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
         - fsx
         - ${REGSUB_DRAGEN_LICENSE_SECRET_ARN}
+        - dragen
     Iam:
       S3Access:
       - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
@@ -100,6 +102,100 @@ Scheduling:
       AdditionalIamPolicies:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: ${REGSUB_DRAGEN_LICENSE_POLICY_ARN}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i192
+    CapacityType: SPOT
+    AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
+    Image:
+      CustomAmi: ${REGSUB_DRAGEN_PCLUSTER_AMI}
+    ComputeResources:
+    - Name: mem192
+      Instances:
+      - InstanceType: m7i.48xlarge
+      - InstanceType: r7i.48xlarge
+      MinCount: 0
+      MaxCount: ${REGSUB_MAX_COUNT_192I_M}
+      SpotPrice: CALCULATE_MAX_SPOT_PRICE
+      DynamicNodePriority: 200
+      SchedulableMemory: 747110
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_rhel8_dragen.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+        - fsx
+        - cpu
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i192nvme
+    CapacityType: SPOT
+    AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    Image:
+      CustomAmi: ${REGSUB_DRAGEN_PCLUSTER_AMI}
+    ComputeResources:
+    - Name: mem192nvme
+      Instances:
+      - InstanceType: i7i.48xlarge
+      - InstanceType: i7ie.48xlarge
+      MinCount: 0
+      MaxCount: ${REGSUB_MAX_COUNT_192I_NVME_M}
+      SpotPrice: CALCULATE_MAX_SPOT_PRICE
+      DynamicNodePriority: 200
+      SchedulableMemory: 747110
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_rhel8_dragen.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+        - fsx
+        - cpu
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
 Monitoring:
   DetailedMonitoring: ${REGSUB_DETAILED_MONITORING}

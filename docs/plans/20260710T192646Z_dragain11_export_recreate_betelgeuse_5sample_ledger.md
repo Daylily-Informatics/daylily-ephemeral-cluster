@@ -16,8 +16,8 @@ QC, reporting, and final S3 export.
 | Surface | Evidence |
 |---|---|
 | Current cluster | `dragain11`, `us-west-2`, `CREATE_COMPLETE`, compute fleet `RUNNING`, headnode `i-0684060a8c71c339a`, FSx `fs-09ff0f6f0412bc7d9`. |
-| Active controller | `dragen_hg003_conc_dragain11_20260710`; native DRAGEN job `7` completed and the serial DAG advanced to RTG concordance job `10`. |
-| HG003 native outputs | Non-empty 72,469,974,208-byte BAM, 451,596,448-byte SNV VCF, 2,004,111,962-byte gVCF, indexes, and native validation JSON; no partial files. |
+| Active controller | Terminal success. `dragen_hg003_conc_dragain11_20260710` completed, native DRAGEN job `7` and RTG concordance completed, and the Slurm queue drained. |
+| HG003 native outputs | Non-empty 72,469,974,208-byte BAM, 451,596,448-byte SNV VCF, 2,004,111,962-byte gVCF, indexes, native validation JSON, and `giab_concordance_mqc.tsv`; no partial files. Primary GIAB HC `All` F-score: `0.999079967406051`; SNP transition/transversion F-scores: `0.9992405988623179` / `0.9989431693637525`. |
 | Prior native proof | HG002 native SNV completed under DayOA `10.0.83`; license/FPGA/memlock validation is terminal success. |
 | Current mounts | Reference DRA and ILMN BCLConvert FASTQ DRA are available; no ONT DRA is attached to `dragain11`. |
 | Private image | Child `ami-046ab49ce477823fe` is owned by account `108782052779`, `Public=false`, and has no launch permissions. Snapshot `snap-0c4395d45b0d99d73` has no create-volume permissions. |
@@ -25,20 +25,20 @@ QC, reporting, and final S3 export.
 | Sample set | `HG002`, `HG003`, `NA19235`, `NA20775`, `NA23687`. Truth expectations for SMN1/SMN2 are `2/2`, `2/2`, `4/0`, `3/1`, `1/2`. |
 | ILMN source | `s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260618_LH01106_0011_A23MFMCLT3/Analysis/1/Data/BCLConvert/fastq/`; all five samples have eight R1 and eight R2 lane FASTQs. |
 | ONT sources | Full Set3 FC1/FC2/FC3 for `NA19235` and `NA20775`; full Set4 FC1/FC2/FC3 for `HG002`, `HG003`, and `NA23687`. Prior partial/24-hour manifests are not accepted. |
-| Git boundary | Public AlmaLinux branches are clean. DayOA and DYEC operational releases are already pushed through `10.0.83` and `10.0.145`; original worktrees contain unrelated concurrent changes that must not be staged. |
-| Destructive gate | Deleting `dragain11` terminates nodes and auto-deletes FSx and attached DRAs. A separate explicit approval for that exact deletion is required after this warning; live deletion remains blocked until approval and verified exports. |
+| Git boundary | Public AlmaLinux branches are clean. DayOA native DRAGEN work is pushed to `origin/jem-dev` through annotated tag `10.0.84`. DYEC operational work is pushed to `origin/jem-dev` through annotated tag `10.0.147`; `jem-dev` subsequently advanced to `10.0.148`. Mixed-queue work remains isolated on `codex/dragen-hybrid`. |
+| Destructive gate | User explicitly approved deletion of `dragain11` in `us-west-2` after successful exports. Both required exports are now independently verified, so live deletion is authorized after the mixed-queue PR is published and the final empty-queue/dry-run checks pass. |
 
 ## Control Ledger
 
 | ID | Requirement | Status | Evidence / Next Gate |
 |---|---|---|---|
-| CUR-HG003-001 | Finish HG003 native SNV concordance and verify aggregate metrics. | IN_PROGRESS | Native stage succeeded; RTG concordance is running serially. Require controller exit `0`, empty queue, `giab_concordance_mqc.tsv`, and reported HG003 F-scores. |
-| GIT-DAYOA-001 | Commit and push all DRAGEN-related DayOA changes without unrelated dirty work. | PENDING | Audit after controller completion. Release worktree is clean except user-owned `AGENTS.md`; original checkout has broad unrelated changes. |
-| GIT-DYEC-001 | Commit and push all DRAGEN-related DYEC code, config, tests, manifests, and ledgers without unrelated dirty work. | PENDING | Audit original dirty checkout against released `10.0.145`; preserve unrelated AWS reports and concurrent changes. |
+| CUR-HG003-001 | Finish HG003 native SNV concordance and verify aggregate metrics. | SUCCESS | Controller completed, queue drained, `giab_concordance_mqc.tsv` exists, primary GIAB HC `All` F-score is `0.999079967406051`, and SNP transition/transversion F-scores are `0.9992405988623179` / `0.9989431693637525`. |
+| GIT-DAYOA-001 | Commit and push all DRAGEN-related DayOA changes without unrelated dirty work. | SUCCESS | Native DRAGEN/memlock release `d831c5b` is included in `origin/jem-dev` commit `90adbd5`, annotated tag `10.0.84`. |
+| GIT-DYEC-001 | Commit and push all DRAGEN-related DYEC code, config, tests, manifests, and ledgers without unrelated dirty work. | IN_PROGRESS | Operational releases are pushed through `10.0.147`; mixed `dragen`/CPU partition support is isolated on `codex/dragen-hybrid` for PR and merge into current `jem-dev`. |
 | AMI-PRIVATE-001 | Keep private child AMI and snapshot LSMC-account-only. | SUCCESS | Image and snapshot have no public or cross-account permissions. |
-| EXPORT-OLD-001 | Export every required completed `dragain11` analysis root to a new empty S3 destination and verify receipts. | PENDING | Export HG002 and completed HG003 roots at minimum. No FSx deletion before `SUCCEEDED`, detached DRA, and S3 inventory checks. |
-| DELETE-OLD-001 | Delete `dragain11` only after export verification and second approval. | BLOCKED | Awaiting separate explicit deletion approval. |
-| MIXED-TEMPLATE-001 | Add a private EFA-disabled mixed template with `dragen`, `i192`, and `i192nvme` partitions. | PENDING | Native DRAGEN requires `dragen`; hybrid and broad DayOA rules require standard CPU/NVMe partitions. Use existing private AlmaLinux child and existing partition definitions, no fallback aliases. |
+| EXPORT-OLD-001 | Export every required completed `dragain11` analysis root to a new empty S3 destination and verify receipts. | SUCCESS | HG002 task `task-044d48709a8970750` and HG003 task `task-0036549a5bab2a9f5` both `SUCCEEDED`; both temporary DRAs detached with lifecycle `DELETED`; both receipts record `delete_data_in_file_system: false`. S3 inventories: HG002 `1924` objects / `14239363777` bytes; HG003 `2481` objects / `78461853721` bytes. |
+| DELETE-OLD-001 | Delete `dragain11` only after export verification and second approval. | READY | Exact second approval received and both export gates passed. Require final empty queue and `dyec delete --dry-run` before live deletion. |
+| MIXED-TEMPLATE-001 | Add a private EFA-disabled mixed template with `dragen`, `i192`, and `i192nvme` partitions. | IN_PROGRESS | Source and packaged templates now contain exact queues `dragen`, `i192`, and `i192nvme`; CPU bootstrap skips DRAGEN device validation while DRAGEN nodes remain fail-hard. Focused tests: `5 passed`; broader workflow/default/headnode/pricing tests: `162 passed`; Ruff, Bash syntax, YAML parse, and `git diff --check` passed. Awaiting PR/merge. |
 | CREATE-NEW-001 | Create replacement cluster in `us-west-2b` under the active `$250` cost center. | PENDING | Must pass preflight, render, spot-price, PCluster dry-run, private-image, secret, reference, and budget checks. |
 | MOUNT-ILMN-001 | Mount and verify the exact ILMN BCLConvert FASTQ prefix read-only. | PENDING | Use timeout at least 5400 seconds. |
 | MOUNT-ONT-001 | Mount and verify all six exact ONT Set3/Set4 flow-cell prefixes read-only. | PENDING | No partial/24-hour manifest paths; verify barcode FASTQ inventories against prior full-S3 evidence. |
