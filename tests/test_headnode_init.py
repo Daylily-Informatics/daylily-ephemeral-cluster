@@ -928,3 +928,9 @@ def test_rhel_dragen_post_install_removes_cromwell_and_requires_womtool() -> Non
         assert "dnf_install_with_rpmdb_repair" in script
         assert "RHEL rpm database failure detected during dnf install" in script
         assert "DB_RUNRECOVERY" in script
+        assert "configure_dragen_memlock_limits()" in script
+        assert 'limits_file="/etc/security/limits.d/99-edico.conf"' in script
+        assert "memlock   unlimited" in script
+        assert "configure_dragen_memlock_limits\nconfigure_kernel_and_shm" in script
+
+    assert source == packaged

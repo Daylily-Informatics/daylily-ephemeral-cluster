@@ -899,6 +899,18 @@ EOF
   df -h /dev/shm
 }
 
+configure_dragen_memlock_limits() {
+  local limits_file="/etc/security/limits.d/99-edico.conf"
+  local memlock_pattern='^\*[[:space:]]+-[[:space:]]+memlock[[:space:]]+'
+
+  if ! grep -Eq "${memlock_pattern}" "${limits_file}"; then
+    echo "ERROR: expected DRAGEN memlock entry is missing: ${limits_file}" >&2
+    exit 1
+  fi
+  sed -i -E "s|${memlock_pattern}.*|*      -    memlock   unlimited|" "${limits_file}"
+  grep -Eq '^\*[[:space:]]+-[[:space:]]+memlock[[:space:]]+unlimited$' "${limits_file}"
+}
+
 validate_dragen_host() {
   case "${node_type}" in
     HeadNode)
@@ -949,6 +961,7 @@ ensure_user daylily daylily /home/daylily
 allow_imds_for_user ubuntu
 install_runtime_profiles
 prepare_common_writable_dirs
+configure_dragen_memlock_limits
 configure_kernel_and_shm
 log_spot_price
 install_spot_lifecycle_hooks
