@@ -87,13 +87,20 @@ def test_allows_generic_almalinux_parallelcluster_range_and_artifacts(tmp_path: 
     assert "git_ranges=1 artifacts=2 commits=1 changed_paths=1" in result.stdout
 
 
-@pytest.mark.parametrize("mock_ami", ["ami-12345678", "ami-000000000000"])
-def test_allows_known_upstream_mock_ami_fixtures(tmp_path: Path, mock_ami: str) -> None:
+@pytest.mark.parametrize(
+    "fixture_text",
+    [
+        "Mock custom image fixture: ami-12345678",
+        "Mock custom image fixture: ami-000000000000",
+        "Official AlmaLinux image owner: 764336703387",
+    ],
+)
+def test_allows_known_public_image_fixtures(tmp_path: Path, fixture_text: str) -> None:
     repo, base = _init_repo(tmp_path)
     head = _commit(
         repo,
         "tests/almalinux8.txt",
-        f"Mock custom image fixture: {mock_ami}\n",
+        f"{fixture_text}\n",
         "-m",
         "Add generic custom image fixture",
     )
@@ -170,6 +177,24 @@ def test_does_not_scan_unchanged_preexisting_history_or_worktree(tmp_path: Path)
         "Add generic AlmaLinux support",
     )
     (repo / "untracked-private.txt").write_text("HG003\n", encoding="utf-8")
+
+    result = _run(repo, "--git-range", f"{base}..{head}")
+
+    assert result.returncode == 0, result.stderr
+
+
+def test_does_not_scan_unchanged_hunk_header_context(tmp_path: Path) -> None:
+    repo, base = _init_repo(
+        tmp_path,
+        base_content="PRIVATE_OWNER = 123456789012\nexisting = True\n",
+    )
+    (repo / "README.md").write_text(
+        "PRIVATE_OWNER = 123456789012\nexisting = True\nalmalinux8 = True\n",
+        encoding="utf-8",
+    )
+    _git(repo, "add", "README.md")
+    _git(repo, "commit", "-m", "Add generic AlmaLinux fixture")
+    head = _git(repo, "rev-parse", "HEAD")
 
     result = _run(repo, "--git-range", f"{base}..{head}")
 

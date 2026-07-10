@@ -1803,6 +1803,9 @@ def run_create_workflow(
     ]
     if dragen_inputs:
         from daylily_ec.aws.dragen_license import make_dragen_license_preflight_step
+        from daylily_ec.pcluster.backport import (
+            make_operational_backport_preflight_step,
+        )
 
         preflight_steps.insert(
             1,
@@ -1811,6 +1814,14 @@ def run_create_workflow(
                 iam_client=aws_ctx.client("iam"),
                 secret_arn=dragen_inputs.license_secret_arn,
                 policy_arn=dragen_inputs.license_policy_arn,
+            ),
+        )
+        preflight_steps.insert(
+            1,
+            make_operational_backport_preflight_step(
+                s3_client=aws_ctx.client("s3"),
+                ec2_client=aws_ctx.client("ec2"),
+                backport=dragen_inputs.backport,
             ),
         )
 

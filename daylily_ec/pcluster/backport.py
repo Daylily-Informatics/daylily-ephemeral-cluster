@@ -7,9 +7,12 @@ import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
 import yaml
+
+from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
 
 
 BACKPORT_SCHEMA_VERSION = "dyec.parallelcluster_backport.v1"
@@ -34,6 +37,7 @@ class OperationalBackport:
     cookbook_bundle_uri: str
     cookbook_bundle_sha256: str
     image_ami_id: str
+    image_parent_ami_id: str
     image_region: str
     image_qualification_id: str
 
@@ -122,6 +126,11 @@ def load_operational_backport(path: str | Path) -> OperationalBackport:
     ami_id = _required_string(image, "ami_id", "image.ami_id")
     if not _AMI_PATTERN.fullmatch(ami_id):
         raise ValueError(f"image.ami_id must be an explicit AMI id; got {ami_id!r}.")
+    parent_ami_id = _required_string(image, "parent_ami_id", "image.parent_ami_id")
+    if not _AMI_PATTERN.fullmatch(parent_ami_id):
+        raise ValueError(
+            f"image.parent_ami_id must be an explicit AMI id; got {parent_ami_id!r}."
+        )
     image_region = _required_string(image, "region", "image.region")
     if not _REGION_PATTERN.fullmatch(image_region):
         raise ValueError(f"image.region is invalid: {image_region!r}.")
@@ -149,9 +158,98 @@ def load_operational_backport(path: str | Path) -> OperationalBackport:
         cookbook_bundle_uri=cookbook_bundle_uri,
         cookbook_bundle_sha256=cookbook_bundle_sha256,
         image_ami_id=ami_id,
+        image_parent_ami_id=parent_ami_id,
         image_region=image_region,
         image_qualification_id=qualification_id,
     )
+
+
+def make_operational_backport_preflight_step(
+    *,
+    s3_client: Any,
+    ec2_client: Any,
+    backport: OperationalBackport,
+):
+    """Validate immutable cookbook metadata and qualified AMI tags without mutation."""
+
+    def step(report: PreflightReport) -> PreflightReport:
+        try:
+            parsed = urlparse(backport.cookbook_bundle_uri)
+            bucket = parsed.netloc
+            key = parsed.path.lstrip("/")
+            head = s3_client.head_object(Bucket=bucket, Key=key)
+            metadata = {
+                str(name).lower(): str(value).lower()
+                for name, value in (head.get("Metadata") or {}).items()
+            }
+            if metadata.get("sha256") != backport.cookbook_bundle_sha256:
+                raise ValueError(
+                    "Cookbook object sha256 metadata does not match the operational manifest."
+                )
+
+            images = ec2_client.describe_images(ImageIds=[backport.image_ami_id]).get(
+                "Images", []
+            )
+            if len(images) != 1:
+                raise ValueError("Qualified AMI did not resolve to exactly one image.")
+            image = images[0]
+            if image.get("State") != "available":
+                raise ValueError("Qualified AMI is not available.")
+            if image.get("Architecture") != "x86_64":
+                raise ValueError("Qualified AMI architecture must be x86_64.")
+            if str(image.get("OwnerId") or "") != report.account_id:
+                raise ValueError("Qualified AMI must be owned by the active AWS account.")
+
+            tags = {
+                str(tag.get("Key") or ""): str(tag.get("Value") or "")
+                for tag in image.get("Tags") or []
+            }
+            required_tags = {
+                "dayec:qualification-status": "passed",
+                "dayec:qualification-id": backport.image_qualification_id,
+                "dayec:source-parent-ami": backport.image_parent_ami_id,
+                "dayec:pcluster-cli-commit": backport.cli_commit,
+                "dayec:pcluster-cookbook-commit": backport.cookbook_commit,
+                "dayec:cookbook-sha256": backport.cookbook_bundle_sha256,
+            }
+            mismatches = {
+                key: {"expected": expected, "actual": tags.get(key)}
+                for key, expected in required_tags.items()
+                if tags.get(key) != expected
+            }
+            if mismatches:
+                raise ValueError(
+                    "Qualified AMI provenance tags do not match the operational manifest: "
+                    + ", ".join(sorted(mismatches))
+                )
+        except Exception as exc:
+            report.checks.append(
+                CheckResult(
+                    id="pcluster.backport_artifacts",
+                    status=CheckStatus.FAIL,
+                    details={"error": str(exc)},
+                    remediation=(
+                        "Publish the exact cookbook bundle with sha256 object metadata and "
+                        "qualify/tag the account-owned child AMI before cluster creation."
+                    ),
+                )
+            )
+            return report
+
+        report.checks.append(
+            CheckResult(
+                id="pcluster.backport_artifacts",
+                status=CheckStatus.PASS,
+                details={
+                    "cookbook_sha256_verified": True,
+                    "qualified_image_verified": True,
+                    "qualification_id": backport.image_qualification_id,
+                },
+            )
+        )
+        return report
+
+    return step
 
 
 def _required_mapping(parent: dict, key: str) -> dict:

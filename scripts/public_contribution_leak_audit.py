@@ -76,7 +76,10 @@ RULES: tuple[Rule, ...] = (
             re.IGNORECASE,
         ),
     ),
-    Rule("aws_account_identifier", re.compile(r"(?<!\d)\d{12}(?!\d)")),
+    Rule(
+        "aws_account_identifier",
+        re.compile(r"(?<!\d)(?!(?:0{12}|764336703387)(?!\d))\d{12}(?!\d)"),
+    ),
     Rule(
         "aws_arn",
         re.compile(r"\barn:(?:aws|aws-us-gov|aws-cn):[^\s'\"]+", re.IGNORECASE),
@@ -244,6 +247,18 @@ def _scan_text(text: str, *, source: str) -> list[Finding]:
     return findings
 
 
+def _changed_diff_text(diff: str) -> str:
+    """Return only added and deleted content, excluding Git diff metadata."""
+
+    changed_lines = []
+    for line in diff.splitlines():
+        if line.startswith(("+++", "---")):
+            continue
+        if line.startswith(("+", "-")):
+            changed_lines.append(line[1:])
+    return "\n".join(changed_lines)
+
+
 def _parse_changed_paths(data: bytes) -> list[str]:
     tokens = data.split(b"\0")
     if tokens and tokens[-1] == b"":
@@ -345,7 +360,10 @@ def _audit_git_range(
     if len(commits) != int(count_text):
         raise AuditError(f"git range {range_index} commit enumeration was incomplete")
 
-    findings = _scan_text(diff, source=f"git-range[{range_index}]:diff")
+    findings = _scan_text(
+        _changed_diff_text(diff),
+        source=f"git-range[{range_index}]:diff",
+    )
     for path_index, path in enumerate(paths, start=1):
         findings.extend(
             _scan_text(path, source=f"git-range[{range_index}]:changed-path[{path_index}]")

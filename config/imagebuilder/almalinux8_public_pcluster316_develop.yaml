@@ -1,0 +1,23 @@
+Region: us-west-2
+Image:
+  Name: almalinux8-pcluster-316-develop-20260710
+  RootVolume:
+    Size: 100
+Build:
+  ParentImage: ami-0546451fe895ddabd
+  InstanceType: r7i.2xlarge
+  SubnetId: subnet-007038832fae23321
+  SecurityGroupIds:
+  - sg-0844dfdda1ec5a305
+  UpdateOsPackages:
+    Enabled: false
+  Installation:
+    LustreClient:
+      Enabled: true
+  Imds:
+    ImdsSupport: v2.0
+DevSettings:
+  Cookbook:
+    ChefCookbook: s3://lsmc-dayoa-references-usw2/runtime_assets/pcluster_backports/almalinux8/develop/26b6f581cc00973496962593cb1469021d03d993/aws-parallelcluster-cookbook-3.16.0-979ac2f033240cafc2453b9967eb7fa00faed9b6.tgz
+  DisableKernelUpdate: true
+  TerminateInstanceOnFailure: true

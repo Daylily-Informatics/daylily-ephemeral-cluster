@@ -335,7 +335,7 @@ def render_dy_command(
         if token in STRIP_FLAGS:
             continue
         rendered.append(token)
-    rendered.extend(["-j", str(jobs), "-p", "-k", "-T", "0"])
+    rendered.extend(["-j", str(jobs), "-p", "-k", "-T", "1"])
     if dry_run:
         rendered.append("-n")
     if warmup:

@@ -53,7 +53,7 @@ from daylily_ec.tests_runner import (
 
 
 runner = CliRunner()
-DAYOA_BLESSED_TAG = "10.0.74"
+DAYOA_BLESSED_TAG = "10.0.79"
 
 
 def _run_mount_record(
@@ -238,7 +238,7 @@ def test_render_dy_command_normalizes_flags_and_warmup() -> None:
     assert " -j 150 " in f" {dry} "
     assert " -p " in f" {dry} "
     assert " -k " in f" {dry} "
-    assert " -T 0 " in f" {dry} "
+    assert " -T 1 " in f" {dry} "
     assert " -n " in f" {dry} "
     assert "--default-resources" not in dry
     assert " -n" not in f" {live} "
@@ -697,7 +697,7 @@ def test_command_catalog_cli_emits_json(monkeypatch: pytest.MonkeyPatch, tmp_pat
                 phase="dryrun",
                 analysis_id="ccv_dryrun_illumina_snv_alignstats",
                 session_name="ccv_dryrun_illumina_snv_alignstats",
-                dy_command="dy-r all -j 150 -p -k -T 0 -n",
+                dy_command="dy-r all -j 150 -p -k -T 1 -n",
                 workflow_argv=(),
                 export_destination_s3_uri="s3://bucket/root/",
             ),
@@ -745,7 +745,7 @@ def test_runner_payloads_and_small_helpers(tmp_path: Path, monkeypatch: pytest.M
         phase="dryrun",
         analysis_id="ccv_dryrun_illumina_snv_alignstats",
         session_name="ccv_dryrun_illumina_snv_alignstats",
-        dy_command="dy-r all -j 150 -p -k -T 0 -n",
+        dy_command="dy-r all -j 150 -p -k -T 1 -n",
         workflow_argv=("workflow", "launch", "--analysis-id", "ccv_dryrun_illumina_snv_alignstats"),
         export_destination_s3_uri=(
             "s3://bucket/root/ubuntu/ccv_dryrun_illumina_snv_alignstats/"
@@ -817,7 +817,7 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
         jobs=150,
         dry_run=False,
     )
-    assert compact == "dy-r target -j 150 -p -k -T 0"
+    assert compact == "dy-r target -j 150 -p -k -T 1"
     assert (
         render_dy_command(
             "dy-r target -j20",
@@ -825,7 +825,7 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
             dry_run=False,
             max_runtime_minutes=0,
         )
-        == "dy-r target -j 150 -p -k -T 0"
+        == "dy-r target -j 150 -p -k -T 1"
     )
     assert build_evidence_prefix(
         evidence_s3_uri="s3://bucket/root",

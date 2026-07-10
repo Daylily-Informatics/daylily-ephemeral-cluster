@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.78"
+DAYOA_BLESSED_TAG = "10.0.79"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -701,7 +701,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert 'dedupers=["dmd","na"]' in inflection_bjuice.dy_command
     assert 'snv_callers=["sentdhiomr"]' in inflection_bjuice.dy_command
     assert 'sv_callers=["sentdhiomr"]' in inflection_bjuice.dy_command
-    assert " -j 250 -p -k --rerun-triggers mtime -T 0" in inflection_bjuice.dy_command
+    assert " -j 250 -p -k --rerun-triggers mtime -T 1" in inflection_bjuice.dy_command
     assert inflection_bjuice.dryrun_dy_command.endswith(" -n")
 
     simple_test = catalog.get_command("simple-test")

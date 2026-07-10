@@ -23,7 +23,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.78"
+DAYOA_BLESSED_TAG = "10.0.79"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -676,7 +676,9 @@ def test_create_command_rejects_invalid_spot_pricing_options(
     assert message in result.output
 
 
-def test_create_command_rejects_invalid_cluster_type(monkeypatch) -> None:
+def test_create_command_requires_explicit_dragen_backport_manifest(
+    monkeypatch, caplog
+) -> None:
     _activate_dayec_runtime(monkeypatch)
 
     result = runner.invoke(
@@ -690,8 +692,8 @@ def test_create_command_rejects_invalid_cluster_type(monkeypatch) -> None:
         ],
     )
 
-    assert result.exit_code == 2
-    assert "--cluster-type must be one of" in result.output
+    assert result.exit_code == 1
+    assert "requires explicit config key 'pcluster_backport_manifest'" in caplog.text
 
 
 def test_create_command_rejects_retired_budget_project(monkeypatch) -> None:
