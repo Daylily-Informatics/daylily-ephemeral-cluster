@@ -1,6 +1,7 @@
 Region: ${REGSUB_REGION}
 Image:
   Os: almalinux8
+  CustomAmi: ${REGSUB_DRAGEN_PCLUSTER_AMI}
 HeadNode:
   InstanceType: ${REGSUB_HEADNODE_INSTANCE_TYPE}
   Image:

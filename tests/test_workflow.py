@@ -315,6 +315,15 @@ class TestAzClusterTemplateResolution:
 
         validate_dragen_cluster_contract(cluster_yaml, inputs)
 
+        missing_cluster_ami = rendered.replace(
+            f"  CustomAmi: {ami_id}\nHeadNode:",
+            "HeadNode:",
+            1,
+        )
+        cluster_yaml.write_text(missing_cluster_ami, encoding="utf-8")
+        with pytest.raises(ValueError, match="cluster-wide AMI"):
+            validate_dragen_cluster_contract(cluster_yaml, inputs)
+
         broken = rendered.replace("MaxCount: 1", "MaxCount: 2")
         cluster_yaml.write_text(broken, encoding="utf-8")
         with pytest.raises(ValueError, match="MinCount 0 and MaxCount 1"):

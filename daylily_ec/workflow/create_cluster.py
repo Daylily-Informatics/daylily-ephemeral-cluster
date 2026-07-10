@@ -796,8 +796,13 @@ def validate_dragen_cluster_contract(
     import yaml
 
     payload = yaml.safe_load(Path(cluster_yaml_path).read_text(encoding="utf-8")) or {}
-    if (payload.get("Image") or {}).get("Os") != "almalinux8":
+    image = payload.get("Image") or {}
+    if image.get("Os") != "almalinux8":
         raise ValueError("DRAGEN cluster Image.Os must be almalinux8.")
+    if str(image.get("CustomAmi") or "").strip() != inputs.backport.image_ami_id:
+        raise ValueError(
+            "DRAGEN cluster-wide AMI does not match the qualified manifest image."
+        )
 
     headnode = payload.get("HeadNode") or {}
     head_ami = ((headnode.get("Image") or {}).get("CustomAmi") or "").strip()
