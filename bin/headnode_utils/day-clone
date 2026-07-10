@@ -80,6 +80,23 @@ def ensure_directory(path: str) -> None:
     os.makedirs(path, exist_ok=True)
 
 
+def is_lock_initialized_workspace(path: str) -> bool:
+    """Return true only for a new workspace containing lock metadata and no analysis data."""
+    try:
+        entries = set(os.listdir(path))
+    except OSError:
+        return False
+    metadata_dir = os.path.join(path, ".dayoa_agent")
+    write_lock = os.path.join(metadata_dir, "write.lock")
+    return (
+        entries == {".dayoa_agent"}
+        and os.path.isdir(metadata_dir)
+        and not os.path.islink(metadata_dir)
+        and os.path.isdir(write_lock)
+        and not os.path.islink(write_lock)
+    )
+
+
 def safe_path_segment(value: str, *, field_name: str) -> str:
     text = str(value or "").strip()
     if not text:
@@ -289,7 +306,7 @@ def main(argv: List[str]) -> int:
     ensure_directory(user_root)
 
     destination_root = os.path.join(user_root, destination)
-    if os.path.exists(destination_root):
+    if os.path.exists(destination_root) and not is_lock_initialized_workspace(destination_root):
         print(
             f"Error: destination '{destination_root}' already exists.",
             file=sys.stderr,

@@ -129,6 +129,45 @@ def test_day_clone_short_destination_and_tag_clone_default_repository(monkeypatc
     ]
 
 
+def test_day_clone_accepts_new_lock_initialized_workspace(monkeypatch, tmp_path):
+    module = _load_day_clone()
+    global_config, available_repos, clone_root = _write_configs(tmp_path)
+    _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
+    _patch_cluster_name_source(module, monkeypatch, tmp_path)
+    workspace = clone_root / "dyec-515" / "analysis"
+    (workspace / ".dayoa_agent" / "write.lock").mkdir(parents=True)
+    clone_calls: list[list[str]] = []
+
+    def fake_run(cmd, check):
+        clone_calls.append(cmd)
+        assert check is True
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+
+    rc = module.main(["-d", "analysis", "-t", "2.0.44"])
+
+    assert rc == 0
+    assert clone_calls[0][-1] == str(workspace / "test-repo")
+
+
+def test_day_clone_rejects_lock_initialized_workspace_with_analysis_data(
+    monkeypatch, tmp_path, capsys
+):
+    module = _load_day_clone()
+    global_config, available_repos, clone_root = _write_configs(tmp_path)
+    _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
+    _patch_cluster_name_source(module, monkeypatch, tmp_path)
+    workspace = clone_root / "dyec-515" / "analysis"
+    (workspace / ".dayoa_agent" / "write.lock").mkdir(parents=True)
+    (workspace / "existing.txt").write_text("analysis data\n", encoding="utf-8")
+
+    rc = module.main(["-d", "analysis", "-t", "2.0.44"])
+
+    assert rc == 1
+    assert "already exists" in capsys.readouterr().err
+
+
 def test_day_clone_full_sha_clones_then_detaches(monkeypatch, tmp_path):
     module = _load_day_clone()
     global_config, available_repos, clone_root = _write_configs(tmp_path)
