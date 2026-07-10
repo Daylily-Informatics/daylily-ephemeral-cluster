@@ -1601,6 +1601,7 @@ def run_create_workflow(
     pass_on_warn: bool = False,
     debug: bool = False,
     non_interactive: bool = False,
+    disable_slurm_accounting: bool = False,
     create_slurm_accounting_db: bool = False,
     scan_slurm_accounting_db: bool = False,
     disable_budget_enforcement: bool = False,
@@ -1958,7 +1959,7 @@ def run_create_workflow(
         config_accounting_enabled_for_baseline = _resolve_nonprompt_bool_config(
             cfg,
             "slurm_accounting_enabled",
-            "false",
+            "true",
         )
     except ValueError as exc:
         logger.error("Slurm accounting config validation failed: %s", exc)
@@ -1969,11 +1970,26 @@ def run_create_workflow(
         _has_explicit_set_value(cfg, key)
         for key in ("public_subnet_id", "private_subnet_id", "iam_policy_arn")
     )
+    if disable_slurm_accounting and (
+        create_slurm_accounting_db
+        or scan_slurm_accounting_db
+        or config_accounting_create_requested
+    ):
+        logger.error("Slurm accounting was disabled while DB create/scan was requested.")
+        ui.fail(
+            "--disable-slurm-accounting cannot be combined with Slurm accounting "
+            "database create or scan requests."
+        )
+        return EXIT_VALIDATION_FAILURE
+
+    accounting_enabled_for_baseline = (
+        config_accounting_enabled_for_baseline and not disable_slurm_accounting
+    )
     needs_baseline_vpc = (
         scan_slurm_accounting_db
         or create_slurm_accounting_db
         or config_accounting_create_requested
-        or config_accounting_enabled_for_baseline
+        or accounting_enabled_for_baseline
     )
 
     # 3a. Baseline CFN stack
@@ -2138,12 +2154,14 @@ def run_create_workflow(
         config_accounting_enabled = _resolve_nonprompt_bool_config(
             cfg,
             "slurm_accounting_enabled",
-            "false",
+            "true",
         )
     except ValueError as exc:
         logger.error("Slurm accounting config validation failed: %s", exc)
         ui.fail(f"Slurm accounting config: {exc}")
         return EXIT_VALIDATION_FAILURE
+
+    accounting_enabled = config_accounting_enabled and not disable_slurm_accounting
 
     if scan_slurm_accounting_db and accounting_create_requested:
         logger.error("Slurm accounting scan was requested with create enabled.")
@@ -2212,7 +2230,7 @@ def run_create_workflow(
             ui.detail("Accounting secret", accounting_db.password_secret_arn)
             ui.detail("Accounting client SG", accounting_db.client_security_group_id)
 
-    elif accounting_create_requested or config_accounting_enabled:
+    elif accounting_create_requested or accounting_enabled:
         if not accounting_vpc_id:
             logger.error("Slurm accounting requires a resolved VPC id.")
             ui.fail("Slurm accounting requires a resolved VPC id.")

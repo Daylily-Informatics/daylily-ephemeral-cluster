@@ -87,6 +87,7 @@ Important options:
 - `--non-interactive`
 - `--budget-project <project>`: retired; cluster budgets are named by cluster name
 - `--disable-budget-enforcement`: render the cluster budget-enforcement tag as `skip`
+- `--disable-slurm-accounting`: explicitly opt out of the default Slurm accounting DB attachment
 - `--create-slurm-accounting-db`
 - `--scan-slurm-accounting-db`
 - `--slurm-accounting-stack-name <name>`
@@ -475,7 +476,7 @@ dyec slurm-accounting ensure --help
 dyec create --scan-slurm-accounting-db --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
 ```
 
-The helper manages external Slurm accounting database infrastructure when configured. On a running cluster, `sacct --version` may succeed while job-account queries fail if Slurm accounting storage is disabled. Treat that as an infrastructure/config state, not as a reason to restart Slurm or modify jobs.
+New clusters use Slurm accounting by default. The create workflow resolves an existing healthy DayEC accounting database and fails clearly if none is available; it does not create a database silently. Use `--create-slurm-accounting-db` to authorize creation, or `--disable-slurm-accounting` to explicitly opt out for that cluster. On a running cluster, `sacct --version` may succeed while job-account queries fail if Slurm accounting storage is disabled. Treat that as an infrastructure/config state, not as a reason to restart Slurm or modify jobs.
 
 ## Delete
 

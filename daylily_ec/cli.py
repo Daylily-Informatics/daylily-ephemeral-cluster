@@ -623,6 +623,11 @@ def create(
         "--disable-budget-enforcement",
         help="Skip cluster AWS Budget enforcement; sbatch cost-center validation remains required.",
     ),
+    disable_slurm_accounting: bool = typer.Option(
+        False,
+        "--disable-slurm-accounting",
+        help="Disable the default Slurm accounting database attachment for this cluster.",
+    ),
     budget_project: Optional[str] = typer.Option(
         None,
         "--budget-project",
@@ -688,6 +693,11 @@ def create(
         raise typer.BadParameter(
             "--scan-slurm-accounting-db cannot be combined with --create-slurm-accounting-db."
         )
+    if disable_slurm_accounting and (create_slurm_accounting_db or scan_slurm_accounting_db):
+        raise typer.BadParameter(
+            "--disable-slurm-accounting cannot be combined with "
+            "--create-slurm-accounting-db or --scan-slurm-accounting-db."
+        )
     if budget_project:
         raise typer.BadParameter(
             "--budget-project is retired; cluster budgets are named by cluster name."
@@ -717,6 +727,7 @@ def create(
         debug=debug,
         non_interactive=non_interactive,
         disable_budget_enforcement=disable_budget_enforcement,
+        disable_slurm_accounting=disable_slurm_accounting,
         budget_project=budget_project,
         create_slurm_accounting_db=create_slurm_accounting_db,
         scan_slurm_accounting_db=scan_slurm_accounting_db,

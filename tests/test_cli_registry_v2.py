@@ -592,6 +592,7 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "debug": True,
         "non_interactive": True,
         "disable_budget_enforcement": True,
+        "disable_slurm_accounting": False,
         "budget_project": None,
         "create_slurm_accounting_db": True,
         "scan_slurm_accounting_db": False,
@@ -600,6 +601,40 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "spot_cost_limit_pct": 1.70,
         "write_spot_pricing_warn_threshold": 8.0,
     }
+
+
+def test_create_command_passes_disable_slurm_accounting(monkeypatch, tmp_path) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+
+    def fake_run_create_workflow(region_az: str, **kwargs) -> int:
+        calls["region_az"] = region_az
+        calls["kwargs"] = kwargs
+        return 0
+
+    monkeypatch.setattr(create_module, "run_create_workflow", fake_run_create_workflow)
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            "--config",
+            str(config_path),
+            "--disable-slurm-accounting",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert calls["region_az"] == "us-west-2d"
+    assert calls["kwargs"]["disable_slurm_accounting"] is True
+    assert calls["kwargs"]["create_slurm_accounting_db"] is False
+    assert calls["kwargs"]["scan_slurm_accounting_db"] is False
 
 
 def test_create_command_defaults_region_az_to_us_west_2d(monkeypatch, tmp_path) -> None:
@@ -769,6 +804,31 @@ def test_create_command_rejects_scan_and_create_slurm_accounting_flags(
 
     assert result.exit_code == 2
     assert "--scan-slurm-accounting-db cannot be combined" in result.stderr
+
+
+@pytest.mark.parametrize(
+    "accounting_flag",
+    ["--scan-slurm-accounting-db", "--create-slurm-accounting-db"],
+)
+def test_create_command_rejects_disable_with_slurm_accounting_request(
+    monkeypatch,
+    accounting_flag: str,
+) -> None:
+    _activate_dayec_runtime(monkeypatch)
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            "--disable-slurm-accounting",
+            accounting_flag,
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert "--disable-slurm-accounting cannot be combined" in result.stderr
 
 
 def test_slurm_accounting_ensure_reports_resolved_db(monkeypatch) -> None:

@@ -27,7 +27,7 @@ ephemeral_cluster:
     heartbeat_schedule: [PROMPTUSER, "rate(60 minutes)", ""]
     heartbeat_scheduler_role_arn: [PROMPTUSER, "", ""]
     spot_instance_allocation_strategy: [PROMPTUSER, "price-capacity-optimized", ""]
-    slurm_accounting_enabled: [PROMPTUSER, "false", ""]
+    slurm_accounting_enabled: [PROMPTUSER, "true", ""]
     slurm_accounting_create_db: [PROMPTUSER, "false", ""]
     slurm_accounting_stack_name: [PROMPTUSER, "", ""]
     slurm_accounting_database_name: [PROMPTUSER, "dayec_slurm_acct", ""]
@@ -60,7 +60,7 @@ ephemeral_cluster:
     auto_delete_fsx: "Delete"
     heartbeat_schedule: "rate(60 minutes)"
     spot_instance_allocation_strategy: "price-capacity-optimized"
-    slurm_accounting_enabled: "false"
+    slurm_accounting_enabled: "true"
     slurm_accounting_create_db: "false"
     slurm_accounting_database_name: "dayec_slurm_acct"
     slurm_accounting_db_username: "slurm_acct"

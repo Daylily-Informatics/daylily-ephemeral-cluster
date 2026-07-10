@@ -1426,6 +1426,89 @@ class TestRunCreateWorkflow:
         assert ("Accounting URI", "10.0.1.39:3306") in records["details"]
         assert "Enter selection number" in records["prompt_labels"]
 
+    def test_slurm_accounting_enabled_resolves_existing_db_by_default(
+        self, tmp_path, monkeypatch
+    ):
+        calls = []
+
+        def fake_ensure_slurm_accounting_db(_aws_ctx, **kwargs):
+            calls.append(kwargs)
+            return SlurmAccountingDb(
+                stack_name="dayec-sacct-db",
+                status="CREATE_COMPLETE",
+                uri="10.0.1.39:3306",
+                private_ip="10.0.1.39",
+                database_name="dayec_slurm_acct",
+                username="slurm_acct",
+                password_secret_arn=(
+                    "arn:aws:secretsmanager:us-west-2:123456789012:secret:sacct"
+                ),
+                client_security_group_id="sg-client",
+                instance_id="i-acct",
+            )
+
+        monkeypatch.setattr(
+            aws_slurm_accounting,
+            "ensure_slurm_accounting_db",
+            fake_ensure_slurm_accounting_db,
+        )
+
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            config_overrides={
+                "slurm_accounting_enabled": ["USESETVALUE", "", "true"],
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert calls
+        assert calls[0]["create_if_missing"] is False
+        assert records["next_run_values"]["slurm_accounting_enabled"] == "true"
+        assert ("Accounting stack", "dayec-sacct-db") in records["details"]
+
+    def test_disable_slurm_accounting_overrides_enabled_config(self, tmp_path, monkeypatch):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            config_overrides={
+                "slurm_accounting_enabled": ["USESETVALUE", "", "true"],
+            },
+            run_kwargs={"disable_slurm_accounting": True},
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert records["next_run_values"]["slurm_accounting_enabled"] == "false"
+        assert not any(key == "Accounting stack" for key, _value in records["details"])
+
+    def test_disable_slurm_accounting_rejects_config_create_request(
+        self, tmp_path, monkeypatch
+    ):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            config_overrides={
+                "slurm_accounting_enabled": ["USESETVALUE", "", "true"],
+                "slurm_accounting_create_db": ["USESETVALUE", "", "true"],
+            },
+            run_kwargs={"disable_slurm_accounting": True},
+        )
+
+        assert records["rc"] == EXIT_VALIDATION_FAILURE
+        assert any(
+            "--disable-slurm-accounting cannot be combined" in failure
+            for failure in records["failures"]
+        )
+
     def test_scan_slurm_accounting_without_candidates_warns_and_continues(
         self, tmp_path, monkeypatch
     ):
@@ -2324,6 +2407,8 @@ def _build_workflow_config(
         "heartbeat_email": ["PROMPTUSER", "johnm@lsmc.com", ""],
         "heartbeat_schedule": ["PROMPTUSER", "rate(60 minutes)", ""],
         "heartbeat_scheduler_role_arn": ["PROMPTUSER", "", ""],
+        "slurm_accounting_enabled": ["USESETVALUE", "", "false"],
+        "slurm_accounting_create_db": ["USESETVALUE", "", "false"],
     }
     if config_overrides:
         config.update(config_overrides)
