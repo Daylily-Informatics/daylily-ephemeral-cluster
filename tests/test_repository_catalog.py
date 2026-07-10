@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.77"
+DAYOA_BLESSED_TAG = "10.0.78"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -37,6 +37,7 @@ OLD_PACKAGED_CATALOG_LINK = (
 UNVALIDATED_COMMAND_IDS = {
     "simple-test",
     "illumina_run_qc_bclconvert",
+    "all_metagenomic_pipelines",
     "ultima_snv_alignstats_kitchensink",
     "ont_snv_alignstats_kitchensink",
     "hybrid_ilmn_ont_snv_kitchensink",
@@ -348,6 +349,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "simple-test",
         "illumina_snv_alignstats",
         "illumina_snv_alignstats_relatedness_vep_multiqc",
+        "all_metagenomic_pipelines",
         "illumina_hg002_kitchensink_multiqc",
         "ultima_snv_alignstats",
         "ultima_snv_alignstats_kitchensink",
@@ -575,6 +577,21 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "results/day/hg38/reports/dayoa_evidence_manifest.json" in illumina_kitchensink.dy_command
     assert "produce_global_contam_check" not in illumina_kitchensink.dy_command
     assert "contam_identity" not in illumina_kitchensink.dy_command
+
+    metagenomics = catalog.get_command("all_metagenomic_pipelines")
+    assert metagenomics.type == "dev"
+    assert metagenomics.targets == ["produce_metagenomics"]
+    assert metagenomics.sample_manifest_template == (
+        "examples/staging/ilmn_hg003_5x_solo/analysis_samples_manifest.tsv"
+    )
+    assert metagenomics.genome == "hg38"
+    assert metagenomics.jobs == 100
+    assert metagenomics.aligners == ["sent"]
+    assert metagenomics.dedupers == ["dmd"]
+    assert metagenomics.snv_callers == []
+    assert metagenomics.sv_callers == []
+    assert "produce_metagenomics" in metagenomics.dy_command
+    assert 'multiqc_qc={"enable_tools":["metagenomics"]}' in metagenomics.dy_command
 
     ultima_kitchensink = catalog.get_command("ultima_snv_alignstats_kitchensink")
     assert ultima_kitchensink.validation_runs == []

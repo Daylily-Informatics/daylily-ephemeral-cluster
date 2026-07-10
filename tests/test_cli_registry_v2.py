@@ -23,7 +23,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.77"
+DAYOA_BLESSED_TAG = "10.0.78"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -596,8 +596,8 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "create_slurm_accounting_db": True,
         "scan_slurm_accounting_db": False,
         "slurm_accounting_stack_name": "dayec-costacct-20260705T000000Z",
-        "global_spot_max_cost": 9.0,
-        "spot_cost_limit_pct": 1.55,
+        "global_spot_max_cost": 9.99,
+        "spot_cost_limit_pct": 1.70,
         "write_spot_pricing_warn_threshold": 8.0,
     }
 
@@ -635,8 +635,8 @@ def test_create_command_defaults_region_az_to_us_west_2d(monkeypatch, tmp_path) 
     assert calls["kwargs"]["config_path"] == str(config_path)
     assert calls["kwargs"]["cluster_type"] == "intel"
     assert calls["kwargs"]["non_interactive"] is True
-    assert calls["kwargs"]["global_spot_max_cost"] == 9.0
-    assert calls["kwargs"]["spot_cost_limit_pct"] == 1.55
+    assert calls["kwargs"]["global_spot_max_cost"] == 9.99
+    assert calls["kwargs"]["spot_cost_limit_pct"] == 1.70
     assert calls["kwargs"]["write_spot_pricing_warn_threshold"] == 8.0
 
 
@@ -645,7 +645,7 @@ def test_create_command_defaults_region_az_to_us_west_2d(monkeypatch, tmp_path) 
     [
         ("--global-spot-max-cost", "12.01", "--global-spot-max-cost"),
         ("--spot-cost-limit-pct", "0.99", "--spot-cost-limit-pct"),
-        ("--spot-cost-limit-pct", "2.01", "--spot-cost-limit-pct"),
+        ("--spot-cost-limit-pct", "2.21", "--spot-cost-limit-pct"),
         (
             "--write-spot-pricing-warn-threshold",
             "0",

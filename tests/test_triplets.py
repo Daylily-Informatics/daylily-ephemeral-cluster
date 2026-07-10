@@ -260,10 +260,7 @@ class TestEnsureRequiredKeys:
             assert key in cfg.ephemeral_cluster.config
             t = cfg.ephemeral_cluster.config[key]
             assert t.action == "PROMPTUSER"
-            expected_default = (
-                "ami-09fd9c3c129952e5f" if key == "dragen_pcluster_ami" else ""
-            )
-            assert t.default_value == expected_default
+            assert t.default_value == ""
             assert t.set_value == ""
 
     def test_no_change_when_all_present(self):
@@ -330,9 +327,9 @@ class TestLoadConfig:
         assert ec.config["budget_amount"].default_value == "200"
         assert ec.config["allowed_budget_users"].default_value == "ubuntu"
         assert ec.config["global_allowed_budget_users"].default_value == "ubuntu"
-        assert ec.config["dragen_pcluster_ami"].default_value == (
-            "ami-09fd9c3c129952e5f"
-        )
+        assert ec.config["pcluster_backport_manifest"].default_value == ""
+        assert ec.config["dragen_license_secret_arn"].default_value == ""
+        assert ec.config["dragen_license_policy_arn"].default_value == ""
         assert ec.template_defaults["fsx_fs_size"] == "7200"
         assert ec.template_defaults["max_count_192I_HUGENVME"] == "1"
         assert ec.config["max_count_384I"].default_value == "1"

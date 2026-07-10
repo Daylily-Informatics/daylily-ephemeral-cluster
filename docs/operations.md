@@ -235,11 +235,11 @@ not remove the `--comment <cost-center>` requirement or cost-center validation.
 min(reference_median_spot_price * spot_cost_limit_pct, global_spot_max_cost)
 ```
 
-The default flags are `--global-spot-max-cost 7.50`,
-`--spot-cost-limit-pct 1.2`, and
+The default flags are `--global-spot-max-cost 9.99`,
+`--spot-cost-limit-pct 1.7`, and
 `--write-spot-pricing-warn-threshold 6.00`. Values outside the hard limits fail
-before cluster submission. i384 resources use matching i192 reference medians;
-missing reference prices fail hard.
+before cluster submission. Every resource uses its own median reference price,
+including i384 resources.
 
 Each create writes `config/<cluster>_spot_price_summary_<run_id>.json` and the
 state record stores the summary path plus partition rows for Ursa cluster-card

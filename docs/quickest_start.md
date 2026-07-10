@@ -79,8 +79,8 @@ dyec create \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
   --config "$DAY_EX_CFG" \
-  --global-spot-max-cost 7.50 \
-  --spot-cost-limit-pct 1.2 \
+  --global-spot-max-cost 9.99 \
+  --spot-cost-limit-pct 1.7 \
   --write-spot-pricing-warn-threshold 6.00
 ```
 

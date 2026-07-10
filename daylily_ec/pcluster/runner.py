@@ -51,12 +51,13 @@ def _run_pcluster(
     *,
     profile: Optional[str] = None,
     extra_env: Optional[Dict[str, str]] = None,
+    executable: str = "pcluster",
 ) -> PclusterResult:
     """Run ``pcluster`` with *args* and return a :class:`PclusterResult`.
 
     *profile* is injected as ``AWS_PROFILE`` in the subprocess env.
     """
-    cmd = ["pcluster", *args]
+    cmd = [executable, *args]
     env = {**os.environ}
     if profile:
         env["AWS_PROFILE"] = profile
@@ -107,6 +108,7 @@ def dry_run_create(
     region: str,
     *,
     profile: Optional[str] = None,
+    executable: str = "pcluster",
 ) -> PclusterResult:
     """Execute ``pcluster create-cluster --dryrun true`` and evaluate success.
 
@@ -126,6 +128,7 @@ def dry_run_create(
             region,
         ],
         profile=profile,
+        executable=executable,
     )
     result.success = result.message == DRY_RUN_SUCCESS_MESSAGE
 
@@ -152,6 +155,7 @@ def create_cluster(
     region: str,
     *,
     profile: Optional[str] = None,
+    executable: str = "pcluster",
 ) -> PclusterResult:
     """Execute the real ``pcluster create-cluster`` invocation.
 
@@ -169,6 +173,7 @@ def create_cluster(
             region,
         ],
         profile=profile,
+        executable=executable,
     )
     result.success = result.returncode == 0
 
@@ -190,6 +195,7 @@ def delete_cluster(
     region: str,
     *,
     profile: Optional[str] = None,
+    executable: str = "pcluster",
 ) -> PclusterResult:
     """Execute ``pcluster delete-cluster`` for *cluster_name*."""
     result = _run_pcluster(
@@ -201,6 +207,7 @@ def delete_cluster(
             region,
         ],
         profile=profile,
+        executable=executable,
     )
     result.success = result.returncode == 0
 

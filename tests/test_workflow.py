@@ -56,11 +56,13 @@ from daylily_ec.workflow.create_cluster import (
     _resolve_config_value,
     _resolve_post_create_inputs,
     resolve_cluster_template_yaml,
+    resolve_dragen_create_inputs,
     configure_headnode,
     make_repository_catalog_preflight_step,
     normalize_create_cluster_type,
     run_preflight,
     validate_startup_dra_contract,
+    validate_dragen_cluster_contract,
     _validate_cluster_name,
 )
 
@@ -184,10 +186,11 @@ class TestAzClusterTemplateResolution:
     def test_normalizes_known_cluster_types(self) -> None:
         assert normalize_create_cluster_type("intel") == "intel"
         assert normalize_create_cluster_type("RHEL") == "rhel"
+        assert normalize_create_cluster_type("DRAGEN") == "dragen"
 
     def test_rejects_unknown_cluster_type(self) -> None:
         with pytest.raises(ValueError, match="--cluster-type"):
-            normalize_create_cluster_type("dragen")
+            normalize_create_cluster_type("gpu")
 
     def test_az_cluster_template_relative_path_uses_region_and_region_az(self) -> None:
         assert az_cluster_template_relative_path("intel", "us-west-2d") == Path(
@@ -196,6 +199,126 @@ class TestAzClusterTemplateResolution:
         assert az_cluster_template_relative_path("rhel", "us-west-2c") == Path(
             "config/day_cluster/rhel/us-west-2/us-west-2c/prod_cluster_rhel_us-west-2c.yaml"
         )
+        assert az_cluster_template_relative_path("dragen", "us-west-2b") == Path(
+            "config/day_cluster/dragen/us-west-2/us-west-2b/"
+            "prod_cluster_dragen_us-west-2b.yaml"
+        )
+
+    def test_dragen_rejects_explicit_template_override(self, tmp_path: Path) -> None:
+        explicit = tmp_path / "custom.yaml"
+        explicit.write_text("Region: us-west-2\n", encoding="utf-8")
+        cfg = ConfigFile()
+        cfg.ephemeral_cluster.config["cluster_template_yaml"] = Triplet(
+            action="USESETVALUE",
+            default_value="",
+            set_value=str(explicit),
+        )
+
+        with pytest.raises(ValueError, match="canonical AZ-scoped template"):
+            resolve_cluster_template_yaml(
+                cfg,
+                region_az="us-west-2b",
+                cluster_type="dragen",
+                resource_path_fn=lambda rel: Path(rel),
+            )
+
+    def test_dragen_requires_explicit_private_inputs(self) -> None:
+        with pytest.raises(ValueError, match="pcluster_backport_manifest"):
+            resolve_dragen_create_inputs(
+                ConfigFile(),
+                cluster_type="dragen",
+                region_az="us-west-2b",
+            )
+
+    @patch("daylily_ec.pcluster.backport.load_operational_backport")
+    def test_dragen_resolves_qualified_manifest_and_secret_arns(self, load_backport) -> None:
+        load_backport.return_value = SimpleNamespace(image_region="us-west-2")
+        cfg = ConfigFile()
+        for key, value in {
+            "pcluster_backport_manifest": "/private/backport.yaml",
+            "dragen_license_secret_arn": (
+                "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/dragen"
+            ),
+            "dragen_license_policy_arn": (
+                "arn:aws:iam::123456789012:policy/dayec-dragen-license-read"
+            ),
+        }.items():
+            cfg.ephemeral_cluster.config[key] = Triplet(
+                action="USESETVALUE",
+                default_value="",
+                set_value=value,
+            )
+
+        inputs = resolve_dragen_create_inputs(
+            cfg,
+            cluster_type="dragen",
+            region_az="us-west-2b",
+        )
+
+        assert inputs is not None
+        assert inputs.backport is load_backport.return_value
+        assert inputs.license_secret_arn.endswith(":secret:dayec/dragen")
+
+    def test_dragen_template_enforces_single_spot_f2_contract(self, tmp_path: Path) -> None:
+        template = Path(
+            "config/day_cluster/dragen/us-west-2/us-west-2b/"
+            "prod_cluster_dragen_us-west-2b.yaml"
+        ).read_text(encoding="utf-8")
+        secret_arn = (
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/dragen"
+        )
+        policy_arn = "arn:aws:iam::123456789012:policy/dayec-dragen-license-read"
+        cookbook_uri = "s3://private-assets/backports/cookbook.tgz"
+        ami_id = "ami-0123456789abcdef0"
+        substitutions = {key: "value" for key in renderer.ALL_SUBSTITUTION_KEYS}
+        substitutions.update(
+            {
+                "REGSUB_REGION": "us-west-2",
+                "REGSUB_PUB_SUBNET": "subnet-public",
+                "REGSUB_PRIVATE_SUBNET": "subnet-private",
+                "REGSUB_CLUSTER_NAME": "dragen-test",
+                "REGSUB_HEADNODE_INSTANCE_TYPE": "r7i.2xlarge",
+                "REGSUB_DRAGEN_PCLUSTER_AMI": ami_id,
+                "REGSUB_DRAGEN_LICENSE_SECRET_ARN": secret_arn,
+                "REGSUB_DRAGEN_LICENSE_POLICY_ARN": policy_arn,
+                "REGSUB_PCLUSTER_COOKBOOK_URI": cookbook_uri,
+                "REGSUB_S3_BUCKET_INIT": "s3://private-assets/boot",
+                "REGSUB_S3_IAM_POLICY": (
+                    "arn:aws:iam::123456789012:policy/dayec-cluster"
+                ),
+                "REGSUB_S3_REFERENCE_BUCKET": "references",
+                "REGSUB_S3_CONTROL_DATA_BUCKET": "controls",
+                "REGSUB_S3_STAGE_BUCKET": "stage",
+                "REGSUB_S3_EXPORT_BUCKET": "export",
+                "REGSUB_S3_REFERENCE_URI": "s3://references",
+                "REGSUB_FSX_SIZE": "4800",
+                "REGSUB_DETAILED_MONITORING": "false",
+                "REGSUB_DELETE_LOCAL_ROOT": "true",
+                "REGSUB_SAVE_FSX": "Delete",
+                "REGSUB_ENFORCE_BUDGET": '"true"',
+                "REGSUB_SPOT_PRICE_WARN_THRESHOLD": '"8.00"',
+                "REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING": "",
+                "REGSUB_SLURM_ACCOUNTING_DATABASE": "",
+            }
+        )
+        rendered = renderer.render_template(template, substitutions)
+        cluster_yaml = tmp_path / "cluster.yaml"
+        cluster_yaml.write_text(rendered, encoding="utf-8")
+        inputs = create_cluster_module.DragenCreateInputs(
+            backport=SimpleNamespace(
+                image_ami_id=ami_id,
+                cookbook_bundle_uri=cookbook_uri,
+            ),
+            license_secret_arn=secret_arn,
+            license_policy_arn=policy_arn,
+        )
+
+        validate_dragen_cluster_contract(cluster_yaml, inputs)
+
+        broken = rendered.replace("MaxCount: 1", "MaxCount: 2")
+        cluster_yaml.write_text(broken, encoding="utf-8")
+        with pytest.raises(ValueError, match="MinCount 0 and MaxCount 1"):
+            validate_dragen_cluster_contract(cluster_yaml, inputs)
 
     def test_resolves_az_template_when_config_has_no_explicit_template(
         self,
@@ -1005,7 +1128,6 @@ class TestRunCreateWorkflow:
             "Heartbeat email",
             "Heartbeat schedule",
             "Heartbeat scheduler role ARN (leave blank to skip)",
-            "DRAGEN PCluster AMI (leave blank to skip)",
         ]
 
         dry_run_phase_index = records["events"].index(("phase", "DRY-RUN VALIDATION"))

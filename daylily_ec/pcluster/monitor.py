@@ -66,6 +66,7 @@ def get_cluster_status(
     region: str,
     *,
     profile: Optional[str] = None,
+    executable: str = "pcluster",
 ) -> Optional[str]:
     """Return the current ``clusterStatus`` for *cluster_name*.
 
@@ -73,7 +74,7 @@ def get_cluster_status(
     permissions error, etc.).
     """
     cmd = [
-        "pcluster",
+        executable,
         "describe-cluster",
         "-n",
         cluster_name,
@@ -111,13 +112,14 @@ def get_cluster_details(
     region: str,
     *,
     profile: Optional[str] = None,
+    executable: str = "pcluster",
 ) -> Dict[str, Any]:
     """Return the full ``pcluster describe-cluster`` JSON for *cluster_name*.
 
     Returns an empty dict on any error.
     """
     cmd = [
-        "pcluster",
+        executable,
         "describe-cluster",
         "-n",
         cluster_name,
@@ -158,6 +160,7 @@ def wait_for_creation(
     region: str,
     *,
     profile: Optional[str] = None,
+    executable: str = "pcluster",
     poll_interval: float = DEFAULT_POLL_INTERVAL,
     max_failures: int = MAX_CONSECUTIVE_FAILURES,
     _sleep_fn: Any = None,
@@ -179,18 +182,20 @@ def wait_for_creation(
     consecutive_failures = 0
 
     while True:
-        status = get_cluster_status(cluster_name, region, profile=profile)
+        status_kwargs: Dict[str, Any] = {"profile": profile}
+        if executable != "pcluster":
+            status_kwargs["executable"] = executable
+        status = get_cluster_status(cluster_name, region, **status_kwargs)
 
         if status == STATUS_COMPLETE:
             from daylily_ec import ui  # local import to avoid circular deps
 
             ui.clear_progress()
             # Fetch head node details for the success banner.
-            details = get_cluster_details(
-                cluster_name,
-                region,
-                profile=profile,
-            )
+            details_kwargs: Dict[str, Any] = {"profile": profile}
+            if executable != "pcluster":
+                details_kwargs["executable"] = executable
+            details = get_cluster_details(cluster_name, region, **details_kwargs)
             head_node = details.get("headNode", {})
             return MonitorResult(
                 final_status=STATUS_COMPLETE,
@@ -246,6 +251,7 @@ def wait_for_deletion(
     region: str,
     *,
     profile: Optional[str] = None,
+    executable: str = "pcluster",
     poll_interval: float = DEFAULT_POLL_INTERVAL,
     _sleep_fn: Any = None,
 ) -> MonitorResult:
@@ -254,7 +260,10 @@ def wait_for_deletion(
     start = time.time()
 
     while True:
-        status = get_cluster_status(cluster_name, region, profile=profile)
+        status_kwargs: Dict[str, Any] = {"profile": profile}
+        if executable != "pcluster":
+            status_kwargs["executable"] = executable
+        status = get_cluster_status(cluster_name, region, **status_kwargs)
 
         if status is None:
             from daylily_ec import ui  # local import to avoid circular deps

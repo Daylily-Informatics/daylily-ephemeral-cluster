@@ -578,7 +578,10 @@ def create(
     cluster_type: str = typer.Option(
         DEFAULT_CREATE_CLUSTER_TYPE,
         "--cluster-type",
-        help="Cluster template family to autoselect when config does not set cluster_template_yaml. One of: intel, rhel.",
+        help=(
+            "Cluster template family to autoselect when config does not set "
+            "cluster_template_yaml. One of: dragen, intel, rhel."
+        ),
     ),
     profile: Optional[str] = typer.Option(
         None,

@@ -32,6 +32,7 @@ DAYOA_RUNTIME_SPOT_ACTIONS = (
     "ec2:DescribeSpotPriceHistory",
 )
 BOOT_CONFIG_FILES = (
+    "config/day_cluster/post_install_almalinux8_dragen.sh",
     "config/day_cluster/post_install_ubuntu_combined.sh",
     "config/day_cluster/post_install_rhel8_dragen.sh",
     "config/day_cluster/sbatch",
@@ -205,7 +206,7 @@ def test_packaged_az_scoped_cluster_templates_match_source_templates() -> None:
     source_paths = sorted(
         (REPO_ROOT / "config/day_cluster").glob("*/*/*/prod_cluster_*.yaml")
     )
-    assert len(source_paths) == 19
+    assert len(source_paths) == 20
     for source_path in source_paths:
         relative_path = source_path.relative_to(REPO_ROOT)
         source = source_path.read_text(encoding="utf-8")
@@ -276,6 +277,19 @@ def test_packaged_boot_config_matches_source_and_disables_exclusivity() -> None:
     sbatch = (REPO_ROOT / "config/day_cluster/sbatch").read_text(encoding="utf-8")
     assert "DYEC sbatch stripped exclusive allocation request" in sbatch
     assert "--exclusive|--exclusive=*" in sbatch
+
+
+def test_almalinux_dragen_wrapper_hydrates_secret_without_logging_contents() -> None:
+    script = (
+        REPO_ROOT / "config/day_cluster/post_install_almalinux8_dragen.sh"
+    ).read_text(encoding="utf-8")
+
+    assert 'license_secret_arn="${5:?license secret ARN argument is required}"' in script
+    assert "aws secretsmanager get-secret-value" in script
+    assert 'credential_path="${credential_dir}/lic_creds.txt"' in script
+    assert 'chmod 0600 "${credential_path}"' in script
+    assert "echo \"${secret_value}\"" not in script
+    subprocess.run(["bash", "-n"], input=script, text=True, check=True)
 
 
 def test_post_install_s3_executable_install_is_not_sha256_pinned() -> None:

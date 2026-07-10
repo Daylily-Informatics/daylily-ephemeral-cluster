@@ -70,8 +70,8 @@ dyec create \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
   --config "$DAY_EX_CFG" \
-  --global-spot-max-cost 7.50 \
-  --spot-cost-limit-pct 1.2 \
+  --global-spot-max-cost 9.99 \
+  --spot-cost-limit-pct 1.7 \
   --write-spot-pricing-warn-threshold 6.00
 ```
 
@@ -90,8 +90,8 @@ Important options:
 - `--create-slurm-accounting-db`
 - `--scan-slurm-accounting-db`
 - `--slurm-accounting-stack-name <name>`
-- `--global-spot-max-cost <usd>`: default `7.50`; hard fails if `<= 0` or `> 10.00`
-- `--spot-cost-limit-pct <multiplier>`: default `1.2`; hard fails if `< 1.0` or `> 1.4`
+- `--global-spot-max-cost <usd>`: default and hard maximum `9.99`; hard fails if `<= 0` or `> 9.99`
+- `--spot-cost-limit-pct <multiplier>`: default `1.7`; hard fails if `< 1.0` or `> 2.2`
 - `--write-spot-pricing-warn-threshold <usd>`: default `6.00`; hard fails if `<= 0`
 
 Spot bid policy is deterministic and capped. For each compute resource, DYEC
@@ -104,9 +104,8 @@ min(reference_median_spot_price * spot_cost_limit_pct, global_spot_max_cost)
 ```
 
 The old median-plus-dollar bump behavior and `--bump-price` helper flag are
-removed. i384 partitions use the matching i192 reference resource median for
-the bid calculation; missing i192 reference data is a hard failure before
-cluster submission.
+removed. Each resource uses its own median spot price; i384 resources no
+longer borrow i192 reference pricing.
 
 Each create run writes an Ursa-readable summary JSON:
 

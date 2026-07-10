@@ -76,6 +76,12 @@ class TestRunPcluster:
         assert env_used["AWS_PROFILE"] == "myprof"
 
     @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_explicit_backport_executable(self, mock_run):
+        mock_run.return_value = _completed()
+        _run_pcluster(["list-clusters"], executable="/opt/daylily/pcluster/bin/pcluster")
+        assert mock_run.call_args.args[0][0] == "/opt/daylily/pcluster/bin/pcluster"
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
     def test_not_found(self, mock_run):
         mock_run.side_effect = FileNotFoundError("pcluster")
         r = _run_pcluster(["create-cluster"])
@@ -130,6 +136,17 @@ class TestDryRunCreate:
             "--region",
             "us-east-1",
         ]
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_explicit_backport_executable(self, mock_run):
+        mock_run.return_value = _completed(stdout=_dry_run_ok_json())
+        dry_run_create(
+            "my-cl",
+            "/tmp/c.yaml",
+            "us-east-1",
+            executable="/opt/daylily/pcluster/bin/pcluster",
+        )
+        assert mock_run.call_args.args[0][0] == "/opt/daylily/pcluster/bin/pcluster"
 
 
 # ── TestShouldBreakAfterDryRun ───────────────────────────────────────────

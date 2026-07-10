@@ -14,17 +14,14 @@ from ruamel.yaml.comments import CommentedMap
 SPOT_PRICE_SUMMARY_SCHEMA_VERSION = "dyec.spot_price_summary.v1"
 
 DEFAULT_SPOT_PRODUCT_DESCRIPTION = "Linux/UNIX"
-F2_SPOT_PRODUCT_DESCRIPTIONS = (
-    DEFAULT_SPOT_PRODUCT_DESCRIPTION,
-    "Red Hat Enterprise Linux",
-)
 F2_PARTITION_MAX_INSTANCE_THRESHOLD = 3
+F2_LOW_DIVERSITY_SPOT_COST_LIMIT_PCT = 1.20
 
-DEFAULT_GLOBAL_SPOT_MAX_COST: float = 9.00
-MAX_GLOBAL_SPOT_MAX_COST: float = 12.00
-DEFAULT_SPOT_COST_LIMIT_PCT: float = 1.55
+DEFAULT_GLOBAL_SPOT_MAX_COST: float = 9.99
+MAX_GLOBAL_SPOT_MAX_COST: float = 9.99
+DEFAULT_SPOT_COST_LIMIT_PCT: float = 1.70
 MIN_SPOT_COST_LIMIT_PCT: float = 1.0
-MAX_SPOT_COST_LIMIT_PCT: float = 2.0
+MAX_SPOT_COST_LIMIT_PCT: float = 2.20
 DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD: float = 8.00
 
 
@@ -309,7 +306,7 @@ def _build_spot_price_summary(
             resource_name = _resource_name(resource, resource_index)
             resource_key = (queue_name, resource_name)
             stats = resource_stats[resource_key]
-            ref_key = _reference_key_for_resource(queue_name, resource_name)
+            ref_key = resource_key
             use_f2_partition_max = _uses_f2_partition_max(
                 stats,
                 queue_max_instances=queue_max_instances,
@@ -319,18 +316,17 @@ def _build_spot_price_summary(
                 reference_resource = "partition_max"
                 reference_source = "f2_partition_max"
                 reference_median = queue_partition_max_price
+                effective_spot_cost_limit_pct = F2_LOW_DIVERSITY_SPOT_COST_LIMIT_PCT
             else:
-                if ref_key not in resource_stats:
-                    raise RuntimeError(
-                        "i384 reference spot data missing for "
-                        f"{queue_name}/{resource_name}: expected {ref_key[0]}/{ref_key[1]}."
-                    )
                 ref_stats = resource_stats[ref_key]
-                reference_queue = ref_key[0]
-                reference_resource = ref_key[1]
-                reference_source = "self" if ref_key == resource_key else "i192_reference"
+                reference_queue = queue_name
+                reference_resource = resource_name
+                reference_source = "self"
                 reference_median = float(ref_stats["raw_median_spot_price"])
-            uncapped_bid = _round_price(reference_median * spot_cost_limit_pct)
+                effective_spot_cost_limit_pct = spot_cost_limit_pct
+            uncapped_bid = _round_price(
+                reference_median * effective_spot_cost_limit_pct
+            )
             final_bid = min(uncapped_bid, _round_price(global_spot_max_cost))
             final_bid = _round_price(final_bid)
             global_limiter_applied = uncapped_bid > final_bid
@@ -370,7 +366,7 @@ def _build_spot_price_summary(
                 "max_final_bid_usd_per_vcpu_hour": _round_price(
                     final_bid / int(stats["min_instance_vcpus"])
                 ),
-                "spot_cost_limit_pct": spot_cost_limit_pct,
+                "spot_cost_limit_pct": effective_spot_cost_limit_pct,
                 "global_spot_max_cost": global_spot_max_cost,
                 "global_limiter_applied": global_limiter_applied,
                 "write_spot_pricing_warn_threshold": write_spot_pricing_warn_threshold,
@@ -432,12 +428,6 @@ def _collect_resource_price_stats(
     }
 
 
-def _reference_key_for_resource(queue_name: str, resource_name: str) -> tuple[str, str]:
-    if queue_name.startswith("i384") or "384" in resource_name:
-        return (queue_name.replace("384", "192", 1), resource_name.replace("384", "192", 1))
-    return (queue_name, resource_name)
-
-
 def _queue_resources(queue: Dict[str, Any]) -> list[Dict[str, Any]]:
     return list(queue.get("ComputeResources", []) or [])
 
@@ -488,8 +478,6 @@ def _effective_spot_price(ec2_client: Any, instance_type: str, az: str) -> float
 
 
 def _spot_product_descriptions(instance_type: str) -> tuple[str, ...]:
-    if _is_f2_instance_type(instance_type):
-        return F2_SPOT_PRODUCT_DESCRIPTIONS
     return (DEFAULT_SPOT_PRODUCT_DESCRIPTION,)
 
 
@@ -560,7 +548,9 @@ def _partition_summary_row(
         ),
         "max_final_bid": _round_price(max(float(row["final_bid"]) for row in row_list)),
         "global_spot_max_cost": _round_price(global_spot_max_cost),
-        "spot_cost_limit_pct": spot_cost_limit_pct,
+        "spot_cost_limit_pct": max(
+            float(row["spot_cost_limit_pct"]) for row in row_list
+        ),
         "write_spot_pricing_warn_threshold": _round_price(
             write_spot_pricing_warn_threshold
         ),

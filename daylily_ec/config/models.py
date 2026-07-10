@@ -98,8 +98,6 @@ class ConfigFile(BaseModel):
 # declared here.
 # ---------------------------------------------------------------------------
 
-DEFAULT_DRAGEN_PCLUSTER_AMI = "ami-09fd9c3c129952e5f"
-
 REQUIRED_CONFIG_KEYS: list[str] = [
     "allowed_budget_users",
     "auto_delete_fsx",
@@ -108,7 +106,8 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "cluster_name",
     "cluster_template_yaml",
     "delete_local_root",
-    "dragen_pcluster_ami",
+    "dragen_license_policy_arn",
+    "dragen_license_secret_arn",
     "enable_detailed_monitoring",
     "enforce_budget",
     "fsx_fs_size",
@@ -138,6 +137,7 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "max_count_384I_NVME_M",
     "max_count_384I_NVME_R",
     "private_subnet_id",
+    "pcluster_backport_manifest",
     "public_subnet_id",
     "reference_s3_uri",
     "control_data_s3_uri",

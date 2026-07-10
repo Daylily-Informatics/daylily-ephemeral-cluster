@@ -292,14 +292,19 @@ def test_complete_genomics_slim_fixture_can_be_written(tmp_path: Path) -> None:
 def test_write_sample_manifest_uses_command_specific_templates(tmp_path: Path) -> None:
     catalog = load_repository_catalog()
     ilmn_dir = tmp_path / "ilmn"
+    metagenomics_dir = tmp_path / "metagenomics"
     hybrid_dir = tmp_path / "hybrid"
     inflection_dir = tmp_path / "inflection"
     ilmn_dir.mkdir()
+    metagenomics_dir.mkdir()
     hybrid_dir.mkdir()
     inflection_dir.mkdir()
 
     ilmn_manifest = write_sample_manifest(
         catalog.get_command("illumina_hg002_kitchensink_multiqc"), ilmn_dir
+    )
+    metagenomics_manifest = write_sample_manifest(
+        catalog.get_command("all_metagenomic_pipelines"), metagenomics_dir
     )
     hybrid_manifest = write_sample_manifest(
         catalog.get_command("hybrid_ilmn_ont_snv_kitchensink"), hybrid_dir
@@ -310,6 +315,8 @@ def test_write_sample_manifest_uses_command_specific_templates(tmp_path: Path) -
 
     with ilmn_manifest.open(newline="", encoding="utf-8") as handle:
         ilmn_row = next(csv.DictReader(handle, delimiter="\t"))
+    with metagenomics_manifest.open(newline="", encoding="utf-8") as handle:
+        metagenomics_row = next(csv.DictReader(handle, delimiter="\t"))
     with hybrid_manifest.open(newline="", encoding="utf-8") as handle:
         hybrid_row = next(csv.DictReader(handle, delimiter="\t"))
     with inflection_manifest.open(newline="", encoding="utf-8") as handle:
@@ -320,6 +327,10 @@ def test_write_sample_manifest_uses_command_specific_templates(tmp_path: Path) -
     assert ilmn_row["EXPERIMENTID"] == "5x"
     assert "HG002_5x_R1.fastq.gz" in ilmn_row["ILMN_R1_FQ"]
     assert "HG002_5x_R2.fastq.gz" in ilmn_row["ILMN_R2_FQ"]
+    assert metagenomics_row["SAMPLE_ID"] == "HG003"
+    assert metagenomics_row["EXPERIMENTID"] == "5x"
+    assert "HG003_5x_R1.fastq.gz" in metagenomics_row["ILMN_R1_FQ"]
+    assert "HG003_5x_R2.fastq.gz" in metagenomics_row["ILMN_R2_FQ"]
     assert ilmn_row["ILMN_R1_FQ"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
     assert ilmn_row["ILMN_R2_FQ"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
     assert ilmn_row["STAGE_DIRECTIVE"] == "pass_through"

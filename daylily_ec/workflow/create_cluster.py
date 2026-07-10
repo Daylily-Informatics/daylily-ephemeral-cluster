@@ -77,6 +77,7 @@ PreflightStep = Callable[[PreflightReport], PreflightReport]
 _PREFLIGHT_STEPS: List[PreflightStep] = []
 
 CLUSTER_BOOT_CONFIG_FILENAMES = (
+    "post_install_almalinux8_dragen.sh",
     "post_install_rhel8_dragen.sh",
     "post_install_ubuntu_combined.sh",
     "sbatch",
@@ -84,7 +85,17 @@ CLUSTER_BOOT_CONFIG_FILENAMES = (
 )
 BOOT_CONFIG_REFERENCE_COMPAT_LINE = b'reference_compat_root="/fsx/data"'
 DEFAULT_CREATE_CLUSTER_TYPE = "intel"
-CREATE_CLUSTER_TYPES = frozenset({"intel", "rhel"})
+DRAGEN_CLUSTER_TYPE = "dragen"
+CREATE_CLUSTER_TYPES = frozenset({"intel", "rhel", DRAGEN_CLUSTER_TYPE})
+
+
+@dataclass(frozen=True)
+class DragenCreateInputs:
+    """Private inputs required to render a qualified DRAGEN cluster."""
+
+    backport: Any
+    license_secret_arn: str
+    license_policy_arn: str
 
 
 @dataclass(frozen=True)
@@ -569,6 +580,66 @@ def normalize_create_cluster_type(cluster_type: str) -> str:
     return normalized
 
 
+def resolve_dragen_create_inputs(
+    cfg: Any,
+    *,
+    cluster_type: str,
+    region_az: str,
+) -> Optional[DragenCreateInputs]:
+    """Resolve explicit private inputs for the DRAGEN cluster type."""
+
+    if cluster_type != DRAGEN_CLUSTER_TYPE:
+        return None
+
+    from daylily_ec.aws.context import parse_region_az
+    from daylily_ec.pcluster.backport import load_operational_backport
+
+    values: dict[str, str] = {}
+    for key, label in (
+        ("pcluster_backport_manifest", "ParallelCluster backport manifest"),
+        ("dragen_license_secret_arn", "DRAGEN license secret ARN"),
+        ("dragen_license_policy_arn", "DRAGEN license policy ARN"),
+    ):
+        if not _has_explicit_set_value(cfg, key):
+            raise ValueError(
+                f"--cluster-type dragen requires explicit config key {key!r} ({label}); "
+                "defaults and discovery are not accepted."
+            )
+        values[key] = str(cfg.ephemeral_cluster.config[key].set_value).strip()
+
+    backport = load_operational_backport(values["pcluster_backport_manifest"])
+    region, _az = parse_region_az(region_az)
+    if backport.image_region != region:
+        raise ValueError(
+            "Qualified image region does not match requested cluster region: "
+            f"{backport.image_region} != {region}."
+        )
+
+    secret_arn = values["dragen_license_secret_arn"]
+    secret_match = re.fullmatch(
+        r"arn:(aws(?:-us-gov)?):secretsmanager:([a-z0-9-]+):(\d{12}):secret:[A-Za-z0-9/_+=.@-]+",
+        secret_arn,
+    )
+    if not secret_match or secret_match.group(2) != region:
+        raise ValueError(
+            "dragen_license_secret_arn must be an explicit Secrets Manager ARN in "
+            f"{region}."
+        )
+
+    policy_arn = values["dragen_license_policy_arn"]
+    if not re.fullmatch(
+        r"arn:aws(?:-us-gov)?:iam::\d{12}:policy/[A-Za-z0-9+=,.@_/-]+",
+        policy_arn,
+    ):
+        raise ValueError("dragen_license_policy_arn must be an explicit managed-policy ARN.")
+
+    return DragenCreateInputs(
+        backport=backport,
+        license_secret_arn=secret_arn,
+        license_policy_arn=policy_arn,
+    )
+
+
 def az_cluster_template_relative_path(cluster_type: str, region_az: str) -> Path:
     """Return the exact AZ-scoped cluster template path for create."""
 
@@ -620,6 +691,11 @@ def resolve_cluster_template_yaml(
     """
 
     explicit = _explicit_cluster_template_yaml(cfg)
+    if cluster_type == DRAGEN_CLUSTER_TYPE and explicit:
+        raise ValueError(
+            "--cluster-type dragen requires the canonical AZ-scoped template; "
+            "cluster_template_yaml overrides are not accepted."
+        )
     if explicit:
         return _resolve_existing_template_path(explicit, resource_path_fn)
 
@@ -709,6 +785,77 @@ def validate_startup_dra_contract(cluster_yaml_path: str | Path) -> None:
     data_repository_path = str(associations[0].get("DataRepositoryPath") or "")
     if not data_repository_path:
         raise ValueError("The /references/ startup DRA must define DataRepositoryPath.")
+
+
+def validate_dragen_cluster_contract(
+    cluster_yaml_path: str | Path,
+    inputs: DragenCreateInputs,
+) -> None:
+    """Require the single-node private DRAGEN topology after rendering."""
+
+    import yaml
+
+    payload = yaml.safe_load(Path(cluster_yaml_path).read_text(encoding="utf-8")) or {}
+    if (payload.get("Image") or {}).get("Os") != "almalinux8":
+        raise ValueError("DRAGEN cluster Image.Os must be almalinux8.")
+
+    headnode = payload.get("HeadNode") or {}
+    head_ami = ((headnode.get("Image") or {}).get("CustomAmi") or "").strip()
+    if head_ami != inputs.backport.image_ami_id:
+        raise ValueError("DRAGEN headnode AMI does not match the qualified manifest image.")
+    _validate_dragen_node_policy_and_action(headnode, inputs, label="HeadNode")
+
+    queues = ((payload.get("Scheduling") or {}).get("SlurmQueues") or [])
+    if not isinstance(queues, list) or len(queues) != 1:
+        raise ValueError("DRAGEN cluster must render exactly one Slurm queue.")
+    queue = queues[0]
+    if queue.get("Name") != "dragen" or queue.get("CapacityType") != "SPOT":
+        raise ValueError("DRAGEN cluster must render one SPOT queue named dragen.")
+    queue_ami = ((queue.get("Image") or {}).get("CustomAmi") or "").strip()
+    if queue_ami != inputs.backport.image_ami_id:
+        raise ValueError("DRAGEN compute AMI does not match the qualified manifest image.")
+    _validate_dragen_node_policy_and_action(queue, inputs, label="dragen queue")
+
+    resources = queue.get("ComputeResources") or []
+    if not isinstance(resources, list) or len(resources) != 1:
+        raise ValueError("DRAGEN queue must render exactly one compute resource.")
+    resource = resources[0]
+    instance_types = [
+        str(item.get("InstanceType") or "") for item in resource.get("Instances") or []
+    ]
+    if instance_types != ["f2.6xlarge"]:
+        raise ValueError("DRAGEN compute resource must contain only f2.6xlarge.")
+    if resource.get("MinCount") != 0 or resource.get("MaxCount") != 1:
+        raise ValueError("DRAGEN compute resource must set MinCount 0 and MaxCount 1.")
+
+    cookbook_uri = (
+        (((payload.get("DevSettings") or {}).get("Cookbook") or {}).get("ChefCookbook"))
+        or ""
+    ).strip()
+    if cookbook_uri != inputs.backport.cookbook_bundle_uri:
+        raise ValueError("DRAGEN cluster cookbook does not match the pinned backport manifest.")
+
+
+def _validate_dragen_node_policy_and_action(
+    node: dict[str, Any],
+    inputs: DragenCreateInputs,
+    *,
+    label: str,
+) -> None:
+    policies = [
+        str(item.get("Policy") or "")
+        for item in ((node.get("Iam") or {}).get("AdditionalIamPolicies") or [])
+    ]
+    if policies.count(inputs.license_policy_arn) != 1:
+        raise ValueError(f"{label} must attach the configured license policy exactly once.")
+
+    action = ((node.get("CustomActions") or {}).get("OnNodeConfigured") or {})
+    script = str(action.get("Script") or "")
+    if not script.endswith("/post_install_almalinux8_dragen.sh"):
+        raise ValueError(f"{label} must use the AlmaLinux DRAGEN bootstrap wrapper.")
+    args = [str(value) for value in action.get("Args") or []]
+    if len(args) != 5 or args[-1] != inputs.license_secret_arn:
+        raise ValueError(f"{label} must pass the configured license secret ARN as arg 5.")
 
 
 def _noop_heartbeat_result() -> Any:
@@ -1467,6 +1614,20 @@ def run_create_workflow(
     ec = cfg.ephemeral_cluster
 
     try:
+        dragen_inputs = resolve_dragen_create_inputs(
+            cfg,
+            cluster_type=cluster_type,
+            region_az=region_az,
+        )
+    except ValueError as exc:
+        logger.error("DRAGEN create input validation failed: %s", exc)
+        ui.fail(f"DRAGEN create inputs: {exc}")
+        return EXIT_VALIDATION_FAILURE
+    pcluster_executable = (
+        str(dragen_inputs.backport.cli_executable) if dragen_inputs else "pcluster"
+    )
+
+    try:
         cluster_name = _resolve_cluster_name(cfg, non_interactive=non_interactive)
     except ValueError as exc:
         logger.error("Cluster name validation failed: %s", exc)
@@ -1493,6 +1654,15 @@ def run_create_workflow(
     ui.detail("User", aws_ctx.iam_username)
     ui.detail("Region", f"{aws_ctx.region} ({region_az})")
     ui.detail("Cluster type", cluster_type)
+    if dragen_inputs:
+        secret_account = dragen_inputs.license_secret_arn.split(":", 5)[4]
+        policy_account = dragen_inputs.license_policy_arn.split(":", 5)[4]
+        if secret_account != aws_ctx.account_id or policy_account != aws_ctx.account_id:
+            logger.error("DRAGEN secret/policy account does not match the active AWS account.")
+            ui.fail("DRAGEN secret and policy ARNs must belong to the active AWS account.")
+            return EXIT_VALIDATION_FAILURE
+        ui.detail("PCluster backport", dragen_inputs.backport.parallelcluster_version)
+        ui.detail("Qualified image", dragen_inputs.backport.image_ami_id)
 
     # -- 2. PREFLIGHT (Phase 1) -----------------------------------------------
     ui.phase("PREFLIGHT")
@@ -1631,6 +1801,18 @@ def run_create_workflow(
             interactive=not non_interactive,
         ),
     ]
+    if dragen_inputs:
+        from daylily_ec.aws.dragen_license import make_dragen_license_preflight_step
+
+        preflight_steps.insert(
+            1,
+            make_dragen_license_preflight_step(
+                secretsmanager_client=aws_ctx.client("secretsmanager"),
+                iam_client=aws_ctx.client("iam"),
+                secret_arn=dragen_inputs.license_secret_arn,
+                policy_arn=dragen_inputs.license_policy_arn,
+            ),
+        )
 
     report = run_preflight(
         report,
@@ -2116,16 +2298,18 @@ def run_create_workflow(
             default_fallback="false",
         )
         or "false",
-        "REGSUB_DRAGEN_PCLUSTER_AMI": _resolve_config_value(
-            cfg,
-            "dragen_pcluster_ami",
-            "DRAGEN PCluster AMI",
-            non_interactive=non_interactive,
-            default_fallback="",
-            required=False,
-            allow_empty=True,
-        )
-        or "",
+        "REGSUB_DRAGEN_PCLUSTER_AMI": (
+            dragen_inputs.backport.image_ami_id if dragen_inputs else ""
+        ),
+        "REGSUB_DRAGEN_LICENSE_POLICY_ARN": (
+            dragen_inputs.license_policy_arn if dragen_inputs else ""
+        ),
+        "REGSUB_DRAGEN_LICENSE_SECRET_ARN": (
+            dragen_inputs.license_secret_arn if dragen_inputs else ""
+        ),
+        "REGSUB_PCLUSTER_COOKBOOK_URI": (
+            dragen_inputs.backport.cookbook_bundle_uri if dragen_inputs else ""
+        ),
         # DeletionPolicy requires "Retain" or "Delete", not bool.
         "REGSUB_SAVE_FSX": (
             "Delete"
@@ -2245,6 +2429,13 @@ def run_create_workflow(
         logger.error("Startup DRA contract failed: %s", exc)
         ui.fail(f"Startup DRA contract: {exc}")
         return EXIT_VALIDATION_FAILURE
+    if dragen_inputs:
+        try:
+            validate_dragen_cluster_contract(cluster_yaml_path, dragen_inputs)
+        except ValueError as exc:
+            logger.error("DRAGEN cluster contract failed: %s", exc)
+            ui.fail(f"DRAGEN cluster contract: {exc}")
+            return EXIT_VALIDATION_FAILURE
 
     # -- 6. DRY-RUN (Phase 2b) ------------------------------------------------
     ui.phase("DRY-RUN VALIDATION")
@@ -2254,6 +2445,7 @@ def run_create_workflow(
         cluster_yaml_path,
         aws_ctx.region,
         profile=aws_ctx.profile,
+        executable=pcluster_executable,
     )
     if not dry_result.success:
         logger.error("Dry-run failed: %s", dry_result.message or dry_result.stderr)
@@ -2274,6 +2466,7 @@ def run_create_workflow(
         cluster_yaml_path,
         aws_ctx.region,
         profile=aws_ctx.profile,
+        executable=pcluster_executable,
     )
     if not create_result.success:
         logger.error(
@@ -2292,6 +2485,7 @@ def run_create_workflow(
         cluster_name,
         aws_ctx.region,
         profile=aws_ctx.profile,
+        executable=pcluster_executable,
     )
     if not monitor_result.success:
         logger.error(

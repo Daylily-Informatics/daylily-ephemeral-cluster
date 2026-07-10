@@ -13,6 +13,7 @@ from daylily_ec.aws.spot_pricing import (
     DEFAULT_GLOBAL_SPOT_MAX_COST,
     DEFAULT_SPOT_COST_LIMIT_PCT,
     DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+    F2_LOW_DIVERSITY_SPOT_COST_LIMIT_PCT,
     MAX_GLOBAL_SPOT_MAX_COST,
     MAX_SPOT_COST_LIMIT_PCT,
     MIN_SPOT_COST_LIMIT_PCT,
@@ -77,13 +78,14 @@ def _config(queues: list[dict]) -> dict:
 
 class TestConstants:
     def test_double_auth_default_sentinels(self) -> None:
-        assert DEFAULT_GLOBAL_SPOT_MAX_COST == 9.00
-        assert MAX_GLOBAL_SPOT_MAX_COST == 12.00
-        assert DEFAULT_SPOT_COST_LIMIT_PCT == 1.55
+        assert DEFAULT_GLOBAL_SPOT_MAX_COST == 9.99
+        assert MAX_GLOBAL_SPOT_MAX_COST == 9.99
+        assert DEFAULT_SPOT_COST_LIMIT_PCT == 1.70
         assert MIN_SPOT_COST_LIMIT_PCT == 1.0
-        assert MAX_SPOT_COST_LIMIT_PCT == 2.0
+        assert MAX_SPOT_COST_LIMIT_PCT == 2.20
         assert DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD == 8.00
-        assert validate_spot_pricing_limits() == (9.00, 1.55, 8.00)
+        assert F2_LOW_DIVERSITY_SPOT_COST_LIMIT_PCT == 1.20
+        assert validate_spot_pricing_limits() == (9.99, 1.70, 8.00)
 
 
 class TestGetSpotPrice:
@@ -144,10 +146,10 @@ class TestValidation:
     @pytest.mark.parametrize(
         ("kwargs", "message"),
         [
-            ({"global_spot_max_cost": 12.01}, "--global-spot-max-cost"),
+            ({"global_spot_max_cost": 10.00}, "--global-spot-max-cost"),
             ({"global_spot_max_cost": 0}, "--global-spot-max-cost"),
             ({"spot_cost_limit_pct": 0.99}, "--spot-cost-limit-pct"),
-            ({"spot_cost_limit_pct": 2.01}, "--spot-cost-limit-pct"),
+            ({"spot_cost_limit_pct": 2.21}, "--spot-cost-limit-pct"),
             (
                 {"write_spot_pricing_warn_threshold": 0},
                 "--write-spot-pricing-warn-threshold",
@@ -173,9 +175,9 @@ class TestCalculateComputeResourceSpotPrice:
             ec2,
             resource,
             "us-west-2a",
-            global_spot_max_cost=10.00,
+            global_spot_max_cost=9.50,
         )
-        assert result == 10.00
+        assert result == 9.50
 
     def test_no_instances_returns_none(self) -> None:
         ec2 = _mock_ec2()
@@ -218,15 +220,15 @@ class TestProcessSlurmQueues:
         summary = process_slurm_queues(cfg, "us-west-2a", ec2)
 
         resources = cfg["Scheduling"]["SlurmQueues"][0]["ComputeResources"]
-        assert resources[0]["SpotPrice"] == 3.1
-        assert resources[1]["SpotPrice"] == 9.0
+        assert resources[0]["SpotPrice"] == 3.4
+        assert resources[1]["SpotPrice"] == 9.99
         assert summary["schema_version"] == SPOT_PRICE_SUMMARY_SCHEMA_VERSION
         assert summary["partitions"][0]["queue"] == "i128"
-        assert summary["partitions"][0]["max_final_bid_usd_per_vcpu_hour"] == 0.0703
+        assert summary["partitions"][0]["max_final_bid_usd_per_vcpu_hour"] == 0.0780
         assert summary["partitions"][0]["global_limiter_applied"] is True
         assert summary["partitions"][0]["warn_threshold_exceeded"] is True
 
-    def test_i384_uses_i192_reference_median(self) -> None:
+    def test_i384_uses_its_own_reference_median(self) -> None:
         ec2 = MagicMock()
         prices = {
             "c7i.48xlarge": "1.0",
@@ -248,25 +250,25 @@ class TestProcessSlurmQueues:
         summary = process_slurm_queues(cfg, "us-west-2a", ec2)
 
         i384_resource = cfg["Scheduling"]["SlurmQueues"][1]["ComputeResources"][0]
-        assert i384_resource["SpotPrice"] == 1.55
+        assert i384_resource["SpotPrice"] == 9.99
         i384_row = next(row for row in summary["resources"] if row["queue"] == "i384nvme")
-        assert i384_row["reference_queue"] == "i192nvme"
-        assert i384_row["reference_resource"] == "price192nvme"
-        assert i384_row["reference_source"] == "i192_reference"
-        assert i384_row["max_final_bid_usd_per_vcpu_hour"] == 0.004
+        assert i384_row["reference_queue"] == "i384nvme"
+        assert i384_row["reference_resource"] == "price384nvme"
+        assert i384_row["reference_source"] == "self"
+        assert i384_row["max_final_bid_usd_per_vcpu_hour"] == 0.0260
 
-    def test_i384_missing_reference_fails_hard(self) -> None:
+    def test_i384_without_an_i192_reference_uses_its_own_price(self) -> None:
         ec2 = _mock_ec2(9.0)
         cfg = _config([_queue("i384nvme", [_resource("price384nvme", ["c8i.96xlarge"])])])
 
-        with pytest.raises(RuntimeError, match="i384 reference spot data missing"):
-            process_slurm_queues(cfg, "us-west-2a", ec2)
+        summary = process_slurm_queues(cfg, "us-west-2a", ec2)
+        assert cfg["Scheduling"]["SlurmQueues"][0]["ComputeResources"][0]["SpotPrice"] == 9.99
+        assert summary["resources"][0]["reference_source"] == "self"
 
-    def test_f2_low_diversity_partition_uses_rhel_spot_price(self) -> None:
+    def test_f2_low_diversity_partition_uses_linux_price_plus_twenty_percent(self) -> None:
         ec2 = MagicMock()
         prices = {
             ("f2.6xlarge", "Linux/UNIX"): "0.8013",
-            ("f2.6xlarge", "Red Hat Enterprise Linux"): "1.0604",
         }
 
         def _price_for(InstanceTypes, ProductDescriptions, **_kwargs):
@@ -282,7 +284,7 @@ class TestProcessSlurmQueues:
             [
                 _queue(
                     "dragen",
-                    [_resource("f26xlarge", ["f2.6xlarge"], max_count=2)],
+                    [_resource("f26xlarge", ["f2.6xlarge"], max_count=1)],
                 )
             ]
         )
@@ -291,25 +293,21 @@ class TestProcessSlurmQueues:
 
         resource = cfg["Scheduling"]["SlurmQueues"][0]["ComputeResources"][0]
         row = summary["resources"][0]
-        assert resource["SpotPrice"] == 1.6436
-        assert row["raw_max_spot_price"] == 1.0604
+        assert resource["SpotPrice"] == 0.9616
+        assert row["raw_max_spot_price"] == 0.8013
         assert row["reference_resource"] == "partition_max"
         assert row["reference_source"] == "f2_partition_max"
-        assert row["reference_median_spot_price"] == 1.0604
-        assert (
-            ec2.describe_spot_price_history.call_args_list[0].kwargs["ProductDescriptions"]
-            == ["Linux/UNIX"]
-        )
-        assert (
-            ec2.describe_spot_price_history.call_args_list[1].kwargs["ProductDescriptions"]
-            == ["Red Hat Enterprise Linux"]
-        )
+        assert row["reference_median_spot_price"] == 0.8013
+        assert row["spot_cost_limit_pct"] == 1.20
+        ec2.describe_spot_price_history.assert_called_once()
+        assert ec2.describe_spot_price_history.call_args.kwargs["ProductDescriptions"] == [
+            "Linux/UNIX"
+        ]
 
     def test_f2_low_diversity_partition_uses_partition_max_price(self) -> None:
         ec2 = MagicMock()
         prices = {
             ("f2.6xlarge", "Linux/UNIX"): "0.80",
-            ("f2.6xlarge", "Red Hat Enterprise Linux"): "1.00",
             ("c6i.8xlarge", "Linux/UNIX"): "2.00",
         }
 
@@ -339,7 +337,7 @@ class TestProcessSlurmQueues:
         resources = cfg["Scheduling"]["SlurmQueues"][0]["ComputeResources"]
         f2_row = next(row for row in summary["resources"] if row["resource"] == "f26xlarge")
         non_f2_row = next(row for row in summary["resources"] if row["resource"] == "i8xlarge")
-        assert resources[0]["SpotPrice"] == 3.1
+        assert resources[0]["SpotPrice"] == 2.4
         assert f2_row["reference_resource"] == "partition_max"
         assert f2_row["reference_median_spot_price"] == 2.0
         assert non_f2_row["reference_source"] == "self"
@@ -349,7 +347,6 @@ class TestProcessSlurmQueues:
         ec2 = MagicMock()
         prices = {
             ("f2.6xlarge", "Linux/UNIX"): "0.80",
-            ("f2.6xlarge", "Red Hat Enterprise Linux"): "1.00",
             ("c6i.8xlarge", "Linux/UNIX"): "2.00",
         }
 
@@ -378,16 +375,16 @@ class TestProcessSlurmQueues:
 
         f2_resource = cfg["Scheduling"]["SlurmQueues"][0]["ComputeResources"][0]
         f2_row = next(row for row in summary["resources"] if row["resource"] == "f26xlarge")
-        assert f2_resource["SpotPrice"] == 1.55
+        assert f2_resource["SpotPrice"] == 1.36
         assert f2_row["reference_resource"] == "f26xlarge"
         assert f2_row["reference_source"] == "self"
-        assert f2_row["reference_median_spot_price"] == 1.0
+        assert f2_row["reference_median_spot_price"] == 0.8
 
     def test_apply_spot_to_queue_uses_default_cap(self) -> None:
         ec2 = _mock_ec2(99.0)
         q = _queue("i128", [_resource("price128", ["m5.xlarge"])])
         summary = apply_spot_to_queue(ec2, q, "us-west-2a")
-        assert q["ComputeResources"][0]["SpotPrice"] == 9.0
+        assert q["ComputeResources"][0]["SpotPrice"] == 9.99
         assert summary["resources"][0]["global_limiter_applied"] is True
 
     def test_summary_tracks_partition_costs_and_warn_threshold_separately(self) -> None:
@@ -422,21 +419,21 @@ class TestProcessSlurmQueues:
             cfg,
             "us-west-2a",
             ec2,
-            global_spot_max_cost=10.0,
+            global_spot_max_cost=9.99,
             write_spot_pricing_warn_threshold=7.5,
         )
 
         row = summary["resources"][0]
         partition = summary["partitions"][0]
         assert row["raw_median_spot_price"] == 6.0
-        assert row["uncapped_pct_bid"] == 9.3
-        assert row["final_bid"] == 9.3
+        assert row["uncapped_pct_bid"] == 10.2
+        assert row["final_bid"] == 9.99
         assert row["warn_threshold_exceeded"] is True
         assert partition["raw_min_hourly_cost_without_limiter"] == 6.0
         assert partition["raw_max_hourly_cost_without_limiter"] == 18.0
         assert partition["max_reference_median_spot_price"] == 6.0
-        assert partition["max_final_bid_usd_per_vcpu_hour"] == 0.1453
-        assert partition["max_uncapped_pct_bid"] == 9.3
+        assert partition["max_final_bid_usd_per_vcpu_hour"] == 0.1561
+        assert partition["max_uncapped_pct_bid"] == 10.2
         assert partition["warn_threshold_exceeded"] is True
 
 
@@ -485,7 +482,7 @@ Scheduling:
 
     yaml = YAML(typ="safe")
     written = yaml.load(output.read_text(encoding="utf-8"))
-    assert written["Scheduling"]["SlurmQueues"][0]["ComputeResources"][0]["SpotPrice"] == 9.0
+    assert written["Scheduling"]["SlurmQueues"][0]["ComputeResources"][0]["SpotPrice"] == 9.99
     headnode_args = written["HeadNode"]["CustomActions"]["OnNodeConfigured"]["Args"]
     queue_args = written["Scheduling"]["SlurmQueues"][0]["CustomActions"][
         "OnNodeConfigured"
@@ -496,4 +493,4 @@ Scheduling:
     assert all(isinstance(arg, str) for arg in queue_args)
     persisted = json.loads(summary_path.read_text(encoding="utf-8"))
     assert persisted == summary
-    assert persisted["resources"][0]["final_bid"] == 9.0
+    assert persisted["resources"][0]["final_bid"] == 9.99

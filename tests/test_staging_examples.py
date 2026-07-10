@@ -53,6 +53,13 @@ EXAMPLES = {
         "allowed_roots": ("/fsx/data/genomic_data/", "/fsx/references/genomic_data/"),
         "sample_id": "HG002",
     },
+    "ilmn_hg003_5x_solo": {
+        "rows": 1,
+        "unit_fields": ("ILMN_R1_PATH", "ILMN_R2_PATH"),
+        "stage_directive": "pass_through",
+        "allowed_roots": ("/fsx/data/genomic_data/", "/fsx/references/genomic_data/"),
+        "sample_id": "HG003",
+    },
     "pacbio_solo": {
         "rows": 3,
         "unit_fields": (module.PB_BAM,),
@@ -158,6 +165,7 @@ def test_staging_example_manifests_have_supported_schema_and_s3_sources() -> Non
         "hybrid_ilmn_ont",
         "hybrid_ilmn_ont_hg003_5x5x",
         "ilmn_hg002_solo",
+        "ilmn_hg003_5x_solo",
         "ilmn_solo",
         "ont_fastq_solo",
         "ont_solo",

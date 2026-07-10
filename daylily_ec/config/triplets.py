@@ -22,15 +22,12 @@ import yaml
 
 from daylily_ec.config.models import (
     ConfigFile,
-    DEFAULT_DRAGEN_PCLUSTER_AMI,
     EphemeralClusterConfig,
     REQUIRED_CONFIG_KEYS,
     Triplet,
 )
 
-REQUIRED_CONFIG_DEFAULTS = {
-    "dragen_pcluster_ami": DEFAULT_DRAGEN_PCLUSTER_AMI,
-}
+REQUIRED_CONFIG_DEFAULTS: Dict[str, str] = {}
 
 # ---------------------------------------------------------------------------
 # Loading
