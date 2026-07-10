@@ -834,6 +834,20 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
   echo "__DAYLILY_ERROR__=wrong_user"
   exit 6
 	fi
+	dayec_conda_profile="$HOME/miniconda3/etc/profile.d/conda.sh"
+	if [[ ! -f "$dayec_conda_profile" ]]; then
+	  echo "__DAYLILY_ERROR__=missing_dayec_conda_profile"
+	  exit 10
+	fi
+	set +u
+	. "$dayec_conda_profile"
+	conda activate DAY-EC
+	set -u
+	if [[ "${{CONDA_DEFAULT_ENV:-}}" != "DAY-EC" ]]; then
+	  echo "__DAYLILY_ERROR__=dayec_activation_failed"
+	  exit 10
+	fi
+	python3 -c 'import yaml'
 	SESSION_NAME={shlex.quote(args.session_name)}
 	ANALYSIS_ID={shlex.quote(analysis_id)}
 	EXECUTING_ENTITY={shlex.quote(executing_entity)}

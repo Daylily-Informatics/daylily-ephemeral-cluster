@@ -286,6 +286,8 @@ def test_almalinux_dragen_wrapper_hydrates_secret_without_logging_contents() -> 
 
     assert 'license_secret_arn="${5:?license secret ARN argument is required}"' in script
     assert "aws secretsmanager get-secret-value" in script
+    assert 'config_dir="/home/ubuntu/.config"' in script
+    assert 'install -d -m 0700 -o ubuntu -g ubuntu "${config_dir}"' in script
     assert 'credential_path="${credential_dir}/lic_creds.txt"' in script
     assert 'chmod 0600 "${credential_path}"' in script
     assert "echo \"${secret_value}\"" not in script

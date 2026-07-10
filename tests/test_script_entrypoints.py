@@ -463,6 +463,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'mkdir -p "$(dirname "$clone_root")"' in script
         assert 'mkdir -p "$clone_root"' not in script
         assert "REPLACE_EXISTING_ANALYSIS_DIR=false" in script
+        assert 'dayec_conda_profile="$HOME/miniconda3/etc/profile.d/conda.sh"' in script
+        assert "conda activate DAY-EC" in script
+        assert "python3 -c 'import yaml'" in script
+        assert script.index("conda activate DAY-EC") < script.index("day-clone")
         assert "day-clone" in script
         assert '--destination "$ANALYSIS_ID"' in script
         assert '--executing-entity "$EXECUTING_ENTITY"' in script

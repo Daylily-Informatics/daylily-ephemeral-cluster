@@ -35,8 +35,10 @@ if ! id ubuntu >/dev/null 2>&1; then
   exit 1
 fi
 
-credential_dir="/home/ubuntu/.config/dragen"
+config_dir="/home/ubuntu/.config"
+credential_dir="${config_dir}/dragen"
 credential_path="${credential_dir}/lic_creds.txt"
+install -d -m 0700 -o ubuntu -g ubuntu "${config_dir}"
 install -d -m 0700 -o ubuntu -g ubuntu "${credential_dir}"
 credential_tmp="$(mktemp "${credential_dir}/lic_creds.txt.XXXXXX")"
 chmod 0600 "${credential_tmp}"

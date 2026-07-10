@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import Counter
 import json
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -10,9 +11,11 @@ from daylily_ec.aws.validation import (
     AwsValidationOptions,
     ClusterShape,
     ComputeResourceDemand,
+    EC2_VCPU_QUOTA_CODES,
     PermissionGroup,
     _check_baseline_stack_presence,
     _check_instance_type_offerings,
+    _check_fsx_lustre_headroom,
     _check_named_service_quota,
     _check_rendered_vcpu_quotas,
     _check_spot_market_signal,
@@ -22,6 +25,7 @@ from daylily_ec.aws.validation import (
     _coerce_positive_int,
     _decode_ssm_document,
     _describe_instance_vcpus,
+    _current_ec2_vcpu_usage,
     _find_quota_by_name,
     _finalize_summary,
     _simulate_group,
@@ -57,7 +61,10 @@ def _shape(
     *,
     headnode_root_volume_type: str = "gp3",
     fsx_deployment_type: str = "SCRATCH_2",
+    fsx_storage_type: str = "SSD",
     fsx_storage_gib: int = 4800,
+    fsx_read_cache_gib: int = 0,
+    fsx_throughput_capacity: int = 0,
     spot_count: int = 2,
 ) -> ClusterShape:
     return ClusterShape(
@@ -68,7 +75,10 @@ def _shape(
         headnode_root_volume_type=headnode_root_volume_type,
         headnode_root_volume_gib=512,
         fsx_deployment_type=fsx_deployment_type,
+        fsx_storage_type=fsx_storage_type,
         fsx_storage_gib=fsx_storage_gib,
+        fsx_read_cache_gib=fsx_read_cache_gib,
+        fsx_throughput_capacity=fsx_throughput_capacity,
         compute_resources=(
             ComputeResourceDemand(
                 queue="spot",
@@ -248,14 +258,16 @@ def test_simulation_reports_denied_action() -> None:
     assert "ec2:RunInstances" in failed[0].details["denied_actions"]
 
 
-def test_simulation_root_allowed_and_api_error_short_circuits() -> None:
+def test_simulation_root_is_unknown_and_api_errors_do_not_hide_later_groups() -> None:
     root_ctx = SimpleNamespace(
         account_id="123456789012",
         region="us-west-2",
         caller_arn="arn:aws:iam::123456789012:root",
         iam_username="root",
     )
-    assert simulate_required_permissions(root_ctx, MagicMock())[0].status == CheckStatus.PASS
+    root_result = simulate_required_permissions(root_ctx, MagicMock())[0]
+    assert root_result.status == CheckStatus.WARN
+    assert root_result.details["simulation_performed"] is False
 
     class BrokenIam:
         def simulate_principal_policy(self, **_kwargs):
@@ -267,9 +279,10 @@ def test_simulation_root_allowed_and_api_error_short_circuits() -> None:
         caller_arn="arn:aws:iam::123456789012:user/alice",
         iam_username="alice",
     )
-    result = simulate_required_permissions(user_ctx, BrokenIam())[0]
-    assert result.status == CheckStatus.FAIL
-    assert result.details["error"] == "cannot simulate"
+    results = simulate_required_permissions(user_ctx, BrokenIam())
+    assert len(results) > 1
+    assert {result.status for result in results} == {CheckStatus.FAIL}
+    assert all(result.details["error"] == "cannot simulate" for result in results)
 
 
 def test_simulate_group_paginates_and_context_entries() -> None:
@@ -308,14 +321,20 @@ def test_simulate_group_paginates_and_context_entries() -> None:
 
 
 def test_simulation_source_arn_converts_assumed_role() -> None:
-    assert _simulation_source_arn(
-        "arn:aws:sts::123456789012:assumed-role/DayRole/session",
-        "123456789012",
-    ) == "arn:aws:iam::123456789012:role/DayRole"
-    assert _simulation_source_arn(
-        "arn:aws:iam::123456789012:user/alice",
-        "123456789012",
-    ) == "arn:aws:iam::123456789012:user/alice"
+    assert (
+        _simulation_source_arn(
+            "arn:aws:sts::123456789012:assumed-role/DayRole/session",
+            "123456789012",
+        )
+        == "arn:aws:iam::123456789012:role/DayRole"
+    )
+    assert (
+        _simulation_source_arn(
+            "arn:aws:iam::123456789012:user/alice",
+            "123456789012",
+        )
+        == "arn:aws:iam::123456789012:user/alice"
+    )
 
 
 def test_decode_ssm_document_rejects_non_objects() -> None:
@@ -385,6 +404,9 @@ SharedStorage:
     assert shape.rendered_spot_vcpus == 16
     assert shape.rendered_ondemand_vcpus == 200
     assert shape.fsx_storage_gib == 4800
+    assert shape.fsx_storage_type == "SSD"
+    assert shape.fsx_read_cache_gib == 0
+    assert shape.fsx_throughput_capacity == 0
     assert shape.headnode_root_volume_type == "gp3"
 
 
@@ -419,7 +441,7 @@ def test_run_permission_checks_uses_only_read_only_checks(monkeypatch) -> None:
     monkeypatch.setattr(
         validation_module,
         "simulate_required_permissions",
-        lambda *_args: [CheckResult(id="iam.sim", status=CheckStatus.PASS, details={})],
+        lambda *_args, **_kwargs: [CheckResult(id="iam.sim", status=CheckStatus.PASS, details={})],
     )
 
     checks = run_permission_checks(ctx)
@@ -451,6 +473,15 @@ def test_run_quota_checks_covers_success_and_render_error(monkeypatch) -> None:
     )
     monkeypatch.setattr(
         validation_module,
+        "_check_slurm_accounting_shape",
+        lambda *_args: (
+            CheckResult(id="quota.accounting", status=CheckStatus.PASS, details={}),
+            0,
+            0,
+        ),
+    )
+    monkeypatch.setattr(
+        validation_module,
         "render_effective_cluster_yaml",
         lambda *_args: ("yaml", "cluster.yaml", "validation"),
     )
@@ -458,7 +489,9 @@ def test_run_quota_checks_covers_success_and_render_error(monkeypatch) -> None:
     monkeypatch.setattr(
         validation_module,
         "_check_rendered_vcpu_quotas",
-        lambda *_args: [CheckResult(id="quota.vcpu", status=CheckStatus.PASS, details={})],
+        lambda *_args, **_kwargs: [
+            CheckResult(id="quota.vcpu", status=CheckStatus.PASS, details={})
+        ],
     )
     monkeypatch.setattr(
         validation_module,
@@ -473,7 +506,14 @@ def test_run_quota_checks_covers_success_and_render_error(monkeypatch) -> None:
     monkeypatch.setattr(
         validation_module,
         "_check_storage_quotas",
-        lambda *_args: [CheckResult(id="quota.storage", status=CheckStatus.PASS, details={})],
+        lambda *_args, **_kwargs: [
+            CheckResult(id="quota.storage", status=CheckStatus.PASS, details={})
+        ],
+    )
+    monkeypatch.setattr(
+        validation_module,
+        "_check_cost_control_quotas",
+        lambda *_args: [CheckResult(id="quota.cost_control", status=CheckStatus.PASS, details={})],
     )
 
     checks = run_quota_checks(ctx, cfg, config_path="config.yaml")
@@ -481,6 +521,8 @@ def test_run_quota_checks_covers_success_and_render_error(monkeypatch) -> None:
     assert [check.id for check in checks] == [
         "quota.base",
         "quota.stack",
+        "quota.accounting",
+        "quota.cost_control",
         "quota.cluster_shape",
         "quota.vcpu",
         "quota.offerings",
@@ -501,7 +543,9 @@ def test_run_quota_checks_covers_success_and_render_error(monkeypatch) -> None:
 
 def test_baseline_stack_presence_pass_and_warn(monkeypatch) -> None:
     ctx = _Clients(region_az="us-west-2d", cloudformation=MagicMock())
-    monkeypatch.setattr(validation_module, "describe_stack_status", lambda *_args: "CREATE_COMPLETE")
+    monkeypatch.setattr(
+        validation_module, "describe_stack_status", lambda *_args: "CREATE_COMPLETE"
+    )
     assert _check_baseline_stack_presence(ctx).status == CheckStatus.PASS
 
     monkeypatch.setattr(validation_module, "describe_stack_status", lambda *_args: None)
@@ -512,6 +556,11 @@ def test_baseline_stack_presence_pass_and_warn(monkeypatch) -> None:
 
 def test_rendered_vcpu_quotas_cover_pass_fail_and_warn(monkeypatch) -> None:
     ctx = _Clients(service_quotas=MagicMock())
+    monkeypatch.setattr(
+        validation_module,
+        "_current_ec2_vcpu_usage",
+        lambda _ctx: (Counter(), Counter(), Counter(), ""),
+    )
     values = {"L-1216C47A": 500, "L-34B43A08": 10}
     monkeypatch.setattr(
         validation_module,
@@ -525,6 +574,147 @@ def test_rendered_vcpu_quotas_cover_pass_fail_and_warn(monkeypatch) -> None:
     monkeypatch.setattr(validation_module, "_fetch_quota_value", lambda *_args: None)
     checks = _check_rendered_vcpu_quotas(ctx, _shape())
     assert {check.status for check in checks} == {CheckStatus.WARN}
+
+
+def test_dl_spot_quota_uses_exact_aws_quota_code() -> None:
+    assert EC2_VCPU_QUOTA_CODES[("dl", "SPOT")][0] == "L-85EED4F7"
+
+
+def test_rendered_vcpu_quotas_separate_x_family_from_standard(monkeypatch) -> None:
+    shape = ClusterShape(
+        cluster_name="validation",
+        template_path="cluster.yaml",
+        headnode_instance_type="r7i.2xlarge",
+        headnode_vcpus=8,
+        headnode_root_volume_type="gp3",
+        headnode_root_volume_gib=100,
+        fsx_deployment_type="",
+        fsx_storage_type="",
+        fsx_storage_gib=0,
+        fsx_read_cache_gib=0,
+        fsx_throughput_capacity=0,
+        compute_resources=(
+            ComputeResourceDemand(
+                queue="spot",
+                capacity_type="SPOT",
+                name="mixed",
+                max_count=1,
+                instance_types=("r7i.2xlarge", "x8i.48xlarge"),
+                max_vcpus_per_instance=192,
+                demand_vcpus=192,
+            ),
+        ),
+        vcpus_by_instance_type={"r7i.2xlarge": 8, "x8i.48xlarge": 192},
+    )
+    ctx = _Clients(service_quotas=MagicMock())
+    monkeypatch.setattr(
+        validation_module,
+        "_current_ec2_vcpu_usage",
+        lambda _ctx: (Counter(), Counter(), Counter(), ""),
+    )
+    values = {"L-1216C47A": 100, "L-34B43A08": 100, "L-E3A00192": 128}
+    monkeypatch.setattr(
+        validation_module,
+        "_fetch_quota_value",
+        lambda _client, _service, quota_code: values[quota_code],
+    )
+
+    checks = _check_rendered_vcpu_quotas(ctx, shape)
+    by_id = {check.id: check for check in checks}
+
+    assert by_id["quota.rendered_spot_vcpu"].status == CheckStatus.PASS
+    assert by_id["quota.rendered_spot_vcpu.x"].status == CheckStatus.FAIL
+    assert by_id["quota.rendered_spot_vcpu.x"].details["rendered_demand_vcpus"] == 192
+
+
+def test_current_ec2_vcpu_usage_counts_open_spot_requests_without_double_counting(
+    monkeypatch,
+) -> None:
+    class Ec2:
+        def get_paginator(self, operation):
+            if operation == "describe_instances":
+                return _Paginator(
+                    [
+                        {
+                            "Reservations": [
+                                {
+                                    "Instances": [
+                                        {
+                                            "InstanceType": "r7i.2xlarge",
+                                            "InstanceLifecycle": "spot",
+                                        },
+                                        {"InstanceType": "c7i.48xlarge"},
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                )
+            if operation == "describe_spot_instance_requests":
+                return _Paginator(
+                    [
+                        {
+                            "SpotInstanceRequests": [
+                                {
+                                    "SpotInstanceRequestId": "sir-open",
+                                    "State": "open",
+                                    "LaunchSpecification": {"InstanceType": "x8i.48xlarge"},
+                                }
+                            ]
+                        }
+                    ]
+                )
+            raise AssertionError(operation)
+
+    monkeypatch.setattr(
+        validation_module,
+        "_describe_instance_vcpus",
+        lambda _ec2, _types: {
+            "r7i.2xlarge": 8,
+            "c7i.48xlarge": 192,
+            "x8i.48xlarge": 192,
+        },
+    )
+
+    usage, instance_counts, open_request_counts, request_error = _current_ec2_vcpu_usage(
+        _Clients(ec2=Ec2())
+    )
+
+    assert usage[("standard", "SPOT")] == 8
+    assert usage[("standard", "ONDEMAND")] == 192
+    assert usage[("x", "SPOT")] == 192
+    assert instance_counts[("standard", "SPOT")] == 1
+    assert open_request_counts[("x", "SPOT")] == 1
+    assert request_error == ""
+
+
+def test_rendered_spot_quota_is_unknown_when_open_requests_are_unreadable(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        validation_module,
+        "_current_ec2_vcpu_usage",
+        lambda _ctx: (Counter(), Counter(), Counter(), "spot requests denied"),
+    )
+    values = {"L-1216C47A": 500, "L-34B43A08": 500}
+    monkeypatch.setattr(
+        validation_module,
+        "_fetch_quota_value",
+        lambda _client, _service, quota_code: values[quota_code],
+    )
+
+    checks = _check_rendered_vcpu_quotas(
+        _Clients(service_quotas=MagicMock()),
+        _shape(spot_count=2),
+    )
+    by_id = {check.id: check for check in checks}
+
+    assert by_id["quota.rendered_ondemand_vcpu"].status == CheckStatus.PASS
+    assert by_id["quota.rendered_spot_vcpu"].status == CheckStatus.WARN
+    assert (
+        by_id["quota.rendered_spot_vcpu"].details["open_spot_request_usage_error"]
+        == "spot requests denied"
+    )
 
 
 def test_instance_type_offerings_cover_pass_missing_and_error() -> None:
@@ -563,9 +753,7 @@ def test_spot_market_signal_cover_empty_pass_and_warn() -> None:
     ctx = _Clients(region_az="us-west-2d", ec2=MagicMock())
     assert _check_spot_market_signal(ctx, _shape(spot_count=0)).status == CheckStatus.PASS
 
-    ctx.ec2.describe_spot_price_history.return_value = {
-        "SpotPriceHistory": [{"SpotPrice": "0.20"}]
-    }
+    ctx.ec2.describe_spot_price_history.return_value = {"SpotPriceHistory": [{"SpotPrice": "0.20"}]}
     assert _check_spot_market_signal(ctx, _shape()).status == CheckStatus.PASS
 
     ctx.ec2.describe_spot_price_history.return_value = {"SpotPriceHistory": []}
@@ -597,6 +785,41 @@ def test_storage_quotas_cover_gp3_scratch_non_gp3_and_no_fsx(monkeypatch) -> Non
     ]
     assert calls == [check.id for check in checks]
 
+    calls.clear()
+    checks = _check_storage_quotas(
+        ctx,
+        _shape(fsx_deployment_type="PERSISTENT_1", fsx_storage_type="SSD"),
+    )
+    assert [check.id for check in checks[1:]] == [
+        "quota.fsx.lustre_persistent_1_filesystems",
+        "quota.fsx.lustre_persistent_1_storage",
+    ]
+    assert checks[1].details["quota_name_fragments"] == ("Lustre Persistent_1 file systems",)
+    assert checks[2].details["quota_name_fragments"] == ("Lustre Persistent_1 storage capacity",)
+
+    calls.clear()
+    checks = _check_storage_quotas(
+        ctx,
+        _shape(
+            fsx_deployment_type="PERSISTENT_2",
+            fsx_storage_type="INTELLIGENT_TIERING",
+            fsx_storage_gib=0,
+            fsx_read_cache_gib=1200,
+            fsx_throughput_capacity=1000,
+        ),
+    )
+    assert [check.id for check in checks[1:]] == [
+        "quota.fsx.lustre_persistent_intelligent_tiering_filesystems",
+        "quota.fsx.lustre_persistent_intelligent_tiering_read_cache_storage",
+        "quota.fsx.lustre_persistent_intelligent_tiering_throughput_capacity",
+    ]
+    assert checks[2].details["quota_name_fragments"] == (
+        "Lustre Persistent Intelligent-Tiering SSD read cache storage capacity",
+    )
+    assert checks[3].details["quota_name_fragments"] == (
+        "Lustre Persistent Intelligent-Tiering throughput capacity",
+    )
+
     checks = _check_storage_quotas(
         ctx,
         _shape(headnode_root_volume_type="gp2", fsx_deployment_type="", fsx_storage_gib=0),
@@ -604,6 +827,69 @@ def test_storage_quotas_cover_gp3_scratch_non_gp3_and_no_fsx(monkeypatch) -> Non
     assert checks[0].status == CheckStatus.PASS
     assert checks[1].id == "quota.fsx.lustre_storage"
     assert checks[1].status == CheckStatus.PASS
+
+
+def test_persistent_2_shared_count_includes_ssd_and_intelligent_tiering(
+    monkeypatch,
+) -> None:
+    class Fsx:
+        def get_paginator(self, operation):
+            assert operation == "describe_file_systems"
+            return _Paginator(
+                [
+                    {
+                        "FileSystems": [
+                            {
+                                "FileSystemType": "LUSTRE",
+                                "Lifecycle": "AVAILABLE",
+                                "StorageType": "SSD",
+                                "StorageCapacity": 2400,
+                                "LustreConfiguration": {"DeploymentType": "PERSISTENT_2"},
+                            },
+                            {
+                                "FileSystemType": "LUSTRE",
+                                "Lifecycle": "AVAILABLE",
+                                "StorageType": "INTELLIGENT_TIERING",
+                                "LustreConfiguration": {
+                                    "DeploymentType": "PERSISTENT_2",
+                                    "ThroughputCapacity": 1000,
+                                    "DataReadCacheConfiguration": {"SizeGiB": 1200},
+                                },
+                            },
+                        ]
+                    }
+                ]
+            )
+
+    monkeypatch.setattr(
+        validation_module,
+        "_check_named_service_quota",
+        lambda _ctx, **kwargs: CheckResult(
+            id=kwargs["check_id"],
+            status=CheckStatus.PASS,
+            details={"current_value": 100_000},
+        ),
+    )
+    ctx = _Clients(service_quotas=MagicMock(), fsx=Fsx())
+
+    persistent_2 = _check_fsx_lustre_headroom(
+        ctx,
+        deployment_kind="persistent_2",
+        required_new_storage_gib=4800,
+    )
+    intelligent_tiering = _check_fsx_lustre_headroom(
+        ctx,
+        deployment_kind="persistent_intelligent_tiering",
+        required_new_storage_gib=0,
+        required_new_read_cache_gib=600,
+        required_new_throughput_capacity=500,
+    )
+
+    assert persistent_2[0].details["current_used"] == 2
+    assert persistent_2[1].details["current_used"] == 2400
+    assert intelligent_tiering[0].details["current_used"] == 2
+    assert intelligent_tiering[1].details["current_used"] == 1200
+    assert intelligent_tiering[2].details["current_used"] == 1000
 
 
 def test_named_service_quota_cover_exception_not_found_fail_and_pass(monkeypatch) -> None:
@@ -614,50 +900,62 @@ def test_named_service_quota_cover_exception_not_found_fail_and_pass(monkeypatch
         "_find_quota_by_name",
         lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("list denied")),
     )
-    assert _check_named_service_quota(
-        ctx,
-        check_id="quota.x",
-        service_code="fsx",
-        quota_name_fragments=("lustre",),
-        required_value=1,
-        required_unit="GiB",
-        remediation_subject="FSx",
-    ).status == CheckStatus.WARN
+    assert (
+        _check_named_service_quota(
+            ctx,
+            check_id="quota.x",
+            service_code="fsx",
+            quota_name_fragments=("lustre",),
+            required_value=1,
+            required_unit="GiB",
+            remediation_subject="FSx",
+        ).status
+        == CheckStatus.WARN
+    )
 
     monkeypatch.setattr(validation_module, "_find_quota_by_name", lambda *_args, **_kwargs: None)
-    assert _check_named_service_quota(
-        ctx,
-        check_id="quota.x",
-        service_code="fsx",
-        quota_name_fragments=("lustre",),
-        required_value=1,
-        required_unit="GiB",
-        remediation_subject="FSx",
-    ).status == CheckStatus.WARN
+    assert (
+        _check_named_service_quota(
+            ctx,
+            check_id="quota.x",
+            service_code="fsx",
+            quota_name_fragments=("lustre",),
+            required_value=1,
+            required_unit="GiB",
+            remediation_subject="FSx",
+        ).status
+        == CheckStatus.WARN
+    )
 
     monkeypatch.setattr(
         validation_module,
         "_find_quota_by_name",
         lambda *_args, **_kwargs: {"QuotaCode": "L-1", "QuotaName": "Lustre", "Value": 1},
     )
-    assert _check_named_service_quota(
-        ctx,
-        check_id="quota.x",
-        service_code="fsx",
-        quota_name_fragments=("lustre",),
-        required_value=2,
-        required_unit="GiB",
-        remediation_subject="FSx",
-    ).status == CheckStatus.FAIL
-    assert _check_named_service_quota(
-        ctx,
-        check_id="quota.x",
-        service_code="fsx",
-        quota_name_fragments=("lustre",),
-        required_value=1,
-        required_unit="GiB",
-        remediation_subject="FSx",
-    ).status == CheckStatus.PASS
+    assert (
+        _check_named_service_quota(
+            ctx,
+            check_id="quota.x",
+            service_code="fsx",
+            quota_name_fragments=("lustre",),
+            required_value=2,
+            required_unit="GiB",
+            remediation_subject="FSx",
+        ).status
+        == CheckStatus.FAIL
+    )
+    assert (
+        _check_named_service_quota(
+            ctx,
+            check_id="quota.x",
+            service_code="fsx",
+            quota_name_fragments=("lustre",),
+            required_value=1,
+            required_unit="GiB",
+            remediation_subject="FSx",
+        ).status
+        == CheckStatus.PASS
+    )
 
 
 def test_find_quota_by_name_uses_paginator_and_fallback_methods() -> None:
@@ -665,11 +963,14 @@ def test_find_quota_by_name_uses_paginator_and_fallback_methods() -> None:
     paged.get_paginator.return_value = _Paginator(
         [{"Quotas": [{"QuotaName": "Lustre Scratch storage capacity", "Value": 1000}]}]
     )
-    assert _find_quota_by_name(
-        paged,
-        service_code="fsx",
-        fragments=("Lustre", "storage"),
-    )["Value"] == 1000
+    assert (
+        _find_quota_by_name(
+            paged,
+            service_code="fsx",
+            fragments=("Lustre", "storage"),
+        )["Value"]
+        == 1000
+    )
 
     class NoPaginator:
         def list_service_quotas(self, **_kwargs):
@@ -678,11 +979,14 @@ def test_find_quota_by_name_uses_paginator_and_fallback_methods() -> None:
         def list_aws_default_service_quotas(self, **_kwargs):
             return {"Quotas": [{"QuotaName": "Storage for General Purpose SSD", "Value": 20}]}
 
-    assert _find_quota_by_name(
-        NoPaginator(),
-        service_code="ebs",
-        fragments=("general purpose",),
-    )["Value"] == 20
+    assert (
+        _find_quota_by_name(
+            NoPaginator(),
+            service_code="ebs",
+            fragments=("general purpose",),
+        )["Value"]
+        == 20
+    )
 
 
 def test_describe_instance_vcpus_and_coercion_helpers() -> None:
@@ -696,9 +1000,7 @@ def test_describe_instance_vcpus_and_coercion_helpers() -> None:
                 ]
             }
 
-    assert _describe_instance_vcpus(Ec2(), ["r7i.2xlarge", "r7i.2xlarge"]) == {
-        "r7i.2xlarge": 8
-    }
+    assert _describe_instance_vcpus(Ec2(), ["r7i.2xlarge", "r7i.2xlarge"]) == {"r7i.2xlarge": 8}
     with pytest.raises(ValueError, match="missing.type"):
         _describe_instance_vcpus(Ec2(), ["missing.type"])
     assert _coerce_nonnegative_int("0", "count") == 0

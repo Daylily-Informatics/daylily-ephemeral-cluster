@@ -488,12 +488,105 @@ Live delete is destructive. Use non-dry-run delete only after a separate explici
 ## AWS Validation
 
 ```bash
-dyec aws validate permissions --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --gap-analysis aws_permissions_gap.md
+dyec aws validate permissions --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG" --gap-analysis aws_permissions_gap.md
 dyec aws validate quotas --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG" --gap-analysis aws_quota_gap.md
+dyec aws validate all --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG" --gap-analysis aws_permissions_quotas.md
 dyec --json aws validate all --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
 ```
 
-Validation is read-only.
+`--profile` and `--region-az` are required; the implicit `default` profile is
+rejected. Pass the exact config so config-selected headnode, DRAGEN, budget,
+CUR, and optional Slurm-accounting requirements are included. The modes are:
+
+- `permissions`: operator IAM simulation, selected headnode runtime-policy
+  inspection, SSM/DRAGEN policy checks, and live budget, cost-center, CUR,
+  Glue, Athena, and optional Slurm-accounting readiness
+- `quotas`: rendered cluster demand, existing infrastructure headroom, and
+  current cost-control/accounting count limits
+- `all`: the complete permissions, readiness, and quota check set
+
+The expanded operator action groups cover AWS Budgets and billing views;
+Cost Explorer/tag reports; the two global DynamoDB cost-center tables; CUR 2.0
+BCM Data Exports and its required CUR/S3 permissions; Glue catalog management;
+Athena allocation queries; optional Slurm-accounting CloudFormation, EC2,
+Secrets Manager, IAM/pass-role, and tagging operations; and DRAGEN secret
+metadata/policy access. SNS permissions use the configured
+`daylily-<cluster_name>-heartbeat` topic ARN rather than a generic topic, and
+EC2 quota reads include `ec2:DescribeSpotInstanceRequests` so open Spot demand
+is not omitted. `iam.runtime_cost_policy` separately inspects the exact
+managed policy selected by `iam_policy_arn` for the headnode. It requires
+`budgets:ViewBudget`, `billing:GetBillingViewData`, and `dynamodb:GetItem` on
+both named cost-center tables. `iam.dragen_license_secret_policy` requires an
+exact-secret policy containing only `secretsmanager:DescribeSecret` and
+`secretsmanager:GetSecretValue`; validation never reads the secret value.
+Slurm and DRAGEN operator permissions are intentionally covered by the shared
+service action groups; their config-specific results are
+`slurm_accounting.readiness`, `quota.slurm_accounting_shape`, and
+`iam.dragen_license_secret_policy`, not separate simulation-group IDs.
+IAM cannot simulate an account-root ARN. Root-profile simulation rows are
+`WARN`/`UNKNOWN` and name the unverified SCP, RCP, and resource-policy
+boundaries; use the actual non-root operator role or user for simulated
+PASS/FAIL decisions.
+
+Read-only live readiness checks are reported independently:
+
+- `budget.readiness` for global/cluster existence, configured limits, actual
+  spend, monthly/USD shape, exact cluster-tag filters, thresholds, and the
+  configured subscriber
+- `cost_centers.registry_readiness` for table/idle contracts plus fresh usage
+  below every active cost center's cap
+- `cost_control.cur_export_readiness` for the exact bucket policy and export
+  destination/configuration, `HEALTHY` state, latest `DELIVERY_SUCCESS`, and
+  required schema
+- `cost_control.cur_catalog_readiness` for the exact managed table schema and
+  table/current-month-partition S3 locations
+- `cost_control.athena_readiness`
+- `slurm_accounting.readiness`, which records accounting as disabled or checks
+  the explicit baseline-VPC/stack contract, running EC2 host, client security
+  group, and secret metadata when enabled
+
+The explicit target AZ selects the cluster region. Current cost-center checks
+use the fixed `us-west-2` home-region contract, while CUR 2.0, the CUR S3
+bucket, Glue, and Athena use the fixed `us-east-1` billing-region contract; no
+alternate-region discovery or substitution is performed.
+
+The quota report evaluates current use plus incremental demand for network,
+gp3, FSx, and EC2 capacity. Rendered vCPUs are separated into Standard, X, F,
+G/VT, P, Inf, Trn, DL, HPC, and High Memory quota families; mixed compute
+resources must fit every family they permit. Current Spot consumption includes
+both running instances and open, unfulfilled requests. FSx checks use the exact
+Scratch, Persistent_1, Persistent_2, or Intelligent-Tiering quota names; the
+Intelligent-Tiering path also checks SSD read-cache and throughput capacity. It
+also adds:
+
+- `quota.budget_count`: current budgets plus any missing global/cluster budgets
+- `quota.dynamodb_table_count`: table quota plus missing registry/usage tables
+- `quota.s3_bucket_count`: general-purpose bucket quota plus the CUR bucket
+- `quota.cur2_export_count`: current CUR 2.0 exports plus the named DayEC export
+- `quota.athena_active_dml`: current queued/running workgroup queries plus one
+  allocation query against the regional applied quota; all workgroups are
+  enumerated and active DDL is excluded
+- `quota.cloudformation_stack_count`: accounting-stack headroom, conditional on
+  `slurm_accounting_enabled`
+- `quota.slurm_accounting_shape`: optional accounting instance demand; when
+  enabled its On-Demand vCPUs and 20 GiB gp3 volume are added to quota math,
+  and the report records two security groups, one network interface, one
+  secret, one IAM role/profile pair, and one CloudFormation stack as
+  incremental accounting demand
+- `quota.slurm_accounting.*`: current-use-plus-demand headroom for accounting
+  security groups, network interfaces, Secrets Manager secrets, IAM roles, and
+  IAM instance profiles; IAM counts/ceilings use `iam:GetAccountSummary`
+
+Validation is read-only. It can simulate create/update/delete permissions, but
+it performs no AWS mutation and starts no Athena query, SSM command/session, or
+cluster operation. `--gap-analysis` only writes the requested local Markdown
+report. The report is complete rather than gap-only: it starts with overall
+`SATISFIED` or `NOT SATISFIED`, maps PASS to `SATISFIED`, unverifiable WARN to
+`UNKNOWN`, and known missing/stale/drifted FAIL to `NOT SATISFIED`, then
+includes every check in a results matrix, admin
+follow-up with exact details, and the full set of passing checks. Any WARN or
+FAIL makes the overall result `NOT SATISFIED` and returns a validation-failure
+exit status. JSON mode emits the same checks and PASS/WARN/FAIL summary.
 
 ## Runtime, Environment, State, And Pricing
 

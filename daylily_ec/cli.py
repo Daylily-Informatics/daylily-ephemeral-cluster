@@ -689,7 +689,9 @@ def create(
             "--scan-slurm-accounting-db cannot be combined with --create-slurm-accounting-db."
         )
     if budget_project:
-        raise typer.BadParameter("--budget-project is retired; cluster budgets are named by cluster name.")
+        raise typer.BadParameter(
+            "--budget-project is retired; cluster budgets are named by cluster name."
+        )
     try:
         (
             global_spot_max_cost,
@@ -824,7 +826,9 @@ def _cost_center_context(profile: Optional[str], home_region: str):
 def cost_centers_ensure_registry(
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
-    table_name: str = typer.Option("dayec-cost-centers", "--table-name", help="Registry table name."),
+    table_name: str = typer.Option(
+        "dayec-cost-centers", "--table-name", help="Registry table name."
+    ),
     usage_table_name: str = typer.Option(
         "dayec-cost-center-usage",
         "--usage-table-name",
@@ -852,12 +856,16 @@ def cost_centers_create(
     name: str = typer.Argument(..., help="Cost-center name."),
     monthly_cap_usd: str = typer.Option(..., "--monthly-cap-usd", help="Monthly cap in USD."),
     allowed_user: Optional[List[str]] = typer.Option(None, "--allowed-user", help="Allowed user."),
-    allowed_group: Optional[List[str]] = typer.Option(None, "--allowed-group", help="Allowed group."),
+    allowed_group: Optional[List[str]] = typer.Option(
+        None, "--allowed-group", help="Allowed group."
+    ),
     owner_email: Optional[List[str]] = typer.Option(None, "--owner-email", help="Owner email."),
     notes: str = typer.Option("", "--notes", help="Free-text notes."),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
-    table_name: str = typer.Option("dayec-cost-centers", "--table-name", help="Registry table name."),
+    table_name: str = typer.Option(
+        "dayec-cost-centers", "--table-name", help="Registry table name."
+    ),
 ) -> None:
     """Create an active cost center."""
     from daylily_ec.aws.cost_centers import create_cost_center
@@ -883,15 +891,27 @@ def cost_centers_create(
 
 def cost_centers_edit(
     name: str = typer.Argument(..., help="Cost-center name."),
-    monthly_cap_usd: Optional[str] = typer.Option(None, "--monthly-cap-usd", help="Monthly cap in USD."),
-    allowed_user: Optional[List[str]] = typer.Option(None, "--allowed-user", help="Replacement allowed user list."),
-    allowed_group: Optional[List[str]] = typer.Option(None, "--allowed-group", help="Replacement allowed group list."),
-    owner_email: Optional[List[str]] = typer.Option(None, "--owner-email", help="Replacement owner email list."),
+    monthly_cap_usd: Optional[str] = typer.Option(
+        None, "--monthly-cap-usd", help="Monthly cap in USD."
+    ),
+    allowed_user: Optional[List[str]] = typer.Option(
+        None, "--allowed-user", help="Replacement allowed user list."
+    ),
+    allowed_group: Optional[List[str]] = typer.Option(
+        None, "--allowed-group", help="Replacement allowed group list."
+    ),
+    owner_email: Optional[List[str]] = typer.Option(
+        None, "--owner-email", help="Replacement owner email list."
+    ),
     notes: Optional[str] = typer.Option(None, "--notes", help="Replacement notes."),
-    status: Optional[str] = typer.Option(None, "--status", help="Replacement status: active or disabled."),
+    status: Optional[str] = typer.Option(
+        None, "--status", help="Replacement status: active or disabled."
+    ),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
-    table_name: str = typer.Option("dayec-cost-centers", "--table-name", help="Registry table name."),
+    table_name: str = typer.Option(
+        "dayec-cost-centers", "--table-name", help="Registry table name."
+    ),
 ) -> None:
     """Edit provided cost-center fields."""
     from daylily_ec.aws.cost_centers import edit_cost_center
@@ -921,7 +941,9 @@ def cost_centers_disable(
     reason: str = typer.Option(..., "--reason", help="Disable reason."),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
-    table_name: str = typer.Option("dayec-cost-centers", "--table-name", help="Registry table name."),
+    table_name: str = typer.Option(
+        "dayec-cost-centers", "--table-name", help="Registry table name."
+    ),
 ) -> None:
     """Disable a cost center."""
     from daylily_ec.aws.cost_centers import disable_cost_center
@@ -945,7 +967,9 @@ def cost_centers_show(
     name: str = typer.Argument(..., help="Cost-center name."),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
-    table_name: str = typer.Option("dayec-cost-centers", "--table-name", help="Registry table name."),
+    table_name: str = typer.Option(
+        "dayec-cost-centers", "--table-name", help="Registry table name."
+    ),
 ) -> None:
     """Show one cost center."""
     from daylily_ec.aws.cost_centers import get_cost_center
@@ -963,7 +987,9 @@ def cost_centers_list(
     status: str = typer.Option("all", "--status", help="active, disabled, system, or all."),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
-    table_name: str = typer.Option("dayec-cost-centers", "--table-name", help="Registry table name."),
+    table_name: str = typer.Option(
+        "dayec-cost-centers", "--table-name", help="Registry table name."
+    ),
 ) -> None:
     """List cost centers."""
     from daylily_ec.aws.cost_centers import list_cost_centers
@@ -1035,7 +1061,9 @@ def cost_centers_put_usage(
     ),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
-    table_name: str = typer.Option("dayec-cost-centers", "--table-name", help="Registry table name."),
+    table_name: str = typer.Option(
+        "dayec-cost-centers", "--table-name", help="Registry table name."
+    ),
     usage_table_name: str = typer.Option(
         "dayec-cost-center-usage",
         "--usage-table-name",
@@ -2426,7 +2454,22 @@ def _run_aws_validate_command(
             report.summary.get("FAIL", 0),
         )
     )
+    root_unverified = [
+        check
+        for check in report.checks
+        if check.id.startswith("iam.simulation.")
+        and check.status.value == "WARN"
+        and check.details.get("simulation_performed") is False
+    ]
+    if root_unverified:
+        output.warning(
+            "WARN iam.simulation.root_unverified: IAM cannot simulate the account-root "
+            f"principal; {len(root_unverified)} operator permission groups are UNKNOWN. "
+            "Use the actual non-root operator profile for PASS/FAIL decisions."
+        )
     for check in report.checks:
+        if check in root_unverified:
+            continue
         if check.status.value == "PASS":
             continue
         line = f"{check.status.value} {check.id}"
@@ -2437,11 +2480,11 @@ def _run_aws_validate_command(
         else:
             output.warning(line)
     if gap_analysis is not None:
-        output.print_text(f"Gap analysis written: {gap_analysis}")
+        output.print_text(f"Validation report written: {gap_analysis}")
     if rc == 0:
         output.success("AWS validation passed.")
     else:
-        output.error("AWS validation found permission or quota gaps.")
+        output.error("AWS validation found permission, readiness, or quota gaps.")
     raise SystemExit(rc)
 
 
@@ -2459,12 +2502,12 @@ def aws_validate_permissions(
     config: Optional[str] = typer.Option(
         None,
         "--config",
-        help="Daylily config path. Accepted for report context.",
+        help="Daylily config path used for runtime-policy and cost-control readiness.",
     ),
     gap_analysis: Optional[Path] = typer.Option(
         None,
         "--gap-analysis",
-        help="Write an AWS-admin Markdown gap analysis report.",
+        help="Write the complete AWS permissions, readiness, and quotas Markdown report.",
     ),
 ) -> None:
     """Validate AWS permissions needed by Daylily."""
@@ -2497,7 +2540,7 @@ def aws_validate_quotas(
     gap_analysis: Optional[Path] = typer.Option(
         None,
         "--gap-analysis",
-        help="Write an AWS-admin Markdown gap analysis report.",
+        help="Write the complete AWS permissions, readiness, and quotas Markdown report.",
     ),
 ) -> None:
     """Validate AWS quotas needed by the rendered Daylily cluster."""
@@ -2525,12 +2568,12 @@ def aws_validate_all(
     config: Optional[str] = typer.Option(
         None,
         "--config",
-        help="Daylily config path to render for quota demand.",
+        help="Daylily config path used for readiness checks and rendered quota demand.",
     ),
     gap_analysis: Optional[Path] = typer.Option(
         None,
         "--gap-analysis",
-        help="Write an AWS-admin Markdown gap analysis report.",
+        help="Write the complete AWS permissions, readiness, and quotas Markdown report.",
     ),
 ) -> None:
     """Validate AWS permissions and quotas needed by Daylily."""
@@ -5121,8 +5164,7 @@ def tests_command_catalog(
         ...,
         "--command-codes",
         help=(
-            "Comma/space-separated catalog command ids, dyec-released-core, "
-            "or dyec-released-all."
+            "Comma/space-separated catalog command ids, dyec-released-core, or dyec-released-all."
         ),
     ),
     evidence_s3_uri: str = typer.Option(

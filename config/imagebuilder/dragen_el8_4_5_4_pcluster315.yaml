@@ -1,6 +1,6 @@
 Region: us-west-2
 Image:
-  Name: dragen-el8-454-pc315-alma1-20260710
+  Name: dragen-el8-454-pc315-alma2-20260710
   RootVolume:
     Size: 100
 Build:
@@ -22,6 +22,6 @@ Build:
 DevSettings:
   NodePackage: s3://lsmc-dayoa-references-usw2/runtime_assets/pcluster_backports/almalinux8/v3.15.0/fb900dd94b8bb1ca97334c499d4b7d27c5a9ebb6/aws-parallelcluster-node-3.15.0-56267ba9928832d5a1414753f99365574a6b89f3.tgz
   Cookbook:
-    ChefCookbook: s3://lsmc-dayoa-references-usw2/runtime_assets/pcluster_backports/almalinux8/v3.15.0/fb900dd94b8bb1ca97334c499d4b7d27c5a9ebb6/aws-parallelcluster-cookbook-3.15.0-16a84e460c73222bde9076286c8b1574e391e6e6.tgz
+    ChefCookbook: s3://lsmc-dayoa-references-usw2/runtime_assets/pcluster_backports/almalinux8/v3.15.0/fb900dd94b8bb1ca97334c499d4b7d27c5a9ebb6/aws-parallelcluster-cookbook-3.15.0-beed3d3f15b7.tgz
   DisableKernelUpdate: true
   TerminateInstanceOnFailure: true
