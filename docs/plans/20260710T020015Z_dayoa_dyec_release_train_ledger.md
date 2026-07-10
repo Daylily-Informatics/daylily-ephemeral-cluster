@@ -27,9 +27,19 @@ Controlling request: release all current dirty DayOA work on `jem-dev`, pin that
 | REL-003 | DYEC | Pin DayOA `10.0.77` in `pyproject.toml`, active and packaged config, overrides, and tests | SUCCESS | config_or_startup_contract | Gate 2 | Seven active pin files updated; source/payload catalogs byte-match; historical `10.0.76` run evidence retained | Active dependency, catalog, override, and contract pins now use DayOA `10.0.77`. |
 | REL-004 | DYEC | Verify and commit every current dirty/untracked change, push `jem-dev`, create and push annotated `10.0.130` | SUCCESS | feature_implementation | Gate 5 | Combined focused suite -> `244 passed`; commit `5e931485`; branch and annotated tag `10.0.130` pushed | All pre-existing dirty/untracked work plus the DayOA pin and release ledger were published. Generated TSV terminal delimiters were preserved. |
 | REL-005 | DYEC | Self-pin active and packaged DYEC config to `10.0.130` and update contract pins | SUCCESS | config_or_startup_contract | Gate 2 | Both global configs byte-match; override and test pins agree; focused suite -> `21 passed`; `git diff --check` passed | Active and packaged DYEC defaults now self-pin `10.0.130`. |
-| REL-006 | DYEC | Verify self-pin, commit, push `jem-dev`, create and push annotated `10.0.131` | IN_PROGRESS | feature_implementation | Gate 5 | Tag confirmed unused locally after remote tag fetch | Final release commit in progress. |
-| REL-007 | Both | Verify remote branches, annotated tag objects, exact tag commits, and clean worktrees | OPEN | contract_test | Gate 5 | Final acceptance pending | |
+| REL-006 | DYEC | Verify self-pin, commit, push `jem-dev`, create and push annotated `10.0.131` | SUCCESS | feature_implementation | Gate 5 | Commit `1a99c191`; `git push origin jem-dev` succeeded; annotated tag `10.0.131` pushed | Final DYEC self-pin release published. |
+| REL-007 | Both | Verify remote branches, annotated tag objects, exact tag commits, and clean worktrees | SUCCESS | contract_test | Gate 5 | Both branches reported `0 0` ahead/behind; remote peeled tags match release commits; all tag types are `tag`; release worktrees clean | Release train verified against remote state. |
 
 ## Release Evidence
 
-Evidence will be appended as each row reaches a terminal state.
+- DayOA `10.0.77`: annotated tag object `ee874cf7`, peeled commit `d81108d7f59bd2f4c31aa5045afbdce5d40977d5`.
+- DYEC `10.0.130`: annotated tag object `fc66248a`, peeled commit `5e931485f5de2694368436bc6c6eb9abcb667709`.
+- DYEC `10.0.131`: annotated tag object `4d260355`, peeled commit `1a99c1914613a876065afaa7ee378d83a059dd6f`.
+- DayOA verification: focused RTG/profile tests `4 passed`; old-memory-pin negative sweep and whitespace check passed.
+- DYEC first release verification: combined Intel-template, packaged-resource, repository-catalog, fork-contract, and CLI suite `244 passed`; source/payload parity checks passed.
+- DYEC self-pin verification: focused packaged/default/fork suite `21 passed`; source/payload global configs byte-match.
+- Active final pins: DayOA dependency/catalog `10.0.77`; DYEC active and packaged self-pin `10.0.130`.
+
+## Terminal Report
+
+All seven rows are terminal `SUCCESS`. The requested DayOA release, DYEC DayOA-pin release, and DYEC self-pin release are complete. No tag was moved or overwritten.
