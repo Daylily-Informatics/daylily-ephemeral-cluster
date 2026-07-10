@@ -289,6 +289,60 @@ def test_complete_genomics_slim_fixture_can_be_written(tmp_path: Path) -> None:
     assert "\tpass_through\t/fsx/staging/staged_external_sequencing_data\t" in text
 
 
+def test_write_sample_manifest_uses_command_specific_templates(tmp_path: Path) -> None:
+    catalog = load_repository_catalog()
+    ilmn_dir = tmp_path / "ilmn"
+    hybrid_dir = tmp_path / "hybrid"
+    inflection_dir = tmp_path / "inflection"
+    ilmn_dir.mkdir()
+    hybrid_dir.mkdir()
+    inflection_dir.mkdir()
+
+    ilmn_manifest = write_sample_manifest(
+        catalog.get_command("illumina_hg002_kitchensink_multiqc"), ilmn_dir
+    )
+    hybrid_manifest = write_sample_manifest(
+        catalog.get_command("hybrid_ilmn_ont_snv_kitchensink"), hybrid_dir
+    )
+    inflection_manifest = write_sample_manifest(
+        catalog.get_command("inflection-bjuice-product-v0.1"), inflection_dir
+    )
+
+    with ilmn_manifest.open(newline="", encoding="utf-8") as handle:
+        ilmn_row = next(csv.DictReader(handle, delimiter="\t"))
+    with hybrid_manifest.open(newline="", encoding="utf-8") as handle:
+        hybrid_row = next(csv.DictReader(handle, delimiter="\t"))
+    with inflection_manifest.open(newline="", encoding="utf-8") as handle:
+        inflection_row = next(csv.DictReader(handle, delimiter="\t"))
+
+    assert ilmn_row["SAMPLE_ID"] == "HG002"
+    assert ilmn_row["EXTERNAL_SAMPLE_ID"] == "HG002"
+    assert ilmn_row["EXPERIMENTID"] == "5x"
+    assert "HG002_5x_R1.fastq.gz" in ilmn_row["ILMN_R1_FQ"]
+    assert "HG002_5x_R2.fastq.gz" in ilmn_row["ILMN_R2_FQ"]
+    assert ilmn_row["ILMN_R1_FQ"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
+    assert ilmn_row["ILMN_R2_FQ"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
+    assert ilmn_row["STAGE_DIRECTIVE"] == "pass_through"
+
+    assert hybrid_row["SAMPLE_ID"] == "HG003"
+    assert hybrid_row["EXTERNAL_SAMPLE_ID"] == "HG003"
+    assert hybrid_row["EXPERIMENTID"] == "SR5x-ONT5x"
+    assert hybrid_row["ILMN_R1_FQ"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
+    assert hybrid_row["ILMN_R2_FQ"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
+    assert hybrid_row["ONT_CRAM"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
+    assert "HG003_5x_R1.fastq.gz" in hybrid_row["ILMN_R1_FQ"]
+    assert "HG003_5x_R2.fastq.gz" in hybrid_row["ILMN_R2_FQ"]
+    assert "HG003_5x.cleaned.cram" in hybrid_row["ONT_CRAM"]
+    assert hybrid_row["STAGE_DIRECTIVE"] == "pass_through"
+
+    assert inflection_row["SAMPLE_ID"] == "HG003"
+    assert inflection_row["EXPERIMENTID"] == "SR5x-ONT5x"
+    assert "HG003_5x_R1.fastq.gz" in inflection_row["ILMN_R1_FQ"]
+    assert "HG003_5x_R2.fastq.gz" in inflection_row["ILMN_R2_FQ"]
+    assert "HG003_5x.cleaned.cram" in inflection_row["ONT_CRAM"]
+    assert inflection_row["STAGE_DIRECTIVE"] == "pass_through"
+
+
 def test_prepare_run_mounts_blocks_then_creates_missing() -> None:
     catalog = load_repository_catalog()
     command = catalog.get_command("ont_run_qc")

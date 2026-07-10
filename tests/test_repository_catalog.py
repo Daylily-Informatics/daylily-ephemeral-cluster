@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.75"
+DAYOA_BLESSED_TAG = "10.0.76"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -46,6 +46,9 @@ UNVALIDATED_COMMAND_IDS = {
     "ultima_pangenome_snv",
 }
 SIMPLE_TEST_DY_COMMAND = "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
+HIOMR_STRICT_SLIM_MANIFEST = (
+    "examples/staging/hybrid_ilmn_ont_hg003_5x5x/analysis_samples_manifest.tsv"
+)
 
 
 def _minimal_run_catalog_yaml(
@@ -495,6 +498,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert ultima_pangenome.compatible_data_modes == ["ultima_solo"]
 
     hybrid_ilmn_ont = catalog.get_command("hybrid_ilmn_ont_snv")
+    assert hybrid_ilmn_ont.sample_manifest_template == HIOMR_STRICT_SLIM_MANIFEST
     assert hybrid_ilmn_ont.aligners == ["sent"]
     assert hybrid_ilmn_ont.dedupers == ["na"]
     assert hybrid_ilmn_ont.snv_callers == ["sentdhiomr"]
@@ -555,6 +559,10 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     ]
     assert illumina_kitchensink.genome == "hg38"
     assert illumina_kitchensink.jobs == 200
+    assert (
+        illumina_kitchensink.sample_manifest_template
+        == "examples/staging/ilmn_hg002_solo/analysis_samples_manifest.tsv"
+    )
     assert illumina_kitchensink.aligners == ["sent"]
     assert illumina_kitchensink.dedupers == ["dmd"]
     assert illumina_kitchensink.snv_callers == ["sentd"]
@@ -623,6 +631,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "multiqc_qc=" in ont_kitchensink.dy_command
 
     hybrid_kitchensink = catalog.get_command("hybrid_ilmn_ont_snv_kitchensink")
+    assert hybrid_kitchensink.sample_manifest_template == HIOMR_STRICT_SLIM_MANIFEST
     assert hybrid_kitchensink.validation_runs == []
     assert hybrid_kitchensink.targets == [
         "produce_snv_concordances",
@@ -648,6 +657,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     )
 
     inflection_bjuice = catalog.get_command("inflection-bjuice-product-v0.1")
+    assert inflection_bjuice.sample_manifest_template == HIOMR_STRICT_SLIM_MANIFEST
     assert inflection_bjuice.validation_runs == []
     assert inflection_bjuice.targets == [
         "produce_sent_align",

@@ -10,9 +10,13 @@ explicit DayOA S3 role URIs:
 The ONT FASTQ example intentionally points at the PCA100 sequencing-data bucket
 so prefix parsing is exercised against the observed ONT run layout.
 
-Every row uses `STAGE_DIRECTIVE=stage_data`, so raw reads, aligned artifacts,
-and concordance data are copied into the timestamped remote stage before the
-generated `samples.tsv` and `units.tsv` point at FSx paths.
+Most generic examples use `STAGE_DIRECTIVE=stage_data`, so raw reads, aligned
+artifacts, and concordance data are copied into the timestamped remote stage
+before the generated `samples.tsv` and `units.tsv` point at FSx paths.
+
+Command-specific catalog templates that exercise default cluster-build mounted
+read data, such as `ilmn_hg002_solo` and `hybrid_ilmn_ont_hg003_5x5x`, use
+`STAGE_DIRECTIVE=pass_through` with `/fsx/data` and `/fsx/references` paths.
 
 Run-level metric files can be copied into the same timestamped stage with a
 repeatable `--run-metric-staging RUN_UID:PLATFORM:FOFN` option. Each FOFN line

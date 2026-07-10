@@ -825,12 +825,16 @@ def prepare_command_inputs(
 
 
 def write_sample_manifest(command: AnalysisCommand, output_dir: Path) -> Path:
-    mode = next((mode for mode in command.compatible_data_modes if mode in MODE_MANIFESTS), "")
-    if not mode:
-        raise TestsRunnerError(
-            f"Command {command.command_id} has no supported sample manifest mode."
-        )
-    source = Path.cwd() / MODE_MANIFESTS[mode]
+    explicit_template = getattr(command, "sample_manifest_template", "")
+    if explicit_template:
+        source = Path.cwd() / explicit_template
+    else:
+        mode = next((mode for mode in command.compatible_data_modes if mode in MODE_MANIFESTS), "")
+        if not mode:
+            raise TestsRunnerError(
+                f"Command {command.command_id} has no supported sample manifest mode."
+            )
+        source = Path.cwd() / MODE_MANIFESTS[mode]
     if not source.is_file():
         raise TestsRunnerError(f"Sample manifest template not found: {source}")
     destination = output_dir / "analysis_samples.tsv"

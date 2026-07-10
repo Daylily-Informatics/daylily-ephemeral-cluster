@@ -40,6 +40,19 @@ EXAMPLES = {
         "rows": 3,
         "unit_fields": ("ILMN_R1_PATH", "ILMN_R2_PATH", module.ONT_CRAM),
     },
+    "hybrid_ilmn_ont_hg003_5x5x": {
+        "rows": 1,
+        "unit_fields": ("ILMN_R1_PATH", "ILMN_R2_PATH", module.ONT_CRAM),
+        "stage_directive": "pass_through",
+        "allowed_roots": ("/fsx/data/genomic_data/", "/fsx/references/genomic_data/"),
+    },
+    "ilmn_hg002_solo": {
+        "rows": 1,
+        "unit_fields": ("ILMN_R1_PATH", "ILMN_R2_PATH"),
+        "stage_directive": "pass_through",
+        "allowed_roots": ("/fsx/data/genomic_data/", "/fsx/references/genomic_data/"),
+        "sample_id": "HG002",
+    },
     "pacbio_solo": {
         "rows": 3,
         "unit_fields": (module.PB_BAM,),
@@ -143,6 +156,8 @@ def test_staging_example_manifests_have_supported_schema_and_s3_sources() -> Non
         "README.md",
         "complete_genomics_solo",
         "hybrid_ilmn_ont",
+        "hybrid_ilmn_ont_hg003_5x5x",
+        "ilmn_hg002_solo",
         "ilmn_solo",
         "ont_fastq_solo",
         "ont_solo",
@@ -155,17 +170,19 @@ def test_staging_example_manifests_have_supported_schema_and_s3_sources() -> Non
         assert len(rows) == expected["rows"]
         assert set(header) <= module.ALLOWED_MANIFEST_FIELDS
         for row in rows:
-            assert row[module.STAGE_DIRECTIVE] == "stage_data"
+            assert row[module.STAGE_DIRECTIVE] == expected.get("stage_directive", "stage_data")
             assert row[module.STAGE_TARGET] == "/fsx/staging/staged_external_sequencing_data"
             assert _has_source_group(row)
             for field in SOURCE_PATH_FIELDS:
                 value = (row.get(field) or "").strip()
                 if value:
-                    allowed_roots = (
-                        (SEQUENCING_ROOT,)
-                        if field == module.ONT_FASTQ_PREFIX
-                        else (REFERENCE_ROOT, CONTROL_DATA_ROOT)
-                    )
+                    allowed_roots = expected.get("allowed_roots")
+                    if allowed_roots is None:
+                        allowed_roots = (
+                            (SEQUENCING_ROOT,)
+                            if field == module.ONT_FASTQ_PREFIX
+                            else (REFERENCE_ROOT, CONTROL_DATA_ROOT)
+                        )
                     assert value.startswith(allowed_roots), (
                         f"{example_name} has unsupported source path in {field}: {value}"
                     )
@@ -282,7 +299,7 @@ def test_staging_example_manifests_mock_stage_expected_outputs(
     assert len(samples_rows) == 1
     assert len(units_rows) == expected["rows"]
     assert run_ids
-    assert samples_rows[0]["SAMPLEID"] == "HG003"
+    assert samples_rows[0]["SAMPLEID"] == expected.get("sample_id", "HG003")
     assert samples_rows[0]["SAMPLESOURCE"] == "blood"
     assert samples_rows[0]["SAMPLECLASS"] == "research"
     assert samples_rows[0]["BIOLOGICAL_SEX"] == "male"

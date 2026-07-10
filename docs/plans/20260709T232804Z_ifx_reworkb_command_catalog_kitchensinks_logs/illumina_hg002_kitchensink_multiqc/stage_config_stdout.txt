@@ -1,0 +1,4 @@
+Precheck passed: rows checked=1, samples checked=1, source objects checked=32, concordance directories checked=1.
+Generated configuration files:
+  samples.tsv -> docs/plans/20260709T232804Z_ifx_reworkb_command_catalog_kitchensinks_logs/illumina_hg002_kitchensink_multiqc/config/20260709T232833Z_5fa477b4_samples.tsv
+  units.tsv   -> docs/plans/20260709T232804Z_ifx_reworkb_command_catalog_kitchensinks_logs/illumina_hg002_kitchensink_multiqc/config/20260709T232833Z_5fa477b4_units.tsv

@@ -458,6 +458,7 @@ class AnalysisCommand(BaseModel):
     type: str
     validated_version: str
     test_data_profile: str
+    sample_manifest_template: str = ""
     display_name: str
     description: str = ""
     datasource: str
@@ -541,6 +542,17 @@ class AnalysisCommand(BaseModel):
             cleaned_key = _clean_id(key, field_name="runtime_parameters key")
             cleaned_value = _clean_id(str(value), field_name=f"runtime_parameters.{cleaned_key}")
             cleaned[cleaned_key] = cleaned_value
+        return cleaned
+
+    @field_validator("sample_manifest_template")
+    @classmethod
+    def _validate_sample_manifest_template(cls, value: str) -> str:
+        cleaned = str(value or "").strip()
+        if not cleaned:
+            return ""
+        path = Path(cleaned)
+        if path.is_absolute() or ".." in path.parts:
+            raise ValueError("sample_manifest_template must be a relative path without '..'")
         return cleaned
 
     @model_validator(mode="after")
