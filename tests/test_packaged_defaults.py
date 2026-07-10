@@ -285,6 +285,9 @@ def test_almalinux_dragen_wrapper_hydrates_secret_without_logging_contents() -> 
     ).read_text(encoding="utf-8")
 
     assert 'license_secret_arn="${5:?license secret ARN argument is required}"' in script
+    assert 'node_role="${6:?node role argument is required}"' in script
+    assert "headnode|dragen|cpu" in script
+    assert '"${node_role}"' in script
     assert "aws secretsmanager get-secret-value" in script
     assert 'config_dir="/home/ubuntu/.config"' in script
     assert 'install -d -m 0700 -o ubuntu -g ubuntu "${config_dir}"' in script
@@ -292,6 +295,34 @@ def test_almalinux_dragen_wrapper_hydrates_secret_without_logging_contents() -> 
     assert 'chmod 0600 "${credential_path}"' in script
     assert "echo \"${secret_value}\"" not in script
     subprocess.run(["bash", "-n"], input=script, text=True, check=True)
+
+
+def test_dragen_template_is_packaged_with_explicit_mixed_node_roles() -> None:
+    relative_path = (
+        "config/day_cluster/dragen/us-west-2/us-west-2b/"
+        "prod_cluster_dragen_us-west-2b.yaml"
+    )
+    source = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+    packaged = (REPO_ROOT / "daylily_ec/resources/payload" / relative_path).read_text(
+        encoding="utf-8"
+    )
+    assert packaged == source
+
+    payload = yaml.safe_load(source)
+    queues = payload["Scheduling"]["SlurmQueues"]
+    assert [queue["Name"] for queue in queues] == ["dragen", "i192", "i192nvme"]
+    assert queues[0]["CustomActions"]["OnNodeConfigured"]["Args"][-1] == "dragen"
+    for queue in queues[1:]:
+        action = queue["CustomActions"]["OnNodeConfigured"]
+        assert action["Script"].endswith("/post_install_rhel8_dragen.sh")
+        assert action["Args"][-1] == "cpu"
+        assert queue["ComputeResources"][0]["Efa"]["Enabled"] is False
+
+    base_script = (
+        REPO_ROOT / "config/day_cluster/post_install_rhel8_dragen.sh"
+    ).read_text(encoding="utf-8")
+    assert 'node_role="${5:?node role argument is required}"' in base_script
+    assert "Skipping DRAGEN FPGA validation on explicitly configured CPU compute node" in base_script
 
 
 def test_post_install_s3_executable_install_is_not_sha256_pinned() -> None:

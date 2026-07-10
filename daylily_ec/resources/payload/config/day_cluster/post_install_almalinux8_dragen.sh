@@ -7,8 +7,17 @@ boot_s3_uri="${2:?cluster boot-config S3 URI is required}"
 spot_price_warn_threshold="${3:?spot price warn threshold argument is required}"
 storage_mode="${4:?storage mode argument is required}"
 license_secret_arn="${5:?license secret ARN argument is required}"
+node_role="${6:?node role argument is required}"
 base_script="$(mktemp /tmp/daylily-rhel8-node-config.XXXXXX)"
 credential_tmp=""
+
+case "${node_role}" in
+  headnode|dragen|cpu) ;;
+  *)
+    echo "ERROR: unsupported AlmaLinux cluster node role: ${node_role}" >&2
+    exit 1
+    ;;
+esac
 
 cleanup() {
   rm -f "${base_script}"
@@ -28,7 +37,8 @@ chmod 0700 "${base_script}"
   "${region}" \
   "${boot_s3_uri}" \
   "${spot_price_warn_threshold}" \
-  "${storage_mode}"
+  "${storage_mode}" \
+  "${node_role}"
 
 if ! id ubuntu >/dev/null 2>&1; then
   echo "ERROR: ubuntu user is missing after node configuration" >&2

@@ -28,6 +28,7 @@ boot_s3_uri="${2:?cluster boot-config S3 URI is required}"
 boot_s3_uri="${boot_s3_uri%/}"
 spot_price_warn_threshold="${3:?spot price warn threshold argument is required}"
 storage_mode="${4:?storage mode argument is required; use fsx or nofsx}"
+node_role="${5:?node role argument is required}"
 case "${storage_mode}" in
   fsx|nofsx) ;;
   *)
@@ -908,6 +909,19 @@ validate_dragen_host() {
       ;;
     *)
       echo "ERROR: unsupported ParallelCluster node type for DRAGEN validation: ${node_type}" >&2
+      exit 1
+      ;;
+  esac
+
+  case "${node_role}" in
+    dragen)
+      ;;
+    cpu)
+      echo "Skipping DRAGEN FPGA validation on explicitly configured CPU compute node $(hostname)."
+      return 0
+      ;;
+    *)
+      echo "ERROR: unsupported compute node role for host validation: ${node_role}" >&2
       exit 1
       ;;
   esac
