@@ -31,6 +31,7 @@ class OperationalBackport:
     parallelcluster_version: str
     cli_repository: str
     cli_commit: str
+    cli_source_root: Path
     cli_executable: Path
     cookbook_repository: str
     cookbook_commit: str
@@ -76,6 +77,57 @@ def load_operational_backport(path: str | Path) -> OperationalBackport:
         _required_string(cli, "commit", "parallelcluster.commit"),
         "parallelcluster.commit",
     )
+    source_root_value = _required_string(
+        cli,
+        "source_root",
+        "parallelcluster.source_root",
+    )
+    cli_source_root = Path(source_root_value).expanduser()
+    if not cli_source_root.is_absolute() or not cli_source_root.is_dir():
+        raise ValueError(
+            "parallelcluster.source_root must be an existing absolute directory."
+        )
+    cli_source_root = cli_source_root.resolve()
+    git_top_level = Path(
+        _run_checkout_git(
+            cli_source_root,
+            ["rev-parse", "--show-toplevel"],
+            label="parallelcluster.source_root",
+        )
+    ).resolve()
+    if git_top_level != cli_source_root:
+        raise ValueError(
+            "parallelcluster.source_root must be the exact Git worktree root."
+        )
+    checkout_repository = _run_checkout_git(
+        cli_source_root,
+        ["remote", "get-url", "origin"],
+        label="parallelcluster.repository",
+    )
+    if checkout_repository != cli_repository:
+        raise ValueError(
+            "parallelcluster.source_root origin does not match "
+            "parallelcluster.repository."
+        )
+    checkout_commit = _run_checkout_git(
+        cli_source_root,
+        ["rev-parse", "HEAD"],
+        label="parallelcluster.commit",
+    )
+    if checkout_commit != cli_commit:
+        raise ValueError(
+            "parallelcluster.source_root HEAD does not match parallelcluster.commit."
+        )
+    tracked_changes = _run_checkout_git(
+        cli_source_root,
+        ["status", "--porcelain", "--untracked-files=no"],
+        label="parallelcluster.source_root cleanliness",
+    )
+    if tracked_changes:
+        raise ValueError(
+            "parallelcluster.source_root has tracked changes; the operational checkout "
+            "must be clean."
+        )
     executable_value = _required_string(cli, "executable", "parallelcluster.executable")
     cli_executable = Path(executable_value).expanduser()
     if not cli_executable.is_absolute():
@@ -85,6 +137,13 @@ def load_operational_backport(path: str | Path) -> OperationalBackport:
             "parallelcluster.executable must exist and be executable: "
             f"{cli_executable}"
         )
+    cli_executable = cli_executable.resolve()
+    try:
+        cli_executable.relative_to(cli_source_root)
+    except ValueError as exc:
+        raise ValueError(
+            "parallelcluster.executable must be located inside parallelcluster.source_root."
+        ) from exc
     version_probe = subprocess.run(
         [str(cli_executable), "version"],
         check=False,
@@ -152,7 +211,8 @@ def load_operational_backport(path: str | Path) -> OperationalBackport:
         parallelcluster_version=version,
         cli_repository=cli_repository,
         cli_commit=cli_commit,
-        cli_executable=cli_executable.resolve(),
+        cli_source_root=cli_source_root,
+        cli_executable=cli_executable,
         cookbook_repository=cookbook_repository,
         cookbook_commit=cookbook_commit,
         cookbook_bundle_uri=cookbook_bundle_uri,
@@ -270,6 +330,18 @@ def _validate_commit(value: str, label: str) -> str:
     if not _COMMIT_PATTERN.fullmatch(value):
         raise ValueError(f"{label} must be an exact lowercase 40-character git commit.")
     return value
+
+
+def _run_checkout_git(source_root: Path, args: list[str], *, label: str) -> str:
+    result = subprocess.run(
+        ["git", "-C", str(source_root), *args],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise ValueError(f"{label} could not be verified as a Git worktree.")
+    return result.stdout.strip()
 
 
 def _validate_https_repository(value: str, label: str) -> str:

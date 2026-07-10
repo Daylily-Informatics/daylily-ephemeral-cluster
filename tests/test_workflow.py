@@ -1072,7 +1072,7 @@ class TestRunCreateWorkflow:
         [
             {"global_spot_max_cost": 10.01},
             {"spot_cost_limit_pct": 0.99},
-            {"spot_cost_limit_pct": 1.41},
+            {"spot_cost_limit_pct": 2.21},
             {"write_spot_pricing_warn_threshold": 0},
         ],
     )
@@ -1205,7 +1205,7 @@ class TestRunCreateWorkflow:
 
         assert records["rc"] == EXIT_SUCCESS
         substitutions = records["render_substitutions"]
-        assert substitutions["REGSUB_SPOT_PRICE_WARN_THRESHOLD"] == '"6.00"'
+        assert substitutions["REGSUB_SPOT_PRICE_WARN_THRESHOLD"] == '"8.00"'
         table_path = (
             records["config_dir"]
             / f"{records['render_cluster_name']}-{records['render_run_id']}.md"

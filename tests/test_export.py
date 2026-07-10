@@ -546,12 +546,12 @@ def test_dewey_manifest_selection_and_artifact_helpers() -> None:
             "files": [
                 "not-a-record",
                 {
-                    "relative_path": "results/day/hg38_broad/reports/DAY_final_multiqc.html",
+                    "relative_path": "results/day/hg38/reports/DAY_final_multiqc.html",
                     "classification": "multiqc_html",
                     "sha256": digest,
                 },
                 {
-                    "relative_path": "results/day/hg38_broad/reports/multiqc_inputs/final/manifest.tsv",
+                    "relative_path": "results/day/hg38/reports/multiqc_inputs/final/manifest.tsv",
                     "classification": "staging_manifest",
                     "sha256": digest,
                 },
@@ -618,7 +618,7 @@ def test_dewey_manifest_selection_and_artifact_helpers() -> None:
             produced_by="dayoa",
         )
     directory = directory_artifact(
-        relative_path="results/day/hg38_broad/reports/DAY_final_multiqc_data/",
+        relative_path="results/day/hg38/reports/DAY_final_multiqc_data/",
         storage_root="s3://bucket/root/",
         manifest_sha256=digest,
         produced_by="dayoa",
@@ -786,7 +786,7 @@ def _dayoa_evidence_manifest() -> str:
         "schema_version": "dayoa.evidence_manifest.v1",
         "manifest_checksum": "b" * 64,
         "generated_at": "2026-05-28T00:00:00Z",
-        "analysis": {"genome_build": "hg38_broad"},
+        "analysis": {"genome_build": "hg38"},
         "workflow": {
             "pipeline_name": "daylily-omics-analysis",
             "pipeline_version": "2.0.12",
@@ -797,7 +797,7 @@ def _dayoa_evidence_manifest() -> str:
         },
         "files": [
             {
-                "relative_path": "results/day/hg38_broad/reports/DAY_final_multiqc.html",
+                "relative_path": "results/day/hg38/reports/DAY_final_multiqc.html",
                 "size_bytes": 10,
                 "sha256": digest,
                 "classification": "multiqc_html",
@@ -805,7 +805,7 @@ def _dayoa_evidence_manifest() -> str:
                 "required": True,
             },
             {
-                "relative_path": "results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_data.json",
+                "relative_path": "results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json",
                 "size_bytes": 11,
                 "sha256": digest,
                 "classification": "multiqc_data_json",
@@ -813,7 +813,7 @@ def _dayoa_evidence_manifest() -> str:
                 "required": True,
             },
             {
-                "relative_path": "results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_general_stats.txt",
+                "relative_path": "results/day/hg38/reports/DAY_final_multiqc_data/multiqc_general_stats.txt",
                 "size_bytes": 12,
                 "sha256": digest,
                 "classification": "multiqc_general_stats",
@@ -821,7 +821,7 @@ def _dayoa_evidence_manifest() -> str:
                 "required": True,
             },
             {
-                "relative_path": "results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_sources.txt",
+                "relative_path": "results/day/hg38/reports/DAY_final_multiqc_data/multiqc_sources.txt",
                 "size_bytes": 13,
                 "sha256": digest,
                 "classification": "multiqc_sources",
@@ -829,7 +829,7 @@ def _dayoa_evidence_manifest() -> str:
                 "required": True,
             },
             {
-                "relative_path": "results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc.log",
+                "relative_path": "results/day/hg38/reports/DAY_final_multiqc_data/multiqc.log",
                 "size_bytes": 14,
                 "sha256": digest,
                 "classification": "multiqc_log",
@@ -837,7 +837,7 @@ def _dayoa_evidence_manifest() -> str:
                 "required": True,
             },
             {
-                "relative_path": "results/day/hg38_broad/reports/multiqc_inputs/final/manifest.tsv",
+                "relative_path": "results/day/hg38/reports/multiqc_inputs/final/manifest.tsv",
                 "size_bytes": 15,
                 "sha256": digest,
                 "classification": "staging_manifest",
@@ -845,7 +845,7 @@ def _dayoa_evidence_manifest() -> str:
                 "required": True,
             },
             {
-                "relative_path": "results/day/hg38_broad/reports/benchmarks_summary.tsv",
+                "relative_path": "results/day/hg38/reports/benchmarks_summary.tsv",
                 "size_bytes": 16,
                 "sha256": digest,
                 "classification": "benchmark",
@@ -886,7 +886,7 @@ def _dayoa_evidence_manifest() -> str:
                 ],
             },
             {
-                "relative_path": "results/day/hg38_broad/crams/HG002.dmd.cram",
+                "relative_path": "results/day/hg38/crams/HG002.dmd.cram",
                 "size_bytes": 17,
                 "sha256": digest,
                 "classification": "alignment_cram",
@@ -894,7 +894,7 @@ def _dayoa_evidence_manifest() -> str:
                 "required": True,
             },
             {
-                "relative_path": "results/day/hg38_broad/crams/HG002.dmd.cram.crai",
+                "relative_path": "results/day/hg38/crams/HG002.dmd.cram.crai",
                 "size_bytes": 18,
                 "sha256": digest,
                 "classification": "alignment_cram_index",
@@ -902,7 +902,7 @@ def _dayoa_evidence_manifest() -> str:
                 "required": True,
             },
             {
-                "relative_path": "results/day/hg38_broad/vcfs/HG002.sentd.vcf.gz",
+                "relative_path": "results/day/hg38/vcfs/HG002.sentd.vcf.gz",
                 "size_bytes": 19,
                 "sha256": digest,
                 "classification": "variant_vcf",
@@ -910,7 +910,7 @@ def _dayoa_evidence_manifest() -> str:
                 "required": True,
             },
             {
-                "relative_path": "results/day/hg38_broad/vcfs/HG002.sentd.vcf.gz.tbi",
+                "relative_path": "results/day/hg38/vcfs/HG002.sentd.vcf.gz.tbi",
                 "size_bytes": 20,
                 "sha256": digest,
                 "classification": "variant_vcf_index",
@@ -928,7 +928,7 @@ def test_build_registration_requests_handles_multiple_multiqc_reports() -> None:
         "schema_version": "dyec.s3_export_inventory_manifest.v1",
         "manifest_checksum": "d" * 64,
         "generated_at": "2026-05-31T00:00:00Z",
-        "analysis": {"genome_build": "hg38_broad"},
+        "analysis": {"genome_build": "hg38"},
         "workflow": {
             "pipeline_name": "daylily-omics-analysis",
             "pipeline_version": "2.0.26",
@@ -1123,7 +1123,7 @@ def test_run_export_workflow_registers_dewey_after_success(tmp_path, monkeypatch
     fake = FakeFsxClient()
     manifest_uri = (
         "s3://bucket/analysis_results/johnm/illumina_run_qc/daylily-omics-analysis/"
-        "results/day/hg38_broad/reports/dayoa_evidence_manifest.json"
+        "results/day/hg38/reports/dayoa_evidence_manifest.json"
     )
     fake_s3 = FakeS3Client(objects={manifest_uri: _dayoa_evidence_manifest()})
     monkeypatch.setenv("DEWEY_TOKEN", "token-1")
@@ -1370,7 +1370,7 @@ def test_run_export_workflow_links_dewey_analysis_directory_after_registration(
     fake = FakeFsxClient()
     manifest_uri = (
         "s3://bucket/analysis_results/johnm/illumina_run_qc/daylily-omics-analysis/"
-        "results/day/hg38_broad/reports/dayoa_evidence_manifest.json"
+        "results/day/hg38/reports/dayoa_evidence_manifest.json"
     )
     fake_s3 = FakeS3Client(objects={manifest_uri: _dayoa_evidence_manifest()})
     monkeypatch.setenv("DEWEY_TOKEN", "token-1")
@@ -1444,7 +1444,7 @@ def test_run_export_workflow_rejects_malformed_exported_manifest(tmp_path, monke
     fake = FakeFsxClient()
     manifest_uri = (
         "s3://bucket/analysis_results/johnm/illumina_run_qc/daylily-omics-analysis/"
-        "results/day/hg38_broad/reports/dayoa_evidence_manifest.json"
+        "results/day/hg38/reports/dayoa_evidence_manifest.json"
     )
     fake_s3 = FakeS3Client(objects={manifest_uri: "{not json"})
     monkeypatch.setenv("DEWEY_TOKEN", "token-1")

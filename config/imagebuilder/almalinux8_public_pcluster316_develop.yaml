@@ -1,6 +1,6 @@
 Region: us-west-2
 Image:
-  Name: almalinux8-pcluster-316-develop-20260710
+  Name: almalinux8-pcluster-316-develop-efa1-20260710
   RootVolume:
     Size: 100
 Build:
@@ -18,6 +18,6 @@ Build:
     ImdsSupport: v2.0
 DevSettings:
   Cookbook:
-    ChefCookbook: s3://lsmc-dayoa-references-usw2/runtime_assets/pcluster_backports/almalinux8/develop/26b6f581cc00973496962593cb1469021d03d993/aws-parallelcluster-cookbook-3.16.0-979ac2f033240cafc2453b9967eb7fa00faed9b6.tgz
+    ChefCookbook: s3://lsmc-dayoa-references-usw2/runtime_assets/pcluster_backports/almalinux8/develop/ae85dc3db7c81a9992d907d8b94281ff7f0fd7b3/aws-parallelcluster-cookbook-3.16.0-5ba71747bb986b1d94e46dd22d174768ef1faca5.tgz
   DisableKernelUpdate: true
   TerminateInstanceOnFailure: true

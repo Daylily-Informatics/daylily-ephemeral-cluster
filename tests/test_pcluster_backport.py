@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -15,7 +16,50 @@ from daylily_ec.state.models import CheckStatus, PreflightReport
 
 
 def _write_manifest(tmp_path: Path, **overrides: str) -> Path:
-    executable = tmp_path / "pcluster"
+    source_root = tmp_path / "aws-parallelcluster"
+    source_root.mkdir()
+    (source_root / ".gitignore").write_text(".venv-pcluster/\n", encoding="utf-8")
+    subprocess.run(["git", "init", "-q", str(source_root)], check=True)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(source_root),
+            "remote",
+            "add",
+            "origin",
+            "https://github.com/iamh2o/aws-parallelcluster.git",
+        ],
+        check=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(source_root), "add", ".gitignore"],
+        check=True,
+    )
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(source_root),
+            "-c",
+            "user.name=Test User",
+            "-c",
+            "user.email=test@example.com",
+            "commit",
+            "-q",
+            "-m",
+            "Test checkout",
+        ],
+        check=True,
+    )
+    commit = subprocess.run(
+        ["git", "-C", str(source_root), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    executable = source_root / ".venv-pcluster" / "bin" / "pcluster"
+    executable.parent.mkdir(parents=True)
     executable.write_text("#!/bin/sh\necho '3.15.0'\n", encoding="utf-8")
     executable.chmod(0o755)
     payload = {
@@ -23,7 +67,8 @@ def _write_manifest(tmp_path: Path, **overrides: str) -> Path:
         "parallelcluster": {
             "version": "3.15.0",
             "repository": "https://github.com/iamh2o/aws-parallelcluster.git",
-            "commit": "a" * 40,
+            "commit": commit,
+            "source_root": str(source_root),
             "executable": str(executable),
         },
         "cookbook": {
@@ -52,7 +97,13 @@ def test_load_operational_backport_requires_exact_pins(tmp_path: Path) -> None:
     spec = load_operational_backport(_write_manifest(tmp_path))
 
     assert spec.parallelcluster_version == "3.15.0"
-    assert spec.cli_commit == "a" * 40
+    assert spec.cli_commit == subprocess.run(
+        ["git", "-C", str(spec.cli_source_root), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    assert spec.cli_executable.is_relative_to(spec.cli_source_root)
     assert spec.cookbook_commit == "b" * 40
     assert spec.image_ami_id == "ami-0123456789abcdef0"
     assert spec.image_qualification_id == "qualification-20260710"
@@ -62,6 +113,7 @@ def test_load_operational_backport_requires_exact_pins(tmp_path: Path) -> None:
     ("overrides", "message"),
     [
         ({"parallelcluster__commit": "develop"}, "40-character git commit"),
+        ({"parallelcluster__source_root": "relative/path"}, "existing absolute directory"),
         ({"parallelcluster__version": "3.14.0"}, "must be 3.15.0"),
         ({"cookbook__bundle_sha256": "not-a-digest"}, "SHA-256"),
         ({"image__qualification_status": "pending"}, "exactly 'passed'"),
@@ -82,10 +134,89 @@ def test_load_operational_backport_rejects_stock_or_wrong_version_executable(
     tmp_path: Path,
 ) -> None:
     manifest = _write_manifest(tmp_path)
-    executable = tmp_path / "pcluster"
+    executable = (
+        tmp_path
+        / "aws-parallelcluster"
+        / ".venv-pcluster"
+        / "bin"
+        / "pcluster"
+    )
     executable.write_text("#!/bin/sh\necho '3.14.0'\n", encoding="utf-8")
 
     with pytest.raises(ValueError, match="did not report the pinned version"):
+        load_operational_backport(manifest)
+
+
+def test_load_operational_backport_rejects_checkout_commit_drift(tmp_path: Path) -> None:
+    manifest = _write_manifest(tmp_path)
+    source_root = tmp_path / "aws-parallelcluster"
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(source_root),
+            "-c",
+            "user.name=Test User",
+            "-c",
+            "user.email=test@example.com",
+            "commit",
+            "-q",
+            "--allow-empty",
+            "-m",
+            "Drift",
+        ],
+        check=True,
+    )
+
+    with pytest.raises(ValueError, match="HEAD does not match"):
+        load_operational_backport(manifest)
+
+
+def test_load_operational_backport_rejects_checkout_repository_drift(
+    tmp_path: Path,
+) -> None:
+    manifest = _write_manifest(tmp_path)
+    source_root = tmp_path / "aws-parallelcluster"
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(source_root),
+            "remote",
+            "set-url",
+            "origin",
+            "https://github.com/example/aws-parallelcluster.git",
+        ],
+        check=True,
+    )
+
+    with pytest.raises(ValueError, match="origin does not match"):
+        load_operational_backport(manifest)
+
+
+def test_load_operational_backport_rejects_tracked_checkout_changes(tmp_path: Path) -> None:
+    manifest = _write_manifest(tmp_path)
+    (tmp_path / "aws-parallelcluster" / ".gitignore").write_text(
+        ".venv-pcluster/\nchanged/\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="has tracked changes"):
+        load_operational_backport(manifest)
+
+
+def test_load_operational_backport_rejects_executable_outside_checkout(
+    tmp_path: Path,
+) -> None:
+    outside = tmp_path / "outside-pcluster"
+    outside.write_text("#!/bin/sh\necho '3.15.0'\n", encoding="utf-8")
+    outside.chmod(0o755)
+    manifest = _write_manifest(
+        tmp_path,
+        parallelcluster__executable=str(outside),
+    )
+
+    with pytest.raises(ValueError, match="located inside"):
         load_operational_backport(manifest)
 
 

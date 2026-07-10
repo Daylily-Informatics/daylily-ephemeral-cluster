@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.79"
+DAYOA_BLESSED_TAG = "10.0.80"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -602,6 +602,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "produce_snv_concordances",
         "produce_relatedness",
         "produce_vep",
+        "produce_metagenomics",
         "produce_multiqc_all",
     ]
     assert ultima_kitchensink.aligners == ["ug"]
@@ -610,6 +611,10 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_multiqc_all" in ultima_kitchensink.dy_command
     assert "multiqc_qc=" in ultima_kitchensink.dy_command
     assert "enable_tools" in ultima_kitchensink.dy_command
+    assert "produce_metagenomics" in ultima_kitchensink.dy_command
+    assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (
+        ultima_kitchensink.dy_command
+    )
 
     ont = catalog.get_command("ont_snv_alignstats")
     assert ont.aligners == ["ont"]
@@ -629,6 +634,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "produce_snv_concordances",
         "produce_relatedness",
         "produce_vep",
+        "produce_metagenomics",
         "produce_multiqc_all",
         "results/day/hg38/reports/DAY_final_multiqc.html",
         "results/day/hg38/reports/dayoa_evidence_manifest.json",
@@ -646,6 +652,10 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "results/day/hg38/reports/DAY_final_multiqc.html" in ont_kitchensink.dy_command
     assert "results/day/hg38/reports/dayoa_evidence_manifest.json" in ont_kitchensink.dy_command
     assert "multiqc_qc=" in ont_kitchensink.dy_command
+    assert "produce_metagenomics" in ont_kitchensink.dy_command
+    assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (
+        ont_kitchensink.dy_command
+    )
 
     hybrid_kitchensink = catalog.get_command("hybrid_ilmn_ont_snv_kitchensink")
     assert hybrid_kitchensink.sample_manifest_template == HIOMR_STRICT_SLIM_MANIFEST
@@ -656,6 +666,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "produce_sentdhiomr_snv_vcf",
         "produce_relatedness",
         "produce_vep",
+        "produce_metagenomics",
         "produce_multiqc_all",
     ]
     assert hybrid_kitchensink.aligners == ["sent"]
@@ -669,6 +680,10 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_multiqc_all" in hybrid_kitchensink.dy_command
     assert 'dedupers=["na"]' in hybrid_kitchensink.dy_command
     assert "multiqc_qc=" in hybrid_kitchensink.dy_command
+    assert "produce_metagenomics" in hybrid_kitchensink.dy_command
+    assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (
+        hybrid_kitchensink.dy_command
+    )
     assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
         hybrid_kitchensink.input_requirements.accepted_source_column_sets
     )
