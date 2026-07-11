@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.86"
+DAYOA_BLESSED_TAG = "10.0.87"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -689,6 +689,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_sentdhiom_snv_vcf" not in hybrid_kitchensink.dy_command
     assert "produce_multiqc_all" in hybrid_kitchensink.dy_command
     assert 'dedupers=["na"]' in hybrid_kitchensink.dy_command
+    assert 'aligners=["sent"]' in hybrid_kitchensink.dy_command
+    assert 'snv_callers=["sentdhiomr"]' in hybrid_kitchensink.dy_command
     assert 'sv_callers=["tiddit","manta"]' in hybrid_kitchensink.dy_command
     assert 'htd_callers=["smn12"]' in hybrid_kitchensink.dy_command
     for excluded in ("smaca", "sma_finder", "hapsma"):
