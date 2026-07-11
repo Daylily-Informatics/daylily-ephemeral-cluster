@@ -404,9 +404,18 @@ class TestAzClusterTemplateResolution:
 
         payload = yaml.safe_load(rendered)
         queues = payload["Scheduling"]["SlurmQueues"]
-        assert [queue["Name"] for queue in queues] == ["dragen", "i192", "i192nvme"]
+        assert [queue["Name"] for queue in queues] == [
+            "dragen",
+            "dragen-ondemand",
+            "i192",
+            "i192nvme",
+        ]
         assert queues[0]["CustomActions"]["OnNodeConfigured"]["Args"][-1] == "dragen"
-        for queue in queues[1:]:
+        assert queues[1]["CapacityType"] == "ONDEMAND"
+        assert queues[1]["CustomActions"]["OnNodeConfigured"]["Args"][-1] == "dragen"
+        assert queues[1]["ComputeResources"][0]["Name"] == "f26xlargeod"
+        assert "SpotPrice" not in queues[1]["ComputeResources"][0]
+        for queue in queues[2:]:
             assert queue["CustomActions"]["OnNodeConfigured"]["Args"][-1] == "cpu"
             policies = [item["Policy"] for item in queue["Iam"]["AdditionalIamPolicies"]]
             assert policy_arn not in policies
@@ -431,7 +440,10 @@ class TestAzClusterTemplateResolution:
             "SlurmQueues"
         ][:2]
         cluster_yaml.write_text(yaml.safe_dump(missing_cpu_queue), encoding="utf-8")
-        with pytest.raises(ValueError, match="dragen, i192, and i192nvme"):
+        with pytest.raises(
+            ValueError,
+            match="dragen, dragen-ondemand, i192, and i192nvme",
+        ):
             validate_dragen_cluster_contract(cluster_yaml, inputs)
 
         bad_cpu_role = rendered.replace("        - cpu\n", "        - dragen\n", 1)
