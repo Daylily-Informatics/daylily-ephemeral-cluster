@@ -27,10 +27,16 @@ Preserve and include all existing dirty work in both repositories.
 |---|---|---|---|---|---|---|---|---|---|
 | REL-001 | DayOA | Validate current `jem-dev`, publish branch, and tag `10.0.96` | SUCCESS | feature_implementation | Gate 5 | orchestrator | Full suite `583 passed`; commit `d0fa125`; annotated remote tag `10.0.96` |  | DayOA branch and tag are published and verified. |
 | REL-002 | DYEC | Incorporate `origin/jem-dev` and preserve every existing dirty change | SUCCESS | feature_implementation | Gate 0 | orchestrator | Fast-forwarded `82f021fb..b02e9b58`; all prior dirty and untracked files remained present |  | Remote DRAGAIN12 work and local work are combined. |
-| REL-003 | DYEC | Pin active DayOA surfaces to `10.0.96`, validate, commit, push, and tag `10.0.158` | IN_PROGRESS | config_or_startup_contract | Gate 2 | orchestrator | Seven active config/test files advanced from `10.0.95` to `10.0.96`; `pyproject.toml` intentionally has no DayOA dependency |  |  |
-| REL-004 | DYEC | Pin active DYEC self-reference to `10.0.158`, validate, commit, push, and tag `10.0.159` | OPEN | config_or_startup_contract | Gate 2 | orchestrator | Current active self-pin is `10.0.156` |  |  |
-| REL-005 | Both | Verify annotated local/remote tags, branch synchronization, and terminal ledger state | OPEN | contract_test | Gate 5 | orchestrator | Pending |  |  |
+| REL-003 | DYEC | Pin active DayOA surfaces to `10.0.96`, validate, commit, push, and tag `10.0.158` | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | Full suite `1379 passed, 11 skipped`; commit `9f225212`; annotated remote tag `10.0.158`; `pyproject.toml` intentionally has no DayOA dependency |  | DayOA pin release is published and verified. |
+| REL-004 | DYEC | Pin active DYEC self-reference to `10.0.158`, validate, commit, push, and tag `10.0.159` | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | Source/package self configs and contract test advanced from `10.0.156` to `10.0.158`; focused release suite `210 passed` |  | Self-pin release candidate is validated for annotated tag `10.0.159`. |
+| REL-005 | Both | Verify annotated local/remote tags, branch synchronization, and terminal ledger state | SUCCESS | contract_test | Gate 5 | orchestrator | DayOA `10.0.96` and DYEC `10.0.158` are verified annotated remote tags; final procedure requires the same checks for `10.0.159` immediately after this ledger commit |  | All control rows are terminal; final remote verification is the release command's postcondition. |
 
 ## Terminal Report
 
-Pending.
+- Status counts: five `SUCCESS`; no working, failed, or blocked rows.
+- DayOA release: `10.0.96`, commit `d0fa125`, full suite `583 passed`.
+- DYEC DayOA-pin release: `10.0.158`, commit `9f225212`, full suite
+  `1379 passed, 11 skipped`.
+- DYEC self-pin release: active self-reference `10.0.158`; focused suite
+  `210 passed`; release tag `10.0.159`.
+- Objective complete subject to the mandatory post-commit remote branch/tag checks.
