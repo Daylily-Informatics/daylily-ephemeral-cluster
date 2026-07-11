@@ -37,6 +37,7 @@ from daylily_ec.tests_runner import (
     prepare_command_inputs,
     prepare_run_mounts,
     record_to_payload,
+    render_catalog_dy_command,
     render_phase,
     render_dy_command,
     role_root_uri,
@@ -53,7 +54,7 @@ from daylily_ec.tests_runner import (
 
 
 runner = CliRunner()
-DAYOA_BLESSED_TAG = "10.0.96"
+DAYOA_BLESSED_TAG = "10.0.97"
 
 
 def _run_mount_record(
@@ -230,7 +231,10 @@ def test_kitchen_sinks_order_first() -> None:
 
 
 def test_render_dy_command_normalizes_flags_and_warmup() -> None:
-    command = "bin/day_run target -p -j 20 -k -T 1 --config 'x={\"y\":1}' -n"
+    command = (
+        "bin/day_run target -p -j 20 -k -T 1 --rerun-triggers=code "
+        "--rerun-incomplete --config 'x={\"y\":1}' -n"
+    )
 
     dry = render_dy_command(command, jobs=150, dry_run=True)
     live = render_dy_command(command, jobs=150, dry_run=False)
@@ -240,6 +244,10 @@ def test_render_dy_command_normalizes_flags_and_warmup() -> None:
     assert " -p " in f" {dry} "
     assert " -k " in f" {dry} "
     assert " -T 1 " in f" {dry} "
+    assert " --rerun-triggers mtime " in f" {dry} "
+    assert dry.count("--rerun-triggers") == 1
+    assert " --rerun-incomplete " in f" {dry} "
+    assert dry.count("--rerun-incomplete") == 1
     assert " -n " in f" {dry} "
     assert "--default-resources" not in dry
     assert " -n" not in f" {live} "
@@ -262,6 +270,23 @@ def test_render_dy_command_normalizes_flags_and_warmup() -> None:
     assert simple_test.startswith("source dyoainit; dy-a local hg38; dy-r help ")
     assert "'dyoainit;'" not in simple_test
     assert "'hg38;'" not in simple_test
+
+
+def test_render_hybrid_kitchensink_uses_fail_fast_catalog_policy() -> None:
+    command = load_repository_catalog().get_command("hybrid_ilmn_ont_snv_kitchensink")
+
+    live = render_catalog_dy_command(command, jobs=None, dry_run=False)
+    dry = render_catalog_dy_command(command, jobs=None, dry_run=True)
+    expected_flags = "-j 250 -p -T 0 --rerun-triggers mtime --rerun-incomplete"
+
+    assert expected_flags in live
+    assert " -k " not in f" {live} "
+    assert " -n " not in f" {live} "
+    assert dry.endswith(
+        f"{expected_flags} -n --produce-ursa-manifest true --produce-rulegraph true "
+        "--produce-filegraph false --produce-dag false"
+    )
+    assert " -k " not in f" {dry} "
 
 
 def test_ont_kitchensink_slim_fixture_does_not_require_fastq_alignment() -> None:
@@ -820,7 +845,7 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
         dry_run=False,
     )
     assert compact == (
-        "dy-r target -j 150 -p -k -T 1 "
+        "dy-r target -j 150 -p -k -T 1 --rerun-triggers mtime --rerun-incomplete "
         "--produce-ursa-manifest true --produce-rulegraph true "
         "--produce-filegraph false --produce-dag false"
     )
@@ -830,7 +855,9 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
         dry_run=False,
         max_runtime_minutes=0,
     )
-    assert no_runtime.startswith("dy-r target -j 150 -p -k -T 1 ")
+    assert no_runtime.startswith(
+        "dy-r target -j 150 -p -k -T 1 --rerun-triggers mtime --rerun-incomplete "
+    )
     assert "--produce-ursa-manifest true" in no_runtime
     assert build_evidence_prefix(
         evidence_s3_uri="s3://bucket/root",
@@ -994,6 +1021,8 @@ def test_render_phase_none_contract_and_execution_failure_paths(tmp_path: Path) 
         git_tag="10.0.0",
         genome="hg38",
         dy_command="dy-r help -j 1",
+        keep_going=True,
+        restart_times=1,
         no_containerized=True,
         input_contract="none",
     )

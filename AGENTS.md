@@ -57,6 +57,14 @@ The combined benchmark TSV contains task-level runtime/cost metadata, including 
 
 For cost/performance reports, aggregate directly from those rows: `sum(s)` for task wall time, `sum(cpu_time)` for observed CPU time, `sum(s * snakemake_threads / 3600)` for allocated vCPU-hours, and `sum(task_cost)` for task cost. Keep this separate from cluster startup, Slurm pending/configuring time, and controller wall clock unless the user explicitly asks for broader accounting.
 
+# Long-Running Rule Monitoring
+
+- When monitoring long-running DayOA/Slurm rules, compute-node Glances spot checks are appropriate read-only evidence alongside `squeue`, controller logs, rule logs, and benchmark TSVs.
+- From the headnode, use bounded, non-interactive checks only against nodes currently allocated to the workflow. Prefer `glances --stdout` with an explicit timeout and capture CPU, load, memory, swap, filesystem usage, disk I/O, network I/O, and process count together with node name, Slurm job/rule, and elapsed runtime.
+- Treat each Glances sample as a point-in-time observation, not proof that a job is healthy, stuck, or correctly sized. Compare it with rule benchmarks and repeated snapshots before recommending resource changes.
+- If Glances is missing or a compute node cannot be reached, report that explicitly. Do not install packages, restart services, alter jobs, or administer nodes merely to obtain monitoring data.
+- Glances evidence does not authorize Slurm or node intervention; existing approval boundaries for cancel, requeue, drain, resume, restart, and configuration changes still apply.
+
 # Safety Preferences
 
 - Do not execute destructive AWS resource changes unless the user gives a second explicit approval after being told the action is destructive.

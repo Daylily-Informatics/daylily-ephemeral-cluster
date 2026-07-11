@@ -5261,7 +5261,11 @@ def tests_command_catalog(
         help="Create missing unique run-directory DRAs after read-only preflight.",
     ),
     parallel: int = typer.Option(16, "--parallel", help="Maximum concurrent launched phases."),
-    jobs: int = typer.Option(150, "--jobs", help="Snakemake job count for rendered commands."),
+    jobs: Optional[int] = typer.Option(
+        None,
+        "--jobs",
+        help="Override the per-command Snakemake job count from the catalog.",
+    ),
     max_runtime_minutes: int = typer.Option(
         DEFAULT_JOB_MAX_RUNTIME_MINUTES,
         "--max-runtime-minutes",

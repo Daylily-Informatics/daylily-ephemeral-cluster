@@ -480,6 +480,8 @@ class AnalysisCommand(BaseModel):
     genome: str
     day_profile: str = "slurm"
     jobs: int = Field(gt=0)
+    keep_going: bool = True
+    restart_times: int = Field(default=1, ge=0)
     aligners: List[str]
     dedupers: List[str]
     snv_callers: List[str]

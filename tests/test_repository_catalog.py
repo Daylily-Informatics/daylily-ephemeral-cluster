@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.96"
+DAYOA_BLESSED_TAG = "10.0.97"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -658,44 +658,77 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert hybrid_kitchensink.sample_manifest_template == HIOMR_STRICT_SLIM_MANIFEST
     assert hybrid_kitchensink.validation_runs == []
     assert hybrid_kitchensink.targets == [
+        "produce_sentdhiomr_snv_vcf",
         "produce_snv_concordances",
         "produce_sentdhiomr_sv",
         "produce_tiddit_sv_vcf",
-        "produce_sentdhiomr_snv_vcf",
+        "produce_sentdhiomr_cnv",
         "produce_sentdhiomr_segdup",
+        "produce_sentdhiomr_mito",
+        "produce_expansionhunter",
+        "produce_alignstats",
+        "produce_relatedness",
+        "produce_peddy",
+        "produce_gatk_contam_estimate",
+        "produce_site_mix_contam_estimate",
+        "produce_vep",
         "produce_htd_calls",
         "produce_smn12_orthogonal_calls",
-        "produce_relatedness",
-        "produce_vep",
         "produce_metagenomics",
         "produce_multiqc_all",
+        "results/day/hg38/reports/DAY_final_multiqc.html",
+        "results/day/hg38/reports/dayoa_evidence_manifest.json",
     ]
     assert hybrid_kitchensink.aligners == ["sent"]
     assert hybrid_kitchensink.dedupers == ["na"]
     assert hybrid_kitchensink.snv_callers == ["sentdhiomr"]
     assert hybrid_kitchensink.sv_callers == ["sentdhiomr", "tiddit"]
+    assert hybrid_kitchensink.jobs == 250
+    assert hybrid_kitchensink.keep_going is False
+    assert hybrid_kitchensink.restart_times == 0
     assert "produce_sentdhiomr_sv" in hybrid_kitchensink.dy_command
     assert "produce_tiddit_sv_vcf" in hybrid_kitchensink.dy_command
     assert "produce_manta_sv_vcf" not in hybrid_kitchensink.dy_command
     assert "manta" not in hybrid_kitchensink.description.lower()
     assert "produce_sentdhiomr_segdup" in hybrid_kitchensink.dy_command
+    assert 'sentdhiomr={"segdup_genes":"SMN1"}' in hybrid_kitchensink.dy_command
     assert "produce_htd_calls" in hybrid_kitchensink.dy_command
     assert "produce_smn12_orthogonal_calls" in hybrid_kitchensink.dy_command
     assert "produce_sentdhiomr_snv_vcf" in hybrid_kitchensink.dy_command
     assert "produce_sentdhiom_sv" not in hybrid_kitchensink.dy_command
     assert "produce_sentdhiom_snv_vcf" not in hybrid_kitchensink.dy_command
     assert "produce_multiqc_all" in hybrid_kitchensink.dy_command
+    assert "produce_gatk_contam_estimate" in hybrid_kitchensink.dy_command
+    assert "produce_site_mix_contam_estimate" in hybrid_kitchensink.dy_command
+    for target in (
+        "produce_sentdhiomr_cnv",
+        "produce_sentdhiomr_mito",
+        "produce_expansionhunter",
+        "produce_alignstats",
+        "produce_peddy",
+        "results/day/hg38/reports/DAY_final_multiqc.html",
+        "results/day/hg38/reports/dayoa_evidence_manifest.json",
+    ):
+        assert target in hybrid_kitchensink.dy_command
     assert 'dedupers=["na"]' in hybrid_kitchensink.dy_command
     assert 'aligners=["sent"]' in hybrid_kitchensink.dy_command
     assert 'snv_callers=["sentdhiomr"]' in hybrid_kitchensink.dy_command
-    assert 'sv_callers=["tiddit"]' in hybrid_kitchensink.dy_command
+    assert 'sv_callers=["sentdhiomr","tiddit"]' in hybrid_kitchensink.dy_command
     assert "manta" not in hybrid_kitchensink.dryrun_dy_command
     assert 'htd_callers=["smn12"]' in hybrid_kitchensink.dy_command
     for excluded in ("smaca", "sma_finder", "hapsma"):
         assert excluded not in hybrid_kitchensink.dy_command
     assert "multiqc_qc=" in hybrid_kitchensink.dy_command
     assert "produce_metagenomics" in hybrid_kitchensink.dy_command
-    assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (hybrid_kitchensink.dy_command)
+    assert (
+        'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2",'
+        '"gatk_contam","site_mix","peddy"]}' in hybrid_kitchensink.dy_command
+    )
+    expected_flags = "-j 250 -p -T 0 --rerun-triggers mtime --rerun-incomplete"
+    assert hybrid_kitchensink.dy_command.endswith(expected_flags)
+    assert hybrid_kitchensink.dryrun_dy_command.endswith(f"{expected_flags} -n")
+    for excluded in ("manta", "truvari", "dmd", "kraken", "sourmash"):
+        assert excluded not in hybrid_kitchensink.dy_command.lower()
     assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
         hybrid_kitchensink.input_requirements.accepted_source_column_sets
     )
@@ -739,6 +772,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert simple_test.targets == ["help"]
     assert simple_test.genome == "hg38"
     assert simple_test.jobs == 1
+    assert simple_test.keep_going is True
+    assert simple_test.restart_times == 1
     assert simple_test.dy_command == SIMPLE_TEST_DY_COMMAND
     assert simple_test.dryrun_dy_command == simple_test.dy_command
     simple_launch_argv = simple_test.launch_argv(

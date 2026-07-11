@@ -97,7 +97,7 @@ MODE_MANIFESTS = {
     ),
 }
 
-SKIP_VALUE_FLAGS = {"-j", "--jobs", "-T", "--timestamp"}
+SKIP_VALUE_FLAGS = {"-j", "--jobs", "-T", "--timestamp", "--rerun-triggers"}
 STRIP_FLAGS = {
     "-p",
     "--printshellcmds",
@@ -106,6 +106,7 @@ STRIP_FLAGS = {
     "-n",
     "--dry-run",
     "--conda-create-envs-only",
+    "--rerun-incomplete",
 }
 
 SHELL_CONTROL_TOKENS = {";"}
@@ -121,7 +122,7 @@ class CommandCatalogOptions:
     dry_run_only: bool = False
     create_missing_mounts: bool = False
     parallel: int = DEFAULT_COMMAND_CATALOG_PARALLEL
-    jobs: int = 150
+    jobs: Optional[int] = None
     max_runtime_minutes: int = DEFAULT_JOB_MAX_RUNTIME_MINUTES
     executing_entity: str = "ubuntu"
     output_dir: Optional[Path] = None
@@ -315,6 +316,8 @@ def render_dy_command(
     *,
     jobs: int,
     dry_run: bool,
+    keep_going: bool = True,
+    restart_times: int = 1,
     warmup: bool = False,
     max_runtime_minutes: int = DEFAULT_JOB_MAX_RUNTIME_MINUTES,
 ) -> str:
@@ -337,10 +340,23 @@ def render_dy_command(
             continue
         if token.startswith("--timestamp="):
             continue
+        if token.startswith("--rerun-triggers="):
+            continue
         if token in STRIP_FLAGS:
             continue
         rendered.append(token)
-    rendered.extend(["-j", str(jobs), "-p", "-k", "-T", "1"])
+    rendered.extend(["-j", str(jobs), "-p"])
+    if keep_going:
+        rendered.append("-k")
+    rendered.extend(
+        [
+            "-T",
+            str(restart_times),
+            "--rerun-triggers",
+            "mtime",
+            "--rerun-incomplete",
+        ]
+    )
     if dry_run:
         rendered.append("-n")
     if warmup:
@@ -358,7 +374,7 @@ def render_dy_command(
 def render_catalog_dy_command(
     command: AnalysisCommand,
     *,
-    jobs: int,
+    jobs: Optional[int],
     dry_run: bool,
     warmup: bool = False,
     max_runtime_minutes: int = DEFAULT_JOB_MAX_RUNTIME_MINUTES,
@@ -379,8 +395,10 @@ def render_catalog_dy_command(
         dy_command = f"{dy_command} --config {runtime_config}"
     return render_dy_command(
         dy_command,
-        jobs=jobs,
+        jobs=command.jobs if jobs is None else jobs,
         dry_run=dry_run,
+        keep_going=command.keep_going,
+        restart_times=command.restart_times,
         warmup=warmup,
         max_runtime_minutes=max_runtime_minutes,
     )
@@ -444,7 +462,7 @@ def run_command_catalog(
     """Run the command-catalog prep-test orchestration."""
     if options.parallel < 1:
         raise TestsRunnerError("--parallel must be at least 1.")
-    if options.jobs < 1:
+    if options.jobs is not None and options.jobs < 1:
         raise TestsRunnerError("--jobs must be at least 1.")
     try:
         validate_job_max_runtime_minutes(options.max_runtime_minutes)
@@ -947,7 +965,7 @@ def render_phases(
     profile: str,
     region: str,
     cluster: str,
-    jobs: int,
+    jobs: Optional[int],
     dry_run_only: bool,
     output_dir: Path,
     stamp: str,
@@ -1026,7 +1044,7 @@ def render_phase(
     profile: str,
     region: str,
     cluster: str,
-    jobs: int,
+    jobs: Optional[int],
     output_dir: Path,
     stamp: str,
     max_runtime_minutes: int,
