@@ -53,7 +53,7 @@ from daylily_ec.tests_runner import (
 
 
 runner = CliRunner()
-DAYOA_BLESSED_TAG = "10.0.85"
+DAYOA_BLESSED_TAG = "10.0.86"
 
 
 def _run_mount_record(
@@ -97,6 +97,7 @@ def _fake_launch_factory(calls: list[list[str]]):
         print(f"__DAYLILY_SESSION__={session}")
         print(f"__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/{session}")
         print(f"__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/{session}/daylily-omics-analysis")
+        print(f"__DAYLILY_DY_COMMAND__={argv[argv.index('--dy-command') + 1]}")
         return 0
 
     return fake_launch
@@ -791,6 +792,7 @@ def test_runner_payloads_and_small_helpers(tmp_path: Path, monkeypatch: pytest.M
         "__DAYLILY_SESSION__=s1\n"
         "__DAYLILY_RUN_DIR__=/runs/s1\n"
         "__DAYLILY_REPO_PATH__=/repo\n"
+        "__DAYLILY_DY_COMMAND__=dy-r all --produce-ursa-manifest true\n"
     ).repo_path == "/repo"
     write_phase_plan(tmp_path / "phase_plan.json", [phase])
     assert json.loads((tmp_path / "phase_plan.json").read_text(encoding="utf-8"))["phases"][0][
@@ -817,16 +819,19 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
         jobs=150,
         dry_run=False,
     )
-    assert compact == "dy-r target -j 150 -p -k -T 1"
-    assert (
-        render_dy_command(
-            "dy-r target -j20",
-            jobs=150,
-            dry_run=False,
-            max_runtime_minutes=0,
-        )
-        == "dy-r target -j 150 -p -k -T 1"
+    assert compact == (
+        "dy-r target -j 150 -p -k -T 1 "
+        "--produce-ursa-manifest true --produce-rulegraph true "
+        "--produce-filegraph false --produce-dag false"
     )
+    no_runtime = render_dy_command(
+        "dy-r target -j20",
+        jobs=150,
+        dry_run=False,
+        max_runtime_minutes=0,
+    )
+    assert no_runtime.startswith("dy-r target -j 150 -p -k -T 1 ")
+    assert "--produce-ursa-manifest true" in no_runtime
     assert build_evidence_prefix(
         evidence_s3_uri="s3://bucket/root",
         cluster="dyec800",

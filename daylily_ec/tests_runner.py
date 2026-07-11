@@ -32,6 +32,10 @@ from daylily_ec.run_mounts import (
 )
 from daylily_ec.workflow.export_data import normalize_s3_uri as normalize_export_s3_uri
 from daylily_ec.workflow.export_data import validate_export_destination_s3_uri
+from daylily_ec.workflow.dyr_preflight import (
+    DyrPreflightOptionsError,
+    normalize_dyr_preflight_options,
+)
 from daylily_ec.workflow.snakemake_resources import (
     DEFAULT_JOB_MAX_RUNTIME_MINUTES,
     append_default_job_runtime,
@@ -132,6 +136,7 @@ class WorkflowLaunchMetadata:
     session_name: str = ""
     run_dir: str = ""
     repo_path: str = ""
+    dy_command: str = ""
 
 
 @dataclass(frozen=True)
@@ -340,10 +345,14 @@ def render_dy_command(
         rendered.append("-n")
     if warmup:
         rendered.append("--conda-create-envs-only")
-    return append_default_job_runtime(
+    rendered_command = append_default_job_runtime(
         join_shell_command(rendered),
         max_runtime_minutes=max_runtime_minutes,
     )
+    try:
+        return normalize_dyr_preflight_options(rendered_command)
+    except DyrPreflightOptionsError as exc:
+        raise TestsRunnerError(str(exc)) from exc
 
 
 def render_catalog_dy_command(
@@ -1259,10 +1268,13 @@ def parse_workflow_launch_metadata(stdout: str) -> WorkflowLaunchMetadata:
             values["run_dir"] = line.split("=", 1)[1].strip()
         elif line.startswith("__DAYLILY_REPO_PATH__="):
             values["repo_path"] = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_DY_COMMAND__="):
+            values["dy_command"] = line.split("=", 1)[1].strip()
     return WorkflowLaunchMetadata(
         session_name=values.get("session_name", ""),
         run_dir=values.get("run_dir", ""),
         repo_path=values.get("repo_path", ""),
+        dy_command=values.get("dy_command", ""),
     )
 
 

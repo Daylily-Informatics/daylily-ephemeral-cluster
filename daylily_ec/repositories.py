@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from daylily_ec.analysis_identity import validate_analysis_segment
 from daylily_ec.resources import resource_path
+from daylily_ec.workflow.dyr_preflight import normalize_dyr_preflight_options
 
 
 CATALOG_VERSION = 2
@@ -723,6 +724,7 @@ class AnalysisCommand(BaseModel):
             dy_command = f"{dy_command} --config {runtime_config}"
         elif run_context_file:
             raise ValueError("run_context_file is only valid for run_analysis commands")
+        dy_command = normalize_dyr_preflight_options(dy_command)
         if samples_file or units_file:
             if not (samples_file and units_file):
                 raise ValueError("samples_file and units_file must be provided together")

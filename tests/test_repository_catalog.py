@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.85"
+DAYOA_BLESSED_TAG = "10.0.86"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -663,7 +663,12 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert hybrid_kitchensink.targets == [
         "produce_snv_concordances",
         "produce_sentdhiomr_sv",
+        "produce_tiddit_sv_vcf",
+        "produce_manta_sv_vcf",
         "produce_sentdhiomr_snv_vcf",
+        "produce_sentdhiomr_segdup",
+        "produce_htd_calls",
+        "produce_smn12_orthogonal_calls",
         "produce_relatedness",
         "produce_vep",
         "produce_metagenomics",
@@ -672,13 +677,22 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert hybrid_kitchensink.aligners == ["sent"]
     assert hybrid_kitchensink.dedupers == ["na"]
     assert hybrid_kitchensink.snv_callers == ["sentdhiomr"]
-    assert hybrid_kitchensink.sv_callers == ["sentdhiomr"]
+    assert hybrid_kitchensink.sv_callers == ["sentdhiomr", "tiddit", "manta"]
     assert "produce_sentdhiomr_sv" in hybrid_kitchensink.dy_command
+    assert "produce_tiddit_sv_vcf" in hybrid_kitchensink.dy_command
+    assert "produce_manta_sv_vcf" in hybrid_kitchensink.dy_command
+    assert "produce_sentdhiomr_segdup" in hybrid_kitchensink.dy_command
+    assert "produce_htd_calls" in hybrid_kitchensink.dy_command
+    assert "produce_smn12_orthogonal_calls" in hybrid_kitchensink.dy_command
     assert "produce_sentdhiomr_snv_vcf" in hybrid_kitchensink.dy_command
     assert "produce_sentdhiom_sv" not in hybrid_kitchensink.dy_command
     assert "produce_sentdhiom_snv_vcf" not in hybrid_kitchensink.dy_command
     assert "produce_multiqc_all" in hybrid_kitchensink.dy_command
     assert 'dedupers=["na"]' in hybrid_kitchensink.dy_command
+    assert 'sv_callers=["tiddit","manta"]' in hybrid_kitchensink.dy_command
+    assert 'htd_callers=["smn12"]' in hybrid_kitchensink.dy_command
+    for excluded in ("smaca", "sma_finder", "hapsma"):
+        assert excluded not in hybrid_kitchensink.dy_command
     assert "multiqc_qc=" in hybrid_kitchensink.dy_command
     assert "produce_metagenomics" in hybrid_kitchensink.dy_command
     assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (
@@ -734,7 +748,12 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         executing_entity="johnm",
     )
     assert "--dy-command" in simple_launch_argv
-    assert simple_test.dy_command in simple_launch_argv
+    simple_effective = simple_launch_argv[simple_launch_argv.index("--dy-command") + 1]
+    assert simple_effective.startswith(simple_test.dy_command)
+    assert "--produce-ursa-manifest true" in simple_effective
+    assert "--produce-rulegraph true" in simple_effective
+    assert "--produce-filegraph false" in simple_effective
+    assert "--produce-dag false" in simple_effective
     assert "--no-input-staging" in simple_launch_argv
     assert "--no-default-activation" in simple_launch_argv
     assert "--bootstrap-test-config" in simple_launch_argv
@@ -803,11 +822,13 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "run_context_file=config/runs.tsv" in dy_command
     assert "samples_table=.test_data/data/samples.tsv" in dy_command
     assert "units_table=.test_data/data/units.tsv" in dy_command
-    assert dy_command.endswith(
+    assert (
         "--config run_context_file=config/runs.tsv "
         "samples_table=.test_data/data/samples.tsv "
         "units_table=.test_data/data/units.tsv"
-    )
+    ) in dy_command
+    assert "--produce-ursa-manifest true" in dy_command
+    assert "--produce-rulegraph true" in dy_command
 
     combined = catalog.get_command("illumina_run_qc_bclconvert")
     assert combined.command_class == "run_analysis"

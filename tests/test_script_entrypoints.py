@@ -198,6 +198,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                     "__DAYLILY_SESSION__=sess-1",
                     "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1",
                     "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis",
+                    "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true",
                 ]
             )
             + "\n"
@@ -206,6 +207,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert launch.session_name == "sess-1"
         assert launch.run_dir == "/home/ubuntu/daylily-runs/sess-1"
         assert launch.repo_path.endswith("/daylily-omics-analysis")
+        assert "--produce-ursa-manifest true" in launch.dy_command
 
     def test_build_default_command_includes_requested_flags(self):
         command = run_omics_module.build_default_command(
@@ -228,6 +230,33 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "-j 8" in command
         assert "-n" in command
         assert "--rerun-incomplete" in command
+        assert "--produce-ursa-manifest true" in command
+        assert "--produce-rulegraph true" in command
+        assert "--produce-filegraph false" in command
+        assert "--produce-dag false" in command
+
+        overridden = run_omics_module.build_default_command(
+            target="help",
+            genome="hg38",
+            jobs=1,
+            aligners=["bwa2a"],
+            dedupers=["dmd"],
+            snv_callers=["deep"],
+            sv_callers=[],
+            containerized=False,
+            dry_run=True,
+            extra=None,
+            producer_overrides={
+                "--produce-ursa-manifest": "false",
+                "--produce-rulegraph": "false",
+                "--produce-filegraph": "true",
+                "--produce-dag": "true",
+            },
+        )
+        assert "--produce-ursa-manifest false" in overridden
+        assert "--produce-rulegraph false" in overridden
+        assert "--produce-filegraph true" in overridden
+        assert "--produce-dag true" in overridden
 
     def test_main_rejects_dewey_options_without_artifact_registration(self):
         with pytest.raises(CommandError, match="artifact-registration-command-id"):
@@ -336,6 +365,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=sess-1\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/analysis/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -522,6 +552,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=run-qc\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/run-qc\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/run-qc/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -606,6 +637,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=sample-config\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sample-config\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/sample-config/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -686,6 +718,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=bcl-run\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/bcl-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/bcl-run/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -800,6 +833,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=ultima-run\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/ultima-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/ultima-run/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -876,6 +910,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=ont-run\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/ont-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/ont-run/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -959,6 +994,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=alignstats-run\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/alignstats-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/alignstats-run/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -1038,6 +1074,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=snv-concordance-run\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/snv-concordance-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/snv-concordance-run/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -1107,6 +1144,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=kitchensink-run\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/kitchensink-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/kitchensink-run/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -1206,6 +1244,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=simple-test\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/simple-test\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/simple-test/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),

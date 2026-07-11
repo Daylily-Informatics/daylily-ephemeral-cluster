@@ -23,7 +23,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.85"
+DAYOA_BLESSED_TAG = "10.0.86"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -2102,6 +2102,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
         print("__DAYLILY_SESSION__=cg-session")
         print("__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/cg-session")
         print("__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/cg-run/daylily-omics-analysis")
+        print(f"__DAYLILY_DY_COMMAND__={argv[argv.index('--dy-command') + 1]}")
         return 0
 
     monkeypatch.setattr(cli_module, "_invoke_stage_samples", fake_stage)
@@ -2186,7 +2187,11 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "produce_sentcg_align" in dy_command
     assert "produce_dmd_dedup_cram" in dy_command
     assert "produce_smd_dedup_cram" not in dy_command
-    assert dy_command.endswith(" -n")
+    assert " -n " in dy_command
+    assert "--produce-ursa-manifest true" in dy_command
+    assert "--produce-rulegraph true" in dy_command
+    assert "--produce-filegraph false" in dy_command
+    assert "--produce-dag false" in dy_command
     assert "--stage-dir" in launch_argv
     assert (
         "/fsx/staging/staged_external_sequencing_data/remote_stage_20260425T000000Z" in launch_argv
@@ -2196,7 +2201,9 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert payload["detected_data_modes"] == ["complete_genomics_solo"]
     assert payload["compatible_cluster_types"] == ["daywgs"]
     assert payload["max_runtime_minutes"] == 240
+    assert payload["dy_command"] == dy_command
     assert payload["workflow_launch"]["session_name"] == "cg-session"
+    assert payload["workflow_launch"]["dy_command"] == dy_command
 
 
 def test_samples_run_requires_analysis_identity(monkeypatch, tmp_path) -> None:
@@ -2252,6 +2259,9 @@ def test_samples_run_defaults_executing_entity_to_cluster(monkeypatch, tmp_path)
     def fake_launch(argv: list[str]) -> int:
         calls["launch_argv"] = argv
         print("__DAYLILY_SESSION__=cg-session")
+        print("__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/cg-session")
+        print("__DAYLILY_REPO_PATH__=/fsx/analysis_results/cluster-a/cg-run/daylily-omics-analysis")
+        print(f"__DAYLILY_DY_COMMAND__={argv[argv.index('--dy-command') + 1]}")
         return 0
 
     monkeypatch.setattr(cli_module, "_invoke_stage_samples", fake_stage)
@@ -2361,6 +2371,9 @@ def test_samples_run_expands_export_root_to_cluster_analysis(monkeypatch, tmp_pa
     def fake_launch(argv: list[str]) -> int:
         calls["launch_argv"] = argv
         print("__DAYLILY_SESSION__=cg-session")
+        print("__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/cg-session")
+        print("__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/cg-run/daylily-omics-analysis")
+        print(f"__DAYLILY_DY_COMMAND__={argv[argv.index('--dy-command') + 1]}")
         return 0
 
     monkeypatch.setattr(cli_module, "_invoke_stage_samples", fake_stage)
@@ -2539,6 +2552,14 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
             "M-RGX-9S3G",
             "--sv-callers",
             "tiddit",
+            "--produce-ursa-manifest",
+            "false",
+            "--produce-rulegraph",
+            "false",
+            "--produce-filegraph",
+            "true",
+            "--produce-dag",
+            "true",
             "--strict-project-check",
             "--dry-run",
         ],
@@ -2576,6 +2597,10 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "tiddit" in argv
     assert "--max-runtime-minutes" in argv
     assert "100" in argv
+    assert argv[argv.index("--produce-ursa-manifest") + 1] == "false"
+    assert argv[argv.index("--produce-rulegraph") + 1] == "false"
+    assert argv[argv.index("--produce-filegraph") + 1] == "true"
+    assert argv[argv.index("--produce-dag") + 1] == "true"
     assert "--strict-project-check" in argv
     assert "--dry-run" in argv
 
@@ -2620,6 +2645,33 @@ def test_workflow_launch_expands_export_root_to_cluster_analysis(monkeypatch) ->
     assert argv[argv.index("--export-destination-s3-uri") + 1] == (
         "s3://bucket/derived/cluster-a/run-1/"
     )
+
+
+def test_workflow_launch_rejects_invalid_producer_boolean(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "launch",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--analysis-id",
+            "run-1",
+            "--executing-entity",
+            "johnm",
+            "--produce-dag",
+            "sometimes",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "requires true or false" in result.output
 
 
 def test_workflow_launch_rejects_dewey_options_without_policy(monkeypatch) -> None:

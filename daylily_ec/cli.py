@@ -3046,6 +3046,8 @@ def _parse_workflow_launch_metadata(launch_stdout: str) -> dict[str, str]:
             parsed["run_dir"] = line.split("=", 1)[1].strip()
         elif line.startswith("__DAYLILY_REPO_PATH__="):
             parsed["repo_path"] = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_DY_COMMAND__="):
+            parsed["dy_command"] = line.split("=", 1)[1].strip()
     return parsed
 
 
@@ -3469,6 +3471,10 @@ def samples_run(
         timestamp = stage_name.replace("remote_stage_", "")
         receipt_path = resolved_config_dir / f"{timestamp}_samples_run_receipt.json"
         receipt_path.parent.mkdir(parents=True, exist_ok=True)
+        workflow_launch_metadata = _parse_workflow_launch_metadata(launch_stdout)
+        effective_dy_command = workflow_launch_metadata.get("dy_command")
+        if not effective_dy_command:
+            raise CommandError("Workflow launch output did not include the effective dy-r command.")
         receipt = {
             "analysis_samples": str(analysis_path),
             "command_id": command.command_id,
@@ -3478,7 +3484,7 @@ def samples_run(
             "analysis_id": analysis_id,
             "executing_entity": resolved_executing_entity,
             "dry_run": dry_run,
-            "dy_command": command.dryrun_dy_command if dry_run else command.dy_command,
+            "dy_command": effective_dy_command,
             "export_destination_s3_uri": resolved_export_destination_s3_uri,
             "export_trigger": export_trigger,
             "max_runtime_minutes": max_runtime_minutes,
@@ -3493,7 +3499,7 @@ def samples_run(
             "session_name": resolved_session_name,
             "units_tsv": str(resolved_config_dir / f"{timestamp}_units.tsv"),
             "workflow_argv": workflow_cli_argv,
-            "workflow_launch": _parse_workflow_launch_metadata(launch_stdout),
+            "workflow_launch": workflow_launch_metadata,
         }
         receipt_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
         typer.echo(f"Samples run receipt: {receipt_path}")
@@ -3614,6 +3620,26 @@ def workflow_launch(
         "--snakemake-extra",
         help="Additional arguments appended to dy-r.",
     ),
+    produce_ursa_manifest: Optional[str] = typer.Option(
+        None,
+        "--produce-ursa-manifest",
+        help="Override the DYEC default passed to dy-r; value must be true or false.",
+    ),
+    produce_rulegraph: Optional[str] = typer.Option(
+        None,
+        "--produce-rulegraph",
+        help="Override the DYEC default passed to dy-r; value must be true or false.",
+    ),
+    produce_filegraph: Optional[str] = typer.Option(
+        None,
+        "--produce-filegraph",
+        help="Override the DYEC default passed to dy-r; value must be true or false.",
+    ),
+    produce_dag: Optional[str] = typer.Option(
+        None,
+        "--produce-dag",
+        help="Override the DYEC default passed to dy-r; value must be true or false.",
+    ),
     max_runtime_minutes: int = typer.Option(
         DEFAULT_JOB_MAX_RUNTIME_MINUTES,
         "--max-runtime-minutes",
@@ -3687,8 +3713,26 @@ def workflow_launch(
     """Launch daylily-omics-analysis inside tmux on the headnode."""
 
     from daylily_ec.scripts.common import CommandError
+    from daylily_ec.workflow.dyr_preflight import (
+        DyrPreflightOptionsError,
+        parse_strict_bool,
+    )
 
     _warn_if_dayec_env_inactive()
+    producer_option_values: dict[str, str] = {}
+    for flag, value in (
+        ("--produce-ursa-manifest", produce_ursa_manifest),
+        ("--produce-rulegraph", produce_rulegraph),
+        ("--produce-filegraph", produce_filegraph),
+        ("--produce-dag", produce_dag),
+    ):
+        if value is None:
+            continue
+        try:
+            parsed = parse_strict_bool(value, option=flag)
+        except DyrPreflightOptionsError as exc:
+            raise typer.BadParameter(str(exc), param_hint=flag) from exc
+        producer_option_values[flag] = "true" if parsed else "false"
     resolved_executing_entity = _resolve_executing_entity_option(
         executing_entity=executing_entity,
         cluster=cluster,
@@ -3757,6 +3801,8 @@ def workflow_launch(
     ):
         if value is not None:
             argv.extend([flag, value])
+    for flag, value in producer_option_values.items():
+        argv.extend([flag, value])
     if not input_staging:
         argv.append("--no-input-staging")
     if not default_activation:

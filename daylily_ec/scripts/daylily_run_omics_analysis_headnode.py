@@ -11,7 +11,7 @@ import shlex
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Mapping, Optional
 
 from daylily_ec.aws.ssm import (
     resolve_headnode_instance_id,
@@ -25,6 +25,10 @@ from daylily_ec.workflow.snakemake_resources import (
     DEFAULT_JOB_MAX_RUNTIME_MINUTES,
     append_default_job_runtime,
     validate_job_max_runtime_minutes,
+)
+from daylily_ec.workflow.dyr_preflight import (
+    DyrPreflightOptionsError,
+    normalize_dyr_preflight_options,
 )
 
 
@@ -276,6 +280,7 @@ class WorkflowLaunchInfo:
     session_name: str
     run_dir: str
     repo_path: str
+    dy_command: str
 
 
 def normalize_remote_path(path: str) -> str:
@@ -303,7 +308,7 @@ def parse_remote_config(stdout: str) -> RemoteConfig:
 
 
 def parse_workflow_launch(stdout: str) -> WorkflowLaunchInfo:
-    session_name = run_dir = repo_path = None
+    session_name = run_dir = repo_path = dy_command = None
     for line in stdout.splitlines():
         if line.startswith("__DAYLILY_SESSION__="):
             session_name = line.split("=", 1)[1].strip()
@@ -311,11 +316,18 @@ def parse_workflow_launch(stdout: str) -> WorkflowLaunchInfo:
             run_dir = line.split("=", 1)[1].strip()
         elif line.startswith("__DAYLILY_REPO_PATH__="):
             repo_path = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_DY_COMMAND__="):
+            dy_command = line.split("=", 1)[1].strip()
         elif line.startswith("__DAYLILY_ERROR__="):
             raise CommandError(line.split("=", 1)[1])
-    if not (session_name and run_dir and repo_path):
+    if not (session_name and run_dir and repo_path and dy_command):
         raise CommandError("Tmux session creation did not report success.")
-    return WorkflowLaunchInfo(session_name=session_name, run_dir=run_dir, repo_path=repo_path)
+    return WorkflowLaunchInfo(
+        session_name=session_name,
+        run_dir=run_dir,
+        repo_path=repo_path,
+        dy_command=dy_command,
+    )
 
 
 def discover_stage_config(
@@ -443,6 +455,7 @@ def build_default_command(
     containerized: bool,
     dry_run: bool,
     extra: Optional[str],
+    producer_overrides: Mapping[str, str | bool | None] | None = None,
 ) -> str:
     config_args = [
         f"genome_build={genome}",
@@ -466,7 +479,13 @@ def build_default_command(
         command.append("-n")
     if extra:
         command.append(extra)
-    return " ".join(command)
+    try:
+        return normalize_dyr_preflight_options(
+            " ".join(command),
+            overrides=producer_overrides,
+        )
+    except DyrPreflightOptionsError as exc:
+        raise CommandError(str(exc)) from exc
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -561,6 +580,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--target", default="produce_snv_concordances")
     parser.add_argument("--dy-command", help="Override the dy-r command entirely")
     parser.add_argument("--snakemake-extra", help="Additional arguments appended to dy-r")
+    parser.add_argument("--produce-ursa-manifest", help="Pass true or false to dy-r")
+    parser.add_argument("--produce-rulegraph", help="Pass true or false to dy-r")
+    parser.add_argument("--produce-filegraph", help="Pass true or false to dy-r")
+    parser.add_argument("--produce-dag", help="Pass true or false to dy-r")
     parser.add_argument(
         "--max-runtime-minutes",
         type=int,
@@ -767,8 +790,20 @@ def main(argv: Optional[List[str]] = None) -> int:
             raise CommandError("--stage-dir cannot be used with --no-input-staging.")
         stage_config = None
 
+    producer_overrides = {
+        "--produce-ursa-manifest": args.produce_ursa_manifest,
+        "--produce-rulegraph": args.produce_rulegraph,
+        "--produce-filegraph": args.produce_filegraph,
+        "--produce-dag": args.produce_dag,
+    }
     if args.dy_command:
-        dy_command = args.dy_command
+        try:
+            dy_command = normalize_dyr_preflight_options(
+                args.dy_command,
+                overrides=producer_overrides,
+            )
+        except DyrPreflightOptionsError as exc:
+            raise CommandError(str(exc)) from exc
     else:
         dy_command = build_default_command(
             target=args.target,
@@ -781,6 +816,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             containerized=not args.no_containerized,
             dry_run=args.dry_run,
             extra=args.snakemake_extra,
+            producer_overrides=producer_overrides,
         )
     dy_command = append_default_job_runtime(
         dy_command,
@@ -2153,6 +2189,7 @@ if [[ "$session_ready" != "true" ]]; then
     echo "__DAYLILY_TMUX_SESSION__=$tmux_session_name"
     echo "__DAYLILY_RUN_DIR__=$run_dir"
     echo "__DAYLILY_REPO_PATH__=$repo_path"
+    printf '%s\n' {shlex.quote(f"__DAYLILY_DY_COMMAND__={dy_command}")}
     exit 0
   fi
   if [[ -s "$bootstrap_log" ]]; then
@@ -2168,6 +2205,7 @@ echo "__DAYLILY_SESSION__=$SESSION_NAME"
 echo "__DAYLILY_TMUX_SESSION__=$tmux_session_name"
 echo "__DAYLILY_RUN_DIR__=$run_dir"
 echo "__DAYLILY_REPO_PATH__=$repo_path"
+printf '%s\n' {shlex.quote(f"__DAYLILY_DY_COMMAND__={dy_command}")}
 """
 
     result = run_shell(
@@ -2187,6 +2225,7 @@ echo "__DAYLILY_REPO_PATH__=$repo_path"
     print(f"Tmux session '{launch_info.session_name}' created on the head node.")
     print(f"Run state directory: {launch_info.run_dir}")
     print(f"Workflow repo path: {launch_info.repo_path}")
+    print(f"Effective dy-r command: {launch_info.dy_command}")
     print(
         "Reconnect with: daylily-ssh-into-headnode --profile {profile} --region {region} --cluster {cluster}".format(
             profile=args.profile,
