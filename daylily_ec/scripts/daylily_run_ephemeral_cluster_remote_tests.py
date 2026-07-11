@@ -23,7 +23,7 @@ def _load_default_repo() -> tuple[str, str]:
     cfg = yaml.safe_load(Path(cfg_path).read_text(encoding="utf-8")) or {}
     repo_key = cfg.get("default_repository") or "daylily-omics-analysis"
     repo = (cfg.get("repositories") or {}).get(repo_key) or {}
-    return str(repo.get("https_url") or ""), str(repo.get("default_ref") or "main")
+    return str(repo_key), str(repo.get("default_ref") or "main")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -64,14 +64,13 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 0
 
-    repo_url, repo_tag = _load_default_repo()
+    repo_key, repo_tag = _load_default_repo()
     session_name = "cluster_test_$(date +%s)"
     launch_script = f"""
 set -euo pipefail
-mkdir -p /fsx/analysis_results/ubuntu/daylily_remote_test
-cd /fsx/analysis_results/ubuntu/daylily_remote_test
-if [[ ! -d daylily-omics-analysis/.git ]]; then
-  git clone -b {repo_tag} {repo_url} daylily-omics-analysis
+if [[ ! -d /fsx/analysis_results/ubuntu/daylily_remote_test/daylily-omics-analysis/.git ]]; then
+  day-clone --repository {repo_key} --destination daylily_remote_test \
+    --git-tag {repo_tag} --executing-entity ubuntu
 fi
 session_name={session_name}
 tmux new-session -d -s "$session_name" \
@@ -88,7 +87,11 @@ echo "__DAYLILY_SESSION__=$session_name"
         comment="Launch legacy remote test workflow",
     )
     session_line = next(
-        (line for line in (result.stdout or "").splitlines() if line.startswith("__DAYLILY_SESSION__=")),
+        (
+            line
+            for line in (result.stdout or "").splitlines()
+            if line.startswith("__DAYLILY_SESSION__=")
+        ),
         "",
     )
     if not session_line:

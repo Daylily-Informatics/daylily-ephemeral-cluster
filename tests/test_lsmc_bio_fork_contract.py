@@ -8,7 +8,7 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_BLESSED_TAG = "10.0.87"
+DAYOA_BLESSED_TAG = "10.0.95"
 DYEC_BLESSED_TAG = "10.0.154"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
@@ -46,14 +46,11 @@ def test_active_surfaces_do_not_reference_daylily_informatics_dayoa_or_dyec() ->
     assert not offenders
 
 
-def test_pyproject_uses_lsmc_bio_dayoa_github_release_pin() -> None:
+def test_pyproject_does_not_install_dayoa_as_a_python_dependency() -> None:
     data = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     dependencies = data["project"]["dependencies"]
 
-    assert (
-        "daylily-omics-analysis @ "
-        f"git+https://github.com/lsmc-bio/daylily-omics-analysis.git@{DAYOA_BLESSED_TAG}"
-    ) in dependencies
+    assert not any("daylily-omics-analysis" in dependency for dependency in dependencies)
 
 
 def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
@@ -78,4 +75,6 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
         repo = data["repositories"]["daylily-omics-analysis"]
         assert repo["https_url"] == "https://github.com/lsmc-bio/daylily-omics-analysis.git"
         assert repo["ssh_url"] == "git@github.com:lsmc-bio/daylily-omics-analysis.git"
+        assert repo["clone_transport"] == "ssh"
+        assert repo["auth_mode"] == "aws_deploy_key"
         assert repo["default_ref"] == DAYOA_BLESSED_TAG

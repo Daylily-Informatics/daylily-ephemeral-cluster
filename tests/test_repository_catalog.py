@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.87"
+DAYOA_BLESSED_TAG = "10.0.95"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -95,6 +95,8 @@ test_data_profiles:
     locations: [default_run_data]
 repositories:
   repo:
+    clone_transport: https
+    auth_mode: none
     https_url: https://example.invalid/repo.git
     default_ref: main
     relative_path: repo
@@ -137,10 +139,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         "default_control_run_data",
     ]
     assert catalog.test_data_locations[0].mount_path == "/fsx/data"
-    assert (
-        catalog.test_data_locations[0].data_root
-        == "/fsx/data/genomic_data/organism_reads_slim"
-    )
+    assert catalog.test_data_locations[0].data_root == "/fsx/data/genomic_data/organism_reads_slim"
     assert "default /fsx/data path" in catalog.test_data_locations[0].description
     default_reads = catalog.test_data_profiles["default_reads_slim"]
     assert default_reads.source_mount_mode == "default_mounted"
@@ -148,9 +147,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         default_reads.source_s3_uri_template
         == "s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/"
     )
-    assert default_reads.source_fsx_prefix == (
-        "/fsx/data/genomic_data/organism_reads_slim/"
-    )
+    assert default_reads.source_fsx_prefix == ("/fsx/data/genomic_data/organism_reads_slim/")
     assert default_reads.run_context_source_s3_column == ""
     assert default_reads.run_context_mount_id_column == ""
     assert manifest_contract.source_table is not None
@@ -257,7 +254,9 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     run_qc_command = catalog.get_command("illumina_run_qc_bclconvert")
     assert run_qc_command.artifact_registration is not None
     assert run_qc_command.artifact_registration.manifest_source == "s3_inventory"
-    assert {report.report_kind for report in run_qc_command.artifact_registration.multiqc_reports} == {
+    assert {
+        report.report_kind for report in run_qc_command.artifact_registration.multiqc_reports
+    } == {
         "bclconvert",
         "run_qc_illumina",
     }
@@ -574,7 +573,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_metagenomics" in illumina_kitchensink.dy_command
     assert "produce_multiqc_all" in illumina_kitchensink.dy_command
     assert "results/day/hg38/reports/DAY_final_multiqc.html" in illumina_kitchensink.dy_command
-    assert "results/day/hg38/reports/dayoa_evidence_manifest.json" in illumina_kitchensink.dy_command
+    assert (
+        "results/day/hg38/reports/dayoa_evidence_manifest.json" in illumina_kitchensink.dy_command
+    )
     assert "produce_global_contam_check" not in illumina_kitchensink.dy_command
     assert "contam_identity" not in illumina_kitchensink.dy_command
 
@@ -612,9 +613,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "multiqc_qc=" in ultima_kitchensink.dy_command
     assert "enable_tools" in ultima_kitchensink.dy_command
     assert "produce_metagenomics" in ultima_kitchensink.dy_command
-    assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (
-        ultima_kitchensink.dy_command
-    )
+    assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (ultima_kitchensink.dy_command)
 
     ont = catalog.get_command("ont_snv_alignstats")
     assert ont.aligners == ["ont"]
@@ -653,9 +652,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "results/day/hg38/reports/dayoa_evidence_manifest.json" in ont_kitchensink.dy_command
     assert "multiqc_qc=" in ont_kitchensink.dy_command
     assert "produce_metagenomics" in ont_kitchensink.dy_command
-    assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (
-        ont_kitchensink.dy_command
-    )
+    assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (ont_kitchensink.dy_command)
 
     hybrid_kitchensink = catalog.get_command("hybrid_ilmn_ont_snv_kitchensink")
     assert hybrid_kitchensink.sample_manifest_template == HIOMR_STRICT_SLIM_MANIFEST
@@ -697,9 +694,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert excluded not in hybrid_kitchensink.dy_command
     assert "multiqc_qc=" in hybrid_kitchensink.dy_command
     assert "produce_metagenomics" in hybrid_kitchensink.dy_command
-    assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (
-        hybrid_kitchensink.dy_command
-    )
+    assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (hybrid_kitchensink.dy_command)
     assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
         hybrid_kitchensink.input_requirements.accepted_source_column_sets
     )
@@ -945,6 +940,8 @@ def test_repository_catalog_v2_requires_command_class(tmp_path: Path) -> None:
         "default_repository: repo\n"
         "repositories:\n"
         "  repo:\n"
+        "    clone_transport: https\n"
+        "    auth_mode: none\n"
         "    https_url: https://example.invalid/repo.git\n"
         "    default_ref: main\n"
         "    relative_path: repo\n"

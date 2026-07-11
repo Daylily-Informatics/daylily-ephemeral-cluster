@@ -113,13 +113,14 @@ class TestSshIntoHeadnodeScript:
 
 
 class TestRunOmicsAnalysisHeadnodeScript:
-    def test_bclconvert_profile_patch_inserts_yaml_keys_at_existing_child_indent(self, tmp_path, monkeypatch):
+    def test_bclconvert_profile_patch_inserts_yaml_keys_at_existing_child_indent(
+        self, tmp_path, monkeypatch
+    ):
         run_dir = tmp_path / "run-dir"
         run_dir.mkdir()
         (tmp_path / "config").mkdir()
         (tmp_path / "config" / "runs.tsv").write_text(
-            "RUNID\tPLATFORM\tRUN_DIR\n"
-            f"RUN-1\tILMN\t{run_dir}\n",
+            f"RUNID\tPLATFORM\tRUN_DIR\nRUN-1\tILMN\t{run_dir}\n",
             encoding="utf-8",
         )
         profile_dir = tmp_path / "profile"
@@ -465,8 +466,13 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'export TMP="$DAYOA_RUNTIME_TMPDIR"' in script
         assert 'export TEMP="$DAYOA_RUNTIME_TMPDIR"' in script
         assert 'export PIP_CACHE_DIR="${PIP_CACHE_DIR:-$DAYOA_RUNTIME_TMPDIR/pip-cache}"' in script
-        assert 'export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$DAYOA_RUNTIME_TMPDIR/xdg-cache}"' in script
-        assert 'export PIP_BUILD_TRACKER="${PIP_BUILD_TRACKER:-$DAYOA_RUNTIME_TMPDIR/pip-build-tracker}"' in script
+        assert (
+            'export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$DAYOA_RUNTIME_TMPDIR/xdg-cache}"' in script
+        )
+        assert (
+            'export PIP_BUILD_TRACKER="${PIP_BUILD_TRACKER:-$DAYOA_RUNTIME_TMPDIR/pip-build-tracker}"'
+            in script
+        )
         assert "patch_dayoa_runtime_tmpdir_wrappers()" in script
         assert "DayOA runtime TMPDIR wrapper repair" in script
         assert "configured_tmpdir=$(yq -r '.daylily.sentieon_tmpdir'" in script
@@ -521,7 +527,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert ". bin/day_activate slurm hg38 remote" in script
         assert "bin/day_run" in script
         assert 'local links_dir="$repo_path/config/run_dir_links"' in script
-        assert 'if ! remove_run_dir_projection_links; then' in script
+        assert "if ! remove_run_dir_projection_links; then" in script
         assert script.index("remove_run_dir_projection_links") < script.index(
             "env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export"
         )
@@ -1134,7 +1140,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "patch_rtg_vcfeval_parse_output_dir" in script
         assert "if rtg_vcfeval_parse_runtime_repair_requested; then" in script
         assert 'mkdir -p "$(dirname {output.mqc})"' in script
-        assert 'rtg_mem_gb=$(( ({resources.mem_mb} * 85 / 100 + 1023) / 1024 ))' in script
+        assert "rtg_mem_gb=$(( ({resources.mem_mb} * 85 / 100 + 1023) / 1024 ))" in script
         assert 'RTG_MEM="${{rtg_mem_gb}}G" rtg vcfeval' in script
 
     @patch(
@@ -1462,7 +1468,7 @@ class TestRemoteTestsScript:
             return_value=registry,
         ):
             assert remote_tests_module._load_default_repo() == (
-                "https://example.com/test.git",
+                "test-repo",
                 "release-1",
             )
 
@@ -1507,7 +1513,7 @@ class TestRemoteTestsScript:
     )
     @patch(
         "daylily_ec.scripts.daylily_run_ephemeral_cluster_remote_tests._load_default_repo",
-        return_value=("https://example.com/test.git", "release-1"),
+        return_value=("test-repo", "release-1"),
     )
     @patch("daylily_ec.scripts.daylily_run_ephemeral_cluster_remote_tests.wait_for_ssm_online")
     @patch(
@@ -1539,7 +1545,10 @@ class TestRemoteTestsScript:
         assert rc == 0
         script = mock_run_shell.call_args.args[2]
         assert "tmux new-session" in script
-        assert "git clone -b release-1 https://example.com/test.git" in script
+        assert "day-clone --repository test-repo" in script
+        assert "--git-tag release-1" in script
+        assert "--executing-entity ubuntu" in script
+        assert "git clone" not in script
         out = capsys.readouterr().out
         assert "Tmux session 'sess-2' created" in out
         assert "Then run: tmux attach -t sess-2" in out
@@ -1550,7 +1559,7 @@ class TestRemoteTestsScript:
     )
     @patch(
         "daylily_ec.scripts.daylily_run_ephemeral_cluster_remote_tests._load_default_repo",
-        return_value=("https://example.com/test.git", "release-1"),
+        return_value=("test-repo", "release-1"),
     )
     @patch("daylily_ec.scripts.daylily_run_ephemeral_cluster_remote_tests.wait_for_ssm_online")
     @patch(

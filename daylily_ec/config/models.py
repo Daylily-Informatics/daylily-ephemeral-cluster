@@ -87,9 +87,7 @@ class EphemeralClusterConfig(BaseModel):
 class ConfigFile(BaseModel):
     """Root model wrapping ``ephemeral_cluster:`` key."""
 
-    ephemeral_cluster: EphemeralClusterConfig = Field(
-        default_factory=EphemeralClusterConfig
-    )
+    ephemeral_cluster: EphemeralClusterConfig = Field(default_factory=EphemeralClusterConfig)
 
 
 # ---------------------------------------------------------------------------
@@ -108,6 +106,8 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "delete_local_root",
     "dragen_license_policy_arn",
     "dragen_license_secret_arn",
+    "dayoa_deploy_key_policy_arn",
+    "dayoa_deploy_key_secret_arn",
     "enable_detailed_monitoring",
     "enforce_budget",
     "fsx_fs_size",
@@ -156,6 +156,7 @@ REQUIRED_CONFIG_KEYS: list[str] = [
 # ---------------------------------------------------------------------------
 # Normalization helper (matches Bash ``normalize_config_component``)
 # ---------------------------------------------------------------------------
+
 
 def _normalize(value: str) -> str:
     """Normalize a single config component string.

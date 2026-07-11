@@ -48,6 +48,15 @@ BANNED_PATTERNS = {
     r"\bscp\b": "legacy SSH file copy command",
 }
 
+DEPLOY_KEY_SSH_OPTION_PATHS = {
+    Path("bin/headnode_utils/day-clone"),
+    Path("daylily_ec/resources/payload/bin/headnode_utils/day-clone"),
+}
+DEPLOY_KEY_SSH_OPTION_PATTERNS = {
+    r"\bStrictHostKeyChecking\b",
+    r"\bUserKnownHostsFile\b",
+}
+
 
 def _iter_supported_script_files():
     for root in SUPPORTED_SCRIPT_ROOTS:
@@ -71,10 +80,16 @@ def _find_banned_refs(path: Path):
     except UnicodeDecodeError:
         return []
     hits = []
+    relative_path = path.relative_to(REPO_ROOT)
     for lineno, line in enumerate(text.splitlines(), start=1):
         for pattern, label in BANNED_PATTERNS.items():
+            if (
+                relative_path in DEPLOY_KEY_SSH_OPTION_PATHS
+                and pattern in DEPLOY_KEY_SSH_OPTION_PATTERNS
+            ):
+                continue
             if re.search(pattern, line):
-                hits.append(f"{path.relative_to(REPO_ROOT)}:{lineno}: {label}: {line.strip()}")
+                hits.append(f"{relative_path}:{lineno}: {label}: {line.strip()}")
     return hits
 
 
@@ -103,7 +118,10 @@ def test_supported_scripts_have_no_pem_references():
     for path in _iter_supported_script_files():
         failures.extend(_find_banned_refs(path))
     if failures:
-        pytest.fail("Supported scripts still contain unsupported SSH/PEM references:\n" + "\n".join(failures))
+        pytest.fail(
+            "Supported scripts still contain unsupported SSH/PEM references:\n"
+            + "\n".join(failures)
+        )
 
 
 def test_supported_configs_have_no_pem_references():
@@ -111,7 +129,9 @@ def test_supported_configs_have_no_pem_references():
     for path in _iter_supported_config_files():
         failures.extend(_find_banned_refs(path))
     if failures:
-        pytest.fail("Supported configs still contain unsupported PEM references:\n" + "\n".join(failures))
+        pytest.fail(
+            "Supported configs still contain unsupported PEM references:\n" + "\n".join(failures)
+        )
 
 
 def test_legacy_payload_assets_are_quarantined_out_of_runtime_bundle():

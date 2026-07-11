@@ -27,6 +27,7 @@ def test_readiness_script_requires_day_ec_tools_and_fsx_reference_assets():
     assert "command -v daylily-ec" in script
     assert "command -v day-clone" in script
     assert "day-clone --list >/dev/null" in script
+    assert "day-clone --check-auth --repository daylily-omics-analysis" in script
     assert "stty -a" in script
     assert "-ixon" in script
     assert "df -P /fsx >/dev/null" in script
@@ -55,6 +56,7 @@ def test_readiness_script_can_target_ec2_user():
     assert 'test "$(id -un)" = ubuntu' not in script
     assert "DAYLILY_EC_HEADNODE_BOOTSTRAPPED" in script
     assert "day-clone --list >/dev/null" in script
+    assert "day-clone --check-auth --repository daylily-omics-analysis" in script
 
 
 def test_validate_headnode_readiness_runs_shared_script_as_ubuntu():
@@ -74,6 +76,7 @@ def test_validate_headnode_readiness_runs_shared_script_as_ubuntu():
     assert instance_id == "i-abc123"
     assert region == "us-west-2"
     assert "day-clone --list" in script
+    assert "day-clone --check-auth --repository daylily-omics-analysis" in script
     assert "/fsx/references/genomic_data" in script
     assert "/fsx/resources/environments/conda/ubuntu/$(hostname)" in script
     assert "/fsx/resources/environments/containers/ubuntu/$(hostname)" in script

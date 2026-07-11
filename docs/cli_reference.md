@@ -418,11 +418,19 @@ Headnode repository cloning uses the same catalog:
 
 ```bash
 day-clone --list
+day-clone --check-auth --repository daylily-omics-analysis --git-tag 10.0.69
 day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 10.0.69 --executing-entity "$EXECUTING_ENTITY"
 day-clone -d "$ANALYSIS_ID" -t 10.0.69
 ```
 
 `-t` is the short form of `--git-tag`; `-d` is the short form of `--destination` and is required for every clone. If `--repository` is omitted, `day-clone` uses `default_repository` from `daylily_pipeline_command_catalog.yaml`. If `--git-tag`/`-t` is omitted, it uses the selected repository row's `default_ref`. Missing catalog rows, missing URLs, missing cluster identity, unsafe path segments, or an existing destination directory are hard failures.
+
+Private DayOA access uses the catalog's explicit SSH/deploy-key contract. `dyec create`
+requires `dayoa_deploy_key_secret_arn` and `dayoa_deploy_key_policy_arn` config values.
+For an older cluster whose headnode lacks the ARN reference, rerun
+`dyec headnode configure ... --dayoa-deploy-key-secret-arn <exact-secret-arn>` after
+updating the cluster headnode role with the exact policy. `--check-auth` verifies the
+configured repository/ref without creating an analysis directory.
 
 Command classes:
 

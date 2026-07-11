@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import shlex
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Sequence
+from typing import Any, Dict, Iterable, List, Literal, Optional, Sequence
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -267,9 +267,13 @@ class TestDataProfile(BaseModel):
             if not self.source_fsx_prefix:
                 raise ValueError("run_dra_required profiles must declare source_fsx_prefix")
             if not self.run_context_source_s3_column:
-                raise ValueError("run_dra_required profiles must declare run_context_source_s3_column")
+                raise ValueError(
+                    "run_dra_required profiles must declare run_context_source_s3_column"
+                )
             if not self.run_context_mount_id_column:
-                raise ValueError("run_dra_required profiles must declare run_context_mount_id_column")
+                raise ValueError(
+                    "run_dra_required profiles must declare run_context_mount_id_column"
+                )
         return self
 
 
@@ -445,7 +449,9 @@ class ArtifactRegistrationPolicy(BaseModel):
             raise ValueError("enabled MultiQC artifact_registration requires multiqc_reports")
         report_kinds = [report.report_kind for report in self.multiqc_reports]
         if len(set(report_kinds)) != len(report_kinds):
-            raise ValueError("artifact_registration.multiqc_reports report_kind values must be unique")
+            raise ValueError(
+                "artifact_registration.multiqc_reports report_kind values must be unique"
+            )
         return self
 
 
@@ -614,9 +620,7 @@ class AnalysisCommand(BaseModel):
                     "commands with non-default day_profile must set default_activation=false"
                 )
             if expected_activation not in self.dy_command:
-                raise ValueError(
-                    f"dy_command must explicitly activate {expected_activation!r}"
-                )
+                raise ValueError(f"dy_command must explicitly activate {expected_activation!r}")
             if expected_activation not in self.dryrun_dy_command:
                 raise ValueError(
                     f"dryrun_dy_command must explicitly activate {expected_activation!r}"
@@ -812,11 +816,22 @@ class RepositoryDefinition(BaseModel):
 
     display_name: str = ""
     description: str = ""
+    clone_transport: Literal["https", "ssh"]
+    auth_mode: Literal["none", "aws_deploy_key"]
     https_url: str
     ssh_url: Optional[str] = None
     default_ref: str
     relative_path: str
     analysis_commands: List[AnalysisCommand] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_clone_auth(self) -> "RepositoryDefinition":
+        if self.auth_mode == "aws_deploy_key":
+            if self.clone_transport != "ssh":
+                raise ValueError("aws_deploy_key authentication requires clone_transport ssh")
+            if not self.ssh_url:
+                raise ValueError("aws_deploy_key authentication requires ssh_url")
+        return self
 
 
 class RepositoryCatalog(BaseModel):
@@ -986,6 +1001,8 @@ def _migrate_v1_analysis_commands(raw: Dict[str, Any]) -> Dict[str, Any]:
             migrated_repositories[repo_key] = repo_value
             continue
         repo = dict(repo_value)
+        repo.setdefault("clone_transport", "https")
+        repo.setdefault("auth_mode", "none")
         commands = repo.get("analysis_commands")
         if isinstance(commands, list):
             migrated_commands = []

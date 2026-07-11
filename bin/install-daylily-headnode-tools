@@ -166,6 +166,7 @@ ensure_python_yaml
 
 cp "$CONFIG_SOURCE_DIR/daylily_cli_global.yaml" "$TARGET_CONFIG_DIR/daylily_cli_global.yaml"
 cp "$CONFIG_SOURCE_DIR/daylily_pipeline_command_catalog.yaml" "$TARGET_CONFIG_DIR/daylily_pipeline_command_catalog.yaml"
+install -m 0644 "$CONFIG_SOURCE_DIR/github_known_hosts" "$TARGET_CONFIG_DIR/github_known_hosts"
 ln -sfn daylily_pipeline_command_catalog.yaml "$TARGET_CONFIG_DIR/daylily_available_repositories.yaml"
 
 install -m 0755 "$REPO_ROOT/bin/headnode_utils/day-clone" "$USER_BIN_DIR/day-clone"

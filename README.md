@@ -289,11 +289,20 @@ On the headnode, `day-clone` consumes the same repository catalog:
 
 ```bash
 day-clone --list
+day-clone --check-auth --repository daylily-omics-analysis --git-tag 10.0.69
 day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 10.0.69 --executing-entity "$EXECUTING_ENTITY"
 day-clone -d "$ANALYSIS_ID" -t 10.0.69
 ```
 
 `-t` is the short form of `--git-tag`; `-d` is the short form of the required `--destination`. For operator-launched analyses, do not omit `--git-tag`/`-t`: resolve the intended DayOA release tag first, record it in the ledger, and pass it explicitly. When `--git-tag`/`-t` is omitted, `day-clone` falls back to the selected repository's `default_ref`; that fallback is for catalog implementation behavior, not live analysis runbooks. The checkout lands at `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`, where `relative_path` comes from the catalog row.
+
+The DayOA catalog row uses `clone_transport: ssh` with `auth_mode: aws_deploy_key`.
+Cluster config must set explicit `dayoa_deploy_key_secret_arn` and
+`dayoa_deploy_key_policy_arn` values. DYEC validates the exact secret-read policy,
+attaches it only to the headnode, and writes only the non-secret secret ARN/region to
+the headnode. `day-clone` retrieves the key for one Git operation, uses strict pinned
+GitHub host keys, and removes the temporary mode-`0600` key on every exit path.
+Authentication failures do not fall back to HTTPS, ambient SSH keys, or Git bundles.
 
 The DYEC launch equivalent is also explicit: pass `--git-tag <dayoa_version>` to `dyec workflow launch` or `dyec samples run`. Do not rely on their default `--git-tag` value for new analyses.
 

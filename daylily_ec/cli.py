@@ -2909,6 +2909,7 @@ def _configure_headnode_command(
     region: Optional[str],
     cluster: Optional[str],
     repo_overrides: Optional[Path],
+    dayoa_deploy_key_secret_arn: str,
     remote_user: str,
 ) -> None:
     from daylily_ec.aws.ssm import SsmError, wait_for_ssm_online
@@ -2935,6 +2936,8 @@ def _configure_headnode_command(
             head_node_instance_id=target.instance_id,
             region=resolved_region,
             profile=resolved_profile,
+            dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn.strip(),
+            dayoa_deploy_key_region=resolved_region if dayoa_deploy_key_secret_arn.strip() else "",
             repo_overrides=overrides or None,
             remote_user=remote_user,
         )
@@ -2968,6 +2971,14 @@ def headnode_configure(
         "--repo-overrides",
         help="File containing repo overrides as repo-key:git-ref lines.",
     ),
+    dayoa_deploy_key_secret_arn: str = typer.Option(
+        "",
+        "--dayoa-deploy-key-secret-arn",
+        help=(
+            "Exact Secrets Manager ARN for the DayOA read-only deploy key. Required when "
+            "configuring a legacy headnode that does not already have the reference."
+        ),
+    ),
 ) -> None:
     """Configure a cluster headnode through the supported Ubuntu SSM bootstrap."""
 
@@ -2976,6 +2987,7 @@ def headnode_configure(
         region=region,
         cluster=cluster,
         repo_overrides=repo_overrides,
+        dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
         remote_user="ubuntu",
     )
 
@@ -3002,6 +3014,14 @@ def headnode_configure_dragen(
         "--repo-overrides",
         help="File containing repo overrides as repo-key:git-ref lines.",
     ),
+    dayoa_deploy_key_secret_arn: str = typer.Option(
+        "",
+        "--dayoa-deploy-key-secret-arn",
+        help=(
+            "Exact Secrets Manager ARN for the DayOA read-only deploy key. Required when "
+            "configuring a legacy headnode that does not already have the reference."
+        ),
+    ),
 ) -> None:
     """Configure a RHEL/DRAGEN cluster headnode through SSM as ec2-user."""
 
@@ -3010,6 +3030,7 @@ def headnode_configure_dragen(
         region=region,
         cluster=cluster,
         repo_overrides=repo_overrides,
+        dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
         remote_user="ec2-user",
     )
 

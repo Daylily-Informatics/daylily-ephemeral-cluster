@@ -53,25 +53,25 @@ def _write_executable(path: Path, content: str) -> None:
 
 def _write_headnode_utils(path: Path, marker: str = "helper") -> None:
     _write_executable(path / "day-clone", f"#!/usr/bin/env bash\necho {marker}\n")
-    _write_executable(path / "sq", "#!/usr/bin/env bash\nexec sqq \"$@\"\n")
+    _write_executable(path / "sq", '#!/usr/bin/env bash\nexec sqq "$@"\n')
     _write_executable(
         path / "sqq",
         (
             "#!/usr/bin/env bash\n"
             "set -euo pipefail\n"
-            "format=\"SQ_FORMAT\"\n"
-            "if [[ \"$#\" -eq 0 ]]; then\n"
-            "    exec squeue -o \"$format\"\n"
+            'format="SQ_FORMAT"\n'
+            'if [[ "$#" -eq 0 ]]; then\n'
+            '    exec squeue -o "$format"\n'
             "fi\n"
-            "jobs=\"\"\n"
-            "for job in \"$@\"; do\n"
-            "    if [[ -z \"$jobs\" ]]; then\n"
-            "        jobs=\"$job\"\n"
+            'jobs=""\n'
+            'for job in "$@"; do\n'
+            '    if [[ -z "$jobs" ]]; then\n'
+            '        jobs="$job"\n'
             "    else\n"
-            "        jobs=\"${jobs},${job}\"\n"
+            '        jobs="${jobs},${job}"\n'
             "    fi\n"
             "done\n"
-            "exec squeue -o \"$format\" -j \"$jobs\"\n"
+            'exec squeue -o "$format" -j "$jobs"\n'
         ),
     )
 
@@ -230,8 +230,7 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
         in shell_code
     )
     assert (
-        'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-$DAYLILY_APPTAINER_CACHE}"'
-        in shell_code
+        'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-$DAYLILY_APPTAINER_CACHE}"' in shell_code
     )
     assert (
         'export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-$APPTAINER_CACHEDIR}"' in shell_code
@@ -393,6 +392,10 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         "default_repository: daylily-omics-analysis\nrepositories: {}\n",
         encoding="utf-8",
     )
+    (resources_dir / "config" / "github_known_hosts").write_text(
+        "github.com ssh-ed25519 test-host-key\n",
+        encoding="utf-8",
+    )
     (resources_dir / "etc" / "analysis_samples_template.tsv").write_text(
         "<REF-S3-URI>\n",
         encoding="utf-8",
@@ -406,7 +409,7 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
     _write_headnode_utils(resources_dir / "bin" / "headnode_utils", marker="day-clone")
     _write_executable(
         fake_bin / "squeue",
-        "#!/usr/bin/env bash\nprintf '%s\\n' \"$@\" >\"${SQUEUE_ARG_LOG}\"\n",
+        '#!/usr/bin/env bash\nprintf \'%s\\n\' "$@" >"${SQUEUE_ARG_LOG}"\n',
     )
     _write_executable(
         resources_dir / "bin" / "install_miniconda",
@@ -510,6 +513,7 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
     assert "daylily_headnode_bootstrap()" not in bootstrap_text
     assert "unset -f daylily_headnode_bootstrap" not in bootstrap_text
     assert (home_dir / ".config" / "daylily" / "daylily_pipeline_command_catalog.yaml").is_file()
+    assert (home_dir / ".config" / "daylily" / "github_known_hosts").is_file()
     legacy_catalog = home_dir / ".config" / "daylily" / "daylily_available_repositories.yaml"
     assert legacy_catalog.is_symlink()
     assert legacy_catalog.readlink() == Path("daylily_pipeline_command_catalog.yaml")
@@ -559,6 +563,10 @@ def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Pat
     )
     (resources_dir / "config" / "daylily_pipeline_command_catalog.yaml").write_text(
         "default_repository: daylily-omics-analysis\nrepositories: {}\n",
+        encoding="utf-8",
+    )
+    (resources_dir / "config" / "github_known_hosts").write_text(
+        "github.com ssh-ed25519 test-host-key\n",
         encoding="utf-8",
     )
     (resources_dir / "etc" / "analysis_samples_template.tsv").write_text(
@@ -630,6 +638,10 @@ def test_install_headnode_tools_prefers_checkout_over_installed_resources(
         )
         (root / "config" / "daylily_pipeline_command_catalog.yaml").write_text(
             "default_repository: daylily-omics-analysis\nrepositories: {}\n",
+            encoding="utf-8",
+        )
+        (root / "config" / "github_known_hosts").write_text(
+            "github.com ssh-ed25519 test-host-key\n",
             encoding="utf-8",
         )
         (root / "etc" / "analysis_samples_template.tsv").write_text(
@@ -717,7 +729,7 @@ def test_headnode_squeue_helpers_are_watchable_from_non_interactive_shell(
     arg_log = tmp_path / "squeue.args"
     _write_executable(
         fake_bin / "squeue",
-        "#!/usr/bin/env bash\nprintf '%s\\n' \"$@\" >\"${SQUEUE_ARG_LOG}\"\n",
+        '#!/usr/bin/env bash\nprintf \'%s\\n\' "$@" >"${SQUEUE_ARG_LOG}"\n',
     )
     env = os.environ.copy()
     env.update(
@@ -797,7 +809,7 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "install_spot_lifecycle_hooks" in script
     assert "prepare_headnode_writable_dirs" in script
     assert "prepare_dayoa_environment_cache" in script
-    assert 'install -d -m 1777 \\' in script
+    assert "install -d -m 1777 \\" in script
     assert '"${work_root}"' in script
     assert '"${run_mounts_root}"' in script
     assert "install -d -m 0777 /fsx/analysis_results" in script
@@ -826,10 +838,7 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
         'export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-${DAYLILY_APPTAINER_CACHE}}"'
         in script
     )
-    assert (
-        'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-${DAYLILY_APPTAINER_CACHE}}"'
-        in script
-    )
+    assert 'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-${DAYLILY_APPTAINER_CACHE}}"' in script
     assert (
         "DayOA conda, container, and Nextflow caches are seeded from "
         "${runtime_assets_root}/cached_envs into ${environment_cache_root}" in script
@@ -909,8 +918,7 @@ def test_rhel_dragen_post_install_removes_cromwell_and_requires_womtool() -> Non
         encoding="utf-8"
     )
     packaged = (
-        REPO_ROOT
-        / "daylily_ec/resources/payload/config/day_cluster/post_install_rhel8_dragen.sh"
+        REPO_ROOT / "daylily_ec/resources/payload/config/day_cluster/post_install_rhel8_dragen.sh"
     ).read_text(encoding="utf-8")
 
     for script in (source, packaged):

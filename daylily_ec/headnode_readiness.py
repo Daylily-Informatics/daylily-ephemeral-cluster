@@ -77,6 +77,7 @@ test ! -e /fsx/runtime_assets
 test -L /fsx/data
 test "$(readlink -f /fsx/data)" = /fsx/references
 day-clone --list >/dev/null
+day-clone --check-auth --repository daylily-omics-analysis >/dev/null
 echo "DAY-EC headnode readiness validated"
 DAYLILY_HEADNODE_READINESS
 chmod 700 "$readiness_script"

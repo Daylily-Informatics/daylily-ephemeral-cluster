@@ -44,6 +44,7 @@ from daylily_ec.workflow.create_cluster import (
     EXIT_TOOLCHAIN,
     EXIT_VALIDATION_FAILURE,
     az_cluster_template_relative_path,
+    attach_headnode_managed_policy,
     _build_connection_command,
     _is_valid_fsx_size,
     _is_valid_headnode_instance_type,
@@ -57,6 +58,7 @@ from daylily_ec.workflow.create_cluster import (
     _resolve_config_value,
     _resolve_post_create_inputs,
     resolve_cluster_template_yaml,
+    resolve_dayoa_deploy_key_inputs,
     resolve_dragen_create_inputs,
     configure_headnode,
     make_repository_catalog_preflight_step,
@@ -116,6 +118,94 @@ class TestClusterBootConfigPublish:
             for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES
         ]
 
+
+def test_attach_headnode_managed_policy_is_headnode_only_and_idempotent(tmp_path):
+    policy_arn = "arn:aws:iam::123456789012:policy/DayECHeadnodeDayOAClone"
+    path = tmp_path / "cluster.yaml"
+    path.write_text(
+        """
+HeadNode:
+  Iam:
+    AdditionalIamPolicies:
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+Scheduling:
+  SlurmQueues:
+    - Name: i128
+      Iam:
+        AdditionalIamPolicies:
+          - Policy: arn:aws:iam::123456789012:policy/runtime
+""",
+        encoding="utf-8",
+    )
+
+    attach_headnode_managed_policy(path, policy_arn)
+    attach_headnode_managed_policy(path, policy_arn)
+
+    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+    head_policies = [item["Policy"] for item in payload["HeadNode"]["Iam"]["AdditionalIamPolicies"]]
+    queue_policies = [
+        item["Policy"]
+        for item in payload["Scheduling"]["SlurmQueues"][0]["Iam"]["AdditionalIamPolicies"]
+    ]
+    assert head_policies.count(policy_arn) == 1
+    assert policy_arn not in queue_policies
+
+
+def test_attach_headnode_managed_policy_rejects_compute_attachment(tmp_path):
+    policy_arn = "arn:aws:iam::123456789012:policy/DayECHeadnodeDayOAClone"
+    path = tmp_path / "cluster.yaml"
+    path.write_text(
+        f"""
+HeadNode:
+  Iam:
+    AdditionalIamPolicies: []
+Scheduling:
+  SlurmQueues:
+    - Name: i128
+      Iam:
+        AdditionalIamPolicies:
+          - Policy: {policy_arn}
+""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="must not be attached to compute queue"):
+        attach_headnode_managed_policy(path, policy_arn)
+
+
+def test_resolve_dayoa_deploy_key_inputs_requires_matching_account_and_region():
+    cfg = ConfigFile.model_validate(
+        {
+            "ephemeral_cluster": {
+                "config": {
+                    "dayoa_deploy_key_secret_arn": [
+                        "USESETVALUE",
+                        "",
+                        "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa",
+                    ],
+                    "dayoa_deploy_key_policy_arn": [
+                        "USESETVALUE",
+                        "",
+                        "arn:aws:iam::123456789012:policy/DayECHeadnodeDayOAClone",
+                    ],
+                }
+            }
+        }
+    )
+
+    inputs = resolve_dayoa_deploy_key_inputs(
+        cfg,
+        region_az="us-west-2d",
+        account_id="123456789012",
+        non_interactive=True,
+    )
+
+    assert inputs.region == "us-west-2"
+    assert inputs.secret_arn.endswith(":secret:dayoa")
+    assert inputs.policy_arn.endswith(":policy/DayECHeadnodeDayOAClone")
+
+
+class TestClusterBootConfigPublishContinued:
     def test_rejects_legacy_fsx_data_boot_file(self, tmp_path):
         source_dir = tmp_path / "boot"
         source_dir.mkdir()
@@ -201,8 +291,7 @@ class TestAzClusterTemplateResolution:
             "config/day_cluster/rhel/us-west-2/us-west-2c/prod_cluster_rhel_us-west-2c.yaml"
         )
         assert az_cluster_template_relative_path("dragen", "us-west-2b") == Path(
-            "config/day_cluster/dragen/us-west-2/us-west-2b/"
-            "prod_cluster_dragen_us-west-2b.yaml"
+            "config/day_cluster/dragen/us-west-2/us-west-2b/prod_cluster_dragen_us-west-2b.yaml"
         )
 
     def test_dragen_rejects_explicit_template_override(self, tmp_path: Path) -> None:
@@ -262,12 +351,9 @@ class TestAzClusterTemplateResolution:
 
     def test_dragen_template_enforces_mixed_spot_contract(self, tmp_path: Path) -> None:
         template = Path(
-            "config/day_cluster/dragen/us-west-2/us-west-2b/"
-            "prod_cluster_dragen_us-west-2b.yaml"
+            "config/day_cluster/dragen/us-west-2/us-west-2b/prod_cluster_dragen_us-west-2b.yaml"
         ).read_text(encoding="utf-8")
-        secret_arn = (
-            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/dragen"
-        )
+        secret_arn = "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/dragen"
         policy_arn = "arn:aws:iam::123456789012:policy/dayec-dragen-license-read"
         cookbook_uri = "s3://private-assets/backports/cookbook.tgz"
         ami_id = "ami-0123456789abcdef0"
@@ -284,9 +370,7 @@ class TestAzClusterTemplateResolution:
                 "REGSUB_DRAGEN_LICENSE_POLICY_ARN": policy_arn,
                 "REGSUB_PCLUSTER_COOKBOOK_URI": cookbook_uri,
                 "REGSUB_S3_BUCKET_INIT": "s3://private-assets/boot",
-                "REGSUB_S3_IAM_POLICY": (
-                    "arn:aws:iam::123456789012:policy/dayec-cluster"
-                ),
+                "REGSUB_S3_IAM_POLICY": ("arn:aws:iam::123456789012:policy/dayec-cluster"),
                 "REGSUB_S3_REFERENCE_BUCKET": "references",
                 "REGSUB_S3_CONTROL_DATA_BUCKET": "controls",
                 "REGSUB_S3_STAGE_BUCKET": "stage",
@@ -324,9 +408,7 @@ class TestAzClusterTemplateResolution:
         assert queues[0]["CustomActions"]["OnNodeConfigured"]["Args"][-1] == "dragen"
         for queue in queues[1:]:
             assert queue["CustomActions"]["OnNodeConfigured"]["Args"][-1] == "cpu"
-            policies = [
-                item["Policy"] for item in queue["Iam"]["AdditionalIamPolicies"]
-            ]
+            policies = [item["Policy"] for item in queue["Iam"]["AdditionalIamPolicies"]]
             assert policy_arn not in policies
             assert queue["ComputeResources"][0]["Efa"]["Enabled"] is False
 
@@ -345,9 +427,9 @@ class TestAzClusterTemplateResolution:
             validate_dragen_cluster_contract(cluster_yaml, inputs)
 
         missing_cpu_queue = yaml.safe_load(rendered)
-        missing_cpu_queue["Scheduling"]["SlurmQueues"] = missing_cpu_queue[
-            "Scheduling"
-        ]["SlurmQueues"][:2]
+        missing_cpu_queue["Scheduling"]["SlurmQueues"] = missing_cpu_queue["Scheduling"][
+            "SlurmQueues"
+        ][:2]
         cluster_yaml.write_text(yaml.safe_dump(missing_cpu_queue), encoding="utf-8")
         with pytest.raises(ValueError, match="dragen, i192, and i192nvme"):
             validate_dragen_cluster_contract(cluster_yaml, inputs)
@@ -1193,6 +1275,16 @@ class TestRunCreateWorkflow:
         assert records["next_run_values"]["heartbeat_schedule"] == "rate(60 minutes)"
         assert records["next_run_values"]["heartbeat_scheduler_role_arn"] == ""
         assert records["resolve_scheduler_role_kwargs"]["preconfigured"] == ""
+        assert records["next_run_values"]["dayoa_deploy_key_secret_arn"].endswith(
+            ":secret:dayec/dayoa-key"
+        )
+        assert records["next_run_values"]["dayoa_deploy_key_policy_arn"].endswith(
+            ":policy/DayECHeadnodeDayOAClone"
+        )
+        assert records["configure_headnode_kwargs"]["dayoa_deploy_key_region"] == "us-west-2"
+        assert records["configure_headnode_kwargs"]["dayoa_deploy_key_secret_arn"].endswith(
+            ":secret:dayec/dayoa-key"
+        )
 
     def test_budget_project_override_is_rejected(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
@@ -1209,7 +1301,9 @@ class TestRunCreateWorkflow:
 
         assert records["rc"] == EXIT_VALIDATION_FAILURE
 
-    def test_disable_budget_enforcement_renders_skip_without_budget_project(self, tmp_path, monkeypatch):
+    def test_disable_budget_enforcement_renders_skip_without_budget_project(
+        self, tmp_path, monkeypatch
+    ):
         records = _run_stubbed_create_workflow(
             tmp_path,
             monkeypatch,
@@ -1229,9 +1323,7 @@ class TestRunCreateWorkflow:
         assert "budget_project" not in records["next_run_values"]
         assert records["next_run_values"]["enforce_budget"] == "skip"
 
-    def test_spot_warn_threshold_renders_as_custom_action_string_arg(
-        self, tmp_path, monkeypatch
-    ):
+    def test_spot_warn_threshold_renders_as_custom_action_string_arg(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
             tmp_path,
             monkeypatch,
@@ -1426,9 +1518,7 @@ class TestRunCreateWorkflow:
         assert ("Accounting URI", "10.0.1.39:3306") in records["details"]
         assert "Enter selection number" in records["prompt_labels"]
 
-    def test_slurm_accounting_enabled_resolves_existing_db_by_default(
-        self, tmp_path, monkeypatch
-    ):
+    def test_slurm_accounting_enabled_resolves_existing_db_by_default(self, tmp_path, monkeypatch):
         calls = []
 
         def fake_ensure_slurm_accounting_db(_aws_ctx, **kwargs):
@@ -1440,9 +1530,7 @@ class TestRunCreateWorkflow:
                 private_ip="10.0.1.39",
                 database_name="dayec_slurm_acct",
                 username="slurm_acct",
-                password_secret_arn=(
-                    "arn:aws:secretsmanager:us-west-2:123456789012:secret:sacct"
-                ),
+                password_secret_arn=("arn:aws:secretsmanager:us-west-2:123456789012:secret:sacct"),
                 client_security_group_id="sg-client",
                 instance_id="i-acct",
             )
@@ -1487,9 +1575,7 @@ class TestRunCreateWorkflow:
         assert records["next_run_values"]["slurm_accounting_enabled"] == "false"
         assert not any(key == "Accounting stack" for key, _value in records["details"])
 
-    def test_disable_slurm_accounting_rejects_config_create_request(
-        self, tmp_path, monkeypatch
-    ):
+    def test_disable_slurm_accounting_rejects_config_create_request(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
             tmp_path,
             monkeypatch,
@@ -1583,9 +1669,7 @@ class TestRunCreateWorkflow:
         assert records["rc"] == EXIT_VALIDATION_FAILURE
         assert any("cannot be combined" in failure for failure in records["failures"])
 
-    def test_slurm_accounting_create_uses_explicit_private_subnet_vpc(
-        self, tmp_path, monkeypatch
-    ):
+    def test_slurm_accounting_create_uses_explicit_private_subnet_vpc(self, tmp_path, monkeypatch):
         calls = []
 
         def fake_ensure_slurm_accounting_db(_aws_ctx, **kwargs):
@@ -1633,9 +1717,7 @@ class TestRunCreateWorkflow:
         assert calls[0]["private_subnet_id"] == "subnet-explicit-priv"
         assert calls[0]["assign_public_ip"] is True
 
-    def test_explicit_network_and_policy_config_skip_baseline_stack(
-        self, tmp_path, monkeypatch
-    ):
+    def test_explicit_network_and_policy_config_skip_baseline_stack(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
             tmp_path,
             monkeypatch,
@@ -1730,6 +1812,51 @@ class TestConfigureHeadnode:
             remote_user="ubuntu",
         )
         mock_write_remote_text.assert_not_called()
+
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
+    def test_writes_only_deploy_key_reference_to_headnode(
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
+        mock_run_shell.return_value = SimpleNamespace(stdout="", stderr="")
+        mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
+        secret_arn = (
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/github-deploy-keys/dayoa"
+        )
+
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+            dayoa_deploy_key_secret_arn=secret_arn,
+            dayoa_deploy_key_region="us-west-2",
+        )
+
+        assert ok is True
+        mock_write_remote_text.assert_called_once()
+        args = mock_write_remote_text.call_args.args
+        assert args[2] == "~/.config/daylily/github_deploy_keys.yaml"
+        payload = yaml.safe_load(args[3])
+        assert payload == {
+            "config_version": 1,
+            "deploy_keys": {
+                "daylily-omics-analysis": {
+                    "region": "us-west-2",
+                    "secret_arn": secret_arn,
+                }
+            },
+        }
+        assert "PRIVATE KEY" not in args[3]
 
     @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
@@ -2409,6 +2536,16 @@ def _build_workflow_config(
         "heartbeat_scheduler_role_arn": ["PROMPTUSER", "", ""],
         "slurm_accounting_enabled": ["USESETVALUE", "", "false"],
         "slurm_accounting_create_db": ["USESETVALUE", "", "false"],
+        "dayoa_deploy_key_secret_arn": [
+            "USESETVALUE",
+            "",
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/dayoa-key",
+        ],
+        "dayoa_deploy_key_policy_arn": [
+            "USESETVALUE",
+            "",
+            "arn:aws:iam::123456789012:policy/DayECHeadnodeDayOAClone",
+        ],
     }
     if config_overrides:
         config.update(config_overrides)
@@ -2466,9 +2603,7 @@ def _run_stubbed_create_workflow(
                 def describe_subnets(self, SubnetIds):
                     subnet_id = SubnetIds[0]
                     vpc_id = (
-                        "vpc-explicit-priv"
-                        if subnet_id == "subnet-explicit-priv"
-                        else "vpc-123"
+                        "vpc-explicit-priv" if subnet_id == "subnet-explicit-priv" else "vpc-123"
                     )
                     return {
                         "Subnets": [
@@ -2504,6 +2639,7 @@ def _run_stubbed_create_workflow(
                 "iam": shared_client,
                 "budgets": shared_client,
                 "s3": shared_client,
+                "secretsmanager": shared_client,
                 "sns": shared_client,
                 "scheduler": shared_client,
             }
@@ -2644,6 +2780,7 @@ def _run_stubbed_create_workflow(
         "should_abort",
         lambda *_args, **_kwargs: False,
     )
+
     def fake_ensure_pcluster_env_stack(*_args, **_kwargs):
         records["baseline_stack_calls"] += 1
         return SimpleNamespace(
@@ -2666,10 +2803,15 @@ def _run_stubbed_create_workflow(
         "list_pcluster_tags_budget_policies",
         lambda *_args, **_kwargs: [],
     )
+
+    def fake_configure_headnode(**kwargs):
+        records["configure_headnode_kwargs"] = kwargs
+        return True
+
     monkeypatch.setattr(
         create_cluster_module,
         "configure_headnode",
-        lambda **_kwargs: True,
+        fake_configure_headnode,
     )
 
     def fake_write_init_artifacts(
@@ -2692,6 +2834,12 @@ def _run_stubbed_create_workflow(
     def fake_apply_spot_prices(_init_template_path, cluster_yaml_path, *_args, **_kwargs):
         Path(cluster_yaml_path).write_text(
             """
+HeadNode:
+  Iam:
+    AdditionalIamPolicies:
+      - Policy: arn:policy:default
+Scheduling:
+  SlurmQueues: []
 SharedStorage:
   - Name: fsx
     StorageType: FsxLustre

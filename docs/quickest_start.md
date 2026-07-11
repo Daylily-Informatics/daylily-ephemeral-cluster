@@ -108,12 +108,13 @@ whoami
 pwd
 command -v day-clone
 day-clone --list
+day-clone --check-auth --repository daylily-omics-analysis --git-tag <dayoa_version>
 command -v tmux
 command -v squeue
 exit
 ```
 
-Expected user is `ubuntu` and the login shell starts in `/home/ubuntu`. `day-clone --list` must print the repository rows and clone syntax from the headnode catalog.
+Expected user is `ubuntu` and the login shell starts in `/home/ubuntu`. `day-clone --list` must print the repository rows and clone syntax from the headnode catalog. The authentication check must resolve the requested private DayOA ref before any analysis checkout is created.
 
 For any new DayOA analysis, resolve the intended DayOA release tag before launch and pass it explicitly. Manual launches use `day-clone -t <dayoa_version> -d <analysis_id>`; DYEC launches use `--git-tag <dayoa_version>`. Do not rely on default refs.
 

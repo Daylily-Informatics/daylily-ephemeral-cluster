@@ -23,7 +23,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.87"
+DAYOA_BLESSED_TAG = "10.0.95"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -711,9 +711,7 @@ def test_create_command_rejects_invalid_spot_pricing_options(
     assert message in result.output
 
 
-def test_create_command_requires_explicit_dragen_backport_manifest(
-    monkeypatch, caplog
-) -> None:
+def test_create_command_requires_explicit_dragen_backport_manifest(monkeypatch, caplog) -> None:
     _activate_dayec_runtime(monkeypatch)
 
     result = runner.invoke(
@@ -1901,6 +1899,8 @@ def test_headnode_configure_uses_workflow_configure(monkeypatch, tmp_path) -> No
     assert result.exit_code == 0
     assert calls["configure"] == {
         "cluster_name": "cluster-a",
+        "dayoa_deploy_key_region": "",
+        "dayoa_deploy_key_secret_arn": "",
         "head_node_instance_id": "i-abc123",
         "region": "us-west-2",
         "profile": "dev",
@@ -1954,6 +1954,8 @@ def test_headnode_configure_dragen_uses_ec2_user(monkeypatch, tmp_path) -> None:
     assert result.exit_code == 0
     assert calls["configure"] == {
         "cluster_name": "dragen-cluster",
+        "dayoa_deploy_key_region": "",
+        "dayoa_deploy_key_secret_arn": "",
         "head_node_instance_id": "i-drg123",
         "region": "us-west-2",
         "profile": "dev",

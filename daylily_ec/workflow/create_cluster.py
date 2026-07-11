@@ -99,6 +99,15 @@ class DragenCreateInputs:
 
 
 @dataclass(frozen=True)
+class DayoaDeployKeyInputs:
+    """Explicit AWS resources used for read-only DayOA repository access."""
+
+    secret_arn: str
+    policy_arn: str
+    region: str
+
+
+@dataclass(frozen=True)
 class HeadnodeRepoSpec:
     url: str
     ref: str
@@ -527,7 +536,9 @@ def _write_spot_price_partition_markdown(
     try:
         output_path.write_text(body, encoding="utf-8")
     except OSError as exc:
-        raise RuntimeError(f"Failed to write spot price markdown table {output_path}: {exc}") from exc
+        raise RuntimeError(
+            f"Failed to write spot price markdown table {output_path}: {exc}"
+        ) from exc
 
 
 def _emit_spot_price_partition_table(
@@ -622,8 +633,7 @@ def resolve_dragen_create_inputs(
     )
     if not secret_match or secret_match.group(2) != region:
         raise ValueError(
-            "dragen_license_secret_arn must be an explicit Secrets Manager ARN in "
-            f"{region}."
+            f"dragen_license_secret_arn must be an explicit Secrets Manager ARN in {region}."
         )
 
     policy_arn = values["dragen_license_policy_arn"]
@@ -638,6 +648,111 @@ def resolve_dragen_create_inputs(
         license_secret_arn=secret_arn,
         license_policy_arn=policy_arn,
     )
+
+
+def resolve_dayoa_deploy_key_inputs(
+    cfg: Any,
+    *,
+    region_az: str,
+    account_id: str,
+    non_interactive: bool,
+) -> DayoaDeployKeyInputs:
+    """Resolve and validate the explicit DayOA deploy-key secret and policy."""
+
+    from daylily_ec.aws.context import parse_region_az
+
+    region, _az = parse_region_az(region_az)
+    secret_arn = _resolve_config_value(
+        cfg,
+        "dayoa_deploy_key_secret_arn",
+        "DayOA deploy-key Secrets Manager ARN",
+        non_interactive=non_interactive,
+    ).strip()
+    policy_arn = _resolve_config_value(
+        cfg,
+        "dayoa_deploy_key_policy_arn",
+        "DayOA deploy-key managed-policy ARN",
+        non_interactive=non_interactive,
+    ).strip()
+
+    secret_match = re.fullmatch(
+        r"arn:(aws(?:-us-gov)?):secretsmanager:([a-z0-9-]+):(\d{12}):secret:[A-Za-z0-9/_+=.@-]+",
+        secret_arn,
+    )
+    if not secret_match:
+        raise ValueError("dayoa_deploy_key_secret_arn must be an explicit Secrets Manager ARN.")
+    if secret_match.group(2) != region:
+        raise ValueError(
+            "dayoa_deploy_key_secret_arn region must match the cluster region: "
+            f"{secret_match.group(2)} != {region}."
+        )
+    if secret_match.group(3) != account_id:
+        raise ValueError("dayoa_deploy_key_secret_arn must belong to the active AWS account.")
+
+    policy_match = re.fullmatch(
+        r"arn:aws(?:-us-gov)?:iam::(\d{12}):policy/[A-Za-z0-9+=,.@_/-]+",
+        policy_arn,
+    )
+    if not policy_match:
+        raise ValueError("dayoa_deploy_key_policy_arn must be an explicit managed-policy ARN.")
+    if policy_match.group(1) != account_id:
+        raise ValueError("dayoa_deploy_key_policy_arn must belong to the active AWS account.")
+
+    return DayoaDeployKeyInputs(
+        secret_arn=secret_arn,
+        policy_arn=policy_arn,
+        region=region,
+    )
+
+
+def attach_headnode_managed_policy(
+    cluster_yaml_path: str | Path,
+    policy_arn: str,
+) -> None:
+    """Attach one managed policy to the headnode and reject compute attachment."""
+
+    import yaml
+
+    path = Path(cluster_yaml_path)
+    payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if not isinstance(payload, dict):
+        raise ValueError("Rendered cluster YAML must be a mapping.")
+
+    queues = (payload.get("Scheduling") or {}).get("SlurmQueues") or []
+    for queue in queues:
+        if not isinstance(queue, dict):
+            continue
+        queue_policies = [
+            str(item.get("Policy") or "")
+            for item in ((queue.get("Iam") or {}).get("AdditionalIamPolicies") or [])
+            if isinstance(item, dict)
+        ]
+        if policy_arn in queue_policies:
+            raise ValueError(
+                "DayOA deploy-key policy must not be attached to compute queue "
+                f"{queue.get('Name')!r}."
+            )
+
+    headnode = payload.get("HeadNode")
+    if not isinstance(headnode, dict):
+        raise ValueError("Rendered cluster YAML is missing HeadNode.")
+    iam = headnode.get("Iam")
+    if not isinstance(iam, dict):
+        raise ValueError("Rendered cluster YAML is missing HeadNode.Iam.")
+    policies = iam.get("AdditionalIamPolicies")
+    if not isinstance(policies, list):
+        raise ValueError("Rendered cluster YAML is missing HeadNode.Iam.AdditionalIamPolicies.")
+    existing = [
+        item
+        for item in policies
+        if isinstance(item, dict) and str(item.get("Policy") or "") == policy_arn
+    ]
+    if len(existing) > 1:
+        raise ValueError("DayOA deploy-key policy appears more than once on the headnode.")
+    if not existing:
+        policies.append({"Policy": policy_arn})
+
+    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
 
 
 def az_cluster_template_relative_path(cluster_type: str, region_az: str) -> Path:
@@ -666,7 +781,9 @@ def _explicit_cluster_template_yaml(cfg: Any) -> str:
     return ""
 
 
-def _resolve_existing_template_path(template_path: str, resource_path_fn: Callable[[str], Path]) -> str:
+def _resolve_existing_template_path(
+    template_path: str, resource_path_fn: Callable[[str], Path]
+) -> str:
     candidate = Path(template_path).expanduser()
     if candidate.is_file():
         return str(candidate)
@@ -800,9 +917,7 @@ def validate_dragen_cluster_contract(
     if image.get("Os") != "almalinux8":
         raise ValueError("DRAGEN cluster Image.Os must be almalinux8.")
     if str(image.get("CustomAmi") or "").strip() != inputs.backport.image_ami_id:
-        raise ValueError(
-            "DRAGEN cluster-wide AMI does not match the qualified manifest image."
-        )
+        raise ValueError("DRAGEN cluster-wide AMI does not match the qualified manifest image.")
 
     headnode = payload.get("HeadNode") or {}
     head_ami = ((headnode.get("Image") or {}).get("CustomAmi") or "").strip()
@@ -815,7 +930,7 @@ def validate_dragen_cluster_contract(
         expected_role="headnode",
     )
 
-    queues = ((payload.get("Scheduling") or {}).get("SlurmQueues") or [])
+    queues = (payload.get("Scheduling") or {}).get("SlurmQueues") or []
     if not isinstance(queues, list):
         raise ValueError("DRAGEN cluster SlurmQueues must be a list.")
     queue_names = [str(queue.get("Name") or "") for queue in queues]
@@ -874,8 +989,7 @@ def validate_dragen_cluster_contract(
                 f"DRAGEN CPU queue {queue_name} must use compute resource {resource_name}."
             )
         rendered_types = [
-            str(item.get("InstanceType") or "")
-            for item in cpu_resource.get("Instances") or []
+            str(item.get("InstanceType") or "") for item in cpu_resource.get("Instances") or []
         ]
         if rendered_types != instance_types:
             raise ValueError(
@@ -889,8 +1003,7 @@ def validate_dragen_cluster_contract(
             raise ValueError(f"DRAGEN CPU queue {queue_name} must keep EFA disabled.")
 
     cookbook_uri = (
-        (((payload.get("DevSettings") or {}).get("Cookbook") or {}).get("ChefCookbook"))
-        or ""
+        (((payload.get("DevSettings") or {}).get("Cookbook") or {}).get("ChefCookbook")) or ""
     ).strip()
     if cookbook_uri != inputs.backport.cookbook_bundle_uri:
         raise ValueError("DRAGEN cluster cookbook does not match the pinned backport manifest.")
@@ -910,16 +1023,12 @@ def _validate_dragen_node_policy_and_action(
     if policies.count(inputs.license_policy_arn) != 1:
         raise ValueError(f"{label} must attach the configured license policy exactly once.")
 
-    action = ((node.get("CustomActions") or {}).get("OnNodeConfigured") or {})
+    action = (node.get("CustomActions") or {}).get("OnNodeConfigured") or {}
     script = str(action.get("Script") or "")
     if not script.endswith("/post_install_almalinux8_dragen.sh"):
         raise ValueError(f"{label} must use the AlmaLinux DRAGEN bootstrap wrapper.")
     args = [str(value) for value in action.get("Args") or []]
-    if (
-        len(args) != 6
-        or args[-2] != inputs.license_secret_arn
-        or args[-1] != expected_role
-    ):
+    if len(args) != 6 or args[-2] != inputs.license_secret_arn or args[-1] != expected_role:
         raise ValueError(
             f"{label} must pass the configured license secret ARN as arg 5 "
             f"and role {expected_role!r} as arg 6."
@@ -939,7 +1048,7 @@ def _validate_dragen_cpu_node(
     if inputs.license_policy_arn in policies:
         raise ValueError(f"{label} must not attach the DRAGEN license policy.")
 
-    action = ((node.get("CustomActions") or {}).get("OnNodeConfigured") or {})
+    action = (node.get("CustomActions") or {}).get("OnNodeConfigured") or {}
     script = str(action.get("Script") or "")
     if not script.endswith("/post_install_rhel8_dragen.sh"):
         raise ValueError(f"{label} must use the base AlmaLinux-compatible bootstrap.")
@@ -1395,7 +1504,9 @@ def _subnet_has_public_default_route(ec2_client: Any, subnet_id: str, *, label: 
         raise ValueError(f"Unable to inspect route table for {label} {subnet_id}.") from exc
     subnets = subnet_response.get("Subnets", [])
     if not subnets:
-        raise ValueError(f"Unable to inspect route table for {label} {subnet_id}: subnet not found.")
+        raise ValueError(
+            f"Unable to inspect route table for {label} {subnet_id}: subnet not found."
+        )
     vpc_id = str(subnets[0].get("VpcId", "")).strip()
     if not vpc_id:
         raise ValueError(f"Unable to inspect route table for {label} {subnet_id}: missing VpcId.")
@@ -1745,6 +1856,19 @@ def run_create_workflow(
     ui.detail("User", aws_ctx.iam_username)
     ui.detail("Region", f"{aws_ctx.region} ({region_az})")
     ui.detail("Cluster type", cluster_type)
+    try:
+        dayoa_deploy_key_inputs = resolve_dayoa_deploy_key_inputs(
+            cfg,
+            region_az=region_az,
+            account_id=aws_ctx.account_id,
+            non_interactive=non_interactive,
+        )
+    except ValueError as exc:
+        logger.error("DayOA deploy-key input validation failed: %s", exc)
+        ui.fail(f"DayOA deploy-key inputs: {exc}")
+        return EXIT_VALIDATION_FAILURE
+    ui.detail("DayOA deploy-key secret", dayoa_deploy_key_inputs.secret_arn)
+    ui.detail("DayOA deploy-key policy", dayoa_deploy_key_inputs.policy_arn)
     if dragen_inputs:
         secret_account = dragen_inputs.license_secret_arn.split(":", 5)[4]
         policy_account = dragen_inputs.license_policy_arn.split(":", 5)[4]
@@ -1892,6 +2016,17 @@ def run_create_workflow(
             interactive=not non_interactive,
         ),
     ]
+    from daylily_ec.aws.github_deploy_key import make_github_deploy_key_preflight_step
+
+    preflight_steps.insert(
+        1,
+        make_github_deploy_key_preflight_step(
+            secretsmanager_client=aws_ctx.client("secretsmanager"),
+            iam_client=aws_ctx.client("iam"),
+            secret_arn=dayoa_deploy_key_inputs.secret_arn,
+            policy_arn=dayoa_deploy_key_inputs.policy_arn,
+        ),
+    )
     if dragen_inputs:
         from daylily_ec.aws.dragen_license import make_dragen_license_preflight_step
         from daylily_ec.pcluster.backport import (
@@ -1971,9 +2106,7 @@ def run_create_workflow(
         for key in ("public_subnet_id", "private_subnet_id", "iam_policy_arn")
     )
     if disable_slurm_accounting and (
-        create_slurm_accounting_db
-        or scan_slurm_accounting_db
-        or config_accounting_create_requested
+        create_slurm_accounting_db or scan_slurm_accounting_db or config_accounting_create_requested
     ):
         logger.error("Slurm accounting was disabled while DB create/scan was requested.")
         ui.fail(
@@ -2236,10 +2369,13 @@ def run_create_workflow(
             ui.fail("Slurm accounting requires a resolved VPC id.")
             return EXIT_VALIDATION_FAILURE
 
-        accounting_stack_name = slurm_accounting_stack_name.strip() or _resolve_nonprompt_config_value(
-            cfg,
-            "slurm_accounting_stack_name",
-            "",
+        accounting_stack_name = (
+            slurm_accounting_stack_name.strip()
+            or _resolve_nonprompt_config_value(
+                cfg,
+                "slurm_accounting_stack_name",
+                "",
+            )
         )
         accounting_database_name = _resolve_nonprompt_config_value(
             cfg,
@@ -2488,9 +2624,7 @@ def run_create_workflow(
         "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN": (post_create_inputs.heartbeat_scheduler_role_arn),
         # ParallelCluster CustomActions Args must be strings. The template places
         # this token in YAML lists, so quote it before text substitution.
-        "REGSUB_SPOT_PRICE_WARN_THRESHOLD": json.dumps(
-            f"{write_spot_pricing_warn_threshold:.2f}"
-        ),
+        "REGSUB_SPOT_PRICE_WARN_THRESHOLD": json.dumps(f"{write_spot_pricing_warn_threshold:.2f}"),
         **accounting_render_blocks,
     }
 
@@ -2527,6 +2661,16 @@ def run_create_workflow(
         logger.error("Spot price application failed: %s", exc)
         ui.fail(f"Spot pricing: {exc}")
         return EXIT_AWS_FAILURE
+
+    try:
+        attach_headnode_managed_policy(
+            cluster_yaml_path,
+            dayoa_deploy_key_inputs.policy_arn,
+        )
+    except ValueError as exc:
+        logger.error("DayOA deploy-key headnode policy attachment failed: %s", exc)
+        ui.fail(f"DayOA deploy-key headnode policy: {exc}")
+        return EXIT_VALIDATION_FAILURE
 
     logger.info("Cluster YAML ready: %s", cluster_yaml_path)
     ui.ok(f"Cluster YAML ready: {cluster_yaml_path}")
@@ -2647,6 +2791,8 @@ def run_create_workflow(
         head_node_instance_id=monitor_result.head_node_instance_id,
         region=aws_ctx.region,
         profile=aws_ctx.profile,
+        dayoa_deploy_key_secret_arn=dayoa_deploy_key_inputs.secret_arn,
+        dayoa_deploy_key_region=dayoa_deploy_key_inputs.region,
         repo_overrides=None,  # TODO: wire from config if needed
     )
     if not headnode_ok:
@@ -2715,6 +2861,8 @@ def run_create_workflow(
         "heartbeat_email": post_create_inputs.heartbeat_email,
         "heartbeat_schedule": post_create_inputs.heartbeat_schedule,
         "heartbeat_scheduler_role_arn": (post_create_inputs.heartbeat_scheduler_role_arn),
+        "dayoa_deploy_key_secret_arn": dayoa_deploy_key_inputs.secret_arn,
+        "dayoa_deploy_key_policy_arn": dayoa_deploy_key_inputs.policy_arn,
         "slurm_accounting_enabled": "true" if accounting_db else "false",
         "slurm_accounting_create_db": "false",
         "slurm_accounting_stack_name": accounting_db.stack_name if accounting_db else "",
@@ -2807,6 +2955,8 @@ def configure_headnode(
     region: str,
     profile: str,
     *,
+    dayoa_deploy_key_secret_arn: str = "",
+    dayoa_deploy_key_region: str = "",
     repo_overrides: Optional[Dict[str, str]] = None,
     remote_user: str = "ubuntu",
 ) -> bool:
@@ -2898,6 +3048,34 @@ def configure_headnode(
             logger.info("  ✓ %s", label)
         except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
             logger.error("  ✗ %s failed: %s", label, exc)
+            return False
+
+    if dayoa_deploy_key_secret_arn:
+        if not dayoa_deploy_key_region:
+            logger.error("  ✗ DayOA deploy-key region is required with the secret ARN")
+            return False
+        deploy_key_config = {
+            "config_version": 1,
+            "deploy_keys": {
+                "daylily-omics-analysis": {
+                    "region": dayoa_deploy_key_region,
+                    "secret_arn": dayoa_deploy_key_secret_arn,
+                }
+            },
+        }
+        logger.info("  ▸ Deploying DayOA deploy-key reference ...")
+        try:
+            write_remote_text(
+                head_node_instance_id,
+                region,
+                "~/.config/daylily/github_deploy_keys.yaml",
+                yaml.safe_dump(deploy_key_config, default_flow_style=False, sort_keys=False),
+                profile=profile,
+                as_user=remote_user,
+            )
+            logger.info("  ✓ DayOA deploy-key reference deployed")
+        except Exception as exc:
+            logger.error("  ✗ DayOA deploy-key reference deployment failed: %s", exc)
             return False
 
     if repo_overrides:

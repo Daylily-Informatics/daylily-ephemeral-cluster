@@ -2,10 +2,13 @@
 """Clone Daylily analysis repositories into the shared FSx workspace."""
 
 import argparse
+from contextlib import contextmanager
 import os
 import re
+import shlex
 import subprocess
 import sys
+import tempfile
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import yaml
@@ -14,6 +17,8 @@ import yaml
 CONFIG_DIR = os.path.expanduser("~/.config/daylily")
 GLOBAL_CONFIG_PATH = os.path.join(CONFIG_DIR, "daylily_cli_global.yaml")
 AVAILABLE_REPOS_PATH = os.path.join(CONFIG_DIR, "daylily_pipeline_command_catalog.yaml")
+DEPLOY_KEYS_PATH = os.path.join(CONFIG_DIR, "github_deploy_keys.yaml")
+GITHUB_KNOWN_HOSTS_PATH = os.path.join(CONFIG_DIR, "github_known_hosts")
 SAFE_SEGMENT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 FULL_COMMIT_SHA_RE = re.compile(r"^[0-9a-fA-F]{40}$")
 CLUSTER_NAME_ENV_KEYS = (
@@ -26,9 +31,7 @@ CLUSTER_NAME_ENV_KEYS = (
     "cfn_cluster_name",
     "CFN_CLUSTER_NAME",
 )
-CLUSTER_NAME_CONFIG_PATHS = (
-    "/etc/parallelcluster/cfnconfig",
-)
+CLUSTER_NAME_CONFIG_PATHS = ("/etc/parallelcluster/cfnconfig",)
 CLUSTER_NAME_CONFIG_KEYS = {
     "stack_name",
     "cluster_name",
@@ -170,6 +173,8 @@ def clone_repository(
     git_url: str,
     destination: str,
     ref: Optional[str],
+    *,
+    git_env: Optional[Dict[str, str]] = None,
 ) -> None:
     cmd = ["git", "clone"]
     detached_commit = ref if ref and FULL_COMMIT_SHA_RE.fullmatch(ref) else None
@@ -177,14 +182,141 @@ def clone_repository(
         cmd.extend(["--branch", ref])
     cmd.extend([git_url, destination])
     try:
-        subprocess.run(cmd, check=True)
+        kwargs: Dict[str, Any] = {"check": True}
+        if git_env is not None:
+            kwargs["env"] = git_env
+        subprocess.run(cmd, **kwargs)
     except subprocess.CalledProcessError as exc:
         raise RuntimeError(f"Git clone failed with exit code {exc.returncode}.") from exc
     if detached_commit:
         try:
-            subprocess.run(["git", "-C", destination, "checkout", "--detach", detached_commit], check=True)
+            checkout_kwargs: Dict[str, Any] = {"check": True}
+            if git_env is not None:
+                checkout_kwargs["env"] = git_env
+            subprocess.run(
+                ["git", "-C", destination, "checkout", "--detach", detached_commit],
+                **checkout_kwargs,
+            )
         except subprocess.CalledProcessError as exc:
             raise RuntimeError(f"Git checkout failed with exit code {exc.returncode}.") from exc
+
+
+def load_deploy_key_reference(repo_key: str) -> Tuple[str, str]:
+    config = _load_yaml_mapping(DEPLOY_KEYS_PATH)
+    if config.get("config_version") != 1:
+        raise ConfigError(f"Unsupported deploy-key config_version in {DEPLOY_KEYS_PATH}.")
+    deploy_keys = config.get("deploy_keys")
+    if not isinstance(deploy_keys, dict):
+        raise ConfigError(f"Missing deploy_keys mapping in {DEPLOY_KEYS_PATH}.")
+    reference = deploy_keys.get(repo_key)
+    if not isinstance(reference, dict):
+        raise ConfigError(
+            f"No deploy-key reference is configured for repository '{repo_key}' in "
+            f"{DEPLOY_KEYS_PATH}."
+        )
+    secret_arn = str(reference.get("secret_arn") or "").strip()
+    region = str(reference.get("region") or "").strip()
+    if not secret_arn or not region:
+        raise ConfigError(
+            f"Repository '{repo_key}' deploy-key reference requires secret_arn and region."
+        )
+    return secret_arn, region
+
+
+def fetch_deploy_key(secret_arn: str, region: str) -> str:
+    try:
+        import boto3
+    except ImportError as exc:
+        raise RuntimeError("boto3 is required for AWS deploy-key authentication.") from exc
+
+    try:
+        response = boto3.client("secretsmanager", region_name=region).get_secret_value(
+            SecretId=secret_arn
+        )
+    except Exception as exc:
+        raise RuntimeError(
+            "Unable to read the configured DayOA deploy-key secret from Secrets Manager."
+        ) from exc
+    key = response.get("SecretString")
+    if not isinstance(key, str) or not key.strip():
+        raise RuntimeError(
+            "The configured deploy-key secret must contain a non-empty SecretString."
+        )
+    stripped = key.strip()
+    if not (
+        stripped.startswith("-----BEGIN OPENSSH PRIVATE KEY-----")
+        and stripped.endswith("-----END OPENSSH PRIVATE KEY-----")
+    ):
+        raise RuntimeError("The configured deploy-key secret is not an OpenSSH private key.")
+    return stripped + "\n"
+
+
+@contextmanager
+def deploy_key_git_environment(repo_key: str):
+    secret_arn, region = load_deploy_key_reference(repo_key)
+    private_key = fetch_deploy_key(secret_arn, region)
+    if not os.path.isfile(GITHUB_KNOWN_HOSTS_PATH) or os.path.getsize(GITHUB_KNOWN_HOSTS_PATH) == 0:
+        raise ConfigError(f"GitHub known-hosts file is missing or empty: {GITHUB_KNOWN_HOSTS_PATH}")
+
+    with tempfile.TemporaryDirectory(prefix="day-clone-key-") as temp_dir:
+        os.chmod(temp_dir, 0o700)
+        key_path = os.path.join(temp_dir, "deploy_key")
+        with open(key_path, "w", encoding="utf-8") as handle:
+            handle.write(private_key)
+        os.chmod(key_path, 0o600)
+        env = os.environ.copy()
+        env["GIT_TERMINAL_PROMPT"] = "0"
+        env["GIT_SSH_COMMAND"] = " ".join(
+            [
+                "ssh",
+                "-i",
+                shlex.quote(key_path),
+                "-o",
+                "IdentitiesOnly=yes",
+                "-o",
+                "StrictHostKeyChecking=yes",
+                "-o",
+                f"UserKnownHostsFile={shlex.quote(GITHUB_KNOWN_HOSTS_PATH)}",
+            ]
+        )
+        try:
+            yield env
+        finally:
+            private_key = ""
+
+
+def check_repository_access(
+    git_url: str,
+    ref: Optional[str],
+    *,
+    git_env: Optional[Dict[str, str]] = None,
+) -> None:
+    cmd = ["git", "ls-remote", "--exit-code", git_url]
+    if ref:
+        if FULL_COMMIT_SHA_RE.fullmatch(ref):
+            cmd.append(ref)
+        else:
+            cmd.extend([ref, f"refs/heads/{ref}", f"refs/tags/{ref}"])
+    kwargs: Dict[str, Any] = {"check": True, "stdout": subprocess.DEVNULL}
+    if git_env is not None:
+        kwargs["env"] = git_env
+    try:
+        subprocess.run(cmd, **kwargs)
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError(
+            f"Git repository authentication or ref check failed with exit code {exc.returncode}."
+        ) from exc
+
+
+@contextmanager
+def repository_git_environment(repo_key: str, auth_mode: str):
+    if auth_mode == "none":
+        yield None
+        return
+    if auth_mode != "aws_deploy_key":
+        raise ConfigError(f"Unsupported auth_mode for repository '{repo_key}': {auth_mode!r}")
+    with deploy_key_git_environment(repo_key) as env:
+        yield env
 
 
 def derive_default_path(repo_url: str) -> str:
@@ -241,8 +373,8 @@ def main(argv: List[str]) -> int:
         "-w",
         "--which-one",
         choices=("https", "ssh"),
-        default="https",
-        help="Repository URL transport to use from the registry. Defaults to https.",
+        default=None,
+        help="Require the selected repository's configured transport to match this value.",
     )
     parser.add_argument(
         "-c",
@@ -265,11 +397,85 @@ def main(argv: List[str]) -> int:
         action="store_true",
         help="List available repositories and exit.",
     )
+    parser.add_argument(
+        "--check-auth",
+        action="store_true",
+        help="Verify repository authentication and the selected ref without cloning.",
+    )
 
     args = parser.parse_args(argv)
 
     if args.list:
         print_available_repositories(available_repos)
+        return 0
+
+    repo_config: Optional[Dict[str, Any]] = None
+    if not args.git_repo:
+        repo_key = args.repository or default_repo_key
+        repo_config = available_repos.get(repo_key)
+        if repo_config is None:
+            print(
+                f"Error: repository '{repo_key}' is not defined in daylily_pipeline_command_catalog.yaml.",
+                file=sys.stderr,
+            )
+            return 1
+    else:
+        repo_key = "custom"
+
+    if args.git_repo:
+        git_url = args.git_repo
+        relative_path = derive_default_path(git_url)
+        default_ref = None
+        auth_mode = "none"
+    else:
+        configured_transport = str(repo_config.get("clone_transport") or "").strip()
+        auth_mode = str(repo_config.get("auth_mode") or "").strip()
+        if configured_transport not in {"https", "ssh"}:
+            print(
+                f"Error: repository '{repo_key}' has invalid or missing clone_transport.",
+                file=sys.stderr,
+            )
+            return 1
+        if not auth_mode:
+            print(
+                f"Error: repository '{repo_key}' is missing auth_mode.",
+                file=sys.stderr,
+            )
+            return 1
+        if args.which_one and args.which_one != configured_transport:
+            print(
+                f"Error: repository '{repo_key}' requires {configured_transport} transport; "
+                f"{args.which_one} override is not permitted.",
+                file=sys.stderr,
+            )
+            return 1
+        if auth_mode == "aws_deploy_key" and configured_transport != "ssh":
+            print(
+                f"Error: repository '{repo_key}' aws_deploy_key authentication requires ssh.",
+                file=sys.stderr,
+            )
+            return 1
+        url_key = f"{configured_transport}_url"
+        git_url = repo_config.get(url_key, "")
+        if not git_url:
+            print(
+                f"Error: repository '{repo_key}' does not define a {url_key}.",
+                file=sys.stderr,
+            )
+            return 1
+        relative_path = repo_config.get("relative_path") or repo_key
+        default_ref = repo_config.get("default_ref")
+
+    git_ref = args.git_tag or default_ref
+
+    if args.check_auth:
+        try:
+            with repository_git_environment(repo_key, auth_mode) as git_env:
+                check_repository_access(git_url, git_ref, git_env=git_env)
+        except (ConfigError, RuntimeError) as err:
+            print(f"Error: {err}", file=sys.stderr)
+            return 1
+        print(f"Repository authentication validated: {repo_key} @ {git_ref or 'HEAD'}")
         return 0
 
     if not args.destination:
@@ -313,45 +519,15 @@ def main(argv: List[str]) -> int:
         )
         return 1
 
-    repo_config: Optional[Dict[str, Any]] = None
-    if not args.git_repo:
-        repo_key = args.repository or default_repo_key
-        repo_config = available_repos.get(repo_key)
-        if repo_config is None:
-            print(
-                f"Error: repository '{repo_key}' is not defined in daylily_pipeline_command_catalog.yaml.",
-                file=sys.stderr,
-            )
-            return 1
-    else:
-        repo_key = "custom"
-
-    if args.git_repo:
-        git_url = args.git_repo
-        relative_path = derive_default_path(git_url)
-        default_ref = None
-    else:
-        url_key = f"{args.which_one}_url"
-        git_url = repo_config.get(url_key, "")
-        if not git_url:
-            print(
-                f"Error: repository '{repo_key}' does not define a {url_key}.",
-                file=sys.stderr,
-            )
-            return 1
-        relative_path = repo_config.get("relative_path") or repo_key
-        default_ref = repo_config.get("default_ref")
-
-    git_ref = args.git_tag or default_ref
-
     relative_path = os.path.basename(relative_path.rstrip("/"))
     target_repo_dir = os.path.join(destination_root, relative_path)
     ensure_directory(destination_root)
 
     print("Cloning repository...")
     try:
-        clone_repository(git_url, target_repo_dir, git_ref)
-    except RuntimeError as err:
+        with repository_git_environment(repo_key, auth_mode) as git_env:
+            clone_repository(git_url, target_repo_dir, git_ref, git_env=git_env)
+    except (ConfigError, RuntimeError) as err:
         print(f"Error: {err}", file=sys.stderr)
         return 1
 
