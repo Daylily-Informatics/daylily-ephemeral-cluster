@@ -310,9 +310,24 @@ def test_dragen_template_is_packaged_with_explicit_mixed_node_roles() -> None:
 
     payload = yaml.safe_load(source)
     queues = payload["Scheduling"]["SlurmQueues"]
-    assert [queue["Name"] for queue in queues] == ["dragen", "i192", "i192nvme"]
-    assert queues[0]["CustomActions"]["OnNodeConfigured"]["Args"][-1] == "dragen"
-    for queue in queues[1:]:
+    assert [queue["Name"] for queue in queues] == [
+        "dragen",
+        "dragen-ondemand",
+        "i192",
+        "i192nvme",
+    ]
+    assert queues[0]["CapacityType"] == "SPOT"
+    assert queues[1]["CapacityType"] == "ONDEMAND"
+    for queue in queues[:2]:
+        assert queue["CustomActions"]["OnNodeConfigured"]["Args"][-1] == "dragen"
+        resource = queue["ComputeResources"][0]
+        assert resource["Instances"] == [{"InstanceType": "f2.6xlarge"}]
+        assert resource["MinCount"] == 0
+        assert resource["MaxCount"] == 1
+        assert resource["SchedulableMemory"] == 249036
+        assert resource["Efa"]["Enabled"] is False
+    assert "SpotPrice" not in queues[1]["ComputeResources"][0]
+    for queue in queues[2:]:
         action = queue["CustomActions"]["OnNodeConfigured"]
         assert action["Script"].endswith("/post_install_rhel8_dragen.sh")
         assert action["Args"][-1] == "cpu"
@@ -323,6 +338,41 @@ def test_dragen_template_is_packaged_with_explicit_mixed_node_roles() -> None:
     ).read_text(encoding="utf-8")
     assert 'node_role="${5:?node role argument is required}"' in base_script
     assert "Skipping DRAGEN FPGA validation on explicitly configured CPU compute node" in base_script
+
+
+def test_rhel_and_legacy_dragen_templates_expose_explicit_ondemand_partition() -> None:
+    template_paths = sorted(
+        (REPO_ROOT / "config/day_cluster/rhel").glob("*/*/prod_cluster_rhel_*.yaml")
+    ) + [
+        REPO_ROOT / "config/day_cluster/prod_cluster_dragen_native_ami_rhel8.yaml",
+        REPO_ROOT / "config/day_cluster/prod_cluster_dragen_native_ami_rhel8_nofsx.yaml",
+        REPO_ROOT / "config/day_cluster/prod_cluster_dragen_pcluster_image_rhel8.yaml",
+        REPO_ROOT / "config/day_cluster/prod_cluster_dragen_pcluster_image_rhel8_nofsx.yaml",
+    ]
+
+    for path in template_paths:
+        payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+        queues = payload["Scheduling"]["SlurmQueues"]
+        assert [queue["Name"] for queue in queues] == ["dragen", "dragen-ondemand"]
+        spot_queue, ondemand_queue = queues
+        assert spot_queue["CapacityType"] == "SPOT"
+        assert ondemand_queue["CapacityType"] == "ONDEMAND"
+        resource = ondemand_queue["ComputeResources"][0]
+        assert resource["Name"] == "f26xlargeod"
+        assert resource["Instances"] == [{"InstanceType": "f2.6xlarge"}]
+        assert resource["MinCount"] == 0
+        assert resource["MaxCount"] == 1
+        assert resource["SchedulableMemory"] == 249036
+        assert resource["Efa"]["Enabled"] is False
+        assert "SpotPrice" not in resource
+        assert ondemand_queue["ComputeSettings"]["LocalStorage"]["EphemeralVolume"] == {
+            "MountDir": "/scratch"
+        }
+
+        if "/rhel/" in path.as_posix():
+            relative_path = path.relative_to(REPO_ROOT)
+            packaged = REPO_ROOT / "daylily_ec/resources/payload" / relative_path
+            assert packaged.read_text(encoding="utf-8") == path.read_text(encoding="utf-8")
 
 
 def test_post_install_s3_executable_install_is_not_sha256_pinned() -> None:

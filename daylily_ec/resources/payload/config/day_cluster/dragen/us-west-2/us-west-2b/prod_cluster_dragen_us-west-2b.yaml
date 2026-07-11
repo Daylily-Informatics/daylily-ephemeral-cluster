@@ -103,6 +103,54 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: ${REGSUB_DRAGEN_LICENSE_POLICY_ARN}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: dragen-ondemand
+    CapacityType: ONDEMAND
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    Image:
+      CustomAmi: ${REGSUB_DRAGEN_PCLUSTER_AMI}
+    ComputeResources:
+    - Name: f26xlargeod
+      Instances:
+      - InstanceType: f2.6xlarge
+      MinCount: 0
+      MaxCount: 1
+      DynamicNodePriority: 100
+      SchedulableMemory: 249036
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_almalinux8_dragen.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+        - fsx
+        - ${REGSUB_DRAGEN_LICENSE_SECRET_ARN}
+        - dragen
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
+      - Policy: ${REGSUB_DRAGEN_LICENSE_POLICY_ARN}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i192
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}

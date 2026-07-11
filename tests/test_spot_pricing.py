@@ -68,8 +68,17 @@ def _resource(
     }
 
 
-def _queue(name: str, resources: list[dict]) -> dict:
-    return {"Name": name, "ComputeResources": resources}
+def _queue(
+    name: str,
+    resources: list[dict],
+    *,
+    capacity_type: str = "SPOT",
+) -> dict:
+    return {
+        "Name": name,
+        "CapacityType": capacity_type,
+        "ComputeResources": resources,
+    }
 
 
 def _config(queues: list[dict]) -> dict:
@@ -185,6 +194,29 @@ class TestCalculateComputeResourceSpotPrice:
 
 
 class TestProcessSlurmQueues:
+    def test_skips_ondemand_queues_without_spot_lookups_or_spotprice(self) -> None:
+        ec2 = _mock_ec2(0.8)
+        spot_resource = _resource("f26xlarge", ["f2.6xlarge"])
+        ondemand_resource = _resource("f26xlargeod", ["f2.6xlarge"])
+        cfg = _config(
+            [
+                _queue("dragen", [spot_resource]),
+                _queue(
+                    "dragen-ondemand",
+                    [ondemand_resource],
+                    capacity_type="ONDEMAND",
+                ),
+            ]
+        )
+
+        summary = process_slurm_queues(cfg, "us-west-2c", ec2)
+
+        assert spot_resource["SpotPrice"] == 0.96
+        assert "SpotPrice" not in ondemand_resource
+        assert [row["queue"] for row in summary["resources"]] == ["dragen"]
+        assert [row["queue"] for row in summary["partitions"]] == ["dragen"]
+        ec2.describe_spot_price_history.assert_called_once()
+
     def test_sets_each_resource_from_reference_median_and_summary(self) -> None:
         ec2 = MagicMock()
         prices = {
@@ -455,6 +487,7 @@ HeadNode:
 Scheduling:
   SlurmQueues:
     - Name: i128
+      CapacityType: SPOT
       CustomActions:
         OnNodeConfigured:
           Script: s3://references/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh

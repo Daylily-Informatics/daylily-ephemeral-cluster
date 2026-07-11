@@ -275,9 +275,14 @@ def _build_spot_price_summary(
     write_spot_pricing_warn_threshold: float,
 ) -> dict[str, Any]:
     queues = config.get("Scheduling", {}).get("SlurmQueues", []) or []
+    spot_queues = [
+        queue
+        for queue in queues
+        if str(queue.get("CapacityType") or "ONDEMAND").strip().upper() == "SPOT"
+    ]
     resource_stats: dict[tuple[str, str], dict[str, Any]] = {}
 
-    for queue_index, queue in enumerate(queues):
+    for queue_index, queue in enumerate(spot_queues):
         queue_name = str(queue.get("Name") or f"queue_{queue_index}")
         for resource_index, resource in enumerate(_queue_resources(queue)):
             resource_name = _resource_name(resource, resource_index)
@@ -292,7 +297,7 @@ def _build_spot_price_summary(
     resource_rows: list[dict[str, Any]] = []
     partition_accumulators: dict[str, dict[str, Any]] = {}
 
-    for queue_index, queue in enumerate(queues):
+    for queue_index, queue in enumerate(spot_queues):
         queue_name = str(queue.get("Name") or f"queue_{queue_index}")
         resources = _queue_resources(queue)
         queue_max_instances = _queue_max_instances(resources)

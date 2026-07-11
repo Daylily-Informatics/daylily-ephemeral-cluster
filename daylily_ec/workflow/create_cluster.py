@@ -934,36 +934,66 @@ def validate_dragen_cluster_contract(
     if not isinstance(queues, list):
         raise ValueError("DRAGEN cluster SlurmQueues must be a list.")
     queue_names = [str(queue.get("Name") or "") for queue in queues]
-    if queue_names != ["dragen", "i192", "i192nvme"]:
+    if queue_names != ["dragen", "dragen-ondemand", "i192", "i192nvme"]:
         raise ValueError(
-            "DRAGEN cluster must render exactly the dragen, i192, and i192nvme "
+            "DRAGEN cluster must render exactly the dragen, dragen-ondemand, "
+            "i192, and i192nvme "
             f"queues; rendered queues were {queue_names}."
         )
     queues_by_name = {str(queue.get("Name") or ""): queue for queue in queues}
-    queue = queues_by_name["dragen"]
-    if queue.get("Name") != "dragen" or queue.get("CapacityType") != "SPOT":
-        raise ValueError("DRAGEN cluster must render one SPOT queue named dragen.")
-    queue_ami = ((queue.get("Image") or {}).get("CustomAmi") or "").strip()
-    if queue_ami != inputs.backport.image_ami_id:
-        raise ValueError("DRAGEN compute AMI does not match the qualified manifest image.")
-    _validate_dragen_node_policy_and_action(
-        queue,
-        inputs,
-        label="dragen queue",
-        expected_role="dragen",
-    )
+    for queue_name, capacity_type, resource_name in (
+        ("dragen", "SPOT", "f26xlarge"),
+        ("dragen-ondemand", "ONDEMAND", "f26xlargeod"),
+    ):
+        queue = queues_by_name[queue_name]
+        if queue.get("CapacityType") != capacity_type:
+            raise ValueError(
+                f"DRAGEN queue {queue_name} must use {capacity_type} capacity."
+            )
+        queue_ami = ((queue.get("Image") or {}).get("CustomAmi") or "").strip()
+        if queue_ami != inputs.backport.image_ami_id:
+            raise ValueError(
+                f"DRAGEN queue {queue_name} AMI does not match the qualified manifest image."
+            )
+        _validate_dragen_node_policy_and_action(
+            queue,
+            inputs,
+            label=f"{queue_name} queue",
+            expected_role="dragen",
+        )
 
-    resources = queue.get("ComputeResources") or []
-    if not isinstance(resources, list) or len(resources) != 1:
-        raise ValueError("DRAGEN queue must render exactly one compute resource.")
-    resource = resources[0]
-    instance_types = [
-        str(item.get("InstanceType") or "") for item in resource.get("Instances") or []
-    ]
-    if instance_types != ["f2.6xlarge"]:
-        raise ValueError("DRAGEN compute resource must contain only f2.6xlarge.")
-    if resource.get("MinCount") != 0 or resource.get("MaxCount") != 1:
-        raise ValueError("DRAGEN compute resource must set MinCount 0 and MaxCount 1.")
+        resources = queue.get("ComputeResources") or []
+        if not isinstance(resources, list) or len(resources) != 1:
+            raise ValueError(
+                f"DRAGEN queue {queue_name} must render exactly one compute resource."
+            )
+        resource = resources[0]
+        if resource.get("Name") != resource_name:
+            raise ValueError(
+                f"DRAGEN queue {queue_name} must use compute resource {resource_name}."
+            )
+        instance_types = [
+            str(item.get("InstanceType") or "")
+            for item in resource.get("Instances") or []
+        ]
+        if instance_types != ["f2.6xlarge"]:
+            raise ValueError(
+                f"DRAGEN queue {queue_name} compute resource must contain only f2.6xlarge."
+            )
+        if resource.get("MinCount") != 0 or resource.get("MaxCount") != 1:
+            raise ValueError(
+                f"DRAGEN queue {queue_name} compute resource must set MinCount 0 and MaxCount 1."
+            )
+        if resource.get("SchedulableMemory") != 249036:
+            raise ValueError(
+                f"DRAGEN queue {queue_name} must set SchedulableMemory 249036."
+            )
+        if ((resource.get("Efa") or {}).get("Enabled")) is not False:
+            raise ValueError(f"DRAGEN queue {queue_name} must keep EFA disabled.")
+        if capacity_type == "ONDEMAND" and "SpotPrice" in resource:
+            raise ValueError(
+                "DRAGEN on-demand compute resource must not define SpotPrice."
+            )
 
     for queue_name, resource_name, instance_types in (
         ("i192", "mem192", ["m7i.48xlarge", "r7i.48xlarge"]),
