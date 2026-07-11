@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.95"
+DAYOA_BLESSED_TAG = "10.0.96"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -661,7 +661,6 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "produce_snv_concordances",
         "produce_sentdhiomr_sv",
         "produce_tiddit_sv_vcf",
-        "produce_manta_sv_vcf",
         "produce_sentdhiomr_snv_vcf",
         "produce_sentdhiomr_segdup",
         "produce_htd_calls",
@@ -674,10 +673,11 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert hybrid_kitchensink.aligners == ["sent"]
     assert hybrid_kitchensink.dedupers == ["na"]
     assert hybrid_kitchensink.snv_callers == ["sentdhiomr"]
-    assert hybrid_kitchensink.sv_callers == ["sentdhiomr", "tiddit", "manta"]
+    assert hybrid_kitchensink.sv_callers == ["sentdhiomr", "tiddit"]
     assert "produce_sentdhiomr_sv" in hybrid_kitchensink.dy_command
     assert "produce_tiddit_sv_vcf" in hybrid_kitchensink.dy_command
-    assert "produce_manta_sv_vcf" in hybrid_kitchensink.dy_command
+    assert "produce_manta_sv_vcf" not in hybrid_kitchensink.dy_command
+    assert "manta" not in hybrid_kitchensink.description.lower()
     assert "produce_sentdhiomr_segdup" in hybrid_kitchensink.dy_command
     assert "produce_htd_calls" in hybrid_kitchensink.dy_command
     assert "produce_smn12_orthogonal_calls" in hybrid_kitchensink.dy_command
@@ -688,7 +688,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert 'dedupers=["na"]' in hybrid_kitchensink.dy_command
     assert 'aligners=["sent"]' in hybrid_kitchensink.dy_command
     assert 'snv_callers=["sentdhiomr"]' in hybrid_kitchensink.dy_command
-    assert 'sv_callers=["tiddit","manta"]' in hybrid_kitchensink.dy_command
+    assert 'sv_callers=["tiddit"]' in hybrid_kitchensink.dy_command
+    assert "manta" not in hybrid_kitchensink.dryrun_dy_command
     assert 'htd_callers=["smn12"]' in hybrid_kitchensink.dy_command
     for excluded in ("smaca", "sma_finder", "hapsma"):
         assert excluded not in hybrid_kitchensink.dy_command

@@ -176,10 +176,17 @@ def clone_repository(
     *,
     git_env: Optional[Dict[str, str]] = None,
 ) -> None:
-    cmd = ["git", "clone"]
     detached_commit = ref if ref and FULL_COMMIT_SHA_RE.fullmatch(ref) else None
-    if ref and not detached_commit:
-        cmd.extend(["--branch", ref])
+    cmd = ["git", "clone"]
+    if detached_commit:
+        cmd.append("--no-checkout")
+    elif ref:
+        named_ref = ref
+        for prefix in ("refs/heads/", "refs/tags/"):
+            if named_ref.startswith(prefix):
+                named_ref = named_ref[len(prefix) :]
+                break
+        cmd.extend(["--branch", named_ref])
     cmd.extend([git_url, destination])
     try:
         kwargs: Dict[str, Any] = {"check": True}
@@ -194,7 +201,30 @@ def clone_repository(
             if git_env is not None:
                 checkout_kwargs["env"] = git_env
             subprocess.run(
-                ["git", "-C", destination, "checkout", "--detach", detached_commit],
+                [
+                    "git",
+                    "-C",
+                    destination,
+                    "fetch",
+                    "--depth=1",
+                    "origin",
+                    detached_commit,
+                ],
+                **checkout_kwargs,
+            )
+            resolved = subprocess.run(
+                ["git", "-C", destination, "rev-parse", "FETCH_HEAD"],
+                check=True,
+                capture_output=True,
+                text=True,
+                env=git_env,
+            ).stdout.strip()
+            if resolved.lower() != detached_commit.lower():
+                raise RuntimeError(
+                    f"Fetched commit does not match requested SHA: {resolved or 'missing'}"
+                )
+            subprocess.run(
+                ["git", "-C", destination, "checkout", "--detach", "FETCH_HEAD"],
                 **checkout_kwargs,
             )
         except subprocess.CalledProcessError as exc:
@@ -291,16 +321,37 @@ def check_repository_access(
     *,
     git_env: Optional[Dict[str, str]] = None,
 ) -> None:
-    cmd = ["git", "ls-remote", "--exit-code", git_url]
-    if ref:
-        if FULL_COMMIT_SHA_RE.fullmatch(ref):
-            cmd.append(ref)
-        else:
-            cmd.extend([ref, f"refs/heads/{ref}", f"refs/tags/{ref}"])
     kwargs: Dict[str, Any] = {"check": True, "stdout": subprocess.DEVNULL}
     if git_env is not None:
         kwargs["env"] = git_env
     try:
+        if ref and FULL_COMMIT_SHA_RE.fullmatch(ref):
+            subprocess.run(["git", "ls-remote", git_url], **kwargs)
+            with tempfile.TemporaryDirectory(prefix="day-clone-ref-") as temp_dir:
+                subprocess.run(["git", "init", "--bare", temp_dir], **kwargs)
+                subprocess.run(
+                    ["git", "-C", temp_dir, "fetch", "--depth=1", git_url, ref],
+                    **kwargs,
+                )
+                resolved = subprocess.run(
+                    ["git", "-C", temp_dir, "rev-parse", "FETCH_HEAD"],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    env=git_env,
+                ).stdout.strip()
+                if resolved.lower() != ref.lower():
+                    raise RuntimeError(
+                        f"Fetched commit does not match requested SHA: {resolved or 'missing'}"
+                    )
+            return
+
+        cmd = ["git", "ls-remote", "--exit-code", git_url]
+        if ref:
+            if ref.startswith(("refs/heads/", "refs/tags/")):
+                cmd.append(ref)
+            else:
+                cmd.extend([f"refs/heads/{ref}", f"refs/tags/{ref}"])
         subprocess.run(cmd, **kwargs)
     except subprocess.CalledProcessError as exc:
         raise RuntimeError(
@@ -362,7 +413,10 @@ def main(argv: List[str]) -> int:
     parser.add_argument(
         "-t",
         "--git-tag",
-        help="Git branch or tag to clone. Defaults to the repository's configured default.",
+        help=(
+            "Git branch, tag, or full commit SHA to clone. "
+            "Defaults to the repository's configured default."
+        ),
     )
     parser.add_argument(
         "-r",

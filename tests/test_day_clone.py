@@ -202,9 +202,11 @@ def test_day_clone_full_sha_clones_then_detaches(monkeypatch, tmp_path):
     commit_sha = "9f442ed1f32ecb19cf0163c41d196974f8198364"
     target = str(clone_root / "dyec-515" / "analysis" / "test-repo")
 
-    def fake_run(cmd, check):
+    def fake_run(cmd, **kwargs):
         clone_calls.append(cmd)
-        assert check is True
+        assert kwargs["check"] is True
+        if cmd[-2:] == ["rev-parse", "FETCH_HEAD"]:
+            return subprocess.CompletedProcess(cmd, 0, stdout=f"{commit_sha}\n")
         return subprocess.CompletedProcess(cmd, 0)
 
     monkeypatch.setattr(module.subprocess, "run", fake_run)
@@ -216,10 +218,41 @@ def test_day_clone_full_sha_clones_then_detaches(monkeypatch, tmp_path):
         [
             "git",
             "clone",
+            "--no-checkout",
             "https://github.com/Daylily-Informatics/test-repo.git",
             target,
         ],
-        ["git", "-C", target, "checkout", "--detach", commit_sha],
+        ["git", "-C", target, "fetch", "--depth=1", "origin", commit_sha],
+        ["git", "-C", target, "rev-parse", "FETCH_HEAD"],
+        ["git", "-C", target, "checkout", "--detach", "FETCH_HEAD"],
+    ]
+
+
+def test_day_clone_explicit_branch_ref_is_normalized(monkeypatch, tmp_path):
+    module = _load_day_clone()
+    clone_calls: list[list[str]] = []
+
+    def fake_run(cmd, **kwargs):
+        clone_calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+
+    module.clone_repository(
+        "git@github.com:Daylily-Informatics/test-repo.git",
+        str(tmp_path / "clone"),
+        "refs/heads/jem-dev",
+    )
+
+    assert clone_calls == [
+        [
+            "git",
+            "clone",
+            "--branch",
+            "jem-dev",
+            "git@github.com:Daylily-Informatics/test-repo.git",
+            str(tmp_path / "clone"),
+        ]
     ]
 
 
@@ -448,11 +481,74 @@ def test_day_clone_check_auth_uses_deploy_key_without_destination(monkeypatch, t
         "ls-remote",
         "--exit-code",
         "git@github.com:Daylily-Informatics/test-repo.git",
-        "2.0.44",
         "refs/heads/2.0.44",
         "refs/tags/2.0.44",
     ]
     assert "env" in calls[0][1]
+
+
+def test_day_clone_check_auth_validates_full_sha_with_bounded_fetch(monkeypatch, tmp_path):
+    module = _load_day_clone()
+    commit_sha = "9f442ed1f32ecb19cf0163c41d196974f8198364"
+    calls: list[tuple[list[str], dict]] = []
+
+    def fake_run(cmd, **kwargs):
+        calls.append((cmd, kwargs))
+        if cmd[-2:] == ["rev-parse", "FETCH_HEAD"]:
+            return subprocess.CompletedProcess(cmd, 0, stdout=f"{commit_sha}\n")
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+
+    module.check_repository_access(
+        "git@github.com:Daylily-Informatics/test-repo.git",
+        commit_sha,
+    )
+
+    assert calls[0][0] == [
+        "git",
+        "ls-remote",
+        "git@github.com:Daylily-Informatics/test-repo.git",
+    ]
+    assert calls[1][0][0:3] == ["git", "init", "--bare"]
+    temp_repo = calls[1][0][3]
+    assert calls[2][0] == [
+        "git",
+        "-C",
+        temp_repo,
+        "fetch",
+        "--depth=1",
+        "git@github.com:Daylily-Informatics/test-repo.git",
+        commit_sha,
+    ]
+    assert calls[3][0] == ["git", "-C", temp_repo, "rev-parse", "FETCH_HEAD"]
+    assert not os.path.exists(temp_repo)
+
+
+def test_day_clone_check_auth_accepts_explicit_branch_ref(monkeypatch):
+    module = _load_day_clone()
+    calls: list[list[str]] = []
+
+    def fake_run(cmd, **kwargs):
+        calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+
+    module.check_repository_access(
+        "git@github.com:Daylily-Informatics/test-repo.git",
+        "refs/heads/jem-dev",
+    )
+
+    assert calls == [
+        [
+            "git",
+            "ls-remote",
+            "--exit-code",
+            "git@github.com:Daylily-Informatics/test-repo.git",
+            "refs/heads/jem-dev",
+        ]
+    ]
 
 
 def test_day_clone_deploy_key_cleanup_survives_clone_failure(monkeypatch, tmp_path, capsys):
