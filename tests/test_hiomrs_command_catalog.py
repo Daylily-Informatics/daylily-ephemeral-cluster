@@ -59,3 +59,55 @@ def test_hiomrs_catalog_entry_is_serial_native_dyr_and_mirrored() -> None:
     for forbidden in ("bin/day_run", "sentdhiomr", " -k", ".partial", "rsync"):
         assert forbidden not in command.dy_command
         assert forbidden not in command.dryrun_dy_command
+
+
+def test_hiomrs_kitchensink_preserves_hiomr_adjunct_targets() -> None:
+    catalog = load_repository_catalog(SOURCE_CATALOG)
+    command = catalog.get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
+    hiomr_kitchensink = catalog.get_command("hybrid_ilmn_ont_snv_kitchensink")
+
+    hiomr_core_targets = {
+        "produce_sentdhiomr_snv_vcf",
+        "produce_sentdhiomr_sv",
+        "produce_sentdhiomr_cnv",
+        "produce_sentdhiomr_segdup",
+        "produce_sentdhiomr_mito",
+        "produce_expansionhunter",
+    }
+    expected_adjuncts = [
+        target
+        for target in hiomr_kitchensink.targets
+        if target not in hiomr_core_targets
+    ]
+
+    assert command.type == "dev"
+    assert command.sample_manifest_template == (
+        "examples/staging/hybrid_ilmn_ont_hg003_5x5x/"
+        "analysis_samples_manifest.tsv"
+    )
+    assert command.targets == ["produce_hiomrs", *expected_adjuncts]
+    assert command.jobs == 250
+    assert command.keep_going is False
+    assert command.restart_times == 0
+    assert command.aligners == ["sent"]
+    assert command.dedupers == ["na"]
+    assert command.snv_callers == ["hiomrs"]
+    assert command.sv_callers == ["tiddit"]
+    assert command.compatible_cluster_types == ["sentieon-single"]
+    assert command.git_tag == "sentieon-single"
+    assert command.dy_command.startswith("dy-r produce_hiomrs ")
+    assert command.dryrun_dy_command == f"{command.dy_command} -n"
+    assert "produce_snv_concordances" in command.dy_command
+    assert "produce_tiddit_sv_vcf" in command.dy_command
+    assert "produce_smn12_orthogonal_calls" in command.dy_command
+    assert "produce_metagenomics" in command.dy_command
+    assert "produce_multiqc_all" in command.dy_command
+    assert 'snv_callers=["hiomrs"]' in command.dy_command
+    assert 'sv_callers=["tiddit"]' in command.dy_command
+    assert 'htd_callers=["smn12"]' in command.dy_command
+    assert command.dy_command.endswith(
+        "-j 250 -p -T 0 --rerun-triggers mtime --rerun-incomplete"
+    )
+    for forbidden in ("sentdhiomr", "produce_expansionhunter", " -k"):
+        assert forbidden not in command.dy_command
+        assert forbidden not in command.dryrun_dy_command
