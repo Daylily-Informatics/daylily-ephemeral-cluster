@@ -87,7 +87,7 @@ Scheduling:
       - InstanceType: r8idb.24xlarge
       - InstanceType: r8idn.24xlarge
       MinCount: 0
-      MaxCount: 1
+      MaxCount: 12
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
       SchedulableMemory: 186777
@@ -149,7 +149,7 @@ Scheduling:
       - InstanceType: r8idb.32xlarge
       - InstanceType: r8idn.32xlarge
       MinCount: 0
-      MaxCount: 1
+      MaxCount: 12
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
       SchedulableMemory: 249036
@@ -206,7 +206,7 @@ Scheduling:
       - InstanceType: r8idb.48xlarge
       - InstanceType: r8idn.48xlarge
       MinCount: 0
-      MaxCount: 1
+      MaxCount: 12
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
       SchedulableMemory: 364544
@@ -259,7 +259,7 @@ Scheduling:
       - InstanceType: r8idb.96xlarge
       - InstanceType: r8idn.96xlarge
       MinCount: 0
-      MaxCount: 1
+      MaxCount: 12
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
       SchedulableMemory: 747110
