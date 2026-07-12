@@ -380,6 +380,127 @@ EOF
   systemctl enable --now daylily-spot-interruption-watch.service
 }
 
+install_sentieon_license_service() {
+  if [ "${node_type}" != "ComputeFleet" ]; then
+    echo "Sentieon license service is enabled only on ComputeFleet nodes; skipping for ${node_type}."
+    return 0
+  fi
+
+  local sentieon_bin="/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bin/sentieon"
+  local sentieon_license="/fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic"
+  local sentieon_state_dir="/var/lib/daylily/sentieon"
+  local sentieon_log_dir="/var/log/daylily/sentieon"
+
+  if [ ! -x "${sentieon_bin}" ]; then
+    echo "ERROR: Sentieon executable not found or not executable: ${sentieon_bin}" >&2
+    exit 1
+  fi
+  if [ ! -f "${sentieon_license}" ]; then
+    echo "ERROR: Sentieon license file not found: ${sentieon_license}" >&2
+    exit 1
+  fi
+
+  if ! getent passwd sentieon >/dev/null; then
+    useradd --system --home-dir "${sentieon_state_dir}" --create-home --shell /usr/sbin/nologin sentieon
+  fi
+  install -d -o sentieon -g sentieon -m 0750 \
+    "${sentieon_state_dir}" "${sentieon_log_dir}"
+  install -d -m 0755 /opt/daylily/bin
+
+  cat > /opt/daylily/bin/daylily-sentieon-license-start <<'EOF'
+#!/bin/bash
+set -Eeuo pipefail
+
+sentieon_bin="/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bin/sentieon"
+sentieon_license="/fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic"
+sentieon_log="/var/log/daylily/sentieon/licsrvr.log"
+start_jitter_max_seconds=120
+
+if [ ! -x "${sentieon_bin}" ]; then
+  echo "ERROR: Sentieon executable not found or not executable: ${sentieon_bin}" >&2
+  exit 1
+fi
+if [ ! -f "${sentieon_license}" ]; then
+  echo "ERROR: Sentieon license file not found: ${sentieon_license}" >&2
+  exit 1
+fi
+
+delay=$((RANDOM % start_jitter_max_seconds + 1))
+echo "Delaying node-local Sentieon license server start by ${delay}s."
+sleep "${delay}"
+exec "${sentieon_bin}" licsrvr --log "${sentieon_log}" --start "${sentieon_license}"
+EOF
+  chmod 0755 /opt/daylily/bin/daylily-sentieon-license-start
+
+  cat > /opt/daylily/bin/daylily-sentieon-license-ready <<'EOF'
+#!/bin/bash
+set -Eeuo pipefail
+
+sentieon_bin="/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bin/sentieon"
+sentieon_license="/fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic"
+ready_timeout_seconds=300
+ready_interval_seconds=2
+dump_timeout_seconds=10
+
+if [ ! -x "${sentieon_bin}" ]; then
+  echo "ERROR: Sentieon executable not found or not executable: ${sentieon_bin}" >&2
+  exit 1
+fi
+if [ ! -f "${sentieon_license}" ]; then
+  echo "ERROR: Sentieon license file not found: ${sentieon_license}" >&2
+  exit 1
+fi
+
+deadline=$((SECONDS + ready_timeout_seconds))
+while (( SECONDS < deadline )); do
+  if timeout "${dump_timeout_seconds}" "${sentieon_bin}" licsrvr --dump "${sentieon_license}" >/dev/null 2>&1; then
+    echo "Node-local Sentieon license server is ready."
+    exit 0
+  fi
+  sleep "${ready_interval_seconds}"
+done
+
+echo "ERROR: node-local Sentieon license server did not become ready within ${ready_timeout_seconds}s." >&2
+exit 1
+EOF
+  chmod 0755 /opt/daylily/bin/daylily-sentieon-license-ready
+
+  cat > /etc/systemd/system/daylily-sentieon-license-server.service <<'EOF'
+[Unit]
+Description=Daylily node-local Sentieon license server
+After=network-online.target remote-fs.target
+Wants=network-online.target
+RequiresMountsFor=/fsx/references
+
+[Service]
+Type=forking
+User=sentieon
+Group=sentieon
+Environment=HOME=/var/lib/daylily/sentieon
+WorkingDirectory=/var/lib/daylily/sentieon
+ExecStart=/opt/daylily/bin/daylily-sentieon-license-start
+ExecStartPost=/opt/daylily/bin/daylily-sentieon-license-ready
+ExecStop=/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bin/sentieon licsrvr --stop /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+Restart=on-abnormal
+RestartSec=32s
+TimeoutStartSec=480
+TimeoutStopSec=60
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  systemctl daemon-reload
+  systemctl enable --now daylily-sentieon-license-server.service
+  if ! systemctl is-active --quiet daylily-sentieon-license-server.service; then
+    echo "ERROR: daylily-sentieon-license-server.service is not active after startup." >&2
+    exit 1
+  fi
+  /opt/daylily/bin/daylily-sentieon-license-ready
+  echo "Persistent node-local Sentieon license service is active and ready."
+}
+
 append_once() {
   local line="$1"
   local file="$2"
@@ -799,6 +920,11 @@ if [ "${cfn_node_type}" == "ComputeFleet" ];then
   # Create the folder used to save jobs information
 
   mkdir -p /tmp/jobs
+
+  # Keep the node-local Sentieon license server alive across Slurm jobs and
+  # fail this OnNodeConfigured action before the node becomes usable if the
+  # server cannot serve licenses.
+  install_sentieon_license_service
 
   # Configure the script to run every minute
   echo "

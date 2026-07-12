@@ -1,11 +1,8 @@
 Region: ${REGSUB_REGION}
 Image:
-  Os: almalinux8
-  CustomAmi: ${REGSUB_DRAGEN_PCLUSTER_AMI}
+  Os: ubuntu2204
 HeadNode:
   InstanceType: ${REGSUB_HEADNODE_INSTANCE_TYPE}
-  Image:
-    CustomAmi: ${REGSUB_DRAGEN_PCLUSTER_AMI}
   Networking:
     ElasticIp: false
     SubnetId: ${REGSUB_PUB_SUBNET}
@@ -22,14 +19,11 @@ HeadNode:
       MountDir: /head_root
   CustomActions:
     OnNodeConfigured:
-      Script: ${REGSUB_S3_BUCKET_INIT}/post_install_almalinux8_dragen.sh
+      Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
       Args:
       - ${REGSUB_REGION}
       - ${REGSUB_S3_BUCKET_INIT}
       - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
-      - fsx
-      - ${REGSUB_DRAGEN_LICENSE_SECRET_ARN}
-      - headnode
   Iam:
     S3Access:
     - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
@@ -42,7 +36,6 @@ HeadNode:
       EnableWriteAccess: true
     AdditionalIamPolicies:
     - Policy: ${REGSUB_S3_IAM_POLICY}
-    - Policy: ${REGSUB_DRAGEN_LICENSE_POLICY_ARN}
     - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
 Scheduling:
   Scheduler: slurm
@@ -54,118 +47,50 @@ Scheduling:
     QueueUpdateStrategy: DRAIN
     # ${REGSUB_SLURM_ACCOUNTING_DATABASE}
   SlurmQueues:
-  - Name: dragen
+  - Name: i96nvme
     CapacityType: SPOT
-    AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
+    AllocationStrategy: price-capacity-optimized
     ComputeSettings:
       LocalStorage:
         EphemeralVolume:
           MountDir: /scratch
-    Image:
-      CustomAmi: ${REGSUB_DRAGEN_PCLUSTER_AMI}
     ComputeResources:
-    - Name: f26xlarge
+    - Name: price96nvme
       Instances:
-      - InstanceType: f2.6xlarge
+      - InstanceType: c5d.24xlarge
+      - InstanceType: c5d.metal
+      - InstanceType: c6id.24xlarge
+      - InstanceType: c8id.24xlarge
+      - InstanceType: i3en.24xlarge
+      - InstanceType: i3en.metal
+      - InstanceType: i4i.24xlarge
+      - InstanceType: i7i.24xlarge
+      - InstanceType: i7i.metal-24xl
+      - InstanceType: i7ie.24xlarge
+      - InstanceType: i7ie.metal-24xl
+      - InstanceType: m5d.24xlarge
+      - InstanceType: m5d.metal
+      - InstanceType: m5dn.24xlarge
+      - InstanceType: m5dn.metal
+      - InstanceType: m6id.24xlarge
+      - InstanceType: m6idn.24xlarge
+      - InstanceType: m8id.24xlarge
+      - InstanceType: m8idb.24xlarge
+      - InstanceType: m8idn.24xlarge
+      - InstanceType: r5d.24xlarge
+      - InstanceType: r5d.metal
+      - InstanceType: r5dn.24xlarge
+      - InstanceType: r5dn.metal
+      - InstanceType: r6id.24xlarge
+      - InstanceType: r6idn.24xlarge
+      - InstanceType: r8id.24xlarge
+      - InstanceType: r8idb.24xlarge
+      - InstanceType: r8idn.24xlarge
       MinCount: 0
       MaxCount: 1
-      DynamicNodePriority: 100
-      SchedulableMemory: 249036
-      Networking:
-        PlacementGroup:
-          Enabled: false
-      Efa:
-        Enabled: false
-    Networking:
-      SubnetIds:
-      - ${REGSUB_PRIVATE_SUBNET}
-    CustomActions:
-      OnNodeConfigured:
-        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_almalinux8_dragen.sh
-        Args:
-        - ${REGSUB_REGION}
-        - ${REGSUB_S3_BUCKET_INIT}
-        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
-        - fsx
-        - ${REGSUB_DRAGEN_LICENSE_SECRET_ARN}
-        - dragen
-    Iam:
-      S3Access:
-      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
-        EnableWriteAccess: false
-      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
-        EnableWriteAccess: false
-      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
-        EnableWriteAccess: false
-      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
-        EnableWriteAccess: true
-      AdditionalIamPolicies:
-      - Policy: ${REGSUB_S3_IAM_POLICY}
-      - Policy: ${REGSUB_DRAGEN_LICENSE_POLICY_ARN}
-      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-  - Name: dragen-ondemand
-    CapacityType: ONDEMAND
-    ComputeSettings:
-      LocalStorage:
-        EphemeralVolume:
-          MountDir: /scratch
-    Image:
-      CustomAmi: ${REGSUB_DRAGEN_PCLUSTER_AMI}
-    ComputeResources:
-    - Name: f26xlargeod
-      Instances:
-      - InstanceType: f2.6xlarge
-      MinCount: 0
-      MaxCount: 1
-      DynamicNodePriority: 100
-      SchedulableMemory: 249036
-      Networking:
-        PlacementGroup:
-          Enabled: false
-      Efa:
-        Enabled: false
-    Networking:
-      SubnetIds:
-      - ${REGSUB_PRIVATE_SUBNET}
-    CustomActions:
-      OnNodeConfigured:
-        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_almalinux8_dragen.sh
-        Args:
-        - ${REGSUB_REGION}
-        - ${REGSUB_S3_BUCKET_INIT}
-        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
-        - fsx
-        - ${REGSUB_DRAGEN_LICENSE_SECRET_ARN}
-        - dragen
-    Iam:
-      S3Access:
-      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
-        EnableWriteAccess: false
-      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
-        EnableWriteAccess: false
-      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
-        EnableWriteAccess: false
-      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
-        EnableWriteAccess: true
-      AdditionalIamPolicies:
-      - Policy: ${REGSUB_S3_IAM_POLICY}
-      - Policy: ${REGSUB_DRAGEN_LICENSE_POLICY_ARN}
-      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-  - Name: i192
-    CapacityType: SPOT
-    AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
-    Image:
-      CustomAmi: ${REGSUB_DRAGEN_PCLUSTER_AMI}
-    ComputeResources:
-    - Name: mem192
-      Instances:
-      - InstanceType: m7i.48xlarge
-      - InstanceType: r7i.48xlarge
-      MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_192I_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
-      DynamicNodePriority: 200
-      SchedulableMemory: 747110
+      DynamicNodePriority: 100
+      SchedulableMemory: 186777
       Networking:
         PlacementGroup:
           Enabled: false
@@ -176,13 +101,73 @@ Scheduling:
       - ${REGSUB_PRIVATE_SUBNET}
     CustomActions:
       OnNodeConfigured:
-        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_rhel8_dragen.sh
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
         Args:
         - ${REGSUB_REGION}
         - ${REGSUB_S3_BUCKET_INIT}
         - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
-        - fsx
-        - cpu
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i128nvme
+    CapacityType: SPOT
+    AllocationStrategy: price-capacity-optimized
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    ComputeResources:
+    - Name: price128nvme
+      Instances:
+      - InstanceType: c6id.32xlarge
+      - InstanceType: c6id.metal
+      - InstanceType: c8id.32xlarge
+      - InstanceType: i4i.32xlarge
+      - InstanceType: i4i.metal
+      - InstanceType: m6id.32xlarge
+      - InstanceType: m6id.metal
+      - InstanceType: m6idn.32xlarge
+      - InstanceType: m6idn.metal
+      - InstanceType: m8id.32xlarge
+      - InstanceType: m8idb.32xlarge
+      - InstanceType: m8idn.32xlarge
+      - InstanceType: r6id.32xlarge
+      - InstanceType: r6id.metal
+      - InstanceType: r6idn.32xlarge
+      - InstanceType: r6idn.metal
+      - InstanceType: r8id.32xlarge
+      - InstanceType: r8idb.32xlarge
+      - InstanceType: r8idn.32xlarge
+      MinCount: 0
+      MaxCount: 1
+      SpotPrice: CALCULATE_MAX_SPOT_PRICE
+      DynamicNodePriority: 100
+      SchedulableMemory: 249036
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
     Iam:
       S3Access:
       - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
@@ -198,22 +183,85 @@ Scheduling:
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i192nvme
     CapacityType: SPOT
-    AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
+    AllocationStrategy: price-capacity-optimized
     ComputeSettings:
       LocalStorage:
         EphemeralVolume:
           MountDir: /scratch
-    Image:
-      CustomAmi: ${REGSUB_DRAGEN_PCLUSTER_AMI}
     ComputeResources:
-    - Name: mem192nvme
+    - Name: price192nvme
       Instances:
+      - InstanceType: c8id.48xlarge
+      - InstanceType: c8id.metal-48xl
       - InstanceType: i7i.48xlarge
+      - InstanceType: i7i.metal-48xl
       - InstanceType: i7ie.48xlarge
+      - InstanceType: i7ie.metal-48xl
+      - InstanceType: m8id.48xlarge
+      - InstanceType: m8id.metal-48xl
+      - InstanceType: m8idb.48xlarge
+      - InstanceType: m8idn.48xlarge
+      - InstanceType: r8id.48xlarge
+      - InstanceType: r8id.metal-48xl
+      - InstanceType: r8idb.48xlarge
+      - InstanceType: r8idn.48xlarge
       MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_192I_NVME_M}
+      MaxCount: 1
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
-      DynamicNodePriority: 200
+      DynamicNodePriority: 100
+      SchedulableMemory: 364544
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i384nvme
+    CapacityType: SPOT
+    AllocationStrategy: price-capacity-optimized
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    ComputeResources:
+    - Name: price384nvme
+      Instances:
+      - InstanceType: c8id.96xlarge
+      - InstanceType: c8id.metal-96xl
+      - InstanceType: m8id.96xlarge
+      - InstanceType: m8id.metal-96xl
+      - InstanceType: m8idb.96xlarge
+      - InstanceType: m8idn.96xlarge
+      - InstanceType: r8id.96xlarge
+      - InstanceType: r8id.metal-96xl
+      - InstanceType: r8idb.96xlarge
+      - InstanceType: r8idn.96xlarge
+      MinCount: 0
+      MaxCount: 1
+      SpotPrice: CALCULATE_MAX_SPOT_PRICE
+      DynamicNodePriority: 100
       SchedulableMemory: 747110
       Networking:
         PlacementGroup:
@@ -225,13 +273,11 @@ Scheduling:
       - ${REGSUB_PRIVATE_SUBNET}
     CustomActions:
       OnNodeConfigured:
-        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_rhel8_dragen.sh
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
         Args:
         - ${REGSUB_REGION}
         - ${REGSUB_S3_BUCKET_INIT}
         - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
-        - fsx
-        - cpu
     Iam:
       S3Access:
       - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
@@ -253,10 +299,10 @@ Monitoring:
       RetentionInDays: 3
 SharedStorage:
 - MountDir: /fsx
-  Name: fsx-${REGSUB_CLUSTER_NAME}
+  Name: fsx-hiomrs
   StorageType: FsxLustre
   FsxLustreSettings:
-    StorageCapacity: ${REGSUB_FSX_SIZE}
+    StorageCapacity: 1200
     DeploymentType: SCRATCH_2
     DeletionPolicy: ${REGSUB_SAVE_FSX}
     DataRepositoryAssociations:
@@ -270,28 +316,26 @@ SharedStorage:
       - DELETED
 Tags:
 - Key: aws-parallelcluster-username
-  Value: "${REGSUB_USERNAME}"
+  Value: ${REGSUB_USERNAME}
 - Key: aws-parallelcluster-jobid
-  Value: "${REGSUB_AWS_ACCOUNT_ID}"
+  Value: ${REGSUB_AWS_ACCOUNT_ID}
 - Key: aws-parallelcluster-project
-  Value: "${REGSUB_PROJECT}"
+  Value: ${REGSUB_PROJECT}
 - Key: aws-parallelcluster-clustername
-  Value: "${REGSUB_CLUSTER_NAME}"
+  Value: ${REGSUB_CLUSTER_NAME}
 - Key: aws-parallelcluster-enforce-budget
   Value: ${REGSUB_ENFORCE_BUDGET}
 - Key: aws-parallelcluster-cost-center-region
-  Value: "${REGSUB_COST_CENTER_REGION}"
+  Value: ${REGSUB_COST_CENTER_REGION}
 - Key: aws-parallelcluster-cost-center-table
-  Value: "${REGSUB_COST_CENTER_TABLE}"
+  Value: ${REGSUB_COST_CENTER_TABLE}
 - Key: aws-parallelcluster-cost-center-usage-table
-  Value: "${REGSUB_COST_CENTER_USAGE_TABLE}"
+  Value: ${REGSUB_COST_CENTER_USAGE_TABLE}
 - Key: aws-parallelcluster-daylily-git-deets
-  Value: "${REGSUB_DAYLILY_GIT_DEETS}"
+  Value: ${REGSUB_DAYLILY_GIT_DEETS}
 - Key: aws-parallelcluster-monitor-bucket
-  Value: "${REGSUB_S3_BUCKET_INIT}"
+  Value: ${REGSUB_S3_BUCKET_INIT}
 DevSettings:
-  Cookbook:
-    ChefCookbook: ${REGSUB_PCLUSTER_COOKBOOK_URI}
   Timeouts:
-    HeadNodeBootstrapTimeout: 7200
-    ComputeNodeBootstrapTimeout: 7200
+    HeadNodeBootstrapTimeout: 3600
+    ComputeNodeBootstrapTimeout: 3600

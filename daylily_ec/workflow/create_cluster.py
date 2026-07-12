@@ -57,13 +57,16 @@ EXIT_DRIFT = 3
 EXIT_TOOLCHAIN = 4
 
 CLUSTER_NAME_MIN_LENGTH = 5
-CLUSTER_NAME_MAX_LENGTH = 25
+CLUSTER_NAME_MAX_LENGTH = 20
 CLUSTER_NAME_PATTERN = re.compile(r"^[A-Za-z][A-Za-z0-9-]*$")
 CLUSTER_NAME_RULE_TEXT = (
     f"ParallelCluster requires cluster names to be {CLUSTER_NAME_MIN_LENGTH}-"
     f"{CLUSTER_NAME_MAX_LENGTH} characters, start with a letter, "
     "and contain only letters, digits, and hyphens"
 )
+DEFAULT_REGIONAL_CLUSTER_CAP = 5
+REGIONAL_CAP_INCREASE_ACK_FLAG = "--acknowledge-regional-cap-increase"
+REGIONAL_CAP_RISK_ACK_FLAG = "--acknowledge-regional-cap-risk"
 
 # ---------------------------------------------------------------------------
 # Preflight gate ordering — validators are registered in spec §10.5 order
@@ -86,7 +89,110 @@ CLUSTER_BOOT_CONFIG_FILENAMES = (
 BOOT_CONFIG_REFERENCE_COMPAT_LINE = b'reference_compat_root="/fsx/data"'
 DEFAULT_CREATE_CLUSTER_TYPE = "intel"
 DRAGEN_CLUSTER_TYPE = "dragen"
-CREATE_CLUSTER_TYPES = frozenset({"intel", "rhel", DRAGEN_CLUSTER_TYPE})
+SENTIEON_SINGLE_CLUSTER_TYPE = "sentieon-single"
+SENTIEON_SINGLE_REGION_AZ = "us-west-2c"
+# Pinned from 2026-07-12 read-only EC2 type, AZ-offering, and Linux Spot
+# metadata: Intel x86_64, exact queue vCPU, required local NVMe, at least
+# 1200 GB instance storage, and no accelerator hardware.
+# X-family types are intentionally excluded: their separate 128-vCPU Spot
+# quota cannot cover the fixed one-node i96nvme and i128nvme queue maxima.
+SENTIEON_SINGLE_QUEUE_INSTANCE_TYPES = {
+    "i96nvme": (
+        "c5d.24xlarge",
+        "c5d.metal",
+        "c6id.24xlarge",
+        "c8id.24xlarge",
+        "i3en.24xlarge",
+        "i3en.metal",
+        "i4i.24xlarge",
+        "i7i.24xlarge",
+        "i7i.metal-24xl",
+        "i7ie.24xlarge",
+        "i7ie.metal-24xl",
+        "m5d.24xlarge",
+        "m5d.metal",
+        "m5dn.24xlarge",
+        "m5dn.metal",
+        "m6id.24xlarge",
+        "m6idn.24xlarge",
+        "m8id.24xlarge",
+        "m8idb.24xlarge",
+        "m8idn.24xlarge",
+        "r5d.24xlarge",
+        "r5d.metal",
+        "r5dn.24xlarge",
+        "r5dn.metal",
+        "r6id.24xlarge",
+        "r6idn.24xlarge",
+        "r8id.24xlarge",
+        "r8idb.24xlarge",
+        "r8idn.24xlarge",
+    ),
+    "i128nvme": (
+        "c6id.32xlarge",
+        "c6id.metal",
+        "c8id.32xlarge",
+        "i4i.32xlarge",
+        "i4i.metal",
+        "m6id.32xlarge",
+        "m6id.metal",
+        "m6idn.32xlarge",
+        "m6idn.metal",
+        "m8id.32xlarge",
+        "m8idb.32xlarge",
+        "m8idn.32xlarge",
+        "r6id.32xlarge",
+        "r6id.metal",
+        "r6idn.32xlarge",
+        "r6idn.metal",
+        "r8id.32xlarge",
+        "r8idb.32xlarge",
+        "r8idn.32xlarge",
+    ),
+    "i192nvme": (
+        "c8id.48xlarge",
+        "c8id.metal-48xl",
+        "i7i.48xlarge",
+        "i7i.metal-48xl",
+        "i7ie.48xlarge",
+        "i7ie.metal-48xl",
+        "m8id.48xlarge",
+        "m8id.metal-48xl",
+        "m8idb.48xlarge",
+        "m8idn.48xlarge",
+        "r8id.48xlarge",
+        "r8id.metal-48xl",
+        "r8idb.48xlarge",
+        "r8idn.48xlarge",
+    ),
+    "i384nvme": (
+        "c8id.96xlarge",
+        "c8id.metal-96xl",
+        "m8id.96xlarge",
+        "m8id.metal-96xl",
+        "m8idb.96xlarge",
+        "m8idn.96xlarge",
+        "r8id.96xlarge",
+        "r8id.metal-96xl",
+        "r8idb.96xlarge",
+        "r8idn.96xlarge",
+    ),
+}
+SENTIEON_SINGLE_QUEUE_RESOURCE_NAMES = {
+    "i96nvme": "price96nvme",
+    "i128nvme": "price128nvme",
+    "i192nvme": "price192nvme",
+    "i384nvme": "price384nvme",
+}
+SENTIEON_SINGLE_QUEUE_SCHEDULABLE_MEMORY = {
+    "i96nvme": 186777,
+    "i128nvme": 249036,
+    "i192nvme": 364544,
+    "i384nvme": 747110,
+}
+CREATE_CLUSTER_TYPES = frozenset(
+    {"intel", "rhel", DRAGEN_CLUSTER_TYPE, SENTIEON_SINGLE_CLUSTER_TYPE}
+)
 
 
 @dataclass(frozen=True)
@@ -111,6 +217,104 @@ class DayoaDeployKeyInputs:
 class HeadnodeRepoSpec:
     url: str
     ref: str
+
+
+@dataclass(frozen=True)
+class RegionalClusterCapDecision:
+    """Projected regional ParallelCluster count for one create request."""
+
+    effective_cap: int
+    current_count: int
+    projected_count: int
+    requested_name_present: bool
+    counted_records: tuple[tuple[str, str], ...]
+
+
+def validate_regional_cluster_cap_options(
+    regional_cluster_cap: Optional[int],
+    *,
+    acknowledge_regional_cap_increase: bool = False,
+    acknowledge_regional_cap_risk: bool = False,
+) -> int:
+    """Return the effective regional cap after validating override acknowledgements."""
+
+    acknowledgements = {
+        REGIONAL_CAP_INCREASE_ACK_FLAG: acknowledge_regional_cap_increase,
+        REGIONAL_CAP_RISK_ACK_FLAG: acknowledge_regional_cap_risk,
+    }
+    for flag, value in acknowledgements.items():
+        if not isinstance(value, bool):
+            raise ValueError(f"{flag} must be a boolean flag.")
+
+    if regional_cluster_cap is None:
+        effective_cap = DEFAULT_REGIONAL_CLUSTER_CAP
+    elif isinstance(regional_cluster_cap, bool) or not isinstance(regional_cluster_cap, int):
+        raise ValueError("--regional-cluster-cap must be an integer.")
+    else:
+        effective_cap = regional_cluster_cap
+
+    if effective_cap < 1:
+        raise ValueError("--regional-cluster-cap must be at least 1.")
+
+    has_any_acknowledgement = any(acknowledgements.values())
+    if effective_cap <= DEFAULT_REGIONAL_CLUSTER_CAP:
+        if has_any_acknowledgement:
+            raise ValueError(
+                f"{REGIONAL_CAP_INCREASE_ACK_FLAG} and {REGIONAL_CAP_RISK_ACK_FLAG} "
+                "are valid only with an explicit --regional-cluster-cap greater than "
+                f"{DEFAULT_REGIONAL_CLUSTER_CAP}."
+            )
+        return effective_cap
+
+    missing_acknowledgements = [
+        flag for flag, acknowledged in acknowledgements.items() if not acknowledged
+    ]
+    if missing_acknowledgements:
+        raise ValueError(
+            f"Increasing --regional-cluster-cap above {DEFAULT_REGIONAL_CLUSTER_CAP} "
+            "requires both independent acknowledgements; missing: "
+            + ", ".join(missing_acknowledgements)
+            + "."
+        )
+
+    return effective_cap
+
+
+def evaluate_regional_cluster_cap(
+    *,
+    cluster_name: str,
+    records: Any,
+    effective_cap: int,
+) -> RegionalClusterCapDecision:
+    """Count non-deleted records and project the requested cluster create."""
+
+    if not isinstance(records, list):
+        raise ValueError("the validated inventory does not contain a clusters list")
+
+    counted_records: list[tuple[str, str]] = []
+    for index, record in enumerate(records):
+        if not isinstance(record, dict):
+            raise ValueError(f"clusters[{index}] is not an object")
+        name = record.get("clusterName")
+        status = record.get("clusterStatus")
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError(f"clusters[{index}].clusterName is invalid")
+        if not isinstance(status, str) or not status.strip():
+            raise ValueError(f"clusters[{index}].clusterStatus is invalid")
+        if status == "DELETE_COMPLETE":
+            continue
+        counted_records.append((name, status))
+
+    requested_name_present = any(name == cluster_name for name, _status in counted_records)
+    current_count = len(counted_records)
+    projected_count = current_count + (0 if requested_name_present else 1)
+    return RegionalClusterCapDecision(
+        effective_cap=effective_cap,
+        current_count=current_count,
+        projected_count=projected_count,
+        requested_name_present=requested_name_present,
+        counted_records=tuple(counted_records),
+    )
 
 
 def register_preflight_step(step: PreflightStep) -> None:
@@ -591,6 +795,42 @@ def normalize_create_cluster_type(cluster_type: str) -> str:
     return normalized
 
 
+def parse_create_repo_overrides(values: Optional[Iterable[str]]) -> Dict[str, str]:
+    """Parse repeated ``<repo-key>:<git-ref>`` create options."""
+
+    overrides: Dict[str, str] = {}
+    for raw_value in values or ():
+        value = str(raw_value).strip()
+        if ":" not in value:
+            raise ValueError(
+                "--repo-override must use <repo-key>:<git-ref>; "
+                f"got {raw_value!r}."
+            )
+        repo_key, git_ref = (part.strip() for part in value.split(":", 1))
+        if not repo_key or not git_ref:
+            raise ValueError(
+                "--repo-override requires non-empty repository and git ref values; "
+                f"got {raw_value!r}."
+            )
+        if repo_key in overrides:
+            raise ValueError(
+                f"--repo-override was provided more than once for repository {repo_key!r}."
+            )
+        overrides[repo_key] = git_ref
+    return overrides
+
+
+def validate_create_cluster_type_region(cluster_type: str, region_az: str) -> None:
+    """Reject cluster types outside their explicitly supported AZs."""
+
+    normalized = normalize_create_cluster_type(cluster_type)
+    if normalized == SENTIEON_SINGLE_CLUSTER_TYPE and region_az != SENTIEON_SINGLE_REGION_AZ:
+        raise ValueError(
+            f"--cluster-type {SENTIEON_SINGLE_CLUSTER_TYPE} is supported only in "
+            f"{SENTIEON_SINGLE_REGION_AZ}; got {region_az!r}."
+        )
+
+
 def resolve_dragen_create_inputs(
     cfg: Any,
     *,
@@ -807,16 +1047,23 @@ def resolve_cluster_template_yaml(
     template.
     """
 
+    normalized_type = normalize_create_cluster_type(cluster_type)
+    validate_create_cluster_type_region(normalized_type, region_az)
     explicit = _explicit_cluster_template_yaml(cfg)
-    if cluster_type == DRAGEN_CLUSTER_TYPE and explicit:
+    if normalized_type == DRAGEN_CLUSTER_TYPE and explicit:
         raise ValueError(
             "--cluster-type dragen requires the canonical AZ-scoped template; "
+            "cluster_template_yaml overrides are not accepted."
+        )
+    if normalized_type == SENTIEON_SINGLE_CLUSTER_TYPE and explicit:
+        raise ValueError(
+            "--cluster-type sentieon-single requires the canonical us-west-2c template; "
             "cluster_template_yaml overrides are not accepted."
         )
     if explicit:
         return _resolve_existing_template_path(explicit, resource_path_fn)
 
-    relative_path = az_cluster_template_relative_path(cluster_type, region_az)
+    relative_path = az_cluster_template_relative_path(normalized_type, region_az)
     return _resolve_existing_template_path(str(relative_path), resource_path_fn)
 
 
@@ -902,6 +1149,129 @@ def validate_startup_dra_contract(cluster_yaml_path: str | Path) -> None:
     data_repository_path = str(associations[0].get("DataRepositoryPath") or "")
     if not data_repository_path:
         raise ValueError("The /references/ startup DRA must define DataRepositoryPath.")
+
+
+def validate_sentieon_single_cluster_contract(cluster_yaml_path: str | Path) -> None:
+    """Require the fixed standard-quota Sentieon single-node topology."""
+
+    import yaml
+
+    path = Path(cluster_yaml_path)
+    payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if payload.get("Region") != "us-west-2":
+        raise ValueError("Sentieon single cluster Region must be us-west-2.")
+    if payload.get("Image") != {"Os": "ubuntu2204"}:
+        raise ValueError(
+            "Sentieon single cluster Image must be standard Ubuntu 22.04 without a custom AMI."
+        )
+
+    _validate_sentieon_single_bootstrap(payload.get("HeadNode") or {}, label="HeadNode")
+
+    queues = (payload.get("Scheduling") or {}).get("SlurmQueues") or []
+    if not isinstance(queues, list):
+        raise ValueError("Sentieon single cluster SlurmQueues must be a list.")
+    expected_queue_names = list(SENTIEON_SINGLE_QUEUE_INSTANCE_TYPES)
+    queue_names = [str(queue.get("Name") or "") for queue in queues]
+    if queue_names != expected_queue_names:
+        raise ValueError(
+            "Sentieon single cluster must render exactly the i96nvme, i128nvme, "
+            f"i192nvme, and i384nvme queues; rendered queues were {queue_names}."
+        )
+
+    for queue in queues:
+        queue_name = str(queue.get("Name") or "")
+        if queue.get("CapacityType") != "SPOT":
+            raise ValueError(f"Sentieon single queue {queue_name} must use SPOT capacity.")
+        if queue.get("AllocationStrategy") != "price-capacity-optimized":
+            raise ValueError(
+                f"Sentieon single queue {queue_name} must use price-capacity-optimized allocation."
+            )
+        mount_dir = (
+            ((queue.get("ComputeSettings") or {}).get("LocalStorage") or {}).get("EphemeralVolume")
+            or {}
+        ).get("MountDir")
+        if mount_dir != "/scratch":
+            raise ValueError(
+                f"Sentieon single queue {queue_name} must mount local NVMe at /scratch."
+            )
+        _validate_sentieon_single_bootstrap(queue, label=f"{queue_name} queue")
+
+        resources = queue.get("ComputeResources") or []
+        if not isinstance(resources, list) or len(resources) != 1:
+            raise ValueError(
+                f"Sentieon single queue {queue_name} must render exactly one "
+                "multi-instance compute resource."
+            )
+        resource = resources[0]
+        expected_resource_name = SENTIEON_SINGLE_QUEUE_RESOURCE_NAMES[queue_name]
+        if resource.get("Name") != expected_resource_name:
+            raise ValueError(
+                f"Sentieon single queue {queue_name} must use compute resource "
+                f"{expected_resource_name}."
+            )
+        rendered_types = [
+            str(item.get("InstanceType") or "") for item in resource.get("Instances") or []
+        ]
+        expected_types = list(SENTIEON_SINGLE_QUEUE_INSTANCE_TYPES[queue_name])
+        if rendered_types != expected_types:
+            raise ValueError(
+                f"Sentieon single queue {queue_name} instance types must match the "
+                "pinned standard-quota Intel local-NVMe pool."
+            )
+        if any(instance_type.lower().startswith("x") for instance_type in rendered_types):
+            raise ValueError(
+                f"Sentieon single queue {queue_name} must exclude X-family instance types "
+                "because they use a separate Spot quota."
+            )
+        if resource.get("MinCount") != 0 or resource.get("MaxCount") != 1:
+            raise ValueError(
+                f"Sentieon single queue {queue_name} must set MinCount 0 and MaxCount 1."
+            )
+        expected_memory = SENTIEON_SINGLE_QUEUE_SCHEDULABLE_MEMORY[queue_name]
+        if resource.get("SchedulableMemory") != expected_memory:
+            raise ValueError(
+                f"Sentieon single queue {queue_name} must set SchedulableMemory {expected_memory}."
+            )
+        if ((resource.get("Efa") or {}).get("Enabled")) is not False:
+            raise ValueError(f"Sentieon single queue {queue_name} must keep EFA disabled.")
+
+    shared_storage = payload.get("SharedStorage") or []
+    if not isinstance(shared_storage, list) or len(shared_storage) != 1:
+        raise ValueError("Sentieon single cluster must define exactly one shared filesystem.")
+    fsx = shared_storage[0]
+    fsx_settings = fsx.get("FsxLustreSettings") or {}
+    if fsx.get("MountDir") != "/fsx" or fsx.get("StorageType") != "FsxLustre":
+        raise ValueError("Sentieon single cluster must mount FSx for Lustre at /fsx.")
+    if (
+        fsx_settings.get("StorageCapacity") != 1200
+        or fsx_settings.get("DeploymentType") != "SCRATCH_2"
+    ):
+        raise ValueError(
+            "Sentieon single cluster must use a 1200 GiB SCRATCH_2 FSx for Lustre filesystem."
+        )
+    associations = fsx_settings.get("DataRepositoryAssociations") or []
+    if not isinstance(associations, list) or len(associations) != 1:
+        raise ValueError("Sentieon single cluster must define exactly the standard references DRA.")
+    reference_dra = associations[0]
+    if (
+        reference_dra.get("Name") != "reference-data"
+        or reference_dra.get("FileSystemPath") != "/references/"
+        or not str(reference_dra.get("DataRepositoryPath") or "")
+        or reference_dra.get("BatchImportMetaDataOnCreate") is not True
+        or reference_dra.get("AutoImportPolicy") != ["NEW", "CHANGED", "DELETED"]
+    ):
+        raise ValueError(
+            "Sentieon single cluster must preserve the standard /references/ FSx DRA contract."
+        )
+
+
+def _validate_sentieon_single_bootstrap(node: dict[str, Any], *, label: str) -> None:
+    action = (node.get("CustomActions") or {}).get("OnNodeConfigured") or {}
+    script = str(action.get("Script") or "")
+    if not script.endswith("/post_install_ubuntu_combined.sh"):
+        raise ValueError(f"{label} must use the standard Ubuntu bootstrap.")
+    if len(action.get("Args") or []) != 3:
+        raise ValueError(f"{label} standard Ubuntu bootstrap must receive exactly three args.")
 
 
 def validate_dragen_cluster_contract(
@@ -1751,6 +2121,10 @@ def run_create_workflow(
     global_spot_max_cost: float = DEFAULT_GLOBAL_SPOT_MAX_COST,
     spot_cost_limit_pct: float = DEFAULT_SPOT_COST_LIMIT_PCT,
     write_spot_pricing_warn_threshold: float = DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+    repo_overrides: Optional[Dict[str, str]] = None,
+    regional_cluster_cap: Optional[int] = None,
+    acknowledge_regional_cap_increase: bool = False,
+    acknowledge_regional_cap_risk: bool = False,
 ) -> int:
     """End-to-end cluster creation: preflight → create → post-create.
 
@@ -1804,6 +2178,7 @@ def run_create_workflow(
     from daylily_ec.pcluster.runner import (
         create_cluster as pcluster_create,
         dry_run_create,
+        list_clusters as pcluster_list_clusters,
         should_break_after_dry_run,
     )
     from daylily_ec.resources import resource_path
@@ -1813,8 +2188,19 @@ def run_create_workflow(
         logging.getLogger("daylily_ec").setLevel(logging.DEBUG)
     try:
         cluster_type = normalize_create_cluster_type(cluster_type)
+        validate_create_cluster_type_region(cluster_type, region_az)
     except ValueError as exc:
         logger.error("Cluster type validation failed: %s", exc)
+        ui.fail(str(exc))
+        return EXIT_VALIDATION_FAILURE
+    try:
+        effective_regional_cluster_cap = validate_regional_cluster_cap_options(
+            regional_cluster_cap,
+            acknowledge_regional_cap_increase=acknowledge_regional_cap_increase,
+            acknowledge_regional_cap_risk=acknowledge_regional_cap_risk,
+        )
+    except ValueError as exc:
+        logger.error("Regional cluster cap option validation failed: %s", exc)
         ui.fail(str(exc))
         return EXIT_VALIDATION_FAILURE
     if budget_project:
@@ -1886,6 +2272,67 @@ def run_create_workflow(
     ui.detail("User", aws_ctx.iam_username)
     ui.detail("Region", f"{aws_ctx.region} ({region_az})")
     ui.detail("Cluster type", cluster_type)
+
+    cluster_inventory = pcluster_list_clusters(
+        aws_ctx.region,
+        profile=aws_ctx.profile,
+        executable=pcluster_executable,
+    )
+    if not cluster_inventory.success:
+        detail = cluster_inventory.message or (
+            "pcluster list-clusters failed with exit code "
+            f"{cluster_inventory.returncode}"
+        )
+        logger.error("Regional ParallelCluster cap check failed closed: %s", detail)
+        ui.fail(
+            f"Regional ParallelCluster cap check failed closed in {aws_ctx.region}: "
+            f"{detail}. No create-side mutations were attempted."
+        )
+        return EXIT_AWS_FAILURE
+
+    try:
+        cap_decision = evaluate_regional_cluster_cap(
+            cluster_name=cluster_name,
+            records=cluster_inventory.json_body.get("clusters"),
+            effective_cap=effective_regional_cluster_cap,
+        )
+    except ValueError as exc:
+        logger.error("Regional ParallelCluster inventory validation failed: %s", exc)
+        ui.fail(
+            f"Regional ParallelCluster cap check failed closed in {aws_ctx.region}: "
+            f"{exc}. No create-side mutations were attempted."
+        )
+        return EXIT_AWS_FAILURE
+
+    ui.detail(
+        "Regional cluster cap",
+        (
+            f"current={cap_decision.current_count}, "
+            f"projected={cap_decision.projected_count}, "
+            f"cap={cap_decision.effective_cap}"
+        ),
+    )
+    if cap_decision.projected_count > cap_decision.effective_cap:
+        record_evidence = ", ".join(
+            f"{name}={status}" for name, status in cap_decision.counted_records
+        ) or "none"
+        logger.error(
+            "Regional ParallelCluster cap exceeded in %s: current=%d projected=%d cap=%d",
+            aws_ctx.region,
+            cap_decision.current_count,
+            cap_decision.projected_count,
+            cap_decision.effective_cap,
+        )
+        ui.fail(
+            f"Regional ParallelCluster cap exceeded in {aws_ctx.region}: "
+            f"current non-deleted records={cap_decision.current_count}, "
+            f"requested cluster={cluster_name!r}, "
+            f"projected={cap_decision.projected_count}, "
+            f"cap={cap_decision.effective_cap}. "
+            f"Counted records: {record_evidence}."
+        )
+        return EXIT_VALIDATION_FAILURE
+
     try:
         dayoa_deploy_key_inputs = resolve_dayoa_deploy_key_inputs(
             cfg,
@@ -2729,6 +3176,13 @@ def run_create_workflow(
             logger.error("DRAGEN cluster contract failed: %s", exc)
             ui.fail(f"DRAGEN cluster contract: {exc}")
             return EXIT_VALIDATION_FAILURE
+    if cluster_type == SENTIEON_SINGLE_CLUSTER_TYPE:
+        try:
+            validate_sentieon_single_cluster_contract(cluster_yaml_path)
+        except ValueError as exc:
+            logger.error("Sentieon single cluster contract failed: %s", exc)
+            ui.fail(f"Sentieon single cluster contract: {exc}")
+            return EXIT_VALIDATION_FAILURE
 
     # -- 6. DRY-RUN (Phase 2b) ------------------------------------------------
     ui.phase("DRY-RUN VALIDATION")
@@ -2823,7 +3277,7 @@ def run_create_workflow(
         profile=aws_ctx.profile,
         dayoa_deploy_key_secret_arn=dayoa_deploy_key_inputs.secret_arn,
         dayoa_deploy_key_region=dayoa_deploy_key_inputs.region,
-        repo_overrides=None,  # TODO: wire from config if needed
+        repo_overrides=repo_overrides,
     )
     if not headnode_ok:
         logger.error("Headnode configuration failed.")
@@ -3124,10 +3578,17 @@ def configure_headnode(
             with open(avail_repos_path, encoding="utf-8") as fh:
                 repos_cfg = yaml.safe_load(fh) or {}
 
+            configured_repositories = repos_cfg.get("repositories", {}) or {}
+            unknown_repositories = sorted(set(repo_overrides) - set(configured_repositories))
+            if unknown_repositories:
+                logger.error(
+                    "  ✗ Repository override keys are absent from the command catalog: %s",
+                    ", ".join(unknown_repositories),
+                )
+                return False
             for repo_key, git_ref in repo_overrides.items():
-                if repo_key in repos_cfg.get("repositories", {}):
-                    repos_cfg["repositories"][repo_key]["default_ref"] = git_ref
-                    logger.info("    Override: %s → %s", repo_key, git_ref)
+                configured_repositories[repo_key]["default_ref"] = git_ref
+                logger.info("    Override: %s → %s", repo_key, git_ref)
 
             try:
                 write_remote_text(

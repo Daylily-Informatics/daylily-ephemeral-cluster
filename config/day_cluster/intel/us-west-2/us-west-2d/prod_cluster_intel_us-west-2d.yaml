@@ -4,7 +4,7 @@ Image:
 HeadNode:
   InstanceType: ${REGSUB_HEADNODE_INSTANCE_TYPE}
   Networking:
-    ElasticIp: true
+    ElasticIp: false
     SubnetId: ${REGSUB_PUB_SUBNET}
     # ${REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING}
   DisableSimultaneousMultithreading: false

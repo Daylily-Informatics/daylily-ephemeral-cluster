@@ -580,13 +580,31 @@ def create(
         "--cluster-type",
         help=(
             "Cluster template family to autoselect when config does not set "
-            "cluster_template_yaml. One of: dragen, intel, rhel."
+            "cluster_template_yaml. One of: dragen, intel, rhel, sentieon-single."
         ),
     ),
     profile: Optional[str] = typer.Option(
         None,
         "--profile",
         help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    regional_cluster_cap: Optional[int] = typer.Option(
+        None,
+        "--regional-cluster-cap",
+        help=(
+            "Maximum projected non-deleted ParallelCluster records in the target region. "
+            "Effective default: 5. Values above 5 require both acknowledgement flags."
+        ),
+    ),
+    acknowledge_regional_cap_increase: bool = typer.Option(
+        False,
+        "--acknowledge-regional-cap-increase",
+        help="Acknowledge the explicit policy override when raising the regional cap above 5.",
+    ),
+    acknowledge_regional_cap_risk: bool = typer.Option(
+        False,
+        "--acknowledge-regional-cap-risk",
+        help="Acknowledge the regional capacity and cost risk when raising the cap above 5.",
     ),
     config: Optional[str] = typer.Option(
         None,
@@ -680,13 +698,22 @@ def create(
 
     from daylily_ec.workflow.create_cluster import (
         normalize_create_cluster_type,
+        parse_create_repo_overrides,
         run_create_workflow,
+        validate_create_cluster_type_region,
+        validate_regional_cluster_cap_options,
     )
 
     _warn_if_dayec_env_inactive()
-    _ = repo_override
     try:
         cluster_type = normalize_create_cluster_type(cluster_type)
+        validate_create_cluster_type_region(cluster_type, region_az)
+        repo_overrides = parse_create_repo_overrides(repo_override)
+        validate_regional_cluster_cap_options(
+            regional_cluster_cap,
+            acknowledge_regional_cap_increase=acknowledge_regional_cap_increase,
+            acknowledge_regional_cap_risk=acknowledge_regional_cap_risk,
+        )
     except ValueError as exc:
         raise typer.BadParameter(str(exc)) from exc
     if create_slurm_accounting_db and scan_slurm_accounting_db:
@@ -735,6 +762,10 @@ def create(
         global_spot_max_cost=global_spot_max_cost,
         spot_cost_limit_pct=spot_cost_limit_pct,
         write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+        repo_overrides=repo_overrides or None,
+        regional_cluster_cap=regional_cluster_cap,
+        acknowledge_regional_cap_increase=acknowledge_regional_cap_increase,
+        acknowledge_regional_cap_risk=acknowledge_regional_cap_risk,
     )
     raise SystemExit(rc)
 

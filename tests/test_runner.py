@@ -12,6 +12,7 @@ from daylily_ec.pcluster.runner import (
     create_cluster,
     delete_cluster,
     dry_run_create,
+    list_clusters,
     should_break_after_dry_run,
 )
 
@@ -93,6 +94,133 @@ class TestRunPcluster:
         mock_run.return_value = _completed(stdout="not json")
         r = _run_pcluster(["list-clusters"])
         assert r.json_body == {}
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_non_object_json_stdout(self, mock_run):
+        mock_run.return_value = _completed(stdout="[]")
+        r = _run_pcluster(["list-clusters"])
+        assert r.json_body == {}
+
+
+# ── TestListClusters ─────────────────────────────────────────────────────
+
+
+class TestListClusters:
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_uses_active_executable_profile_and_region(self, mock_run):
+        mock_run.return_value = _completed(
+            stdout=json.dumps(
+                {
+                    "clusters": [
+                        {
+                            "clusterName": "alpha",
+                            "clusterStatus": "CREATE_COMPLETE",
+                            "cloudformationStackArn": "not-retained",
+                        }
+                    ]
+                }
+            )
+        )
+
+        result = list_clusters(
+            "us-west-2",
+            profile="lsmc",
+            executable="/opt/daylily/pcluster/bin/pcluster",
+        )
+
+        assert result.success is True
+        assert result.json_body == {
+            "clusters": [
+                {
+                    "clusterName": "alpha",
+                    "clusterStatus": "CREATE_COMPLETE",
+                }
+            ]
+        }
+        assert mock_run.call_args.args[0] == [
+            "/opt/daylily/pcluster/bin/pcluster",
+            "list-clusters",
+            "--region",
+            "us-west-2",
+        ]
+        assert mock_run.call_args.kwargs["env"]["AWS_PROFILE"] == "lsmc"
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_paginates_until_next_token_is_absent(self, mock_run):
+        mock_run.side_effect = [
+            _completed(
+                stdout=json.dumps(
+                    {
+                        "clusters": [
+                            {
+                                "clusterName": "alpha",
+                                "clusterStatus": "CREATE_COMPLETE",
+                            }
+                        ],
+                        "nextToken": "page-2",
+                    }
+                )
+            ),
+            _completed(
+                stdout=json.dumps(
+                    {
+                        "clusters": [
+                            {
+                                "clusterName": "beta",
+                                "clusterStatus": "CREATE_IN_PROGRESS",
+                            }
+                        ]
+                    }
+                )
+            ),
+        ]
+
+        result = list_clusters("us-west-2")
+
+        assert result.success is True
+        assert [record["clusterName"] for record in result.json_body["clusters"]] == [
+            "alpha",
+            "beta",
+        ]
+        assert mock_run.call_args_list[1].args[0] == [
+            "pcluster",
+            "list-clusters",
+            "--region",
+            "us-west-2",
+            "--next-token",
+            "page-2",
+        ]
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_fails_closed_when_list_command_fails(self, mock_run):
+        mock_run.return_value = _completed(stderr="access denied", rc=2)
+
+        result = list_clusters("us-west-2")
+
+        assert result.success is False
+        assert result.returncode == 2
+        assert result.message == "pcluster list-clusters failed with exit code 2"
+        assert result.json_body == {}
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_fails_closed_on_malformed_json(self, mock_run):
+        mock_run.return_value = _completed(stdout="not-json")
+
+        result = list_clusters("us-west-2")
+
+        assert result.success is False
+        assert result.message == "pcluster list-clusters returned malformed JSON"
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_fails_closed_on_malformed_record(self, mock_run):
+        mock_run.return_value = _completed(
+            stdout=json.dumps({"clusters": [{"clusterName": "alpha"}]})
+        )
+
+        result = list_clusters("us-west-2")
+
+        assert result.success is False
+        assert "clusterStatus" in result.message
 
 
 # ── TestDryRunCreate ─────────────────────────────────────────────────────

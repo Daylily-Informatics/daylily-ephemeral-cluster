@@ -600,6 +600,204 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "global_spot_max_cost": 9.99,
         "spot_cost_limit_pct": 1.70,
         "write_spot_pricing_warn_threshold": 8.0,
+        "repo_overrides": None,
+        "regional_cluster_cap": None,
+        "acknowledge_regional_cap_increase": False,
+        "acknowledge_regional_cap_risk": False,
+    }
+
+
+def test_create_command_passes_explicit_regional_cap_override(monkeypatch, tmp_path) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+
+    def fake_run_create_workflow(_region_az: str, **kwargs) -> int:
+        calls.update(kwargs)
+        return 0
+
+    monkeypatch.setattr(create_module, "run_create_workflow", fake_run_create_workflow)
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            "--config",
+            str(config_path),
+            "--regional-cluster-cap",
+            "7",
+            "--acknowledge-regional-cap-increase",
+            "--acknowledge-regional-cap-risk",
+            "--non-interactive",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert calls["regional_cluster_cap"] == 7
+    assert calls["acknowledge_regional_cap_increase"] is True
+    assert calls["acknowledge_regional_cap_risk"] is True
+
+
+def test_create_command_rejects_cap_increase_without_both_acknowledgements(
+    monkeypatch, tmp_path
+) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    called = False
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+
+    def fake_run_create_workflow(_region_az: str, **_kwargs) -> int:
+        nonlocal called
+        called = True
+        return 0
+
+    monkeypatch.setattr(create_module, "run_create_workflow", fake_run_create_workflow)
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            "--config",
+            str(config_path),
+            "--regional-cluster-cap",
+            "6",
+            "--acknowledge-regional-cap-increase",
+            "--non-interactive",
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert "--acknowledge-regional-cap-risk" in result.stderr
+    assert called is False
+
+
+def test_create_command_rejects_acknowledgement_without_cap_increase(
+    monkeypatch, tmp_path
+) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            "--config",
+            str(config_path),
+            "--acknowledge-regional-cap-risk",
+            "--non-interactive",
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert "--regional-cluster-cap greater than 5" in result.stderr
+
+
+def test_create_command_passes_repository_overrides(monkeypatch, tmp_path) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+
+    def fake_run_create_workflow(_region_az: str, **kwargs) -> int:
+        calls["repo_overrides"] = kwargs["repo_overrides"]
+        return 0
+
+    monkeypatch.setattr(create_module, "run_create_workflow", fake_run_create_workflow)
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2c",
+            "--cluster-type",
+            "sentieon-single",
+            "--config",
+            str(config_path),
+            "--repo-override",
+            "daylily-omics-analysis:sentieon-single",
+            "--non-interactive",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert calls["repo_overrides"] == {
+        "daylily-omics-analysis": "sentieon-single"
+    }
+
+
+def test_create_command_rejects_malformed_repository_override(monkeypatch, tmp_path) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2c",
+            "--cluster-type",
+            "sentieon-single",
+            "--config",
+            str(config_path),
+            "--repo-override",
+            "daylily-omics-analysis",
+            "--non-interactive",
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert "<repo-key>:<git-ref>" in result.stderr
+
+
+def test_create_command_passes_supported_sentieon_single_type(monkeypatch, tmp_path) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+
+    def fake_run_create_workflow(region_az: str, **kwargs) -> int:
+        calls["region_az"] = region_az
+        calls["cluster_type"] = kwargs["cluster_type"]
+        return 0
+
+    monkeypatch.setattr(create_module, "run_create_workflow", fake_run_create_workflow)
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2c",
+            "--cluster-type",
+            "sentieon-single",
+            "--config",
+            str(config_path),
+            "--non-interactive",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert calls == {
+        "region_az": "us-west-2c",
+        "cluster_type": "sentieon-single",
     }
 
 

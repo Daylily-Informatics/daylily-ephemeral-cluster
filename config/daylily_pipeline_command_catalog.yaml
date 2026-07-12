@@ -983,6 +983,48 @@ repositories:
             dryrun_analysis_id: tvb_roche_snv_alignstats_5x_1021_dryrun
             stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T073504Z
             failure_cause: "Dry-run failed while preparing Roche/GATK containers: missing Singularity image /fsx/resources/environments/containers/ubuntu/ip-10-0-0-103/7a424a40c6fd659f4d052893dd3554fa.simg."
+      - command_id: hybrid_ilmn_ont_hiomrs
+        type: dev
+        validated_version: 10.0.97
+        test_data_profile: default_reads_slim
+        sample_manifest_template: examples/staging/hybrid_ilmn_ont_hg003_5x5x/analysis_samples_manifest.tsv
+        display_name: "Hybrid ILMN+ONT Single-Node HIOMRS"
+        description: "Single-node Sentieon dnascope-hybrid, segdup-caller, ExpansionHunter, and GIAB concordance profile using local NVMe scratch."
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_CRAM, ONT_CRAM_ALIGNER, ONT_CRAM_SNV_CALLER]
+        targets:
+          - produce_hiomrs
+          - produce_snv_concordances
+        genome: hg38
+        jobs: 1
+        keep_going: false
+        restart_times: 0
+        aligners:
+          - ont
+        dedupers:
+          - na
+        snv_callers:
+          - hiomrs
+        sv_callers: []
+        dy_command: "dy-r produce_hiomrs produce_snv_concordances --config 'aligners=[\"ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[]' -j 1"
+        dryrun_dy_command: "dy-r produce_hiomrs produce_snv_concordances --config 'aligners=[\"ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[]' -j 1 -n"
+        compatible_platforms:
+          - ILMN
+          - ONT
+        compatible_cluster_types:
+          - sentieon-single
+        compatible_data_modes:
+          - hybrid_ilmn_ont
+        git_tag: sentieon-single
+        no_containerized: false
       - command_id: hybrid_ilmn_ont_snv
         type: prod
         validated_version: 10.0.97

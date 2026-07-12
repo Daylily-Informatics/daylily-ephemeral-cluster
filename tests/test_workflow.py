@@ -38,6 +38,7 @@ from daylily_ec.state import store as state_store
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
 import daylily_ec.workflow.create_cluster as create_cluster_module
 from daylily_ec.workflow.create_cluster import (
+    DEFAULT_REGIONAL_CLUSTER_CAP,
     EXIT_AWS_FAILURE,
     EXIT_DRIFT,
     EXIT_SUCCESS,
@@ -61,9 +62,14 @@ from daylily_ec.workflow.create_cluster import (
     resolve_dayoa_deploy_key_inputs,
     resolve_dragen_create_inputs,
     configure_headnode,
+    evaluate_regional_cluster_cap,
     make_repository_catalog_preflight_step,
     normalize_create_cluster_type,
+    parse_create_repo_overrides,
     run_preflight,
+    validate_create_cluster_type_region,
+    validate_regional_cluster_cap_options,
+    validate_sentieon_single_cluster_contract,
     validate_startup_dra_contract,
     validate_dragen_cluster_contract,
     _validate_cluster_name,
@@ -274,10 +280,27 @@ class TestClusterBootConfigPublishContinued:
 
 
 class TestAzClusterTemplateResolution:
+    def test_parses_repository_overrides_fail_closed(self) -> None:
+        assert parse_create_repo_overrides(
+            ["daylily-omics-analysis:sentieon-single"]
+        ) == {"daylily-omics-analysis": "sentieon-single"}
+        assert parse_create_repo_overrides(None) == {}
+
+        with pytest.raises(ValueError, match="<repo-key>:<git-ref>"):
+            parse_create_repo_overrides(["daylily-omics-analysis"])
+        with pytest.raises(ValueError, match="more than once"):
+            parse_create_repo_overrides(
+                [
+                    "daylily-omics-analysis:first",
+                    "daylily-omics-analysis:second",
+                ]
+            )
+
     def test_normalizes_known_cluster_types(self) -> None:
         assert normalize_create_cluster_type("intel") == "intel"
         assert normalize_create_cluster_type("RHEL") == "rhel"
         assert normalize_create_cluster_type("DRAGEN") == "dragen"
+        assert normalize_create_cluster_type("SENTIEON-SINGLE") == "sentieon-single"
 
     def test_rejects_unknown_cluster_type(self) -> None:
         with pytest.raises(ValueError, match="--cluster-type"):
@@ -293,6 +316,106 @@ class TestAzClusterTemplateResolution:
         assert az_cluster_template_relative_path("dragen", "us-west-2b") == Path(
             "config/day_cluster/dragen/us-west-2/us-west-2b/prod_cluster_dragen_us-west-2b.yaml"
         )
+        assert az_cluster_template_relative_path("sentieon-single", "us-west-2c") == Path(
+            "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
+            "prod_cluster_sentieon-single_us-west-2c.yaml"
+        )
+
+    def test_sentieon_single_rejects_any_az_except_us_west_2c(self) -> None:
+        validate_create_cluster_type_region("sentieon-single", "us-west-2c")
+
+        with pytest.raises(ValueError, match="supported only in us-west-2c"):
+            validate_create_cluster_type_region("sentieon-single", "us-west-2d")
+
+    def test_sentieon_single_rejects_explicit_template_override(self, tmp_path: Path) -> None:
+        explicit = tmp_path / "custom.yaml"
+        explicit.write_text("Region: us-west-2\n", encoding="utf-8")
+        cfg = ConfigFile()
+        cfg.ephemeral_cluster.config["cluster_template_yaml"] = Triplet(
+            action="USESETVALUE",
+            default_value="",
+            set_value=str(explicit),
+        )
+
+        with pytest.raises(ValueError, match="canonical us-west-2c template"):
+            resolve_cluster_template_yaml(
+                cfg,
+                region_az="us-west-2c",
+                cluster_type="sentieon-single",
+                resource_path_fn=lambda rel: Path(rel),
+            )
+
+    def test_sentieon_single_pinned_types_exclude_x_family_for_separate_spot_quota(
+        self,
+    ) -> None:
+        pinned_types = {
+            instance_type
+            for instance_types in create_cluster_module.SENTIEON_SINGLE_QUEUE_INSTANCE_TYPES.values()
+            for instance_type in instance_types
+        }
+
+        assert pinned_types
+        assert all(not instance_type.lower().startswith("x") for instance_type in pinned_types)
+
+    def test_sentieon_single_template_enforces_fixed_single_node_contract(
+        self, tmp_path: Path
+    ) -> None:
+        template = Path(
+            "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
+            "prod_cluster_sentieon-single_us-west-2c.yaml"
+        ).read_text(encoding="utf-8")
+        substitutions = {key: "value" for key in renderer.ALL_SUBSTITUTION_KEYS}
+        substitutions.update(
+            {
+                "REGSUB_REGION": "us-west-2",
+                "REGSUB_PUB_SUBNET": "subnet-public",
+                "REGSUB_PRIVATE_SUBNET": "subnet-private",
+                "REGSUB_CLUSTER_NAME": "sentieon-test",
+                "REGSUB_HEADNODE_INSTANCE_TYPE": "r7i.2xlarge",
+                "REGSUB_S3_BUCKET_INIT": "s3://private-assets/boot",
+                "REGSUB_S3_IAM_POLICY": ("arn:aws:iam::123456789012:policy/dayec-cluster"),
+                "REGSUB_S3_REFERENCE_BUCKET": "references",
+                "REGSUB_S3_CONTROL_DATA_BUCKET": "controls",
+                "REGSUB_S3_STAGE_BUCKET": "stage",
+                "REGSUB_S3_EXPORT_BUCKET": "export",
+                "REGSUB_S3_REFERENCE_URI": "s3://references",
+                "REGSUB_DETAILED_MONITORING": "false",
+                "REGSUB_DELETE_LOCAL_ROOT": "true",
+                "REGSUB_SAVE_FSX": "Delete",
+                "REGSUB_ENFORCE_BUDGET": '"true"',
+                "REGSUB_SPOT_PRICE_WARN_THRESHOLD": '"8.00"',
+                "REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING": "",
+                "REGSUB_SLURM_ACCOUNTING_DATABASE": "",
+            }
+        )
+        rendered = renderer.render_template(template, substitutions)
+        cluster_yaml = tmp_path / "cluster.yaml"
+        cluster_yaml.write_text(rendered, encoding="utf-8")
+
+        validate_startup_dra_contract(cluster_yaml)
+        validate_sentieon_single_cluster_contract(cluster_yaml)
+
+        payload = yaml.safe_load(rendered)
+        queues = payload["Scheduling"]["SlurmQueues"]
+        assert [queue["Name"] for queue in queues] == [
+            "i96nvme",
+            "i128nvme",
+            "i192nvme",
+            "i384nvme",
+        ]
+        for queue in queues:
+            assert len(queue["ComputeResources"]) == 1
+            resource = queue["ComputeResources"][0]
+            assert resource["MinCount"] == 0
+            assert resource["MaxCount"] == 1
+            assert resource["Efa"]["Enabled"] is False
+            assert queue["CapacityType"] == "SPOT"
+            assert queue["AllocationStrategy"] == "price-capacity-optimized"
+
+        queues[0]["ComputeResources"][0]["MaxCount"] = 2
+        cluster_yaml.write_text(yaml.safe_dump(payload), encoding="utf-8")
+        with pytest.raises(ValueError, match="MinCount 0 and MaxCount 1"):
+            validate_sentieon_single_cluster_contract(cluster_yaml)
 
     def test_dragen_rejects_explicit_template_override(self, tmp_path: Path) -> None:
         explicit = tmp_path / "custom.yaml"
@@ -1065,7 +1188,14 @@ class TestWorkflowResolutionHelpers:
 class TestClusterNameValidation:
     @pytest.mark.parametrize(
         "cluster_name",
-        ["frz-260509", "cluster1", "A2345", "a-1-b", "splitdra-ref-20260526"],
+        [
+            "frz-260509",
+            "cluster1",
+            "A2345",
+            "a-1-b",
+            "splitdra-ref-260526",
+            "sent-hg003-5x-0712",
+        ],
     )
     def test_cluster_names_allow_numbers_after_first_character(self, cluster_name):
         assert _validate_cluster_name(cluster_name) == cluster_name
@@ -1075,9 +1205,8 @@ class TestClusterNameValidation:
         [
             ("260509-frz", "start with a letter"),
             ("frz_260509", "contain only letters, digits, and hyphens"),
-            ("frz", "5-25 characters"),
-            ("frz-260509-abcdefghijklmnop", "5-25 characters"),
-            ("splitdra-refassets-20260526", "5-25 characters"),
+            ("frz", "5-20 characters"),
+            ("a" * 21, "5-20 characters"),
         ],
     )
     def test_invalid_cluster_names_fail_with_actionable_rules(self, cluster_name, message):
@@ -1138,7 +1267,7 @@ class TestClusterNameValidation:
                 [
                     "ephemeral_cluster:",
                     "  config:",
-                    "    cluster_name: [USESETVALUE, '', splitdra-refassets-20260526]",
+                    f"    cluster_name: [USESETVALUE, '', {'a' * 61}]",
                     "  template_defaults: {}",
                 ]
             ),
@@ -1198,6 +1327,61 @@ class TestRunPreflightOnly:
 
 
 class TestRunCreateWorkflow:
+    def test_regional_cluster_cap_defaults_to_five(self):
+        assert validate_regional_cluster_cap_options(None) == DEFAULT_REGIONAL_CLUSTER_CAP == 5
+
+    @pytest.mark.parametrize("invalid_cap", [0, -1])
+    def test_regional_cluster_cap_rejects_values_below_one(self, invalid_cap):
+        with pytest.raises(ValueError, match="at least 1"):
+            validate_regional_cluster_cap_options(invalid_cap)
+
+    @pytest.mark.parametrize(
+        ("increase_ack", "risk_ack", "missing_flag"),
+        [
+            (False, False, "--acknowledge-regional-cap-increase"),
+            (True, False, "--acknowledge-regional-cap-risk"),
+            (False, True, "--acknowledge-regional-cap-increase"),
+        ],
+    )
+    def test_regional_cluster_cap_increase_requires_both_acknowledgements(
+        self,
+        increase_ack,
+        risk_ack,
+        missing_flag,
+    ):
+        with pytest.raises(ValueError, match=missing_flag):
+            validate_regional_cluster_cap_options(
+                6,
+                acknowledge_regional_cap_increase=increase_ack,
+                acknowledge_regional_cap_risk=risk_ack,
+            )
+
+    def test_regional_cluster_cap_rejects_misleading_acknowledgements(self):
+        with pytest.raises(ValueError, match="valid only with an explicit"):
+            validate_regional_cluster_cap_options(
+                5,
+                acknowledge_regional_cap_increase=True,
+                acknowledge_regional_cap_risk=True,
+            )
+
+    def test_regional_cluster_cap_counts_every_status_except_exact_delete_complete(self):
+        decision = evaluate_regional_cluster_cap(
+            cluster_name="requested-cluster",
+            effective_cap=5,
+            records=[
+                {"clusterName": "deleted-cluster", "clusterStatus": "DELETE_COMPLETE"},
+                {"clusterName": "lowercase-delete", "clusterStatus": "delete_complete"},
+                {"clusterName": "failed-cluster", "clusterStatus": "CREATE_FAILED"},
+            ],
+        )
+
+        assert decision.current_count == 2
+        assert decision.projected_count == 3
+        assert decision.counted_records == (
+            ("lowercase-delete", "delete_complete"),
+            ("failed-cluster", "CREATE_FAILED"),
+        )
+
     @pytest.mark.parametrize(
         "kwargs",
         [
@@ -1230,6 +1414,23 @@ class TestRunCreateWorkflow:
         mock_build.assert_not_called()
 
     @patch("daylily_ec.aws.context.AWSContext.build")
+    def test_regional_cap_override_validation_runs_before_aws(
+        self, mock_build, tmp_path, monkeypatch
+    ):
+        monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+
+        rc = create_cluster_module.run_create_workflow(
+            "us-west-2b",
+            profile="test",
+            non_interactive=True,
+            regional_cluster_cap=6,
+            acknowledge_regional_cap_increase=True,
+        )
+
+        assert rc == EXIT_VALIDATION_FAILURE
+        mock_build.assert_not_called()
+
+    @patch("daylily_ec.aws.context.AWSContext.build")
     def test_aws_context_failure(self, mock_build, tmp_path, monkeypatch):
         """AWS context build failure returns EXIT_AWS_FAILURE."""
         monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
@@ -1240,6 +1441,148 @@ class TestRunCreateWorkflow:
 
         rc = run_create_workflow("us-west-2b", profile="test", non_interactive=True)
         assert rc == EXIT_AWS_FAILURE
+
+    def test_fifth_projected_cluster_is_allowed(self, tmp_path, monkeypatch):
+        clusters = [
+            {"clusterName": f"cluster-{index}", "clusterStatus": "CREATE_COMPLETE"}
+            for index in range(4)
+        ]
+
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            regional_clusters=clusters,
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert records["baseline_stack_calls"] == 1
+        assert records["regional_cluster_list_calls"] == [
+            ("us-west-2", {"profile": "lsmc", "executable": "pcluster"})
+        ]
+
+    def test_sixth_projected_cluster_is_blocked_before_mutations(
+        self, tmp_path, monkeypatch
+    ):
+        clusters = [
+            {"clusterName": f"cluster-{index}", "clusterStatus": "CREATE_COMPLETE"}
+            for index in range(5)
+        ]
+
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            regional_clusters=clusters,
+        )
+
+        assert records["rc"] == EXIT_VALIDATION_FAILURE
+        assert records["baseline_stack_calls"] == 0
+        assert "cluster_budget_kwargs" not in records
+        assert ("phase", "PREFLIGHT") not in records["events"]
+        assert "cluster-0=CREATE_COMPLETE" in records["failures"][0]
+        assert "projected=6, cap=5" in records["failures"][0]
+
+    def test_same_existing_cluster_name_does_not_increase_projection(
+        self, tmp_path, monkeypatch
+    ):
+        clusters = [
+            {"clusterName": "majors-cluster", "clusterStatus": "CREATE_COMPLETE"},
+            {"clusterName": "cluster-one", "clusterStatus": "CREATE_COMPLETE"},
+            {"clusterName": "cluster-two", "clusterStatus": "UPDATE_IN_PROGRESS"},
+            {"clusterName": "cluster-three", "clusterStatus": "CREATE_FAILED"},
+            {"clusterName": "cluster-four", "clusterStatus": "DELETE_IN_PROGRESS"},
+        ]
+
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            regional_clusters=clusters,
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        cap_details = [
+            value for key, value in records["details"] if key == "Regional cluster cap"
+        ]
+        assert cap_details == ["current=5, projected=5, cap=5"]
+
+    def test_regional_cluster_list_failure_fails_closed_before_mutations(
+        self, tmp_path, monkeypatch
+    ):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            regional_cluster_list_result=SimpleNamespace(
+                success=False,
+                returncode=2,
+                message="pcluster list-clusters failed with exit code 2",
+            ),
+        )
+
+        assert records["rc"] == EXIT_AWS_FAILURE
+        assert records["baseline_stack_calls"] == 0
+        assert "cluster_budget_kwargs" not in records
+        assert "failed closed" in records["failures"][0]
+
+    def test_malformed_regional_cluster_inventory_fails_closed_before_mutations(
+        self, tmp_path, monkeypatch
+    ):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            regional_cluster_list_result=SimpleNamespace(
+                success=True,
+                returncode=0,
+                message="",
+                json_body={"clusters": "not-a-list"},
+            ),
+        )
+
+        assert records["rc"] == EXIT_AWS_FAILURE
+        assert records["baseline_stack_calls"] == 0
+        assert "cluster_budget_kwargs" not in records
+        assert "does not contain a clusters list" in records["failures"][0]
+
+    def test_cap_above_five_with_both_acknowledgements_is_allowed(
+        self, tmp_path, monkeypatch
+    ):
+        clusters = [
+            {"clusterName": f"cluster-{index}", "clusterStatus": "CREATE_COMPLETE"}
+            for index in range(5)
+        ]
+
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            regional_clusters=clusters,
+            run_kwargs={
+                "regional_cluster_cap": 6,
+                "acknowledge_regional_cap_increase": True,
+                "acknowledge_regional_cap_risk": True,
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        cap_details = [
+            value for key, value in records["details"] if key == "Regional cluster cap"
+        ]
+        assert cap_details == ["current=5, projected=6, cap=6"]
 
     def test_collects_budget_and_heartbeat_inputs_before_dry_run(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
@@ -2146,6 +2489,40 @@ class TestConfigureHeadnode:
     @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
+    def test_repo_override_rejects_unknown_repository_key(
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
+
+        mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+        ]
+
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+            repo_overrides={"unknown-repository": "feature/refactor"},
+        )
+
+        assert ok is False
+        mock_write_remote_text.assert_not_called()
+        mock_validate_headnode_readiness.assert_not_called()
+
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
     @patch("daylily_ec.workflow.create_cluster.subprocess.run")
     def test_repo_checkout_uses_local_branch_and_refreshes_remote_checkout(
         self,
@@ -2583,6 +2960,8 @@ def _run_stubbed_create_workflow(
     selection_answer: str = "1",
     config_overrides: dict[str, list[str]] | None = None,
     run_kwargs: dict[str, object] | None = None,
+    regional_clusters: list[dict[str, str]] | None = None,
+    regional_cluster_list_result: object | None = None,
 ) -> dict[str, object]:
     template_path = tmp_path / "template.yaml"
     template_path.write_text("Region: REGSUB_REGION\n", encoding="utf-8")
@@ -2597,6 +2976,7 @@ def _run_stubbed_create_workflow(
         "details": [],
         "failures": [],
         "baseline_stack_calls": 0,
+        "regional_cluster_list_calls": [],
     }
     config_dir = tmp_path / "daylily-config"
     config_dir.mkdir()
@@ -2887,6 +3267,19 @@ SharedStorage:
         }
 
     monkeypatch.setattr(spot_pricing, "apply_spot_prices", fake_apply_spot_prices)
+
+    def fake_list_clusters(region: str, **kwargs):
+        records["regional_cluster_list_calls"].append((region, kwargs))
+        if regional_cluster_list_result is not None:
+            return regional_cluster_list_result
+        return SimpleNamespace(
+            success=True,
+            returncode=0,
+            message="",
+            json_body={"clusters": regional_clusters or []},
+        )
+
+    monkeypatch.setattr(pcluster_runner, "list_clusters", fake_list_clusters)
     monkeypatch.setattr(
         pcluster_runner,
         "dry_run_create",

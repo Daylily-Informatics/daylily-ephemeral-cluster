@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from pcluster.schemas.cluster_schema import ClusterSchema
 
 from daylily_ec.render.renderer import (
     ALL_SUBSTITUTION_KEYS,
@@ -258,6 +259,50 @@ class TestAllSubstitutionKeys:
             ),
             "DatabaseName": "dayec_slurm_acct",
         }
+
+    def test_sentieon_single_template_renders_and_loads_parallelcluster_schema(
+        self, monkeypatch
+    ):
+        monkeypatch.setenv("AWS_DEFAULT_REGION", "us-west-2")
+        template = (
+            Path(__file__).resolve().parents[1]
+            / "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
+            "prod_cluster_sentieon-single_us-west-2c.yaml"
+        ).read_text(encoding="utf-8")
+        subs = _full_subs()
+        subs.update(empty_slurm_accounting_render_blocks())
+        subs.update(
+            {
+                "REGSUB_REGION": "us-west-2",
+                "REGSUB_PUB_SUBNET": "subnet-0123456789abcdef0",
+                "REGSUB_PRIVATE_SUBNET": "subnet-0123456789abcdef1",
+                "REGSUB_CLUSTER_NAME": "sentieon-test",
+                "REGSUB_HEADNODE_INSTANCE_TYPE": "r7i.2xlarge",
+                "REGSUB_S3_BUCKET_INIT": "s3://dayec-assets/cluster_boot_config",
+                "REGSUB_S3_IAM_POLICY": ("arn:aws:iam::123456789012:policy/dayec-cluster"),
+                "REGSUB_S3_REFERENCE_BUCKET": "dayec-references",
+                "REGSUB_S3_CONTROL_DATA_BUCKET": "dayec-controls",
+                "REGSUB_S3_STAGE_BUCKET": "dayec-stage",
+                "REGSUB_S3_EXPORT_BUCKET": "dayec-export",
+                "REGSUB_S3_REFERENCE_URI": "s3://dayec-references",
+                "REGSUB_DETAILED_MONITORING": "false",
+                "REGSUB_DELETE_LOCAL_ROOT": "true",
+                "REGSUB_SAVE_FSX": "Delete",
+                "REGSUB_ENFORCE_BUDGET": '"true"',
+                "REGSUB_SPOT_PRICE_WARN_THRESHOLD": '"8.00"',
+            }
+        )
+
+        rendered = render_template(template, subs)
+
+        assert "${" not in rendered
+        payload = yaml.safe_load(rendered)
+        for queue in payload["Scheduling"]["SlurmQueues"]:
+            queue["ComputeResources"][0]["SpotPrice"] = 8.0
+        cluster = ClusterSchema(cluster_name="sentieon-test").load(payload)
+        assert cluster.image.os == "ubuntu2204"
+        assert len(cluster.scheduling.queues) == 4
+        assert payload["SharedStorage"][0]["Name"] == "fsx-hiomrs"
 
     def test_rhel_dragen_template_renders_rhel_boot_script_with_full_arg_contract(self):
         template = (

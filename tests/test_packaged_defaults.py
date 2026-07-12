@@ -17,6 +17,10 @@ ACTIVE_CLUSTER_TEMPLATES = (
     "config/day_cluster/intel/us-west-2/us-west-2c/prod_cluster_intel_us-west-2c.yaml",
     "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml",
 )
+SENTIEON_SINGLE_TEMPLATE = (
+    "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
+    "prod_cluster_sentieon-single_us-west-2c.yaml"
+)
 ACTIVE_CFN_TEMPLATES = (
     "config/day_cluster/slurm_accounting_mysql_ec2.yml",
 )
@@ -37,6 +41,33 @@ BOOT_CONFIG_FILES = (
     "config/day_cluster/post_install_rhel8_dragen.sh",
     "config/day_cluster/sbatch",
 )
+
+
+def _active_parallelcluster_templates(root: Path) -> list[tuple[Path, dict]]:
+    templates: list[tuple[Path, dict]] = []
+    for path in sorted(root.rglob("*.yaml")):
+        if "archive_do_not_use" in path.parts:
+            continue
+        payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+        if isinstance(payload, dict) and "HeadNode" in payload:
+            templates.append((path, payload))
+    return templates
+
+
+def test_all_active_cluster_templates_disable_headnode_elastic_ip() -> None:
+    roots = (
+        REPO_ROOT / "config/day_cluster",
+        REPO_ROOT / "daylily_ec/resources/payload/config/day_cluster",
+    )
+    templates = [
+        item
+        for root in roots
+        for item in _active_parallelcluster_templates(root)
+    ]
+
+    assert templates
+    for path, payload in templates:
+        assert payload["HeadNode"]["Networking"].get("ElasticIp") is False, path
 
 
 def test_create_workflow_loads_default_config_outside_repo(tmp_path, monkeypatch):
@@ -206,7 +237,7 @@ def test_packaged_az_scoped_cluster_templates_match_source_templates() -> None:
     source_paths = sorted(
         (REPO_ROOT / "config/day_cluster").glob("*/*/*/prod_cluster_*.yaml")
     )
-    assert len(source_paths) == 20
+    assert len(source_paths) == 21
     for source_path in source_paths:
         relative_path = source_path.relative_to(REPO_ROOT)
         source = source_path.read_text(encoding="utf-8")
@@ -214,6 +245,15 @@ def test_packaged_az_scoped_cluster_templates_match_source_templates() -> None:
             encoding="utf-8"
         )
         assert packaged == source
+
+
+def test_sentieon_single_source_and_packaged_templates_match() -> None:
+    source = (REPO_ROOT / SENTIEON_SINGLE_TEMPLATE).read_bytes()
+    packaged = (
+        REPO_ROOT / "daylily_ec/resources/payload" / SENTIEON_SINGLE_TEMPLATE
+    ).read_bytes()
+
+    assert packaged == source
 
 
 def test_generic_intel_cluster_template_is_not_an_active_template() -> None:
@@ -423,6 +463,45 @@ def test_spot_lifecycle_helper_heredocs_are_bash_syntax_valid() -> None:
         for helper_path in helper_paths:
             heredoc = _extract_single_quoted_heredoc(script, f"cat > {helper_path} <<'EOF'")
             subprocess.run(["bash", "-n"], input=heredoc, text=True, check=True)
+
+
+def test_ubuntu_compute_bootstrap_owns_sentieon_license_service() -> None:
+    script = (
+        REPO_ROOT / "config/day_cluster/post_install_ubuntu_combined.sh"
+    ).read_text(encoding="utf-8")
+
+    required = (
+        "install_sentieon_license_service()",
+        'if [ "${node_type}" != "ComputeFleet" ]; then',
+        "daylily-sentieon-license-server.service",
+        "RequiresMountsFor=/fsx/references",
+        "Type=forking",
+        "User=sentieon",
+        "Group=sentieon",
+        "ExecStart=/opt/daylily/bin/daylily-sentieon-license-start",
+        "ExecStartPost=/opt/daylily/bin/daylily-sentieon-license-ready",
+        "ExecStop=/fsx/references/runtime_assets/cached_envs/",
+        "systemctl enable --now daylily-sentieon-license-server.service",
+        'licsrvr --dump "${sentieon_license}" >/dev/null 2>&1',
+        "install_sentieon_license_service\n",
+    )
+    for fragment in required:
+        assert fragment in script
+
+    assert 'cat "${sentieon_license}"' not in script
+    assert 'echo "${sentieon_license}"' not in script
+    assert "licsrvr --dump \"${sentieon_license}\"\n" not in script
+
+    for helper_path in (
+        "/opt/daylily/bin/daylily-sentieon-license-start",
+        "/opt/daylily/bin/daylily-sentieon-license-ready",
+    ):
+        heredoc = _extract_single_quoted_heredoc(
+            script, f"cat > {helper_path} <<'EOF'"
+        )
+        subprocess.run(["bash", "-n"], input=heredoc, text=True, check=True)
+
+    subprocess.run(["bash", "-n"], input=script, text=True, check=True)
 
 
 def _extract_single_quoted_heredoc(script: str, marker: str) -> str:

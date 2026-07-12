@@ -23,6 +23,9 @@ logger = logging.getLogger(__name__)
 #: Exact message pcluster returns on dry-run success.
 DRY_RUN_SUCCESS_MESSAGE: str = "Request would have succeeded, but DryRun flag is set."
 
+#: Defensive pagination bound for ``pcluster list-clusters``.
+MAX_LIST_CLUSTER_PAGES: int = 1000
+
 # ---------------------------------------------------------------------------
 # Result dataclass
 # ---------------------------------------------------------------------------
@@ -89,9 +92,11 @@ def _run_pcluster(
 
     # Attempt to parse stdout as JSON
     try:
-        result.json_body = json.loads(result.stdout) if result.stdout else {}
+        parsed_body = json.loads(result.stdout) if result.stdout else {}
     except json.JSONDecodeError:
-        result.json_body = {}
+        parsed_body = {}
+
+    result.json_body = parsed_body if isinstance(parsed_body, dict) else {}
 
     result.message = result.json_body.get("message", "")
     return result
@@ -100,6 +105,131 @@ def _run_pcluster(
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
+
+def list_clusters(
+    region: str,
+    *,
+    profile: Optional[str] = None,
+    executable: str = "pcluster",
+) -> PclusterResult:
+    """Return a validated, paginated regional ParallelCluster inventory.
+
+    The returned JSON body contains only ``clusterName`` and ``clusterStatus``
+    for each record. Any command failure, malformed JSON, malformed record, or
+    invalid pagination token fails closed with ``success=False``.
+    """
+
+    clusters: list[Dict[str, str]] = []
+    next_token: Optional[str] = None
+    seen_tokens: set[str] = set()
+    base_command = f"{executable} list-clusters --region {region}"
+
+    for _page_number in range(1, MAX_LIST_CLUSTER_PAGES + 1):
+        args = ["list-clusters", "--region", region]
+        if next_token is not None:
+            args.extend(["--next-token", next_token])
+
+        page = _run_pcluster(
+            args,
+            profile=profile,
+            executable=executable,
+        )
+        if page.returncode != 0:
+            page.success = False
+            page.message = (
+                "pcluster list-clusters failed with exit code "
+                f"{page.returncode}"
+            )
+            page.json_body = {}
+            return page
+
+        try:
+            payload = json.loads(page.stdout)
+        except json.JSONDecodeError:
+            page.success = False
+            page.message = "pcluster list-clusters returned malformed JSON"
+            page.json_body = {}
+            return page
+
+        if not isinstance(payload, dict):
+            page.success = False
+            page.message = "pcluster list-clusters response must be a JSON object"
+            page.json_body = {}
+            return page
+
+        records = payload.get("clusters")
+        if not isinstance(records, list):
+            page.success = False
+            page.message = "pcluster list-clusters response must contain a clusters list"
+            page.json_body = {}
+            return page
+
+        for index, record in enumerate(records):
+            if not isinstance(record, dict):
+                page.success = False
+                page.message = f"pcluster list-clusters clusters[{index}] must be an object"
+                page.json_body = {}
+                return page
+
+            name = record.get("clusterName")
+            status = record.get("clusterStatus")
+            if not isinstance(name, str) or not name.strip():
+                page.success = False
+                page.message = (
+                    f"pcluster list-clusters clusters[{index}].clusterName "
+                    "must be a non-empty string"
+                )
+                page.json_body = {}
+                return page
+            if not isinstance(status, str) or not status.strip():
+                page.success = False
+                page.message = (
+                    f"pcluster list-clusters clusters[{index}].clusterStatus "
+                    "must be a non-empty string"
+                )
+                page.json_body = {}
+                return page
+
+            clusters.append(
+                {
+                    "clusterName": name,
+                    "clusterStatus": status,
+                }
+            )
+
+        raw_next_token = payload.get("nextToken")
+        if raw_next_token is None:
+            body = {"clusters": clusters}
+            return PclusterResult(
+                command=base_command,
+                returncode=0,
+                stdout=json.dumps(body),
+                json_body=body,
+                success=True,
+            )
+        if not isinstance(raw_next_token, str) or not raw_next_token:
+            page.success = False
+            page.message = "pcluster list-clusters nextToken must be a non-empty string"
+            page.json_body = {}
+            return page
+        if raw_next_token in seen_tokens:
+            page.success = False
+            page.message = "pcluster list-clusters returned a repeated nextToken"
+            page.json_body = {}
+            return page
+
+        seen_tokens.add(raw_next_token)
+        next_token = raw_next_token
+
+    return PclusterResult(
+        command=base_command,
+        returncode=4,
+        message=(
+            "pcluster list-clusters exceeded the pagination safety limit of "
+            f"{MAX_LIST_CLUSTER_PAGES} pages"
+        ),
+    )
 
 
 def dry_run_create(

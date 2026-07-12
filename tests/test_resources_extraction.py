@@ -20,6 +20,11 @@ def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
             root
             / f"config/day_cluster/intel/us-west-2/{az}/prod_cluster_intel_{az}.yaml"
         ).is_file()
+    sentieon_single = (
+        root / "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
+        "prod_cluster_sentieon-single_us-west-2c.yaml"
+    )
+    assert sentieon_single.is_file()
     assert not (
         root
         / "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
@@ -37,6 +42,13 @@ def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
     )
     assert isinstance(p, Path)
     assert p.is_file()
+    assert (
+        resource_path(
+            "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
+            "prod_cluster_sentieon-single_us-west-2c.yaml"
+        )
+        == sentieon_single
+    )
 
 
 def test_ensure_extracted_refreshes_stale_boot_scripts(tmp_path, monkeypatch):

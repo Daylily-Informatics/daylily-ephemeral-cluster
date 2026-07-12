@@ -33,6 +33,14 @@ INTEL_US_WEST_2_TEMPLATE_RELPATHS = (
     "config/day_cluster/intel/us-west-2/us-west-2c/prod_cluster_intel_us-west-2c.yaml",
     "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml",
 )
+SENTIEON_SINGLE_TEMPLATE_RELPATH = (
+    "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
+    "prod_cluster_sentieon-single_us-west-2c.yaml"
+)
+REQUIRED_CLUSTER_TEMPLATE_RELPATHS = (
+    *INTEL_US_WEST_2_TEMPLATE_RELPATHS,
+    SENTIEON_SINGLE_TEMPLATE_RELPATH,
+)
 
 
 def _xdg_config_home() -> Path:
@@ -45,7 +53,7 @@ def _xdg_config_home() -> Path:
 def _expected_subpaths(root: Path) -> Iterable[Path]:
     # Minimum layout required for the CLI + legacy scripts.
     yield root / "config"
-    for relative_path in INTEL_US_WEST_2_TEMPLATE_RELPATHS:
+    for relative_path in REQUIRED_CLUSTER_TEMPLATE_RELPATHS:
         yield root / relative_path
     yield root / "config" / "day_cluster" / "pcluster_env.yml"
     yield root / "config" / "day_cluster" / "slurm_accounting_mysql_ec2.yml"
@@ -69,7 +77,7 @@ def _validate_resources_dir(root: Path) -> None:
 def _resources_need_refresh(dest: Path, src: Path) -> bool:
     refresh_rels = (
         "config/daylily_pipeline_command_catalog.yaml",
-        *INTEL_US_WEST_2_TEMPLATE_RELPATHS,
+        *REQUIRED_CLUSTER_TEMPLATE_RELPATHS,
         "config/day_cluster/pcluster_env.yml",
         "config/day_cluster/slurm_accounting_mysql_ec2.yml",
         "config/day_cluster/post_install_rhel8_dragen.sh",
