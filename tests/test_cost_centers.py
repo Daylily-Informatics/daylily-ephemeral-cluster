@@ -12,6 +12,7 @@ from daylily_ec.aws.cost_centers import (
     ensure_cost_center_registry,
     get_cost_center,
     get_cost_center_usage,
+    initialize_cost_center_usage,
     list_cost_centers,
     put_cost_center_usage,
     validate_cost_center_name,
@@ -76,6 +77,13 @@ class FakeDynamo:
         return (item["cost_center"]["S"],)
 
 
+class UsageWriteFailureDynamo(FakeDynamo):
+    def put_item(self, TableName, Item, ConditionExpression=None):
+        if TableName == "usage":
+            raise RuntimeError("usage write failed")
+        super().put_item(TableName, Item, ConditionExpression)
+
+
 def test_ensure_registry_creates_tables_and_idle():
     dynamo = FakeDynamo()
 
@@ -103,10 +111,39 @@ def test_create_edit_disable_cost_center():
         monthly_cap_usd="200",
         allowed_users=["ubuntu"],
         table_name="cc",
-        now="2026-07-05T00:00:00Z",
+        usage_table_name="usage",
+        now="2026-07-05T00:37:42Z",
     )
     assert created.status == "active"
     assert created.allowed_users == ("ubuntu",)
+    initial_usage = get_cost_center_usage(
+        dynamo,
+        "project-a",
+        month="2026-07",
+        usage_table_name="usage",
+    )
+    assert str(initial_usage.monthly_spend_usd) == "0"
+    assert initial_usage.latest_processed_hour == "2026-07-05T00:00:00Z"
+    allocator_usage = put_cost_center_usage(
+        dynamo,
+        CostCenterUsage(
+            name="project-a",
+            month="2026-07",
+            monthly_spend_usd="12.50",
+            latest_processed_hour="2026-07-05T01:00:00Z",
+            updated_at="2026-07-05T01:01:00Z",
+        ),
+        usage_table_name="usage",
+    )
+    assert (
+        initialize_cost_center_usage(
+            dynamo,
+            "project-a",
+            usage_table_name="usage",
+            now="2026-07-05T02:00:00Z",
+        )
+        == allocator_usage
+    )
 
     edited = edit_cost_center(
         dynamo,
@@ -131,6 +168,32 @@ def test_create_edit_disable_cost_center():
     assert disabled.disabled_reason == "closed"
 
 
+def test_create_does_not_publish_registry_row_when_usage_seed_fails():
+    dynamo = UsageWriteFailureDynamo()
+    ensure_cost_center_registry(dynamo, table_name="cc", usage_table_name="usage")
+
+    with pytest.raises(RuntimeError, match="usage write failed"):
+        create_cost_center(
+            dynamo,
+            "project-a",
+            monthly_cap_usd="200",
+            allowed_users=["ubuntu"],
+            table_name="cc",
+            usage_table_name="usage",
+            now="2026-07-05T00:37:42Z",
+        )
+
+    assert (
+        get_cost_center(
+            dynamo,
+            "project-a",
+            table_name="cc",
+            allow_missing=True,
+        )
+        is None
+    )
+
+
 def test_idle_is_reserved_for_users():
     with pytest.raises(CostCenterError, match="reserved"):
         validate_cost_center_name("idle")
@@ -145,6 +208,7 @@ def test_list_and_usage():
         monthly_cap_usd="10",
         allowed_users=["ubuntu"],
         table_name="cc",
+        usage_table_name="usage",
     )
     create_cost_center(
         dynamo,
@@ -152,6 +216,7 @@ def test_list_and_usage():
         monthly_cap_usd="10",
         allowed_users=["ubuntu"],
         table_name="cc",
+        usage_table_name="usage",
     )
 
     assert [item.name for item in list_cost_centers(dynamo, table_name="cc", status="active")] == [

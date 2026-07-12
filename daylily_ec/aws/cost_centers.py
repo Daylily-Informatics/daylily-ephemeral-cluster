@@ -173,6 +173,7 @@ def create_cost_center(
     notes: str = "",
     actor_arn: str = "",
     table_name: str = DEFAULT_COST_CENTER_TABLE,
+    usage_table_name: str = DEFAULT_COST_CENTER_USAGE_TABLE,
     now: str | None = None,
 ) -> CostCenter:
     resolved_name = validate_cost_center_name(name)
@@ -194,6 +195,15 @@ def create_cost_center(
         created_by_arn=actor_arn,
         updated_at=timestamp,
         updated_by_arn=actor_arn,
+    )
+    # Seed usage before publishing an active registry row. A failed registry write
+    # may leave an inert usage row, but a failed usage write cannot leave a cost
+    # center that is authorized yet impossible to submit against.
+    initialize_cost_center_usage(
+        dynamodb_client,
+        resolved_name,
+        usage_table_name=usage_table_name,
+        now=timestamp,
     )
     _put_cost_center(dynamodb_client, table_name, item, condition="attribute_not_exists(cost_center)")
     return item
@@ -399,6 +409,57 @@ def put_cost_center_usage(
     )
     dynamodb_client.put_item(TableName=usage_table_name, Item=_usage_to_item(normalized))
     return normalized
+
+
+def initialize_cost_center_usage(
+    dynamodb_client: Any,
+    name: str,
+    *,
+    usage_table_name: str = DEFAULT_COST_CENTER_USAGE_TABLE,
+    now: str | None = None,
+) -> CostCenterUsage:
+    """Create the current-month zero snapshot without replacing allocator data."""
+    timestamp = now or utc_now_iso()
+    parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00")).astimezone(timezone.utc)
+    processed_hour = parsed.replace(minute=0, second=0, microsecond=0)
+    usage = CostCenterUsage(
+        name=validate_cost_center_name(name),
+        month=processed_hour.strftime("%Y-%m"),
+        monthly_spend_usd=Decimal("0"),
+        latest_processed_hour=processed_hour.isoformat().replace("+00:00", "Z"),
+        updated_at=timestamp,
+    )
+    existing = get_cost_center_usage(
+        dynamodb_client,
+        usage.name,
+        month=usage.month,
+        usage_table_name=usage_table_name,
+        allow_missing=True,
+    )
+    if existing is not None:
+        return existing
+    try:
+        dynamodb_client.put_item(
+            TableName=usage_table_name,
+            Item=_usage_to_item(usage),
+            ConditionExpression="attribute_not_exists(cost_center)",
+        )
+    except Exception as exc:
+        if exc.__class__.__name__ != "ConditionalCheckFailedException" and (
+            "ConditionalCheckFailed" not in str(exc)
+        ):
+            raise
+        raced = get_cost_center_usage(
+            dynamodb_client,
+            usage.name,
+            month=usage.month,
+            usage_table_name=usage_table_name,
+            allow_missing=True,
+        )
+        if raced is None:
+            raise
+        return raced
+    return usage
 
 
 def authorize_cost_center(

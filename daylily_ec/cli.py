@@ -908,8 +908,13 @@ def cost_centers_create(
     table_name: str = typer.Option(
         "dayec-cost-centers", "--table-name", help="Registry table name."
     ),
+    usage_table_name: str = typer.Option(
+        "dayec-cost-center-usage",
+        "--usage-table-name",
+        help="Usage summary table initialized for immediate Slurm submission.",
+    ),
 ) -> None:
-    """Create an active cost center."""
+    """Create an active cost center and its current-month zero usage snapshot."""
     from daylily_ec.aws.cost_centers import create_cost_center
 
     _warn_if_dayec_env_inactive()
@@ -925,6 +930,7 @@ def cost_centers_create(
             notes=notes,
             actor_arn=aws_ctx.caller_arn,
             table_name=table_name,
+            usage_table_name=usage_table_name,
         )
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
