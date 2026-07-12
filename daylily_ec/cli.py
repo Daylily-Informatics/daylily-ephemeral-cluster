@@ -61,7 +61,6 @@ from daylily_ec.aws.spot_pricing import (
 from daylily_ec.resources import ensure_extracted
 from daylily_ec.workflow.snakemake_resources import DEFAULT_JOB_MAX_RUNTIME_MINUTES
 
-
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 BENCHMARK_GENOME_BUILDS = {"hg38", "hg38_broad", "b37"}
 DEFAULT_CREATE_REGION_AZ = "us-west-2d"
@@ -2946,13 +2945,17 @@ def _configure_headnode_command(
     region: Optional[str],
     cluster: Optional[str],
     repo_overrides: Optional[Path],
+    dyec_deploy_key_secret_arn: str,
     dayoa_deploy_key_secret_arn: str,
     remote_user: str,
 ) -> None:
     from daylily_ec.aws.ssm import SsmError, wait_for_ssm_online
     from daylily_ec.scripts.common import CommandError
     from daylily_ec.scripts.daylily_cfg_headnode import _load_repo_overrides
-    from daylily_ec.workflow.create_cluster import configure_headnode
+    from daylily_ec.workflow.create_cluster import (
+        configure_headnode,
+        resolve_configured_headnode_repo_spec,
+    )
 
     _warn_if_dayec_env_inactive()
     try:
@@ -2962,6 +2965,15 @@ def _configure_headnode_command(
             cluster=cluster,
         )
         overrides = _load_repo_overrides(str(repo_overrides) if repo_overrides else None)
+        dyec_secret_arn = dyec_deploy_key_secret_arn.strip()
+        try:
+            dyec_repo_spec = (
+                resolve_configured_headnode_repo_spec(deploy_key_auth=True)
+                if dyec_secret_arn
+                else None
+            )
+        except RuntimeError as exc:
+            raise CommandError(f"Unable to pin the active DYEC checkout: {exc}") from exc
         wait_for_ssm_online(
             target.instance_id,
             resolved_region,
@@ -2973,6 +2985,10 @@ def _configure_headnode_command(
             head_node_instance_id=target.instance_id,
             region=resolved_region,
             profile=resolved_profile,
+            dyec_deploy_key_secret_arn=dyec_secret_arn,
+            dyec_deploy_key_region=resolved_region if dyec_secret_arn else "",
+            dyec_repo_url=dyec_repo_spec.url if dyec_repo_spec else "",
+            dyec_repo_ref=dyec_repo_spec.ref if dyec_repo_spec else "",
             dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn.strip(),
             dayoa_deploy_key_region=resolved_region if dayoa_deploy_key_secret_arn.strip() else "",
             repo_overrides=overrides or None,
@@ -3008,6 +3024,14 @@ def headnode_configure(
         "--repo-overrides",
         help="File containing repo overrides as repo-key:git-ref lines.",
     ),
+    dyec_deploy_key_secret_arn: str = typer.Option(
+        "",
+        "--dyec-deploy-key-secret-arn",
+        help=(
+            "Exact Secrets Manager ARN for the DYEC read-only deploy key. The headnode "
+            "role must already allow access to this secret."
+        ),
+    ),
     dayoa_deploy_key_secret_arn: str = typer.Option(
         "",
         "--dayoa-deploy-key-secret-arn",
@@ -3024,6 +3048,7 @@ def headnode_configure(
         region=region,
         cluster=cluster,
         repo_overrides=repo_overrides,
+        dyec_deploy_key_secret_arn=dyec_deploy_key_secret_arn,
         dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
         remote_user="ubuntu",
     )
@@ -3051,6 +3076,14 @@ def headnode_configure_dragen(
         "--repo-overrides",
         help="File containing repo overrides as repo-key:git-ref lines.",
     ),
+    dyec_deploy_key_secret_arn: str = typer.Option(
+        "",
+        "--dyec-deploy-key-secret-arn",
+        help=(
+            "Exact Secrets Manager ARN for the DYEC read-only deploy key. The headnode "
+            "role must already allow access to this secret."
+        ),
+    ),
     dayoa_deploy_key_secret_arn: str = typer.Option(
         "",
         "--dayoa-deploy-key-secret-arn",
@@ -3067,6 +3100,7 @@ def headnode_configure_dragen(
         region=region,
         cluster=cluster,
         repo_overrides=repo_overrides,
+        dyec_deploy_key_secret_arn=dyec_deploy_key_secret_arn,
         dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
         remote_user="ec2-user",
     )

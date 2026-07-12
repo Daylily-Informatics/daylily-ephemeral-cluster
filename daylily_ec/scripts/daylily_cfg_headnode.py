@@ -9,7 +9,10 @@ from pathlib import Path
 
 from daylily_ec.aws.ssm import resolve_headnode_instance_id, wait_for_ssm_online
 from daylily_ec.scripts.common import CommandError, need_cmd, resolve_cluster, resolve_region
-from daylily_ec.workflow.create_cluster import configure_headnode
+from daylily_ec.workflow.create_cluster import (
+    configure_headnode,
+    resolve_configured_headnode_repo_spec,
+)
 
 
 def _load_repo_overrides(path: str | None) -> dict[str, str]:
@@ -43,6 +46,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--repo-overrides",
         help="File containing repo overrides (format: repo-key:git-ref per line)",
     )
+    parser.add_argument(
+        "--dyec-deploy-key-secret-arn",
+        default="",
+        help="Exact Secrets Manager ARN for the DYEC read-only deploy key",
+    )
+    parser.add_argument(
+        "--dayoa-deploy-key-secret-arn",
+        default="",
+        help="Exact Secrets Manager ARN for the DayOA read-only deploy key",
+    )
     return parser
 
 
@@ -57,6 +70,14 @@ def main(argv: list[str] | None = None) -> int:
     region = resolve_region(args.profile, args.region)
     cluster_name = resolve_cluster(args.profile, region, args.cluster)
     overrides = _load_repo_overrides(args.repo_overrides)
+    try:
+        dyec_repo_spec = (
+            resolve_configured_headnode_repo_spec(deploy_key_auth=True)
+            if args.dyec_deploy_key_secret_arn
+            else None
+        )
+    except RuntimeError as exc:
+        raise CommandError(f"Unable to pin the active DYEC checkout: {exc}") from exc
     target = resolve_headnode_instance_id(cluster_name, region, profile=args.profile)
     wait_for_ssm_online(target.instance_id, region, profile=args.profile, timeout=120)
 
@@ -65,6 +86,12 @@ def main(argv: list[str] | None = None) -> int:
         head_node_instance_id=target.instance_id,
         region=region,
         profile=args.profile,
+        dyec_deploy_key_secret_arn=args.dyec_deploy_key_secret_arn,
+        dyec_deploy_key_region=region if args.dyec_deploy_key_secret_arn else "",
+        dyec_repo_url=dyec_repo_spec.url if dyec_repo_spec else "",
+        dyec_repo_ref=dyec_repo_spec.ref if dyec_repo_spec else "",
+        dayoa_deploy_key_secret_arn=args.dayoa_deploy_key_secret_arn,
+        dayoa_deploy_key_region=region if args.dayoa_deploy_key_secret_arn else "",
         repo_overrides=overrides or None,
     )
     if not ok:

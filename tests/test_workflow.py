@@ -60,6 +60,7 @@ from daylily_ec.workflow.create_cluster import (
     _resolve_post_create_inputs,
     resolve_cluster_template_yaml,
     resolve_dayoa_deploy_key_inputs,
+    resolve_dyec_deploy_key_inputs,
     resolve_dragen_create_inputs,
     configure_headnode,
     evaluate_regional_cluster_cap,
@@ -211,6 +212,38 @@ def test_resolve_dayoa_deploy_key_inputs_requires_matching_account_and_region():
     assert inputs.policy_arn.endswith(":policy/DayECHeadnodeDayOAClone")
 
 
+def test_resolve_dyec_deploy_key_inputs_requires_matching_account_and_region():
+    cfg = ConfigFile.model_validate(
+        {
+            "ephemeral_cluster": {
+                "config": {
+                    "dyec_deploy_key_secret_arn": [
+                        "USESETVALUE",
+                        "",
+                        "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec",
+                    ],
+                    "dyec_deploy_key_policy_arn": [
+                        "USESETVALUE",
+                        "",
+                        "arn:aws:iam::123456789012:policy/DayECHeadnodeDYECClone",
+                    ],
+                }
+            }
+        }
+    )
+
+    inputs = resolve_dyec_deploy_key_inputs(
+        cfg,
+        region_az="us-west-2d",
+        account_id="123456789012",
+        non_interactive=True,
+    )
+
+    assert inputs.region == "us-west-2"
+    assert inputs.secret_arn.endswith(":secret:dyec")
+    assert inputs.policy_arn.endswith(":policy/DayECHeadnodeDYECClone")
+
+
 class TestClusterBootConfigPublishContinued:
     def test_rejects_legacy_fsx_data_boot_file(self, tmp_path):
         source_dir = tmp_path / "boot"
@@ -281,9 +314,9 @@ class TestClusterBootConfigPublishContinued:
 
 class TestAzClusterTemplateResolution:
     def test_parses_repository_overrides_fail_closed(self) -> None:
-        assert parse_create_repo_overrides(
-            ["daylily-omics-analysis:sentieon-single"]
-        ) == {"daylily-omics-analysis": "sentieon-single"}
+        assert parse_create_repo_overrides(["daylily-omics-analysis:sentieon-single"]) == {
+            "daylily-omics-analysis": "sentieon-single"
+        }
         assert parse_create_repo_overrides(None) == {}
 
         with pytest.raises(ValueError, match="<repo-key>:<git-ref>"):
@@ -1463,9 +1496,7 @@ class TestRunCreateWorkflow:
             ("us-west-2", {"profile": "lsmc", "executable": "pcluster"})
         ]
 
-    def test_sixth_projected_cluster_is_blocked_before_mutations(
-        self, tmp_path, monkeypatch
-    ):
+    def test_sixth_projected_cluster_is_blocked_before_mutations(self, tmp_path, monkeypatch):
         clusters = [
             {"clusterName": f"cluster-{index}", "clusterStatus": "CREATE_COMPLETE"}
             for index in range(5)
@@ -1487,9 +1518,7 @@ class TestRunCreateWorkflow:
         assert "cluster-0=CREATE_COMPLETE" in records["failures"][0]
         assert "projected=6, cap=5" in records["failures"][0]
 
-    def test_same_existing_cluster_name_does_not_increase_projection(
-        self, tmp_path, monkeypatch
-    ):
+    def test_same_existing_cluster_name_does_not_increase_projection(self, tmp_path, monkeypatch):
         clusters = [
             {"clusterName": "majors-cluster", "clusterStatus": "CREATE_COMPLETE"},
             {"clusterName": "cluster-one", "clusterStatus": "CREATE_COMPLETE"},
@@ -1508,9 +1537,7 @@ class TestRunCreateWorkflow:
         )
 
         assert records["rc"] == EXIT_SUCCESS
-        cap_details = [
-            value for key, value in records["details"] if key == "Regional cluster cap"
-        ]
+        cap_details = [value for key, value in records["details"] if key == "Regional cluster cap"]
         assert cap_details == ["current=5, projected=5, cap=5"]
 
     def test_regional_cluster_list_failure_fails_closed_before_mutations(
@@ -1556,9 +1583,7 @@ class TestRunCreateWorkflow:
         assert "cluster_budget_kwargs" not in records
         assert "does not contain a clusters list" in records["failures"][0]
 
-    def test_cap_above_five_with_both_acknowledgements_is_allowed(
-        self, tmp_path, monkeypatch
-    ):
+    def test_cap_above_five_with_both_acknowledgements_is_allowed(self, tmp_path, monkeypatch):
         clusters = [
             {"clusterName": f"cluster-{index}", "clusterStatus": "CREATE_COMPLETE"}
             for index in range(5)
@@ -1579,9 +1604,7 @@ class TestRunCreateWorkflow:
         )
 
         assert records["rc"] == EXIT_SUCCESS
-        cap_details = [
-            value for key, value in records["details"] if key == "Regional cluster cap"
-        ]
+        cap_details = [value for key, value in records["details"] if key == "Regional cluster cap"]
         assert cap_details == ["current=5, projected=6, cap=6"]
 
     def test_collects_budget_and_heartbeat_inputs_before_dry_run(self, tmp_path, monkeypatch):
@@ -1630,6 +1653,12 @@ class TestRunCreateWorkflow:
         assert records["next_run_values"]["heartbeat_schedule"] == "rate(60 minutes)"
         assert records["next_run_values"]["heartbeat_scheduler_role_arn"] == ""
         assert records["resolve_scheduler_role_kwargs"]["preconfigured"] == ""
+        assert records["next_run_values"]["dyec_deploy_key_secret_arn"].endswith(
+            ":secret:dayec/dyec-key"
+        )
+        assert records["next_run_values"]["dyec_deploy_key_policy_arn"].endswith(
+            ":policy/DayECHeadnodeDYECClone"
+        )
         assert records["next_run_values"]["dayoa_deploy_key_secret_arn"].endswith(
             ":secret:dayec/dayoa-key"
         )
@@ -1637,6 +1666,10 @@ class TestRunCreateWorkflow:
             ":policy/DayECHeadnodeDayOAClone"
         )
         assert records["configure_headnode_kwargs"]["dayoa_deploy_key_region"] == "us-west-2"
+        assert records["configure_headnode_kwargs"]["dyec_deploy_key_region"] == "us-west-2"
+        assert records["configure_headnode_kwargs"]["dyec_deploy_key_secret_arn"].endswith(
+            ":secret:dayec/dyec-key"
+        )
         assert records["configure_headnode_kwargs"]["dayoa_deploy_key_secret_arn"].endswith(
             ":secret:dayec/dayoa-key"
         )
@@ -2212,6 +2245,74 @@ class TestConfigureHeadnode:
             },
         }
         assert "PRIVATE KEY" not in args[3]
+
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
+    def test_dyec_deploy_key_bootstraps_exact_private_repo_without_persisting_key(
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
+        mock_run_shell.return_value = SimpleNamespace(stdout="", stderr="")
+        mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
+        dyec_secret_arn = (
+            "arn:aws:secretsmanager:us-west-2:123456789012:" "secret:dayec/github-deploy-keys/dyec"
+        )
+        dayoa_secret_arn = (
+            "arn:aws:secretsmanager:us-west-2:123456789012:" "secret:dayec/github-deploy-keys/dayoa"
+        )
+
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+            dyec_deploy_key_secret_arn=dyec_secret_arn,
+            dyec_deploy_key_region="us-west-2",
+            dyec_repo_url="git@github.com:lsmc-bio/daylily-ephemeral-cluster.git",
+            dyec_repo_ref="feature/any-published-branch",
+            dayoa_deploy_key_secret_arn=dayoa_secret_arn,
+            dayoa_deploy_key_region="us-west-2",
+        )
+
+        assert ok is True
+        assert mock_write_remote_text.call_count == 2
+        known_hosts_call, references_call = mock_write_remote_text.call_args_list
+        assert known_hosts_call.args[2] == "~/.config/daylily/github_known_hosts"
+        assert "github.com ssh-ed25519" in known_hosts_call.args[3]
+        assert references_call.args[2] == "~/.config/daylily/github_deploy_keys.yaml"
+        assert yaml.safe_load(references_call.args[3]) == {
+            "config_version": 1,
+            "deploy_keys": {
+                "daylily-ephemeral-cluster": {
+                    "region": "us-west-2",
+                    "secret_arn": dyec_secret_arn,
+                },
+                "daylily-omics-analysis": {
+                    "region": "us-west-2",
+                    "secret_arn": dayoa_secret_arn,
+                },
+            },
+        }
+        clone_cmd = mock_run_shell.call_args_list[0].args[2]
+        assert (
+            "git clone git@github.com:lsmc-bio/daylily-ephemeral-cluster.git "
+            "daylily-ephemeral-cluster"
+        ) in clone_cmd
+        assert "origin/feature/any-published-branch" in clone_cmd
+        assert dyec_secret_arn in clone_cmd
+        assert "StrictHostKeyChecking=yes" in clone_cmd
+        assert "IdentitiesOnly=yes" in clone_cmd
+        assert "mktemp -d" in clone_cmd
+        assert "trap 'rm -rf" in clone_cmd
+        assert "--query SecretString --output text" in clone_cmd
 
     @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
@@ -2925,6 +3026,16 @@ def _build_workflow_config(
         "heartbeat_scheduler_role_arn": ["PROMPTUSER", "", ""],
         "slurm_accounting_enabled": ["USESETVALUE", "", "false"],
         "slurm_accounting_create_db": ["USESETVALUE", "", "false"],
+        "dyec_deploy_key_secret_arn": [
+            "USESETVALUE",
+            "",
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/dyec-key",
+        ],
+        "dyec_deploy_key_policy_arn": [
+            "USESETVALUE",
+            "",
+            "arn:aws:iam::123456789012:policy/DayECHeadnodeDYECClone",
+        ],
         "dayoa_deploy_key_secret_arn": [
             "USESETVALUE",
             "",
@@ -3204,6 +3315,18 @@ def _run_stubbed_create_workflow(
         create_cluster_module,
         "configure_headnode",
         fake_configure_headnode,
+    )
+    monkeypatch.setattr(
+        create_cluster_module,
+        "resolve_configured_headnode_repo_spec",
+        lambda *, deploy_key_auth: SimpleNamespace(
+            url=(
+                "git@github.com:lsmc-bio/daylily-ephemeral-cluster.git"
+                if deploy_key_auth
+                else "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git"
+            ),
+            ref="sentieon-single",
+        ),
     )
 
     def fake_write_init_artifacts(

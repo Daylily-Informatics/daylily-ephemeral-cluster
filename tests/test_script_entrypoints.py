@@ -1425,6 +1425,12 @@ class TestCfgHeadnodeScript:
             head_node_instance_id="i-abc123",
             region="us-west-2",
             profile="dev",
+            dyec_deploy_key_secret_arn="",
+            dyec_deploy_key_region="",
+            dyec_repo_url="",
+            dyec_repo_ref="",
+            dayoa_deploy_key_secret_arn="",
+            dayoa_deploy_key_region="",
             repo_overrides={"daylily-omics-analysis": "release-1"},
         )
         assert "Headnode configured via SSM" in capsys.readouterr().out

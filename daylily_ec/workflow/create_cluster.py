@@ -214,6 +214,15 @@ class DayoaDeployKeyInputs:
 
 
 @dataclass(frozen=True)
+class DyecDeployKeyInputs:
+    """Explicit AWS resources used to bootstrap the private DYEC repository."""
+
+    secret_arn: str
+    policy_arn: str
+    region: str
+
+
+@dataclass(frozen=True)
 class HeadnodeRepoSpec:
     url: str
     ref: str
@@ -351,43 +360,99 @@ def _git_failure_detail(proc: subprocess.CompletedProcess[str], fallback: str) -
     return proc.stderr.strip() or proc.stdout.strip() or fallback
 
 
-def _normalize_headnode_repo_url(repo_url: str) -> str:
+def _normalize_headnode_repo_url(repo_url: str, *, deploy_key_auth: bool = False) -> str:
     """Return a headnode-safe clone URL for the Daylily control repo."""
+    github_path = ""
     if repo_url.startswith("git@github.com:"):
-        repo_path = repo_url.removeprefix("git@github.com:")
-        if "/" not in repo_path:
+        github_path = repo_url.removeprefix("git@github.com:")
+        if "/" not in github_path:
             raise RuntimeError(f"Unsupported GitHub SSH repository URL: {repo_url}")
-        return f"https://github.com/{repo_path}"
-
-    if repo_url.startswith("ssh://git@github.com/"):
-        repo_path = repo_url.removeprefix("ssh://git@github.com/")
-        if "/" not in repo_path:
+    elif repo_url.startswith("ssh://git@github.com/"):
+        github_path = repo_url.removeprefix("ssh://git@github.com/")
+        if "/" not in github_path:
             raise RuntimeError(f"Unsupported GitHub SSH repository URL: {repo_url}")
-        return f"https://github.com/{repo_path}"
-
-    if repo_url.startswith("git@") or repo_url.startswith("ssh://"):
+    elif repo_url.startswith("https://github.com/"):
+        github_path = repo_url.removeprefix("https://github.com/")
+        if "/" not in github_path:
+            raise RuntimeError(f"Unsupported GitHub repository URL: {repo_url}")
+    elif repo_url.startswith("git@") or repo_url.startswith("ssh://"):
         raise RuntimeError(
             "Headnode repository clone requires HTTPS or a supported GitHub SSH remote; "
             f"got {repo_url}"
         )
 
+    if github_path:
+        if deploy_key_auth:
+            return f"git@github.com:{github_path}"
+        return f"https://github.com/{github_path}"
+    if deploy_key_auth:
+        raise RuntimeError(
+            "DYEC deploy-key bootstrap requires a supported github.com repository URL; "
+            f"got {repo_url}"
+        )
     return repo_url
 
 
-def _resolve_headnode_repo_spec(default_url: str, default_ref: str) -> HeadnodeRepoSpec:
+def _resolve_headnode_repo_spec(
+    default_url: str,
+    default_ref: str,
+    *,
+    deploy_key_auth: bool = False,
+) -> HeadnodeRepoSpec:
     repo_root_env = _os.environ.get("DAYLILY_EC_REPO_ROOT", "").strip()
     if not repo_root_env:
-        return HeadnodeRepoSpec(url=_normalize_headnode_repo_url(default_url), ref=default_ref)
+        if deploy_key_auth:
+            raise RuntimeError(
+                "DAYLILY_EC_REPO_ROOT is required to pin the exact published DYEC checkout."
+            )
+        return HeadnodeRepoSpec(
+            url=_normalize_headnode_repo_url(
+                default_url,
+                deploy_key_auth=deploy_key_auth,
+            ),
+            ref=default_ref,
+        )
 
     repo_root = Path(repo_root_env).expanduser().resolve()
     if not repo_root.exists():
         raise RuntimeError(f"DAYLILY_EC_REPO_ROOT does not exist: {repo_root}")
 
     repo_url = _normalize_headnode_repo_url(
-        _git_stdout(repo_root, "config", "--get", "remote.origin.url")
+        _git_stdout(repo_root, "config", "--get", "remote.origin.url"),
+        deploy_key_auth=deploy_key_auth,
     )
     repo_ref = _resolve_headnode_repo_ref(repo_root)
     return HeadnodeRepoSpec(url=repo_url, ref=repo_ref)
+
+
+def resolve_configured_headnode_repo_spec(*, deploy_key_auth: bool) -> HeadnodeRepoSpec:
+    """Resolve the exact published DYEC source selected by the active checkout."""
+    import yaml
+
+    from daylily_ec.resources import resource_path
+
+    user_cfg_path = Path.home() / ".config" / "daylily" / "daylily_cli_global.yaml"
+    cfg_path = (
+        user_cfg_path
+        if user_cfg_path.exists()
+        else (
+            Path("config/daylily_cli_global.yaml")
+            if Path("config/daylily_cli_global.yaml").exists()
+            else resource_path("config/daylily_cli_global.yaml")
+        )
+    )
+    with open(cfg_path, encoding="utf-8") as fh:
+        cli_cfg = yaml.safe_load(fh) or {}
+    daylily = cli_cfg.get("daylily", {}) or {}
+    repo_ref = str(daylily.get("git_ephemeral_cluster_repo_tag") or "").strip()
+    repo_url = str(daylily.get("git_ephemeral_cluster_repo") or "").strip()
+    if not repo_ref or not repo_url:
+        raise RuntimeError(f"DYEC repository URL and ref must be explicit in {cfg_path}.")
+    return _resolve_headnode_repo_spec(
+        repo_url,
+        repo_ref,
+        deploy_key_auth=deploy_key_auth,
+    )
 
 
 def _resolve_headnode_repo_ref(repo_root: Path) -> str:
@@ -415,7 +480,6 @@ def _require_published_branch(repo_root: Path, repo_ref: str) -> str:
         raise RuntimeError(
             f"Current checkout branch is not available on origin: {repo_ref} ({detail})"
         )
-
     return repo_ref
 
 
@@ -449,7 +513,17 @@ def _require_published_detached_tag(repo_root: Path) -> str:
     return tag_ref
 
 
-def _build_headnode_repo_sync_command(repo_name: str, repo_url: str, repo_ref: str) -> str:
+def _build_headnode_repo_sync_command(
+    repo_name: str,
+    repo_url: str,
+    repo_ref: str,
+    *,
+    deploy_key_secret_arn: str = "",
+    deploy_key_region: str = "",
+) -> str:
+    if bool(deploy_key_secret_arn) != bool(deploy_key_region):
+        raise ValueError("DYEC deploy-key secret ARN and region must be provided together.")
+
     repo_name_q = shlex.quote(repo_name)
     repo_url_q = shlex.quote(repo_url)
     repo_ref_q = shlex.quote(repo_ref)
@@ -467,8 +541,31 @@ def _build_headnode_repo_sync_command(repo_name: str, repo_url: str, repo_ref: s
             "fi"
         )
 
+    auth_setup = ""
+    if deploy_key_secret_arn:
+        secret_arn_q = shlex.quote(deploy_key_secret_arn)
+        region_q = shlex.quote(deploy_key_region)
+        auth_setup = (
+            "umask 077 && "
+            "dayec_key_dir=$(mktemp -d) && "
+            "trap 'rm -rf \"$dayec_key_dir\"' EXIT && "
+            f"aws secretsmanager get-secret-value --region {region_q} "
+            f"--secret-id {secret_arn_q} --query SecretString --output text "
+            '--no-cli-pager >"$dayec_key_dir/deploy_key" && '
+            'chmod 0600 "$dayec_key_dir/deploy_key" && '
+            "grep -qx -- '-----BEGIN OPENSSH PRIVATE KEY-----' "
+            '<(head -n 1 "$dayec_key_dir/deploy_key") && '
+            "grep -qx -- '-----END OPENSSH PRIVATE KEY-----' "
+            '<(tail -n 1 "$dayec_key_dir/deploy_key") && '
+            'test -s "$HOME/.config/daylily/github_known_hosts" && '
+            "export GIT_TERMINAL_PROMPT=0 && "
+            'export GIT_SSH_COMMAND="ssh -i $dayec_key_dir/deploy_key '
+            "-o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "
+            '-o UserKnownHostsFile=$HOME/.config/daylily/github_known_hosts" && '
+        )
+
     return (
-        "mkdir -p ~/projects && cd ~/projects && "
+        auth_setup + "mkdir -p ~/projects && cd ~/projects && "
         f"if [ -e {repo_name_q} ] && [ ! -d {repo_name_q}/.git ]; then "
         f"echo {repo_error_q} >&2; exit 1; "
         "fi && "
@@ -803,8 +900,7 @@ def parse_create_repo_overrides(values: Optional[Iterable[str]]) -> Dict[str, st
         value = str(raw_value).strip()
         if ":" not in value:
             raise ValueError(
-                "--repo-override must use <repo-key>:<git-ref>; "
-                f"got {raw_value!r}."
+                "--repo-override must use <repo-key>:<git-ref>; " f"got {raw_value!r}."
             )
         repo_key, git_ref = (part.strip() for part in value.split(":", 1))
         if not repo_key or not git_ref:
@@ -890,6 +986,61 @@ def resolve_dragen_create_inputs(
     )
 
 
+def _resolve_deploy_key_inputs(
+    cfg: Any,
+    *,
+    config_prefix: str,
+    display_name: str,
+    region_az: str,
+    account_id: str,
+    non_interactive: bool,
+) -> tuple[str, str, str]:
+    """Resolve one explicit repository deploy-key secret and policy pair."""
+
+    from daylily_ec.aws.context import parse_region_az
+
+    region, _az = parse_region_az(region_az)
+    secret_key = f"{config_prefix}_deploy_key_secret_arn"
+    policy_key = f"{config_prefix}_deploy_key_policy_arn"
+    secret_arn = _resolve_config_value(
+        cfg,
+        secret_key,
+        f"{display_name} deploy-key Secrets Manager ARN",
+        non_interactive=non_interactive,
+    ).strip()
+    policy_arn = _resolve_config_value(
+        cfg,
+        policy_key,
+        f"{display_name} deploy-key managed-policy ARN",
+        non_interactive=non_interactive,
+    ).strip()
+
+    secret_match = re.fullmatch(
+        r"arn:(aws(?:-us-gov)?):secretsmanager:([a-z0-9-]+):(\d{12}):secret:[A-Za-z0-9/_+=.@-]+",
+        secret_arn,
+    )
+    if not secret_match:
+        raise ValueError(f"{secret_key} must be an explicit Secrets Manager ARN.")
+    if secret_match.group(2) != region:
+        raise ValueError(
+            f"{secret_key} region must match the cluster region: "
+            f"{secret_match.group(2)} != {region}."
+        )
+    if secret_match.group(3) != account_id:
+        raise ValueError(f"{secret_key} must belong to the active AWS account.")
+
+    policy_match = re.fullmatch(
+        r"arn:aws(?:-us-gov)?:iam::(\d{12}):policy/[A-Za-z0-9+=,.@_/-]+",
+        policy_arn,
+    )
+    if not policy_match:
+        raise ValueError(f"{policy_key} must be an explicit managed-policy ARN.")
+    if policy_match.group(1) != account_id:
+        raise ValueError(f"{policy_key} must belong to the active AWS account.")
+
+    return secret_arn, policy_arn, region
+
+
 def resolve_dayoa_deploy_key_inputs(
     cfg: Any,
     *,
@@ -899,46 +1050,40 @@ def resolve_dayoa_deploy_key_inputs(
 ) -> DayoaDeployKeyInputs:
     """Resolve and validate the explicit DayOA deploy-key secret and policy."""
 
-    from daylily_ec.aws.context import parse_region_az
-
-    region, _az = parse_region_az(region_az)
-    secret_arn = _resolve_config_value(
+    secret_arn, policy_arn, region = _resolve_deploy_key_inputs(
         cfg,
-        "dayoa_deploy_key_secret_arn",
-        "DayOA deploy-key Secrets Manager ARN",
+        config_prefix="dayoa",
+        display_name="DayOA",
+        region_az=region_az,
+        account_id=account_id,
         non_interactive=non_interactive,
-    ).strip()
-    policy_arn = _resolve_config_value(
-        cfg,
-        "dayoa_deploy_key_policy_arn",
-        "DayOA deploy-key managed-policy ARN",
-        non_interactive=non_interactive,
-    ).strip()
-
-    secret_match = re.fullmatch(
-        r"arn:(aws(?:-us-gov)?):secretsmanager:([a-z0-9-]+):(\d{12}):secret:[A-Za-z0-9/_+=.@-]+",
-        secret_arn,
     )
-    if not secret_match:
-        raise ValueError("dayoa_deploy_key_secret_arn must be an explicit Secrets Manager ARN.")
-    if secret_match.group(2) != region:
-        raise ValueError(
-            "dayoa_deploy_key_secret_arn region must match the cluster region: "
-            f"{secret_match.group(2)} != {region}."
-        )
-    if secret_match.group(3) != account_id:
-        raise ValueError("dayoa_deploy_key_secret_arn must belong to the active AWS account.")
-
-    policy_match = re.fullmatch(
-        r"arn:aws(?:-us-gov)?:iam::(\d{12}):policy/[A-Za-z0-9+=,.@_/-]+",
-        policy_arn,
-    )
-    if not policy_match:
-        raise ValueError("dayoa_deploy_key_policy_arn must be an explicit managed-policy ARN.")
-    if policy_match.group(1) != account_id:
-        raise ValueError("dayoa_deploy_key_policy_arn must belong to the active AWS account.")
 
     return DayoaDeployKeyInputs(
+        secret_arn=secret_arn,
+        policy_arn=policy_arn,
+        region=region,
+    )
+
+
+def resolve_dyec_deploy_key_inputs(
+    cfg: Any,
+    *,
+    region_az: str,
+    account_id: str,
+    non_interactive: bool,
+) -> DyecDeployKeyInputs:
+    """Resolve and validate the explicit DYEC bootstrap deploy key and policy."""
+
+    secret_arn, policy_arn, region = _resolve_deploy_key_inputs(
+        cfg,
+        config_prefix="dyec",
+        display_name="DYEC",
+        region_az=region_az,
+        account_id=account_id,
+        non_interactive=non_interactive,
+    )
+    return DyecDeployKeyInputs(
         secret_arn=secret_arn,
         policy_arn=policy_arn,
         region=region,
@@ -1317,9 +1462,7 @@ def validate_dragen_cluster_contract(
     ):
         queue = queues_by_name[queue_name]
         if queue.get("CapacityType") != capacity_type:
-            raise ValueError(
-                f"DRAGEN queue {queue_name} must use {capacity_type} capacity."
-            )
+            raise ValueError(f"DRAGEN queue {queue_name} must use {capacity_type} capacity.")
         queue_ami = ((queue.get("Image") or {}).get("CustomAmi") or "").strip()
         if queue_ami != inputs.backport.image_ami_id:
             raise ValueError(
@@ -1334,17 +1477,14 @@ def validate_dragen_cluster_contract(
 
         resources = queue.get("ComputeResources") or []
         if not isinstance(resources, list) or len(resources) != 1:
-            raise ValueError(
-                f"DRAGEN queue {queue_name} must render exactly one compute resource."
-            )
+            raise ValueError(f"DRAGEN queue {queue_name} must render exactly one compute resource.")
         resource = resources[0]
         if resource.get("Name") != resource_name:
             raise ValueError(
                 f"DRAGEN queue {queue_name} must use compute resource {resource_name}."
             )
         instance_types = [
-            str(item.get("InstanceType") or "")
-            for item in resource.get("Instances") or []
+            str(item.get("InstanceType") or "") for item in resource.get("Instances") or []
         ]
         if instance_types != ["f2.6xlarge"]:
             raise ValueError(
@@ -1355,15 +1495,11 @@ def validate_dragen_cluster_contract(
                 f"DRAGEN queue {queue_name} compute resource must set MinCount 0 and MaxCount 1."
             )
         if resource.get("SchedulableMemory") != 249036:
-            raise ValueError(
-                f"DRAGEN queue {queue_name} must set SchedulableMemory 249036."
-            )
+            raise ValueError(f"DRAGEN queue {queue_name} must set SchedulableMemory 249036.")
         if ((resource.get("Efa") or {}).get("Enabled")) is not False:
             raise ValueError(f"DRAGEN queue {queue_name} must keep EFA disabled.")
         if capacity_type == "ONDEMAND" and "SpotPrice" in resource:
-            raise ValueError(
-                "DRAGEN on-demand compute resource must not define SpotPrice."
-            )
+            raise ValueError("DRAGEN on-demand compute resource must not define SpotPrice.")
 
     for queue_name, resource_name, instance_types in (
         ("i192", "mem192", ["m7i.48xlarge", "r7i.48xlarge"]),
@@ -2280,8 +2416,7 @@ def run_create_workflow(
     )
     if not cluster_inventory.success:
         detail = cluster_inventory.message or (
-            "pcluster list-clusters failed with exit code "
-            f"{cluster_inventory.returncode}"
+            "pcluster list-clusters failed with exit code " f"{cluster_inventory.returncode}"
         )
         logger.error("Regional ParallelCluster cap check failed closed: %s", detail)
         ui.fail(
@@ -2313,9 +2448,9 @@ def run_create_workflow(
         ),
     )
     if cap_decision.projected_count > cap_decision.effective_cap:
-        record_evidence = ", ".join(
-            f"{name}={status}" for name, status in cap_decision.counted_records
-        ) or "none"
+        record_evidence = (
+            ", ".join(f"{name}={status}" for name, status in cap_decision.counted_records) or "none"
+        )
         logger.error(
             "Regional ParallelCluster cap exceeded in %s: current=%d projected=%d cap=%d",
             aws_ctx.region,
@@ -2334,6 +2469,12 @@ def run_create_workflow(
         return EXIT_VALIDATION_FAILURE
 
     try:
+        dyec_deploy_key_inputs = resolve_dyec_deploy_key_inputs(
+            cfg,
+            region_az=region_az,
+            account_id=aws_ctx.account_id,
+            non_interactive=non_interactive,
+        )
         dayoa_deploy_key_inputs = resolve_dayoa_deploy_key_inputs(
             cfg,
             region_az=region_az,
@@ -2341,11 +2482,21 @@ def run_create_workflow(
             non_interactive=non_interactive,
         )
     except ValueError as exc:
-        logger.error("DayOA deploy-key input validation failed: %s", exc)
-        ui.fail(f"DayOA deploy-key inputs: {exc}")
+        logger.error("Repository deploy-key input validation failed: %s", exc)
+        ui.fail(f"Repository deploy-key inputs: {exc}")
         return EXIT_VALIDATION_FAILURE
+    ui.detail("DYEC deploy-key secret", dyec_deploy_key_inputs.secret_arn)
+    ui.detail("DYEC deploy-key policy", dyec_deploy_key_inputs.policy_arn)
     ui.detail("DayOA deploy-key secret", dayoa_deploy_key_inputs.secret_arn)
     ui.detail("DayOA deploy-key policy", dayoa_deploy_key_inputs.policy_arn)
+    try:
+        dyec_repo_spec = resolve_configured_headnode_repo_spec(deploy_key_auth=True)
+    except RuntimeError as exc:
+        logger.error("DYEC repository pinning failed: %s", exc)
+        ui.fail(f"DYEC repository source: {exc}")
+        return EXIT_VALIDATION_FAILURE
+    ui.detail("DYEC repository", dyec_repo_spec.url)
+    ui.detail("DYEC ref", dyec_repo_spec.ref)
     if dragen_inputs:
         secret_account = dragen_inputs.license_secret_arn.split(":", 5)[4]
         policy_account = dragen_inputs.license_policy_arn.split(":", 5)[4]
@@ -2502,6 +2653,17 @@ def run_create_workflow(
             iam_client=aws_ctx.client("iam"),
             secret_arn=dayoa_deploy_key_inputs.secret_arn,
             policy_arn=dayoa_deploy_key_inputs.policy_arn,
+        ),
+    )
+    preflight_steps.insert(
+        1,
+        make_github_deploy_key_preflight_step(
+            secretsmanager_client=aws_ctx.client("secretsmanager"),
+            iam_client=aws_ctx.client("iam"),
+            secret_arn=dyec_deploy_key_inputs.secret_arn,
+            policy_arn=dyec_deploy_key_inputs.policy_arn,
+            check_id="iam.dyec_deploy_key_secret_policy",
+            display_name="DYEC",
         ),
     )
     if dragen_inputs:
@@ -3144,9 +3306,13 @@ def run_create_workflow(
             cluster_yaml_path,
             dayoa_deploy_key_inputs.policy_arn,
         )
+        attach_headnode_managed_policy(
+            cluster_yaml_path,
+            dyec_deploy_key_inputs.policy_arn,
+        )
     except ValueError as exc:
-        logger.error("DayOA deploy-key headnode policy attachment failed: %s", exc)
-        ui.fail(f"DayOA deploy-key headnode policy: {exc}")
+        logger.error("Repository deploy-key headnode policy attachment failed: %s", exc)
+        ui.fail(f"Repository deploy-key headnode policy: {exc}")
         return EXIT_VALIDATION_FAILURE
 
     logger.info("Cluster YAML ready: %s", cluster_yaml_path)
@@ -3275,6 +3441,10 @@ def run_create_workflow(
         head_node_instance_id=monitor_result.head_node_instance_id,
         region=aws_ctx.region,
         profile=aws_ctx.profile,
+        dyec_deploy_key_secret_arn=dyec_deploy_key_inputs.secret_arn,
+        dyec_deploy_key_region=dyec_deploy_key_inputs.region,
+        dyec_repo_url=dyec_repo_spec.url,
+        dyec_repo_ref=dyec_repo_spec.ref,
         dayoa_deploy_key_secret_arn=dayoa_deploy_key_inputs.secret_arn,
         dayoa_deploy_key_region=dayoa_deploy_key_inputs.region,
         repo_overrides=repo_overrides,
@@ -3345,6 +3515,8 @@ def run_create_workflow(
         "heartbeat_email": post_create_inputs.heartbeat_email,
         "heartbeat_schedule": post_create_inputs.heartbeat_schedule,
         "heartbeat_scheduler_role_arn": (post_create_inputs.heartbeat_scheduler_role_arn),
+        "dyec_deploy_key_secret_arn": dyec_deploy_key_inputs.secret_arn,
+        "dyec_deploy_key_policy_arn": dyec_deploy_key_inputs.policy_arn,
         "dayoa_deploy_key_secret_arn": dayoa_deploy_key_inputs.secret_arn,
         "dayoa_deploy_key_policy_arn": dayoa_deploy_key_inputs.policy_arn,
         "slurm_accounting_enabled": "true" if accounting_db else "false",
@@ -3439,6 +3611,10 @@ def configure_headnode(
     region: str,
     profile: str,
     *,
+    dyec_deploy_key_secret_arn: str = "",
+    dyec_deploy_key_region: str = "",
+    dyec_repo_url: str = "",
+    dyec_repo_ref: str = "",
     dayoa_deploy_key_secret_arn: str = "",
     dayoa_deploy_key_region: str = "",
     repo_overrides: Optional[Dict[str, str]] = None,
@@ -3450,41 +3626,95 @@ def configure_headnode(
     from daylily_ec.aws.ssm import SsmCommandFailedError, run_shell, write_remote_text
     from daylily_ec.resources import resource_path
 
-    user_cfg_path = Path.home() / ".config" / "daylily" / "daylily_cli_global.yaml"
-    cfg_path = (
-        user_cfg_path
-        if user_cfg_path.exists()
-        else (
-            Path("config/daylily_cli_global.yaml")
-            if Path("config/daylily_cli_global.yaml").exists()
-            else resource_path("config/daylily_cli_global.yaml")
-        )
-    )
-
-    with open(cfg_path, encoding="utf-8") as fh:
-        cli_cfg = yaml.safe_load(fh) or {}
-
-    daylily = cli_cfg.get("daylily", {}) or {}
-    repo_ref = daylily.get("git_ephemeral_cluster_repo_tag", "main")
-    repo_url = daylily.get(
-        "git_ephemeral_cluster_repo",
-        "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
-    )
     repo_name = "daylily-ephemeral-cluster"
-    try:
-        repo_spec = _resolve_headnode_repo_spec(repo_url, repo_ref)
-    except RuntimeError as exc:
-        logger.error("  ✗ Could not resolve headnode repository source: %s", exc)
+    if dyec_deploy_key_secret_arn and not dyec_deploy_key_region:
+        logger.error("  ✗ DYEC deploy-key region is required with the secret ARN")
         return False
+    if dayoa_deploy_key_secret_arn and not dayoa_deploy_key_region:
+        logger.error("  ✗ DayOA deploy-key region is required with the secret ARN")
+        return False
+    if dyec_deploy_key_secret_arn:
+        if not dyec_repo_url or not dyec_repo_ref:
+            logger.error(
+                "  ✗ DYEC repository URL and ref are required with deploy-key auth"
+            )
+            return False
+        try:
+            repo_url = _normalize_headnode_repo_url(dyec_repo_url, deploy_key_auth=True)
+        except RuntimeError as exc:
+            logger.error("  ✗ Invalid DYEC repository URL: %s", exc)
+            return False
+        repo_ref = dyec_repo_ref
+    else:
+        try:
+            repo_spec = resolve_configured_headnode_repo_spec(deploy_key_auth=False)
+        except RuntimeError as exc:
+            logger.error("  ✗ Could not resolve legacy public headnode repository source: %s", exc)
+            return False
+        repo_url = repo_spec.url
+        repo_ref = repo_spec.ref
+    logger.info(
+        "  ▸ Headnode repository source: %s @ %s",
+        repo_url,
+        repo_ref,
+    )
 
-    repo_url = repo_spec.url
-    repo_ref = repo_spec.ref
-    logger.info("  ▸ Headnode repository source: %s @ %s", repo_url, repo_ref)
+    deploy_keys: dict[str, dict[str, str]] = {}
+    if dyec_deploy_key_secret_arn:
+        deploy_keys["daylily-ephemeral-cluster"] = {
+            "region": dyec_deploy_key_region,
+            "secret_arn": dyec_deploy_key_secret_arn,
+        }
+        known_hosts_path = resource_path("config/github_known_hosts")
+        logger.info("  ▸ Deploying pinned GitHub host keys ...")
+        try:
+            write_remote_text(
+                head_node_instance_id,
+                region,
+                "~/.config/daylily/github_known_hosts",
+                known_hosts_path.read_text(encoding="utf-8"),
+                profile=profile,
+                as_user=remote_user,
+            )
+            logger.info("  ✓ Pinned GitHub host keys deployed")
+        except Exception as exc:
+            logger.error("  ✗ GitHub host-key deployment failed: %s", exc)
+            return False
+    if dayoa_deploy_key_secret_arn:
+        deploy_keys["daylily-omics-analysis"] = {
+            "region": dayoa_deploy_key_region,
+            "secret_arn": dayoa_deploy_key_secret_arn,
+        }
+    if deploy_keys:
+        deploy_key_config = {
+            "config_version": 1,
+            "deploy_keys": deploy_keys,
+        }
+        logger.info("  ▸ Deploying repository deploy-key references ...")
+        try:
+            write_remote_text(
+                head_node_instance_id,
+                region,
+                "~/.config/daylily/github_deploy_keys.yaml",
+                yaml.safe_dump(deploy_key_config, default_flow_style=False, sort_keys=False),
+                profile=profile,
+                as_user=remote_user,
+            )
+            logger.info("  ✓ Repository deploy-key references deployed")
+        except Exception as exc:
+            logger.error("  ✗ Repository deploy-key reference deployment failed: %s", exc)
+            return False
 
     steps = [
         (
             "Clone repository to headnode",
-            _build_headnode_repo_sync_command(repo_name, repo_url, repo_ref),
+            _build_headnode_repo_sync_command(
+                repo_name,
+                repo_url,
+                repo_ref,
+                deploy_key_secret_arn=dyec_deploy_key_secret_arn,
+                deploy_key_region=dyec_deploy_key_region,
+            ),
             None,
         ),
         (
@@ -3507,9 +3737,13 @@ def configure_headnode(
             None,
         ),
         (
-            "Install headnode tools",
+            "Rebuild DAY-EC and install headnode tools",
             (
                 f"cd ~/projects/{repo_name} && "
+                "source ~/miniconda3/etc/profile.d/conda.sh && "
+                "conda env update --name DAY-EC --file environment.yaml --prune && "
+                "conda activate DAY-EC && "
+                "python -m pip install --editable . && "
                 f"source ~/projects/{repo_name}/activate && "
                 f"./bin/install-daylily-headnode-tools"
             ),
@@ -3532,34 +3766,6 @@ def configure_headnode(
             logger.info("  ✓ %s", label)
         except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
             logger.error("  ✗ %s failed: %s", label, exc)
-            return False
-
-    if dayoa_deploy_key_secret_arn:
-        if not dayoa_deploy_key_region:
-            logger.error("  ✗ DayOA deploy-key region is required with the secret ARN")
-            return False
-        deploy_key_config = {
-            "config_version": 1,
-            "deploy_keys": {
-                "daylily-omics-analysis": {
-                    "region": dayoa_deploy_key_region,
-                    "secret_arn": dayoa_deploy_key_secret_arn,
-                }
-            },
-        }
-        logger.info("  ▸ Deploying DayOA deploy-key reference ...")
-        try:
-            write_remote_text(
-                head_node_instance_id,
-                region,
-                "~/.config/daylily/github_deploy_keys.yaml",
-                yaml.safe_dump(deploy_key_config, default_flow_style=False, sort_keys=False),
-                profile=profile,
-                as_user=remote_user,
-            )
-            logger.info("  ✓ DayOA deploy-key reference deployed")
-        except Exception as exc:
-            logger.error("  ✗ DayOA deploy-key reference deployment failed: %s", exc)
             return False
 
     if repo_overrides:

@@ -106,6 +106,8 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "delete_local_root",
     "dragen_license_policy_arn",
     "dragen_license_secret_arn",
+    "dyec_deploy_key_policy_arn",
+    "dyec_deploy_key_secret_arn",
     "dayoa_deploy_key_policy_arn",
     "dayoa_deploy_key_secret_arn",
     "enable_detailed_monitoring",

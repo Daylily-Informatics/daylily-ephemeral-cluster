@@ -8,7 +8,6 @@ from urllib.parse import unquote
 
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
 
-
 ALLOWED_SECRET_ACTIONS = frozenset(
     {
         "secretsmanager:DescribeSecret",
@@ -23,6 +22,8 @@ def make_github_deploy_key_preflight_step(
     iam_client: Any,
     secret_arn: str,
     policy_arn: str,
+    check_id: str = "iam.dayoa_deploy_key_secret_policy",
+    display_name: str = "DayOA",
 ):
     """Validate secret metadata and an exact least-privilege managed policy.
 
@@ -58,7 +59,7 @@ def make_github_deploy_key_preflight_step(
         except Exception as exc:
             report.checks.append(
                 CheckResult(
-                    id="iam.dayoa_deploy_key_secret_policy",
+                    id=check_id,
                     status=CheckStatus.FAIL,
                     details={
                         "secret_arn": secret_arn,
@@ -67,7 +68,8 @@ def make_github_deploy_key_preflight_step(
                         "error": str(exc),
                     },
                     remediation=(
-                        "Create the configured deploy-key secret and a managed policy granting "
+                        f"Create the configured {display_name} deploy-key secret and a managed "
+                        "policy granting "
                         "only secretsmanager:DescribeSecret and "
                         "secretsmanager:GetSecretValue on that exact secret ARN."
                     ),
@@ -77,7 +79,7 @@ def make_github_deploy_key_preflight_step(
 
         report.checks.append(
             CheckResult(
-                id="iam.dayoa_deploy_key_secret_policy",
+                id=check_id,
                 status=CheckStatus.PASS,
                 details={
                     "secret_arn": secret_arn,

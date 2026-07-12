@@ -220,14 +220,17 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
     )
     assert "export DAY_PROJECT=da-us-west-2b-demo" in shell_code
     assert "export DAY_AWS_REGION=us-west-2" in shell_code
-    assert 'export APPTAINER_HOME="${APPTAINER_HOME:-/fsx/tmp/apptainer_home/$USER}"' in shell_code
+    assert (
+        'export APPTAINER_HOME="${APPTAINER_HOME:-/fsx/tmp/apptainer_home/'
+        '${USER:-$(id -un)}}"' in shell_code
+    )
     assert (
         'export DAYLILY_APPTAINER_CACHE="${DAYLILY_APPTAINER_CACHE:-/fsx/resources/environments/apptainer}"'
         in shell_code
     )
     assert (
-        'export DAYLILY_CONTAINER_CACHE="${DAYLILY_CONTAINER_CACHE:-/fsx/resources/environments/containers/$USER/$(hostname)}"'
-        in shell_code
+        'export DAYLILY_CONTAINER_CACHE="${DAYLILY_CONTAINER_CACHE:-/fsx/resources/'
+        'environments/containers/${USER:-$(id -un)}/$(hostname)}"' in shell_code
     )
     assert (
         'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-$DAYLILY_APPTAINER_CACHE}"' in shell_code
@@ -242,6 +245,27 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
     assert 'alias day-build-env="${DAYLILY_EC_REPO_ROOT}/bin/init_dayec"' in shell_code
     assert "alias sq=sqq" in shell_code
     assert headnode.SQUEUE_FORMAT in shell_code
+
+
+def test_build_shell_code_is_safe_with_unset_user_and_ps1(tmp_path: Path) -> None:
+    shell_code = headnode.build_shell_code(
+        headnode.HeadnodeState(
+            region="us-west-2",
+            project="test-project",
+            reference_s3_uri="s3://reference-bucket",
+        )
+    )
+    script = tmp_path / "headnode-shell.sh"
+    script.write_text("set -u\nunset USER PS1\n" + shell_code, encoding="utf-8")
+
+    result = subprocess.run(
+        ["bash", str(script)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
 
 
 def test_run_headnode_init_emit_shell_non_interactive_fails_on_missing_budget_tags(

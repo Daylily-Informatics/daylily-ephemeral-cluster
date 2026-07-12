@@ -8,7 +8,6 @@ from daylily_ec.aws.github_deploy_key import (
 )
 from daylily_ec.state.models import CheckStatus, PreflightReport
 
-
 SECRET_ARN = "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/github-deploy-keys/dayoa"
 POLICY_ARN = "arn:aws:iam::123456789012:policy/DayECHeadnodeDayOAClone"
 
@@ -52,6 +51,23 @@ def test_github_deploy_key_preflight_validates_metadata_without_reading_secret_v
     assert report.checks[-1].details["secret_value_read"] is False
     secrets.describe_secret.assert_called_once_with(SecretId=SECRET_ARN)
     assert not secrets.get_secret_value.called
+
+
+def test_github_deploy_key_preflight_supports_distinct_repository_check_ids():
+    secrets, iam = _clients()
+    report = PreflightReport()
+
+    make_github_deploy_key_preflight_step(
+        secretsmanager_client=secrets,
+        iam_client=iam,
+        secret_arn=SECRET_ARN,
+        policy_arn=POLICY_ARN,
+        check_id="iam.dyec_deploy_key_secret_policy",
+        display_name="DYEC",
+    )(report)
+
+    assert report.checks[-1].id == "iam.dyec_deploy_key_secret_policy"
+    assert report.checks[-1].status is CheckStatus.PASS
 
 
 def test_github_deploy_key_preflight_rejects_extra_policy_action():

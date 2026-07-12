@@ -680,9 +680,7 @@ def test_create_command_rejects_cap_increase_without_both_acknowledgements(
     assert called is False
 
 
-def test_create_command_rejects_acknowledgement_without_cap_increase(
-    monkeypatch, tmp_path
-) -> None:
+def test_create_command_rejects_acknowledgement_without_cap_increase(monkeypatch, tmp_path) -> None:
     _activate_dayec_runtime(monkeypatch)
     config_path = tmp_path / "daylily.yaml"
     config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
@@ -735,9 +733,7 @@ def test_create_command_passes_repository_overrides(monkeypatch, tmp_path) -> No
     )
 
     assert result.exit_code == 0, result.stdout
-    assert calls["repo_overrides"] == {
-        "daylily-omics-analysis": "sentieon-single"
-    }
+    assert calls["repo_overrides"] == {"daylily-omics-analysis": "sentieon-single"}
 
 
 def test_create_command_rejects_malformed_repository_override(monkeypatch, tmp_path) -> None:
@@ -2097,6 +2093,10 @@ def test_headnode_configure_uses_workflow_configure(monkeypatch, tmp_path) -> No
     assert result.exit_code == 0
     assert calls["configure"] == {
         "cluster_name": "cluster-a",
+            "dyec_deploy_key_region": "",
+            "dyec_deploy_key_secret_arn": "",
+            "dyec_repo_ref": "",
+            "dyec_repo_url": "",
         "dayoa_deploy_key_region": "",
         "dayoa_deploy_key_secret_arn": "",
         "head_node_instance_id": "i-abc123",
@@ -2152,6 +2152,10 @@ def test_headnode_configure_dragen_uses_ec2_user(monkeypatch, tmp_path) -> None:
     assert result.exit_code == 0
     assert calls["configure"] == {
         "cluster_name": "dragen-cluster",
+            "dyec_deploy_key_region": "",
+            "dyec_deploy_key_secret_arn": "",
+            "dyec_repo_ref": "",
+            "dyec_repo_url": "",
         "dayoa_deploy_key_region": "",
         "dayoa_deploy_key_secret_arn": "",
         "head_node_instance_id": "i-drg123",
