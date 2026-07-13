@@ -105,3 +105,19 @@ def test_server_identity_drift_fails() -> None:
     ec2.instances[EXPECTED_SERVER_INSTANCE_ID]["PrivateIpAddress"] = "10.0.0.206"
     with pytest.raises(ValueError, match="private IP"):
         validate_license_network(ec2_client=ec2, client_instance_id="i-client")
+
+
+def test_additional_server_security_group_fails() -> None:
+    ec2 = FakeEc2()
+    ec2.instances[EXPECTED_SERVER_INSTANCE_ID]["SecurityGroups"].append(
+        {"GroupId": "sg-unreviewed"}
+    )
+    with pytest.raises(ValueError, match="exactly"):
+        validate_license_network(ec2_client=ec2, client_instance_id="i-client")
+
+
+def test_cross_vpc_client_fails_without_explicit_route_contract() -> None:
+    ec2 = FakeEc2()
+    ec2.instances["i-client"]["VpcId"] = "vpc-other"
+    with pytest.raises(ValueError, match="Cross-VPC"):
+        validate_license_network(ec2_client=ec2, client_instance_id="i-client")

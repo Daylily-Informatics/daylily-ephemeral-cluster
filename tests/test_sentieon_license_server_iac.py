@@ -55,11 +55,26 @@ def test_instance_identity_and_network_contract_remain_fixed() -> None:
         "  LicenseServerElasticIp:", 1
     )[0]
     assert "InstanceType: !Ref InstanceType" in instance
+    assert "DeletionPolicy: Retain" in instance
+    assert "UpdateReplacePolicy: Retain" in instance
     assert "IamInstanceProfile: !Ref LicenseServerInstanceProfile" in instance
     assert "AssociatePublicIpAddress: false" in instance
     assert "HttpTokens: required" in instance
     assert "usw2d-01.sentieon.lsmc.bio" in text
     assert "license.sentieon.lsmc.bio" in text
+
+
+def test_stable_address_and_private_zone_are_retained() -> None:
+    text = _template()
+    elastic_ip = text.split("  LicenseServerElasticIp:", 1)[1].split(
+        "  LicenseServerEipAssociation:", 1
+    )[0]
+    private_zone = text.split("  PrivateHostedZone:", 1)[1].split(
+        "  PrivateBackendRecord:", 1
+    )[0]
+    for resource in (elastic_ip, private_zone):
+        assert "DeletionPolicy: Retain" in resource
+        assert "UpdateReplacePolicy: Retain" in resource
 
 
 def test_template_contains_no_vendor_license_material() -> None:

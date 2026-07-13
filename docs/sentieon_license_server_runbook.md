@@ -73,9 +73,10 @@ expansion has an additional vendor-confirmation gate below.
 | Initial client cluster | `sentlic-e` |
 
 The public and private Route 53 records are split-horizon. Clients in the
-license-server VPC resolve the private address. An explicitly approved
-cross-VPC client resolves the public service address and is admitted only by
-its observed NAT egress CIDR. The public record does not imply public ingress.
+license-server VPC resolve the private address. The current network validator
+supports same-VPC clients only and fails closed for cross-VPC clients. A future
+cross-VPC cutover requires a separately reviewed route contract and an observed
+NAT egress `/32`; the public record does not imply public ingress.
 
 ```mermaid
 flowchart LR
@@ -88,7 +89,7 @@ flowchart LR
   Logs["CloudWatch Logs<br/>/sentieon/licsrvr/LicsrvrLog"]
 
   Client --> PrivateDNS --> SG --> Server
-  Client -. "approved cross-VPC NAT" .-> PublicDNS --> SG
+  Client -. "future cross-VPC route; currently rejected" .-> PublicDNS
   Secret --> Server
   Server --> Logs
 ```
@@ -444,9 +445,10 @@ claim secure erasure from a journaled or copy-on-write filesystem.
 
 ### 6. Validate DNS And CloudWatch Metadata
 
-From the license-server VPC, both names must resolve to `10.0.0.205`. From an
-approved cross-VPC network they may resolve to `52.40.208.196`, but TCP 8990
-must still be limited to its explicit NAT CIDR.
+From the license-server VPC, both names must resolve to `10.0.0.205`.
+Cross-VPC validation is not enabled in this release. Do not add a NAT CIDR or
+rely on the public address until a dedicated validator proves the route and
+the exact observed `/32` has been reviewed.
 
 ```bash
 getent ahostsv4 "$LICENSE_BACKEND"
@@ -544,7 +546,11 @@ dyec --json cluster describe \
 dyec headnode configure \
   --profile "$AWS_PROFILE" \
   --region "$AWS_REGION" \
-  --cluster "$CLUSTER_NAME"
+  --cluster "$CLUSTER_NAME" \
+  --dyec-deploy-key-secret-arn \
+  arn:aws:secretsmanager:us-west-2:108782052779:secret:dayec/github-deploy-keys/lsmc-bio/daylily-ephemeral-cluster-pE4FFN \
+  --dayoa-deploy-key-secret-arn \
+  arn:aws:secretsmanager:us-west-2:108782052779:secret:dayec/github-deploy-keys/lsmc-bio-daylily-omics-analysis-igtfHD
 
 dyec headnode connect \
   --profile "$AWS_PROFILE" \

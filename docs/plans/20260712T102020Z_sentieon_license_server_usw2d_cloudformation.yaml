@@ -169,6 +169,8 @@ Resources:
 
   LicenseServerInstance:
     Type: AWS::EC2::Instance
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       ImageId: !Ref ImageId
       InstanceType: !Ref InstanceType
@@ -247,6 +249,8 @@ Resources:
 
   LicenseServerElasticIp:
     Type: AWS::EC2::EIP
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Domain: vpc
       Tags:
@@ -269,6 +273,8 @@ Resources:
 
   PrivateHostedZone:
     Type: AWS::Route53::HostedZone
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Name: !Ref PrivateZoneName
       HostedZoneConfig:

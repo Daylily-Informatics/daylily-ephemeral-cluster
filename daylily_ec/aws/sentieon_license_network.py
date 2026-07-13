@@ -50,8 +50,10 @@ def validate_license_network(
     if server.get("PrivateIpAddress") != EXPECTED_SERVER_PRIVATE_IP:
         raise ValueError("Sentieon license-server private IP does not match the fixed contract.")
     server_groups = {group["GroupId"] for group in server.get("SecurityGroups", [])}
-    if EXPECTED_SECURITY_GROUP_ID not in server_groups:
-        raise ValueError("Sentieon license-server security group is not attached.")
+    if server_groups != {EXPECTED_SECURITY_GROUP_ID}:
+        raise ValueError(
+            "Sentieon license-server must have exactly the fixed security group attached."
+        )
 
     groups = ec2_client.describe_security_groups(
         GroupIds=[EXPECTED_SECURITY_GROUP_ID]
@@ -64,10 +66,13 @@ def validate_license_network(
     client_vpc = str(client.get("VpcId") or "")
     if not server_vpc or not client_vpc:
         raise ValueError("Server and client VPC identities are required.")
-    if server_vpc == client_vpc:
-        client_ip = ipaddress.ip_address(str(client.get("PrivateIpAddress") or ""))
-        if not any(client_ip in ipaddress.ip_network(cidr) for cidr in allowed_cidrs):
-            raise ValueError("Same-VPC client private IP is outside the TCP/8990 allowlist.")
+    if server_vpc != client_vpc:
+        raise ValueError(
+            "Cross-VPC Sentieon clients require an explicit validated route contract."
+        )
+    client_ip = ipaddress.ip_address(str(client.get("PrivateIpAddress") or ""))
+    if not any(client_ip in ipaddress.ip_network(cidr) for cidr in allowed_cidrs):
+        raise ValueError("Same-VPC client private IP is outside the TCP/8990 allowlist.")
 
     return NetworkEvidence(
         server_vpc_id=server_vpc,

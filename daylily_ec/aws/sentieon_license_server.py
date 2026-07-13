@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import Sequence
 
 import boto3
+from botocore.exceptions import ClientError
 
 from daylily_ec.aws.ssm import run_shell
 
@@ -237,10 +238,18 @@ def install_cloudwatch_agent(
     command_id = str(response["Command"]["CommandId"])
     deadline = time.monotonic() + timeout
     while True:
-        invocation = client.get_command_invocation(
-            CommandId=command_id,
-            InstanceId=instance_id,
-        )
+        try:
+            invocation = client.get_command_invocation(
+                CommandId=command_id,
+                InstanceId=instance_id,
+            )
+        except ClientError as exc:
+            if exc.response.get("Error", {}).get("Code") != "InvocationDoesNotExist":
+                raise
+            if time.monotonic() >= deadline:
+                raise TimeoutError("Pinned CloudWatch Agent installation timed out.") from exc
+            time.sleep(3)
+            continue
         status = str(invocation.get("Status") or "")
         if status == "Success":
             break
@@ -357,6 +366,21 @@ def _service_action_script(action: str) -> str:
         [
             "sudo systemctl is-enabled --quiet sentieon-license-server.service",
             "sudo systemctl is-active --quiet sentieon-license-server.service",
+            'main_pid="$(sudo systemctl show --property MainPID --value '
+            'sentieon-license-server.service)"',
+            'test "$main_pid" -gt 1',
+            f"listener_pid=\"$(sudo ss -H -ltnp 'sport = :{SERVICE_PORT}' "
+            "| sed -n 's/.*pid=\\([0-9]\\+\\).*/\\1/p' | sort -u)\"",
+            'test -n "$listener_pid"',
+            'test "$(printf \'%s\\n\' "$listener_pid" | wc -l)" -eq 1',
+            'current_pid="$listener_pid"',
+            "listener_owned=false",
+            'while [[ "$current_pid" -gt 1 ]]; do',
+            '  if [[ "$current_pid" = "$main_pid" ]]; then listener_owned=true; break; fi',
+            '  current_pid="$(ps -o ppid= -p "$current_pid" | tr -d \'[:space:]\')"',
+            '  test -n "$current_pid"',
+            "done",
+            'test "$listener_owned" = true',
             f'test "$(getent ahostsv4 {BACKEND_FQDN} | awk \'NR==1 {{print $1}}\')" = '
             f"{PRIVATE_IP}",
             f'test "$(getent ahostsv4 {SERVICE_FQDN} | awk \'NR==1 {{print $1}}\')" = '

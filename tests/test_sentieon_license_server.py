@@ -130,6 +130,8 @@ def test_service_action_script_is_explicit_and_validates_endpoints(action: str) 
         assert f"systemctl {action} sentieon-license-server.service" in script
     assert "license.sentieon.lsmc.bio:8990" in script
     assert "usw2d-01.sentieon.lsmc.bio:8990" in script
+    assert "systemctl show --property MainPID" in script
+    assert "listener_owned" in script
     assert f"SENTIEON_LICENSE_SERVER_{action.upper()}_OK" in script
 
 
@@ -213,3 +215,128 @@ def test_install_cloudwatch_agent_uses_pinned_ssm_package(
             "Comment": "Install pinned CloudWatch Agent for Sentieon license server",
         }
     ]
+
+
+def test_install_cloudwatch_agent_retries_invocation_visibility_race(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    polls = 0
+
+    class FakeClient:
+        def send_command(self, **kwargs: object) -> dict[str, object]:
+            return {"Command": {"CommandId": "cmd-race"}}
+
+        def get_command_invocation(self, **kwargs: object) -> dict[str, str]:
+            nonlocal polls
+            polls += 1
+            if polls == 1:
+                raise server.ClientError(
+                    {
+                        "Error": {
+                            "Code": "InvocationDoesNotExist",
+                            "Message": "not visible yet",
+                        }
+                    },
+                    "GetCommandInvocation",
+                )
+            return {"Status": "Success"}
+
+    class FakeSession:
+        def client(self, name: str) -> FakeClient:
+            assert name == "ssm"
+            return FakeClient()
+
+    monkeypatch.setattr(server.boto3, "Session", lambda **kwargs: FakeSession())
+    monkeypatch.setattr(server.time, "sleep", lambda seconds: None)
+    monkeypatch.setattr(
+        server,
+        "run_shell",
+        lambda *args, **kwargs: SimpleNamespace(
+            stdout=(
+                "SENTIEON_CLOUDWATCH_AGENT_READY\t"
+                f"{server.CLOUDWATCH_AGENT_VERSION}\n"
+            ),
+            stderr="",
+        ),
+    )
+
+    server.install_cloudwatch_agent(
+        instance_id="i-0123456789abcdef0",
+        region="us-west-2",
+    )
+
+    assert polls == 2
+
+
+def test_install_cloudwatch_agent_times_out_when_invocation_never_appears(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeClient:
+        def send_command(self, **kwargs: object) -> dict[str, object]:
+            return {"Command": {"CommandId": "cmd-missing"}}
+
+        def get_command_invocation(self, **kwargs: object) -> dict[str, str]:
+            raise server.ClientError(
+                {
+                    "Error": {
+                        "Code": "InvocationDoesNotExist",
+                        "Message": "not visible",
+                    }
+                },
+                "GetCommandInvocation",
+            )
+
+    class FakeSession:
+        def client(self, name: str) -> FakeClient:
+            assert name == "ssm"
+            return FakeClient()
+
+    clock = iter((0.0, 2.0))
+    monkeypatch.setattr(server.boto3, "Session", lambda **kwargs: FakeSession())
+    monkeypatch.setattr(server.time, "monotonic", lambda: next(clock))
+    monkeypatch.setattr(
+        server.time,
+        "sleep",
+        lambda seconds: pytest.fail("deadline should fail before sleeping"),
+    )
+
+    with pytest.raises(TimeoutError, match="timed out"):
+        server.install_cloudwatch_agent(
+            instance_id="i-0123456789abcdef0",
+            region="us-west-2",
+            timeout=1,
+        )
+
+
+def test_install_cloudwatch_agent_does_not_retry_other_client_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeClient:
+        def send_command(self, **kwargs: object) -> dict[str, object]:
+            return {"Command": {"CommandId": "cmd-denied"}}
+
+        def get_command_invocation(self, **kwargs: object) -> dict[str, str]:
+            raise server.ClientError(
+                {"Error": {"Code": "AccessDeniedException", "Message": "denied"}},
+                "GetCommandInvocation",
+            )
+
+    class FakeSession:
+        def client(self, name: str) -> FakeClient:
+            assert name == "ssm"
+            return FakeClient()
+
+    monkeypatch.setattr(server.boto3, "Session", lambda **kwargs: FakeSession())
+    monkeypatch.setattr(
+        server.time,
+        "sleep",
+        lambda seconds: pytest.fail("non-transient errors must not be retried"),
+    )
+
+    with pytest.raises(server.ClientError) as error:
+        server.install_cloudwatch_agent(
+            instance_id="i-0123456789abcdef0",
+            region="us-west-2",
+        )
+
+    assert error.value.response["Error"]["Code"] == "AccessDeniedException"
