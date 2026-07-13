@@ -24,6 +24,7 @@ def test_readiness_script_requires_day_ec_tools_and_fsx_reference_assets():
     assert "DAYLILY_EC_HEADNODE_BOOTSTRAPPED" in script
     assert "CONDA_DEFAULT_ENV:-}" in script
     assert "= DAY-EC" in script
+    assert 'test "${SENTIEON_LICENSE:-}" = license.sentieon.lsmc.bio:8990' in script
     assert "command -v daylily-ec" in script
     assert "command -v day-clone" in script
     assert "day-clone --list >/dev/null" in script
@@ -85,6 +86,7 @@ def test_validate_headnode_readiness_runs_shared_script_as_ubuntu():
     assert "/fsx/work/ubuntu/sarek" in script
     assert "/fsx/run_dir_mounts" in script
     assert "/etc/profile.d/daylily-runtime-cache.sh" in script
+    assert "license.sentieon.lsmc.bio:8990" in script
     assert "/fsx/control_data/genomic_data" not in script
     assert "test ! -e /fsx/runtime_assets" in script
     assert "test -L /fsx/data" in script

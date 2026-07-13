@@ -9,6 +9,7 @@ from daylily_ec.aws.ssm import SsmCommandResult, run_shell
 
 
 DEFAULT_HEADNODE_REPO_NAME = "daylily-ephemeral-cluster"
+SENTIEON_LICENSE_ENDPOINT = "license.sentieon.lsmc.bio:8990"
 REQUIRED_ROLE_FILES = (
     "/fsx/references/runtime_assets/cached_envs/apptainer_1.4.5_amd64.deb",
     "/fsx/references/runtime_assets/tool_specific_resources/womtool_87.jar",
@@ -41,6 +42,7 @@ def build_headnode_readiness_script(
 
     repo_name_q = shlex.quote(repo_name)
     remote_user_q = shlex.quote(remote_user)
+    sentieon_license_endpoint_q = shlex.quote(SENTIEON_LICENSE_ENDPOINT)
     file_checks = "\n".join(f"test -s {path}" for path in REQUIRED_ROLE_FILES)
     dir_checks = "\n".join(f"test -d {path}" for path in REQUIRED_ROLE_DIRECTORIES)
     writable_cache_checks = "\n".join(
@@ -60,6 +62,7 @@ set -euo pipefail
 test "$(id -un)" = {remote_user_q}
 test "${{DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}}" = 1
 test "${{CONDA_DEFAULT_ENV:-}}" = DAY-EC
+test "${{SENTIEON_LICENSE:-}}" = {sentieon_license_endpoint_q}
 command -v daylily-ec >/dev/null 2>&1
 command -v day-clone >/dev/null 2>&1
 stty -a 2>/dev/null | grep -Eq '(^|[[:space:];])-ixon([[:space:];]|$)'

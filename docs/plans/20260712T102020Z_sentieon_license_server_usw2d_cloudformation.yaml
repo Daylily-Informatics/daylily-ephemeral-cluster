@@ -1,0 +1,355 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  Dedicated Sentieon license-server host in us-west-2d with stable public and
+  private DNS, an Elastic IP, SSM-only administration, and round-robin-ready
+  service records. This stack does not install Sentieon or a license file.
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Default: vpc-06b01782f2abece1c
+  PublicSubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Default: subnet-0e9acb65aba5a0330
+  AllowedClientCidr:
+    Type: String
+    Default: 10.0.0.0/16
+    AllowedPattern: "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}/(?:[0-9]|[12][0-9]|3[0-2])$"
+  ImageId:
+    Type: AWS::EC2::Image::Id
+    Default: ami-0e1601cee784a69a2
+    Description: Canonical Ubuntu 22.04 LTS amd64, resolved 2026-07-12.
+  InstanceType:
+    Type: String
+    Default: t3.xlarge
+    AllowedValues:
+      - t3.large
+      - t3.xlarge
+      - t3.2xlarge
+  PublicHostedZoneId:
+    Type: String
+    Default: Z06611923OX2VPC09QNEJ
+    Description: Public lsmc.bio Route 53 hosted zone.
+  PrivateZoneName:
+    Type: String
+    Default: sentieon.lsmc.bio
+  BackendFqdn:
+    Type: String
+    Default: usw2d-01.sentieon.lsmc.bio
+  ServiceFqdn:
+    Type: String
+    Default: license.sentieon.lsmc.bio
+  CostCenter:
+    Type: String
+    Default: platform
+  LicenseSecretArn:
+    Type: String
+    Default: arn:aws:secretsmanager:us-west-2:108782052779:secret:dayec/sentieon/license-servers/usw2d-01-gbRvlj
+    AllowedPattern: "^arn:aws:secretsmanager:us-west-2:108782052779:secret:dayec/sentieon/license-servers/usw2d-01-[A-Za-z0-9]{6}$"
+    Description: Exact binary secret read by only the dedicated license-server role.
+
+Resources:
+  LicenseServerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: SentieonLicenseServerAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ReadSentieonLicenseSecret
+                Effect: Allow
+                Action:
+                  - secretsmanager:DescribeSecret
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref LicenseSecretArn
+              - Sid: ReadSentieonLicenseRuntime
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - arn:aws:s3:::lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/bin/sentieon
+                  - arn:aws:s3:::lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/share/funcs
+                  - arn:aws:s3:::lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/libexec/licsrvr
+                  - arn:aws:s3:::lsmc-dayoa-references-usw2/runtime_assets/cached_envs/sentieon-genomics-202503.03/libexec/licclnt
+              - Sid: WriteSentieonLicenseLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:DescribeLogStreams
+                  - logs:PutLogEvents
+                Resource: !Sub >-
+                  arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/sentieon/licsrvr/LicsrvrLog:*
+      Tags:
+        - Key: Name
+          Value: sentieon-license-usw2d-01
+        - Key: Project
+          Value: LSMC
+        - Key: Service
+          Value: sentieon-license
+        - Key: Owner
+          Value: platform
+        - Key: CostCenter
+          Value: !Ref CostCenter
+
+  LicenseServerInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref LicenseServerRole
+
+  LicsrvrLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: /sentieon/licsrvr/LicsrvrLog
+      RetentionInDays: 90
+      Tags:
+        - Key: Name
+          Value: sentieon-license-usw2d-01
+        - Key: Project
+          Value: LSMC
+        - Key: Service
+          Value: sentieon-license
+        - Key: Owner
+          Value: platform
+        - Key: CostCenter
+          Value: !Ref CostCenter
+
+  LicenseServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Sentieon license clients on TCP 8990; no SSH ingress
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - Description: Sentieon license clients in the us-west-2d DYEC VPC
+          IpProtocol: tcp
+          FromPort: 8990
+          ToPort: 8990
+          CidrIp: !Ref AllowedClientCidr
+      SecurityGroupEgress:
+        - Description: Sentieon master validation and AWS SSM APIs
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - Description: VPC DNS over UDP
+          IpProtocol: udp
+          FromPort: 53
+          ToPort: 53
+          CidrIp: 10.0.0.2/32
+        - Description: VPC DNS over TCP
+          IpProtocol: tcp
+          FromPort: 53
+          ToPort: 53
+          CidrIp: 10.0.0.2/32
+      Tags:
+        - Key: Name
+          Value: sentieon-license-usw2d-01
+        - Key: Project
+          Value: LSMC
+        - Key: Service
+          Value: sentieon-license
+        - Key: Owner
+          Value: platform
+        - Key: CostCenter
+          Value: !Ref CostCenter
+
+  LicenseServerInstance:
+    Type: AWS::EC2::Instance
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref LicenseServerInstanceProfile
+      Monitoring: true
+      EbsOptimized: true
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: false
+          DeleteOnTermination: true
+          DeviceIndex: "0"
+          GroupSet:
+            - !Ref LicenseServerSecurityGroup
+          SubnetId: !Ref PublicSubnetId
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            DeleteOnTermination: true
+            Encrypted: true
+            VolumeSize: 20
+            VolumeType: gp3
+      MetadataOptions:
+        HttpEndpoint: enabled
+        HttpTokens: required
+        InstanceMetadataTags: enabled
+      UserData:
+        Fn::Base64: !Sub |
+          #!/usr/bin/env bash
+          set -Eeuo pipefail
+          exec > >(tee -a /var/log/sentieon-bootstrap.log | logger -t sentieon-bootstrap -s 2>/dev/console) 2>&1
+
+          hostnamectl set-hostname "${BackendFqdn}"
+
+          if ! getent passwd sentieon >/dev/null; then
+            useradd --system --create-home --home-dir /home/sentieon --shell /usr/sbin/nologin sentieon
+          fi
+
+          install -d -o sentieon -g sentieon -m 0750 /opt/sentieon
+          install -d -o root -g sentieon -m 0750 /etc/sentieon
+          install -d -o sentieon -g sentieon -m 0750 /var/log/sentieon
+          install -d -o root -g root -m 0755 /var/lib/sentieon-license-server
+          install -d -o root -g root -m 0755 /etc/motd.d
+
+          cat >/etc/sysctl.d/99-sentieon-license-server.conf <<'EOF'
+          fs.file-max = 262144
+          net.core.somaxconn = 16384
+          net.ipv4.tcp_max_syn_backlog = 16384
+          EOF
+          sysctl --system
+
+          systemctl enable --now snap.amazon-ssm-agent.amazon-ssm-agent.service
+
+          cat >/etc/motd.d/99-sentieon-license-server <<'EOF'
+          Dedicated Sentieon license-server host.
+          Provisioned but not licensed: install Sentieon 202503.03 and the
+          vendor-issued FQDN-bound license before enabling licsrvr.
+          EOF
+
+          touch /var/lib/sentieon-license-server/bootstrap-complete
+      Tags:
+        - Key: Name
+          Value: sentieon-license-usw2d-01
+        - Key: Project
+          Value: LSMC
+        - Key: Service
+          Value: sentieon-license
+        - Key: Owner
+          Value: platform
+        - Key: Environment
+          Value: shared
+        - Key: CostCenter
+          Value: !Ref CostCenter
+        - Key: lsmc-cost-center
+          Value: !Ref CostCenter
+        - Key: FQDN
+          Value: !Ref BackendFqdn
+
+  LicenseServerElasticIp:
+    Type: AWS::EC2::EIP
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: sentieon-license-usw2d-01
+        - Key: Project
+          Value: LSMC
+        - Key: Service
+          Value: sentieon-license
+        - Key: Owner
+          Value: platform
+        - Key: CostCenter
+          Value: !Ref CostCenter
+
+  LicenseServerElasticIpAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      AllocationId: !GetAtt LicenseServerElasticIp.AllocationId
+      InstanceId: !Ref LicenseServerInstance
+
+  PrivateHostedZone:
+    Type: AWS::Route53::HostedZone
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Ref PrivateZoneName
+      HostedZoneConfig:
+        Comment: Private split-horizon DNS for Sentieon license servers
+      VPCs:
+        - VPCId: !Ref VpcId
+          VPCRegion: !Ref AWS::Region
+      HostedZoneTags:
+        - Key: Project
+          Value: LSMC
+        - Key: Service
+          Value: sentieon-license
+        - Key: Owner
+          Value: platform
+        - Key: CostCenter
+          Value: !Ref CostCenter
+
+  PublicBackendRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref PublicHostedZoneId
+      Name: !Ref BackendFqdn
+      Type: A
+      TTL: "60"
+      ResourceRecords:
+        - !GetAtt LicenseServerElasticIp.PublicIp
+
+  PublicServiceRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref PublicHostedZoneId
+      Name: !Ref ServiceFqdn
+      Type: A
+      TTL: "30"
+      MultiValueAnswer: true
+      SetIdentifier: usw2d-01
+      ResourceRecords:
+        - !GetAtt LicenseServerElasticIp.PublicIp
+
+  PrivateBackendRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref PrivateHostedZone
+      Name: !Ref BackendFqdn
+      Type: A
+      TTL: "60"
+      ResourceRecords:
+        - !GetAtt LicenseServerInstance.PrivateIp
+
+  PrivateServiceRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref PrivateHostedZone
+      Name: !Ref ServiceFqdn
+      Type: A
+      TTL: "30"
+      MultiValueAnswer: true
+      SetIdentifier: usw2d-01
+      ResourceRecords:
+        - !GetAtt LicenseServerInstance.PrivateIp
+
+Outputs:
+  InstanceId:
+    Value: !Ref LicenseServerInstance
+  ElasticIpAllocationId:
+    Value: !GetAtt LicenseServerElasticIp.AllocationId
+  ElasticIp:
+    Value: !GetAtt LicenseServerElasticIp.PublicIp
+  PrivateIp:
+    Value: !GetAtt LicenseServerInstance.PrivateIp
+  SecurityGroupId:
+    Value: !Ref LicenseServerSecurityGroup
+  BackendFqdn:
+    Value: !Ref BackendFqdn
+  ServiceFqdn:
+    Value: !Ref ServiceFqdn
+  LicenseEndpoint:
+    Value: !Sub "${ServiceFqdn}:8990"

@@ -129,6 +129,20 @@ def test_packaged_global_config_matches_source_config() -> None:
     assert packaged.read_text(encoding="utf-8") == source.read_text(encoding="utf-8")
 
 
+def test_global_config_uses_strict_sentieon_server_endpoint() -> None:
+    for relative_path in (
+        "config/daylily_cli_global.yaml",
+        "daylily_ec/resources/payload/config/daylily_cli_global.yaml",
+    ):
+        payload = yaml.safe_load((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
+        daylily = payload["daylily"]
+        assert "sentieon_lic_path" not in daylily
+        assert daylily["sentieon_license"] == {
+            "mode": "server",
+            "endpoint": "license.sentieon.lsmc.bio:8990",
+        }
+
+
 def test_active_cluster_templates_use_contract_role_dras() -> None:
     for relative_path in ACTIVE_CLUSTER_TEMPLATES:
         text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
@@ -465,42 +479,42 @@ def test_spot_lifecycle_helper_heredocs_are_bash_syntax_valid() -> None:
             subprocess.run(["bash", "-n"], input=heredoc, text=True, check=True)
 
 
-def test_ubuntu_compute_bootstrap_owns_sentieon_license_service() -> None:
+def test_ubuntu_bootstrap_uses_dedicated_sentieon_license_service() -> None:
     script = (
         REPO_ROOT / "config/day_cluster/post_install_ubuntu_combined.sh"
     ).read_text(encoding="utf-8")
 
     required = (
-        "install_sentieon_license_service()",
-        'if [ "${node_type}" != "ComputeFleet" ]; then',
-        "daylily-sentieon-license-server.service",
-        "RequiresMountsFor=/fsx/references",
-        "Type=forking",
-        "User=sentieon",
-        "Group=sentieon",
-        "ExecStart=/opt/daylily/bin/daylily-sentieon-license-start",
-        "ExecStartPost=/opt/daylily/bin/daylily-sentieon-license-ready",
-        "ExecStop=/fsx/references/runtime_assets/cached_envs/",
-        "systemctl enable --now daylily-sentieon-license-server.service",
-        'licsrvr --dump "${sentieon_license}" >/dev/null 2>&1',
-        "install_sentieon_license_service\n",
+        "install_sentieon_license_client_profile()",
+        "/etc/profile.d/daylily-sentieon-license.sh",
+        'export SENTIEON_LICENSE="license.sentieon.lsmc.bio:8990"',
+        "install_sentieon_license_client_profile\n",
     )
     for fragment in required:
         assert fragment in script
 
-    assert 'cat "${sentieon_license}"' not in script
-    assert 'echo "${sentieon_license}"' not in script
-    assert "licsrvr --dump \"${sentieon_license}\"\n" not in script
-
-    for helper_path in (
-        "/opt/daylily/bin/daylily-sentieon-license-start",
-        "/opt/daylily/bin/daylily-sentieon-license-ready",
+    for forbidden in (
+        "install_sentieon_license_service",
+        "daylily-sentieon-license-server.service",
+        "daylily-sentieon-license-start",
+        "daylily-sentieon-license-ready",
+        "licsrvr --start",
+        "licsrvr --dump",
+        "Life_Sciences_Manufacturing_Corporation_eval.lic",
     ):
-        heredoc = _extract_single_quoted_heredoc(
-            script, f"cat > {helper_path} <<'EOF'"
-        )
-        subprocess.run(["bash", "-n"], input=heredoc, text=True, check=True)
+        assert forbidden not in script
 
+    subprocess.run(["bash", "-n"], input=script, text=True, check=True)
+
+
+def test_rhel_bootstrap_exports_dedicated_sentieon_license_endpoint() -> None:
+    script = (REPO_ROOT / "config/day_cluster/post_install_rhel8_dragen.sh").read_text(
+        encoding="utf-8"
+    )
+
+    assert "/etc/profile.d/daylily-sentieon-license.sh" in script
+    assert 'export SENTIEON_LICENSE="license.sentieon.lsmc.bio:8990"' in script
+    assert "licsrvr --start" not in script
     subprocess.run(["bash", "-n"], input=script, text=True, check=True)
 
 

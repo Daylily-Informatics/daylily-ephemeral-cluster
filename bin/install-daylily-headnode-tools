@@ -48,6 +48,7 @@ write_login_bootstrap() {
 repo_root="$HOME/projects/daylily-ephemeral-cluster"
 activate_script="$repo_root/activate"
 user_bin_dir="$HOME/.local/bin"
+global_config="$HOME/.config/daylily/daylily_cli_global.yaml"
 
 stty -ixon -ixoff 2>/dev/null || true
 
@@ -81,7 +82,39 @@ if [[ "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" != "1" ]]; then
     DAYLILY_EC_HEADNODE_BOOTSTRAPPED=1
 fi
 
-unset repo_root activate_script user_bin_dir
+sentieon_license_endpoint="$(python3 - "$global_config" <<'PY'
+from pathlib import Path
+import sys
+
+import yaml
+
+path = Path(sys.argv[1])
+expected_endpoint = "license.sentieon.lsmc.bio:8990"
+if not path.is_file():
+    raise SystemExit(f"Error: missing Daylily global config: {path}")
+payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+daylily = payload.get("daylily") or {}
+if "sentieon_lic_path" in daylily:
+    raise SystemExit(
+        f"Error: legacy daylily.sentieon_lic_path is forbidden in {path}; "
+        "configure daylily.sentieon_license instead"
+    )
+license_config = daylily.get("sentieon_license")
+if not isinstance(license_config, dict):
+    raise SystemExit(f"Error: daylily.sentieon_license must be a mapping in {path}")
+if license_config.get("mode") != "server":
+    raise SystemExit(f"Error: daylily.sentieon_license.mode must be server in {path}")
+endpoint = str(license_config.get("endpoint") or "").strip()
+if endpoint != expected_endpoint:
+    raise SystemExit(
+        f"Error: daylily.sentieon_license.endpoint must be {expected_endpoint} in {path}"
+    )
+print(endpoint)
+PY
+)" || return 1
+export SENTIEON_LICENSE="$sentieon_license_endpoint"
+
+unset repo_root activate_script user_bin_dir global_config sentieon_license_endpoint
 EOF
     chmod 0644 "$bootstrap_file"
 }
@@ -153,6 +186,36 @@ import yaml
 PY
 }
 
+validate_sentieon_license_config() {
+    local config_path="$1"
+    python3 - "$config_path" <<'PY'
+from pathlib import Path
+import sys
+
+import yaml
+
+path = Path(sys.argv[1])
+expected_endpoint = "license.sentieon.lsmc.bio:8990"
+payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+daylily = payload.get("daylily") or {}
+if "sentieon_lic_path" in daylily:
+    raise SystemExit(
+        f"Error: legacy daylily.sentieon_lic_path is forbidden in {path}; "
+        "configure daylily.sentieon_license instead"
+    )
+license_config = daylily.get("sentieon_license")
+if not isinstance(license_config, dict):
+    raise SystemExit(f"Error: daylily.sentieon_license must be a mapping in {path}")
+if license_config.get("mode") != "server":
+    raise SystemExit(f"Error: daylily.sentieon_license.mode must be server in {path}")
+endpoint = str(license_config.get("endpoint") or "").strip()
+if endpoint != expected_endpoint:
+    raise SystemExit(
+        f"Error: daylily.sentieon_license.endpoint must be {expected_endpoint} in {path}"
+    )
+PY
+}
+
 REPO_ROOT="$(resolve_daylily_res_dir)" || exit 1
 CONFIG_SOURCE_DIR="$REPO_ROOT/config"
 TARGET_CONFIG_DIR="$HOME/.config/daylily"
@@ -165,6 +228,7 @@ mkdir -p "$TARGET_CONFIG_DIR" "$USER_BIN_DIR"
 ensure_python_yaml
 
 cp "$CONFIG_SOURCE_DIR/daylily_cli_global.yaml" "$TARGET_CONFIG_DIR/daylily_cli_global.yaml"
+validate_sentieon_license_config "$TARGET_CONFIG_DIR/daylily_cli_global.yaml"
 cp "$CONFIG_SOURCE_DIR/daylily_pipeline_command_catalog.yaml" "$TARGET_CONFIG_DIR/daylily_pipeline_command_catalog.yaml"
 install -m 0644 "$CONFIG_SOURCE_DIR/github_known_hosts" "$TARGET_CONFIG_DIR/github_known_hosts"
 ln -sfn daylily_pipeline_command_catalog.yaml "$TARGET_CONFIG_DIR/daylily_available_repositories.yaml"

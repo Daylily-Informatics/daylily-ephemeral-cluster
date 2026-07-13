@@ -5,6 +5,7 @@ import shlex
 import subprocess
 from pathlib import Path
 
+import pytest
 from typer.testing import CliRunner
 
 import daylily_ec.headnode as headnode
@@ -410,7 +411,11 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         path.mkdir(parents=True, exist_ok=True)
 
     (resources_dir / "config" / "daylily_cli_global.yaml").write_text(
-        "daylily: {}\n", encoding="utf-8"
+        "daylily:\n"
+        "  sentieon_license:\n"
+        "    mode: server\n"
+        "    endpoint: license.sentieon.lsmc.bio:8990\n",
+        encoding="utf-8",
     )
     (resources_dir / "config" / "daylily_pipeline_command_catalog.yaml").write_text(
         "default_repository: daylily-omics-analysis\nrepositories: {}\n",
@@ -534,6 +539,9 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         'eval "$(daylily-ec headnode init --emit-shell --non-interactive --skip-project-check)"'
         in bootstrap_text
     )
+    assert 'export SENTIEON_LICENSE="$sentieon_license_endpoint"' in bootstrap_text
+    assert "legacy daylily.sentieon_lic_path is forbidden" in bootstrap_text
+    assert "license.sentieon.lsmc.bio:8990" in bootstrap_text
     assert "daylily_headnode_bootstrap()" not in bootstrap_text
     assert "unset -f daylily_headnode_bootstrap" not in bootstrap_text
     assert (home_dir / ".config" / "daylily" / "daylily_pipeline_command_catalog.yaml").is_file()
@@ -566,6 +574,81 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         )
         == 2
     )
+    bootstrap_result = subprocess.run(
+        [
+            "bash",
+            "-c",
+            f"source {shlex.quote(str(bootstrap_file))}; printf '%s' \"$SENTIEON_LICENSE\"",
+        ],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert bootstrap_result.returncode == 0, bootstrap_result.stderr
+    assert bootstrap_result.stdout == "license.sentieon.lsmc.bio:8990"
+
+
+@pytest.mark.parametrize(
+    ("config_text", "expected_error"),
+    (
+        (
+            "daylily:\n  sentieon_lic_path: /fsx/legacy.lic\n",
+            "legacy daylily.sentieon_lic_path is forbidden",
+        ),
+        (
+            "daylily:\n"
+            "  sentieon_license:\n"
+            "    mode: local\n"
+            "    endpoint: license.sentieon.lsmc.bio:8990\n",
+            "daylily.sentieon_license.mode must be server",
+        ),
+        (
+            "daylily:\n"
+            "  sentieon_license:\n"
+            "    mode: server\n"
+            "    endpoint: usw2d-01.sentieon.lsmc.bio:8990\n",
+            "daylily.sentieon_license.endpoint must be license.sentieon.lsmc.bio:8990",
+        ),
+    ),
+)
+def test_install_headnode_tools_rejects_noncanonical_sentieon_license_config(
+    tmp_path: Path,
+    config_text: str,
+    expected_error: str,
+) -> None:
+    resources_dir = tmp_path / "resources"
+    (resources_dir / "config").mkdir(parents=True)
+    (resources_dir / "config" / "daylily_cli_global.yaml").write_text(
+        config_text,
+        encoding="utf-8",
+    )
+
+    env = os.environ.copy()
+    env.update(
+        {
+            "DAYLILY_EC_RESOURCES_DIR": str(resources_dir),
+            "HOME": str(tmp_path / "home"),
+        }
+    )
+    result = subprocess.run(
+        ["bash", str(REPO_ROOT / "bin" / "install-daylily-headnode-tools")],
+        cwd=REPO_ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert expected_error in result.stderr
+    assert not (
+        tmp_path
+        / "home"
+        / ".config"
+        / "daylily"
+        / "daylily-headnode-bootstrap.sh"
+    ).exists()
 
 
 def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Path) -> None:
@@ -583,7 +666,11 @@ def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Pat
         path.mkdir(parents=True, exist_ok=True)
 
     (resources_dir / "config" / "daylily_cli_global.yaml").write_text(
-        "daylily: {}\n", encoding="utf-8"
+        "daylily:\n"
+        "  sentieon_license:\n"
+        "    mode: server\n"
+        "    endpoint: license.sentieon.lsmc.bio:8990\n",
+        encoding="utf-8",
     )
     (resources_dir / "config" / "daylily_pipeline_command_catalog.yaml").write_text(
         "default_repository: daylily-omics-analysis\nrepositories: {}\n",
@@ -657,7 +744,10 @@ def test_install_headnode_tools_prefers_checkout_over_installed_resources(
         ):
             path.mkdir(parents=True, exist_ok=True)
         (root / "config" / "daylily_cli_global.yaml").write_text(
-            "daylily: {}\n",
+            "daylily:\n"
+            "  sentieon_license:\n"
+            "    mode: server\n"
+            "    endpoint: license.sentieon.lsmc.bio:8990\n",
             encoding="utf-8",
         )
         (root / "config" / "daylily_pipeline_command_catalog.yaml").write_text(
