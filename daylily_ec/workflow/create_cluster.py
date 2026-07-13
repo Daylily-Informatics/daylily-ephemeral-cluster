@@ -553,10 +553,7 @@ def _build_headnode_repo_sync_command(
             f"--secret-id {secret_arn_q} --query SecretString --output text "
             '--no-cli-pager >"$dayec_key_dir/deploy_key" && '
             'chmod 0600 "$dayec_key_dir/deploy_key" && '
-            "grep -qx -- '-----BEGIN OPENSSH PRIVATE KEY-----' "
-            '<(head -n 1 "$dayec_key_dir/deploy_key") && '
-            "grep -qx -- '-----END OPENSSH PRIVATE KEY-----' "
-            '<(tail -n 1 "$dayec_key_dir/deploy_key") && '
+            'ssh-keygen -y -f "$dayec_key_dir/deploy_key" >/dev/null && '
             'test -s "$HOME/.config/daylily/github_known_hosts" && '
             "export GIT_TERMINAL_PROMPT=0 && "
             'export GIT_SSH_COMMAND="ssh -i $dayec_key_dir/deploy_key '

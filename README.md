@@ -298,10 +298,14 @@ day-clone -d "$ANALYSIS_ID" -t 10.0.69
 
 The DayOA catalog row uses `clone_transport: ssh` with `auth_mode: aws_deploy_key`.
 Cluster config must set explicit `dayoa_deploy_key_secret_arn` and
-`dayoa_deploy_key_policy_arn` values. DYEC validates the exact secret-read policy,
-attaches it only to the headnode, and writes only the non-secret secret ARN/region to
-the headnode. `day-clone` retrieves the key for one Git operation, uses strict pinned
-GitHub host keys, and removes the temporary mode-`0600` key on every exit path.
+`dayoa_deploy_key_policy_arn` values. DYEC validates the shared read-only
+`DayECHeadnodeGitHubClone` policy for the
+`dayec/github-deploy-keys/lsmc-bio*` Secrets Manager namespace, attaches it only to
+the headnode, and writes only the configured non-secret secret ARN/region to the
+headnode. The policy deliberately omits secret listing and compute-node access;
+repository-to-secret mappings remain explicit. `day-clone` retrieves the selected
+key for one Git operation, uses strict pinned GitHub host keys, and removes the
+temporary mode-`0600` key on every exit path.
 Authentication failures do not fall back to HTTPS, ambient SSH keys, or Git bundles.
 
 The DYEC launch equivalent is also explicit: pass `--git-tag <dayoa_version>` to `dyec workflow launch` or `dyec samples run`. Do not rely on their default `--git-tag` value for new analyses.

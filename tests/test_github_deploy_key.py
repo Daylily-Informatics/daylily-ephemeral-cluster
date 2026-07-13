@@ -4,22 +4,26 @@ from unittest.mock import MagicMock
 
 from daylily_ec.aws.github_deploy_key import (
     ALLOWED_SECRET_ACTIONS,
+    lsmc_bio_policy_resource,
     make_github_deploy_key_preflight_step,
 )
 from daylily_ec.state.models import CheckStatus, PreflightReport
 
-SECRET_ARN = "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/github-deploy-keys/dayoa"
-POLICY_ARN = "arn:aws:iam::123456789012:policy/DayECHeadnodeDayOAClone"
+SECRET_ARN = (
+    "arn:aws:secretsmanager:us-west-2:123456789012:"
+    "secret:dayec/github-deploy-keys/lsmc-bio/dayoa-AbCdEf"
+)
+POLICY_ARN = "arn:aws:iam::123456789012:policy/DayECHeadnodeGitHubClone"
 
 
-def _policy_document(*, actions=None, resource=SECRET_ARN):
+def _policy_document(*, actions=None, resource=None):
     return {
         "Version": "2012-10-17",
         "Statement": [
             {
                 "Effect": "Allow",
                 "Action": sorted(actions or ALLOWED_SECRET_ACTIONS),
-                "Resource": resource,
+                "Resource": resource or lsmc_bio_policy_resource(SECRET_ARN),
             }
         ],
     }
@@ -49,6 +53,9 @@ def test_github_deploy_key_preflight_validates_metadata_without_reading_secret_v
 
     assert report.checks[-1].status is CheckStatus.PASS
     assert report.checks[-1].details["secret_value_read"] is False
+    assert report.checks[-1].details["policy_resource"].endswith(
+        ":secret:dayec/github-deploy-keys/lsmc-bio*"
+    )
     secrets.describe_secret.assert_called_once_with(SecretId=SECRET_ARN)
     assert not secrets.get_secret_value.called
 
@@ -87,7 +94,7 @@ def test_github_deploy_key_preflight_rejects_extra_policy_action():
     assert "exactly secretsmanager:DescribeSecret" in report.checks[-1].details["error"]
 
 
-def test_github_deploy_key_preflight_rejects_wrong_secret_resource():
+def test_github_deploy_key_preflight_rejects_unscoped_secret_resource():
     secrets, iam = _clients(document=_policy_document(resource="*"))
     report = PreflightReport()
 
@@ -100,3 +107,35 @@ def test_github_deploy_key_preflight_rejects_wrong_secret_resource():
 
     assert report.checks[-1].status is CheckStatus.FAIL
     assert "Resource must be exactly" in report.checks[-1].details["error"]
+
+
+def test_github_deploy_key_preflight_rejects_exact_single_secret_resource():
+    secrets, iam = _clients(document=_policy_document(resource=SECRET_ARN))
+    report = PreflightReport()
+
+    make_github_deploy_key_preflight_step(
+        secretsmanager_client=secrets,
+        iam_client=iam,
+        secret_arn=SECRET_ARN,
+        policy_arn=POLICY_ARN,
+    )(report)
+
+    assert report.checks[-1].status is CheckStatus.FAIL
+    assert "deploy-key namespace" in report.checks[-1].details["error"]
+
+
+def test_github_deploy_key_preflight_rejects_secret_outside_lsmc_bio_namespace():
+    secrets, iam = _clients()
+    outside_arn = SECRET_ARN.replace("lsmc-bio/dayoa", "another-org/dayoa")
+    secrets.describe_secret.return_value = {"ARN": outside_arn, "Name": "dayoa"}
+    report = PreflightReport()
+
+    make_github_deploy_key_preflight_step(
+        secretsmanager_client=secrets,
+        iam_client=iam,
+        secret_arn=outside_arn,
+        policy_arn=POLICY_ARN,
+    )(report)
+
+    assert report.checks[-1].status is CheckStatus.FAIL
+    assert "lsmc-bio" in report.checks[-1].details["error"]

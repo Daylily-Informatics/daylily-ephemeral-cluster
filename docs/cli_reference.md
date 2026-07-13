@@ -437,7 +437,9 @@ Private DayOA access uses the catalog's explicit SSH/deploy-key contract. `dyec 
 requires `dayoa_deploy_key_secret_arn` and `dayoa_deploy_key_policy_arn` config values.
 For an older cluster whose headnode lacks the ARN reference, rerun
 `dyec headnode configure ... --dayoa-deploy-key-secret-arn <exact-secret-arn>` after
-updating the cluster headnode role with the exact policy. `--check-auth` verifies the
+attaching the shared headnode-only `DayECHeadnodeGitHubClone` policy. That policy can
+read explicit secrets in the `dayec/github-deploy-keys/lsmc-bio*` namespace but cannot
+list secrets and is never attached to compute roles. `--check-auth` verifies the
 configured repository/ref without creating an analysis directory.
 
 Command classes:

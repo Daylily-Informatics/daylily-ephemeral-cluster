@@ -22,9 +22,9 @@ ephemeral_cluster:
     delete_local_root: [PROMPTUSER, "true", ""] # false or true
     dragen_license_policy_arn: [PROMPTUSER, "", ""]
     dragen_license_secret_arn: [PROMPTUSER, "", ""]
-    dyec_deploy_key_policy_arn: [USESETVALUE, "", "arn:aws:iam::108782052779:policy/DayECHeadnodeDYECClone"]
+    dyec_deploy_key_policy_arn: [USESETVALUE, "", "arn:aws:iam::108782052779:policy/DayECHeadnodeGitHubClone"]
     dyec_deploy_key_secret_arn: [USESETVALUE, "", "arn:aws:secretsmanager:us-west-2:108782052779:secret:dayec/github-deploy-keys/lsmc-bio/daylily-ephemeral-cluster-pE4FFN"]
-    dayoa_deploy_key_policy_arn: [USESETVALUE, "", "arn:aws:iam::108782052779:policy/DayECHeadnodeDayOACloneExact"]
+    dayoa_deploy_key_policy_arn: [USESETVALUE, "", "arn:aws:iam::108782052779:policy/DayECHeadnodeGitHubClone"]
     dayoa_deploy_key_secret_arn: [USESETVALUE, "", "arn:aws:secretsmanager:us-west-2:108782052779:secret:dayec/github-deploy-keys/lsmc-bio-daylily-omics-analysis-igtfHD"]
     auto_delete_fsx: [PROMPTUSER, "Delete", ""] # Delete or Retain
     heartbeat_email: [PROMPTUSER, "", ""]

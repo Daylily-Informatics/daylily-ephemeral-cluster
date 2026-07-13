@@ -199,7 +199,7 @@ repositories:
     auth_mode: aws_deploy_key
     https_url: https://github.com/lsmc-bio/daylily-omics-analysis.git
     ssh_url: git@github.com:lsmc-bio/daylily-omics-analysis.git
-    default_ref: 10.0.97
+    default_ref: 10.3.0
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: simple-test

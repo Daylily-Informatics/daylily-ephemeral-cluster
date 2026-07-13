@@ -1,4 +1,4 @@
-"""Read-only validation for the DayOA GitHub deploy-key secret policy."""
+"""Read-only validation for the shared LSMC GitHub deploy-key secret policy."""
 
 from __future__ import annotations
 
@@ -14,6 +14,22 @@ ALLOWED_SECRET_ACTIONS = frozenset(
         "secretsmanager:GetSecretValue",
     }
 )
+LSMC_BIO_SECRET_NAME_PREFIX = "dayec/github-deploy-keys/lsmc-bio"
+
+
+def lsmc_bio_policy_resource(secret_arn: str) -> str:
+    """Return the exact IAM resource pattern for LSMC Bio deploy-key secrets."""
+
+    marker = ":secret:"
+    if marker not in secret_arn:
+        raise ValueError("Configured deploy-key secret ARN is malformed.")
+    arn_prefix, secret_name = secret_arn.split(marker, 1)
+    if not secret_name.startswith(LSMC_BIO_SECRET_NAME_PREFIX):
+        raise ValueError(
+            "Configured deploy-key secret must use the "
+            f"{LSMC_BIO_SECRET_NAME_PREFIX!r} Secrets Manager namespace."
+        )
+    return f"{arn_prefix}{marker}{LSMC_BIO_SECRET_NAME_PREFIX}*"
 
 
 def make_github_deploy_key_preflight_step(
@@ -25,7 +41,7 @@ def make_github_deploy_key_preflight_step(
     check_id: str = "iam.dayoa_deploy_key_secret_policy",
     display_name: str = "DayOA",
 ):
-    """Validate secret metadata and an exact least-privilege managed policy.
+    """Validate secret metadata and the shared LSMC headnode managed policy.
 
     The preflight deliberately does not read the deploy-key value.
     """
@@ -55,7 +71,8 @@ def make_github_deploy_key_preflight_step(
                 or {}
             )
             document = _policy_document(version.get("Document"))
-            _validate_policy_document(document, secret_arn)
+            policy_resource = lsmc_bio_policy_resource(secret_arn)
+            _validate_policy_document(document, policy_resource)
         except Exception as exc:
             report.checks.append(
                 CheckResult(
@@ -68,10 +85,11 @@ def make_github_deploy_key_preflight_step(
                         "error": str(exc),
                     },
                     remediation=(
-                        f"Create the configured {display_name} deploy-key secret and a managed "
+                        f"Create the configured {display_name} deploy-key secret in the "
+                        f"{LSMC_BIO_SECRET_NAME_PREFIX!r} namespace and a headnode-only managed "
                         "policy granting "
                         "only secretsmanager:DescribeSecret and "
-                        "secretsmanager:GetSecretValue on that exact secret ARN."
+                        "secretsmanager:GetSecretValue on that namespace."
                     ),
                 )
             )
@@ -85,6 +103,7 @@ def make_github_deploy_key_preflight_step(
                     "secret_arn": secret_arn,
                     "policy_arn": policy_arn,
                     "policy_actions": sorted(ALLOWED_SECRET_ACTIONS),
+                    "policy_resource": policy_resource,
                     "secret_value_read": False,
                 },
             )
@@ -105,7 +124,7 @@ def _policy_document(value: Any) -> dict[str, Any]:
     return decoded
 
 
-def _validate_policy_document(document: dict[str, Any], secret_arn: str) -> None:
+def _validate_policy_document(document: dict[str, Any], policy_resource: str) -> None:
     statements = document.get("Statement") or []
     if isinstance(statements, dict):
         statements = [statements]
@@ -127,7 +146,10 @@ def _validate_policy_document(document: dict[str, Any], secret_arn: str) -> None
     resources = statement.get("Resource") or []
     if isinstance(resources, str):
         resources = [resources]
-    if [str(resource) for resource in resources] != [secret_arn]:
-        raise ValueError("Managed policy Resource must be exactly the configured secret ARN.")
+    if [str(resource) for resource in resources] != [policy_resource]:
+        raise ValueError(
+            "Managed policy Resource must be exactly the configured LSMC Bio "
+            "deploy-key namespace."
+        )
     if statement.get("NotAction") or statement.get("NotResource"):
         raise ValueError("Managed policy must not use NotAction or NotResource.")
