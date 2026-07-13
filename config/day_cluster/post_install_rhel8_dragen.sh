@@ -711,6 +711,12 @@ prepare_dayoa_environment_cache() {
 }
 
 install_runtime_profiles() {
+  cat <<'EOF' > /etc/profile.d/daylily-sentieon-license.sh
+# Managed by DAY-EC node setup. Sentieon clients use the dedicated regional service.
+export SENTIEON_LICENSE="license.sentieon.lsmc.bio:8990"
+EOF
+  chmod 0644 /etc/profile.d/daylily-sentieon-license.sh
+
   cat <<'EOF' > /etc/profile.d/daylily-rhel8-dragen.sh
 # Managed by DAY-EC RHEL8 DRAGEN node setup.
 export PATH="/opt/edico/bin:${PATH}"

@@ -22,6 +22,7 @@ WARN aborts unless ``--pass-on-warn`` is set.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os as _os
@@ -35,6 +36,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional
 from urllib.parse import urlparse
 
 import typer
+from botocore.exceptions import ClientError
 
 from daylily_ec import ui
 from daylily_ec.aws.spot_pricing import (
@@ -91,6 +93,7 @@ DEFAULT_CREATE_CLUSTER_TYPE = "intel"
 DRAGEN_CLUSTER_TYPE = "dragen"
 SENTIEON_SINGLE_CLUSTER_TYPE = "sentieon-single"
 SENTIEON_SINGLE_REGION_AZ = "us-west-2c"
+SENTIEON_SINGLE_QUEUE_MAX_COUNT = 12
 # Pinned from 2026-07-12 read-only EC2 type, AZ-offering, and Linux Spot
 # metadata: Intel x86_64, exact queue vCPU, required local NVMe, at least
 # 1200 GB instance storage, and no accelerator hardware.
@@ -1238,19 +1241,44 @@ def _boot_body_contains_legacy_fsx_data(filename: str, body: bytes) -> bool:
     )
 
 
+def cluster_boot_config_release_uri(*, base_uri: str, source_dir: Path) -> str:
+    """Return the deterministic immutable S3 prefix for one boot-config bundle."""
+
+    digest = hashlib.sha256()
+    for filename in CLUSTER_BOOT_CONFIG_FILENAMES:
+        source = source_dir / filename
+        if not source.is_file():
+            raise FileNotFoundError(f"Cluster boot config source not found: {source}")
+        body = source.read_bytes()
+        digest.update(len(filename).to_bytes(4, "big"))
+        digest.update(filename.encode("utf-8"))
+        digest.update(len(body).to_bytes(8, "big"))
+        digest.update(body)
+    return _s3_uri_join(base_uri, "releases", f"sha256-{digest.hexdigest()}")
+
+
 def publish_cluster_boot_config(
     s3_client: Any,
     *,
     cluster_boot_s3_uri: str,
     source_dir: Path,
 ) -> list[str]:
-    """Publish current packaged cluster boot scripts under reference runtime assets.
+    """Publish current packaged cluster boot scripts to a write-once release prefix.
 
     The cluster template executes these files directly from
     ``references/runtime_assets/cluster_boot_config``. Treat stale or legacy
     boot scripts as invalid because they can fail cluster creation after
     expensive FSx setup.
     """
+    if "/releases/" not in cluster_boot_s3_uri:
+        raise ValueError("Cluster boot config destination must use an immutable release prefix.")
+    base_uri = cluster_boot_s3_uri.rsplit("/releases/", 1)[0]
+    expected_uri = cluster_boot_config_release_uri(base_uri=base_uri, source_dir=source_dir)
+    if cluster_boot_s3_uri != expected_uri:
+        raise ValueError(
+            "Cluster boot config destination must be the exact content-addressed release URI: "
+            f"{expected_uri}"
+        )
     bucket, prefix = _parse_s3_destination(cluster_boot_s3_uri)
     bodies: list[tuple[str, bytes]] = []
     for filename in CLUSTER_BOOT_CONFIG_FILENAMES:
@@ -1265,7 +1293,26 @@ def publish_cluster_boot_config(
     uploaded: list[str] = []
     for filename, body in bodies:
         key = f"{prefix}/{filename}" if prefix else filename
-        s3_client.put_object(Bucket=bucket, Key=key, Body=body)
+        body_sha256 = hashlib.sha256(body).hexdigest()
+        try:
+            s3_client.put_object(
+                Bucket=bucket,
+                Key=key,
+                Body=body,
+                IfNoneMatch="*",
+                Metadata={"daylily-sha256": body_sha256},
+            )
+        except ClientError as exc:
+            error_code = str(exc.response.get("Error", {}).get("Code") or "")
+            if error_code not in {"PreconditionFailed", "412"}:
+                raise
+            existing = s3_client.head_object(Bucket=bucket, Key=key)
+            metadata = existing.get("Metadata") or {}
+            if metadata.get("daylily-sha256") != body_sha256:
+                raise ValueError(
+                    "Immutable cluster boot object already exists with different content: "
+                    f"s3://{bucket}/{key}"
+                ) from exc
         uploaded.append(f"s3://{bucket}/{key}")
     return uploaded
 
@@ -1368,9 +1415,13 @@ def validate_sentieon_single_cluster_contract(cluster_yaml_path: str | Path) -> 
                 f"Sentieon single queue {queue_name} must exclude X-family instance types "
                 "because they use a separate Spot quota."
             )
-        if resource.get("MinCount") != 0 or resource.get("MaxCount") != 1:
+        if (
+            resource.get("MinCount") != 0
+            or resource.get("MaxCount") != SENTIEON_SINGLE_QUEUE_MAX_COUNT
+        ):
             raise ValueError(
-                f"Sentieon single queue {queue_name} must set MinCount 0 and MaxCount 1."
+                f"Sentieon single queue {queue_name} must set MinCount 0 and "
+                f"MaxCount {SENTIEON_SINGLE_QUEUE_MAX_COUNT}."
             )
         expected_memory = SENTIEON_SINGLE_QUEUE_SCHEDULABLE_MEMORY[queue_name]
         if resource.get("SchedulableMemory") != expected_memory:
@@ -2723,7 +2774,7 @@ def run_create_workflow(
         role="export_destination",
     )
 
-    cluster_boot_s3_uri = _s3_uri_join(
+    cluster_boot_s3_base_uri = _s3_uri_join(
         reference_s3_uri,
         "runtime_assets",
         "cluster_boot_config",
@@ -3077,10 +3128,15 @@ def run_create_workflow(
 
     ui.step("Publishing cluster boot config to runtime assets ...")
     try:
+        cluster_boot_source_dir = resource_path("config/day_cluster")
+        cluster_boot_s3_uri = cluster_boot_config_release_uri(
+            base_uri=cluster_boot_s3_base_uri,
+            source_dir=cluster_boot_source_dir,
+        )
         uploaded_boot_config = publish_cluster_boot_config(
             aws_ctx.client("s3"),
             cluster_boot_s3_uri=cluster_boot_s3_uri,
-            source_dir=resource_path("config/day_cluster"),
+            source_dir=cluster_boot_source_dir,
         )
     except (FileNotFoundError, ValueError, OSError) as exc:
         logger.error("Cluster boot config publish failed: %s", exc)

@@ -109,21 +109,59 @@ class TestClusterBootConfigPublish:
             def put_object(self, **kwargs):
                 calls.append(kwargs)
 
+        release_uri = create_cluster_module.cluster_boot_config_release_uri(
+            base_uri="s3://references/runtime_assets/cluster_boot_config",
+            source_dir=source_dir,
+        )
         uploaded = create_cluster_module.publish_cluster_boot_config(
             FakeS3(),
-            cluster_boot_s3_uri="s3://references/runtime_assets/cluster_boot_config",
+            cluster_boot_s3_uri=release_uri,
             source_dir=source_dir,
         )
 
         assert uploaded == [
-            f"s3://references/runtime_assets/cluster_boot_config/{name}"
+            f"{release_uri}/{name}"
             for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES
         ]
         assert [call["Bucket"] for call in calls] == ["references"] * len(calls)
         assert [call["Key"] for call in calls] == [
-            f"runtime_assets/cluster_boot_config/{name}"
+            f"{release_uri.removeprefix('s3://references/')}/{name}"
             for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES
         ]
+        assert all(call["IfNoneMatch"] == "*" for call in calls)
+        assert all(len(call["Metadata"]["daylily-sha256"]) == 64 for call in calls)
+
+    def test_rejects_mutable_shared_destination(self, tmp_path):
+        source_dir = tmp_path / "boot"
+        source_dir.mkdir()
+        for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES:
+            (source_dir / name).write_text(f"content for {name}\n", encoding="utf-8")
+
+        with pytest.raises(ValueError, match="immutable release prefix"):
+            create_cluster_module.publish_cluster_boot_config(
+                SimpleNamespace(),
+                cluster_boot_s3_uri="s3://references/runtime_assets/cluster_boot_config",
+                source_dir=source_dir,
+            )
+
+    def test_release_uri_changes_with_bundle_content(self, tmp_path):
+        source_dir = tmp_path / "boot"
+        source_dir.mkdir()
+        for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES:
+            (source_dir / name).write_text(f"content for {name}\n", encoding="utf-8")
+        first = create_cluster_module.cluster_boot_config_release_uri(
+            base_uri="s3://references/runtime_assets/cluster_boot_config",
+            source_dir=source_dir,
+        )
+        (source_dir / "sbatch").write_text("changed\n", encoding="utf-8")
+        second = create_cluster_module.cluster_boot_config_release_uri(
+            base_uri="s3://references/runtime_assets/cluster_boot_config",
+            source_dir=source_dir,
+        )
+
+        assert first != second
+        assert "/releases/sha256-" in first
+        assert "/releases/sha256-" in second
 
 
 def test_attach_headnode_managed_policy_is_headnode_only_and_idempotent(tmp_path):
@@ -259,9 +297,13 @@ class TestClusterBootConfigPublishContinued:
                 raise AssertionError("legacy boot file must not be uploaded")
 
         with pytest.raises(ValueError, match="/fsx/data"):
+            release_uri = create_cluster_module.cluster_boot_config_release_uri(
+                base_uri="s3://references/runtime_assets/cluster_boot_config",
+                source_dir=source_dir,
+            )
             create_cluster_module.publish_cluster_boot_config(
                 FakeS3(),
-                cluster_boot_s3_uri="s3://references/runtime_assets/cluster_boot_config",
+                cluster_boot_s3_uri=release_uri,
                 source_dir=source_dir,
             )
 
@@ -282,9 +324,13 @@ class TestClusterBootConfigPublishContinued:
                 self.calls.append(kwargs)
 
         fake_s3 = FakeS3()
+        release_uri = create_cluster_module.cluster_boot_config_release_uri(
+            base_uri="s3://references/runtime_assets/cluster_boot_config",
+            source_dir=source_dir,
+        )
         uploaded = create_cluster_module.publish_cluster_boot_config(
             fake_s3,
-            cluster_boot_s3_uri="s3://references/runtime_assets/cluster_boot_config",
+            cluster_boot_s3_uri=release_uri,
             source_dir=source_dir,
         )
 
@@ -305,9 +351,13 @@ class TestClusterBootConfigPublishContinued:
                 raise AssertionError("legacy boot file must not be uploaded")
 
         with pytest.raises(ValueError, match="/fsx/data"):
+            release_uri = create_cluster_module.cluster_boot_config_release_uri(
+                base_uri="s3://references/runtime_assets/cluster_boot_config",
+                source_dir=source_dir,
+            )
             create_cluster_module.publish_cluster_boot_config(
                 FakeS3(),
-                cluster_boot_s3_uri="s3://references/runtime_assets/cluster_boot_config",
+                cluster_boot_s3_uri=release_uri,
                 source_dir=source_dir,
             )
 
@@ -440,14 +490,14 @@ class TestAzClusterTemplateResolution:
             assert len(queue["ComputeResources"]) == 1
             resource = queue["ComputeResources"][0]
             assert resource["MinCount"] == 0
-            assert resource["MaxCount"] == 1
+            assert resource["MaxCount"] == 12
             assert resource["Efa"]["Enabled"] is False
             assert queue["CapacityType"] == "SPOT"
             assert queue["AllocationStrategy"] == "price-capacity-optimized"
 
-        queues[0]["ComputeResources"][0]["MaxCount"] = 2
+        queues[0]["ComputeResources"][0]["MaxCount"] = 13
         cluster_yaml.write_text(yaml.safe_dump(payload), encoding="utf-8")
-        with pytest.raises(ValueError, match="MinCount 0 and MaxCount 1"):
+        with pytest.raises(ValueError, match="MinCount 0 and MaxCount 12"):
             validate_sentieon_single_cluster_contract(cluster_yaml)
 
     def test_dragen_rejects_explicit_template_override(self, tmp_path: Path) -> None:
