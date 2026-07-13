@@ -602,7 +602,9 @@ Acceptance for this cluster is:
   compute role is `implicitDeny`; resource-policy inspection confirms that the
   secret has no resource policy by design. Do not test this by retrieving the
   secret from a client node;
-- no workflow was launched and no active controller or Slurm job was touched.
+- no workflow was launched and no pre-existing controller or Slurm job was
+  modified; a dedicated bounded smoke job may be submitted when fresh-node
+  inheritance is an explicit cutover acceptance gate.
 
 For an initial capacity soak, use the repository's bounded non-workflow client
 validator. Increase concurrency in explicit gates of 1, 64, 256, and 1000
