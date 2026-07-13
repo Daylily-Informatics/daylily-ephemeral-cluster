@@ -1224,7 +1224,7 @@ class TestClusterNameValidation:
         [
             "frz-260509",
             "cluster1",
-            "A2345",
+            "a2345",
             "a-1-b",
             "splitdra-ref-260526",
             "sent-hg003-5x-0712",
@@ -1236,8 +1236,10 @@ class TestClusterNameValidation:
     @pytest.mark.parametrize(
         ("cluster_name", "message"),
         [
-            ("260509-frz", "start with a letter"),
-            ("frz_260509", "contain only letters, digits, and hyphens"),
+            ("260509-frz", "start with a lowercase letter"),
+            ("frz_260509", "contain only lowercase letters, digits, and hyphens"),
+            ("sent-liscC", "lowercase"),
+            ("A2345", "lowercase"),
             ("frz", "5-20 characters"),
             ("a" * 21, "5-20 characters"),
         ],
@@ -1256,8 +1258,54 @@ class TestClusterNameValidation:
             }
         )
 
-        with pytest.raises(ValueError, match="start with a letter"):
+        with pytest.raises(ValueError, match="start with a lowercase letter"):
             _resolve_cluster_name(cfg, non_interactive=True)
+
+    def test_resolve_cluster_name_reprompts_until_name_is_compliant(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"cluster_name": ["PROMPTUSER", "majors-cluster", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+
+        with (
+            patch(
+                "daylily_ec.workflow.create_cluster.typer.prompt",
+                side_effect=["sent-liscC", "a" * 21, "sent-liscc"],
+            ) as mock_prompt,
+            patch("daylily_ec.workflow.create_cluster.typer.echo") as mock_echo,
+        ):
+            assert _resolve_cluster_name(cfg, non_interactive=False) == "sent-liscc"
+
+        assert mock_prompt.call_count == 3
+        errors = [str(call.args[0]) for call in mock_echo.call_args_list]
+        assert any("lowercase" in error for error in errors)
+        assert any("5-20 characters" in error for error in errors)
+
+    def test_resolve_cluster_name_reprompts_for_invalid_configured_value(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"cluster_name": ["USESETVALUE", "", "sent-liscC"]},
+                    "template_defaults": {},
+                }
+            }
+        )
+
+        with (
+            patch(
+                "daylily_ec.workflow.create_cluster.typer.prompt",
+                return_value="sent-liscc",
+            ) as mock_prompt,
+            patch("daylily_ec.workflow.create_cluster.typer.echo") as mock_echo,
+        ):
+            assert _resolve_cluster_name(cfg, non_interactive=False) == "sent-liscc"
+
+        mock_prompt.assert_called_once()
+        assert any("lowercase" in str(call.args[0]) for call in mock_echo.call_args_list)
 
     @patch("daylily_ec.aws.context.AWSContext.build")
     def test_create_workflow_rejects_invalid_cluster_name_before_aws(

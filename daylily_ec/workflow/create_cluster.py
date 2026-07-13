@@ -58,11 +58,11 @@ EXIT_TOOLCHAIN = 4
 
 CLUSTER_NAME_MIN_LENGTH = 5
 CLUSTER_NAME_MAX_LENGTH = 20
-CLUSTER_NAME_PATTERN = re.compile(r"^[A-Za-z][A-Za-z0-9-]*$")
+CLUSTER_NAME_PATTERN = re.compile(r"^[a-z][a-z0-9-]*$")
 CLUSTER_NAME_RULE_TEXT = (
-    f"ParallelCluster requires cluster names to be {CLUSTER_NAME_MIN_LENGTH}-"
-    f"{CLUSTER_NAME_MAX_LENGTH} characters, start with a letter, "
-    "and contain only letters, digits, and hyphens"
+    f"DYEC requires cluster names to be {CLUSTER_NAME_MIN_LENGTH}-"
+    f"{CLUSTER_NAME_MAX_LENGTH} characters, start with a lowercase letter, "
+    "and contain only lowercase letters, digits, and hyphens"
 )
 DEFAULT_REGIONAL_CLUSTER_CAP = 5
 REGIONAL_CAP_INCREASE_ACK_FLAG = "--acknowledge-regional-cap-increase"
@@ -1949,7 +1949,12 @@ def _resolve_cluster_name(cfg: Any, *, non_interactive: bool) -> str:
     if triplet is not None:
         resolved = resolve_value(triplet)
         if resolved:
-            return _validate_cluster_name(resolved)
+            try:
+                return _validate_cluster_name(resolved)
+            except ValueError as exc:
+                if non_interactive:
+                    raise
+                typer.echo(str(exc))
 
     default_value = get_effective_default(cfg, "cluster_name", "prod") or "prod"
     if non_interactive:
