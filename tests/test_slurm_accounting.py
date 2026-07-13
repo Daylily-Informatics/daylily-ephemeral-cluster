@@ -6,6 +6,7 @@ from daylily_ec.aws.slurm_accounting import (
     ACCOUNTING_COMPONENT_TAG_KEY,
     ACCOUNTING_COMPONENT_TAG_VALUE,
     ACCOUNTING_REGION_AZ_TAG_KEY,
+    ACCOUNTING_REGION_TAG_KEY,
     ACCOUNTING_VPC_TAG_KEY,
     SlurmAccountingError,
     derive_slurm_accounting_stack_name,
@@ -16,8 +17,10 @@ from daylily_ec.aws.slurm_accounting import (
 
 
 def _tags(region_az: str = "us-west-2b", vpc_id: str = "vpc-123") -> list[dict[str, str]]:
+    region = region_az[:-1]
     return [
         {"Key": ACCOUNTING_COMPONENT_TAG_KEY, "Value": ACCOUNTING_COMPONENT_TAG_VALUE},
+        {"Key": ACCOUNTING_REGION_TAG_KEY, "Value": region},
         {"Key": ACCOUNTING_REGION_AZ_TAG_KEY, "Value": region_az},
         {"Key": ACCOUNTING_VPC_TAG_KEY, "Value": vpc_id},
     ]
@@ -211,15 +214,15 @@ def _security_group(
 def test_derive_slurm_accounting_stack_name() -> None:
     assert (
         derive_slurm_accounting_stack_name("us-west-2b")
-        == "dayec-slurm-accounting-us-west-2b"
+        == "dayec-slurm-accounting-us-west-2"
     )
 
 
-def test_discovery_filters_to_dayec_tags_for_vpc_and_az() -> None:
+def test_discovery_filters_to_dayec_regional_tags() -> None:
     cfn = FakeCloudFormation(
         [
             _stack("untagged", tags=[]),
-            _stack("wrong-vpc", tags=_tags(vpc_id="vpc-other")),
+            _stack("wrong-region", tags=_tags(region_az="us-east-1a")),
             _stack("right-one", tags=_tags()),
         ]
     )
@@ -233,8 +236,113 @@ def test_discovery_filters_to_dayec_tags_for_vpc_and_az() -> None:
     assert [match.stack_name for match in matches] == ["right-one"]
 
 
+def test_discovery_accepts_different_az_in_same_region_and_vpc() -> None:
+    cfn = FakeCloudFormation(
+        [_stack("regional", tags=_tags(region_az="us-west-2c"))]
+    )
+
+    matches = discover_slurm_accounting_dbs(
+        FakeAwsContext(cfn),
+        region_az="us-west-2b",
+        vpc_id="vpc-123",
+    )
+
+    assert [match.stack_name for match in matches] == ["regional"]
+
+
+def test_legacy_stack_without_region_tag_counts_toward_singleton() -> None:
+    legacy_tags = [
+        tag for tag in _tags() if tag["Key"] != ACCOUNTING_REGION_TAG_KEY
+    ]
+    cfn = FakeCloudFormation([_stack("legacy", tags=legacy_tags)])
+
+    matches = discover_slurm_accounting_dbs(
+        FakeAwsContext(cfn),
+        region_az="us-west-2b",
+        vpc_id="vpc-123",
+    )
+
+    assert [match.stack_name for match in matches] == ["legacy"]
+
+
+def test_discovery_rejects_regional_singleton_in_different_vpc() -> None:
+    cfn = FakeCloudFormation(
+        [_stack("regional", tags=_tags(region_az="us-west-2c", vpc_id="vpc-other"))]
+    )
+
+    with pytest.raises(SlurmAccountingError, match="second regional accounting stack is forbidden"):
+        discover_slurm_accounting_dbs(
+            FakeAwsContext(cfn),
+            region_az="us-west-2b",
+            vpc_id="vpc-123",
+        )
+
+
+def test_validation_stack_counts_toward_regional_singleton() -> None:
+    cfn = FakeCloudFormation(
+        [
+            _stack("dayec-costacct-20260705T005955Z"),
+            _stack("dayec-slurm-accounting-us-west-2"),
+        ]
+    )
+
+    with pytest.raises(SlurmAccountingError, match="Multiple DayEC Slurm accounting stacks"):
+        ensure_slurm_accounting_db(
+            FakeAwsContext(cfn),
+            region_az="us-west-2b",
+            vpc_id="vpc-123",
+            private_subnet_id="subnet-private",
+            create_if_missing=True,
+        )
+
+
+def test_explicit_discovery_allows_validation_stack() -> None:
+    stack_name = "dayec-costacct-20260705T005955Z"
+    cfn = FakeCloudFormation([_stack(stack_name)])
+
+    matches = discover_slurm_accounting_dbs(
+        FakeAwsContext(cfn),
+        region_az="us-west-2b",
+        vpc_id="vpc-123",
+        stack_name=stack_name,
+    )
+
+    assert [match.stack_name for match in matches] == [stack_name]
+
+
+def test_explicit_missing_name_cannot_bypass_existing_regional_singleton() -> None:
+    cfn = FakeCloudFormation([_stack("regional")])
+
+    with pytest.raises(SlurmAccountingError, match="second regional accounting stack is forbidden"):
+        ensure_slurm_accounting_db(
+            FakeAwsContext(cfn),
+            region_az="us-west-2b",
+            vpc_id="vpc-123",
+            private_subnet_id="subnet-private",
+            create_if_missing=True,
+            stack_name="requested-second-stack",
+        )
+
+    assert not any(name == "create_stack" for name, _kwargs in cfn.calls)
+
+
+def test_vpc_mismatch_cannot_create_second_regional_stack() -> None:
+    cfn = FakeCloudFormation([_stack("regional", tags=_tags(vpc_id="vpc-other"))])
+
+    with pytest.raises(SlurmAccountingError, match="second regional accounting stack is forbidden"):
+        ensure_slurm_accounting_db(
+            FakeAwsContext(cfn),
+            region_az="us-west-2b",
+            vpc_id="vpc-123",
+            private_subnet_id="subnet-private",
+            create_if_missing=True,
+        )
+
+    assert not any(name == "create_stack" for name, _kwargs in cfn.calls)
+
+
 def test_ensure_auto_selects_exactly_one_healthy_stack() -> None:
-    cfn = FakeCloudFormation([_stack("dayec-slurm-accounting-us-west-2b")])
+    cfn = FakeCloudFormation([_stack("dayec-slurm-accounting-us-west-2")])
 
     db = ensure_slurm_accounting_db(
         FakeAwsContext(cfn),
@@ -244,7 +352,7 @@ def test_ensure_auto_selects_exactly_one_healthy_stack() -> None:
         create_if_missing=False,
     )
 
-    assert db.stack_name == "dayec-slurm-accounting-us-west-2b"
+    assert db.stack_name == "dayec-slurm-accounting-us-west-2"
     assert db.uri == "10.0.1.10:3306"
 
 
@@ -262,7 +370,12 @@ def test_ensure_fails_when_none_exists_without_create() -> None:
 
 
 def test_ensure_fails_on_multiple_matching_stacks() -> None:
-    cfn = FakeCloudFormation([_stack("acct-a"), _stack("acct-b")])
+    cfn = FakeCloudFormation(
+        [
+            _stack("acct-a", tags=_tags(region_az="us-west-2b", vpc_id="vpc-a")),
+            _stack("acct-b", tags=_tags(region_az="us-west-2c", vpc_id="vpc-b")),
+        ]
+    )
 
     with pytest.raises(SlurmAccountingError, match="Multiple DayEC Slurm accounting stacks"):
         ensure_slurm_accounting_db(
@@ -318,16 +431,17 @@ def test_create_when_missing_uses_expected_parameters_and_no_destructive_calls()
     create_calls = [kwargs for name, kwargs in cfn.calls if name == "create_stack"]
     assert len(create_calls) == 1
     create_call = create_calls[0]
-    assert create_call["StackName"] == "dayec-slurm-accounting-us-west-2b"
+    assert create_call["StackName"] == "dayec-slurm-accounting-us-west-2"
     assert create_call["EnableTerminationProtection"] is True
     assert {"Key": ACCOUNTING_VPC_TAG_KEY, "Value": "vpc-123"} in create_call["Tags"]
+    assert {"Key": ACCOUNTING_REGION_TAG_KEY, "Value": "us-west-2"} in create_call["Tags"]
     assert {"Key": ACCOUNTING_REGION_AZ_TAG_KEY, "Value": "us-west-2b"} in create_call["Tags"]
     params = {
         item["ParameterKey"]: item["ParameterValue"]
         for item in create_call["Parameters"]
     }
     assert params["AssignPublicIpAddress"] == "false"
-    assert db.stack_name == "dayec-slurm-accounting-us-west-2b"
+    assert db.stack_name == "dayec-slurm-accounting-us-west-2"
     destructive = [
         name
         for name, _kwargs in cfn.calls

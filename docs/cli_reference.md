@@ -108,6 +108,14 @@ The old median-plus-dollar bump behavior and `--bump-price` helper flag are
 removed. Each resource uses its own median spot price; i384 resources no
 longer borrow i192 reference pricing.
 
+Slurm accounting is a regional singleton. Discovery considers every DayEC
+accounting stack in the AWS region, regardless of AZ, explicit stack name, or
+validation-style name. Legacy component-tagged stacks without the newer region
+tag also count, and discovery fails if more than one exists. The singleton uses
+a private address and must be in the selected cluster VPC. If the selected VPC
+differs, DYEC fails before cluster or database creation; it never creates a
+second accounting database as a fallback.
+
 Each create run writes an Ursa-readable summary JSON:
 
 ```text

@@ -68,6 +68,7 @@ from daylily_ec.aws.slurm_accounting import (
     SlurmAccountingError,
     derive_slurm_accounting_stack_name,
     discover_slurm_accounting_dbs,
+    list_regional_slurm_accounting_stacks,
 )
 from daylily_ec.config.triplets import (
     get_effective_default,
@@ -3427,6 +3428,10 @@ def _check_cloudformation_stack_quota(aws_ctx: AWSContext, cfg: Any) -> CheckRes
             for stack in _list_cloudformation_stacks(cfn)
             if str(stack.get("StackStatus") or "") != "DELETE_COMPLETE"
         ]
+        regional_accounting_stacks = list_regional_slurm_accounting_stacks(
+            aws_ctx,
+            region_az=aws_ctx.region_az,
+        )
     except Exception as exc:
         return CheckResult(
             id="quota.cloudformation_stack_count",
@@ -3434,7 +3439,7 @@ def _check_cloudformation_stack_quota(aws_ctx: AWSContext, cfg: Any) -> CheckRes
             details={"required_stack": desired, "error": str(exc)},
             remediation="Grant cloudformation:ListStacks for stack-count headroom.",
         )
-    required_new = 0 if any(item.get("StackName") == desired for item in summaries) else 1
+    required_new = 0 if regional_accounting_stacks else 1
     quota_check = _check_fixed_service_quota(
         aws_ctx,
         check_id="quota.cloudformation_stack_count",
@@ -3449,6 +3454,9 @@ def _check_cloudformation_stack_quota(aws_ctx: AWSContext, cfg: Any) -> CheckRes
             "current_used": len(summaries),
             "required_new": required_new,
             "required_stack": desired,
+            "regional_accounting_stacks": [
+                str(stack.get("StackName") or "") for stack in regional_accounting_stacks
+            ],
         }
     )
     return quota_check
@@ -3537,11 +3545,19 @@ def _check_slurm_accounting_resource_quotas(
     desired_stack = _effective_config_value(cfg, "slurm_accounting_stack_name", "") or (
         derive_slurm_accounting_stack_name(aws_ctx.region_az)
     )
-    stack_status = describe_stack_status(
-        aws_ctx.client("cloudformation"),
-        desired_stack,
+    try:
+        regional_accounting_stacks = list_regional_slurm_accounting_stacks(
+            aws_ctx,
+            region_az=aws_ctx.region_az,
+        )
+        stack_inventory_error = ""
+    except Exception as exc:
+        regional_accounting_stacks = []
+        stack_inventory_error = str(exc)
+    stack_exists = bool(regional_accounting_stacks)
+    stack_status = ",".join(
+        sorted(str(stack.get("StackStatus") or "") for stack in regional_accounting_stacks)
     )
-    stack_exists = bool(stack_status)
     try:
         iam_summary = aws_ctx.client("iam").get_account_summary().get("SummaryMap") or {}
         iam_summary_error = ""
@@ -3578,6 +3594,9 @@ def _check_slurm_accounting_resource_quotas(
             "required_new": required_new,
             "accounting_stack": desired_stack,
             "accounting_stack_status": stack_status,
+            "regional_accounting_stacks": [
+                str(stack.get("StackName") or "") for stack in regional_accounting_stacks
+            ],
             "quota_source": (
                 "iam:GetAccountSummary"
                 if service_code == "iam"
@@ -3585,6 +3604,8 @@ def _check_slurm_accounting_resource_quotas(
             ),
         }
         try:
+            if stack_inventory_error:
+                raise RuntimeError(stack_inventory_error)
             if service_code == "iam":
                 if iam_summary_error:
                     raise RuntimeError(iam_summary_error)

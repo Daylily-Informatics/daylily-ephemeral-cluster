@@ -783,7 +783,7 @@ def slurm_accounting_ensure(
     stack_name: str = typer.Option(
         "",
         "--stack-name",
-        help="Explicit DayEC Slurm accounting stack name. Defaults from --region-az.",
+        help="Explicit regional DayEC Slurm accounting stack name.",
     ),
     database_name: str = typer.Option(
         "dayec_slurm_acct",
@@ -801,7 +801,7 @@ def slurm_accounting_ensure(
         help="EC2 instance type for a newly created MariaDB host.",
     ),
 ) -> None:
-    """Ensure a DayEC Slurm accounting MariaDB stack for one VPC/AZ."""
+    """Ensure the single DayEC Slurm accounting MariaDB stack for a region."""
 
     from daylily_ec.aws.cloudformation import ensure_pcluster_env_stack
     from daylily_ec.aws.context import AWSContext

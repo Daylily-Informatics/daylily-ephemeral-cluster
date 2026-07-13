@@ -15,6 +15,7 @@ except ImportError:  # pragma: no cover - exercised only on trimmed botocore ins
     BotoCoreError = Exception  # type: ignore[misc,assignment]
     ClientError = Exception  # type: ignore[misc,assignment]
 
+from daylily_ec.aws.context import parse_region_az
 from daylily_ec.resources import resource_path
 
 logger = logging.getLogger(__name__)
@@ -28,6 +29,7 @@ VALIDATION_IGNORE_BEFORE_UTC = datetime(2026, 7, 4, tzinfo=timezone.utc)
 
 ACCOUNTING_COMPONENT_TAG_KEY = "daylily-ec:component"
 ACCOUNTING_COMPONENT_TAG_VALUE = "slurm-accounting-mysql"
+ACCOUNTING_REGION_TAG_KEY = "daylily-ec:region"
 ACCOUNTING_REGION_AZ_TAG_KEY = "daylily-ec:region-az"
 ACCOUNTING_VPC_TAG_KEY = "daylily-ec:vpc-id"
 ACCOUNTING_MANAGED_BY_TAG_KEY = "daylily-ec:managed-by"
@@ -112,11 +114,12 @@ class SlurmAccountingScanCandidate:
 
 
 def derive_slurm_accounting_stack_name(region_az: str) -> str:
-    """Return the deterministic accounting stack name for a Region/AZ."""
+    """Return the deterministic regional accounting stack name."""
     region_az = region_az.strip()
     if not region_az:
         raise ValueError("region_az must not be empty")
-    return f"dayec-slurm-accounting-{region_az}"
+    region, _az = parse_region_az(region_az)
+    return f"dayec-slurm-accounting-{region}"
 
 
 def derive_validation_slurm_accounting_stack_name(utcstamp: str) -> str:
@@ -192,8 +195,10 @@ def validate_username(username: str) -> str:
 
 def build_slurm_accounting_tags(region_az: str, vpc_id: str) -> list[dict[str, str]]:
     """Return the exact DayEC tags used for accounting stack discovery."""
+    region, _az = parse_region_az(region_az)
     return [
         {"Key": ACCOUNTING_COMPONENT_TAG_KEY, "Value": ACCOUNTING_COMPONENT_TAG_VALUE},
+        {"Key": ACCOUNTING_REGION_TAG_KEY, "Value": region},
         {"Key": ACCOUNTING_REGION_AZ_TAG_KEY, "Value": region_az},
         {"Key": ACCOUNTING_VPC_TAG_KEY, "Value": vpc_id},
         {"Key": ACCOUNTING_MANAGED_BY_TAG_KEY, "Value": ACCOUNTING_MANAGED_BY_TAG_VALUE},
@@ -253,31 +258,65 @@ def discover_slurm_accounting_dbs(
     vpc_id: str,
     stack_name: str = "",
 ) -> list[SlurmAccountingDb]:
-    """Discover DayEC-tagged Slurm accounting stacks in one VPC/AZ."""
+    """Discover the one reusable DayEC Slurm accounting stack in a region.
+
+    Every DayEC accounting stack, including validation-named stacks, counts
+    toward the singleton. The singleton must be in the selected cluster VPC
+    because its private address and client security group are not reachable
+    across unrelated VPCs.
+    """
     cfn = aws_ctx.client("cloudformation")
+    region, _az = parse_region_az(region_az)
+    matching_stacks = _list_regional_accounting_stacks(cfn, region=region)
     if stack_name.strip():
         stack = _describe_stack_or_none(cfn, stack_name.strip())
         if stack is None:
+            if matching_stacks:
+                names = ", ".join(
+                    sorted(str(item.get("StackName") or "") for item in matching_stacks)
+                )
+                raise SlurmAccountingError(
+                    f"Explicit Slurm accounting stack '{stack_name}' does not exist, but "
+                    f"region {region} already has accounting singleton: {names}. A second "
+                    "regional accounting stack is forbidden."
+                )
             return []
-        if not _stack_has_accounting_tags(stack, region_az=region_az, vpc_id=vpc_id):
+        if not _stack_is_accounting_stack_in_region(stack, region=region):
             raise SlurmAccountingError(
                 f"Stack '{stack_name}' exists but is not tagged as the DayEC "
-                f"Slurm accounting stack for {region_az} in VPC {vpc_id}."
+                f"Slurm accounting singleton for region {region}."
             )
+        if len(matching_stacks) > 1:
+            names = ", ".join(
+                sorted(str(item.get("StackName") or "") for item in matching_stacks)
+            )
+            raise SlurmAccountingError(
+                f"Multiple DayEC Slurm accounting stacks exist in region {region}: {names}"
+            )
+        _require_stack_vpc(stack, requested_vpc_id=vpc_id, region=region)
         return [_db_from_stack(stack)]
 
-    matches: list[SlurmAccountingDb] = []
-    for summary in _list_stack_summaries(cfn):
-        name = str(summary.get("StackName") or "")
-        if not name:
-            continue
-        stack = _describe_stack_or_none(cfn, name)
-        if stack is None:
-            continue
-        if not _stack_has_accounting_tags(stack, region_az=region_az, vpc_id=vpc_id):
-            continue
-        matches.append(_db_from_stack(stack))
+    matches = [_db_from_stack(stack) for stack in matching_stacks]
+    if len(matching_stacks) == 1:
+        _require_stack_vpc(
+            matching_stacks[0],
+            requested_vpc_id=vpc_id,
+            region=region,
+        )
     return matches
+
+
+def list_regional_slurm_accounting_stacks(
+    aws_ctx: Any,
+    *,
+    region_az: str,
+) -> list[dict[str, Any]]:
+    """Return every DayEC accounting stack that counts toward the region singleton."""
+    region, _az = parse_region_az(region_az)
+    return _list_regional_accounting_stacks(
+        aws_ctx.client("cloudformation"),
+        region=region,
+    )
 
 
 def scan_slurm_accounting_ec2_candidates(
@@ -396,12 +435,14 @@ def ensure_slurm_accounting_db(
         return matches[0]
     if len(matches) > 1:
         names = ", ".join(sorted(db.stack_name for db in matches))
+        region, _az = parse_region_az(region_az)
         raise SlurmAccountingError(
-            f"Multiple DayEC Slurm accounting stacks match {region_az} in VPC {vpc_id}: {names}"
+            f"Multiple DayEC Slurm accounting stacks exist in region {region}: {names}"
         )
     if not create_if_missing:
+        region, _az = parse_region_az(region_az)
         raise SlurmAccountingError(
-            f"No DayEC Slurm accounting stack exists for {region_az} in VPC {vpc_id}; "
+            f"No DayEC Slurm accounting stack exists for region {region}; "
             "rerun with --create-slurm-accounting-db or create it with "
             "dyec slurm-accounting ensure."
         )
@@ -550,13 +591,63 @@ def _as_utc(value: Any) -> datetime:
     return dt.astimezone(timezone.utc)
 
 
-def _stack_has_accounting_tags(stack: dict[str, Any], *, region_az: str, vpc_id: str) -> bool:
+def _stack_is_accounting_stack_in_region(
+    stack: dict[str, Any],
+    *,
+    region: str,
+) -> bool:
     tags = {str(t.get("Key")): str(t.get("Value")) for t in stack.get("Tags", [])}
+    tagged_region = tags.get(ACCOUNTING_REGION_TAG_KEY, "").strip()
     return (
         tags.get(ACCOUNTING_COMPONENT_TAG_KEY) == ACCOUNTING_COMPONENT_TAG_VALUE
-        and tags.get(ACCOUNTING_REGION_AZ_TAG_KEY) == region_az
-        and tags.get(ACCOUNTING_VPC_TAG_KEY) == vpc_id
+        and (not tagged_region or tagged_region == region)
     )
+
+
+def _list_regional_accounting_stacks(
+    cfn: Any,
+    *,
+    region: str,
+) -> list[dict[str, Any]]:
+    matches: list[dict[str, Any]] = []
+    for summary in _list_stack_summaries(cfn):
+        name = str(summary.get("StackName") or "")
+        if not name:
+            continue
+        stack = _describe_stack_or_none(cfn, name)
+        # CloudFormation clients are region-scoped, so the component tag is the
+        # authoritative membership test. This deliberately counts legacy stacks
+        # created before ACCOUNTING_REGION_TAG_KEY was introduced.
+        if stack is None or not _stack_is_accounting_stack_in_region(
+            stack,
+            region=region,
+        ):
+            continue
+        matches.append(stack)
+    return sorted(matches, key=lambda item: str(item.get("StackName") or ""))
+
+
+def _require_stack_vpc(
+    stack: dict[str, Any],
+    *,
+    requested_vpc_id: str,
+    region: str,
+) -> None:
+    tags = _tags_by_key(stack.get("Tags", []))
+    stack_name = str(stack.get("StackName") or "")
+    stack_vpc_id = tags.get(ACCOUNTING_VPC_TAG_KEY, "").strip()
+    if not stack_vpc_id:
+        raise SlurmAccountingError(
+            f"Regional Slurm accounting stack '{stack_name}' is missing required tag "
+            f"{ACCOUNTING_VPC_TAG_KEY}."
+        )
+    if stack_vpc_id != requested_vpc_id:
+        raise SlurmAccountingError(
+            f"Regional Slurm accounting stack '{stack_name}' for {region} is in VPC "
+            f"{stack_vpc_id}, but the selected cluster VPC is {requested_vpc_id}. "
+            "A second regional accounting stack is forbidden; select subnets in the "
+            "accounting VPC or establish an explicit non-overlapping network contract."
+        )
 
 
 def _stack_has_accounting_vpc_tags(stack: dict[str, Any], *, vpc_id: str) -> bool:
