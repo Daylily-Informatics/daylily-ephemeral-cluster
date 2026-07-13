@@ -2411,6 +2411,8 @@ class TestConfigureHeadnode:
         assert "mktemp -d" in clone_cmd
         assert "trap 'rm -rf" in clone_cmd
         assert "--query SecretString --output text" in clone_cmd
+        assert 'ssh-keygen -y -f "$dayec_key_dir/deploy_key" >/dev/null' in clone_cmd
+        assert "tail -n 1" not in clone_cmd
 
     @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
