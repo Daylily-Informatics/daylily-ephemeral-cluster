@@ -79,12 +79,6 @@ if [ "${storage_mode}" = "fsx" ]; then
   echo "[$timestamp] FSx log: ${fsx_log_fn}"
 fi
 
-append_once() {
-  local line="$1"
-  local file="$2"
-  grep -Fxq "$line" "$file" 2>/dev/null || echo "$line" >> "$file"
-}
-
 metadata() {
   local path="$1"
   local token
@@ -546,48 +540,6 @@ EOF
   systemctl enable --now daylily-spot-interruption-watch.service
 }
 
-disable_slurm_partition_exclusivity() {
-  local slurm_conf="/opt/slurm/etc/slurm.conf"
-  if [ ! -f "${slurm_conf}" ]; then
-    echo "ERROR: Slurm config not found while disabling partition exclusivity: ${slurm_conf}" >&2
-    exit 1
-  fi
-
-  echo "ALERT WARNING: Enforcing non-exclusive Slurm scheduling in ${slurm_conf}; PartitionName lines will use OverSubscribe=YES. SelectTypeParameters remains under ParallelCluster config control."
-  python3 - "${slurm_conf}" <<'PY'
-from pathlib import Path
-import sys
-
-path = Path(sys.argv[1])
-lines = path.read_text(encoding="utf-8").splitlines()
-rewritten = []
-for line in lines:
-    if line.startswith("PartitionName="):
-        fields = line.split()
-        saw_oversubscribe = False
-        next_fields = []
-        for field in fields:
-            if field.startswith("OverSubscribe="):
-                next_fields.append("OverSubscribe=YES")
-                saw_oversubscribe = True
-            else:
-                next_fields.append(field)
-        if not saw_oversubscribe:
-            next_fields.append("OverSubscribe=YES")
-        rewritten.append(" ".join(next_fields))
-        continue
-    rewritten.append(line)
-path.write_text("\n".join(rewritten) + "\n", encoding="utf-8")
-PY
-
-  if grep -Eq '^PartitionName=.*OverSubscribe=EXCLUSIVE' "${slurm_conf}"; then
-    echo "ERROR: exclusive Slurm partition allocation survived boot rewrite in ${slurm_conf}" >&2
-    grep -E '^PartitionName=' "${slurm_conf}" >&2
-    exit 1
-  fi
-  grep -E '^PartitionName=' "${slurm_conf}" || true
-}
-
 link_cached_entries() {
   local source_dir="$1"
   local dest_dir="$2"
@@ -780,6 +732,14 @@ install_s3_executable() {
   rm -f "${temp_path}"
 }
 
+install_slurm_submission_policy() {
+  install -d -m 0755 /opt/daylily/bin
+  install_s3_executable \
+    "install_slurm_job_submit_policy.sh" \
+    /opt/daylily/bin/install_slurm_job_submit_policy
+  /opt/daylily/bin/install_slurm_job_submit_policy "${region}" "${boot_s3_uri}"
+}
+
 install_tagging_script() {
   install -d -m 0755 /opt/slurm/sbin
   cat <<'EOF' > /opt/slurm/sbin/check_tags.sh
@@ -858,32 +818,29 @@ install_headnode_slurm_wrappers() {
   install_s3_executable "sleep_test.sh" /opt/slurm/bin/sleep_test.sh
 }
 
-install_headnode_prolog_epilog() {
-  install_tagging_script
+install_slurm_job_hooks() {
+  local prolog_dir="/opt/slurm/etc/scripts/prolog.d"
+  local epilog_dir="/opt/slurm/etc/scripts/epilog.d"
 
-  cat <<'EOF' > /opt/slurm/sbin/prolog.sh
+  install -d -m 0755 "${prolog_dir}" "${epilog_dir}"
+  cat <<'EOF' > "${prolog_dir}/50_daylily_job_tags"
 #!/bin/bash
 set -euo pipefail
-export SLURM_ROOT=/opt/slurm
 install -d -m 1777 /tmp/jobs
 echo "${SLURM_JOB_USER}" >> /tmp/jobs/jobs_users
 echo "${SLURM_JOBID}" >> /tmp/jobs/jobs_ids
 EOF
 
-  cat <<'EOF' > /opt/slurm/sbin/epilog.sh
+  cat <<'EOF' > "${epilog_dir}/50_daylily_job_tags"
 #!/bin/bash
 set -euo pipefail
-export SLURM_ROOT=/opt/slurm
 sed -i "0,/${SLURM_JOB_USER}/d" /tmp/jobs/jobs_users 2>/dev/null || true
 sed -i "0,/${SLURM_JOBID}/d" /tmp/jobs/jobs_ids 2>/dev/null || true
 EOF
 
-  chmod 0755 /opt/slurm/sbin/prolog.sh /opt/slurm/sbin/epilog.sh
-  disable_slurm_partition_exclusivity
-  append_once "AccountingStoreFlags=job_comment" /opt/slurm/etc/slurm.conf
-  append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf
-  append_once "Prolog=/opt/slurm/sbin/prolog.sh" /opt/slurm/etc/slurm.conf
-  append_once "Epilog=/opt/slurm/sbin/epilog.sh" /opt/slurm/etc/slurm.conf
+  chmod 0755 \
+    "${prolog_dir}/50_daylily_job_tags" \
+    "${epilog_dir}/50_daylily_job_tags"
 }
 
 configure_kernel_and_shm() {
@@ -972,6 +929,7 @@ configure_kernel_and_shm
 log_spot_price
 install_spot_lifecycle_hooks
 validate_dragen_host
+install_slurm_job_hooks
 
 if [ "${storage_mode}" = "fsx" ]; then
   wait_for_reference_data
@@ -990,8 +948,7 @@ if [ "${node_type}" = "HeadNode" ]; then
     prepare_headnode_writable_dirs
   fi
   install_headnode_slurm_wrappers
-  install_headnode_prolog_epilog
-  systemctl restart slurmctld
+  install_slurm_submission_policy
   touch "/tmp/$(hostname).postslurmcfg"
 elif [ "${node_type}" = "ComputeFleet" ]; then
   echo "[$(date +%Y%m%d_%H%M%S)] Running ComputeFleet RHEL8 DRAGEN configure actions"

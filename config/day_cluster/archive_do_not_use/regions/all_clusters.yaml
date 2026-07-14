@@ -40,6 +40,10 @@ Scheduling:
   Scheduler: slurm
   SlurmSettings:
     EnableMemoryBasedScheduling: false
+    CustomSlurmSettings:
+    - JobSubmitPlugins: lua
+    - AccountingStoreFlags: job_comment
+    - PrologFlags: Alloc
     ScaledownIdletime: 5
     Dns:
       DisableManagedDns: false
@@ -47,6 +51,7 @@ Scheduling:
     # ${REGSUB_SLURM_ACCOUNTING_DATABASE}
   SlurmQueues:
     - Name: i8
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: lowest-price
       ComputeResources:
@@ -88,6 +93,7 @@ Scheduling:
           - Policy: ${REGSUB_S3_IAM_POLICY}
           - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
     - Name: i128
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: lowest-price
       ComputeResources:
@@ -167,6 +173,7 @@ Scheduling:
           - Policy: ${REGSUB_S3_IAM_POLICY}
           - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
     - Name: i192
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: lowest-price
       ComputeResources:

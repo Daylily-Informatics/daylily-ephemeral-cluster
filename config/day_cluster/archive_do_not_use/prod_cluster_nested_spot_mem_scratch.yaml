@@ -41,6 +41,10 @@ Scheduling:
   Scheduler: slurm
   SlurmSettings:
     EnableMemoryBasedScheduling: false
+    CustomSlurmSettings:
+    - JobSubmitPlugins: lua
+    - AccountingStoreFlags: job_comment
+    - PrologFlags: Alloc
     ScaledownIdletime: 5
     Dns:
       DisableManagedDns: false
@@ -52,6 +56,7 @@ Scheduling:
     # Tiny/helper queue: only allowed sub-128 queue.
     # -------------------------------------------------------------------------
     - Name: i8
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
       ComputeResources:
@@ -63,8 +68,6 @@ Scheduling:
           MaxCount: ${REGSUB_MAX_COUNT_8I}
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           DynamicNodePriority: 100
-          # 64 GiB * 1024 * 0.95 = 62259 MiB.
-          SchedulableMemory: 62259
           Networking:
             PlacementGroup:
               Enabled: false
@@ -96,6 +99,7 @@ Scheduling:
     # Nested overlapping pools for best Spot pricing while preserving memory gates.
     # -------------------------------------------------------------------------
     - Name: i128
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
       ComputeResources:
@@ -111,8 +115,6 @@ Scheduling:
           MaxCount: ${REGSUB_MAX_COUNT_128I}
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           DynamicNodePriority: 100
-          # Minimum pool memory is c6i 256 GiB. 256 GiB * 1024 * 0.95 = 249036 MiB.
-          SchedulableMemory: 249036
           Networking:
             PlacementGroup:
               Enabled: false
@@ -128,8 +130,6 @@ Scheduling:
           MaxCount: ${REGSUB_MAX_COUNT_128I}
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           DynamicNodePriority: 200
-          # Minimum pool memory is m6i 512 GiB. 512 GiB * 1024 * 0.95 = 498073 MiB.
-          SchedulableMemory: 498073
           Networking:
             PlacementGroup:
               Enabled: false
@@ -143,8 +143,6 @@ Scheduling:
           MaxCount: ${REGSUB_MAX_COUNT_128I}
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           DynamicNodePriority: 300
-          # 1024 GiB * 1024 * 0.95 = 996147 MiB.
-          SchedulableMemory: 996147
           Networking:
             PlacementGroup:
               Enabled: false
@@ -176,6 +174,7 @@ Scheduling:
     # /scratch is a hard substrate requirement, so this remains its own partition.
     # -------------------------------------------------------------------------
     - Name: i128nvme
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
       ComputeSettings:
@@ -190,8 +189,6 @@ Scheduling:
           MaxCount: ${REGSUB_MAX_COUNT_128I}
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           DynamicNodePriority: 100
-          # i4i.32xlarge: 1024 GiB * 1024 * 0.95 = 996147 MiB.
-          SchedulableMemory: 996147
           Networking:
             PlacementGroup:
               Enabled: false
@@ -225,6 +222,7 @@ Scheduling:
     # mem192 = M + R, bigmem192 = R only.
     # -------------------------------------------------------------------------
     - Name: i192
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
       ComputeResources:
@@ -244,8 +242,6 @@ Scheduling:
           MaxCount: ${REGSUB_MAX_COUNT_192I}
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           DynamicNodePriority: 100
-          # Minimum pool memory is C-class 384 GiB. 384 GiB * 1024 * 0.95 = 373555 MiB.
-          SchedulableMemory: 373555
           Networking:
             PlacementGroup:
               Enabled: false
@@ -262,8 +258,6 @@ Scheduling:
           MaxCount: ${REGSUB_MAX_COUNT_192I}
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           DynamicNodePriority: 200
-          # Minimum pool memory is M-class 768 GiB. 768 GiB * 1024 * 0.95 = 747110 MiB.
-          SchedulableMemory: 747110
           Networking:
             PlacementGroup:
               Enabled: false
@@ -278,8 +272,6 @@ Scheduling:
           MaxCount: ${REGSUB_MAX_COUNT_192I}
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           DynamicNodePriority: 300
-          # 1536 GiB * 1024 * 0.95 = 1494220 MiB.
-          SchedulableMemory: 1494220
           Networking:
             PlacementGroup:
               Enabled: false
@@ -312,6 +304,7 @@ Scheduling:
     # Nested pools allow bigger-memory Spot if cheaper for low-mem jobs.
     # -------------------------------------------------------------------------
     - Name: i192nvme
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
       ComputeSettings:
@@ -331,8 +324,6 @@ Scheduling:
           MaxCount: ${REGSUB_MAX_COUNT_192I}
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           DynamicNodePriority: 100
-          # Minimum pool memory is C8id 384 GiB. 384 GiB * 1024 * 0.95 = 373555 MiB.
-          SchedulableMemory: 373555
           Networking:
             PlacementGroup:
               Enabled: false
@@ -348,8 +339,6 @@ Scheduling:
           MaxCount: ${REGSUB_MAX_COUNT_192I}
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           DynamicNodePriority: 200
-          # Minimum pool memory is M8id 768 GiB. 768 GiB * 1024 * 0.95 = 747110 MiB.
-          SchedulableMemory: 747110
           Networking:
             PlacementGroup:
               Enabled: false
@@ -363,8 +352,6 @@ Scheduling:
           MaxCount: ${REGSUB_MAX_COUNT_192I}
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           DynamicNodePriority: 300
-          # 1536 GiB * 1024 * 0.95 = 1494220 MiB.
-          SchedulableMemory: 1494220
           Networking:
             PlacementGroup:
               Enabled: false
@@ -396,6 +383,7 @@ Scheduling:
     # Same nested model at 384 vCPU.
     # -------------------------------------------------------------------------
     - Name: i384nvme
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
       ComputeSettings:
@@ -415,8 +403,6 @@ Scheduling:
           MaxCount: ${REGSUB_MAX_COUNT_192I}
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           DynamicNodePriority: 100
-          # Minimum pool memory is C8id 768 GiB. 768 GiB * 1024 * 0.95 = 747110 MiB.
-          SchedulableMemory: 747110
           Networking:
             PlacementGroup:
               Enabled: false
@@ -432,8 +418,6 @@ Scheduling:
           MaxCount: ${REGSUB_MAX_COUNT_192I}
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           DynamicNodePriority: 200
-          # Minimum pool memory is M8id 1536 GiB. 1536 GiB * 1024 * 0.95 = 1494220 MiB.
-          SchedulableMemory: 1494220
           Networking:
             PlacementGroup:
               Enabled: false
@@ -447,8 +431,6 @@ Scheduling:
           MaxCount: ${REGSUB_MAX_COUNT_192I}
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           DynamicNodePriority: 300
-          # 3072 GiB * 1024 * 0.95 = 2988441 MiB.
-          SchedulableMemory: 2988441
           Networking:
             PlacementGroup:
               Enabled: false
@@ -480,6 +462,7 @@ Scheduling:
     # Keep separate because huge scratch is a hard routing requirement.
     # -------------------------------------------------------------------------
     - Name: i192hugenvme
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
       ComputeSettings:
@@ -498,7 +481,6 @@ Scheduling:
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           DynamicNodePriority: 100
           # Both i7i/i7ie 48xl classes are 1536 GiB-class.
-          SchedulableMemory: 1494220
           Networking:
             PlacementGroup:
               Enabled: false

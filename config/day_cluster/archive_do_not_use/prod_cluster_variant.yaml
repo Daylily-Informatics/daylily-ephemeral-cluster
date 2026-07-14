@@ -41,6 +41,10 @@ Scheduling:
   Scheduler: slurm
   SlurmSettings:
     EnableMemoryBasedScheduling: false
+    CustomSlurmSettings:
+    - JobSubmitPlugins: lua
+    - AccountingStoreFlags: job_comment
+    - PrologFlags: Alloc
     ScaledownIdletime: 5
     Dns:
       DisableManagedDns: false
@@ -48,6 +52,7 @@ Scheduling:
     # ${REGSUB_SLURM_ACCOUNTING_DATABASE}
   SlurmQueues:
     - Name: i8
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
       ComputeResources:
@@ -89,6 +94,7 @@ Scheduling:
           - Policy: ${REGSUB_S3_IAM_POLICY}
           - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
     - Name: i128
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
       ComputeResources:
@@ -156,6 +162,7 @@ Scheduling:
           - Policy: ${REGSUB_S3_IAM_POLICY}
           - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
     - Name: i192
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
       ComputeResources:
@@ -211,6 +218,7 @@ Scheduling:
           - Policy: ${REGSUB_S3_IAM_POLICY}
           - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
     - Name: bcl-convert
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: capacity-optimized
       ComputeSettings:
@@ -282,6 +290,7 @@ Scheduling:
           - Policy: ${REGSUB_S3_IAM_POLICY}
           - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
     - Name: bcl2fq-i192-nvme-test
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: capacity-optimized
       ComputeSettings:
@@ -327,6 +336,7 @@ Scheduling:
           - Policy: ${REGSUB_S3_IAM_POLICY}
           - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
     - Name: bcl2fq-amd-192-test
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: capacity-optimized
       ComputeResources:
@@ -370,6 +380,7 @@ Scheduling:
           - Policy: ${REGSUB_S3_IAM_POLICY}
           - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
     - Name: bcl2fq-i384-nvme-test
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: capacity-optimized
       ComputeSettings:

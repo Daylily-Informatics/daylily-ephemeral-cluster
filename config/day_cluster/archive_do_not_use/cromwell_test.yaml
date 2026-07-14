@@ -40,6 +40,11 @@ HeadNode:
 Scheduling:
   Scheduler: slurm
   SlurmSettings:
+    EnableMemoryBasedScheduling: false
+    CustomSlurmSettings:
+    - JobSubmitPlugins: lua
+    - AccountingStoreFlags: job_comment
+    - PrologFlags: Alloc
     ScaledownIdletime: 10
     Dns:
       DisableManagedDns: false
@@ -47,6 +52,7 @@ Scheduling:
     # ${REGSUB_SLURM_ACCOUNTING_DATABASE}
   SlurmQueues:
     - Name: i96-5
+      JobExclusiveAllocation: false
       CapacityType: SPOT  # SPOT OR DEDICATED
       AllocationStrategy: lowest-price  # lowest-price OR capactity-optimized
       ComputeResources:
@@ -80,6 +86,7 @@ Scheduling:
         AdditionalIamPolicies:
           - Policy: ${REGSUB_S3_IAM_POLICY}
     - Name: i4-5
+      JobExclusiveAllocation: false
       CapacityType: SPOT
       AllocationStrategy: lowest-price
       ComputeResources:

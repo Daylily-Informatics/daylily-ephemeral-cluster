@@ -36,6 +36,8 @@ DAYOA_RUNTIME_SPOT_ACTIONS = (
     "ec2:DescribeSpotPriceHistory",
 )
 BOOT_CONFIG_FILES = (
+    "config/day_cluster/install_slurm_job_submit_policy.sh",
+    "config/day_cluster/job_submit.lua",
     "config/day_cluster/post_install_almalinux8_dragen.sh",
     "config/day_cluster/post_install_ubuntu_combined.sh",
     "config/day_cluster/post_install_rhel8_dragen.sh",
@@ -225,7 +227,7 @@ def test_active_cluster_template_uses_expected_partition_contract() -> None:
                 _compute_resource(parent_name, resource_name)
             ]
         for queue in queues:
-            assert "JobExclusiveAllocation" not in queue
+            assert queue["JobExclusiveAllocation"] is False
             if queue["Name"].endswith("nvme"):
                 assert (
                     queue["ComputeSettings"]["LocalStorage"]["EphemeralVolume"]["MountDir"]
@@ -291,7 +293,7 @@ def test_rhel_az_scoped_templates_only_exist_for_viable_azs() -> None:
     }
 
 
-def test_packaged_boot_config_matches_source_and_disables_exclusivity() -> None:
+def test_packaged_boot_config_matches_source_and_uses_declarative_slurm_policy() -> None:
     for relative_path in BOOT_CONFIG_FILES:
         source = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
         packaged = (REPO_ROOT / "daylily_ec/resources/payload" / relative_path).read_text(
@@ -304,12 +306,11 @@ def test_packaged_boot_config_matches_source_and_disables_exclusivity() -> None:
         "config/day_cluster/post_install_rhel8_dragen.sh",
     ):
         script = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
-        assert "disable_slurm_partition_exclusivity" in script
-        assert "OverSubscribe=YES" in script
-        assert "SelectTypeParameters remains under ParallelCluster config control" in script
-        assert "SelectTypeParameters=CR_CPU_Memory" not in script
-        assert 'line.startswith("SelectTypeParameters=")' not in script
-        assert "exclusive Slurm partition allocation survived boot rewrite" in script
+        assert "install_slurm_submission_policy" in script
+        assert "/opt/slurm/etc/scripts/prolog.d" in script
+        assert "/opt/slurm/etc/scripts/epilog.d" in script
+        assert "/opt/slurm/etc/slurm.conf" not in script
+        assert "systemctl restart slurm" not in script
         assert 'spot_lifecycle_state_dir="/var/lib/daylily/spot_lifecycle"' in script
         assert "spot_price_warn_exception_messages.log" in script
         assert "dyec.spot_price_warn_exception.v1" in script
@@ -329,8 +330,9 @@ def test_packaged_boot_config_matches_source_and_disables_exclusivity() -> None:
     assert 'spot_price_warn_threshold="${3:?spot price warn threshold argument is required}"' in rhel_script
 
     sbatch = (REPO_ROOT / "config/day_cluster/sbatch").read_text(encoding="utf-8")
-    assert "DYEC sbatch stripped exclusive allocation request" in sbatch
-    assert "--exclusive|--exclusive=*" in sbatch
+    assert "Slurm memory placement is disabled" in sbatch
+    assert "--mem-per-cpu" in sbatch
+    assert "--exclusive|--exclusive=*" not in sbatch
 
 
 def test_almalinux_dragen_wrapper_hydrates_secret_without_logging_contents() -> None:
@@ -378,7 +380,7 @@ def test_dragen_template_is_packaged_with_explicit_mixed_node_roles() -> None:
         assert resource["Instances"] == [{"InstanceType": "f2.6xlarge"}]
         assert resource["MinCount"] == 0
         assert resource["MaxCount"] == 1
-        assert resource["SchedulableMemory"] == 249036
+        assert "SchedulableMemory" not in resource
         assert resource["Efa"]["Enabled"] is False
     assert "SpotPrice" not in queues[1]["ComputeResources"][0]
     for queue in queues[2:]:
@@ -416,7 +418,7 @@ def test_rhel_and_legacy_dragen_templates_expose_explicit_ondemand_partition() -
         assert resource["Instances"] == [{"InstanceType": "f2.6xlarge"}]
         assert resource["MinCount"] == 0
         assert resource["MaxCount"] == 1
-        assert resource["SchedulableMemory"] == 249036
+        assert "SchedulableMemory" not in resource
         assert resource["Efa"]["Enabled"] is False
         assert "SpotPrice" not in resource
         assert ondemand_queue["ComputeSettings"]["LocalStorage"]["EphemeralVolume"] == {

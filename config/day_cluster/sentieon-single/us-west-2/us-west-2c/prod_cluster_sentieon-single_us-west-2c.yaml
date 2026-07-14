@@ -41,6 +41,10 @@ Scheduling:
   Scheduler: slurm
   SlurmSettings:
     EnableMemoryBasedScheduling: false
+    CustomSlurmSettings:
+    - JobSubmitPlugins: lua
+    - AccountingStoreFlags: job_comment
+    - PrologFlags: Alloc
     ScaledownIdletime: 5
     Dns:
       DisableManagedDns: false
@@ -48,6 +52,7 @@ Scheduling:
     # ${REGSUB_SLURM_ACCOUNTING_DATABASE}
   SlurmQueues:
   - Name: i96nvme
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: price-capacity-optimized
     ComputeSettings:
@@ -90,7 +95,6 @@ Scheduling:
       MaxCount: 12
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
-      SchedulableMemory: 186777
       Networking:
         PlacementGroup:
           Enabled: false
@@ -120,6 +124,7 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i128nvme
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: price-capacity-optimized
     ComputeSettings:
@@ -152,7 +157,6 @@ Scheduling:
       MaxCount: 12
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
-      SchedulableMemory: 249036
       Networking:
         PlacementGroup:
           Enabled: false
@@ -182,6 +186,7 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i192nvme
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: price-capacity-optimized
     ComputeSettings:
@@ -209,7 +214,6 @@ Scheduling:
       MaxCount: 12
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
-      SchedulableMemory: 364544
       Networking:
         PlacementGroup:
           Enabled: false
@@ -239,6 +243,7 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i384nvme
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: price-capacity-optimized
     ComputeSettings:
@@ -262,7 +267,6 @@ Scheduling:
       MaxCount: 12
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
-      SchedulableMemory: 747110
       Networking:
         PlacementGroup:
           Enabled: false

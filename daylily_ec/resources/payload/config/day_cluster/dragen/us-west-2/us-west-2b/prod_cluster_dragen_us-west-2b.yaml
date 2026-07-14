@@ -48,6 +48,10 @@ Scheduling:
   Scheduler: slurm
   SlurmSettings:
     EnableMemoryBasedScheduling: false
+    CustomSlurmSettings:
+    - JobSubmitPlugins: lua
+    - AccountingStoreFlags: job_comment
+    - PrologFlags: Alloc
     ScaledownIdletime: 5
     Dns:
       DisableManagedDns: false
@@ -55,6 +59,7 @@ Scheduling:
     # ${REGSUB_SLURM_ACCOUNTING_DATABASE}
   SlurmQueues:
   - Name: dragen
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
     ComputeSettings:
@@ -70,7 +75,6 @@ Scheduling:
       MinCount: 0
       MaxCount: 1
       DynamicNodePriority: 100
-      SchedulableMemory: 249036
       Networking:
         PlacementGroup:
           Enabled: false
@@ -104,6 +108,7 @@ Scheduling:
       - Policy: ${REGSUB_DRAGEN_LICENSE_POLICY_ARN}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: dragen-ondemand
+    JobExclusiveAllocation: false
     CapacityType: ONDEMAND
     ComputeSettings:
       LocalStorage:
@@ -118,7 +123,6 @@ Scheduling:
       MinCount: 0
       MaxCount: 1
       DynamicNodePriority: 100
-      SchedulableMemory: 249036
       Networking:
         PlacementGroup:
           Enabled: false
@@ -152,6 +156,7 @@ Scheduling:
       - Policy: ${REGSUB_DRAGEN_LICENSE_POLICY_ARN}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i192
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
     Image:
@@ -165,7 +170,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_192I_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 200
-      SchedulableMemory: 747110
       Networking:
         PlacementGroup:
           Enabled: false
@@ -197,6 +201,7 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i192nvme
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
     ComputeSettings:
@@ -214,7 +219,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_192I_NVME_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 200
-      SchedulableMemory: 747110
       Networking:
         PlacementGroup:
           Enabled: false

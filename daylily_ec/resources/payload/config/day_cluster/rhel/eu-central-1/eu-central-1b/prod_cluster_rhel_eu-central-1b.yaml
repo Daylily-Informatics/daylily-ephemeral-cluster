@@ -42,6 +42,10 @@ Scheduling:
   Scheduler: slurm
   SlurmSettings:
     EnableMemoryBasedScheduling: false
+    CustomSlurmSettings:
+    - JobSubmitPlugins: lua
+    - AccountingStoreFlags: job_comment
+    - PrologFlags: Alloc
     ScaledownIdletime: 5
     Dns:
       DisableManagedDns: false
@@ -49,6 +53,7 @@ Scheduling:
     # ${REGSUB_SLURM_ACCOUNTING_DATABASE}
   SlurmQueues:
   - Name: dragen
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
     ComputeSettings:
@@ -64,7 +69,6 @@ Scheduling:
       MinCount: 0
       MaxCount: 2
       DynamicNodePriority: 100
-      SchedulableMemory: 249036
       Networking:
         PlacementGroup:
           Enabled: false
@@ -95,6 +99,7 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: dragen-ondemand
+    JobExclusiveAllocation: false
     CapacityType: ONDEMAND
     ComputeSettings:
       LocalStorage:
@@ -109,7 +114,6 @@ Scheduling:
       MinCount: 0
       MaxCount: 1
       DynamicNodePriority: 100
-      SchedulableMemory: 249036
       Networking:
         PlacementGroup:
           Enabled: false

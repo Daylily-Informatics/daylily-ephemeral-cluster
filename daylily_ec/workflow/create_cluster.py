@@ -82,6 +82,8 @@ PreflightStep = Callable[[PreflightReport], PreflightReport]
 _PREFLIGHT_STEPS: List[PreflightStep] = []
 
 CLUSTER_BOOT_CONFIG_FILENAMES = (
+    "install_slurm_job_submit_policy.sh",
+    "job_submit.lua",
     "post_install_almalinux8_dragen.sh",
     "post_install_rhel8_dragen.sh",
     "post_install_ubuntu_combined.sh",
@@ -187,12 +189,11 @@ SENTIEON_SINGLE_QUEUE_RESOURCE_NAMES = {
     "i192nvme": "price192nvme",
     "i384nvme": "price384nvme",
 }
-SENTIEON_SINGLE_QUEUE_SCHEDULABLE_MEMORY = {
-    "i96nvme": 186777,
-    "i128nvme": 249036,
-    "i192nvme": 364544,
-    "i384nvme": 747110,
-}
+CPU_ONLY_SLURM_CUSTOM_SETTINGS = [
+    {"JobSubmitPlugins": "lua"},
+    {"AccountingStoreFlags": "job_comment"},
+    {"PrologFlags": "Alloc"},
+]
 CREATE_CLUSTER_TYPES = frozenset(
     {"intel", "rhel", DRAGEN_CLUSTER_TYPE, SENTIEON_SINGLE_CLUSTER_TYPE}
 )
@@ -1340,12 +1341,56 @@ def validate_startup_dra_contract(cluster_yaml_path: str | Path) -> None:
         raise ValueError("The /references/ startup DRA must define DataRepositoryPath.")
 
 
+def validate_cpu_only_slurm_contract(cluster_yaml_path: str | Path) -> None:
+    """Require declarative CPU-only placement and the server-side submit guard."""
+
+    import yaml
+
+    path = Path(cluster_yaml_path)
+    payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    scheduling = payload.get("Scheduling") or {}
+    if scheduling.get("Scheduler") != "slurm":
+        raise ValueError("Cluster Scheduling.Scheduler must be slurm.")
+
+    settings = scheduling.get("SlurmSettings") or {}
+    if settings.get("EnableMemoryBasedScheduling") is not False:
+        raise ValueError("SlurmSettings.EnableMemoryBasedScheduling must be false.")
+    if settings.get("CustomSlurmSettings") != CPU_ONLY_SLURM_CUSTOM_SETTINGS:
+        raise ValueError(
+            "SlurmSettings.CustomSlurmSettings must enable JobSubmitPlugins=lua, "
+            "AccountingStoreFlags=job_comment, and PrologFlags=Alloc."
+        )
+
+    def _contains_schedulable_memory(value: Any) -> bool:
+        if isinstance(value, dict):
+            return "SchedulableMemory" in value or any(
+                _contains_schedulable_memory(item) for item in value.values()
+            )
+        if isinstance(value, list):
+            return any(_contains_schedulable_memory(item) for item in value)
+        return False
+
+    if _contains_schedulable_memory(payload):
+        raise ValueError("CPU-only Slurm cluster config must not define SchedulableMemory.")
+
+    queues = scheduling.get("SlurmQueues") or []
+    if not isinstance(queues, list) or not queues:
+        raise ValueError("Cluster SlurmQueues must be a non-empty list.")
+    for queue in queues:
+        queue_name = str(queue.get("Name") or "<unnamed>")
+        if queue.get("JobExclusiveAllocation") is not False:
+            raise ValueError(
+                f"Slurm queue {queue_name} must set JobExclusiveAllocation false."
+            )
+
+
 def validate_sentieon_single_cluster_contract(cluster_yaml_path: str | Path) -> None:
     """Require the fixed standard-quota Sentieon single-node topology."""
 
     import yaml
 
     path = Path(cluster_yaml_path)
+    validate_cpu_only_slurm_contract(path)
     payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     if payload.get("Region") != "us-west-2":
         raise ValueError("Sentieon single cluster Region must be us-west-2.")
@@ -1420,11 +1465,6 @@ def validate_sentieon_single_cluster_contract(cluster_yaml_path: str | Path) -> 
                 f"Sentieon single queue {queue_name} must set MinCount 0 and "
                 f"MaxCount {SENTIEON_SINGLE_QUEUE_MAX_COUNT}."
             )
-        expected_memory = SENTIEON_SINGLE_QUEUE_SCHEDULABLE_MEMORY[queue_name]
-        if resource.get("SchedulableMemory") != expected_memory:
-            raise ValueError(
-                f"Sentieon single queue {queue_name} must set SchedulableMemory {expected_memory}."
-            )
         if ((resource.get("Efa") or {}).get("Enabled")) is not False:
             raise ValueError(f"Sentieon single queue {queue_name} must keep EFA disabled.")
 
@@ -1475,6 +1515,7 @@ def validate_dragen_cluster_contract(
 
     import yaml
 
+    validate_cpu_only_slurm_contract(cluster_yaml_path)
     payload = yaml.safe_load(Path(cluster_yaml_path).read_text(encoding="utf-8")) or {}
     image = payload.get("Image") or {}
     if image.get("Os") != "almalinux8":
@@ -1542,8 +1583,6 @@ def validate_dragen_cluster_contract(
             raise ValueError(
                 f"DRAGEN queue {queue_name} compute resource must set MinCount 0 and MaxCount 1."
             )
-        if resource.get("SchedulableMemory") != 249036:
-            raise ValueError(f"DRAGEN queue {queue_name} must set SchedulableMemory 249036.")
         if ((resource.get("Efa") or {}).get("Enabled")) is not False:
             raise ValueError(f"DRAGEN queue {queue_name} must keep EFA disabled.")
         if capacity_type == "ONDEMAND" and "SpotPrice" in resource:
@@ -3392,6 +3431,12 @@ def run_create_workflow(
     except ValueError as exc:
         logger.error("Startup DRA contract failed: %s", exc)
         ui.fail(f"Startup DRA contract: {exc}")
+        return EXIT_VALIDATION_FAILURE
+    try:
+        validate_cpu_only_slurm_contract(cluster_yaml_path)
+    except ValueError as exc:
+        logger.error("CPU-only Slurm contract failed: %s", exc)
+        ui.fail(f"CPU-only Slurm contract: {exc}")
         return EXIT_VALIDATION_FAILURE
     if dragen_inputs:
         try:

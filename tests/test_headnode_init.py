@@ -977,14 +977,12 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert 'install_s3_executable "sbatch"' in script
     assert 'install_s3_executable "sleep_test.sh"' in script
     assert 'install -m 0755 "${temp_path}" "${destination}"' in script
-    assert "disable_slurm_partition_exclusivity" in script
-    assert "OverSubscribe=YES" in script
-    assert "SelectTypeParameters remains under ParallelCluster config control" in script
-    assert "SelectTypeParameters=CR_CPU_Memory" not in script
-    assert 'line.startswith("SelectTypeParameters=")' not in script
-    assert "exclusive Slurm partition allocation survived boot rewrite" in script
-    assert 'append_once "AccountingStoreFlags=job_comment" /opt/slurm/etc/slurm.conf' in script
-    assert 'append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf' in script
+    assert "install_slurm_submission_policy" in script
+    assert "install_slurm_job_submit_policy.sh" in script
+    assert "/opt/slurm/etc/scripts/prolog.d" in script
+    assert "/opt/slurm/etc/scripts/epilog.d" in script
+    assert "/opt/slurm/etc/slurm.conf" not in script
+    assert "systemctl restart slurm" not in script
     assert "mv /opt/slurm/bin/sbatch /opt/slurm/sbin/sbatch" in script
     assert "mv /opt/slurm/bin/srun /opt/slurm/sbin/srun" in script
     assert "ln -s /fsx/references/runtime_assets/cached_envs/conda/*" not in script
@@ -992,8 +990,6 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "chmod +x /opt/slurm/bin/sbatch" not in script
     assert "chmod a+x /opt/slurm/bin/sleep_test.sh" not in script
     assert "ln -s /fsx/data/cached_envs/conda/*" not in script
-    assert 'echo "PrologFlags=Alloc" >> /opt/slurm/etc/slurm.conf' not in script
-    assert 'echo "AccountingStoreFlags=job_comment" >> /opt/slurm/etc/slurm.conf' not in script
     assert "ppa:apptainer/ppa" not in script
     assert "command -v apptainer" in script
     assert "command -v singularity" in script
@@ -1013,7 +1009,7 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
         'echo "Expanding /dev/shm to 80% of total memory"'
     )
     compute_branch = script.split('if [ "${cfn_node_type}" == "ComputeFleet" ];then', 1)[1]
-    compute_branch = compute_branch.split("else", 1)[0]
+    compute_branch = compute_branch.split("\nfi\n", 1)[0]
     assert "exit 0" not in compute_branch
 
 

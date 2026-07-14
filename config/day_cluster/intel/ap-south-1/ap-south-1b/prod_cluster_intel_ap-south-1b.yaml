@@ -41,6 +41,10 @@ Scheduling:
   Scheduler: slurm
   SlurmSettings:
     EnableMemoryBasedScheduling: false
+    CustomSlurmSettings:
+    - JobSubmitPlugins: lua
+    - AccountingStoreFlags: job_comment
+    - PrologFlags: Alloc
     ScaledownIdletime: 5
     Dns:
       DisableManagedDns: false
@@ -48,6 +52,7 @@ Scheduling:
     # ${REGSUB_SLURM_ACCOUNTING_DATABASE}
   SlurmQueues:
   - Name: i8
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
     ComputeResources:
@@ -67,7 +72,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_8I}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
-      SchedulableMemory: 62259
       Networking:
         PlacementGroup:
           Enabled: false
@@ -97,6 +101,7 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i128
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
     ComputeResources:
@@ -132,7 +137,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_128I_C}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
-      SchedulableMemory: 262144
       Networking:
         PlacementGroup:
           Enabled: false
@@ -165,7 +169,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_128I_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 200
-      SchedulableMemory: 498073
       Networking:
         PlacementGroup:
           Enabled: false
@@ -189,7 +192,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_128I_R}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 300
-      SchedulableMemory: 996147
       Networking:
         PlacementGroup:
           Enabled: false
@@ -219,6 +221,7 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i128mem
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
     ComputeResources:
@@ -249,7 +252,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_128I_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 200
-      SchedulableMemory: 498073
       Networking:
         PlacementGroup:
           Enabled: false
@@ -279,6 +281,7 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i128bigmem
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
     ComputeResources:
@@ -300,7 +303,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_128I_R}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 300
-      SchedulableMemory: 996147
       Networking:
         PlacementGroup:
           Enabled: false
@@ -330,6 +332,7 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i128nvme
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
     ComputeSettings:
@@ -345,7 +348,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_128I_NVME}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
-      SchedulableMemory: 996147
       Networking:
         PlacementGroup:
           Enabled: false
@@ -375,6 +377,7 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i192
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
     ComputeResources:
@@ -402,7 +405,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_192I_C}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
-      SchedulableMemory: 364544
       Networking:
         PlacementGroup:
           Enabled: false
@@ -428,7 +430,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_192I_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 200
-      SchedulableMemory: 747110
       Networking:
         PlacementGroup:
           Enabled: false
@@ -450,7 +451,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_192I_R}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 300
-      SchedulableMemory: 1494220
       Networking:
         PlacementGroup:
           Enabled: false
@@ -480,6 +480,7 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i192mem
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
     ComputeResources:
@@ -503,7 +504,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_192I_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 200
-      SchedulableMemory: 747110
       Networking:
         PlacementGroup:
           Enabled: false
@@ -533,6 +533,7 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i192bigmem
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
     ComputeResources:
@@ -552,7 +553,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_192I_R}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 300
-      SchedulableMemory: 1494220
       Networking:
         PlacementGroup:
           Enabled: false
@@ -582,6 +582,7 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i192nvme
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
     ComputeSettings:
@@ -599,7 +600,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_192I_NVME_C}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
-      SchedulableMemory: 364544
       Networking:
         PlacementGroup:
           Enabled: false
@@ -615,7 +615,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_192I_NVME_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 200
-      SchedulableMemory: 747110
       Networking:
         PlacementGroup:
           Enabled: false
@@ -631,7 +630,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_192I_NVME_R}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 300
-      SchedulableMemory: 1494220
       Networking:
         PlacementGroup:
           Enabled: false
@@ -661,6 +659,7 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i384nvme
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
     ComputeSettings:
@@ -675,7 +674,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_384I_NVME_C}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
-      SchedulableMemory: 747110
       Networking:
         PlacementGroup:
           Enabled: false
@@ -688,7 +686,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_384I_NVME_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 200
-      SchedulableMemory: 1494220
       Networking:
         PlacementGroup:
           Enabled: false
@@ -701,7 +698,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_384I_NVME_R}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 300
-      SchedulableMemory: 2988441
       Networking:
         PlacementGroup:
           Enabled: false
@@ -731,6 +727,7 @@ Scheduling:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i192hugenvme
+    JobExclusiveAllocation: false
     CapacityType: SPOT
     AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
     ComputeSettings:
@@ -748,7 +745,6 @@ Scheduling:
       MaxCount: ${REGSUB_MAX_COUNT_192I_HUGENVME}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
-      SchedulableMemory: 1494220
       Networking:
         PlacementGroup:
           Enabled: false

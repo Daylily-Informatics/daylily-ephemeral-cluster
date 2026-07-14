@@ -3454,7 +3454,18 @@ HeadNode:
     AdditionalIamPolicies:
       - Policy: arn:policy:default
 Scheduling:
-  SlurmQueues: []
+  Scheduler: slurm
+  SlurmSettings:
+    EnableMemoryBasedScheduling: false
+    CustomSlurmSettings:
+      - JobSubmitPlugins: lua
+      - AccountingStoreFlags: job_comment
+      - PrologFlags: Alloc
+  SlurmQueues:
+    - Name: i128
+      JobExclusiveAllocation: false
+      ComputeResources:
+        - Name: price128
 SharedStorage:
   - Name: fsx
     StorageType: FsxLustre

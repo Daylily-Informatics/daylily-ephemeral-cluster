@@ -271,17 +271,57 @@ def test_sbatch_wrapper_allows_under_budget_project(tmp_path: Path) -> None:
     )
 
 
-def test_sbatch_wrapper_strips_exclusive_allocation(tmp_path: Path) -> None:
+def test_sbatch_wrapper_preserves_exclusive_allocation(tmp_path: Path) -> None:
     wrapper = _prepared_wrapper(tmp_path, enforce_budget="skip")
     result = _run(wrapper, "--comment=project-a", "--exclusive", "--partition", "i8", "job.sh")
 
     assert result.returncode == 0
-    assert "ALERT WARNING: DYEC sbatch stripped exclusive allocation request '--exclusive'" in result.stderr
     assert (
-        "REAL_SLURM [--comment=project-a] [--export=ALL] [--partition] [i8] [job.sh]"
+        "REAL_SLURM [--comment=project-a] [--export=ALL] [--exclusive] [--partition] [i8] [job.sh]"
         in result.stdout
     )
-    assert "--exclusive" not in result.stdout
+
+
+def test_sbatch_wrapper_rejects_all_memory_placement_flags(tmp_path: Path) -> None:
+    wrapper = _prepared_wrapper(tmp_path, enforce_budget="skip")
+
+    for memory_args in (
+        ("--mem=8G",),
+        ("--mem", "8G"),
+        ("--mem-per-cpu=2G",),
+        ("--mem-per-cpu", "2G"),
+        ("--mem-per-gpu=16G",),
+        ("--mem-per-gpu", "16G"),
+        ("--mem-per-tres=gres/gpu:16G",),
+        ("--mem-per-tres", "gres/gpu:16G"),
+    ):
+        result = _run(wrapper, "--comment=project-a", *memory_args, "job.sh")
+        assert result.returncode == 1, memory_args
+        assert "Slurm memory placement is disabled" in result.stderr
+        assert "REAL_SLURM" not in result.stdout
+
+
+def test_sbatch_wrapper_preserves_nonmemory_scheduling_arguments(tmp_path: Path) -> None:
+    wrapper = _prepared_wrapper(tmp_path, enforce_budget="skip")
+    result = _run(
+        wrapper,
+        "--comment=project-a",
+        "--exclusive=user",
+        "--nodes",
+        "2",
+        "--cpus-per-task=8",
+        "--mem-bind=local",
+        "--hint=nomultithread",
+        "job.sh",
+    )
+
+    assert result.returncode == 0
+    assert (
+        "REAL_SLURM [--comment=project-a] [--export=ALL] [--exclusive=user] "
+        "[--nodes] [2] [--cpus-per-task=8] [--mem-bind=local] "
+        "[--hint=nomultithread] [job.sh]"
+        in result.stdout
+    )
 
 
 def test_sbatch_wrapper_rejects_unknown_enforcement_value(tmp_path: Path) -> None:
