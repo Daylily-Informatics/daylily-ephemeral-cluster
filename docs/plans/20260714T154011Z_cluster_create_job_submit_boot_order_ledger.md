@@ -27,7 +27,7 @@
 | ID | Work | State | Evidence |
 |---|---|---|---|
 | CBO-001 | Capture live root-cause evidence | SUCCESS | ParallelCluster describe, CloudFormation failure events, CloudWatch `chef-client`, `slurmctld`, and `slurmdbd` streams |
-| CBO-002 | Add pre-bootstrap installer to active templates | SUCCESS | Every non-archived source and packaged Slurm template that enables `JobSubmitPlugins: lua` now defines the exact head-node `OnNodeStart` installer. The Intel and Sentieon-template portion was swept into concurrent commit `051a276d`; DRAGEN/RHEL portions remain in this task's working-tree patch. |
+| CBO-002 | Add pre-bootstrap installer to active templates | SUCCESS | Every non-archived source and packaged Slurm template that enables `JobSubmitPlugins: lua` now defines the exact head-node `OnNodeStart` installer. The Intel and Sentieon-template portion entered through concurrent commit `051a276d`; DRAGEN/RHEL portions entered through `f89c92a3`. |
 | CBO-003 | Add fail-fast rendered-config validation | SUCCESS | `validate_cpu_only_slurm_contract` rejects missing or malformed pre-bootstrap installer actions before the `pcluster` dry-run/create boundary; terminal monitor output now preserves structured ParallelCluster failure details. |
 | CBO-004 | Add regression tests and validate | SUCCESS | `407 passed`; focused Ruff and `git diff --check` passed; installer scripts passed `bash -n`. |
 | CBO-005 | Live create proof | PENDING | Requires a new create attempt; not performed implicitly |
