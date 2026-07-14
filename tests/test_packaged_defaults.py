@@ -7,16 +7,11 @@ import yaml
 
 from daylily_ec.aws.context import AWSContext
 from daylily_ec.render.renderer import write_init_artifacts
-from daylily_ec.resources import resource_path
+from daylily_ec.resources import INTEL_TEMPLATE_RELPATHS, resource_path
 from daylily_ec.workflow import create_cluster
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-ACTIVE_CLUSTER_TEMPLATES = (
-    "config/day_cluster/intel/us-west-2/us-west-2a/prod_cluster_intel_us-west-2a.yaml",
-    "config/day_cluster/intel/us-west-2/us-west-2b/prod_cluster_intel_us-west-2b.yaml",
-    "config/day_cluster/intel/us-west-2/us-west-2c/prod_cluster_intel_us-west-2c.yaml",
-    "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml",
-)
+ACTIVE_CLUSTER_TEMPLATES = INTEL_TEMPLATE_RELPATHS
 SENTIEON_SINGLE_TEMPLATE = (
     "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
     "prod_cluster_sentieon-single_us-west-2c.yaml"
@@ -182,8 +177,9 @@ def test_active_cluster_template_uses_expected_partition_contract() -> None:
         payload = yaml.safe_load(text)
         queues = payload["Scheduling"]["SlurmQueues"]
         names = [queue["Name"] for queue in queues]
-        assert names == [
+        expected_names = [
             "i8",
+            "i96nvme",
             "i128",
             "i128mem",
             "i128bigmem",
@@ -192,9 +188,18 @@ def test_active_cluster_template_uses_expected_partition_contract() -> None:
             "i192mem",
             "i192bigmem",
             "i192nvme",
-            "i384nvme",
-            "i192hugenvme",
         ]
+        region_az = Path(relative_path).parent.name
+        if region_az not in {
+            "ap-south-1a",
+            "ap-south-1b",
+            "ap-south-1c",
+            "us-west-1a",
+            "us-west-1b",
+        }:
+            expected_names.append("i384nvme")
+        expected_names.append("i192hugenvme")
+        assert names == expected_names
         assert payload["Scheduling"]["SlurmSettings"]["EnableMemoryBasedScheduling"] is False
         assert "bcl-convert" not in names
         assert "bcl2fq-i384-nvme-test" not in names
@@ -228,6 +233,10 @@ def test_active_cluster_template_uses_expected_partition_contract() -> None:
             ]
         for queue in queues:
             assert queue["JobExclusiveAllocation"] is False
+            for resource in queue["ComputeResources"]:
+                assert resource.get("Instances"), (
+                    f"{relative_path}: {queue['Name']}/{resource['Name']} has no instances"
+                )
             if queue["Name"].endswith("nvme"):
                 assert (
                     queue["ComputeSettings"]["LocalStorage"]["EphemeralVolume"]["MountDir"]
@@ -238,6 +247,9 @@ def test_active_cluster_template_uses_expected_partition_contract() -> None:
         assert "c8a." not in text
         assert "r8in.48xlarge" not in text
         assert "r8ib.48xlarge" not in text
+        assert queues_by_name["i96nvme"]["ComputeResources"][0]["MaxCount"] == (
+            "${REGSUB_MAX_COUNT_96I_NVME}"
+        )
 
 
 def test_packaged_cluster_templates_match_source_templates() -> None:

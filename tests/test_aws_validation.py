@@ -57,6 +57,16 @@ class _Clients(SimpleNamespace):
         return getattr(self, service.replace("-", "_"))
 
 
+def _config_with_required_max_counts() -> ConfigFile:
+    cfg = ConfigFile()
+    cfg.ephemeral_cluster.config["max_count_96I_NVME"] = Triplet(
+        action="USESETVALUE",
+        default_value="",
+        set_value="1",
+    )
+    return cfg
+
+
 def _shape(
     *,
     headnode_root_volume_type: str = "gp3",
@@ -113,7 +123,7 @@ def test_options_reject_default_profile() -> None:
 
 
 def test_render_effective_cluster_yaml_uses_az_scoped_intel_default() -> None:
-    cfg = ConfigFile()
+    cfg = _config_with_required_max_counts()
     ctx = _Clients(region="us-west-2", region_az="us-west-2b", account_id="123456789012")
 
     _rendered, template_path, _cluster_name = validation_module.render_effective_cluster_yaml(
@@ -134,7 +144,7 @@ def test_render_effective_cluster_yaml_honors_explicit_template(tmp_path) -> Non
         "ClusterName: ${REGSUB_CLUSTER_NAME}\n",
         encoding="utf-8",
     )
-    cfg = ConfigFile()
+    cfg = _config_with_required_max_counts()
     cfg.ephemeral_cluster.config["cluster_template_yaml"] = Triplet(
         action="USESETVALUE",
         default_value="",
@@ -456,7 +466,7 @@ def test_run_permission_checks_uses_only_read_only_checks(monkeypatch) -> None:
 
 
 def test_run_quota_checks_covers_success_and_render_error(monkeypatch) -> None:
-    cfg = SimpleNamespace(ephemeral_cluster=SimpleNamespace(config={}, template_defaults={}))
+    cfg = _config_with_required_max_counts()
     ctx = _Clients(region_az="us-west-2d")
     shape = _shape()
     monkeypatch.setattr(

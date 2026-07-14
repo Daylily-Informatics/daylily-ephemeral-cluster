@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from daylily_ec.resources import ensure_extracted, resource_path
+from daylily_ec.resources import INTEL_TEMPLATE_REGION_AZS, ensure_extracted, resource_path
 
 
 def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
@@ -15,10 +15,10 @@ def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
     root = ensure_extracted()
     assert root.is_dir()
 
-    for az in ("us-west-2a", "us-west-2b", "us-west-2c", "us-west-2d"):
+    for az in INTEL_TEMPLATE_REGION_AZS:
         assert (
             root
-            / f"config/day_cluster/intel/us-west-2/{az}/prod_cluster_intel_{az}.yaml"
+            / f"config/day_cluster/intel/{az[:-1]}/{az}/prod_cluster_intel_{az}.yaml"
         ).is_file()
     sentieon_single = (
         root / "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"

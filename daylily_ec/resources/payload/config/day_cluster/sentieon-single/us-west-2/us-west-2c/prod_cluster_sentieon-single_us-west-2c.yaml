@@ -18,6 +18,11 @@ HeadNode:
     EphemeralVolume:
       MountDir: /head_root
   CustomActions:
+    OnNodeStart:
+      Script: ${REGSUB_S3_BUCKET_INIT}/install_slurm_job_submit_policy.sh
+      Args:
+      - ${REGSUB_REGION}
+      - ${REGSUB_S3_BUCKET_INIT}
     OnNodeConfigured:
       Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
       Args:
@@ -51,6 +56,53 @@ Scheduling:
     QueueUpdateStrategy: DRAIN
     # ${REGSUB_SLURM_ACCOUNTING_DATABASE}
   SlurmQueues:
+  - Name: i8
+    JobExclusiveAllocation: false
+    CapacityType: SPOT
+    AllocationStrategy: price-capacity-optimized
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    ComputeResources:
+    - Name: price8
+      Instances:
+      - InstanceType: i3en.2xlarge
+      - InstanceType: i4i.2xlarge
+      - InstanceType: i7i.2xlarge
+      - InstanceType: i7ie.2xlarge
+      MinCount: 0
+      MaxCount: 12
+      SpotPrice: CALCULATE_MAX_SPOT_PRICE
+      DynamicNodePriority: 100
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i96nvme
     JobExclusiveAllocation: false
     CapacityType: SPOT

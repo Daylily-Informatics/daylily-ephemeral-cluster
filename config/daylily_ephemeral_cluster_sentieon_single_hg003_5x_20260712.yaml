@@ -38,6 +38,7 @@ ephemeral_cluster:
     slurm_accounting_db_username: [USESETVALUE, "", ""]
     slurm_accounting_instance_type: [USESETVALUE, "", ""]
     max_count_8I: [USESETVALUE, "", "1"]
+    max_count_96I_NVME: [USESETVALUE, "", "1"]
     max_count_128I: [USESETVALUE, "", "1"]
     max_count_192I: [USESETVALUE, "", "1"]
     max_count_384I: [USESETVALUE, "", "1"]

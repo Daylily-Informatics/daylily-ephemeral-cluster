@@ -38,6 +38,7 @@ ephemeral_cluster:
     slurm_accounting_db_username: [PROMPTUSER, "slurm_acct", ""]
     slurm_accounting_instance_type: [PROMPTUSER, "t4g.micro", ""]
     max_count_8I: [PROMPTUSER, "1", ""]
+    max_count_96I_NVME: [PROMPTUSER, "1", ""]
     max_count_128I: [PROMPTUSER, "1", ""]
     max_count_192I: [PROMPTUSER, "1", ""]
     max_count_384I: [PROMPTUSER, "1", ""]
@@ -70,6 +71,7 @@ ephemeral_cluster:
     slurm_accounting_db_username: "slurm_acct"
     slurm_accounting_instance_type: "t4g.micro"
     max_count_8I: "1"
+    max_count_96I_NVME: "1"
     max_count_128I: "1"
     max_count_192I: "1"
     max_count_384I: "1"

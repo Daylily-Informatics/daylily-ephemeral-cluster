@@ -1681,6 +1681,7 @@ def run_quota_checks(
     """Run quota checks, including rendered ParallelCluster demand."""
 
     max_8i = _int_config_value(cfg, "max_count_8I", 1)
+    max_96i_nvme = _required_int_config_value(cfg, "max_count_96I_NVME")
     max_128i = _int_config_value(cfg, "max_count_128I", 1)
     max_192i = _int_config_value(cfg, "max_count_192I", 1)
     max_384i = _int_config_value(cfg, "max_count_384I", 1)
@@ -1689,6 +1690,7 @@ def run_quota_checks(
         for check in check_all_quotas(
             aws_ctx,
             max_count_8i=max_8i,
+            max_count_96i_nvme=max_96i_nvme,
             max_count_128i=max_128i,
             max_count_192i=max_192i,
             max_count_384i=max_384i,
@@ -4541,11 +4543,13 @@ def _validation_substitutions(
     cluster_name: str,
 ) -> dict[str, str]:
     max_8i = _int_config_value(cfg, "max_count_8I", 1)
+    max_96i_nvme = _required_int_config_value(cfg, "max_count_96I_NVME")
     max_128i = _int_config_value(cfg, "max_count_128I", 1)
     max_192i = _int_config_value(cfg, "max_count_192I", 1)
     max_384i = _int_config_value(cfg, "max_count_384I", 1)
     max_count_values = {
         "max_count_8I": str(max_8i),
+        "max_count_96I_NVME": str(max_96i_nvme),
         "max_count_128I": str(max_128i),
         "max_count_192I": str(max_192i),
         "max_count_384I": str(max_384i),
@@ -4647,6 +4651,7 @@ def _validation_substitutions(
         ),
         "REGSUB_DAYLILY_GIT_DEETS": "aws-validate",
         "REGSUB_MAX_COUNT_8I": max_count_values["max_count_8I"],
+        "REGSUB_MAX_COUNT_96I_NVME": max_count_values["max_count_96I_NVME"],
         "REGSUB_MAX_COUNT_128I": max_count_values["max_count_128I"],
         "REGSUB_MAX_COUNT_192I": max_count_values["max_count_192I"],
         "REGSUB_MAX_COUNT_384I": max_count_values["max_count_384I"],
@@ -4698,6 +4703,13 @@ def _effective_config_value(cfg: Any, key: str, fallback: str = "") -> str:
 
 def _int_config_value(cfg: Any, key: str, fallback: int) -> int:
     value = _effective_config_value(cfg, key, str(fallback))
+    return _coerce_nonnegative_int(value, key)
+
+
+def _required_int_config_value(cfg: Any, key: str) -> int:
+    value = _effective_config_value(cfg, key, "")
+    if not value:
+        raise ValueError(f"Missing required configuration value: {key}")
     return _coerce_nonnegative_int(value, key)
 
 

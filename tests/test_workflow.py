@@ -481,6 +481,7 @@ class TestAzClusterTemplateResolution:
         payload = yaml.safe_load(rendered)
         queues = payload["Scheduling"]["SlurmQueues"]
         assert [queue["Name"] for queue in queues] == [
+            "i8",
             "i96nvme",
             "i128nvme",
             "i192nvme",
@@ -1839,6 +1840,7 @@ class TestRunCreateWorkflow:
             say_available=False,
             config_overrides={
                 "max_count_8I": ["USESETVALUE", "1", "16"],
+                "max_count_96I_NVME": ["USESETVALUE", "1", "16"],
                 "max_count_128I": ["USESETVALUE", "1", "16"],
                 "max_count_192I": ["USESETVALUE", "1", "16"],
                 "max_count_384I": ["USESETVALUE", "1", "16"],
@@ -1863,6 +1865,7 @@ class TestRunCreateWorkflow:
         substitutions = records["render_substitutions"]
         for key in [
             "REGSUB_MAX_COUNT_8I",
+            "REGSUB_MAX_COUNT_96I_NVME",
             "REGSUB_MAX_COUNT_128I",
             "REGSUB_MAX_COUNT_192I",
             "REGSUB_MAX_COUNT_384I",
@@ -1886,6 +1889,7 @@ class TestRunCreateWorkflow:
         next_run_values = records["next_run_values"]
         for key in [
             "max_count_8I",
+            "max_count_96I_NVME",
             "max_count_128I",
             "max_count_192I",
             "max_count_384I",
@@ -3102,6 +3106,7 @@ def _build_workflow_config(
             "s3://lsmc-ssf-sequencing-data/derived/",
         ],
         "max_count_8I": ["USESETVALUE", "", "1"],
+        "max_count_96I_NVME": ["USESETVALUE", "", "1"],
         "max_count_128I": ["USESETVALUE", "", "1"],
         "max_count_192I": ["USESETVALUE", "", "1"],
         "max_count_384I": ["USESETVALUE", "", "1"],

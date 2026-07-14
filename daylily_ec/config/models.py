@@ -124,6 +124,7 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "max_count_192I",
     "max_count_384I",
     "max_count_8I",
+    "max_count_96I_NVME",
     "max_count_128I_C",
     "max_count_128I_M",
     "max_count_128I_R",

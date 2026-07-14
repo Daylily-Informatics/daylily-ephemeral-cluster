@@ -27,18 +27,34 @@ import importlib.resources as ir
 from daylily_ec import versioning
 
 RES_DIR_ENV = "DAYLILY_EC_RESOURCES_DIR"
-INTEL_US_WEST_2_TEMPLATE_RELPATHS = (
-    "config/day_cluster/intel/us-west-2/us-west-2a/prod_cluster_intel_us-west-2a.yaml",
-    "config/day_cluster/intel/us-west-2/us-west-2b/prod_cluster_intel_us-west-2b.yaml",
-    "config/day_cluster/intel/us-west-2/us-west-2c/prod_cluster_intel_us-west-2c.yaml",
-    "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml",
+INTEL_TEMPLATE_REGION_AZS = (
+    "ap-south-1a",
+    "ap-south-1b",
+    "ap-south-1c",
+    "eu-central-1a",
+    "eu-central-1b",
+    "eu-central-1c",
+    "us-east-2a",
+    "us-east-2b",
+    "us-east-2c",
+    "us-west-1a",
+    "us-west-1b",
+    "us-west-2a",
+    "us-west-2b",
+    "us-west-2c",
+    "us-west-2d",
+)
+INTEL_TEMPLATE_RELPATHS = tuple(
+    f"config/day_cluster/intel/{region_az[:-1]}/{region_az}/"
+    f"prod_cluster_intel_{region_az}.yaml"
+    for region_az in INTEL_TEMPLATE_REGION_AZS
 )
 SENTIEON_SINGLE_TEMPLATE_RELPATH = (
     "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
     "prod_cluster_sentieon-single_us-west-2c.yaml"
 )
 REQUIRED_CLUSTER_TEMPLATE_RELPATHS = (
-    *INTEL_US_WEST_2_TEMPLATE_RELPATHS,
+    *INTEL_TEMPLATE_RELPATHS,
     SENTIEON_SINGLE_TEMPLATE_RELPATH,
 )
 

@@ -55,28 +55,31 @@ class TestComputeSpotVcpuDemand:
     """Verify vCPU calculation for configured max-count families."""
 
     def test_defaults(self):
-        assert compute_spot_vcpu_demand(1, 1, 1, 1) == 8 + 128 + 192 + 384
+        assert compute_spot_vcpu_demand(1, 1, 1, 1, 1) == 8 + 96 + 128 + 192 + 384
 
     def test_zero_all(self):
-        assert compute_spot_vcpu_demand(0, 0, 0, 0) == 0
+        assert compute_spot_vcpu_demand(0, 0, 0, 0, 0) == 0
 
     def test_only_8i(self):
-        assert compute_spot_vcpu_demand(10, 0, 0, 0) == 80
+        assert compute_spot_vcpu_demand(10, 0, 0, 0, 0) == 80
+
+    def test_only_96i_nvme(self):
+        assert compute_spot_vcpu_demand(0, 3, 0, 0, 0) == 288
 
     def test_only_128i(self):
-        assert compute_spot_vcpu_demand(0, 3, 0, 0) == 384
+        assert compute_spot_vcpu_demand(0, 0, 3, 0, 0) == 384
 
     def test_only_192i(self):
-        assert compute_spot_vcpu_demand(0, 0, 2, 0) == 384
+        assert compute_spot_vcpu_demand(0, 0, 0, 2, 0) == 384
 
     def test_only_384i(self):
-        assert compute_spot_vcpu_demand(0, 0, 0, 2) == 768
+        assert compute_spot_vcpu_demand(0, 0, 0, 0, 2) == 768
 
     def test_mixed(self):
-        assert compute_spot_vcpu_demand(2, 1, 1, 1) == 720
+        assert compute_spot_vcpu_demand(2, 1, 1, 1, 1) == 816
 
     def test_large_values(self):
-        assert compute_spot_vcpu_demand(10, 5, 3, 2) == 2064
+        assert compute_spot_vcpu_demand(10, 4, 5, 3, 2) == 2448
 
 
 # ---------------------------------------------------------------------------
@@ -153,6 +156,7 @@ class TestCheckAllQuotas:
         results = check_all_quotas(
             ctx,
             max_count_8i=1,
+            max_count_96i_nvme=1,
             max_count_128i=1,
             max_count_192i=1,
             max_count_384i=1,
@@ -196,7 +200,7 @@ class TestCheckAllQuotas:
 
     def test_spot_vcpu_demand_below_quota_passes(self):
         """Spot demand < quota → PASS."""
-        # demand = (1*8) + (1*128) + (1*192) + (1*384) = 712, quota = 999
+        # demand = (1*8) + (1*96) + (1*128) + (1*192) + (1*384) = 808
         ctx = _make_aws_ctx()
         results = check_all_quotas(ctx)
         spot = [r for r in results if r.id == "quota.spot_vcpu"][0]
@@ -204,11 +208,12 @@ class TestCheckAllQuotas:
 
     def test_spot_vcpu_demand_exceeds_quota_interactive_warns(self):
         """Spot demand >= quota + interactive → WARN."""
-        # demand = (10*8) + (5*128) + (3*192) + (2*384) = 2064, quota = 200
+        # demand = (10*8) + (4*96) + (5*128) + (3*192) + (2*384) = 2448
         ctx = _make_aws_ctx({"L-34B43A08": 200.0})
         results = check_all_quotas(
             ctx,
             max_count_8i=10,
+            max_count_96i_nvme=4,
             max_count_128i=5,
             max_count_192i=3,
             max_count_384i=2,
@@ -216,8 +221,8 @@ class TestCheckAllQuotas:
         )
         spot = [r for r in results if r.id == "quota.spot_vcpu"][0]
         assert spot.status == CheckStatus.WARN
-        assert spot.details["tot_vcpu_demand"] == 2064
-        assert "2064" in spot.remediation
+        assert spot.details["tot_vcpu_demand"] == 2448
+        assert "2448" in spot.remediation
 
     def test_spot_vcpu_demand_exceeds_quota_noninteractive_fails(self):
         """Spot demand >= quota + non-interactive → FAIL."""
@@ -225,6 +230,7 @@ class TestCheckAllQuotas:
         results = check_all_quotas(
             ctx,
             max_count_8i=10,
+            max_count_96i_nvme=4,
             max_count_128i=5,
             max_count_192i=3,
             max_count_384i=2,
@@ -235,16 +241,16 @@ class TestCheckAllQuotas:
 
     def test_spot_demand_exactly_equal_to_quota(self):
         """Spot demand == quota → triggers warning/fail (>= comparison)."""
-        # demand = (1*8) + (1*128) + (1*192) + (1*384) = 712
-        ctx = _make_aws_ctx({"L-34B43A08": 712.0})
+        # demand = (1*8) + (1*96) + (1*128) + (1*192) + (1*384) = 808
+        ctx = _make_aws_ctx({"L-34B43A08": 808.0})
         results = check_all_quotas(ctx, non_interactive=True)
         spot = [r for r in results if r.id == "quota.spot_vcpu"][0]
         assert spot.status == CheckStatus.FAIL
 
     def test_spot_demand_one_below_quota_passes(self):
         """Spot demand < quota by 1 → PASS (not below recommended either)."""
-        # demand = 712, quota = 713
-        ctx = _make_aws_ctx({"L-34B43A08": 713.0})
+        # demand = 808, quota = 809
+        ctx = _make_aws_ctx({"L-34B43A08": 809.0})
         results = check_all_quotas(ctx)
         spot = [r for r in results if r.id == "quota.spot_vcpu"][0]
         assert spot.status == CheckStatus.PASS
@@ -274,7 +280,7 @@ class TestCheckAllQuotas:
             max_count_384i=1,
         )
         spot = [r for r in results if r.id == "quota.spot_vcpu"][0]
-        assert spot.details["tot_vcpu_demand"] == (2 * 8) + 128 + 192 + 384
+        assert spot.details["tot_vcpu_demand"] == (2 * 8) + 96 + 128 + 192 + 384
 
 
 # ---------------------------------------------------------------------------
@@ -303,6 +309,7 @@ class TestMakeQuotaPreflightStep:
         step = make_quota_preflight_step(
             ctx,
             max_count_8i=10,
+            max_count_96i_nvme=4,
             max_count_128i=5,
             max_count_192i=3,
             max_count_384i=2,
@@ -312,7 +319,7 @@ class TestMakeQuotaPreflightStep:
         result = step(report)
         spot = [c for c in result.checks if c.id == "quota.spot_vcpu"][0]
         assert spot.status == CheckStatus.FAIL
-        assert spot.details["tot_vcpu_demand"] == 2064
+        assert spot.details["tot_vcpu_demand"] == 2448
 
     def test_step_preserves_existing_checks(self):
         """Step should extend, not replace, existing checks."""
@@ -327,6 +334,5 @@ class TestMakeQuotaPreflightStep:
         result = step(report)
         assert len(result.checks) == 7  # 1 existing + 6 quota
         assert result.checks[0].id == "toolchain.python"
-
 
 

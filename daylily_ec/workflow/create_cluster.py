@@ -102,6 +102,12 @@ SENTIEON_SINGLE_QUEUE_MAX_COUNT = 12
 # X-family types are intentionally excluded: their separate 128-vCPU Spot
 # quota cannot cover the fixed one-node i96nvme and i128nvme queue maxima.
 SENTIEON_SINGLE_QUEUE_INSTANCE_TYPES = {
+    "i8": (
+        "i3en.2xlarge",
+        "i4i.2xlarge",
+        "i7i.2xlarge",
+        "i7ie.2xlarge",
+    ),
     "i96nvme": (
         "c5d.24xlarge",
         "c5d.metal",
@@ -184,6 +190,7 @@ SENTIEON_SINGLE_QUEUE_INSTANCE_TYPES = {
     ),
 }
 SENTIEON_SINGLE_QUEUE_RESOURCE_NAMES = {
+    "i8": "price8",
     "i96nvme": "price96nvme",
     "i128nvme": "price128nvme",
     "i192nvme": "price192nvme",
@@ -1408,7 +1415,7 @@ def validate_sentieon_single_cluster_contract(cluster_yaml_path: str | Path) -> 
     queue_names = [str(queue.get("Name") or "") for queue in queues]
     if queue_names != expected_queue_names:
         raise ValueError(
-            "Sentieon single cluster must render exactly the i96nvme, i128nvme, "
+            "Sentieon single cluster must render exactly the i8, i96nvme, i128nvme, "
             f"i192nvme, and i384nvme queues; rendered queues were {queue_names}."
         )
 
@@ -2622,6 +2629,17 @@ def run_create_workflow(
         )
         or "1"
     )
+    max_96i_nvme_text = _resolve_config_value(
+        cfg,
+        "max_count_96I_NVME",
+        "Max 96-vCPU local-NVMe count",
+        non_interactive=non_interactive,
+    )
+    if not max_96i_nvme_text:
+        logger.error("Missing required max_count_96I_NVME configuration value.")
+        ui.fail("max_count_96I_NVME must be configured explicitly.")
+        return EXIT_VALIDATION_FAILURE
+    max_96i_nvme = int(max_96i_nvme_text)
     max_128i = int(
         _resolve_config_value(
             cfg,
@@ -2654,6 +2672,7 @@ def run_create_workflow(
     )
     max_count_values: Dict[str, str] = {
         "max_count_8I": str(max_8i),
+        "max_count_96I_NVME": str(max_96i_nvme),
         "max_count_128I": str(max_128i),
         "max_count_192I": str(max_192i),
         "max_count_384I": str(max_384i),
@@ -2720,6 +2739,7 @@ def run_create_workflow(
         make_quota_preflight_step(
             aws_ctx,
             max_count_8i=max_8i,
+            max_count_96i_nvme=max_96i_nvme,
             max_count_128i=max_128i,
             max_count_192i=max_192i,
             max_count_384i=max_384i,
@@ -3334,6 +3354,7 @@ def run_create_workflow(
         # Tag value must be non-empty (AWS min length = 1).
         "REGSUB_DAYLILY_GIT_DEETS": "none",
         "REGSUB_MAX_COUNT_8I": max_count_values["max_count_8I"],
+        "REGSUB_MAX_COUNT_96I_NVME": max_count_values["max_count_96I_NVME"],
         "REGSUB_MAX_COUNT_128I": max_count_values["max_count_128I"],
         "REGSUB_MAX_COUNT_192I": max_count_values["max_count_192I"],
         "REGSUB_MAX_COUNT_384I": max_count_values["max_count_384I"],
@@ -4010,6 +4031,12 @@ def run_preflight_only(
     )
 
     max_8i = int(get_effective_default(cfg, "max_count_8I", "1") or "1")
+    max_96i_nvme_text = get_effective_default(cfg, "max_count_96I_NVME", "")
+    if not max_96i_nvme_text:
+        logger.error("Missing required max_count_96I_NVME configuration value.")
+        ui.fail("max_count_96I_NVME must be configured explicitly.")
+        return EXIT_VALIDATION_FAILURE
+    max_96i_nvme = int(max_96i_nvme_text)
     max_128i = int(get_effective_default(cfg, "max_count_128I", "1") or "1")
     max_192i = int(get_effective_default(cfg, "max_count_192I", "1") or "1")
     max_384i = int(get_effective_default(cfg, "max_count_384I", "1") or "1")
@@ -4052,6 +4079,7 @@ def run_preflight_only(
         make_quota_preflight_step(
             aws_ctx,
             max_count_8i=max_8i,
+            max_count_96i_nvme=max_96i_nvme,
             max_count_128i=max_128i,
             max_count_192i=max_192i,
             max_count_384i=max_384i,
