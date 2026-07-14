@@ -2365,12 +2365,8 @@ def run_create_workflow(
     pass_on_warn: bool = False,
     debug: bool = False,
     non_interactive: bool = False,
-    disable_slurm_accounting: bool = False,
-    create_slurm_accounting_db: bool = False,
-    scan_slurm_accounting_db: bool = False,
     disable_budget_enforcement: bool = False,
     budget_project: Optional[str] = None,
-    slurm_accounting_stack_name: str = "",
     global_spot_max_cost: float = DEFAULT_GLOBAL_SPOT_MAX_COST,
     spot_cost_limit_pct: float = DEFAULT_SPOT_COST_LIMIT_PCT,
     write_spot_pricing_warn_threshold: float = DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
@@ -2411,15 +2407,7 @@ def run_create_workflow(
         make_s3_bucket_preflight_step,
     )
     from daylily_ec.aws.slurm_accounting import (
-        DEFAULT_ACCOUNTING_DATABASE_NAME,
-        DEFAULT_ACCOUNTING_INSTANCE_TYPE,
-        DEFAULT_ACCOUNTING_USERNAME,
-        SlurmAccountingDb,
-        SlurmAccountingError,
         empty_slurm_accounting_render_blocks,
-        ensure_slurm_accounting_db,
-        scan_slurm_accounting_ec2_candidates,
-        slurm_accounting_render_blocks,
     )
     from daylily_ec.aws.ssm import wait_for_ssm_online
     from daylily_ec.aws.spot_pricing import apply_spot_prices
@@ -2860,43 +2848,33 @@ def run_create_workflow(
             "slurm_accounting_create_db",
             "false",
         )
-        config_accounting_enabled_for_baseline = _resolve_nonprompt_bool_config(
+        config_accounting_enabled = _resolve_nonprompt_bool_config(
             cfg,
             "slurm_accounting_enabled",
-            "true",
+            "false",
         )
     except ValueError as exc:
         logger.error("Slurm accounting config validation failed: %s", exc)
         ui.fail(f"Slurm accounting config: {exc}")
         return EXIT_VALIDATION_FAILURE
 
+    if config_accounting_enabled or config_accounting_create_requested:
+        logger.error("Slurm accounting was requested during cluster creation.")
+        ui.fail(
+            "Slurm accounting is post-create only. Set slurm_accounting_enabled=false "
+            "and slurm_accounting_create_db=false, create the cluster, then run "
+            "dyec slurm-accounting attach."
+        )
+        return EXIT_VALIDATION_FAILURE
+
     explicit_core_resources = all(
         _has_explicit_set_value(cfg, key)
         for key in ("public_subnet_id", "private_subnet_id", "iam_policy_arn")
     )
-    if disable_slurm_accounting and (
-        create_slurm_accounting_db or scan_slurm_accounting_db or config_accounting_create_requested
-    ):
-        logger.error("Slurm accounting was disabled while DB create/scan was requested.")
-        ui.fail(
-            "--disable-slurm-accounting cannot be combined with Slurm accounting "
-            "database create or scan requests."
-        )
-        return EXIT_VALIDATION_FAILURE
-
-    accounting_enabled_for_baseline = (
-        config_accounting_enabled_for_baseline and not disable_slurm_accounting
-    )
-    needs_baseline_vpc = (
-        scan_slurm_accounting_db
-        or create_slurm_accounting_db
-        or config_accounting_create_requested
-        or accounting_enabled_for_baseline
-    )
 
     # 3a. Baseline CFN stack
     stack_name = derive_stack_name(region_az)
-    if explicit_core_resources and not needs_baseline_vpc:
+    if explicit_core_resources:
         cfn_outputs = StackOutputs()
         ui.step("Skipping baseline CFN stack; explicit subnet and IAM policy config present.")
         ui.ok("Baseline CFN stack not required")
@@ -3029,178 +3007,7 @@ def run_create_workflow(
     ui.detail("Subnets", f"pub={public_subnet}  priv={private_subnet}")
     ui.detail("Policy", policy_arn)
 
-    accounting_vpc_id = ""
-    if private_subnet:
-        try:
-            accounting_vpc_id = _resolve_subnet_vpc_id(
-                ec2,
-                private_subnet,
-                label="private subnet",
-            )
-        except ValueError as exc:
-            logger.error("Private subnet VPC resolution failed: %s", exc)
-            ui.fail(str(exc))
-            return EXIT_VALIDATION_FAILURE
-    if not accounting_vpc_id:
-        accounting_vpc_id = cfn_outputs.vpc_id
-
-    accounting_db: Optional[SlurmAccountingDb] = None
     accounting_render_blocks = empty_slurm_accounting_render_blocks()
-    try:
-        config_create_accounting = _resolve_nonprompt_bool_config(
-            cfg,
-            "slurm_accounting_create_db",
-            "false",
-        )
-        accounting_create_requested = create_slurm_accounting_db or config_create_accounting
-        config_accounting_enabled = _resolve_nonprompt_bool_config(
-            cfg,
-            "slurm_accounting_enabled",
-            "true",
-        )
-    except ValueError as exc:
-        logger.error("Slurm accounting config validation failed: %s", exc)
-        ui.fail(f"Slurm accounting config: {exc}")
-        return EXIT_VALIDATION_FAILURE
-
-    accounting_enabled = config_accounting_enabled and not disable_slurm_accounting
-
-    if scan_slurm_accounting_db and accounting_create_requested:
-        logger.error("Slurm accounting scan was requested with create enabled.")
-        ui.fail(
-            "Slurm accounting scan cannot be combined with --create-slurm-accounting-db "
-            "or slurm_accounting_create_db=true."
-        )
-        return EXIT_VALIDATION_FAILURE
-
-    if scan_slurm_accounting_db:
-        if not accounting_vpc_id:
-            logger.error("Slurm accounting scan requires a resolved VPC id.")
-            ui.fail("Slurm accounting scan requires a resolved VPC id.")
-            return EXIT_VALIDATION_FAILURE
-
-        ui.step("Scanning EC2 for reusable Slurm accounting DB hosts ...")
-        try:
-            scan_candidates = scan_slurm_accounting_ec2_candidates(
-                aws_ctx,
-                region_az=region_az,
-                vpc_id=accounting_vpc_id,
-            )
-        except SlurmAccountingError as exc:
-            logger.error("Slurm accounting EC2 scan failed: %s", exc)
-            ui.fail(f"Slurm accounting DB scan: {exc}")
-            return EXIT_AWS_FAILURE
-
-        selectable_candidates = [
-            candidate for candidate in scan_candidates if candidate.selectable and candidate.db
-        ]
-        advisory_candidates = [
-            candidate for candidate in scan_candidates if not candidate.selectable
-        ]
-        for candidate in advisory_candidates[:5]:
-            ui.warn(
-                "Skipping non-selectable Slurm accounting candidate "
-                f"{candidate.instance_id}: {candidate.reason}"
-            )
-        if len(advisory_candidates) > 5:
-            ui.warn(
-                f"Skipping {len(advisory_candidates) - 5} additional non-selectable "
-                "Slurm accounting candidate(s)."
-            )
-
-        if not selectable_candidates:
-            ui.warn("No usable Slurm accounting DB candidates found; continuing without sacct DB.")
-        elif non_interactive:
-            ui.warn(
-                "Slurm accounting DB candidates were found, but --non-interactive was set; "
-                "continuing without sacct DB."
-            )
-        else:
-            selected_candidate = _prompt_slurm_accounting_candidate(selectable_candidates)
-            if selected_candidate is None:
-                ui.info("Slurm accounting DB skipped by selection.")
-            else:
-                accounting_db = selected_candidate.db
-
-        if accounting_db:
-            accounting_render_blocks = slurm_accounting_render_blocks(accounting_db)
-            ui.ok("Slurm accounting DB selected")
-            ui.detail("Accounting stack", accounting_db.stack_name)
-            ui.detail("Accounting URI", accounting_db.uri)
-            ui.detail("Accounting database", accounting_db.database_name)
-            ui.detail("Accounting user", accounting_db.username)
-            ui.detail("Accounting secret", accounting_db.password_secret_arn)
-            ui.detail("Accounting client SG", accounting_db.client_security_group_id)
-
-    elif accounting_create_requested or accounting_enabled:
-        if not accounting_vpc_id:
-            logger.error("Slurm accounting requires a resolved VPC id.")
-            ui.fail("Slurm accounting requires a resolved VPC id.")
-            return EXIT_VALIDATION_FAILURE
-
-        accounting_stack_name = (
-            slurm_accounting_stack_name.strip()
-            or _resolve_nonprompt_config_value(
-                cfg,
-                "slurm_accounting_stack_name",
-                "",
-            )
-        )
-        accounting_database_name = _resolve_nonprompt_config_value(
-            cfg,
-            "slurm_accounting_database_name",
-            DEFAULT_ACCOUNTING_DATABASE_NAME,
-        )
-        accounting_username = _resolve_nonprompt_config_value(
-            cfg,
-            "slurm_accounting_db_username",
-            DEFAULT_ACCOUNTING_USERNAME,
-        )
-        accounting_instance_type = _resolve_nonprompt_config_value(
-            cfg,
-            "slurm_accounting_instance_type",
-            DEFAULT_ACCOUNTING_INSTANCE_TYPE,
-        )
-        try:
-            accounting_assign_public_ip = _subnet_has_public_default_route(
-                ec2,
-                private_subnet,
-                label="private subnet",
-            )
-        except ValueError as exc:
-            logger.error("Private subnet route-table inspection failed: %s", exc)
-            ui.fail(str(exc))
-            return EXIT_VALIDATION_FAILURE
-
-        ui.step("Resolving Slurm accounting DB ...")
-        try:
-            accounting_db = ensure_slurm_accounting_db(
-                aws_ctx,
-                region_az=region_az,
-                vpc_id=accounting_vpc_id,
-                private_subnet_id=private_subnet,
-                create_if_missing=accounting_create_requested,
-                stack_name=accounting_stack_name,
-                database_name=accounting_database_name,
-                username=accounting_username,
-                instance_type=accounting_instance_type,
-                assign_public_ip=accounting_assign_public_ip,
-                warning_callback=ui.warn,
-            )
-        except SlurmAccountingError as exc:
-            logger.error("Slurm accounting DB resolution failed: %s", exc)
-            ui.fail(f"Slurm accounting DB: {exc}")
-            return EXIT_AWS_FAILURE
-        accounting_render_blocks = slurm_accounting_render_blocks(accounting_db)
-        ui.ok("Slurm accounting DB ready")
-        ui.detail("Accounting stack", accounting_db.stack_name)
-        ui.detail("Accounting assign public IP", str(accounting_assign_public_ip).lower())
-        ui.detail("Accounting URI", accounting_db.uri)
-        ui.detail("Accounting database", accounting_db.database_name)
-        ui.detail("Accounting user", accounting_db.username)
-        ui.detail("Accounting secret", accounting_db.password_secret_arn)
-        ui.detail("Accounting client SG", accounting_db.client_security_group_id)
-
     ui.step("Publishing cluster boot config to runtime assets ...")
     try:
         cluster_boot_source_dir = resource_path("config/day_cluster")
@@ -3665,20 +3472,12 @@ def run_create_workflow(
         "dyec_deploy_key_policy_arn": dyec_deploy_key_inputs.policy_arn,
         "dayoa_deploy_key_secret_arn": dayoa_deploy_key_inputs.secret_arn,
         "dayoa_deploy_key_policy_arn": dayoa_deploy_key_inputs.policy_arn,
-        "slurm_accounting_enabled": "true" if accounting_db else "false",
+        "slurm_accounting_enabled": "false",
         "slurm_accounting_create_db": "false",
-        "slurm_accounting_stack_name": accounting_db.stack_name if accounting_db else "",
-        "slurm_accounting_database_name": accounting_db.database_name if accounting_db else "",
-        "slurm_accounting_db_username": accounting_db.username if accounting_db else "",
-        "slurm_accounting_instance_type": (
-            _resolve_nonprompt_config_value(
-                cfg,
-                "slurm_accounting_instance_type",
-                DEFAULT_ACCOUNTING_INSTANCE_TYPE,
-            )
-            if accounting_db
-            else ""
-        ),
+        "slurm_accounting_stack_name": "",
+        "slurm_accounting_database_name": "",
+        "slurm_accounting_db_username": "",
+        "slurm_accounting_instance_type": "",
         **max_count_values,
     }
     next_run_path = CONFIG_DIR / f"{cluster_name}_next_run_{ts}.yaml"
@@ -3707,14 +3506,6 @@ def run_create_workflow(
         heartbeat_role_arn=hb_result.role_arn if hb_result.success else "",
         heartbeat_email=post_create_inputs.heartbeat_email,
         heartbeat_schedule_expression=post_create_inputs.heartbeat_schedule,
-        slurm_accounting_stack_name=accounting_db.stack_name if accounting_db else "",
-        slurm_accounting_uri=accounting_db.uri if accounting_db else "",
-        slurm_accounting_secret_arn=accounting_db.password_secret_arn if accounting_db else "",
-        slurm_accounting_client_security_group_id=(
-            accounting_db.client_security_group_id if accounting_db else ""
-        ),
-        slurm_accounting_database_name=accounting_db.database_name if accounting_db else "",
-        slurm_accounting_username=accounting_db.username if accounting_db else "",
         init_template_path=init_template_path,
         cluster_yaml_path=cluster_yaml_path,
         resolved_cli_config_path=str(next_run_path),

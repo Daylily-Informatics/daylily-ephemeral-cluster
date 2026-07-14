@@ -87,10 +87,6 @@ Important options:
 - `--non-interactive`
 - `--budget-project <project>`: retired; cluster budgets are named by cluster name
 - `--disable-budget-enforcement`: render the cluster budget-enforcement tag as `skip`
-- `--disable-slurm-accounting`: explicitly opt out of the default Slurm accounting DB attachment
-- `--create-slurm-accounting-db`
-- `--scan-slurm-accounting-db`
-- `--slurm-accounting-stack-name <name>`
 - `--global-spot-max-cost <usd>`: default and hard maximum `9.99`; hard fails if `<= 0` or `> 9.99`
 - `--spot-cost-limit-pct <multiplier>`: default `1.7`; hard fails if `< 1.0` or `> 2.2`
 - `--write-spot-pricing-warn-threshold <usd>`: default `6.00`; hard fails if `<= 0`
@@ -491,10 +487,49 @@ dyec --json exports detach --profile "$AWS_PROFILE" --region "$REGION" --associa
 
 ```bash
 dyec slurm-accounting ensure --help
-dyec create --scan-slurm-accounting-db --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
+dyec slurm-accounting attach --help
 ```
 
-New clusters use Slurm accounting by default. The create workflow resolves an existing healthy DayEC accounting database and fails clearly if none is available; it does not create a database silently. Use `--create-slurm-accounting-db` to authorize creation, or `--disable-slurm-accounting` to explicitly opt out for that cluster. On a running cluster, `sacct --version` may succeed while job-account queries fail if Slurm accounting storage is disabled. Treat that as an infrastructure/config state, not as a reason to restart Slurm or modify jobs.
+New clusters omit Slurm accounting by default. This keeps a missing or
+cross-VPC accounting service from preventing a usable ParallelCluster from
+being created. A cluster without accounting can run jobs, but historical
+`sacct` persistence is unavailable.
+
+AWS ParallelCluster requires the compute fleet to be stopped before
+`Scheduling.SlurmSettings.Database` can be updated. After confirming that no
+jobs must remain running, stop it explicitly, validate the attachment, then
+submit it:
+
+```bash
+pcluster update-compute-fleet \
+  --cluster-name "$CLUSTER_NAME" \
+  --region "$REGION" \
+  --status STOP_REQUESTED
+
+pcluster describe-compute-fleet \
+  --cluster-name "$CLUSTER_NAME" \
+  --region "$REGION"
+
+dyec slurm-accounting attach \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --dry-run
+
+dyec slurm-accounting attach \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
+```
+
+The attach command uses only an existing compatible accounting service. It
+does not create a second stack, stop the compute fleet, force an update, alter
+the original cluster YAML, or print database connection or credential values.
+It writes a separate update YAML and requires a successful
+`pcluster update-cluster --dryrun true` before submitting the real update. If
+the service is missing or in an incompatible VPC, attachment fails and the
+already-created cluster remains intact. Restart the compute fleet only after
+the cluster update reaches its successful terminal state.
 
 ## Delete
 

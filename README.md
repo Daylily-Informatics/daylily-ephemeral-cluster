@@ -117,10 +117,11 @@ when the cluster AWS Budget lookup should be skipped. Cost-center validation
 and the `--comment` requirement still apply. For per-run cost-center overrides,
 pass `--project <cost-center>` to `dyec samples run` or `dyec workflow launch`.
 
-New clusters also use Slurm accounting by default. `dyec create` resolves an
-existing healthy DayEC accounting database and fails clearly when one is not
-available; database creation still requires `--create-slurm-accounting-db`.
-Use `--disable-slurm-accounting` to explicitly opt out for a cluster.
+New clusters omit Slurm accounting by default so an unavailable or
+network-incompatible accounting service cannot block cluster creation. Cluster
+creation rejects accounting-enabled configuration; accounting is attached only
+after creation with `dyec slurm-accounting attach` and only after the compute
+fleet has been explicitly stopped.
 
 After connection, the supported headnode user is `ubuntu` in an interactive bash login shell. Manual DayOA workflow work belongs in a persistent `tmux` session and uses separate commands:
 

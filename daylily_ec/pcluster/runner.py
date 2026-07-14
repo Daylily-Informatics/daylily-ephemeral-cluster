@@ -320,6 +320,72 @@ def create_cluster(
     return result
 
 
+def describe_cluster(
+    cluster_name: str,
+    region: str,
+    *,
+    profile: Optional[str] = None,
+    executable: str = "pcluster",
+) -> PclusterResult:
+    """Return the current ParallelCluster description for *cluster_name*."""
+    result = _run_pcluster(
+        ["describe-cluster", "-n", cluster_name, "--region", region],
+        profile=profile,
+        executable=executable,
+    )
+    result.success = result.returncode == 0 and bool(result.json_body)
+    return result
+
+
+def describe_compute_fleet(
+    cluster_name: str,
+    region: str,
+    *,
+    profile: Optional[str] = None,
+    executable: str = "pcluster",
+) -> PclusterResult:
+    """Return the current ParallelCluster compute-fleet description."""
+    result = _run_pcluster(
+        ["describe-compute-fleet", "-n", cluster_name, "--region", region],
+        profile=profile,
+        executable=executable,
+    )
+    result.success = result.returncode == 0 and bool(result.json_body)
+    return result
+
+
+def update_cluster(
+    cluster_name: str,
+    config_path: str,
+    region: str,
+    *,
+    profile: Optional[str] = None,
+    dry_run: bool = False,
+    executable: str = "pcluster",
+) -> PclusterResult:
+    """Validate or submit a supported ``pcluster update-cluster`` operation."""
+    result = _run_pcluster(
+        [
+            "update-cluster",
+            "-n",
+            cluster_name,
+            "-c",
+            config_path,
+            "--dryrun",
+            "true" if dry_run else "false",
+            "--region",
+            region,
+        ],
+        profile=profile,
+        executable=executable,
+    )
+    if dry_run:
+        result.success = result.returncode == 0 and result.message == DRY_RUN_SUCCESS_MESSAGE
+    else:
+        result.success = result.returncode == 0
+    return result
+
+
 def delete_cluster(
     cluster_name: str,
     region: str,

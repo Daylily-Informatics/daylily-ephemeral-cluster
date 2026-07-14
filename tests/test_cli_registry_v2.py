@@ -56,6 +56,7 @@ EXPECTED_COMMANDS = {
     ("aws", "validate", "quotas"),
     ("aws", "validate", "all"),
     ("slurm-accounting", "ensure"),
+    ("slurm-accounting", "attach"),
     ("cost-centers", "ensure-registry"),
     ("cost-centers", "create"),
     ("cost-centers", "edit"),
@@ -241,6 +242,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     aws_validate_quotas_cmd = registry.get_command(("aws", "validate", "quotas"))
     aws_validate_all_cmd = registry.get_command(("aws", "validate", "all"))
     slurm_accounting_ensure_cmd = registry.get_command(("slurm-accounting", "ensure"))
+    slurm_accounting_attach_cmd = registry.get_command(("slurm-accounting", "attach"))
     cost_centers_put_usage_cmd = registry.get_command(("cost-centers", "put-usage"))
     cost_centers_ensure_cur_export_cmd = registry.get_command(("cost-centers", "ensure-cur-export"))
 
@@ -449,6 +451,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert slurm_accounting_ensure_cmd.policy.mutates_state is True
     assert slurm_accounting_ensure_cmd.policy.long_running is True
 
+    assert slurm_accounting_attach_cmd is not None
+    assert slurm_accounting_attach_cmd.policy.supports_json is True
+    assert slurm_accounting_attach_cmd.policy.mutates_state is True
+    assert slurm_accounting_attach_cmd.policy.long_running is True
+
     assert cost_centers_put_usage_cmd is not None
     assert cost_centers_put_usage_cmd.policy.supports_json is True
     assert cost_centers_put_usage_cmd.policy.mutates_state is True
@@ -576,9 +583,6 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
             "--debug",
             "--non-interactive",
             "--disable-budget-enforcement",
-            "--create-slurm-accounting-db",
-            "--slurm-accounting-stack-name",
-            "dayec-costacct-20260705T000000Z",
         ],
     )
 
@@ -592,11 +596,7 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "debug": True,
         "non_interactive": True,
         "disable_budget_enforcement": True,
-        "disable_slurm_accounting": False,
         "budget_project": None,
-        "create_slurm_accounting_db": True,
-        "scan_slurm_accounting_db": False,
-        "slurm_accounting_stack_name": "dayec-costacct-20260705T000000Z",
         "global_spot_max_cost": 9.99,
         "spot_cost_limit_pct": 1.70,
         "write_spot_pricing_warn_threshold": 8.0,
@@ -797,40 +797,6 @@ def test_create_command_passes_supported_sentieon_single_type(monkeypatch, tmp_p
     }
 
 
-def test_create_command_passes_disable_slurm_accounting(monkeypatch, tmp_path) -> None:
-    import daylily_ec.workflow.create_cluster as create_module
-
-    calls: dict[str, object] = {}
-    _activate_dayec_runtime(monkeypatch)
-    config_path = tmp_path / "daylily.yaml"
-    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
-
-    def fake_run_create_workflow(region_az: str, **kwargs) -> int:
-        calls["region_az"] = region_az
-        calls["kwargs"] = kwargs
-        return 0
-
-    monkeypatch.setattr(create_module, "run_create_workflow", fake_run_create_workflow)
-
-    result = runner.invoke(
-        app,
-        [
-            "create",
-            "--region-az",
-            "us-west-2d",
-            "--config",
-            str(config_path),
-            "--disable-slurm-accounting",
-        ],
-    )
-
-    assert result.exit_code == 0
-    assert calls["region_az"] == "us-west-2d"
-    assert calls["kwargs"]["disable_slurm_accounting"] is True
-    assert calls["kwargs"]["create_slurm_accounting_db"] is False
-    assert calls["kwargs"]["scan_slurm_accounting_db"] is False
-
-
 def test_create_command_defaults_region_az_to_us_west_2d(monkeypatch, tmp_path) -> None:
     import daylily_ec.workflow.create_cluster as create_module
 
@@ -941,86 +907,25 @@ def test_create_command_rejects_retired_budget_project(monkeypatch) -> None:
     assert "--budget-project is retired" in result.output
 
 
-def test_create_command_passes_scan_slurm_accounting_option(monkeypatch, tmp_path) -> None:
-    import daylily_ec.workflow.create_cluster as create_module
-
-    calls: dict[str, object] = {}
-    _activate_dayec_runtime(monkeypatch)
-    config_path = tmp_path / "daylily.yaml"
-    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
-
-    def fake_run_create_workflow(region_az: str, **kwargs) -> int:
-        calls["region_az"] = region_az
-        calls["kwargs"] = kwargs
-        return 0
-
-    monkeypatch.setattr(create_module, "run_create_workflow", fake_run_create_workflow)
-
-    result = runner.invoke(
-        app,
-        [
-            "create",
-            "--region-az",
-            "us-west-2d",
-            "--profile",
-            "dev",
-            "--config",
-            str(config_path),
-            "--scan-slurm-accounting-db",
-        ],
-    )
-
-    assert result.exit_code == 0
-    assert calls["region_az"] == "us-west-2d"
-    assert calls["kwargs"]["scan_slurm_accounting_db"] is True
-    assert calls["kwargs"]["create_slurm_accounting_db"] is False
-    assert calls["kwargs"]["disable_budget_enforcement"] is False
-    assert calls["kwargs"]["budget_project"] is None
-
-
-def test_create_command_rejects_scan_and_create_slurm_accounting_flags(
-    monkeypatch,
-) -> None:
-    _activate_dayec_runtime(monkeypatch)
-
-    result = runner.invoke(
-        app,
-        [
-            "create",
-            "--region-az",
-            "us-west-2d",
-            "--scan-slurm-accounting-db",
-            "--create-slurm-accounting-db",
-        ],
-    )
-
-    assert result.exit_code == 2
-    assert "--scan-slurm-accounting-db cannot be combined" in result.stderr
-
-
 @pytest.mark.parametrize(
-    "accounting_flag",
-    ["--scan-slurm-accounting-db", "--create-slurm-accounting-db"],
+    "legacy_flag",
+    [
+        "--disable-slurm-accounting",
+        "--create-slurm-accounting-db",
+        "--scan-slurm-accounting-db",
+        "--slurm-accounting-stack-name",
+    ],
 )
-def test_create_command_rejects_disable_with_slurm_accounting_request(
-    monkeypatch,
-    accounting_flag: str,
-) -> None:
+def test_create_rejects_removed_initial_accounting_flags(monkeypatch, legacy_flag) -> None:
     _activate_dayec_runtime(monkeypatch)
+    args = ["create", "--region-az", "us-west-2d", legacy_flag]
+    if legacy_flag == "--slurm-accounting-stack-name":
+        args.append("dayec-slurm-accounting-us-west-2")
 
-    result = runner.invoke(
-        app,
-        [
-            "create",
-            "--region-az",
-            "us-west-2d",
-            "--disable-slurm-accounting",
-            accounting_flag,
-        ],
-    )
+    result = runner.invoke(app, args)
 
     assert result.exit_code == 2
-    assert "--disable-slurm-accounting cannot be combined" in result.stderr
+    assert "No such option" in result.stderr
 
 
 def test_slurm_accounting_ensure_reports_resolved_db(monkeypatch) -> None:
@@ -1087,7 +992,10 @@ def test_slurm_accounting_ensure_reports_resolved_db(monkeypatch) -> None:
     )
 
     assert result.exit_code == 0
-    assert "URI:       10.0.1.10:3306" in result.stdout
+    assert "10.0.1.10:3306" not in result.stdout
+    assert "secret:acct" not in result.stdout
+    assert "URI:" not in result.stdout
+    assert "Secret:" not in result.stdout
     assert calls["build"] == ("us-west-2b", "lsmc")
     assert calls["baseline_region_az"] == "us-west-2b"
     ensure_kwargs = dict(calls["ensure_kwargs"])
@@ -1102,6 +1010,86 @@ def test_slurm_accounting_ensure_reports_resolved_db(monkeypatch) -> None:
         "username": "slurm_acct",
         "instance_type": "t4g.micro",
     }
+
+    json_result = runner.invoke(
+        app,
+        [
+            "--json",
+            "slurm-accounting",
+            "ensure",
+            "--profile",
+            "lsmc",
+            "--region-az",
+            "us-west-2b",
+        ],
+    )
+    assert json_result.exit_code == 0
+    json_payload = json.loads(json_result.stdout)
+    assert "uri" not in json_payload
+    assert "private_ip" not in json_payload
+    assert "password_secret_arn" not in json_payload
+    assert "10.0.1.10:3306" not in json_result.stdout
+    assert "secret:acct" not in json_result.stdout
+
+
+def test_slurm_accounting_attach_passes_explicit_post_create_options(monkeypatch, tmp_path) -> None:
+    import daylily_ec.workflow.attach_slurm_accounting as attach_module
+
+    _activate_dayec_runtime(monkeypatch)
+    calls: dict[str, object] = {}
+    config_path = tmp_path / "cluster.yaml"
+    config_path.write_text("Region: us-west-2\n", encoding="utf-8")
+
+    def fake_attach_slurm_accounting(**kwargs):
+        calls.update(kwargs)
+        return SimpleNamespace(
+            cluster_name="cluster-a",
+            region="us-west-2",
+            accounting_stack_name="dayec-slurm-accounting-us-west-2",
+            update_config_path=str(tmp_path / "update.yaml"),
+            dry_run_only=True,
+            update_submitted=False,
+        )
+
+    monkeypatch.setattr(
+        attach_module,
+        "attach_slurm_accounting",
+        fake_attach_slurm_accounting,
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "slurm-accounting",
+            "attach",
+            "--cluster",
+            "cluster-a",
+            "--region",
+            "us-west-2",
+            "--profile",
+            "lsmc",
+            "--cluster-configuration",
+            str(config_path),
+            "--stack-name",
+            "dayec-slurm-accounting-us-west-2",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert calls == {
+        "cluster_name": "cluster-a",
+        "region": "us-west-2",
+        "profile": "lsmc",
+        "cluster_configuration": config_path,
+        "stack_name": "dayec-slurm-accounting-us-west-2",
+        "database_name": "dayec_slurm_acct",
+        "db_username": "slurm_acct",
+        "dry_run_only": True,
+    }
+    assert "dry-run succeeded" in result.stdout
+    assert "10.0.1.237" not in result.stdout
+    assert "PasswordSecretArn" not in result.stdout
 
 
 def test_preflight_command_passes_workflow_options(monkeypatch, tmp_path) -> None:

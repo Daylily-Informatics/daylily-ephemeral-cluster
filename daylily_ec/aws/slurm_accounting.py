@@ -655,7 +655,6 @@ def _warn_and_delay_duplicate_accounting_selection(
         "claim a count of active SQL sessions."
     )
     for candidate in candidates:
-        db_uri = candidate.db.uri if candidate.db else "unavailable"
         attached = (
             "unknown"
             if candidate.attached_host_count is None
@@ -668,7 +667,7 @@ def _warn_and_delay_duplicate_accounting_selection(
         )
         warning_callback(
             f"Candidate {candidate.stack_name}: status={candidate.status}; "
-            f"vpc={candidate.vpc_id or 'missing'}; uri={db_uri}; "
+            f"vpc={candidate.vpc_id or 'missing'}; "
             f"compatible={'yes' if candidate.compatible else 'no'}; "
             f"attached_hosts={attached}; ursa_or_config_preferred={preference}; "
             f"reason={candidate.reason}"

@@ -32,7 +32,6 @@ import daylily_ec.config.triplets as triplets
 import daylily_ec.pcluster.monitor as pcluster_monitor
 import daylily_ec.pcluster.runner as pcluster_runner
 import daylily_ec.render.renderer as renderer
-from daylily_ec.aws.slurm_accounting import SlurmAccountingDb
 from daylily_ec.config.models import ConfigFile, Triplet
 from daylily_ec.state import store as state_store
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
@@ -1966,69 +1965,15 @@ class TestRunCreateWorkflow:
         ]
         assert records["subprocess_calls"] == [["/bin/sh", "-lc", "command -v say >/dev/null 2>&1"]]
 
-    def test_scan_slurm_accounting_selection_persists_state(self, tmp_path, monkeypatch):
-        accounting_db = SlurmAccountingDb(
-            stack_name="dayec-sacct-db",
-            status="CREATE_COMPLETE",
-            uri="10.0.1.39:3306",
-            private_ip="10.0.1.39",
-            database_name="slurm_acct_db",
-            username="slurm",
-            password_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:sacct",
-            client_security_group_id="sg-client",
-            instance_id="i-acct",
-        )
-        candidate = SimpleNamespace(
-            instance_id="i-acct",
-            name="acct-mariadb",
-            private_ip="10.0.1.39",
-            availability_zone="us-west-2d",
-            vpc_id="vpc-123",
-            source="dayec-stack",
-            selectable=True,
-            reason="Matched healthy DayEC accounting stack dayec-sacct-db.",
-            db=accounting_db,
-        )
-
-        records = _run_stubbed_create_workflow(
-            tmp_path,
-            monkeypatch,
-            interactive=True,
-            head_node_ip="54.1.2.3",
-            say_available=False,
-            scan_slurm_accounting_db=True,
-            scan_candidates=[candidate],
-            selection_answer="2",
-        )
-
-        assert records["rc"] == EXIT_SUCCESS
-        assert records["next_run_values"]["slurm_accounting_enabled"] == "true"
-        assert records["next_run_values"]["slurm_accounting_stack_name"] == "dayec-sacct-db"
-        assert records["next_run_values"]["slurm_accounting_database_name"] == "slurm_acct_db"
-        assert ("Accounting URI", "10.0.1.39:3306") in records["details"]
-        assert "Enter selection number" in records["prompt_labels"]
-
-    def test_slurm_accounting_enabled_resolves_existing_db_by_default(self, tmp_path, monkeypatch):
-        calls = []
-
-        def fake_ensure_slurm_accounting_db(_aws_ctx, **kwargs):
-            calls.append(kwargs)
-            return SlurmAccountingDb(
-                stack_name="dayec-sacct-db",
-                status="CREATE_COMPLETE",
-                uri="10.0.1.39:3306",
-                private_ip="10.0.1.39",
-                database_name="dayec_slurm_acct",
-                username="slurm_acct",
-                password_secret_arn=("arn:aws:secretsmanager:us-west-2:123456789012:secret:sacct"),
-                client_security_group_id="sg-client",
-                instance_id="i-acct",
-            )
-
+    def test_slurm_accounting_default_off_skips_resolution_and_rendering(
+        self, tmp_path, monkeypatch
+    ):
         monkeypatch.setattr(
             aws_slurm_accounting,
             "ensure_slurm_accounting_db",
-            fake_ensure_slurm_accounting_db,
+            lambda *_args, **_kwargs: pytest.fail(
+                "default create must not resolve Slurm accounting"
+            ),
         )
 
         records = _run_stubbed_create_workflow(
@@ -2037,56 +1982,22 @@ class TestRunCreateWorkflow:
             interactive=False,
             head_node_ip="54.1.2.3",
             say_available=False,
-            config_overrides={
-                "slurm_accounting_enabled": ["USESETVALUE", "", "true"],
-            },
-        )
-
-        assert records["rc"] == EXIT_SUCCESS
-        assert calls
-        assert calls[0]["create_if_missing"] is False
-        assert records["next_run_values"]["slurm_accounting_enabled"] == "true"
-        assert ("Accounting stack", "dayec-sacct-db") in records["details"]
-
-    def test_disable_slurm_accounting_overrides_enabled_config(self, tmp_path, monkeypatch):
-        records = _run_stubbed_create_workflow(
-            tmp_path,
-            monkeypatch,
-            interactive=False,
-            head_node_ip="54.1.2.3",
-            say_available=False,
-            config_overrides={
-                "slurm_accounting_enabled": ["USESETVALUE", "", "true"],
-            },
-            run_kwargs={"disable_slurm_accounting": True},
         )
 
         assert records["rc"] == EXIT_SUCCESS
         assert records["next_run_values"]["slurm_accounting_enabled"] == "false"
-        assert not any(key == "Accounting stack" for key, _value in records["details"])
+        assert records["render_substitutions"][
+            "REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING"
+        ] == ""
+        assert records["render_substitutions"]["REGSUB_SLURM_ACCOUNTING_DATABASE"] == ""
+        assert not any(key.startswith("Accounting ") for key, _value in records["details"])
 
-    def test_disable_slurm_accounting_rejects_config_create_request(self, tmp_path, monkeypatch):
-        records = _run_stubbed_create_workflow(
-            tmp_path,
-            monkeypatch,
-            interactive=False,
-            head_node_ip="54.1.2.3",
-            say_available=False,
-            config_overrides={
-                "slurm_accounting_enabled": ["USESETVALUE", "", "true"],
-                "slurm_accounting_create_db": ["USESETVALUE", "", "true"],
-            },
-            run_kwargs={"disable_slurm_accounting": True},
-        )
-
-        assert records["rc"] == EXIT_VALIDATION_FAILURE
-        assert any(
-            "--disable-slurm-accounting cannot be combined" in failure
-            for failure in records["failures"]
-        )
-
-    def test_scan_slurm_accounting_without_candidates_warns_and_continues(
-        self, tmp_path, monkeypatch
+    @pytest.mark.parametrize(
+        "config_key",
+        ["slurm_accounting_enabled", "slurm_accounting_create_db"],
+    )
+    def test_create_rejects_accounting_configuration_as_post_create_only(
+        self, tmp_path, monkeypatch, config_key
     ):
         records = _run_stubbed_create_workflow(
             tmp_path,
@@ -2094,118 +2005,16 @@ class TestRunCreateWorkflow:
             interactive=False,
             head_node_ip="54.1.2.3",
             say_available=False,
-            scan_slurm_accounting_db=True,
-            scan_candidates=[],
-        )
-
-        assert records["rc"] == EXIT_SUCCESS
-        assert records["next_run_values"]["slurm_accounting_enabled"] == "false"
-        assert any(
-            "No usable Slurm accounting DB candidates found" in w for w in records["warnings"]
-        )
-
-    def test_scan_slurm_accounting_non_interactive_warns_and_skips(self, tmp_path, monkeypatch):
-        accounting_db = SlurmAccountingDb(
-            stack_name="dayec-sacct-db",
-            status="CREATE_COMPLETE",
-            uri="10.0.1.39:3306",
-            private_ip="10.0.1.39",
-            database_name="slurm_acct_db",
-            username="slurm",
-            password_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:sacct",
-            client_security_group_id="sg-client",
-            instance_id="i-acct",
-        )
-        candidate = SimpleNamespace(
-            instance_id="i-acct",
-            name="acct-mariadb",
-            private_ip="10.0.1.39",
-            availability_zone="us-west-2d",
-            vpc_id="vpc-123",
-            source="dayec-stack",
-            selectable=True,
-            reason="Matched healthy DayEC accounting stack dayec-sacct-db.",
-            db=accounting_db,
-        )
-
-        records = _run_stubbed_create_workflow(
-            tmp_path,
-            monkeypatch,
-            interactive=False,
-            head_node_ip="54.1.2.3",
-            say_available=False,
-            scan_slurm_accounting_db=True,
-            scan_candidates=[candidate],
-        )
-
-        assert records["rc"] == EXIT_SUCCESS
-        assert records["next_run_values"]["slurm_accounting_enabled"] == "false"
-        assert any("--non-interactive was set" in w for w in records["warnings"])
-        assert "Enter selection number" not in records["prompt_labels"]
-
-    def test_scan_slurm_accounting_rejects_config_create_request(self, tmp_path, monkeypatch):
-        records = _run_stubbed_create_workflow(
-            tmp_path,
-            monkeypatch,
-            interactive=False,
-            head_node_ip="54.1.2.3",
-            say_available=False,
-            scan_slurm_accounting_db=True,
-            config_overrides={
-                "slurm_accounting_create_db": ["USESETVALUE", "", "true"],
-            },
+            config_overrides={config_key: ["USESETVALUE", "", "true"]},
         )
 
         assert records["rc"] == EXIT_VALIDATION_FAILURE
-        assert any("cannot be combined" in failure for failure in records["failures"])
-
-    def test_slurm_accounting_create_uses_explicit_private_subnet_vpc(self, tmp_path, monkeypatch):
-        calls = []
-
-        def fake_ensure_slurm_accounting_db(_aws_ctx, **kwargs):
-            calls.append(kwargs)
-            return SlurmAccountingDb(
-                stack_name="dayec-sacct-db",
-                status="CREATE_COMPLETE",
-                uri="10.0.1.39:3306",
-                private_ip="10.0.1.39",
-                database_name="dayec_slurm_acct",
-                username="slurm_acct",
-                password_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:sacct",
-                client_security_group_id="sg-client",
-                instance_id="i-acct",
-            )
-
-        monkeypatch.setattr(
-            aws_slurm_accounting,
-            "ensure_slurm_accounting_db",
-            fake_ensure_slurm_accounting_db,
+        assert records["baseline_stack_calls"] == 0
+        assert not any(event[0] == "create_cluster" for event in records["events"])
+        assert any(
+            "Slurm accounting is post-create only" in failure
+            for failure in records["failures"]
         )
-
-        records = _run_stubbed_create_workflow(
-            tmp_path,
-            monkeypatch,
-            interactive=False,
-            head_node_ip="54.1.2.3",
-            say_available=False,
-            config_overrides={
-                "public_subnet_id": ["USESETVALUE", "", "subnet-explicit-pub"],
-                "private_subnet_id": ["USESETVALUE", "", "subnet-explicit-priv"],
-                "iam_policy_arn": [
-                    "USESETVALUE",
-                    "",
-                    "arn:aws:iam::123456789012:policy/pclusterTagsAndBudget",
-                ],
-                "slurm_accounting_create_db": ["USESETVALUE", "", "true"],
-                "slurm_accounting_enabled": ["USESETVALUE", "", "true"],
-            },
-        )
-
-        assert records["rc"] == EXIT_SUCCESS
-        assert calls
-        assert calls[0]["vpc_id"] == "vpc-explicit-priv"
-        assert calls[0]["private_subnet_id"] == "subnet-explicit-priv"
-        assert calls[0]["assign_public_ip"] is True
 
     def test_explicit_network_and_policy_config_skip_baseline_stack(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
@@ -3171,9 +2980,6 @@ def _run_stubbed_create_workflow(
     interactive: bool,
     head_node_ip: str | None,
     say_available: bool,
-    scan_slurm_accounting_db: bool = False,
-    scan_candidates: list[object] | None = None,
-    selection_answer: str = "1",
     config_overrides: dict[str, list[str]] | None = None,
     run_kwargs: dict[str, object] | None = None,
     regional_clusters: list[dict[str, str]] | None = None,
@@ -3275,7 +3081,6 @@ def _run_stubbed_create_workflow(
             "Heartbeat email": "johnm@lsmc.com",
             "Heartbeat schedule": "rate(60 minutes)",
             "Heartbeat scheduler role ARN (leave blank to skip)": "",
-            "Enter selection number": selection_answer,
         }
         return answers[label]
 
@@ -3550,11 +3355,6 @@ SharedStorage:
     monkeypatch.setattr(aws_ssm, "wait_for_ssm_online", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(aws_iam, "resolve_scheduler_role", fake_resolve_scheduler_role)
     monkeypatch.setattr(aws_heartbeat, "ensure_heartbeat", fake_ensure_heartbeat)
-    monkeypatch.setattr(
-        aws_slurm_accounting,
-        "scan_slurm_accounting_ec2_candidates",
-        lambda *_args, **_kwargs: scan_candidates or [],
-    )
     monkeypatch.setattr(create_cluster_module.ui, "phase", fake_phase)
     monkeypatch.setattr(create_cluster_module.ui, "step", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(create_cluster_module.ui, "ok", lambda *_args, **_kwargs: None)
@@ -3623,7 +3423,6 @@ SharedStorage:
         profile="lsmc",
         config_path=str(tmp_path / "config.yaml"),
         non_interactive=not interactive,
-        scan_slurm_accounting_db=scan_slurm_accounting_db,
         **(run_kwargs or {}),
     )
     return records

@@ -350,6 +350,9 @@ def test_explicit_ursa_preference_wins_when_multiple_stacks_exist() -> None:
     assert any("ursa.day.lsmc.bio" in warning for warning in warnings)
     assert any("attached_hosts=2" in warning for warning in warnings)
     assert any(f"AUTO-SELECTED {preferred_name}" in warning for warning in warnings)
+    assert all("10.0.1.11:3306" not in warning for warning in warnings)
+    assert all("10.0.1.12:3306" not in warning for warning in warnings)
+    assert all("PasswordSecretArn" not in warning for warning in warnings)
 
 
 def test_explicit_discovery_allows_validation_stack() -> None:

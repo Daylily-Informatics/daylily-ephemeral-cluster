@@ -640,30 +640,10 @@ def create(
         "--disable-budget-enforcement",
         help="Skip cluster AWS Budget enforcement; sbatch cost-center validation remains required.",
     ),
-    disable_slurm_accounting: bool = typer.Option(
-        False,
-        "--disable-slurm-accounting",
-        help="Disable the default Slurm accounting database attachment for this cluster.",
-    ),
     budget_project: Optional[str] = typer.Option(
         None,
         "--budget-project",
         help="Retired. Cluster budgets are named by cluster name.",
-    ),
-    create_slurm_accounting_db: bool = typer.Option(
-        False,
-        "--create-slurm-accounting-db",
-        help="Create the DayEC Slurm accounting MariaDB stack if no tagged stack exists.",
-    ),
-    scan_slurm_accounting_db: bool = typer.Option(
-        False,
-        "--scan-slurm-accounting-db",
-        help="Scan same-VPC EC2 instances for an existing Slurm accounting DB to reuse.",
-    ),
-    slurm_accounting_stack_name: str = typer.Option(
-        "",
-        "--slurm-accounting-stack-name",
-        help="Explicit DayEC Slurm accounting stack name for create/ensure.",
     ),
     global_spot_max_cost: float = typer.Option(
         DEFAULT_GLOBAL_SPOT_MAX_COST,
@@ -715,15 +695,6 @@ def create(
         )
     except ValueError as exc:
         raise typer.BadParameter(str(exc)) from exc
-    if create_slurm_accounting_db and scan_slurm_accounting_db:
-        raise typer.BadParameter(
-            "--scan-slurm-accounting-db cannot be combined with --create-slurm-accounting-db."
-        )
-    if disable_slurm_accounting and (create_slurm_accounting_db or scan_slurm_accounting_db):
-        raise typer.BadParameter(
-            "--disable-slurm-accounting cannot be combined with "
-            "--create-slurm-accounting-db or --scan-slurm-accounting-db."
-        )
     if budget_project:
         raise typer.BadParameter(
             "--budget-project is retired; cluster budgets are named by cluster name."
@@ -753,11 +724,7 @@ def create(
         debug=debug,
         non_interactive=non_interactive,
         disable_budget_enforcement=disable_budget_enforcement,
-        disable_slurm_accounting=disable_slurm_accounting,
         budget_project=budget_project,
-        create_slurm_accounting_db=create_slurm_accounting_db,
-        scan_slurm_accounting_db=scan_slurm_accounting_db,
-        slurm_accounting_stack_name=slurm_accounting_stack_name,
         global_spot_max_cost=global_spot_max_cost,
         spot_cost_limit_pct=spot_cost_limit_pct,
         write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
@@ -834,11 +801,8 @@ def slurm_accounting_ensure(
     payload = {
         "stack_name": db.stack_name,
         "status": db.status,
-        "uri": db.uri,
-        "private_ip": db.private_ip,
         "database_name": db.database_name,
         "username": db.username,
-        "password_secret_arn": db.password_secret_arn,
         "client_security_group_id": db.client_security_group_id,
         "instance_id": db.instance_id,
     }
@@ -849,13 +813,98 @@ def slurm_accounting_ensure(
     output.heading("Slurm accounting DB")
     output.print_text(f"Stack:     {db.stack_name}")
     output.print_text(f"Status:    {db.status}")
-    output.print_text(f"URI:       {db.uri}")
     output.print_text(f"Database:  {db.database_name}")
     output.print_text(f"User:      {db.username}")
-    output.print_text(f"Secret:    {db.password_secret_arn}")
     output.print_text(f"Client SG: {db.client_security_group_id}")
     if db.instance_id:
         output.print_text(f"Instance:  {db.instance_id}")
+
+
+def slurm_accounting_attach(
+    cluster: str = typer.Option(
+        ...,
+        "--cluster",
+        help="Existing ParallelCluster name.",
+    ),
+    region: str = typer.Option(
+        ...,
+        "--region",
+        help="AWS region containing the existing cluster.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE.",
+    ),
+    cluster_configuration: Optional[Path] = typer.Option(
+        None,
+        "--cluster-configuration",
+        help=(
+            "Original ParallelCluster YAML. Defaults to the newest matching " "DYEC state record."
+        ),
+    ),
+    stack_name: str = typer.Option(
+        "",
+        "--stack-name",
+        help="Explicit existing regional DayEC Slurm accounting stack name.",
+    ),
+    database_name: str = typer.Option(
+        "dayec_slurm_acct",
+        "--database-name",
+        help="Slurm accounting database name.",
+    ),
+    db_username: str = typer.Option(
+        "slurm_acct",
+        "--db-username",
+        help="Slurm accounting database user name.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Validate and write the update config without submitting the real update.",
+    ),
+) -> None:
+    """Attach existing Slurm accounting to a healthy cluster after creation."""
+    from daylily_ec.workflow.attach_slurm_accounting import (
+        attach_slurm_accounting,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        result = attach_slurm_accounting(
+            cluster_name=cluster,
+            region=region,
+            profile=profile,
+            cluster_configuration=cluster_configuration,
+            stack_name=stack_name,
+            database_name=database_name,
+            db_username=db_username,
+            dry_run_only=dry_run,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+    payload = {
+        "cluster_name": result.cluster_name,
+        "region": result.region,
+        "accounting_stack_name": result.accounting_stack_name,
+        "update_config_path": result.update_config_path,
+        "dry_run_only": result.dry_run_only,
+        "update_submitted": result.update_submitted,
+    }
+    if _json_mode():
+        output.emit_json(payload)
+        return
+
+    output.heading("Slurm accounting attachment")
+    output.print_text(f"Cluster:       {result.cluster_name}")
+    output.print_text(f"Region:        {result.region}")
+    output.print_text(f"Stack:         {result.accounting_stack_name}")
+    output.print_text(f"Update config: {result.update_config_path}")
+    if result.dry_run_only:
+        output.success("ParallelCluster update dry-run succeeded; no update was submitted.")
+    else:
+        output.success("ParallelCluster accounting update submitted.")
 
 
 def _cost_center_context(profile: Optional[str], home_region: str):
@@ -5628,6 +5677,11 @@ def register(registry, cli_spec) -> None:
             (
                 "ensure",
                 slurm_accounting_ensure,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "attach",
+                slurm_accounting_attach,
                 required_policy(supports_json=True, mutates_state=True, long_running=True),
             ),
         ],

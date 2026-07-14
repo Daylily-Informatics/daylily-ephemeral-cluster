@@ -11,9 +11,12 @@ from daylily_ec.pcluster.runner import (
     _run_pcluster,
     create_cluster,
     delete_cluster,
+    describe_cluster,
+    describe_compute_fleet,
     dry_run_create,
     list_clusters,
     should_break_after_dry_run,
+    update_cluster,
 )
 
 
@@ -328,6 +331,69 @@ class TestCreateCluster:
             "eu-west-1",
         ]
         assert mock_run.call_args.kwargs["env"]["AWS_PROFILE"] == "p"
+
+
+class TestDescribeAndUpdateCluster:
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_describe_cluster(self, mock_run):
+        mock_run.return_value = _completed(stdout=json.dumps({"clusterStatus": "CREATE_COMPLETE"}))
+
+        result = describe_cluster("cl1", "us-west-2", profile="p")
+
+        assert result.success is True
+        assert mock_run.call_args.args[0] == [
+            "pcluster",
+            "describe-cluster",
+            "-n",
+            "cl1",
+            "--region",
+            "us-west-2",
+        ]
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_describe_compute_fleet(self, mock_run):
+        mock_run.return_value = _completed(stdout=json.dumps({"status": "STOPPED"}))
+
+        result = describe_compute_fleet("cl1", "us-west-2")
+
+        assert result.success is True
+        assert "describe-compute-fleet" in mock_run.call_args.args[0]
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_update_cluster_dry_run_requires_exact_success_message(self, mock_run):
+        mock_run.return_value = _completed(stdout=_dry_run_ok_json())
+
+        result = update_cluster(
+            "cl1",
+            "/tmp/update.yaml",
+            "us-west-2",
+            profile="p",
+            dry_run=True,
+        )
+
+        assert result.success is True
+        assert mock_run.call_args.args[0] == [
+            "pcluster",
+            "update-cluster",
+            "-n",
+            "cl1",
+            "-c",
+            "/tmp/update.yaml",
+            "--dryrun",
+            "true",
+            "--region",
+            "us-west-2",
+        ]
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_update_cluster_submit_uses_false_dry_run(self, mock_run):
+        mock_run.return_value = _completed(stdout=json.dumps({"clusterName": "cl1"}))
+
+        result = update_cluster("cl1", "/tmp/update.yaml", "us-west-2")
+
+        assert result.success is True
+        assert mock_run.call_args.args[0][-2:] == ["--region", "us-west-2"]
+        assert mock_run.call_args.args[0][6:8] == ["--dryrun", "false"]
 
 
 class TestDeleteCluster:
