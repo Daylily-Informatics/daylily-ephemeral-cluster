@@ -46,7 +46,8 @@ def test_every_source_and_payload_slurm_template_is_cpu_only() -> None:
             for resource in queue.get("ComputeResources", []):
                 assert "SchedulableMemory" not in resource, (path, queue.get("Name"))
 
-        validate_cpu_only_slurm_contract(path)
+        if "archive_do_not_use" not in path.parts:
+            validate_cpu_only_slurm_contract(path)
 
 
 def test_all_packaged_slurm_templates_match_their_sources() -> None:
@@ -75,6 +76,10 @@ def test_all_packaged_slurm_templates_match_their_sources() -> None:
                 "JobExclusiveAllocation", True
             ),
             "JobExclusiveAllocation false",
+        ),
+        (
+            lambda payload: payload["HeadNode"]["CustomActions"].pop("OnNodeStart"),
+            "OnNodeStart must install job_submit.lua",
         ),
         (
             lambda payload: payload["Scheduling"]["SlurmQueues"][0]["ComputeResources"][

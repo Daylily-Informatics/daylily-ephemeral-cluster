@@ -1090,7 +1090,9 @@ def test_slurm_accounting_ensure_reports_resolved_db(monkeypatch) -> None:
     assert "URI:       10.0.1.10:3306" in result.stdout
     assert calls["build"] == ("us-west-2b", "lsmc")
     assert calls["baseline_region_az"] == "us-west-2b"
-    assert calls["ensure_kwargs"] == {
+    ensure_kwargs = dict(calls["ensure_kwargs"])
+    assert ensure_kwargs.pop("warning_callback") is cli_module.output.warning
+    assert ensure_kwargs == {
         "region_az": "us-west-2b",
         "vpc_id": "vpc-123",
         "private_subnet_id": "subnet-private",

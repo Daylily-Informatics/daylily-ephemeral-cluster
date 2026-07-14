@@ -18,6 +18,11 @@ HeadNode:
     EphemeralVolume:
       MountDir: /head_root
   CustomActions:
+    OnNodeStart:
+      Script: ${REGSUB_S3_BUCKET_INIT}/install_slurm_job_submit_policy.sh
+      Args:
+      - ${REGSUB_REGION}
+      - ${REGSUB_S3_BUCKET_INIT}
     OnNodeConfigured:
       Script: ${REGSUB_S3_BUCKET_INIT}/post_install_rhel8_dragen.sh
       Args:

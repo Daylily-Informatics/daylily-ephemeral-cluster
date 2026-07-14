@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 try:
     from botocore.exceptions import BotoCoreError, ClientError
@@ -24,6 +25,7 @@ DEFAULT_TEMPLATE_PATH = "config/day_cluster/slurm_accounting_mysql_ec2.yml"
 DEFAULT_ACCOUNTING_DATABASE_NAME = "dayec_slurm_acct"
 DEFAULT_ACCOUNTING_USERNAME = "slurm_acct"
 DEFAULT_ACCOUNTING_INSTANCE_TYPE = "t4g.micro"
+MULTIPLE_ACCOUNTING_SELECTION_DELAY_SECONDS = 90
 VALIDATION_ACCOUNTING_STACK_PREFIX = "dayec-costacct-"
 VALIDATION_IGNORE_BEFORE_UTC = datetime(2026, 7, 4, tzinfo=timezone.utc)
 
@@ -111,6 +113,25 @@ class SlurmAccountingScanCandidate:
     selectable: bool
     reason: str
     db: SlurmAccountingDb | None = None
+
+
+@dataclass(frozen=True)
+class SlurmAccountingSelectionCandidate:
+    """One regional stack considered during duplicate-service selection."""
+
+    stack_name: str
+    status: str
+    vpc_id: str
+    compatible: bool
+    reason: str
+    attached_instance_ids: tuple[str, ...] | None
+    db: SlurmAccountingDb | None = None
+
+    @property
+    def attached_host_count(self) -> int | None:
+        if self.attached_instance_ids is None:
+            return None
+        return len(self.attached_instance_ids)
 
 
 def derive_slurm_accounting_stack_name(region_az: str) -> str:
@@ -286,13 +307,6 @@ def discover_slurm_accounting_dbs(
                 f"Stack '{stack_name}' exists but is not tagged as the DayEC "
                 f"Slurm accounting singleton for region {region}."
             )
-        if len(matching_stacks) > 1:
-            names = ", ".join(
-                sorted(str(item.get("StackName") or "") for item in matching_stacks)
-            )
-            raise SlurmAccountingError(
-                f"Multiple DayEC Slurm accounting stacks exist in region {region}: {names}"
-            )
         _require_stack_vpc(stack, requested_vpc_id=vpc_id, region=region)
         return [_db_from_stack(stack)]
 
@@ -419,11 +433,44 @@ def ensure_slurm_accounting_db(
     instance_type: str = DEFAULT_ACCOUNTING_INSTANCE_TYPE,
     assign_public_ip: bool = False,
     template_path: str = DEFAULT_TEMPLATE_PATH,
+    warning_callback: Callable[[str], None] | None = None,
+    sleep_fn: Callable[[float], None] | None = None,
 ) -> SlurmAccountingDb:
     """Resolve one accounting DB stack, creating it only when explicitly allowed."""
     database_name = validate_database_name(database_name or DEFAULT_ACCOUNTING_DATABASE_NAME)
     username = validate_username(username or DEFAULT_ACCOUNTING_USERNAME)
     stack_name = stack_name.strip()
+
+    region, _az = parse_region_az(region_az)
+    regional_stacks = _list_regional_accounting_stacks(
+        aws_ctx.client("cloudformation"),
+        region=region,
+    )
+    if len(regional_stacks) > 1:
+        candidates = _inspect_selection_candidates(
+            aws_ctx,
+            stacks=regional_stacks,
+            requested_vpc_id=vpc_id,
+        )
+        selected, selection_reason = _select_duplicate_accounting_candidate(
+            candidates,
+            preferred_stack_name=stack_name,
+            region=region,
+        )
+        _warn_and_delay_duplicate_accounting_selection(
+            candidates,
+            selected=selected,
+            selection_reason=selection_reason,
+            preferred_stack_name=stack_name,
+            region=region,
+            warning_callback=warning_callback or logger.warning,
+            sleep_fn=sleep_fn or time.sleep,
+        )
+        if selected.db is None:  # Defensive: selection only returns compatible DBs.
+            raise SlurmAccountingError(
+                f"Selected Slurm accounting stack '{selected.stack_name}' has no database."
+            )
+        return selected.db
 
     matches = discover_slurm_accounting_dbs(
         aws_ctx,
@@ -433,14 +480,7 @@ def ensure_slurm_accounting_db(
     )
     if len(matches) == 1:
         return matches[0]
-    if len(matches) > 1:
-        names = ", ".join(sorted(db.stack_name for db in matches))
-        region, _az = parse_region_az(region_az)
-        raise SlurmAccountingError(
-            f"Multiple DayEC Slurm accounting stacks exist in region {region}: {names}"
-        )
     if not create_if_missing:
-        region, _az = parse_region_az(region_az)
         raise SlurmAccountingError(
             f"No DayEC Slurm accounting stack exists for region {region}; "
             "rerun with --create-slurm-accounting-db or create it with "
@@ -460,6 +500,199 @@ def ensure_slurm_accounting_db(
         assign_public_ip=assign_public_ip,
         template_path=template_path,
     )
+
+
+def _inspect_selection_candidates(
+    aws_ctx: Any,
+    *,
+    stacks: list[dict[str, Any]],
+    requested_vpc_id: str,
+) -> list[SlurmAccountingSelectionCandidate]:
+    inspected: list[SlurmAccountingSelectionCandidate] = []
+    for stack in stacks:
+        stack_name = str(stack.get("StackName") or "")
+        status = str(stack.get("StackStatus") or "")
+        vpc_id = _tags_by_key(stack.get("Tags", [])).get(ACCOUNTING_VPC_TAG_KEY, "").strip()
+        try:
+            db = _db_from_stack(stack)
+        except SlurmAccountingError as exc:
+            inspected.append(
+                SlurmAccountingSelectionCandidate(
+                    stack_name=stack_name,
+                    status=status,
+                    vpc_id=vpc_id,
+                    compatible=False,
+                    reason=str(exc),
+                    attached_instance_ids=(),
+                )
+            )
+            continue
+
+        compatible = bool(vpc_id) and vpc_id == requested_vpc_id
+        if compatible:
+            reason = f"healthy and in requested VPC {requested_vpc_id}"
+        elif not vpc_id:
+            reason = f"missing required tag {ACCOUNTING_VPC_TAG_KEY}"
+        else:
+            reason = f"VPC {vpc_id} does not match requested VPC {requested_vpc_id}"
+        inspected.append(
+            SlurmAccountingSelectionCandidate(
+                stack_name=stack_name,
+                status=status,
+                vpc_id=vpc_id,
+                compatible=compatible,
+                reason=reason,
+                attached_instance_ids=(),
+                db=db,
+            )
+        )
+
+    client_security_group_ids = sorted(
+        {
+            candidate.db.client_security_group_id
+            for candidate in inspected
+            if candidate.db is not None
+        }
+    )
+    try:
+        attached_by_group = _attached_instance_ids_by_security_group(
+            aws_ctx.client("ec2"),
+            client_security_group_ids,
+        )
+    except SlurmAccountingError as exc:
+        logger.warning("Unable to count Slurm accounting attached hosts: %s", exc)
+        attached_by_group = None
+
+    with_counts: list[SlurmAccountingSelectionCandidate] = []
+    for candidate in inspected:
+        if candidate.db is None:
+            attached_ids: tuple[str, ...] | None = ()
+        elif attached_by_group is None:
+            attached_ids = None
+        else:
+            attached_ids = tuple(
+                instance_id
+                for instance_id in attached_by_group.get(
+                    candidate.db.client_security_group_id,
+                    (),
+                )
+                if instance_id != candidate.db.instance_id
+            )
+        with_counts.append(
+            SlurmAccountingSelectionCandidate(
+                stack_name=candidate.stack_name,
+                status=candidate.status,
+                vpc_id=candidate.vpc_id,
+                compatible=candidate.compatible,
+                reason=candidate.reason,
+                attached_instance_ids=attached_ids,
+                db=candidate.db,
+            )
+        )
+    return with_counts
+
+
+def _select_duplicate_accounting_candidate(
+    candidates: list[SlurmAccountingSelectionCandidate],
+    *,
+    preferred_stack_name: str,
+    region: str,
+) -> tuple[SlurmAccountingSelectionCandidate, str]:
+    compatible = [candidate for candidate in candidates if candidate.compatible and candidate.db]
+    if not compatible:
+        details = "; ".join(
+            f"{candidate.stack_name}: {candidate.reason}" for candidate in candidates
+        )
+        raise SlurmAccountingError(
+            f"Multiple DayEC Slurm accounting stacks exist in region {region}, but none "
+            f"is compatible with the requested cluster: {details}"
+        )
+
+    preferred_stack_name = preferred_stack_name.strip()
+    if preferred_stack_name:
+        preferred = next(
+            (
+                candidate
+                for candidate in compatible
+                if candidate.stack_name == preferred_stack_name
+            ),
+            None,
+        )
+        if preferred is not None:
+            return (
+                preferred,
+                "explicit slurm_accounting_stack_name preference "
+                "(the Ursa configuration selection hook)",
+            )
+
+    selected = sorted(
+        compatible,
+        key=lambda candidate: (
+            -(candidate.attached_host_count or 0),
+            candidate.stack_name,
+        ),
+    )[0]
+    return selected, "largest attached-host count, then stack-name tie-breaker"
+
+
+def _warn_and_delay_duplicate_accounting_selection(
+    candidates: list[SlurmAccountingSelectionCandidate],
+    *,
+    selected: SlurmAccountingSelectionCandidate,
+    selection_reason: str,
+    preferred_stack_name: str,
+    region: str,
+    warning_callback: Callable[[str], None],
+    sleep_fn: Callable[[float], None],
+) -> None:
+    warning_callback(
+        "MULTIPLE DAYEC SLURM ACCOUNTING SERVICES DETECTED. "
+        f"Region {region} has {len(candidates)} services; there should be exactly one."
+    )
+    warning_callback(
+        "DYEC will continue instead of failing. attached_hosts counts unique EC2 instances "
+        "whose network interfaces carry the accounting client security group; it does not "
+        "claim a count of active SQL sessions."
+    )
+    for candidate in candidates:
+        db_uri = candidate.db.uri if candidate.db else "unavailable"
+        attached = (
+            "unknown"
+            if candidate.attached_host_count is None
+            else str(candidate.attached_host_count)
+        )
+        preference = (
+            "yes"
+            if preferred_stack_name.strip() == candidate.stack_name
+            else "no"
+        )
+        warning_callback(
+            f"Candidate {candidate.stack_name}: status={candidate.status}; "
+            f"vpc={candidate.vpc_id or 'missing'}; uri={db_uri}; "
+            f"compatible={'yes' if candidate.compatible else 'no'}; "
+            f"attached_hosts={attached}; ursa_or_config_preferred={preference}; "
+            f"reason={candidate.reason}"
+        )
+    preferred_stack_name = preferred_stack_name.strip()
+    if preferred_stack_name and selected.stack_name != preferred_stack_name:
+        warning_callback(
+            f"Configured Ursa/accounting preference {preferred_stack_name} was not selected "
+            "because it was not found among the compatible services."
+        )
+    warning_callback(
+        f"AUTO-SELECTED {selected.stack_name}: {selection_reason}. "
+        "Set Ursa's slurm_accounting.stack_name to the service used by "
+        "ursa.day.lsmc.bio when that preference is known."
+    )
+    warning_callback(
+        f"Automatic selection continues in {MULTIPLE_ACCOUNTING_SELECTION_DELAY_SECONDS} "
+        "seconds. Press Ctrl-C now to abort."
+    )
+    sleep_fn(60)
+    warning_callback("Automatic Slurm accounting selection continues in 30 seconds.")
+    sleep_fn(20)
+    warning_callback("Automatic Slurm accounting selection continues in 10 seconds.")
+    sleep_fn(10)
 
 
 def create_slurm_accounting_stack(
@@ -771,6 +1004,49 @@ def _list_running_instances_in_vpc(ec2: Any, *, vpc_id: str) -> list[dict[str, A
         raise SlurmAccountingError(f"Unable to list EC2 instances for VPC {vpc_id}: {exc}") from exc
     except Exception as exc:
         raise SlurmAccountingError(f"Unable to list EC2 instances for VPC {vpc_id}: {exc}") from exc
+
+
+def _attached_instance_ids_by_security_group(
+    ec2: Any,
+    security_group_ids: list[str],
+) -> dict[str, tuple[str, ...]]:
+    """Return unique attached EC2 instance ids for each requested security group."""
+    if not security_group_ids:
+        return {}
+    requested = set(security_group_ids)
+    attached: dict[str, set[str]] = {group_id: set() for group_id in security_group_ids}
+    request: dict[str, Any] = {
+        "Filters": [{"Name": "group-id", "Values": security_group_ids}],
+    }
+    try:
+        while True:
+            response = ec2.describe_network_interfaces(**request)
+            for interface in response.get("NetworkInterfaces", []) or []:
+                instance_id = str(
+                    (interface.get("Attachment") or {}).get("InstanceId") or ""
+                ).strip()
+                if not instance_id:
+                    continue
+                for group in interface.get("Groups", []) or []:
+                    group_id = str(group.get("GroupId") or "").strip()
+                    if group_id in requested:
+                        attached[group_id].add(instance_id)
+            next_token = str(response.get("NextToken") or "").strip()
+            if not next_token:
+                break
+            request["NextToken"] = next_token
+    except (BotoCoreError, ClientError) as exc:
+        raise SlurmAccountingError(
+            f"Unable to count EC2 hosts attached to accounting client security groups: {exc}"
+        ) from exc
+    except Exception as exc:
+        raise SlurmAccountingError(
+            f"Unable to count EC2 hosts attached to accounting client security groups: {exc}"
+        ) from exc
+    return {
+        group_id: tuple(sorted(instance_ids))
+        for group_id, instance_ids in attached.items()
+    }
 
 
 def _security_group_ids_for_instances(instances: Iterable[dict[str, Any]]) -> list[str]:

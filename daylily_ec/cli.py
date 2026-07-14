@@ -826,6 +826,7 @@ def slurm_accounting_ensure(
             database_name=database_name,
             username=db_username,
             instance_type=instance_type,
+            warning_callback=output.warning,
         )
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)

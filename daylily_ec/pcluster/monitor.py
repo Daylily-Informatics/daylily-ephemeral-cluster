@@ -237,12 +237,31 @@ def wait_for_creation(
             sleep(poll_interval)
             continue
 
-        # Any other status is a terminal failure
+        # Any other status is a terminal failure. Preserve the structured
+        # ParallelCluster failure reason so create does not collapse a useful
+        # bootstrap diagnosis into a bare CREATE_FAILED status.
+        details_kwargs = {"profile": profile}
+        if executable != "pcluster":
+            details_kwargs["executable"] = executable
+        details = get_cluster_details(cluster_name, region, **details_kwargs)
+        failures = []
+        for failure in details.get("failures", []) or []:
+            if not isinstance(failure, dict):
+                continue
+            code = str(failure.get("failureCode") or "").strip()
+            reason = str(failure.get("failureReason") or "").strip()
+            summary = ": ".join(part for part in (code, reason) if part)
+            if summary:
+                failures.append(summary)
+        detail = "; ".join(failures)
+        error = f"Cluster entered unexpected status: {status}"
+        if detail:
+            error = f"{error}. ParallelCluster failure: {detail}"
         return MonitorResult(
             final_status=status,
             elapsed_seconds=time.time() - start,
             success=False,
-            error=f"Cluster entered unexpected status: {status}",
+            error=error,
         )
 
 

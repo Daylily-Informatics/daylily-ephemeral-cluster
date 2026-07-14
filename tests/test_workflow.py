@@ -3454,7 +3454,14 @@ def _run_stubbed_create_workflow(
     def fake_apply_spot_prices(_init_template_path, cluster_yaml_path, *_args, **_kwargs):
         Path(cluster_yaml_path).write_text(
             """
+Region: us-west-2
 HeadNode:
+  CustomActions:
+    OnNodeStart:
+      Script: s3://boot-config/install_slurm_job_submit_policy.sh
+      Args:
+        - us-west-2
+        - s3://boot-config
   Iam:
     AdditionalIamPolicies:
       - Policy: arn:policy:default

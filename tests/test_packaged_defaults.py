@@ -470,12 +470,12 @@ def test_post_install_templates_pass_spot_warn_threshold_argument() -> None:
     for relative_path in template_paths:
         text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
         assert "${REGSUB_SPOT_PRICE_WARN_THRESHOLD}" in text
-        for index, line in enumerate(text.splitlines()):
-            if line.strip() == "- ${REGSUB_S3_BUCKET_INIT}":
-                assert (
-                    text.splitlines()[index + 1].strip()
-                    == "- ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}"
-                )
+        lines = text.splitlines()
+        assert any(
+            line.strip() == "- ${REGSUB_S3_BUCKET_INIT}"
+            and lines[index + 1].strip() == "- ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}"
+            for index, line in enumerate(lines[:-1])
+        )
 
 
 def test_spot_lifecycle_helper_heredocs_are_bash_syntax_valid() -> None:

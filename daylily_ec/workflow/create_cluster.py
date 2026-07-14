@@ -1368,6 +1368,24 @@ def validate_cpu_only_slurm_contract(cluster_yaml_path: str | Path) -> None:
             "AccountingStoreFlags=job_comment, and PrologFlags=Alloc."
         )
 
+    head_node = payload.get("HeadNode") or {}
+    on_node_start = ((head_node.get("CustomActions") or {}).get("OnNodeStart") or {})
+    start_script = str(on_node_start.get("Script") or "")
+    start_args = on_node_start.get("Args") or []
+    expected_script_name = "install_slurm_job_submit_policy.sh"
+    valid_start_args = (
+        isinstance(start_args, list)
+        and len(start_args) == 2
+        and str(start_args[0]) == str(payload.get("Region") or "")
+        and start_script == f"{str(start_args[1]).rstrip('/')}/{expected_script_name}"
+    )
+    if not valid_start_args:
+        raise ValueError(
+            "HeadNode CustomActions.OnNodeStart must install job_submit.lua before "
+            "ParallelCluster starts slurmctld: Script must be the immutable boot-config "
+            "install_slurm_job_submit_policy.sh with Args [Region, boot-config URI]."
+        )
+
     def _contains_schedulable_memory(value: Any) -> bool:
         if isinstance(value, dict):
             return "SchedulableMemory" in value or any(
@@ -3167,6 +3185,7 @@ def run_create_workflow(
                 username=accounting_username,
                 instance_type=accounting_instance_type,
                 assign_public_ip=accounting_assign_public_ip,
+                warning_callback=ui.warn,
             )
         except SlurmAccountingError as exc:
             logger.error("Slurm accounting DB resolution failed: %s", exc)
@@ -3530,7 +3549,10 @@ def run_create_workflow(
             monitor_result.final_status,
             monitor_result.error,
         )
-        ui.fail(f"Did not reach CREATE_COMPLETE: {monitor_result.final_status}")
+        ui.fail(
+            "Did not reach CREATE_COMPLETE: "
+            f"{monitor_result.final_status}. {monitor_result.error}"
+        )
         return EXIT_AWS_FAILURE
 
     logger.info(

@@ -31,6 +31,8 @@ def _outputs(
     uri: str = "10.0.1.10:3306",
     database_name: str = "dayec_slurm_acct",
     username: str = "slurm_acct",
+    client_security_group_id: str = "sg-0123456789abcdef0",
+    instance_id: str = "i-0123456789abcdef0",
 ) -> list[dict[str, str]]:
     return [
         {"OutputKey": "AccountingDbUri", "OutputValue": uri},
@@ -41,8 +43,11 @@ def _outputs(
             "OutputKey": "AccountingPasswordSecretArn",
             "OutputValue": "arn:aws:secretsmanager:us-west-2:123456789012:secret:acct",
         },
-        {"OutputKey": "AccountingClientSecurityGroupId", "OutputValue": "sg-0123456789abcdef0"},
-        {"OutputKey": "AccountingInstanceId", "OutputValue": "i-0123456789abcdef0"},
+        {
+            "OutputKey": "AccountingClientSecurityGroupId",
+            "OutputValue": client_security_group_id,
+        },
+        {"OutputKey": "AccountingInstanceId", "OutputValue": instance_id},
     ]
 
 
@@ -140,11 +145,13 @@ class FakeEc2:
         *,
         instances: list[dict[str, object]] | None = None,
         security_groups: list[dict[str, object]] | None = None,
+        network_interfaces: list[dict[str, object]] | None = None,
     ) -> None:
         self.instances = instances or []
         self.security_groups = {
             str(group["GroupId"]): group for group in security_groups or []
         }
+        self.network_interfaces = network_interfaces or []
         self.calls: list[tuple[str, dict[str, object]]] = []
 
     def get_paginator(self, name: str) -> FakeEc2Paginator:
@@ -161,6 +168,10 @@ class FakeEc2:
                 if group_id in self.security_groups
             ]
         }
+
+    def describe_network_interfaces(self, **kwargs):
+        self.calls.append(("describe_network_interfaces", kwargs))
+        return {"NetworkInterfaces": self.network_interfaces}
 
 
 class FakeAwsContext:
@@ -211,11 +222,23 @@ def _security_group(
     }
 
 
-def test_derive_slurm_accounting_stack_name() -> None:
-    assert (
-        derive_slurm_accounting_stack_name("us-west-2b")
-        == "dayec-slurm-accounting-us-west-2"
-    )
+def _network_interface(instance_id: str, *group_ids: str) -> dict[str, object]:
+    return {
+        "Attachment": {"InstanceId": instance_id},
+        "Groups": [{"GroupId": group_id} for group_id in group_ids],
+    }
+
+
+@pytest.mark.parametrize(
+    ("region_az", "expected"),
+    [
+        ("us-west-2b", "dayec-slurm-accounting-us-west-2"),
+        ("us-east-1a", "dayec-slurm-accounting-us-east-1"),
+        ("eu-central-1c", "dayec-slurm-accounting-eu-central-1"),
+    ],
+)
+def test_derive_slurm_accounting_stack_name(region_az: str, expected: str) -> None:
+    assert derive_slurm_accounting_stack_name(region_az) == expected
 
 
 def test_discovery_filters_to_dayec_regional_tags() -> None:
@@ -278,22 +301,55 @@ def test_discovery_rejects_regional_singleton_in_different_vpc() -> None:
         )
 
 
-def test_validation_stack_counts_toward_regional_singleton() -> None:
+def test_explicit_ursa_preference_wins_when_multiple_stacks_exist() -> None:
+    preferred_name = "dayec-slurm-accounting-us-west-2"
     cfn = FakeCloudFormation(
         [
-            _stack("dayec-costacct-20260705T005955Z"),
-            _stack("dayec-slurm-accounting-us-west-2"),
+            _stack(
+                "dayec-costacct-20260705T005955Z",
+                outputs=_outputs(
+                    uri="10.0.1.11:3306",
+                    client_security_group_id="sg-validation",
+                    instance_id="i-db-validation",
+                ),
+            ),
+            _stack(
+                preferred_name,
+                outputs=_outputs(
+                    uri="10.0.1.12:3306",
+                    client_security_group_id="sg-regional",
+                    instance_id="i-db-regional",
+                ),
+            ),
         ]
     )
+    ec2 = FakeEc2(
+        network_interfaces=[
+            _network_interface("i-head-1", "sg-validation"),
+            _network_interface("i-head-2", "sg-validation"),
+        ]
+    )
+    warnings: list[str] = []
+    sleeps: list[float] = []
 
-    with pytest.raises(SlurmAccountingError, match="Multiple DayEC Slurm accounting stacks"):
-        ensure_slurm_accounting_db(
-            FakeAwsContext(cfn),
-            region_az="us-west-2b",
-            vpc_id="vpc-123",
-            private_subnet_id="subnet-private",
-            create_if_missing=True,
-        )
+    db = ensure_slurm_accounting_db(
+        FakeAwsContext(cfn, ec2),
+        region_az="us-west-2b",
+        vpc_id="vpc-123",
+        private_subnet_id="subnet-private",
+        create_if_missing=True,
+        stack_name=preferred_name,
+        warning_callback=warnings.append,
+        sleep_fn=sleeps.append,
+    )
+
+    assert db.stack_name == preferred_name
+    assert sleeps == [60, 20, 10]
+    assert sum(sleeps) == 90
+    assert any("there should be exactly one" in warning for warning in warnings)
+    assert any("ursa.day.lsmc.bio" in warning for warning in warnings)
+    assert any("attached_hosts=2" in warning for warning in warnings)
+    assert any(f"AUTO-SELECTED {preferred_name}" in warning for warning in warnings)
 
 
 def test_explicit_discovery_allows_validation_stack() -> None:
@@ -369,22 +425,101 @@ def test_ensure_fails_when_none_exists_without_create() -> None:
         )
 
 
-def test_ensure_fails_on_multiple_matching_stacks() -> None:
+def test_ensure_selects_most_attached_compatible_stack_when_multiple_exist() -> None:
     cfn = FakeCloudFormation(
         [
-            _stack("acct-a", tags=_tags(region_az="us-west-2b", vpc_id="vpc-a")),
-            _stack("acct-b", tags=_tags(region_az="us-west-2c", vpc_id="vpc-b")),
+            _stack(
+                "acct-a",
+                outputs=_outputs(
+                    uri="10.0.1.11:3306",
+                    client_security_group_id="sg-a",
+                    instance_id="i-db-a",
+                ),
+            ),
+            _stack(
+                "acct-b",
+                outputs=_outputs(
+                    uri="10.0.1.12:3306",
+                    client_security_group_id="sg-b",
+                    instance_id="i-db-b",
+                ),
+            ),
+        ]
+    )
+    ec2 = FakeEc2(
+        network_interfaces=[
+            _network_interface("i-head-a", "sg-a"),
+            _network_interface("i-head-b1", "sg-b"),
+            _network_interface("i-head-b2", "sg-b"),
+            _network_interface("i-head-b2", "sg-b"),
+        ]
+    )
+    warnings: list[str] = []
+
+    db = ensure_slurm_accounting_db(
+        FakeAwsContext(cfn, ec2),
+        region_az="us-west-2b",
+        vpc_id="vpc-123",
+        private_subnet_id="subnet-private",
+        create_if_missing=True,
+        warning_callback=warnings.append,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    assert db.stack_name == "acct-b"
+    assert any("Candidate acct-a" in warning and "attached_hosts=1" in warning for warning in warnings)
+    assert any("Candidate acct-b" in warning and "attached_hosts=2" in warning for warning in warnings)
+    assert any("largest attached-host count" in warning for warning in warnings)
+
+
+def test_ensure_multiple_stacks_still_fails_when_none_is_compatible() -> None:
+    cfn = FakeCloudFormation(
+        [
+            _stack("acct-a", tags=_tags(vpc_id="vpc-a")),
+            _stack("acct-b", tags=_tags(vpc_id="vpc-b")),
         ]
     )
 
-    with pytest.raises(SlurmAccountingError, match="Multiple DayEC Slurm accounting stacks"):
+    with pytest.raises(SlurmAccountingError, match="none is compatible"):
         ensure_slurm_accounting_db(
-            FakeAwsContext(cfn),
+            FakeAwsContext(cfn, FakeEc2()),
             region_az="us-west-2b",
             vpc_id="vpc-123",
             private_subnet_id="subnet-private",
             create_if_missing=True,
+            sleep_fn=lambda _seconds: None,
         )
+
+
+def test_ensure_ignores_incompatible_explicit_preference_when_compatible_exists() -> None:
+    cfn = FakeCloudFormation(
+        [
+            _stack(
+                "acct-ursa-old",
+                tags=_tags(vpc_id="vpc-old"),
+                outputs=_outputs(client_security_group_id="sg-old"),
+            ),
+            _stack(
+                "acct-current",
+                outputs=_outputs(client_security_group_id="sg-current"),
+            ),
+        ]
+    )
+    warnings: list[str] = []
+
+    db = ensure_slurm_accounting_db(
+        FakeAwsContext(cfn, FakeEc2()),
+        region_az="us-west-2b",
+        vpc_id="vpc-123",
+        private_subnet_id="subnet-private",
+        create_if_missing=True,
+        stack_name="acct-ursa-old",
+        warning_callback=warnings.append,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    assert db.stack_name == "acct-current"
+    assert any("acct-ursa-old was not selected" in warning for warning in warnings)
 
 
 def test_ensure_fails_on_unhealthy_matching_stack() -> None:
