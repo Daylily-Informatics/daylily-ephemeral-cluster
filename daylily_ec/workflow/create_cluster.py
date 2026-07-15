@@ -29,7 +29,7 @@ import os as _os
 import re
 import shlex
 import subprocess
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional
@@ -47,7 +47,11 @@ from daylily_ec.aws.spot_pricing import (
 )
 from daylily_ec.headnode_readiness import validate_headnode_readiness
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport, StateRecord
-from daylily_ec.state.store import write_preflight_report, write_state_record
+from daylily_ec.state.store import (
+    write_preflight_report,
+    write_resource_receipt,
+    write_state_record,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -907,9 +911,7 @@ def parse_create_repo_overrides(values: Optional[Iterable[str]]) -> Dict[str, st
     for raw_value in values or ():
         value = str(raw_value).strip()
         if ":" not in value:
-            raise ValueError(
-                "--repo-override must use <repo-key>:<git-ref>; " f"got {raw_value!r}."
-            )
+            raise ValueError(f"--repo-override must use <repo-key>:<git-ref>; got {raw_value!r}.")
         repo_key, git_ref = (part.strip() for part in value.split(":", 1))
         if not repo_key or not git_ref:
             raise ValueError(
@@ -1333,6 +1335,16 @@ def validate_startup_dra_contract(cluster_yaml_path: str | Path) -> None:
         if not isinstance(storage, dict) or storage.get("StorageType") != "FsxLustre":
             continue
         fsx_settings = storage.get("FsxLustreSettings") or {}
+        if "FileSystemId" in fsx_settings:
+            if set(fsx_settings) != {"FileSystemId"} or not str(
+                fsx_settings.get("FileSystemId") or ""
+            ).startswith("fs-"):
+                raise ValueError(
+                    "External FSx startup settings must contain only an explicit FileSystemId."
+                )
+            # PERSISTENT_2 data repository associations are separate FSx API
+            # resources and are validated before this mount is rendered.
+            return
         for association in fsx_settings.get("DataRepositoryAssociations") or []:
             if isinstance(association, dict):
                 associations.append(association)
@@ -1369,7 +1381,7 @@ def validate_cpu_only_slurm_contract(cluster_yaml_path: str | Path) -> None:
         )
 
     head_node = payload.get("HeadNode") or {}
-    on_node_start = ((head_node.get("CustomActions") or {}).get("OnNodeStart") or {})
+    on_node_start = (head_node.get("CustomActions") or {}).get("OnNodeStart") or {}
     start_script = str(on_node_start.get("Script") or "")
     start_args = on_node_start.get("Args") or []
     expected_script_name = "install_slurm_job_submit_policy.sh"
@@ -1404,9 +1416,7 @@ def validate_cpu_only_slurm_contract(cluster_yaml_path: str | Path) -> None:
     for queue in queues:
         queue_name = str(queue.get("Name") or "<unnamed>")
         if queue.get("JobExclusiveAllocation") is not False:
-            raise ValueError(
-                f"Slurm queue {queue_name} must set JobExclusiveAllocation false."
-            )
+            raise ValueError(f"Slurm queue {queue_name} must set JobExclusiveAllocation false.")
 
 
 def validate_sentieon_single_cluster_contract(cluster_yaml_path: str | Path) -> None:
@@ -1833,6 +1843,47 @@ def _resolve_fsx_size(cfg: Any, *, non_interactive: bool) -> str:
             "Invalid FSx size. Enter one of the listed numbers or a value matching: "
             f"{FSX_SIZE_RULE_TEXT}."
         )
+
+
+def _resolve_persistent2_config(cfg: Any) -> Optional[dict[str, str]]:
+    """Return the exact explicit P2 contract, or ``None`` for managed Scratch.
+
+    Existing configs that omit the new deployment field retain their current
+    managed Scratch behavior. Once PERSISTENT_2 is requested, every P2-specific
+    value must be explicitly set; DYEC does not infer or downgrade any field.
+    """
+
+    deployment_triplet = cfg.ephemeral_cluster.config.get("fsx_deployment_type")
+    if deployment_triplet is None or not deployment_triplet.set_value.strip():
+        return None
+    deployment_type = deployment_triplet.set_value.strip().upper()
+    if deployment_type == "SCRATCH_2":
+        return None
+    if deployment_type != "PERSISTENT_2":
+        raise ValueError(
+            "fsx_deployment_type must be SCRATCH_2 or the supported PERSISTENT_2 contract."
+        )
+
+    expected = {
+        "fsx_fs_size": "4800",
+        "fsx_throughput_mbps_per_tib": "250",
+        "fsx_lustre_version": "2.15",
+        "fsx_metadata_mode": "AUTOMATIC",
+        "fsx_encryption_mode": "AWS_MANAGED_FSX",
+        "fsx_owner": "DYEC",
+        "fsx_lifecycle": "CLUSTER_BOUND",
+        "sweep_protection_tag": "ursa-preserve=true",
+    }
+    resolved: dict[str, str] = {"fsx_deployment_type": deployment_type}
+    for key, required_value in expected.items():
+        triplet = cfg.ephemeral_cluster.config.get(key)
+        value = triplet.set_value.strip() if triplet is not None else ""
+        if value != required_value:
+            raise ValueError(
+                f"PERSISTENT_2 requires explicit {key}={required_value}; received {value!r}."
+            )
+        resolved[key] = value
+    return resolved
 
 
 def _is_valid_headnode_instance_type(value: str) -> bool:
@@ -2473,6 +2524,13 @@ def run_create_workflow(
     ec = cfg.ephemeral_cluster
 
     try:
+        persistent2_config = _resolve_persistent2_config(cfg)
+    except ValueError as exc:
+        logger.error("PERSISTENT_2 config validation failed: %s", exc)
+        ui.fail(f"PERSISTENT_2 config: {exc}")
+        return EXIT_VALIDATION_FAILURE
+
+    try:
         dragen_inputs = resolve_dragen_create_inputs(
             cfg,
             cluster_type=cluster_type,
@@ -2521,7 +2579,7 @@ def run_create_workflow(
     )
     if not cluster_inventory.success:
         detail = cluster_inventory.message or (
-            "pcluster list-clusters failed with exit code " f"{cluster_inventory.returncode}"
+            f"pcluster list-clusters failed with exit code {cluster_inventory.returncode}"
         )
         logger.error("Regional ParallelCluster cap check failed closed: %s", detail)
         ui.fail(
@@ -3259,6 +3317,76 @@ def run_create_workflow(
         ui.fail(f"Repository deploy-key headnode policy: {exc}")
         return EXIT_VALIDATION_FAILURE
 
+    persistent2_resources = None
+    fsx_resource_receipt_path = ""
+    if persistent2_config is not None:
+        from daylily_ec.aws.fsx_persistent2 import (
+            Persistent2Spec,
+            ensure_persistent2_resources,
+            render_external_mount,
+            validate_external_mount,
+        )
+
+        ui.phase("PERSISTENT_2 FSX")
+        ui.step("Ensuring DYEC-owned P2 filesystem, client security group, and reference DRA ...")
+        persistent2_spec = Persistent2Spec(
+            cluster_name=cluster_name,
+            region=aws_ctx.region,
+            region_az=region_az,
+            subnet_id=private_subnet,
+            storage_capacity_gib=int(persistent2_config["fsx_fs_size"]),
+            throughput_mbps_per_tib=int(persistent2_config["fsx_throughput_mbps_per_tib"]),
+            reference_s3_uri=reference_s3_uri,
+            username_tag=f"{_os.environ.get('USER', 'unknown')}-{aws_ctx.iam_username}",
+            account_profile_tag=f"aws_profile-{aws_ctx.profile}",
+            enforce_budget_tag=post_create_inputs.enforce_budget,
+            cost_center_region="us-west-2",
+            cost_center_table="dayec-cost-centers",
+            cost_center_usage_table="dayec-cost-center-usage",
+            lustre_version=persistent2_config["fsx_lustre_version"],
+            metadata_mode=persistent2_config["fsx_metadata_mode"],
+            encryption_mode=persistent2_config["fsx_encryption_mode"],
+            owner=persistent2_config["fsx_owner"],
+            lifecycle=persistent2_config["fsx_lifecycle"],
+            sweep_preserve=(persistent2_config["sweep_protection_tag"] == "ursa-preserve=true"),
+        )
+        try:
+            persistent2_resources = ensure_persistent2_resources(
+                ec2,
+                aws_ctx.client("fsx"),
+                persistent2_spec,
+            )
+            render_external_mount(cluster_yaml_path, persistent2_resources)
+            validate_external_mount(cluster_yaml_path, persistent2_resources)
+            fsx_resource_receipt_path = str(
+                write_resource_receipt(
+                    cluster_name=cluster_name,
+                    run_id=ts,
+                    resource_type="fsx-persistent2",
+                    payload={
+                        "schema": "daylily.fsx_persistent2_resource_receipt/1.0",
+                        "recorded_at": datetime.now(timezone.utc).isoformat(),
+                        "spec": asdict(persistent2_spec),
+                        "resources": asdict(persistent2_resources),
+                    },
+                )
+            )
+        except ValueError as exc:
+            logger.error("PERSISTENT_2 render/contract failed: %s", exc)
+            ui.fail(f"PERSISTENT_2 contract: {exc}")
+            return EXIT_VALIDATION_FAILURE
+        except Exception as exc:
+            logger.error("PERSISTENT_2 resource ensure failed: %s", exc)
+            ui.fail(f"PERSISTENT_2 resource ensure: {exc}")
+            return EXIT_AWS_FAILURE
+        ui.ok(f"P2 FSx ready: {persistent2_resources.file_system_id}")
+        ui.detail("P2 client security group", persistent2_resources.security_group_id)
+        ui.detail(
+            "P2 reference DRA",
+            persistent2_resources.data_repository_association_id,
+        )
+        ui.detail("P2 resource receipt", fsx_resource_receipt_path)
+
     logger.info("Cluster YAML ready: %s", cluster_yaml_path)
     ui.ok(f"Cluster YAML ready: {cluster_yaml_path}")
     logger.info("Spot price summary ready: %s", spot_price_summary_path)
@@ -3357,8 +3485,7 @@ def run_create_workflow(
             monitor_result.error,
         )
         ui.fail(
-            "Did not reach CREATE_COMPLETE: "
-            f"{monitor_result.final_status}. {monitor_result.error}"
+            f"Did not reach CREATE_COMPLETE: {monitor_result.final_status}. {monitor_result.error}"
         )
         return EXIT_AWS_FAILURE
 
@@ -3478,6 +3605,7 @@ def run_create_workflow(
         "slurm_accounting_database_name": "",
         "slurm_accounting_db_username": "",
         "slurm_accounting_instance_type": "",
+        **(persistent2_config or {}),
         **max_count_values,
     }
     next_run_path = CONFIG_DIR / f"{cluster_name}_next_run_{ts}.yaml"
@@ -3499,6 +3627,19 @@ def run_create_workflow(
         public_subnet_id=public_subnet,
         private_subnet_id=private_subnet,
         policy_arn=policy_arn,
+        fsx_owner=(persistent2_resources.owner if persistent2_resources else ""),
+        fsx_lifecycle=(persistent2_resources.lifecycle if persistent2_resources else ""),
+        fsx_deployment_type=(
+            persistent2_resources.deployment_type if persistent2_resources else ""
+        ),
+        fsx_file_system_id=(persistent2_resources.file_system_id if persistent2_resources else ""),
+        fsx_security_group_id=(
+            persistent2_resources.security_group_id if persistent2_resources else ""
+        ),
+        fsx_data_repository_association_id=(
+            persistent2_resources.data_repository_association_id if persistent2_resources else ""
+        ),
+        fsx_resource_receipt_path=fsx_resource_receipt_path,
         global_budget_name=global_budget,
         cluster_budget_name=cluster_budget,
         heartbeat_topic_arn=hb_result.topic_arn if hb_result.success else "",
@@ -3572,9 +3713,7 @@ def configure_headnode(
         return False
     if dyec_deploy_key_secret_arn:
         if not dyec_repo_url or not dyec_repo_ref:
-            logger.error(
-                "  ✗ DYEC repository URL and ref are required with deploy-key auth"
-            )
+            logger.error("  ✗ DYEC repository URL and ref are required with deploy-key auth")
             return False
         try:
             repo_url = _normalize_headnode_repo_url(dyec_repo_url, deploy_key_auth=True)
@@ -3803,7 +3942,7 @@ def run_preflight_only(
         ROLE_STAGING,
         make_s3_bucket_preflight_step,
     )
-    from daylily_ec.config.triplets import get_effective_default, load_config
+    from daylily_ec.config.triplets import load_config
 
     if debug:
         logging.getLogger("daylily_ec").setLevel(logging.DEBUG)
@@ -3817,6 +3956,13 @@ def run_preflight_only(
 
         effective_config = str(resource_path(effective_config))
     cfg = load_config(effective_config)
+
+    try:
+        _resolve_persistent2_config(cfg)
+    except ValueError as exc:
+        logger.error("PERSISTENT_2 config validation failed: %s", exc)
+        ui.fail(f"PERSISTENT_2 config: {exc}")
+        return EXIT_VALIDATION_FAILURE
 
     try:
         cluster_name = _resolve_cluster_name(cfg, non_interactive=True)
@@ -3843,16 +3989,57 @@ def run_preflight_only(
         caller_arn=aws_ctx.caller_arn,
     )
 
-    max_8i = int(get_effective_default(cfg, "max_count_8I", "1") or "1")
-    max_96i_nvme_text = get_effective_default(cfg, "max_count_96I_NVME", "")
+    max_8i = int(
+        _resolve_config_value(
+            cfg,
+            "max_count_8I",
+            "Max 8xlarge count",
+            non_interactive=non_interactive,
+            default_fallback="1",
+        )
+        or "1"
+    )
+    max_96i_nvme_text = _resolve_config_value(
+        cfg,
+        "max_count_96I_NVME",
+        "Max 96-vCPU local-NVMe count",
+        non_interactive=non_interactive,
+    )
     if not max_96i_nvme_text:
         logger.error("Missing required max_count_96I_NVME configuration value.")
         ui.fail("max_count_96I_NVME must be configured explicitly.")
         return EXIT_VALIDATION_FAILURE
     max_96i_nvme = int(max_96i_nvme_text)
-    max_128i = int(get_effective_default(cfg, "max_count_128I", "1") or "1")
-    max_192i = int(get_effective_default(cfg, "max_count_192I", "1") or "1")
-    max_384i = int(get_effective_default(cfg, "max_count_384I", "1") or "1")
+    max_128i = int(
+        _resolve_config_value(
+            cfg,
+            "max_count_128I",
+            "Max 128xlarge count",
+            non_interactive=non_interactive,
+            default_fallback="1",
+        )
+        or "1"
+    )
+    max_192i = int(
+        _resolve_config_value(
+            cfg,
+            "max_count_192I",
+            "Max 192xlarge count",
+            non_interactive=non_interactive,
+            default_fallback="1",
+        )
+        or "1"
+    )
+    max_384i = int(
+        _resolve_config_value(
+            cfg,
+            "max_count_384I",
+            "Max 384xlarge count",
+            non_interactive=non_interactive,
+            default_fallback="1",
+        )
+        or "1"
+    )
     reference_s3_uri = _resolve_s3_role_config_value(
         cfg,
         "reference_s3_uri",
