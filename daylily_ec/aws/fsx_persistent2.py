@@ -124,7 +124,8 @@ def _tag_map(tags: Iterable[dict[str, Any]]) -> dict[str, str]:
 
 def _client_token(spec: Persistent2Spec, resource_role: str) -> str:
     payload = {"resource_role": resource_role, **asdict(spec)}
-    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
+    # FSx accepts at most 63 characters; a SHA-256 hex digest is 64.
+    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()[:63]
 
 
 def _describe_target_subnet(ec2_client: Any, spec: Persistent2Spec) -> tuple[str, str]:

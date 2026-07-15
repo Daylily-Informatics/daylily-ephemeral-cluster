@@ -110,6 +110,7 @@ def test_ensure_file_system_creates_exact_p2_metadata_contract() -> None:
 
     assert filesystem["FileSystemId"] == "fs-p2"
     kwargs = fsx.create_file_system.call_args.kwargs
+    assert len(kwargs["ClientRequestToken"]) == 63
     assert kwargs["FileSystemType"] == "LUSTRE"
     assert kwargs["FileSystemTypeVersion"] == "2.15"
     assert kwargs["StorageCapacity"] == 4800

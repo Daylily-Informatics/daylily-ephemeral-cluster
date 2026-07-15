@@ -47,6 +47,12 @@ No AWS resources were created, updated, or deleted by this ledger or the impleme
 - Do not increase an existing AWS Budget or DYEC cost-center cap without restating old/new values and receiving the required second approval.
 - Preserve S3 as the durable data contract. The target filesystem is performance infrastructure, not the sole durable copy of benchmark outputs.
 
+## Live execution events
+
+- `2026-07-15T04:52Z`: first cap-14 attempt stopped before AWS mutation because `codex/p2-fsx-canary` was not published on `origin`; branch publication was required by the exact headnode bootstrap contract.
+- `2026-07-15T04:53:45Z`: canary commit `904c1c9b` was created and pushed to `origin/codex/p2-fsx-canary`; this is a canary branch, not a release or tag.
+- `2026-07-15T04:54:56Z`: second attempt passed cap `14`, all 14 create preflight checks, resource resolution, boot-bundle publication, and budget ensure. FSx rejected the create request because the SHA-256 idempotency token was 64 characters while the API maximum is 63. No ParallelCluster stack or FSx filesystem was created. Exact partial state: reused global budget `daylily-global` at `$600`; created/reused cluster budget `ifx-p2-250-0714` at `$200`; created tagged client security group `sg-0033f808bf4e7559d`. The retry must reuse these exact resources.
+
 ## Completion condition
 
 The objective is complete only after the exact cluster and FSx attributes are live and verified, the read/write and reference-DRA contracts pass on head and compute nodes, the pinned A/B workload reaches a terminal result on both storage variants, and observed elapsed-time plus cost deltas are recorded with their evidence. Creating the cluster alone is not completion.
