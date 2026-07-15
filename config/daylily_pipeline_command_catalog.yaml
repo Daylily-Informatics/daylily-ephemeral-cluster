@@ -199,7 +199,7 @@ repositories:
     auth_mode: aws_deploy_key
     https_url: https://github.com/lsmc-bio/daylily-omics-analysis.git
     ssh_url: git@github.com:lsmc-bio/daylily-omics-analysis.git
-    default_ref: 11.0.6
+    default_ref: 11.0.7
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: simple-test
@@ -985,7 +985,7 @@ repositories:
             failure_cause: "Dry-run failed while preparing Roche/GATK containers: missing Singularity image /fsx/resources/environments/containers/ubuntu/ip-10-0-0-103/7a424a40c6fd659f4d052893dd3554fa.simg."
       - command_id: hybrid_ilmn_ont_hiomrs
         type: dev
-        validated_version: 11.0.6
+        validated_version: 11.0.7
         test_data_profile: default_reads_slim
         sample_manifest_template: examples/staging/hybrid_ilmn_ont_hg003_5x5x/analysis_samples_manifest.tsv
         display_name: "Hybrid ILMN+ONT Single-Node HIOMRS"
@@ -1023,11 +1023,11 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 11.0.6
+        git_tag: 11.0.7
         no_containerized: false
       - command_id: hybrid_ilmn_ont_hiomrs_kitchensink
         type: dev
-        validated_version: 11.0.6
+        validated_version: 11.0.7
         test_data_profile: default_reads_slim
         sample_manifest_template: examples/staging/hybrid_ilmn_ont_hg003_5x5x/analysis_samples_manifest.tsv
         display_name: "Hybrid ILMN+ONT Single-Node HIOMRS Kitchen Sink"
@@ -1079,7 +1079,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 11.0.6
+        git_tag: 11.0.7
         no_containerized: false
       - command_id: hybrid_ilmn_ont_snv
         type: prod

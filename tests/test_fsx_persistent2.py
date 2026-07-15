@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -13,6 +14,12 @@ from daylily_ec.aws.fsx_persistent2 import (
     ensure_security_group,
     render_external_mount,
     validate_external_mount,
+)
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+REQUESTED_CLUSTER_CONFIG = (
+    REPO_ROOT / "config/daylily_ephemeral_cluster_ifx_p2_1000_120_20260715.yaml"
 )
 
 
@@ -69,6 +76,23 @@ def test_persistent2_spec_accepts_all_explicit_aws_throughput_tiers(
 
 def test_persistent2_spec_accepts_requested_14p4_tib_max_throughput() -> None:
     _spec(storage_capacity_gib=14400, throughput_mbps_per_tib=1000).validate()
+
+
+def test_requested_usw2c_12tb_cluster_config_is_exact_and_postcreate_accounted() -> None:
+    data = yaml.safe_load(REQUESTED_CLUSTER_CONFIG.read_text(encoding="utf-8"))
+    config = data["ephemeral_cluster"]["config"]
+
+    assert config["cluster_name"][2] == "ifx-p2-1000-120-0715"
+    assert config["public_subnet_id"][2] == "subnet-01d64c963dc63d57e"
+    assert config["private_subnet_id"][2] == "subnet-0c05796e37a886a8d"
+    assert config["cluster_template_yaml"][2].endswith(
+        "intel/us-west-2/us-west-2c/prod_cluster_intel_us-west-2c.yaml"
+    )
+    assert config["budget_amount"][2] == "600"
+    assert config["fsx_fs_size"][2] == "12000"
+    assert config["fsx_deployment_type"][2] == "PERSISTENT_2"
+    assert config["fsx_throughput_mbps_per_tib"][2] == "1000"
+    assert config["slurm_accounting_enabled"][2] == "false"
 
 
 @pytest.mark.parametrize("throughput", [0, 124, 200, 750, 1001])

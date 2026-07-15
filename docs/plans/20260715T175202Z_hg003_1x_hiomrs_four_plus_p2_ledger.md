@@ -11,6 +11,15 @@ pin the current HIOMRS command to DayOA `11.0.6`, support a 14.4-TiB P2
 filesystem at the highest supported SSD throughput tier, then create a fifth
 cluster and run the same workflow there when all execution gates are satisfied.
 
+Amendment at `2026-07-15T19:41:46Z`: publish the current DayOA
+`sentieon-single` branch as the next patch release, advance DYEC through its
+DayOA-pin and self-pin releases, and replace the uncreated 14,400-GiB
+`us-west-2d` candidate with a 12,000-GiB `PERSISTENT_2` filesystem at 1000
+MB/s/TiB in `us-west-2c`. The new AWS cluster budget is `$600`, for which the
+user supplied the explicit second approval. Slurm accounting must be attached
+and verified through the supported post-create path before the HG003 controller
+is launched.
+
 ## Gate 0 baseline
 
 - AWS account/profile/region: `108782052779` / `lsmc` / `us-west-2`.
@@ -55,12 +64,27 @@ cluster and run the same workflow there when all execution gates are satisfied.
   and `a5b3d5ba0cd585b26aee2fa57bc200d9060fbfe1947b11409074b897d7ecb4ec`.
 - No raw Snakemake, SSH, silent fallback, filesystem deletion, DRA deletion,
   Slurm administration, budget increase, or foreign lock takeover is allowed.
+- Release-train Gate 0 amendment: DayOA source is
+  `/Users/jmajor/projects/lsmc/daylily-omics-analysis-sentieon-single`, branch
+  `sentieon-single`, HEAD/origin `59015411f9ea9d2ece3bc29da353705342b52817`,
+  five commits beyond annotated `11.0.6`. Tracked dirt is limited to the two
+  execution-ledger files named below. Untracked `jemxxx_tmp/` (2.8 MiB, three
+  generated files) and `tmp_sent-singleton/` (404 KiB, four generated files)
+  are explicitly preserved and excluded from release staging. DYEC source is
+  clean at `78bc0dcf` on `codex/p2-default-hiomrs-1106`, matching
+  `origin/sentieon-single`; annotated releases `10.3.8` and `10.3.9` already
+  exist and will not be moved.
 
 ## Control ledger
 
 | ID | Area | Requirement | Status | Category | Approval gate | Owner | Evidence | Root cause | Terminal note |
 |---|---|---|---|---|---|---|---|---|---|
 | G0-001 | Inventory | Freeze repos, releases, inputs, clusters, queues, filesystems, cost centers, and no-fallback contract | SUCCESS | feature_implementation | Gate 0 | orchestrator | Gate 0 baseline above |  | Baseline complete before workflow or AWS mutation. |
+| AMEND-001 | Requested release train | Replace the uncreated 14,400-GiB `us-west-2d` candidate with released DayOA/DYEC source and a 12,000-GiB `us-west-2c` P2-1000 cluster | SUCCESS | plan_amendment | Gate 0 | orchestrator | User clarified the exact AZ/capacity, requested the full DayOA-to-DYEC release train, gave second approval for a new `$600` AWS budget, and required post-create `sacct` before workflow launch |  | Supersedes only the uncreated fifth-cluster candidate; the four live comparison runs remain untouched. |
+| DAYREL-001 | DayOA release | Validate, commit the relevant tracked dirt, push `sentieon-single`, and create the next unused annotated patch tag | SUCCESS | contract_test | Gate 2 | orchestrator | Full suite `765 passed`; Ruff and diff checks clean; commit `978f5640177203f159a9ea3b5a79bd21ff382ac3`; annotated tag `11.0.7`; branch and tag pushed and verified remotely; generated untracked directories excluded |  | Published without moving an existing tag. |
+| DYREL-003 | DYEC DayOA pin | Pin default and HIOMRS catalog refs to DAYREL-001, correct the exact fifth config, validate, commit/push, and create the next annotated patch tag | IN_PROGRESS | contract_test | Gate 3 | orchestrator | Source/payload catalogs and tests pin `11.0.7`; candidate config is `ifx-p2-1000-120-0715`, `us-west-2c`, 12,000-GiB P2-1000, `$600`, and accounting disabled until the post-create attach gate. Focused suite `98 passed`; full suite `1541 passed, 11 skipped`; Ruff, source/payload comparison, and diff checks clean. |  | Commit, push, and annotated tag pending. |
+| DYREL-004 | DYEC self-pin | Advance source/payload DYEC self-pin to DYREL-003, validate, commit/push, and create the following annotated patch tag | OPEN | contract_test | Gate 3 | orchestrator | Pending DYREL-003 |  |  |
+| ENV-001 | Local DYEC environment | From the DYEC checkout, run `source ./activate` and install the released checkout editable | OPEN | contract_test | Gate 3 | orchestrator | Pending DYREL-004 |  |  |
 | RUN-001 | `ifx-p2-250-0714` | Fresh exact-tag HG003 1x HIOMRS dry-run then live controller | RUNNING | feature_implementation | Gate 1 | orchestrator | Root `/fsx/analysis_results/ifx-p2-250-0714/hg003-1x-hiomrs-1106-20260715T1754Z`; tmux `hg003-1x-hiomrs-1106-p2-250-20260715`; exact tag/commit and input hashes verified; 174-job dry-run rc 0; live controller is creating pinned conda environments |  | Controller live; no terminal claim. |
 | RUN-002 | `ifx-sacctoff-1037` | Fresh exact-tag HG003 1x HIOMRS dry-run then live controller | RUNNING | feature_implementation | Gate 1 | orchestrator | Root `/fsx/analysis_results/ifx-sacctoff-1037/hg003-1x-hiomrs-1106-20260715T1754Z`; tmux `hg003-1x-hiomrs-1106-s2-48-20260715`; exact tag/commit and input hashes verified; 174-job dry-run rc 0; live controller is creating pinned conda environments |  | Controller live; no terminal claim. |
 | RUN-003 | `ifx-20260719h` | Fresh exact-tag HG003 1x HIOMRS dry-run then live controller | RUNNING | feature_implementation | Gate 1 | orchestrator | Root `/fsx/analysis_results/ifx-20260719h/hg003-1x-hiomrs-1106-20260715T1754Z`; tmux `hg003-1x-hiomrs-1106-s2-144-20260715`; exact tag/commit and input hashes verified; 174-job dry-run rc 0; live jobs 1-5 submitted with zero Slurm memory placement |  | Controller live; initial LR/SR preparation and QC jobs are configuring. |
@@ -75,10 +99,11 @@ cluster and run the same workflow there when all execution gates are satisfied.
 | SACCT-002 | `ifx-sacctoff-1037` | Attach supported Slurm accounting without interrupting the comparison run | OPEN | contract_test | Gate 4 | orchestrator | `AccountingStorageType=(null)`; at `2026-07-15T18:40Z` the exact-tag controller was 38/174 with seven running jobs; supported `dyec slurm-accounting attach` requires `CREATE_COMPLETE` plus a stopped compute fleet | Active exact-tag controller owns running scope; fleet will be stopped only after the workflow is terminal and the queue is empty. | Deferred, not skipped. |
 | SACCT-003 | `ifx-20260719h` | Verify existing Slurm accounting | SUCCESS | contract_test | Gate 4 | orchestrator | `AccountingStorageType=accounting_storage/slurmdbd`, accounting host `ip-10-0-0-56`, port `6819`; `sacct` responds |  | Accounting already attached. |
 | SACCT-004 | `sent-hg003-5x-0712` | Verify existing Slurm accounting | SUCCESS | contract_test | Gate 4 | orchestrator | `AccountingStorageType=accounting_storage/slurmdbd`, accounting host `ip-10-0-0-203`, port `6819`; `sacct` shows current jobs 1149-1153 |  | Accounting already attached and active. |
-| SACCT-005 | Fifth cluster | Enable Slurm accounting in the creation contract | SUCCESS | feature_implementation | Gate 4 | orchestrator | Exact fifth config sets `slurm_accounting_enabled=true` |  | Creation will attach accounting through the supported declarative path. |
+| SACCT-005 | Fifth cluster | Enable Slurm accounting in the creation contract | NO_LONGER_NEEDED | feature_implementation | Gate 4 | orchestrator | The amended user contract explicitly requires accounting after cluster creation |  | Replaced by SACCT-006; create remains independent of accounting. |
+| SACCT-006 | New 12,000-GiB cluster | After `CREATE_COMPLETE`, stop the empty fleet, attach accounting through dry-run/live update, restart, and verify `sacct` | OPEN | contract_test | Gate 5 | orchestrator | Must verify `AccountingStorageType=accounting_storage/slurmdbd` and a successful `sacct` query before RUN-005 |  |  |
 | AWS-000 | Failed cluster cleanup | Delete hard-failed `ifx-20260719g` after explicit double approval | SUCCESS | removable_compatibility_debt | Gate 4 | orchestrator | `dyec delete --yes` reached terminal deletion in 15m18s; final `pcluster list-clusters` contains four records; CloudFormation stack and FSx `fs-0d376633755dc5a49` return not found; DRA `dra-0cfeaea12c25b953a` list is empty | Initial rollback had failed because an active metadata-import task blocked DRA deletion; the retry deleted the now-available DRA before the 14,400-GiB `SCRATCH_2` filesystem. | Backing `s3://lsmc-dayoa-references-usw2` objects were not deleted. |
-| AWS-001 | Fifth cluster | Validate quota/cap/config and create 14,400-GiB P2-1000 cluster without fallback | OPEN | feature_implementation | Gate 4 | orchestrator | Existing P2 use 4,800 GiB; four ParallelCluster records remain after terminal deletion of `ifx-20260719g`, so the default regional record cap of five is no longer exceeded by the proposed fifth cluster |  | New-cluster budget second approval remains pending. |
-| RUN-005 | Fifth cluster | Verify head/compute FSx contract and launch the identical HG003 1x HIOMRS controller | OPEN | feature_implementation | Gate 5 | orchestrator | Pending AWS-001 and submission-cost-center proof |  |  |
+| AWS-001 | Fifth cluster | Validate quota/cap/config and create 12,000-GiB P2-1000 cluster in `us-west-2c` without fallback | OPEN | feature_implementation | Gate 4 | orchestrator | Four ParallelCluster records remain, so the default regional cap of five is sufficient. User supplied second approval for the new cluster AWS budget: nonexistent/`$0` to `$600`. |  | Pending DYREL-004 and exact config validation. |
+| RUN-005 | Fifth cluster | Verify head/compute FSx and accounting contracts, then launch the identical HG003 1x HIOMRS controller from the new exact DayOA tag | OPEN | feature_implementation | Gate 6 | orchestrator | Pending AWS-001, SACCT-006, and submission-cost-center proof |  |  |
 | ACC-001 | Acceptance | Track controller, queue, final MultiQC/evidence, wall time, benchmark cost, and FSx shape for all runs | OPEN | contract_test | Gate 6 | orchestrator | Pending terminal runs |  |  |
 
 ## Speed comparison baseline
@@ -122,4 +147,5 @@ cluster and run the same workflow there when all execution gates are satisfied.
 Starting a tmux session or seeing an empty queue is not success. A run succeeds
 only with controller rc 0, final `DAY_final_multiqc.html`, final MultiQC data,
 and `dayoa_evidence_manifest.json`. The overall objective also requires a
-terminal fifth-cluster create result and every ledger row in a terminal state.
+terminal fifth-cluster create result, verified post-create Slurm accounting,
+and every ledger row in a terminal state.
