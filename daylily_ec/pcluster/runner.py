@@ -380,7 +380,7 @@ def update_cluster(
         executable=executable,
     )
     if dry_run:
-        result.success = result.returncode == 0 and result.message == DRY_RUN_SUCCESS_MESSAGE
+        result.success = result.message == DRY_RUN_SUCCESS_MESSAGE
     else:
         result.success = result.returncode == 0
     return result

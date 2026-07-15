@@ -361,7 +361,10 @@ class TestDescribeAndUpdateCluster:
 
     @patch("daylily_ec.pcluster.runner.subprocess.run")
     def test_update_cluster_dry_run_requires_exact_success_message(self, mock_run):
-        mock_run.return_value = _completed(stdout=_dry_run_ok_json())
+        # The LSMC ParallelCluster fork returns rc=1 for a successful update
+        # dry run, so the exact AWS success message is authoritative here just
+        # as it is for create-cluster dry runs.
+        mock_run.return_value = _completed(stdout=_dry_run_ok_json(), rc=1)
 
         result = update_cluster(
             "cl1",
@@ -372,6 +375,7 @@ class TestDescribeAndUpdateCluster:
         )
 
         assert result.success is True
+        assert result.returncode == 1
         assert mock_run.call_args.args[0] == [
             "pcluster",
             "update-cluster",
@@ -394,6 +398,20 @@ class TestDescribeAndUpdateCluster:
         assert result.success is True
         assert mock_run.call_args.args[0][-2:] == ["--region", "us-west-2"]
         assert mock_run.call_args.args[0][6:8] == ["--dryrun", "false"]
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_update_cluster_dry_run_rejects_noncanonical_message_at_rc_zero(self, mock_run):
+        mock_run.return_value = _completed(stdout=_dry_run_fail_json(), rc=0)
+
+        result = update_cluster(
+            "cl1",
+            "/tmp/update.yaml",
+            "us-west-2",
+            dry_run=True,
+        )
+
+        assert result.success is False
+        assert result.returncode == 0
 
 
 class TestDeleteCluster:
