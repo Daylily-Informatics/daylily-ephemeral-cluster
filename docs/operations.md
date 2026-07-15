@@ -257,6 +257,21 @@ center overlaps for 10 minutes, the first receives 50 minutes solo plus half of
 the 10-minute overlap, or 55/60 of that instance-hour. The second receives
 5/60. Time with no jobs is assigned to the reserved system cost center `idle`.
 
+For a dedicated cluster whose cost-center name exactly matches the cluster
+name, refresh a stale usage snapshot from authoritative CUR rows with:
+
+```bash
+dyec --json cost-centers refresh-usage "$CLUSTER_NAME" \
+  --cluster "$CLUSTER_NAME" \
+  --month "$(date -u +%Y-%m)" \
+  --profile "$AWS_PROFILE" \
+  --dry-run
+```
+
+Repeat without `--dry-run` only after checking the row count, amount, and
+latest processed hour. The command fails closed for shared clusters; those
+require Slurm job-time allocation.
+
 Before live CUR-backed allocation can run in a new AWS account, create or
 validate the billing source:
 

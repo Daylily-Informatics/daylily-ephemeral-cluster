@@ -129,6 +129,28 @@ def test_default_templates_disable_slurm_accounting() -> None:
         )
 
 
+def test_default_templates_use_explicit_persistent2_storage() -> None:
+    root = Path(__file__).resolve().parents[1]
+    expected = {
+        "fsx_fs_size": ["USESETVALUE", "", "4800"],
+        "fsx_deployment_type": ["USESETVALUE", "", "PERSISTENT_2"],
+        "fsx_throughput_mbps_per_tib": ["USESETVALUE", "", "250"],
+        "fsx_lustre_version": ["USESETVALUE", "", "2.15"],
+        "fsx_metadata_mode": ["USESETVALUE", "", "AUTOMATIC"],
+        "fsx_encryption_mode": ["USESETVALUE", "", "AWS_MANAGED_FSX"],
+        "fsx_owner": ["USESETVALUE", "", "DYEC"],
+        "fsx_lifecycle": ["USESETVALUE", "", "CLUSTER_BOUND"],
+        "sweep_protection_tag": ["USESETVALUE", "", "ursa-preserve=true"],
+    }
+    for relative in (
+        "config/daylily_ephemeral_cluster_template.yaml",
+        "daylily_ec/resources/payload/config/daylily_ephemeral_cluster_template.yaml",
+    ):
+        payload = yaml.safe_load((root / relative).read_text(encoding="utf-8"))
+        config = payload["ephemeral_cluster"]["config"]
+        assert {key: config[key] for key in expected} == expected
+
+
 def test_render_update_config_adds_database_and_preserves_existing_group(tmp_path) -> None:
     source = _config(tmp_path / "source.yaml")
     destination = tmp_path / "update.yaml"

@@ -112,7 +112,14 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "dayoa_deploy_key_secret_arn",
     "enable_detailed_monitoring",
     "enforce_budget",
+    "fsx_deployment_type",
+    "fsx_encryption_mode",
     "fsx_fs_size",
+    "fsx_lifecycle",
+    "fsx_lustre_version",
+    "fsx_metadata_mode",
+    "fsx_owner",
+    "fsx_throughput_mbps_per_tib",
     "global_allowed_budget_users",
     "global_budget_amount",
     "headnode_instance_type",
@@ -153,6 +160,7 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "slurm_accounting_db_username",
     "slurm_accounting_instance_type",
     "spot_instance_allocation_strategy",
+    "sweep_protection_tag",
 ]
 
 

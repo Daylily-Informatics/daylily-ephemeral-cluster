@@ -156,12 +156,19 @@ dyec cost-centers disable project-a --reason "closed"
 dyec --json cost-centers show project-a
 dyec --json cost-centers list --status active
 dyec --json cost-centers usage project-a --month 2026-07
+dyec --json cost-centers refresh-usage project-a \
+  --cluster project-a --month 2026-07 --profile "$AWS_PROFILE" --dry-run
 dyec --json cost-centers ensure-cur-export --profile "$AWS_PROFILE"
 ```
 
 The registry defaults to DynamoDB tables `dayec-cost-centers` and
 `dayec-cost-center-usage` in `us-west-2`. The reserved `idle` cost center is
 system-owned and cannot be used in Slurm submissions.
+
+`refresh-usage` recomputes authoritative monthly EC2 spend from delivered CUR
+rows for a dedicated cluster whose cost-center name exactly equals the cluster
+name. It refuses shared-cluster allocation, empty CUR evidence, and processed
+hour regression. Use `--dry-run` before the live write.
 
 `ensure-cur-export` creates or validates the explicit CUR 2.0 billing source
 used by hourly cost-center accounting: a dedicated S3 bucket, the required BCM

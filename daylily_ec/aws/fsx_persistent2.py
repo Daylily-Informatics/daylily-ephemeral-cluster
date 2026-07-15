@@ -30,6 +30,7 @@ SWEEP_PRESERVE_TAG_VALUE = "true"
 REFERENCE_FILE_SYSTEM_PATH = "/references/"
 FSX_PORT_RANGES = ((988, 988), (1021, 1023))
 TERMINAL_FAILURE_STATES = {"FAILED", "DELETING", "DELETED"}
+PERSISTENT2_THROUGHPUT_TIERS = {125, 250, 500, 1000}
 
 
 @dataclass(frozen=True)
@@ -59,10 +60,22 @@ class Persistent2Spec:
             raise ValueError("P2 FSx cluster_name is required.")
         if not self.region or not self.region_az or not self.subnet_id:
             raise ValueError("P2 FSx region, region_az, and subnet_id are required.")
-        if self.storage_capacity_gib != 4800:
-            raise ValueError("P2 benchmark FSx must use exactly 4800 GiB.")
-        if self.throughput_mbps_per_tib != 250:
-            raise ValueError("P2 benchmark FSx must use exactly 250 MB/s/TiB.")
+        if not (
+            self.storage_capacity_gib in {1200, 2400}
+            or (
+                self.storage_capacity_gib >= 4800
+                and self.storage_capacity_gib % 2400 == 0
+            )
+        ):
+            raise ValueError(
+                "P2 FSx capacity must be 1200 GiB, 2400 GiB, or a multiple "
+                "of 2400 GiB at or above 4800 GiB."
+            )
+        if self.throughput_mbps_per_tib not in PERSISTENT2_THROUGHPUT_TIERS:
+            raise ValueError(
+                "P2 FSx throughput must be one of 125, 250, 500, or "
+                "1000 MB/s/TiB."
+            )
         if self.lustre_version != FSX_LUSTRE_VERSION:
             raise ValueError(f"P2 benchmark FSx must use Lustre {FSX_LUSTRE_VERSION}.")
         if self.metadata_mode != FSX_METADATA_MODE:

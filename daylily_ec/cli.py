@@ -1196,6 +1196,80 @@ def cost_centers_put_usage(
     _emit_payload(payload, json.dumps(payload, indent=2))
 
 
+def cost_centers_refresh_usage(
+    name: str = typer.Argument(..., help="Dedicated cost-center name."),
+    cluster: str = typer.Option(
+        ...,
+        "--cluster",
+        help="ParallelCluster name. Must exactly equal the cost-center name.",
+    ),
+    month: str = typer.Option(..., "--month", help="Usage month YYYY-MM."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option(
+        "us-west-2", "--home-region", help="Cost-center DynamoDB home region."
+    ),
+    athena_region: str = typer.Option(
+        "us-east-1", "--athena-region", help="Region containing the CUR Athena table."
+    ),
+    database: str = typer.Option("dayec_cur", "--database", help="CUR Glue database."),
+    table: str = typer.Option("cur2_hourly", "--table", help="CUR Glue table."),
+    athena_output_s3_uri: Optional[str] = typer.Option(
+        None,
+        "--athena-output-s3-uri",
+        help=(
+            "Athena query-results S3 URI. Defaults to the authenticated account's "
+            "dayec-cur bucket."
+        ),
+    ),
+    registry_table_name: str = typer.Option(
+        "dayec-cost-centers", "--registry-table-name", help="Cost-center registry table."
+    ),
+    usage_table_name: str = typer.Option(
+        "dayec-cost-center-usage", "--usage-table-name", help="Usage snapshot table."
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Query and calculate authoritative usage without writing DynamoDB.",
+    ),
+) -> None:
+    """Refresh dedicated-cluster monthly usage from authoritative CUR rows."""
+    from daylily_ec.aws.cur import CurAthenaConfig
+    from daylily_ec.cost_center_refresh import refresh_dedicated_cluster_usage
+
+    _warn_if_dayec_env_inactive()
+    try:
+        aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        output_s3_uri = athena_output_s3_uri or (
+            f"s3://dayec-cur-{aws_ctx.account_id}-us-east-1/"
+            "dayec-cur/athena-results/"
+        )
+        result = refresh_dedicated_cluster_usage(
+            athena_client=aws_ctx.session.client("athena", region_name=athena_region),
+            dynamodb_client=dynamodb,
+            cost_center_name=name,
+            cluster_name=cluster,
+            month=month,
+            cur_config=CurAthenaConfig(
+                database=database,
+                table=table,
+                output_s3_uri=output_s3_uri,
+                cluster_tag_column="",
+                cluster_tag_map_column="resource_tags",
+                cluster_tag_key="user_parallelcluster_cluster_name",
+                region_column="product_region_code",
+                currency_column="line_item_currency_code",
+            ),
+            registry_table_name=registry_table_name,
+            usage_table_name=usage_table_name,
+            dry_run=dry_run,
+        )
+        payload = result.to_dict()
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(payload, json.dumps(payload, indent=2))
+
+
 def cost_centers_ensure_cur_export(
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     billing_region: str = typer.Option(
@@ -5718,6 +5792,15 @@ def register(registry, cli_spec) -> None:
                 "put-usage",
                 cost_centers_put_usage,
                 required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
+                "refresh-usage",
+                cost_centers_refresh_usage,
+                required_policy(
+                    supports_json=True,
+                    mutates_state=True,
+                    long_running=True,
+                ),
             ),
             (
                 "ensure-cur-export",

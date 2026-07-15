@@ -65,6 +65,7 @@ EXPECTED_COMMANDS = {
     ("cost-centers", "list"),
     ("cost-centers", "usage"),
     ("cost-centers", "put-usage"),
+    ("cost-centers", "refresh-usage"),
     ("cost-centers", "ensure-cur-export"),
     ("headnode", "init"),
     ("headnode", "connect"),

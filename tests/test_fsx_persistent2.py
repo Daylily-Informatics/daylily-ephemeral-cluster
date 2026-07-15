@@ -60,9 +60,27 @@ def _filesystem() -> dict:
     }
 
 
-def test_persistent2_spec_rejects_any_tier_substitution() -> None:
-    with pytest.raises(ValueError, match="exactly 250"):
-        _spec(throughput_mbps_per_tib=125).validate()
+@pytest.mark.parametrize("throughput", [125, 250, 500, 1000])
+def test_persistent2_spec_accepts_all_explicit_aws_throughput_tiers(
+    throughput: int,
+) -> None:
+    _spec(throughput_mbps_per_tib=throughput).validate()
+
+
+def test_persistent2_spec_accepts_requested_14p4_tib_max_throughput() -> None:
+    _spec(storage_capacity_gib=14400, throughput_mbps_per_tib=1000).validate()
+
+
+@pytest.mark.parametrize("throughput", [0, 124, 200, 750, 1001])
+def test_persistent2_spec_rejects_invalid_throughput(throughput: int) -> None:
+    with pytest.raises(ValueError, match="125, 250, 500, or 1000"):
+        _spec(throughput_mbps_per_tib=throughput).validate()
+
+
+@pytest.mark.parametrize("capacity", [0, 600, 14000, 5000])
+def test_persistent2_spec_rejects_invalid_capacity(capacity: int) -> None:
+    with pytest.raises(ValueError, match="multiple of 2400"):
+        _spec(storage_capacity_gib=capacity).validate()
 
 
 def test_ensure_security_group_creates_self_referenced_lustre_rules() -> None:

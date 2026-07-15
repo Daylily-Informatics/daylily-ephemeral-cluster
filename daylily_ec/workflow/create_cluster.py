@@ -1865,8 +1865,6 @@ def _resolve_persistent2_config(cfg: Any) -> Optional[dict[str, str]]:
         )
 
     expected = {
-        "fsx_fs_size": "4800",
-        "fsx_throughput_mbps_per_tib": "250",
         "fsx_lustre_version": "2.15",
         "fsx_metadata_mode": "AUTOMATIC",
         "fsx_encryption_mode": "AWS_MANAGED_FSX",
@@ -1875,6 +1873,31 @@ def _resolve_persistent2_config(cfg: Any) -> Optional[dict[str, str]]:
         "sweep_protection_tag": "ursa-preserve=true",
     }
     resolved: dict[str, str] = {"fsx_deployment_type": deployment_type}
+    size_triplet = cfg.ephemeral_cluster.config.get("fsx_fs_size")
+    size = size_triplet.set_value.strip() if size_triplet is not None else ""
+    if not _is_valid_fsx_size(size):
+        raise ValueError(
+            "PERSISTENT_2 requires explicit fsx_fs_size matching: "
+            f"{FSX_SIZE_RULE_TEXT}; received {size!r}."
+        )
+    resolved["fsx_fs_size"] = size
+
+    throughput_triplet = cfg.ephemeral_cluster.config.get(
+        "fsx_throughput_mbps_per_tib"
+    )
+    throughput = (
+        throughput_triplet.set_value.strip()
+        if throughput_triplet is not None
+        else ""
+    )
+    if throughput not in {"125", "250", "500", "1000"}:
+        raise ValueError(
+            "PERSISTENT_2 requires explicit fsx_throughput_mbps_per_tib "
+            "of 125, 250, 500, or 1000; "
+            f"received {throughput!r}."
+        )
+    resolved["fsx_throughput_mbps_per_tib"] = throughput
+
     for key, required_value in expected.items():
         triplet = cfg.ephemeral_cluster.config.get(key)
         value = triplet.set_value.strip() if triplet is not None else ""
