@@ -18,9 +18,9 @@ Objective: preserve and publish every current non-ignored DYEC worktree change, 
 |---|---|---|---|---|
 | DYE-001 | Freeze the exact dirty inventory and preserve all non-ignored files. | SUCCESS | `git status --short`, `git diff --stat`, 62-file cost evidence bundle inventory | No dirty file is silently discarded. |
 | DYE-002 | Run focused and full validation on the complete dirty work. | SUCCESS | Focused `263 passed`; full `1573 passed, 11 skipped`; focused Ruff and `git diff --check` passed | Full suite includes AWS API audit and idle-cost tests. |
-| DYE-003 | Commit the complete dirty scope on the release branch. | OPEN |  |  |
-| DYE-004 | Rebase the release branch onto current `origin/main` and update DayOA catalog pins to `11.0.11`. | OPEN |  |  |
-| DYE-005 | Revalidate, push, open the first DYEC PR, wait for checks, and merge. | OPEN |  |  |
+| DYE-003 | Commit the complete dirty scope on the release branch. | SUCCESS | `5711e8d9` (`263,319 insertions`, complete non-ignored inventory) | All requested dirty work is preserved in the release commit. |
+| DYE-004 | Rebase the release branch onto current `origin/main` and update DayOA catalog pins to `11.0.11`. | SUCCESS | `5711e8d9` parent `1af6b55e`; source/package catalog pins and fork-contract test now name `11.0.11` | Rebase was clean and the release pin is explicit in both payload trees. |
+| DYE-005 | Revalidate, push, open the first DYEC PR, wait for checks, and merge. | OPEN | Focused release validation: `250 passed` plus `5 passed`; full `1573 passed, 11 skipped`; Ruff and scoped `git diff --check` passed. Push/PR/checks/merge pending. |  |
 | DYE-006 | Fast-forward local `main`, create annotated tag `10.3.17`, and push it. | OPEN |  |  |
 | DYE-007 | Create a follow-up branch, advance source/package DYEC self-pins to `10.3.17`, and revalidate. | OPEN |  |  |
 | DYE-008 | Push the self-pin branch, open and merge its PR after checks. | OPEN |  |  |
