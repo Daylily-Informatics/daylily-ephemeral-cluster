@@ -43,6 +43,30 @@ LEGACY_CREATE_ACCOUNTING_KEYS = frozenset(
     }
 )
 
+# These substitutions are implementation details of the Intel template.  The
+# public create contract asks for one count per vCPU family and expands that
+# value to every matching compute-resource subtype.  Persisting subtype values
+# as USESETVALUE entries made an old generated ``1`` silently override a newly
+# supplied family count on the next run.
+DERIVED_MAX_COUNT_KEYS = frozenset(
+    {
+        "max_count_128I_C",
+        "max_count_128I_M",
+        "max_count_128I_R",
+        "max_count_128I_NVME",
+        "max_count_192I_C",
+        "max_count_192I_M",
+        "max_count_192I_R",
+        "max_count_192I_NVME_C",
+        "max_count_192I_NVME_M",
+        "max_count_192I_NVME_R",
+        "max_count_192I_HUGENVME",
+        "max_count_384I_NVME_C",
+        "max_count_384I_NVME_M",
+        "max_count_384I_NVME_R",
+    }
+)
+
 # ---------------------------------------------------------------------------
 # Loading
 # ---------------------------------------------------------------------------
@@ -162,13 +186,15 @@ def get_effective_default(cfg: ConfigFile, key: str, fallback: str = "") -> str:
 
 
 def resolve_derived_max_count(cfg: ConfigFile, key: str, parent_value: int) -> str:
-    """Return an explicit subtype max count or inherit the parent family count."""
-    triplet = cfg.ephemeral_cluster.config.get(key)
-    if triplet is not None:
-        resolved = resolve_value(triplet).strip()
-        if resolved:
-            int(resolved)
-            return resolved
+    """Expand a public family count to a private template subtype.
+
+    ``key`` remains in the signature because callers name the destination
+    substitution explicitly.  Subtype triplets are intentionally ignored:
+    they were never prompted by ``dyec create`` and therefore cannot override
+    the value the user actually supplied for the family.
+    """
+    if key not in DERIVED_MAX_COUNT_KEYS:
+        raise ValueError(f"Unknown derived max-count key: {key}")
     return str(parent_value)
 
 
@@ -213,7 +239,7 @@ def write_next_run_template(
 
     out_data: Dict[str, Any] = {"ephemeral_cluster": {"config": {}}}
     for key, triplet in cfg.ephemeral_cluster.config.items():
-        if key in LEGACY_CREATE_ACCOUNTING_KEYS:
+        if key in LEGACY_CREATE_ACCOUNTING_KEYS or key in DERIVED_MAX_COUNT_KEYS:
             continue
         next_action = triplet.action
         if not is_auto_select_disabled():
@@ -226,7 +252,7 @@ def write_next_run_template(
         out_data["ephemeral_cluster"]["template_defaults"] = {
             key: value
             for key, value in cfg.ephemeral_cluster.template_defaults.items()
-            if key not in LEGACY_CREATE_ACCOUNTING_KEYS
+            if key not in LEGACY_CREATE_ACCOUNTING_KEYS and key not in DERIVED_MAX_COUNT_KEYS
         }
 
     with open(dest, "w", encoding="utf-8") as fh:
