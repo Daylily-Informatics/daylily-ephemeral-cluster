@@ -14,7 +14,7 @@ ephemeral_cluster:
     global_allowed_budget_users: [USESETVALUE, "", "ubuntu"]
     global_budget_amount: [USESETVALUE, "", "600"]
     enforce_budget: [USESETVALUE, "", "true"]
-    cluster_template_yaml: [USESETVALUE, "", "config/day_cluster/intel/us-west-2/us-west-2c/prod_cluster_intel_us-west-2c.yaml"]
+    cluster_template_yaml: [USESETVALUE, "", "config/day_cluster/intel/us-west-2/us-west-2c/prod_cluster_intel_spot_us-west-2c.yaml"]
     headnode_instance_type: [USESETVALUE, "", "r7i.2xlarge"]
     fsx_fs_size: [USESETVALUE, "", "12000"]
     fsx_deployment_type: [USESETVALUE, "", "PERSISTENT_2"]

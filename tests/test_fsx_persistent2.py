@@ -86,7 +86,7 @@ def test_requested_usw2c_12tb_cluster_config_is_exact_and_postcreate_accounted()
     assert config["public_subnet_id"][2] == "subnet-01d64c963dc63d57e"
     assert config["private_subnet_id"][2] == "subnet-0c05796e37a886a8d"
     assert config["cluster_template_yaml"][2].endswith(
-        "intel/us-west-2/us-west-2c/prod_cluster_intel_us-west-2c.yaml"
+        "intel/us-west-2/us-west-2c/prod_cluster_intel_spot_us-west-2c.yaml"
     )
     assert config["budget_amount"][2] == "600"
     assert config["fsx_fs_size"][2] == "12000"

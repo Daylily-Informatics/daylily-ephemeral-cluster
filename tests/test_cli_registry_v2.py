@@ -97,6 +97,7 @@ EXPECTED_COMMANDS = {
     ("analysis", "visit"),
     ("analysis", "status"),
     ("analysis", "guard"),
+    ("command", "sample-stats"),
     ("analysis", "lock", "status"),
     ("analysis", "lock", "acquire"),
     ("analysis", "lock", "release"),
@@ -236,6 +237,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     analysis_visit_cmd = registry.get_command(("analysis", "visit"))
     analysis_status_cmd = registry.get_command(("analysis", "status"))
     analysis_guard_cmd = registry.get_command(("analysis", "guard"))
+    command_sample_stats_cmd = registry.get_command(("command", "sample-stats"))
     analysis_lock_status_cmd = registry.get_command(("analysis", "lock", "status"))
     analysis_lock_acquire_cmd = registry.get_command(("analysis", "lock", "acquire"))
     analysis_lock_release_cmd = registry.get_command(("analysis", "lock", "release"))
@@ -252,6 +254,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     slurm_accounting_attach_cmd = registry.get_command(("slurm-accounting", "attach"))
     cost_centers_put_usage_cmd = registry.get_command(("cost-centers", "put-usage"))
     cost_centers_ensure_cur_export_cmd = registry.get_command(("cost-centers", "ensure-cur-export"))
+
+    assert command_sample_stats_cmd is not None
+    assert command_sample_stats_cmd.policy.supports_json is True
+    assert command_sample_stats_cmd.policy.mutates_state is True
+    assert command_sample_stats_cmd.policy.long_running is True
 
     assert version_cmd is not None
     assert version_cmd.policy.runtime_guard == "exempt"
@@ -1652,6 +1659,8 @@ def test_pricing_snapshot_command_passes_collection_options(monkeypatch, tmp_pat
             "i192",
             "--config",
             str(config_path),
+            "--target-capacity-vcpus",
+            "384",
         ],
     )
 
@@ -1663,7 +1672,103 @@ def test_pricing_snapshot_command_passes_collection_options(monkeypatch, tmp_pat
         "partitions": ["i192"],
         "cluster_config_path": str(config_path),
         "profile": "dev",
+        "target_capacity_vcpus": 384,
     }
+
+
+def test_pricing_snapshot_table_view_renders_ascii_table(monkeypatch) -> None:
+    import daylily_ec.aws.pricing_snapshots as pricing_module
+
+    _activate_dayec_runtime(monkeypatch)
+    payload = {
+        "captured_at": "2026-07-16T11:36:05Z",
+        "cluster_config_path": "/tmp/cluster.yaml",
+        "regions": ["us-west-2"],
+        "partitions": ["i8"],
+        "target_capacity_vcpus": 384,
+        "summaries": [
+            {
+                "region": "us-west-2",
+                "availability_zone": "us-west-2a",
+                "partition": "i8",
+                "priced_instance_count": 16,
+                "configured_instance_count": 17,
+                "price_coverage_percent": 94.12,
+                "min_hourly_spot_price": 0.1734,
+                "median_hourly_spot_price": 0.25,
+                "harmonic_mean_hourly_spot_price": 0.23,
+                "max_hourly_spot_price": 0.4,
+                "spread_hourly_spot_price": 0.2266,
+                "spot_placement_target_capacity_vcpus": 384,
+                "spot_placement_score": 8,
+            }
+        ],
+        "points": [{"raw": "point remains in JSON"}],
+    }
+    monkeypatch.setattr(
+        pricing_module,
+        "collect_pricing_snapshot",
+        lambda **_kwargs: SimpleNamespace(to_dict=lambda: payload),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "pricing",
+            "snapshot",
+            "--profile",
+            "dev",
+            "--table-view",
+            "--target-capacity-vcpus",
+            "384",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Captured at: 2026-07-16T11:36:05Z" in result.stdout
+    assert "+" in result.stdout
+    assert "Priced/Configured" in result.stdout
+    assert "16/17" in result.stdout
+    assert "0.17340" in result.stdout
+    assert "Spot Placement Score target: 384 vCPUs" in result.stdout
+
+
+def test_pricing_snapshot_table_view_requires_explicit_target_before_collection(monkeypatch) -> None:
+    import daylily_ec.aws.pricing_snapshots as pricing_module
+
+    _activate_dayec_runtime(monkeypatch)
+
+    def fail_if_called(**_kwargs):
+        raise AssertionError("pricing collection must not run without an explicit target")
+
+    monkeypatch.setattr(pricing_module, "collect_pricing_snapshot", fail_if_called)
+
+    result = runner.invoke(
+        app,
+        ["pricing", "snapshot", "--table-view"],
+    )
+
+    assert result.exit_code == 2
+    assert "--target-capacity-vcpus is required with --table-view" in result.stderr
+
+
+def test_pricing_snapshot_table_view_rejects_json_before_collection(monkeypatch) -> None:
+    import daylily_ec.aws.pricing_snapshots as pricing_module
+
+    _activate_dayec_runtime(monkeypatch)
+
+    def fail_if_called(**_kwargs):
+        raise AssertionError("pricing collection must not run for conflicting output flags")
+
+    monkeypatch.setattr(pricing_module, "collect_pricing_snapshot", fail_if_called)
+
+    result = runner.invoke(
+        app,
+        ["--json", "pricing", "snapshot", "--table-view"],
+    )
+
+    assert result.exit_code == 2
+    assert "--table-view cannot be combined with --json" in result.stderr
 
 
 def test_aws_api_call_audit_command_passes_cache_and_cost_controls(

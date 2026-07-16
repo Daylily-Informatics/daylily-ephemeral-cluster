@@ -1,0 +1,283 @@
+availability_zone,partition,instance_type,offered,current_spot_usd_hour,median_72h_usd_hour,min_72h_usd_hour,max_72h_usd_hour,computed_bid_usd_hour,success_instances,insufficient_capacity_events,price_cap_failure_events,recommendation,reason
+us-west-2a,i96nvme,c5d.24xlarge,True,1.6391,1.6593499999999999,1.6391,1.6809,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,c5d.metal,True,1.2889,1.3224,1.2889,1.3303,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,c6id.24xlarge,True,1.2384,1.32795,1.2384,1.4348,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,c8id.24xlarge,True,1.8146,1.768,1.5988,1.8298,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,i3en.24xlarge,True,4.0324,4.0543,3.8114,4.1195,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,i3en.metal,True,2.5072,2.7087,2.5072,2.9668,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,i4i.24xlarge,True,3.1191,3.1205,3.1075,3.2421,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,i7i.24xlarge,True,3.0637,3.087,3.0465,3.1229,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,i7i.metal-24xl,True,2.1107,1.9688,1.8029,2.1107,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,i7ie.24xlarge,True,3.9321,3.9557,3.7766,4.0078,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,i7ie.metal-24xl,True,3.4298,3.3758,3.3693,3.4354,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,m5d.24xlarge,True,2.2281,2.2483500000000003,2.2268,2.2742,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,m5d.metal,True,1.4511,1.3627,1.2386,1.4511,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,m5dn.24xlarge,True,2.4838,2.4825999999999997,2.4595,2.5233,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,m5dn.metal,True,1.3271,1.2289,1.1366,1.3271,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,m6id.24xlarge,True,2.1362,2.1392,2.1301,2.1846,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,m6idn.24xlarge,True,2.3797,2.3821,2.2768,2.3968,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,m8id.24xlarge,True,2.9823,2.9894,2.9768,3.0581,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,m8idb.24xlarge,True,3.2075,3.16235,3.1035,3.2075,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,m8idn.24xlarge,True,3.1624,2.9358,2.8802,3.1624,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,r5d.24xlarge,True,3.5492,3.54065,3.5111,3.5492,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,r5d.metal,True,2.3051,2.28125,2.2742,2.3051,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,r5dn.24xlarge,True,3.9392,3.8838999999999997,3.8159,3.9421,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,r5dn.metal,True,2.9767,2.9743,2.9317,3.0312,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,r6id.24xlarge,True,3.3629,3.39335,3.3519,3.5301,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,r6idn.24xlarge,True,2.9433,2.7241999999999997,2.463,2.9433,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,r8id.24xlarge,True,3.552,3.5675499999999998,3.5085,3.6012,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,r8idb.24xlarge,True,5.1133,4.776,4.4355,5.1133,5.0699,0,0,0,PRICE-GATED NOW; RETAIN,"Current price exceeds today's computed resource bid, but the condition is not a persistent global-cap breach."
+us-west-2a,i96nvme,r8idn.24xlarge,True,4.6042,4.5963,4.4045,4.6594,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,x2idn.24xlarge,True,4.2923,4.086,3.941,4.2981,5.0699,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i96nvme,x2iedn.24xlarge,True,5.677,5.677,5.6037,5.7942,5.0699,0,0,0,PRICE-GATED NOW; RETAIN,"Current price exceeds today's computed resource bid, but the condition is not a persistent global-cap breach."
+us-west-2a,i128nvme,i4i.32xlarge,True,4.5248,4.5461,4.3797,4.5905,7.5822,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i128nvme,i4i.metal,True,2.6406,2.4113,2.1714,2.6406,7.5822,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i128nvme,r6id.32xlarge,True,5.2061,5.2049,5.0253,5.2235,7.5822,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i128nvme,r6id.metal,True,3.7978,3.7974,3.7671,3.8508,7.5822,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i128nvme,r6idn.32xlarge,True,4.424,3.9743,3.7199,4.424,7.5822,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i128nvme,r6idn.metal,True,2.5332,2.3432,2.2449,2.5332,7.5822,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i128nvme,r8id.32xlarge,True,2.9804,2.77105,2.4969,2.9804,7.5822,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i128nvme,r8idb.32xlarge,True,5.8476,5.9489,5.8476,6.189,7.5822,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i128nvme,r8idn.32xlarge,True,6.7503,6.758,6.3992,6.8163,7.5822,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i128nvme,x2idn.32xlarge,True,4.4601,4.4676,4.4386,4.509,7.5822,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i128nvme,x2idn.metal,True,3.6793,3.6513,3.5036,3.6793,7.5822,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i128nvme,x2iedn.32xlarge,True,9.0789,8.9774,8.8781,9.0841,7.5822,0,0,0,PRICE-GATED NOW; RETAIN,"Current price exceeds today's computed resource bid, but the condition is not a persistent global-cap breach."
+us-west-2a,i128nvme,x2iedn.metal,True,12.9677,13.077,12.9677,13.1722,7.5822,0,0,0,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2a,i192nvme,c8id.48xlarge,True,3.6964,3.9643,3.6964,4.2712,7.5024,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192nvme,c8id.metal-48xl,True,3.394,3.5044500000000003,3.394,3.6476,7.5024,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192nvme,i7i.48xlarge,True,5.0214,5.0991,5.0214,5.2176,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192nvme,i7i.metal-48xl,True,3.7604,4.068,3.7604,4.2162,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192nvme,i7ie.48xlarge,True,6.5517,7.1248000000000005,6.5517,7.1938,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192nvme,i7ie.metal-48xl,True,5.5989,5.5501,5.3832,5.7359,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192nvme,m8id.48xlarge,True,10.6373,11.3743,10.6373,12.3992,8.5007,0,0,0,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2a,i192nvme,m8id.metal-48xl,True,3.847,4.0805,3.847,4.2852,8.5007,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192nvme,m8idb.48xlarge,True,3.3035,3.52765,3.3035,3.7308,8.5007,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192nvme,m8idn.48xlarge,True,3.5389,3.76795,3.5389,3.9649,8.5007,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192nvme,r8id.48xlarge,True,3.3715,3.364,3.3204,3.3877,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192nvme,r8id.metal-48xl,True,4.9794,4.57055,4.1692,4.9794,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192nvme,r8idb.48xlarge,True,6.3024,6.3859,6.2568,6.4577,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192nvme,r8idn.48xlarge,True,6.9105,6.9687,6.9105,7.1233,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i384nvme,c8id.96xlarge,True,5.4902,5.7607,5.4902,5.9403,9.99,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i384nvme,c8id.metal-96xl,True,3.8226,4.0375,3.8226,4.3437,9.99,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i384nvme,m8id.96xlarge,True,3.2701,3.4334,3.2701,3.6572,9.99,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i384nvme,m8id.metal-96xl,True,7.3168,7.9491499999999995,7.3168,8.4429,9.99,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i384nvme,m8idb.96xlarge,True,10.9114,11.047350000000002,10.8907,11.0797,9.99,0,0,0,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2a,i384nvme,m8idn.96xlarge,True,10.7937,11.0157,10.7937,11.113,9.99,0,0,0,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2a,i384nvme,r8id.96xlarge,True,3.259,3.4229,3.259,3.6255,9.99,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i384nvme,r8id.metal-96xl,True,13.1418,13.4625,13.1418,13.9412,9.99,0,0,0,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2a,i384nvme,r8idb.96xlarge,True,14.6416,14.9032,14.6055,15.0921,9.99,0,0,0,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2a,i384nvme,r8idn.96xlarge,True,13.8367,14.0587,13.8367,14.2874,9.99,0,0,0,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2a,i192hugenvme,i7i.48xlarge,True,5.0214,5.0991,5.0214,5.2176,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192hugenvme,i7i.metal-48xl,True,3.7604,4.068,3.7604,4.2162,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192hugenvme,i7ie.48xlarge,True,6.5517,7.1248000000000005,6.5517,7.1938,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192hugenvme,i7ie.metal-48xl,True,5.5989,5.5501,5.3832,5.7359,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192hugenvme,r8id.48xlarge,True,3.3715,3.364,3.3204,3.3877,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192hugenvme,r8id.metal-48xl,True,4.9794,4.57055,4.1692,4.9794,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192hugenvme,r8idb.48xlarge,True,6.3024,6.3859,6.2568,6.4577,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2a,i192hugenvme,r8idn.48xlarge,True,6.9105,6.9687,6.9105,7.1233,9.0273,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,c5d.24xlarge,True,1.8265,1.81985,1.8172,1.827,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,c5d.metal,True,1.8114,1.7988,1.7316,1.8115,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,c6id.24xlarge,True,1.6125,1.6168,1.6125,1.681,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,c8id.24xlarge,True,1.761,1.76775,1.7564,1.7946,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,i3en.24xlarge,True,4.0096,3.7229,3.4946,4.0441,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,i3en.metal,True,3.2865,3.0844,2.7386,3.2865,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,i4i.24xlarge,True,3.2034,3.1742,3.1591,3.2034,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,i7i.24xlarge,True,2.8219,2.8814,2.8219,2.9285,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,i7i.metal-24xl,True,2.2082,2.2031,2.1059,2.2839,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,i7ie.24xlarge,True,3.0758,2.7624,2.6107,3.0758,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,i7ie.metal-24xl,True,3.0688,3.21045,3.0688,3.4023,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,m5d.24xlarge,True,2.4455,2.4437,2.4172,2.5209,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,m5d.metal,True,1.817,1.8221500000000002,1.8139,1.8375,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,m5dn.24xlarge,True,2.5568,2.54,2.489,2.5879,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,m5dn.metal,True,1.4226,1.3316,1.211,1.4226,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,m6id.24xlarge,True,2.5877,2.6507,2.5877,2.74,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,m6idn.24xlarge,True,2.7866,2.7986,2.7866,2.9277,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,m8id.24xlarge,True,1.9363,1.8033,1.6673,1.9363,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,m8idb.24xlarge,True,2.7292,2.6187,2.4209,2.7712,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,m8idn.24xlarge,True,2.6871,2.74025,2.6785,2.7531,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,r5d.24xlarge,True,3.5584,3.6255,3.5584,3.7108,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,r5d.metal,True,2.2816,2.274,2.2496,2.2844,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,r5dn.24xlarge,True,3.7965,3.8386,3.7965,3.8891,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,r5dn.metal,True,2.5082,2.4612,2.4186,2.5082,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,r6id.24xlarge,True,3.4833,3.4904,3.4688,3.5988,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,r6idn.24xlarge,True,2.8898,2.688,2.62,2.8898,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,r8id.24xlarge,True,3.5515,3.6142000000000003,3.5515,3.655,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,r8idb.24xlarge,True,5.0168,4.775,4.3247,5.0168,4.7372,0,0,0,PRICE-GATED NOW; RETAIN,"Current price exceeds today's computed resource bid, but the condition is not a persistent global-cap breach."
+us-west-2b,i96nvme,r8idn.24xlarge,True,4.8089,4.56795,4.2155,4.8089,4.7372,0,0,0,PRICE-GATED NOW; RETAIN,"Current price exceeds today's computed resource bid, but the condition is not a persistent global-cap breach."
+us-west-2b,i96nvme,x2idn.24xlarge,True,3.5573,3.8051,3.5573,4.0402,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i96nvme,x2iedn.24xlarge,True,3.8335,3.48975,3.2114,3.8335,4.7372,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i128nvme,i4i.32xlarge,True,3.9389,3.9407,3.9226,3.9661,7.574,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i128nvme,i4i.metal,True,3.3805,3.4066,3.3805,3.4221,7.574,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i128nvme,r6id.32xlarge,True,5.2104,5.20875,4.8827,5.2178,7.574,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i128nvme,r6id.metal,True,3.9575,3.7388,3.6256,3.9575,7.574,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i128nvme,r6idn.32xlarge,True,4.4918,4.1796,3.9406,4.4918,7.574,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i128nvme,r6idn.metal,True,2.1801,2.2915,2.1801,2.3878,7.574,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i128nvme,r8id.32xlarge,True,4.838,4.9302,4.838,4.9881,7.574,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i128nvme,r8idb.32xlarge,True,6.9408,6.5389,6.1511,6.9621,7.574,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i128nvme,r8idn.32xlarge,True,7.5114,7.23625,6.4683,7.5114,7.574,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i128nvme,x2idn.32xlarge,True,4.3028,4.5245,4.3028,4.6999,7.574,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i128nvme,x2idn.metal,True,2.2987,2.44395,2.2987,2.6499,7.574,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i128nvme,x2iedn.32xlarge,True,4.4553,4.065099999999999,3.8754,4.4553,7.574,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i128nvme,x2iedn.metal,True,4.6425,4.8498,4.6425,5.1197,7.574,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192nvme,c8id.48xlarge,True,3.2179,3.2456,3.2179,3.2676,6.7782,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192nvme,c8id.metal-48xl,True,3.0769,3.07745,3.065,3.1135,6.7782,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192nvme,i7i.48xlarge,True,5.2387,5.3063,5.2387,5.399,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192nvme,i7i.metal-48xl,True,5.0761,5.1455,5.0454,5.411,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192nvme,i7ie.48xlarge,True,5.9299,6.15095,5.9299,6.2397,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192nvme,i7ie.metal-48xl,True,5.602,5.6016,5.5036,5.8619,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192nvme,m8id.48xlarge,True,2.8583,3.062,2.8583,3.1826,7.4104,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192nvme,m8id.metal-48xl,True,3.8908,3.687,3.5065,3.8908,7.4104,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192nvme,m8idb.48xlarge,True,3.2679,3.4806,3.2679,3.6503,7.4104,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192nvme,m8idn.48xlarge,True,3.2351,3.3309,3.2351,3.5266,7.4104,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192nvme,r8id.48xlarge,True,4.7205,4.5626,4.0761,4.7294,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192nvme,r8id.metal-48xl,True,3.9767,4.1543,3.9767,4.5033,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192nvme,r8idb.48xlarge,True,3.9976,4.29455,3.9976,4.5784,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192nvme,r8idn.48xlarge,True,5.4861,5.166399999999999,4.8444,5.4861,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i384nvme,c8id.96xlarge,True,5.8924,6.2425,5.8924,6.361,9.99,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i384nvme,c8id.metal-96xl,True,6.5621,6.7019,6.5621,6.8492,9.99,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i384nvme,m8id.96xlarge,True,7.3756,7.592,7.3756,7.8832,9.99,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i384nvme,m8id.metal-96xl,True,6.9736,6.31155,5.7604,6.9736,9.99,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i384nvme,m8idb.96xlarge,True,10.4242,10.4879,10.4242,10.5929,9.99,0,0,0,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2b,i384nvme,m8idn.96xlarge,True,11.0232,10.96875,10.7944,11.0975,9.99,0,0,0,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2b,i384nvme,r8id.96xlarge,True,11.0721,11.2936,11.0721,11.4307,9.99,0,0,0,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2b,i384nvme,r8id.metal-96xl,True,10.4618,10.5788,10.4618,10.6862,9.99,0,0,0,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2b,i384nvme,r8idb.96xlarge,True,13.5391,13.5449,13.444,13.7889,9.99,0,0,0,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2b,i384nvme,r8idn.96xlarge,True,13.771,13.7577,13.6611,13.9083,9.99,0,0,0,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2b,i192hugenvme,i7i.48xlarge,True,5.2387,5.3063,5.2387,5.399,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192hugenvme,i7i.metal-48xl,True,5.0761,5.1455,5.0454,5.411,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192hugenvme,i7ie.48xlarge,True,5.9299,6.15095,5.9299,6.2397,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192hugenvme,i7ie.metal-48xl,True,5.602,5.6016,5.5036,5.8619,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192hugenvme,r8id.48xlarge,True,4.7205,4.5626,4.0761,4.7294,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192hugenvme,r8id.metal-48xl,True,3.9767,4.1543,3.9767,4.5033,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192hugenvme,r8idb.48xlarge,True,3.9976,4.29455,3.9976,4.5784,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2b,i192hugenvme,r8idn.48xlarge,True,5.4861,5.166399999999999,4.8444,5.4861,8.7676,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,c5d.24xlarge,True,1.864,1.8579,1.8455,1.8993,4.7661,1,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,c5d.metal,True,1.8362,1.8401999999999998,1.8355,1.8519,4.7661,27,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,c6id.24xlarge,True,1.6012,1.60845,1.6012,1.6283,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,c8id.24xlarge,True,1.3938,1.3022,1.2613,1.3938,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,i3en.24xlarge,True,4.7331,4.7406,4.3798,4.7679,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,i3en.metal,True,2.6291,2.6125,2.5195,2.7515,4.7661,7,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,i4i.24xlarge,True,2.6569,2.6958,2.6569,2.7222,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,i7i.24xlarge,True,2.9987,2.8732,2.6646,2.9987,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,i7i.metal-24xl,True,2.5199,2.4232,2.2904,2.5508,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,i7ie.24xlarge,True,3.2538,2.9467499999999998,2.7211,3.2538,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,i7ie.metal-24xl,True,3.8962,3.9463,3.7433,4.0419,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,m5d.24xlarge,True,2.553,2.5486,2.5047,2.6385,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,m5d.metal,True,1.9931,1.9806,1.9658,1.9931,4.7661,27,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,m5dn.24xlarge,True,3.1351,3.1351,3.0829,3.2778,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,m5dn.metal,True,2.0644,2.1002,2.0642,2.1241,4.7661,6,1,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,m6id.24xlarge,True,2.7693,2.74625,2.7303,2.7693,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,m6idn.24xlarge,True,2.4683,2.4746,2.4629,2.5206,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,m8id.24xlarge,True,1.7913,1.883,1.7913,1.9742,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,m8idb.24xlarge,True,2.9283,2.9238,2.8617,2.9931,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,m8idn.24xlarge,True,3.1835,3.1919,3.1155,3.2014,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,r5d.24xlarge,True,3.4686,3.4965,3.4686,3.5556,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,r5d.metal,True,2.6701,2.6359,2.5835,2.6701,4.7661,8,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,r5dn.24xlarge,True,4.152,4.1186,4.0684,4.152,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,r5dn.metal,True,2.9118,2.987,2.8709,3.0824,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,r6id.24xlarge,True,3.3926,3.3715,3.3505,3.4216,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,r6idn.24xlarge,True,2.3787,2.53625,2.3787,2.5914,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,r8id.24xlarge,True,3.0885,3.1281499999999998,2.8586,3.1956,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,r8idb.24xlarge,True,3.5293,3.1974,2.959,3.5293,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,r8idn.24xlarge,True,2.8036,2.6,2.4037,2.8036,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,x2idn.24xlarge,True,3.0873,3.0985,3.0845,3.1343,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i96nvme,x2iedn.24xlarge,True,2.8158,2.85145,2.8158,2.9193,4.7661,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i128nvme,i4i.32xlarge,True,5.2765,5.1702,4.9708,5.2765,6.1263,12,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i128nvme,i4i.metal,True,3.6373,3.4349,3.383,3.6373,6.1263,22,2,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i128nvme,r6id.32xlarge,True,4.8391,4.8429,4.7508,4.8719,6.1263,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i128nvme,r6id.metal,True,3.3545,3.3617999999999997,3.3395,3.3973,6.1263,9,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i128nvme,r6idn.32xlarge,True,3.6037,3.632,3.6037,3.7399,6.1263,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i128nvme,r6idn.metal,True,2.2641,2.0642500000000004,1.8953,2.2641,6.1263,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i128nvme,r8id.32xlarge,True,4.1677,4.0476,3.639,4.2024,6.1263,1,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i128nvme,r8idb.32xlarge,True,4.3623,4.343,4.3332,4.3623,6.1263,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i128nvme,r8idn.32xlarge,True,5.5156,5.457,5.4317,5.5156,6.1263,2,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i128nvme,x2idn.32xlarge,True,3.3812,3.5404,3.3812,3.7106,6.1263,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i128nvme,x2idn.metal,True,3.2766,3.1752,2.8431,3.2829,6.1263,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i128nvme,x2iedn.32xlarge,True,3.4447,3.6315,3.4447,3.7278,6.1263,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i128nvme,x2iedn.metal,True,2.6676,2.6676,2.6676,2.6676,6.1263,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192nvme,c8id.48xlarge,True,3.3652,3.425,3.351,3.4422,7.2548,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192nvme,c8id.metal-48xl,True,3.2304,3.21475,3.1892,3.2365,7.2548,10,1,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192nvme,i7i.48xlarge,True,5.1956,4.7467500000000005,4.343,5.1956,9.71,9,3,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192nvme,i7i.metal-48xl,True,3.4237,3.1871,3.0886,3.4237,9.71,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192nvme,i7ie.48xlarge,True,7.2201,7.2694,7.1344,7.356,9.71,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192nvme,i7ie.metal-48xl,True,6.2279,6.5319,6.2279,6.9388,9.71,0,0,10,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192nvme,m8id.48xlarge,True,3.6455,3.6276,3.613,3.6455,8.0844,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192nvme,m8id.metal-48xl,True,1.6562,1.61505,1.4952,1.6562,8.0844,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192nvme,m8idb.48xlarge,True,4.3155,3.9821999999999997,3.7147,4.3155,8.0844,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192nvme,m8idn.48xlarge,True,5.2508,4.9162,4.5785,5.2508,8.0844,5,3,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192nvme,r8id.48xlarge,True,3.772,3.51815,3.2902,3.772,9.71,1,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192nvme,r8id.metal-48xl,True,4.2196,3.85685,3.6361,4.2196,9.71,22,1,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192nvme,r8idb.48xlarge,True,6.4932,5.9018,5.5524,6.4932,9.71,8,2,1,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192nvme,r8idn.48xlarge,True,7.4448,7.5492,7.4448,7.6971,9.71,2,2,2,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i384nvme,c8id.96xlarge,True,6.1228,6.15945,6.0925,6.3157,9.99,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i384nvme,c8id.metal-96xl,True,5.8082,5.8133,5.3826,5.8388,9.99,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i384nvme,m8id.96xlarge,True,25.0598,25.0598,25.0598,25.0598,9.99,0,0,0,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2c,i384nvme,m8id.metal-96xl,True,8.9614,8.1474,7.3732,8.9614,9.99,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i384nvme,m8idb.96xlarge,True,11.4061,11.8086,11.4061,11.8861,9.99,0,0,55,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2c,i384nvme,m8idn.96xlarge,True,12.0909,11.1367,10.976,12.0909,9.99,0,0,26,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2c,i384nvme,r8id.96xlarge,True,10.4949,10.1065,9.7997,10.4949,9.99,0,0,4,PRICE-GATED NOW; RETAIN,"Current price exceeds today's computed resource bid, but the condition is not a persistent global-cap breach."
+us-west-2c,i384nvme,r8id.metal-96xl,True,10.4342,9.491299999999999,8.9343,10.4342,9.99,2,0,0,PRICE-GATED NOW; RETAIN,"Current price exceeds today's computed resource bid, but the condition is not a persistent global-cap breach."
+us-west-2c,i384nvme,r8idb.96xlarge,True,14.9321,14.998,14.8973,15.0808,9.99,0,0,53,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2c,i384nvme,r8idn.96xlarge,True,14.1125,14.2411,14.1125,14.2885,9.99,0,0,48,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2c,i192hugenvme,i7i.48xlarge,True,5.1956,4.7467500000000005,4.343,5.1956,9.71,9,3,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192hugenvme,i7i.metal-48xl,True,3.4237,3.1871,3.0886,3.4237,9.71,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192hugenvme,i7ie.48xlarge,True,7.2201,7.2694,7.1344,7.356,9.71,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192hugenvme,i7ie.metal-48xl,True,6.2279,6.5319,6.2279,6.9388,9.71,0,0,10,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192hugenvme,r8id.48xlarge,True,3.772,3.51815,3.2902,3.772,9.71,1,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192hugenvme,r8id.metal-48xl,True,4.2196,3.85685,3.6361,4.2196,9.71,22,1,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192hugenvme,r8idb.48xlarge,True,6.4932,5.9018,5.5524,6.4932,9.71,8,2,1,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2c,i192hugenvme,r8idn.48xlarge,True,7.4448,7.5492,7.4448,7.6971,9.71,2,2,2,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,c5d.24xlarge,True,2.2643,2.26825,2.1404,2.2914,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,c5d.metal,True,2.1942,2.1942,2.0726,2.2302,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,c6id.24xlarge,True,1.5481,1.5612,1.5354,1.5883,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,c8id.24xlarge,True,1.6567,1.6559,1.628,1.6739,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,i3en.24xlarge,True,2.8575,2.6386000000000003,2.4157,2.8575,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,i3en.metal,True,4.4331,4.1617,3.8073,4.4331,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,i4i.24xlarge,True,2.2921,2.1367,1.9239,2.2921,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,i7i.24xlarge,True,3.4421,3.2824,3.095,3.4421,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,i7i.metal-24xl,True,2.0091,1.8485999999999998,1.7286,2.0091,4.4989,4,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,i7ie.24xlarge,True,4.973,4.9414,4.7016,4.99,4.4989,0,0,0,PRICE-GATED NOW; RETAIN,"Current price exceeds today's computed resource bid, but the condition is not a persistent global-cap breach."
+us-west-2d,i96nvme,i7ie.metal-24xl,True,3.7724,3.74825,3.7447,3.7724,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,m5d.24xlarge,True,2.1268,2.1288,2.1162,2.2732,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,m5d.metal,True,2.0293,2.03435,1.9825,2.0472,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,m6id.24xlarge,True,2.6464,2.6197,2.5831,2.6493,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,m6idn.24xlarge,True,2.4459,2.4467499999999998,2.2893,2.4638,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,m8id.24xlarge,True,2.0876,2.0735,2.0436,2.095,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,m8idb.24xlarge,True,3.9439,4.123749999999999,3.9439,4.1633,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,m8idn.24xlarge,True,4.1149,3.9052499999999997,3.8655,4.1149,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,r5d.24xlarge,True,2.8535,2.9028,2.8508,2.9701,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,r5dn.24xlarge,True,3.4059,3.407,3.2511,3.4729,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,r5dn.metal,True,2.6436,2.6773,2.6436,2.7126,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,r6id.24xlarge,True,3.4045,3.4018,3.2371,3.4369,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i96nvme,r8id.24xlarge,True,3.3216,3.09265,2.8743,3.3216,4.4989,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i128nvme,i4i.32xlarge,True,2.5879,2.5621,2.5254,2.6037,5.595,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i128nvme,i4i.metal,True,3.5823,3.6001,3.5515,3.6717,5.595,2,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i128nvme,r6id.32xlarge,True,3.8263,3.5337,3.2204,3.8263,5.595,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i128nvme,r6id.metal,True,2.9012,2.9101,2.8664,2.9949,5.595,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i128nvme,r8id.32xlarge,True,3.2912,3.1031,2.8328,3.2912,5.595,2,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i192nvme,c8id.48xlarge,True,3.2921,3.2994,3.2804,3.3247,5.7136,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i192nvme,c8id.metal-48xl,True,2.1268,2.1987,2.1268,2.2276,5.7136,1,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i192nvme,i7i.48xlarge,True,3.0806,2.8265,2.6557,3.0806,7.2148,9,1,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i192nvme,i7i.metal-48xl,True,3.856,3.6113,3.3946,3.856,7.2148,4,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i192nvme,i7ie.48xlarge,True,7.6,7.9091,7.6,7.9682,7.2148,4,0,0,PRICE-GATED NOW; RETAIN,"Current price exceeds today's computed resource bid, but the condition is not a persistent global-cap breach."
+us-west-2d,i192nvme,i7ie.metal-48xl,True,7.4587,7.5895,7.4532,7.7154,7.2148,3,0,0,PRICE-GATED NOW; RETAIN,"Current price exceeds today's computed resource bid, but the condition is not a persistent global-cap breach."
+us-west-2d,i192nvme,m8id.48xlarge,True,1.9227,2.08385,1.9227,2.1786,5.9732,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i192nvme,m8id.metal-48xl,True,3.5975,3.3937,3.1053,3.5978,5.9732,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i192nvme,m8idb.48xlarge,True,2.9811,3.16645,2.9811,3.2736,5.9732,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i192nvme,m8idn.48xlarge,True,2.7221,2.7722,2.7221,2.8744,5.9732,8,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i192nvme,r8id.48xlarge,True,4.632,4.38875,4.0511,4.6653,7.2148,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i192nvme,r8id.metal-48xl,True,3.4298,3.60725,3.4298,3.8291,7.2148,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i384nvme,c8id.96xlarge,True,6.2538,6.3204,6.2524,6.4124,9.99,5,2,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i384nvme,c8id.metal-96xl,True,6.2215,6.2357499999999995,6.2196,6.3343,9.99,2,2,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i384nvme,m8id.96xlarge,True,6.8915,6.7676,6.5384,6.9139,9.99,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i384nvme,m8id.metal-96xl,True,7.3987,6.892049999999999,6.5843,7.3987,9.99,4,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i384nvme,m8idb.96xlarge,True,10.9596,11.1567,10.9596,11.2711,9.99,0,0,15,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2d,i384nvme,m8idn.96xlarge,True,10.5533,11.06025,10.5533,11.2255,9.99,0,0,15,EXCLUDE TODAY,72-hour minimum remained above the $9.99 global Spot ceiling.
+us-west-2d,i384nvme,r8id.96xlarge,True,9.5608,9.628499999999999,9.5346,9.9306,9.99,0,0,13,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i384nvme,r8id.metal-96xl,True,9.5835,9.999300000000002,9.5835,10.5007,9.99,0,0,13,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i192hugenvme,i7i.48xlarge,True,3.0806,2.8265,2.6557,3.0806,7.2148,9,1,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i192hugenvme,i7i.metal-48xl,True,3.856,3.6113,3.3946,3.856,7.2148,4,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i192hugenvme,i7ie.48xlarge,True,7.6,7.9091,7.6,7.9682,7.2148,4,0,0,PRICE-GATED NOW; RETAIN,"Current price exceeds today's computed resource bid, but the condition is not a persistent global-cap breach."
+us-west-2d,i192hugenvme,i7ie.metal-48xl,True,7.4587,7.5895,7.4532,7.7154,7.2148,3,0,0,PRICE-GATED NOW; RETAIN,"Current price exceeds today's computed resource bid, but the condition is not a persistent global-cap breach."
+us-west-2d,i192hugenvme,r8id.48xlarge,True,4.632,4.38875,4.0511,4.6653,7.2148,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.
+us-west-2d,i192hugenvme,r8id.metal-48xl,True,3.4298,3.60725,3.4298,3.8291,7.2148,0,0,0,RETAIN,Offered in the AZ and not price-gated by today's computed bid.

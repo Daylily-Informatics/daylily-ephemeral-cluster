@@ -1,0 +1,1066 @@
+{
+  "manifest": {
+    "blocks": [
+      {
+        "body": "## Technical summary\n\nAll **282 configured partition/type/AZ memberships** are structurally offered and have Linux/UNIX Spot price history. The actionable problem today is not missing EC2 offerings; it is price gating and weak large-instance capacity.\n\nThe strongest recommendation is to **temporarily exclude 20 partition/type/AZ memberships** whose 72-hour minimum Spot price never fell below DYEC's **$9.99/hour global ceiling**. Most are `i384nvme` types. Leave the other currently price-gated types defined: their prices are nearer the computed resource bid, and some have successful launches in the same 72-hour window.\n\nThe account sample contains **469 relevant Spot `RunInstances` events**: **229 launched instances**, **20 insufficient-capacity errors**, and **255 `SpotMaxPriceTooLow` errors**. Those errors are workload-correlated, but they confirm that price-cap gating is real. The `i384nvme` placement score is only **1-2 in every AZ**, so do not depend on 384-vCPU Spot capacity for a cluster built now.\n\n### Best current AZ by partition\n\n- `i96nvme` \u2014 All four AZs score 9; us-west-2c has no currently price-gated type.\n- `i128nvme` \u2014 us-west-2a scores 6 (best), after excluding x2iedn.metal; us-west-2b is next at 3.\n- `i192nvme` \u2014 us-west-2b scores 9 (best) with no current price-gated type.\n- `i192hugenvme` \u2014 us-west-2b scores 7 (best) with no current price-gated type.\n- `i384nvme` \u2014 No healthy Spot choice: scores are 1, 1, 1, and 2. If unavoidable, us-west-2d is least weak; prefer the on-demand template for reliability.\n",
+        "id": "technical-summary",
+        "sourceId": "live-snapshot",
+        "type": "markdown"
+      },
+      {
+        "body": "## Spot price distribution across configured NVMe types\n\nBoxes compare the configured instance-type price distributions within each partition and AZ; individual dots preserve every type.",
+        "id": "boxplot-intro",
+        "sourceId": "live-snapshot",
+        "type": "markdown"
+      },
+      {
+        "body": "<figure style=\"margin:0\"><div style=\"max-width:100%;overflow:hidden\"><svg viewBox=\"0 0 768 1078\" width=\"768\" height=\"1078\" role=\"img\" aria-labelledby=\"boxplot-title boxplot-desc\" style=\"max-width:100%;height:auto;color:CanvasText;background:Canvas\"><title id=\"boxplot-title\">NVMe partition Spot price boxplots by us-west-2 Availability Zone</title><desc id=\"boxplot-desc\">Each box summarizes one 72-hour median Linux Spot price per configured instance type. Points show every instance type. Boxes use Tukey quartiles and whiskers.</desc><text x=\"62\" y=\"21\" font-size=\"15\" font-weight=\"500\">i96nvme</text><line x1=\"62\" x2=\"752\" y1=\"176.0\" y2=\"176.0\" stroke=\"GrayText\" stroke-opacity=\"0.22\"/><text x=\"54\" y=\"180.0\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">$0.0</text><line x1=\"62\" x2=\"752\" y1=\"102.0\" y2=\"102.0\" stroke=\"GrayText\" stroke-opacity=\"0.22\"/><text x=\"54\" y=\"106.0\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">$3.1</text><line x1=\"62\" x2=\"752\" y1=\"28.0\" y2=\"28.0\" stroke=\"GrayText\" stroke-opacity=\"0.22\"/><text x=\"54\" y=\"32.0\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">$6.1</text><line x1=\"148.2\" x2=\"148.2\" y1=\"60.7\" y2=\"146.3\" stroke=\"currentColor\"/><line x1=\"134.8\" x2=\"161.8\" y1=\"60.7\" y2=\"60.7\" stroke=\"currentColor\"/><line x1=\"134.8\" x2=\"161.8\" y1=\"146.3\" y2=\"146.3\" stroke=\"currentColor\"/><rect x=\"121.2\" y=\"90.2\" width=\"54.0\" height=\"32.8\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"121.2\" x2=\"175.2\" y1=\"104.2\" y2=\"104.2\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"109.4\" cy=\"135.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 c5d.24xlarge \u00b7 72h median $1.6593/hour\"/><circle cx=\"153.4\" cy=\"144.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 c5d.metal \u00b7 72h median $1.3224/hour\"/><circle cx=\"117.1\" cy=\"143.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 c6id.24xlarge \u00b7 72h median $1.3279/hour\"/><circle cx=\"161.2\" cy=\"133.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 c8id.24xlarge \u00b7 72h median $1.7680/hour\"/><circle cx=\"124.9\" cy=\"78.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 i3en.24xlarge \u00b7 72h median $4.0543/hour\"/><circle cx=\"169.0\" cy=\"110.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 i3en.metal \u00b7 72h median $2.7087/hour\"/><circle cx=\"132.7\" cy=\"100.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 i4i.24xlarge \u00b7 72h median $3.1205/hour\"/><circle cx=\"176.8\" cy=\"101.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 i7i.24xlarge \u00b7 72h median $3.0870/hour\"/><circle cx=\"140.5\" cy=\"128.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 i7i.metal-24xl \u00b7 72h median $1.9688/hour\"/><circle cx=\"184.5\" cy=\"80.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 i7ie.24xlarge \u00b7 72h median $3.9557/hour\"/><circle cx=\"148.2\" cy=\"94.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 i7ie.metal-24xl \u00b7 72h median $3.3758/hour\"/><circle cx=\"112.0\" cy=\"121.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 m5d.24xlarge \u00b7 72h median $2.2484/hour\"/><circle cx=\"156.0\" cy=\"143.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 m5d.metal \u00b7 72h median $1.3627/hour\"/><circle cx=\"119.7\" cy=\"116.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 m5dn.24xlarge \u00b7 72h median $2.4826/hour\"/><circle cx=\"163.8\" cy=\"146.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 m5dn.metal \u00b7 72h median $1.2289/hour\"/><circle cx=\"127.5\" cy=\"124.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 m6id.24xlarge \u00b7 72h median $2.1392/hour\"/><circle cx=\"171.6\" cy=\"118.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 m6idn.24xlarge \u00b7 72h median $2.3821/hour\"/><circle cx=\"135.3\" cy=\"103.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 m8id.24xlarge \u00b7 72h median $2.9894/hour\"/><circle cx=\"179.4\" cy=\"99.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 m8idb.24xlarge \u00b7 72h median $3.1623/hour\"/><circle cx=\"143.1\" cy=\"105.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 m8idn.24xlarge \u00b7 72h median $2.9358/hour\"/><circle cx=\"187.1\" cy=\"90.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 r5d.24xlarge \u00b7 72h median $3.5406/hour\"/><circle cx=\"150.8\" cy=\"120.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 r5d.metal \u00b7 72h median $2.2812/hour\"/><circle cx=\"114.6\" cy=\"82.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 r5dn.24xlarge \u00b7 72h median $3.8839/hour\"/><circle cx=\"158.6\" cy=\"104.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 r5dn.metal \u00b7 72h median $2.9743/hour\"/><circle cx=\"122.3\" cy=\"94.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 r6id.24xlarge \u00b7 72h median $3.3933/hour\"/><circle cx=\"166.4\" cy=\"110.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 r6idn.24xlarge \u00b7 72h median $2.7242/hour\"/><circle cx=\"130.1\" cy=\"89.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 r8id.24xlarge \u00b7 72h median $3.5675/hour\"/><circle cx=\"174.2\" cy=\"60.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 r8idb.24xlarge \u00b7 72h median $4.7760/hour\"/><circle cx=\"137.9\" cy=\"65.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 r8idn.24xlarge \u00b7 72h median $4.5963/hour\"/><circle cx=\"181.9\" cy=\"77.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 x2idn.24xlarge \u00b7 72h median $4.0860/hour\"/><circle cx=\"145.7\" cy=\"39.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2a \u00b7 x2iedn.24xlarge \u00b7 72h median $5.6770/hour\"/><text x=\"148.2\" y=\"195\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">a</text><line x1=\"320.8\" x2=\"320.8\" y1=\"60.7\" y2=\"143.9\" stroke=\"currentColor\"/><line x1=\"307.2\" x2=\"334.2\" y1=\"60.7\" y2=\"60.7\" stroke=\"currentColor\"/><line x1=\"307.2\" x2=\"334.2\" y1=\"143.9\" y2=\"143.9\" stroke=\"currentColor\"/><rect x=\"293.8\" y=\"91.8\" width=\"54.0\" height=\"30.2\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"293.8\" x2=\"347.8\" y1=\"109.9\" y2=\"109.9\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"281.9\" cy=\"132.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 c5d.24xlarge \u00b7 72h median $1.8198/hour\"/><circle cx=\"325.9\" cy=\"132.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 c5d.metal \u00b7 72h median $1.7988/hour\"/><circle cx=\"289.6\" cy=\"137.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 c6id.24xlarge \u00b7 72h median $1.6168/hour\"/><circle cx=\"333.7\" cy=\"133.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 c8id.24xlarge \u00b7 72h median $1.7677/hour\"/><circle cx=\"297.4\" cy=\"86.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 i3en.24xlarge \u00b7 72h median $3.7229/hour\"/><circle cx=\"341.5\" cy=\"101.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 i3en.metal \u00b7 72h median $3.0844/hour\"/><circle cx=\"305.2\" cy=\"99.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 i4i.24xlarge \u00b7 72h median $3.1742/hour\"/><circle cx=\"349.3\" cy=\"106.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 i7i.24xlarge \u00b7 72h median $2.8814/hour\"/><circle cx=\"313.0\" cy=\"122.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 i7i.metal-24xl \u00b7 72h median $2.2031/hour\"/><circle cx=\"357.0\" cy=\"109.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 i7ie.24xlarge \u00b7 72h median $2.7624/hour\"/><circle cx=\"320.8\" cy=\"98.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 i7ie.metal-24xl \u00b7 72h median $3.2104/hour\"/><circle cx=\"284.5\" cy=\"117.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 m5d.24xlarge \u00b7 72h median $2.4437/hour\"/><circle cx=\"328.5\" cy=\"132.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 m5d.metal \u00b7 72h median $1.8222/hour\"/><circle cx=\"292.2\" cy=\"114.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 m5dn.24xlarge \u00b7 72h median $2.5400/hour\"/><circle cx=\"336.3\" cy=\"143.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 m5dn.metal \u00b7 72h median $1.3316/hour\"/><circle cx=\"300.0\" cy=\"112.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 m6id.24xlarge \u00b7 72h median $2.6507/hour\"/><circle cx=\"344.1\" cy=\"108.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 m6idn.24xlarge \u00b7 72h median $2.7986/hour\"/><circle cx=\"307.8\" cy=\"132.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 m8id.24xlarge \u00b7 72h median $1.8033/hour\"/><circle cx=\"351.9\" cy=\"112.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 m8idb.24xlarge \u00b7 72h median $2.6187/hour\"/><circle cx=\"315.6\" cy=\"109.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 m8idn.24xlarge \u00b7 72h median $2.7403/hour\"/><circle cx=\"359.6\" cy=\"88.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 r5d.24xlarge \u00b7 72h median $3.6255/hour\"/><circle cx=\"323.3\" cy=\"121.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 r5d.metal \u00b7 72h median $2.2740/hour\"/><circle cx=\"287.1\" cy=\"83.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 r5dn.24xlarge \u00b7 72h median $3.8386/hour\"/><circle cx=\"331.1\" cy=\"116.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 r5dn.metal \u00b7 72h median $2.4612/hour\"/><circle cx=\"294.8\" cy=\"91.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 r6id.24xlarge \u00b7 72h median $3.4904/hour\"/><circle cx=\"338.9\" cy=\"111.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 r6idn.24xlarge \u00b7 72h median $2.6880/hour\"/><circle cx=\"302.6\" cy=\"88.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 r8id.24xlarge \u00b7 72h median $3.6142/hour\"/><circle cx=\"346.7\" cy=\"60.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 r8idb.24xlarge \u00b7 72h median $4.7750/hour\"/><circle cx=\"310.4\" cy=\"65.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 r8idn.24xlarge \u00b7 72h median $4.5679/hour\"/><circle cx=\"354.4\" cy=\"84.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 x2idn.24xlarge \u00b7 72h median $3.8051/hour\"/><circle cx=\"318.2\" cy=\"91.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2b \u00b7 x2iedn.24xlarge \u00b7 72h median $3.4897/hour\"/><text x=\"320.8\" y=\"195\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">b</text><line x1=\"493.2\" x2=\"493.2\" y1=\"76.6\" y2=\"137.2\" stroke=\"currentColor\"/><line x1=\"479.8\" x2=\"506.8\" y1=\"76.6\" y2=\"76.6\" stroke=\"currentColor\"/><line x1=\"479.8\" x2=\"506.8\" y1=\"137.2\" y2=\"137.2\" stroke=\"currentColor\"/><rect x=\"466.2\" y=\"100.4\" width=\"54.0\" height=\"16.5\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"466.2\" x2=\"520.2\" y1=\"109.7\" y2=\"109.7\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"454.4\" cy=\"131.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 c5d.24xlarge \u00b7 72h median $1.8579/hour\"/><circle cx=\"498.4\" cy=\"131.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 c5d.metal \u00b7 72h median $1.8402/hour\"/><circle cx=\"462.1\" cy=\"137.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 c6id.24xlarge \u00b7 72h median $1.6084/hour\"/><circle cx=\"506.2\" cy=\"144.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 c8id.24xlarge \u00b7 72h median $1.3022/hour\"/><circle cx=\"469.9\" cy=\"61.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 i3en.24xlarge \u00b7 72h median $4.7406/hour\"/><circle cx=\"514.0\" cy=\"112.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 i3en.metal \u00b7 72h median $2.6125/hour\"/><circle cx=\"477.7\" cy=\"110.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 i4i.24xlarge \u00b7 72h median $2.6958/hour\"/><circle cx=\"521.8\" cy=\"106.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 i7i.24xlarge \u00b7 72h median $2.8732/hour\"/><circle cx=\"485.5\" cy=\"117.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 i7i.metal-24xl \u00b7 72h median $2.4232/hour\"/><circle cx=\"529.5\" cy=\"104.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 i7ie.24xlarge \u00b7 72h median $2.9467/hour\"/><circle cx=\"493.2\" cy=\"80.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 i7ie.metal-24xl \u00b7 72h median $3.9463/hour\"/><circle cx=\"457.0\" cy=\"114.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 m5d.24xlarge \u00b7 72h median $2.5486/hour\"/><circle cx=\"501.0\" cy=\"128.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 m5d.metal \u00b7 72h median $1.9806/hour\"/><circle cx=\"464.7\" cy=\"100.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 m5dn.24xlarge \u00b7 72h median $3.1351/hour\"/><circle cx=\"508.8\" cy=\"125.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 m5dn.metal \u00b7 72h median $2.1002/hour\"/><circle cx=\"472.5\" cy=\"109.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 m6id.24xlarge \u00b7 72h median $2.7462/hour\"/><circle cx=\"516.6\" cy=\"116.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 m6idn.24xlarge \u00b7 72h median $2.4746/hour\"/><circle cx=\"480.3\" cy=\"130.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 m8id.24xlarge \u00b7 72h median $1.8830/hour\"/><circle cx=\"524.4\" cy=\"105.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 m8idb.24xlarge \u00b7 72h median $2.9238/hour\"/><circle cx=\"488.1\" cy=\"99.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 m8idn.24xlarge \u00b7 72h median $3.1919/hour\"/><circle cx=\"532.1\" cy=\"91.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 r5d.24xlarge \u00b7 72h median $3.4965/hour\"/><circle cx=\"495.8\" cy=\"112.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 r5d.metal \u00b7 72h median $2.6359/hour\"/><circle cx=\"459.6\" cy=\"76.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 r5dn.24xlarge \u00b7 72h median $4.1186/hour\"/><circle cx=\"503.6\" cy=\"103.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 r5dn.metal \u00b7 72h median $2.9870/hour\"/><circle cx=\"467.3\" cy=\"94.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 r6id.24xlarge \u00b7 72h median $3.3715/hour\"/><circle cx=\"511.4\" cy=\"114.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 r6idn.24xlarge \u00b7 72h median $2.5362/hour\"/><circle cx=\"475.1\" cy=\"100.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 r8id.24xlarge \u00b7 72h median $3.1281/hour\"/><circle cx=\"519.2\" cy=\"98.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 r8idb.24xlarge \u00b7 72h median $3.1974/hour\"/><circle cx=\"482.9\" cy=\"113.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 r8idn.24xlarge \u00b7 72h median $2.6000/hour\"/><circle cx=\"526.9\" cy=\"101.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 x2idn.24xlarge \u00b7 72h median $3.0985/hour\"/><circle cx=\"490.7\" cy=\"107.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2c \u00b7 x2iedn.24xlarge \u00b7 72h median $2.8514/hour\"/><text x=\"493.2\" y=\"195\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">c</text><line x1=\"665.8\" x2=\"665.8\" y1=\"56.7\" y2=\"138.3\" stroke=\"currentColor\"/><line x1=\"652.2\" x2=\"679.2\" y1=\"56.7\" y2=\"56.7\" stroke=\"currentColor\"/><line x1=\"652.2\" x2=\"679.2\" y1=\"138.3\" y2=\"138.3\" stroke=\"currentColor\"/><rect x=\"638.8\" y=\"93.8\" width=\"54.0\" height=\"30.7\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"638.8\" x2=\"692.8\" y1=\"112.3\" y2=\"112.3\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"626.9\" cy=\"121.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 c5d.24xlarge \u00b7 72h median $2.2683/hour\"/><circle cx=\"670.9\" cy=\"123.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 c5d.metal \u00b7 72h median $2.1942/hour\"/><circle cx=\"634.6\" cy=\"138.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 c6id.24xlarge \u00b7 72h median $1.5612/hour\"/><circle cx=\"678.7\" cy=\"136.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 c8id.24xlarge \u00b7 72h median $1.6559/hour\"/><circle cx=\"642.4\" cy=\"112.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 i3en.24xlarge \u00b7 72h median $2.6386/hour\"/><circle cx=\"686.5\" cy=\"75.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 i3en.metal \u00b7 72h median $4.1617/hour\"/><circle cx=\"650.2\" cy=\"124.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 i4i.24xlarge \u00b7 72h median $2.1367/hour\"/><circle cx=\"694.3\" cy=\"96.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 i7i.24xlarge \u00b7 72h median $3.2824/hour\"/><circle cx=\"658.0\" cy=\"131.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 i7i.metal-24xl \u00b7 72h median $1.8486/hour\"/><circle cx=\"702.0\" cy=\"56.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 i7ie.24xlarge \u00b7 72h median $4.9414/hour\"/><circle cx=\"665.8\" cy=\"85.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 i7ie.metal-24xl \u00b7 72h median $3.7483/hour\"/><circle cx=\"629.5\" cy=\"124.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 m5d.24xlarge \u00b7 72h median $2.1288/hour\"/><circle cx=\"673.5\" cy=\"126.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 m5d.metal \u00b7 72h median $2.0343/hour\"/><circle cx=\"637.2\" cy=\"112.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 m6id.24xlarge \u00b7 72h median $2.6197/hour\"/><circle cx=\"681.3\" cy=\"116.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 m6idn.24xlarge \u00b7 72h median $2.4467/hour\"/><circle cx=\"645.0\" cy=\"125.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 m8id.24xlarge \u00b7 72h median $2.0735/hour\"/><circle cx=\"689.1\" cy=\"76.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 m8idb.24xlarge \u00b7 72h median $4.1237/hour\"/><circle cx=\"652.8\" cy=\"81.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 m8idn.24xlarge \u00b7 72h median $3.9052/hour\"/><circle cx=\"696.9\" cy=\"105.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 r5d.24xlarge \u00b7 72h median $2.9028/hour\"/><circle cx=\"660.6\" cy=\"93.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 r5dn.24xlarge \u00b7 72h median $3.4070/hour\"/><circle cx=\"704.6\" cy=\"111.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 r5dn.metal \u00b7 72h median $2.6773/hour\"/><circle cx=\"668.3\" cy=\"93.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 r6id.24xlarge \u00b7 72h median $3.4018/hour\"/><circle cx=\"632.1\" cy=\"101.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i96nvme \u00b7 us-west-2d \u00b7 r8id.24xlarge \u00b7 72h median $3.0926/hour\"/><text x=\"665.8\" y=\"195\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">d</text><text x=\"752\" y=\"21\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">72h median $/instance-hour</text><text x=\"62\" y=\"231\" font-size=\"15\" font-weight=\"500\">i128nvme</text><line x1=\"62\" x2=\"752\" y1=\"386.0\" y2=\"386.0\" stroke=\"GrayText\" stroke-opacity=\"0.22\"/><text x=\"54\" y=\"390.0\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">$0.0</text><line x1=\"62\" x2=\"752\" y1=\"312.0\" y2=\"312.0\" stroke=\"GrayText\" stroke-opacity=\"0.22\"/><text x=\"54\" y=\"316.0\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">$7.1</text><line x1=\"62\" x2=\"752\" y1=\"238.0\" y2=\"238.0\" stroke=\"GrayText\" stroke-opacity=\"0.22\"/><text x=\"54\" y=\"242.0\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">$14.1</text><line x1=\"148.2\" x2=\"148.2\" y1=\"291.9\" y2=\"361.4\" stroke=\"currentColor\"/><line x1=\"134.8\" x2=\"161.8\" y1=\"291.9\" y2=\"291.9\" stroke=\"currentColor\"/><line x1=\"134.8\" x2=\"161.8\" y1=\"361.4\" y2=\"361.4\" stroke=\"currentColor\"/><rect x=\"121.2\" y=\"323.7\" width=\"54.0\" height=\"24.1\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"121.2\" x2=\"175.2\" y1=\"339.2\" y2=\"339.2\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"109.4\" cy=\"338.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2a \u00b7 i4i.32xlarge \u00b7 72h median $4.5461/hour\"/><circle cx=\"153.4\" cy=\"360.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2a \u00b7 i4i.metal \u00b7 72h median $2.4113/hour\"/><circle cx=\"117.1\" cy=\"331.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2a \u00b7 r6id.32xlarge \u00b7 72h median $5.2049/hour\"/><circle cx=\"161.2\" cy=\"346.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2a \u00b7 r6id.metal \u00b7 72h median $3.7974/hour\"/><circle cx=\"124.9\" cy=\"344.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2a \u00b7 r6idn.32xlarge \u00b7 72h median $3.9743/hour\"/><circle cx=\"169.0\" cy=\"361.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2a \u00b7 r6idn.metal \u00b7 72h median $2.3432/hour\"/><circle cx=\"132.7\" cy=\"357.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2a \u00b7 r8id.32xlarge \u00b7 72h median $2.7710/hour\"/><circle cx=\"176.8\" cy=\"323.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2a \u00b7 r8idb.32xlarge \u00b7 72h median $5.9489/hour\"/><circle cx=\"140.5\" cy=\"315.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2a \u00b7 r8idn.32xlarge \u00b7 72h median $6.7580/hour\"/><circle cx=\"184.5\" cy=\"339.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2a \u00b7 x2idn.32xlarge \u00b7 72h median $4.4676/hour\"/><circle cx=\"148.2\" cy=\"347.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2a \u00b7 x2idn.metal \u00b7 72h median $3.6513/hour\"/><circle cx=\"112.0\" cy=\"291.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2a \u00b7 x2iedn.32xlarge \u00b7 72h median $8.9774/hour\"/><circle cx=\"156.0\" cy=\"249.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2a \u00b7 x2iedn.metal \u00b7 72h median $13.0770/hour\"/><text x=\"148.2\" y=\"405\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">a</text><line x1=\"320.8\" x2=\"320.8\" y1=\"317.5\" y2=\"362.0\" stroke=\"currentColor\"/><line x1=\"307.2\" x2=\"334.2\" y1=\"317.5\" y2=\"317.5\" stroke=\"currentColor\"/><line x1=\"307.2\" x2=\"334.2\" y1=\"362.0\" y2=\"362.0\" stroke=\"currentColor\"/><rect x=\"293.8\" y=\"334.3\" width=\"54.0\" height=\"12.5\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"293.8\" x2=\"347.8\" y1=\"342.2\" y2=\"342.2\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"281.9\" cy=\"344.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2b \u00b7 i4i.32xlarge \u00b7 72h median $3.9407/hour\"/><circle cx=\"325.9\" cy=\"350.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2b \u00b7 i4i.metal \u00b7 72h median $3.4066/hour\"/><circle cx=\"289.6\" cy=\"331.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2b \u00b7 r6id.32xlarge \u00b7 72h median $5.2088/hour\"/><circle cx=\"333.7\" cy=\"346.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2b \u00b7 r6id.metal \u00b7 72h median $3.7388/hour\"/><circle cx=\"297.4\" cy=\"342.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2b \u00b7 r6idn.32xlarge \u00b7 72h median $4.1796/hour\"/><circle cx=\"341.5\" cy=\"362.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2b \u00b7 r6idn.metal \u00b7 72h median $2.2915/hour\"/><circle cx=\"305.2\" cy=\"334.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2b \u00b7 r8id.32xlarge \u00b7 72h median $4.9302/hour\"/><circle cx=\"349.3\" cy=\"317.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2b \u00b7 r8idb.32xlarge \u00b7 72h median $6.5389/hour\"/><circle cx=\"313.0\" cy=\"310.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2b \u00b7 r8idn.32xlarge \u00b7 72h median $7.2363/hour\"/><circle cx=\"357.0\" cy=\"338.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2b \u00b7 x2idn.32xlarge \u00b7 72h median $4.5245/hour\"/><circle cx=\"320.8\" cy=\"360.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2b \u00b7 x2idn.metal \u00b7 72h median $2.4440/hour\"/><circle cx=\"284.5\" cy=\"343.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2b \u00b7 x2iedn.32xlarge \u00b7 72h median $4.0651/hour\"/><circle cx=\"328.5\" cy=\"335.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2b \u00b7 x2iedn.metal \u00b7 72h median $4.8498/hour\"/><text x=\"320.8\" y=\"405\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">b</text><line x1=\"493.2\" x2=\"493.2\" y1=\"328.8\" y2=\"364.4\" stroke=\"currentColor\"/><line x1=\"479.8\" x2=\"506.8\" y1=\"328.8\" y2=\"328.8\" stroke=\"currentColor\"/><line x1=\"479.8\" x2=\"506.8\" y1=\"364.4\" y2=\"364.4\" stroke=\"currentColor\"/><rect x=\"466.2\" y=\"340.5\" width=\"54.0\" height=\"10.3\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"466.2\" x2=\"520.2\" y1=\"347.9\" y2=\"347.9\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"454.4\" cy=\"331.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2c \u00b7 i4i.32xlarge \u00b7 72h median $5.1702/hour\"/><circle cx=\"498.4\" cy=\"350.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2c \u00b7 i4i.metal \u00b7 72h median $3.4349/hour\"/><circle cx=\"462.1\" cy=\"335.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2c \u00b7 r6id.32xlarge \u00b7 72h median $4.8429/hour\"/><circle cx=\"506.2\" cy=\"350.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2c \u00b7 r6id.metal \u00b7 72h median $3.3618/hour\"/><circle cx=\"469.9\" cy=\"347.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2c \u00b7 r6idn.32xlarge \u00b7 72h median $3.6320/hour\"/><circle cx=\"514.0\" cy=\"364.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2c \u00b7 r6idn.metal \u00b7 72h median $2.0643/hour\"/><circle cx=\"477.7\" cy=\"343.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2c \u00b7 r8id.32xlarge \u00b7 72h median $4.0476/hour\"/><circle cx=\"521.8\" cy=\"340.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2c \u00b7 r8idb.32xlarge \u00b7 72h median $4.3430/hour\"/><circle cx=\"485.5\" cy=\"328.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2c \u00b7 r8idn.32xlarge \u00b7 72h median $5.4570/hour\"/><circle cx=\"529.5\" cy=\"348.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2c \u00b7 x2idn.32xlarge \u00b7 72h median $3.5404/hour\"/><circle cx=\"493.2\" cy=\"352.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2c \u00b7 x2idn.metal \u00b7 72h median $3.1752/hour\"/><circle cx=\"457.0\" cy=\"347.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2c \u00b7 x2iedn.32xlarge \u00b7 72h median $3.6315/hour\"/><circle cx=\"501.0\" cy=\"358.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2c \u00b7 x2iedn.metal \u00b7 72h median $2.6676/hour\"/><text x=\"493.2\" y=\"405\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">c</text><line x1=\"665.8\" x2=\"665.8\" y1=\"348.3\" y2=\"359.2\" stroke=\"currentColor\"/><line x1=\"652.2\" x2=\"679.2\" y1=\"348.3\" y2=\"348.3\" stroke=\"currentColor\"/><line x1=\"652.2\" x2=\"679.2\" y1=\"359.2\" y2=\"359.2\" stroke=\"currentColor\"/><rect x=\"638.8\" y=\"349.0\" width=\"54.0\" height=\"6.5\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"638.8\" x2=\"692.8\" y1=\"353.5\" y2=\"353.5\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"626.9\" cy=\"359.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2d \u00b7 i4i.32xlarge \u00b7 72h median $2.5621/hour\"/><circle cx=\"670.9\" cy=\"348.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2d \u00b7 i4i.metal \u00b7 72h median $3.6001/hour\"/><circle cx=\"634.6\" cy=\"349.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2d \u00b7 r6id.32xlarge \u00b7 72h median $3.5337/hour\"/><circle cx=\"678.7\" cy=\"355.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2d \u00b7 r6id.metal \u00b7 72h median $2.9101/hour\"/><circle cx=\"642.4\" cy=\"353.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i128nvme \u00b7 us-west-2d \u00b7 r8id.32xlarge \u00b7 72h median $3.1031/hour\"/><text x=\"665.8\" y=\"405\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">d</text><text x=\"752\" y=\"231\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">72h median $/instance-hour</text><text x=\"62\" y=\"441\" font-size=\"15\" font-weight=\"500\">i192nvme</text><line x1=\"62\" x2=\"752\" y1=\"596.0\" y2=\"596.0\" stroke=\"GrayText\" stroke-opacity=\"0.22\"/><text x=\"54\" y=\"600.0\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">$0.0</text><line x1=\"62\" x2=\"752\" y1=\"522.0\" y2=\"522.0\" stroke=\"GrayText\" stroke-opacity=\"0.22\"/><text x=\"54\" y=\"526.0\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">$6.1</text><line x1=\"62\" x2=\"752\" y1=\"448.0\" y2=\"448.0\" stroke=\"GrayText\" stroke-opacity=\"0.22\"/><text x=\"54\" y=\"452.0\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">$12.3</text><line x1=\"148.2\" x2=\"148.2\" y1=\"510.2\" y2=\"555.5\" stroke=\"currentColor\"/><line x1=\"134.8\" x2=\"161.8\" y1=\"510.2\" y2=\"510.2\" stroke=\"currentColor\"/><line x1=\"134.8\" x2=\"161.8\" y1=\"555.5\" y2=\"555.5\" stroke=\"currentColor\"/><rect x=\"121.2\" y=\"521.6\" width=\"54.0\" height=\"28.4\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"121.2\" x2=\"175.2\" y1=\"543.9\" y2=\"543.9\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"109.4\" cy=\"548.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2a \u00b7 c8id.48xlarge \u00b7 72h median $3.9643/hour\"/><circle cx=\"153.4\" cy=\"553.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2a \u00b7 c8id.metal-48xl \u00b7 72h median $3.5045/hour\"/><circle cx=\"117.1\" cy=\"534.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2a \u00b7 i7i.48xlarge \u00b7 72h median $5.0991/hour\"/><circle cx=\"161.2\" cy=\"547.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2a \u00b7 i7i.metal-48xl \u00b7 72h median $4.0680/hour\"/><circle cx=\"124.9\" cy=\"510.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2a \u00b7 i7ie.48xlarge \u00b7 72h median $7.1248/hour\"/><circle cx=\"169.0\" cy=\"529.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2a \u00b7 i7ie.metal-48xl \u00b7 72h median $5.5501/hour\"/><circle cx=\"132.7\" cy=\"459.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2a \u00b7 m8id.48xlarge \u00b7 72h median $11.3743/hour\"/><circle cx=\"176.8\" cy=\"546.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2a \u00b7 m8id.metal-48xl \u00b7 72h median $4.0805/hour\"/><circle cx=\"140.5\" cy=\"553.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2a \u00b7 m8idb.48xlarge \u00b7 72h median $3.5276/hour\"/><circle cx=\"184.5\" cy=\"550.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2a \u00b7 m8idn.48xlarge \u00b7 72h median $3.7679/hour\"/><circle cx=\"148.2\" cy=\"555.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2a \u00b7 r8id.48xlarge \u00b7 72h median $3.3640/hour\"/><circle cx=\"112.0\" cy=\"540.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2a \u00b7 r8id.metal-48xl \u00b7 72h median $4.5705/hour\"/><circle cx=\"156.0\" cy=\"519.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2a \u00b7 r8idb.48xlarge \u00b7 72h median $6.3859/hour\"/><circle cx=\"119.7\" cy=\"512.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2a \u00b7 r8idn.48xlarge \u00b7 72h median $6.9687/hour\"/><text x=\"148.2\" y=\"615\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">a</text><line x1=\"320.8\" x2=\"320.8\" y1=\"521.9\" y2=\"559.1\" stroke=\"currentColor\"/><line x1=\"307.2\" x2=\"334.2\" y1=\"521.9\" y2=\"521.9\" stroke=\"currentColor\"/><line x1=\"307.2\" x2=\"334.2\" y1=\"559.1\" y2=\"559.1\" stroke=\"currentColor\"/><rect x=\"293.8\" y=\"533.8\" width=\"54.0\" height=\"21.6\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"293.8\" x2=\"347.8\" y1=\"545.1\" y2=\"545.1\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"281.9\" cy=\"556.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2b \u00b7 c8id.48xlarge \u00b7 72h median $3.2456/hour\"/><circle cx=\"325.9\" cy=\"558.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2b \u00b7 c8id.metal-48xl \u00b7 72h median $3.0774/hour\"/><circle cx=\"289.6\" cy=\"532.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2b \u00b7 i7i.48xlarge \u00b7 72h median $5.3063/hour\"/><circle cx=\"333.7\" cy=\"534.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2b \u00b7 i7i.metal-48xl \u00b7 72h median $5.1455/hour\"/><circle cx=\"297.4\" cy=\"521.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2b \u00b7 i7ie.48xlarge \u00b7 72h median $6.1509/hour\"/><circle cx=\"341.5\" cy=\"528.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2b \u00b7 i7ie.metal-48xl \u00b7 72h median $5.6016/hour\"/><circle cx=\"305.2\" cy=\"559.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2b \u00b7 m8id.48xlarge \u00b7 72h median $3.0620/hour\"/><circle cx=\"349.3\" cy=\"551.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2b \u00b7 m8id.metal-48xl \u00b7 72h median $3.6870/hour\"/><circle cx=\"313.0\" cy=\"554.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2b \u00b7 m8idb.48xlarge \u00b7 72h median $3.4806/hour\"/><circle cx=\"357.0\" cy=\"555.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2b \u00b7 m8idn.48xlarge \u00b7 72h median $3.3309/hour\"/><circle cx=\"320.8\" cy=\"541.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2b \u00b7 r8id.48xlarge \u00b7 72h median $4.5626/hour\"/><circle cx=\"284.5\" cy=\"545.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2b \u00b7 r8id.metal-48xl \u00b7 72h median $4.1543/hour\"/><circle cx=\"328.5\" cy=\"544.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2b \u00b7 r8idb.48xlarge \u00b7 72h median $4.2946/hour\"/><circle cx=\"292.2\" cy=\"533.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2b \u00b7 r8idn.48xlarge \u00b7 72h median $5.1664/hour\"/><text x=\"320.8\" y=\"615\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">b</text><line x1=\"493.2\" x2=\"493.2\" y1=\"505.0\" y2=\"576.5\" stroke=\"currentColor\"/><line x1=\"479.8\" x2=\"506.8\" y1=\"505.0\" y2=\"505.0\" stroke=\"currentColor\"/><line x1=\"479.8\" x2=\"506.8\" y1=\"576.5\" y2=\"576.5\" stroke=\"currentColor\"/><rect x=\"466.2\" y=\"527.9\" width=\"54.0\" height=\"26.6\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"466.2\" x2=\"520.2\" y1=\"548.8\" y2=\"548.8\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"454.4\" cy=\"554.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2c \u00b7 c8id.48xlarge \u00b7 72h median $3.4250/hour\"/><circle cx=\"498.4\" cy=\"557.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2c \u00b7 c8id.metal-48xl \u00b7 72h median $3.2147/hour\"/><circle cx=\"462.1\" cy=\"538.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2c \u00b7 i7i.48xlarge \u00b7 72h median $4.7468/hour\"/><circle cx=\"506.2\" cy=\"557.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2c \u00b7 i7i.metal-48xl \u00b7 72h median $3.1871/hour\"/><circle cx=\"469.9\" cy=\"508.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2c \u00b7 i7ie.48xlarge \u00b7 72h median $7.2694/hour\"/><circle cx=\"514.0\" cy=\"517.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2c \u00b7 i7ie.metal-48xl \u00b7 72h median $6.5319/hour\"/><circle cx=\"477.7\" cy=\"552.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2c \u00b7 m8id.48xlarge \u00b7 72h median $3.6276/hour\"/><circle cx=\"521.8\" cy=\"576.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2c \u00b7 m8id.metal-48xl \u00b7 72h median $1.6151/hour\"/><circle cx=\"485.5\" cy=\"548.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2c \u00b7 m8idb.48xlarge \u00b7 72h median $3.9822/hour\"/><circle cx=\"529.5\" cy=\"536.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2c \u00b7 m8idn.48xlarge \u00b7 72h median $4.9162/hour\"/><circle cx=\"493.2\" cy=\"553.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2c \u00b7 r8id.48xlarge \u00b7 72h median $3.5181/hour\"/><circle cx=\"457.0\" cy=\"549.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2c \u00b7 r8id.metal-48xl \u00b7 72h median $3.8569/hour\"/><circle cx=\"501.0\" cy=\"524.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2c \u00b7 r8idb.48xlarge \u00b7 72h median $5.9018/hour\"/><circle cx=\"464.7\" cy=\"505.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2c \u00b7 r8idn.48xlarge \u00b7 72h median $7.5492/hour\"/><text x=\"493.2\" y=\"615\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">c</text><line x1=\"665.8\" x2=\"665.8\" y1=\"543.1\" y2=\"570.9\" stroke=\"currentColor\"/><line x1=\"652.2\" x2=\"679.2\" y1=\"543.1\" y2=\"543.1\" stroke=\"currentColor\"/><line x1=\"652.2\" x2=\"679.2\" y1=\"570.9\" y2=\"570.9\" stroke=\"currentColor\"/><rect x=\"638.8\" y=\"550.1\" width=\"54.0\" height=\"12.0\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"638.8\" x2=\"692.8\" y1=\"555.7\" y2=\"555.7\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"626.9\" cy=\"556.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2d \u00b7 c8id.48xlarge \u00b7 72h median $3.2994/hour\"/><circle cx=\"670.9\" cy=\"569.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2d \u00b7 c8id.metal-48xl \u00b7 72h median $2.1987/hour\"/><circle cx=\"634.6\" cy=\"561.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2d \u00b7 i7i.48xlarge \u00b7 72h median $2.8265/hour\"/><circle cx=\"678.7\" cy=\"552.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2d \u00b7 i7i.metal-48xl \u00b7 72h median $3.6113/hour\"/><circle cx=\"642.4\" cy=\"500.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2d \u00b7 i7ie.48xlarge \u00b7 72h median $7.9091/hour\"/><circle cx=\"686.5\" cy=\"504.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2d \u00b7 i7ie.metal-48xl \u00b7 72h median $7.5895/hour\"/><circle cx=\"650.2\" cy=\"570.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2d \u00b7 m8id.48xlarge \u00b7 72h median $2.0838/hour\"/><circle cx=\"694.3\" cy=\"555.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2d \u00b7 m8id.metal-48xl \u00b7 72h median $3.3937/hour\"/><circle cx=\"658.0\" cy=\"557.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2d \u00b7 m8idb.48xlarge \u00b7 72h median $3.1665/hour\"/><circle cx=\"702.0\" cy=\"562.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2d \u00b7 m8idn.48xlarge \u00b7 72h median $2.7722/hour\"/><circle cx=\"665.8\" cy=\"543.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2d \u00b7 r8id.48xlarge \u00b7 72h median $4.3887/hour\"/><circle cx=\"629.5\" cy=\"552.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192nvme \u00b7 us-west-2d \u00b7 r8id.metal-48xl \u00b7 72h median $3.6073/hour\"/><text x=\"665.8\" y=\"615\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">d</text><text x=\"752\" y=\"441\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">72h median $/instance-hour</text><text x=\"62\" y=\"651\" font-size=\"15\" font-weight=\"500\">i384nvme</text><line x1=\"62\" x2=\"752\" y1=\"806.0\" y2=\"806.0\" stroke=\"GrayText\" stroke-opacity=\"0.22\"/><text x=\"54\" y=\"810.0\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">$0.0</text><line x1=\"62\" x2=\"752\" y1=\"732.0\" y2=\"732.0\" stroke=\"GrayText\" stroke-opacity=\"0.22\"/><text x=\"54\" y=\"736.0\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">$13.5</text><line x1=\"62\" x2=\"752\" y1=\"658.0\" y2=\"658.0\" stroke=\"GrayText\" stroke-opacity=\"0.22\"/><text x=\"54\" y=\"662.0\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">$27.1</text><line x1=\"148.2\" x2=\"148.2\" y1=\"724.5\" y2=\"787.3\" stroke=\"currentColor\"/><line x1=\"134.8\" x2=\"161.8\" y1=\"724.5\" y2=\"724.5\" stroke=\"currentColor\"/><line x1=\"134.8\" x2=\"161.8\" y1=\"787.3\" y2=\"787.3\" stroke=\"currentColor\"/><rect x=\"121.2\" y=\"735.7\" width=\"54.0\" height=\"45.9\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"121.2\" x2=\"175.2\" y1=\"754.1\" y2=\"754.1\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"109.4\" cy=\"774.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2a \u00b7 c8id.96xlarge \u00b7 72h median $5.7607/hour\"/><circle cx=\"153.4\" cy=\"783.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2a \u00b7 c8id.metal-96xl \u00b7 72h median $4.0375/hour\"/><circle cx=\"117.1\" cy=\"787.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2a \u00b7 m8id.96xlarge \u00b7 72h median $3.4334/hour\"/><circle cx=\"161.2\" cy=\"762.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2a \u00b7 m8id.metal-96xl \u00b7 72h median $7.9491/hour\"/><circle cx=\"124.9\" cy=\"745.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2a \u00b7 m8idb.96xlarge \u00b7 72h median $11.0474/hour\"/><circle cx=\"169.0\" cy=\"745.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2a \u00b7 m8idn.96xlarge \u00b7 72h median $11.0157/hour\"/><circle cx=\"132.7\" cy=\"787.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2a \u00b7 r8id.96xlarge \u00b7 72h median $3.4229/hour\"/><circle cx=\"176.8\" cy=\"732.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2a \u00b7 r8id.metal-96xl \u00b7 72h median $13.4625/hour\"/><circle cx=\"140.5\" cy=\"724.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2a \u00b7 r8idb.96xlarge \u00b7 72h median $14.9032/hour\"/><circle cx=\"184.5\" cy=\"729.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2a \u00b7 r8idn.96xlarge \u00b7 72h median $14.0587/hour\"/><text x=\"148.2\" y=\"825\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">a</text><line x1=\"320.8\" x2=\"320.8\" y1=\"730.8\" y2=\"771.9\" stroke=\"currentColor\"/><line x1=\"307.2\" x2=\"334.2\" y1=\"730.8\" y2=\"730.8\" stroke=\"currentColor\"/><line x1=\"307.2\" x2=\"334.2\" y1=\"771.9\" y2=\"771.9\" stroke=\"currentColor\"/><rect x=\"293.8\" y=\"744.7\" width=\"54.0\" height=\"23.4\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"293.8\" x2=\"347.8\" y1=\"748.4\" y2=\"748.4\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"281.9\" cy=\"771.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2b \u00b7 c8id.96xlarge \u00b7 72h median $6.2425/hour\"/><circle cx=\"325.9\" cy=\"769.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2b \u00b7 c8id.metal-96xl \u00b7 72h median $6.7019/hour\"/><circle cx=\"289.6\" cy=\"764.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2b \u00b7 m8id.96xlarge \u00b7 72h median $7.5920/hour\"/><circle cx=\"333.7\" cy=\"771.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2b \u00b7 m8id.metal-96xl \u00b7 72h median $6.3116/hour\"/><circle cx=\"297.4\" cy=\"748.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2b \u00b7 m8idb.96xlarge \u00b7 72h median $10.4879/hour\"/><circle cx=\"341.5\" cy=\"746.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2b \u00b7 m8idn.96xlarge \u00b7 72h median $10.9688/hour\"/><circle cx=\"305.2\" cy=\"744.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2b \u00b7 r8id.96xlarge \u00b7 72h median $11.2936/hour\"/><circle cx=\"349.3\" cy=\"748.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2b \u00b7 r8id.metal-96xl \u00b7 72h median $10.5788/hour\"/><circle cx=\"313.0\" cy=\"731.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2b \u00b7 r8idb.96xlarge \u00b7 72h median $13.5449/hour\"/><circle cx=\"357.0\" cy=\"730.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2b \u00b7 r8idn.96xlarge \u00b7 72h median $13.7577/hour\"/><text x=\"320.8\" y=\"825\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">b</text><line x1=\"493.2\" x2=\"493.2\" y1=\"724.0\" y2=\"774.2\" stroke=\"currentColor\"/><line x1=\"479.8\" x2=\"506.8\" y1=\"724.0\" y2=\"724.0\" stroke=\"currentColor\"/><line x1=\"479.8\" x2=\"506.8\" y1=\"774.2\" y2=\"774.2\" stroke=\"currentColor\"/><rect x=\"466.2\" y=\"731.4\" width=\"54.0\" height=\"28.2\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"466.2\" x2=\"520.2\" y1=\"747.9\" y2=\"747.9\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"454.4\" cy=\"772.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2c \u00b7 c8id.96xlarge \u00b7 72h median $6.1594/hour\"/><circle cx=\"498.4\" cy=\"774.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2c \u00b7 c8id.metal-96xl \u00b7 72h median $5.8133/hour\"/><circle cx=\"462.1\" cy=\"669.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2c \u00b7 m8id.96xlarge \u00b7 72h median $25.0598/hour\"/><circle cx=\"506.2\" cy=\"761.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2c \u00b7 m8id.metal-96xl \u00b7 72h median $8.1474/hour\"/><circle cx=\"469.9\" cy=\"741.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2c \u00b7 m8idb.96xlarge \u00b7 72h median $11.8086/hour\"/><circle cx=\"514.0\" cy=\"745.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2c \u00b7 m8idn.96xlarge \u00b7 72h median $11.1367/hour\"/><circle cx=\"477.7\" cy=\"750.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2c \u00b7 r8id.96xlarge \u00b7 72h median $10.1065/hour\"/><circle cx=\"521.8\" cy=\"754.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2c \u00b7 r8id.metal-96xl \u00b7 72h median $9.4913/hour\"/><circle cx=\"485.5\" cy=\"724.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2c \u00b7 r8idb.96xlarge \u00b7 72h median $14.9980/hour\"/><circle cx=\"529.5\" cy=\"728.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2c \u00b7 r8idn.96xlarge \u00b7 72h median $14.2411/hour\"/><text x=\"493.2\" y=\"825\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">c</text><line x1=\"665.8\" x2=\"665.8\" y1=\"745.0\" y2=\"771.9\" stroke=\"currentColor\"/><line x1=\"652.2\" x2=\"679.2\" y1=\"745.0\" y2=\"745.0\" stroke=\"currentColor\"/><line x1=\"652.2\" x2=\"679.2\" y1=\"771.9\" y2=\"771.9\" stroke=\"currentColor\"/><rect x=\"638.8\" y=\"749.9\" width=\"54.0\" height=\"19.7\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"638.8\" x2=\"692.8\" y1=\"760.8\" y2=\"760.8\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"626.9\" cy=\"771.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2d \u00b7 c8id.96xlarge \u00b7 72h median $6.3204/hour\"/><circle cx=\"670.9\" cy=\"771.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2d \u00b7 c8id.metal-96xl \u00b7 72h median $6.2357/hour\"/><circle cx=\"634.6\" cy=\"769.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2d \u00b7 m8id.96xlarge \u00b7 72h median $6.7676/hour\"/><circle cx=\"678.7\" cy=\"768.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2d \u00b7 m8id.metal-96xl \u00b7 72h median $6.8920/hour\"/><circle cx=\"642.4\" cy=\"745.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2d \u00b7 m8idb.96xlarge \u00b7 72h median $11.1567/hour\"/><circle cx=\"686.5\" cy=\"745.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2d \u00b7 m8idn.96xlarge \u00b7 72h median $11.0602/hour\"/><circle cx=\"650.2\" cy=\"753.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2d \u00b7 r8id.96xlarge \u00b7 72h median $9.6285/hour\"/><circle cx=\"694.3\" cy=\"751.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i384nvme \u00b7 us-west-2d \u00b7 r8id.metal-96xl \u00b7 72h median $9.9993/hour\"/><text x=\"665.8\" y=\"825\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">d</text><text x=\"752\" y=\"651\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">72h median $/instance-hour</text><text x=\"62\" y=\"861\" font-size=\"15\" font-weight=\"500\">i192hugenvme</text><line x1=\"62\" x2=\"752\" y1=\"1016.0\" y2=\"1016.0\" stroke=\"GrayText\" stroke-opacity=\"0.22\"/><text x=\"54\" y=\"1020.0\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">$0.0</text><line x1=\"62\" x2=\"752\" y1=\"942.0\" y2=\"942.0\" stroke=\"GrayText\" stroke-opacity=\"0.22\"/><text x=\"54\" y=\"946.0\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">$4.3</text><line x1=\"62\" x2=\"752\" y1=\"868.0\" y2=\"868.0\" stroke=\"GrayText\" stroke-opacity=\"0.22\"/><text x=\"54\" y=\"872.0\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">$8.5</text><line x1=\"148.2\" x2=\"148.2\" y1=\"892.6\" y2=\"957.7\" stroke=\"currentColor\"/><line x1=\"134.8\" x2=\"161.8\" y1=\"892.6\" y2=\"892.6\" stroke=\"currentColor\"/><line x1=\"134.8\" x2=\"161.8\" y1=\"957.7\" y2=\"957.7\" stroke=\"currentColor\"/><rect x=\"121.2\" y=\"902.8\" width=\"54.0\" height=\"36.2\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"121.2\" x2=\"175.2\" y1=\"923.7\" y2=\"923.7\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"109.4\" cy=\"927.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2a \u00b7 i7i.48xlarge \u00b7 72h median $5.0991/hour\"/><circle cx=\"153.4\" cy=\"945.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2a \u00b7 i7i.metal-48xl \u00b7 72h median $4.0680/hour\"/><circle cx=\"117.1\" cy=\"892.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2a \u00b7 i7ie.48xlarge \u00b7 72h median $7.1248/hour\"/><circle cx=\"161.2\" cy=\"919.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2a \u00b7 i7ie.metal-48xl \u00b7 72h median $5.5501/hour\"/><circle cx=\"124.9\" cy=\"957.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2a \u00b7 r8id.48xlarge \u00b7 72h median $3.3640/hour\"/><circle cx=\"169.0\" cy=\"936.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2a \u00b7 r8id.metal-48xl \u00b7 72h median $4.5705/hour\"/><circle cx=\"132.7\" cy=\"905.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2a \u00b7 r8idb.48xlarge \u00b7 72h median $6.3859/hour\"/><circle cx=\"176.8\" cy=\"895.3\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2a \u00b7 r8idn.48xlarge \u00b7 72h median $6.9687/hour\"/><text x=\"148.2\" y=\"1035\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">a</text><line x1=\"320.8\" x2=\"320.8\" y1=\"909.4\" y2=\"944.0\" stroke=\"currentColor\"/><line x1=\"307.2\" x2=\"334.2\" y1=\"909.4\" y2=\"909.4\" stroke=\"currentColor\"/><line x1=\"307.2\" x2=\"334.2\" y1=\"944.0\" y2=\"944.0\" stroke=\"currentColor\"/><rect x=\"293.8\" y=\"922.8\" width=\"54.0\" height=\"15.3\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"293.8\" x2=\"347.8\" y1=\"926.7\" y2=\"926.7\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"281.9\" cy=\"924.1\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2b \u00b7 i7i.48xlarge \u00b7 72h median $5.3063/hour\"/><circle cx=\"325.9\" cy=\"926.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2b \u00b7 i7i.metal-48xl \u00b7 72h median $5.1455/hour\"/><circle cx=\"289.6\" cy=\"909.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2b \u00b7 i7ie.48xlarge \u00b7 72h median $6.1509/hour\"/><circle cx=\"333.7\" cy=\"918.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2b \u00b7 i7ie.metal-48xl \u00b7 72h median $5.6016/hour\"/><circle cx=\"297.4\" cy=\"936.9\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2b \u00b7 r8id.48xlarge \u00b7 72h median $4.5626/hour\"/><circle cx=\"341.5\" cy=\"944.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2b \u00b7 r8id.metal-48xl \u00b7 72h median $4.1543/hour\"/><circle cx=\"305.2\" cy=\"941.6\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2b \u00b7 r8idb.48xlarge \u00b7 72h median $4.2946/hour\"/><circle cx=\"349.3\" cy=\"926.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2b \u00b7 r8idn.48xlarge \u00b7 72h median $5.1664/hour\"/><text x=\"320.8\" y=\"1035\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">b</text><line x1=\"493.2\" x2=\"493.2\" y1=\"885.2\" y2=\"960.8\" stroke=\"currentColor\"/><line x1=\"479.8\" x2=\"506.8\" y1=\"885.2\" y2=\"885.2\" stroke=\"currentColor\"/><line x1=\"479.8\" x2=\"506.8\" y1=\"960.8\" y2=\"960.8\" stroke=\"currentColor\"/><rect x=\"466.2\" y=\"899.6\" width=\"54.0\" height=\"51.0\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"466.2\" x2=\"520.2\" y1=\"923.7\" y2=\"923.7\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"454.4\" cy=\"933.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2c \u00b7 i7i.48xlarge \u00b7 72h median $4.7468/hour\"/><circle cx=\"498.4\" cy=\"960.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2c \u00b7 i7i.metal-48xl \u00b7 72h median $3.1871/hour\"/><circle cx=\"462.1\" cy=\"890.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2c \u00b7 i7ie.48xlarge \u00b7 72h median $7.2694/hour\"/><circle cx=\"506.2\" cy=\"902.8\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2c \u00b7 i7ie.metal-48xl \u00b7 72h median $6.5319/hour\"/><circle cx=\"469.9\" cy=\"955.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2c \u00b7 r8id.48xlarge \u00b7 72h median $3.5181/hour\"/><circle cx=\"514.0\" cy=\"949.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2c \u00b7 r8id.metal-48xl \u00b7 72h median $3.8569/hour\"/><circle cx=\"477.7\" cy=\"913.7\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2c \u00b7 r8idb.48xlarge \u00b7 72h median $5.9018/hour\"/><circle cx=\"521.8\" cy=\"885.2\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2c \u00b7 r8idn.48xlarge \u00b7 72h median $7.5492/hour\"/><text x=\"493.2\" y=\"1035\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">c</text><line x1=\"665.8\" x2=\"665.8\" y1=\"879.0\" y2=\"967.0\" stroke=\"currentColor\"/><line x1=\"652.2\" x2=\"679.2\" y1=\"879.0\" y2=\"879.0\" stroke=\"currentColor\"/><line x1=\"652.2\" x2=\"679.2\" y1=\"967.0\" y2=\"967.0\" stroke=\"currentColor\"/><rect x=\"638.8\" y=\"898.4\" width=\"54.0\" height=\"55.1\" fill=\"Highlight\" fill-opacity=\"0.16\" stroke=\"Highlight\"/><line x1=\"638.8\" x2=\"692.8\" y1=\"946.7\" y2=\"946.7\" stroke=\"Highlight\" stroke-width=\"2\"/><circle cx=\"626.9\" cy=\"967.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2d \u00b7 i7i.48xlarge \u00b7 72h median $2.8265/hour\"/><circle cx=\"670.9\" cy=\"953.4\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2d \u00b7 i7i.metal-48xl \u00b7 72h median $3.6113/hour\"/><circle cx=\"634.6\" cy=\"879.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2d \u00b7 i7ie.48xlarge \u00b7 72h median $7.9091/hour\"/><circle cx=\"678.7\" cy=\"884.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2d \u00b7 i7ie.metal-48xl \u00b7 72h median $7.5895/hour\"/><circle cx=\"642.4\" cy=\"940.0\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2d \u00b7 r8id.48xlarge \u00b7 72h median $4.3887/hour\"/><circle cx=\"686.5\" cy=\"953.5\" r=\"2.7\" fill=\"Highlight\" fill-opacity=\"0.66\" data-label=\"i192hugenvme \u00b7 us-west-2d \u00b7 r8id.metal-48xl \u00b7 72h median $3.6073/hour\"/><text x=\"665.8\" y=\"1035\" text-anchor=\"middle\" font-size=\"11\" fill=\"GrayText\">d</text><text x=\"752\" y=\"861\" text-anchor=\"end\" font-size=\"11\" fill=\"GrayText\">72h median $/instance-hour</text></svg></div><figcaption style=\"margin-top:8px;color:GrayText\">One 72-hour median Linux/UNIX Spot price per configured instance type. Tukey boxes and whiskers; dots show every type.</figcaption></figure>",
+        "id": "boxplot",
+        "type": "html"
+      },
+      {
+        "chartId": "placement-scores",
+        "id": "placement-score-chart",
+        "type": "chart"
+      },
+      {
+        "id": "block-partition-summary-us-west-2a",
+        "tableId": "partition-summary-us-west-2a",
+        "type": "table"
+      },
+      {
+        "id": "block-partition-summary-us-west-2b",
+        "tableId": "partition-summary-us-west-2b",
+        "type": "table"
+      },
+      {
+        "id": "block-partition-summary-us-west-2c",
+        "tableId": "partition-summary-us-west-2c",
+        "type": "table"
+      },
+      {
+        "id": "block-partition-summary-us-west-2d",
+        "tableId": "partition-summary-us-west-2d",
+        "type": "table"
+      },
+      {
+        "body": "## Exclusions for clusters built today\n\n- **us-west-2a:** `x2iedn.metal`, `m8id.48xlarge`, `m8idb.96xlarge`, `m8idn.96xlarge`, `r8id.metal-96xl`, `r8idb.96xlarge`, `r8idn.96xlarge`\n- **us-west-2b:** `m8idb.96xlarge`, `m8idn.96xlarge`, `r8id.96xlarge`, `r8id.metal-96xl`, `r8idb.96xlarge`, `r8idn.96xlarge`\n- **us-west-2c:** `m8id.96xlarge`, `m8idb.96xlarge`, `m8idn.96xlarge`, `r8idb.96xlarge`, `r8idn.96xlarge`\n- **us-west-2d:** `m8idb.96xlarge`, `m8idn.96xlarge`\n\nThese are temporary market exclusions, not permanent claims about the instance families. Re-run the collector before a later build.",
+        "id": "exclusions",
+        "sourceId": "live-snapshot",
+        "type": "markdown"
+      },
+      {
+        "id": "block-exclude-us-west-2a",
+        "tableId": "exclude-us-west-2a",
+        "type": "table"
+      },
+      {
+        "id": "block-exclude-us-west-2b",
+        "tableId": "exclude-us-west-2b",
+        "type": "table"
+      },
+      {
+        "id": "block-exclude-us-west-2c",
+        "tableId": "exclude-us-west-2c",
+        "type": "table"
+      },
+      {
+        "id": "block-exclude-us-west-2d",
+        "tableId": "exclude-us-west-2d",
+        "type": "table"
+      },
+      {
+        "body": "## Scope, data, and definitions\n\n- Window: `2026-07-13T03:11:01Z` through `2026-07-16T03:11:01Z` (72 hours).\n- Price: EC2 Linux/UNIX Spot price per instance-hour in the named AZ.\n- Boxplot value: one 72-hour median price per configured instance type, so volatile types do not receive extra statistical weight merely because their price changed more often.\n- Placement score: eight-node-equivalent target expressed in vCPU, using AWS's required `capacity-optimized` scoring assumption. The templates use `price-capacity-optimized`, so the score is directional.\n- Exclude today: type is offered, current price exceeds every containing compute-resource bid, and its 72-hour minimum remained above the $9.99 global cap.\n\n## Methodology\n\nThe collector deduplicated repeated instance types within each partition, queried current AZ offerings, gathered 72-hour Spot price history, requested a partition-pool placement score, and classified account-observed CloudTrail launches and failures. Today's compute-resource bid was reproduced as `min(1.70 \u00d7 current resource median, $9.99)`.\n\n## Limitations and robustness\n\nAWS does not expose a definitive current capacity flag for each individual Spot pool. Price history is not capacity evidence. Placement scores describe the submitted pool as a whole, are not guaranteed, and are only directly applicable when a later request matches the scored configuration and uses `capacity-optimized`. CloudTrail is an account-specific, retry-correlated sample; zero attempts means no evidence, not unavailability. The chart uses per-type 72-hour medians rather than time-weighted prices.\n\n## Recommended next steps\n\n1. For a build today, apply the listed temporary exclusions only in the matching AZ template.\n2. Prefer `us-west-2b` for 192-vCPU NVMe work, `us-west-2a` for 128-vCPU NVMe work, and any AZ for 96-vCPU NVMe work (with `us-west-2c` the cleanest price-gate snapshot).\n3. Avoid relying on `i384nvme` Spot. Use the Intel on-demand template when 384-vCPU reliability matters.\n4. Re-run this collector immediately before later cluster creation; Spot state and placement scores are time-sensitive.\n\n## Further questions\n\n- Do the 255 price-cap failures materially delay Slurm scaling, or are they only EC2 Fleet override telemetry?\n- Would a separate, explicitly approved global-cap policy for `i384nvme` be cheaper than on-demand for the expected job duration?\n- Should this report become a pre-create advisory command that never mutates templates?\n",
+        "id": "methodology",
+        "sourceId": "live-snapshot",
+        "type": "markdown"
+      }
+    ],
+    "cards": [],
+    "charts": [
+      {
+        "dataset": "placement-scores",
+        "encodings": {
+          "color": {
+            "field": "availability_zone",
+            "label": "Availability Zone",
+            "type": "nominal"
+          },
+          "x": {
+            "field": "partition",
+            "label": "Partition",
+            "type": "nominal"
+          },
+          "y": {
+            "field": "placement_score",
+            "format": "number",
+            "label": "Placement score",
+            "type": "quantitative"
+          }
+        },
+        "id": "placement-scores",
+        "intent": "comparison",
+        "layout": "full",
+        "settings": {
+          "groupMode": "grouped",
+          "showValues": true
+        },
+        "showDescription": true,
+        "source": {
+          "id": "source-placement-scores",
+          "label": "SQLite derivation for partition placement scores",
+          "path": "docs/plans/20260716T031101Z_usw2_spot_market_review_snapshot.json",
+          "query": {
+            "description": "Actual query executed against the normalized partition summary rows.",
+            "engine": "sqlite",
+            "sql": "SELECT partition, availability_zone, placement_score\n    FROM partition_summary\n    ORDER BY CASE partition\n      WHEN 'i96nvme' THEN 1 WHEN 'i128nvme' THEN 2 WHEN 'i192nvme' THEN 3\n      WHEN 'i384nvme' THEN 4 WHEN 'i192hugenvme' THEN 5 END,\n      availability_zone"
+          },
+          "tables_used": [
+            "partition_summary"
+          ]
+        },
+        "subtitle": "Directional 1-10 score for an eight-node-equivalent target; 10 is strongest.",
+        "title": "Partition-pool Spot placement scores by AZ",
+        "type": "bar",
+        "valueFormat": "number",
+        "xAxisTitle": "Partition",
+        "yAxisTitle": "Placement score (1-10)"
+      }
+    ],
+    "description": "Per-AZ assessment of defined NVMe partition types for clusters built on 2026-07-16.",
+    "generatedAt": "2026-07-16T03:17:58Z",
+    "surface": "report",
+    "tables": [
+      {
+        "columns": [
+          {
+            "field": "partition",
+            "label": "Partition"
+          },
+          {
+            "field": "configured_types",
+            "format": "number",
+            "label": "Types"
+          },
+          {
+            "field": "placement_score",
+            "format": "number",
+            "label": "Score"
+          },
+          {
+            "field": "launched_instances_72h",
+            "format": "number",
+            "label": "Launched"
+          },
+          {
+            "field": "capacity_errors_72h",
+            "format": "number",
+            "label": "Capacity errors"
+          },
+          {
+            "field": "price_cap_errors_72h",
+            "format": "number",
+            "label": "Price-cap errors"
+          },
+          {
+            "field": "exclude_today_count",
+            "format": "number",
+            "label": "Exclude today"
+          }
+        ],
+        "dataset": "partition-summary-us-west-2a",
+        "id": "partition-summary-us-west-2a",
+        "source": {
+          "id": "source-partition-summary-us-west-2a",
+          "label": "SQLite derivation for us-west-2a partition summary",
+          "path": "docs/plans/20260716T031101Z_usw2_spot_market_review_snapshot.json",
+          "query": {
+            "description": "Actual query executed against the in-memory normalized market snapshot.",
+            "engine": "sqlite",
+            "sql": "SELECT partition, configured_types, offered_types, placement_score,\n          launched_instances_72h, capacity_errors_72h, price_cap_errors_72h,\n          exclude_today_count\n        FROM partition_summary\n        WHERE availability_zone = 'us-west-2a'\n        ORDER BY CASE partition\n          WHEN 'i96nvme' THEN 1 WHEN 'i128nvme' THEN 2 WHEN 'i192nvme' THEN 3\n          WHEN 'i384nvme' THEN 4 WHEN 'i192hugenvme' THEN 5 END"
+          },
+          "tables_used": [
+            "partition_summary"
+          ]
+        },
+        "title": "us-west-2a NVMe partition evidence"
+      },
+      {
+        "columns": [
+          {
+            "field": "partition",
+            "label": "Partition"
+          },
+          {
+            "field": "configured_types",
+            "format": "number",
+            "label": "Types"
+          },
+          {
+            "field": "placement_score",
+            "format": "number",
+            "label": "Score"
+          },
+          {
+            "field": "launched_instances_72h",
+            "format": "number",
+            "label": "Launched"
+          },
+          {
+            "field": "capacity_errors_72h",
+            "format": "number",
+            "label": "Capacity errors"
+          },
+          {
+            "field": "price_cap_errors_72h",
+            "format": "number",
+            "label": "Price-cap errors"
+          },
+          {
+            "field": "exclude_today_count",
+            "format": "number",
+            "label": "Exclude today"
+          }
+        ],
+        "dataset": "partition-summary-us-west-2b",
+        "id": "partition-summary-us-west-2b",
+        "source": {
+          "id": "source-partition-summary-us-west-2b",
+          "label": "SQLite derivation for us-west-2b partition summary",
+          "path": "docs/plans/20260716T031101Z_usw2_spot_market_review_snapshot.json",
+          "query": {
+            "description": "Actual query executed against the in-memory normalized market snapshot.",
+            "engine": "sqlite",
+            "sql": "SELECT partition, configured_types, offered_types, placement_score,\n          launched_instances_72h, capacity_errors_72h, price_cap_errors_72h,\n          exclude_today_count\n        FROM partition_summary\n        WHERE availability_zone = 'us-west-2b'\n        ORDER BY CASE partition\n          WHEN 'i96nvme' THEN 1 WHEN 'i128nvme' THEN 2 WHEN 'i192nvme' THEN 3\n          WHEN 'i384nvme' THEN 4 WHEN 'i192hugenvme' THEN 5 END"
+          },
+          "tables_used": [
+            "partition_summary"
+          ]
+        },
+        "title": "us-west-2b NVMe partition evidence"
+      },
+      {
+        "columns": [
+          {
+            "field": "partition",
+            "label": "Partition"
+          },
+          {
+            "field": "configured_types",
+            "format": "number",
+            "label": "Types"
+          },
+          {
+            "field": "placement_score",
+            "format": "number",
+            "label": "Score"
+          },
+          {
+            "field": "launched_instances_72h",
+            "format": "number",
+            "label": "Launched"
+          },
+          {
+            "field": "capacity_errors_72h",
+            "format": "number",
+            "label": "Capacity errors"
+          },
+          {
+            "field": "price_cap_errors_72h",
+            "format": "number",
+            "label": "Price-cap errors"
+          },
+          {
+            "field": "exclude_today_count",
+            "format": "number",
+            "label": "Exclude today"
+          }
+        ],
+        "dataset": "partition-summary-us-west-2c",
+        "id": "partition-summary-us-west-2c",
+        "source": {
+          "id": "source-partition-summary-us-west-2c",
+          "label": "SQLite derivation for us-west-2c partition summary",
+          "path": "docs/plans/20260716T031101Z_usw2_spot_market_review_snapshot.json",
+          "query": {
+            "description": "Actual query executed against the in-memory normalized market snapshot.",
+            "engine": "sqlite",
+            "sql": "SELECT partition, configured_types, offered_types, placement_score,\n          launched_instances_72h, capacity_errors_72h, price_cap_errors_72h,\n          exclude_today_count\n        FROM partition_summary\n        WHERE availability_zone = 'us-west-2c'\n        ORDER BY CASE partition\n          WHEN 'i96nvme' THEN 1 WHEN 'i128nvme' THEN 2 WHEN 'i192nvme' THEN 3\n          WHEN 'i384nvme' THEN 4 WHEN 'i192hugenvme' THEN 5 END"
+          },
+          "tables_used": [
+            "partition_summary"
+          ]
+        },
+        "title": "us-west-2c NVMe partition evidence"
+      },
+      {
+        "columns": [
+          {
+            "field": "partition",
+            "label": "Partition"
+          },
+          {
+            "field": "configured_types",
+            "format": "number",
+            "label": "Types"
+          },
+          {
+            "field": "placement_score",
+            "format": "number",
+            "label": "Score"
+          },
+          {
+            "field": "launched_instances_72h",
+            "format": "number",
+            "label": "Launched"
+          },
+          {
+            "field": "capacity_errors_72h",
+            "format": "number",
+            "label": "Capacity errors"
+          },
+          {
+            "field": "price_cap_errors_72h",
+            "format": "number",
+            "label": "Price-cap errors"
+          },
+          {
+            "field": "exclude_today_count",
+            "format": "number",
+            "label": "Exclude today"
+          }
+        ],
+        "dataset": "partition-summary-us-west-2d",
+        "id": "partition-summary-us-west-2d",
+        "source": {
+          "id": "source-partition-summary-us-west-2d",
+          "label": "SQLite derivation for us-west-2d partition summary",
+          "path": "docs/plans/20260716T031101Z_usw2_spot_market_review_snapshot.json",
+          "query": {
+            "description": "Actual query executed against the in-memory normalized market snapshot.",
+            "engine": "sqlite",
+            "sql": "SELECT partition, configured_types, offered_types, placement_score,\n          launched_instances_72h, capacity_errors_72h, price_cap_errors_72h,\n          exclude_today_count\n        FROM partition_summary\n        WHERE availability_zone = 'us-west-2d'\n        ORDER BY CASE partition\n          WHEN 'i96nvme' THEN 1 WHEN 'i128nvme' THEN 2 WHEN 'i192nvme' THEN 3\n          WHEN 'i384nvme' THEN 4 WHEN 'i192hugenvme' THEN 5 END"
+          },
+          "tables_used": [
+            "partition_summary"
+          ]
+        },
+        "title": "us-west-2d NVMe partition evidence"
+      },
+      {
+        "columns": [
+          {
+            "field": "partition",
+            "label": "Partition"
+          },
+          {
+            "field": "instance_type",
+            "label": "Instance type"
+          },
+          {
+            "field": "current_spot_usd_hour",
+            "format": "currency",
+            "label": "Current"
+          },
+          {
+            "field": "min_72h_usd_hour",
+            "format": "currency",
+            "label": "72h min"
+          },
+          {
+            "field": "computed_bid_usd_hour",
+            "format": "currency",
+            "label": "Today's bid"
+          },
+          {
+            "field": "price_cap_failure_events",
+            "format": "number",
+            "label": "Cap failures"
+          }
+        ],
+        "dataset": "exclude-us-west-2a",
+        "id": "exclude-us-west-2a",
+        "source": {
+          "id": "source-exclude-us-west-2a",
+          "label": "SQLite derivation for us-west-2a exclusions",
+          "path": "docs/plans/20260716T031101Z_usw2_spot_market_review_instance_type_audit.csv",
+          "query": {
+            "description": "Actual query executed against the normalized per-type audit rows.",
+            "engine": "sqlite",
+            "sql": "SELECT partition, instance_type, current_spot_usd_hour,\n          min_72h_usd_hour, computed_bid_usd_hour, price_cap_failure_events\n        FROM type_audit\n        WHERE availability_zone = 'us-west-2a' AND recommendation = 'EXCLUDE TODAY'\n        ORDER BY partition, instance_type"
+          },
+          "tables_used": [
+            "type_audit"
+          ]
+        },
+        "title": "us-west-2a temporary exclusions"
+      },
+      {
+        "columns": [
+          {
+            "field": "partition",
+            "label": "Partition"
+          },
+          {
+            "field": "instance_type",
+            "label": "Instance type"
+          },
+          {
+            "field": "current_spot_usd_hour",
+            "format": "currency",
+            "label": "Current"
+          },
+          {
+            "field": "min_72h_usd_hour",
+            "format": "currency",
+            "label": "72h min"
+          },
+          {
+            "field": "computed_bid_usd_hour",
+            "format": "currency",
+            "label": "Today's bid"
+          },
+          {
+            "field": "price_cap_failure_events",
+            "format": "number",
+            "label": "Cap failures"
+          }
+        ],
+        "dataset": "exclude-us-west-2b",
+        "id": "exclude-us-west-2b",
+        "source": {
+          "id": "source-exclude-us-west-2b",
+          "label": "SQLite derivation for us-west-2b exclusions",
+          "path": "docs/plans/20260716T031101Z_usw2_spot_market_review_instance_type_audit.csv",
+          "query": {
+            "description": "Actual query executed against the normalized per-type audit rows.",
+            "engine": "sqlite",
+            "sql": "SELECT partition, instance_type, current_spot_usd_hour,\n          min_72h_usd_hour, computed_bid_usd_hour, price_cap_failure_events\n        FROM type_audit\n        WHERE availability_zone = 'us-west-2b' AND recommendation = 'EXCLUDE TODAY'\n        ORDER BY partition, instance_type"
+          },
+          "tables_used": [
+            "type_audit"
+          ]
+        },
+        "title": "us-west-2b temporary exclusions"
+      },
+      {
+        "columns": [
+          {
+            "field": "partition",
+            "label": "Partition"
+          },
+          {
+            "field": "instance_type",
+            "label": "Instance type"
+          },
+          {
+            "field": "current_spot_usd_hour",
+            "format": "currency",
+            "label": "Current"
+          },
+          {
+            "field": "min_72h_usd_hour",
+            "format": "currency",
+            "label": "72h min"
+          },
+          {
+            "field": "computed_bid_usd_hour",
+            "format": "currency",
+            "label": "Today's bid"
+          },
+          {
+            "field": "price_cap_failure_events",
+            "format": "number",
+            "label": "Cap failures"
+          }
+        ],
+        "dataset": "exclude-us-west-2c",
+        "id": "exclude-us-west-2c",
+        "source": {
+          "id": "source-exclude-us-west-2c",
+          "label": "SQLite derivation for us-west-2c exclusions",
+          "path": "docs/plans/20260716T031101Z_usw2_spot_market_review_instance_type_audit.csv",
+          "query": {
+            "description": "Actual query executed against the normalized per-type audit rows.",
+            "engine": "sqlite",
+            "sql": "SELECT partition, instance_type, current_spot_usd_hour,\n          min_72h_usd_hour, computed_bid_usd_hour, price_cap_failure_events\n        FROM type_audit\n        WHERE availability_zone = 'us-west-2c' AND recommendation = 'EXCLUDE TODAY'\n        ORDER BY partition, instance_type"
+          },
+          "tables_used": [
+            "type_audit"
+          ]
+        },
+        "title": "us-west-2c temporary exclusions"
+      },
+      {
+        "columns": [
+          {
+            "field": "partition",
+            "label": "Partition"
+          },
+          {
+            "field": "instance_type",
+            "label": "Instance type"
+          },
+          {
+            "field": "current_spot_usd_hour",
+            "format": "currency",
+            "label": "Current"
+          },
+          {
+            "field": "min_72h_usd_hour",
+            "format": "currency",
+            "label": "72h min"
+          },
+          {
+            "field": "computed_bid_usd_hour",
+            "format": "currency",
+            "label": "Today's bid"
+          },
+          {
+            "field": "price_cap_failure_events",
+            "format": "number",
+            "label": "Cap failures"
+          }
+        ],
+        "dataset": "exclude-us-west-2d",
+        "id": "exclude-us-west-2d",
+        "source": {
+          "id": "source-exclude-us-west-2d",
+          "label": "SQLite derivation for us-west-2d exclusions",
+          "path": "docs/plans/20260716T031101Z_usw2_spot_market_review_instance_type_audit.csv",
+          "query": {
+            "description": "Actual query executed against the normalized per-type audit rows.",
+            "engine": "sqlite",
+            "sql": "SELECT partition, instance_type, current_spot_usd_hour,\n          min_72h_usd_hour, computed_bid_usd_hour, price_cap_failure_events\n        FROM type_audit\n        WHERE availability_zone = 'us-west-2d' AND recommendation = 'EXCLUDE TODAY'\n        ORDER BY partition, instance_type"
+          },
+          "tables_used": [
+            "type_audit"
+          ]
+        },
+        "title": "us-west-2d temporary exclusions"
+      }
+    ],
+    "title": "us-west-2 NVMe Spot market review",
+    "version": 1
+  },
+  "package_info": {
+    "audit_csv": "docs/plans/20260716T031101Z_usw2_spot_market_review_instance_type_audit.csv",
+    "boxplot_svg": "docs/plans/20260716T031101Z_usw2_spot_partition_boxplot.svg",
+    "chart_method": "Tukey boxplots across one 72-hour median per configured instance type",
+    "watch_row_count": 12
+  },
+  "snapshot": {
+    "accessIssues": [],
+    "datasets": {
+      "exclude-us-west-2a": [
+        {
+          "computed_bid_usd_hour": 7.5822,
+          "current_spot_usd_hour": 12.9677,
+          "instance_type": "x2iedn.metal",
+          "min_72h_usd_hour": 12.9677,
+          "partition": "i128nvme",
+          "price_cap_failure_events": 0
+        },
+        {
+          "computed_bid_usd_hour": 8.5007,
+          "current_spot_usd_hour": 10.6373,
+          "instance_type": "m8id.48xlarge",
+          "min_72h_usd_hour": 10.6373,
+          "partition": "i192nvme",
+          "price_cap_failure_events": 0
+        },
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 10.9114,
+          "instance_type": "m8idb.96xlarge",
+          "min_72h_usd_hour": 10.8907,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 0
+        },
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 10.7937,
+          "instance_type": "m8idn.96xlarge",
+          "min_72h_usd_hour": 10.7937,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 0
+        },
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 13.1418,
+          "instance_type": "r8id.metal-96xl",
+          "min_72h_usd_hour": 13.1418,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 0
+        },
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 14.6416,
+          "instance_type": "r8idb.96xlarge",
+          "min_72h_usd_hour": 14.6055,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 0
+        },
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 13.8367,
+          "instance_type": "r8idn.96xlarge",
+          "min_72h_usd_hour": 13.8367,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 0
+        }
+      ],
+      "exclude-us-west-2b": [
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 10.4242,
+          "instance_type": "m8idb.96xlarge",
+          "min_72h_usd_hour": 10.4242,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 0
+        },
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 11.0232,
+          "instance_type": "m8idn.96xlarge",
+          "min_72h_usd_hour": 10.7944,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 0
+        },
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 11.0721,
+          "instance_type": "r8id.96xlarge",
+          "min_72h_usd_hour": 11.0721,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 0
+        },
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 10.4618,
+          "instance_type": "r8id.metal-96xl",
+          "min_72h_usd_hour": 10.4618,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 0
+        },
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 13.5391,
+          "instance_type": "r8idb.96xlarge",
+          "min_72h_usd_hour": 13.444,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 0
+        },
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 13.771,
+          "instance_type": "r8idn.96xlarge",
+          "min_72h_usd_hour": 13.6611,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 0
+        }
+      ],
+      "exclude-us-west-2c": [
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 25.0598,
+          "instance_type": "m8id.96xlarge",
+          "min_72h_usd_hour": 25.0598,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 0
+        },
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 11.4061,
+          "instance_type": "m8idb.96xlarge",
+          "min_72h_usd_hour": 11.4061,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 55
+        },
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 12.0909,
+          "instance_type": "m8idn.96xlarge",
+          "min_72h_usd_hour": 10.976,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 26
+        },
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 14.9321,
+          "instance_type": "r8idb.96xlarge",
+          "min_72h_usd_hour": 14.8973,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 53
+        },
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 14.1125,
+          "instance_type": "r8idn.96xlarge",
+          "min_72h_usd_hour": 14.1125,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 48
+        }
+      ],
+      "exclude-us-west-2d": [
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 10.9596,
+          "instance_type": "m8idb.96xlarge",
+          "min_72h_usd_hour": 10.9596,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 15
+        },
+        {
+          "computed_bid_usd_hour": 9.99,
+          "current_spot_usd_hour": 10.5533,
+          "instance_type": "m8idn.96xlarge",
+          "min_72h_usd_hour": 10.5533,
+          "partition": "i384nvme",
+          "price_cap_failure_events": 15
+        }
+      ],
+      "partition-summary-us-west-2a": [
+        {
+          "capacity_errors_72h": 0,
+          "configured_types": 31,
+          "exclude_today_count": 0,
+          "launched_instances_72h": 0,
+          "offered_types": 31,
+          "partition": "i96nvme",
+          "placement_score": 9,
+          "price_cap_errors_72h": 0
+        },
+        {
+          "capacity_errors_72h": 0,
+          "configured_types": 13,
+          "exclude_today_count": 1,
+          "launched_instances_72h": 0,
+          "offered_types": 13,
+          "partition": "i128nvme",
+          "placement_score": 6,
+          "price_cap_errors_72h": 0
+        },
+        {
+          "capacity_errors_72h": 0,
+          "configured_types": 14,
+          "exclude_today_count": 1,
+          "launched_instances_72h": 0,
+          "offered_types": 14,
+          "partition": "i192nvme",
+          "placement_score": 3,
+          "price_cap_errors_72h": 0
+        },
+        {
+          "capacity_errors_72h": 0,
+          "configured_types": 10,
+          "exclude_today_count": 5,
+          "launched_instances_72h": 0,
+          "offered_types": 10,
+          "partition": "i384nvme",
+          "placement_score": 1,
+          "price_cap_errors_72h": 0
+        },
+        {
+          "capacity_errors_72h": 0,
+          "configured_types": 8,
+          "exclude_today_count": 0,
+          "launched_instances_72h": 0,
+          "offered_types": 8,
+          "partition": "i192hugenvme",
+          "placement_score": 3,
+          "price_cap_errors_72h": 0
+        }
+      ],
+      "partition-summary-us-west-2b": [
+        {
+          "capacity_errors_72h": 0,
+          "configured_types": 31,
+          "exclude_today_count": 0,
+          "launched_instances_72h": 0,
+          "offered_types": 31,
+          "partition": "i96nvme",
+          "placement_score": 9,
+          "price_cap_errors_72h": 0
+        },
+        {
+          "capacity_errors_72h": 0,
+          "configured_types": 13,
+          "exclude_today_count": 0,
+          "launched_instances_72h": 0,
+          "offered_types": 13,
+          "partition": "i128nvme",
+          "placement_score": 3,
+          "price_cap_errors_72h": 0
+        },
+        {
+          "capacity_errors_72h": 0,
+          "configured_types": 14,
+          "exclude_today_count": 0,
+          "launched_instances_72h": 0,
+          "offered_types": 14,
+          "partition": "i192nvme",
+          "placement_score": 9,
+          "price_cap_errors_72h": 0
+        },
+        {
+          "capacity_errors_72h": 0,
+          "configured_types": 10,
+          "exclude_today_count": 6,
+          "launched_instances_72h": 0,
+          "offered_types": 10,
+          "partition": "i384nvme",
+          "placement_score": 1,
+          "price_cap_errors_72h": 0
+        },
+        {
+          "capacity_errors_72h": 0,
+          "configured_types": 8,
+          "exclude_today_count": 0,
+          "launched_instances_72h": 0,
+          "offered_types": 8,
+          "partition": "i192hugenvme",
+          "placement_score": 7,
+          "price_cap_errors_72h": 0
+        }
+      ],
+      "partition-summary-us-west-2c": [
+        {
+          "capacity_errors_72h": 1,
+          "configured_types": 31,
+          "exclude_today_count": 0,
+          "launched_instances_72h": 76,
+          "offered_types": 31,
+          "partition": "i96nvme",
+          "placement_score": 9,
+          "price_cap_errors_72h": 0
+        },
+        {
+          "capacity_errors_72h": 2,
+          "configured_types": 13,
+          "exclude_today_count": 0,
+          "launched_instances_72h": 46,
+          "offered_types": 13,
+          "partition": "i128nvme",
+          "placement_score": 2,
+          "price_cap_errors_72h": 0
+        },
+        {
+          "capacity_errors_72h": 12,
+          "configured_types": 14,
+          "exclude_today_count": 0,
+          "launched_instances_72h": 57,
+          "offered_types": 14,
+          "partition": "i192nvme",
+          "placement_score": 1,
+          "price_cap_errors_72h": 13
+        },
+        {
+          "capacity_errors_72h": 0,
+          "configured_types": 10,
+          "exclude_today_count": 5,
+          "launched_instances_72h": 2,
+          "offered_types": 10,
+          "partition": "i384nvme",
+          "placement_score": 1,
+          "price_cap_errors_72h": 186
+        },
+        {
+          "capacity_errors_72h": 8,
+          "configured_types": 8,
+          "exclude_today_count": 0,
+          "launched_instances_72h": 42,
+          "offered_types": 8,
+          "partition": "i192hugenvme",
+          "placement_score": 1,
+          "price_cap_errors_72h": 13
+        }
+      ],
+      "partition-summary-us-west-2d": [
+        {
+          "capacity_errors_72h": 0,
+          "configured_types": 23,
+          "exclude_today_count": 0,
+          "launched_instances_72h": 4,
+          "offered_types": 23,
+          "partition": "i96nvme",
+          "placement_score": 9,
+          "price_cap_errors_72h": 0
+        },
+        {
+          "capacity_errors_72h": 0,
+          "configured_types": 5,
+          "exclude_today_count": 0,
+          "launched_instances_72h": 4,
+          "offered_types": 5,
+          "partition": "i128nvme",
+          "placement_score": 1,
+          "price_cap_errors_72h": 0
+        },
+        {
+          "capacity_errors_72h": 1,
+          "configured_types": 12,
+          "exclude_today_count": 0,
+          "launched_instances_72h": 29,
+          "offered_types": 12,
+          "partition": "i192nvme",
+          "placement_score": 5,
+          "price_cap_errors_72h": 0
+        },
+        {
+          "capacity_errors_72h": 4,
+          "configured_types": 8,
+          "exclude_today_count": 2,
+          "launched_instances_72h": 11,
+          "offered_types": 8,
+          "partition": "i384nvme",
+          "placement_score": 2,
+          "price_cap_errors_72h": 56
+        },
+        {
+          "capacity_errors_72h": 1,
+          "configured_types": 6,
+          "exclude_today_count": 0,
+          "launched_instances_72h": 20,
+          "offered_types": 6,
+          "partition": "i192hugenvme",
+          "placement_score": 1,
+          "price_cap_errors_72h": 0
+        }
+      ],
+      "placement-scores": [
+        {
+          "availability_zone": "us-west-2a",
+          "partition": "i96nvme",
+          "placement_score": 9
+        },
+        {
+          "availability_zone": "us-west-2b",
+          "partition": "i96nvme",
+          "placement_score": 9
+        },
+        {
+          "availability_zone": "us-west-2c",
+          "partition": "i96nvme",
+          "placement_score": 9
+        },
+        {
+          "availability_zone": "us-west-2d",
+          "partition": "i96nvme",
+          "placement_score": 9
+        },
+        {
+          "availability_zone": "us-west-2a",
+          "partition": "i128nvme",
+          "placement_score": 6
+        },
+        {
+          "availability_zone": "us-west-2b",
+          "partition": "i128nvme",
+          "placement_score": 3
+        },
+        {
+          "availability_zone": "us-west-2c",
+          "partition": "i128nvme",
+          "placement_score": 2
+        },
+        {
+          "availability_zone": "us-west-2d",
+          "partition": "i128nvme",
+          "placement_score": 1
+        },
+        {
+          "availability_zone": "us-west-2a",
+          "partition": "i192nvme",
+          "placement_score": 3
+        },
+        {
+          "availability_zone": "us-west-2b",
+          "partition": "i192nvme",
+          "placement_score": 9
+        },
+        {
+          "availability_zone": "us-west-2c",
+          "partition": "i192nvme",
+          "placement_score": 1
+        },
+        {
+          "availability_zone": "us-west-2d",
+          "partition": "i192nvme",
+          "placement_score": 5
+        },
+        {
+          "availability_zone": "us-west-2a",
+          "partition": "i384nvme",
+          "placement_score": 1
+        },
+        {
+          "availability_zone": "us-west-2b",
+          "partition": "i384nvme",
+          "placement_score": 1
+        },
+        {
+          "availability_zone": "us-west-2c",
+          "partition": "i384nvme",
+          "placement_score": 1
+        },
+        {
+          "availability_zone": "us-west-2d",
+          "partition": "i384nvme",
+          "placement_score": 2
+        },
+        {
+          "availability_zone": "us-west-2a",
+          "partition": "i192hugenvme",
+          "placement_score": 3
+        },
+        {
+          "availability_zone": "us-west-2b",
+          "partition": "i192hugenvme",
+          "placement_score": 7
+        },
+        {
+          "availability_zone": "us-west-2c",
+          "partition": "i192hugenvme",
+          "placement_score": 1
+        },
+        {
+          "availability_zone": "us-west-2d",
+          "partition": "i192hugenvme",
+          "placement_score": 1
+        }
+      ]
+    },
+    "generatedAt": "2026-07-16T03:17:58Z",
+    "status": "ready",
+    "version": 1
+  },
+  "sources": [
+    {
+      "id": "live-snapshot",
+      "label": "DYEC us-west-2 Spot market evidence snapshot",
+      "path": "docs/plans/20260716T031101Z_usw2_spot_market_review_snapshot.json",
+      "query": {
+        "description": "Read-only EC2 offerings, Spot price history, placement scores, CloudTrail RunInstances evidence, and current working-tree template membership.",
+        "engine": "AWS CLI with profile lsmc",
+        "executed_at": "2026-07-16T03:17:58Z"
+      }
+    },
+    {
+      "href": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html",
+      "id": "aws-placement-docs",
+      "label": "AWS EC2 Spot placement score documentation"
+    },
+    {
+      "href": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances-history.html",
+      "id": "aws-price-docs",
+      "label": "AWS EC2 Spot price history documentation"
+    },
+    {
+      "href": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html",
+      "id": "aws-spot-docs",
+      "label": "AWS EC2 Spot Instances concepts"
+    }
+  ],
+  "surface": "report"
+}

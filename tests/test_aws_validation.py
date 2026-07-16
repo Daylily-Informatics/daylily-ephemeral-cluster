@@ -131,7 +131,7 @@ def test_render_effective_cluster_yaml_uses_az_scoped_intel_default() -> None:
         ctx,
     )
 
-    assert template_path.name == "prod_cluster_intel_us-west-2b.yaml"
+    assert template_path.name == "prod_cluster_intel_spot_us-west-2b.yaml"
     assert "intel/us-west-2/us-west-2b" in template_path.as_posix()
 
 

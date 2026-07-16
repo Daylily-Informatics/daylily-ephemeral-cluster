@@ -188,7 +188,7 @@ def _slurm_jobs(dayoa_root: Path, *, runner: Runner, full: bool, tail_lines: int
         parts = line.split("|", len(fields) - 1)
         if len(parts) != len(fields):
             continue
-        job = dict(zip(fields, parts))
+        job: dict[str, Any] = dict(zip(fields, parts))
         detail_result = _run(["scontrol", "show", "job", "-o", job["job_id"]], runner=runner)
         if detail_result.returncode != 0:
             continue
@@ -199,6 +199,11 @@ def _slurm_jobs(dayoa_root: Path, *, runner: Runner, full: bool, tail_lines: int
         job["workdir"] = workdir
         job["stdout"] = details.get("StdOut")
         job["stderr"] = details.get("StdErr")
+        job["comment"] = details.get("Comment")
+        job["submit_time"] = details.get("SubmitTime")
+        job["start_time"] = details.get("StartTime")
+        restart_text = str(details.get("Restarts", "0") or "0")
+        job["restart_count"] = int(restart_text) if restart_text.isdigit() else 0
         if full:
             for stream in ("stdout", "stderr"):
                 raw_path = job.get(stream)
@@ -240,6 +245,7 @@ def _sacct_jobs(dayoa_root: Path, *, runner: Runner) -> dict[str, Any]:
         "Partition",
         "WorkDir",
         "ExitCode",
+        "Comment",
     )
     proc = _run(
         [
@@ -371,8 +377,16 @@ def _controller_processes(
                     "pane_pid": int(pane_pid),
                     "current_path": current_path,
                     "dead": pane_dead == "1",
-                    "dead_status": int(pane_dead_status) if pane_dead_status.lstrip("-").isdigit() else None,
+                    "dead_status": (
+                        int(pane_dead_status) if pane_dead_status.lstrip("-").isdigit() else None
+                    ),
                     "controller_return_code": pane_rc,
+                    "observed_commands": [
+                        item[item.find(marker) :].strip()
+                        for item in capture_text.splitlines()
+                        for marker in ("dy-a ", "dy-r ")
+                        if marker in item
+                    ][-10:],
                 }
                 if full:
                     capture_lines = capture_text.splitlines()
@@ -463,7 +477,9 @@ def _canonical_artifacts(dayoa_root: Path) -> dict[str, Any]:
     reports = dayoa_root / "results" / "day"
     matches: dict[str, list[str]] = {}
     for name in CANONICAL_ARTIFACT_NAMES:
-        matches[name] = sorted(str(path) for path in reports.glob(f"*/reports/**/{name}") if path.is_file())
+        matches[name] = sorted(
+            str(path) for path in reports.glob(f"*/reports/**/{name}") if path.is_file()
+        )
     return {
         "all_present": all(matches[name] for name in CANONICAL_ARTIFACT_NAMES),
         "files": matches,
@@ -570,7 +586,22 @@ def _node_telemetry(jobs: list[dict[str, Any]], *, runner: Runner) -> list[dict[
     )
     for node in nodes:
         result = _run(
-            ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", node, "timeout", "12", "glances", "--stdout", fields, "--time", "2", "--quiet"],
+            [
+                "ssh",
+                "-o",
+                "BatchMode=yes",
+                "-o",
+                "ConnectTimeout=5",
+                node,
+                "timeout",
+                "12",
+                "glances",
+                "--stdout",
+                fields,
+                "--time",
+                "2",
+                "--quiet",
+            ],
             runner=runner,
             timeout=18,
         )
@@ -667,7 +698,9 @@ def collect_analysis_status(
     if not accounting["available"]:
         payload["warnings"].append(f"Slurm accounting evidence unavailable: {accounting['error']}")
     if workflow["progress"]["total"] is None:
-        payload["warnings"].append("No Snakemake progress line was found in the current master log.")
+        payload["warnings"].append(
+            "No Snakemake progress line was found in the current master log."
+        )
     if complete and controller["return_code"] is None:
         payload["warnings"].append(
             "Canonical outputs and progress are complete, but controller rc 0 was not found; success is unverified."
@@ -733,7 +766,9 @@ def render_analysis_status(payload: dict[str, Any]) -> str:
         else f"unavailable ({fs['error']})"
     )
     jobs = payload["slurm"]
-    job_text = ", ".join(f"{state}={count}" for state, count in jobs["state_counts"].items()) or "none"
+    job_text = (
+        ", ".join(f"{state}={count}" for state, count in jobs["state_counts"].items()) or "none"
+    )
     lines = [
         f"Analysis: {payload['analysis_root']}",
         f"State: {payload['state']}",

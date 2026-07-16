@@ -53,10 +53,10 @@ def test_create_config_has_no_legacy_accounting_prompt_default_or_required_key(
 @pytest.mark.parametrize(
     "relative_path",
     [
-        "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml",
+        "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml",
         (
             "daylily_ec/resources/payload/config/day_cluster/intel/us-west-2/"
-            "us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+            "us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml"
         ),
     ],
 )

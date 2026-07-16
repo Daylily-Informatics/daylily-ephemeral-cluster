@@ -1162,12 +1162,13 @@ def az_cluster_template_relative_path(cluster_type: str, region_az: str) -> Path
 
     normalized_type = normalize_create_cluster_type(cluster_type)
     region, _az = parse_region_az(region_az)
+    filename_type = "intel_spot" if normalized_type == "intel" else normalized_type
     return (
         Path("config/day_cluster")
         / normalized_type
         / region
         / region_az
-        / f"prod_cluster_{normalized_type}_{region_az}.yaml"
+        / f"prod_cluster_{filename_type}_{region_az}.yaml"
     )
 
 

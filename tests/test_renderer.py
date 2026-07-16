@@ -15,7 +15,10 @@ from daylily_ec.render.renderer import (
     render_template,
     write_init_artifacts,
 )
-from daylily_ec.resources import INTEL_TEMPLATE_RELPATHS
+from daylily_ec.resources import (
+    INTEL_ONDEMAND_TEMPLATE_RELPATHS,
+    INTEL_SPOT_TEMPLATE_RELPATHS,
+)
 from daylily_ec.aws.slurm_accounting import (
     SlurmAccountingDb,
     empty_slurm_accounting_render_blocks,
@@ -208,7 +211,7 @@ class TestAllSubstitutionKeys:
     def test_accounting_disabled_template_has_no_dangling_tokens(self):
         template = (
             Path(__file__).resolve().parents[1]
-            / "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+            / "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml"
         ).read_text(encoding="utf-8")
         subs = _full_subs()
         subs.update(empty_slurm_accounting_render_blocks())
@@ -224,7 +227,7 @@ class TestAllSubstitutionKeys:
     def test_accounting_enabled_template_includes_slurm_database(self):
         template = (
             Path(__file__).resolve().parents[1]
-            / "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+            / "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml"
         ).read_text(encoding="utf-8")
         db = SlurmAccountingDb(
             stack_name="dayec-slurm-accounting-us-west-2b",
@@ -310,7 +313,10 @@ class TestAllSubstitutionKeys:
                 start=11,
             )
         }
-        for relative_path in INTEL_TEMPLATE_RELPATHS:
+        for relative_path in (
+            *INTEL_SPOT_TEMPLATE_RELPATHS,
+            *INTEL_ONDEMAND_TEMPLATE_RELPATHS,
+        ):
             region_az = Path(relative_path).parent.name
             region = region_az[:-1]
             monkeypatch.setenv("AWS_DEFAULT_REGION", region)
@@ -358,8 +364,9 @@ class TestAllSubstitutionKeys:
             ]
             assert actual_max_counts == expected_max_counts
             for queue in payload["Scheduling"]["SlurmQueues"]:
-                for resource in queue["ComputeResources"]:
-                    resource["SpotPrice"] = 8.0
+                if queue["CapacityType"] == "SPOT":
+                    for resource in queue["ComputeResources"]:
+                        resource["SpotPrice"] = 8.0
             cluster = ClusterSchema(cluster_name="intel-schema-test").load(payload)
             assert cluster.image.os == "ubuntu2204"
             assert cluster.scheduling.queues

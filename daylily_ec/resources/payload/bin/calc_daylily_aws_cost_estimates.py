@@ -36,7 +36,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--config",
         default=str(
             resource_path(
-                "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+                "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml"
             )
         ),
         help="Path to cluster YAML (default: packaged active production template).",
