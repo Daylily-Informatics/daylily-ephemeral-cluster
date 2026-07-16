@@ -21,6 +21,7 @@ from daylily_ec.config.models import (
     Triplet,
 )
 from daylily_ec.config.triplets import (
+    DERIVED_MAX_COUNT_KEYS,
     ensure_required_keys,
     get_effective_default,
     has_effective_set_value,
@@ -346,9 +347,9 @@ class TestLoadConfig:
         assert ec.config["fsx_lifecycle"].set_value == "CLUSTER_BOUND"
         assert ec.config["sweep_protection_tag"].set_value == "ursa-preserve=true"
         assert ec.template_defaults["fsx_fs_size"] == "4800"
-        assert ec.template_defaults["max_count_192I_HUGENVME"] == "1"
         assert ec.config["max_count_384I"].default_value == "1"
-        assert ec.config["max_count_384I_NVME_R"].default_value == "1"
+        assert set(ec.config).isdisjoint(DERIVED_MAX_COUNT_KEYS)
+        assert set(ec.template_defaults).isdisjoint(DERIVED_MAX_COUNT_KEYS)
 
     @pytest.mark.parametrize(
         "relative_path",
@@ -379,7 +380,7 @@ class TestDerivedMaxCount:
 
         assert resolve_derived_max_count(cfg, "max_count_128I_C", 16) == "16"
 
-    def test_explicit_subtype_set_value_wins(self):
+    def test_stale_explicit_subtype_value_cannot_override_parent(self):
         cfg = ConfigFile.model_validate(
             {
                 "ephemeral_cluster": {
@@ -390,21 +391,21 @@ class TestDerivedMaxCount:
             }
         )
 
-        assert resolve_derived_max_count(cfg, "max_count_128I_C", 16) == "7"
+        assert resolve_derived_max_count(cfg, "max_count_128I_C", 16) == "16"
 
-    def test_invalid_explicit_subtype_set_value_fails(self):
+    def test_unknown_derived_key_fails(self):
         cfg = ConfigFile.model_validate(
             {
                 "ephemeral_cluster": {
                     "config": {
-                        "max_count_128I_C": ["USESETVALUE", "1", "sixteen"],
+                        "max_count_NOT_A_TEMPLATE_SUBTYPE": ["USESETVALUE", "1", "7"],
                     }
                 }
             }
         )
 
         with pytest.raises(ValueError):
-            resolve_derived_max_count(cfg, "max_count_128I_C", 16)
+            resolve_derived_max_count(cfg, "max_count_NOT_A_TEMPLATE_SUBTYPE", 16)
 
 
 # ── write_config ─────────────────────────────────────────────────────
@@ -534,3 +535,38 @@ class TestWriteNextRunTemplate:
         assert set(loaded.ephemeral_cluster.template_defaults).isdisjoint(accounting_keys)
         assert loaded.ephemeral_cluster.config["cluster_name"].set_value == "cluster-b"
         assert loaded.ephemeral_cluster.template_defaults["fsx_fs_size"] == "4800"
+
+    def test_drops_private_derived_max_count_overrides(self, tmp_path, monkeypatch):
+        monkeypatch.delenv("DAY_DISABLE_AUTO_SELECT", raising=False)
+        cfg = ConfigFile(
+            ephemeral_cluster={
+                "config": {
+                    "max_count_128I": ["USESETVALUE", "1", "16"],
+                    "max_count_128I_C": ["USESETVALUE", "1", "1"],
+                    "max_count_128I_M": ["USESETVALUE", "1", "1"],
+                },
+                "template_defaults": {
+                    "max_count_128I": "1",
+                    "max_count_128I_C": "1",
+                    "max_count_128I_M": "1",
+                },
+            }
+        )
+
+        dest = tmp_path / "next.yaml"
+        write_next_run_template(
+            cfg,
+            {
+                "max_count_128I": "16",
+                "max_count_128I_C": "16",
+                "max_count_128I_M": "16",
+            },
+            dest,
+        )
+
+        loaded = load_config(dest)
+        assert loaded.ephemeral_cluster.config["max_count_128I"].set_value == "16"
+        assert "max_count_128I_C" not in loaded.ephemeral_cluster.config
+        assert "max_count_128I_M" not in loaded.ephemeral_cluster.config
+        assert "max_count_128I_C" not in loaded.ephemeral_cluster.template_defaults
+        assert "max_count_128I_M" not in loaded.ephemeral_cluster.template_defaults

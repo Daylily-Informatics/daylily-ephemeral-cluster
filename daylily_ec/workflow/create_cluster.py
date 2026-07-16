@@ -2155,7 +2155,7 @@ def _resolve_derived_max_count(
     key: str,
     parent_value: int,
 ) -> str:
-    """Return an explicit subtype max count or inherit the parent family count."""
+    """Expand the prompted public family count to one template subtype."""
     from daylily_ec.config.triplets import resolve_derived_max_count
 
     return resolve_derived_max_count(cfg, key, parent_value)
@@ -2625,6 +2625,7 @@ def run_create_workflow(
     from daylily_ec.aws.ssm import wait_for_ssm_online
     from daylily_ec.aws.spot_pricing import apply_spot_prices
     from daylily_ec.config.triplets import (
+        DERIVED_MAX_COUNT_KEYS,
         load_config,
         write_next_run_template,
     )
@@ -2697,6 +2698,12 @@ def run_create_workflow(
         effective_config = str(resource_path(effective_config))
     cfg = load_config(effective_config)
     ec = cfg.ephemeral_cluster
+    legacy_derived_max_counts = sorted(DERIVED_MAX_COUNT_KEYS.intersection(ec.config))
+    if legacy_derived_max_counts:
+        ui.warn(
+            "Ignoring legacy unprompted subtype max-count keys; the five prompted "
+            "family max-count values are authoritative: " + ", ".join(legacy_derived_max_counts)
+        )
 
     try:
         dragen_inputs = resolve_dragen_create_inputs(
@@ -4220,7 +4227,7 @@ def run_preflight_only(
         ROLE_STAGING,
         make_s3_bucket_preflight_step,
     )
-    from daylily_ec.config.triplets import load_config
+    from daylily_ec.config.triplets import DERIVED_MAX_COUNT_KEYS, load_config
 
     if debug:
         logging.getLogger("daylily_ec").setLevel(logging.DEBUG)
@@ -4234,6 +4241,14 @@ def run_preflight_only(
 
         effective_config = str(resource_path(effective_config))
     cfg = load_config(effective_config)
+    legacy_derived_max_counts = sorted(
+        DERIVED_MAX_COUNT_KEYS.intersection(cfg.ephemeral_cluster.config)
+    )
+    if legacy_derived_max_counts:
+        ui.warn(
+            "Ignoring legacy unprompted subtype max-count keys; the five prompted "
+            "family max-count values are authoritative: " + ", ".join(legacy_derived_max_counts)
+        )
 
     try:
         fsx_deployment_type = _resolve_fsx_deployment_type(

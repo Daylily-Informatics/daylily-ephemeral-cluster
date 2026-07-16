@@ -16,9 +16,7 @@ SENTIEON_SINGLE_TEMPLATE = (
     "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
     "prod_cluster_sentieon-single_us-west-2c.yaml"
 )
-ACTIVE_CFN_TEMPLATES = (
-    "config/day_cluster/slurm_accounting_mysql_ec2.yml",
-)
+ACTIVE_CFN_TEMPLATES = ("config/day_cluster/slurm_accounting_mysql_ec2.yml",)
 ACTIVE_IAM_POLICY_TEMPLATES = (
     "config/day_cluster/pcluster_env.yml",
     "config/day_cluster/pcluster_env.yml.new",
@@ -56,11 +54,7 @@ def test_all_active_cluster_templates_disable_headnode_elastic_ip() -> None:
         REPO_ROOT / "config/day_cluster",
         REPO_ROOT / "daylily_ec/resources/payload/config/day_cluster",
     )
-    templates = [
-        item
-        for root in roots
-        for item in _active_parallelcluster_templates(root)
-    ]
+    templates = [item for root in roots for item in _active_parallelcluster_templates(root)]
 
     assert templates
     for path, payload in templates:
@@ -235,9 +229,9 @@ def test_active_cluster_template_uses_expected_partition_contract() -> None:
         for queue in queues:
             assert queue["JobExclusiveAllocation"] is False
             for resource in queue["ComputeResources"]:
-                assert resource.get("Instances"), (
-                    f"{relative_path}: {queue['Name']}/{resource['Name']} has no instances"
-                )
+                assert resource.get(
+                    "Instances"
+                ), f"{relative_path}: {queue['Name']}/{resource['Name']} has no instances"
             if queue["Name"].endswith("nvme"):
                 assert (
                     queue["ComputeSettings"]["LocalStorage"]["EphemeralVolume"]["MountDir"]
@@ -253,6 +247,19 @@ def test_active_cluster_template_uses_expected_partition_contract() -> None:
         )
 
 
+def test_active_intel_max_counts_are_all_create_time_substitutions() -> None:
+    """No active Intel resource may silently retain a literal quota."""
+    for relative_path in ACTIVE_CLUSTER_TEMPLATES:
+        text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        max_count_lines = [line.strip() for line in text.splitlines() if "MaxCount:" in line]
+
+        assert max_count_lines, relative_path
+        assert all(
+            line.startswith("MaxCount: ${REGSUB_MAX_COUNT_") and line.endswith("}")
+            for line in max_count_lines
+        ), relative_path
+
+
 def test_packaged_cluster_templates_match_source_templates() -> None:
     for relative_path in ACTIVE_CLUSTER_TEMPLATES:
         source = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
@@ -263,9 +270,7 @@ def test_packaged_cluster_templates_match_source_templates() -> None:
 
 
 def test_packaged_az_scoped_cluster_templates_match_source_templates() -> None:
-    source_paths = sorted(
-        (REPO_ROOT / "config/day_cluster").glob("*/*/*/prod_cluster_*.yaml")
-    )
+    source_paths = sorted((REPO_ROOT / "config/day_cluster").glob("*/*/*/prod_cluster_*.yaml"))
     assert len(source_paths) == 21
     for source_path in source_paths:
         relative_path = source_path.relative_to(REPO_ROOT)
@@ -278,9 +283,7 @@ def test_packaged_az_scoped_cluster_templates_match_source_templates() -> None:
 
 def test_sentieon_single_source_and_packaged_templates_match() -> None:
     source = (REPO_ROOT / SENTIEON_SINGLE_TEMPLATE).read_bytes()
-    packaged = (
-        REPO_ROOT / "daylily_ec/resources/payload" / SENTIEON_SINGLE_TEMPLATE
-    ).read_bytes()
+    packaged = (REPO_ROOT / "daylily_ec/resources/payload" / SENTIEON_SINGLE_TEMPLATE).read_bytes()
 
     assert packaged == source
 
@@ -330,17 +333,25 @@ def test_packaged_boot_config_matches_source_and_uses_declarative_slurm_policy()
         assert "write_spot_price_warn_exception" in script
         assert "daylily-spot-lifecycle-shutdown.service" in script
         assert "daylily-spot-interruption-watch.service" in script
-        assert "ExecStop=/opt/daylily/bin/daylily-spot-lifecycle-event shutdown systemd-stop" in script
+        assert (
+            "ExecStop=/opt/daylily/bin/daylily-spot-lifecycle-event shutdown systemd-stop" in script
+        )
         assert "latest/meta-data/spot/instance-action" in script
 
-    ubuntu_script = (
-        REPO_ROOT / "config/day_cluster/post_install_ubuntu_combined.sh"
-    ).read_text(encoding="utf-8")
-    assert 'spot_price_warn_threshold="${3:?spot price warn threshold argument is required}"' in ubuntu_script
-    rhel_script = (
-        REPO_ROOT / "config/day_cluster/post_install_rhel8_dragen.sh"
-    ).read_text(encoding="utf-8")
-    assert 'spot_price_warn_threshold="${3:?spot price warn threshold argument is required}"' in rhel_script
+    ubuntu_script = (REPO_ROOT / "config/day_cluster/post_install_ubuntu_combined.sh").read_text(
+        encoding="utf-8"
+    )
+    assert (
+        'spot_price_warn_threshold="${3:?spot price warn threshold argument is required}"'
+        in ubuntu_script
+    )
+    rhel_script = (REPO_ROOT / "config/day_cluster/post_install_rhel8_dragen.sh").read_text(
+        encoding="utf-8"
+    )
+    assert (
+        'spot_price_warn_threshold="${3:?spot price warn threshold argument is required}"'
+        in rhel_script
+    )
 
     sbatch = (REPO_ROOT / "config/day_cluster/sbatch").read_text(encoding="utf-8")
     assert "Slurm memory placement is disabled" in sbatch
@@ -349,9 +360,9 @@ def test_packaged_boot_config_matches_source_and_uses_declarative_slurm_policy()
 
 
 def test_almalinux_dragen_wrapper_hydrates_secret_without_logging_contents() -> None:
-    script = (
-        REPO_ROOT / "config/day_cluster/post_install_almalinux8_dragen.sh"
-    ).read_text(encoding="utf-8")
+    script = (REPO_ROOT / "config/day_cluster/post_install_almalinux8_dragen.sh").read_text(
+        encoding="utf-8"
+    )
 
     assert 'license_secret_arn="${5:?license secret ARN argument is required}"' in script
     assert 'node_role="${6:?node role argument is required}"' in script
@@ -362,14 +373,13 @@ def test_almalinux_dragen_wrapper_hydrates_secret_without_logging_contents() -> 
     assert 'install -d -m 0700 -o ubuntu -g ubuntu "${config_dir}"' in script
     assert 'credential_path="${credential_dir}/lic_creds.txt"' in script
     assert 'chmod 0600 "${credential_path}"' in script
-    assert "echo \"${secret_value}\"" not in script
+    assert 'echo "${secret_value}"' not in script
     subprocess.run(["bash", "-n"], input=script, text=True, check=True)
 
 
 def test_dragen_template_is_packaged_with_explicit_mixed_node_roles() -> None:
     relative_path = (
-        "config/day_cluster/dragen/us-west-2/us-west-2b/"
-        "prod_cluster_dragen_us-west-2b.yaml"
+        "config/day_cluster/dragen/us-west-2/us-west-2b/" "prod_cluster_dragen_us-west-2b.yaml"
     )
     source = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
     packaged = (REPO_ROOT / "daylily_ec/resources/payload" / relative_path).read_text(
@@ -402,11 +412,13 @@ def test_dragen_template_is_packaged_with_explicit_mixed_node_roles() -> None:
         assert action["Args"][-1] == "cpu"
         assert queue["ComputeResources"][0]["Efa"]["Enabled"] is False
 
-    base_script = (
-        REPO_ROOT / "config/day_cluster/post_install_rhel8_dragen.sh"
-    ).read_text(encoding="utf-8")
+    base_script = (REPO_ROOT / "config/day_cluster/post_install_rhel8_dragen.sh").read_text(
+        encoding="utf-8"
+    )
     assert 'node_role="${5:?node role argument is required}"' in base_script
-    assert "Skipping DRAGEN FPGA validation on explicitly configured CPU compute node" in base_script
+    assert (
+        "Skipping DRAGEN FPGA validation on explicitly configured CPU compute node" in base_script
+    )
 
 
 def test_rhel_and_legacy_dragen_templates_expose_explicit_ondemand_partition() -> None:
@@ -454,10 +466,7 @@ def test_post_install_s3_executable_install_is_not_sha256_pinned() -> None:
         assert "sleep_test_sha256" not in script
         assert "install_verified_s3_executable" not in script
         assert 'install_s3_executable "sbatch" /opt/slurm/bin/sbatch' in script
-        assert (
-            'install_s3_executable "sleep_test.sh" /opt/slurm/bin/sleep_test.sh'
-            in script
-        )
+        assert 'install_s3_executable "sleep_test.sh" /opt/slurm/bin/sleep_test.sh' in script
 
 
 def test_post_install_templates_pass_spot_warn_threshold_argument() -> None:
@@ -495,9 +504,9 @@ def test_spot_lifecycle_helper_heredocs_are_bash_syntax_valid() -> None:
 
 
 def test_ubuntu_bootstrap_uses_dedicated_sentieon_license_service() -> None:
-    script = (
-        REPO_ROOT / "config/day_cluster/post_install_ubuntu_combined.sh"
-    ).read_text(encoding="utf-8")
+    script = (REPO_ROOT / "config/day_cluster/post_install_ubuntu_combined.sh").read_text(
+        encoding="utf-8"
+    )
 
     required = (
         "install_sentieon_license_client_profile()",
@@ -543,9 +552,9 @@ def _extract_single_quoted_heredoc(script: str, marker: str) -> str:
 
 
 def test_dayoa_headnode_generators_do_not_emit_exclusive_rules() -> None:
-    script = (
-        REPO_ROOT / "daylily_ec/scripts/daylily_run_omics_analysis_headnode.py"
-    ).read_text(encoding="utf-8")
+    script = (REPO_ROOT / "daylily_ec/scripts/daylily_run_omics_analysis_headnode.py").read_text(
+        encoding="utf-8"
+    )
 
     assert 'exclusive="--exclusive"' not in script
     assert 'exclusive=""' in script

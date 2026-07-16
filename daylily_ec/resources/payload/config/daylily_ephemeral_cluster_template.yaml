@@ -44,20 +44,6 @@ ephemeral_cluster:
     max_count_128I: [PROMPTUSER, "1", ""]
     max_count_192I: [PROMPTUSER, "1", ""]
     max_count_384I: [PROMPTUSER, "1", ""]
-    max_count_128I_C: [PROMPTUSER, "1", ""]
-    max_count_128I_M: [PROMPTUSER, "1", ""]
-    max_count_128I_R: [PROMPTUSER, "1", ""]
-    max_count_128I_NVME: [PROMPTUSER, "1", ""]
-    max_count_192I_C: [PROMPTUSER, "1", ""]
-    max_count_192I_M: [PROMPTUSER, "1", ""]
-    max_count_192I_R: [PROMPTUSER, "1", ""]
-    max_count_192I_NVME_C: [PROMPTUSER, "1", ""]
-    max_count_192I_NVME_M: [PROMPTUSER, "1", ""]
-    max_count_192I_NVME_R: [PROMPTUSER, "1", ""]
-    max_count_192I_HUGENVME: [PROMPTUSER, "1", ""]
-    max_count_384I_NVME_C: [PROMPTUSER, "1", ""]
-    max_count_384I_NVME_M: [PROMPTUSER, "1", ""]
-    max_count_384I_NVME_R: [PROMPTUSER, "1", ""]
   template_defaults:
     # keep as you had; these are fallbacks if default_value is empty
     headnode_instance_type: "r7i.2xlarge"
@@ -71,17 +57,3 @@ ephemeral_cluster:
     max_count_128I: "1"
     max_count_192I: "1"
     max_count_384I: "1"
-    max_count_128I_C: "1"
-    max_count_128I_M: "1"
-    max_count_128I_R: "1"
-    max_count_128I_NVME: "1"
-    max_count_192I_C: "1"
-    max_count_192I_M: "1"
-    max_count_192I_R: "1"
-    max_count_192I_NVME_C: "1"
-    max_count_192I_NVME_M: "1"
-    max_count_192I_NVME_R: "1"
-    max_count_192I_HUGENVME: "1"
-    max_count_384I_NVME_C: "1"
-    max_count_384I_NVME_M: "1"
-    max_count_384I_NVME_R: "1"

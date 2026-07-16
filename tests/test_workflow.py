@@ -2242,7 +2242,7 @@ class TestRunCreateWorkflow:
         ]:
             assert next_run_values[key] == "16"
 
-    def test_explicit_subtype_max_count_overrides_broad_count(self, tmp_path, monkeypatch):
+    def test_stale_subtype_max_count_cannot_override_broad_user_count(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
             tmp_path,
             monkeypatch,
@@ -2258,8 +2258,52 @@ class TestRunCreateWorkflow:
         assert records["rc"] == EXIT_SUCCESS
         substitutions = records["render_substitutions"]
         assert substitutions["REGSUB_MAX_COUNT_128I"] == "16"
-        assert substitutions["REGSUB_MAX_COUNT_128I_C"] == "7"
+        assert substitutions["REGSUB_MAX_COUNT_128I_C"] == "16"
         assert substitutions["REGSUB_MAX_COUNT_128I_M"] == "16"
+        legacy_warnings = [
+            warning
+            for warning in records["warnings"]
+            if "Ignoring legacy unprompted subtype max-count keys" in warning
+        ]
+        assert len(legacy_warnings) == 1
+        assert "max_count_128I_C" in legacy_warnings[0]
+
+    def test_prompts_only_public_max_counts_and_propagates_each_answer(self, tmp_path, monkeypatch):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=True,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            config_overrides={
+                "max_count_8I": ["PROMPTUSER", "1", ""],
+                "max_count_96I_NVME": ["PROMPTUSER", "1", ""],
+                "max_count_128I": ["PROMPTUSER", "1", ""],
+                "max_count_192I": ["PROMPTUSER", "1", ""],
+                "max_count_384I": ["PROMPTUSER", "1", ""],
+                "max_count_128I_C": ["USESETVALUE", "1", "1"],
+                "max_count_192I_NVME_R": ["USESETVALUE", "1", "1"],
+                "max_count_384I_NVME_R": ["USESETVALUE", "1", "1"],
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        max_count_prompts = [
+            label for label in records["prompt_labels"] if label.startswith("Max ")
+        ]
+        assert max_count_prompts == [
+            "Max 8xlarge count",
+            "Max 96-vCPU local-NVMe count",
+            "Max 128xlarge count",
+            "Max 192xlarge count",
+            "Max 384xlarge count",
+        ]
+        substitutions = records["render_substitutions"]
+        assert substitutions["REGSUB_MAX_COUNT_8I"] == "8"
+        assert substitutions["REGSUB_MAX_COUNT_96I_NVME"] == "9"
+        assert substitutions["REGSUB_MAX_COUNT_128I_C"] == "12"
+        assert substitutions["REGSUB_MAX_COUNT_192I_NVME_R"] == "19"
+        assert substitutions["REGSUB_MAX_COUNT_384I_NVME_R"] == "38"
 
     def test_prints_idle_cost_and_ends_with_ursa_link(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
@@ -3568,6 +3612,11 @@ HeadNode:
         records["events"].append(("prompt", label))
         answers = {
             "Ursa root URL (leave blank to skip)": "https://ursa.example.test",
+            "Max 8xlarge count": "8",
+            "Max 96-vCPU local-NVMe count": "9",
+            "Max 128xlarge count": "12",
+            "Max 192xlarge count": "19",
+            "Max 384xlarge count": "38",
             "Budget email": "johnm@lsmc.com",
             "Budget amount": "200",
             "Global budget amount": "200",

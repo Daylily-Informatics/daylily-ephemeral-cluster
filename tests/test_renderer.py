@@ -22,7 +22,6 @@ from daylily_ec.aws.slurm_accounting import (
     slurm_accounting_render_blocks,
 )
 
-
 # ── fixtures ─────────────────────────────────────────────────────────
 
 MINI_TEMPLATE = (
@@ -256,15 +255,11 @@ class TestAllSubstitutionKeys:
         assert payload["Scheduling"]["SlurmSettings"]["Database"] == {
             "Uri": "10.0.1.10:3306",
             "UserName": "slurm_acct",
-            "PasswordSecretArn": (
-                "arn:aws:secretsmanager:us-west-2:123456789012:secret:acct"
-            ),
+            "PasswordSecretArn": ("arn:aws:secretsmanager:us-west-2:123456789012:secret:acct"),
             "DatabaseName": "dayec_slurm_acct",
         }
 
-    def test_sentieon_single_template_renders_and_loads_parallelcluster_schema(
-        self, monkeypatch
-    ):
+    def test_sentieon_single_template_renders_and_loads_parallelcluster_schema(self, monkeypatch):
         monkeypatch.setenv("AWS_DEFAULT_REGION", "us-west-2")
         template = (
             Path(__file__).resolve().parents[1]
@@ -306,10 +301,15 @@ class TestAllSubstitutionKeys:
         assert len(cluster.scheduling.queues) == 5
         assert payload["SharedStorage"][0]["Name"] == "fsx-hiomrs"
 
-    def test_all_intel_az_templates_render_and_load_parallelcluster_schema(
-        self, monkeypatch
-    ):
+    def test_all_intel_az_templates_render_and_load_parallelcluster_schema(self, monkeypatch):
         repo_root = Path(__file__).resolve().parents[1]
+        max_count_substitutions = {
+            key: str(index)
+            for index, key in enumerate(
+                sorted(key for key in ALL_SUBSTITUTION_KEYS if key.startswith("REGSUB_MAX_COUNT_")),
+                start=11,
+            )
+        }
         for relative_path in INTEL_TEMPLATE_RELPATHS:
             region_az = Path(relative_path).parent.name
             region = region_az[:-1]
@@ -317,13 +317,7 @@ class TestAllSubstitutionKeys:
             template = (repo_root / relative_path).read_text(encoding="utf-8")
             subs = _full_subs()
             subs.update(empty_slurm_accounting_render_blocks())
-            subs.update(
-                {
-                    key: "1"
-                    for key in ALL_SUBSTITUTION_KEYS
-                    if key.startswith("REGSUB_MAX_COUNT_")
-                }
-            )
+            subs.update(max_count_substitutions)
             subs.update(
                 {
                     "REGSUB_REGION": region,
@@ -332,9 +326,7 @@ class TestAllSubstitutionKeys:
                     "REGSUB_CLUSTER_NAME": "intel-schema-test",
                     "REGSUB_HEADNODE_INSTANCE_TYPE": "r7i.2xlarge",
                     "REGSUB_S3_BUCKET_INIT": "s3://dayec-assets/cluster_boot_config",
-                    "REGSUB_S3_IAM_POLICY": (
-                        "arn:aws:iam::123456789012:policy/dayec-cluster"
-                    ),
+                    "REGSUB_S3_IAM_POLICY": ("arn:aws:iam::123456789012:policy/dayec-cluster"),
                     "REGSUB_S3_REFERENCE_BUCKET": "dayec-references",
                     "REGSUB_S3_CONTROL_DATA_BUCKET": "dayec-controls",
                     "REGSUB_S3_STAGE_BUCKET": "dayec-stage",
@@ -354,6 +346,17 @@ class TestAllSubstitutionKeys:
 
             assert "${" not in rendered
             payload = yaml.safe_load(rendered)
+            expected_max_counts = [
+                int(max_count_substitutions[line.split("${", 1)[1].split("}", 1)[0]])
+                for line in template.splitlines()
+                if "MaxCount:" in line
+            ]
+            actual_max_counts = [
+                resource["MaxCount"]
+                for queue in payload["Scheduling"]["SlurmQueues"]
+                for resource in queue["ComputeResources"]
+            ]
+            assert actual_max_counts == expected_max_counts
             for queue in payload["Scheduling"]["SlurmQueues"]:
                 for resource in queue["ComputeResources"]:
                     resource["SpotPrice"] = 8.0
@@ -397,9 +400,7 @@ class TestAllSubstitutionKeys:
                 "fsx",
             ],
         }
-        queue_action = payload["Scheduling"]["SlurmQueues"][0]["CustomActions"][
-            "OnNodeConfigured"
-        ]
+        queue_action = payload["Scheduling"]["SlurmQueues"][0]["CustomActions"]["OnNodeConfigured"]
         assert queue_action == headnode_action
 
 
