@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from subprocess import CompletedProcess
 import sys
@@ -638,6 +639,37 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "create_slurm_accounting_if_missing": False,
         "acknowledge_slurm_accounting_create_cost": False,
     }
+
+
+def test_create_command_prints_and_info_logs_total_runtime(
+    monkeypatch,
+    tmp_path,
+    caplog,
+) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+    monotonic_values = iter([100.0, 176.5])
+    monkeypatch.setattr(cli_module, "_monotonic", lambda: next(monotonic_values))
+    monkeypatch.setattr(create_module, "run_create_workflow", lambda *_args, **_kwargs: 17)
+    caplog.set_level(logging.INFO, logger="daylily_ec.cli")
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--config",
+            str(config_path),
+            "--non-interactive",
+        ],
+    )
+
+    expected = "Total DYEC create runtime: 1m 16s (76.5s)"
+    assert result.exit_code == 17
+    assert expected in result.stdout
+    assert expected in caplog.text
 
 
 @pytest.mark.parametrize(

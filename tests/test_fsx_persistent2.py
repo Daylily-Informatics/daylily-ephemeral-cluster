@@ -67,6 +67,19 @@ def _filesystem() -> dict:
     }
 
 
+class _FakeClock:
+    def __init__(self) -> None:
+        self.seconds = 0.0
+        self.sleeps: list[float] = []
+
+    def monotonic(self) -> float:
+        return self.seconds
+
+    def sleep(self, seconds: float) -> None:
+        self.sleeps.append(seconds)
+        self.seconds += seconds
+
+
 @pytest.mark.parametrize("throughput", [125, 250, 500, 1000])
 def test_persistent2_spec_accepts_all_explicit_aws_throughput_tiers(
     throughput: int,
@@ -170,6 +183,37 @@ def test_ensure_file_system_creates_exact_p2_metadata_contract() -> None:
     assert {item["Key"]: item["Value"] for item in kwargs["Tags"]}["ursa-preserve"] == "true"
 
 
+def test_ensure_file_system_reports_lifecycle_every_45_seconds() -> None:
+    fsx = MagicMock()
+    fsx.get_paginator.return_value.paginate.return_value = [{"FileSystems": []}]
+    fsx.create_file_system.return_value = {"FileSystem": {"FileSystemId": "fs-p2"}}
+    creating = {**_filesystem(), "Lifecycle": "CREATING"}
+    fsx.describe_file_systems.side_effect = [
+        {"FileSystems": [creating]},
+        {"FileSystems": [creating]},
+        {"FileSystems": [creating]},
+        {"FileSystems": [_filesystem()]},
+    ]
+    clock = _FakeClock()
+    messages: list[str] = []
+
+    ensure_file_system(
+        fsx,
+        _spec(),
+        "sg-p2",
+        sleep_fn=clock.sleep,
+        monotonic_fn=clock.monotonic,
+        status_callback=messages.append,
+    )
+
+    assert clock.sleeps == [30, 15.0, 30]
+    assert messages == [
+        "P2 filesystem fs-p2: create submitted; checking lifecycle every 45s.",
+        "P2 filesystem fs-p2: lifecycle=CREATING; waiting for AVAILABLE (45s elapsed).",
+        "P2 filesystem fs-p2: lifecycle=AVAILABLE (75s elapsed).",
+    ]
+
+
 def test_reference_dra_is_explicit_and_import_only() -> None:
     fsx = MagicMock()
     fsx.describe_data_repository_associations.side_effect = [
@@ -205,6 +249,48 @@ def test_reference_dra_is_explicit_and_import_only() -> None:
     assert kwargs["BatchImportMetaDataOnCreate"] is True
     assert kwargs["S3"] == {"AutoImportPolicy": {"Events": ["NEW", "CHANGED", "DELETED"]}}
     assert "AutoExportPolicy" not in kwargs["S3"]
+
+
+def test_reference_dra_reports_metadata_association_every_45_seconds() -> None:
+    fsx = MagicMock()
+    creating = {
+        "AssociationId": "dra-p2",
+        "Lifecycle": "CREATING",
+        "FileSystemPath": "/references/",
+        "DataRepositoryPath": "s3://references",
+        "S3": {"AutoImportPolicy": {"Events": ["NEW", "CHANGED", "DELETED"]}},
+    }
+    available = {**creating, "Lifecycle": "AVAILABLE"}
+    fsx.describe_data_repository_associations.side_effect = [
+        {"Associations": []},
+        {"Associations": [creating]},
+        {"Associations": [creating]},
+        {"Associations": [creating]},
+        {"Associations": [available]},
+    ]
+    fsx.create_data_repository_association.return_value = {
+        "Association": {"AssociationId": "dra-p2"}
+    }
+    clock = _FakeClock()
+    messages: list[str] = []
+
+    ensure_reference_association(
+        fsx,
+        _spec(),
+        "fs-p2",
+        sleep_fn=clock.sleep,
+        monotonic_fn=clock.monotonic,
+        status_callback=messages.append,
+    )
+
+    assert clock.sleeps == [30, 15.0, 30]
+    assert messages == [
+        "Reference DRA dra-p2: create submitted; associating S3 metadata with "
+        "/references/; checking lifecycle every 45s.",
+        "Reference DRA dra-p2: lifecycle=CREATING; associating S3 metadata with "
+        "/references/ (45s elapsed).",
+        "Reference DRA dra-p2: lifecycle=AVAILABLE (75s elapsed).",
+    ]
 
 
 def test_render_external_mount_adds_all_clients_and_sweeper_tag(tmp_path) -> None:

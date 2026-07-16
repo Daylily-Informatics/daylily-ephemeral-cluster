@@ -320,13 +320,23 @@ def test_persistent2_orchestrator_returns_nonsecret_resource_identity(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(p2, "ensure_security_group", lambda *_args: ("sg-p2", "vpc-1"))
-    monkeypatch.setattr(p2, "ensure_file_system", lambda *_args: {"FileSystemId": "fs-p2"})
+    monkeypatch.setattr(
+        p2,
+        "ensure_file_system",
+        lambda *_args, **_kwargs: {"FileSystemId": "fs-p2"},
+    )
     monkeypatch.setattr(
         p2,
         "ensure_reference_association",
-        lambda *_args: {"AssociationId": "dra-p2"},
+        lambda *_args, **_kwargs: {"AssociationId": "dra-p2"},
     )
-    resources = p2.ensure_persistent2_resources(object(), object(), _spec())
+    messages: list[str] = []
+    resources = p2.ensure_persistent2_resources(
+        object(),
+        object(),
+        _spec(),
+        status_callback=messages.append,
+    )
     assert resources == Persistent2Resources(
         file_system_id="fs-p2",
         security_group_id="sg-p2",
@@ -334,6 +344,7 @@ def test_persistent2_orchestrator_returns_nonsecret_resource_identity(
         subnet_id="subnet-private",
         vpc_id="vpc-1",
     )
+    assert messages == ["P2 client security group sg-p2: ready."]
 
 
 def _resources() -> Persistent2Resources:

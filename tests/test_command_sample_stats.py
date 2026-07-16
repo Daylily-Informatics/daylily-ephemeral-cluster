@@ -137,7 +137,7 @@ def analysis_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         "_git_identity",
         lambda *_args, **_kwargs: {
             "commit": "abc",
-            "exact_tag": "11.0.14",
+            "exact_tag": "11.0.15",
             "dirty": False,
             "dirty_paths": [],
         },
@@ -155,7 +155,7 @@ def test_collect_sample_stats_contract(analysis_root: Path) -> None:
     assert list(payload) == ["bjuice10"]
     report = payload["bjuice10"]
     assert report["command_details"]["command_catalog_key"] == "hybrid_ilmn_ont_hiomrs_kitchensink"
-    assert report["command_details"]["git_tag"] == "11.0.14"
+    assert report["command_details"]["git_tag"] == "11.0.15"
     assert report["command_details"]["retried_jobs"]["count"] == 1
     assert report["analysis"]["started_at_source"] == "controller process elapsed time"
     assert 599 <= report["analysis"]["runtime_seconds"] <= 601
