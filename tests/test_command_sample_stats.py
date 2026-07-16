@@ -85,6 +85,7 @@ def analysis_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     _write(sr / "snv" / "hiomrs" / f"{unit}.hiomrs_sr.na.hiomrs.g.vcf.gz")
     _write(sr / "sv" / "hiomrs" / f"{unit}.hiomrs_sr.na.hiomrs.sv.vcf.gz")
     _write(sr / "cnv" / "hiomrs" / f"{unit}.hiomrs_sr.na.hiomrs.cnv.vcf.gz")
+    _write(sr / "hiomrs" / "mito" / f"{unit}.mito.vcf.gz")
     _write(sr / "hiomrs" / "segdup" / f"{unit}.CFH.result.vcf.gz")
     _write(sr / "hiomrs" / "segdup" / f"{unit}.CYP2D6.result.vcf.gz")
     _write(sr / "hiomrs" / "segdup" / f"{unit}.segdup.done")
@@ -136,7 +137,7 @@ def analysis_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         "_git_identity",
         lambda *_args, **_kwargs: {
             "commit": "abc",
-            "exact_tag": "11.0.12",
+            "exact_tag": "11.0.13",
             "dirty": False,
             "dirty_paths": [],
         },
@@ -154,7 +155,7 @@ def test_collect_sample_stats_contract(analysis_root: Path) -> None:
     assert list(payload) == ["bjuice10"]
     report = payload["bjuice10"]
     assert report["command_details"]["command_catalog_key"] == "hybrid_ilmn_ont_hiomrs_kitchensink"
-    assert report["command_details"]["git_tag"] == "11.0.12"
+    assert report["command_details"]["git_tag"] == "11.0.13"
     assert report["command_details"]["retried_jobs"]["count"] == 1
     assert report["analysis"]["started_at_source"] == "controller process elapsed time"
     assert 599 <= report["analysis"]["runtime_seconds"] <= 601
@@ -173,7 +174,7 @@ def test_collect_sample_stats_contract(analysis_root: Path) -> None:
     unit = report["library_units"][0]
     assert unit["analysis_unit_uid"] == "HG003_unit"
     assert unit["overall_percent_complete"] == 100.0
-    assert unit["milestones"]["mitochondrial"]["state"] == "not_configured"
+    assert unit["milestones"]["mitochondrial"]["state"] == "complete"
     assert unit["milestones"]["segdup"]["completed_targets"] == 2
     assert unit["metrics"]["required_gender"]["value"] == "XY"
     assert unit["metrics"]["observed_gender"]["value"] == "XY"

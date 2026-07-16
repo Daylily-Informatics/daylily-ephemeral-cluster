@@ -482,10 +482,10 @@ matching rule is `running <elapsed>`, terminal exact-root failure evidence is
 `failed`, and an unstarted artifact is `pending`. Values missing from their
 authoritative TSV, metadata JSON, QC file, or report stay null with source/state
 evidence; identifiers and operational metadata are never inferred or silently
-normalized. DayOA `11.0.12` has no native HIOMRS mitochondrial output contract,
-so the required Mito column explicitly reports `not configured` and is excluded
-from the unit completion denominator. It must not be interpreted as a
-successful mitochondrial call.
+normalized. With DayOA `11.0.13`, the Mito milestone is the native HIOMRS
+`<analysis-unit>.mito.vcf.gz` artifact and participates in the configured unit
+completion denominator. Missing, running, and failed mitochondrial calls use
+the same explicit states as the other artifact milestones.
 
 The initial selector is exactly `hiomrs-kitchensink`, mapped to catalog key
 `hybrid_ilmn_ont_hiomrs_kitchensink`. `bjuice-v1` fails clearly until its own

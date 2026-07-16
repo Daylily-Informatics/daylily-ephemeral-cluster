@@ -32,8 +32,8 @@ def test_every_source_and_payload_slurm_template_is_cpu_only() -> None:
     source_templates = _slurm_templates(SOURCE_ROOT)
     payload_templates = _slurm_templates(PAYLOAD_ROOT)
 
-    assert len(source_templates) == 32
-    assert len(payload_templates) == 27
+    assert len(source_templates) == 47
+    assert len(payload_templates) == 42
     for path, payload in (*source_templates, *payload_templates):
         assert "SchedulableMemory" not in path.read_text(encoding="utf-8"), path
         settings = payload["Scheduling"]["SlurmSettings"]

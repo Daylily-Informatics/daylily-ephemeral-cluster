@@ -244,6 +244,7 @@ def _unit_row(
         "hybrid_snv": snv_root / f"{stem}.g.vcf.gz",
         "hybrid_sv": sv_root / f"{stem}.sv.vcf.gz",
         "hybrid_cnv": cnv_root / f"{stem}.cnv.vcf.gz",
+        "mitochondrial": specialty / "mito" / f"{unit}.mito.vcf.gz",
         "expansionhunter": specialty / "expansionhunter" / f"{unit}.eh.vcf",
     }
     rule_tokens = {
@@ -252,13 +253,13 @@ def _unit_row(
         "hybrid_snv": ("hiomrs_core", "hiomrs_collect"),
         "hybrid_sv": ("hiomrs_longreadsv",),
         "hybrid_cnv": ("hiomrs_core", "hiomrs_collect"),
+        "mitochondrial": ("hiomrs_mito",),
         "expansionhunter": ("hiomrs_expansionhunter",),
     }
     milestones = {
         name: _milestone(path, unit, status, rule_tokens=rule_tokens[name])
         for name, path in paths.items()
     }
-    milestones["mitochondrial"] = _milestone(None, unit, status, configured=False)
     segdup_root = specialty / "segdup"
     segdup_done = segdup_root / f"{unit}.segdup.done"
     if segdup_done.is_file():

@@ -398,7 +398,7 @@ class TestAzClusterTemplateResolution:
 
     def test_az_cluster_template_relative_path_uses_region_and_region_az(self) -> None:
         assert az_cluster_template_relative_path("intel", "us-west-2d") == Path(
-            "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+            "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml"
         )
         assert az_cluster_template_relative_path("rhel", "us-west-2c") == Path(
             "config/day_cluster/rhel/us-west-2/us-west-2c/prod_cluster_rhel_us-west-2c.yaml"
@@ -672,7 +672,7 @@ class TestAzClusterTemplateResolution:
     ) -> None:
         template = (
             tmp_path
-            / "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+            / "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml"
         )
         template.parent.mkdir(parents=True)
         template.write_text("Region: ${REGSUB_REGION}\n", encoding="utf-8")
@@ -688,7 +688,7 @@ class TestAzClusterTemplateResolution:
         )
 
         assert resolved == (
-            "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+            "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml"
         )
 
     def test_explicit_cluster_template_set_value_wins(

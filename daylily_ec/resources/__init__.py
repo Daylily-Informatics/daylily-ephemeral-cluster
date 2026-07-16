@@ -44,9 +44,14 @@ INTEL_TEMPLATE_REGION_AZS = (
     "us-west-2c",
     "us-west-2d",
 )
-INTEL_TEMPLATE_RELPATHS = tuple(
+INTEL_SPOT_TEMPLATE_RELPATHS = tuple(
     f"config/day_cluster/intel/{region_az[:-1]}/{region_az}/"
-    f"prod_cluster_intel_{region_az}.yaml"
+    f"prod_cluster_intel_spot_{region_az}.yaml"
+    for region_az in INTEL_TEMPLATE_REGION_AZS
+)
+INTEL_ONDEMAND_TEMPLATE_RELPATHS = tuple(
+    f"config/day_cluster/intel/{region_az[:-1]}/{region_az}/"
+    f"prod_cluster_intel_ondemand_{region_az}.yaml"
     for region_az in INTEL_TEMPLATE_REGION_AZS
 )
 SENTIEON_SINGLE_TEMPLATE_RELPATH = (
@@ -54,7 +59,8 @@ SENTIEON_SINGLE_TEMPLATE_RELPATH = (
     "prod_cluster_sentieon-single_us-west-2c.yaml"
 )
 REQUIRED_CLUSTER_TEMPLATE_RELPATHS = (
-    *INTEL_TEMPLATE_RELPATHS,
+    *INTEL_SPOT_TEMPLATE_RELPATHS,
+    *INTEL_ONDEMAND_TEMPLATE_RELPATHS,
     SENTIEON_SINGLE_TEMPLATE_RELPATH,
 )
 

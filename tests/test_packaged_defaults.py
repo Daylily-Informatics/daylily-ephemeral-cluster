@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from pathlib import Path
 import subprocess
 
@@ -7,11 +8,19 @@ import yaml
 
 from daylily_ec.aws.context import AWSContext
 from daylily_ec.render.renderer import write_init_artifacts
-from daylily_ec.resources import INTEL_TEMPLATE_RELPATHS, resource_path
+from daylily_ec.resources import (
+    INTEL_ONDEMAND_TEMPLATE_RELPATHS,
+    INTEL_SPOT_TEMPLATE_RELPATHS,
+    INTEL_TEMPLATE_REGION_AZS,
+    resource_path,
+)
 from daylily_ec.workflow import create_cluster
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-ACTIVE_CLUSTER_TEMPLATES = INTEL_TEMPLATE_RELPATHS
+INTEL_CLUSTER_TEMPLATES = (
+    *INTEL_SPOT_TEMPLATE_RELPATHS,
+    *INTEL_ONDEMAND_TEMPLATE_RELPATHS,
+)
 SENTIEON_SINGLE_TEMPLATE = (
     "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
     "prod_cluster_sentieon-single_us-west-2c.yaml"
@@ -90,7 +99,7 @@ def test_write_init_artifacts_accepts_packaged_template(tmp_path, monkeypatch):
 
     template = str(
         resource_path(
-            "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+            "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml"
         )
     )
     substitutions = {
@@ -136,7 +145,7 @@ def test_global_config_uses_strict_sentieon_server_endpoint() -> None:
 
 
 def test_active_cluster_templates_use_contract_role_dras() -> None:
-    for relative_path in ACTIVE_CLUSTER_TEMPLATES:
+    for relative_path in INTEL_CLUSTER_TEMPLATES:
         text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
         assert "ImportPath:" not in text
         assert "ExportPath:" not in text
@@ -167,7 +176,7 @@ def test_active_cluster_templates_use_contract_role_dras() -> None:
 
 
 def test_active_cluster_template_uses_expected_partition_contract() -> None:
-    for relative_path in ACTIVE_CLUSTER_TEMPLATES:
+    for relative_path in INTEL_CLUSTER_TEMPLATES:
         text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
         payload = yaml.safe_load(text)
         queues = payload["Scheduling"]["SlurmQueues"]
@@ -249,7 +258,7 @@ def test_active_cluster_template_uses_expected_partition_contract() -> None:
 
 def test_active_intel_max_counts_are_all_create_time_substitutions() -> None:
     """No active Intel resource may silently retain a literal quota."""
-    for relative_path in ACTIVE_CLUSTER_TEMPLATES:
+    for relative_path in INTEL_CLUSTER_TEMPLATES:
         text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
         max_count_lines = [line.strip() for line in text.splitlines() if "MaxCount:" in line]
 
@@ -260,8 +269,91 @@ def test_active_intel_max_counts_are_all_create_time_substitutions() -> None:
         ), relative_path
 
 
+def test_intel_template_families_are_explicit_and_complete() -> None:
+    assert len(INTEL_SPOT_TEMPLATE_RELPATHS) == len(INTEL_TEMPLATE_REGION_AZS) == 15
+    assert len(INTEL_ONDEMAND_TEMPLATE_RELPATHS) == len(INTEL_TEMPLATE_REGION_AZS)
+    for region_az, spot_path, ondemand_path in zip(
+        INTEL_TEMPLATE_REGION_AZS,
+        INTEL_SPOT_TEMPLATE_RELPATHS,
+        INTEL_ONDEMAND_TEMPLATE_RELPATHS,
+        strict=True,
+    ):
+        assert Path(spot_path).name == f"prod_cluster_intel_spot_{region_az}.yaml"
+        assert Path(ondemand_path).name == (
+            f"prod_cluster_intel_ondemand_{region_az}.yaml"
+        )
+        old_path = Path(spot_path).with_name(f"prod_cluster_intel_{region_az}.yaml")
+        assert not (REPO_ROOT / old_path).exists()
+        assert not (REPO_ROOT / "daylily_ec/resources/payload" / old_path).exists()
+
+
+def test_intel_template_families_define_exact_capacity_contract() -> None:
+    roots = (
+        REPO_ROOT,
+        REPO_ROOT / "daylily_ec/resources/payload",
+    )
+    families = (
+        (INTEL_SPOT_TEMPLATE_RELPATHS, "SPOT", "${REGSUB_ALLOCATION_STRATEGY}"),
+        (INTEL_ONDEMAND_TEMPLATE_RELPATHS, "ONDEMAND", "lowest-price"),
+    )
+    for root in roots:
+        for relative_paths, capacity_type, allocation_strategy in families:
+            for relative_path in relative_paths:
+                path = root / relative_path
+                payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+                for queue in payload["Scheduling"]["SlurmQueues"]:
+                    assert queue["CapacityType"] == capacity_type, (path, queue["Name"])
+                    assert queue["AllocationStrategy"] == allocation_strategy, (
+                        path,
+                        queue["Name"],
+                    )
+                    for resource in queue["ComputeResources"]:
+                        if capacity_type == "SPOT":
+                            assert resource["SpotPrice"] == "CALCULATE_MAX_SPOT_PRICE"
+                        else:
+                            assert "SpotPrice" not in resource
+
+
+def test_intel_ondemand_templates_only_change_purchase_model() -> None:
+    for spot_path, ondemand_path in zip(
+        INTEL_SPOT_TEMPLATE_RELPATHS,
+        INTEL_ONDEMAND_TEMPLATE_RELPATHS,
+        strict=True,
+    ):
+        spot = yaml.safe_load((REPO_ROOT / spot_path).read_text(encoding="utf-8"))
+        expected_ondemand = deepcopy(spot)
+        for queue in expected_ondemand["Scheduling"]["SlurmQueues"]:
+            queue["CapacityType"] = "ONDEMAND"
+            queue["AllocationStrategy"] = "lowest-price"
+            for resource in queue["ComputeResources"]:
+                resource.pop("SpotPrice")
+
+        ondemand = yaml.safe_load(
+            (REPO_ROOT / ondemand_path).read_text(encoding="utf-8")
+        )
+        assert ondemand == expected_ondemand, (spot_path, ondemand_path)
+
+
+def test_intel_cluster_templates_do_not_set_dynamic_node_priority() -> None:
+    roots = (
+        REPO_ROOT,
+        REPO_ROOT / "daylily_ec/resources/payload",
+    )
+    for root in roots:
+        for relative_path in INTEL_CLUSTER_TEMPLATES:
+            path = root / relative_path
+            payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+            for queue in payload["Scheduling"]["SlurmQueues"]:
+                for resource in queue["ComputeResources"]:
+                    assert "DynamicNodePriority" not in resource, (
+                        path,
+                        queue["Name"],
+                        resource["Name"],
+                    )
+
+
 def test_packaged_cluster_templates_match_source_templates() -> None:
-    for relative_path in ACTIVE_CLUSTER_TEMPLATES:
+    for relative_path in INTEL_CLUSTER_TEMPLATES:
         source = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
         packaged = (REPO_ROOT / "daylily_ec/resources/payload" / relative_path).read_text(
             encoding="utf-8"
@@ -270,8 +362,10 @@ def test_packaged_cluster_templates_match_source_templates() -> None:
 
 
 def test_packaged_az_scoped_cluster_templates_match_source_templates() -> None:
-    source_paths = sorted((REPO_ROOT / "config/day_cluster").glob("*/*/*/prod_cluster_*.yaml"))
-    assert len(source_paths) == 21
+    source_paths = sorted(
+        (REPO_ROOT / "config/day_cluster").glob("*/*/*/prod_cluster_*.yaml")
+    )
+    assert len(source_paths) == 36
     for source_path in source_paths:
         relative_path = source_path.relative_to(REPO_ROOT)
         source = source_path.read_text(encoding="utf-8")
@@ -471,7 +565,7 @@ def test_post_install_s3_executable_install_is_not_sha256_pinned() -> None:
 
 def test_post_install_templates_pass_spot_warn_threshold_argument() -> None:
     template_paths = (
-        *ACTIVE_CLUSTER_TEMPLATES,
+        *INTEL_CLUSTER_TEMPLATES,
         "config/day_cluster/prod_cluster_dragen_native_ami_rhel8.yaml",
         "config/day_cluster/prod_cluster_dragen_native_ami_rhel8_nofsx.yaml",
         "config/day_cluster/prod_cluster_dragen_pcluster_image_rhel8.yaml",

@@ -23,7 +23,7 @@ DEFAULT_PRODUCTION_PARTITIONS: tuple[str, ...] = (
 )
 _INSTANCE_TYPE_BATCH_SIZE = 100
 DEFAULT_CLUSTER_CONFIG_RELPATH = (
-    "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+    "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml"
 )
 
 

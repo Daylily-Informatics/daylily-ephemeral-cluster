@@ -18,7 +18,12 @@ def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
     for az in INTEL_TEMPLATE_REGION_AZS:
         assert (
             root
-            / f"config/day_cluster/intel/{az[:-1]}/{az}/prod_cluster_intel_{az}.yaml"
+            / f"config/day_cluster/intel/{az[:-1]}/{az}/prod_cluster_intel_spot_{az}.yaml"
+        ).is_file()
+        assert (
+            root
+            / f"config/day_cluster/intel/{az[:-1]}/{az}/"
+            f"prod_cluster_intel_ondemand_{az}.yaml"
         ).is_file()
     sentieon_single = (
         root / "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
@@ -38,7 +43,7 @@ def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
 
     # resource_path should return the same filesystem location.
     p = resource_path(
-        "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+        "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml"
     )
     assert isinstance(p, Path)
     assert p.is_file()
