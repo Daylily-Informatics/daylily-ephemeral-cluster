@@ -694,4 +694,22 @@ dyec resources-dir
 dyec --json state list
 dyec state show --cluster "$CLUSTER_NAME"
 dyec pricing snapshot --profile "$AWS_PROFILE" --region "$REGION"
+dyec pricing snapshot --profile "$AWS_PROFILE" --region "$REGION" \
+  --target-capacity-vcpus 384 --table-view
 ```
+
+`dyec pricing snapshot` emits JSON by default and preserves every raw
+per-instance Spot price point under `points`. The JSON payload also contains
+per-partition/AZ `summaries`. Add `--table-view` to render those summaries with
+priced/configured instance counts, price coverage, minimum, median, harmonic
+mean, maximum, spread, and a separately labelled EC2 Spot Placement Score.
+The price statistics are cross-sectional across the partition's configured
+instance types at capture time; `spread` is maximum minus minimum and is not a
+time-series volatility measure.
+
+Table view requires an explicit `--target-capacity-vcpus`; DYEC does not infer a
+capacity target. The placement score uses EC2's 1-through-10 capacity-likelihood
+scale for that target and is not derived from price presence or a dry-run launch.
+`--table-view` and global `--json` are mutually exclusive. JSON mode can also
+accept `--target-capacity-vcpus` when callers need raw points, summaries, and
+placement scores in one machine-readable payload.

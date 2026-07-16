@@ -2788,19 +2788,43 @@ def pricing_snapshot(
         "--profile",
         help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
     ),
+    table_view: bool = typer.Option(
+        False,
+        "--table-view",
+        help="Render one pricing-summary row per partition and availability zone.",
+    ),
+    target_capacity_vcpus: Optional[int] = typer.Option(
+        None,
+        "--target-capacity-vcpus",
+        min=1,
+        help="Explicit vCPU target used to request EC2 Spot Placement Scores.",
+    ),
 ) -> None:
-    """Emit a raw JSON pricing snapshot for the requested regions and partitions."""
+    """Emit a pricing snapshot for the requested regions and partitions."""
 
-    from daylily_ec.aws.pricing_snapshots import collect_pricing_snapshot
+    from daylily_ec.aws.pricing_snapshots import (
+        collect_pricing_snapshot,
+        format_pricing_snapshot_table,
+    )
 
     _warn_if_dayec_env_inactive()
+    if table_view and _json_mode():
+        raise typer.BadParameter("--table-view cannot be combined with --json")
+    if table_view and target_capacity_vcpus is None:
+        raise typer.BadParameter(
+            "--target-capacity-vcpus is required with --table-view"
+        )
     payload = collect_pricing_snapshot(
         regions=region,
         partitions=partition,
         cluster_config_path=config,
         profile=profile,
+        target_capacity_vcpus=target_capacity_vcpus,
     ).to_dict()
 
+    if table_view:
+        typer.echo(format_pricing_snapshot_table(payload))
+        return
     if _json_mode():
         output.emit_json(payload)
         return
