@@ -22,9 +22,15 @@ tag `10.3.25` without merging the DYEC candidate branch to `main`.
 |---|---|---|---|
 | PC-001 | Publish DayOA `prd-candidate` at the clean `11.0.14` release | COMPLETE | Remote branch and annotated tag both peel to `04e584b`. |
 | PC-002 | Pin active source/package DayOA defaults and HIOMRS catalog commands to `11.0.14` | COMPLETE | Source/package catalogs, current README contract, and regression expectations match; focused pin/parity suite passed (`56 passed`). |
-| PC-003 | Commit and push DayOA-pin change as the first DYEC candidate commit | READY | Validated candidate is ready to commit and push before the self-pin commit. |
-| PC-004 | Advance source/package DYEC self-pins to `10.3.25` in a second commit | PENDING | `config/daylily_cli_global.yaml` and packaged copy plus fork regression contract. |
-| PC-005 | Validate, push DYEC `prd-candidate`, and publish annotated `10.3.25` | PENDING | Tag must be new, annotated, and peel to the clean second commit. |
+| PC-003 | Commit and push DayOA-pin change as the first DYEC candidate commit | COMPLETE | Commit `43f283c8` is pushed on `origin/prd-candidate`. |
+| PC-004 | Advance source/package DYEC self-pins to `10.3.25` in a second commit | COMPLETE | Both global-config copies and the fork regression contract target `10.3.25`. |
+| PC-005 | Validate, push DYEC `prd-candidate`, and publish annotated `10.3.25` | COMPLETE | Focused and complete suites pass; final annotated tag `10.3.25` is published from the clean second commit. |
+
+## Terminal result
+
+All control-ledger rows are terminal. The production-candidate objective is
+complete when the second commit and annotated `10.3.25` tag are visible on the
+remote; no merge to `main` is part of this request.
 
 ## Safety boundary
 
