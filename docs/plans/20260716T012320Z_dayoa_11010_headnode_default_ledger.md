@@ -22,9 +22,9 @@ Ledger path: `docs/plans/20260716T012320Z_dayoa_11010_headnode_default_ledger.md
 
 | ID | Area | Requirement | Status | Category | Gate | Evidence | Terminal note |
 |---|---|---|---|---|---|---|---|
-| DHD-001 | Catalog | Set source and payload `daylily-omics-analysis.default_ref` to `11.0.10`. | IN_PROGRESS | config_or_startup_contract | Gate 2 | Catalog edits and contract tests pending. |  |
-| DHD-002 | HIOMRS catalog | Pin both Sentieon HIOMRS command rows to DayOA `11.0.10`. | IN_PROGRESS | config_or_startup_contract | Gate 2 | Catalog edits and focused tests pending. |  |
-| DHD-003 | DYEC release | Advance source/payload self pins to `10.3.16` in a separate commit and push an annotated tag. | OPEN | feature_implementation | Gate 5 | Pending catalog-pin commit. |  |
+| DHD-001 | Catalog | Set source and payload `daylily-omics-analysis.default_ref` to `11.0.10`. | SUCCESS | config_or_startup_contract | Gate 2 | Commit `1f498f30`; catalog and payload match; focused tests passed. | DayOA default updated without a mutable-only headnode patch. |
+| DHD-002 | HIOMRS catalog | Pin both Sentieon HIOMRS command rows to DayOA `11.0.10`. | SUCCESS | config_or_startup_contract | Gate 2 | Commit `1f498f30`; both catalog rows and payload rows use `11.0.10`. | Exact HIOMRS commands now select the released DayOA correction. |
+| DHD-003 | DYEC release | Advance source/payload self pins to `10.3.16` in a separate commit and push an annotated tag. | IN_PROGRESS | feature_implementation | Gate 5 | Source/payload/test self pins updated; final test and publication pending. |  |
 | DHD-004 | Headnode | Install the exact DYEC release and verify `day-clone` default/auth resolves DayOA `11.0.10`. | OPEN | config_or_startup_contract | Gate 5 | Pending release publication. |  |
 | DHD-005 | Safety | Keep the paused analysis controller stopped and leave Slurm/data untouched. | IN_PROGRESS | legitimate_safety_handling | Gate 5 | Queue/controller status to be verified after install. |  |
 
