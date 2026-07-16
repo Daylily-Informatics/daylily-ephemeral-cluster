@@ -439,6 +439,58 @@ When already inside the supported Ubuntu headnode login shell, omit
 `--profile`, `--region`, and `--cluster` and provide the same exact
 `--analysis-root`.
 
+## HIOMRS per-library-unit status
+
+`dyec command sample-stats` is the strict, read-only command-family report for
+one exact HIOMRS kitchensink analysis root. The report name is required and is
+the sole top-level JSON key:
+
+```bash
+dyec --json command sample-stats hiomrs-kitchensink \
+  --name bjuice10-prevalidation \
+  --profile lsmc \
+  --region us-west-2 \
+  --cluster <cluster> \
+  --analysis-root /fsx/analysis_results/<cluster>/<analysis-id> \
+  --dag-output "$HOME/Downloads/bjuice10-rulegraph.png"
+```
+
+Omit the AWS target options when running inside the supported Ubuntu headnode
+login shell. `--dag-output` is optional, but when supplied it must name a new
+local file whose parent already exists. DYEC refuses to overwrite it. Local DAG
+copies and bounded SSM transfers are verified by byte count and SHA-256; DYEC
+does not use a mutable S3 staging object for this operation.
+
+The JSON records cluster/AZ identity, run start/runtime/generated timestamps,
+tmux sessions, exact DayOA and DYEC versions, catalog key/version, non-secret
+DayOA environment variables, expected `dy-a` plus `dy-r` commands, observed
+controller commands, unique retried-job evidence, cluster/project budget
+evidence, completed benchmark cost, TSV row counts, workflow job state counts,
+ONT aligned-read-length and ILMN insert-size summaries, final MultiQC state, and
+the source-backed per-library-unit table. The human rendering includes:
+
+- authoritative `ANALYSIS_UNIT_UID` and overall configured-milestone percent;
+- SR/LR CRAM, hybrid SNV gVCF, hybrid SV VCF, hybrid CNV VCF, SegDup target
+  count, and ExpansionHunter VCF state;
+- required/observed gender, contamination, and ILMN/ONT mean and median
+  coverage;
+- final QC disposition, package-ready/delivered state, optional GIAB-HC SNV
+  F-score, specimen type, sample use, explicit order type, and relatives.
+
+A completed artifact cell is its whole-second UTC modification time. An active
+matching rule is `running <elapsed>`, terminal exact-root failure evidence is
+`failed`, and an unstarted artifact is `pending`. Values missing from their
+authoritative TSV, metadata JSON, QC file, or report stay null with source/state
+evidence; identifiers and operational metadata are never inferred or silently
+normalized. DayOA `11.0.12` has no native HIOMRS mitochondrial output contract,
+so the required Mito column explicitly reports `not configured` and is excluded
+from the unit completion denominator. It must not be interpreted as a
+successful mitochondrial call.
+
+The initial selector is exactly `hiomrs-kitchensink`, mapped to catalog key
+`hybrid_ilmn_ont_hiomrs_kitchensink`. `bjuice-v1` fails clearly until its own
+artifact contract is implemented; there is no compatibility fallback.
+
 ## Supporting Services
 
 - **Dewey**: DYEC can register exported DayOA evidence after a successful export when the command catalog declares an explicit `artifact_registration` policy.

@@ -97,6 +97,7 @@ EXPECTED_COMMANDS = {
     ("analysis", "visit"),
     ("analysis", "status"),
     ("analysis", "guard"),
+    ("command", "sample-stats"),
     ("analysis", "lock", "status"),
     ("analysis", "lock", "acquire"),
     ("analysis", "lock", "release"),
@@ -236,6 +237,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     analysis_visit_cmd = registry.get_command(("analysis", "visit"))
     analysis_status_cmd = registry.get_command(("analysis", "status"))
     analysis_guard_cmd = registry.get_command(("analysis", "guard"))
+    command_sample_stats_cmd = registry.get_command(("command", "sample-stats"))
     analysis_lock_status_cmd = registry.get_command(("analysis", "lock", "status"))
     analysis_lock_acquire_cmd = registry.get_command(("analysis", "lock", "acquire"))
     analysis_lock_release_cmd = registry.get_command(("analysis", "lock", "release"))
@@ -252,6 +254,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     slurm_accounting_attach_cmd = registry.get_command(("slurm-accounting", "attach"))
     cost_centers_put_usage_cmd = registry.get_command(("cost-centers", "put-usage"))
     cost_centers_ensure_cur_export_cmd = registry.get_command(("cost-centers", "ensure-cur-export"))
+
+    assert command_sample_stats_cmd is not None
+    assert command_sample_stats_cmd.policy.supports_json is True
+    assert command_sample_stats_cmd.policy.mutates_state is True
+    assert command_sample_stats_cmd.policy.long_running is True
 
     assert version_cmd is not None
     assert version_cmd.policy.runtime_guard == "exempt"

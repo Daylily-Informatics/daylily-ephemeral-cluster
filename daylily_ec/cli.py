@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import contextlib
+import base64
+import hashlib
 import io
 import json
 import logging
@@ -5645,11 +5647,7 @@ def analysis_status(
                 "--tail-lines",
                 str(tail_lines),
             ]
-            script = (
-                "set -euo pipefail\n"
-                "command -v dyec >/dev/null\n"
-                + shlex.join(remote_argv)
-            )
+            script = "set -euo pipefail\n" "command -v dyec >/dev/null\n" + shlex.join(remote_argv)
             result = run_shell(
                 target.instance_id,
                 resolved_region,
@@ -5674,6 +5672,164 @@ def analysis_status(
                 tail_lines=tail_lines,
             )
         _emit_analysis_payload(payload, text=render_analysis_status(payload))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def _download_sample_stats_dag(
+    *,
+    instance_id: str,
+    region: str,
+    profile: str,
+    remote_user: str,
+    remote_path: str,
+    expected_size: int,
+    expected_sha256: str,
+    destination: Path,
+) -> dict[str, Any]:
+    from daylily_ec.aws.ssm import run_shell
+
+    if expected_size > 20 * 1024 * 1024:
+        raise ValueError("DAG PNG exceeds the 20 MiB bounded SSM transfer limit")
+    target = destination.expanduser().resolve()
+    if target.exists():
+        raise ValueError(f"refusing to overwrite DAG destination: {target}")
+    if not target.parent.is_dir():
+        raise ValueError(f"DAG destination parent does not exist: {target.parent}")
+    partial = target.with_name(f".{target.name}.partial")
+    if partial.exists():
+        raise ValueError(f"refusing to overwrite existing partial DAG transfer: {partial}")
+    chunk_bytes = 15000
+    try:
+        with partial.open("xb") as handle:
+            for offset in range(0, expected_size, chunk_bytes):
+                script = (
+                    "set -euo pipefail\n"
+                    f"test -f {shlex.quote(remote_path)}\n"
+                    f"dd if={shlex.quote(remote_path)} bs=1 skip={offset} count={min(chunk_bytes, expected_size - offset)} status=none | base64 -w0"
+                )
+                result = run_shell(
+                    instance_id,
+                    region,
+                    script,
+                    profile=profile,
+                    as_user=remote_user,
+                    timeout=120,
+                    comment="Read verified DayOA DAG chunk",
+                )
+                handle.write(base64.b64decode(result.stdout.strip(), validate=True))
+        digest = hashlib.sha256(partial.read_bytes()).hexdigest()
+        if partial.stat().st_size != expected_size or digest != expected_sha256:
+            raise ValueError("remote DAG transfer failed SHA-256 or size verification")
+        partial.replace(target)
+        return {"path": str(target), "size_bytes": expected_size, "sha256": digest}
+    except Exception:
+        partial.unlink(missing_ok=True)
+        raise
+
+
+def command_sample_stats(
+    pipeline: str = typer.Argument(..., help="Pipeline contract; currently hiomrs-kitchensink."),
+    name: str = typer.Option(..., "--name", help="Required sole top-level JSON report key."),
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Exact analysis root path."),
+    profile: Optional[str] = typer.Option(
+        None, "--profile", help="AWS profile for remote inspection."
+    ),
+    region: Optional[str] = typer.Option(
+        None, "--region", help="AWS region for remote inspection."
+    ),
+    cluster: Optional[str] = typer.Option(
+        None, "--cluster", "--cluster-name", help="Cluster containing the analysis root."
+    ),
+    remote_user: str = typer.Option("ubuntu", "--remote-user", help="Remote SSM login user."),
+    tail_lines: int = typer.Option(
+        1000, "--tail-lines", min=1, help="Bounded log lines inspected."
+    ),
+    dag_output: Optional[Path] = typer.Option(
+        None, "--dag-output", help="Exact local filename for a verified DAG PNG copy."
+    ),
+) -> None:
+    """Report source-backed per-unit HIOMRS progress and optionally copy its DAG."""
+
+    try:
+        from daylily_ec.command_sample_stats import (
+            collect_command_sample_stats,
+            copy_dag,
+            enrich_aws_context,
+            render_command_sample_stats,
+        )
+
+        if cluster:
+            from daylily_ec.aws.ssm import run_shell, wait_for_ssm_online
+
+            _warn_if_dayec_env_inactive()
+            resolved_profile, resolved_region, resolved_cluster, target = (
+                _resolve_headnode_cli_target(
+                    profile=profile,
+                    region=region,
+                    cluster=cluster,
+                )
+            )
+            wait_for_ssm_online(
+                target.instance_id, resolved_region, profile=resolved_profile, timeout=120
+            )
+            remote_argv = [
+                "dyec",
+                "--json",
+                "command",
+                "sample-stats",
+                pipeline,
+                "--name",
+                name,
+                "--analysis-root",
+                analysis_root,
+                "--tail-lines",
+                str(tail_lines),
+            ]
+            result = run_shell(
+                target.instance_id,
+                resolved_region,
+                "set -euo pipefail\ncommand -v dyec >/dev/null\n" + shlex.join(remote_argv),
+                profile=resolved_profile,
+                as_user=remote_user,
+                timeout=300,
+                comment="Daylily command sample stats",
+            )
+            payload = _parse_workflow_status_payload(result.stdout)
+            enrich_aws_context(
+                payload,
+                profile=resolved_profile,
+                region=resolved_region,
+                cluster=resolved_cluster,
+                headnode_instance_id=target.instance_id,
+            )
+            if dag_output:
+                report = payload[name]
+                dag = report["dag"]
+                if not dag["available"]:
+                    raise ValueError("this analysis has no generated DAG PNG")
+                report["dag_download"] = _download_sample_stats_dag(
+                    instance_id=target.instance_id,
+                    region=resolved_region,
+                    profile=resolved_profile,
+                    remote_user=remote_user,
+                    remote_path=dag["path"],
+                    expected_size=int(dag["size_bytes"]),
+                    expected_sha256=dag["sha256"],
+                    destination=dag_output,
+                )
+        else:
+            if profile or region:
+                raise ValueError("--profile and --region require --cluster")
+            payload = collect_command_sample_stats(
+                analysis_root,
+                name=name,
+                pipeline=pipeline,
+                tail_lines=tail_lines,
+            )
+            if dag_output:
+                copy_dag(payload, dag_output)
+        _emit_analysis_payload(payload, text=render_command_sample_stats(payload))
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
 
@@ -6488,6 +6644,18 @@ def register(registry, cli_spec) -> None:
             ),
             ("visit", analysis_visit, required_policy(supports_json=True, mutates_state=True)),
             ("guard", analysis_guard, required_policy(mutates_state=True)),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "command",
+        "Command-family progress and artifact inspection.",
+        [
+            (
+                "sample-stats",
+                command_sample_stats,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
         ],
     )
     register_group_commands(
