@@ -2520,6 +2520,206 @@ def aws_audit_api_calls(
     )
 
 
+def aws_audit_cost_resources(
+    profile: str = typer.Option(..., "--profile", help="Exact AWS CLI profile to audit."),
+    account_id: str = typer.Option(
+        ...,
+        "--account-id",
+        help="Expected 12-digit AWS account id included in every cache key.",
+    ),
+    start: str = typer.Option(
+        ...,
+        "--start",
+        help="Inclusive service-cost start date in YYYY-MM-DD form.",
+    ),
+    end: str = typer.Option(
+        ...,
+        "--end",
+        help="Exclusive service/resource cost and utilization end date.",
+    ),
+    resource_start: str = typer.Option(
+        ...,
+        "--resource-start",
+        help="Inclusive resource-detail start date; no more than 14 days before --end.",
+    ),
+    control_region: str = typer.Option(
+        ...,
+        "--control-region",
+        help="Explicit region for identity, enabled-region, and global control reads.",
+    ),
+    output_dir: Path = typer.Option(
+        ...,
+        "--output-dir",
+        help="Explicit absent or empty directory for machine-readable outputs.",
+    ),
+    cache_dir: Path = typer.Option(
+        ...,
+        "--cache-dir",
+        help="Explicit persistent exact-request cache directory reused across runs.",
+    ),
+    history_file: Path = typer.Option(
+        ...,
+        "--history-file",
+        help="Explicit persistent type/resource history JSON used across runs.",
+    ),
+    initialize_history: bool = typer.Option(
+        False,
+        "--initialize-history",
+        help="Create a missing history file; rejected when history already exists.",
+    ),
+    cost_tag_key: List[str] = typer.Option(
+        [],
+        "--cost-tag-key",
+        help="Cost-allocation tag key to group by value. Repeat for multiple keys.",
+    ),
+    cluster_tag_key: List[str] = typer.Option(
+        ...,
+        "--cluster-tag-key",
+        help="Explicit cluster tag key. Repeat for all supported cluster tag contracts.",
+    ),
+    discover_cost_tag_keys: bool = typer.Option(
+        True,
+        "--discover-cost-tag-keys/--skip-cost-tag-key-discovery",
+        help="Use one or more budgeted Cost Explorer pages to catalog active tag keys.",
+    ),
+    include_budgets: bool = typer.Option(
+        True,
+        "--include-budgets/--skip-budgets",
+        help="Collect cached read-only budgets, filters, alerts, subscribers, actions, and tags.",
+    ),
+    parallelcluster_executable: Path = typer.Option(
+        ...,
+        "--parallelcluster-executable",
+        help="Explicit pcluster executable used only for cached read-only cluster calls.",
+    ),
+    parallelcluster_region: List[str] = typer.Option(
+        ...,
+        "--parallelcluster-region",
+        help="Region queried through pcluster. Repeat for every required cluster region.",
+    ),
+    utilization_limit: int = typer.Option(
+        50,
+        "--utilization-limit",
+        min=0,
+        help="Maximum highest-cost current resources selected for metric enrichment.",
+    ),
+    utilization_period_seconds: int = typer.Option(
+        3600,
+        "--utilization-period-seconds",
+        min=60,
+        help="CloudWatch metric period for supported type-specific enrichers.",
+    ),
+    paid_call_budget: int = typer.Option(
+        50,
+        "--paid-call-budget",
+        min=0,
+        max=300,
+        help=(
+            "Maximum live Cost Explorer pages in this run; hard-capped at 300 / "
+            "$3.00 at the observed $0.01 primary-view request rate."
+        ),
+    ),
+    cache_max_age_hours: float = typer.Option(
+        24.0,
+        "--cache-max-age-hours",
+        min=0.0,
+        help="Maximum age of a reusable exact-request cache entry.",
+    ),
+    cache_only: bool = typer.Option(
+        False,
+        "--cache-only/--allow-live-calls",
+        help="Guarantee zero live AWS/pcluster calls; fail on missing or stale cache.",
+    ),
+    refresh: bool = typer.Option(
+        False,
+        "--refresh/--reuse-cache",
+        help="Bypass valid cache entries while retaining throttles and paid-call ceiling.",
+    ),
+    ce_min_interval_seconds: float = typer.Option(
+        1.0,
+        "--ce-min-interval-seconds",
+        min=0.0,
+        help="Minimum interval between live Cost Explorer calls.",
+    ),
+    other_min_interval_seconds: float = typer.Option(
+        0.2,
+        "--other-min-interval-seconds",
+        min=0.0,
+        help="Minimum interval between other live read calls per AWS service.",
+    ),
+    parallelcluster_min_interval_seconds: float = typer.Option(
+        0.5,
+        "--parallelcluster-min-interval-seconds",
+        min=0.0,
+        help="Minimum interval between live read-only pcluster calls.",
+    ),
+) -> None:
+    """Collect reusable cost, tag, budget, lifecycle, and utilization datasets."""
+
+    from datetime import date
+
+    from daylily_ec.aws.on_demand_cost_report import (
+        OnDemandCostReportConfig,
+        run_on_demand_cost_report,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        summary = run_on_demand_cost_report(
+            OnDemandCostReportConfig(
+                profile=profile,
+                account_id=account_id,
+                start_date=date.fromisoformat(start),
+                end_date=date.fromisoformat(end),
+                resource_start_date=date.fromisoformat(resource_start),
+                control_region=control_region,
+                output_dir=output_dir,
+                cache_dir=cache_dir,
+                history_path=history_file,
+                initialize_history=initialize_history,
+                cost_tag_keys=tuple(cost_tag_key),
+                cluster_tag_keys=tuple(cluster_tag_key),
+                discover_cost_tag_keys=discover_cost_tag_keys,
+                include_budgets=include_budgets,
+                parallelcluster_executable=parallelcluster_executable,
+                parallelcluster_regions=tuple(parallelcluster_region),
+                utilization_limit=utilization_limit,
+                utilization_period_seconds=utilization_period_seconds,
+                paid_call_budget=paid_call_budget,
+                cache_max_age_seconds=cache_max_age_hours * 60 * 60,
+                cache_only=cache_only,
+                refresh=refresh,
+                ce_min_interval_seconds=ce_min_interval_seconds,
+                other_min_interval_seconds=other_min_interval_seconds,
+                parallelcluster_min_interval_seconds=(
+                    parallelcluster_min_interval_seconds
+                ),
+            )
+        )
+    except (OSError, RuntimeError, ValueError) as exc:
+        _exit_headnode_error(exc)
+
+    if _json_mode():
+        output.emit_json(summary)
+        return
+    typer.echo(
+        json.dumps(
+            {
+                "output_dir": str(output_dir.expanduser().resolve()),
+                "resources": summary["counts"]["resources"],
+                "untagged_resources": summary["counts"]["untagged_resources"],
+                "budgets": summary["counts"]["budgets"],
+                "paid_live_calls": summary["paid_call_guard"]["actual_paid_live_calls"],
+                "estimated_cost_explorer_cost_usd": summary["paid_call_guard"][
+                    "actual_estimated_cost_usd_at_observed_rate"
+                ],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+
+
 def pricing_snapshot(
     region: Optional[List[str]] = typer.Option(
         None,
@@ -5914,6 +6114,11 @@ def register(registry, cli_spec) -> None:
             (
                 "api-calls",
                 aws_audit_api_calls,
+                required_policy(supports_json=True, long_running=True),
+            ),
+            (
+                "cost-resources",
+                aws_audit_cost_resources,
                 required_policy(supports_json=True, long_running=True),
             ),
         ],
