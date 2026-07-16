@@ -9,6 +9,7 @@ ephemeral_cluster:
     pcluster_backport_manifest: [PROMPTUSER, "", ""]
     iam_policy_arn: [PROMPTUSER, "", ""]
     cluster_name: [PROMPTUSER, "majors-cluster", ""]
+    ursa_root_url: [PROMPTUSER, "", ""]
     budget_email: [PROMPTUSER, "", ""]
     allowed_budget_users: [PROMPTUSER, "ubuntu", ""]
     budget_amount: [PROMPTUSER, "200", ""]
@@ -17,9 +18,9 @@ ephemeral_cluster:
     enforce_budget: [PROMPTUSER, "true", ""]
     cluster_template_yaml: [PROMPTUSER, "", ""]
     headnode_instance_type: [PROMPTUSER, "r7i.2xlarge", ""]
-    fsx_fs_size: [USESETVALUE, "", "4800"]
-    fsx_deployment_type: [USESETVALUE, "", "PERSISTENT_2"]
-    fsx_throughput_mbps_per_tib: [USESETVALUE, "", "250"]
+    fsx_fs_size: [PROMPTUSER, "4800", ""]
+    fsx_deployment_type: [PROMPTUSER, "PERSISTENT_2", ""]
+    fsx_throughput_mbps_per_tib: [PROMPTUSER, "250", ""]
     fsx_lustre_version: [USESETVALUE, "", "2.15"]
     fsx_metadata_mode: [USESETVALUE, "", "AUTOMATIC"]
     fsx_encryption_mode: [USESETVALUE, "", "AWS_MANAGED_FSX"]
@@ -34,7 +35,6 @@ ephemeral_cluster:
     dyec_deploy_key_secret_arn: [USESETVALUE, "", "arn:aws:secretsmanager:us-west-2:108782052779:secret:dayec/github-deploy-keys/lsmc-bio/daylily-ephemeral-cluster-pE4FFN"]
     dayoa_deploy_key_policy_arn: [USESETVALUE, "", "arn:aws:iam::108782052779:policy/DayECHeadnodeGitHubClone"]
     dayoa_deploy_key_secret_arn: [USESETVALUE, "", "arn:aws:secretsmanager:us-west-2:108782052779:secret:dayec/github-deploy-keys/lsmc-bio-daylily-omics-analysis-igtfHD"]
-    auto_delete_fsx: [PROMPTUSER, "Delete", ""] # Delete or Retain
     heartbeat_email: [PROMPTUSER, "", ""]
     heartbeat_schedule: [PROMPTUSER, "rate(60 minutes)", ""]
     heartbeat_scheduler_role_arn: [PROMPTUSER, "", ""]
@@ -67,10 +67,9 @@ ephemeral_cluster:
   template_defaults:
     # keep as you had; these are fallbacks if default_value is empty
     headnode_instance_type: "r7i.2xlarge"
-    fsx_fs_size: "7200"
+    fsx_fs_size: "4800"
     enable_detailed_monitoring: "false"
     delete_local_root: "true"
-    auto_delete_fsx: "Delete"
     heartbeat_schedule: "rate(60 minutes)"
     spot_instance_allocation_strategy: "price-capacity-optimized"
     slurm_accounting_enabled: "false"

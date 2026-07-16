@@ -1,0 +1,56 @@
+[
+  {
+    "command": "aws s3api get-bucket-location --bucket parallelcluster-4da281c1dc024f1c-v1-do-not-delete --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket parallelcluster-4da281c1dc024f1c-v1-do-not-delete --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket parallelcluster-4da281c1dc024f1c-v1-do-not-delete --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket parallelcluster-730cb6d53cf2deec-v1-do-not-delete --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket parallelcluster-730cb6d53cf2deec-v1-do-not-delete --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket parallelcluster-730cb6d53cf2deec-v1-do-not-delete --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket parallelcluster-e781c59d26140bab-v1-do-not-delete --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket parallelcluster-e781c59d26140bab-v1-do-not-delete --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket parallelcluster-e781c59d26140bab-v1-do-not-delete --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  }
+]

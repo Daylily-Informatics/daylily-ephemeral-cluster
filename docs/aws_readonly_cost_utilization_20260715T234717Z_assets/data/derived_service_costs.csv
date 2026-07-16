@@ -1,0 +1,11 @@
+rank,service,july_cost_usd,june_cost_usd,july_share_pct,july_daily_cost_usd
+1,Amazon Elastic Compute Cloud - Compute,11358.17,31617.02,55.08,811.3
+2,Amazon Simple Storage Service,3712.43,7008.04,18.0,265.17
+3,Amazon Relational Database Service,1635.9,4479.2,7.93,116.85
+4,Amazon FSx,1465.77,2395.89,7.11,104.7
+5,AWS Cost Explorer,632.11,386.83,3.07,45.15
+6,AWS Support (Developer),597.02,1407.35,2.9,42.64
+7,EC2 - Other,537.23,1035.16,2.61,38.37
+8,AWS Config,229.36,0.0,1.11,16.38
+9,AWS Security Hub,147.73,432.71,0.72,10.55
+10,Amazon Virtual Private Cloud,80.16,162.16,0.39,5.73

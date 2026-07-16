@@ -1,0 +1,148 @@
+{
+  "access_key": {
+    "AccessKeyId": "AKIARSU7KMWVZQF74B64",
+    "CreateDate": "2025-02-19T05:33:01Z",
+    "Status": "Active",
+    "UserName": "daylily-service"
+  },
+  "access_key_last_used": {
+    "LastUsedDate": "2026-07-16T01:07:00Z",
+    "Region": "us-west-2",
+    "ServiceName": "s3"
+  },
+  "billing_operation_totals": [
+    {
+      "cost_usd": 1.51,
+      "operation": "CostDataStorage",
+      "requests": 150520
+    },
+    {
+      "cost_usd": 630.48,
+      "operation": "GetCostAndUsage",
+      "requests": 63048
+    },
+    {
+      "cost_usd": 0.06,
+      "operation": "GetDimensionValues",
+      "requests": 6
+    },
+    {
+      "cost_usd": 0.04,
+      "operation": "GetTags",
+      "requests": 4
+    },
+    {
+      "cost_usd": 0.02,
+      "operation": "GetCostAndUsageWithResources",
+      "requests": 2
+    }
+  ],
+  "cloudtrail_sample": {
+    "end_exclusive": "2026-07-15",
+    "events": 1400,
+    "events_per_slice_limit": 25,
+    "slices": 56,
+    "start": "2026-07-01",
+    "top_caller_share_pct": 14.07,
+    "unique_callers": 52
+  },
+  "cloudtrail_trails": [
+    {
+      "CloudWatchLogsLogGroupArn": "arn:aws:logs:us-west-2:108782052779:log-group:/aws/cloudtrail/lsmc-org-trail:*",
+      "CloudWatchLogsRoleArn": "arn:aws:iam::108782052779:role/cloudtrail-to-cwlogs",
+      "HasCustomEventSelectors": true,
+      "HasInsightSelectors": false,
+      "HomeRegion": "us-west-2",
+      "IncludeGlobalServiceEvents": true,
+      "IsMultiRegionTrail": true,
+      "IsOrganizationTrail": true,
+      "KmsKeyId": "arn:aws:kms:us-west-2:030069488295:key/79d7691b-341c-4763-958b-581ff1fe5ca5",
+      "LogFileValidationEnabled": true,
+      "Name": "lsmc-cloudtrail",
+      "S3BucketName": "lsmc-cloudtrail-archive",
+      "TrailARN": "arn:aws:cloudtrail:us-west-2:108782052779:trail/lsmc-cloudtrail"
+    }
+  ],
+  "elastic_ip": {
+    "AllocationId": "eipalloc-04969423b36b3de9b",
+    "AssociationId": "eipassoc-089edc03e23917341",
+    "Domain": "vpc",
+    "InstanceId": "i-07df3a933e4839f52",
+    "NetworkBorderGroup": "us-west-2",
+    "NetworkInterfaceId": "eni-00d0d767fe52379a8",
+    "NetworkInterfaceOwnerId": "108782052779",
+    "PrivateIpAddress": "10.0.0.222",
+    "PublicIp": "52.89.110.76",
+    "PublicIpv4Pool": "amazon",
+    "Tags": [
+      {
+        "Key": "project",
+        "Value": "dayhoff-all"
+      },
+      {
+        "Key": "DNSName",
+        "Value": "day.lsmc.bio"
+      },
+      {
+        "Key": "Purpose",
+        "Value": "day.lsmc.bio-public-approved-ingress"
+      },
+      {
+        "Key": "Environment",
+        "Value": "lsmcok1"
+      },
+      {
+        "Key": "ServiceNamespace",
+        "Value": "day.lsmc.bio"
+      },
+      {
+        "Key": "Name",
+        "Value": "Dayhoff-lsmcok1-day-lsmc-bio-eip"
+      },
+      {
+        "Key": "Owner",
+        "Value": "platform"
+      },
+      {
+        "Key": "PublicService",
+        "Value": "day.lsmc.bio"
+      },
+      {
+        "Key": "Project",
+        "Value": "LSMC"
+      },
+      {
+        "Key": "System",
+        "Value": "dayhoff"
+      },
+      {
+        "Key": "project:dayhoff-day",
+        "Value": "true"
+      }
+    ]
+  },
+  "generated_at": "2026-07-16T01:07:59.458465Z",
+  "iam_user": {
+    "Arn": "arn:aws:iam::108782052779:user/daylily-service",
+    "CreateDate": "2025-02-19T05:20:27Z",
+    "PasswordLastUsed": "2025-02-19T07:14:50Z",
+    "Path": "/",
+    "UserId": "AIDARSU7KMWVUNDP2XZAM",
+    "UserName": "daylily-service"
+  },
+  "instance": {
+    "environment": "day",
+    "instance_id": "i-07df3a933e4839f52",
+    "instance_type": "t3.2xlarge",
+    "launch_time": "2026-06-02T13:59:00.000Z",
+    "name": "Dayhoff-day-Compute/Hostprimary",
+    "private_ip": "10.0.0.222",
+    "project": "LSMC",
+    "public_ip": "52.89.110.76",
+    "roles": "lsmc-oauth-login,atlas,bloom,ursa,dewey,qeo,zebra_day",
+    "service_dns": "",
+    "stack": "Dayhoff-day-Compute",
+    "state": "running"
+  },
+  "sample_source_ip": "52.89.110.76"
+}

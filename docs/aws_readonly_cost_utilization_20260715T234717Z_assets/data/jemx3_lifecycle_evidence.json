@@ -1,0 +1,528 @@
+{
+  "classification": [
+    {
+      "classification_evidence": "ParallelCluster absent; CloudFormation DELETE_COMPLETE at 2026-07-05T09:22:22.181Z",
+      "cloudformation_status": "DELETE_COMPLETE",
+      "cluster": "jemx3",
+      "cluster_exists": false,
+      "cluster_provider_status": "absent",
+      "compute_fleet_status": "",
+      "current_tagged_resource_count": 0,
+      "july_cost_usd": 4577.61,
+      "lifecycle_status": "deleted",
+      "region": "us-west-2"
+    }
+  ],
+  "cloudformation_history": [
+    {
+      "creation_time": "2026-06-21T02:48:21.912Z",
+      "deletion_time": "2026-07-05T09:22:22.181Z",
+      "last_updated_time": "",
+      "lifecycle_status": "deleted",
+      "region": "us-west-2",
+      "stack_id": "arn:aws:cloudformation:us-west-2:108782052779:stack/jemx3/aa87ff20-6d1b-11f1-8905-062667cba8dd",
+      "stack_name": "jemx3",
+      "stack_status": "DELETE_COMPLETE",
+      "status_reason": ""
+    }
+  ],
+  "current_cloudformation_error": "An error occurred (ValidationError) when calling the DescribeStacks operation: Stack with id jemx3 does not exist",
+  "current_cloudformation_stack": null,
+  "current_direct_inventory_resources": [],
+  "explicit_managed_fsx": {
+    "current_state": "absent",
+    "id": "fs-07fb3448c1cb30c1c"
+  },
+  "generated_at": "2026-07-16T00:45:33.101030Z",
+  "note": "Every tag-index entry is resolved by a current service-specific read where supported; tag-index presence alone is not treated as proof of existence.",
+  "parallelcluster_describe": null,
+  "parallelcluster_error": "",
+  "resolved_tag_index_entries": [
+    {
+      "classification_evidence": "absent from refreshed all-region EBS inventory; tag index entry is stale",
+      "exists": false,
+      "lifecycle_status": "deleted",
+      "resource_arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-0ac2c473b9345e199",
+      "resource_id": "vol-0ac2c473b9345e199"
+    },
+    {
+      "classification_evidence": "log group exists after owning cluster stack DELETE_COMPLETE",
+      "exists": true,
+      "lifecycle_status": "orphaned",
+      "resource_arn": "arn:aws:logs:us-west-2:108782052779:log-group:/aws/parallelcluster/jemx3-202606210248",
+      "resource_id": "jemx3-202606210248"
+    },
+    {
+      "classification_evidence": "absent from refreshed all-region EBS inventory; tag index entry is stale",
+      "exists": false,
+      "lifecycle_status": "deleted",
+      "resource_arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-016958bd2b46c1b14",
+      "resource_id": "vol-016958bd2b46c1b14"
+    },
+    {
+      "classification_evidence": "log group exists after owning cluster stack DELETE_COMPLETE",
+      "exists": true,
+      "lifecycle_status": "orphaned",
+      "resource_arn": "arn:aws:logs:us-west-2:108782052779:log-group:/aws/lambda/pcluster-CleanupRoute53-aa87ff20-6d1b-11f1-8905-062667cba8dd",
+      "resource_id": "pcluster-CleanupRoute53-aa87ff20-6d1b-11f1-8905-062667cba8dd"
+    },
+    {
+      "classification_evidence": "absent from refreshed all-region EBS inventory; tag index entry is stale",
+      "exists": false,
+      "lifecycle_status": "deleted",
+      "resource_arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-01d389f0209bf7b61",
+      "resource_id": "vol-01d389f0209bf7b61"
+    },
+    {
+      "classification_evidence": "FSx returned no current association; tag index entry is stale",
+      "exists": false,
+      "lifecycle_status": "deleted",
+      "resource_arn": "arn:aws:fsx:us-west-2:108782052779:association/fs-07fb3448c1cb30c1c/dra-0d46e9663035ad25c",
+      "resource_id": "dra-0d46e9663035ad25c"
+    },
+    {
+      "classification_evidence": "absent from refreshed all-region EBS inventory; tag index entry is stale",
+      "exists": false,
+      "lifecycle_status": "deleted",
+      "resource_arn": "arn:aws:ec2:us-west-2:108782052779:volume/vol-0f2aa99c6c27efcdc",
+      "resource_id": "vol-0f2aa99c6c27efcdc"
+    },
+    {
+      "classification_evidence": "log group exists after owning cluster stack DELETE_COMPLETE",
+      "exists": true,
+      "lifecycle_status": "orphaned",
+      "resource_arn": "arn:aws:logs:us-west-2:108782052779:log-group:/aws/lambda/pcluster-CleanupResources-aa87ff20-6d1b-11f1-8905-062667cba8dd",
+      "resource_id": "pcluster-CleanupResources-aa87ff20-6d1b-11f1-8905-062667cba8dd"
+    }
+  ],
+  "tag_index_entries": [
+    {
+      "ResourceARN": "arn:aws:ec2:us-west-2:108782052779:volume/vol-0ac2c473b9345e199",
+      "Tags": [
+        {
+          "Key": "aws-parallelcluster-daylily-git-deets",
+          "Value": "none"
+        },
+        {
+          "Key": "parallelcluster:version",
+          "Value": "3.15.0"
+        },
+        {
+          "Key": "aws-parallelcluster-enforce-budget",
+          "Value": "skip"
+        },
+        {
+          "Key": "aws-parallelcluster-jobid",
+          "Value": "aws_profile-lsmc"
+        },
+        {
+          "Key": "aws-parallelcluster-monitor-bucket",
+          "Value": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
+        },
+        {
+          "Key": "parallelcluster:compute-resource-name",
+          "Value": "price192hugenvme"
+        },
+        {
+          "Key": "parallelcluster:cluster-name",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws-parallelcluster-clustername",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "parallelcluster:node-type",
+          "Value": "Compute"
+        },
+        {
+          "Key": "aws-parallelcluster-project",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws-parallelcluster-username",
+          "Value": "jmajor-root"
+        },
+        {
+          "Key": "parallelcluster:queue-name",
+          "Value": "i192hugenvme"
+        }
+      ]
+    },
+    {
+      "ResourceARN": "arn:aws:logs:us-west-2:108782052779:log-group:/aws/parallelcluster/jemx3-202606210248",
+      "Tags": [
+        {
+          "Key": "aws-parallelcluster-daylily-git-deets",
+          "Value": "none"
+        },
+        {
+          "Key": "aws:cloudformation:stack-name",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "parallelcluster:version",
+          "Value": "3.15.0"
+        },
+        {
+          "Key": "aws-parallelcluster-enforce-budget",
+          "Value": "skip"
+        },
+        {
+          "Key": "aws-parallelcluster-jobid",
+          "Value": "aws_profile-lsmc"
+        },
+        {
+          "Key": "aws:cloudformation:stack-id",
+          "Value": "arn:aws:cloudformation:us-west-2:108782052779:stack/jemx3/aa87ff20-6d1b-11f1-8905-062667cba8dd"
+        },
+        {
+          "Key": "aws-parallelcluster-monitor-bucket",
+          "Value": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
+        },
+        {
+          "Key": "parallelcluster:cluster-name",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws-parallelcluster-clustername",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws:cloudformation:logical-id",
+          "Value": "CloudWatchLogGroup"
+        },
+        {
+          "Key": "aws-parallelcluster-project",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws-parallelcluster-username",
+          "Value": "jmajor-root"
+        }
+      ]
+    },
+    {
+      "ResourceARN": "arn:aws:ec2:us-west-2:108782052779:volume/vol-016958bd2b46c1b14",
+      "Tags": [
+        {
+          "Key": "aws-parallelcluster-daylily-git-deets",
+          "Value": "none"
+        },
+        {
+          "Key": "parallelcluster:version",
+          "Value": "3.15.0"
+        },
+        {
+          "Key": "aws-parallelcluster-enforce-budget",
+          "Value": "skip"
+        },
+        {
+          "Key": "aws-parallelcluster-jobid",
+          "Value": "aws_profile-lsmc"
+        },
+        {
+          "Key": "aws-parallelcluster-monitor-bucket",
+          "Value": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
+        },
+        {
+          "Key": "parallelcluster:compute-resource-name",
+          "Value": "price192hugenvme"
+        },
+        {
+          "Key": "parallelcluster:cluster-name",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws-parallelcluster-clustername",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "parallelcluster:node-type",
+          "Value": "Compute"
+        },
+        {
+          "Key": "aws-parallelcluster-project",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws-parallelcluster-username",
+          "Value": "jmajor-root"
+        },
+        {
+          "Key": "parallelcluster:queue-name",
+          "Value": "i192hugenvme"
+        }
+      ]
+    },
+    {
+      "ResourceARN": "arn:aws:logs:us-west-2:108782052779:log-group:/aws/lambda/pcluster-CleanupRoute53-aa87ff20-6d1b-11f1-8905-062667cba8dd",
+      "Tags": [
+        {
+          "Key": "aws-parallelcluster-daylily-git-deets",
+          "Value": "none"
+        },
+        {
+          "Key": "aws:cloudformation:stack-name",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "parallelcluster:version",
+          "Value": "3.15.0"
+        },
+        {
+          "Key": "aws-parallelcluster-enforce-budget",
+          "Value": "skip"
+        },
+        {
+          "Key": "aws-parallelcluster-jobid",
+          "Value": "aws_profile-lsmc"
+        },
+        {
+          "Key": "aws:cloudformation:stack-id",
+          "Value": "arn:aws:cloudformation:us-west-2:108782052779:stack/jemx3/aa87ff20-6d1b-11f1-8905-062667cba8dd"
+        },
+        {
+          "Key": "aws-parallelcluster-monitor-bucket",
+          "Value": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
+        },
+        {
+          "Key": "parallelcluster:cluster-name",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws-parallelcluster-clustername",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws:cloudformation:logical-id",
+          "Value": "CleanupRoute53FunctionLogGroup"
+        },
+        {
+          "Key": "aws-parallelcluster-project",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws-parallelcluster-username",
+          "Value": "jmajor-root"
+        }
+      ]
+    },
+    {
+      "ResourceARN": "arn:aws:ec2:us-west-2:108782052779:volume/vol-01d389f0209bf7b61",
+      "Tags": [
+        {
+          "Key": "aws-parallelcluster-daylily-git-deets",
+          "Value": "none"
+        },
+        {
+          "Key": "parallelcluster:version",
+          "Value": "3.15.0"
+        },
+        {
+          "Key": "aws-parallelcluster-enforce-budget",
+          "Value": "skip"
+        },
+        {
+          "Key": "aws-parallelcluster-jobid",
+          "Value": "aws_profile-lsmc"
+        },
+        {
+          "Key": "aws-parallelcluster-monitor-bucket",
+          "Value": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
+        },
+        {
+          "Key": "parallelcluster:compute-resource-name",
+          "Value": "price192hugenvme"
+        },
+        {
+          "Key": "parallelcluster:cluster-name",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws-parallelcluster-clustername",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "parallelcluster:node-type",
+          "Value": "Compute"
+        },
+        {
+          "Key": "aws-parallelcluster-project",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws-parallelcluster-username",
+          "Value": "jmajor-root"
+        },
+        {
+          "Key": "parallelcluster:queue-name",
+          "Value": "i192hugenvme"
+        }
+      ]
+    },
+    {
+      "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-07fb3448c1cb30c1c/dra-0d46e9663035ad25c",
+      "Tags": [
+        {
+          "Key": "aws:cloudformation:stack-name",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "parallelcluster:version",
+          "Value": "3.15.0"
+        },
+        {
+          "Key": "aws-parallelcluster-enforce-budget",
+          "Value": "skip"
+        },
+        {
+          "Key": "aws:cloudformation:stack-id",
+          "Value": "arn:aws:cloudformation:us-west-2:108782052779:stack/jemx3/aa87ff20-6d1b-11f1-8905-062667cba8dd"
+        },
+        {
+          "Key": "aws-parallelcluster-clustername",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws-parallelcluster-username",
+          "Value": "jmajor-root"
+        },
+        {
+          "Key": "Name",
+          "Value": "reference-data"
+        },
+        {
+          "Key": "aws-parallelcluster-daylily-git-deets",
+          "Value": "none"
+        },
+        {
+          "Key": "aws-parallelcluster-jobid",
+          "Value": "aws_profile-lsmc"
+        },
+        {
+          "Key": "aws-parallelcluster-monitor-bucket",
+          "Value": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
+        },
+        {
+          "Key": "parallelcluster:cluster-name",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws:cloudformation:logical-id",
+          "Value": "referencedataD48241ae41bef295"
+        },
+        {
+          "Key": "aws-parallelcluster-project",
+          "Value": "jemx3"
+        }
+      ]
+    },
+    {
+      "ResourceARN": "arn:aws:ec2:us-west-2:108782052779:volume/vol-0f2aa99c6c27efcdc",
+      "Tags": [
+        {
+          "Key": "aws-parallelcluster-daylily-git-deets",
+          "Value": "none"
+        },
+        {
+          "Key": "parallelcluster:version",
+          "Value": "3.15.0"
+        },
+        {
+          "Key": "aws-parallelcluster-enforce-budget",
+          "Value": "skip"
+        },
+        {
+          "Key": "aws-parallelcluster-jobid",
+          "Value": "aws_profile-lsmc"
+        },
+        {
+          "Key": "aws-parallelcluster-monitor-bucket",
+          "Value": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
+        },
+        {
+          "Key": "parallelcluster:compute-resource-name",
+          "Value": "price192nvme"
+        },
+        {
+          "Key": "parallelcluster:cluster-name",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws-parallelcluster-clustername",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "parallelcluster:node-type",
+          "Value": "Compute"
+        },
+        {
+          "Key": "aws-parallelcluster-project",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws-parallelcluster-username",
+          "Value": "jmajor-root"
+        },
+        {
+          "Key": "parallelcluster:queue-name",
+          "Value": "i192nvme"
+        }
+      ]
+    },
+    {
+      "ResourceARN": "arn:aws:logs:us-west-2:108782052779:log-group:/aws/lambda/pcluster-CleanupResources-aa87ff20-6d1b-11f1-8905-062667cba8dd",
+      "Tags": [
+        {
+          "Key": "aws-parallelcluster-daylily-git-deets",
+          "Value": "none"
+        },
+        {
+          "Key": "aws:cloudformation:stack-name",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "parallelcluster:version",
+          "Value": "3.15.0"
+        },
+        {
+          "Key": "aws-parallelcluster-enforce-budget",
+          "Value": "skip"
+        },
+        {
+          "Key": "aws-parallelcluster-jobid",
+          "Value": "aws_profile-lsmc"
+        },
+        {
+          "Key": "aws:cloudformation:stack-id",
+          "Value": "arn:aws:cloudformation:us-west-2:108782052779:stack/jemx3/aa87ff20-6d1b-11f1-8905-062667cba8dd"
+        },
+        {
+          "Key": "aws-parallelcluster-monitor-bucket",
+          "Value": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
+        },
+        {
+          "Key": "parallelcluster:cluster-name",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws-parallelcluster-clustername",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws:cloudformation:logical-id",
+          "Value": "CleanupResourcesFunctionLogGroup"
+        },
+        {
+          "Key": "aws-parallelcluster-project",
+          "Value": "jemx3"
+        },
+        {
+          "Key": "aws-parallelcluster-username",
+          "Value": "jmajor-root"
+        }
+      ]
+    }
+  ]
+}

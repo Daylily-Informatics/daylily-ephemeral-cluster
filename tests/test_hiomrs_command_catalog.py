@@ -45,7 +45,7 @@ def test_hiomrs_catalog_entry_is_serial_native_dyr_and_mirrored() -> None:
     assert command.compatible_platforms == ["ILMN", "ONT"]
     assert command.compatible_cluster_types == ["sentieon-single"]
     assert command.compatible_data_modes == ["hybrid_ilmn_ont"]
-    assert command.git_tag == "11.0.10"
+    assert command.git_tag == "11.0.11"
     assert command.validated_version == "11.0.7"
     assert command.input_requirements.accepted_source_column_sets == [
         [
@@ -95,7 +95,7 @@ def test_hiomrs_kitchensink_preserves_hiomr_adjunct_targets() -> None:
     assert command.snv_callers == ["hiomrs"]
     assert command.sv_callers == ["tiddit"]
     assert command.compatible_cluster_types == ["sentieon-single"]
-    assert command.git_tag == "11.0.10"
+    assert command.git_tag == "11.0.11"
     assert command.validated_version == "11.0.7"
     assert command.dy_command.startswith("dy-r produce_hiomrs ")
     assert command.dryrun_dy_command == f"{command.dy_command} -n"

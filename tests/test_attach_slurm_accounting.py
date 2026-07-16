@@ -129,12 +129,12 @@ def test_default_templates_disable_slurm_accounting() -> None:
         )
 
 
-def test_default_templates_use_explicit_persistent2_storage() -> None:
+def test_default_templates_prompt_for_fsx_storage_selection() -> None:
     root = Path(__file__).resolve().parents[1]
     expected = {
-        "fsx_fs_size": ["USESETVALUE", "", "4800"],
-        "fsx_deployment_type": ["USESETVALUE", "", "PERSISTENT_2"],
-        "fsx_throughput_mbps_per_tib": ["USESETVALUE", "", "250"],
+        "fsx_fs_size": ["PROMPTUSER", "4800", ""],
+        "fsx_deployment_type": ["PROMPTUSER", "PERSISTENT_2", ""],
+        "fsx_throughput_mbps_per_tib": ["PROMPTUSER", "250", ""],
         "fsx_lustre_version": ["USESETVALUE", "", "2.15"],
         "fsx_metadata_mode": ["USESETVALUE", "", "AUTOMATIC"],
         "fsx_encryption_mode": ["USESETVALUE", "", "AWS_MANAGED_FSX"],

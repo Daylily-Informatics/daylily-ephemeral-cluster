@@ -1,0 +1,19 @@
+{
+  "Indexes": [
+    {
+      "Arn": "arn:aws:resource-explorer-2:us-east-1:108782052779:index/fc2c1bde-2844-4c8f-a615-f6aff62cb092",
+      "Region": "us-east-1",
+      "Type": "LOCAL"
+    },
+    {
+      "Arn": "arn:aws:resource-explorer-2:us-east-2:108782052779:index/1411c42b-b95b-4a52-ad20-9eb44eb9b35d",
+      "Region": "us-east-2",
+      "Type": "LOCAL"
+    },
+    {
+      "Arn": "arn:aws:resource-explorer-2:us-west-2:108782052779:index/8f125913-4b04-40f7-a603-0de0e8944087",
+      "Region": "us-west-2",
+      "Type": "LOCAL"
+    }
+  ]
+}

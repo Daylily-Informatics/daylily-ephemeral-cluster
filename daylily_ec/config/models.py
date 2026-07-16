@@ -98,7 +98,6 @@ class ConfigFile(BaseModel):
 
 REQUIRED_CONFIG_KEYS: list[str] = [
     "allowed_budget_users",
-    "auto_delete_fsx",
     "budget_amount",
     "budget_email",
     "cluster_name",
@@ -161,6 +160,7 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "slurm_accounting_instance_type",
     "spot_instance_allocation_strategy",
     "sweep_protection_tag",
+    "ursa_root_url",
 ]
 
 

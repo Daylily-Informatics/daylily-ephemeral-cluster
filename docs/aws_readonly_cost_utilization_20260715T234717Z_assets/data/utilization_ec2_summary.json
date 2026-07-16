@@ -1,0 +1,16 @@
+{
+  "command_count": 35,
+  "command_error_count": 0,
+  "ec2_resource_id_cost_usd": 8070.950857634698,
+  "ec2_service_mtd_cost_usd": 11358.1698758969,
+  "regions": [
+    "us-east-1",
+    "us-west-2"
+  ],
+  "resource_id_coverage_pct": 71.06,
+  "sampled_ids_with_cpu": 99,
+  "sampled_ids_with_metadata": 99,
+  "sampled_instance_cost_usd": 4564.050034004003,
+  "sampled_service_cost_coverage_pct": 40.18,
+  "top_n": 100
+}

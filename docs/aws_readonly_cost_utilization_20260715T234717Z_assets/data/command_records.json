@@ -1,0 +1,3848 @@
+[
+  {
+    "command": "aws sts get-caller-identity --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-regions --all-regions --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 list-indexes --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ce get-cost-and-usage --time-period Start=2026-06-01,End=2026-07-15 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=SERVICE --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ce get-cost-and-usage --time-period Start=2026-06-01,End=2026-07-15 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=SERVICE Type=DIMENSION,Key=USAGE_TYPE --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ce get-cost-and-usage --time-period Start=2026-06-01,End=2026-07-15 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=SERVICE Type=DIMENSION,Key=REGION --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ce get-cost-and-usage --time-period Start=2026-07-01,End=2026-07-15 --granularity MONTHLY --metrics UnblendedCost --filter {\"Dimensions\":{\"Key\":\"SERVICE\",\"Values\":[\"Amazon Elastic Compute Cloud - Compute\"]}} --group-by Type=TAG,Key=parallelcluster:cluster-name Type=DIMENSION,Key=PURCHASE_TYPE --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ce get-cost-and-usage-with-resources --time-period Start=2026-07-01,End=2026-07-15 --granularity DAILY --metrics UnblendedCost --filter {\"Dimensions\":{\"Key\":\"SERVICE\",\"Values\":[\"Amazon Elastic Compute Cloud - Compute\",\"EC2 - Other\",\"Amazon FSx\",\"Amazon Relational Database Service\",\"Amazon Simple Storage Service\",\"Amazon Virtual Private Cloud\",\"Amazon Elastic Load Balancing\"]}} --group-by Type=DIMENSION,Key=SERVICE Type=DIMENSION,Key=RESOURCE_ID --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region af-south-1 --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region af-south-1 --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region af-south-1 --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region af-south-1 --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region af-south-1 --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region af-south-1 --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region af-south-1 --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region af-south-1 --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region af-south-1 --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region ap-east-1 --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region ap-east-1 --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region ap-east-1 --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region ap-east-1 --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region ap-east-1 --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region ap-east-1 --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region ap-east-1 --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region ap-east-1 --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region ap-east-1 --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region ap-northeast-1 --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region ap-northeast-1 --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region ap-northeast-1 --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region ap-northeast-1 --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region ap-northeast-1 --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region ap-northeast-1 --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region ap-northeast-1 --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region ap-northeast-1 --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region ap-northeast-1 --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region ap-northeast-2 --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region ap-northeast-2 --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region ap-northeast-2 --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region ap-northeast-2 --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region ap-northeast-2 --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region ap-northeast-2 --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region ap-northeast-2 --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region ap-northeast-2 --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region ap-northeast-2 --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region ap-northeast-3 --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region ap-northeast-3 --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region ap-northeast-3 --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region ap-northeast-3 --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region ap-northeast-3 --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region ap-northeast-3 --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region ap-northeast-3 --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region ap-northeast-3 --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region ap-northeast-3 --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region ap-south-2 --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region ap-south-2 --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region ap-south-2 --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region ap-south-2 --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region ap-south-2 --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region ap-south-2 --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region ap-south-2 --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region ap-south-2 --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region ap-south-2 --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region ap-southeast-1 --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region ap-southeast-1 --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region ap-southeast-1 --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region ap-southeast-1 --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region ap-southeast-1 --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region ap-southeast-1 --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region ap-southeast-1 --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region ap-southeast-1 --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region ap-southeast-1 --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region ap-southeast-2 --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region ap-southeast-2 --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region ap-southeast-2 --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region ap-southeast-2 --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region ap-southeast-2 --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region ap-southeast-2 --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region ap-southeast-2 --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region ap-southeast-2 --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region ap-southeast-2 --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region ap-southeast-3 --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region ap-southeast-3 --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region ap-southeast-3 --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region ap-southeast-3 --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region ap-southeast-3 --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region ap-southeast-3 --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region ap-southeast-3 --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region ap-southeast-3 --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region ap-southeast-3 --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region ca-central-1 --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region ca-central-1 --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region ca-central-1 --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region ca-central-1 --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region ca-central-1 --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region ca-central-1 --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region ca-central-1 --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region ca-central-1 --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region ca-central-1 --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region eu-north-1 --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region eu-north-1 --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region eu-north-1 --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region eu-north-1 --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region eu-north-1 --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region eu-north-1 --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region eu-north-1 --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region eu-north-1 --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region eu-north-1 --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region eu-west-1 --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region eu-west-1 --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region eu-west-1 --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region eu-west-1 --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region eu-west-1 --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region eu-west-1 --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region eu-west-1 --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region eu-west-1 --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region eu-west-1 --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region eu-west-2 --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region eu-west-2 --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region eu-west-2 --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region eu-west-2 --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region eu-west-2 --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region eu-west-2 --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region eu-west-2 --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region eu-west-2 --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region eu-west-2 --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region eu-west-3 --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region eu-west-3 --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region eu-west-3 --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region eu-west-3 --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region eu-west-3 --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region eu-west-3 --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region eu-west-3 --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region eu-west-3 --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region eu-west-3 --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region sa-east-1 --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region sa-east-1 --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region sa-east-1 --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region sa-east-1 --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region sa-east-1 --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region sa-east-1 --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region sa-east-1 --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region sa-east-1 --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region sa-east-1 --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:db:auruse1-writer --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:db:dev-writer --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:cluster:auruse1 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:cluster:dev --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-tags --resource-arns arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-1:108782052779:db:marvain-cleanroom-20260712t111914z-aurorainstance-mm1jm67x6662 --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-1:108782052779:cluster:marvain-cleanroom-20260712t111914z-auroracluster-zvttosvsa7o9 --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-volumes --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-snapshots --owner-ids self --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-nat-gateways --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws fsx describe-file-systems --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-instances --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-rehearsal-20260702t104009z-writer --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-rehearsal-20260702t111435z-writer --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-rehearsal-20260702t113340z-writer --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-rehearsal-20260702t121558z-writer --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-rehearsal-20260702t124007z-writer --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:day-ursa-rehearsal-20260710t0402z-writer --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dev-writer --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:lsmc-mvp-aquarium-db --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:lsmc-mvpv1-db-writer-1 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:staging-writer --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds describe-db-clusters --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-lsmcok1-tapdb --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-lsmcok1-tapdb-rehearsal-20260702t104009z --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-lsmcok1-tapdb-rehearsal-20260702t111435z --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-lsmcok1-tapdb-rehearsal-20260702t113340z --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-lsmcok1-tapdb-rehearsal-20260702t121558z --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-lsmcok1-tapdb-rehearsal-20260702t124007z --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-lsmcq7-tapdb --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:day-ursa-rehearsal-20260710t0402z --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:labcore-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:lsmc-mvpv1-db --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:staging --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-load-balancers --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-tags --resource-arns arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-tags --resource-arns arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/terrarium-dev-internal-api/dd105d658089a82a --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-tags --resource-arns arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/terrarium-prod-internal-api/1a28c6e51ad0f2bf --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws elbv2 describe-tags --resource-arns arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-v1-labcore-alb/b4cb84436abceb38 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api list-buckets --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket aquarium-tfstate-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket aquarium-tfstate-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket aquarium-tfstate-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket aquarium-tfstate-prod --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket aquarium-tfstate-prod --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket aquarium-tfstate-prod --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket asterism-note-screenshots-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket asterism-note-screenshots-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket asterism-note-screenshots-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket aws-sam-cli-managed-default-samclisourcebucket-nr7kmk76fofd --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket aws-sam-cli-managed-default-samclisourcebucket-nr7kmk76fofd --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket aws-sam-cli-managed-default-samclisourcebucket-nr7kmk76fofd --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket cdk-hnb659fds-assets-108782052779-us-east-1 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket cdk-hnb659fds-assets-108782052779-us-east-1 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket cdk-hnb659fds-assets-108782052779-us-east-1 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket cdk-hnb659fds-assets-108782052779-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket cdk-hnb659fds-assets-108782052779-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket cdk-hnb659fds-assets-108782052779-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket cf-templates-pfrobpqqun1c-us-east-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket cf-templates-pfrobpqqun1c-us-east-2 --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket cf-templates-pfrobpqqun1c-us-east-2 --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket dayec-cur-108782052779-us-east-1 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket dayec-cur-108782052779-us-east-1 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket dayec-cur-108782052779-us-east-1 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket daylily-customer-lsmc-a0477268 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket daylily-customer-lsmc-a0477268 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket daylily-customer-lsmc-a0477268 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-atlas-demo --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-atlas-demo --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-atlas-demo --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-atlas-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-atlas-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-atlas-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-aws-config-108782052779 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-aws-config-108782052779 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-aws-config-108782052779 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-bio-oauth-static-site-108782052779-us-east-1 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-bio-oauth-static-site-108782052779-us-east-1 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-bio-oauth-static-site-108782052779-us-east-1 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-copy-ultimagen-lsmc-cro-316 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-copy-ultimagen-lsmc-cro-316 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-copy-ultimagen-lsmc-cro-316 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-datalake-raw-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-datalake-raw-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-datalake-raw-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-dayoa-analysis-results-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-analysis-results-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-analysis-results-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-dayoa-control-data-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-control-data-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-control-data-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-dayoa-omics-analysis-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-omics-analysis-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-omics-analysis-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-dayoa-references-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-references-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-references-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-dayoa-runtime-assets-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-runtime-assets-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-runtime-assets-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-dayoa-staging-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-staging-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-staging-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-dewey-0 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-dewey-0 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dewey-0 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-docs-public-108782052779-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-docs-public-108782052779-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-docs-public-108782052779-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-healthomics-failiover --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-healthomics-failiover --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-healthomics-failiover --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-healthomics-results --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-healthomics-results --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-healthomics-results --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-illumina-public-data --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-illumina-public-data --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-illumina-public-data --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-meridian-governance-registry --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-meridian-governance-registry --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-meridian-governance-registry --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-mvp-v1-event-sink-raw-108782052779-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-mvp-v1-event-sink-raw-108782052779-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-mvp-v1-event-sink-raw-108782052779-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-mvp-v1-labcore-ui-108782052779-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-mvp-v1-labcore-ui-108782052779-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-mvp-v1-labcore-ui-108782052779-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-public-ont-data --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-public-ont-data --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-public-ont-data --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-ssf-sequencing-data --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-ssf-sequencing-data --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-ssf-sequencing-data --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-terraform-state --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-terraform-state --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-terraform-state --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-twenty-prod-storage --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-twenty-prod-storage --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-twenty-prod-storage --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket lsmc-ursa-customers-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket lsmc-ursa-customers-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-ursa-customers-usw2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket marvain-cleanroom-20260712t103857z-artifactbucket-mecojkek5eps --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket marvain-cleanroom-20260712t103857z-artifactbucket-mecojkek5eps --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket marvain-cleanroom-20260712t103857z-artifactbucket-mecojkek5eps --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket marvain-cleanroom-20260712t103857z-auditbucket-yl3kufkgfdie --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket marvain-cleanroom-20260712t103857z-auditbucket-yl3kufkgfdie --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket marvain-cleanroom-20260712t103857z-auditbucket-yl3kufkgfdie --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket marvain-cleanroom-20260712t111914z-artifactbucket-qkwenuto9bbo --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket marvain-cleanroom-20260712t111914z-artifactbucket-qkwenuto9bbo --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket marvain-cleanroom-20260712t111914z-artifactbucket-qkwenuto9bbo --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket marvain-cleanroom-20260712t111914z-auditbucket-wvcw5pjxz1kj --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket marvain-cleanroom-20260712t111914z-auditbucket-wvcw5pjxz1kj --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket marvain-cleanroom-20260712t111914z-auditbucket-wvcw5pjxz1kj --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket marvain-cleanroom-20260712t111914z-packagingbucket-bccev8bwblrl --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket marvain-cleanroom-20260712t111914z-packagingbucket-bccev8bwblrl --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket marvain-cleanroom-20260712t111914z-packagingbucket-bccev8bwblrl --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket parallelcluster-4da281c1dc024f1c-v1-do-not-delete --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket parallelcluster-4da281c1dc024f1c-v1-do-not-delete --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket parallelcluster-4da281c1dc024f1c-v1-do-not-delete --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket parallelcluster-730cb6d53cf2deec-v1-do-not-delete --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket parallelcluster-730cb6d53cf2deec-v1-do-not-delete --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket parallelcluster-730cb6d53cf2deec-v1-do-not-delete --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket parallelcluster-e781c59d26140bab-v1-do-not-delete --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket parallelcluster-e781c59d26140bab-v1-do-not-delete --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket parallelcluster-e781c59d26140bab-v1-do-not-delete --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket terrarium-dev-media --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket terrarium-dev-media --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-dev-media --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket terrarium-dev-web --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket terrarium-dev-web --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-dev-web --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket terrarium-prod-media --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket terrarium-prod-media --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-prod-media --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket terrarium-prod-web --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket terrarium-prod-web --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-prod-web --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket terrarium-tfstate-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket terrarium-tfstate-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-tfstate-dev --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket terrarium-tfstate-prod --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket terrarium-tfstate-prod --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-tfstate-prod --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket ursa-us-west-2-052779-default-customer-1d8c14 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket ursa-us-west-2-052779-default-customer-1d8c14 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket ursa-us-west-2-052779-default-customer-1d8c14 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws s3api get-bucket-location --bucket zebra-day-cfg-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-tagging --bucket zebra-day-cfg-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws s3api get-bucket-lifecycle-configuration --bucket zebra-day-cfg-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:ec2 tag:none --max-results 1000 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:fsx tag:none --max-results 1000 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:rds tag:none --max-results 1000 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:s3 tag:none --max-results 1000 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:elasticloadbalancing tag:none --max-results 1000 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:ecs tag:none --max-results 1000 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:ecr tag:none --max-results 1000 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:lambda tag:none --max-results 1000 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:dynamodb tag:none --max-results 1000 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:logs tag:none --max-results 1000 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:cloudformation tag:none --max-results 1000 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:ec2 tag:none --max-results 1000 --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:fsx tag:none --max-results 1000 --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:rds tag:none --max-results 1000 --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:s3 tag:none --max-results 1000 --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:elasticloadbalancing tag:none --max-results 1000 --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:ecs tag:none --max-results 1000 --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:ecr tag:none --max-results 1000 --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:lambda tag:none --max-results 1000 --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:dynamodb tag:none --max-results 1000 --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:logs tag:none --max-results 1000 --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:cloudformation tag:none --max-results 1000 --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:ec2 tag:none --max-results 1000 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:fsx tag:none --max-results 1000 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:rds tag:none --max-results 1000 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:s3 tag:none --max-results 1000 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:elasticloadbalancing tag:none --max-results 1000 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:ecs tag:none --max-results 1000 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:ecr tag:none --max-results 1000 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:lambda tag:none --max-results 1000 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:dynamodb tag:none --max-results 1000 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:logs tag:none --max-results 1000 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws resource-explorer-2 search --query-string service:cloudformation tag:none --max-results 1000 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-05f85018216cac061\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-05f85018216cac061\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-05f85018216cac061\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-05f85018216cac061\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-01dc061291fc51e75\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-01dc061291fc51e75\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-01dc061291fc51e75\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-01dc061291fc51e75\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0ec6ae9605269bef4\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0ec6ae9605269bef4\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0ec6ae9605269bef4\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0ec6ae9605269bef4\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0a2bfbfedf38f8e87\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0a2bfbfedf38f8e87\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0a2bfbfedf38f8e87\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0a2bfbfedf38f8e87\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0aa3f5a0f5cdca9a0\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0aa3f5a0f5cdca9a0\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0aa3f5a0f5cdca9a0\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0dba752186e34e08c\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0dba752186e34e08c\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0dba752186e34e08c\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0392bc7824a1e81e8\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0392bc7824a1e81e8\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0392bc7824a1e81e8\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0b99a6dcae2700982\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0b99a6dcae2700982\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0b99a6dcae2700982\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0f2da5c82d0de1378\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0f2da5c82d0de1378\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0f2da5c82d0de1378\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-00cbb7ba932dbd3a4\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-00cbb7ba932dbd3a4\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-00cbb7ba932dbd3a4\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-09454929e2c583ae7\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-09454929e2c583ae7\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-09454929e2c583ae7\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0f9efeb41e207d738\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0f9efeb41e207d738\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0f9efeb41e207d738\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-014b3f723fb89dc63\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-014b3f723fb89dc63\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-014b3f723fb89dc63\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-089a96601cfd34f9d\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-089a96601cfd34f9d\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-089a96601cfd34f9d\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-089a96601cfd34f9d\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"auruse1-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"auruse1-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"auruse1-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dev-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dev-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dev-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"marvain-cleanroom-20260712t111914z-aurorainstance-mm1jm67x6662\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"marvain-cleanroom-20260712t111914z-aurorainstance-mm1jm67x6662\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"marvain-cleanroom-20260712t111914z-aurorainstance-mm1jm67x6662\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0b6a14b3d2c01264d\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0b6a14b3d2c01264d\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0b6a14b3d2c01264d\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0c69ba6b467620e14\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0c69ba6b467620e14\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0c69ba6b467620e14\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0b7d761ed76450175\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0b7d761ed76450175\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0b7d761ed76450175\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-08a142d0b31d6421f\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-08a142d0b31d6421f\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-08a142d0b31d6421f\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0746a2cbb0acde1dd\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0746a2cbb0acde1dd\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0746a2cbb0acde1dd\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0ea36895cc2b979ac\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0ea36895cc2b979ac\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0ea36895cc2b979ac\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0a9b1584b5615fbab\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0a9b1584b5615fbab\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0a9b1584b5615fbab\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0010b6198473d835d\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0010b6198473d835d\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0010b6198473d835d\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0b481de207f5b19f1\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0b481de207f5b19f1\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0b481de207f5b19f1\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-04646998d6f1fd325\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-04646998d6f1fd325\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-04646998d6f1fd325\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0c26833469cf6995a\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0c26833469cf6995a\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0c26833469cf6995a\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0b98b1e8d330cca41\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0b98b1e8d330cca41\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0b98b1e8d330cca41\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-058ff9cb50fa7eef5\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-058ff9cb50fa7eef5\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-058ff9cb50fa7eef5\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-012139e706da23d83\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-012139e706da23d83\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-012139e706da23d83\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeIdleTime --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0af8f94e0cd058ddf\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeReadOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0af8f94e0cd058ddf\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/EBS --metric-name VolumeWriteOps --dimensions [{\"Name\": \"VolumeId\", \"Value\": \"vol-0af8f94e0cd058ddf\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-00f3c26e43ede9b10\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-00f3c26e43ede9b10\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-00f3c26e43ede9b10\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-00f3c26e43ede9b10\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-00246c8ef3b9087f1\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-00246c8ef3b9087f1\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-00246c8ef3b9087f1\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-00246c8ef3b9087f1\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-00ac08b685fea726f\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-00ac08b685fea726f\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-00ac08b685fea726f\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-00ac08b685fea726f\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0234e77781575cced\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0234e77781575cced\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0234e77781575cced\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0234e77781575cced\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0e8d177db491d4430\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesInFromSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0e8d177db491d4430\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToDestination --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0e8d177db491d4430\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/NATGateway --metric-name BytesOutToSource --dimensions [{\"Name\": \"NatGatewayId\", \"Value\": \"nat-0e8d177db491d4430\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataReadBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0cd9acb3fd03d986f\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataWriteBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0cd9acb3fd03d986f\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name MetadataOperations --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0cd9acb3fd03d986f\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name FreeDataStorageCapacity --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0cd9acb3fd03d986f\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataReadBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-09ebdfb22257cea27\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataWriteBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-09ebdfb22257cea27\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name MetadataOperations --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-09ebdfb22257cea27\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name FreeDataStorageCapacity --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-09ebdfb22257cea27\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataReadBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-006b74a47b7602930\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataWriteBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-006b74a47b7602930\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name MetadataOperations --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-006b74a47b7602930\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name FreeDataStorageCapacity --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-006b74a47b7602930\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataReadBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0e8434a86af264b29\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataWriteBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0e8434a86af264b29\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name MetadataOperations --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0e8434a86af264b29\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name FreeDataStorageCapacity --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0e8434a86af264b29\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataReadBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0cc0657362d4140c2\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataWriteBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0cc0657362d4140c2\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name MetadataOperations --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0cc0657362d4140c2\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name FreeDataStorageCapacity --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0cc0657362d4140c2\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"aquarium-dev-db\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"aquarium-dev-db\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"aquarium-dev-db\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-rehearsal-20260702t104009z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-rehearsal-20260702t104009z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-rehearsal-20260702t104009z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-rehearsal-20260702t111435z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-rehearsal-20260702t111435z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-rehearsal-20260702t111435z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-rehearsal-20260702t113340z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-rehearsal-20260702t113340z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-rehearsal-20260702t113340z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-rehearsal-20260702t121558z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-rehearsal-20260702t121558z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-rehearsal-20260702t121558z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-rehearsal-20260702t124007z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-rehearsal-20260702t124007z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-rehearsal-20260702t124007z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcok1-tapdb-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcq7-tapdb-reader-api\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcq7-tapdb-reader-api\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcq7-tapdb-reader-api\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcq7-tapdb-reader-ha\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcq7-tapdb-reader-ha\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcq7-tapdb-reader-ha\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcq7-tapdb-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcq7-tapdb-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dayhoff-lsmcq7-tapdb-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"day-ursa-rehearsal-20260710t0402z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"day-ursa-rehearsal-20260710t0402z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"day-ursa-rehearsal-20260710t0402z-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dev-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dev-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"dev-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"labcore-dev-instance-1\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"labcore-dev-instance-1\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"labcore-dev-instance-1\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"lsmc-mvp-aquarium-db\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"lsmc-mvp-aquarium-db\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"lsmc-mvp-aquarium-db\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"lsmc-mvpv1-db-writer-1\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"lsmc-mvpv1-db-writer-1\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"lsmc-mvpv1-db-writer-1\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"staging-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"staging-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"staging-writer\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"terrarium-dev-db\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"terrarium-dev-db\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"terrarium-dev-db\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name CPUUtilization --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"terrarium-prod-db\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name DatabaseConnections --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"terrarium-prod-db\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/RDS --metric-name FreeableMemory --dimensions [{\"Name\": \"DBInstanceIdentifier\", \"Value\": \"terrarium-prod-db\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region af-south-1 --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region ap-east-1 --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region ap-northeast-1 --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region ap-northeast-2 --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region ap-northeast-3 --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region ap-south-1 --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region ap-south-2 --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region ap-southeast-1 --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region ap-southeast-2 --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region ap-southeast-3 --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region ca-central-1 --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region eu-central-1 --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region eu-north-1 --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region eu-west-1 --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region eu-west-2 --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region eu-west-3 --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region sa-east-1 --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region us-east-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region us-east-2 --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region us-west-1 --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"bytes\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"BucketSizeBytes\\\"', 'Average', 86400)\", \"ReturnData\": true}, {\"Id\": \"objects\", \"Expression\": \"SEARCH('{AWS/S3,BucketName,StorageType} MetricName=\\\"NumberOfObjects\\\"', 'Average', 86400)\", \"ReturnData\": true}] --start-time 2026-07-13T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampDescending --max-datapoints 100800 --profile lsmc --region us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  }
+]

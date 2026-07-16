@@ -1,0 +1,40 @@
+{
+  "account_id": "108782052779",
+  "billed_unique_identifiers": 3457,
+  "cloudformation_lifecycle_counts": {
+    "active": 57,
+    "deleted": 353,
+    "exception": 2,
+    "exception_recovered": 5,
+    "provisioning_or_updating": 2
+  },
+  "cloudformation_stack_rows": 419,
+  "cluster_lifecycle_counts": {
+    "active": 1,
+    "deleted": 44,
+    "provisioning_or_updating": 1,
+    "unresolved": 1
+  },
+  "cluster_rows": 47,
+  "command_count": 435,
+  "command_error_count": 74,
+  "current_inventory_rows": 196,
+  "enabled_regions": 21,
+  "exception_orphan_rows": 5,
+  "generated_at": "2026-07-16T00:45:33.101030Z",
+  "lifecycle_counts": {
+    "active": 178,
+    "deleted": 3199,
+    "deleting": 1,
+    "orphaned": 3,
+    "stopped": 10,
+    "unresolved": 77
+  },
+  "lifecycle_resource_rows": 3468,
+  "parallelcluster_unsupported_regions": [
+    "ap-northeast-3",
+    "ap-south-2"
+  ],
+  "profile": "lsmc",
+  "read_only_command_verification": "passed"
+}

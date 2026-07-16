@@ -1,0 +1,631 @@
+{
+  "DimensionValueAttributes": [],
+  "GroupDefinitions": [
+    {
+      "Key": "OPERATION",
+      "Type": "DIMENSION"
+    }
+  ],
+  "ResultsByTime": [
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.115816129",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "11581.6129032258",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "22.58",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "2258",
+              "Unit": "N/A"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-02",
+        "Start": "2026-07-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1189577419",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "11895.7741935484",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "12.88",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "1288",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetDimensionValues"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.06",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "6",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetTags"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.02",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "2",
+              "Unit": "N/A"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-03",
+        "Start": "2026-07-02"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1166809677",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "11668.0967741936",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "38.79",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "3879",
+              "Unit": "N/A"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-04",
+        "Start": "2026-07-03"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1148280645",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "11482.8064516129",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "45.17",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "4517",
+              "Unit": "N/A"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-05",
+        "Start": "2026-07-04"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1125467742",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "11254.6774193548",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "43.54",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "4354",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsageWithResources"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.02",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "2",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetTags"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.02",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "2",
+              "Unit": "N/A"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-06",
+        "Start": "2026-07-05"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1100135484",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "11001.3548387097",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "43.36",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "4336",
+              "Unit": "N/A"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-07",
+        "Start": "2026-07-06"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.107676129",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "10767.6129032258",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "43.2",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "4320",
+              "Unit": "N/A"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-08",
+        "Start": "2026-07-07"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1061232258",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "10612.3225806452",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "47.02",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "4702",
+              "Unit": "N/A"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-09",
+        "Start": "2026-07-08"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1045916129",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "10459.1612903226",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "46.23",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "4623",
+              "Unit": "N/A"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-10",
+        "Start": "2026-07-09"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1028803226",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "10288.0322580645",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "46.27",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "4627",
+              "Unit": "N/A"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-11",
+        "Start": "2026-07-10"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1014225806",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "10142.2580645161",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "44.4",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "4440",
+              "Unit": "N/A"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-12",
+        "Start": "2026-07-11"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0991319355",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "9913.1935483871",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "45.6",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "4560",
+              "Unit": "N/A"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-13",
+        "Start": "2026-07-12"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0976874194",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "9768.7419354839",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "66.09",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "6609",
+              "Unit": "N/A"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-14",
+        "Start": "2026-07-13"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "CostDataStorage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0968445161",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "9684.4516129032",
+              "Unit": "N/A"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "GetCostAndUsage"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "85.35",
+              "Unit": "USD"
+            },
+            "UsageQuantity": {
+              "Amount": "8535",
+              "Unit": "N/A"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-15",
+        "Start": "2026-07-14"
+      },
+      "Total": {}
+    }
+  ]
+}

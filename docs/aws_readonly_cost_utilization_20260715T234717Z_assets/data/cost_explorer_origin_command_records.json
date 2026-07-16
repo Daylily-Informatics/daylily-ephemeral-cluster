@@ -1,0 +1,443 @@
+[
+  {
+    "command": "aws ce get-cost-and-usage --time-period Start=2026-07-01,End=2026-07-15 --granularity DAILY --metrics UnblendedCost UsageQuantity --filter {\"Dimensions\":{\"Key\":\"SERVICE\",\"Values\":[\"AWS Cost Explorer\"]}} --group-by Type=DIMENSION,Key=OPERATION --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-01T00:00:00Z --end-time 2026-07-01T06:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-01T06:00:00Z --end-time 2026-07-01T12:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-01T12:00:00Z --end-time 2026-07-01T18:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-01T18:00:00Z --end-time 2026-07-02T00:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-02T00:00:00Z --end-time 2026-07-02T06:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-02T06:00:00Z --end-time 2026-07-02T12:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-02T12:00:00Z --end-time 2026-07-02T18:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-02T18:00:00Z --end-time 2026-07-03T00:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-03T00:00:00Z --end-time 2026-07-03T06:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-03T06:00:00Z --end-time 2026-07-03T12:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-03T12:00:00Z --end-time 2026-07-03T18:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-03T18:00:00Z --end-time 2026-07-04T00:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-04T00:00:00Z --end-time 2026-07-04T06:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-04T06:00:00Z --end-time 2026-07-04T12:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-04T12:00:00Z --end-time 2026-07-04T18:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-04T18:00:00Z --end-time 2026-07-05T00:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-05T00:00:00Z --end-time 2026-07-05T06:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-05T06:00:00Z --end-time 2026-07-05T12:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-05T12:00:00Z --end-time 2026-07-05T18:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-05T18:00:00Z --end-time 2026-07-06T00:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-06T00:00:00Z --end-time 2026-07-06T06:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-06T06:00:00Z --end-time 2026-07-06T12:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-06T12:00:00Z --end-time 2026-07-06T18:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-06T18:00:00Z --end-time 2026-07-07T00:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-07T00:00:00Z --end-time 2026-07-07T06:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-07T06:00:00Z --end-time 2026-07-07T12:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-07T12:00:00Z --end-time 2026-07-07T18:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-07T18:00:00Z --end-time 2026-07-08T00:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-08T00:00:00Z --end-time 2026-07-08T06:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-08T06:00:00Z --end-time 2026-07-08T12:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-08T12:00:00Z --end-time 2026-07-08T18:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-08T18:00:00Z --end-time 2026-07-09T00:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-09T00:00:00Z --end-time 2026-07-09T06:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-09T06:00:00Z --end-time 2026-07-09T12:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-09T12:00:00Z --end-time 2026-07-09T18:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-09T18:00:00Z --end-time 2026-07-10T00:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-10T00:00:00Z --end-time 2026-07-10T06:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-10T06:00:00Z --end-time 2026-07-10T12:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-10T12:00:00Z --end-time 2026-07-10T18:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-10T18:00:00Z --end-time 2026-07-11T00:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-11T00:00:00Z --end-time 2026-07-11T06:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-11T06:00:00Z --end-time 2026-07-11T12:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-11T12:00:00Z --end-time 2026-07-11T18:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-11T18:00:00Z --end-time 2026-07-12T00:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-12T00:00:00Z --end-time 2026-07-12T06:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-12T06:00:00Z --end-time 2026-07-12T12:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-12T12:00:00Z --end-time 2026-07-12T18:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-12T18:00:00Z --end-time 2026-07-13T00:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-13T00:00:00Z --end-time 2026-07-13T06:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-13T06:00:00Z --end-time 2026-07-13T12:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-13T12:00:00Z --end-time 2026-07-13T18:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-13T18:00:00Z --end-time 2026-07-14T00:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-14T00:00:00Z --end-time 2026-07-14T06:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-14T06:00:00Z --end-time 2026-07-14T12:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-14T12:00:00Z --end-time 2026-07-14T18:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=ce.amazonaws.com --start-time 2026-07-14T18:00:00Z --end-time 2026-07-15T00:00:00Z --max-results 25 --no-paginate --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail describe-trails --include-shadow-trails --profile lsmc --region us-west-2 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws iam get-user --user-name daylily-service --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws iam list-access-keys --user-name daylily-service --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws iam get-access-key-last-used --access-key-id AKIARSU7KMWVZQF74B64 --profile lsmc --region us-east-1 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-addresses --public-ips 52.89.110.76 --profile lsmc --region us-west-2 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --instance-ids i-07df3a933e4839f52 --profile lsmc --region us-west-2 --output json",
+    "recorded_at": "2026-07-16T01:07:59.458465Z",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  }
+]

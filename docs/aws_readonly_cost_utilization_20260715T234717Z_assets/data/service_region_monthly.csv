@@ -1,0 +1,627 @@
+start,end,estimated,cost_usd,service,region
+2026-06-01,2026-07-01,False,0.0,AWS CloudFormation,us-east-1
+2026-06-01,2026-07-01,False,0.0,AWS CloudFormation,us-west-2
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,af-south-1
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,ap-east-1
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,ap-northeast-1
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,ap-northeast-2
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,ap-northeast-3
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,ap-south-1
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,ap-south-2
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,ap-southeast-1
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,ap-southeast-2
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,ap-southeast-3
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,ca-central-1
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,eu-central-1
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,eu-north-1
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,eu-west-1
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,eu-west-2
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,eu-west-3
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,sa-east-1
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,us-east-1
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,us-east-2
+2026-06-01,2026-07-01,False,0.0,AWS CloudTrail,us-west-1
+2026-06-01,2026-07-01,False,253.360871,AWS CloudTrail,us-west-2
+2026-06-01,2026-07-01,False,386.8277981398,AWS Cost Explorer,us-east-1
+2026-06-01,2026-07-01,False,0.0,AWS Glue,af-south-1
+2026-06-01,2026-07-01,False,0.0,AWS Glue,ap-east-1
+2026-06-01,2026-07-01,False,0.0,AWS Glue,ap-northeast-1
+2026-06-01,2026-07-01,False,0.0,AWS Glue,ap-northeast-2
+2026-06-01,2026-07-01,False,0.0,AWS Glue,ap-northeast-3
+2026-06-01,2026-07-01,False,0.0,AWS Glue,ap-south-1
+2026-06-01,2026-07-01,False,0.0,AWS Glue,ap-south-2
+2026-06-01,2026-07-01,False,0.0,AWS Glue,ap-southeast-1
+2026-06-01,2026-07-01,False,0.0,AWS Glue,ap-southeast-2
+2026-06-01,2026-07-01,False,0.0,AWS Glue,ap-southeast-3
+2026-06-01,2026-07-01,False,0.0,AWS Glue,ca-central-1
+2026-06-01,2026-07-01,False,0.0,AWS Glue,eu-central-1
+2026-06-01,2026-07-01,False,0.0,AWS Glue,eu-north-1
+2026-06-01,2026-07-01,False,0.0,AWS Glue,eu-west-1
+2026-06-01,2026-07-01,False,0.0,AWS Glue,eu-west-2
+2026-06-01,2026-07-01,False,0.0,AWS Glue,eu-west-3
+2026-06-01,2026-07-01,False,0.0,AWS Glue,sa-east-1
+2026-06-01,2026-07-01,False,0.0,AWS Glue,us-east-1
+2026-06-01,2026-07-01,False,0.0,AWS Glue,us-east-2
+2026-06-01,2026-07-01,False,0.0,AWS Glue,us-west-1
+2026-06-01,2026-07-01,False,0.0,AWS Glue,us-west-2
+2026-06-01,2026-07-01,False,0.00042,AWS Key Management Service,af-south-1
+2026-06-01,2026-07-01,False,0.000417,AWS Key Management Service,ap-east-1
+2026-06-01,2026-07-01,False,0.000735,AWS Key Management Service,ap-northeast-1
+2026-06-01,2026-07-01,False,0.000735,AWS Key Management Service,ap-northeast-2
+2026-06-01,2026-07-01,False,0.000744,AWS Key Management Service,ap-northeast-3
+2026-06-01,2026-07-01,False,0.001884,AWS Key Management Service,ap-south-1
+2026-06-01,2026-07-01,False,0.000417,AWS Key Management Service,ap-south-2
+2026-06-01,2026-07-01,False,0.000753,AWS Key Management Service,ap-southeast-1
+2026-06-01,2026-07-01,False,0.000735,AWS Key Management Service,ap-southeast-2
+2026-06-01,2026-07-01,False,0.000417,AWS Key Management Service,ap-southeast-3
+2026-06-01,2026-07-01,False,0.000732,AWS Key Management Service,ca-central-1
+2026-06-01,2026-07-01,False,0.001884,AWS Key Management Service,eu-central-1
+2026-06-01,2026-07-01,False,0.000735,AWS Key Management Service,eu-north-1
+2026-06-01,2026-07-01,False,0.000735,AWS Key Management Service,eu-west-1
+2026-06-01,2026-07-01,False,0.000735,AWS Key Management Service,eu-west-2
+2026-06-01,2026-07-01,False,0.000747,AWS Key Management Service,eu-west-3
+2026-06-01,2026-07-01,False,0.000753,AWS Key Management Service,sa-east-1
+2026-06-01,2026-07-01,False,1.0085322302,AWS Key Management Service,us-east-1
+2026-06-01,2026-07-01,False,0.000735,AWS Key Management Service,us-east-2
+2026-06-01,2026-07-01,False,0.000741,AWS Key Management Service,us-west-1
+2026-06-01,2026-07-01,False,6.192216024,AWS Key Management Service,us-west-2
+2026-06-01,2026-07-01,False,7.3937e-06,AWS Lambda,us-west-2
+2026-06-01,2026-07-01,False,0.00073,AWS Secrets Manager,af-south-1
+2026-06-01,2026-07-01,False,0.00073,AWS Secrets Manager,ap-east-1
+2026-06-01,2026-07-01,False,0.0012,AWS Secrets Manager,ap-northeast-1
+2026-06-01,2026-07-01,False,0.0012,AWS Secrets Manager,ap-northeast-2
+2026-06-01,2026-07-01,False,0.00124,AWS Secrets Manager,ap-northeast-3
+2026-06-01,2026-07-01,False,0.0012,AWS Secrets Manager,ap-south-1
+2026-06-01,2026-07-01,False,0.00072,AWS Secrets Manager,ap-south-2
+2026-06-01,2026-07-01,False,0.00126,AWS Secrets Manager,ap-southeast-1
+2026-06-01,2026-07-01,False,0.0012,AWS Secrets Manager,ap-southeast-2
+2026-06-01,2026-07-01,False,0.00073,AWS Secrets Manager,ap-southeast-3
+2026-06-01,2026-07-01,False,0.0012,AWS Secrets Manager,ca-central-1
+2026-06-01,2026-07-01,False,0.0012,AWS Secrets Manager,eu-central-1
+2026-06-01,2026-07-01,False,0.0012,AWS Secrets Manager,eu-north-1
+2026-06-01,2026-07-01,False,0.0012,AWS Secrets Manager,eu-west-1
+2026-06-01,2026-07-01,False,0.0012,AWS Secrets Manager,eu-west-2
+2026-06-01,2026-07-01,False,0.00124,AWS Secrets Manager,eu-west-3
+2026-06-01,2026-07-01,False,0.00126,AWS Secrets Manager,sa-east-1
+2026-06-01,2026-07-01,False,3.0406364294,AWS Secrets Manager,us-east-1
+2026-06-01,2026-07-01,False,0.0012,AWS Secrets Manager,us-east-2
+2026-06-01,2026-07-01,False,0.00122,AWS Secrets Manager,us-west-1
+2026-06-01,2026-07-01,False,5.7608843012,AWS Secrets Manager,us-west-2
+2026-06-01,2026-07-01,False,1.17789,AWS Security Hub,af-south-1
+2026-06-01,2026-07-01,False,1.22661264,AWS Security Hub,ap-east-1
+2026-06-01,2026-07-01,False,1.1071172,AWS Security Hub,ap-northeast-1
+2026-06-01,2026-07-01,False,1.0820808,AWS Security Hub,ap-northeast-2
+2026-06-01,2026-07-01,False,1.184075,AWS Security Hub,ap-northeast-3
+2026-06-01,2026-07-01,False,3.30856461,AWS Security Hub,ap-south-1
+2026-06-01,2026-07-01,False,0.946242,AWS Security Hub,ap-south-2
+2026-06-01,2026-07-01,False,1.1182276,AWS Security Hub,ap-southeast-1
+2026-06-01,2026-07-01,False,1.083021,AWS Security Hub,ap-southeast-2
+2026-06-01,2026-07-01,False,1.0629266,AWS Security Hub,ap-southeast-3
+2026-06-01,2026-07-01,False,1.0813816,AWS Security Hub,ca-central-1
+2026-06-01,2026-07-01,False,3.42479876,AWS Security Hub,eu-central-1
+2026-06-01,2026-07-01,False,0.9974388,AWS Security Hub,eu-north-1
+2026-06-01,2026-07-01,False,1.0401764,AWS Security Hub,eu-west-1
+2026-06-01,2026-07-01,False,1.0393536,AWS Security Hub,eu-west-2
+2026-06-01,2026-07-01,False,1.0650628,AWS Security Hub,eu-west-3
+2026-06-01,2026-07-01,False,3.06324504,AWS Security Hub,global
+2026-06-01,2026-07-01,False,1.639301,AWS Security Hub,sa-east-1
+2026-06-01,2026-07-01,False,59.2725390633,AWS Security Hub,us-east-1
+2026-06-01,2026-07-01,False,2.9890746,AWS Security Hub,us-east-2
+2026-06-01,2026-07-01,False,1.055176,AWS Security Hub,us-west-1
+2026-06-01,2026-07-01,False,342.7479835571,AWS Security Hub,us-west-2
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,af-south-1
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,ap-east-1
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,ap-northeast-1
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,ap-northeast-2
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,ap-northeast-3
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,ap-south-1
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,ap-south-2
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,ap-southeast-1
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,ap-southeast-2
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,ap-southeast-3
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,ca-central-1
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,eu-central-1
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,eu-north-1
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,eu-west-1
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,eu-west-2
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,eu-west-3
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,sa-east-1
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,us-east-1
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,us-east-2
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,us-west-1
+2026-06-01,2026-07-01,False,0.0,AWS Service Catalog,us-west-2
+2026-06-01,2026-07-01,False,8.1e-08,AWS Step Functions,af-south-1
+2026-06-01,2026-07-01,False,5.1e-08,AWS Step Functions,ap-east-1
+2026-06-01,2026-07-01,False,2.04e-07,AWS Step Functions,ap-northeast-1
+2026-06-01,2026-07-01,False,1.8e-07,AWS Step Functions,ap-northeast-2
+2026-06-01,2026-07-01,False,2.04e-07,AWS Step Functions,ap-northeast-3
+2026-06-01,2026-07-01,False,1.92e-07,AWS Step Functions,ap-south-1
+2026-06-01,2026-07-01,False,4.8e-08,AWS Step Functions,ap-south-2
+2026-06-01,2026-07-01,False,2.04e-07,AWS Step Functions,ap-southeast-1
+2026-06-01,2026-07-01,False,2.16e-07,AWS Step Functions,ap-southeast-2
+2026-06-01,2026-07-01,False,5.7e-08,AWS Step Functions,ap-southeast-3
+2026-06-01,2026-07-01,False,4.8e-08,AWS Step Functions,ca-central-1
+2026-06-01,2026-07-01,False,4.8e-08,AWS Step Functions,eu-central-1
+2026-06-01,2026-07-01,False,4.8e-08,AWS Step Functions,eu-north-1
+2026-06-01,2026-07-01,False,4.8e-08,AWS Step Functions,eu-west-1
+2026-06-01,2026-07-01,False,4.8e-08,AWS Step Functions,eu-west-2
+2026-06-01,2026-07-01,False,4.8e-08,AWS Step Functions,eu-west-3
+2026-06-01,2026-07-01,False,3.12e-07,AWS Step Functions,sa-east-1
+2026-06-01,2026-07-01,False,5.93e-08,AWS Step Functions,us-east-1
+2026-06-01,2026-07-01,False,4.8e-08,AWS Step Functions,us-east-2
+2026-06-01,2026-07-01,False,4.8e-08,AWS Step Functions,us-west-1
+2026-06-01,2026-07-01,False,1407.3498072785,AWS Support (Developer),global
+2026-06-01,2026-07-01,False,7.000000056,AWS WAF,global
+2026-06-01,2026-07-01,False,0.0,Amazon CloudFront,ca-central-1
+2026-06-01,2026-07-01,False,3.4e-09,Amazon CloudFront,eu-west-1
+2026-06-01,2026-07-01,False,0.0,Amazon CloudFront,global
+2026-06-01,2026-07-01,False,0.0,Amazon CloudFront,us-east-1
+2026-06-01,2026-07-01,False,0.0,Amazon Cognito,us-east-1
+2026-06-01,2026-07-01,False,0.0,Amazon Cognito,us-west-1
+2026-06-01,2026-07-01,False,0.0,Amazon Cognito,us-west-2
+2026-06-01,2026-07-01,False,0.0392686527,Amazon DynamoDB,us-west-2
+2026-06-01,2026-07-01,False,8.9915110236,Amazon EC2 Container Registry (ECR),us-east-1
+2026-06-01,2026-07-01,False,1.3546370282,Amazon EC2 Container Registry (ECR),us-west-2
+2026-06-01,2026-07-01,False,83.0484862628,EC2 - Other,ap-south-1
+2026-06-01,2026-07-01,False,74.8800103576,EC2 - Other,eu-central-1
+2026-06-01,2026-07-01,False,185.1900273781,EC2 - Other,us-east-1
+2026-06-01,2026-07-01,False,692.0436840777,EC2 - Other,us-west-2
+2026-06-01,2026-07-01,False,0.0,Amazon Elastic Compute Cloud - Compute,ap-south-1
+2026-06-01,2026-07-01,False,1.41708e-05,Amazon Elastic Compute Cloud - Compute,eu-central-1
+2026-06-01,2026-07-01,False,1365.7338611514,Amazon Elastic Compute Cloud - Compute,us-east-1
+2026-06-01,2026-07-01,False,30251.2876596713,Amazon Elastic Compute Cloud - Compute,us-west-2
+2026-06-01,2026-07-01,False,53.3694951549,Amazon Elastic Container Service,us-west-2
+2026-06-01,2026-07-01,False,0.0001175506,Amazon Elastic File System,us-west-2
+2026-06-01,2026-07-01,False,16.2,Amazon Elastic Load Balancing,us-east-1
+2026-06-01,2026-07-01,False,25.0270875769,Amazon Elastic Load Balancing,us-west-2
+2026-06-01,2026-07-01,False,2395.8861627715,Amazon FSx,us-west-2
+2026-06-01,2026-07-01,False,1.23e-07,Amazon Glacier,af-south-1
+2026-06-01,2026-07-01,False,7.5e-08,Amazon Glacier,ap-east-1
+2026-06-01,2026-07-01,False,3e-07,Amazon Glacier,ap-northeast-1
+2026-06-01,2026-07-01,False,2.64e-07,Amazon Glacier,ap-northeast-2
+2026-06-01,2026-07-01,False,3e-07,Amazon Glacier,ap-northeast-3
+2026-06-01,2026-07-01,False,2.88e-07,Amazon Glacier,ap-south-1
+2026-06-01,2026-07-01,False,3e-07,Amazon Glacier,ap-southeast-1
+2026-06-01,2026-07-01,False,3.24e-07,Amazon Glacier,ap-southeast-2
+2026-06-01,2026-07-01,False,7.2e-08,Amazon Glacier,ca-central-1
+2026-06-01,2026-07-01,False,7.2e-08,Amazon Glacier,eu-central-1
+2026-06-01,2026-07-01,False,7.2e-08,Amazon Glacier,eu-north-1
+2026-06-01,2026-07-01,False,7.2e-08,Amazon Glacier,eu-west-1
+2026-06-01,2026-07-01,False,7.2e-08,Amazon Glacier,eu-west-2
+2026-06-01,2026-07-01,False,7.2e-08,Amazon Glacier,eu-west-3
+2026-06-01,2026-07-01,False,4.68e-07,Amazon Glacier,sa-east-1
+2026-06-01,2026-07-01,False,7.2e-08,Amazon Glacier,us-east-1
+2026-06-01,2026-07-01,False,7.2e-08,Amazon Glacier,us-east-2
+2026-06-01,2026-07-01,False,7.2e-08,Amazon Glacier,us-west-1
+2026-06-01,2026-07-01,False,0.0046492,Amazon GuardDuty,ap-northeast-1
+2026-06-01,2026-07-01,False,0.0045356,Amazon GuardDuty,ap-northeast-2
+2026-06-01,2026-07-01,False,0.00485,Amazon GuardDuty,ap-northeast-3
+2026-06-01,2026-07-01,False,0.004334,Amazon GuardDuty,ap-south-1
+2026-06-01,2026-07-01,False,0.0045402,Amazon GuardDuty,ap-southeast-1
+2026-06-01,2026-07-01,False,0.004554,Amazon GuardDuty,ap-southeast-2
+2026-06-01,2026-07-01,False,0.004531,Amazon GuardDuty,ca-central-1
+2026-06-01,2026-07-01,False,0.0044804,Amazon GuardDuty,eu-central-1
+2026-06-01,2026-07-01,False,0.0035994,Amazon GuardDuty,eu-north-1
+2026-06-01,2026-07-01,False,0.004334,Amazon GuardDuty,eu-west-1
+2026-06-01,2026-07-01,False,0.004334,Amazon GuardDuty,eu-west-2
+2026-06-01,2026-07-01,False,0.0043472,Amazon GuardDuty,eu-west-3
+2026-06-01,2026-07-01,False,0.006909,Amazon GuardDuty,sa-east-1
+2026-06-01,2026-07-01,False,12.75452403,Amazon GuardDuty,us-east-1
+2026-06-01,2026-07-01,False,0.00632,Amazon GuardDuty,us-east-2
+2026-06-01,2026-07-01,False,0.004268,Amazon GuardDuty,us-west-1
+2026-06-01,2026-07-01,False,0.4973224745,Amazon GuardDuty,us-west-2
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,af-south-1
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,ap-east-1
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,ap-northeast-1
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,ap-northeast-2
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,ap-northeast-3
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,ap-south-1
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,ap-south-2
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,ap-southeast-1
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,ap-southeast-2
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,ap-southeast-3
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,ca-central-1
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,eu-central-1
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,eu-north-1
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,eu-west-1
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,eu-west-2
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,eu-west-3
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,sa-east-1
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,us-east-1
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,us-east-2
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,us-west-1
+2026-06-01,2026-07-01,False,0.0,Amazon Inspector,us-west-2
+2026-06-01,2026-07-01,False,997.1030080944,Amazon Relational Database Service,us-east-1
+2026-06-01,2026-07-01,False,3482.0979059202,Amazon Relational Database Service,us-west-2
+2026-06-01,2026-07-01,False,14.4092564,Amazon Route 53,global
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Notification Service,af-south-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Notification Service,ap-east-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Notification Service,ap-northeast-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Notification Service,ap-northeast-2
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Notification Service,ap-northeast-3
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Notification Service,ap-south-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Notification Service,ap-south-2
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Notification Service,ap-southeast-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Notification Service,ap-southeast-2
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Notification Service,ap-southeast-3
+2026-06-01,2026-07-01,False,3.84e-07,Amazon Simple Notification Service,ca-central-1
+2026-06-01,2026-07-01,False,3.84e-07,Amazon Simple Notification Service,eu-central-1
+2026-06-01,2026-07-01,False,3.84e-07,Amazon Simple Notification Service,eu-north-1
+2026-06-01,2026-07-01,False,3.84e-07,Amazon Simple Notification Service,eu-west-1
+2026-06-01,2026-07-01,False,3.84e-07,Amazon Simple Notification Service,eu-west-2
+2026-06-01,2026-07-01,False,3.84e-07,Amazon Simple Notification Service,eu-west-3
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Notification Service,sa-east-1
+2026-06-01,2026-07-01,False,3.84e-07,Amazon Simple Notification Service,us-east-1
+2026-06-01,2026-07-01,False,3.84e-07,Amazon Simple Notification Service,us-east-2
+2026-06-01,2026-07-01,False,3.84e-07,Amazon Simple Notification Service,us-west-1
+2026-06-01,2026-07-01,False,1.2342e-06,Amazon Simple Notification Service,us-west-2
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,af-south-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,ap-east-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,ap-northeast-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,ap-northeast-2
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,ap-northeast-3
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,ap-south-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,ap-south-2
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,ap-southeast-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,ap-southeast-2
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,ap-southeast-3
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,ca-central-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,eu-central-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,eu-north-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,eu-west-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,eu-west-2
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,eu-west-3
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,sa-east-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,us-east-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,us-east-2
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,us-west-1
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Queue Service,us-west-2
+2026-06-01,2026-07-01,False,0.00024,Amazon Simple Storage Service,af-south-1
+2026-06-01,2026-07-01,False,0.00015,Amazon Simple Storage Service,ap-east-1
+2026-06-01,2026-07-01,False,0.000282,Amazon Simple Storage Service,ap-northeast-1
+2026-06-01,2026-07-01,False,0.0003,Amazon Simple Storage Service,ap-northeast-2
+2026-06-01,2026-07-01,False,0.00027,Amazon Simple Storage Service,ap-northeast-3
+2026-06-01,2026-07-01,False,1.3412744531,Amazon Simple Storage Service,ap-south-1
+2026-06-01,2026-07-01,False,0.00027,Amazon Simple Storage Service,ap-south-2
+2026-06-01,2026-07-01,False,0.00012,Amazon Simple Storage Service,ap-southeast-1
+2026-06-01,2026-07-01,False,0.00027,Amazon Simple Storage Service,ap-southeast-2
+2026-06-01,2026-07-01,False,0.00024,Amazon Simple Storage Service,ap-southeast-3
+2026-06-01,2026-07-01,False,3.120753835,Amazon Simple Storage Service,eu-central-1
+2026-06-01,2026-07-01,False,0.00051,Amazon Simple Storage Service,eu-north-1
+2026-06-01,2026-07-01,False,0.0003,Amazon Simple Storage Service,eu-west-1
+2026-06-01,2026-07-01,False,0.00024,Amazon Simple Storage Service,eu-west-2
+2026-06-01,2026-07-01,False,0.00027,Amazon Simple Storage Service,eu-west-3
+2026-06-01,2026-07-01,False,0.0,Amazon Simple Storage Service,global
+2026-06-01,2026-07-01,False,1.5309477356,Amazon Simple Storage Service,us-east-1
+2026-06-01,2026-07-01,False,0.2190765933,Amazon Simple Storage Service,us-east-2
+2026-06-01,2026-07-01,False,0.00024,Amazon Simple Storage Service,us-west-1
+2026-06-01,2026-07-01,False,7001.8248439363,Amazon Simple Storage Service,us-west-2
+2026-06-01,2026-07-01,False,7.2,Amazon Virtual Private Cloud,ap-south-1
+2026-06-01,2026-07-01,False,7.2,Amazon Virtual Private Cloud,eu-central-1
+2026-06-01,2026-07-01,False,37.790411205,Amazon Virtual Private Cloud,us-east-1
+2026-06-01,2026-07-01,False,109.9723020644,Amazon Virtual Private Cloud,us-west-2
+2026-06-01,2026-07-01,False,0.0,AmazonCloudWatch,ap-south-1
+2026-06-01,2026-07-01,False,0.0,AmazonCloudWatch,eu-central-1
+2026-06-01,2026-07-01,False,0.4416718536,AmazonCloudWatch,global
+2026-06-01,2026-07-01,False,0.0481349167,AmazonCloudWatch,us-east-1
+2026-06-01,2026-07-01,False,0.0,AmazonCloudWatch,us-east-2
+2026-06-01,2026-07-01,False,274.9505290758,AmazonCloudWatch,us-west-2
+2026-06-01,2026-07-01,False,0.0,CloudWatch Events,us-west-2
+2026-06-01,2026-07-01,False,0.0,Tax,NoRegion
+2026-07-01,2026-07-15,True,1.1223e-06,AWS Backup,us-west-2
+2026-07-01,2026-07-15,True,0.0,AWS Certificate Manager,us-east-1
+2026-07-01,2026-07-15,True,0.0,AWS Certificate Manager,us-west-2
+2026-07-01,2026-07-15,True,1.9e-05,AWS Cloud Map,us-west-2
+2026-07-01,2026-07-15,True,0.0,AWS CloudFormation,us-west-1
+2026-07-01,2026-07-15,True,0.0,AWS CloudFormation,us-west-2
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,af-south-1
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,ap-east-1
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,ap-northeast-1
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,ap-northeast-2
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,ap-northeast-3
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,ap-south-1
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,ap-south-2
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,ap-southeast-1
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,ap-southeast-2
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,ap-southeast-3
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,ca-central-1
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,eu-central-1
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,eu-north-1
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,eu-west-1
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,eu-west-2
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,eu-west-3
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,sa-east-1
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,us-east-1
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,us-east-2
+2026-07-01,2026-07-15,True,0.0,AWS CloudTrail,us-west-1
+2026-07-01,2026-07-15,True,38.914093,AWS CloudTrail,us-west-2
+2026-07-01,2026-07-15,True,14.679,AWS Config,us-east-1
+2026-07-01,2026-07-15,True,0.48,AWS Config,us-east-2
+2026-07-01,2026-07-15,True,214.197,AWS Config,us-west-2
+2026-07-01,2026-07-15,True,632.1052009676,AWS Cost Explorer,us-east-1
+2026-07-01,2026-07-15,True,0.0,AWS Glue,af-south-1
+2026-07-01,2026-07-15,True,0.0,AWS Glue,ap-east-1
+2026-07-01,2026-07-15,True,0.0,AWS Glue,ap-northeast-1
+2026-07-01,2026-07-15,True,0.0,AWS Glue,ap-northeast-2
+2026-07-01,2026-07-15,True,0.0,AWS Glue,ap-northeast-3
+2026-07-01,2026-07-15,True,0.0,AWS Glue,ap-south-1
+2026-07-01,2026-07-15,True,0.0,AWS Glue,ap-south-2
+2026-07-01,2026-07-15,True,0.0,AWS Glue,ap-southeast-1
+2026-07-01,2026-07-15,True,0.0,AWS Glue,ap-southeast-2
+2026-07-01,2026-07-15,True,0.0,AWS Glue,ap-southeast-3
+2026-07-01,2026-07-15,True,0.0,AWS Glue,ca-central-1
+2026-07-01,2026-07-15,True,0.0,AWS Glue,eu-central-1
+2026-07-01,2026-07-15,True,0.0,AWS Glue,eu-north-1
+2026-07-01,2026-07-15,True,0.0,AWS Glue,eu-west-1
+2026-07-01,2026-07-15,True,0.0,AWS Glue,eu-west-2
+2026-07-01,2026-07-15,True,0.0,AWS Glue,eu-west-3
+2026-07-01,2026-07-15,True,0.0,AWS Glue,sa-east-1
+2026-07-01,2026-07-15,True,0.0,AWS Glue,us-east-1
+2026-07-01,2026-07-15,True,0.0,AWS Glue,us-east-2
+2026-07-01,2026-07-15,True,0.0,AWS Glue,us-west-1
+2026-07-01,2026-07-15,True,0.0,AWS Glue,us-west-2
+2026-07-01,2026-07-15,True,8.4e-05,AWS Key Management Service,af-south-1
+2026-07-01,2026-07-15,True,8.4e-05,AWS Key Management Service,ap-east-1
+2026-07-01,2026-07-15,True,0.00018,AWS Key Management Service,ap-northeast-1
+2026-07-01,2026-07-15,True,0.000204,AWS Key Management Service,ap-northeast-2
+2026-07-01,2026-07-15,True,0.000204,AWS Key Management Service,ap-northeast-3
+2026-07-01,2026-07-15,True,0.00054,AWS Key Management Service,ap-south-1
+2026-07-01,2026-07-15,True,8.4e-05,AWS Key Management Service,ap-south-2
+2026-07-01,2026-07-15,True,0.000204,AWS Key Management Service,ap-southeast-1
+2026-07-01,2026-07-15,True,0.000204,AWS Key Management Service,ap-southeast-2
+2026-07-01,2026-07-15,True,8.1e-05,AWS Key Management Service,ap-southeast-3
+2026-07-01,2026-07-15,True,0.000204,AWS Key Management Service,ca-central-1
+2026-07-01,2026-07-15,True,0.000468,AWS Key Management Service,eu-central-1
+2026-07-01,2026-07-15,True,0.000204,AWS Key Management Service,eu-north-1
+2026-07-01,2026-07-15,True,0.00018,AWS Key Management Service,eu-west-1
+2026-07-01,2026-07-15,True,0.00018,AWS Key Management Service,eu-west-2
+2026-07-01,2026-07-15,True,0.000204,AWS Key Management Service,eu-west-3
+2026-07-01,2026-07-15,True,0.000204,AWS Key Management Service,sa-east-1
+2026-07-01,2026-07-15,True,0.45189781,AWS Key Management Service,us-east-1
+2026-07-01,2026-07-15,True,0.000204,AWS Key Management Service,us-east-2
+2026-07-01,2026-07-15,True,0.000528,AWS Key Management Service,us-west-1
+2026-07-01,2026-07-15,True,1.368656688,AWS Key Management Service,us-west-2
+2026-07-01,2026-07-15,True,0.0,AWS Lambda,us-west-1
+2026-07-01,2026-07-15,True,6.6627e-06,AWS Lambda,us-west-2
+2026-07-01,2026-07-15,True,0.000455,AWS Secrets Manager,af-south-1
+2026-07-01,2026-07-15,True,0.000455,AWS Secrets Manager,ap-east-1
+2026-07-01,2026-07-15,True,0.000735,AWS Secrets Manager,ap-northeast-1
+2026-07-01,2026-07-15,True,0.001015,AWS Secrets Manager,ap-northeast-2
+2026-07-01,2026-07-15,True,0.001015,AWS Secrets Manager,ap-northeast-3
+2026-07-01,2026-07-15,True,0.00086,AWS Secrets Manager,ap-south-1
+2026-07-01,2026-07-15,True,0.000455,AWS Secrets Manager,ap-south-2
+2026-07-01,2026-07-15,True,0.001015,AWS Secrets Manager,ap-southeast-1
+2026-07-01,2026-07-15,True,0.00084,AWS Secrets Manager,ap-southeast-2
+2026-07-01,2026-07-15,True,0.000455,AWS Secrets Manager,ap-southeast-3
+2026-07-01,2026-07-15,True,0.000855,AWS Secrets Manager,ca-central-1
+2026-07-01,2026-07-15,True,0.000735,AWS Secrets Manager,eu-central-1
+2026-07-01,2026-07-15,True,0.000865,AWS Secrets Manager,eu-north-1
+2026-07-01,2026-07-15,True,0.000735,AWS Secrets Manager,eu-west-1
+2026-07-01,2026-07-15,True,0.000735,AWS Secrets Manager,eu-west-2
+2026-07-01,2026-07-15,True,0.001015,AWS Secrets Manager,eu-west-3
+2026-07-01,2026-07-15,True,0.001015,AWS Secrets Manager,sa-east-1
+2026-07-01,2026-07-15,True,1.809541584,AWS Secrets Manager,us-east-1
+2026-07-01,2026-07-15,True,0.000985,AWS Secrets Manager,us-east-2
+2026-07-01,2026-07-15,True,0.3587745879,AWS Secrets Manager,us-west-1
+2026-07-01,2026-07-15,True,7.1861423092,AWS Secrets Manager,us-west-2
+2026-07-01,2026-07-15,True,0.83587,AWS Security Hub,af-south-1
+2026-07-01,2026-07-15,True,0.8765064,AWS Security Hub,ap-east-1
+2026-07-01,2026-07-15,True,0.7426892,AWS Security Hub,ap-northeast-1
+2026-07-01,2026-07-15,True,0.8540586,AWS Security Hub,ap-northeast-2
+2026-07-01,2026-07-15,True,0.90808,AWS Security Hub,ap-northeast-3
+2026-07-01,2026-07-15,True,1.0692716,AWS Security Hub,ap-south-1
+2026-07-01,2026-07-15,True,0.656744,AWS Security Hub,ap-south-2
+2026-07-01,2026-07-15,True,0.8596292,AWS Security Hub,ap-southeast-1
+2026-07-01,2026-07-15,True,0.7731216,AWS Security Hub,ap-southeast-2
+2026-07-01,2026-07-15,True,0.761116,AWS Security Hub,ap-southeast-3
+2026-07-01,2026-07-15,True,0.7749156,AWS Security Hub,ca-central-1
+2026-07-01,2026-07-15,True,1.0653274,AWS Security Hub,eu-central-1
+2026-07-01,2026-07-15,True,0.7151228,AWS Security Hub,eu-north-1
+2026-07-01,2026-07-15,True,0.6961868,AWS Security Hub,eu-west-1
+2026-07-01,2026-07-15,True,0.6963892,AWS Security Hub,eu-west-2
+2026-07-01,2026-07-15,True,0.8153432,AWS Security Hub,eu-west-3
+2026-07-01,2026-07-15,True,1.8051444,AWS Security Hub,global
+2026-07-01,2026-07-15,True,1.277045,AWS Security Hub,sa-east-1
+2026-07-01,2026-07-15,True,12.8722190146,AWS Security Hub,us-east-1
+2026-07-01,2026-07-15,True,0.963512,AWS Security Hub,us-east-2
+2026-07-01,2026-07-15,True,1.515261712,AWS Security Hub,us-west-1
+2026-07-01,2026-07-15,True,116.1971100492,AWS Security Hub,us-west-2
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,af-south-1
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,ap-east-1
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,ap-northeast-1
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,ap-northeast-2
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,ap-northeast-3
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,ap-south-1
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,ap-south-2
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,ap-southeast-1
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,ap-southeast-2
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,ap-southeast-3
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,ca-central-1
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,eu-central-1
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,eu-north-1
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,eu-west-1
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,eu-west-2
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,eu-west-3
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,sa-east-1
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,us-east-1
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,us-east-2
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,us-west-1
+2026-07-01,2026-07-15,True,0.0,AWS Service Catalog,us-west-2
+2026-07-01,2026-07-15,True,3.78e-08,AWS Step Functions,af-south-1
+2026-07-01,2026-07-15,True,2.38e-08,AWS Step Functions,ap-east-1
+2026-07-01,2026-07-15,True,9.52e-08,AWS Step Functions,ap-northeast-1
+2026-07-01,2026-07-15,True,8.4e-08,AWS Step Functions,ap-northeast-2
+2026-07-01,2026-07-15,True,9.52e-08,AWS Step Functions,ap-northeast-3
+2026-07-01,2026-07-15,True,8.96e-08,AWS Step Functions,ap-south-1
+2026-07-01,2026-07-15,True,2.24e-08,AWS Step Functions,ap-south-2
+2026-07-01,2026-07-15,True,9.52e-08,AWS Step Functions,ap-southeast-1
+2026-07-01,2026-07-15,True,1.008e-07,AWS Step Functions,ap-southeast-2
+2026-07-01,2026-07-15,True,2.66e-08,AWS Step Functions,ap-southeast-3
+2026-07-01,2026-07-15,True,2.24e-08,AWS Step Functions,ca-central-1
+2026-07-01,2026-07-15,True,2.24e-08,AWS Step Functions,eu-central-1
+2026-07-01,2026-07-15,True,2.24e-08,AWS Step Functions,eu-north-1
+2026-07-01,2026-07-15,True,2.24e-08,AWS Step Functions,eu-west-1
+2026-07-01,2026-07-15,True,2.24e-08,AWS Step Functions,eu-west-2
+2026-07-01,2026-07-15,True,2.24e-08,AWS Step Functions,eu-west-3
+2026-07-01,2026-07-15,True,1.456e-07,AWS Step Functions,sa-east-1
+2026-07-01,2026-07-15,True,2.72e-08,AWS Step Functions,us-east-1
+2026-07-01,2026-07-15,True,2.24e-08,AWS Step Functions,us-east-2
+2026-07-01,2026-07-15,True,2.24e-08,AWS Step Functions,us-west-1
+2026-07-01,2026-07-15,True,597.0230774809,AWS Support (Developer),global
+2026-07-01,2026-07-15,True,5.5620281293,AWS WAF,global
+2026-07-01,2026-07-15,True,0.0,AWS X-Ray,us-west-1
+2026-07-01,2026-07-15,True,0.0014127352,Amazon API Gateway,us-west-1
+2026-07-01,2026-07-15,True,0.00045,Amazon Athena,us-east-1
+2026-07-01,2026-07-15,True,0.0,Amazon CloudFront,ca-central-1
+2026-07-01,2026-07-15,True,0.0,Amazon CloudFront,eu-west-1
+2026-07-01,2026-07-15,True,0.0,Amazon CloudFront,global
+2026-07-01,2026-07-15,True,0.0,Amazon CloudFront,us-east-1
+2026-07-01,2026-07-15,True,0.0,Amazon Cognito,us-east-1
+2026-07-01,2026-07-15,True,0.0,Amazon Cognito,us-west-1
+2026-07-01,2026-07-15,True,0.0,Amazon Cognito,us-west-2
+2026-07-01,2026-07-15,True,0.0004437476,Amazon DynamoDB,us-west-1
+2026-07-01,2026-07-15,True,0.0260010213,Amazon DynamoDB,us-west-2
+2026-07-01,2026-07-15,True,7.1752707264,Amazon EC2 Container Registry (ECR),us-east-1
+2026-07-01,2026-07-15,True,0.0039183724,Amazon EC2 Container Registry (ECR),us-west-1
+2026-07-01,2026-07-15,True,1.6988681528,Amazon EC2 Container Registry (ECR),us-west-2
+2026-07-01,2026-07-15,True,38.7197040091,EC2 - Other,ap-south-1
+2026-07-01,2026-07-15,True,34.9440055817,EC2 - Other,eu-central-1
+2026-07-01,2026-07-15,True,113.4205801882,EC2 - Other,us-east-1
+2026-07-01,2026-07-15,True,350.1487335259,EC2 - Other,us-west-2
+2026-07-01,2026-07-15,True,0.0,Amazon Elastic Compute Cloud - Compute,ap-south-1
+2026-07-01,2026-07-15,True,5.7248e-06,Amazon Elastic Compute Cloud - Compute,eu-central-1
+2026-07-01,2026-07-15,True,103.1147091825,Amazon Elastic Compute Cloud - Compute,us-east-1
+2026-07-01,2026-07-15,True,11255.0551609896,Amazon Elastic Compute Cloud - Compute,us-west-2
+2026-07-01,2026-07-15,True,3.3635117177,Amazon Elastic Container Service,us-west-1
+2026-07-01,2026-07-15,True,44.3679086636,Amazon Elastic Container Service,us-west-2
+2026-07-01,2026-07-15,True,4.86624e-05,Amazon Elastic File System,us-west-2
+2026-07-01,2026-07-15,True,7.56,Amazon Elastic Load Balancing,us-east-1
+2026-07-01,2026-07-15,True,27.1960282923,Amazon Elastic Load Balancing,us-west-2
+2026-07-01,2026-07-15,True,1465.774960891,Amazon FSx,us-west-2
+2026-07-01,2026-07-15,True,5.74e-08,Amazon Glacier,af-south-1
+2026-07-01,2026-07-15,True,3.5e-08,Amazon Glacier,ap-east-1
+2026-07-01,2026-07-15,True,1.4e-07,Amazon Glacier,ap-northeast-1
+2026-07-01,2026-07-15,True,1.232e-07,Amazon Glacier,ap-northeast-2
+2026-07-01,2026-07-15,True,1.4e-07,Amazon Glacier,ap-northeast-3
+2026-07-01,2026-07-15,True,1.344e-07,Amazon Glacier,ap-south-1
+2026-07-01,2026-07-15,True,1.4e-07,Amazon Glacier,ap-southeast-1
+2026-07-01,2026-07-15,True,1.512e-07,Amazon Glacier,ap-southeast-2
+2026-07-01,2026-07-15,True,3.36e-08,Amazon Glacier,ca-central-1
+2026-07-01,2026-07-15,True,3.36e-08,Amazon Glacier,eu-central-1
+2026-07-01,2026-07-15,True,3.36e-08,Amazon Glacier,eu-north-1
+2026-07-01,2026-07-15,True,3.36e-08,Amazon Glacier,eu-west-1
+2026-07-01,2026-07-15,True,3.36e-08,Amazon Glacier,eu-west-2
+2026-07-01,2026-07-15,True,3.36e-08,Amazon Glacier,eu-west-3
+2026-07-01,2026-07-15,True,2.184e-07,Amazon Glacier,sa-east-1
+2026-07-01,2026-07-15,True,3.36e-08,Amazon Glacier,us-east-1
+2026-07-01,2026-07-15,True,3.36e-08,Amazon Glacier,us-east-2
+2026-07-01,2026-07-15,True,3.36e-08,Amazon Glacier,us-west-1
+2026-07-01,2026-07-15,True,0.01398536,Amazon GuardDuty,ap-northeast-1
+2026-07-01,2026-07-15,True,0.013685,Amazon GuardDuty,ap-northeast-2
+2026-07-01,2026-07-15,True,0.014795,Amazon GuardDuty,ap-northeast-3
+2026-07-01,2026-07-15,True,0.01309,Amazon GuardDuty,ap-south-1
+2026-07-01,2026-07-15,True,0.0136206,Amazon GuardDuty,ap-southeast-1
+2026-07-01,2026-07-15,True,0.0136896,Amazon GuardDuty,ap-southeast-2
+2026-07-01,2026-07-15,True,0.013685,Amazon GuardDuty,ca-central-1
+2026-07-01,2026-07-15,True,0.0136896,Amazon GuardDuty,eu-central-1
+2026-07-01,2026-07-15,True,0.012264,Amazon GuardDuty,eu-north-1
+2026-07-01,2026-07-15,True,0.0130856,Amazon GuardDuty,eu-west-1
+2026-07-01,2026-07-15,True,0.01309,Amazon GuardDuty,eu-west-2
+2026-07-01,2026-07-15,True,0.0130812,Amazon GuardDuty,eu-west-3
+2026-07-01,2026-07-15,True,0.020832,Amazon GuardDuty,sa-east-1
+2026-07-01,2026-07-15,True,2.4129776338,Amazon GuardDuty,us-east-1
+2026-07-01,2026-07-15,True,0.0129,Amazon GuardDuty,us-east-2
+2026-07-01,2026-07-15,True,0.026502351,Amazon GuardDuty,us-west-1
+2026-07-01,2026-07-15,True,0.5007449156,Amazon GuardDuty,us-west-2
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,af-south-1
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,ap-east-1
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,ap-northeast-1
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,ap-northeast-2
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,ap-northeast-3
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,ap-south-1
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,ap-south-2
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,ap-southeast-1
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,ap-southeast-2
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,ap-southeast-3
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,ca-central-1
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,eu-central-1
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,eu-north-1
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,eu-west-1
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,eu-west-2
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,eu-west-3
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,sa-east-1
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,us-east-1
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,us-east-2
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,us-west-1
+2026-07-01,2026-07-15,True,0.0,Amazon Inspector,us-west-2
+2026-07-01,2026-07-15,True,148.3199236572,Amazon Relational Database Service,us-east-1
+2026-07-01,2026-07-15,True,4.9924120833,Amazon Relational Database Service,us-west-1
+2026-07-01,2026-07-15,True,1482.5920125632,Amazon Relational Database Service,us-west-2
+2026-07-01,2026-07-15,True,14.1538876,Amazon Route 53,global
+2026-07-01,2026-07-15,True,8.34e-08,Amazon Simple Email Service,us-west-2
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Notification Service,af-south-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Notification Service,ap-east-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Notification Service,ap-northeast-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Notification Service,ap-northeast-2
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Notification Service,ap-northeast-3
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Notification Service,ap-south-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Notification Service,ap-south-2
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Notification Service,ap-southeast-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Notification Service,ap-southeast-2
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Notification Service,ap-southeast-3
+2026-07-01,2026-07-15,True,2.84e-07,Amazon Simple Notification Service,ca-central-1
+2026-07-01,2026-07-15,True,2.84e-07,Amazon Simple Notification Service,eu-central-1
+2026-07-01,2026-07-15,True,2.84e-07,Amazon Simple Notification Service,eu-north-1
+2026-07-01,2026-07-15,True,2.84e-07,Amazon Simple Notification Service,eu-west-1
+2026-07-01,2026-07-15,True,2.84e-07,Amazon Simple Notification Service,eu-west-2
+2026-07-01,2026-07-15,True,2.84e-07,Amazon Simple Notification Service,eu-west-3
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Notification Service,sa-east-1
+2026-07-01,2026-07-15,True,2.84e-07,Amazon Simple Notification Service,us-east-1
+2026-07-01,2026-07-15,True,2.84e-07,Amazon Simple Notification Service,us-east-2
+2026-07-01,2026-07-15,True,2.84e-07,Amazon Simple Notification Service,us-west-1
+2026-07-01,2026-07-15,True,6.3259e-06,Amazon Simple Notification Service,us-west-2
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,af-south-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,ap-east-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,ap-northeast-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,ap-northeast-2
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,ap-northeast-3
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,ap-south-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,ap-south-2
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,ap-southeast-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,ap-southeast-2
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,ap-southeast-3
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,ca-central-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,eu-central-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,eu-north-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,eu-west-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,eu-west-2
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,eu-west-3
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,sa-east-1
+2026-07-01,2026-07-15,True,1.682e-07,Amazon Simple Queue Service,us-east-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,us-east-2
+2026-07-01,2026-07-15,True,4.02e-07,Amazon Simple Queue Service,us-west-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Queue Service,us-west-2
+2026-07-01,2026-07-15,True,0.0001316,Amazon Simple Storage Service,ap-northeast-1
+2026-07-01,2026-07-15,True,0.0338712395,Amazon Simple Storage Service,ap-south-1
+2026-07-01,2026-07-15,True,0.033547871,Amazon Simple Storage Service,eu-central-1
+2026-07-01,2026-07-15,True,0.00014,Amazon Simple Storage Service,eu-north-1
+2026-07-01,2026-07-15,True,0.00014,Amazon Simple Storage Service,eu-west-1
+2026-07-01,2026-07-15,True,0.0,Amazon Simple Storage Service,global
+2026-07-01,2026-07-15,True,0.4402607251,Amazon Simple Storage Service,us-east-1
+2026-07-01,2026-07-15,True,0.0311710843,Amazon Simple Storage Service,us-east-2
+2026-07-01,2026-07-15,True,0.0388953788,Amazon Simple Storage Service,us-west-1
+2026-07-01,2026-07-15,True,3711.8512155598,Amazon Simple Storage Service,us-west-2
+2026-07-01,2026-07-15,True,3.36,Amazon Virtual Private Cloud,ap-south-1
+2026-07-01,2026-07-15,True,3.36,Amazon Virtual Private Cloud,eu-central-1
+2026-07-01,2026-07-15,True,18.837526385,Amazon Virtual Private Cloud,us-east-1
+2026-07-01,2026-07-15,True,1.5722665925,Amazon Virtual Private Cloud,us-west-1
+2026-07-01,2026-07-15,True,53.0254995918,Amazon Virtual Private Cloud,us-west-2
+2026-07-01,2026-07-15,True,0.0,AmazonCloudWatch,ap-south-1
+2026-07-01,2026-07-15,True,0.0,AmazonCloudWatch,eu-central-1
+2026-07-01,2026-07-15,True,0.0,AmazonCloudWatch,global
+2026-07-01,2026-07-15,True,0.0171212234,AmazonCloudWatch,us-east-1
+2026-07-01,2026-07-15,True,0.0,AmazonCloudWatch,us-east-2
+2026-07-01,2026-07-15,True,0.9798675056,AmazonCloudWatch,us-west-1
+2026-07-01,2026-07-15,True,59.029316738,AmazonCloudWatch,us-west-2
+2026-07-01,2026-07-15,True,0.0,CloudWatch Events,us-west-2
+2026-07-01,2026-07-15,True,0.0,Tax,NoRegion
