@@ -56,6 +56,7 @@ EXPECTED_COMMANDS = {
     ("aws", "validate", "quotas"),
     ("aws", "validate", "all"),
     ("aws", "audit", "api-calls"),
+    ("aws", "audit", "cost-resources"),
     ("slurm-accounting", "ensure"),
     ("slurm-accounting", "attach"),
     ("cost-centers", "ensure-registry"),
@@ -244,6 +245,9 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     aws_validate_quotas_cmd = registry.get_command(("aws", "validate", "quotas"))
     aws_validate_all_cmd = registry.get_command(("aws", "validate", "all"))
     aws_audit_api_calls_cmd = registry.get_command(("aws", "audit", "api-calls"))
+    aws_audit_cost_resources_cmd = registry.get_command(
+        ("aws", "audit", "cost-resources")
+    )
     slurm_accounting_ensure_cmd = registry.get_command(("slurm-accounting", "ensure"))
     slurm_accounting_attach_cmd = registry.get_command(("slurm-accounting", "attach"))
     cost_centers_put_usage_cmd = registry.get_command(("cost-centers", "put-usage"))
@@ -453,6 +457,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert aws_audit_api_calls_cmd.policy.supports_json is True
     assert aws_audit_api_calls_cmd.policy.mutates_state is False
     assert aws_audit_api_calls_cmd.policy.long_running is True
+
+    assert aws_audit_cost_resources_cmd is not None
+    assert aws_audit_cost_resources_cmd.policy.supports_json is True
+    assert aws_audit_cost_resources_cmd.policy.mutates_state is False
+    assert aws_audit_cost_resources_cmd.policy.long_running is True
 
     assert slurm_accounting_ensure_cmd is not None
     assert slurm_accounting_ensure_cmd.policy.supports_json is True
@@ -1479,6 +1488,78 @@ def test_aws_api_call_audit_command_passes_cache_and_cost_controls(
     assert config.cache_only is True
     assert config.paid_call_budget == 0
     assert config.cache_max_age_seconds == 24 * 60 * 60
+
+
+def test_aws_cost_resource_report_command_passes_dynamic_tag_budget_controls(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    import daylily_ec.aws.on_demand_cost_report as report_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+
+    def fake_run(config):
+        calls["config"] = config
+        return {
+            "counts": {"resources": 9, "untagged_resources": 2, "budgets": 3},
+            "paid_call_guard": {
+                "actual_paid_live_calls": 0,
+                "actual_estimated_cost_usd_at_observed_rate": 0.0,
+            },
+        }
+
+    monkeypatch.setattr(report_module, "run_on_demand_cost_report", fake_run)
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "aws",
+            "audit",
+            "cost-resources",
+            "--profile",
+            "lsmc",
+            "--account-id",
+            "108782052779",
+            "--start",
+            "2026-06-01",
+            "--resource-start",
+            "2026-07-01",
+            "--end",
+            "2026-07-15",
+            "--control-region",
+            "us-west-2",
+            "--output-dir",
+            str(tmp_path / "output"),
+            "--cache-dir",
+            str(tmp_path / "cache"),
+            "--history-file",
+            str(tmp_path / "history.json"),
+            "--initialize-history",
+            "--cost-tag-key",
+            "Project",
+            "--cluster-tag-key",
+            "parallelcluster:cluster-name",
+            "--parallelcluster-executable",
+            str(tmp_path / "pcluster"),
+            "--parallelcluster-region",
+            "us-west-2",
+            "--paid-call-budget",
+            "30",
+            "--include-budgets",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout
+    config = calls["config"]
+    assert config.profile == "lsmc"
+    assert config.resource_start_date.isoformat() == "2026-07-01"
+    assert config.cost_tag_keys == ("Project",)
+    assert config.cluster_tag_keys == ("parallelcluster:cluster-name",)
+    assert config.parallelcluster_regions == ("us-west-2",)
+    assert config.include_budgets is True
+    assert config.discover_cost_tag_keys is True
+    assert config.paid_call_budget == 30
 
 
 def test_pricing_spot_logs_exports_csv_via_ssm(monkeypatch, tmp_path) -> None:
