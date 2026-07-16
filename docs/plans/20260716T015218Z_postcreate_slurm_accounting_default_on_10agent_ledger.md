@@ -236,7 +236,7 @@ Result: `33 passed in 1.02s` on Python `3.11.15`, pytest `9.1.1`.
 | SACCT-POST-007 | State/output | Persist non-secret receipt fields, complete state/summaries, warning and recovery panels, fail-soft/strict exit semantics, and output redaction enforcement. | SUCCESS | legitimate_safety_handling | Gate 4 | Agent 7 | Strict receipt/status/stage models, deterministic receipt store/load, safe state application, fixed warning/status helpers, and removal of five sensitive `StateRecord` fields; state/redaction suites `39 passed`; Ruff, Black, mypy, and diff check passed. |  | Receipt/state/output APIs cannot accept arbitrary exception text or persist resolved URI, private IP, secret ARN, database, or username values. |
 | SACCT-POST-008 | Unit/contract tests | Add independent CLI, template, config, state, approval, output, and redaction regression coverage. | SUCCESS | contract_test | Gate 4 | Agent 8 | Twenty independent cases added across CLI defaults/modes/validation/help, Ursa paired approvals, template/config/render isolation, and output/receipt sentinel redaction; focused combined suite `260 passed`; Ruff, Black, and diff check passed. |  | Public contract and negative regression coverage is complete without product-code changes. |
 | SACCT-POST-009 | Lifecycle/docs tests | Add lifecycle, waiter, failure/recovery, ordering, integration, redaction, and documentation coverage. | SUCCESS | contract_test | Gate 4 | Agent 9 | Full ordering plus 16-case failure/recovery/redaction matrix, strict/soft exit and four-panel statuses, standalone attach preservation, README and CLI operator docs; focused `276 passed`; Ruff, Black, hard-link parity, and diff check passed. |  | Lifecycle recovery and operator guidance satisfy Gate 4; AWS setup was unchanged because permissions and quotas did not change. |
-| SACCT-POST-010 | Integration/release/proof | Integrate all rows; run focused and full verification; normally merge; create/push annotated unused patch tag; perform one exact-tag live proof; merge evidence; verify operator pin separately. | IN_PROGRESS | feature_implementation | Gate 5 | Agent 10 | PR #20 merged as `bff4cc48`; annotated `10.3.18` pushed; exact-tag cluster `ifx-sacctpost-10318` proved accounting-free initial YAML, base state before accounting, existing singleton reuse without creation approvals, `UPDATE_COMPLETE`, fleet `RUNNING`, redacted complete receipt, state `ENABLED`, and independent ubuntu `SACCT_OK`. Live INIT output exposed two pre-existing deploy-key ARN prints; immutable corrected patch `10.3.19` and separate evidence/pin merge are in progress. | Pre-existing INIT details printed the two validated deploy-key secret ARNs even though the accounting lifecycle output itself remained redacted. | Do not move `10.3.18`; remove both INIT values, release `10.3.19`, then pin operators and close the ledger. |
+| SACCT-POST-010 | Integration/release/proof | Integrate all rows; run focused and full verification; normally merge; create/push annotated unused patch tag; perform one exact-tag live proof; merge evidence; verify operator pin separately. | SUCCESS | feature_implementation | Gate 5 | Agent 10 | PR #20 merged as `bff4cc48`; annotated `10.3.18` live proof cluster `ifx-sacctpost-10318` proved accounting-free initial YAML, base state before accounting, compatible singleton reuse without creation approvals, `UPDATE_COMPLETE`, fleet `RUNNING`, redacted complete receipt/state `ENABLED`, and independent ubuntu `SACCT_OK`. PR #21 removed the two pre-existing INIT secret-ARN values and merged as `04312d1d`; corrected annotated tag object `a767c850187e25c1933f8c9b065daacbda4aa2f8` names `10.3.19` and peels to that merge. PR #22 separately pins source/packaged operator config and the blessed-tag contract to `10.3.19`; pin/default/version suites `34 passed` and file parity passed. | Pre-existing INIT details printed the two validated deploy-key secret ARNs even though the accounting lifecycle output itself remained redacted. | `10.3.18` remains immutable; `10.3.19` is the corrected release. The one proof cluster and its resources remain retained, no second paid cluster was created for the deterministic two-line redaction delta, and no deletion occurred. |
 
 ## Required lifecycle and recovery contract
 
@@ -341,19 +341,19 @@ status, blockers, and residual risks.
 
 ## Final report
 
-All rows terminal: `no`
+All rows terminal: `yes`
 
-Objective complete: `no`
+Objective complete: `yes`
 
 Status counts:
 
-- `SUCCESS`: 9
+- `SUCCESS`: 10
 - `DUPLICATE`: 0
 - `NO_LONGER_NEEDED`: 0
 - `FAIL`: 0
 - `BLOCKED`: 0
 - `OPEN`: 0
-- `IN_PROGRESS`: 1
+- `IN_PROGRESS`: 0
 - `ATTEMPTING_BUGFIX`: 0
 
 Validation recorded so far:
@@ -384,6 +384,9 @@ Validation recorded so far:
   passed`; complete workflow suite `155 passed`; complete repository suite
   `1693 passed, 11 skipped, 1 warning in 62.71s`; scoped Ruff, Black check,
   and `git diff --check` passed.
+- Operator pin validation: source and packaged self-pin configs are byte
+  identical at `10.3.19`; blessed-tag/default/version suites `34 passed in
+  2.84s`; `git diff --check` passed.
 
 Remote integration note:
 
@@ -400,8 +403,10 @@ Non-success terminal rows: none.
 
 Residual risks:
 
-- Product implementation, complete regression coverage, release, and live
-  exact-tag proof remain open.
-- Live proof may encounter a regional accounting/VPC compatibility state that
-  correctly produces `WARNING` rather than `ENABLED`; that outcome is accepted
-  only when retention, exit code, recovery state, and redaction are proven.
+- The retained proof cluster and its dedicated P2 storage continue to incur
+  AWS cost. Their deletion was explicitly outside this ledger and still
+  requires a separate destructive-action approval.
+- `10.3.19` was not proven with a second paid cluster because its only product
+  delta from the successfully proven `10.3.18` accounting lifecycle is removal
+  of two local INIT detail values. Focused and full automated tests prove that
+  redaction delta.
