@@ -2077,6 +2077,34 @@ class TestRunCreateWorkflow:
             ":secret:dayec/dayoa-key"
         )
 
+    def test_create_output_never_prints_deploy_key_secret_arns(self, tmp_path, monkeypatch):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert ("DYEC deploy-key secret", "validated") in records["details"]
+        assert ("DayOA deploy-key secret", "validated") in records["details"]
+
+        user_facing_output = repr(
+            {
+                "details": records["details"],
+                "echoes": records["echoes"],
+                "warnings": records["warnings"],
+                "failures": records["failures"],
+                "success_panel": records["success_panel"],
+            }
+        )
+        for secret_arn in (
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/dyec-key",
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/dayoa-key",
+        ):
+            assert secret_arn not in user_facing_output
+
     def test_budget_project_override_is_rejected(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
             tmp_path,
