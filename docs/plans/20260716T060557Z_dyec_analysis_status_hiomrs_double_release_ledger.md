@@ -24,9 +24,9 @@ Add an exact-analysis-root `dyec analysis status slim|full` inspection command, 
 | 3 | Retire active legacy HIOMR catalog entries | PASS | Source/package catalogs omit both legacy IDs; tests select HIOMRS |
 | 4 | Pin HIOMRS catalog commands to DayOA 11.0.12 | PASS | Default ref and both HIOMRS commands use 11.0.12; catalogs byte-identical |
 | 5 | Validate first release candidate | PASS | 2,205 passed, 11 skipped; changed-code Ruff and `git diff --check` passed; repo-wide Ruff has 33 unrelated archived-doc-script findings |
-| 6 | Merge and tag first DYEC release | IN PROGRESS | Pending commit/PR/checks/tag 10.3.20 |
-| 7 | Update DYEC self-pin to the first release | PENDING | Pending second commit |
-| 8 | Validate, merge, and tag second DYEC release | PENDING | Pending PR/checks/tag |
+| 6 | Merge and tag first DYEC release | PASS | PR #24 merged at `7e0c8bce`; annotated tag 10.3.20 pushed and verified |
+| 7 | Update DYEC self-pin to the first release | PASS | Source/package defaults and fork contract target 10.3.20; 2,205 passed, 11 skipped |
+| 8 | Validate, merge, and tag second DYEC release | IN PROGRESS | Pending commit/PR/merge and annotated tag 10.3.21 |
 | 9 | Verify final clean main and immutable annotated tags | PENDING | Pending final audit |
 
 ## Acceptance contract
