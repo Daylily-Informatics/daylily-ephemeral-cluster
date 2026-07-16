@@ -43,10 +43,10 @@ the refreshed branch to `main`.
 | MAX-002 | Config resolution | Ensure user-supplied family values override hidden/stale subtype `1` values and stop generating hidden subtype overrides. | SUCCESS | config_or_startup_contract | Gate 1 | orchestrator | Fourteen private subtype keys removed from source/package create templates and required keys; resolver expands only the five public family inputs; next-run writer drops private keys; legacy configs receive one explicit ignored-key warning. | Hidden subtype values were never prompted but could override the public value. | The public family value is authoritative and legacy overrides are not ignored silently. |
 | MAX-003 | Active templates | Prove every active Intel MaxCount remains an explicit create-time substitution and keep source/package trees identical. | SUCCESS | config_or_startup_contract | Gate 1 | orchestrator | Active Intel literal-quota regression and existing source/package parity contract. | Specialized DRAGEN/Sentieon limits were initially conflated with the Intel public-input defect. | Scope amended: specialized fixed topologies remain unchanged. |
 | MAX-004 | Regression tests | Prove prompt/value precedence, next-run output, all selected Intel templates, and final rendered MaxCount values. | SUCCESS | contract_test | Gate 2 | orchestrator | `296 passed` focused suite plus dedicated interactive regression: stale subtype precedence, warning, exactly five public prompts, 8/9/12/19/38 answer propagation, next-run omission, active-template substitution-only contract, and unique rendered values across every supported Intel AZ. |  | Prompt- and render-level proof passed. |
-| MAX-005 | Final verification | Rebase/merge latest remote additions, run focused/full/coverage/format/lint/diff checks, and propose normal PR. | IN_PROGRESS | contract_test | Gate 3 | orchestrator | Full suite and quality gates pass; normal commit/push/draft PR pending. |  |  |
+| MAX-005 | Final verification | Rebase/merge latest remote additions, run focused/full/coverage/format/lint/diff checks, and propose normal PR. | SUCCESS | contract_test | Gate 3 | orchestrator | `2,197 passed, 11 skipped`; coverage `91.226073%`; Ruff, Black, template parity, diff, and mypy regression comparison complete; implementation commit `4f0bfb69`; draft PR [#23](https://github.com/lsmc-bio/daylily-ephemeral-cluster/pull/23) targets `main`. |  | No merge, tag, release, deployment, or AWS mutation performed. |
 
 ## Final report
 
-All rows terminal: `no`
+All rows terminal: `yes`
 
-Objective complete: `no`
+Objective complete: `yes`

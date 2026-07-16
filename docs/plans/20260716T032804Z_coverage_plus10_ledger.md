@@ -37,10 +37,10 @@ collection to manufacture the increase.
 | COV-DYEC-002 | Coverage inventory | Rank missed executable behavior and select high-value test surfaces without exclusions or denominator changes. | SUCCESS | contract_test | Gate 1 | orchestrator | Baseline and authoritative intermediate JSON inventories drove non-overlapping gap tests across CLI, validation, create/accounting, staging, storage, repositories, export, cost, headnode, locks, Dewey, and Sentieon. |  | Final gap tests intersected only lines missing from the full-run JSON. |
 | COV-DYEC-003 | Tests | Add behavioral tests sufficient to gain at least 10.00 absolute statement-coverage points. | SUCCESS | contract_test | Gate 2 | orchestrator | 504 new behavioral tests; final 17,634 covered versus 15,589 baseline, a net +2,045 covered statements while product source grew by three statements. |  | No exclusions, omitted files, pragma suppression, or coverage-config changes. |
 | COV-DYEC-004 | Verification | Run focused tests, complete suite with identical coverage command, Ruff, Black check, and diff check. | SUCCESS | contract_test | Gate 3 | orchestrator | `2,197 passed, 11 skipped`; 19,330 statements, 17,634 covered, 1,696 missed, `91.22607346094154%`; Ruff, Black, template parity, and diff checks pass. Mypy reports the exact same 10 pre-existing `create_cluster.py` findings at base and current. |  | Exact gain is `10.56689200494734` points. |
-| COV-DYEC-005 | Integration | Preserve unrelated work, commit intentionally, publish normal PR, and record terminal evidence. | IN_PROGRESS | feature_implementation | Gate 4 | orchestrator | Final fetch remained a no-op at `origin/main=2329bccb6a443490cde3b11423623b3b1fc0ab56`; commit/push/PR pending. |  |  |
+| COV-DYEC-005 | Integration | Preserve unrelated work, commit intentionally, publish normal PR, and record terminal evidence. | SUCCESS | feature_implementation | Gate 4 | orchestrator | Final fetch remained a no-op at `origin/main=2329bccb6a443490cde3b11423623b3b1fc0ab56`; implementation commit `4f0bfb69`; branch pushed; draft PR [#23](https://github.com/lsmc-bio/daylily-ephemeral-cluster/pull/23) targets `main`. |  | Active dirty checkout and stopped Ursa worktree remained untouched. |
 
 ## Final report
 
-All rows terminal: `no`
+All rows terminal: `yes`
 
-Objective complete: `no`
+Objective complete: `yes`
