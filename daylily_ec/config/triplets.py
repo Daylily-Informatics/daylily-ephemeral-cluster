@@ -29,6 +29,20 @@ from daylily_ec.config.models import (
 
 REQUIRED_CONFIG_DEFAULTS: Dict[str, str] = {}
 
+# Slurm accounting is a post-create CLI concern.  Older create configs may
+# still contain these keys, but they must not influence create or be carried
+# forward into newly generated next-run configs.
+LEGACY_CREATE_ACCOUNTING_KEYS = frozenset(
+    {
+        "slurm_accounting_enabled",
+        "slurm_accounting_create_db",
+        "slurm_accounting_stack_name",
+        "slurm_accounting_database_name",
+        "slurm_accounting_db_username",
+        "slurm_accounting_instance_type",
+    }
+)
+
 # ---------------------------------------------------------------------------
 # Loading
 # ---------------------------------------------------------------------------
@@ -199,6 +213,8 @@ def write_next_run_template(
 
     out_data: Dict[str, Any] = {"ephemeral_cluster": {"config": {}}}
     for key, triplet in cfg.ephemeral_cluster.config.items():
+        if key in LEGACY_CREATE_ACCOUNTING_KEYS:
+            continue
         next_action = triplet.action
         if not is_auto_select_disabled():
             next_action = "USESETVALUE"
@@ -207,9 +223,11 @@ def write_next_run_template(
         out_data["ephemeral_cluster"]["config"][key] = [next_action, dval, sval]
 
     if cfg.ephemeral_cluster.template_defaults:
-        out_data["ephemeral_cluster"]["template_defaults"] = dict(
-            cfg.ephemeral_cluster.template_defaults
-        )
+        out_data["ephemeral_cluster"]["template_defaults"] = {
+            key: value
+            for key, value in cfg.ephemeral_cluster.template_defaults.items()
+            if key not in LEGACY_CREATE_ACCOUNTING_KEYS
+        }
 
     with open(dest, "w", encoding="utf-8") as fh:
         yaml.dump(out_data, fh, default_flow_style=None, sort_keys=False)

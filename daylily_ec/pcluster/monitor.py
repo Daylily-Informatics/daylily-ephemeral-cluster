@@ -38,6 +38,41 @@ MAX_CONSECUTIVE_FAILURES: int = 5
 #: Default seconds between status polls.
 DEFAULT_POLL_INTERVAL: float = 30.0
 
+#: Maximum time to wait for a requested fleet stop or start.
+DEFAULT_FLEET_TIMEOUT: float = 20.0 * 60.0
+
+#: Maximum time to wait for a submitted ParallelCluster update.
+DEFAULT_UPDATE_TIMEOUT: float = 90.0 * 60.0
+
+#: Maximum time a just-submitted update may still report the pre-update
+#: ``CREATE_COMPLETE`` status before the operation is considered indeterminate.
+DEFAULT_UPDATE_START_TIMEOUT: float = 5.0 * 60.0
+
+FLEET_TARGET_STATUSES: frozenset[str] = frozenset({"RUNNING", "STOPPED"})
+
+FLEET_PROGRESS_STATUSES: Dict[str, frozenset[str]] = {
+    "RUNNING": frozenset({"STOPPED", "START_REQUESTED", "STARTING"}),
+    "STOPPED": frozenset({"RUNNING", "STOP_REQUESTED", "STOPPING"}),
+}
+
+UPDATE_SUCCESS_STATUS: str = "UPDATE_COMPLETE"
+UPDATE_RECOVERABLE_ROLLBACK_STATUS: str = "UPDATE_ROLLBACK_COMPLETE"
+UPDATE_PREVIOUS_STATUS: str = "CREATE_COMPLETE"
+UPDATE_PROGRESS_STATUSES: frozenset[str] = frozenset(
+    {
+        "UPDATE_IN_PROGRESS",
+        "UPDATE_COMPLETE_CLEANUP_IN_PROGRESS",
+        "UPDATE_ROLLBACK_IN_PROGRESS",
+        "UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS",
+    }
+)
+UPDATE_INDETERMINATE_FAILURE_STATUSES: frozenset[str] = frozenset(
+    {
+        "UPDATE_FAILED",
+        "UPDATE_ROLLBACK_FAILED",
+    }
+)
+
 # ---------------------------------------------------------------------------
 # Result
 # ---------------------------------------------------------------------------
@@ -54,6 +89,26 @@ class MonitorResult:
     error: str = ""
     head_node_ip: Optional[str] = None
     head_node_instance_id: Optional[str] = None
+
+
+@dataclass
+class LifecycleMonitorResult:
+    """Outcome of a bounded fleet or cluster-update wait.
+
+    ``outcome`` is a stable machine-readable classification for recovery
+    orchestration.  ``safe_to_restore_fleet`` is true only when the cluster
+    update reached a known stable terminal state: successful update or
+    completed rollback.  Timeouts, describe failures, rollback failure, and
+    unexpected statuses remain indeterminate and must not trigger a restart.
+    """
+
+    final_status: Optional[str]
+    elapsed_seconds: float
+    success: bool
+    outcome: str
+    consecutive_failures: int = 0
+    error: str = ""
+    safe_to_restore_fleet: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -102,7 +157,8 @@ def get_cluster_status(
         return None
 
     try:
-        return json.loads(proc.stdout)
+        parsed = json.loads(proc.stdout)
+        return parsed if isinstance(parsed, str) else None
     except (json.JSONDecodeError, TypeError):
         return proc.stdout.strip() or None
 
@@ -148,6 +204,30 @@ def get_cluster_details(
         return json.loads(proc.stdout)  # type: ignore[no-any-return]
     except (json.JSONDecodeError, TypeError):
         return {}
+
+
+def get_compute_fleet_status(
+    cluster_name: str,
+    region: str,
+    *,
+    profile: Optional[str] = None,
+    executable: str = "pcluster",
+) -> Optional[str]:
+    """Return an exact compute-fleet status, or ``None`` on any bad response."""
+    from daylily_ec.pcluster.runner import describe_compute_fleet
+
+    result = describe_compute_fleet(
+        cluster_name,
+        region,
+        profile=profile,
+        executable=executable,
+    )
+    if not result.success:
+        return None
+    status = result.json_body.get("status")
+    if not isinstance(status, str) or not status.strip():
+        return None
+    return status
 
 
 # ---------------------------------------------------------------------------
@@ -263,6 +343,248 @@ def wait_for_creation(
             success=False,
             error=error,
         )
+
+
+def wait_for_compute_fleet(
+    cluster_name: str,
+    region: str,
+    target_status: str,
+    *,
+    profile: Optional[str] = None,
+    executable: str = "pcluster",
+    timeout: float = DEFAULT_FLEET_TIMEOUT,
+    poll_interval: float = DEFAULT_POLL_INTERVAL,
+    max_failures: int = MAX_CONSECUTIVE_FAILURES,
+    _status_fn: Any = None,
+    _time_fn: Any = None,
+    _sleep_fn: Any = None,
+) -> LifecycleMonitorResult:
+    """Wait up to *timeout* seconds for an exact compute-fleet target state.
+
+    The waiter accepts only exact terminal targets ``RUNNING`` or ``STOPPED``.
+    Transitional statuses valid for that requested direction continue polling;
+    any other non-empty status is an explicit terminal failure.  Repeated
+    describe failures and timeouts have separate machine-readable outcomes.
+    """
+    if target_status not in FLEET_TARGET_STATUSES:
+        accepted = ", ".join(sorted(FLEET_TARGET_STATUSES))
+        raise ValueError(
+            f"Unsupported compute-fleet target {target_status!r}; "
+            f"expected exactly one of: {accepted}."
+        )
+    if timeout <= 0:
+        raise ValueError("Compute-fleet wait timeout must be greater than zero.")
+    if poll_interval <= 0:
+        raise ValueError("Compute-fleet poll interval must be greater than zero.")
+    if max_failures <= 0:
+        raise ValueError("Compute-fleet max_failures must be greater than zero.")
+
+    status_fn = _status_fn or get_compute_fleet_status
+    now = _time_fn or time.monotonic
+    sleep = _sleep_fn or time.sleep
+    start = now()
+    consecutive_failures = 0
+    progress_statuses = FLEET_PROGRESS_STATUSES[target_status]
+
+    while True:
+        status = status_fn(
+            cluster_name,
+            region,
+            profile=profile,
+            executable=executable,
+        )
+        elapsed = max(0.0, now() - start)
+
+        if status == target_status:
+            return LifecycleMonitorResult(
+                final_status=status,
+                elapsed_seconds=elapsed,
+                success=True,
+                outcome="success",
+            )
+
+        if status is None:
+            consecutive_failures += 1
+            if consecutive_failures >= max_failures:
+                return LifecycleMonitorResult(
+                    final_status=None,
+                    elapsed_seconds=elapsed,
+                    success=False,
+                    outcome="describe_failure",
+                    consecutive_failures=consecutive_failures,
+                    error=(
+                        "Compute-fleet describe failed "
+                        f"{consecutive_failures} consecutive times."
+                    ),
+                )
+        elif status in progress_statuses:
+            consecutive_failures = 0
+        else:
+            return LifecycleMonitorResult(
+                final_status=status,
+                elapsed_seconds=elapsed,
+                success=False,
+                outcome="terminal_failure",
+                error=(
+                    f"Compute fleet entered unexpected status {status!r} while "
+                    f"waiting for {target_status}."
+                ),
+            )
+
+        if elapsed >= timeout:
+            return LifecycleMonitorResult(
+                final_status=status,
+                elapsed_seconds=elapsed,
+                success=False,
+                outcome="timeout",
+                consecutive_failures=consecutive_failures,
+                error=(
+                    f"Timed out after {elapsed:.0f}s waiting for compute fleet "
+                    f"to reach {target_status}."
+                ),
+            )
+
+        sleep(min(poll_interval, max(0.0, timeout - elapsed)))
+
+
+def wait_for_cluster_update(
+    cluster_name: str,
+    region: str,
+    *,
+    profile: Optional[str] = None,
+    executable: str = "pcluster",
+    timeout: float = DEFAULT_UPDATE_TIMEOUT,
+    update_start_timeout: float = DEFAULT_UPDATE_START_TIMEOUT,
+    poll_interval: float = DEFAULT_POLL_INTERVAL,
+    max_failures: int = MAX_CONSECUTIVE_FAILURES,
+    _status_fn: Any = None,
+    _time_fn: Any = None,
+    _sleep_fn: Any = None,
+) -> LifecycleMonitorResult:
+    """Wait for a submitted cluster update to reach a known terminal state.
+
+    ``UPDATE_COMPLETE`` is successful and safe for fleet restoration.
+    ``UPDATE_ROLLBACK_COMPLETE`` is a recoverable failed update and is also a
+    known stable state where restoration is safe.  All other terminal,
+    timeout, or describe-failure outcomes are indeterminate and explicitly
+    report ``safe_to_restore_fleet=False``.
+
+    ParallelCluster can briefly report the pre-submit ``CREATE_COMPLETE``
+    state after a successful submission.  It is tolerated only for
+    *update_start_timeout* seconds; it is never mistaken for update success.
+    """
+    if timeout <= 0:
+        raise ValueError("Cluster-update wait timeout must be greater than zero.")
+    if update_start_timeout <= 0:
+        raise ValueError("Cluster-update start timeout must be greater than zero.")
+    if poll_interval <= 0:
+        raise ValueError("Cluster-update poll interval must be greater than zero.")
+    if max_failures <= 0:
+        raise ValueError("Cluster-update max_failures must be greater than zero.")
+
+    status_fn = _status_fn or get_cluster_status
+    now = _time_fn or time.monotonic
+    sleep = _sleep_fn or time.sleep
+    start = now()
+    consecutive_failures = 0
+    observed_update = False
+
+    while True:
+        status = status_fn(
+            cluster_name,
+            region,
+            profile=profile,
+            executable=executable,
+        )
+        elapsed = max(0.0, now() - start)
+
+        if status == UPDATE_SUCCESS_STATUS:
+            return LifecycleMonitorResult(
+                final_status=status,
+                elapsed_seconds=elapsed,
+                success=True,
+                outcome="success",
+                safe_to_restore_fleet=True,
+            )
+
+        if status == UPDATE_RECOVERABLE_ROLLBACK_STATUS:
+            return LifecycleMonitorResult(
+                final_status=status,
+                elapsed_seconds=elapsed,
+                success=False,
+                outcome="recoverable_rollback",
+                error="Cluster update rolled back to a stable terminal state.",
+                safe_to_restore_fleet=True,
+            )
+
+        if status is None:
+            consecutive_failures += 1
+            if consecutive_failures >= max_failures:
+                return LifecycleMonitorResult(
+                    final_status=None,
+                    elapsed_seconds=elapsed,
+                    success=False,
+                    outcome="describe_failure",
+                    consecutive_failures=consecutive_failures,
+                    error=(
+                        "Cluster-update describe failed "
+                        f"{consecutive_failures} consecutive times; update state "
+                        "is indeterminate."
+                    ),
+                )
+        elif status in UPDATE_PROGRESS_STATUSES:
+            consecutive_failures = 0
+            observed_update = True
+        elif status == UPDATE_PREVIOUS_STATUS and not observed_update:
+            consecutive_failures = 0
+            if elapsed >= min(update_start_timeout, timeout):
+                return LifecycleMonitorResult(
+                    final_status=status,
+                    elapsed_seconds=elapsed,
+                    success=False,
+                    outcome="update_not_started",
+                    error=(
+                        "Cluster remained CREATE_COMPLETE after update submission; "
+                        "update state is indeterminate."
+                    ),
+                )
+        elif status in UPDATE_INDETERMINATE_FAILURE_STATUSES:
+            return LifecycleMonitorResult(
+                final_status=status,
+                elapsed_seconds=elapsed,
+                success=False,
+                outcome="indeterminate_failure",
+                error=(
+                    f"Cluster update entered {status}; fleet restoration is unsafe "
+                    "until the update state is resolved."
+                ),
+            )
+        else:
+            return LifecycleMonitorResult(
+                final_status=status,
+                elapsed_seconds=elapsed,
+                success=False,
+                outcome="terminal_failure",
+                error=(
+                    f"Cluster entered unexpected status {status!r} during update; "
+                    "fleet restoration is unsafe until the state is resolved."
+                ),
+            )
+
+        if elapsed >= timeout:
+            return LifecycleMonitorResult(
+                final_status=status,
+                elapsed_seconds=elapsed,
+                success=False,
+                outcome="timeout",
+                consecutive_failures=consecutive_failures,
+                error=(
+                    f"Timed out after {elapsed:.0f}s waiting for cluster update; "
+                    "update state is indeterminate."
+                ),
+            )
+
+        sleep(min(poll_interval, max(0.0, timeout - elapsed)))
 
 
 def wait_for_deletion(

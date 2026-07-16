@@ -128,8 +128,7 @@ class TestClusterBootConfigPublish:
         )
 
         assert uploaded == [
-            f"{release_uri}/{name}"
-            for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES
+            f"{release_uri}/{name}" for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES
         ]
         assert [call["Bucket"] for call in calls] == ["references"] * len(calls)
         assert [call["Key"] for call in calls] == [
@@ -1884,9 +1883,7 @@ class TestRunCreateWorkflow:
             ("us-west-2", {"profile": "lsmc", "executable": "pcluster"})
         ]
 
-    def test_optional_ursa_root_is_the_first_interactive_prompt(
-        self, tmp_path, monkeypatch
-    ):
+    def test_optional_ursa_root_is_the_first_interactive_prompt(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
             tmp_path,
             monkeypatch,
@@ -1900,9 +1897,7 @@ class TestRunCreateWorkflow:
 
         assert records["rc"] == EXIT_SUCCESS
         assert records["prompt_labels"][0] == "Ursa root URL (leave blank to skip)"
-        assert records["next_run_values"]["ursa_root_url"] == (
-            "https://ursa.example.test"
-        )
+        assert records["next_run_values"]["ursa_root_url"] == ("https://ursa.example.test")
 
     def test_sixth_projected_cluster_is_blocked_before_mutations(self, tmp_path, monkeypatch):
         clusters = [
@@ -2296,7 +2291,7 @@ class TestRunCreateWorkflow:
         ]
         assert records["subprocess_calls"] == [["/bin/sh", "-lc", "command -v say >/dev/null 2>&1"]]
 
-    def test_slurm_accounting_default_off_skips_resolution_and_rendering(
+    def test_initial_create_ignores_legacy_accounting_config_and_renders_without_it(
         self, tmp_path, monkeypatch
     ):
         monkeypatch.setattr(
@@ -2313,39 +2308,166 @@ class TestRunCreateWorkflow:
             interactive=False,
             head_node_ip="54.1.2.3",
             say_available=False,
+            config_overrides={
+                "slurm_accounting_enabled": ["USESETVALUE", "", "true"],
+                "slurm_accounting_create_db": ["USESETVALUE", "", "true"],
+                "slurm_accounting_stack_name": [
+                    "USESETVALUE",
+                    "",
+                    "legacy-stack-must-be-ignored",
+                ],
+                "slurm_accounting_database_name": [
+                    "USESETVALUE",
+                    "",
+                    "legacy-database-must-be-ignored",
+                ],
+                "slurm_accounting_db_username": [
+                    "USESETVALUE",
+                    "",
+                    "legacy-user-must-be-ignored",
+                ],
+                "slurm_accounting_instance_type": [
+                    "USESETVALUE",
+                    "",
+                    "legacy-instance-must-be-ignored",
+                ],
+            },
         )
 
         assert records["rc"] == EXIT_SUCCESS
-        assert records["next_run_values"]["slurm_accounting_enabled"] == "false"
-        assert records["render_substitutions"][
-            "REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING"
-        ] == ""
+        assert not any(key.startswith("slurm_accounting_") for key in records["next_run_values"])
+        assert records["render_substitutions"]["REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING"] == ""
         assert records["render_substitutions"]["REGSUB_SLURM_ACCOUNTING_DATABASE"] == ""
         assert not any(key.startswith("Accounting ") for key, _value in records["details"])
 
-    @pytest.mark.parametrize(
-        "config_key",
-        ["slurm_accounting_enabled", "slurm_accounting_create_db"],
-    )
-    def test_create_rejects_accounting_configuration_as_post_create_only(
-        self, tmp_path, monkeypatch, config_key
-    ):
+    def test_base_state_is_persisted_before_postcreate_accounting(self, tmp_path, monkeypatch):
+        from daylily_ec.workflow.postcreate_slurm_accounting import (
+            ACCOUNTING_OUTCOME_ENABLED,
+            PostCreateSlurmAccountingResult,
+        )
+
+        result = PostCreateSlurmAccountingResult(
+            requested_mode="on",
+            outcome=ACCOUNTING_OUTCOME_ENABLED,
+            create_approval_flag=False,
+            cost_acknowledgement_flag=False,
+            stage_reached="complete",
+            terminal_cluster_state="UPDATE_COMPLETE",
+            terminal_fleet_state="RUNNING",
+            fleet_restored=True,
+        )
         records = _run_stubbed_create_workflow(
             tmp_path,
             monkeypatch,
             interactive=False,
             head_node_ip="54.1.2.3",
             say_available=False,
-            config_overrides={config_key: ["USESETVALUE", "", "true"]},
+            postcreate_result=result,
         )
 
-        assert records["rc"] == EXIT_VALIDATION_FAILURE
-        assert records["baseline_stack_calls"] == 0
-        assert not any(event[0] == "create_cluster" for event in records["events"])
-        assert any(
-            "Slurm accounting is post-create only" in failure
-            for failure in records["failures"]
+        events = records["events"]
+        first_state_index = events.index(("write_state_record", ""))
+        accounting_index = events.index(("run_postcreate_slurm_accounting", None))
+        receipt_index = events.index(("write_slurm_accounting_receipt", None))
+        final_state_index = events.index(("write_state_record", "ENABLED"))
+        assert events.index(("wait_for_creation", None)) < events.index(
+            ("configure_headnode", None)
         )
+        assert events.index(("configure_headnode", None)) < events.index(("ensure_heartbeat", None))
+        assert events.index(("ensure_heartbeat", None)) < first_state_index
+        assert first_state_index < accounting_index < receipt_index < final_state_index
+        assert records["postcreate_kwargs"]["cluster_configuration"].is_file()
+
+    def test_accounting_warning_is_soft_by_default_and_strict_mode_returns_two(
+        self, tmp_path, monkeypatch
+    ):
+        from daylily_ec.workflow.postcreate_slurm_accounting import (
+            ACCOUNTING_OUTCOME_WARNING,
+            PostCreateSlurmAccountingResult,
+        )
+
+        warning_result = PostCreateSlurmAccountingResult(
+            requested_mode="on",
+            outcome=ACCOUNTING_OUTCOME_WARNING,
+            create_approval_flag=False,
+            cost_acknowledgement_flag=False,
+            stage_reached="service_preparation",
+            terminal_cluster_state="CREATE_COMPLETE",
+            error_stage="service_preparation",
+        )
+        (tmp_path / "soft").mkdir()
+        (tmp_path / "strict").mkdir()
+        soft_records = _run_stubbed_create_workflow(
+            tmp_path / "soft",
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            postcreate_result=warning_result,
+        )
+        strict_records = _run_stubbed_create_workflow(
+            tmp_path / "strict",
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            run_kwargs={"fail_on_sacct_error": True},
+            postcreate_result=warning_result,
+        )
+
+        assert soft_records["rc"] == EXIT_SUCCESS
+        assert strict_records["rc"] == EXIT_AWS_FAILURE
+        assert soft_records["warnings"] == strict_records["warnings"]
+        assert soft_records["success_panel"][1] == strict_records["success_panel"][1]
+        assert "Accounting:[/] WARNING" in soft_records["success_panel"][1]
+
+    @pytest.mark.parametrize(
+        "mode,outcome,stage,recovery_required",
+        [
+            ("off", "OFF", "off", False),
+            ("on", "ENABLED", "complete", False),
+            ("on", "WARNING", "verification", False),
+            ("on", "RECOVERY REQUIRED", "update_wait", True),
+        ],
+    )
+    def test_final_panel_distinguishes_accounting_outcomes(
+        self,
+        tmp_path,
+        monkeypatch,
+        mode,
+        outcome,
+        stage,
+        recovery_required,
+    ):
+        from daylily_ec.workflow.postcreate_slurm_accounting import (
+            PostCreateSlurmAccountingResult,
+        )
+
+        result = PostCreateSlurmAccountingResult(
+            requested_mode=mode,
+            outcome=outcome,
+            create_approval_flag=False,
+            cost_acknowledgement_flag=False,
+            stage_reached=stage,
+            terminal_cluster_state=(
+                "UPDATE_ROLLBACK_FAILED" if recovery_required else "CREATE_COMPLETE"
+            ),
+            terminal_fleet_state=("STOPPED" if recovery_required else "RUNNING"),
+            error_stage=(stage if outcome in {"WARNING", "RECOVERY REQUIRED"} else ""),
+            recovery_required=recovery_required,
+        )
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            run_kwargs={"slurm_accounting": mode},
+            postcreate_result=result,
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert f"Accounting:[/] {outcome}" in records["success_panel"][1]
 
     def test_explicit_network_and_policy_config_skip_baseline_stack(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
@@ -3316,6 +3438,7 @@ def _run_stubbed_create_workflow(
     run_kwargs: dict[str, object] | None = None,
     regional_clusters: list[dict[str, str]] | None = None,
     regional_cluster_list_result: object | None = None,
+    postcreate_result: object | None = None,
 ) -> dict[str, object]:
     template_path = tmp_path / "template.yaml"
     template_path.write_text(
@@ -3494,6 +3617,7 @@ HeadNode:
         return kwargs.get("cluster_name") or "majors-cluster"
 
     def fake_ensure_heartbeat(*_args, **kwargs):
+        records["events"].append(("ensure_heartbeat", None))
         records["heartbeat_kwargs"] = kwargs
         return SimpleNamespace(
             success=True,
@@ -3562,6 +3686,7 @@ HeadNode:
     )
 
     def fake_configure_headnode(**kwargs):
+        records["events"].append(("configure_headnode", None))
         records["configure_headnode_kwargs"] = kwargs
         return True
 
@@ -3682,18 +3807,19 @@ SharedStorage:
     )
     monkeypatch.setattr(pcluster_runner, "should_break_after_dry_run", lambda: False)
     monkeypatch.setattr(pcluster_runner, "create_cluster", fake_create_cluster)
-    monkeypatch.setattr(
-        pcluster_monitor,
-        "wait_for_creation",
-        lambda *_args, **_kwargs: SimpleNamespace(
+
+    def fake_wait_for_creation(*_args, **_kwargs):
+        records["events"].append(("wait_for_creation", None))
+        return SimpleNamespace(
             success=True,
             elapsed_seconds=125.0,
             final_status="CREATE_COMPLETE",
             error="",
             head_node_ip=head_node_ip,
             head_node_instance_id="i-abc123",
-        ),
-    )
+        )
+
+    monkeypatch.setattr(pcluster_monitor, "wait_for_creation", fake_wait_for_creation)
     import daylily_ec.aws.ssm as aws_ssm
 
     monkeypatch.setattr(aws_ssm, "wait_for_ssm_online", lambda *_args, **_kwargs: None)
@@ -3739,25 +3865,21 @@ SharedStorage:
                 root_volume_hourly_usd=Decimal("0.0461"),
                 fsx_deployment_type=kwargs["fsx_deployment_type"],
                 fsx_capacity_gib=kwargs["fsx_capacity_gib"],
-                fsx_throughput_mbps_per_tib=kwargs[
-                    "fsx_throughput_mbps_per_tib"
-                ],
+                fsx_throughput_mbps_per_tib=kwargs["fsx_throughput_mbps_per_tib"],
                 fsx_hourly_usd=Decimal("1.3808"),
                 public_ipv4_hourly_usd=Decimal("0.005"),
             )
         ),
     )
     monkeypatch.setattr(triplets, "write_next_run_template", fake_write_next_run_template)
-    monkeypatch.setattr(
-        state_store,
-        "write_state_record",
-        lambda state: tmp_path / f"{state.cluster_name}.json",
-    )
-    monkeypatch.setattr(
-        create_cluster_module,
-        "write_state_record",
-        lambda state: tmp_path / f"{state.cluster_name}.json",
-    )
+
+    def fake_write_state_record(state):
+        outcome = getattr(state.slurm_accounting_outcome, "value", "")
+        records["events"].append(("write_state_record", outcome))
+        return tmp_path / f"{state.cluster_name}.json"
+
+    monkeypatch.setattr(state_store, "write_state_record", fake_write_state_record)
+    monkeypatch.setattr(create_cluster_module, "write_state_record", fake_write_state_record)
     monkeypatch.setattr(
         create_cluster_module,
         "_noop_heartbeat_result",
@@ -3782,6 +3904,30 @@ SharedStorage:
 
     monkeypatch.setattr(budgets, "ensure_global_budget", fake_ensure_global_budget)
     monkeypatch.setattr(budgets, "ensure_cluster_budget", fake_ensure_cluster_budget)
+
+    if postcreate_result is not None:
+        import daylily_ec.workflow.postcreate_slurm_accounting as postcreate_module
+
+        def fake_run_postcreate(**kwargs):
+            records["events"].append(("run_postcreate_slurm_accounting", None))
+            records["postcreate_kwargs"] = kwargs
+            return postcreate_result
+
+        def fake_write_accounting_receipt(receipt, *, cluster_name, run_id):
+            records["events"].append(("write_slurm_accounting_receipt", None))
+            records["accounting_receipt"] = receipt
+            return tmp_path / f"slurm_accounting_{cluster_name}_{run_id}.json"
+
+        monkeypatch.setattr(
+            postcreate_module,
+            "run_postcreate_slurm_accounting",
+            fake_run_postcreate,
+        )
+        monkeypatch.setattr(
+            state_store,
+            "write_slurm_accounting_receipt",
+            fake_write_accounting_receipt,
+        )
 
     records["rc"] = create_cluster_module.run_create_workflow(
         "us-west-2d",

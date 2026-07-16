@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 import yaml
 
@@ -15,7 +15,9 @@ from daylily_ec.aws.slurm_accounting import (
     DEFAULT_ACCOUNTING_DATABASE_NAME,
     DEFAULT_ACCOUNTING_USERNAME,
     SlurmAccountingDb,
-    ensure_slurm_accounting_db,
+    SlurmAccountingError,
+    list_regional_slurm_accounting_stacks,
+    resolve_slurm_accounting_db,
 )
 from daylily_ec.pcluster import runner as pcluster_runner
 from daylily_ec.state.store import config_dir
@@ -23,6 +25,34 @@ from daylily_ec.state.store import config_dir
 
 class SlurmAccountingAttachError(RuntimeError):
     """Raised when a post-create accounting attachment cannot proceed safely."""
+
+
+class SlurmAccountingPreparationError(SlurmAccountingAttachError):
+    """Safe structured failure from the pre-fleet-mutation preparation stage."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        stage: str,
+        reason_code: str,
+        regional_stack_count: int | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.stage = stage
+        self.reason_code = reason_code
+        self.regional_stack_count = regional_stack_count
+
+
+@dataclass(frozen=True)
+class PreparedSlurmAccountingUpdate:
+    """Non-secret, pre-rendered update ready for supported pcluster execution."""
+
+    cluster_name: str
+    region: str
+    accounting_stack_name: str
+    update_config_path: Path
+    service_created: bool
 
 
 @dataclass(frozen=True)
@@ -74,10 +104,10 @@ def _latest_cluster_config(
 def _load_cluster_config(path: Path) -> dict:
     try:
         payload = yaml.safe_load(path.read_text(encoding="utf-8"))
-    except (OSError, yaml.YAMLError) as exc:
+    except (OSError, yaml.YAMLError):
         raise SlurmAccountingAttachError(
-            f"Could not read ParallelCluster configuration {path}: {exc}"
-        ) from exc
+            f"Could not read ParallelCluster configuration {path} safely."
+        ) from None
     if not isinstance(payload, dict):
         raise SlurmAccountingAttachError(
             f"ParallelCluster configuration {path} must contain a YAML mapping."
@@ -149,6 +179,157 @@ def render_slurm_accounting_update_config(
     return destination_config
 
 
+def prepare_slurm_accounting_update(
+    *,
+    cluster_name: str,
+    region: str,
+    profile: Optional[str] = None,
+    cluster_configuration: Optional[Path] = None,
+    stack_name: str = "",
+    database_name: str = DEFAULT_ACCOUNTING_DATABASE_NAME,
+    db_username: str = DEFAULT_ACCOUNTING_USERNAME,
+    create_if_missing: bool,
+    output_dir: Optional[Path] = None,
+    warning_callback: Callable[[str], None] | None = None,
+    sleep_fn: Callable[[float], None] | None = None,
+) -> PreparedSlurmAccountingUpdate:
+    """Resolve accounting and render its candidate update before fleet mutation.
+
+    This function deliberately performs no ParallelCluster command and never
+    prompts. The caller must decide whether singleton creation is approved and
+    pass that decision explicitly through ``create_if_missing``.
+    """
+    cluster_name = cluster_name.strip()
+    region = region.strip()
+    if not cluster_name:
+        raise SlurmAccountingPreparationError(
+            "Cluster name is required for accounting preparation.",
+            stage="source_config",
+            reason_code="invalid_cluster_name",
+        )
+    if not region:
+        raise SlurmAccountingPreparationError(
+            "AWS region is required for accounting preparation.",
+            stage="source_config",
+            reason_code="invalid_region",
+        )
+
+    try:
+        source_config = (
+            cluster_configuration.expanduser()
+            if cluster_configuration is not None
+            else _latest_cluster_config(cluster_name, region, profile=profile)
+        )
+        if not source_config.is_file():
+            raise SlurmAccountingAttachError(
+                f"ParallelCluster configuration does not exist: {source_config}"
+            )
+        source_payload = _load_cluster_config(source_config)
+        headnode_subnet_id = _headnode_subnet_id(source_payload)
+    except SlurmAccountingAttachError:
+        raise SlurmAccountingPreparationError(
+            "The ParallelCluster source configuration is missing or invalid for "
+            "accounting preparation.",
+            stage="source_config",
+            reason_code="invalid_source_config",
+        ) from None
+
+    try:
+        aws_ctx = AWSContext.build_region(region, profile=profile)
+        ec2 = aws_ctx.client("ec2")
+        subnet_response = ec2.describe_subnets(SubnetIds=[headnode_subnet_id])
+        subnets = subnet_response.get("Subnets", [])
+        if len(subnets) != 1:
+            raise SlurmAccountingPreparationError(
+                "Expected exactly one EC2 subnet for the cluster head node.",
+                stage="network",
+                reason_code="subnet_not_unique",
+            )
+        subnet = subnets[0]
+        vpc_id = subnet.get("VpcId")
+        region_az = subnet.get("AvailabilityZone")
+        if not isinstance(vpc_id, str) or not vpc_id:
+            raise SlurmAccountingPreparationError(
+                "The cluster head-node subnet is missing its VPC identity.",
+                stage="network",
+                reason_code="subnet_missing_vpc",
+            )
+        if not isinstance(region_az, str) or not region_az:
+            raise SlurmAccountingPreparationError(
+                "The cluster head-node subnet is missing its availability zone.",
+                stage="network",
+                reason_code="subnet_missing_az",
+            )
+    except SlurmAccountingPreparationError:
+        raise
+    except Exception:
+        raise SlurmAccountingPreparationError(
+            "The cluster head-node subnet could not be inspected safely.",
+            stage="network",
+            reason_code="subnet_inspection_failed",
+        ) from None
+
+    try:
+        regional_stack_count = len(
+            list_regional_slurm_accounting_stacks(
+                aws_ctx,
+                region_az=region_az,
+            )
+        )
+    except SlurmAccountingError:
+        raise SlurmAccountingPreparationError(
+            "Regional Slurm accounting service discovery did not complete safely.",
+            stage="service_resolution",
+            reason_code="service_discovery_failed",
+        ) from None
+
+    try:
+        resolution = resolve_slurm_accounting_db(
+            aws_ctx,
+            region_az=region_az,
+            vpc_id=vpc_id,
+            private_subnet_id=headnode_subnet_id,
+            create_if_missing=create_if_missing,
+            stack_name=stack_name.strip(),
+            database_name=database_name,
+            username=db_username,
+            warning_callback=warning_callback,
+            sleep_fn=sleep_fn,
+        )
+    except SlurmAccountingError:
+        raise SlurmAccountingPreparationError(
+            "No compatible regional Slurm accounting service was prepared; "
+            "no compute-fleet request was issued.",
+            stage="service_resolution",
+            reason_code=(
+                "service_missing" if regional_stack_count == 0 else "service_incompatible"
+            ),
+            regional_stack_count=regional_stack_count,
+        ) from None
+
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+    destination_dir = output_dir.expanduser() if output_dir else config_dir()
+    update_config = destination_dir / (f"{cluster_name}_slurm_accounting_update_{timestamp}.yaml")
+    try:
+        render_slurm_accounting_update_config(source_config, update_config, resolution.db)
+    except (OSError, SlurmAccountingAttachError, SlurmAccountingError, yaml.YAMLError):
+        raise SlurmAccountingPreparationError(
+            "The Slurm accounting update configuration could not be rendered safely; "
+            "no compute-fleet request was issued.",
+            stage="render",
+            reason_code="update_config_render_failed",
+            regional_stack_count=regional_stack_count,
+        ) from None
+
+    return PreparedSlurmAccountingUpdate(
+        cluster_name=cluster_name,
+        region=region,
+        accounting_stack_name=resolution.db.stack_name,
+        update_config_path=update_config,
+        service_created=resolution.service_created,
+    )
+
+
 def attach_slurm_accounting(
     *,
     cluster_name: str,
@@ -160,6 +341,7 @@ def attach_slurm_accounting(
     db_username: str = DEFAULT_ACCOUNTING_USERNAME,
     dry_run_only: bool = False,
     output_dir: Optional[Path] = None,
+    pcluster_executable: str = "pcluster",
 ) -> SlurmAccountingAttachResult:
     """Attach an existing, same-VPC accounting service to a stopped cluster.
 
@@ -177,6 +359,7 @@ def attach_slurm_accounting(
         cluster_name,
         region,
         profile=profile,
+        executable=pcluster_executable,
     )
     if not description.success:
         raise SlurmAccountingAttachError(
@@ -193,6 +376,7 @@ def attach_slurm_accounting(
         cluster_name,
         region,
         profile=profile,
+        executable=pcluster_executable,
     )
     if not fleet.success:
         raise SlurmAccountingAttachError(
@@ -208,93 +392,61 @@ def attach_slurm_accounting(
             f"--region {region} --status STOP_REQUESTED"
         )
 
-    source_config = (
-        cluster_configuration.expanduser()
-        if cluster_configuration is not None
-        else _latest_cluster_config(cluster_name, region, profile=profile)
-    )
-    if not source_config.is_file():
-        raise SlurmAccountingAttachError(
-            f"ParallelCluster configuration does not exist: {source_config}"
-        )
-    source_payload = _load_cluster_config(source_config)
-    headnode_subnet_id = _headnode_subnet_id(source_payload)
-
-    aws_ctx = AWSContext.build_region(region, profile=profile)
-    ec2 = aws_ctx.client("ec2")
-    subnet_response = ec2.describe_subnets(SubnetIds=[headnode_subnet_id])
-    subnets = subnet_response.get("Subnets", [])
-    if len(subnets) != 1:
-        raise SlurmAccountingAttachError(
-            f"Expected one EC2 subnet for {headnode_subnet_id}; found {len(subnets)}."
-        )
-    subnet = subnets[0]
-    vpc_id = subnet.get("VpcId")
-    region_az = subnet.get("AvailabilityZone")
-    if not isinstance(vpc_id, str) or not vpc_id:
-        raise SlurmAccountingAttachError(f"EC2 subnet {headnode_subnet_id} is missing VpcId.")
-    if not isinstance(region_az, str) or not region_az:
-        raise SlurmAccountingAttachError(
-            f"EC2 subnet {headnode_subnet_id} is missing AvailabilityZone."
-        )
-
-    db = ensure_slurm_accounting_db(
-        aws_ctx,
-        region_az=region_az,
-        vpc_id=vpc_id,
-        private_subnet_id=headnode_subnet_id,
+    prepared = prepare_slurm_accounting_update(
+        cluster_name=cluster_name,
+        region=region,
+        profile=profile,
+        cluster_configuration=cluster_configuration,
         create_if_missing=False,
         stack_name=stack_name.strip(),
         database_name=database_name,
-        username=db_username,
+        db_username=db_username,
+        output_dir=output_dir,
     )
-
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-    destination_dir = output_dir.expanduser() if output_dir else config_dir()
-    update_config = destination_dir / (f"{cluster_name}_slurm_accounting_update_{timestamp}.yaml")
-    render_slurm_accounting_update_config(source_config, update_config, db)
 
     dry_run = pcluster_runner.update_cluster(
         cluster_name,
-        str(update_config),
+        str(prepared.update_config_path),
         region,
         profile=profile,
         dry_run=True,
+        executable=pcluster_executable,
     )
     if not dry_run.success:
         raise SlurmAccountingAttachError(
             "pcluster update-cluster dry-run rejected the accounting update. "
-            f"The generated configuration remains at {update_config}."
+            f"The generated configuration remains at {prepared.update_config_path}."
         )
 
     if dry_run_only:
         return SlurmAccountingAttachResult(
             cluster_name=cluster_name,
             region=region,
-            accounting_stack_name=db.stack_name,
-            update_config_path=str(update_config),
+            accounting_stack_name=prepared.accounting_stack_name,
+            update_config_path=str(prepared.update_config_path),
             dry_run_only=True,
             update_submitted=False,
         )
 
     update = pcluster_runner.update_cluster(
         cluster_name,
-        str(update_config),
+        str(prepared.update_config_path),
         region,
         profile=profile,
         dry_run=False,
+        executable=pcluster_executable,
     )
     if not update.success:
         raise SlurmAccountingAttachError(
             "pcluster update-cluster failed to submit the accounting update. "
-            f"The generated configuration remains at {update_config}."
+            f"The generated configuration remains at {prepared.update_config_path}."
         )
 
     return SlurmAccountingAttachResult(
         cluster_name=cluster_name,
         region=region,
-        accounting_stack_name=db.stack_name,
-        update_config_path=str(update_config),
+        accounting_stack_name=prepared.accounting_stack_name,
+        update_config_path=str(prepared.update_config_path),
         dry_run_only=False,
         update_submitted=True,
     )

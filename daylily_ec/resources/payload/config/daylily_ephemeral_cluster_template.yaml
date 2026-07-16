@@ -39,12 +39,6 @@ ephemeral_cluster:
     heartbeat_schedule: [PROMPTUSER, "rate(60 minutes)", ""]
     heartbeat_scheduler_role_arn: [PROMPTUSER, "", ""]
     spot_instance_allocation_strategy: [PROMPTUSER, "price-capacity-optimized", ""]
-    slurm_accounting_enabled: [PROMPTUSER, "false", ""]
-    slurm_accounting_create_db: [PROMPTUSER, "false", ""]
-    slurm_accounting_stack_name: [PROMPTUSER, "", ""]
-    slurm_accounting_database_name: [PROMPTUSER, "dayec_slurm_acct", ""]
-    slurm_accounting_db_username: [PROMPTUSER, "slurm_acct", ""]
-    slurm_accounting_instance_type: [PROMPTUSER, "t4g.micro", ""]
     max_count_8I: [PROMPTUSER, "1", ""]
     max_count_96I_NVME: [PROMPTUSER, "1", ""]
     max_count_128I: [PROMPTUSER, "1", ""]
@@ -72,11 +66,6 @@ ephemeral_cluster:
     delete_local_root: "true"
     heartbeat_schedule: "rate(60 minutes)"
     spot_instance_allocation_strategy: "price-capacity-optimized"
-    slurm_accounting_enabled: "false"
-    slurm_accounting_create_db: "false"
-    slurm_accounting_database_name: "dayec_slurm_acct"
-    slurm_accounting_db_username: "slurm_acct"
-    slurm_accounting_instance_type: "t4g.micro"
     max_count_8I: "1"
     max_count_96I_NVME: "1"
     max_count_128I: "1"

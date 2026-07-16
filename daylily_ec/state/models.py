@@ -25,10 +25,9 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, Field
-
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # ---------------------------------------------------------------------------
 # CheckStatus enum
@@ -41,6 +40,113 @@ class CheckStatus(str, Enum):
     PASS = "PASS"
     WARN = "WARN"
     FAIL = "FAIL"
+
+
+class SlurmAccountingOutcome(str, Enum):
+    """User-facing result of the optional post-create accounting stage."""
+
+    OFF = "OFF"
+    ENABLED = "ENABLED"
+    WARNING = "WARNING"
+    RECOVERY_REQUIRED = "RECOVERY REQUIRED"
+
+
+class SlurmAccountingStage(str, Enum):
+    """Bounded stages safe to persist or display without exception details."""
+
+    NOT_STARTED = "not_started"
+    OFF = "off"
+    SERVICE_PREPARATION = "service_preparation"
+    SERVICE_READY = "service_ready"
+    FLEET_DESCRIBE = "fleet_describe"
+    FLEET_STOP_REQUEST = "fleet_stop_request"
+    FLEET_STOPPED = "fleet_stopped"
+    UPDATE_DRY_RUN = "update_dry_run"
+    UPDATE_SUBMIT = "update_submit"
+    UPDATE_WAIT = "update_wait"
+    UPDATE_COMPLETE = "update_complete"
+    FLEET_RESTORE_REQUEST = "fleet_restore_request"
+    FLEET_RESTORED = "fleet_restored"
+    HEADNODE_READINESS = "headnode_readiness"
+    VERIFICATION = "verification"
+    COMPLETE = "complete"
+
+
+class SlurmAccountingReceipt(BaseModel):
+    """Non-secret receipt for the post-create accounting lifecycle.
+
+    Deliberately enumerating every accepted field prevents resolved database
+    connection details, private addresses, credentials, or arbitrary exception
+    text from entering the persisted receipt.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    requested_mode: Literal["on", "off"] = "on"
+    create_approval_flag: bool = False
+    cost_acknowledgement_flag: bool = False
+    service_created: bool = False
+    stage_reached: SlurmAccountingStage = SlurmAccountingStage.NOT_STARTED
+    update_config_path: str = ""
+    terminal_cluster_state: str = ""
+    terminal_fleet_state: str = ""
+    fleet_restored: Optional[bool] = None
+    error_stage: Optional[SlurmAccountingStage] = None
+    recovery_required: bool = False
+    stack_name: str = ""
+
+    @field_validator("update_config_path")
+    @classmethod
+    def _validate_update_config_path(cls, value: str) -> str:
+        """Accept only a local path, never an endpoint or an ARN."""
+        if not value:
+            return value
+        lowered = value.lower()
+        if "://" in value or lowered.startswith("arn:"):
+            raise ValueError("update_config_path must be a local filesystem path")
+        if "\n" in value or "\r" in value or "\x00" in value:
+            raise ValueError("update_config_path contains invalid characters")
+        return value
+
+    @field_validator("terminal_cluster_state")
+    @classmethod
+    def _validate_terminal_cluster_state(cls, value: str) -> str:
+        """Accept only bounded ParallelCluster lifecycle states."""
+        allowed = {
+            "",
+            "UNKNOWN",
+            "CREATE_COMPLETE",
+            "UPDATE_IN_PROGRESS",
+            "UPDATE_COMPLETE",
+            "UPDATE_FAILED",
+            "UPDATE_ROLLBACK_IN_PROGRESS",
+            "UPDATE_ROLLBACK_COMPLETE",
+            "UPDATE_ROLLBACK_FAILED",
+        }
+        if value not in allowed:
+            raise ValueError("terminal_cluster_state is not a supported lifecycle state")
+        return value
+
+    @field_validator("terminal_fleet_state")
+    @classmethod
+    def _validate_terminal_fleet_state(cls, value: str) -> str:
+        """Accept only bounded ParallelCluster compute-fleet states."""
+        allowed = {"", "UNKNOWN", "RUNNING", "STOPPED", "START_REQUESTED", "STOP_REQUESTED"}
+        if value not in allowed:
+            raise ValueError("terminal_fleet_state is not a supported lifecycle state")
+        return value
+
+    @field_validator("stack_name")
+    @classmethod
+    def _validate_stack_name(cls, value: str) -> str:
+        """Restrict the optional stack identity to CloudFormation name syntax."""
+        if not value:
+            return value
+        if len(value) > 128 or not value[0].isalpha():
+            raise ValueError("stack_name is not a valid CloudFormation stack name")
+        if not all(char.isalnum() or char == "-" for char in value):
+            raise ValueError("stack_name is not a valid CloudFormation stack name")
+        return value
 
 
 # ---------------------------------------------------------------------------
@@ -173,12 +279,12 @@ class StateRecord(BaseModel):
     heartbeat_schedule_expression: str = ""
 
     # -- Slurm accounting ----------------------------------------------------
+    slurm_accounting_requested_mode: Literal["on", "off"] = "on"
+    slurm_accounting_outcome: Optional[SlurmAccountingOutcome] = None
+    slurm_accounting_receipt_path: str = ""
     slurm_accounting_stack_name: str = ""
-    slurm_accounting_uri: str = ""
-    slurm_accounting_secret_arn: str = ""
-    slurm_accounting_client_security_group_id: str = ""
-    slurm_accounting_database_name: str = ""
-    slurm_accounting_username: str = ""
+    slurm_accounting_service_created: bool = False
+    slurm_accounting_recovery_required: bool = False
 
     # -- Generated artifact paths --------------------------------------------
     init_template_path: str = ""

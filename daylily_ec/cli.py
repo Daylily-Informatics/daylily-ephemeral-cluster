@@ -635,6 +635,39 @@ def create(
         "--non-interactive",
         help="Disable interactive prompts; use config defaults or fail.",
     ),
+    slurm_accounting: str = typer.Option(
+        "on",
+        "--slurm-accounting",
+        click_type=click.Choice(["on", "off"], case_sensitive=True),
+        help=(
+            "Enable or disable the post-create Slurm accounting stage. "
+            "The initial cluster build never includes accounting."
+        ),
+    ),
+    fail_on_sacct_error: bool = typer.Option(
+        False,
+        "--fail-on-sacct-error",
+        help=(
+            "Return the AWS failure exit code when the post-create Slurm "
+            "accounting stage fails. Ignored when --slurm-accounting off."
+        ),
+    ),
+    create_slurm_accounting_if_missing: bool = typer.Option(
+        False,
+        "--create-slurm-accounting-if-missing",
+        help=(
+            "Approve creating the first regional Slurm accounting service when "
+            "none exists. Requires --acknowledge-slurm-accounting-create-cost."
+        ),
+    ),
+    acknowledge_slurm_accounting_create_cost: bool = typer.Option(
+        False,
+        "--acknowledge-slurm-accounting-create-cost",
+        help=(
+            "Acknowledge the cost of creating the first regional Slurm accounting "
+            "service. Requires --create-slurm-accounting-if-missing."
+        ),
+    ),
     disable_budget_enforcement: bool = typer.Option(
         False,
         "--disable-budget-enforcement",
@@ -699,6 +732,17 @@ def create(
         raise typer.BadParameter(
             "--budget-project is retired; cluster budgets are named by cluster name."
         )
+    if create_slurm_accounting_if_missing != acknowledge_slurm_accounting_create_cost:
+        missing_flag = (
+            "--acknowledge-slurm-accounting-create-cost"
+            if create_slurm_accounting_if_missing
+            else "--create-slurm-accounting-if-missing"
+        )
+        raise typer.BadParameter(
+            "--create-slurm-accounting-if-missing and "
+            "--acknowledge-slurm-accounting-create-cost must be supplied together; "
+            f"missing {missing_flag}."
+        )
     try:
         (
             global_spot_max_cost,
@@ -732,6 +776,10 @@ def create(
         regional_cluster_cap=regional_cluster_cap,
         acknowledge_regional_cap_increase=acknowledge_regional_cap_increase,
         acknowledge_regional_cap_risk=acknowledge_regional_cap_risk,
+        slurm_accounting=slurm_accounting,
+        fail_on_sacct_error=fail_on_sacct_error,
+        create_slurm_accounting_if_missing=create_slurm_accounting_if_missing,
+        acknowledge_slurm_accounting_create_cost=(acknowledge_slurm_accounting_create_cost),
     )
     raise SystemExit(rc)
 
@@ -1241,8 +1289,7 @@ def cost_centers_refresh_usage(
     try:
         aws_ctx, dynamodb = _cost_center_context(profile, home_region)
         output_s3_uri = athena_output_s3_uri or (
-            f"s3://dayec-cur-{aws_ctx.account_id}-us-east-1/"
-            "dayec-cur/athena-results/"
+            f"s3://dayec-cur-{aws_ctx.account_id}-us-east-1/" "dayec-cur/athena-results/"
         )
         result = refresh_dedicated_cluster_usage(
             athena_client=aws_ctx.session.client("athena", region_name=athena_region),
@@ -2691,9 +2738,7 @@ def aws_audit_cost_resources(
                 refresh=refresh,
                 ce_min_interval_seconds=ce_min_interval_seconds,
                 other_min_interval_seconds=other_min_interval_seconds,
-                parallelcluster_min_interval_seconds=(
-                    parallelcluster_min_interval_seconds
-                ),
+                parallelcluster_min_interval_seconds=(parallelcluster_min_interval_seconds),
             )
         )
     except (OSError, RuntimeError, ValueError) as exc:

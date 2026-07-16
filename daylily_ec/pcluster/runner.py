@@ -26,6 +26,11 @@ DRY_RUN_SUCCESS_MESSAGE: str = "Request would have succeeded, but DryRun flag is
 #: Defensive pagination bound for ``pcluster list-clusters``.
 MAX_LIST_CLUSTER_PAGES: int = 1000
 
+#: Fleet transitions accepted by ``pcluster update-compute-fleet``.  Keep this
+#: deliberately narrow: callers must request the supported ParallelCluster
+#: lifecycle state rather than passing a discovered or inferred value through.
+COMPUTE_FLEET_REQUEST_STATUSES: frozenset[str] = frozenset({"STOP_REQUESTED", "START_REQUESTED"})
+
 # ---------------------------------------------------------------------------
 # Result dataclass
 # ---------------------------------------------------------------------------
@@ -137,10 +142,7 @@ def list_clusters(
         )
         if page.returncode != 0:
             page.success = False
-            page.message = (
-                "pcluster list-clusters failed with exit code "
-                f"{page.returncode}"
-            )
+            page.message = "pcluster list-clusters failed with exit code " f"{page.returncode}"
             page.json_body = {}
             return page
 
@@ -351,6 +353,52 @@ def describe_compute_fleet(
         executable=executable,
     )
     result.success = result.returncode == 0 and bool(result.json_body)
+    return result
+
+
+def update_compute_fleet(
+    cluster_name: str,
+    status: str,
+    region: str,
+    *,
+    profile: Optional[str] = None,
+    executable: str = "pcluster",
+) -> PclusterResult:
+    """Request an exact supported ParallelCluster compute-fleet transition.
+
+    Only ``STOP_REQUESTED`` and ``START_REQUESTED`` are accepted.  Validation
+    happens before invoking the CLI so a typo or a current/transitional fleet
+    status cannot accidentally become a mutation request.
+    """
+    if status not in COMPUTE_FLEET_REQUEST_STATUSES:
+        accepted = ", ".join(sorted(COMPUTE_FLEET_REQUEST_STATUSES))
+        raise ValueError(
+            f"Unsupported compute-fleet request status {status!r}; "
+            f"expected exactly one of: {accepted}."
+        )
+
+    result = _run_pcluster(
+        [
+            "update-compute-fleet",
+            "-n",
+            cluster_name,
+            "--status",
+            status,
+            "--region",
+            region,
+        ],
+        profile=profile,
+        executable=executable,
+    )
+    result.success = result.returncode == 0
+    if not result.success:
+        logger.error(
+            "Compute-fleet %s request failed for %s (rc=%d): %s",
+            status,
+            cluster_name,
+            result.returncode,
+            result.stderr or result.message or "(no output)",
+        )
     return result
 
 

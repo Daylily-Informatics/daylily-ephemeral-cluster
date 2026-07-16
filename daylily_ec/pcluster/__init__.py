@@ -1,31 +1,45 @@
 """ParallelCluster YAML generation and lifecycle management."""
 
 from daylily_ec.pcluster.monitor import (
+    DEFAULT_FLEET_TIMEOUT,
     DEFAULT_POLL_INTERVAL,
+    DEFAULT_UPDATE_START_TIMEOUT,
+    DEFAULT_UPDATE_TIMEOUT,
     DELETE_STATUS_FAILED,
     DELETE_STATUS_IN_PROGRESS,
+    LifecycleMonitorResult,
     MAX_CONSECUTIVE_FAILURES,
     STATUS_COMPLETE,
     STATUS_IN_PROGRESS,
     MonitorResult,
+    get_compute_fleet_status,
     get_cluster_status,
+    wait_for_cluster_update,
+    wait_for_compute_fleet,
     wait_for_deletion,
     wait_for_creation,
 )
 from daylily_ec.pcluster.runner import (
+    COMPUTE_FLEET_REQUEST_STATUSES,
     DRY_RUN_SUCCESS_MESSAGE,
     PclusterResult,
     create_cluster,
     delete_cluster,
     dry_run_create,
     should_break_after_dry_run,
+    update_compute_fleet,
 )
 
 __all__ = [
+    "COMPUTE_FLEET_REQUEST_STATUSES",
+    "DEFAULT_FLEET_TIMEOUT",
     "DEFAULT_POLL_INTERVAL",
+    "DEFAULT_UPDATE_START_TIMEOUT",
+    "DEFAULT_UPDATE_TIMEOUT",
     "DELETE_STATUS_FAILED",
     "DELETE_STATUS_IN_PROGRESS",
     "DRY_RUN_SUCCESS_MESSAGE",
+    "LifecycleMonitorResult",
     "MAX_CONSECUTIVE_FAILURES",
     "MonitorResult",
     "PclusterResult",
@@ -34,8 +48,12 @@ __all__ = [
     "create_cluster",
     "delete_cluster",
     "dry_run_create",
+    "get_compute_fleet_status",
     "get_cluster_status",
     "should_break_after_dry_run",
+    "update_compute_fleet",
+    "wait_for_cluster_update",
+    "wait_for_compute_fleet",
     "wait_for_deletion",
     "wait_for_creation",
 ]
