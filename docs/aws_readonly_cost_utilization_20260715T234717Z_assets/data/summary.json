@@ -1,0 +1,45 @@
+{
+  "account_id": "108782052779",
+  "billing_window": {
+    "end_exclusive": "2026-07-15",
+    "start": "2026-06-01"
+  },
+  "command_count": 641,
+  "command_error_count": 70,
+  "direct_untagged_count": 66,
+  "enabled_region_count": 21,
+  "generated_at": "2026-07-15T23:50:55.206241Z",
+  "inventory_counts_by_kind": {
+    "bucket": 51,
+    "db_cluster": 15,
+    "db_instance": 21,
+    "elastic_ip": 26,
+    "file_system": 5,
+    "instance": 29,
+    "load_balancer": 5,
+    "nat_gateway": 10,
+    "snapshot": 7,
+    "volume": 25
+  },
+  "inventory_resource_count": 194,
+  "profile": "lsmc",
+  "resource_explorer_index_regions": [
+    "us-east-1",
+    "us-east-2",
+    "us-west-2"
+  ],
+  "resource_explorer_untagged_count": 1612,
+  "untagged_counts_by_kind": {
+    "bucket": 26,
+    "db_instance": 2,
+    "elastic_ip": 13,
+    "load_balancer": 2,
+    "nat_gateway": 6,
+    "snapshot": 3,
+    "volume": 14
+  },
+  "utilization_window": {
+    "end_exclusive": "2026-07-15T00:00:00Z",
+    "start": "2026-07-01T00:00:00Z"
+  }
+}

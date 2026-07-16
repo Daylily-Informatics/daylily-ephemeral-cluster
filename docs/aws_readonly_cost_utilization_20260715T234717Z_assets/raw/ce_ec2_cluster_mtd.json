@@ -1,0 +1,793 @@
+{
+  "DimensionValueAttributes": [],
+  "GroupDefinitions": [
+    {
+      "Key": "parallelcluster:cluster-name",
+      "Type": "TAG"
+    },
+    {
+      "Key": "PURCHASE_TYPE",
+      "Type": "DIMENSION"
+    }
+  ],
+  "ResultsByTime": [
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "445.0267957331",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$cmdcat-103-all-20260707",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "12.7780240891",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$cmdcat-103-all-20260707",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "312.2637247893",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$cost-testing",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4898042811",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragain10",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0476281562",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragain11",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.2374678104",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragain11",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.9019037916",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragain12",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.4513409433",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragain12",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.7734156284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragain2",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.9283003102",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragain2",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.6816017912",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragain9b",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "8.9154633725",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragain9b",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.5788773415",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragen-103-pg-20260707",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0794757852",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragen-f2-native-2c",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.068914885",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragen-f2-native-nofsx-2c",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.465400278",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragen-f2-native-nofsx-2c",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.038700774",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragen-f2-pcimg-fsx-2c",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0687364095",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragen-f2-pcimg-nofsx-2c",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.8072904768",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragen-f2-pcimg-nofsx-2c",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.3595766536",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragen-fix-20260708",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1011352186",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragen-fix2-20260708",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1011353585",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragen-fix3-20260708",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1009568425",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragen-fix4-20260708",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.122615832",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragen-fix5-20260708",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.8715642623",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dragen-fix5-20260708",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.4545001916",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$drg-na19235-pg",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0793026539",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dyec-costacct-005955",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "30.3314020775",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dyec-costacct-005955",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0195240153",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$hiomr-hg003-5x-0710",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "14.7258032458",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$hiomr-hg003-5x-0710",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "54.4520754877",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$ifx-20260719g",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2598995972",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$ifx-20260719h",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "15.4041515799",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$ifx-hyb-all",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "12.8427993294",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$ifx-reworkB",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "187.7718226656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$ifx-reworkB",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "335.4673685081",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$ifx-sacctoff-1037",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.8524155688",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$illumina-94-c01",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "45.9341612828",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$illumina-94-c01",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1304.4689734727",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$illumina-94-c02",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "45.8582568888",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$illumina-94-c02",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1208.6833221995",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$jemx3",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "111.5292134014",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$jemx3",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4466.0787810085",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$jly08costck",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1999285767",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$jul8itelx4",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "70.5438959765",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$jul8itelx4",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "66.0605305709",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$minitest",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2985660823",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$partrevert",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "105.7433255028",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$partrevert",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "737.9598352205",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$preval-hybrid-set2",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "9.1153228824",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$preval-hybrid-set3",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "29.0374784226",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$preval-hybrid-set3",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "634.2374519057",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$preval-segdups-and-eh",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "14.0823081404",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$preval-segdups-and-eh",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "473.3810831246",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$sent-hg003-5x-0712",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "31.3513640544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$sent-hg003-5x-0712",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "341.4002622761",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$sent-liscC",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2604883737",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$sentlic-e",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "9.9263914817",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$sentlic-e",
+            "Spot Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.039548782",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$testbudgetblock",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "100.1863959722",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$tinytst2",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2840467787",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$ursa-ilmnqc-0703",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "35.6951285159",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$ursa-m-rgx-bk3j",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "19.4813527647",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$ursa-m-rgx-br75",
+            "On Demand Instances"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "23.4115465037",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-15",
+        "Start": "2026-07-01"
+      },
+      "Total": {}
+    }
+  ]
+}

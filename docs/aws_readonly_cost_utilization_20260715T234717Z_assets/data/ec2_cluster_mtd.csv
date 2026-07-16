@@ -1,0 +1,65 @@
+start,end,estimated,cost_usd,tag_cluster,purchase_type
+2026-07-01,2026-07-15,True,445.0267957331,,On Demand Instances
+2026-07-01,2026-07-15,True,12.7780240891,cmdcat-103-all-20260707,On Demand Instances
+2026-07-01,2026-07-15,True,312.2637247893,cmdcat-103-all-20260707,Spot Instances
+2026-07-01,2026-07-15,True,0.4898042811,cost-testing,On Demand Instances
+2026-07-01,2026-07-15,True,0.0476281562,dragain10,On Demand Instances
+2026-07-01,2026-07-15,True,5.2374678104,dragain11,On Demand Instances
+2026-07-01,2026-07-15,True,1.9019037916,dragain11,Spot Instances
+2026-07-01,2026-07-15,True,6.4513409433,dragain12,On Demand Instances
+2026-07-01,2026-07-15,True,6.7734156284,dragain12,Spot Instances
+2026-07-01,2026-07-15,True,5.9283003102,dragain2,On Demand Instances
+2026-07-01,2026-07-15,True,0.6816017912,dragain2,Spot Instances
+2026-07-01,2026-07-15,True,8.9154633725,dragain9b,On Demand Instances
+2026-07-01,2026-07-15,True,2.5788773415,dragain9b,Spot Instances
+2026-07-01,2026-07-15,True,0.0794757852,dragen-103-pg-20260707,On Demand Instances
+2026-07-01,2026-07-15,True,0.068914885,dragen-f2-native-2c,On Demand Instances
+2026-07-01,2026-07-15,True,0.465400278,dragen-f2-native-nofsx-2c,On Demand Instances
+2026-07-01,2026-07-15,True,0.038700774,dragen-f2-native-nofsx-2c,Spot Instances
+2026-07-01,2026-07-15,True,0.0687364095,dragen-f2-pcimg-fsx-2c,On Demand Instances
+2026-07-01,2026-07-15,True,0.8072904768,dragen-f2-pcimg-nofsx-2c,On Demand Instances
+2026-07-01,2026-07-15,True,0.3595766536,dragen-f2-pcimg-nofsx-2c,Spot Instances
+2026-07-01,2026-07-15,True,0.1011352186,dragen-fix-20260708,On Demand Instances
+2026-07-01,2026-07-15,True,0.1011353585,dragen-fix2-20260708,On Demand Instances
+2026-07-01,2026-07-15,True,0.1009568425,dragen-fix3-20260708,On Demand Instances
+2026-07-01,2026-07-15,True,0.122615832,dragen-fix4-20260708,On Demand Instances
+2026-07-01,2026-07-15,True,4.8715642623,dragen-fix5-20260708,On Demand Instances
+2026-07-01,2026-07-15,True,2.4545001916,dragen-fix5-20260708,Spot Instances
+2026-07-01,2026-07-15,True,0.0793026539,drg-na19235-pg,On Demand Instances
+2026-07-01,2026-07-15,True,30.3314020775,dyec-costacct-005955,On Demand Instances
+2026-07-01,2026-07-15,True,0.0195240153,dyec-costacct-005955,Spot Instances
+2026-07-01,2026-07-15,True,14.7258032458,hiomr-hg003-5x-0710,On Demand Instances
+2026-07-01,2026-07-15,True,54.4520754877,hiomr-hg003-5x-0710,Spot Instances
+2026-07-01,2026-07-15,True,0.2598995972,ifx-20260719g,On Demand Instances
+2026-07-01,2026-07-15,True,15.4041515799,ifx-20260719h,On Demand Instances
+2026-07-01,2026-07-15,True,12.8427993294,ifx-hyb-all,On Demand Instances
+2026-07-01,2026-07-15,True,187.7718226656,ifx-reworkB,On Demand Instances
+2026-07-01,2026-07-15,True,335.4673685081,ifx-reworkB,Spot Instances
+2026-07-01,2026-07-15,True,2.8524155688,ifx-sacctoff-1037,On Demand Instances
+2026-07-01,2026-07-15,True,45.9341612828,illumina-94-c01,On Demand Instances
+2026-07-01,2026-07-15,True,1304.4689734727,illumina-94-c01,Spot Instances
+2026-07-01,2026-07-15,True,45.8582568888,illumina-94-c02,On Demand Instances
+2026-07-01,2026-07-15,True,1208.6833221995,illumina-94-c02,Spot Instances
+2026-07-01,2026-07-15,True,111.5292134014,jemx3,On Demand Instances
+2026-07-01,2026-07-15,True,4466.0787810085,jemx3,Spot Instances
+2026-07-01,2026-07-15,True,0.1999285767,jly08costck,On Demand Instances
+2026-07-01,2026-07-15,True,70.5438959765,jul8itelx4,On Demand Instances
+2026-07-01,2026-07-15,True,66.0605305709,jul8itelx4,Spot Instances
+2026-07-01,2026-07-15,True,0.2985660823,minitest,On Demand Instances
+2026-07-01,2026-07-15,True,105.7433255028,partrevert,On Demand Instances
+2026-07-01,2026-07-15,True,737.9598352205,partrevert,Spot Instances
+2026-07-01,2026-07-15,True,9.1153228824,preval-hybrid-set2,On Demand Instances
+2026-07-01,2026-07-15,True,29.0374784226,preval-hybrid-set3,On Demand Instances
+2026-07-01,2026-07-15,True,634.2374519057,preval-hybrid-set3,Spot Instances
+2026-07-01,2026-07-15,True,14.0823081404,preval-segdups-and-eh,On Demand Instances
+2026-07-01,2026-07-15,True,473.3810831246,preval-segdups-and-eh,Spot Instances
+2026-07-01,2026-07-15,True,31.3513640544,sent-hg003-5x-0712,On Demand Instances
+2026-07-01,2026-07-15,True,341.4002622761,sent-hg003-5x-0712,Spot Instances
+2026-07-01,2026-07-15,True,0.2604883737,sent-liscC,On Demand Instances
+2026-07-01,2026-07-15,True,9.9263914817,sentlic-e,On Demand Instances
+2026-07-01,2026-07-15,True,0.039548782,sentlic-e,Spot Instances
+2026-07-01,2026-07-15,True,100.1863959722,testbudgetblock,On Demand Instances
+2026-07-01,2026-07-15,True,0.2840467787,tinytst2,On Demand Instances
+2026-07-01,2026-07-15,True,35.6951285159,ursa-ilmnqc-0703,On Demand Instances
+2026-07-01,2026-07-15,True,19.4813527647,ursa-m-rgx-bk3j,On Demand Instances
+2026-07-01,2026-07-15,True,23.4115465037,ursa-m-rgx-br75,On Demand Instances

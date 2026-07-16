@@ -1,0 +1,13 @@
+region,bucket,july_cost_usd,latest_size_tib,latest_object_count,storage_types,request_metrics_enabled,all_requests
+us-west-2,lsmc-ssf-sequencing-data,953.69,218.046,5503555,IntelligentTieringFAStorage;StandardStorage,False,
+us-west-2,lsmc-dayoa-omics-analysis-us-west-2,278.01,61.428,4000574,StandardStorage,False,
+us-west-2,lsmc-dayoa-staging-usw2,50.01,11.047,56018,StandardStorage,False,
+us-west-2,lsmc-dayoa-control-data-usw2,46.57,10.286,31980,StandardStorage,False,
+us-west-2,lsmc-public-ont-data,25.38,5.604,2474,StandardStorage,False,
+us-west-2,lsmc-copy-ultimagen-lsmc-cro-316,9.11,2.024,109,StandardStorage,False,
+us-west-2,lsmc-dayoa-references-usw2,4.37,0.738,825915,StandardStorage,False,
+us-west-2,lsmc-dayoa-analysis-results-usw2,0.63,0.248,139041,StandardStorage,False,
+us-west-2,lsmc-illumina-public-data,0.58,0.124,36,StandardStorage,False,
+us-west-2,lsmc-dayoa-runtime-assets-usw2,0.2,0.039,82399,StandardStorage,False,
+us-west-2,lsmc-aws-config-108782052779,0.03,0.002,15521,StandardStorage,False,
+us-west-2,parallelcluster-4da281c1dc024f1c-v1-do-not-delete,0.03,0.0,96,StandardStorage,False,

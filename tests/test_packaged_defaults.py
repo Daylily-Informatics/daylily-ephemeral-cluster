@@ -76,8 +76,9 @@ def test_create_workflow_loads_default_config_outside_repo(tmp_path, monkeypatch
     def _boom(cls, *args, **kwargs):  # noqa: ANN001, D401
         raise RuntimeError("boom")
 
-    # run_create_workflow loads config before calling AWSContext.build. If the
-    # default config path resolution is broken, this test will raise FileNotFoundError.
+    # run_create_workflow loads config before calling AWSContext.build. The packaged
+    # default now intentionally fails non-interactive execution because FSx choices
+    # have no set values. A broken resource path would still raise FileNotFoundError.
     monkeypatch.setattr(AWSContext, "build", classmethod(_boom))
 
     rc = create_cluster.run_create_workflow(
@@ -86,7 +87,7 @@ def test_create_workflow_loads_default_config_outside_repo(tmp_path, monkeypatch
         config_path=None,
         non_interactive=True,
     )
-    assert rc == create_cluster.EXIT_AWS_FAILURE
+    assert rc == create_cluster.EXIT_VALIDATION_FAILURE
 
 
 def test_write_init_artifacts_accepts_packaged_template(tmp_path, monkeypatch):

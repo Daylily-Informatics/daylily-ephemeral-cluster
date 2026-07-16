@@ -2357,6 +2357,169 @@ def resources_dir() -> None:
     output.print_text(path)
 
 
+def aws_audit_api_calls(
+    profile: str = typer.Option(..., "--profile", help="Exact AWS CLI profile to audit."),
+    account_id: str = typer.Option(
+        ...,
+        "--account-id",
+        help="Expected 12-digit AWS account id; included in every exact cache key.",
+    ),
+    start: str = typer.Option(
+        ...,
+        "--start",
+        help="Inclusive billing and CloudTrail start date in YYYY-MM-DD form.",
+    ),
+    end: str = typer.Option(
+        ...,
+        "--end",
+        help="Exclusive billing and CloudTrail end date in YYYY-MM-DD form.",
+    ),
+    trail_region: str = typer.Option(
+        ...,
+        "--trail-region",
+        help="Region used for CloudTrail LookupEvents.",
+    ),
+    resource_region: List[str] = typer.Option(
+        ...,
+        "--resource-region",
+        help="Region searched for source-IP EC2 mappings. Repeat for multiple regions.",
+    ),
+    output_dir: Path = typer.Option(
+        ...,
+        "--output-dir",
+        help="Explicit directory for the summary and CSV evidence.",
+    ),
+    cache_dir: Path = typer.Option(
+        ...,
+        "--cache-dir",
+        help="Explicit persistent exact-request cache directory.",
+    ),
+    cache_max_age_hours: float = typer.Option(
+        24.0,
+        "--cache-max-age-hours",
+        min=0.0,
+        help="Maximum age of a reusable exact-request cache entry.",
+    ),
+    cloudtrail_slices_per_day: int = typer.Option(
+        4,
+        "--cloudtrail-slices-per-day",
+        min=1,
+        help="Bounded sampling slices per day; must divide 24 evenly.",
+    ),
+    cloudtrail_events_per_slice: int = typer.Option(
+        25,
+        "--cloudtrail-events-per-slice",
+        min=1,
+        max=50,
+        help="Maximum CloudTrail events collected from each slice.",
+    ),
+    top_source_ips: int = typer.Option(
+        5,
+        "--top-source-ips",
+        min=0,
+        help="Number of sampled source IPs to map through EC2 Elastic IPs.",
+    ),
+    top_principals: int = typer.Option(
+        3,
+        "--top-principals",
+        min=0,
+        help="Number of sampled IAM user principals to enrich.",
+    ),
+    paid_call_budget: int = typer.Option(
+        1,
+        "--paid-call-budget",
+        min=0,
+        max=300,
+        help=(
+            "Maximum live paid Cost Explorer calls allowed in this run; capped at 300 "
+            "for a $3.00 ceiling at the observed $0.01/request rate."
+        ),
+    ),
+    cache_only: bool = typer.Option(
+        False,
+        "--cache-only/--allow-live-calls",
+        help="Guarantee zero live AWS calls; fail on missing or stale cache entries.",
+    ),
+    refresh: bool = typer.Option(
+        False,
+        "--refresh/--reuse-cache",
+        help="Bypass valid cache entries; paid calls remain budget-limited.",
+    ),
+    ce_min_interval_seconds: float = typer.Option(
+        1.0,
+        "--ce-min-interval-seconds",
+        min=0.0,
+        help="Minimum interval between live Cost Explorer calls.",
+    ),
+    cloudtrail_min_interval_seconds: float = typer.Option(
+        0.5,
+        "--cloudtrail-min-interval-seconds",
+        min=0.0,
+        help="Minimum interval between live CloudTrail calls.",
+    ),
+    other_min_interval_seconds: float = typer.Option(
+        0.2,
+        "--other-min-interval-seconds",
+        min=0.0,
+        help="Minimum interval between other live read calls per AWS service.",
+    ),
+) -> None:
+    """Audit Cost Explorer request charges and attribute sampled callers."""
+
+    from datetime import date
+
+    from daylily_ec.aws.api_call_audit import ApiCallAuditConfig, run_api_call_audit
+
+    _warn_if_dayec_env_inactive()
+    try:
+        parsed_start = date.fromisoformat(start)
+        parsed_end = date.fromisoformat(end)
+        summary = run_api_call_audit(
+            ApiCallAuditConfig(
+                profile=profile,
+                account_id=account_id,
+                start_date=parsed_start,
+                end_date=parsed_end,
+                trail_region=trail_region,
+                resource_regions=tuple(resource_region),
+                output_dir=output_dir,
+                cache_dir=cache_dir,
+                cache_max_age_seconds=cache_max_age_hours * 60 * 60,
+                cloudtrail_slices_per_day=cloudtrail_slices_per_day,
+                cloudtrail_events_per_slice=cloudtrail_events_per_slice,
+                top_source_ips=top_source_ips,
+                top_principals=top_principals,
+                paid_call_budget=paid_call_budget,
+                cache_only=cache_only,
+                refresh=refresh,
+                ce_min_interval_seconds=ce_min_interval_seconds,
+                cloudtrail_min_interval_seconds=cloudtrail_min_interval_seconds,
+                other_min_interval_seconds=other_min_interval_seconds,
+            )
+        )
+    except (OSError, RuntimeError, ValueError) as exc:
+        _exit_headnode_error(exc)
+
+    if _json_mode():
+        output.emit_json(summary)
+        return
+    reuse = summary["request_reuse"]
+    typer.echo(
+        json.dumps(
+            {
+                "output_dir": str(output_dir.expanduser().resolve()),
+                "billed_api_requests": summary["billed_api_requests"],
+                "billed_api_cost_usd": summary["billed_api_cost_usd"],
+                "cache_hits": reuse["cache_hits"],
+                "live_calls": reuse["live_calls"],
+                "paid_live_calls": reuse["paid_live_calls"],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+
+
 def pricing_snapshot(
     region: Optional[List[str]] = typer.Option(
         None,
@@ -5741,6 +5904,18 @@ def register(registry, cli_spec) -> None:
                 required_policy(supports_json=True),
             ),
             ("all", aws_validate_all, required_policy(supports_json=True)),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "aws/audit",
+        "Cached, throttled, read-only AWS API call attribution.",
+        [
+            (
+                "api-calls",
+                aws_audit_api_calls,
+                required_policy(supports_json=True, long_running=True),
+            ),
         ],
     )
     register_group_commands(

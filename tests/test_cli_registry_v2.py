@@ -55,6 +55,7 @@ EXPECTED_COMMANDS = {
     ("aws", "validate", "permissions"),
     ("aws", "validate", "quotas"),
     ("aws", "validate", "all"),
+    ("aws", "audit", "api-calls"),
     ("slurm-accounting", "ensure"),
     ("slurm-accounting", "attach"),
     ("cost-centers", "ensure-registry"),
@@ -242,6 +243,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     aws_validate_permissions_cmd = registry.get_command(("aws", "validate", "permissions"))
     aws_validate_quotas_cmd = registry.get_command(("aws", "validate", "quotas"))
     aws_validate_all_cmd = registry.get_command(("aws", "validate", "all"))
+    aws_audit_api_calls_cmd = registry.get_command(("aws", "audit", "api-calls"))
     slurm_accounting_ensure_cmd = registry.get_command(("slurm-accounting", "ensure"))
     slurm_accounting_attach_cmd = registry.get_command(("slurm-accounting", "attach"))
     cost_centers_put_usage_cmd = registry.get_command(("cost-centers", "put-usage"))
@@ -446,6 +448,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
         assert aws_validate_cmd is not None
         assert aws_validate_cmd.policy.supports_json is True
         assert aws_validate_cmd.policy.mutates_state is False
+
+    assert aws_audit_api_calls_cmd is not None
+    assert aws_audit_api_calls_cmd.policy.supports_json is True
+    assert aws_audit_api_calls_cmd.policy.mutates_state is False
+    assert aws_audit_api_calls_cmd.policy.long_running is True
 
     assert slurm_accounting_ensure_cmd is not None
     assert slurm_accounting_ensure_cmd.policy.supports_json is True
@@ -1405,6 +1412,73 @@ def test_pricing_snapshot_command_passes_collection_options(monkeypatch, tmp_pat
         "cluster_config_path": str(config_path),
         "profile": "dev",
     }
+
+
+def test_aws_api_call_audit_command_passes_cache_and_cost_controls(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    import daylily_ec.aws.api_call_audit as audit_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+
+    def fake_run(config):
+        calls["config"] = config
+        return {
+            "billed_api_requests": 63060,
+            "billed_api_cost_usd": 630.60,
+            "request_reuse": {
+                "cache_hits": 60,
+                "live_calls": 0,
+                "paid_live_calls": 0,
+            },
+        }
+
+    monkeypatch.setattr(audit_module, "run_api_call_audit", fake_run)
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "aws",
+            "audit",
+            "api-calls",
+            "--profile",
+            "lsmc",
+            "--account-id",
+            "108782052779",
+            "--start",
+            "2026-07-01",
+            "--end",
+            "2026-07-15",
+            "--trail-region",
+            "us-east-1",
+            "--resource-region",
+            "us-west-2",
+            "--resource-region",
+            "us-east-1",
+            "--output-dir",
+            str(tmp_path / "output"),
+            "--cache-dir",
+            str(tmp_path / "cache"),
+            "--cache-only",
+            "--paid-call-budget",
+            "0",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout
+    payload = json.loads(result.stdout)
+    assert payload["request_reuse"]["live_calls"] == 0
+    config = calls["config"]
+    assert config.profile == "lsmc"
+    assert config.account_id == "108782052779"
+    assert config.start_date.isoformat() == "2026-07-01"
+    assert config.end_date.isoformat() == "2026-07-15"
+    assert config.resource_regions == ("us-west-2", "us-east-1")
+    assert config.cache_only is True
+    assert config.paid_call_budget == 0
+    assert config.cache_max_age_seconds == 24 * 60 * 60
 
 
 def test_pricing_spot_logs_exports_csv_via_ssm(monkeypatch, tmp_path) -> None:

@@ -13,6 +13,7 @@ Tests cover:
 from __future__ import annotations
 
 import subprocess
+from decimal import Decimal
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -24,6 +25,7 @@ import daylily_ec.aws.cloudformation as cloudformation
 import daylily_ec.aws.context as aws_context
 import daylily_ec.aws.ec2 as aws_ec2
 import daylily_ec.aws.heartbeat as aws_heartbeat
+from daylily_ec.aws.idle_cost import IdleClusterCostEstimate
 import daylily_ec.aws.iam as aws_iam
 import daylily_ec.aws.slurm_accounting as aws_slurm_accounting
 from daylily_ec.aws.ssm import SsmCommandFailedError, SsmCommandResult
@@ -46,11 +48,18 @@ from daylily_ec.workflow.create_cluster import (
     az_cluster_template_relative_path,
     attach_headnode_managed_policy,
     _build_connection_command,
+    _build_ursa_cluster_url,
     _is_valid_fsx_size,
     _is_valid_headnode_instance_type,
     _extract_selected,
+    _resolve_fsx_deployment_type,
+    _resolve_fsx_persistent2_throughput,
     _resolve_fsx_size,
+    _resolve_persistent2_config,
     _resolve_headnode_instance_type,
+    _resolve_ursa_root_url,
+    _normalize_ursa_root_url,
+    _read_headnode_root_volume_spec,
     _resolve_s3_role_config_value,
     _noop_heartbeat_result,
     _require_values,
@@ -1125,13 +1134,75 @@ class TestWorkflowResolutionHelpers:
             == "daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster majors-cluster"
         )
 
+    def test_ursa_root_url_is_explicit_normalized_and_canonical(self):
+        assert (
+            _normalize_ursa_root_url("https://ursa.example.test/service/")
+            == "https://ursa.example.test/service"
+        )
+        assert (
+            _build_ursa_cluster_url(
+                "https://ursa.example.test/",
+                "cluster name",
+                "us-west-2",
+            )
+            == "https://ursa.example.test/clusters/cluster%20name?region=us-west-2"
+        )
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "ursa.example.test",
+            "ftp://ursa.example.test",
+            "https://user:secret@ursa.example.test",
+            "https://ursa.example.test?next=/clusters",
+            "https://ursa.example.test/#clusters",
+        ],
+    )
+    def test_ursa_root_url_rejects_non_root_or_credentialed_values(self, value):
+        with pytest.raises(ValueError, match="ursa_root_url"):
+            _normalize_ursa_root_url(value)
+
+    def test_optional_ursa_root_prompts_and_accepts_blank(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"ursa_root_url": ["PROMPTUSER", "", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+        with patch(
+            "daylily_ec.workflow.create_cluster.typer.prompt",
+            return_value="",
+        ) as prompt:
+            assert _resolve_ursa_root_url(cfg, non_interactive=False) == ""
+        prompt.assert_called_once_with(
+            "Ursa root URL (leave blank to skip)",
+            default="",
+        )
+
+    def test_reads_exact_headnode_root_volume_from_template(self, tmp_path):
+        template = tmp_path / "cluster.yaml"
+        template.write_text(
+            """
+HeadNode:
+  LocalStorage:
+    RootVolume:
+      Size: 421
+      VolumeType: gp3
+""".lstrip(),
+            encoding="utf-8",
+        )
+
+        assert _read_headnode_root_volume_spec(str(template)) == ("gp3", 421)
+
     def test_is_valid_fsx_size(self):
         for size in ("1200", "2400", "4800", "7200", "9600", "12000", "14400"):
             assert _is_valid_fsx_size(size) is True
         for size in ("3600", "6000", "1250", "abc", "0"):
             assert _is_valid_fsx_size(size) is False
 
-    def test_resolve_fsx_size_uses_valid_default(self):
+    def test_resolve_fsx_size_non_interactive_requires_explicit_value(self):
         cfg = ConfigFile.model_validate(
             {
                 "ephemeral_cluster": {
@@ -1141,7 +1212,23 @@ class TestWorkflowResolutionHelpers:
             }
         )
 
-        assert _resolve_fsx_size(cfg, non_interactive=True) == "4800"
+        with pytest.raises(
+            ValueError,
+            match="Non-interactive cluster creation requires an explicit fsx_fs_size",
+        ):
+            _resolve_fsx_size(cfg, non_interactive=True)
+
+    def test_resolve_fsx_size_non_interactive_uses_explicit_value(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"fsx_fs_size": ["USESETVALUE", "", "9600"]},
+                    "template_defaults": {},
+                }
+            }
+        )
+
+        assert _resolve_fsx_size(cfg, non_interactive=True) == "9600"
 
     @pytest.mark.parametrize("default_value", ["3600", "6000", "1250"])
     def test_resolve_fsx_size_rejects_invalid_default(self, default_value):
@@ -1188,6 +1275,7 @@ class TestWorkflowResolutionHelpers:
             "  [7] 14400",
         ]
         mock_prompt.assert_called_once()
+        assert mock_prompt.call_args.kwargs["default"] == "4800"
 
     def test_resolve_fsx_size_accepts_explicit_valid_size(self):
         cfg = ConfigFile.model_validate(
@@ -1208,6 +1296,168 @@ class TestWorkflowResolutionHelpers:
             assert _resolve_fsx_size(cfg, non_interactive=False) == "9600"
 
         mock_prompt.assert_called_once()
+
+    @pytest.mark.parametrize("deployment_type", ["SCRATCH_2", "PERSISTENT_2"])
+    def test_resolve_fsx_deployment_type_non_interactive_accepts_explicit_value(
+        self,
+        deployment_type,
+    ):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {
+                        "fsx_deployment_type": [
+                            "USESETVALUE",
+                            "",
+                            deployment_type,
+                        ]
+                    }
+                }
+            }
+        )
+
+        assert _resolve_fsx_deployment_type(cfg, non_interactive=True) == deployment_type
+
+    def test_resolve_fsx_deployment_type_interactive_prompts(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"fsx_deployment_type": ["PROMPTUSER", "PERSISTENT_2", ""]}
+                }
+            }
+        )
+
+        with (
+            patch(
+                "daylily_ec.workflow.create_cluster.typer.prompt", return_value="1"
+            ) as mock_prompt,
+            patch("daylily_ec.workflow.create_cluster.typer.echo") as mock_echo,
+        ):
+            assert _resolve_fsx_deployment_type(cfg, non_interactive=False) == "SCRATCH_2"
+
+        assert mock_prompt.call_count == 1
+        assert mock_prompt.call_args.kwargs["default"] == "2"
+        assert [call.args[0] for call in mock_echo.call_args_list] == [
+            "Choose FSx for Lustre deployment type.",
+            "  [1] SCRATCH_2",
+            "  [2] PERSISTENT_2",
+        ]
+
+    def test_resolve_fsx_deployment_type_non_interactive_rejects_missing_value(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"fsx_deployment_type": ["PROMPTUSER", "PERSISTENT_2", ""]}
+                }
+            }
+        )
+
+        with pytest.raises(
+            ValueError,
+            match=("Non-interactive cluster creation requires an explicit fsx_deployment_type"),
+        ):
+            _resolve_fsx_deployment_type(cfg, non_interactive=True)
+
+    def test_resolve_persistent2_throughput_interactive_prompts(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"fsx_throughput_mbps_per_tib": ["PROMPTUSER", "250", ""]}
+                }
+            }
+        )
+
+        with (
+            patch(
+                "daylily_ec.workflow.create_cluster.typer.prompt", return_value="4"
+            ) as mock_prompt,
+            patch("daylily_ec.workflow.create_cluster.typer.echo"),
+        ):
+            assert (
+                _resolve_fsx_persistent2_throughput(
+                    cfg,
+                    non_interactive=False,
+                )
+                == "1000"
+            )
+
+        assert mock_prompt.call_args.kwargs["default"] == "2"
+
+    def test_resolve_persistent2_throughput_non_interactive_rejects_missing_value(
+        self,
+    ):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"fsx_throughput_mbps_per_tib": ["PROMPTUSER", "250", ""]}
+                }
+            }
+        )
+
+        with pytest.raises(
+            ValueError,
+            match=(
+                "Non-interactive cluster creation requires an explicit fsx_throughput_mbps_per_tib"
+            ),
+        ):
+            _resolve_fsx_persistent2_throughput(
+                cfg,
+                non_interactive=True,
+            )
+
+    def test_resolve_persistent2_config_uses_explicit_selection(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {
+                        "fsx_throughput_mbps_per_tib": [
+                            "USESETVALUE",
+                            "",
+                            "500",
+                        ],
+                        "fsx_lustre_version": ["USESETVALUE", "", "2.15"],
+                        "fsx_metadata_mode": ["USESETVALUE", "", "AUTOMATIC"],
+                        "fsx_encryption_mode": [
+                            "USESETVALUE",
+                            "",
+                            "AWS_MANAGED_FSX",
+                        ],
+                        "fsx_owner": ["USESETVALUE", "", "DYEC"],
+                        "fsx_lifecycle": ["USESETVALUE", "", "CLUSTER_BOUND"],
+                        "sweep_protection_tag": [
+                            "USESETVALUE",
+                            "",
+                            "ursa-preserve=true",
+                        ],
+                    }
+                }
+            }
+        )
+
+        resolved = _resolve_persistent2_config(
+            cfg,
+            deployment_type="PERSISTENT_2",
+            fsx_size="9600",
+            non_interactive=True,
+        )
+
+        assert resolved is not None
+        assert resolved["fsx_deployment_type"] == "PERSISTENT_2"
+        assert resolved["fsx_fs_size"] == "9600"
+        assert resolved["fsx_throughput_mbps_per_tib"] == "500"
+
+    def test_resolve_scratch_config_does_not_require_throughput(self):
+        cfg = ConfigFile.model_validate({"ephemeral_cluster": {"config": {}}})
+
+        assert (
+            _resolve_persistent2_config(
+                cfg,
+                deployment_type="SCRATCH_2",
+                fsx_size="2400",
+                non_interactive=True,
+            )
+            is None
+        )
 
     def test_valid_headnode_instance_types_are_ordered_smallest_to_largest(self):
         assert _is_valid_headnode_instance_type("r7i.2xlarge") is True
@@ -1450,7 +1700,27 @@ class TestRunPreflightOnly:
 
         from daylily_ec.workflow.create_cluster import run_preflight_only
 
-        rc = run_preflight_only("us-west-2b", profile="test")
+        config_path = tmp_path / "explicit-fsx.yaml"
+        config_path.write_text(
+            "\n".join(
+                [
+                    "ephemeral_cluster:",
+                    "  config:",
+                    "    cluster_name: [USESETVALUE, '', test-cluster]",
+                    "    fsx_deployment_type: [USESETVALUE, '', SCRATCH_2]",
+                    "    fsx_fs_size: [USESETVALUE, '', '2400']",
+                    "  template_defaults: {}",
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+        rc = run_preflight_only(
+            "us-west-2b",
+            profile="test",
+            config_path=str(config_path),
+            non_interactive=True,
+        )
         assert rc == EXIT_AWS_FAILURE
 
 
@@ -1570,7 +1840,27 @@ class TestRunCreateWorkflow:
 
         from daylily_ec.workflow.create_cluster import run_create_workflow
 
-        rc = run_create_workflow("us-west-2b", profile="test", non_interactive=True)
+        config_path = tmp_path / "explicit-fsx.yaml"
+        config_path.write_text(
+            "\n".join(
+                [
+                    "ephemeral_cluster:",
+                    "  config:",
+                    "    cluster_name: [USESETVALUE, '', test-cluster]",
+                    "    fsx_deployment_type: [USESETVALUE, '', SCRATCH_2]",
+                    "    fsx_fs_size: [USESETVALUE, '', '2400']",
+                    "  template_defaults: {}",
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+        rc = run_create_workflow(
+            "us-west-2b",
+            profile="test",
+            config_path=str(config_path),
+            non_interactive=True,
+        )
         assert rc == EXIT_AWS_FAILURE
 
     def test_fifth_projected_cluster_is_allowed(self, tmp_path, monkeypatch):
@@ -1593,6 +1883,26 @@ class TestRunCreateWorkflow:
         assert records["regional_cluster_list_calls"] == [
             ("us-west-2", {"profile": "lsmc", "executable": "pcluster"})
         ]
+
+    def test_optional_ursa_root_is_the_first_interactive_prompt(
+        self, tmp_path, monkeypatch
+    ):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=True,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            config_overrides={
+                "ursa_root_url": ["PROMPTUSER", "", ""],
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert records["prompt_labels"][0] == "Ursa root URL (leave blank to skip)"
+        assert records["next_run_values"]["ursa_root_url"] == (
+            "https://ursa.example.test"
+        )
 
     def test_sixth_projected_cluster_is_blocked_before_mutations(self, tmp_path, monkeypatch):
         clusters = [
@@ -1928,7 +2238,7 @@ class TestRunCreateWorkflow:
         assert substitutions["REGSUB_MAX_COUNT_128I_C"] == "7"
         assert substitutions["REGSUB_MAX_COUNT_128I_M"] == "16"
 
-    def test_prints_ssh_command_then_fin_and_runs_say_when_available(self, tmp_path, monkeypatch):
+    def test_prints_idle_cost_and_ends_with_ursa_link(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
             tmp_path,
             monkeypatch,
@@ -1938,10 +2248,26 @@ class TestRunCreateWorkflow:
         )
 
         assert records["rc"] == EXIT_SUCCESS
-        assert records["echoes"][-2:] == [
+        assert records["echoes"][-4:] == [
             "daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster majors-cluster",
+            "Idle cluster hourly estimate: $1.9611/hour",
             "...fin!",
+            (
+                "Ursa cluster page: "
+                "https://ursa.example.test/clusters/majors-cluster?region=us-west-2"
+            ),
         ]
+        assert "$1.9611/hour" in records["success_panel"][1]
+        assert "FSx SCRATCH_2 2400 GiB" in records["success_panel"][1]
+        assert records["idle_cost_kwargs"] == {
+            "region": "us-west-2",
+            "headnode_instance_type": "r7i.2xlarge",
+            "root_volume_type": "gp3",
+            "root_volume_gib": 421,
+            "fsx_deployment_type": "SCRATCH_2",
+            "fsx_capacity_gib": 2400,
+            "fsx_throughput_mbps_per_tib": "",
+        }
         assert records["subprocess_calls"] == [
             ["/bin/sh", "-lc", "command -v say >/dev/null 2>&1"],
             ["say", "Onward to daylily!"],
@@ -1959,9 +2285,14 @@ class TestRunCreateWorkflow:
         )
 
         assert records["rc"] == EXIT_SUCCESS
-        assert records["echoes"][-2:] == [
+        assert records["echoes"][-4:] == [
             "daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster majors-cluster",
+            "Idle cluster hourly estimate: $1.9611/hour",
             "...fin!",
+            (
+                "Ursa cluster page: "
+                "https://ursa.example.test/clusters/majors-cluster?region=us-west-2"
+            ),
         ]
         assert records["subprocess_calls"] == [["/bin/sh", "-lc", "command -v say >/dev/null 2>&1"]]
 
@@ -2902,6 +3233,7 @@ def _build_workflow_config(
 ) -> ConfigFile:
     config = {
         "cluster_name": ["USESETVALUE", "", "majors-cluster"],
+        "ursa_root_url": ["USESETVALUE", "", "https://ursa.example.test"],
         "reference_s3_uri": ["USESETVALUE", "", "s3://dayoa-references"],
         "control_data_s3_uri": ["USESETVALUE", "", "s3://dayoa-control-data"],
         "stage_s3_uri": [
@@ -2920,10 +3252,10 @@ def _build_workflow_config(
         "max_count_192I": ["USESETVALUE", "", "1"],
         "max_count_384I": ["USESETVALUE", "", "1"],
         "cluster_template_yaml": ["USESETVALUE", "", str(template_path)],
+        "fsx_deployment_type": ["USESETVALUE", "", "SCRATCH_2"],
         "fsx_fs_size": ["USESETVALUE", "", "2400"],
         "enable_detailed_monitoring": ["USESETVALUE", "", "false"],
         "delete_local_root": ["USESETVALUE", "", "false"],
-        "auto_delete_fsx": ["USESETVALUE", "", "Delete"],
         "enforce_budget": ["USESETVALUE", "", "true"],
         "spot_instance_allocation_strategy": [
             "USESETVALUE",
@@ -2986,7 +3318,17 @@ def _run_stubbed_create_workflow(
     regional_cluster_list_result: object | None = None,
 ) -> dict[str, object]:
     template_path = tmp_path / "template.yaml"
-    template_path.write_text("Region: REGSUB_REGION\n", encoding="utf-8")
+    template_path.write_text(
+        """
+Region: REGSUB_REGION
+HeadNode:
+  LocalStorage:
+    RootVolume:
+      Size: 421
+      VolumeType: gp3
+""".lstrip(),
+        encoding="utf-8",
+    )
 
     records: dict[str, object] = {
         "events": [],
@@ -3056,9 +3398,10 @@ def _run_stubbed_create_workflow(
                 "secretsmanager": shared_client,
                 "sns": shared_client,
                 "scheduler": shared_client,
+                "pricing": shared_client,
             }
 
-        def client(self, service_name: str):
+        def client(self, service_name: str, **_kwargs):
             return self._clients[service_name]
 
     aws_ctx_instance = FakeAWSContext()
@@ -3073,6 +3416,7 @@ def _run_stubbed_create_workflow(
         records["prompt_labels"].append(label)
         records["events"].append(("prompt", label))
         answers = {
+            "Ursa root URL (leave blank to skip)": "https://ursa.example.test",
             "Budget email": "johnm@lsmc.com",
             "Budget amount": "200",
             "Global budget amount": "200",
@@ -3382,6 +3726,27 @@ SharedStorage:
     monkeypatch.setattr(create_cluster_module.typer, "prompt", fake_prompt)
     monkeypatch.setattr(create_cluster_module.typer, "echo", fake_echo)
     monkeypatch.setattr(create_cluster_module.subprocess, "run", fake_subprocess_run)
+    monkeypatch.setattr(
+        create_cluster_module,
+        "estimate_idle_cluster_cost",
+        lambda _client, **kwargs: (
+            records.__setitem__("idle_cost_kwargs", kwargs)
+            or IdleClusterCostEstimate(
+                headnode_instance_type=kwargs["headnode_instance_type"],
+                headnode_hourly_usd=Decimal("0.5292"),
+                root_volume_type=kwargs["root_volume_type"],
+                root_volume_gib=kwargs["root_volume_gib"],
+                root_volume_hourly_usd=Decimal("0.0461"),
+                fsx_deployment_type=kwargs["fsx_deployment_type"],
+                fsx_capacity_gib=kwargs["fsx_capacity_gib"],
+                fsx_throughput_mbps_per_tib=kwargs[
+                    "fsx_throughput_mbps_per_tib"
+                ],
+                fsx_hourly_usd=Decimal("1.3808"),
+                public_ipv4_hourly_usd=Decimal("0.005"),
+            )
+        ),
+    )
     monkeypatch.setattr(triplets, "write_next_run_template", fake_write_next_run_template)
     monkeypatch.setattr(
         state_store,

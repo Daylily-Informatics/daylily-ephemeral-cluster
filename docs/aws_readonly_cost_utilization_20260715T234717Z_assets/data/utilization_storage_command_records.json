@@ -1,0 +1,447 @@
+[
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataReadBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-07fb3448c1cb30c1c\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataWriteBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-07fb3448c1cb30c1c\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name MetadataOperations --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-07fb3448c1cb30c1c\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name FreeDataStorageCapacity --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-07fb3448c1cb30c1c\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataReadBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0b57687e1517a9181\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataWriteBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0b57687e1517a9181\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name MetadataOperations --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0b57687e1517a9181\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name FreeDataStorageCapacity --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0b57687e1517a9181\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataReadBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-02cac31094f973e29\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataWriteBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-02cac31094f973e29\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name MetadataOperations --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-02cac31094f973e29\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name FreeDataStorageCapacity --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-02cac31094f973e29\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataReadBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0b9e294bd75a9ad9d\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataWriteBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0b9e294bd75a9ad9d\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name MetadataOperations --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0b9e294bd75a9ad9d\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name FreeDataStorageCapacity --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0b9e294bd75a9ad9d\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataReadBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-03e6f0d7589e629c8\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataWriteBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-03e6f0d7589e629c8\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name MetadataOperations --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-03e6f0d7589e629c8\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name FreeDataStorageCapacity --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-03e6f0d7589e629c8\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataReadBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0dd06f7c3c3e0c1ef\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataWriteBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0dd06f7c3c3e0c1ef\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name MetadataOperations --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0dd06f7c3c3e0c1ef\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name FreeDataStorageCapacity --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-0dd06f7c3c3e0c1ef\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataReadBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-072fc57baf4bc48b5\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataWriteBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-072fc57baf4bc48b5\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name MetadataOperations --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-072fc57baf4bc48b5\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name FreeDataStorageCapacity --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-072fc57baf4bc48b5\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataReadBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-05627d04a7ce25fe5\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataWriteBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-05627d04a7ce25fe5\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name MetadataOperations --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-05627d04a7ce25fe5\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name FreeDataStorageCapacity --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-05627d04a7ce25fe5\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataReadBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-077be392aeb39e79e\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataWriteBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-077be392aeb39e79e\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name MetadataOperations --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-077be392aeb39e79e\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name FreeDataStorageCapacity --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-077be392aeb39e79e\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataReadBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-02a355e1f118e1c71\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name DataWriteBytes --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-02a355e1f118e1c71\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name MetadataOperations --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-02a355e1f118e1c71\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Sum --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/FSx --metric-name FreeDataStorageCapacity --dimensions [{\"Name\": \"FileSystemId\", \"Value\": \"fs-02a355e1f118e1c71\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 3600 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions Name=BucketName,Value=lsmc-ssf-sequencing-data --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-ssf-sequencing-data\"}, {\"Name\": \"StorageType\", \"Value\": \"StandardStorage\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-ssf-sequencing-data\"}, {\"Name\": \"StorageType\", \"Value\": \"IntelligentTieringFAStorage\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name NumberOfObjects --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-ssf-sequencing-data\"}, {\"Name\": \"StorageType\", \"Value\": \"AllStorageTypes\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name AllRequests --dimensions Name=BucketName,Value=lsmc-ssf-sequencing-data --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions Name=BucketName,Value=lsmc-dayoa-omics-analysis-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-dayoa-omics-analysis-us-west-2\"}, {\"Name\": \"StorageType\", \"Value\": \"StandardStorage\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name NumberOfObjects --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-dayoa-omics-analysis-us-west-2\"}, {\"Name\": \"StorageType\", \"Value\": \"AllStorageTypes\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name AllRequests --dimensions Name=BucketName,Value=lsmc-dayoa-omics-analysis-us-west-2 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions Name=BucketName,Value=lsmc-dayoa-staging-usw2 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-dayoa-staging-usw2\"}, {\"Name\": \"StorageType\", \"Value\": \"StandardStorage\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name NumberOfObjects --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-dayoa-staging-usw2\"}, {\"Name\": \"StorageType\", \"Value\": \"AllStorageTypes\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name AllRequests --dimensions Name=BucketName,Value=lsmc-dayoa-staging-usw2 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions Name=BucketName,Value=lsmc-dayoa-control-data-usw2 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-dayoa-control-data-usw2\"}, {\"Name\": \"StorageType\", \"Value\": \"StandardStorage\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name NumberOfObjects --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-dayoa-control-data-usw2\"}, {\"Name\": \"StorageType\", \"Value\": \"AllStorageTypes\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name AllRequests --dimensions Name=BucketName,Value=lsmc-dayoa-control-data-usw2 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions Name=BucketName,Value=lsmc-public-ont-data --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-public-ont-data\"}, {\"Name\": \"StorageType\", \"Value\": \"StandardStorage\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name NumberOfObjects --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-public-ont-data\"}, {\"Name\": \"StorageType\", \"Value\": \"AllStorageTypes\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name AllRequests --dimensions Name=BucketName,Value=lsmc-public-ont-data --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions Name=BucketName,Value=lsmc-copy-ultimagen-lsmc-cro-316 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-copy-ultimagen-lsmc-cro-316\"}, {\"Name\": \"StorageType\", \"Value\": \"StandardStorage\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name NumberOfObjects --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-copy-ultimagen-lsmc-cro-316\"}, {\"Name\": \"StorageType\", \"Value\": \"AllStorageTypes\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name AllRequests --dimensions Name=BucketName,Value=lsmc-copy-ultimagen-lsmc-cro-316 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions Name=BucketName,Value=lsmc-dayoa-references-usw2 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-dayoa-references-usw2\"}, {\"Name\": \"StorageType\", \"Value\": \"StandardStorage\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name NumberOfObjects --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-dayoa-references-usw2\"}, {\"Name\": \"StorageType\", \"Value\": \"AllStorageTypes\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name AllRequests --dimensions Name=BucketName,Value=lsmc-dayoa-references-usw2 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions Name=BucketName,Value=lsmc-dayoa-analysis-results-usw2 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-dayoa-analysis-results-usw2\"}, {\"Name\": \"StorageType\", \"Value\": \"StandardStorage\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name NumberOfObjects --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-dayoa-analysis-results-usw2\"}, {\"Name\": \"StorageType\", \"Value\": \"AllStorageTypes\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name AllRequests --dimensions Name=BucketName,Value=lsmc-dayoa-analysis-results-usw2 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions Name=BucketName,Value=lsmc-illumina-public-data --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-illumina-public-data\"}, {\"Name\": \"StorageType\", \"Value\": \"StandardStorage\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name NumberOfObjects --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-illumina-public-data\"}, {\"Name\": \"StorageType\", \"Value\": \"AllStorageTypes\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name AllRequests --dimensions Name=BucketName,Value=lsmc-illumina-public-data --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions Name=BucketName,Value=lsmc-dayoa-runtime-assets-usw2 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-dayoa-runtime-assets-usw2\"}, {\"Name\": \"StorageType\", \"Value\": \"StandardStorage\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name NumberOfObjects --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-dayoa-runtime-assets-usw2\"}, {\"Name\": \"StorageType\", \"Value\": \"AllStorageTypes\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name AllRequests --dimensions Name=BucketName,Value=lsmc-dayoa-runtime-assets-usw2 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions Name=BucketName,Value=lsmc-aws-config-108782052779 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-aws-config-108782052779\"}, {\"Name\": \"StorageType\", \"Value\": \"StandardStorage\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name NumberOfObjects --dimensions [{\"Name\": \"BucketName\", \"Value\": \"lsmc-aws-config-108782052779\"}, {\"Name\": \"StorageType\", \"Value\": \"AllStorageTypes\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name AllRequests --dimensions Name=BucketName,Value=lsmc-aws-config-108782052779 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions Name=BucketName,Value=parallelcluster-4da281c1dc024f1c-v1-do-not-delete --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name BucketSizeBytes --dimensions [{\"Name\": \"BucketName\", \"Value\": \"parallelcluster-4da281c1dc024f1c-v1-do-not-delete\"}, {\"Name\": \"StorageType\", \"Value\": \"StandardStorage\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-statistics --namespace AWS/S3 --metric-name NumberOfObjects --dimensions [{\"Name\": \"BucketName\", \"Value\": \"parallelcluster-4da281c1dc024f1c-v1-do-not-delete\"}, {\"Name\": \"StorageType\", \"Value\": \"AllStorageTypes\"}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --period 86400 --statistics Average --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch list-metrics --namespace AWS/S3 --metric-name AllRequests --dimensions Name=BucketName,Value=parallelcluster-4da281c1dc024f1c-v1-do-not-delete --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  }
+]

@@ -1,0 +1,177 @@
+[
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=RunInstances --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-east-1 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=RunInstances --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0b6cde14f34ae3c39 --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-east-1 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0b6cde14f34ae3c39 --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-062b70471b26d629b --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-east-1 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-062b70471b26d629b --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0a8fcca0fd1b2e66f --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-east-1 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0a8fcca0fd1b2e66f --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0da4185030bbccc2b --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-east-1 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0da4185030bbccc2b --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0ab9bc7c044e95236 --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-east-1 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0ab9bc7c044e95236 --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0bbfcf9f67ebd2fb4 --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-east-1 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0bbfcf9f67ebd2fb4 --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0e48d56db7f28d8a5 --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-east-1 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0e48d56db7f28d8a5 --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-05de2b02daac7a9fc --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-east-1 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-05de2b02daac7a9fc --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0a6ae478eb4d8fc0d --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-east-1 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0a6ae478eb4d8fc0d --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0655e1a29634ade1d --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-east-1 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0655e1a29634ade1d --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-07df3a933e4839f52 --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-east-1 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-07df3a933e4839f52 --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0453760b2165bcf38 --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-east-1 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-0453760b2165bcf38 --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-01db42c813d037c0e --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-east-1 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-01db42c813d037c0e --start-time 2026-04-16T00:00:00Z --end-time 2026-07-15T00:00:00Z --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region us-east-1 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws ec2 describe-instances --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"m0\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0b6cde14f34ae3c39\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m1\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-076ca0c42f764c030\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m2\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0111e5426ec983352\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m3\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0a0f54e02be178d4c\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m4\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-062b70471b26d629b\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m5\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0a8fcca0fd1b2e66f\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m6\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0da4185030bbccc2b\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m7\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-03dadb54f182e1dbe\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m8\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-07e7b176642695ca1\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m9\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-025cfe19dd7a54af6\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m10\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-04711133459e23182\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m11\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0208eb62c8385662e\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m12\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0cc72d8d027c169f2\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m13\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0ab9bc7c044e95236\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m14\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0bbfcf9f67ebd2fb4\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m15\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0e48d56db7f28d8a5\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m16\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-05de2b02daac7a9fc\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m17\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0a6ae478eb4d8fc0d\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m18\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0e851e4dc6ad5ee5a\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m19\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-06a253165b3804f50\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampAscending --max-datapoints 100800 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"m0\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0655e1a29634ade1d\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m1\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-07df3a933e4839f52\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m2\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-049554ca1437eb568\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m3\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-027a7334aec0f2c53\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m4\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-066a7fb40eef06c21\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m5\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0106649a9db48f1db\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m6\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-02ca12737f57cf1f2\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m7\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-09d0a84379eaa81f8\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m8\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-00e48ee087d537f91\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m9\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-01bcd3eed23582b61\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m10\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-08c9bd2386a37ad5c\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m11\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-02599e9ae3077b80c\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m12\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-01550a03f82f2debc\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m13\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-055255e20e6f2e0ff\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m14\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-06a86585113536834\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m15\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-097ae087d643b18f3\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m16\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-05ac26d9af5908d2e\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m17\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-01a4c46317267aa0b\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m18\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0d75af02251c65b84\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m19\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0972556ef159eea26\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampAscending --max-datapoints 100800 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"m0\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0faea82bb0dd57be4\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m1\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-043958ce0f94bc552\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m2\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-08f3a111eba2c1dfa\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m3\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0419a8088905aad63\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m4\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-000ded0cbf188ee4b\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m5\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-097a3ea319554f9c4\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m6\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-00f0a3636d06c3cf1\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m7\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-09e6488f2936505a4\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m8\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-07da935fb15557038\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m9\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-03e55e9b3775ff5f3\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m10\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-09fbf7c3e6149bb09\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m11\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-094c2e5a283854e46\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m12\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-013f01a2b0b6e07fa\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m13\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0c965aa3527c63925\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m14\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0504cae8310bae312\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m15\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-088a7bd0e4f42695d\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m16\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-03685d721dfcc17bf\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m17\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-06b8bf78a9f073be0\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m18\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-01c4becd7e4272030\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m19\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-005099e85867081aa\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampAscending --max-datapoints 100800 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"m0\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-01a3abe5ac8f6b4ad\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m1\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0453760b2165bcf38\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m2\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-09f0e9d7e1f3de045\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m3\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-063fba8956c0bb8f7\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m4\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-08c6c36bc885fd8da\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m5\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0e5a48086f7d157ac\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m6\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0f4f1f7f87f4e6ae8\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m7\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0666c139c3accd5a1\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m8\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-049024afb473a5519\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m9\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0f990d7a37609ef06\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m10\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0b2396f22dba6d521\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m11\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0a0f1f64193df9d30\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m12\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-022c5dd9a4db2a9d3\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m13\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-08947c710c89d9c83\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m14\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-021ad0f82f14d8814\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m15\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0e276912ed83d9fd3\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m16\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0005defc9d36b2e03\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m17\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-045ef3bc664b95cb9\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m18\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-08d4f18f7bf85d7fa\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m19\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0e68f3455df39c50d\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampAscending --max-datapoints 100800 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "command": "aws cloudwatch get-metric-data --metric-data-queries [{\"Id\": \"m0\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-042119ab472dbe9ce\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m1\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-03383016be5913c31\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m2\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-07309e9bc2bf4c9fa\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m3\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-056247101e07a23f4\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m4\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0b923a87775864b3c\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m5\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-05b688b01230089dd\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m6\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0009c707869491d27\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m7\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-013ceabf53a67dc6a\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m8\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0ee3b05ff74876b6b\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m9\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-003ae7e389554bbdb\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m10\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-035a24f859e7229c9\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m11\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-050a09b3a5a4b2966\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m12\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0fa345052b09dfa12\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m13\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0c2758b0b70d5f155\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m14\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0c5e00b4a6c4111a0\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m15\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-00c7b8c86a44529ac\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m16\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-031ed137d1b282bf3\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m17\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0570578c91d115936\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}, {\"Id\": \"m18\", \"MetricStat\": {\"Metric\": {\"Namespace\": \"AWS/EC2\", \"MetricName\": \"CPUUtilization\", \"Dimensions\": [{\"Name\": \"InstanceId\", \"Value\": \"i-0669b69b5ddfed2cc\"}]}, \"Period\": 300, \"Stat\": \"Average\"}, \"ReturnData\": true}] --start-time 2026-07-01T00:00:00Z --end-time 2026-07-15T00:00:00Z --scan-by TimestampAscending --max-datapoints 100800 --profile lsmc --region us-west-2 --output json",
+    "returncode": 0,
+    "stderr": ""
+  }
+]

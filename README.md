@@ -45,11 +45,75 @@ flowchart LR
 
 Run mounts and references are inputs. They are not export sources. The export source is exactly one completed analysis directory under `/fsx/analysis_results/<executing_entity>/<analysis_id>`.
 
+### Per-cluster FSx selection
+
+Interactive `dyec create` runs explicitly ask for:
+
+1. the FSx for Lustre deployment type (`SCRATCH_2` or `PERSISTENT_2`);
+2. the dedicated filesystem capacity; and
+3. for `PERSISTENT_2`, the throughput tier (`125`, `250`, `500`, or `1000` MB/s/TiB).
+
+The offered defaults are `PERSISTENT_2`, `4800` GiB, and `250` MB/s/TiB.
+They remain visible interactive choices: pressing Enter accepts them, while a
+different listed value can be selected before any AWS context or provisioning.
+
+At the start of an interactive create, DYEC also asks for an optional explicit
+Ursa root URL. When supplied, a successful create ends with the canonical
+cluster-detail link:
+
+```text
+https://<ursa-root>/clusters/<cluster-name>?region=<region>
+```
+
+The service root is never inferred. A configured URL must be an absolute HTTP
+or HTTPS root without credentials, query parameters, or a fragment.
+
+Before AWS context and provisioning, DYEC prints the selected type, capacity,
+applicable throughput, and lifecycle. Each cluster receives its own filesystem;
+the selection is not a shared regional `/fsx`. `/fsx/analysis_results` remains
+writable cluster workspace, and result export to S3 remains an explicit DRA
+export rather than automatic writeback.
+
+Non-interactive creates must provide explicit set values. Defaults are not
+silently accepted in non-interactive mode:
+
+```yaml
+ephemeral_cluster:
+  config:
+    fsx_deployment_type: [USESETVALUE, "", "PERSISTENT_2"]
+    fsx_fs_size: [USESETVALUE, "", "4800"]
+    fsx_throughput_mbps_per_tib: [USESETVALUE, "", "250"]
+```
+
+`fsx_throughput_mbps_per_tib` is required only for `PERSISTENT_2`. Explicit
+benchmark/profile configs continue to use `USESETVALUE`; the canonical default
+template uses `PROMPTUSER` for type, size, and throughput.
+
+There is no retained-filesystem choice in the create workflow. The dedicated
+filesystem is cluster-bound: ParallelCluster-managed `SCRATCH_2` renders with
+deletion policy `Delete`, and DYEC deletes its external `PERSISTENT_2` after
+the ParallelCluster is absent. A future retained mode requires a separate,
+explicit ownership and lifecycle contract.
+
+For external `PERSISTENT_2`, the selected filesystem must exist before the
+final ParallelCluster configuration can reference its `FileSystemId`. DYEC
+therefore labels that phase **LIVE AWS STORAGE PROVISIONING**: it creates or
+resumes the cluster-specific FSx client security group, filesystem, and
+reference DRA, then runs the ParallelCluster dry-run with that exact ID.
+
+Before any create-side mutation, DYEC resolves current AWS Price List rates for
+the configured on-demand headnode, rendered gp3 root volume, selected FSx
+storage profile, and one in-use public IPv4 address. The successful-create
+summary prints those components and their total configured idle hourly
+estimate. Slurm compute nodes are excluded because cluster templates render
+their minimum count as zero; usage-driven transfer, requests, logging, and
+backup charges are also outside this idle floor.
+
 ## Setup
 
 Prerequisites:
 
-- AWS credentials for a non-default profile with ParallelCluster, EC2, IAM, CloudFormation, S3, FSx, SSM, CloudWatch, and related read/write permissions.
+- AWS credentials for a non-default profile with ParallelCluster, EC2, IAM, CloudFormation, S3, FSx, SSM, CloudWatch, AWS Price List `pricing:GetProducts`, and related read/write permissions.
 - AWS region and availability zone selected for the cluster.
 - AWS Session Manager plugin installed locally.
 - AWS ParallelCluster CLI available through this repo environment. This repo targets exactly `aws-parallelcluster==3.15.0`.

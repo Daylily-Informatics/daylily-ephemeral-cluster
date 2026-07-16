@@ -1,0 +1,67 @@
+category,resource,region,july_resource_cost_usd,utilization,state,size_gib
+db_instance,labcore-dev-instance-1,us-west-2,46.08,CPU avg 2.75%; connections avg 0.00,available,0
+nat_gateway,nat-00f3c26e43ede9b10,us-west-2,33.0,"1,992.128 GiB across four byte counters",available,0
+bucket,lsmc-public-ont-data,us-west-2,25.38,5.604 TiB; request metrics not enabled,live,0
+nat_gateway,nat-05f85018216cac061,ap-south-1,9.41,0.000 GiB across four byte counters,available,0
+nat_gateway,nat-01dc061291fc51e75,ap-south-1,9.41,0.000 GiB across four byte counters,available,0
+nat_gateway,nat-0ec6ae9605269bef4,eu-central-1,8.74,0.000 GiB across four byte counters,available,0
+nat_gateway,nat-0a2bfbfedf38f8e87,eu-central-1,8.74,0.000 GiB across four byte counters,available,0
+volume,vol-0aa3f5a0f5cdca9a0,us-east-1,6.07,33 observed hours; idle 99.8% of observed hours,in-use,336
+volume,vol-0dba752186e34e08c,us-east-1,6.07,59 observed hours; idle 99.8% of observed hours,in-use,336
+volume,vol-0f2da5c82d0de1378,us-east-1,6.07,39 observed hours; idle 99.2% of observed hours,in-use,336
+volume,vol-00cbb7ba932dbd3a4,us-east-1,6.07,33 observed hours; idle 99.7% of observed hours,in-use,336
+volume,vol-0f9efeb41e207d738,us-east-1,6.07,33 observed hours; idle 99.8% of observed hours,in-use,336
+volume,vol-014b3f723fb89dc63,us-east-1,6.07,33 observed hours; idle 99.7% of observed hours,in-use,336
+volume,vol-0c26833469cf6995a,us-west-2,4.23,no CloudWatch datapoints in window,in-use,234
+load_balancer,lsmc-mvp-dev-alb,us-west-2,3.24,not collected for this resource type,active,0
+bucket,lsmc-illumina-public-data,us-west-2,0.58,0.124 TiB; request metrics not enabled,live,0
+snapshot,snap-053909bfd492a6457,ap-south-1,0.54,not collected for this resource type,completed,421
+snapshot,snap-07690eaa1400bc7f6,us-east-1,0.3,not collected for this resource type,completed,336
+snapshot,snap-0356dd0198dfe4b00,us-west-2,0.3,not collected for this resource type,completed,336
+load_balancer,lsmc-mvp-v1-labcore-alb,us-west-2,0.18,not collected for this resource type,active,0
+volume,vol-09454929e2c583ae7,us-east-1,0.14,336 observed hours; idle 100.0% of observed hours,in-use,8
+volume,vol-0b6a14b3d2c01264d,us-west-2,0.14,336 observed hours; idle 100.0% of observed hours,in-use,8
+volume,vol-0af8f94e0cd058ddf,us-west-2,0.14,336 observed hours; idle 99.9% of observed hours,in-use,8
+volume,vol-0b98b1e8d330cca41,us-west-2,0.04,336 observed hours; idle 100.0% of observed hours,in-use,2
+bucket,cdk-hnb659fds-assets-108782052779-us-east-1,us-east-1,0.03,not collected for this resource type,live,0
+bucket,lsmc-aws-config-108782052779,us-west-2,0.03,0.002 TiB; request metrics not enabled,live,0
+bucket,parallelcluster-4da281c1dc024f1c-v1-do-not-delete,us-west-2,0.03,0.000 TiB; request metrics not enabled,live,0
+bucket,aquarium-tfstate-dev,us-west-2,0.02,not collected for this resource type,live,0
+bucket,aquarium-tfstate-prod,us-west-2,0.02,not collected for this resource type,live,0
+bucket,cdk-hnb659fds-assets-108782052779-us-west-2,us-west-2,0.02,not collected for this resource type,live,0
+bucket,cf-templates-pfrobpqqun1c-us-east-2,us-east-2,0.02,not collected for this resource type,live,0
+bucket,lsmc-atlas-demo,us-west-2,0.02,not collected for this resource type,live,0
+bucket,lsmc-atlas-dev,us-west-2,0.02,not collected for this resource type,live,0
+bucket,lsmc-bio-oauth-static-site-108782052779-us-east-1,us-east-1,0.02,not collected for this resource type,live,0
+bucket,lsmc-datalake-raw-dev,us-west-2,0.02,not collected for this resource type,live,0
+bucket,lsmc-healthomics-failiover,us-west-2,0.02,not collected for this resource type,live,0
+bucket,lsmc-healthomics-results,us-west-2,0.02,not collected for this resource type,live,0
+bucket,lsmc-meridian-governance-registry,us-west-2,0.02,not collected for this resource type,live,0
+bucket,lsmc-mvp-v1-event-sink-raw-108782052779-us-west-2,us-west-2,0.02,not collected for this resource type,live,0
+bucket,lsmc-twenty-prod-storage,us-east-1,0.02,not collected for this resource type,live,0
+bucket,lsmc-ursa-customers-usw2,us-west-2,0.02,not collected for this resource type,live,0
+bucket,parallelcluster-730cb6d53cf2deec-v1-do-not-delete,eu-central-1,0.02,not collected for this resource type,live,0
+bucket,parallelcluster-e781c59d26140bab-v1-do-not-delete,ap-south-1,0.02,not collected for this resource type,live,0
+bucket,terrarium-tfstate-dev,us-west-2,0.02,not collected for this resource type,live,0
+bucket,terrarium-tfstate-prod,us-west-2,0.02,not collected for this resource type,live,0
+volume,vol-0746a2cbb0acde1dd,us-west-2,0.0,4 observed hours; idle 87.4% of observed hours,in-use,30
+volume,vol-08a142d0b31d6421f,us-west-2,0.0,62 observed hours; idle 99.2% of observed hours,in-use,20
+volume,vol-0b481de207f5b19f1,us-west-2,0.0,60 observed hours; idle 99.6% of observed hours,in-use,20
+elastic_ip,eipalloc-0dc16bbf830c83d81,ap-south-1,0.0,associated,,0
+elastic_ip,eipalloc-033c9e0da1444ac1b,ap-south-1,0.0,associated,,0
+elastic_ip,eipalloc-064b4a732e3617a01,eu-central-1,0.0,associated,,0
+elastic_ip,eipalloc-0a47cd6baa930d38f,eu-central-1,0.0,associated,,0
+elastic_ip,eipalloc-05ec07b8b3f8ab7a0,us-east-1,0.0,associated,,0
+elastic_ip,eipalloc-0e23d5a2d6a908513,us-west-2,0.0,associated,,0
+elastic_ip,eipalloc-0d243e5344b4f6a39,us-west-2,0.0,associated,,0
+elastic_ip,eipalloc-08aa7ee07f8adf8dc,us-west-2,0.0,associated,,0
+elastic_ip,eipalloc-0339d3e066d497bad,us-west-2,0.0,associated,,0
+elastic_ip,eipalloc-0404170040b2023eb,us-west-2,0.0,associated,,0
+elastic_ip,eipalloc-034fe6067ba066271,us-west-2,0.0,associated,,0
+elastic_ip,eipalloc-058ea8eee7c041d8a,us-west-2,0.0,associated,,0
+elastic_ip,eipalloc-0eba4901f0a660eee,us-west-2,0.0,associated,,0
+nat_gateway,nat-0e8d177db491d4430,us-west-2,0.0,110.680 GiB across four byte counters,available,0
+db_instance,day-ursa-rehearsal-20260710t0402z-writer,us-west-2,0.0,CPU avg 10.65%; connections avg 0.00,available,0
+bucket,dayec-cur-108782052779-us-east-1,us-east-1,0.0,not collected for this resource type,live,0
+bucket,lsmc-docs-public-108782052779-us-west-2,us-west-2,0.0,not collected for this resource type,live,0
+bucket,lsmc-mvp-v1-labcore-ui-108782052779-us-west-2,us-west-2,0.0,not collected for this resource type,live,0

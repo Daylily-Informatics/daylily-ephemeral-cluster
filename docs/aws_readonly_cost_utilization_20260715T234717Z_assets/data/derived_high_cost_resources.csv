@@ -1,0 +1,74 @@
+category,resource,region,july_cost_usd,utilization,tag_state,live_state
+S3 bucket,lsmc-ssf-sequencing-data,us-west-2,953.69,"218.046 TiB; 5,503,555 objects; request metrics not enabled",tagged,live
+S3 bucket,lsmc-dayoa-omics-analysis-us-west-2,us-west-2,278.01,"61.428 TiB; 4,000,574 objects; request metrics not enabled",tagged,live
+RDS instance,dayhoff-lsmcq7-tapdb-writer,us-west-2,206.78,"CPU avg 1.81%, p95 1.90%; connections avg 0.00",tagged,live
+FSx file system,fs-07fb3448c1cb30c1c,us-west-2,190.43,"50.112 TiB read; 12.908 TiB write; 419,915,451 metadata ops",not observable after deletion,not live at scan time
+FSx file system,fs-0b57687e1517a9181,us-west-2,151.45,"0.000 TiB read; 0.001 TiB write; 7,395,317 metadata ops",not observable after deletion,not live at scan time
+RDS instance,dayhoff-lsmcq7-tapdb-reader-api,us-west-2,103.39,"CPU avg 2.54%, p95 2.56%; connections avg 0.00",tagged,live
+RDS instance,dayhoff-lsmcq7-tapdb-reader-ha,us-west-2,103.39,"CPU avg 2.88%, p95 3.23%; connections avg 0.00",tagged,live
+EBS volume,vol-0840104f024bda559,unknown,87.1,not live at scan time; no current utilization,not observable after deletion,not live at scan time
+FSx file system,fs-02cac31094f973e29,us-west-2,74.4,"12.352 TiB read; 1.066 TiB write; 46,158,791 metadata ops",not observable after deletion,not live at scan time
+FSx file system,fs-0b9e294bd75a9ad9d,us-west-2,72.41,"4.774 TiB read; 4.663 TiB write; 9,523,749 metadata ops",not observable after deletion,not live at scan time
+S3 bucket,lsmc-dayoa-staging-usw2,us-west-2,50.01,"11.047 TiB; 56,018 objects; request metrics not enabled",tagged,live
+S3 bucket,lsmc-dayoa-control-data-usw2,us-west-2,46.57,"10.286 TiB; 31,980 objects; request metrics not enabled",tagged,live
+RDS instance,labcore-dev-instance-1,us-west-2,46.08,"CPU avg 2.75%, p95 2.79%; connections avg 0.00",untagged,live
+RDS instance,dayhoff-lsmcok1-tapdb-writer,us-west-2,39.74,"CPU avg 5.81%, p95 5.90%; connections avg 14.18",tagged,live
+RDS instance,auruse1-writer,us-east-1,37.44,"CPU avg 8.16%, p95 8.27%; connections avg 0.00",tagged,live
+RDS instance,dev-writer,us-west-2,37.44,"CPU avg 8.92%, p95 9.18%; connections avg 0.00",tagged,live
+NAT gateway,nat-00f3c26e43ede9b10,us-west-2,33.0,"1,992.128 GiB across four CloudWatch byte counters",untagged,live
+FSx file system,fs-03e6f0d7589e629c8,us-west-2,30.56,"0.006 TiB read; 0.013 TiB write; 16,978,284 metadata ops",not observable after deletion,not live at scan time
+S3 bucket,lsmc-public-ont-data,us-west-2,25.38,"5.604 TiB; 2,474 objects; request metrics not enabled",untagged,live
+FSx file system,fs-0dd06f7c3c3e0c1ef,us-west-2,23.38,"0.000 TiB read; 0.000 TiB write; 35,578 metadata ops",not observable after deletion,not live at scan time
+RDS instance,dr-drill-standalone-20260521,us-west-2,13.14,no current CloudWatch row; instance not live at scan time,not observable after deletion,not live at scan time
+FSx file system,fs-072fc57baf4bc48b5,us-west-2,10.54,"0.000 TiB read; 0.000 TiB write; 7,506,014 metadata ops",not observable after deletion,not live at scan time
+RDS instance,dev-writer,us-east-1,10.51,"CPU avg 15.20%, p95 16.04%; connections avg 6.55",tagged,live
+RDS instance,staging-writer,us-west-2,10.51,"CPU avg 10.12%, p95 10.28%; connections avg 0.00",tagged,live
+NAT gateway,nat-05f85018216cac061,ap-south-1,9.41,0.000 GiB across four CloudWatch byte counters,untagged,live
+NAT gateway,nat-01dc061291fc51e75,ap-south-1,9.41,0.000 GiB across four CloudWatch byte counters,untagged,live
+RDS instance,dr-drill-standalone-use1-20260526,us-east-1,9.39,no current CloudWatch row; instance not live at scan time,not observable after deletion,not live at scan time
+S3 bucket,lsmc-copy-ultimagen-lsmc-cro-316,us-west-2,9.11,2.024 TiB; 109 objects; request metrics not enabled,tagged,live
+FSx file system,fs-05627d04a7ce25fe5,us-west-2,9.1,"0.000 TiB read; 0.000 TiB write; 7,155,874 metadata ops",not observable after deletion,not live at scan time
+NAT gateway,nat-0ec6ae9605269bef4,eu-central-1,8.74,0.000 GiB across four CloudWatch byte counters,untagged,live
+NAT gateway,nat-0a2bfbfedf38f8e87,eu-central-1,8.74,0.000 GiB across four CloudWatch byte counters,untagged,live
+RDS instance,dayhoff-lsmcok1-tapdb-rehearsal-20260702t104009z-writer,us-west-2,7.96,"CPU avg 10.90%, p95 11.40%; connections avg 0.00",tagged,live
+NAT gateway,nat-00246c8ef3b9087f1,us-west-2,7.96,29.672 GiB across four CloudWatch byte counters,tagged,live
+RDS instance,dayhoff-lsmcok1-tapdb-rehearsal-20260702t111435z-writer,us-west-2,7.92,"CPU avg 10.62%, p95 11.03%; connections avg 0.00",tagged,live
+RDS instance,dayhoff-lsmcok1-tapdb-rehearsal-20260702t113340z-writer,us-west-2,7.9,"CPU avg 10.68%, p95 10.92%; connections avg 0.00",tagged,live
+RDS instance,dayhoff-lsmcok1-tapdb-rehearsal-20260702t121558z-writer,us-west-2,7.85,"CPU avg 10.64%, p95 10.99%; connections avg 0.00",tagged,live
+RDS instance,dayhoff-lsmcok1-tapdb-rehearsal-20260702t124007z-writer,us-west-2,7.82,"CPU avg 10.50%, p95 10.70%; connections avg 0.00",tagged,live
+NAT gateway,nat-0234e77781575cced,us-west-2,7.62,17.183 GiB across four CloudWatch byte counters,tagged,live
+NAT gateway,nat-00ac08b685fea726f,us-west-2,7.6,4.280 GiB across four CloudWatch byte counters,tagged,live
+NAT gateway,nat-089a96601cfd34f9d,us-east-1,7.56,0.000 GiB across four CloudWatch byte counters,tagged,live
+RDS instance,dayhoff-dr-drill-use1-20260522-reader-ha,us-east-1,6.32,no current CloudWatch row; instance not live at scan time,not observable after deletion,not live at scan time
+RDS instance,dayhoff-dr-drill-use1-20260522-reader-api,us-east-1,6.32,no current CloudWatch row; instance not live at scan time,not observable after deletion,not live at scan time
+RDS instance,dayhoff-dr-drill-use1-20260522-instance-1,us-east-1,6.32,no current CloudWatch row; instance not live at scan time,not observable after deletion,not live at scan time
+RDS instance,dayhoff-dr-drill-20260521-reader-ha,us-west-2,6.28,no current CloudWatch row; instance not live at scan time,not observable after deletion,not live at scan time
+RDS instance,dayhoff-dr-drill-20260521-reader-api,us-west-2,6.28,no current CloudWatch row; instance not live at scan time,not observable after deletion,not live at scan time
+RDS instance,dayhoff-dr-drill-20260521-instance-1,us-west-2,6.28,no current CloudWatch row; instance not live at scan time,not observable after deletion,not live at scan time
+EBS volume,vol-00cbb7ba932dbd3a4,us-east-1,6.07,live volume telemetry in utilization_ebs.csv,untagged,live
+EBS volume,vol-014b3f723fb89dc63,us-east-1,6.07,live volume telemetry in utilization_ebs.csv,untagged,live
+EBS volume,vol-0392bc7824a1e81e8,us-east-1,6.07,live volume telemetry in utilization_ebs.csv,tagged,live
+EBS volume,vol-04646998d6f1fd325,us-west-2,6.07,live volume telemetry in utilization_ebs.csv,tagged,live
+EBS volume,vol-0aa3f5a0f5cdca9a0,us-east-1,6.07,live volume telemetry in utilization_ebs.csv,untagged,live
+EBS volume,vol-0b99a6dcae2700982,us-east-1,6.07,live volume telemetry in utilization_ebs.csv,tagged,live
+EBS volume,vol-0c69ba6b467620e14,us-west-2,6.07,live volume telemetry in utilization_ebs.csv,tagged,live
+EBS volume,vol-0dba752186e34e08c,us-east-1,6.07,live volume telemetry in utilization_ebs.csv,untagged,live
+EBS volume,vol-0ea36895cc2b979ac,us-west-2,6.07,live volume telemetry in utilization_ebs.csv,tagged,live
+EBS volume,vol-0f2da5c82d0de1378,us-east-1,6.07,live volume telemetry in utilization_ebs.csv,untagged,live
+EBS volume,vol-0f9efeb41e207d738,us-east-1,6.07,live volume telemetry in utilization_ebs.csv,untagged,live
+RDS instance,dr-drill-5-dayhoff-day-dr-drill-use1-20260619,us-east-1,6.0,no current CloudWatch row; instance not live at scan time,not observable after deletion,not live at scan time
+EBS volume,vol-076c411f48eb914a2,unknown,4.77,not live at scan time; no current utilization,not observable after deletion,not live at scan time
+S3 bucket,lsmc-dayoa-references-usw2,us-west-2,4.37,"0.738 TiB; 825,915 objects; request metrics not enabled",tagged,live
+EBS volume,vol-077b3ad123c39d931,unknown,4.29,not live at scan time; no current utilization,not observable after deletion,not live at scan time
+EBS volume,vol-0c26833469cf6995a,us-west-2,4.23,live volume telemetry in utilization_ebs.csv,untagged,live
+RDS instance,aquarium-dev-db,us-west-2,2.75,"CPU avg 3.20%, p95 3.31%; connections avg 2.07",tagged,live
+RDS instance,terrarium-dev-db,us-west-2,2.75,"CPU avg 3.43%, p95 3.55%; connections avg 0.03",tagged,live
+RDS instance,terrarium-prod-db,us-west-2,2.75,"CPU avg 3.21%, p95 3.35%; connections avg 3.05",tagged,live
+FSx file system,fs-077be392aeb39e79e,us-west-2,2.38,"0.000 TiB read; 0.000 TiB write; 7,138,303 metadata ops",not observable after deletion,not live at scan time
+RDS instance,lsmc-mvp-v1-event-sink-db,us-west-2,2.23,no current CloudWatch row; instance not live at scan time,not observable after deletion,not live at scan time
+FSx file system,fs-02a355e1f118e1c71,us-west-2,1.38,"0.000 TiB read; 0.000 TiB write; 7,154,495 metadata ops",not observable after deletion,not live at scan time
+S3 bucket,lsmc-dayoa-analysis-results-usw2,us-west-2,0.63,"0.248 TiB; 139,041 objects; request metrics not enabled",tagged,live
+S3 bucket,lsmc-illumina-public-data,us-west-2,0.58,0.124 TiB; 36 objects; request metrics not enabled,untagged,live
+S3 bucket,lsmc-dayoa-runtime-assets-usw2,us-west-2,0.2,"0.039 TiB; 82,399 objects; request metrics not enabled",tagged,live
+S3 bucket,lsmc-aws-config-108782052779,us-west-2,0.03,"0.002 TiB; 15,521 objects; request metrics not enabled",untagged,live
+S3 bucket,parallelcluster-4da281c1dc024f1c-v1-do-not-delete,us-west-2,0.03,0.000 TiB; 96 objects; request metrics not enabled,untagged,live

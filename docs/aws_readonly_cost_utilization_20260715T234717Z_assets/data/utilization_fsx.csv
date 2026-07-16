@@ -1,0 +1,6 @@
+region,resource_id,name,fsx_type,storage_capacity_gib,untagged,read_tib,write_tib,metadata_ops,latest_free_tib,datapoints
+us-west-2,fs-0cd9acb3fd03d986f,fsx-hiomrs,LUSTRE,1200,False,6.235,1.484,26132603,0.672,60
+us-west-2,fs-09ebdfb22257cea27,fsx-ifx-20260719h,LUSTRE,14400,False,0.0,0.0,13029303,1.088,8
+us-west-2,fs-006b74a47b7602930,fsx-ifx-sacctoff-1037,LUSTRE,4800,False,0.0,0.0,14049520,1.088,6
+us-west-2,fs-0e8434a86af264b29,fsx-ifx-p2-250-0714,LUSTRE,4800,False,0.0,0.0,0,,0
+us-west-2,fs-0cc0657362d4140c2,fsx-ifx-p2-1000-120-0715,LUSTRE,12000,False,0.0,0.0,0,,0

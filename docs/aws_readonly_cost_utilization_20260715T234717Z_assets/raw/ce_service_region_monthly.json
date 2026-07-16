@@ -1,0 +1,7547 @@
+{
+  "DimensionValueAttributes": [],
+  "GroupDefinitions": [
+    {
+      "Key": "SERVICE",
+      "Type": "DIMENSION"
+    },
+    {
+      "Key": "REGION",
+      "Type": "DIMENSION"
+    }
+  ],
+  "ResultsByTime": [
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "AWS CloudFormation",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudFormation",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "253.360871",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Cost Explorer",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "386.8277981398",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00042",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000417",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000735",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000735",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000744",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001884",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000417",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000753",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000735",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000417",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000732",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001884",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000735",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000735",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000735",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000747",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000753",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.0085322302",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000735",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000741",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.192216024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000073937",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00073",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00073",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00124",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00072",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00126",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00073",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00124",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00126",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.0406364294",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00122",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.7608843012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.17789",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.22661264",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.1071172",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.0820808",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.184075",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.30856461",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.946242",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.1182276",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.083021",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.0629266",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.0813816",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.42479876",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.9974388",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.0401764",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.0393536",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.0650628",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.06324504",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.639301",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "59.2725390633",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.9890746",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.055176",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "342.7479835571",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000081",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000051",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000204",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00000018",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000204",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000192",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000204",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000216",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000057",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000312",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000593",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Support (Developer)",
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1407.3498072785",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS WAF",
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.000000056",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000034",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0392686527",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "8.9915110236",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.3546370282",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "83.0484862628",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "74.8800103576",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "185.1900273781",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "692.0436840777",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000141708",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1365.7338611514",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "30251.2876596713",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Container Service",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "53.3694951549",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic File System",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0001175506",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "16.2",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "25.0270875769",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2395.8861627715",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000123",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000075",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000003",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000264",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000003",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000288",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000003",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000324",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000072",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000072",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000072",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000072",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000072",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000072",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000468",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000072",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000072",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000072",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0046492",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0045356",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00485",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.004334",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0045402",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.004554",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.004531",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0044804",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0035994",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.004334",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.004334",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0043472",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.006909",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "12.75452403",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00632",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.004268",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4973224745",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "997.1030080944",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3482.0979059202",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "14.4092564",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000012342",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00015",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000282",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0003",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00027",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.3412744531",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00027",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00012",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00027",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.120753835",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00051",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0003",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00027",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.5309477356",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2190765933",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7001.8248439363",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.2",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.2",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "37.790411205",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "109.9723020644",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4416718536",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0481349167",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "274.9505290758",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CloudWatch Events",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Tax",
+            "NoRegion"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-01",
+        "Start": "2026-06-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "AWS Backup",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000011223",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Certificate Manager",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Certificate Manager",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Cloud Map",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000019",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudFormation",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudFormation",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "38.914093",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Config",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "14.679",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Config",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.48",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Config",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "214.197",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Cost Explorer",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "632.1052009676",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000084",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000084",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00018",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000204",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000204",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00054",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000084",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000204",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000204",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000081",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000204",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000468",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000204",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00018",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00018",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000204",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000204",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.45189781",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000204",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000528",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.368656688",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000066627",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000455",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000455",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000735",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001015",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001015",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00086",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000455",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001015",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00084",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000455",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000855",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000735",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000865",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000735",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000735",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001015",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001015",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.809541584",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000985",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.3587745879",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.1861423092",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.83587",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.8765064",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.7426892",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.8540586",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.90808",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.0692716",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.656744",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.8596292",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.7731216",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.761116",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.7749156",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.0653274",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.7151228",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.6961868",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.6963892",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.8153432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.8051444",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.277045",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "12.8722190146",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.963512",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.515261712",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "116.1971100492",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000378",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000238",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000952",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000084",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000952",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000896",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000224",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000952",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000001008",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000266",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000224",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000224",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000224",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000224",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000224",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000224",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000001456",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000272",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000224",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000224",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Support (Developer)",
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "597.0230774809",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS WAF",
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.5620281293",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS X-Ray",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon API Gateway",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0014127352",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Athena",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00045",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004437476",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0260010213",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.1752707264",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0039183724",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6988681528",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "38.7197040091",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.9440055817",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "113.4205801882",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "350.1487335259",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000057248",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "103.1147091825",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "11255.0551609896",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Container Service",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.3635117177",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Container Service",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "44.3679086636",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic File System",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000486624",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.56",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "27.1960282923",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1465.774960891",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000574",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000035",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00000014",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000001232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00000014",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000001344",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00000014",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000001512",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000336",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000336",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000336",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000336",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000336",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000336",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000002184",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000336",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000336",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000336",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01398536",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.013685",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.014795",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01309",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0136206",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0136896",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.013685",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0136896",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.012264",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0130856",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01309",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0130812",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.020832",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.4129776338",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0129",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.026502351",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5007449156",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "148.3199236572",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.9924120833",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1482.5920125632",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "14.1538876",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Email Service",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000834",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000063259",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "af-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-northeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-northeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-south-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-southeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-southeast-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ap-southeast-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "ca-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "eu-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "eu-west-3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "sa-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000001682",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000402",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "ap-northeast-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0001316",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0338712395",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.033547871",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "eu-north-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00014",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "eu-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00014",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4402607251",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0311710843",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0388953788",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3711.8512155598",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.36",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.36",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "18.837526385",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.5722665925",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "53.0254995918",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "ap-south-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "eu-central-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "global"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "us-east-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0171212234",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "us-east-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "us-west-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.9798675056",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "59.029316738",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CloudWatch Events",
+            "us-west-2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Tax",
+            "NoRegion"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-07-15",
+        "Start": "2026-07-01"
+      },
+      "Total": {}
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+resource_arn,resource_id,exists,lifecycle_status,classification_evidence
+arn:aws:ec2:us-west-2:108782052779:volume/vol-0ac2c473b9345e199,vol-0ac2c473b9345e199,False,deleted,absent from refreshed all-region EBS inventory; tag index entry is stale
+arn:aws:logs:us-west-2:108782052779:log-group:/aws/parallelcluster/jemx3-202606210248,jemx3-202606210248,True,orphaned,log group exists after owning cluster stack DELETE_COMPLETE
+arn:aws:ec2:us-west-2:108782052779:volume/vol-016958bd2b46c1b14,vol-016958bd2b46c1b14,False,deleted,absent from refreshed all-region EBS inventory; tag index entry is stale
+arn:aws:logs:us-west-2:108782052779:log-group:/aws/lambda/pcluster-CleanupRoute53-aa87ff20-6d1b-11f1-8905-062667cba8dd,pcluster-CleanupRoute53-aa87ff20-6d1b-11f1-8905-062667cba8dd,True,orphaned,log group exists after owning cluster stack DELETE_COMPLETE
+arn:aws:ec2:us-west-2:108782052779:volume/vol-01d389f0209bf7b61,vol-01d389f0209bf7b61,False,deleted,absent from refreshed all-region EBS inventory; tag index entry is stale
+arn:aws:fsx:us-west-2:108782052779:association/fs-07fb3448c1cb30c1c/dra-0d46e9663035ad25c,dra-0d46e9663035ad25c,False,deleted,FSx returned no current association; tag index entry is stale
+arn:aws:ec2:us-west-2:108782052779:volume/vol-0f2aa99c6c27efcdc,vol-0f2aa99c6c27efcdc,False,deleted,absent from refreshed all-region EBS inventory; tag index entry is stale
+arn:aws:logs:us-west-2:108782052779:log-group:/aws/lambda/pcluster-CleanupResources-aa87ff20-6d1b-11f1-8905-062667cba8dd,pcluster-CleanupResources-aa87ff20-6d1b-11f1-8905-062667cba8dd,True,orphaned,log group exists after owning cluster stack DELETE_COMPLETE

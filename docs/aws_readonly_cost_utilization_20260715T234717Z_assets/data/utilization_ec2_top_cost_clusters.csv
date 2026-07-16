@@ -1,0 +1,12 @@
+cluster,sampled_instance_count,instances_with_cpu,sampled_instance_cost_usd,measured_vcpu_hours,busy_vcpu_hours,idle_vcpu_hours,busy_share_pct
+jemx3,49,49,1825.58,62694.67,1899.86,60794.8,3.03
+illumina-94-c01,15,15,825.77,24280.0,3356.38,20923.62,13.82
+preval-hybrid-set3,8,8,584.26,17927.33,1789.03,16138.3,9.98
+illumina-94-c02,10,10,537.8,15192.0,3090.46,12101.54,20.34
+preval-segdups-and-eh,10,10,436.54,13072.0,2049.71,11022.29,15.68
+untagged/unattributed,3,3,122.58,3952.0,117.23,3834.77,2.97
+testbudgetblock,1,1,100.19,1514.67,6.3,1508.37,0.42
+cmdcat-103-all-20260707,1,1,37.34,1152.0,140.63,1011.37,12.21
+ursa-ilmnqc-0703,1,1,35.7,540.0,3.18,536.82,0.59
+dyec-costacct-005955,1,1,30.33,459.33,3.36,455.97,0.73
+unknown,1,0,27.96,0.0,0.0,0.0,

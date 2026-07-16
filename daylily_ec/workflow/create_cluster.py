@@ -33,12 +33,17 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional
-from urllib.parse import urlparse
+from urllib.parse import quote, urlencode, urlparse, urlunparse
 
 import typer
 from botocore.exceptions import ClientError
 
 from daylily_ec import ui
+from daylily_ec.aws.idle_cost import (
+    IdleClusterCostEstimate,
+    IdleCostPricingError,
+    estimate_idle_cluster_cost,
+)
 from daylily_ec.aws.spot_pricing import (
     DEFAULT_GLOBAL_SPOT_MAX_COST,
     DEFAULT_SPOT_COST_LIMIT_PCT,
@@ -1776,6 +1781,8 @@ FSX_PROMPT_OPTIONS = [
     "14400",
 ]
 FSX_SIZE_RULE_TEXT = "1200 GiB, 2400 GiB, or any value >= 4800 GiB divisible by 2400 GiB"
+FSX_DEPLOYMENT_TYPES = ("SCRATCH_2", "PERSISTENT_2")
+FSX_PERSISTENT2_THROUGHPUT_TIERS = ("125", "250", "500", "1000")
 APPROVED_HEADNODE_INSTANCE_TYPES = (
     "r7i.2xlarge",
     "r7i.4xlarge",
@@ -1798,7 +1805,7 @@ def _is_valid_fsx_size(value: str) -> bool:
 
 
 def _resolve_fsx_size(cfg: Any, *, non_interactive: bool) -> str:
-    """Resolve the FSx size, prompting from the smallest valid options."""
+    """Resolve an explicit FSx size, prompting for interactive creates."""
     from daylily_ec.config.triplets import get_effective_default, resolve_value
 
     triplet = cfg.ephemeral_cluster.config.get("fsx_fs_size")
@@ -1821,7 +1828,9 @@ def _resolve_fsx_size(cfg: Any, *, non_interactive: bool) -> str:
             )
 
     if non_interactive:
-        return default_value
+        raise ValueError(
+            "Non-interactive cluster creation requires an explicit fsx_fs_size set value."
+        )
 
     typer.echo("Choose FSx Lustre file system size (GiB).")
     typer.echo("Smallest allowed sizes:")
@@ -1845,7 +1854,75 @@ def _resolve_fsx_size(cfg: Any, *, non_interactive: bool) -> str:
         )
 
 
-def _resolve_persistent2_config(cfg: Any) -> Optional[dict[str, str]]:
+def _resolve_fsx_choice(
+    cfg: Any,
+    *,
+    key: str,
+    label: str,
+    choices: tuple[str, ...],
+    non_interactive: bool,
+) -> str:
+    """Resolve one explicit FSx choice or prompt from the allowed catalog."""
+    from daylily_ec.config.triplets import get_effective_default, resolve_value
+
+    triplet = cfg.ephemeral_cluster.config.get(key)
+    configured = resolve_value(triplet).strip().upper() if triplet is not None else ""
+    if configured:
+        if configured not in choices:
+            raise ValueError(f"Invalid {key} {configured!r}; expected one of {', '.join(choices)}.")
+        return configured
+    if non_interactive:
+        raise ValueError(f"Non-interactive cluster creation requires an explicit {key} set value.")
+
+    default_value = get_effective_default(cfg, key, "").strip().upper()
+    if default_value and default_value not in choices:
+        raise ValueError(
+            f"Invalid default {key} {default_value!r}; expected one of {', '.join(choices)}."
+        )
+    typer.echo(f"Choose {label}.")
+    for index, choice in enumerate(choices, start=1):
+        typer.echo(f"  [{index}] {choice}")
+    default_index = str(choices.index(default_value) + 1) if default_value else None
+    while True:
+        raw = typer.prompt(
+            "Enter selection number",
+            default=default_index,
+        ).strip()
+        if raw.isdigit() and 1 <= int(raw) <= len(choices):
+            return choices[int(raw) - 1]
+        normalized = raw.upper()
+        if normalized in choices:
+            return normalized
+        typer.echo("Invalid selection. Enter one of the listed numbers or values.")
+
+
+def _resolve_fsx_deployment_type(cfg: Any, *, non_interactive: bool) -> str:
+    return _resolve_fsx_choice(
+        cfg,
+        key="fsx_deployment_type",
+        label="FSx for Lustre deployment type",
+        choices=FSX_DEPLOYMENT_TYPES,
+        non_interactive=non_interactive,
+    )
+
+
+def _resolve_fsx_persistent2_throughput(cfg: Any, *, non_interactive: bool) -> str:
+    return _resolve_fsx_choice(
+        cfg,
+        key="fsx_throughput_mbps_per_tib",
+        label="PERSISTENT_2 throughput (MB/s/TiB)",
+        choices=FSX_PERSISTENT2_THROUGHPUT_TIERS,
+        non_interactive=non_interactive,
+    )
+
+
+def _resolve_persistent2_config(
+    cfg: Any,
+    *,
+    deployment_type: str,
+    fsx_size: str,
+    non_interactive: bool,
+) -> Optional[dict[str, str]]:
     """Return the exact explicit P2 contract, or ``None`` for managed Scratch.
 
     Existing configs that omit the new deployment field retain their current
@@ -1853,10 +1930,6 @@ def _resolve_persistent2_config(cfg: Any) -> Optional[dict[str, str]]:
     value must be explicitly set; DYEC does not infer or downgrade any field.
     """
 
-    deployment_triplet = cfg.ephemeral_cluster.config.get("fsx_deployment_type")
-    if deployment_triplet is None or not deployment_triplet.set_value.strip():
-        return None
-    deployment_type = deployment_triplet.set_value.strip().upper()
     if deployment_type == "SCRATCH_2":
         return None
     if deployment_type != "PERSISTENT_2":
@@ -1873,29 +1946,17 @@ def _resolve_persistent2_config(cfg: Any) -> Optional[dict[str, str]]:
         "sweep_protection_tag": "ursa-preserve=true",
     }
     resolved: dict[str, str] = {"fsx_deployment_type": deployment_type}
-    size_triplet = cfg.ephemeral_cluster.config.get("fsx_fs_size")
-    size = size_triplet.set_value.strip() if size_triplet is not None else ""
-    if not _is_valid_fsx_size(size):
+    if not _is_valid_fsx_size(fsx_size):
         raise ValueError(
             "PERSISTENT_2 requires explicit fsx_fs_size matching: "
-            f"{FSX_SIZE_RULE_TEXT}; received {size!r}."
+            f"{FSX_SIZE_RULE_TEXT}; received {fsx_size!r}."
         )
-    resolved["fsx_fs_size"] = size
+    resolved["fsx_fs_size"] = fsx_size
 
-    throughput_triplet = cfg.ephemeral_cluster.config.get(
-        "fsx_throughput_mbps_per_tib"
+    throughput = _resolve_fsx_persistent2_throughput(
+        cfg,
+        non_interactive=non_interactive,
     )
-    throughput = (
-        throughput_triplet.set_value.strip()
-        if throughput_triplet is not None
-        else ""
-    )
-    if throughput not in {"125", "250", "500", "1000"}:
-        raise ValueError(
-            "PERSISTENT_2 requires explicit fsx_throughput_mbps_per_tib "
-            "of 125, 250, 500, or 1000; "
-            f"received {throughput!r}."
-        )
     resolved["fsx_throughput_mbps_per_tib"] = throughput
 
     for key, required_value in expected.items():
@@ -1912,6 +1973,103 @@ def _resolve_persistent2_config(cfg: Any) -> Optional[dict[str, str]]:
 def _is_valid_headnode_instance_type(value: str) -> bool:
     """Return True when *value* is an approved headnode instance type."""
     return value in APPROVED_HEADNODE_INSTANCE_TYPES
+
+
+def _normalize_ursa_root_url(value: str) -> str:
+    """Validate and normalize an explicit Ursa service root URL."""
+    raw = value.strip()
+    if not raw:
+        return ""
+    parsed = urlparse(raw)
+    if parsed.scheme.lower() not in {"http", "https"} or not parsed.netloc:
+        raise ValueError(
+            "ursa_root_url must be an absolute http:// or https:// URL."
+        )
+    if parsed.username or parsed.password:
+        raise ValueError("ursa_root_url must not contain embedded credentials.")
+    if parsed.params or parsed.query or parsed.fragment:
+        raise ValueError(
+            "ursa_root_url must be a service root without parameters, query, or fragment."
+        )
+    return urlunparse(
+        (
+            parsed.scheme.lower(),
+            parsed.netloc,
+            parsed.path.rstrip("/"),
+            "",
+            "",
+            "",
+        )
+    )
+
+
+def _resolve_ursa_root_url(cfg: Any, *, non_interactive: bool) -> str:
+    """Prompt for the optional explicit Ursa root before AWS work."""
+    value = _resolve_config_value(
+        cfg,
+        "ursa_root_url",
+        "Ursa root URL",
+        non_interactive=non_interactive,
+        required=False,
+        allow_empty=True,
+    )
+    return _normalize_ursa_root_url(value)
+
+
+def _build_ursa_cluster_url(root_url: str, cluster_name: str, region: str) -> str:
+    """Build the canonical Ursa cluster-detail route."""
+    normalized_root = _normalize_ursa_root_url(root_url)
+    if not normalized_root:
+        return ""
+    return (
+        f"{normalized_root}/clusters/{quote(cluster_name, safe='')}?"
+        f"{urlencode({'region': region})}"
+    )
+
+
+def _format_idle_cost_summary(estimate: IdleClusterCostEstimate) -> str:
+    """Render a compact configured-idle cost breakdown."""
+    fsx_profile = estimate.fsx_deployment_type
+    if estimate.fsx_throughput_mbps_per_tib:
+        fsx_profile += f" {estimate.fsx_throughput_mbps_per_tib} MB/s/TiB"
+    return (
+        f"[bold]Idle total:[/]  ${estimate.total_hourly_usd:.4f}/hour\n"
+        f"  Headnode {estimate.headnode_instance_type}: "
+        f"${estimate.headnode_hourly_usd:.4f}/hour\n"
+        f"  Root EBS {estimate.root_volume_type} {estimate.root_volume_gib} GiB: "
+        f"${estimate.root_volume_hourly_usd:.4f}/hour\n"
+        f"  FSx {fsx_profile} {estimate.fsx_capacity_gib} GiB: "
+        f"${estimate.fsx_hourly_usd:.4f}/hour\n"
+        f"  Public IPv4: ${estimate.public_ipv4_hourly_usd:.4f}/hour"
+    )
+
+
+def _read_headnode_root_volume_spec(template_yaml: str) -> tuple[str, int]:
+    """Read the exact headnode root-volume type and size from a cluster template."""
+    import yaml
+
+    try:
+        payload = yaml.safe_load(Path(template_yaml).read_text(encoding="utf-8"))
+        root_volume = payload["HeadNode"]["LocalStorage"]["RootVolume"]
+        volume_type = str(root_volume["VolumeType"]).strip().lower()
+        size_gib = int(root_volume["Size"])
+    except (FileNotFoundError, KeyError, TypeError, ValueError, yaml.YAMLError) as exc:
+        raise ValueError(
+            f"Could not resolve HeadNode.LocalStorage.RootVolume from {template_yaml}: {exc}"
+        ) from exc
+    if not volume_type:
+        raise ValueError("Headnode root-volume type must not be empty.")
+    if size_gib <= 0:
+        raise ValueError("Headnode root-volume size must be positive.")
+    extra_pricing_fields = sorted(
+        key for key in ("Iops", "Throughput") if root_volume.get(key) is not None
+    )
+    if extra_pricing_fields:
+        raise ValueError(
+            "Idle-cost pricing does not support explicit headnode root-volume "
+            f"{', '.join(extra_pricing_fields)} fields."
+        )
+    return volume_type, size_gib
 
 
 def _resolve_headnode_instance_type(cfg: Any, *, non_interactive: bool) -> str:
@@ -2547,13 +2705,6 @@ def run_create_workflow(
     ec = cfg.ephemeral_cluster
 
     try:
-        persistent2_config = _resolve_persistent2_config(cfg)
-    except ValueError as exc:
-        logger.error("PERSISTENT_2 config validation failed: %s", exc)
-        ui.fail(f"PERSISTENT_2 config: {exc}")
-        return EXIT_VALIDATION_FAILURE
-
-    try:
         dragen_inputs = resolve_dragen_create_inputs(
             cfg,
             cluster_type=cluster_type,
@@ -2574,7 +2725,67 @@ def run_create_workflow(
         ui.fail(str(exc))
         return EXIT_VALIDATION_FAILURE
 
+    try:
+        ursa_root_url = _resolve_ursa_root_url(
+            cfg,
+            non_interactive=non_interactive,
+        )
+    except ValueError as exc:
+        logger.error("Ursa root URL validation failed: %s", exc)
+        ui.fail(f"Ursa root URL: {exc}")
+        return EXIT_VALIDATION_FAILURE
+
+    try:
+        fsx_deployment_type = _resolve_fsx_deployment_type(
+            cfg,
+            non_interactive=non_interactive,
+        )
+        fsx_size = _resolve_fsx_size(
+            cfg,
+            non_interactive=non_interactive,
+        )
+        persistent2_config = _resolve_persistent2_config(
+            cfg,
+            deployment_type=fsx_deployment_type,
+            fsx_size=fsx_size,
+            non_interactive=non_interactive,
+        )
+        headnode_instance_type = _resolve_headnode_instance_type(
+            cfg,
+            non_interactive=non_interactive,
+        )
+        template_yaml = resolve_cluster_template_yaml(
+            cfg,
+            region_az=region_az,
+            cluster_type=cluster_type,
+            resource_path_fn=resource_path,
+        )
+        root_volume_type, root_volume_gib = _read_headnode_root_volume_spec(
+            template_yaml
+        )
+    except ValueError as exc:
+        logger.error("Cluster resource selection validation failed: %s", exc)
+        ui.fail(f"Cluster resource selection: {exc}")
+        return EXIT_VALIDATION_FAILURE
+    except FileNotFoundError as exc:
+        logger.error("Cluster template resolution failed: %s", exc)
+        ui.fail(f"Cluster template YAML: {exc}")
+        return EXIT_VALIDATION_FAILURE
+
     ui.phase(f"INIT · {cluster_name}")
+    ui.detail("Ursa root", ursa_root_url or "(not configured)")
+    ui.detail("Headnode", headnode_instance_type)
+    ui.detail("FSx deployment type", fsx_deployment_type)
+    ui.detail("FSx capacity", f"{fsx_size} GiB")
+    if persistent2_config is not None:
+        ui.detail(
+            "FSx throughput",
+            f"{persistent2_config['fsx_throughput_mbps_per_tib']} MB/s/TiB",
+        )
+        ui.detail("FSx lifecycle", "Dedicated DYEC-owned CLUSTER_BOUND filesystem")
+    else:
+        ui.detail("FSx lifecycle", "Dedicated ParallelCluster-managed filesystem")
+    ui.info("FSx is writable cluster workspace; S3 output export is explicit, not automatic.")
 
     # -- 1. AWS Context -------------------------------------------------------
     try:
@@ -2594,6 +2805,29 @@ def run_create_workflow(
     ui.detail("User", aws_ctx.iam_username)
     ui.detail("Region", f"{aws_ctx.region} ({region_az})")
     ui.detail("Cluster type", cluster_type)
+
+    try:
+        idle_cost = estimate_idle_cluster_cost(
+            aws_ctx.client("pricing", region_name="us-east-1"),
+            region=aws_ctx.region,
+            headnode_instance_type=headnode_instance_type,
+            root_volume_type=root_volume_type,
+            root_volume_gib=root_volume_gib,
+            fsx_deployment_type=fsx_deployment_type,
+            fsx_capacity_gib=int(fsx_size),
+            fsx_throughput_mbps_per_tib=(
+                persistent2_config["fsx_throughput_mbps_per_tib"]
+                if persistent2_config is not None
+                else ""
+            ),
+        )
+    except IdleCostPricingError as exc:
+        logger.error("Idle-cost pricing failed closed: %s", exc)
+        ui.fail(
+            f"Idle-cost pricing: {exc}. No create-side mutations were attempted."
+        )
+        return EXIT_AWS_FAILURE
+    ui.detail("Configured idle estimate", f"${idle_cost.total_hourly_usd:.4f}/hour")
 
     cluster_inventory = pcluster_list_clusters(
         aws_ctx.region,
@@ -3167,17 +3401,6 @@ def run_create_workflow(
     # -- 5. RENDER YAML (Phase 2a) -------------------------------------------
     ui.phase("RENDER CLUSTER YAML")
 
-    try:
-        template_yaml = resolve_cluster_template_yaml(
-            cfg,
-            region_az=region_az,
-            cluster_type=cluster_type,
-            resource_path_fn=resource_path,
-        )
-    except (FileNotFoundError, ValueError) as exc:
-        logger.error("Cluster template resolution failed: %s", exc)
-        ui.fail(f"Cluster template YAML: {exc}")
-        return EXIT_VALIDATION_FAILURE
     ui.detail("Cluster template", template_yaml)
 
     substitutions: Dict[str, str] = {
@@ -3193,10 +3416,7 @@ def run_create_workflow(
         "REGSUB_S3_REFERENCE_URI": reference_s3_uri.rstrip("/"),
         "REGSUB_S3_CONTROL_DATA_URI": control_data_s3_uri.rstrip("/"),
         "REGSUB_S3_STAGE_URI": stage_s3_uri.rstrip("/"),
-        "REGSUB_FSX_SIZE": _resolve_fsx_size(
-            cfg,
-            non_interactive=non_interactive,
-        ),
+        "REGSUB_FSX_SIZE": fsx_size,
         "REGSUB_DETAILED_MONITORING": _resolve_config_value(
             cfg,
             "enable_detailed_monitoring",
@@ -3228,22 +3448,10 @@ def run_create_workflow(
         "REGSUB_PCLUSTER_COOKBOOK_URI": (
             dragen_inputs.backport.cookbook_bundle_uri if dragen_inputs else ""
         ),
-        # DeletionPolicy requires "Retain" or "Delete", not bool.
-        "REGSUB_SAVE_FSX": (
-            "Delete"
-            if (
-                _resolve_config_value(
-                    cfg,
-                    "auto_delete_fsx",
-                    "Auto delete FSx",
-                    non_interactive=non_interactive,
-                    default_fallback="Delete",
-                )
-                or "false"
-            ).lower()
-            in ("true", "1", "yes", "delete")
-            else "Retain"
-        ),
+        # Every create owns one cluster-bound filesystem. Retained FSx is not
+        # a supported mode, so the ParallelCluster-managed Scratch path is
+        # always deleted with its stack.
+        "REGSUB_SAVE_FSX": "Delete",
         # Tag values must be quoted strings, not bare YAML booleans.
         "REGSUB_ENFORCE_BUDGET": '"' + post_create_inputs.enforce_budget + '"',
         "REGSUB_COST_CENTER_REGION": "us-west-2",
@@ -3279,10 +3487,7 @@ def run_create_workflow(
         "REGSUB_MAX_COUNT_384I_NVME_C": max_count_values["max_count_384I_NVME_C"],
         "REGSUB_MAX_COUNT_384I_NVME_M": max_count_values["max_count_384I_NVME_M"],
         "REGSUB_MAX_COUNT_384I_NVME_R": max_count_values["max_count_384I_NVME_R"],
-        "REGSUB_HEADNODE_INSTANCE_TYPE": _resolve_headnode_instance_type(
-            cfg,
-            non_interactive=non_interactive,
-        ),
+        "REGSUB_HEADNODE_INSTANCE_TYPE": headnode_instance_type,
         "REGSUB_HEARTBEAT_EMAIL": post_create_inputs.heartbeat_email,
         "REGSUB_HEARTBEAT_SCHEDULE": post_create_inputs.heartbeat_schedule,
         "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN": (post_create_inputs.heartbeat_scheduler_role_arn),
@@ -3350,8 +3555,11 @@ def run_create_workflow(
             validate_external_mount,
         )
 
-        ui.phase("PERSISTENT_2 FSX")
-        ui.step("Ensuring DYEC-owned P2 filesystem, client security group, and reference DRA ...")
+        ui.phase("LIVE AWS STORAGE PROVISIONING")
+        ui.step(
+            "Creating or resuming this cluster's DYEC-owned P2 filesystem, "
+            "client security group, and reference DRA ..."
+        )
         persistent2_spec = Persistent2Spec(
             cluster_name=cluster_name,
             region=aws_ctx.region,
@@ -3603,6 +3811,7 @@ def run_create_workflow(
     # Write next-run template
     final_values: Dict[str, str] = {
         "cluster_name": cluster_name,
+        "ursa_root_url": ursa_root_url,
         "reference_s3_uri": reference_s3_uri,
         "control_data_s3_uri": control_data_s3_uri,
         "stage_s3_uri": stage_s3_uri,
@@ -3628,6 +3837,13 @@ def run_create_workflow(
         "slurm_accounting_database_name": "",
         "slurm_accounting_db_username": "",
         "slurm_accounting_instance_type": "",
+        "fsx_deployment_type": fsx_deployment_type,
+        "fsx_fs_size": fsx_size,
+        "fsx_throughput_mbps_per_tib": (
+            persistent2_config["fsx_throughput_mbps_per_tib"]
+            if persistent2_config is not None
+            else ""
+        ),
         **(persistent2_config or {}),
         **max_count_values,
     }
@@ -3652,9 +3868,7 @@ def run_create_workflow(
         policy_arn=policy_arn,
         fsx_owner=(persistent2_resources.owner if persistent2_resources else ""),
         fsx_lifecycle=(persistent2_resources.lifecycle if persistent2_resources else ""),
-        fsx_deployment_type=(
-            persistent2_resources.deployment_type if persistent2_resources else ""
-        ),
+        fsx_deployment_type=fsx_deployment_type,
         fsx_file_system_id=(persistent2_resources.file_system_id if persistent2_resources else ""),
         fsx_security_group_id=(
             persistent2_resources.security_group_id if persistent2_resources else ""
@@ -3683,11 +3897,18 @@ def run_create_workflow(
 
     logger.info("✅ Cluster %s creation complete.", cluster_name)
     elapsed_total = monitor_result.elapsed_seconds
+    ursa_cluster_url = _build_ursa_cluster_url(
+        ursa_root_url,
+        cluster_name,
+        aws_ctx.region,
+    )
     ui.success_panel(
         "CLUSTER CREATION COMPLETE",
         f"[bold]Cluster:[/]  {cluster_name}\n"
         f"[bold]Region:[/]   {aws_ctx.region} ({region_az})\n"
-        f"[bold]Elapsed:[/]  {ui.elapsed_str(elapsed_total)}",
+        f"[bold]Elapsed:[/]  {ui.elapsed_str(elapsed_total)}\n"
+        f"{_format_idle_cost_summary(idle_cost)}\n"
+        f"[bold]Ursa:[/]  {ursa_cluster_url or '(root URL not configured)'}",
     )
     typer.echo(
         _build_connection_command(
@@ -3696,7 +3917,12 @@ def run_create_workflow(
             profile=aws_ctx.profile,
         )
     )
+    typer.echo(f"Idle cluster hourly estimate: ${idle_cost.total_hourly_usd:.4f}/hour")
     typer.echo("...fin!")
+    if ursa_cluster_url:
+        typer.echo(f"Ursa cluster page: {ursa_cluster_url}")
+    else:
+        typer.echo("Ursa cluster page: not configured (set ursa_root_url)")
     _maybe_say_onward()
     return EXIT_SUCCESS
 
@@ -3981,10 +4207,23 @@ def run_preflight_only(
     cfg = load_config(effective_config)
 
     try:
-        _resolve_persistent2_config(cfg)
+        fsx_deployment_type = _resolve_fsx_deployment_type(
+            cfg,
+            non_interactive=non_interactive,
+        )
+        fsx_size = _resolve_fsx_size(
+            cfg,
+            non_interactive=non_interactive,
+        )
+        _resolve_persistent2_config(
+            cfg,
+            deployment_type=fsx_deployment_type,
+            fsx_size=fsx_size,
+            non_interactive=non_interactive,
+        )
     except ValueError as exc:
-        logger.error("PERSISTENT_2 config validation failed: %s", exc)
-        ui.fail(f"PERSISTENT_2 config: {exc}")
+        logger.error("FSx selection validation failed: %s", exc)
+        ui.fail(f"FSx selection: {exc}")
         return EXIT_VALIDATION_FAILURE
 
     try:

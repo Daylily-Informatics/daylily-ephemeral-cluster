@@ -1,0 +1,11 @@
+region,resource_id,name,untagged,total_traffic_gib,datapoints
+ap-south-1,nat-05f85018216cac061,,True,0.0,336
+ap-south-1,nat-01dc061291fc51e75,,True,0.0,336
+eu-central-1,nat-0ec6ae9605269bef4,,True,0.0,336
+eu-central-1,nat-0a2bfbfedf38f8e87,,True,0.0,336
+us-east-1,nat-089a96601cfd34f9d,dayhoff-dev-nat-public1-us-east-1a,False,0.0,336
+us-west-2,nat-00f3c26e43ede9b10,,True,1992.128,336
+us-west-2,nat-00246c8ef3b9087f1,Dayhoff-aws3041-Network/Vpc/publicSubnet1,False,29.672,336
+us-west-2,nat-00ac08b685fea726f,terrarium-prod-us-west-2a,False,4.28,336
+us-west-2,nat-0234e77781575cced,terrarium-dev-us-west-2a,False,17.183,336
+us-west-2,nat-0e8d177db491d4430,,True,110.68,157

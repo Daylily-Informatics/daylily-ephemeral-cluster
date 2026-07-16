@@ -1,0 +1,7 @@
+event_name,granularity,metric,group_one_type,group_one_key,group_two_type,group_two_key,sample_events,sample_share_pct
+GetCostAndUsage,,,,,,,1381,98.64
+ListCostAllocationTags,,,,,,,8,0.57
+GetDimensionValues,,,,,,,6,0.43
+GetTags,,,,,,,2,0.14
+GetCostForecast,,,,,,,2,0.14
+ListCostCategoryDefinitions,,,,,,,1,0.07
