@@ -3533,6 +3533,11 @@ def run_create_workflow(
             "Creating or resuming this cluster's DYEC-owned P2 filesystem, "
             "client security group, and reference DRA ..."
         )
+
+        def _report_persistent2_status(message: str) -> None:
+            logger.info("PERSISTENT_2 provisioning: %s", message)
+            ui.info(message)
+
         persistent2_spec = Persistent2Spec(
             cluster_name=cluster_name,
             region=aws_ctx.region,
@@ -3559,6 +3564,7 @@ def run_create_workflow(
                 ec2,
                 aws_ctx.client("fsx"),
                 persistent2_spec,
+                status_callback=_report_persistent2_status,
             )
             render_external_mount(cluster_yaml_path, persistent2_resources)
             validate_external_mount(cluster_yaml_path, persistent2_resources)

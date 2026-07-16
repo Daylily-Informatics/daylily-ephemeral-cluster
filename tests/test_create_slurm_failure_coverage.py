@@ -634,8 +634,18 @@ def test_persistent2_create_path_records_owned_storage(tmp_path, monkeypatch):
             subnet_id="subnet-priv",
             vpc_id="vpc-123",
         )
+        def ensure_resources(*_args, status_callback=None, **_kwargs):
+            assert status_callback is not None
+            status_callback(
+                "P2 filesystem fs-123: lifecycle=CREATING; "
+                "waiting for AVAILABLE (45s elapsed)."
+            )
+            return resources
+
         monkeypatch.setattr(
-            persistent2, "ensure_persistent2_resources", lambda *_a, **_k: resources
+            persistent2,
+            "ensure_persistent2_resources",
+            ensure_resources,
         )
         monkeypatch.setattr(persistent2, "render_external_mount", lambda *_a, **_k: None)
         monkeypatch.setattr(persistent2, "validate_external_mount", lambda *_a, **_k: None)
@@ -665,6 +675,10 @@ def test_persistent2_create_path_records_owned_storage(tmp_path, monkeypatch):
     )
     assert records["rc"] == create_cluster.EXIT_SUCCESS
     assert ("P2 FSx ready", "fs-123") not in records["details"]
+    assert (
+        "P2 filesystem fs-123: lifecycle=CREATING; waiting for AVAILABLE (45s elapsed)."
+        in records["infos"]
+    )
 
 
 def test_preflight_runner_reports_fail_warn_and_success(monkeypatch):

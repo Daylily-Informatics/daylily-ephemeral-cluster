@@ -31,6 +31,14 @@ REFERENCE_FILE_SYSTEM_PATH = "/references/"
 FSX_PORT_RANGES = ((988, 988), (1021, 1023))
 TERMINAL_FAILURE_STATES = {"FAILED", "DELETING", "DELETED"}
 PERSISTENT2_THROUGHPUT_TIERS = {125, 250, 500, 1000}
+PERSISTENT2_STATUS_INTERVAL_SECONDS = 45
+
+StatusCallback = Callable[[str], None]
+
+
+def _emit_status(status_callback: StatusCallback | None, message: str) -> None:
+    if status_callback is not None:
+        status_callback(message)
 
 
 @dataclass(frozen=True)
@@ -286,8 +294,13 @@ def _wait_for_file_system(
     timeout_seconds: int,
     poll_interval_seconds: int,
     sleep_fn: Callable[[float], None],
+    status_callback: StatusCallback | None = None,
+    status_interval_seconds: int = PERSISTENT2_STATUS_INTERVAL_SECONDS,
+    monotonic_fn: Callable[[], float] = time.monotonic,
 ) -> dict[str, Any]:
-    deadline = time.monotonic() + timeout_seconds
+    started_at = monotonic_fn()
+    deadline = started_at + timeout_seconds
+    next_status_at = started_at + status_interval_seconds
     while True:
         response = fsx_client.describe_file_systems(FileSystemIds=[file_system_id])
         filesystems = response.get("FileSystems") or []
@@ -295,19 +308,36 @@ def _wait_for_file_system(
             raise RuntimeError(f"FSx did not return exactly one record for {file_system_id}.")
         filesystem = filesystems[0]
         lifecycle = str(filesystem.get("Lifecycle") or "")
+        now = monotonic_fn()
         if lifecycle == "AVAILABLE":
+            _emit_status(
+                status_callback,
+                f"P2 filesystem {file_system_id}: lifecycle=AVAILABLE "
+                f"({int(now - started_at)}s elapsed).",
+            )
             return filesystem
         if lifecycle in TERMINAL_FAILURE_STATES:
             failure = filesystem.get("FailureDetails") or {}
             raise RuntimeError(
                 f"FSx {file_system_id} entered {lifecycle}: {failure.get('Message') or failure}"
             )
-        if time.monotonic() >= deadline:
+        if status_callback is not None and now >= next_status_at:
+            _emit_status(
+                status_callback,
+                f"P2 filesystem {file_system_id}: lifecycle={lifecycle}; "
+                f"waiting for AVAILABLE ({int(now - started_at)}s elapsed).",
+            )
+            while next_status_at <= now:
+                next_status_at += status_interval_seconds
+        if now >= deadline:
             raise TimeoutError(
                 f"FSx {file_system_id} did not become AVAILABLE within {timeout_seconds}s; "
                 f"last lifecycle={lifecycle}."
             )
-        sleep_fn(poll_interval_seconds)
+        sleep_seconds = poll_interval_seconds
+        if status_callback is not None and poll_interval_seconds > 0:
+            sleep_seconds = min(poll_interval_seconds, max(0, next_status_at - now))
+        sleep_fn(sleep_seconds)
 
 
 def ensure_file_system(
@@ -318,6 +348,9 @@ def ensure_file_system(
     timeout_seconds: int = 3600,
     poll_interval_seconds: int = 30,
     sleep_fn: Callable[[float], None] = time.sleep,
+    status_callback: StatusCallback | None = None,
+    status_interval_seconds: int = PERSISTENT2_STATUS_INTERVAL_SECONDS,
+    monotonic_fn: Callable[[], float] = time.monotonic,
 ) -> dict[str, Any]:
     """Create or validate the one exact P2 filesystem for the cluster."""
 
@@ -326,6 +359,7 @@ def ensure_file_system(
     if len(matches) > 1:
         ids = ", ".join(str(item.get("FileSystemId")) for item in matches)
         raise RuntimeError(f"Multiple DYEC P2 filesystems exist for {spec.cluster_name}: {ids}")
+    created = not matches
     if matches:
         file_system_id = str(matches[0].get("FileSystemId") or "")
     else:
@@ -350,12 +384,21 @@ def ensure_file_system(
         file_system_id = str((response.get("FileSystem") or {}).get("FileSystemId") or "")
     if not file_system_id:
         raise RuntimeError("FSx did not return a file system id for P2 creation.")
+    _emit_status(
+        status_callback,
+        f"P2 filesystem {file_system_id}: "
+        f"{'create submitted' if created else 'existing resource found'}; "
+        f"checking lifecycle every {status_interval_seconds}s.",
+    )
     filesystem = _wait_for_file_system(
         fsx_client,
         file_system_id,
         timeout_seconds=timeout_seconds,
         poll_interval_seconds=poll_interval_seconds,
         sleep_fn=sleep_fn,
+        status_callback=status_callback,
+        status_interval_seconds=status_interval_seconds,
+        monotonic_fn=monotonic_fn,
     )
     _validate_file_system(filesystem, spec, security_group_id)
     return filesystem
@@ -375,8 +418,13 @@ def _wait_for_association(
     timeout_seconds: int,
     poll_interval_seconds: int,
     sleep_fn: Callable[[float], None],
+    status_callback: StatusCallback | None = None,
+    status_interval_seconds: int = PERSISTENT2_STATUS_INTERVAL_SECONDS,
+    monotonic_fn: Callable[[], float] = time.monotonic,
 ) -> dict[str, Any]:
-    deadline = time.monotonic() + timeout_seconds
+    started_at = monotonic_fn()
+    deadline = started_at + timeout_seconds
+    next_status_at = started_at + status_interval_seconds
     while True:
         response = fsx_client.describe_data_repository_associations(AssociationIds=[association_id])
         associations = response.get("Associations") or []
@@ -384,19 +432,37 @@ def _wait_for_association(
             raise RuntimeError(f"FSx did not return exactly one DRA for {association_id}.")
         association = associations[0]
         lifecycle = str(association.get("Lifecycle") or "")
+        now = monotonic_fn()
         if lifecycle == "AVAILABLE":
+            _emit_status(
+                status_callback,
+                f"Reference DRA {association_id}: lifecycle=AVAILABLE "
+                f"({int(now - started_at)}s elapsed).",
+            )
             return association
         if lifecycle in TERMINAL_FAILURE_STATES or lifecycle == "MISCONFIGURED":
             failure = association.get("FailureDetails") or {}
             raise RuntimeError(
                 f"DRA {association_id} entered {lifecycle}: {failure.get('Message') or failure}"
             )
-        if time.monotonic() >= deadline:
+        if status_callback is not None and now >= next_status_at:
+            _emit_status(
+                status_callback,
+                f"Reference DRA {association_id}: lifecycle={lifecycle}; "
+                "associating S3 metadata with /references/ "
+                f"({int(now - started_at)}s elapsed).",
+            )
+            while next_status_at <= now:
+                next_status_at += status_interval_seconds
+        if now >= deadline:
             raise TimeoutError(
                 f"DRA {association_id} did not become AVAILABLE within {timeout_seconds}s; "
                 f"last lifecycle={lifecycle}."
             )
-        sleep_fn(poll_interval_seconds)
+        sleep_seconds = poll_interval_seconds
+        if status_callback is not None and poll_interval_seconds > 0:
+            sleep_seconds = min(poll_interval_seconds, max(0, next_status_at - now))
+        sleep_fn(sleep_seconds)
 
 
 def _validate_reference_association(association: dict[str, Any], spec: Persistent2Spec) -> None:
@@ -424,6 +490,9 @@ def ensure_reference_association(
     timeout_seconds: int = 3600,
     poll_interval_seconds: int = 30,
     sleep_fn: Callable[[float], None] = time.sleep,
+    status_callback: StatusCallback | None = None,
+    status_interval_seconds: int = PERSISTENT2_STATUS_INTERVAL_SECONDS,
+    monotonic_fn: Callable[[], float] = time.monotonic,
 ) -> dict[str, Any]:
     """Create or validate the sole `/references/` data repository association."""
 
@@ -431,6 +500,7 @@ def ensure_reference_association(
     if len(associations) > 1:
         ids = ", ".join(str(item.get("AssociationId")) for item in associations)
         raise RuntimeError(f"P2 FSx has multiple data repository associations: {ids}")
+    created = not associations
     if associations:
         association_id = str(associations[0].get("AssociationId") or "")
     else:
@@ -446,12 +516,22 @@ def ensure_reference_association(
         association_id = str((response.get("Association") or {}).get("AssociationId") or "")
     if not association_id:
         raise RuntimeError("FSx did not return an association id for the reference DRA.")
+    _emit_status(
+        status_callback,
+        f"Reference DRA {association_id}: "
+        f"{'create submitted' if created else 'existing resource found'}; "
+        "associating S3 metadata with /references/; "
+        f"checking lifecycle every {status_interval_seconds}s.",
+    )
     association = _wait_for_association(
         fsx_client,
         association_id,
         timeout_seconds=timeout_seconds,
         poll_interval_seconds=poll_interval_seconds,
         sleep_fn=sleep_fn,
+        status_callback=status_callback,
+        status_interval_seconds=status_interval_seconds,
+        monotonic_fn=monotonic_fn,
     )
     _validate_reference_association(association, spec)
     return association
@@ -461,13 +541,29 @@ def ensure_persistent2_resources(
     ec2_client: Any,
     fsx_client: Any,
     spec: Persistent2Spec,
+    *,
+    status_callback: StatusCallback | None = None,
 ) -> Persistent2Resources:
     """Ensure the exact SG, P2 filesystem, and reference DRA contract."""
 
     security_group_id, vpc_id = ensure_security_group(ec2_client, spec)
-    filesystem = ensure_file_system(fsx_client, spec, security_group_id)
+    _emit_status(
+        status_callback,
+        f"P2 client security group {security_group_id}: ready.",
+    )
+    filesystem = ensure_file_system(
+        fsx_client,
+        spec,
+        security_group_id,
+        status_callback=status_callback,
+    )
     file_system_id = str(filesystem["FileSystemId"])
-    association = ensure_reference_association(fsx_client, spec, file_system_id)
+    association = ensure_reference_association(
+        fsx_client,
+        spec,
+        file_system_id,
+        status_callback=status_callback,
+    )
     return Persistent2Resources(
         file_system_id=file_system_id,
         security_group_id=security_group_id,

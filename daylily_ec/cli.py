@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import base64
+import functools
 import hashlib
 import io
 import json
@@ -14,6 +15,7 @@ import subprocess
 import sys
 import traceback
 import time
+from time import monotonic as _monotonic
 from pathlib import Path, PurePosixPath
 from typing import Any, List, Optional
 
@@ -67,6 +69,41 @@ EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 BENCHMARK_GENOME_BUILDS = {"hg38", "hg38_broad", "b37"}
 DEFAULT_CREATE_REGION_AZ = "us-west-2d"
 DEFAULT_CREATE_CLUSTER_TYPE = "intel"
+
+logger = logging.getLogger(__name__)
+
+
+def _format_create_runtime(seconds: float) -> str:
+    """Return a compact wall-clock duration for the final create line."""
+
+    total_seconds = max(0, int(seconds))
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, remaining_seconds = divmod(remainder, 60)
+    if hours:
+        return f"{hours}h {minutes}m {remaining_seconds}s"
+    if minutes:
+        return f"{minutes}m {remaining_seconds}s"
+    return f"{remaining_seconds}s"
+
+
+def _report_create_runtime(callback):
+    """Print and INFO-log total create wall time on every callback exit."""
+
+    @functools.wraps(callback)
+    def wrapped(*args, **kwargs):
+        started_at = _monotonic()
+        try:
+            return callback(*args, **kwargs)
+        finally:
+            elapsed_seconds = max(0.0, _monotonic() - started_at)
+            message = (
+                "Total DYEC create runtime: "
+                f"{_format_create_runtime(elapsed_seconds)} ({elapsed_seconds:.1f}s)"
+            )
+            logger.info(message)
+            typer.echo(message)
+
+    return wrapped
 
 
 def _validate_analysis_launch_options(
@@ -570,6 +607,7 @@ def _emit_cluster_table(
         )
 
 
+@_report_create_runtime
 def create(
     region_az: str = typer.Option(
         DEFAULT_CREATE_REGION_AZ,
