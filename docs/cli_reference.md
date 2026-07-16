@@ -70,6 +70,7 @@ dyec create \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
   --config "$DAY_EX_CFG" \
+  --slurm-accounting on \
   --global-spot-max-cost 9.99 \
   --spot-cost-limit-pct 1.7 \
   --write-spot-pricing-warn-threshold 6.00
@@ -85,6 +86,14 @@ Important options:
 - `--pass-on-warn`
 - `--debug`
 - `--non-interactive`
+- `--slurm-accounting on|off`: default `on`; the initial cluster YAML is
+  accounting-free in both modes, and `on` runs the accounting stage only after
+  the usable base cluster has been persisted
+- `--fail-on-sacct-error`: return AWS failure code `2` for an accounting-stage
+  warning; without it the cluster is retained and the command returns `0`
+- `--create-slurm-accounting-if-missing` and
+  `--acknowledge-slurm-accounting-create-cost`: paired non-interactive approval
+  for creation of the first regional singleton; exactly one is invalid
 - `--budget-project <project>`: retired; cluster budgets are named by cluster name
 - `--disable-budget-enforcement`: render the cluster budget-enforcement tag as `skip`
 - `--global-spot-max-cost <usd>`: default and hard maximum `9.99`; hard fails if `<= 0` or `> 9.99`
@@ -107,9 +116,11 @@ longer borrow i192 reference pricing.
 Slurm accounting is a regional singleton. Discovery considers every DayEC
 accounting stack in the AWS region, regardless of AZ, explicit stack name, or
 validation-style name. Legacy component-tagged stacks without the newer region
-tag also count, and discovery fails if more than one exists. The singleton uses
-a private address and must be in the selected cluster VPC. If the selected VPC
-differs, DYEC fails before cluster or database creation; it never creates a
+tag also count. If more than one compatible service exists, DYEC emits the
+existing 90-second warning and selects the Ursa-associated or most-attached
+service. The singleton uses a private address and must be in the selected
+cluster VPC. If any regional service exists but none is compatible with the
+cluster VPC, DYEC warns and leaves accounting disabled; it never creates a
 second accounting database as a fallback.
 
 Each create run writes an Ursa-readable summary JSON:
@@ -497,10 +508,32 @@ dyec slurm-accounting ensure --help
 dyec slurm-accounting attach --help
 ```
 
-New clusters omit Slurm accounting by default. This keeps a missing or
-cross-VPC accounting service from preventing a usable ParallelCluster from
-being created. A cluster without accounting can run jobs, but historical
-`sacct` persistence is unavailable.
+The initial ParallelCluster create always omits
+`Scheduling.SlurmSettings.Database` and the accounting client security group.
+After creation, headnode configuration, heartbeat, and the base state record
+succeed, `dyec create` defaults to `--slurm-accounting on` and prepares a
+candidate accounting update. Discovery, approval decline, stack creation, or
+render failure happens before any compute-fleet stop request.
+
+If no regional service exists, interactive use asks two confirmations, both
+defaulting No. Non-interactive use never prompts; an authenticated caller such
+as Ursa must pass both creation-approval flags. If any incompatible regional
+service exists, DYEC does not create a duplicate.
+
+For an initially running fleet, DYEC stops it, dry-runs and submits the update,
+waits for terminal update state, restores the fleet, validates headnode
+readiness, and runs a bounded read-only `sacct` query as `ubuntu`. An initially
+stopped fleet remains stopped. A safely recoverable failure restores a fleet
+that DYEC stopped; an indeterminate update or rollback never triggers an
+automatic restart.
+
+The completion panel reports cluster creation separately from accounting as
+`OFF`, `ENABLED`, `WARNING`, or `RECOVERY REQUIRED`. Accounting failures are
+soft by default: the usable cluster is retained and `dyec create` exits `0`.
+Use `--fail-on-sacct-error` to return code `2` with identical warning and
+recovery detail. A non-secret receipt records approvals, service creation,
+stage, update-config path, terminal states, restoration, and recovery status;
+it never records the database URI, private IP, username, or secret ARN.
 
 AWS ParallelCluster requires the compute fleet to be stopped before
 `Scheduling.SlurmSettings.Database` can be updated. After confirming that no
@@ -529,9 +562,10 @@ dyec slurm-accounting attach \
   --cluster "$CLUSTER_NAME"
 ```
 
-The attach command uses only an existing compatible accounting service. It
-does not create a second stack, stop the compute fleet, force an update, alter
-the original cluster YAML, or print database connection or credential values.
+The standalone attach command uses only an existing compatible accounting
+service. It does not create a second stack, stop the compute fleet, force an
+update, alter the original cluster YAML, or print database connection or
+credential values.
 It writes a separate update YAML and requires a successful
 `pcluster update-cluster --dryrun true` before submitting the real update. If
 the service is missing or in an incompatible VPC, attachment fails and the

@@ -17,8 +17,8 @@ from daylily_ec.pcluster.runner import (
     list_clusters,
     should_break_after_dry_run,
     update_cluster,
+    update_compute_fleet,
 )
-
 
 # ── helpers ──────────────────────────────────────────────────────────────
 
@@ -412,6 +412,63 @@ class TestDescribeAndUpdateCluster:
 
         assert result.success is False
         assert result.returncode == 0
+
+
+class TestUpdateComputeFleet:
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_stop_request_forwards_cluster_region_profile_and_executable(self, mock_run):
+        mock_run.return_value = _completed(stdout=json.dumps({"status": "STOP_REQUESTED"}))
+
+        result = update_compute_fleet(
+            "cl1",
+            "STOP_REQUESTED",
+            "us-west-2",
+            profile="lsmc",
+            executable="/opt/daylily/pcluster/bin/pcluster",
+        )
+
+        assert result.success is True
+        assert mock_run.call_args.args[0] == [
+            "/opt/daylily/pcluster/bin/pcluster",
+            "update-compute-fleet",
+            "-n",
+            "cl1",
+            "--status",
+            "STOP_REQUESTED",
+            "--region",
+            "us-west-2",
+        ]
+        assert mock_run.call_args.kwargs["env"]["AWS_PROFILE"] == "lsmc"
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_start_request_is_supported(self, mock_run):
+        mock_run.return_value = _completed(stdout=json.dumps({"status": "START_REQUESTED"}))
+
+        result = update_compute_fleet("cl1", "START_REQUESTED", "us-east-1")
+
+        assert result.success is True
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_command_failure_is_explicit(self, mock_run):
+        mock_run.return_value = _completed(stderr="transition rejected", rc=2)
+
+        result = update_compute_fleet("cl1", "STOP_REQUESTED", "us-west-2")
+
+        assert result.success is False
+        assert result.returncode == 2
+        assert result.stderr == "transition rejected"
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_rejects_non_request_status_before_invocation(self, mock_run):
+        for status in ("RUNNING", "STOPPED", "stopped", ""):
+            try:
+                update_compute_fleet("cl1", status, "us-west-2")
+            except ValueError as exc:
+                assert "expected exactly" in str(exc)
+            else:
+                raise AssertionError(f"Expected {status!r} to be rejected")
+
+        mock_run.assert_not_called()
 
 
 class TestDeleteCluster:

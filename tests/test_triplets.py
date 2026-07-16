@@ -322,8 +322,8 @@ class TestLoadConfig:
         assert set(ec.config) == set(REQUIRED_CONFIG_KEYS)
         assert "ssh_key_name" not in ec.config
         assert ec.config["export_destination_s3_uri"].action == "PROMPTUSER"
-        assert ec.config["slurm_accounting_enabled"].default_value == "false"
-        assert ec.config["slurm_accounting_database_name"].default_value == "dayec_slurm_acct"
+        assert not any(key.startswith("slurm_accounting_") for key in ec.config)
+        assert not any(key.startswith("slurm_accounting_") for key in ec.template_defaults)
         assert ec.config["budget_amount"].default_value == "200"
         assert ec.config["allowed_budget_users"].default_value == "ubuntu"
         assert ec.config["global_allowed_budget_users"].default_value == "ubuntu"
@@ -349,6 +349,20 @@ class TestLoadConfig:
         assert ec.template_defaults["max_count_192I_HUGENVME"] == "1"
         assert ec.config["max_count_384I"].default_value == "1"
         assert ec.config["max_count_384I_NVME_R"].default_value == "1"
+
+    @pytest.mark.parametrize(
+        "relative_path",
+        [
+            "config/daylily_ephemeral_cluster_template.yaml",
+            "daylily_ec/resources/payload/config/daylily_ephemeral_cluster_template.yaml",
+        ],
+    )
+    def test_create_templates_exclude_legacy_slurm_accounting_fields(self, relative_path):
+        cfg = load_config(Path(__file__).resolve().parent.parent / relative_path)
+        ec = cfg.ephemeral_cluster
+
+        assert not any(key.startswith("slurm_accounting_") for key in ec.config)
+        assert not any(key.startswith("slurm_accounting_") for key in ec.template_defaults)
 
 
 class TestDerivedMaxCount:
@@ -478,3 +492,45 @@ class TestWriteNextRunTemplate:
         write_next_run_template(cfg, {"k": "v"}, dest)
         loaded = load_config(dest)
         assert loaded.ephemeral_cluster.template_defaults["fsx_fs_size"] == "7200"
+
+    def test_drops_legacy_create_accounting_fields(self, tmp_path, monkeypatch):
+        monkeypatch.delenv("DAY_DISABLE_AUTO_SELECT", raising=False)
+        accounting_keys = {
+            "slurm_accounting_enabled",
+            "slurm_accounting_create_db",
+            "slurm_accounting_stack_name",
+            "slurm_accounting_database_name",
+            "slurm_accounting_db_username",
+            "slurm_accounting_instance_type",
+        }
+        cfg = ConfigFile(
+            ephemeral_cluster={
+                "config": {
+                    "cluster_name": ["USESETVALUE", "", "cluster-a"],
+                    **{
+                        key: ["USESETVALUE", "legacy-default", "legacy-value"]
+                        for key in accounting_keys
+                    },
+                },
+                "template_defaults": {
+                    "fsx_fs_size": "4800",
+                    **{key: "legacy-value" for key in accounting_keys},
+                },
+            }
+        )
+
+        dest = tmp_path / "next.yaml"
+        write_next_run_template(
+            cfg,
+            {
+                "cluster_name": "cluster-b",
+                **{key: "new-value" for key in accounting_keys},
+            },
+            dest,
+        )
+
+        loaded = load_config(dest)
+        assert set(loaded.ephemeral_cluster.config).isdisjoint(accounting_keys)
+        assert set(loaded.ephemeral_cluster.template_defaults).isdisjoint(accounting_keys)
+        assert loaded.ephemeral_cluster.config["cluster_name"].set_value == "cluster-b"
+        assert loaded.ephemeral_cluster.template_defaults["fsx_fs_size"] == "4800"

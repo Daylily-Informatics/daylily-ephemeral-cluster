@@ -18,7 +18,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from daylily_ec.state.models import PreflightReport, StateRecord
+from daylily_ec.state.models import PreflightReport, SlurmAccountingReceipt, StateRecord
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +113,35 @@ def write_resource_receipt(
     return dest
 
 
+def write_slurm_accounting_receipt(
+    receipt: SlurmAccountingReceipt,
+    *,
+    cluster_name: str,
+    run_id: str,
+) -> Path:
+    """Persist a non-secret post-create Slurm accounting receipt.
+
+    The strict :class:`SlurmAccountingReceipt` schema is the redaction
+    boundary: callers cannot add connection endpoints, private addresses,
+    secrets, credentials, or arbitrary exception text to this artifact.
+    """
+
+    cluster = _safe_cluster_name(cluster_name)
+    filename = f"slurm_accounting_{cluster}_{run_id}_receipt.json"
+    dest = config_dir() / filename
+    payload = json.dumps(receipt.model_dump(mode="json"), indent=2, sort_keys=True)
+    dest.write_text(payload + "\n", encoding="utf-8")
+    logger.info("Slurm accounting receipt written to %s", dest)
+    return dest
+
+
 def load_state_record(path: Path) -> StateRecord:
     """Load a :class:`StateRecord` from a JSON file."""
     data = json.loads(path.read_text(encoding="utf-8"))
     return StateRecord(**data)
+
+
+def load_slurm_accounting_receipt(path: Path) -> SlurmAccountingReceipt:
+    """Load and validate a non-secret Slurm accounting receipt."""
+
+    return SlurmAccountingReceipt.model_validate_json(path.read_text(encoding="utf-8"))

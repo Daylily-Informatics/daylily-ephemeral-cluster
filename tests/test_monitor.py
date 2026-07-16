@@ -6,18 +6,24 @@ import json as _json
 from unittest.mock import MagicMock, patch
 
 from daylily_ec.pcluster.monitor import (
+    DEFAULT_FLEET_TIMEOUT,
     DEFAULT_POLL_INTERVAL,
+    DEFAULT_UPDATE_TIMEOUT,
     DELETE_STATUS_FAILED,
+    LifecycleMonitorResult,
     MAX_CONSECUTIVE_FAILURES,
     STATUS_COMPLETE,
     STATUS_IN_PROGRESS,
     MonitorResult,
+    get_compute_fleet_status,
     get_cluster_details,
     get_cluster_status,
+    wait_for_cluster_update,
+    wait_for_compute_fleet,
     wait_for_deletion,
     wait_for_creation,
 )
-
+from daylily_ec.pcluster.runner import PclusterResult
 
 # ── helpers ──────────────────────────────────────────────────────────────
 
@@ -32,6 +38,17 @@ def _completed(stdout: str = "", stderr: str = "", rc: int = 0):
 
 def _noop_sleep(_: float) -> None:
     """Replacement for time.sleep in tests."""
+
+
+class _Clock:
+    def __init__(self) -> None:
+        self.value = 0.0
+
+    def time(self) -> float:
+        return self.value
+
+    def sleep(self, seconds: float) -> None:
+        self.value += seconds
 
 
 # ── TestConstants ────────────────────────────────────────────────────────
@@ -49,6 +66,10 @@ class TestConstants:
 
     def test_poll_interval(self):
         assert DEFAULT_POLL_INTERVAL == 30.0
+
+    def test_lifecycle_timeouts(self):
+        assert DEFAULT_FLEET_TIMEOUT == 20 * 60
+        assert DEFAULT_UPDATE_TIMEOUT == 90 * 60
 
 
 # ── TestMonitorResult ────────────────────────────────────────────────────
@@ -72,6 +93,16 @@ class TestMonitorResult:
         )
         assert r.head_node_ip == "1.2.3.4"
         assert r.head_node_instance_id == "i-abc123"
+
+    def test_lifecycle_result_defaults_to_unsafe(self):
+        result = LifecycleMonitorResult(
+            final_status="UPDATE_FAILED",
+            elapsed_seconds=10,
+            success=False,
+            outcome="indeterminate_failure",
+        )
+
+        assert result.safe_to_restore_fleet is False
 
 
 # ── TestGetClusterStatus ─────────────────────────────────────────────────
@@ -140,6 +171,48 @@ class TestGetClusterDetails:
         get_cluster_details("cl", "us-west-2", profile="myprof")
         env = mock_run.call_args.kwargs["env"]
         assert env["AWS_PROFILE"] == "myprof"
+
+
+class TestGetComputeFleetStatus:
+    @patch("daylily_ec.pcluster.runner.describe_compute_fleet")
+    def test_returns_exact_status_and_forwards_identity(self, mock_describe):
+        mock_describe.return_value = PclusterResult(
+            command="pcluster describe-compute-fleet",
+            returncode=0,
+            json_body={"status": "STOPPED"},
+            success=True,
+        )
+
+        status = get_compute_fleet_status(
+            "cl",
+            "us-west-2",
+            profile="lsmc",
+            executable="/opt/daylily/pcluster/bin/pcluster",
+        )
+
+        assert status == "STOPPED"
+        mock_describe.assert_called_once_with(
+            "cl",
+            "us-west-2",
+            profile="lsmc",
+            executable="/opt/daylily/pcluster/bin/pcluster",
+        )
+
+    @patch("daylily_ec.pcluster.runner.describe_compute_fleet")
+    def test_returns_none_for_failure_or_malformed_status(self, mock_describe):
+        mock_describe.return_value = PclusterResult(
+            command="pcluster describe-compute-fleet",
+            returncode=1,
+        )
+        assert get_compute_fleet_status("cl", "us-west-2") is None
+
+        mock_describe.return_value = PclusterResult(
+            command="pcluster describe-compute-fleet",
+            returncode=0,
+            json_body={"status": 12},
+            success=True,
+        )
+        assert get_compute_fleet_status("cl", "us-west-2") is None
 
 
 # ── TestWaitForCreation ──────────────────────────────────────────────────
@@ -246,6 +319,234 @@ class TestWaitForCreation:
             "us-west-2",
             profile=None,
             executable=executable,
+        )
+
+
+class TestWaitForComputeFleet:
+    def test_stop_progress_reaches_exact_target(self):
+        status = MagicMock(side_effect=["RUNNING", "STOP_REQUESTED", "STOPPING", "STOPPED"])
+
+        result = wait_for_compute_fleet(
+            "cl",
+            "us-west-2",
+            "STOPPED",
+            poll_interval=1,
+            _status_fn=status,
+            _time_fn=lambda: 0.0,
+            _sleep_fn=_noop_sleep,
+        )
+
+        assert result.success is True
+        assert result.final_status == "STOPPED"
+        assert result.outcome == "success"
+
+    def test_start_forwards_profile_and_executable(self):
+        status = MagicMock(return_value="RUNNING")
+
+        result = wait_for_compute_fleet(
+            "cl",
+            "us-west-2",
+            "RUNNING",
+            profile="lsmc",
+            executable="/opt/daylily/pcluster/bin/pcluster",
+            _status_fn=status,
+        )
+
+        assert result.success is True
+        status.assert_called_once_with(
+            "cl",
+            "us-west-2",
+            profile="lsmc",
+            executable="/opt/daylily/pcluster/bin/pcluster",
+        )
+
+    def test_repeated_describe_failure_is_distinct(self):
+        status = MagicMock(return_value=None)
+
+        result = wait_for_compute_fleet(
+            "cl",
+            "us-west-2",
+            "STOPPED",
+            max_failures=3,
+            poll_interval=1,
+            _status_fn=status,
+            _time_fn=lambda: 0.0,
+            _sleep_fn=_noop_sleep,
+        )
+
+        assert result.outcome == "describe_failure"
+        assert result.consecutive_failures == 3
+
+    def test_unexpected_status_is_terminal_failure(self):
+        result = wait_for_compute_fleet(
+            "cl",
+            "us-west-2",
+            "STOPPED",
+            _status_fn=MagicMock(return_value="PROTECTED"),
+        )
+
+        assert result.outcome == "terminal_failure"
+        assert result.final_status == "PROTECTED"
+
+    def test_timeout_is_bounded(self):
+        clock = _Clock()
+
+        result = wait_for_compute_fleet(
+            "cl",
+            "us-west-2",
+            "STOPPED",
+            timeout=3,
+            poll_interval=1,
+            _status_fn=MagicMock(return_value="STOPPING"),
+            _time_fn=clock.time,
+            _sleep_fn=clock.sleep,
+        )
+
+        assert result.outcome == "timeout"
+        assert result.elapsed_seconds == 3
+
+    def test_rejects_non_terminal_target_before_poll(self):
+        status = MagicMock()
+
+        try:
+            wait_for_compute_fleet(
+                "cl",
+                "us-west-2",
+                "STOPPING",
+                _status_fn=status,
+            )
+        except ValueError as exc:
+            assert "expected exactly" in str(exc)
+        else:
+            raise AssertionError("Expected STOPPING to be rejected")
+
+        status.assert_not_called()
+
+
+class TestWaitForClusterUpdate:
+    def test_stale_create_then_update_success(self):
+        status = MagicMock(side_effect=["CREATE_COMPLETE", "UPDATE_IN_PROGRESS", "UPDATE_COMPLETE"])
+
+        result = wait_for_cluster_update(
+            "cl",
+            "us-west-2",
+            poll_interval=1,
+            _status_fn=status,
+            _time_fn=lambda: 0.0,
+            _sleep_fn=_noop_sleep,
+        )
+
+        assert result.success is True
+        assert result.outcome == "success"
+        assert result.safe_to_restore_fleet is True
+
+    def test_completed_rollback_is_recoverable_and_safe_to_restore(self):
+        status = MagicMock(
+            side_effect=[
+                "UPDATE_IN_PROGRESS",
+                "UPDATE_ROLLBACK_IN_PROGRESS",
+                "UPDATE_ROLLBACK_COMPLETE",
+            ]
+        )
+
+        result = wait_for_cluster_update(
+            "cl",
+            "us-west-2",
+            poll_interval=1,
+            _status_fn=status,
+            _time_fn=lambda: 0.0,
+            _sleep_fn=_noop_sleep,
+        )
+
+        assert result.success is False
+        assert result.outcome == "recoverable_rollback"
+        assert result.safe_to_restore_fleet is True
+
+    def test_rollback_failure_is_indeterminate_and_unsafe(self):
+        result = wait_for_cluster_update(
+            "cl",
+            "us-west-2",
+            _status_fn=MagicMock(return_value="UPDATE_ROLLBACK_FAILED"),
+        )
+
+        assert result.outcome == "indeterminate_failure"
+        assert result.safe_to_restore_fleet is False
+
+    def test_repeated_describe_failure_is_indeterminate(self):
+        result = wait_for_cluster_update(
+            "cl",
+            "us-west-2",
+            max_failures=2,
+            poll_interval=1,
+            _status_fn=MagicMock(return_value=None),
+            _time_fn=lambda: 0.0,
+            _sleep_fn=_noop_sleep,
+        )
+
+        assert result.outcome == "describe_failure"
+        assert result.safe_to_restore_fleet is False
+
+    def test_timeout_during_update_is_indeterminate(self):
+        clock = _Clock()
+
+        result = wait_for_cluster_update(
+            "cl",
+            "us-west-2",
+            timeout=3,
+            poll_interval=1,
+            _status_fn=MagicMock(return_value="UPDATE_IN_PROGRESS"),
+            _time_fn=clock.time,
+            _sleep_fn=clock.sleep,
+        )
+
+        assert result.outcome == "timeout"
+        assert result.safe_to_restore_fleet is False
+
+    def test_stale_create_status_has_short_start_bound(self):
+        clock = _Clock()
+
+        result = wait_for_cluster_update(
+            "cl",
+            "us-west-2",
+            timeout=100,
+            update_start_timeout=3,
+            poll_interval=1,
+            _status_fn=MagicMock(return_value="CREATE_COMPLETE"),
+            _time_fn=clock.time,
+            _sleep_fn=clock.sleep,
+        )
+
+        assert result.outcome == "update_not_started"
+        assert result.elapsed_seconds == 3
+        assert result.safe_to_restore_fleet is False
+
+    def test_unexpected_terminal_status_is_unsafe(self):
+        result = wait_for_cluster_update(
+            "cl",
+            "us-west-2",
+            _status_fn=MagicMock(return_value="DELETE_IN_PROGRESS"),
+        )
+
+        assert result.outcome == "terminal_failure"
+        assert result.safe_to_restore_fleet is False
+
+    def test_profile_and_alternate_executable_forwarded(self):
+        status = MagicMock(return_value="UPDATE_COMPLETE")
+
+        result = wait_for_cluster_update(
+            "cl",
+            "us-west-2",
+            profile="lsmc",
+            executable="/opt/daylily/pcluster/bin/pcluster",
+            _status_fn=status,
+        )
+
+        assert result.success is True
+        status.assert_called_once_with(
+            "cl",
+            "us-west-2",
+            profile="lsmc",
+            executable="/opt/daylily/pcluster/bin/pcluster",
         )
 
 

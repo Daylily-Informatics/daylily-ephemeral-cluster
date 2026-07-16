@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import re
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterable
@@ -91,13 +91,21 @@ class SlurmAccountingDb:
 
     stack_name: str
     status: str
-    uri: str
-    private_ip: str
+    uri: str = field(repr=False)
+    private_ip: str = field(repr=False)
     database_name: str
     username: str
-    password_secret_arn: str
+    password_secret_arn: str = field(repr=False)
     client_security_group_id: str
     instance_id: str = ""
+
+
+@dataclass(frozen=True)
+class SlurmAccountingDbResolution:
+    """Internal resolution outcome without secret-bearing representation."""
+
+    db: SlurmAccountingDb = field(repr=False)
+    service_created: bool
 
 
 @dataclass(frozen=True)
@@ -106,7 +114,7 @@ class SlurmAccountingScanCandidate:
 
     instance_id: str
     name: str
-    private_ip: str
+    private_ip: str = field(repr=False)
     availability_zone: str
     vpc_id: str
     source: str
@@ -248,11 +256,7 @@ def format_headnode_networking_block(client_security_group_id: str) -> str:
     """Render the optional head node client security group block."""
     if not client_security_group_id.strip():
         raise SlurmAccountingError("Accounting client security group ID is empty.")
-    return (
-        "\n"
-        "    AdditionalSecurityGroups:\n"
-        f"      - {client_security_group_id.strip()}\n"
-    )
+    return "\n" "    AdditionalSecurityGroups:\n" f"      - {client_security_group_id.strip()}\n"
 
 
 def format_database_block(db: SlurmAccountingDb) -> str:
@@ -437,6 +441,40 @@ def ensure_slurm_accounting_db(
     sleep_fn: Callable[[float], None] | None = None,
 ) -> SlurmAccountingDb:
     """Resolve one accounting DB stack, creating it only when explicitly allowed."""
+    return resolve_slurm_accounting_db(
+        aws_ctx,
+        region_az=region_az,
+        vpc_id=vpc_id,
+        private_subnet_id=private_subnet_id,
+        create_if_missing=create_if_missing,
+        stack_name=stack_name,
+        database_name=database_name,
+        username=username,
+        instance_type=instance_type,
+        assign_public_ip=assign_public_ip,
+        template_path=template_path,
+        warning_callback=warning_callback,
+        sleep_fn=sleep_fn,
+    ).db
+
+
+def resolve_slurm_accounting_db(
+    aws_ctx: Any,
+    *,
+    region_az: str,
+    vpc_id: str,
+    private_subnet_id: str,
+    create_if_missing: bool,
+    stack_name: str = "",
+    database_name: str = DEFAULT_ACCOUNTING_DATABASE_NAME,
+    username: str = DEFAULT_ACCOUNTING_USERNAME,
+    instance_type: str = DEFAULT_ACCOUNTING_INSTANCE_TYPE,
+    assign_public_ip: bool = False,
+    template_path: str = DEFAULT_TEMPLATE_PATH,
+    warning_callback: Callable[[str], None] | None = None,
+    sleep_fn: Callable[[float], None] | None = None,
+) -> SlurmAccountingDbResolution:
+    """Resolve the regional singleton and report whether this call created it."""
     database_name = validate_database_name(database_name or DEFAULT_ACCOUNTING_DATABASE_NAME)
     username = validate_username(username or DEFAULT_ACCOUNTING_USERNAME)
     stack_name = stack_name.strip()
@@ -470,7 +508,7 @@ def ensure_slurm_accounting_db(
             raise SlurmAccountingError(
                 f"Selected Slurm accounting stack '{selected.stack_name}' has no database."
             )
-        return selected.db
+        return SlurmAccountingDbResolution(db=selected.db, service_created=False)
 
     matches = discover_slurm_accounting_dbs(
         aws_ctx,
@@ -479,26 +517,28 @@ def ensure_slurm_accounting_db(
         stack_name=stack_name,
     )
     if len(matches) == 1:
-        return matches[0]
+        return SlurmAccountingDbResolution(db=matches[0], service_created=False)
     if not create_if_missing:
         raise SlurmAccountingError(
             f"No DayEC Slurm accounting stack exists for region {region}; "
-            "rerun with --create-slurm-accounting-db or create it with "
-            "dyec slurm-accounting ensure."
+            "creating the first regional singleton requires explicit approval."
         )
 
     create_name = stack_name or derive_slurm_accounting_stack_name(region_az)
-    return create_slurm_accounting_stack(
-        aws_ctx,
-        region_az=region_az,
-        vpc_id=vpc_id,
-        private_subnet_id=private_subnet_id,
-        stack_name=create_name,
-        database_name=database_name,
-        username=username,
-        instance_type=instance_type or DEFAULT_ACCOUNTING_INSTANCE_TYPE,
-        assign_public_ip=assign_public_ip,
-        template_path=template_path,
+    return SlurmAccountingDbResolution(
+        db=create_slurm_accounting_stack(
+            aws_ctx,
+            region_az=region_az,
+            vpc_id=vpc_id,
+            private_subnet_id=private_subnet_id,
+            stack_name=create_name,
+            database_name=database_name,
+            username=username,
+            instance_type=instance_type or DEFAULT_ACCOUNTING_INSTANCE_TYPE,
+            assign_public_ip=assign_public_ip,
+            template_path=template_path,
+        ),
+        service_created=True,
     )
 
 
@@ -559,8 +599,11 @@ def _inspect_selection_candidates(
             aws_ctx.client("ec2"),
             client_security_group_ids,
         )
-    except SlurmAccountingError as exc:
-        logger.warning("Unable to count Slurm accounting attached hosts: %s", exc)
+    except SlurmAccountingError:
+        logger.warning(
+            "Unable to count Slurm accounting attached hosts safely; "
+            "attached_hosts will be reported as unknown."
+        )
         attached_by_group = None
 
     with_counts: list[SlurmAccountingSelectionCandidate] = []
@@ -611,11 +654,7 @@ def _select_duplicate_accounting_candidate(
     preferred_stack_name = preferred_stack_name.strip()
     if preferred_stack_name:
         preferred = next(
-            (
-                candidate
-                for candidate in compatible
-                if candidate.stack_name == preferred_stack_name
-            ),
+            (candidate for candidate in compatible if candidate.stack_name == preferred_stack_name),
             None,
         )
         if preferred is not None:
@@ -660,11 +699,7 @@ def _warn_and_delay_duplicate_accounting_selection(
             if candidate.attached_host_count is None
             else str(candidate.attached_host_count)
         )
-        preference = (
-            "yes"
-            if preferred_stack_name.strip() == candidate.stack_name
-            else "no"
-        )
+        preference = "yes" if preferred_stack_name.strip() == candidate.stack_name else "no"
         warning_callback(
             f"Candidate {candidate.stack_name}: status={candidate.status}; "
             f"vpc={candidate.vpc_id or 'missing'}; "
@@ -744,14 +779,16 @@ def create_slurm_accounting_stack(
         )
         waiter = cfn.get_waiter("stack_create_complete")
         waiter.wait(StackName=stack_name)
-    except (BotoCoreError, ClientError) as exc:
+    except (BotoCoreError, ClientError):
         raise SlurmAccountingError(
-            f"Failed to create Slurm accounting stack '{stack_name}': {exc}"
-        ) from exc
-    except Exception as exc:
+            f"Failed to create Slurm accounting stack '{stack_name}'; AWS did not "
+            "complete the request safely."
+        ) from None
+    except Exception:
         raise SlurmAccountingError(
-            f"Failed to create Slurm accounting stack '{stack_name}': {exc}"
-        ) from exc
+            f"Failed to create Slurm accounting stack '{stack_name}'; the request "
+            "did not complete safely."
+        ) from None
 
     stack = _describe_stack_or_none(cfn, stack_name)
     if stack is None:
@@ -774,10 +811,10 @@ def _list_stack_summaries(cfn: Any) -> Iterable[dict[str, Any]]:
         for page in paginator.paginate(StackStatusFilter=list(DISCOVERABLE_STACK_STATUSES)):
             for summary in page.get("StackSummaries", []):
                 yield summary
-    except (BotoCoreError, ClientError) as exc:
-        raise SlurmAccountingError(f"Unable to list CloudFormation stacks: {exc}") from exc
-    except Exception as exc:
-        raise SlurmAccountingError(f"Unable to list CloudFormation stacks: {exc}") from exc
+    except (BotoCoreError, ClientError):
+        raise SlurmAccountingError("Unable to list CloudFormation stacks safely.") from None
+    except Exception:
+        raise SlurmAccountingError("Unable to list CloudFormation stacks safely.") from None
 
 
 def _describe_stack_or_none(cfn: Any, stack_name: str) -> dict[str, Any] | None:
@@ -787,21 +824,26 @@ def _describe_stack_or_none(cfn: Any, stack_name: str) -> dict[str, Any] | None:
         if _is_stack_not_found(exc):
             return None
         raise SlurmAccountingError(
-            f"Unable to describe CloudFormation stack '{stack_name}': {exc}"
-        ) from exc
-    except BotoCoreError as exc:
+            f"Unable to describe CloudFormation stack '{stack_name}' safely."
+        ) from None
+    except BotoCoreError:
         raise SlurmAccountingError(
-            f"Unable to describe CloudFormation stack '{stack_name}': {exc}"
-        ) from exc
-    except Exception as exc:
+            f"Unable to describe CloudFormation stack '{stack_name}' safely."
+        ) from None
+    except Exception:
         raise SlurmAccountingError(
-            f"Unable to describe CloudFormation stack '{stack_name}': {exc}"
-        ) from exc
+            f"Unable to describe CloudFormation stack '{stack_name}' safely."
+        ) from None
 
     stacks = resp.get("Stacks", [])
     if not stacks:
         return None
-    return stacks[0]
+    stack = stacks[0]
+    if not isinstance(stack, dict):
+        raise SlurmAccountingError(
+            f"CloudFormation stack '{stack_name}' returned an invalid description."
+        )
+    return stack
 
 
 def _is_stack_not_found(exc: BaseException) -> bool:
@@ -830,9 +872,8 @@ def _stack_is_accounting_stack_in_region(
 ) -> bool:
     tags = {str(t.get("Key")): str(t.get("Value")) for t in stack.get("Tags", [])}
     tagged_region = tags.get(ACCOUNTING_REGION_TAG_KEY, "").strip()
-    return (
-        tags.get(ACCOUNTING_COMPONENT_TAG_KEY) == ACCOUNTING_COMPONENT_TAG_VALUE
-        and (not tagged_region or tagged_region == region)
+    return tags.get(ACCOUNTING_COMPONENT_TAG_KEY) == ACCOUNTING_COMPONENT_TAG_VALUE and (
+        not tagged_region or tagged_region == region
     )
 
 
@@ -898,12 +939,13 @@ def _db_from_stack(stack: dict[str, Any]) -> SlurmAccountingDb:
             f"Slurm accounting stack '{stack_name}' is not healthy: {status}"
         )
 
-    outputs = {str(o.get("OutputKey")): str(o.get("OutputValue") or "") for o in stack.get("Outputs", [])}
+    outputs = {
+        str(o.get("OutputKey")): str(o.get("OutputValue") or "") for o in stack.get("Outputs", [])
+    }
     missing = sorted(key for key in REQUIRED_OUTPUTS if not outputs.get(key))
     if missing:
         raise SlurmAccountingError(
-            f"Slurm accounting stack '{stack_name}' is missing output(s): "
-            + ", ".join(missing)
+            f"Slurm accounting stack '{stack_name}' is missing output(s): " + ", ".join(missing)
         )
 
     uri = outputs["AccountingDbUri"].strip()
@@ -999,10 +1041,14 @@ def _list_running_instances_in_vpc(ec2: Any, *, vpc_id: str) -> list[dict[str, A
             for reservation in page.get("Reservations", []):
                 instances.extend(reservation.get("Instances", []) or [])
         return instances
-    except (BotoCoreError, ClientError) as exc:
-        raise SlurmAccountingError(f"Unable to list EC2 instances for VPC {vpc_id}: {exc}") from exc
-    except Exception as exc:
-        raise SlurmAccountingError(f"Unable to list EC2 instances for VPC {vpc_id}: {exc}") from exc
+    except (BotoCoreError, ClientError):
+        raise SlurmAccountingError(
+            f"Unable to list EC2 instances for VPC {vpc_id} safely."
+        ) from None
+    except Exception:
+        raise SlurmAccountingError(
+            f"Unable to list EC2 instances for VPC {vpc_id} safely."
+        ) from None
 
 
 def _attached_instance_ids_by_security_group(
@@ -1034,18 +1080,15 @@ def _attached_instance_ids_by_security_group(
             if not next_token:
                 break
             request["NextToken"] = next_token
-    except (BotoCoreError, ClientError) as exc:
+    except (BotoCoreError, ClientError):
         raise SlurmAccountingError(
-            f"Unable to count EC2 hosts attached to accounting client security groups: {exc}"
-        ) from exc
-    except Exception as exc:
+            "Unable to count EC2 hosts attached to accounting client security groups safely."
+        ) from None
+    except Exception:
         raise SlurmAccountingError(
-            f"Unable to count EC2 hosts attached to accounting client security groups: {exc}"
-        ) from exc
-    return {
-        group_id: tuple(sorted(instance_ids))
-        for group_id, instance_ids in attached.items()
-    }
+            "Unable to count EC2 hosts attached to accounting client security groups safely."
+        ) from None
+    return {group_id: tuple(sorted(instance_ids)) for group_id, instance_ids in attached.items()}
 
 
 def _security_group_ids_for_instances(instances: Iterable[dict[str, Any]]) -> list[str]:
@@ -1070,10 +1113,10 @@ def _describe_security_groups(ec2: Any, group_ids: list[str]) -> dict[str, dict[
                 if group_id:
                     groups[group_id] = group
         return groups
-    except (BotoCoreError, ClientError) as exc:
-        raise SlurmAccountingError(f"Unable to inspect EC2 security groups: {exc}") from exc
-    except Exception as exc:
-        raise SlurmAccountingError(f"Unable to inspect EC2 security groups: {exc}") from exc
+    except (BotoCoreError, ClientError):
+        raise SlurmAccountingError("Unable to inspect EC2 security groups safely.") from None
+    except Exception:
+        raise SlurmAccountingError("Unable to inspect EC2 security groups safely.") from None
 
 
 def _candidate_from_instance(
@@ -1121,10 +1164,7 @@ def _instance_has_mysql_accounting_signal(
             return True
 
     text = " ".join(text_parts).lower()
-    return any(
-        token in text
-        for token in ("mysql", "mariadb", "slurm", "sacct", "accounting")
-    )
+    return any(token in text for token in ("mysql", "mariadb", "slurm", "sacct", "accounting"))
 
 
 def _security_group_allows_tcp_port(group: dict[str, Any], port: int) -> bool:

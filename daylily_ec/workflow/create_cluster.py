@@ -32,7 +32,7 @@ import subprocess
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, List, Optional
+from typing import Any, Callable, Dict, Iterable, List, Literal, Optional, cast
 from urllib.parse import quote, urlencode, urlparse, urlunparse
 
 import typer
@@ -1750,27 +1750,6 @@ def _prompt_select(label: str, choices: List[str]) -> str:
         typer.echo("Invalid selection. Enter one of the listed numbers.")
 
 
-def _format_slurm_accounting_candidate(candidate: Any) -> str:
-    db = candidate.db
-    if db is None:
-        return (
-            f"{candidate.instance_id} ({candidate.name or candidate.private_ip}) "
-            f"[{candidate.source}: {candidate.reason}]"
-        )
-    label = candidate.name or candidate.private_ip or candidate.instance_id
-    return f"{db.stack_name} | {db.uri} | {label} | {candidate.instance_id}"
-
-
-def _prompt_slurm_accounting_candidate(candidates: List[Any]) -> Any | None:
-    choices = ["Skip Slurm accounting"] + [
-        _format_slurm_accounting_candidate(candidate) for candidate in candidates
-    ]
-    selected = _prompt_select("Slurm accounting DB", choices)
-    if selected == choices[0]:
-        return None
-    return candidates[choices.index(selected) - 1]
-
-
 FSX_PROMPT_OPTIONS = [
     "1200",
     "2400",
@@ -1982,9 +1961,7 @@ def _normalize_ursa_root_url(value: str) -> str:
         return ""
     parsed = urlparse(raw)
     if parsed.scheme.lower() not in {"http", "https"} or not parsed.netloc:
-        raise ValueError(
-            "ursa_root_url must be an absolute http:// or https:// URL."
-        )
+        raise ValueError("ursa_root_url must be an absolute http:// or https:// URL.")
     if parsed.username or parsed.password:
         raise ValueError("ursa_root_url must not contain embedded credentials.")
     if parsed.params or parsed.query or parsed.fragment:
@@ -2606,6 +2583,10 @@ def run_create_workflow(
     regional_cluster_cap: Optional[int] = None,
     acknowledge_regional_cap_increase: bool = False,
     acknowledge_regional_cap_risk: bool = False,
+    slurm_accounting: str = "on",
+    fail_on_sacct_error: bool = False,
+    create_slurm_accounting_if_missing: bool = False,
+    acknowledge_slurm_accounting_create_cost: bool = False,
 ) -> int:
     """End-to-end cluster creation: preflight → create → post-create.
 
@@ -2656,9 +2637,22 @@ def run_create_workflow(
     )
     from daylily_ec.resources import resource_path
     from daylily_ec.render.renderer import CONFIG_DIR, write_init_artifacts
+    from daylily_ec.workflow.postcreate_slurm_accounting import (
+        validate_postcreate_slurm_accounting_options,
+    )
 
     if debug:
         logging.getLogger("daylily_ec").setLevel(logging.DEBUG)
+    try:
+        validate_postcreate_slurm_accounting_options(
+            slurm_accounting=slurm_accounting,
+            create_slurm_accounting_if_missing=create_slurm_accounting_if_missing,
+            acknowledge_slurm_accounting_create_cost=(acknowledge_slurm_accounting_create_cost),
+        )
+    except ValueError as exc:
+        logger.error("Slurm accounting option validation failed: %s", exc)
+        ui.fail(str(exc))
+        return EXIT_VALIDATION_FAILURE
     try:
         cluster_type = normalize_create_cluster_type(cluster_type)
         validate_create_cluster_type_region(cluster_type, region_az)
@@ -2760,9 +2754,7 @@ def run_create_workflow(
             cluster_type=cluster_type,
             resource_path_fn=resource_path,
         )
-        root_volume_type, root_volume_gib = _read_headnode_root_volume_spec(
-            template_yaml
-        )
+        root_volume_type, root_volume_gib = _read_headnode_root_volume_spec(template_yaml)
     except ValueError as exc:
         logger.error("Cluster resource selection validation failed: %s", exc)
         ui.fail(f"Cluster resource selection: {exc}")
@@ -2823,9 +2815,7 @@ def run_create_workflow(
         )
     except IdleCostPricingError as exc:
         logger.error("Idle-cost pricing failed closed: %s", exc)
-        ui.fail(
-            f"Idle-cost pricing: {exc}. No create-side mutations were attempted."
-        )
+        ui.fail(f"Idle-cost pricing: {exc}. No create-side mutations were attempted.")
         return EXIT_AWS_FAILURE
     ui.detail("Configured idle estimate", f"${idle_cost.total_hourly_usd:.4f}/hour")
 
@@ -3156,31 +3146,6 @@ def run_create_workflow(
         "runtime_assets",
         "cluster_boot_config",
     )
-
-    try:
-        config_accounting_create_requested = _resolve_nonprompt_bool_config(
-            cfg,
-            "slurm_accounting_create_db",
-            "false",
-        )
-        config_accounting_enabled = _resolve_nonprompt_bool_config(
-            cfg,
-            "slurm_accounting_enabled",
-            "false",
-        )
-    except ValueError as exc:
-        logger.error("Slurm accounting config validation failed: %s", exc)
-        ui.fail(f"Slurm accounting config: {exc}")
-        return EXIT_VALIDATION_FAILURE
-
-    if config_accounting_enabled or config_accounting_create_requested:
-        logger.error("Slurm accounting was requested during cluster creation.")
-        ui.fail(
-            "Slurm accounting is post-create only. Set slurm_accounting_enabled=false "
-            "and slurm_accounting_create_db=false, create the cluster, then run "
-            "dyec slurm-accounting attach."
-        )
-        return EXIT_VALIDATION_FAILURE
 
     explicit_core_resources = all(
         _has_explicit_set_value(cfg, key)
@@ -3831,12 +3796,6 @@ def run_create_workflow(
         "dyec_deploy_key_policy_arn": dyec_deploy_key_inputs.policy_arn,
         "dayoa_deploy_key_secret_arn": dayoa_deploy_key_inputs.secret_arn,
         "dayoa_deploy_key_policy_arn": dayoa_deploy_key_inputs.policy_arn,
-        "slurm_accounting_enabled": "false",
-        "slurm_accounting_create_db": "false",
-        "slurm_accounting_stack_name": "",
-        "slurm_accounting_database_name": "",
-        "slurm_accounting_db_username": "",
-        "slurm_accounting_instance_type": "",
         "fsx_deployment_type": fsx_deployment_type,
         "fsx_fs_size": fsx_size,
         "fsx_throughput_mbps_per_tib": (
@@ -3888,12 +3847,79 @@ def run_create_workflow(
         cluster_yaml_path=cluster_yaml_path,
         resolved_cli_config_path=str(next_run_path),
         cfn_stack_name=stack_name,
+        slurm_accounting_requested_mode=cast(Literal["on", "off"], slurm_accounting),
         spot_price_summary_path=spot_price_summary_path,
         spot_price_partitions=spot_price_summary.get("partitions", []),
     )
     state_path = write_state_record(state)
     logger.info("State written: %s", state_path)
     ui.ok(f"State written: {state_path}")
+
+    # The successful accounting-free base state above is intentionally durable
+    # before any service discovery, creation, or compute-fleet mutation.
+    ui.phase("POST-CREATE: SLURM ACCOUNTING")
+    from daylily_ec.state.models import SlurmAccountingOutcome, SlurmAccountingStage
+    from daylily_ec.state.slurm_accounting import (
+        apply_receipt_to_state,
+        status_message,
+        warning_message,
+    )
+    from daylily_ec.state.store import write_slurm_accounting_receipt
+    from daylily_ec.workflow.postcreate_slurm_accounting import (
+        run_postcreate_slurm_accounting,
+    )
+
+    def _configure_replacement_headnode(instance_id: str) -> bool:
+        return configure_headnode(
+            cluster_name=cluster_name,
+            head_node_instance_id=instance_id,
+            region=aws_ctx.region,
+            profile=aws_ctx.profile,
+            dyec_deploy_key_secret_arn=dyec_deploy_key_inputs.secret_arn,
+            dyec_deploy_key_region=dyec_deploy_key_inputs.region,
+            dyec_repo_url=dyec_repo_spec.url,
+            dyec_repo_ref=dyec_repo_spec.ref,
+            dayoa_deploy_key_secret_arn=dayoa_deploy_key_inputs.secret_arn,
+            dayoa_deploy_key_region=dayoa_deploy_key_inputs.region,
+            repo_overrides=repo_overrides,
+        )
+
+    accounting_result = run_postcreate_slurm_accounting(
+        cluster_name=cluster_name,
+        region=aws_ctx.region,
+        region_az=region_az,
+        profile=aws_ctx.profile,
+        cluster_configuration=Path(cluster_yaml_path),
+        initial_headnode_instance_id=monitor_result.head_node_instance_id,
+        slurm_accounting=slurm_accounting,
+        non_interactive=non_interactive,
+        create_slurm_accounting_if_missing=create_slurm_accounting_if_missing,
+        acknowledge_slurm_accounting_create_cost=(acknowledge_slurm_accounting_create_cost),
+        pcluster_executable=pcluster_executable,
+        configure_replacement_headnode=_configure_replacement_headnode,
+    )
+    accounting_receipt = accounting_result.to_receipt()
+    accounting_receipt_path = write_slurm_accounting_receipt(
+        accounting_receipt,
+        cluster_name=cluster_name,
+        run_id=ts,
+    )
+    state = apply_receipt_to_state(state, accounting_receipt, accounting_receipt_path)
+    state_path = write_state_record(state)
+    accounting_outcome = SlurmAccountingOutcome(accounting_result.outcome)
+    if accounting_outcome in {
+        SlurmAccountingOutcome.WARNING,
+        SlurmAccountingOutcome.RECOVERY_REQUIRED,
+    }:
+        ui.warn(
+            warning_message(
+                accounting_receipt.error_stage or SlurmAccountingStage.SERVICE_PREPARATION,
+                accounting_receipt.recovery_required,
+            )
+        )
+    else:
+        ui.ok(status_message(accounting_outcome))
+    ui.detail("Slurm accounting receipt", str(accounting_receipt_path))
 
     logger.info("✅ Cluster %s creation complete.", cluster_name)
     elapsed_total = monitor_result.elapsed_seconds
@@ -3907,6 +3933,7 @@ def run_create_workflow(
         f"[bold]Cluster:[/]  {cluster_name}\n"
         f"[bold]Region:[/]   {aws_ctx.region} ({region_az})\n"
         f"[bold]Elapsed:[/]  {ui.elapsed_str(elapsed_total)}\n"
+        f"[bold]Accounting:[/] {accounting_outcome.value}\n"
         f"{_format_idle_cost_summary(idle_cost)}\n"
         f"[bold]Ursa:[/]  {ursa_cluster_url or '(root URL not configured)'}",
     )
@@ -3924,6 +3951,8 @@ def run_create_workflow(
     else:
         typer.echo("Ursa cluster page: not configured (set ursa_root_url)")
     _maybe_say_onward()
+    if slurm_accounting == "on" and not accounting_result.succeeded and fail_on_sacct_error:
+        return EXIT_AWS_FAILURE
     return EXIT_SUCCESS
 
 

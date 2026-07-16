@@ -245,9 +245,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     aws_validate_quotas_cmd = registry.get_command(("aws", "validate", "quotas"))
     aws_validate_all_cmd = registry.get_command(("aws", "validate", "all"))
     aws_audit_api_calls_cmd = registry.get_command(("aws", "audit", "api-calls"))
-    aws_audit_cost_resources_cmd = registry.get_command(
-        ("aws", "audit", "cost-resources")
-    )
+    aws_audit_cost_resources_cmd = registry.get_command(("aws", "audit", "cost-resources"))
     slurm_accounting_ensure_cmd = registry.get_command(("slurm-accounting", "ensure"))
     slurm_accounting_attach_cmd = registry.get_command(("slurm-accounting", "attach"))
     cost_centers_put_usage_cmd = registry.get_command(("cost-centers", "put-usage"))
@@ -621,7 +619,245 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "regional_cluster_cap": None,
         "acknowledge_regional_cap_increase": False,
         "acknowledge_regional_cap_risk": False,
+        "slurm_accounting": "on",
+        "fail_on_sacct_error": False,
+        "create_slurm_accounting_if_missing": False,
+        "acknowledge_slurm_accounting_create_cost": False,
     }
+
+
+@pytest.mark.parametrize(
+    ("extra_args", "expected_mode"),
+    [
+        ([], "on"),
+        (["--slurm-accounting", "on"], "on"),
+        (["--slurm-accounting", "off"], "off"),
+    ],
+)
+def test_create_command_slurm_accounting_mode_contract(
+    monkeypatch,
+    tmp_path,
+    extra_args: list[str],
+    expected_mode: str,
+) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    calls: list[dict[str, object]] = []
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+    monkeypatch.setattr(
+        create_module,
+        "run_create_workflow",
+        lambda _region_az, **kwargs: calls.append(kwargs) or 0,
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            "--config",
+            str(config_path),
+            "--non-interactive",
+            *extra_args,
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert len(calls) == 1
+    assert calls[0]["slurm_accounting"] == expected_mode
+    assert calls[0]["fail_on_sacct_error"] is False
+    assert calls[0]["create_slurm_accounting_if_missing"] is False
+    assert calls[0]["acknowledge_slurm_accounting_create_cost"] is False
+
+
+@pytest.mark.parametrize("invalid_mode", ["ON", "On", "OFF", "true", "enabled"])
+def test_create_command_rejects_non_lowercase_or_unknown_accounting_mode_before_workflow(
+    monkeypatch,
+    tmp_path,
+    invalid_mode: str,
+) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    called = False
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+
+    def fake_run_create_workflow(_region_az: str, **_kwargs) -> int:
+        nonlocal called
+        called = True
+        return 0
+
+    monkeypatch.setattr(create_module, "run_create_workflow", fake_run_create_workflow)
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            "--config",
+            str(config_path),
+            "--non-interactive",
+            "--slurm-accounting",
+            invalid_mode,
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert called is False
+    assert "on" in result.output
+    assert "off" in result.output
+
+
+@pytest.mark.parametrize(
+    ("approval_flag", "missing_flag"),
+    [
+        (
+            "--create-slurm-accounting-if-missing",
+            "--acknowledge-slurm-accounting-create-cost",
+        ),
+        (
+            "--acknowledge-slurm-accounting-create-cost",
+            "--create-slurm-accounting-if-missing",
+        ),
+    ],
+)
+def test_create_command_rejects_unpaired_accounting_creation_approval_before_workflow(
+    monkeypatch,
+    tmp_path,
+    approval_flag: str,
+    missing_flag: str,
+) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    called = False
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+
+    def fake_run_create_workflow(_region_az: str, **_kwargs) -> int:
+        nonlocal called
+        called = True
+        return 0
+
+    monkeypatch.setattr(create_module, "run_create_workflow", fake_run_create_workflow)
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            "--config",
+            str(config_path),
+            "--non-interactive",
+            approval_flag,
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert called is False
+    assert "must be supplied together" in result.output
+    assert missing_flag in result.output
+
+
+def test_create_command_accepts_off_with_strict_flag_and_forwards_ignored_policy(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    calls: list[dict[str, object]] = []
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+    monkeypatch.setattr(
+        create_module,
+        "run_create_workflow",
+        lambda _region_az, **kwargs: calls.append(kwargs) or 0,
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            "--config",
+            str(config_path),
+            "--non-interactive",
+            "--slurm-accounting",
+            "off",
+            "--fail-on-sacct-error",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert calls[0]["slurm_accounting"] == "off"
+    assert calls[0]["fail_on_sacct_error"] is True
+
+
+def test_create_command_forwards_ursa_noninteractive_accounting_approvals(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    calls: list[dict[str, object]] = []
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+    monkeypatch.setattr(
+        create_module,
+        "run_create_workflow",
+        lambda _region_az, **kwargs: calls.append(kwargs) or 0,
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            "--config",
+            str(config_path),
+            "--non-interactive",
+            "--create-slurm-accounting-if-missing",
+            "--acknowledge-slurm-accounting-create-cost",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert calls[0]["non_interactive"] is True
+    assert calls[0]["slurm_accounting"] == "on"
+    assert calls[0]["create_slurm_accounting_if_missing"] is True
+    assert calls[0]["acknowledge_slurm_accounting_create_cost"] is True
+
+
+def test_create_command_help_exposes_postcreate_accounting_contract() -> None:
+    from typer.main import get_command
+
+    command = get_command(app).commands["create"]
+    options = {param.opts[0]: param for param in command.params if param.opts}
+
+    assert options["--slurm-accounting"].default == "on"
+    assert set(options["--slurm-accounting"].type.choices) == {"on", "off"}
+    assert options["--slurm-accounting"].type.case_sensitive is True
+    assert options["--fail-on-sacct-error"].default is False
+    assert options["--create-slurm-accounting-if-missing"].default is False
+    assert options["--acknowledge-slurm-accounting-create-cost"].default is False
+
+    result = runner.invoke(app, ["create", "--help"])
+    assert result.exit_code == 0
+    assert "--slurm-accounting" in result.output
+    assert "[on|off]" in result.output
+    assert "[default: on]" in result.output
+    assert "--fail-on-sacct-error" in result.output
+    assert "Ignored when" in result.output
 
 
 def test_create_command_passes_explicit_regional_cap_override(monkeypatch, tmp_path) -> None:
@@ -2239,10 +2475,10 @@ def test_headnode_configure_uses_workflow_configure(monkeypatch, tmp_path) -> No
     assert result.exit_code == 0
     assert calls["configure"] == {
         "cluster_name": "cluster-a",
-            "dyec_deploy_key_region": "",
-            "dyec_deploy_key_secret_arn": "",
-            "dyec_repo_ref": "",
-            "dyec_repo_url": "",
+        "dyec_deploy_key_region": "",
+        "dyec_deploy_key_secret_arn": "",
+        "dyec_repo_ref": "",
+        "dyec_repo_url": "",
         "dayoa_deploy_key_region": "",
         "dayoa_deploy_key_secret_arn": "",
         "head_node_instance_id": "i-abc123",
@@ -2298,10 +2534,10 @@ def test_headnode_configure_dragen_uses_ec2_user(monkeypatch, tmp_path) -> None:
     assert result.exit_code == 0
     assert calls["configure"] == {
         "cluster_name": "dragen-cluster",
-            "dyec_deploy_key_region": "",
-            "dyec_deploy_key_secret_arn": "",
-            "dyec_repo_ref": "",
-            "dyec_repo_url": "",
+        "dyec_deploy_key_region": "",
+        "dyec_deploy_key_secret_arn": "",
+        "dyec_repo_ref": "",
+        "dyec_repo_url": "",
         "dayoa_deploy_key_region": "",
         "dayoa_deploy_key_secret_arn": "",
         "head_node_instance_id": "i-drg123",
