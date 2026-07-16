@@ -19,9 +19,45 @@ to attach the one compatible regional accounting service. Accounting is on by
 default, but accounting-stage failures fail soft unless strict mode is
 requested; the successfully created cluster is retained.
 
-The implementation target is release `10.3.18`. If that tag becomes occupied
-before release, Agent 10 must record a plan amendment and use the next unused
-patch without moving any existing tag.
+The implementation target began as release `10.3.18`. Exact-tag live proof
+validated its accounting lifecycle, but also exposed a pre-existing INIT-panel
+leak of two configured deploy-key secret ARNs. Per the user's earlier explicit
+redaction approval, the immutable corrected release target is now `10.3.19`.
+The pushed `10.3.18` tag is not moved or overwritten.
+
+## Release amendment after exact-tag proof
+
+- PR #20 merged normally as `bff4cc48e92dd166496498c2652b9bf90e31cb43`.
+- Annotated tag object `1bf6f3cd6a28cd113f737ee3de4f06f3f04846fa`
+  names `10.3.18` and peels to that merge commit.
+- A detached exact-tag `10.3.18` worktree created the one authorized proof
+  cluster `ifx-sacctpost-10318` in `us-west-2c` using profile `lsmc`.
+- The initial rendered YAML contained neither
+  `Scheduling.SlurmSettings.Database` nor the selected accounting client
+  security group. The base cluster reached `CREATE_COMPLETE`; headnode
+  configuration and heartbeat completed; base state was persisted before the
+  accounting stage began.
+- The proof reused compatible regional singleton
+  `dayec-slurm-accounting-us-west-2c`; neither creation approval flag was
+  passed and no accounting service was created.
+- The supported update reached `UPDATE_COMPLETE`; the initially running fleet
+  returned to `RUNNING`; the receipt reached `complete`, records
+  `fleet_restored=true`, no error stage, and `recovery_required=false`; state
+  records accounting `ENABLED`.
+- Independent read-only validation through the central SSM helper as `ubuntu`
+  returned `Success`, `SACCT_OK`, and exit `0`. Receipt redaction scan passed.
+- The same live transcript exposed that two existing INIT `ui.detail` calls
+  printed deploy-key secret ARNs before preflight. Those calls are outside the
+  new accounting lifecycle but conflict with the approved output-redaction
+  contract. Release `10.3.19` removes only those two printed values and adds a
+  regression that injects both sentinel ARNs and proves they are absent from
+  all captured user-facing create output.
+- No second paid cluster is created: the accounting lifecycle was proven from
+  the exact `10.3.18` tag, while the `10.3.19` delta is limited to removing two
+  local INIT values plus its deterministic regression. The proof cluster,
+  P2 filesystem `fs-0942c7bce60871db8`, reference DRA
+  `dra-0468354fff8b1bbdc`, and all associated resources remain retained; no
+  deletion is authorized or performed.
 
 ## Public CLI contract
 
@@ -200,7 +236,7 @@ Result: `33 passed in 1.02s` on Python `3.11.15`, pytest `9.1.1`.
 | SACCT-POST-007 | State/output | Persist non-secret receipt fields, complete state/summaries, warning and recovery panels, fail-soft/strict exit semantics, and output redaction enforcement. | SUCCESS | legitimate_safety_handling | Gate 4 | Agent 7 | Strict receipt/status/stage models, deterministic receipt store/load, safe state application, fixed warning/status helpers, and removal of five sensitive `StateRecord` fields; state/redaction suites `39 passed`; Ruff, Black, mypy, and diff check passed. |  | Receipt/state/output APIs cannot accept arbitrary exception text or persist resolved URI, private IP, secret ARN, database, or username values. |
 | SACCT-POST-008 | Unit/contract tests | Add independent CLI, template, config, state, approval, output, and redaction regression coverage. | SUCCESS | contract_test | Gate 4 | Agent 8 | Twenty independent cases added across CLI defaults/modes/validation/help, Ursa paired approvals, template/config/render isolation, and output/receipt sentinel redaction; focused combined suite `260 passed`; Ruff, Black, and diff check passed. |  | Public contract and negative regression coverage is complete without product-code changes. |
 | SACCT-POST-009 | Lifecycle/docs tests | Add lifecycle, waiter, failure/recovery, ordering, integration, redaction, and documentation coverage. | SUCCESS | contract_test | Gate 4 | Agent 9 | Full ordering plus 16-case failure/recovery/redaction matrix, strict/soft exit and four-panel statuses, standalone attach preservation, README and CLI operator docs; focused `276 passed`; Ruff, Black, hard-link parity, and diff check passed. |  | Lifecycle recovery and operator guidance satisfy Gate 4; AWS setup was unchanged because permissions and quotas did not change. |
-| SACCT-POST-010 | Integration/release/proof | Integrate all rows; run focused and full verification; normally merge; create/push annotated unused patch tag; perform one exact-tag live proof; merge evidence; verify operator pin separately. | IN_PROGRESS | feature_implementation | Gate 5 | Agent 10 | Agent 10 integration pass: focused `562 passed`; complete repository `1686 passed, 11 skipped`; scoped Ruff and Black check passed; 11 changed source modules passed mypy with Python 3.11; the two pre-existing broad modules reproduced the same 19 baseline mypy findings on current `origin/main`; template parity and `git diff --check` passed. Remote `main` advanced from `d1e2ee40` to `ad747b56` during implementation and must be integrated before release. |  | Release, tag, exact-tag live proof, and follow-up evidence/pin merge remain open. |
+| SACCT-POST-010 | Integration/release/proof | Integrate all rows; run focused and full verification; normally merge; create/push annotated unused patch tag; perform one exact-tag live proof; merge evidence; verify operator pin separately. | IN_PROGRESS | feature_implementation | Gate 5 | Agent 10 | PR #20 merged as `bff4cc48`; annotated `10.3.18` pushed; exact-tag cluster `ifx-sacctpost-10318` proved accounting-free initial YAML, base state before accounting, existing singleton reuse without creation approvals, `UPDATE_COMPLETE`, fleet `RUNNING`, redacted complete receipt, state `ENABLED`, and independent ubuntu `SACCT_OK`. Live INIT output exposed two pre-existing deploy-key ARN prints; immutable corrected patch `10.3.19` and separate evidence/pin merge are in progress. | Pre-existing INIT details printed the two validated deploy-key secret ARNs even though the accounting lifecycle output itself remained redacted. | Do not move `10.3.18`; remove both INIT values, release `10.3.19`, then pin operators and close the ledger. |
 
 ## Required lifecycle and recovery contract
 
@@ -344,6 +380,10 @@ Validation recorded so far:
   the same remaining 19 findings, proving zero new mypy findings in those two
   changed modules.
 - Source/packaged create-template byte parity and `git diff --check` passed.
+- Corrected-release redaction validation: focused create-output cases `2
+  passed`; complete workflow suite `155 passed`; complete repository suite
+  `1693 passed, 11 skipped, 1 warning in 62.71s`; scoped Ruff, Black check,
+  and `git diff --check` passed.
 
 Remote integration note:
 

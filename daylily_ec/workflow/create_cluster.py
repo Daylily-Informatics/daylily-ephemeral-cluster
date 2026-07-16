@@ -2895,9 +2895,9 @@ def run_create_workflow(
         logger.error("Repository deploy-key input validation failed: %s", exc)
         ui.fail(f"Repository deploy-key inputs: {exc}")
         return EXIT_VALIDATION_FAILURE
-    ui.detail("DYEC deploy-key secret", dyec_deploy_key_inputs.secret_arn)
+    ui.detail("DYEC deploy-key secret", "validated")
     ui.detail("DYEC deploy-key policy", dyec_deploy_key_inputs.policy_arn)
-    ui.detail("DayOA deploy-key secret", dayoa_deploy_key_inputs.secret_arn)
+    ui.detail("DayOA deploy-key secret", "validated")
     ui.detail("DayOA deploy-key policy", dayoa_deploy_key_inputs.policy_arn)
     try:
         dyec_repo_spec = resolve_configured_headnode_repo_spec(deploy_key_auth=True)
