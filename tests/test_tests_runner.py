@@ -273,7 +273,7 @@ def test_render_dy_command_normalizes_flags_and_warmup() -> None:
 
 
 def test_render_hybrid_kitchensink_uses_fail_fast_catalog_policy() -> None:
-    command = load_repository_catalog().get_command("hybrid_ilmn_ont_snv_kitchensink")
+    command = load_repository_catalog().get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
 
     live = render_catalog_dy_command(command, jobs=None, dry_run=False)
     dry = render_catalog_dy_command(command, jobs=None, dry_run=True)
@@ -333,7 +333,7 @@ def test_write_sample_manifest_uses_command_specific_templates(tmp_path: Path) -
         catalog.get_command("all_metagenomic_pipelines"), metagenomics_dir
     )
     hybrid_manifest = write_sample_manifest(
-        catalog.get_command("hybrid_ilmn_ont_snv_kitchensink"), hybrid_dir
+        catalog.get_command("hybrid_ilmn_ont_hiomrs_kitchensink"), hybrid_dir
     )
     inflection_manifest = write_sample_manifest(
         catalog.get_command("inflection-bjuice-product-v0.1"), inflection_dir

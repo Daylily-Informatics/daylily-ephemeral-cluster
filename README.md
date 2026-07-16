@@ -398,6 +398,47 @@ The reference bucket is mounted to `/fsx/references` at cluster creation. It sho
 
 DYEC does not choose alternate references at runtime. If a command catalog row points to a missing path, the launch should fail during staging, profile activation, or workflow execution with a clear missing-asset error.
 
+## Analysis-root status
+
+Use the exact analysis-root status command for DayOA runs that were launched in
+an interactive headnode tmux pane. From the activated local DYEC checkout:
+
+```bash
+dyec analysis status slim \
+  --profile lsmc \
+  --region us-west-2 \
+  --cluster <cluster> \
+  --analysis-root /fsx/analysis_results/<cluster>/<analysis-id>
+
+dyec --json analysis status full \
+  --profile lsmc \
+  --region us-west-2 \
+  --cluster <cluster> \
+  --analysis-root /fsx/analysis_results/<cluster>/<analysis-id>
+```
+
+`slim` reports the latest Snakemake step count and percentage, controller
+evidence, exact-`WorkDir` Slurm state counts, FSx capacity, failure markers,
+and canonical final-artifact presence. `full` adds exact-root job details,
+active stdout/stderr tail markers and bounded excerpts, matching tmux-pane
+evidence, completed benchmark runtime/cost fields when present, scoped `sacct`
+attempts, Lustre client/health evidence, recent rule logs, and bounded Glances
+point samples from nodes allocated to the exact run. `--tail-lines` defaults to
+inspecting 1000 lines in full mode; the returned evidence stays bounded so SSM
+transport does not truncate the report.
+
+The command records a `monitor` visit but does not acquire the write lock or
+alter the workflow, Slurm, nodes, or results. It fails if the requested root or
+DayOA child is missing. Missing Slurm, tmux, benchmark, log, or telemetry
+evidence is reported explicitly. `SUCCESS` requires complete Snakemake progress,
+all canonical final artifacts, an observed controller return code of zero, and
+no active exact-root controller or jobs. `COMPLETE_ARTIFACTS_RC_UNKNOWN` means
+the outputs exist but terminal controller success could not be proved.
+
+When already inside the supported Ubuntu headnode login shell, omit
+`--profile`, `--region`, and `--cluster` and provide the same exact
+`--analysis-root`.
+
 ## Supporting Services
 
 - **Dewey**: DYEC can register exported DayOA evidence after a successful export when the command catalog declares an explicit `artifact_registration` policy.

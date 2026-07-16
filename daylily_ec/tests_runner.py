@@ -57,8 +57,8 @@ DYEC_RELEASED_CORE_COMMAND_IDS = (
     "ultima_snv_alignstats_kitchensink",
     "ont_snv_alignstats",
     "ont_snv_alignstats_kitchensink",
-    "hybrid_ilmn_ont_snv",
-    "hybrid_ilmn_ont_snv_kitchensink",
+    "hybrid_ilmn_ont_hiomrs",
+    "hybrid_ilmn_ont_hiomrs_kitchensink",
     "illumina_run_qc",
     "ont_run_qc",
     "ultima_run_qc",
@@ -69,7 +69,7 @@ KITCHEN_SINK_COMMAND_IDS = frozenset(
         "illumina_hg002_kitchensink_multiqc",
         "ultima_snv_alignstats_kitchensink",
         "ont_snv_alignstats_kitchensink",
-        "hybrid_ilmn_ont_snv_kitchensink",
+        "hybrid_ilmn_ont_hiomrs_kitchensink",
     }
 )
 

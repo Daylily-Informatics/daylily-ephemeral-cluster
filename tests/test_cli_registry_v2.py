@@ -95,6 +95,7 @@ EXPECTED_COMMANDS = {
     ("state", "list"),
     ("state", "show"),
     ("analysis", "visit"),
+    ("analysis", "status"),
     ("analysis", "guard"),
     ("analysis", "lock", "status"),
     ("analysis", "lock", "acquire"),
@@ -233,6 +234,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     state_list_cmd = registry.get_command(("state", "list"))
     state_show_cmd = registry.get_command(("state", "show"))
     analysis_visit_cmd = registry.get_command(("analysis", "visit"))
+    analysis_status_cmd = registry.get_command(("analysis", "status"))
     analysis_guard_cmd = registry.get_command(("analysis", "guard"))
     analysis_lock_status_cmd = registry.get_command(("analysis", "lock", "status"))
     analysis_lock_acquire_cmd = registry.get_command(("analysis", "lock", "acquire"))
@@ -419,6 +421,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert analysis_visit_cmd is not None
     assert analysis_visit_cmd.policy.supports_json is True
     assert analysis_visit_cmd.policy.mutates_state is True
+
+    assert analysis_status_cmd is not None
+    assert analysis_status_cmd.policy.supports_json is True
+    assert analysis_status_cmd.policy.mutates_state is True
+    assert analysis_status_cmd.policy.long_running is True
 
     assert analysis_guard_cmd is not None
     assert analysis_guard_cmd.policy.mutates_state is True

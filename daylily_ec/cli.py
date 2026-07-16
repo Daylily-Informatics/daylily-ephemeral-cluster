@@ -5581,6 +5581,103 @@ def analysis_visit(
         _exit_headnode_error(exc)
 
 
+def analysis_status(
+    mode: str = typer.Argument(..., help="Report detail: slim or full."),
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Exact analysis root path."),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS profile for remote cluster inspection.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region for remote cluster inspection.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="Cluster whose headnode contains the analysis root; omit when already on the headnode.",
+    ),
+    remote_user: str = typer.Option(
+        "ubuntu",
+        "--remote-user",
+        help="Remote SSM login user. DayOA headnodes normally use ubuntu.",
+    ),
+    tail_lines: int = typer.Option(
+        1000,
+        "--tail-lines",
+        min=1,
+        help="Lines inspected per active-job stream and master log in full mode.",
+    ),
+) -> None:
+    """Report exact-root DayOA progress, jobs, artifacts, filesystem, and telemetry."""
+
+    try:
+        from daylily_ec.analysis_status import collect_analysis_status, render_analysis_status
+
+        if cluster:
+            from daylily_ec.aws.ssm import run_shell, wait_for_ssm_online
+
+            _warn_if_dayec_env_inactive()
+            resolved_profile, resolved_region, resolved_cluster, target = (
+                _resolve_headnode_cli_target(
+                    profile=profile,
+                    region=region,
+                    cluster=cluster,
+                )
+            )
+            wait_for_ssm_online(
+                target.instance_id,
+                resolved_region,
+                profile=resolved_profile,
+                timeout=120,
+            )
+            remote_argv = [
+                "dyec",
+                "--json",
+                "analysis",
+                "status",
+                mode,
+                "--analysis-root",
+                analysis_root,
+                "--tail-lines",
+                str(tail_lines),
+            ]
+            script = (
+                "set -euo pipefail\n"
+                "command -v dyec >/dev/null\n"
+                + shlex.join(remote_argv)
+            )
+            result = run_shell(
+                target.instance_id,
+                resolved_region,
+                script,
+                profile=resolved_profile,
+                as_user=remote_user,
+                timeout=300,
+                comment=f"Daylily {mode} analysis status",
+            )
+            payload = _parse_workflow_status_payload(result.stdout)
+            payload["cluster"] = {
+                "name": resolved_cluster,
+                "region": resolved_region,
+                "headnode_instance_id": target.instance_id,
+            }
+        else:
+            if profile or region:
+                raise ValueError("--profile and --region require --cluster")
+            payload = collect_analysis_status(
+                analysis_root,
+                mode=mode,
+                tail_lines=tail_lines,
+            )
+        _emit_analysis_payload(payload, text=render_analysis_status(payload))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
 def analysis_guard(
     analysis_root: str = typer.Option(..., "--analysis-root", help="Analysis root path."),
     operation: str = typer.Option(
@@ -6384,6 +6481,11 @@ def register(registry, cli_spec) -> None:
         "analysis",
         "Analysis-root visit logging and ownership guards.",
         [
+            (
+                "status",
+                analysis_status,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
             ("visit", analysis_visit, required_policy(supports_json=True, mutates_state=True)),
             ("guard", analysis_guard, required_policy(mutates_state=True)),
         ],
