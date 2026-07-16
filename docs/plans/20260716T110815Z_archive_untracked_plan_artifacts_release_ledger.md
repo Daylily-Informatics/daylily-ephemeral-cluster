@@ -29,7 +29,7 @@ canonical checkout.
 | ARC-002 | Preserve the existing tracked Intel template-split ledger by moving it rather than duplicating it. | SUCCESS | historical_docs_only | Git records `20260716T025545Z_intel_spot_ondemand_template_split_ledger.md` as a rename into `old_files`. | No duplicate remains at the root of `docs/plans`. |
 | REL-001 | Advance source, packaged, and tested DYEC self-pins to `10.3.24`. | SUCCESS | config_or_startup_contract | Both global YAML copies and `DYEC_BLESSED_TAG` now name `10.3.24`; YAML parity assertion passed. | Release self-pins consistently. |
 | REL-002 | Validate archive payloads, pin parity, and focused release tests. | SUCCESS | contract_test | `45 passed`; Python/JSON/CSV/XML/shell/Node syntax checks; secret-pattern scan clean; archived CRLF CSV preserved byte-for-byte and marked `-diff -text` for a clean `git diff --check`. | Archive payload and release-pin gates passed. |
-| REL-003 | Commit, push the current feature branch, create an annotated `10.3.24` tag, and verify remote refs. | IN_PROGRESS | feature_implementation | Release commit and publication pending. | Pending. |
+| REL-003 | Commit, push the current feature branch, create an annotated `10.3.24` tag, and verify remote refs. | SUCCESS | feature_implementation | Release commit `cac55384`; remote branch matched it; annotated tag object `56dd4386` peeled to `cac55384` locally and on `origin`. | Branch and immutable release tag are published. |
 
 ## Guardrails
 
@@ -43,6 +43,6 @@ canonical checkout.
 
 ## Completion
 
-All rows terminal: no
+All rows terminal: yes
 
-Objective complete: no
+Objective complete: yes
