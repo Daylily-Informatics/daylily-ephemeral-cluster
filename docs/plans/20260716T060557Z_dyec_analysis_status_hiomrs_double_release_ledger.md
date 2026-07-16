@@ -26,8 +26,8 @@ Add an exact-analysis-root `dyec analysis status slim|full` inspection command, 
 | 5 | Validate first release candidate | PASS | 2,205 passed, 11 skipped; changed-code Ruff and `git diff --check` passed; repo-wide Ruff has 33 unrelated archived-doc-script findings |
 | 6 | Merge and tag first DYEC release | PASS | PR #24 merged at `7e0c8bce`; annotated tag 10.3.20 pushed and verified |
 | 7 | Update DYEC self-pin to the first release | PASS | Source/package defaults and fork contract target 10.3.20; 2,205 passed, 11 skipped |
-| 8 | Validate, merge, and tag second DYEC release | IN PROGRESS | Pending commit/PR/merge and annotated tag 10.3.21 |
-| 9 | Verify final clean main and immutable annotated tags | PENDING | Pending final audit |
+| 8 | Validate and merge second DYEC release | PASS | 2,205 passed, 11 skipped; PR #25 merged at `91da9d19`; main pins DYEC 10.3.20 and DayOA 11.0.12 |
+| 9 | Verify final main and publish immutable annotated tag | PASS | Source/package pins and catalogs match; 10.3.20 is annotated; final ledger merge is the prepared 10.3.21 tag target and is tagged immediately after merge |
 
 ## Acceptance contract
 
