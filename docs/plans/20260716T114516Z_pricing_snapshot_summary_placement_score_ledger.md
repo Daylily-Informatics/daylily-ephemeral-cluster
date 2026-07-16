@@ -51,6 +51,7 @@ Validation:
 
 - `ruff check daylily_ec/aws/pricing_snapshots.py daylily_ec/cli.py tests/test_pricing_snapshots.py tests/test_cli_registry_v2.py` -> passed
 - `pytest -q tests/test_pricing_snapshots.py tests/test_cli_registry_v2.py` -> 184 passed
+- Complete repository suite after rebasing onto the pushed `10.3.24` closeout tip: `python -m pytest -q` -> 2,224 passed, 11 skipped, one dependency deprecation warning in 80.71 seconds.
 - `git diff --check -- <owned files>` -> passed
 - Live table and JSON smoke checks with `--profile lsmc --region us-west-2 --partition i8 --target-capacity-vcpus 384` -> passed
 
