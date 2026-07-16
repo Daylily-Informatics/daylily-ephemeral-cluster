@@ -398,6 +398,22 @@ The reference bucket is mounted to `/fsx/references` at cluster creation. It sho
 
 DYEC does not choose alternate references at runtime. If a command catalog row points to a missing path, the launch should fail during staging, profile activation, or workflow execution with a clear missing-asset error.
 
+## Workflow controller target receipt
+
+Every successful `dyec workflow launch` emits the existing launch markers plus
+one `__DYEC_CONTROLLER_TARGET__=<json>` marker. The JSON schema is
+`dyec.controller_target.v1` and records the exact tmux controller ID and PID,
+analysis root, DayOA working directory, controller log, and stable DAG path.
+The same receipt is written atomically to
+`/home/ubuntu/daylily-runs/<session>/controller_target.json`.
+
+The receipt is launch evidence, not process discovery. DYEC does not infer a
+controller from a cluster name, a later `ps` search, or a path heuristic. The
+stable DAG file is populated only from the single new `dags/dag_*.png` emitted
+by this launch. A missing or ambiguous concrete DAG remains unavailable; DYEC
+does not substitute a rulegraph or choose a latest file. See
+[the controller target contract](docs/controller_target_contract.md).
+
 ## Analysis-root status
 
 Use the exact analysis-root status command for DayOA runs that were launched in

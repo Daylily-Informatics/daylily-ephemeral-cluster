@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+import posixpath
+import subprocess
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -13,6 +16,30 @@ import daylily_ec.scripts.daylily_cfg_headnode as cfg_headnode_module
 import daylily_ec.scripts.daylily_run_ephemeral_cluster_remote_tests as remote_tests_module
 import daylily_ec.scripts.daylily_run_omics_analysis_headnode as run_omics_module
 import daylily_ec.scripts.daylily_ssh_into_headnode as ssh_headnode_module
+
+
+def _controller_target_marker(
+    session_name: str,
+    repo_path: str,
+    *,
+    pid: int = 4242,
+) -> str:
+    analysis_root = posixpath.dirname(repo_path)
+    payload = {
+        "schema_version": "dyec.controller_target.v1",
+        "controller_id": session_name,
+        "pid": pid,
+        "cwd": repo_path,
+        "log_path": f"{repo_path}/.dyec/controller.log",
+        "dag_path": f"{repo_path}/.dyec/controller-dag.png",
+        "analysis_root": analysis_root,
+    }
+    return "\n".join(
+        [
+            f"__DAYLILY_TMUX_SESSION__={session_name}",
+            "__DYEC_CONTROLLER_TARGET__=" + json.dumps(payload, separators=(",", ":")),
+        ]
+    )
 
 
 class TestSshIntoHeadnodeScript:
@@ -200,15 +227,87 @@ class TestRunOmicsAnalysisHeadnodeScript:
                     "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1",
                     "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis",
                     "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true",
+                    _controller_target_marker(
+                        "sess-1",
+                        "/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis",
+                    ),
                 ]
             )
             + "\n"
         )
 
         assert launch.session_name == "sess-1"
+        assert launch.tmux_session_name == "sess-1"
         assert launch.run_dir == "/home/ubuntu/daylily-runs/sess-1"
         assert launch.repo_path.endswith("/daylily-omics-analysis")
         assert "--produce-ursa-manifest true" in launch.dy_command
+        assert launch.controller_target.controller_id == "sess-1"
+        assert launch.controller_target.pid == 4242
+        assert launch.controller_target.analysis_root == "/fsx/analysis_results/johnm/dayoa"
+
+    @pytest.mark.parametrize(
+        ("updates", "match"),
+        [
+            ({"schema_version": "dyec.controller_target.v2"}, "schema must be"),
+            ({"pid": 0}, "positive integer"),
+            ({"cwd": "relative/path"}, "canonical absolute path"),
+            (
+                {"log_path": "/home/ubuntu/daylily-runs/controller.log"},
+                "log_path must be within cwd",
+            ),
+            (
+                {"dag_path": "/fsx/analysis_results/other/dag.png"},
+                "dag_path must be within cwd",
+            ),
+        ],
+    )
+    def test_parse_controller_target_rejects_non_source_contracts(self, updates, match):
+        repo_path = "/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis"
+        payload = json.loads(
+            _controller_target_marker("sess-1", repo_path).splitlines()[-1].split("=", 1)[1]
+        )
+        payload.update(updates)
+
+        with pytest.raises(CommandError, match=match):
+            run_omics_module.parse_controller_target(json.dumps(payload))
+
+    def test_parse_workflow_launch_rejects_duplicate_or_mismatched_controller_identity(self):
+        repo_path = "/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis"
+        common = "\n".join(
+            [
+                "__DAYLILY_SESSION__=sess-1",
+                "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1",
+                f"__DAYLILY_REPO_PATH__={repo_path}",
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-dag true",
+            ]
+        )
+        marker = _controller_target_marker("sess-1", repo_path)
+        with pytest.raises(CommandError, match="duplicate controller target"):
+            run_omics_module.parse_workflow_launch(f"{common}\n{marker}\n{marker}\n")
+
+        mismatched = _controller_target_marker("sess-1", repo_path).replace(
+            '"controller_id":"sess-1"', '"controller_id":"different-session"'
+        )
+        with pytest.raises(CommandError, match="identifiers disagree"):
+            run_omics_module.parse_workflow_launch(f"{common}\n{mismatched}\n")
+
+    def test_parse_workflow_launch_uses_actual_sanitized_tmux_session_identity(self):
+        repo_path = "/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis"
+        stdout = "\n".join(
+            [
+                "__DAYLILY_SESSION__=analysis:requested",
+                "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/analysis:requested",
+                f"__DAYLILY_REPO_PATH__={repo_path}",
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-dag true",
+                _controller_target_marker("analysis_requested", repo_path),
+            ]
+        )
+
+        launch = run_omics_module.parse_workflow_launch(stdout)
+
+        assert launch.session_name == "analysis:requested"
+        assert launch.tmux_session_name == "analysis_requested"
+        assert launch.controller_target.controller_id == "analysis_requested"
 
     def test_build_default_command_includes_requested_flags(self):
         command = run_omics_module.build_default_command(
@@ -367,6 +466,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/analysis/daylily-omics-analysis\n"
                 "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
+                + _controller_target_marker(
+                    "sess-1",
+                    "/fsx/analysis_results/johnm/analysis/daylily-omics-analysis",
+                )
+                + "\n"
             ),
             stderr="",
         ),
@@ -446,17 +550,39 @@ class TestRunOmicsAnalysisHeadnodeScript:
             comment="Validate DAY-EC headnode readiness before workflow launch",
         )
         script = mock_run_shell.call_args.args[2]
+        outer_syntax = subprocess.run(
+            ["bash", "-n"], input=script, text=True, capture_output=True, check=False
+        )
+        assert outer_syntax.returncode == 0, outer_syntax.stderr
+        pipeline = script.split("cat <<'PAYLOAD' > \"$work_script\"\n", 1)[1].split(
+            "\nPAYLOAD\n", 1
+        )[0]
+        pipeline_syntax = subprocess.run(
+            ["bash", "-n"], input=pipeline, text=True, capture_output=True, check=False
+        )
+        assert pipeline_syntax.returncode == 0, pipeline_syntax.stderr
         assert 'run_dir="/home/ubuntu/daylily-runs/$SESSION_NAME"' in script
-        assert 'work_script="$run_dir/launch.sh"' in script
+        assert 'work_script="$run_dir/dayoa-controller-launch.sh"' in script
         assert 'tmux_log="$run_dir/tmux.log"' in script
+        assert 'controller_target_file="$run_dir/controller_target.json"' in script
+        assert 'controller_log_path="$repo_path/.dyec/controller.log"' in script
+        assert 'controller_dag_path="$repo_path/.dyec/controller-dag.png"' in script
         assert 'STATUS_FILE="${DAYLILY_RUN_DIR}/status.json"' in script
+        assert 'export DAYLILY_CONTROLLER_PID="$BASHPID"' in script
+        assert "dyec.controller_target.v1" in script
         assert "python3 -c " in script
         assert "nohup tmux new-session" in script
         assert 'env DAYLILY_RUN_DIR="$run_dir"' in script
         assert 'DAYLILY_REPO_PATH="$repo_path"' in script
         assert 'DAYLILY_TMUX_LOG="$tmux_log"' in script
+        assert 'DAYLILY_TMUX_SESSION="$tmux_session_name"' in script
+        assert 'DAYLILY_CONTROLLER_TARGET_FILE="$controller_target_file"' in script
         assert 'tmux_session_name="${SESSION_NAME//[^A-Za-z0-9_-]/_}"' in script
         assert 'tmux has-session -t "=$tmux_session_name"' in script
+        assert 'exec > >(tee -a "$CONTROLLER_LOG_PATH") 2>&1' in script
+        assert "-name 'dag_*.png'" in script
+        assert 'comm -13 "$controller_dag_baseline" "$current"' in script
+        assert "rulegraph" not in script[script.index("sync_controller_dag"):script.index("should_export=false")]
         assert 'runtime_tmp_name="${SESSION_NAME//[^A-Za-z0-9_-]/_}"' in script
         assert (
             'export DAYOA_RUNTIME_TMPDIR="${DAYOA_RUNTIME_TMPDIR:-/tmp/dayoa-conda-tmp-$runtime_tmp_name}"'
@@ -546,6 +672,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert (
             "Workflow repo path: /fsx/analysis_results/johnm/analysis/daylily-omics-analysis" in out
         )
+        assert 'Controller target: {"analysis_root": "/fsx/analysis_results/johnm/analysis"' in out
         assert (
             "daylily-ssh-into-headnode --profile dev --region us-west-2 --cluster cluster-a" in out
         )
@@ -559,6 +686,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/run-qc\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/run-qc/daylily-omics-analysis\n"
                 "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
+                + _controller_target_marker(
+                    "run-qc",
+                    "/fsx/analysis_results/johnm/run-qc/daylily-omics-analysis",
+                )
+                + "\n"
             ),
             stderr="",
         ),
@@ -644,6 +776,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sample-config\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/sample-config/daylily-omics-analysis\n"
                 "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
+                + _controller_target_marker(
+                    "sample-config",
+                    "/fsx/analysis_results/johnm/sample-config/daylily-omics-analysis",
+                )
+                + "\n"
             ),
             stderr="",
         ),
@@ -725,6 +862,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/bcl-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/bcl-run/daylily-omics-analysis\n"
                 "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
+                + _controller_target_marker(
+                    "bcl-run",
+                    "/fsx/analysis_results/johnm/bcl-run/daylily-omics-analysis",
+                )
+                + "\n"
             ),
             stderr="",
         ),
@@ -840,6 +982,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/ultima-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/ultima-run/daylily-omics-analysis\n"
                 "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
+                + _controller_target_marker(
+                    "ultima-run",
+                    "/fsx/analysis_results/johnm/ultima-run/daylily-omics-analysis",
+                )
+                + "\n"
             ),
             stderr="",
         ),
@@ -917,6 +1064,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/ont-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/ont-run/daylily-omics-analysis\n"
                 "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
+                + _controller_target_marker(
+                    "ont-run",
+                    "/fsx/analysis_results/johnm/ont-run/daylily-omics-analysis",
+                )
+                + "\n"
             ),
             stderr="",
         ),
@@ -1001,6 +1153,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/alignstats-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/alignstats-run/daylily-omics-analysis\n"
                 "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
+                + _controller_target_marker(
+                    "alignstats-run",
+                    "/fsx/analysis_results/johnm/alignstats-run/daylily-omics-analysis",
+                )
+                + "\n"
             ),
             stderr="",
         ),
@@ -1081,6 +1238,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/snv-concordance-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/snv-concordance-run/daylily-omics-analysis\n"
                 "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
+                + _controller_target_marker(
+                    "snv-concordance-run",
+                    "/fsx/analysis_results/johnm/snv-concordance-run/daylily-omics-analysis",
+                )
+                + "\n"
             ),
             stderr="",
         ),
@@ -1151,6 +1313,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/kitchensink-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/kitchensink-run/daylily-omics-analysis\n"
                 "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
+                + _controller_target_marker(
+                    "kitchensink-run",
+                    "/fsx/analysis_results/johnm/kitchensink-run/daylily-omics-analysis",
+                )
+                + "\n"
             ),
             stderr="",
         ),
@@ -1251,6 +1418,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/simple-test\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/simple-test/daylily-omics-analysis\n"
                 "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
+                + _controller_target_marker(
+                    "simple-test",
+                    "/fsx/analysis_results/johnm/simple-test/daylily-omics-analysis",
+                )
+                + "\n"
             ),
             stderr="",
         ),

@@ -7,6 +7,7 @@ import base64
 import gzip
 import json
 import os
+import posixpath
 import shlex
 import sys
 from dataclasses import dataclass
@@ -33,6 +34,7 @@ from daylily_ec.workflow.dyr_preflight import (
 
 
 STAGE_CONFIG_DISCOVERY_TIMEOUT_SECONDS = 180
+CONTROLLER_TARGET_SCHEMA_VERSION = "dyec.controller_target.v1"
 
 
 def shlex_quote_compressed_python(source: str) -> str:
@@ -275,12 +277,36 @@ class RemoteConfig:
     units_path: str
 
 
-@dataclass
+@dataclass(frozen=True)
+class ControllerTargetReceipt:
+    schema_version: str
+    controller_id: str
+    pid: int
+    cwd: str
+    log_path: str
+    dag_path: str
+    analysis_root: str
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "schema_version": self.schema_version,
+            "controller_id": self.controller_id,
+            "pid": self.pid,
+            "cwd": self.cwd,
+            "log_path": self.log_path,
+            "dag_path": self.dag_path,
+            "analysis_root": self.analysis_root,
+        }
+
+
+@dataclass(frozen=True)
 class WorkflowLaunchInfo:
     session_name: str
+    tmux_session_name: str
     run_dir: str
     repo_path: str
     dy_command: str
+    controller_target: ControllerTargetReceipt
 
 
 def normalize_remote_path(path: str) -> str:
@@ -307,26 +333,117 @@ def parse_remote_config(stdout: str) -> RemoteConfig:
     return RemoteConfig(stage_dir, samples_path, units_path)
 
 
+def _controller_target_path(value: object, *, field: str) -> str:
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise CommandError(f"controller target {field} must be non-empty text")
+    if not value.startswith("/") or posixpath.normpath(value) != value:
+        raise CommandError(f"controller target {field} must be a canonical absolute path")
+    return value
+
+
+def _path_within(path: str, root: str) -> bool:
+    return path == root or path.startswith(root.rstrip("/") + "/")
+
+
+def parse_controller_target(raw: str) -> ControllerTargetReceipt:
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise CommandError("controller target receipt is not valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise CommandError("controller target receipt must be a JSON object")
+    required = {
+        "schema_version",
+        "controller_id",
+        "pid",
+        "cwd",
+        "log_path",
+        "dag_path",
+        "analysis_root",
+    }
+    if set(payload) != required:
+        missing = sorted(required.difference(payload))
+        unexpected = sorted(set(payload).difference(required))
+        details = []
+        if missing:
+            details.append("missing " + ", ".join(missing))
+        if unexpected:
+            details.append("unexpected " + ", ".join(unexpected))
+        raise CommandError("controller target receipt fields are invalid: " + "; ".join(details))
+    if payload["schema_version"] != CONTROLLER_TARGET_SCHEMA_VERSION:
+        raise CommandError(
+            "controller target receipt schema must be " + CONTROLLER_TARGET_SCHEMA_VERSION
+        )
+    controller_id = payload["controller_id"]
+    if not isinstance(controller_id, str) or not controller_id or controller_id != controller_id.strip():
+        raise CommandError("controller target controller_id must be non-empty text")
+    pid = payload["pid"]
+    if isinstance(pid, bool) or not isinstance(pid, int) or pid < 1:
+        raise CommandError("controller target pid must be a positive integer")
+    analysis_root = _controller_target_path(payload["analysis_root"], field="analysis_root")
+    cwd = _controller_target_path(payload["cwd"], field="cwd")
+    log_path = _controller_target_path(payload["log_path"], field="log_path")
+    dag_path = _controller_target_path(payload["dag_path"], field="dag_path")
+    if not _path_within(cwd, analysis_root):
+        raise CommandError("controller target cwd must be within analysis_root")
+    if not _path_within(log_path, cwd):
+        raise CommandError("controller target log_path must be within cwd")
+    if not _path_within(dag_path, cwd):
+        raise CommandError("controller target dag_path must be within cwd")
+    if log_path == dag_path:
+        raise CommandError("controller target log_path and dag_path must be different")
+    return ControllerTargetReceipt(
+        schema_version=CONTROLLER_TARGET_SCHEMA_VERSION,
+        controller_id=controller_id,
+        pid=pid,
+        cwd=cwd,
+        log_path=log_path,
+        dag_path=dag_path,
+        analysis_root=analysis_root,
+    )
+
+
 def parse_workflow_launch(stdout: str) -> WorkflowLaunchInfo:
-    session_name = run_dir = repo_path = dy_command = None
+    session_name = tmux_session_name = run_dir = repo_path = dy_command = None
+    controller_target = None
     for line in stdout.splitlines():
         if line.startswith("__DAYLILY_SESSION__="):
             session_name = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_TMUX_SESSION__="):
+            tmux_session_name = line.split("=", 1)[1].strip()
         elif line.startswith("__DAYLILY_RUN_DIR__="):
             run_dir = line.split("=", 1)[1].strip()
         elif line.startswith("__DAYLILY_REPO_PATH__="):
             repo_path = line.split("=", 1)[1].strip()
         elif line.startswith("__DAYLILY_DY_COMMAND__="):
             dy_command = line.split("=", 1)[1].strip()
+        elif line.startswith("__DYEC_CONTROLLER_TARGET__="):
+            if controller_target is not None:
+                raise CommandError("workflow launch reported duplicate controller target receipts")
+            controller_target = parse_controller_target(line.split("=", 1)[1].strip())
         elif line.startswith("__DAYLILY_ERROR__="):
             raise CommandError(line.split("=", 1)[1])
-    if not (session_name and run_dir and repo_path and dy_command):
+    if not (
+        session_name
+        and tmux_session_name
+        and run_dir
+        and repo_path
+        and dy_command
+        and controller_target
+    ):
         raise CommandError("Tmux session creation did not report success.")
+    if controller_target.controller_id != tmux_session_name:
+        raise CommandError("workflow tmux session and controller target identifiers disagree")
+    expected_analysis_root = posixpath.dirname(repo_path)
+    if controller_target.cwd != repo_path or controller_target.analysis_root != expected_analysis_root:
+        raise CommandError("workflow paths and controller target paths disagree")
     return WorkflowLaunchInfo(
         session_name=session_name,
+        tmux_session_name=tmux_session_name,
         run_dir=run_dir,
         repo_path=repo_path,
         dy_command=dy_command,
+        controller_target=controller_target,
     )
 
 
@@ -862,6 +979,22 @@ def main(argv: Optional[List[str]] = None) -> int:
         "path.parent.mkdir(parents=True, exist_ok=True); "
         "path.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\\n', encoding='utf-8')"
     )
+    write_controller_target_python = shlex.quote(
+        "import json, os, pathlib; "
+        "path = pathlib.Path(os.environ['DAYLILY_CONTROLLER_TARGET_FILE']); "
+        "payload = dict("
+        f"schema_version={CONTROLLER_TARGET_SCHEMA_VERSION!r}, "
+        "controller_id=os.environ['DAYLILY_TMUX_SESSION'], "
+        "pid=int(os.environ['DAYLILY_CONTROLLER_PID']), "
+        "cwd=os.environ['DAYLILY_REPO_PATH'], "
+        "log_path=os.environ['DAYLILY_CONTROLLER_LOG_PATH'], "
+        "dag_path=os.environ['DAYLILY_CONTROLLER_DAG_PATH'], "
+        "analysis_root=str(pathlib.PurePosixPath(os.environ['DAYLILY_REPO_PATH']).parent)); "
+        "temporary = path.with_name(path.name + '.tmp'); "
+        "temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\\n', "
+        "encoding='utf-8'); "
+        "os.replace(temporary, path)"
+    )
     run_context_projection_python = shlex.quote(BCL_RUN_CONTEXT_PROJECTION_SCRIPT)
     bclconvert_profile_patch_python = shlex.quote(BCLCONVERT_PROFILE_PATCH_SCRIPT)
     pipeline_script = f"""
@@ -912,6 +1045,9 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	DEWEY_URSA_ANALYSIS_EUID={shlex.quote(args.dewey_ursa_analysis_euid)}
 STATUS_FILE="${{DAYLILY_RUN_DIR}}/status.json"
 TMUX_LOG="${{DAYLILY_TMUX_LOG}}"
+CONTROLLER_TARGET_FILE="${{DAYLILY_CONTROLLER_TARGET_FILE}}"
+CONTROLLER_LOG_PATH="${{DAYLILY_CONTROLLER_LOG_PATH}}"
+CONTROLLER_DAG_PATH="${{DAYLILY_CONTROLLER_DAG_PATH}}"
 
 write_status() {{
   python3 -c {write_status_python}
@@ -921,6 +1057,8 @@ export DAYLILY_STATUS_FILE="$STATUS_FILE"
 export DAYLILY_STATUS_SESSION="$SESSION_NAME"
 export DAYLILY_STATUS_REPO_PATH="${{DAYLILY_REPO_PATH}}"
 export DAYLILY_STATUS_COMMAND="$DY_COMMAND"
+export DAYLILY_CONTROLLER_PID="$BASHPID"
+python3 -c {write_controller_target_python}
 runtime_tmp_name="${{SESSION_NAME//[^A-Za-z0-9_-]/_}}"
 if [[ -z "$runtime_tmp_name" ]]; then
   echo "__DAYLILY_ERROR__=invalid_runtime_tmp_name"
@@ -978,8 +1116,10 @@ day-clone \
   --executing-entity "$EXECUTING_ENTITY" \
   --repository {shlex.quote(args.repository)} \
   --git-tag {shlex.quote(args.git_tag)}
-	cd "$repo_path"
-	mkdir -p config
+cd "$repo_path"
+mkdir -p "$(dirname "$CONTROLLER_LOG_PATH")" "$(dirname "$CONTROLLER_DAG_PATH")"
+exec > >(tee -a "$CONTROLLER_LOG_PATH") 2>&1
+mkdir -p config
 
 extract_runtime_config_path() {{
   local key="$1"
@@ -2006,10 +2146,80 @@ fi
 	if contam_identity_zero_variant_runtime_repair_requested; then
 	  patch_contam_identity_zero_variant_outputs
 	fi
+	controller_dag_baseline="$DAYLILY_RUN_DIR/controller-dag-baseline.txt"
+	controller_dag_stop="$DAYLILY_RUN_DIR/controller-dag-monitor.stop"
+	controller_dag_error="$DAYLILY_RUN_DIR/controller-dag-error.txt"
+	controller_dag_source="$DAYLILY_RUN_DIR/controller-dag-source.txt"
+	rm -f "$controller_dag_stop" "$controller_dag_error" "$controller_dag_source"
+	if [[ -d "$repo_path/dags" ]]; then
+	  find "$repo_path/dags" -maxdepth 1 -type f -name 'dag_*.png' -print | sort \
+	    > "$controller_dag_baseline"
+	else
+	  : > "$controller_dag_baseline"
+	fi
+
+	sync_controller_dag() {{
+	  local current="$DAYLILY_RUN_DIR/controller-dag-current.txt"
+	  local -a candidates=()
+	  if [[ -s "$CONTROLLER_DAG_PATH" ]]; then
+	    return 0
+	  fi
+	  if [[ -d "$repo_path/dags" ]]; then
+	    find "$repo_path/dags" -maxdepth 1 -type f -name 'dag_*.png' -print | sort > "$current"
+	  else
+	    : > "$current"
+	  fi
+	  mapfile -t candidates < <(comm -13 "$controller_dag_baseline" "$current")
+	  if [[ "${{#candidates[@]}}" -eq 0 ]]; then
+	    return 1
+	  fi
+	  if [[ "${{#candidates[@]}}" -ne 1 ]]; then
+	    printf 'ambiguous new DAG files:\n%s\n' "${{candidates[*]}}" > "$controller_dag_error"
+	    return 2
+	  fi
+	  cp --no-clobber -- "${{candidates[0]}}" "$CONTROLLER_DAG_PATH"
+	  if [[ ! -s "$CONTROLLER_DAG_PATH" ]]; then
+	    printf 'failed to create stable DAG copy from %s\n' "${{candidates[0]}}" \
+	      > "$controller_dag_error"
+	    return 2
+	  fi
+	  printf '%s\n' "${{candidates[0]}}" > "$controller_dag_source"
+	  return 0
+	}}
+
+	monitor_controller_dag() {{
+	  while [[ ! -e "$controller_dag_stop" ]]; do
+	    if sync_controller_dag; then
+	      return 0
+	    fi
+	    if [[ -s "$controller_dag_error" ]]; then
+	      return 2
+	    fi
+	    sleep 1
+	  done
+	  return 0
+	}}
+
+	monitor_controller_dag &
+	controller_dag_monitor_pid=$!
 	set +e
 	run_dy_command "$DY_COMMAND"
 workflow_status=$?
 set -e
+	touch "$controller_dag_stop"
+	set +e
+	wait "$controller_dag_monitor_pid"
+	controller_dag_monitor_status=$?
+	sync_controller_dag
+	controller_dag_sync_status=$?
+	set -e
+	if [[ "$controller_dag_monitor_status" -eq 2 || "$controller_dag_sync_status" -eq 2 ]]; then
+	  echo "[ERROR] Controller DAG evidence was ambiguous or could not be copied"
+	  [[ "$workflow_status" -ne 0 ]] || workflow_status=24
+	elif [[ "$DY_COMMAND" == *"--produce-dag true"* && ! -s "$CONTROLLER_DAG_PATH" ]]; then
+	  echo "[ERROR] DY_COMMAND requested a DAG but no exact new DAG PNG was produced"
+	  [[ "$workflow_status" -ne 0 ]] || workflow_status=24
+	fi
 should_export=false
 case "$EXPORT_TRIGGER" in
   none) should_export=false ;;
@@ -2112,10 +2322,13 @@ analysis_root=${{analysis_root%/}}
 run_dir="/home/ubuntu/daylily-runs/$SESSION_NAME"
 clone_root="$analysis_root/$EXECUTING_ENTITY/$ANALYSIS_ID"
 repo_path="$clone_root/$repo_relative"
-work_script="$run_dir/launch.sh"
+work_script="$run_dir/dayoa-controller-launch.sh"
 tmux_log="$run_dir/tmux.log"
 bootstrap_log="$run_dir/tmux-bootstrap.log"
 status_file="$run_dir/status.json"
+controller_target_file="$run_dir/controller_target.json"
+controller_log_path="$repo_path/.dyec/controller.log"
+controller_dag_path="$repo_path/.dyec/controller-dag.png"
 mkdir -p "$run_dir"
 : >"$tmux_log"
 export DAYLILY_RUN_DIR="$run_dir"
@@ -2152,12 +2365,28 @@ cat <<'PAYLOAD' > "$work_script"
 PAYLOAD
 chmod 0700 "$work_script"
 nohup tmux new-session -d -s "$tmux_session_name" \
-  "env DAYLILY_RUN_DIR=\"$run_dir\" DAYLILY_REPO_PATH=\"$repo_path\" DAYLILY_TMUX_LOG=\"$tmux_log\" bash -lc 'source \"$work_script\" >>\"$tmux_log\" 2>&1'" >"$bootstrap_log" 2>&1 &
+  "env DAYLILY_RUN_DIR=\"$run_dir\" DAYLILY_REPO_PATH=\"$repo_path\" DAYLILY_TMUX_LOG=\"$tmux_log\" DAYLILY_TMUX_SESSION=\"$tmux_session_name\" DAYLILY_CONTROLLER_TARGET_FILE=\"$controller_target_file\" DAYLILY_CONTROLLER_LOG_PATH=\"$controller_log_path\" DAYLILY_CONTROLLER_DAG_PATH=\"$controller_dag_path\" bash -lc 'source \"$work_script\" >>\"$tmux_log\" 2>&1'" >"$bootstrap_log" 2>&1 &
+
+emit_controller_target() {{
+  if [[ ! -s "$controller_target_file" ]]; then
+    echo "__DAYLILY_ERROR__=controller_target_missing"
+    return 1
+  fi
+  python3 - "$controller_target_file" <<'PYTARGET'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+print("__DYEC_CONTROLLER_TARGET__=" + json.dumps(payload, separators=(",", ":")))
+PYTARGET
+}}
+
 SESSION_START_DEADLINE=$((SECONDS + 60))
 session_ready=false
 quick_status=""
 while true; do
-  if tmux has-session -t "=$tmux_session_name" 2>/dev/null; then
+  if tmux has-session -t "=$tmux_session_name" 2>/dev/null && [[ -s "$controller_target_file" ]]; then
     session_ready=true
     break
   fi
@@ -2190,6 +2419,7 @@ if [[ "$session_ready" != "true" ]]; then
     echo "__DAYLILY_RUN_DIR__=$run_dir"
     echo "__DAYLILY_REPO_PATH__=$repo_path"
     printf '%s\n' {shlex.quote(f"__DAYLILY_DY_COMMAND__={dy_command}")}
+    emit_controller_target
     exit 0
   fi
   if [[ -s "$bootstrap_log" ]]; then
@@ -2206,6 +2436,7 @@ echo "__DAYLILY_TMUX_SESSION__=$tmux_session_name"
 echo "__DAYLILY_RUN_DIR__=$run_dir"
 echo "__DAYLILY_REPO_PATH__=$repo_path"
 printf '%s\n' {shlex.quote(f"__DAYLILY_DY_COMMAND__={dy_command}")}
+emit_controller_target
 """
 
     result = run_shell(
@@ -2226,6 +2457,10 @@ printf '%s\n' {shlex.quote(f"__DAYLILY_DY_COMMAND__={dy_command}")}
     print(f"Run state directory: {launch_info.run_dir}")
     print(f"Workflow repo path: {launch_info.repo_path}")
     print(f"Effective dy-r command: {launch_info.dy_command}")
+    print(
+        "Controller target: "
+        + json.dumps(launch_info.controller_target.to_dict(), sort_keys=True)
+    )
     print(
         "Reconnect with: daylily-ssh-into-headnode --profile {profile} --region {region} --cluster {cluster}".format(
             profile=args.profile,
