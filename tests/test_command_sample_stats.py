@@ -27,14 +27,19 @@ def _status(root: Path) -> dict:
         root / "daylily-omics-analysis" / ".snakemake" / "log" / "run.snakemake.log",
         "3 of 9 steps (33%) done\nTrying to restart job 7\n",
     )
+    stdout = _write(root / "daylily-omics-analysis" / "logs" / "HG003_unit.out", "ETA 00:10:00\n")
+    stderr = _write(root / "daylily-omics-analysis" / "logs" / "HG003_unit.err", "")
     return {
+        "state": "RUNNING",
         "workflow": {
             "master_log": str(master),
             "progress": {"completed": 3, "total": 9, "percent": 33},
+            "scheduled_rules": ["hiomrs_longreadsv"],
             "failure_count": 0,
             "failure_lines": [],
         },
         "controller": {
+            "return_code": None,
             "processes": [{"elapsed_seconds": 600}],
             "tmux_panes": [
                 {
@@ -44,19 +49,50 @@ def _status(root: Path) -> dict:
             ],
         },
         "slurm": {
+            "available": True,
             "jobs": [
                 {
+                    "job_id": "123",
                     "name": "rule_HG003_unit",
                     "state": "RUNNING",
+                    "reason": "None",
                     "elapsed": "00:04:00",
                     "restart_count": 0,
                     "comment": "project-a",
+                    "stdout": str(stdout),
+                    "stderr": str(stderr),
+                    "stdout_tail": {
+                        "path": str(stdout),
+                        "progress_markers": ["ETA 00:10:00"],
+                    },
+                    "stderr_tail": {"path": str(stderr), "progress_markers": []},
                 }
-            ]
+            ],
         },
-        "accounting": {"jobs": []},
-        "canonical_artifacts": {"all_present": False},
+        "accounting": {"available": True, "jobs": []},
+        "canonical_artifacts": {"all_present": False, "files": {}},
+        "terminal_evidence": {
+            "return_code": None,
+            "requirements": {
+                "controller_exit_zero": False,
+                "controller_inactive": False,
+                "scheduler_idle": False,
+                "workflow_progress_complete": False,
+                "strict_artifacts_present": False,
+            },
+            "success_verified": False,
+        },
+        "job_counts": {
+            "submitted": {"value": 4, "available": True, "source": str(master)},
+            "completed": {"value": 3, "available": True, "source": str(master)},
+            "failed": {"value": 0, "available": True, "source": "sacct"},
+            "running": {"value": 1, "available": True, "source": "squeue"},
+            "pending": {"value": 0, "available": True, "source": "squeue"},
+            "still_to_run": {"value": 6, "available": True, "source": str(master)},
+            "dependency_blocked": {"value": 0, "available": True, "source": "squeue"},
+        },
         "benchmarks": {"completed_cost_usd_sum": 1.25},
+        "recent_rule_logs": {"recent": []},
     }
 
 
@@ -115,6 +151,18 @@ def analysis_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         json.dumps({"observed_sex": "XY"}),
     )
     _write(
+        sr / "sv" / "hiomrs" / f"{unit}.hiomrs_sr.na.hiomrs.sv.provenance.json",
+        json.dumps(
+            {
+                "schema_version": 1,
+                "selected_callset": "sentieon_longreadsv",
+                "workflow_rule": "hiomrs_longreadsv",
+                "longreadsv": {"status": "complete", "return_code": 0},
+                "short_read_fallback": {"status": "not_run", "return_code": None},
+            }
+        ),
+    )
+    _write(
         build / unit / f"{unit}_metadata.json",
         json.dumps(
             {
@@ -130,6 +178,10 @@ def analysis_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         "Sample\tVariantClass\tSNVCaller\tROI\tFscore\nHG003_unit\tSNV\thiomrs\tgiabHC\t0.998\n",
     )
     _write(dayoa / "dags" / "rulegraph.png", "png-data")
+    _write(
+        build / "reports" / "benchmarks_summary.tsv",
+        "sample\trule\ts\ttask_cost\nHG003_unit\thiomrs_core\t120\t0.25\n",
+    )
     status = _status(root)
     monkeypatch.setattr(module, "collect_analysis_status", lambda *_args, **_kwargs: status)
     monkeypatch.setattr(
@@ -154,6 +206,8 @@ def test_collect_sample_stats_contract(analysis_root: Path) -> None:
 
     assert list(payload) == ["bjuice10"]
     report = payload["bjuice10"]
+    assert report["schema_version"] == "dyec.command_sample_stats.v2"
+    assert report["compatible_schema_versions"] == ["dyec.command_sample_stats.v1"]
     assert report["command_details"]["command_catalog_key"] == "hybrid_ilmn_ont_hiomrs_kitchensink"
     assert report["command_details"]["git_tag"] == "11.0.15"
     assert report["command_details"]["retried_jobs"]["count"] == 1
@@ -161,6 +215,9 @@ def test_collect_sample_stats_contract(analysis_root: Path) -> None:
     assert 599 <= report["analysis"]["runtime_seconds"] <= 601
     assert report["pipeline"]["samples_rows"] == 1
     assert report["pipeline"]["units_rows"] == 1
+    assert report["pipeline"]["jobs_submitted"] == 4
+    assert report["pipeline"]["jobs_still_to_run"] == 6
+    assert report["pipeline"]["jobs_retried"] == 1
     assert report["pipeline"]["ont_aligned_read_length_median_summary"] == {
         "minimum": 15500.0,
         "median": 15500.0,
@@ -178,9 +235,86 @@ def test_collect_sample_stats_contract(analysis_root: Path) -> None:
     assert unit["milestones"]["segdup"]["completed_targets"] == 2
     assert unit["metrics"]["required_gender"]["value"] == "XY"
     assert unit["metrics"]["observed_gender"]["value"] == "XY"
+    assert unit["metrics"]["observed_gender_evidence"][0]["value"] == "XY"
     assert unit["metrics"]["final_qc_disposition"]["value"] == "pass"
     assert unit["giab_hc_snv_fscore"]["value"] == 0.998
+    assert unit["benchmark_task_cost"]["value_usd"] == 0.25
+    assert unit["runtime"]["full_wall"]["state"] == "available"
+    assert unit["runtime"]["dag_critical_path_no_wait"]["seconds"] is None
+    assert unit["hybrid_sv_provenance"]["selected_callset"] == "sentieon_longreadsv"
     assert report["dag"]["available"] is True
+
+
+def test_v2_preserves_the_public_v1_field_surface(analysis_root: Path) -> None:
+    report = module.collect_command_sample_stats(
+        analysis_root,
+        name="compatibility",
+        pipeline="hiomrs-kitchensink",
+    )["compatibility"]
+
+    assert {
+        "schema_version",
+        "name",
+        "cluster",
+        "analysis",
+        "command_details",
+        "costs",
+        "pipeline",
+        "library_units",
+        "dag",
+        "status_evidence",
+    } <= report.keys()
+    assert {
+        "analysis_root",
+        "dayoa_root",
+        "started_at",
+        "started_at_source",
+        "runtime_seconds",
+        "runtime",
+        "generated_at",
+        "tmux_sessions",
+    } <= report["analysis"].keys()
+    assert {
+        "name",
+        "samples_rows",
+        "units_rows",
+        "jobs_total",
+        "jobs_complete",
+        "jobs_failed",
+        "jobs_failed_events",
+        "jobs_running",
+        "jobs_to_run",
+        "percent_complete",
+        "ont_aligned_read_length_median_summary",
+        "ilmn_insert_size_median_summary",
+        "final_multiqc",
+    } <= report["pipeline"].keys()
+    unit = report["library_units"][0]
+    assert {
+        "analysis_unit_uid",
+        "sample_id",
+        "overall_percent_complete",
+        "milestones",
+        "metrics",
+        "giab_hc_snv_fscore",
+    } <= unit.keys()
+    assert {"state", "display", "path"} <= unit["milestones"]["hybrid_sv"].keys()
+    assert {
+        "required_gender",
+        "observed_gender",
+        "contamination_percent",
+        "ilmn_mean_coverage",
+        "ilmn_median_coverage",
+        "ont_mean_coverage",
+        "ont_median_coverage",
+        "specimen_type",
+        "sample_use",
+        "order_type",
+        "final_qc_disposition",
+        "final_data_package_ready",
+        "final_data_package_delivered",
+        "relatives",
+    } <= unit["metrics"].keys()
 
 
 def test_authoritative_analysis_unit_uid_is_required_and_unique(analysis_root: Path) -> None:
@@ -219,6 +353,10 @@ def test_running_state_is_scoped_to_the_matching_rule_family(
     sv.unlink()
     status = _status(analysis_root)
     status["slurm"]["jobs"][0]["name"] = f"hiomrs_longreadsv.{unit}"
+    status["slurm"]["jobs"][0]["restart_count"] = 2
+    Path(status["slurm"]["jobs"][0]["stderr"]).write_text(
+        "ERROR first exact failure\nERROR later failure\n", encoding="utf-8"
+    )
     monkeypatch.setattr(module, "collect_analysis_status", lambda *_args, **_kwargs: status)
 
     payload = module.collect_command_sample_stats(
@@ -229,7 +367,162 @@ def test_running_state_is_scoped_to_the_matching_rule_family(
 
     milestones = payload["x"]["library_units"][0]["milestones"]
     assert milestones["hybrid_sv"]["display"] == "running 00:04:00"
+    execution = milestones["hybrid_sv"]["execution"]
+    assert execution["job_id"]["value"] == "123"
+    assert execution["rule"]["value"] == "hiomrs_longreadsv"
+    assert execution["eta"]["value"] == "ETA 00:10:00"
+    assert execution["first_causal_error"]["value"] == "ERROR first exact failure"
+    assert execution["retry_count"]["value"] == 2
     assert milestones["hybrid_snv"]["state"] == "complete"
+
+
+def test_failed_milestone_reports_exact_accounting_and_first_log_error(
+    analysis_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    unit = "HG003_unit"
+    sv = (
+        analysis_root
+        / "daylily-omics-analysis"
+        / "results"
+        / "day"
+        / "hg38"
+        / unit
+        / "align"
+        / "hiomrs_sr"
+        / "na"
+        / "sv"
+        / "hiomrs"
+        / f"{unit}.hiomrs_sr.na.hiomrs.sv.vcf.gz"
+    )
+    sv.unlink()
+    log = _write(
+        sv.parent / "logs" / f"{unit}.hiomrs_longreadsv.log",
+        "setup\nERROR causal failure\nERROR cleanup failure\n",
+    )
+    status = _status(analysis_root)
+    status["slurm"]["jobs"] = []
+    status["accounting"]["jobs"] = [
+        {
+            "JobIDRaw": "456",
+            "JobName": f"hiomrs_longreadsv.{unit}",
+            "State": "FAILED",
+            "Elapsed": "00:03:21",
+            "ExitCode": "1:0",
+            "Reason": "NonZeroExitCode",
+        }
+    ]
+    status["recent_rule_logs"] = {"recent": [{"path": str(log)}]}
+    monkeypatch.setattr(module, "collect_analysis_status", lambda *_args, **_kwargs: status)
+
+    payload = module.collect_command_sample_stats(
+        analysis_root,
+        name="x",
+        pipeline="hiomrs-kitchensink",
+    )
+
+    milestone = payload["x"]["library_units"][0]["milestones"]["hybrid_sv"]
+    assert milestone["state"] == "failed"
+    assert milestone["execution"]["job_id"]["value"] == "456"
+    assert milestone["execution"]["elapsed_seconds"]["value"] == 201
+    assert milestone["execution"]["terminal_failure"]["exit_code"] == "1:0"
+    assert milestone["execution"]["first_causal_error"]["value"] == "ERROR causal failure"
+
+
+def test_strict_success_requires_all_controller_requirements(
+    analysis_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    status = _status(analysis_root)
+    status["state"] = "SUCCESS"
+    status["controller"]["return_code"] = 0
+    status["controller"]["processes"] = []
+    status["slurm"]["jobs"] = []
+    status["workflow"]["progress"] = {"completed": 9, "total": 9, "percent": 100}
+    status["terminal_evidence"] = {
+        "return_code": 0,
+        "requirements": {
+            "controller_exit_zero": True,
+            "controller_inactive": True,
+            "scheduler_idle": True,
+            "workflow_progress_complete": True,
+            "strict_artifacts_present": True,
+        },
+        "success_verified": True,
+    }
+    status["canonical_artifacts"] = {
+        "all_present": True,
+        "files": {
+            "DAY_final_multiqc.html": ["/results/DAY_final_multiqc.html"],
+            "multiqc_data.json": ["/results/DAY_final_multiqc_data/multiqc_data.json"],
+            "dayoa_evidence_manifest.json": ["/results/dayoa_evidence_manifest.json"],
+        },
+    }
+    monkeypatch.setattr(module, "collect_analysis_status", lambda *_args, **_kwargs: status)
+
+    report = module.collect_command_sample_stats(
+        analysis_root,
+        name="x",
+        pipeline="hiomrs-kitchensink",
+    )["x"]
+
+    assert report["analysis"]["terminal_state"] == "SUCCESS"
+    assert report["pipeline"]["strict_success"]["verified"] is True
+    assert report["pipeline"]["evidence_manifest"] is True
+
+
+def test_unit_cost_is_withheld_when_any_matching_benchmark_row_is_unpriced(
+    analysis_root: Path,
+) -> None:
+    summary = (
+        analysis_root
+        / "daylily-omics-analysis"
+        / "results"
+        / "day"
+        / "hg38"
+        / "reports"
+        / "benchmarks_summary.tsv"
+    )
+    summary.write_text(
+        "sample\trule\ts\ttask_cost\n"
+        "HG003_unit\thiomrs_core\t120\t0.25\n"
+        "HG003_unit\thiomrs_collect\t30\t\n",
+        encoding="utf-8",
+    )
+
+    unit = module.collect_command_sample_stats(
+        analysis_root,
+        name="x",
+        pipeline="hiomrs-kitchensink",
+    )["x"]["library_units"][0]
+
+    assert unit["benchmark_task_cost"]["value_usd"] is None
+    assert unit["benchmark_task_cost"]["state"] == "incomplete"
+    assert unit["benchmark_task_cost"]["unpriced_rows"] == 1
+
+
+def test_missing_scheduler_and_retry_sources_remain_null(
+    analysis_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    status = _status(analysis_root)
+    status["workflow"]["master_log"] = None
+    status["slurm"] = {"available": False, "jobs": []}
+    status["accounting"] = {"available": False, "jobs": [], "state_counts": {}}
+    status["job_counts"] = {}
+    monkeypatch.setattr(module, "collect_analysis_status", lambda *_args, **_kwargs: status)
+
+    pipeline = module.collect_command_sample_stats(
+        analysis_root,
+        name="x",
+        pipeline="hiomrs-kitchensink",
+    )["x"]["pipeline"]
+
+    assert pipeline["jobs_running"] is None
+    assert pipeline["jobs_failed"] is None
+    assert pipeline["jobs_to_run"] is None
+    assert pipeline["job_counts"]["retried"]["value"] is None
+    assert pipeline["job_counts"]["retried"]["available"] is False
 
 
 def test_dag_copy_is_verified_and_refuses_overwrite(analysis_root: Path, tmp_path: Path) -> None:
@@ -251,6 +544,9 @@ def test_human_table_contains_requested_fields(analysis_root: Path) -> None:
     text = module.render_command_sample_stats(payload)
     assert "Sample\t%\tSR Aln\tLR Aln\tHybrid SNV\tHybrid SV\tMito" in text
     assert "QC Disposition\tPackage Ready\tDelivered\tGIAB HC Fscore" in text
+    assert "submitted=4" in text
+    assert "dependency-blocked=0" in text
+    assert "strict success=N" in text
     assert "HG003_unit" in text
 
 

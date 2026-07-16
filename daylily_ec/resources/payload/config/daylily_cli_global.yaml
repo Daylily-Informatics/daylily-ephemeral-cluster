@@ -1,7 +1,7 @@
 ---
 daylily:
-  git_ephemeral_cluster_repo_tag: 10.3.26
-  git_ephemeral_cluster_repo_release_tag: 10.3.26
+  git_ephemeral_cluster_repo_tag: 10.3.27
+  git_ephemeral_cluster_repo_release_tag: 10.3.27
   git_ephemeral_cluster_repo: https://github.com/lsmc-bio/daylily-ephemeral-cluster.git
   analysis_root: /fsx/analysis_results/
   sentieon_license:

@@ -443,7 +443,8 @@ When already inside the supported Ubuntu headnode login shell, omit
 
 `dyec command sample-stats` is the strict, read-only command-family report for
 one exact HIOMRS kitchensink analysis root. The report name is required and is
-the sole top-level JSON key:
+the sole top-level JSON key. The full v2 evidence semantics are documented in
+[the controller detail contract](docs/controller_detail_contract.md):
 
 ```bash
 dyec --json command sample-stats hiomrs-kitchensink \
@@ -461,13 +462,19 @@ local file whose parent already exists. DYEC refuses to overwrite it. Local DAG
 copies and bounded SSM transfers are verified by byte count and SHA-256; DYEC
 does not use a mutable S3 staging object for this operation.
 
-The JSON records cluster/AZ identity, run start/runtime/generated timestamps,
+The `dyec.command_sample_stats.v2` JSON retains all v1 fields and records
+cluster/AZ identity, run start/runtime/generated timestamps,
 tmux sessions, exact DayOA and DYEC versions, catalog key/version, non-secret
 DayOA environment variables, expected `dy-a` plus `dy-r` commands, observed
 controller commands, unique retried-job evidence, cluster/project budget
 evidence, completed benchmark cost, TSV row counts, workflow job state counts,
 ONT aligned-read-length and ILMN insert-size summaries, final MultiQC state, and
-the source-backed per-library-unit table. The human rendering includes:
+the source-backed per-library-unit table. It additionally reports strict
+terminal evidence, source-specific submitted/completed/failed/running/pending/
+still-to-run/dependency-blocked counts, exact per-milestone scheduler and log
+provenance, source-backed full wall time, nullable DAG-critical-path time, exact
+unit benchmark cost, hybrid-SV fallback provenance, and all emitted
+observed-sex evidence. The human rendering includes:
 
 - authoritative `ANALYSIS_UNIT_UID` and overall configured-milestone percent;
 - SR/LR CRAM, hybrid SNV gVCF, hybrid SV VCF, hybrid CNV VCF, SegDup target

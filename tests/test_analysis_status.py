@@ -15,7 +15,6 @@ from daylily_ec.analysis_status import (
 )
 from daylily_ec.cli import app
 
-
 runner = CliRunner()
 
 
@@ -35,9 +34,7 @@ def _root(tmp_path: Path, *, complete: bool = False) -> Path:
         report = dayoa / "results" / "day" / "hg38" / "reports"
         (report / "DAY_final_multiqc_data").mkdir(parents=True)
         (report / "DAY_final_multiqc.html").write_text("html", encoding="utf-8")
-        (report / "DAY_final_multiqc_data" / "multiqc_data.json").write_text(
-            "{}", encoding="utf-8"
-        )
+        (report / "DAY_final_multiqc_data" / "multiqc_data.json").write_text("{}", encoding="utf-8")
         (report / "dayoa_evidence_manifest.json").write_text("{}", encoding="utf-8")
     return root
 
@@ -105,7 +102,7 @@ def test_success_is_verified_only_with_controller_rc_zero(
     _activate(monkeypatch)
     monkeypatch.setattr(
         "daylily_ec.analysis_status.shutil.which",
-        lambda name: "/bin/tmux" if name == "tmux" else None,
+        lambda name: "/bin/tool" if name in {"tmux", "squeue", "scontrol"} else None,
     )
 
     def fake(argv, **_kwargs):
@@ -113,6 +110,8 @@ def test_success_is_verified_only_with_controller_rc_zero(
             return subprocess.CompletedProcess(argv, 0, "", "")
         if argv[0] == "df":
             return _fake_runner(argv)
+        if argv[0] == "squeue":
+            return subprocess.CompletedProcess(argv, 0, "", "")
         if argv[:2] == ["tmux", "list-panes"]:
             return subprocess.CompletedProcess(
                 argv,
@@ -133,6 +132,130 @@ def test_success_is_verified_only_with_controller_rc_zero(
 
     assert payload["state"] == "SUCCESS"
     assert payload["controller"]["return_code"] == 0
+    assert payload["terminal_evidence"]["success_verified"] is True
+
+
+def test_controller_rc_zero_does_not_claim_success_without_scheduler_evidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _root(tmp_path, complete=True)
+    _activate(monkeypatch)
+    monkeypatch.setattr(
+        "daylily_ec.analysis_status.shutil.which",
+        lambda name: "/bin/tmux" if name == "tmux" else None,
+    )
+
+    def fake(argv, **_kwargs):
+        if argv[0] == "ps":
+            return subprocess.CompletedProcess(argv, 0, "", "")
+        if argv[0] == "df":
+            return _fake_runner(argv)
+        if argv[:2] == ["tmux", "list-panes"]:
+            return subprocess.CompletedProcess(
+                argv,
+                0,
+                f"controller|0|0|999|{root}|0|0\n",
+                "",
+            )
+        if argv[:2] == ["tmux", "capture-pane"]:
+            return subprocess.CompletedProcess(argv, 0, "DAYOA_CONTROLLER_RC=0\n", "")
+        raise AssertionError(argv)
+
+    payload = collect_analysis_status(root, mode="slim", runner=fake)
+
+    assert payload["state"] == "COMPLETE_ARTIFACTS_RC_ZERO_SCHEDULER_UNKNOWN"
+    assert payload["terminal_evidence"]["success_verified"] is False
+    assert payload["terminal_evidence"]["requirements"]["scheduler_idle"] is False
+
+
+def test_job_counts_are_source_backed_and_dependency_blocked_is_explicit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _root(tmp_path)
+    dayoa = root / "daylily-omics-analysis"
+    master = next((dayoa / ".snakemake" / "log").glob("*.snakemake.log"))
+    master.write_text(
+        master.read_text(encoding="utf-8")
+        + "Submitted job 88 with external jobid '123'.\nFinished job 88.\n",
+        encoding="utf-8",
+    )
+    _activate(monkeypatch)
+    monkeypatch.setattr(
+        "daylily_ec.analysis_status.shutil.which",
+        lambda name: "/bin/tool" if name in {"squeue", "scontrol", "sacct"} else None,
+    )
+
+    def fake(argv, **_kwargs):
+        if argv[0] == "squeue":
+            return subprocess.CompletedProcess(
+                argv,
+                0,
+                "123|i128|1|PD|(null)|1|PENDING|1G|00:00|1|align.HG003_unit\n",
+                "",
+            )
+        if argv[0] == "scontrol":
+            return subprocess.CompletedProcess(
+                argv,
+                0,
+                f"JobId=123 WorkDir={dayoa} Reason=Dependency StdOut=/tmp/o StdErr=/tmp/e",
+                "",
+            )
+        if argv[0] == "sacct":
+            rows = [
+                [
+                    "122",
+                    "align.HG003_unit",
+                    "COMPLETED",
+                    "00:01:00",
+                    "1",
+                    "node-1",
+                    "i128",
+                    str(dayoa),
+                    "0:0",
+                    "project-a",
+                    "2026-07-16T00:00:00",
+                    "2026-07-16T00:01:00",
+                    "2026-07-16T00:02:00",
+                    "None",
+                ],
+                [
+                    "121",
+                    "old.HG003_unit",
+                    "CANCELLED by 1000",
+                    "00:00:10",
+                    "1",
+                    "node-1",
+                    "i128",
+                    str(dayoa),
+                    "0:15",
+                    "project-a",
+                    "2026-07-16T00:00:00",
+                    "2026-07-16T00:00:01",
+                    "2026-07-16T00:00:11",
+                    "None",
+                ],
+            ]
+            return subprocess.CompletedProcess(
+                argv,
+                0,
+                "".join("|".join(row) + "|\n" for row in rows),
+                "",
+            )
+        if argv[0] == "ps":
+            return subprocess.CompletedProcess(argv, 0, "", "")
+        if argv[0] == "df":
+            return _fake_runner(argv)
+        raise AssertionError(argv)
+
+    payload = collect_analysis_status(root, mode="slim", runner=fake)
+
+    assert payload["job_counts"]["pending"]["value"] == 1
+    assert payload["job_counts"]["dependency_blocked"]["value"] == 1
+    assert payload["job_counts"]["submitted"]["value"] == 1
+    assert payload["job_counts"]["completed"]["value"] == 10
+    assert payload["job_counts"]["failed"]["value"] == 1
+    assert payload["accounting"]["unique_job_count"] == 2
+    assert payload["slurm"]["jobs"][0]["reason"] == "Dependency"
 
 
 def test_full_status_scopes_slurm_by_exact_workdir_and_tails_streams(
@@ -185,9 +308,7 @@ def test_full_status_scopes_slurm_by_exact_workdir_and_tails_streams(
     assert payload["state"] == "RUNNING"
     assert [job["job_id"] for job in payload["slurm"]["jobs"]] == ["123"]
     assert payload["slurm"]["jobs"][0]["stdout_tail"]["excerpt"][-1] == "50% complete"
-    assert payload["slurm"]["jobs"][0]["stdout_tail"]["progress_markers"][-1] == (
-        "50% complete"
-    )
+    assert payload["slurm"]["jobs"][0]["stdout_tail"]["progress_markers"][-1] == ("50% complete")
     assert payload["node_telemetry"][0]["node"] == "node-1"
     assert payload["node_telemetry"][0]["point_sample_only"] is True
 

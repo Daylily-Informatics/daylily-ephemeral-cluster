@@ -20,6 +20,8 @@ class AnalysisStatusError(RuntimeError):
 Runner = Callable[..., subprocess.CompletedProcess[str]]
 PROGRESS_RE = re.compile(r"(?P<done>\d+) of (?P<total>\d+) steps \((?P<pct>\d+)%\) done")
 RULE_RE = re.compile(r"^(?:local)?rule (?P<rule>[A-Za-z0-9_.-]+):", re.MULTILINE)
+SUBMITTED_JOB_RE = re.compile(r"\bSubmitted job (?P<job_id>\d+)\b")
+FINISHED_JOB_RE = re.compile(r"\bFinished job (?P<job_id>\d+)\b")
 CONTROLLER_RC_RE = re.compile(
     r"(?:__DAYOA_CONTROLLER_RC__|DAYOA_CONTROLLER_RC|controller[_ ]rc)\s*[=:]\s*(?P<rc>-?\d+)",
     re.IGNORECASE,
@@ -47,6 +49,21 @@ MAX_PROGRESS_MARKERS = 20
 MAX_BENCHMARK_EVIDENCE_ROWS = 20
 MAX_SACCT_EVIDENCE_ROWS = 50
 MAX_RECENT_RULE_LOGS = 20
+FAILED_STATES = {
+    "FAILED",
+    "BOOT_FAIL",
+    "CANCELLED",
+    "DEADLINE",
+    "NODE_FAIL",
+    "OUT_OF_MEMORY",
+    "TIMEOUT",
+}
+ACTIVE_STATES = {"RUNNING", "CONFIGURING", "COMPLETING"}
+
+
+def _normalized_slurm_state(value: Any) -> str:
+    text = str(value or "").split("+", 1)[0].strip()
+    return text.split(maxsplit=1)[0].upper() if text else ""
 
 
 def _run(
@@ -99,8 +116,15 @@ def _workflow_evidence(dayoa_root: Path, *, tail_lines: int, full: bool) -> dict
         "master_log": str(master_log) if master_log else None,
         "progress": {"completed": None, "total": None, "percent": None},
         "scheduled_rules": [],
+        "job_events": {
+            "submitted_count": None,
+            "completed_count": None,
+            "source": str(master_log) if master_log else None,
+        },
         "failure_count": 0,
+        "first_failure_line": None,
         "failure_lines": [],
+        "failure_lines_bounded": False,
     }
     if master_log is None:
         return evidence
@@ -115,13 +139,21 @@ def _workflow_evidence(dayoa_root: Path, *, tail_lines: int, full: bool) -> dict
             "percent": int(latest.group("pct")),
         }
     evidence["scheduled_rules"] = sorted(set(RULE_RE.findall(text)))
+    evidence["job_events"] = {
+        "submitted_count": len(set(SUBMITTED_JOB_RE.findall(text))),
+        "completed_count": len(set(FINISHED_JOB_RE.findall(text))),
+        "source": str(master_log),
+    }
     failure_lines = [
         line.strip()
         for line in text.splitlines()
         if any(pattern in line for pattern in FAILURE_PATTERNS)
     ]
     evidence["failure_count"] = len(failure_lines)
-    evidence["failure_lines"] = failure_lines[-50:] if full else failure_lines[-5:]
+    evidence["first_failure_line"] = failure_lines[0] if failure_lines else None
+    failure_limit = 50 if full else 5
+    evidence["failure_lines"] = failure_lines[-failure_limit:]
+    evidence["failure_lines_bounded"] = len(failure_lines) > failure_limit
     if full:
         evidence["tail"] = _tail_summary(
             master_log,
@@ -200,10 +232,11 @@ def _slurm_jobs(dayoa_root: Path, *, runner: Runner, full: bool, tail_lines: int
         job["stdout"] = details.get("StdOut")
         job["stderr"] = details.get("StdErr")
         job["comment"] = details.get("Comment")
+        job["reason"] = details.get("Reason")
         job["submit_time"] = details.get("SubmitTime")
         job["start_time"] = details.get("StartTime")
-        restart_text = str(details.get("Restarts", "0") or "0")
-        job["restart_count"] = int(restart_text) if restart_text.isdigit() else 0
+        restart_text = str(details.get("Restarts", "") or "")
+        job["restart_count"] = int(restart_text) if restart_text.isdigit() else None
         if full:
             for stream in ("stdout", "stderr"):
                 raw_path = job.get(stream)
@@ -225,7 +258,9 @@ def _sacct_jobs(dayoa_root: Path, *, runner: Runner) -> dict[str, Any]:
         "available": False,
         "error": None,
         "state_counts": {},
+        "normalized_state_counts": {},
         "attempt_count": 0,
+        "unique_job_count": 0,
         "jobs": [],
         "jobs_bounded": False,
     }
@@ -246,6 +281,10 @@ def _sacct_jobs(dayoa_root: Path, *, runner: Runner) -> dict[str, Any]:
         "WorkDir",
         "ExitCode",
         "Comment",
+        "Submit",
+        "Start",
+        "End",
+        "Reason",
     )
     proc = _run(
         [
@@ -280,6 +319,12 @@ def _sacct_jobs(dayoa_root: Path, *, runner: Runner) -> dict[str, Any]:
         jobs.append(job)
     result["attempt_count"] = len(jobs)
     result["state_counts"] = dict(sorted(Counter(job["State"] for job in jobs).items()))
+    result["normalized_state_counts"] = dict(
+        sorted(Counter(_normalized_slurm_state(job["State"]) for job in jobs).items())
+    )
+    result["unique_job_count"] = len(
+        {job["JobIDRaw"].split(".", 1)[0] for job in jobs if job["JobIDRaw"]}
+    )
     result["jobs"] = jobs[-MAX_SACCT_EVIDENCE_ROWS:]
     result["jobs_bounded"] = len(jobs) > MAX_SACCT_EVIDENCE_ROWS
     return result
@@ -517,7 +562,10 @@ def _benchmarks(dayoa_root: Path) -> dict[str, Any]:
             continue
         latest = parsed[-1]
         runtime = _float(latest, ("s", "runtime_seconds", "elapsed_seconds"))
-        cost = _float(latest, ("estimated_cost_usd", "cost_usd", "total_cost_usd"))
+        cost = _float(
+            latest,
+            ("task_cost", "estimated_cost_usd", "cost_usd", "total_cost_usd"),
+        )
         peak_rss = _float(latest, ("max_rss", "max_rss_mb", "peak_rss_mb"))
         mean_load = _float(latest, ("mean_load", "cpu_percent", "cpu_utilization"))
         total_runtime_seconds += runtime or 0.0
@@ -525,6 +573,8 @@ def _benchmarks(dayoa_root: Path) -> dict[str, Any]:
         rows.append(
             {
                 "path": str(path),
+                "sample": latest.get("sample"),
+                "rule": latest.get("rule"),
                 "runtime_seconds": runtime,
                 "cost_usd": cost,
                 "peak_rss": peak_rss,
@@ -618,6 +668,115 @@ def _node_telemetry(jobs: list[dict[str, Any]], *, runner: Runner) -> list[dict[
     return snapshots
 
 
+def _evidence_value(
+    value: Any,
+    *,
+    source: str | None,
+    note: str | None = None,
+) -> dict[str, Any]:
+    payload = {
+        "value": value,
+        "available": value is not None,
+        "source": source,
+    }
+    if note:
+        payload["note"] = note
+    return payload
+
+
+def _job_counts(
+    workflow: dict[str, Any],
+    slurm: dict[str, Any],
+    accounting: dict[str, Any],
+) -> dict[str, Any]:
+    progress = workflow["progress"]
+    total = progress["total"]
+    completed = progress["completed"]
+    events = workflow.get("job_events", {})
+    master_log = workflow.get("master_log")
+    slurm_source = "exact-workdir squeue/scontrol" if slurm["available"] else None
+    accounting_source = "exact-workdir sacct -X" if accounting["available"] else None
+    normalized = accounting.get("normalized_state_counts", {})
+    running = None
+    pending = None
+    dependency_blocked = None
+    if slurm["available"]:
+        running = sum(
+            1 for job in slurm["jobs"] if str(job.get("state", "")).upper() in ACTIVE_STATES
+        )
+        pending = sum(1 for job in slurm["jobs"] if str(job.get("state", "")).upper() == "PENDING")
+        dependency_blocked = sum(
+            1
+            for job in slurm["jobs"]
+            if str(job.get("state", "")).upper() == "PENDING"
+            and str(job.get("reason", "")).lower().startswith("dependency")
+        )
+    failed = None
+    if accounting["available"]:
+        failed = sum(normalized.get(state, 0) for state in FAILED_STATES)
+    still_to_run = (
+        max(0, total - completed) if total is not None and completed is not None else None
+    )
+    return {
+        "submitted": _evidence_value(
+            events.get("submitted_count"),
+            source=events.get("source"),
+            note="unique Snakemake job IDs observed in the current master log",
+        ),
+        "completed": _evidence_value(
+            completed,
+            source=master_log,
+            note="latest Snakemake progress denominator",
+        ),
+        "failed": _evidence_value(
+            failed,
+            source=accounting_source,
+            note="terminal failed Slurm allocations; not inferred from an empty queue",
+        ),
+        "running": _evidence_value(running, source=slurm_source),
+        "pending": _evidence_value(pending, source=slurm_source),
+        "still_to_run": _evidence_value(
+            still_to_run,
+            source=master_log,
+            note="DAG total minus completed; includes currently running or pending work",
+        ),
+        "dependency_blocked": _evidence_value(
+            dependency_blocked,
+            source=slurm_source,
+            note="pending exact-root jobs whose scheduler reason begins with Dependency",
+        ),
+    }
+
+
+def _terminal_evidence(
+    *,
+    workflow: dict[str, Any],
+    controller: dict[str, Any],
+    slurm: dict[str, Any],
+    artifacts: dict[str, Any],
+) -> dict[str, Any]:
+    progress = workflow["progress"]
+    progress_complete = (
+        progress["completed"] is not None and progress["completed"] == progress["total"]
+    )
+    requirements = {
+        "controller_exit_zero": controller["return_code"] == 0,
+        "controller_inactive": controller["available"] and not controller["active"],
+        "scheduler_idle": slurm["available"] and not slurm["jobs"],
+        "workflow_progress_complete": progress_complete,
+        "strict_artifacts_present": artifacts["all_present"],
+    }
+    return {
+        "return_code": controller["return_code"],
+        "return_code_source": (
+            "matching tmux controller marker" if controller["return_code"] is not None else None
+        ),
+        "requirements": requirements,
+        "success_verified": all(requirements.values()),
+        "artifact_files": artifacts["files"],
+    }
+
+
 def collect_analysis_status(
     analysis_root: str | Path,
     *,
@@ -658,16 +817,22 @@ def collect_analysis_status(
     )
     artifacts = _canonical_artifacts(dayoa_root)
     progress = workflow["progress"]
+    terminal_evidence = _terminal_evidence(
+        workflow=workflow,
+        controller=controller,
+        slurm=slurm,
+        artifacts=artifacts,
+    )
     complete = (
-        progress["completed"] is not None
-        and progress["completed"] == progress["total"]
-        and artifacts["all_present"]
+        terminal_evidence["requirements"]["workflow_progress_complete"] and artifacts["all_present"]
     )
     active = controller["active"] or bool(slurm["jobs"])
     if controller["return_code"] not in (None, 0) and not active:
         state = "FAILED"
-    elif complete and controller["return_code"] == 0 and not active:
+    elif terminal_evidence["success_verified"]:
         state = "SUCCESS"
+    elif complete and controller["return_code"] == 0 and not active and not slurm["available"]:
+        state = "COMPLETE_ARTIFACTS_RC_ZERO_SCHEDULER_UNKNOWN"
     elif complete and not active:
         state = "COMPLETE_ARTIFACTS_RC_UNKNOWN"
     elif active:
@@ -684,6 +849,8 @@ def collect_analysis_status(
         "analysis_root": str(root),
         "dayoa_root": str(dayoa_root),
         "state": state,
+        "terminal_evidence": terminal_evidence,
+        "job_counts": _job_counts(workflow, slurm, accounting),
         "visit": visit,
         "workflow": workflow,
         "controller": controller,
@@ -704,6 +871,10 @@ def collect_analysis_status(
     if complete and controller["return_code"] is None:
         payload["warnings"].append(
             "Canonical outputs and progress are complete, but controller rc 0 was not found; success is unverified."
+        )
+    if complete and controller["return_code"] == 0 and not slurm["available"]:
+        payload["warnings"].append(
+            "Canonical outputs and controller rc 0 are present, but scheduler-idle state is unavailable; success is unverified."
         )
     if full:
         payload["benchmarks"] = _benchmarks(dayoa_root)
