@@ -1,0 +1,18 @@
+cat: /tmp/haplo_jobs.txt: No such file or directory
+cat: /tmp/haplo_jobs.txt: No such file or directory
+usage: Note: AWS CLI version 2, the latest major version of the AWS CLI, is now stable and recommended for general use. For more information, see the AWS CLI version 2 installation instructions at: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html
+
+usage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]
+To see help text, you can run:
+
+  aws help
+  aws <command> help
+  aws <command> <subcommand> help
+
+Unknown options: %.2t, %.10M, %.9b, %.50j', %.4C
+
+Parameter validation failed:
+Invalid length for parameter CommandId, value: 0, valid min length: 36
+
+Parameter validation failed:
+Invalid length for parameter CommandId, value: 0, valid min length: 36

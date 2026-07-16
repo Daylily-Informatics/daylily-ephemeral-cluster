@@ -1,0 +1,8 @@
+{
+  "commands": [
+    "sudo -iu ubuntu bash -lc 'find /home/ubuntu/daylily-runs/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z /fsx/analysis_results/ubuntu/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z -maxdepth 4 -type f | sort | sed -n \"1,240p\"'"
+  ],
+  "executionTimeout": [
+    "120"
+  ]
+}

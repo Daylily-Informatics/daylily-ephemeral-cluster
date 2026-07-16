@@ -1,0 +1,381 @@
+!=0
+'#'=1
+'$'=87789
+'*'=( pipefail )
+-=569Xl
+0=-euo
+'?'=0
+@=( pipefail )
+ARGC=1
+CDPATH=''
+CODEX_CI=1
+CODEX_INTERNAL_ORIGINATOR_OVERRIDE='Codex Desktop'
+CODEX_SHELL=1
+CODEX_THREAD_ID=019e9015-6e7f-7e43-8486-49046a17534b
+COLORTERM=''
+COLUMNS=0
+COMMAND_MODE=unix2003
+CONDA_DEFAULT_ENV=base
+CONDA_EXE=/Users/jmajor/miniconda3/bin/conda
+CONDA_PREFIX=/Users/jmajor/miniconda3
+CONDA_PROMPT_MODIFIER='(base)'
+CONDA_PYTHON_EXE=/Users/jmajor/miniconda3/bin/python
+CONDA_SHLVL=1
+CPUTYPE=arm64
+DISABLE_AUTO_UPDATE=true
+EGID=20
+EUID=501
+FIGNORE=''
+FPATH=/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+FUNCNEST=700
+GH_PAGER=cat
+GID=20
+GIT_PAGER=cat
+HISTCHARS='!^#'
+HISTCMD=0
+HISTSIZE=30
+HOME=/Users/jmajor
+HOST=Johns-MacBook-Pro.local
+IFS=$' \t\n\C-@'
+KEYBOARD_HACK=''
+KEYTIMEOUT=40
+LANG=C.UTF-8
+LC_ALL=C.UTF-8
+LC_CTYPE=C.UTF-8
+LINENO=1
+LINES=0
+LISTMAX=100
+LOGNAME=jmajor
+LOG_FORMAT=json
+MACHTYPE=x86_64
+MAILCHECK=60
+MAILPATH=''
+MANPATH=''
+MODULE_PATH=/usr/lib/zsh/5.9
+MallocNanoZone=0
+NO_COLOR=1
+NULLCMD=cat
+OLDPWD=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster
+OPTARG=''
+OPTIND=1
+OSLogRateLimit=64
+OSTYPE=darwin25.0
+PAGER=cat
+PATH=/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/opt/homebrew/bin:/Users/jmajor/.codex/tmp/arg0/codex-arg0wVr1rQ:/Users/jmajor/miniconda3/bin:/Users/jmajor/miniconda3/condabin:/Applications/Codex.app/Contents/Resources
+PPID=87451
+PROMPT=''
+PROMPT2=''
+PROMPT3='?# '
+PROMPT4='+%N:%i> '
+PS1=''
+PS2=''
+PS3='?# '
+PS4='+%N:%i> '
+PSVAR=''
+PWD=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster
+RANDOM=20477
+READNULLCMD=more
+RUST_LOG=warn
+SAVEHIST=0
+SECONDS=0
+SHELL=/bin/zsh
+SHLVL=3
+SPROMPT='zsh: correct '\''%R'\'' to '\''%r'\'' [nyae]? '
+SSH_AUTH_SOCK=/var/run/com.apple.launchd.n46yQXkmau/Listeners
+TERM=dumb
+TIMEFMT='%J  %U user %S system %P cpu %*E total'
+TMPDIR=/var/folders/rk/2n95m40s1zs48qr48ynwhxwm0000gn/T/
+TMPPREFIX=/tmp/zsh
+TRY_BLOCK_ERROR=-1
+TRY_BLOCK_INTERRUPT=-1
+TTY=''
+TTYIDLE=-1
+UID=501
+USER=jmajor
+USERNAME=jmajor
+VENDOR=apple
+WATCH
+WORDCHARS='*?_-.[]~=/&;!#$%^(){}<>'
+XPC_FLAGS=0x0
+XPC_SERVICE_NAME=0
+ZSH_ARGZERO=-euo
+ZSH_EVAL_CONTEXT=cmdarg
+ZSH_EXECUTION_STRING=set
+ZSH_NAME=zsh
+ZSH_PATCHLEVEL=zsh-5.9-0-g73d3173
+ZSH_SUBSHELL=0
+ZSH_TMUX_AUTOSTART=false
+ZSH_TMUX_AUTOSTARTED=true
+ZSH_VERSION=5.9
+_=set
+_CE_CONDA=''
+_CE_M=''
+_CONDA_EXE=/Users/jmajor/miniconda3/bin/conda
+_CONDA_ROOT=/Users/jmajor/miniconda3
+__CFBundleIdentifier=com.openai.codex
+__CF_USER_TEXT_ENCODING=0x1F5:0x0:0x0
+aliases
+argv=( pipefail )
+builtins
+cdpath=(  )
+commands
+dirstack
+dis_aliases
+dis_builtins
+dis_functions
+dis_functions_source
+dis_galiases
+dis_patchars
+dis_reswords
+dis_saliases
+fignore=(  )
+fpath=( /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.9/functions )
+funcfiletrace
+funcsourcetrace
+funcstack
+functions
+functions_source
+functrace
+galiases
+histchars='!^#'
+history
+historywords
+jobdirs
+jobstates
+jobtexts
+keymaps
+mailpath=(  )
+manpath=(  )
+module_path=( /usr/lib/zsh/5.9 )
+modules
+nameddirs
+options
+parameters
+patchars
+path=( /usr/local/bin /System/Cryptexes/App/usr/bin /usr/bin /bin /usr/sbin /sbin /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin /pkg/env/global/bin /Library/Apple/usr/bin /opt/homebrew/bin /Users/jmajor/.codex/tmp/arg0/codex-arg0wVr1rQ /Users/jmajor/miniconda3/bin /Users/jmajor/miniconda3/condabin /Applications/Codex.app/Contents/Resources )
+pipestatus=( 0 )
+prompt=''
+psvar=(  )
+reswords
+saliases
+signals=( EXIT HUP INT QUIT ILL TRAP ABRT EMT FPE KILL BUS SEGV SYS PIPE ALRM TERM URG STOP TSTP CONT CHLD TTIN TTOU IO XCPU XFSZ VTALRM PROF WINCH INFO USR1 USR2 ZERR DEBUG )
+status=0
+termcap
+terminfo
+userdirs
+usergroups
+watch
+widgets
+zsh_eval_context=( cmdarg )
+zsh_scheduled_events
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_segdup produce_sentdhiomr_mito produce_expansionhunter produce_alignstats --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"sentdhiomr\"]' 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' -j 125 -p -k --rerun-triggers mtime",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_varalign_fullcov_20260606T123500Z/daylily-omics-analysis",
+  "session_name": "hybonly_hybrid_hiomr_na2_chip12_varalign_fullcov_20260606T123500Z",
+  "started_at": "2026-06-06T12:33:37Z"
+}
+
+## LOGS
+DAY-EC activated.
+DAY-EC activated.
+
+
+        set -euo pipefail
+        export PATH=$PATH:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/
+
+        timestamp=$(date +%Y%m%d%H%M%S);
+        export TMPDIR="/dev/shm/sentdhiomr_sv_${timestamp}_$$";
+        export SENTIEON_TMPDIR="$TMPDIR";
+        mkdir -p "$TMPDIR";
+        trap 'rm -rf "$TMPDIR" 2>/dev/null || true' EXIT;
+
+        mkdir -p $(dirname results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.log)
+        echo "Starting LongReadSV at $(date)" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.log
+
+        # Build LR readgroup replacement args: LR reads get LR:1 tag
+        RGIDS=$(samtools view -H results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.cram | awk '
+            $1=="@RG"{
+                for(i=1;i<=NF;i++){
+                    if($i~/^ID:/){
+                        sub(/^ID:/,"",$i);
+                        print $i
+                    }
+                }
+            }')
+
+        LR_RG_ARGS=""
+        for rgid in $RGIDS; do
+            LR_RG_ARGS="$LR_RG_ARGS --replace_rg ${rgid}=ID:${rgid}\tSM:HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ\tLR:1"
+        done
+
+        bin/dayoa_sentieon driver -r /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -t 188             --temp_dir $TMPDIR             $LR_RG_ARGS -i results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.cram              --interval /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/hg38_diploid_male.bed              --algo LongReadSV             --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaONT2.0.bundle/longreadsv.model             results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.vcf.gz >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.log 2>&1
+
+        bcftools index -t -f results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.vcf.gz >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.log 2>&1
+
+        echo "LongReadSV completed at $(date)" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.log
+        
+Submitted job 1490 with external jobid '984'.
+
+[Sat Jun  6 12:36:50 2026]
+rule sentdhiomr_sr_align:
+    input: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.R1.fastq.gz, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.R2.fastq.gz, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.cram, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.cram.crai, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.dirsetup.ready
+    output: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/tmp/sr_aligned.bam, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/tmp/sr_aligned.bam.bai
+    log: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sr_align.log
+    jobid: 13
+    benchmark: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/benchmarks/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sr_align.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/tmp/sr_aligned.bam; Input files updated by another job: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.R1.fastq.gz, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.cram.crai, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.dirsetup.ready, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.cram, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.R2.fastq.gz
+    wildcards: sample=HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ, alnr=ont, ddup=dmd
+    threads: 192
+    resources: mem_mb=300000, mem_mib=286103, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=192, time=5440, partition=i192mem,i192bigmem, vcpu=192, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        export PATH=$PATH:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/
+
+        timestamp=$(date +%Y%m%d%H%M%S);
+        export TMPDIR="/dev/shm/sentdhiomr_sr_${timestamp}_$$";
+        export SENTIEON_TMPDIR="$TMPDIR";
+        mkdir -p "$TMPDIR" $(dirname results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/tmp/sr_aligned.bam);
+        if [ ! -d "$TMPDIR" ]; then
+            echo "ERROR: Failed to create TMPDIR: $TMPDIR" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sr_align.log 2>&1;
+            exit 5;
+        fi
+        export bwt_max_mem=180G ;
+
+        echo "TMPDIR created: $TMPDIR" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sr_align.log 2>&1;
+        ls -ld "$TMPDIR" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sr_align.log 2>&1;
+        df -h /dev/shm >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sr_align.log 2>&1;
+        export APPTAINER_HOME="$TMPDIR";
+        trap 'rm -rf "$TMPDIR" 2>/dev/null || true' EXIT;
+
+        # License check
+        if [ -z "$SENTIEON_LICENSE" ] || [ ! -f "$SENTIEON_LICENSE" ]; then
+            echo "ERROR: SENTIEON_LICENSE not set or file not found" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sr_align.log
+            exit 3
+        fi
+
+        echo "Starting SR alignment at $(date)" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sr_align.log
+
+        # Find the jemalloc library in the active conda environment
+        jemalloc_path="";
+        for _dir in "$CONDA_PREFIX/lib" "$CONDA_PREFIX/lib64" "$CONDA_PREFIX/lib/x86_64-linux-gnu"; do
+            if [[ -d "$_dir" ]]; then
+                for _ext in so dylib; do
+                    _candidate=$(find "$_dir" -maxdepth 1 -name "libjemalloc*.$_ext*" 2>/dev/null | head -n 1);
+                    if [[ -n "$_candidate" && -r "$_candidate" ]]; then
+                        jemalloc_path="$_candidate";
+                        break 2;
+                    fi
+                done
+            fi
+        done
+
+        # Check if jemalloc was found and set LD_PRELOAD accordingly
+        if [[ -n "$jemalloc_path" ]]; then
+            export LD_PRELOAD="$jemalloc_path";
+            export MALLOC_CONF=background_thread:true,metadata_thp:auto,dirty_decay_ms:5000,muzzy_decay_ms:5000;
+            echo "LD_PRELOAD set to: $LD_PRELOAD" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sr_align.log;
+            echo "MALLOC_CONF set to: $MALLOC_CONF" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sr_align.log;
+        else
+            echo "libjemalloc not found in CONDA_PREFIX=$CONDA_PREFIX (searched lib, lib64, lib/x86_64-linux-gnu)." >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sr_align.log;
+            echo "libjemalloc not found in CONDA_PREFIX=$CONDA_PREFIX (searched lib, lib64, lib/x86_64-linux-gnu).";
+            exit 3;
+        fi
+
+        # Use cluster_sample for consistent @RG SM tag across entire pipeline
+        # This matches the pattern used in sentieon_bwa_sort and other alignment rules
+        epocsec=$(date +%s)
+        echo "Using cluster_sample: HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sr_align.log
+
+        # Build R1 and R2 file lists
+        R1_FILES="results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.R1.fastq.gz"
+        R2_FILES="results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.R2.fastq.gz"
+
+        # Align with bwa mem → util sort
+        LD_PRELOAD=$LD_PRELOAD bin/dayoa_sentieon bwa mem             -R "@RG\tID:HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ-$epocsec\tSM:HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ\tLB:HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ-LB-1\tPL:ILLUMINA"             -t 96             -x /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaONT2.0.bundle/bwa.model             -K 100000000             /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta              <(   igzip -cd -T 32  -q  results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.R1.fastq.gz  )                <(   igzip -cd -T 32  -q  results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.R2.fastq.gz  )                 | mbuffer -m 128G -q -s 2M    2>> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sr_align.log |         bin/dayoa_sentieon util sort             -i -             -t 188             --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta             --sortblock_thread_count 96             -o results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/tmp/sr_aligned.bam             --intermediate_compress_level 1              --temp_dir $TMPDIR             --block_size 4G             --sam2bam --bam_compression 1 >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sr_align.log 2>&1
+
+        # Index the BAM
+        samtools index -@ 192 results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/tmp/sr_aligned.bam >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sr_align.log 2>&1
+
+        echo "SR alignment completed at $(date)" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sr_align.log
+        
+Submitted job 13 with external jobid '985'.
+[Sat Jun  6 12:36:50 2026]
+Finished job 6.
+7 of 1500 steps (0.5%) done
+Select jobs to execute...
+
+[Sat Jun  6 12:36:50 2026]
+rule sentdhiomr_call_svs:
+    input: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.cram, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.cram.crai
+    output: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.vcf.gz, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.vcf.gz.tbi
+    log: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.log
+    jobid: 1489
+    benchmark: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/benchmarks/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.vcf.gz.tbi; Input files updated by another job: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.cram, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.cram.crai
+    wildcards: sample=HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ, alnr=ont, ddup=dmd
+    threads: 192
+    resources: mem_mb=300000, mem_mib=286103, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=192, time=5440, partition=i192mem,i192bigmem, vcpu=192, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        export PATH=$PATH:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/
+
+        timestamp=$(date +%Y%m%d%H%M%S);
+        export TMPDIR="/dev/shm/sentdhiomr_sv_${timestamp}_$$";
+        export SENTIEON_TMPDIR="$TMPDIR";
+        mkdir -p "$TMPDIR";
+        trap 'rm -rf "$TMPDIR" 2>/dev/null || true' EXIT;
+
+        mkdir -p $(dirname results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.log)
+        echo "Starting LongReadSV at $(date)" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.log
+
+        # Build LR readgroup replacement args: LR reads get LR:1 tag
+        RGIDS=$(samtools view -H results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.cram | awk '
+            $1=="@RG"{
+                for(i=1;i<=NF;i++){
+                    if($i~/^ID:/){
+                        sub(/^ID:/,"",$i);
+                        print $i
+                    }
+                }
+            }')
+
+        LR_RG_ARGS=""
+        for rgid in $RGIDS; do
+            LR_RG_ARGS="$LR_RG_ARGS --replace_rg ${rgid}=ID:${rgid}\tSM:HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ\tLR:1"
+        done
+
+        bin/dayoa_sentieon driver -r /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -t 188             --temp_dir $TMPDIR             $LR_RG_ARGS -i results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.cram              --interval /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/hg38_diploid_male.bed              --algo LongReadSV             --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaONT2.0.bundle/longreadsv.model             results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.vcf.gz >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.log 2>&1
+
+        bcftools index -t -f results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.vcf.gz >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.log 2>&1
+
+        echo "LongReadSV completed at $(date)" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/sv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.sv.log
+        
+Submitted job 1489 with external jobid '986'.
+
+[Sat Jun  6 12:36:50 2026]
+rule sentdhiomr_sr_align:
+    input: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.R1.fastq.gz, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.R2.fastq.gz, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.cram, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA0--output truncated--
+
+## QUEUE
+DAY-EC activated.
+DAY-EC activated.
+JOBID  PARTITION  CPUS  ST  NODELIST  MIN_CPUS  STATE  MIN_MEMORY  TIME  NODES  NAME
+979  i192  16  R  i192-dy-all-1  16  RUNNING  3000M  0:57  1  calc_coverage_evenness-ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION
+977  i192  16  R  i192-dy-all-1  16  RUNNING  3000M  1:47  1  mosdepth-ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION
+978  i192  16  R  i192-dy-all-1  16  RUNNING  3000M  1:47  1  mosdepth-ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION
+976  i192  16  R  i192-dy-all-1  16  RUNNING  3000M  3:58  1  gen_samstats-ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION
+974  i192  16  R  i192-dy-all-1  16  RUNNING  3000M  5:48  1  calc_coverage_evenness-ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION
+964_0  i192  96  R  i192-dy-all-2  96  RUNNING  0  8:44  1  ilmn_ds20x_seqkit
+913_3  i192  96  R  i192-dy-all-1  96  RUNNING  0  17:14  1  ilmn_ds20x_seqkit
+913_1  i192  96  R  i192-dy-all-4  96  RUNNING  0  1:03:44  1  ilmn_ds20x_seqkit
+913_2  i192  96  R  i192-dy-all-4  96  RUNNING  0  1:03:44  1  ilmn_ds20x_seqkit
+984  i192mem  192  CF  i192mem-dy-all-3  192  CONFIGURING  300000M  0:35  1  sentdhiomr_call_svs-HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ
+985  i192mem  192  CF  i192mem-dy-all-4  192  CONFIGURING  300000M  0:35  1  sentdhiomr_sr_align-HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ
+986  i192mem  192  CF  i192mem-dy-all-5  192  CONFIGURING  300000M  0:35  1  sentdhiomr_call_svs-HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ
+987  i192mem  192  CF  i192mem-dy-all-6  192  CONFIGURING  300000M  0:35  1  sentdhiomr_sr_align-HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ
+982  i192mem  192  CF  i192mem-dy-all-1  192  CONFIGURING  300000M  0:54  1  sentieon_bwa_sort-HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ
+983  i192mem  192  CF  i192mem-dy-all-2  192  CONFIGURING  300000M  0:54  1  sentieon_bwa_sort-HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ

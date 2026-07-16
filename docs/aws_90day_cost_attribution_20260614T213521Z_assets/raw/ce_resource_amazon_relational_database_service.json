@@ -1,0 +1,5454 @@
+{
+  "DimensionValueAttributes": [],
+  "GroupDefinitions": [
+    {
+      "Key": "RESOURCE_ID",
+      "Type": "DIMENSION"
+    }
+  ],
+  "ResultsByTime": [
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-dr-drill-use1-20260522-snap"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-inx-inf5-precleanup-20260528t174313z"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000435408",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:marvain-john-major-dev-snapshot-auroracluster-ctvfy1tkxd1i"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000344784",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-bhclwskm5mcqb7l7keks2bcha4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0567374904",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-kym7xbonz4xygugh5dp33j3dci"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0675637338",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-pqpacrqo2fxszto7u4maw3velu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0497094304",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:auruse1-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-staging-data-postgres9dc8bb04-avlkcyzjgnwo"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0009736689",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-x-data-postgres9dc8bb04-xgjwaetdu22b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0009792119",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dr-drill-standalone-use1-20260526"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6366666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:labcoredb-final-snapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000285936",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-9vwkztxfug25"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-elgxviyi30sp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-serncerfuorz"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-4lrvijmaljrxw3emlp7ao4tioe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.058804262",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-aa24mjp2wjnsfofgxghaxwhvku"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0626758885",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-axxvxcfqcs53p4uqziwtcjft7m"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0593235532",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-f5lzubv26w3xt5cgdvgfoyhjei"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0646462432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-o6yhev2r7ksumoenusvgvwrrae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0022006281",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-rit4q5trwzhy6wvk7wvbpfmqam"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004784544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.624",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.464",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dr-drill-standalone-20260521"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.3266666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.6803111111",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:staging-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-02T00:00:00Z",
+        "Start": "2026-06-01T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-dr-drill-use1-20260522-snap"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-inx-inf5-precleanup-20260528t174313z"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000435408",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:marvain-john-major-dev-snapshot-auroracluster-ctvfy1tkxd1i"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000344784",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-bhclwskm5mcqb7l7keks2bcha4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0585928944",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-kym7xbonz4xygugh5dp33j3dci"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0531667216",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-pqpacrqo2fxszto7u4maw3velu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0755952304",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:auruse1-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dr-drill-standalone-use1-20260526"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6366666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:labcoredb-final-snapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000285936",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-9vwkztxfug25"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-elgxviyi30sp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-serncerfuorz"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-4lrvijmaljrxw3emlp7ao4tioe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.066263752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-aa24mjp2wjnsfofgxghaxwhvku"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0692341856",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-axxvxcfqcs53p4uqziwtcjft7m"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0626323264",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-f5lzubv26w3xt5cgdvgfoyhjei"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0583140432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-o6yhev2r7ksumoenusvgvwrrae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0021679638",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-rit4q5trwzhy6wvk7wvbpfmqam"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004784544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.624",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.464",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dr-drill-standalone-20260521"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.3266666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.6803333333",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:staging-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-03T00:00:00Z",
+        "Start": "2026-06-02T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-dr-drill-use1-20260522-snap"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-inx-inf5-precleanup-20260528t174313z"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000435408",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:marvain-john-major-dev-snapshot-auroracluster-ctvfy1tkxd1i"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000344784",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-bhclwskm5mcqb7l7keks2bcha4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.07890883",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-kym7xbonz4xygugh5dp33j3dci"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.05930704",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-pqpacrqo2fxszto7u4maw3velu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0528674304",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:auruse1-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dr-drill-standalone-use1-20260526"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6366666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:labcoredb-final-snapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000285936",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-9vwkztxfug25"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-elgxviyi30sp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-serncerfuorz"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-4lrvijmaljrxw3emlp7ao4tioe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0604075274",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-aa24mjp2wjnsfofgxghaxwhvku"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0678318378",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-axxvxcfqcs53p4uqziwtcjft7m"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0587829264",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-f5lzubv26w3xt5cgdvgfoyhjei"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0590126432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-o6yhev2r7ksumoenusvgvwrrae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0021525342",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-rit4q5trwzhy6wvk7wvbpfmqam"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004784544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.624",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.464",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dr-drill-standalone-20260521"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.3266666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.6802444445",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:staging-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-04T00:00:00Z",
+        "Start": "2026-06-03T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-dr-drill-use1-20260522-snap"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-inx-inf5-precleanup-20260528t174313z"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000435408",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:marvain-john-major-dev-snapshot-auroracluster-ctvfy1tkxd1i"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000344784",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-bhclwskm5mcqb7l7keks2bcha4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1545915161",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-kym7xbonz4xygugh5dp33j3dci"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0609553652",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-pqpacrqo2fxszto7u4maw3velu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0602502304",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:auruse1-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dr-drill-standalone-use1-20260526"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6366666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:backup-recovery-east1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000427647",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:labcoredb-final-snapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000285936",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-9vwkztxfug25"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-elgxviyi30sp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-serncerfuorz"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-4lrvijmaljrxw3emlp7ao4tioe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0599830056",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-aa24mjp2wjnsfofgxghaxwhvku"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0666142227",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-axxvxcfqcs53p4uqziwtcjft7m"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.06382538",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-f5lzubv26w3xt5cgdvgfoyhjei"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0594652432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-o6yhev2r7ksumoenusvgvwrrae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0021468563",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-rit4q5trwzhy6wvk7wvbpfmqam"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004784544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.624",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.464",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dr-drill-standalone-20260521"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.3266666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.6802222222",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:staging-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-05T00:00:00Z",
+        "Start": "2026-06-04T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-dr-drill-use1-20260522-snap"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-inx-inf5-precleanup-20260528t174313z"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000435408",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:marvain-john-major-dev-snapshot-auroracluster-ctvfy1tkxd1i"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000344784",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-bhclwskm5mcqb7l7keks2bcha4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0584572256",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-kym7xbonz4xygugh5dp33j3dci"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.060573587",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-pqpacrqo2fxszto7u4maw3velu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0623932304",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:auruse1-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-josh-dev-data-postgres9dc8bb04-3uhshdelezxt"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1097941807",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dr-drill-standalone-use1-20260526"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6366666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:backup-recovery-east1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:labcoredb-final-snapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000285936",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-9vwkztxfug25"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-elgxviyi30sp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-serncerfuorz"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-4lrvijmaljrxw3emlp7ao4tioe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0593382984",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-aa24mjp2wjnsfofgxghaxwhvku"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0695347875",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-axxvxcfqcs53p4uqziwtcjft7m"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0600700398",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-f5lzubv26w3xt5cgdvgfoyhjei"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0658688432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-o6yhev2r7ksumoenusvgvwrrae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0021429824",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-rit4q5trwzhy6wvk7wvbpfmqam"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004784544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.624",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.464",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dr-drill-standalone-20260521"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.3266666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.6803333334",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:staging-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-06T00:00:00Z",
+        "Start": "2026-06-05T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-dr-drill-use1-20260522-snap"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-inx-inf5-precleanup-20260528t174313z"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000435408",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:marvain-john-major-dev-snapshot-auroracluster-ctvfy1tkxd1i"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000344784",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-bhclwskm5mcqb7l7keks2bcha4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0772443379",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-kym7xbonz4xygugh5dp33j3dci"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0619478252",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-pqpacrqo2fxszto7u4maw3velu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0612596304",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:auruse1-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-josh-dev-data-postgres9dc8bb04-3uhshdelezxt"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0866281862",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dr-drill-standalone-use1-20260526"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6366666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:backup-recovery-east1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:labcoredb-final-snapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000285936",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-9vwkztxfug25"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-elgxviyi30sp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-serncerfuorz"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-4lrvijmaljrxw3emlp7ao4tioe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0605442128",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-aa24mjp2wjnsfofgxghaxwhvku"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0614758186",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-axxvxcfqcs53p4uqziwtcjft7m"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0591462099",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-f5lzubv26w3xt5cgdvgfoyhjei"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0592786432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-o6yhev2r7ksumoenusvgvwrrae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0021368311",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-rit4q5trwzhy6wvk7wvbpfmqam"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004784544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.624",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.464",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dr-drill-standalone-20260521"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.3266666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.6802666667",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:staging-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-07T00:00:00Z",
+        "Start": "2026-06-06T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-dr-drill-use1-20260522-snap"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-inx-inf5-precleanup-20260528t174313z"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000435408",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:marvain-john-major-dev-snapshot-auroracluster-ctvfy1tkxd1i"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000344784",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-bhclwskm5mcqb7l7keks2bcha4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1813200319",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-kym7xbonz4xygugh5dp33j3dci"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0583235256",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-pqpacrqo2fxszto7u4maw3velu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0454206304",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:auruse1-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-josh-dev-data-postgres9dc8bb04-3uhshdelezxt"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004829373",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dr-drill-standalone-use1-20260526"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6405179873",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:backup-recovery-east1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:labcoredb-final-snapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000285936",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-9vwkztxfug25"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-elgxviyi30sp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-serncerfuorz"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-4lrvijmaljrxw3emlp7ao4tioe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0667407653",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-aa24mjp2wjnsfofgxghaxwhvku"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0624005183",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-axxvxcfqcs53p4uqziwtcjft7m"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0625073264",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-f5lzubv26w3xt5cgdvgfoyhjei"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0582004432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-o6yhev2r7ksumoenusvgvwrrae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0021309066",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-rit4q5trwzhy6wvk7wvbpfmqam"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004784544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600005607",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.624",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.232",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.464",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dr-drill-standalone-20260521"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.3266666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.6802888888",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:staging-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-08T00:00:00Z",
+        "Start": "2026-06-07T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-dr-drill-use1-20260522-snap"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-inx-inf5-precleanup-20260528t174313z"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000435408",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:marvain-john-major-dev-snapshot-auroracluster-ctvfy1tkxd1i"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000344784",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-bhclwskm5mcqb7l7keks2bcha4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.6214174134",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-kym7xbonz4xygugh5dp33j3dci"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0596005752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-pqpacrqo2fxszto7u4maw3velu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0738066304",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:auruse1-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dr-drill-standalone-use1-20260526"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6409177802",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:backup-recovery-east1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:labcoredb-final-snapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000285936",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-9vwkztxfug25"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-elgxviyi30sp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-serncerfuorz"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-4lrvijmaljrxw3emlp7ao4tioe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0592132416",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-aa24mjp2wjnsfofgxghaxwhvku"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0658419035",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-axxvxcfqcs53p4uqziwtcjft7m"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0596104367",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-f5lzubv26w3xt5cgdvgfoyhjei"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0579646432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-o6yhev2r7ksumoenusvgvwrrae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.002126578",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-rit4q5trwzhy6wvk7wvbpfmqam"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004784544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606718765",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600026373",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600028288",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600028288",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.6240024336",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.2320026121",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.2320028861",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.46400502",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.2400335917",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dr-drill-standalone-20260521"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.3266712267",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.680334484",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:staging-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.7520336102",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606692776",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-09T00:00:00Z",
+        "Start": "2026-06-08T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-dr-drill-use1-20260522-snap"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-inx-inf5-precleanup-20260528t174313z"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000435408",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:marvain-john-major-dev-snapshot-auroracluster-ctvfy1tkxd1i"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000344784",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-bhclwskm5mcqb7l7keks2bcha4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0884220714",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-kym7xbonz4xygugh5dp33j3dci"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0582355504",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-pqpacrqo2fxszto7u4maw3velu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0612548304",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:auruse1-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dr-drill-standalone-use1-20260526"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6412630323",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:backup-recovery-east1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:labcoredb-final-snapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000285936",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-9vwkztxfug25"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-elgxviyi30sp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-serncerfuorz"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-4lrvijmaljrxw3emlp7ao4tioe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0609720649",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-aa24mjp2wjnsfofgxghaxwhvku"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0683477025",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-axxvxcfqcs53p4uqziwtcjft7m"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0599755233",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-f5lzubv26w3xt5cgdvgfoyhjei"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0665156432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-o6yhev2r7ksumoenusvgvwrrae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0021211084",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-rit4q5trwzhy6wvk7wvbpfmqam"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004784544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.460669704",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600032236",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600025358",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600026569",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.6240023827",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.2320031215",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.2320024146",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.4640054212",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.2400336113",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dr-drill-standalone-20260521"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.3266689783",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.6803070894",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:staging-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.7520336294",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606692647",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-10T00:00:00Z",
+        "Start": "2026-06-09T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-dr-drill-use1-20260522-snap"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-inx-inf5-precleanup-20260528t174313z"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000435408",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:marvain-john-major-dev-snapshot-auroracluster-ctvfy1tkxd1i"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000344784",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-bhclwskm5mcqb7l7keks2bcha4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0620536895",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-kym7xbonz4xygugh5dp33j3dci"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0634676874",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-pqpacrqo2fxszto7u4maw3velu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0595468304",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:auruse1-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dr-drill-standalone-use1-20260526"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6415214153",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:backup-recovery-east1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:labcoredb-final-snapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000285936",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-9vwkztxfug25"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-elgxviyi30sp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-serncerfuorz"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-4lrvijmaljrxw3emlp7ao4tioe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0610476519",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-aa24mjp2wjnsfofgxghaxwhvku"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0640197499",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-axxvxcfqcs53p4uqziwtcjft7m"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0624675233",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-f5lzubv26w3xt5cgdvgfoyhjei"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0586234432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-o6yhev2r7ksumoenusvgvwrrae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0021156392",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-rit4q5trwzhy6wvk7wvbpfmqam"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004784544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.460669647",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600030005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600027395",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600021853",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.6240023058",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.2320028669",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.2320027143",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.4640042556",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.2400335984",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dr-drill-standalone-20260521"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.3266704431",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.6803515211",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:staging-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.7520335913",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606692773",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-11T00:00:00Z",
+        "Start": "2026-06-10T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-dr-drill-use1-20260522-snap"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-inx-inf5-precleanup-20260528t174313z"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000435408",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:marvain-john-major-dev-snapshot-auroracluster-ctvfy1tkxd1i"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000344784",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-bhclwskm5mcqb7l7keks2bcha4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0679101396",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-kym7xbonz4xygugh5dp33j3dci"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0621203521",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-pqpacrqo2fxszto7u4maw3velu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0577784304",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:auruse1-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dr-drill-standalone-use1-20260526"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6417633461",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:backup-recovery-east1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:labcoredb-final-snapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000285936",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-9vwkztxfug25"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-elgxviyi30sp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-serncerfuorz"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-4lrvijmaljrxw3emlp7ao4tioe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0671940728",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-aa24mjp2wjnsfofgxghaxwhvku"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0618305521",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-axxvxcfqcs53p4uqziwtcjft7m"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0607156367",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-f5lzubv26w3xt5cgdvgfoyhjei"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0610220432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-o6yhev2r7ksumoenusvgvwrrae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0021088042",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-rit4q5trwzhy6wvk7wvbpfmqam"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004784544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606721946",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600026504",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600029435",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600022618",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.6240023763",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.2320028925",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.2320026759",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.4640052621",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.2400336168",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dr-drill-standalone-20260521"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.326672036",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.6802848859",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:staging-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.7520336229",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.460669271",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-12T00:00:00Z",
+        "Start": "2026-06-11T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-dr-drill-use1-20260522-snap"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-inx-inf5-precleanup-20260528t174313z"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000435408",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:marvain-john-major-dev-snapshot-auroracluster-ctvfy1tkxd1i"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000344784",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-bhclwskm5mcqb7l7keks2bcha4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0708854293",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-kym7xbonz4xygugh5dp33j3dci"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0637137811",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-pqpacrqo2fxszto7u4maw3velu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0578440304",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:auruse1-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dr-drill-standalone-use1-20260526"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6419865294",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:backup-recovery-east1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:labcoredb-final-snapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000285936",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-9vwkztxfug25"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-elgxviyi30sp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-serncerfuorz"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-4lrvijmaljrxw3emlp7ao4tioe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0608432633",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-aa24mjp2wjnsfofgxghaxwhvku"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0634270773",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-axxvxcfqcs53p4uqziwtcjft7m"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0616219264",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-f5lzubv26w3xt5cgdvgfoyhjei"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0596798432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-o6yhev2r7ksumoenusvgvwrrae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0021033346",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-rit4q5trwzhy6wvk7wvbpfmqam"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004784544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.460671246",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600039563",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600031729",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600026572",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.6240025353",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.2320033765",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.2320023766",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.4640058101",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.2400336174",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dr-drill-standalone-20260521"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.326671246",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.6803515275",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:staging-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.7520336108",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606699906",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-13T00:00:00Z",
+        "Start": "2026-06-12T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-dr-drill-use1-20260522-snap"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:dayhoff-inx-inf5-precleanup-20260528t174313z"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000435408",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster-snapshot:marvain-john-major-dev-snapshot-auroracluster-ctvfy1tkxd1i"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000344784",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-bhclwskm5mcqb7l7keks2bcha4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.06469522",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-kym7xbonz4xygugh5dp33j3dci"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0586360184",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:cluster:cluster-pqpacrqo2fxszto7u4maw3velu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0561814304",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:auruse1-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.96",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-east-1:108782052779:db:dr-drill-standalone-use1-20260526"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.6421932381",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:backup-recovery-east1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000933048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:labcoredb-final-snapshot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000285936",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-9vwkztxfug25"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-elgxviyi30sp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster-snapshot:tapdb-dev-snapshot-auroracluster-serncerfuorz"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-4lrvijmaljrxw3emlp7ao4tioe"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0580401068",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-aa24mjp2wjnsfofgxghaxwhvku"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0633084896",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-axxvxcfqcs53p4uqziwtcjft7m"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0631193501",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-f5lzubv26w3xt5cgdvgfoyhjei"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0621186432",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-o6yhev2r7ksumoenusvgvwrrae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.002099005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:cluster:cluster-rit4q5trwzhy6wvk7wvbpfmqam"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0004784544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606741192",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600042363",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600036824",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.9600024914",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.6240030387",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.2320034784",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.2320030454",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.4640061923",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dev-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.2400335919",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:dr-drill-standalone-20260521"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.3266710102",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.6803070894",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:staging-writer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.7520336105",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606706341",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4606666656",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-14T00:00:00Z",
+        "Start": "2026-06-13T00:00:00Z"
+      },
+      "Total": {}
+    }
+  ]
+}

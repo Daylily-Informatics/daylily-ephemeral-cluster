@@ -1,0 +1,39 @@
+DAY-EC activated.
+DAY-EC activated.
+seqkit v2.9.0
+sample sequences by number or proportion.
+
+Attention:
+1. Do not use '-n' on large FASTQ files, it loads all seqs into memory!
+   use 'seqkit sample -p 0.1 seqs.fq.gz | seqkit head -n N' instead!
+
+Usage:
+  seqkit sample [flags] 
+
+Flags:
+  -h, --help               help for sample
+  -n, --number int         sample by number (result may not exactly match), DO NOT use on large FASTQ files.
+  -p, --proportion float   sample by proportion
+  -s, --rand-seed int      random seed. For paired-end data, use the same seed across fastq files to
+                           sample the same read pairs (default 11)
+  -2, --two-pass           2-pass mode read files twice to lower memory usage. Not allowed when reading
+                           from stdin
+
+Global Flags:
+      --alphabet-guess-seq-length int   length of sequence prefix of the first FASTA record based on
+                                        which seqkit guesses the sequence type (0 for whole seq)
+                                        (default 10000)
+      --compress-level int              compression level for gzip, zstd, xz and bzip2. type "seqkit -h"
+                                        for the range and default value for each format (default -1)
+      --id-ncbi                         FASTA head is NCBI-style, e.g. >gi|110645304|ref|NC_002516.2|
+                                        Pseud...
+      --id-regexp string                regular expression for parsing ID (default "^(\\S+)\\s?")
+  -X, --infile-list string              file of input files list (one file per line), if given, they are
+                                        appended to files from cli arguments
+  -w, --line-width int                  line width when outputting FASTA format (0 for no wrap) (default 60)
+  -o, --out-file string                 out file ("-" for stdout, suffix .gz for gzipped out) (default "-")
+      --quiet                           be quiet and do not show extra information
+  -t, --seq-type string                 sequence type (dna|rna|protein|unlimit|auto) (for auto, it
+                                        automatically detect by the first sequence) (default "auto")
+  -j, --threads int                     number of CPUs. can also set with environment variable
+                                        SEQKIT_THREADS) (default 4)

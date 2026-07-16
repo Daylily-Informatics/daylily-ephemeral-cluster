@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AWS 90-Day Cost Attribution Report</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --ink: #17212b;
+      --muted: #5a6675;
+      --line: #d7dde5;
+      --blue: #1f5f99;
+      --teal: #1c7f72;
+      --amber: #9b6400;
+      --shadow: 0 1px 2px rgba(17, 24, 39, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.55; }
+    .page { width: min(1220px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 48px; }
+    header, .panel, .metric, .plot { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); }
+    header { padding: 24px; }
+    .eyebrow { margin: 0 0 6px; color: var(--blue); font-size: 0.82rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2rem, 4vw, 3.1rem); line-height: 1.05; letter-spacing: 0; }
+    h2 { margin: 34px 0 14px; font-size: 1.45rem; line-height: 1.2; letter-spacing: 0; }
+    h3 { margin: 24px 0 10px; font-size: 1.05rem; line-height: 1.25; letter-spacing: 0; }
+    p { margin: 0 0 14px; }
+    code { background: #edf1f5; border: 1px solid #dce3eb; border-radius: 4px; padding: 1px 5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; }
+    .meta { display: grid; grid-template-columns: repeat(5, minmax(150px, 1fr)); gap: 10px; margin-top: 20px; }
+    .meta div { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; box-shadow: var(--shadow); }
+    .label { display: block; color: var(--muted); font-size: 0.77rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+    .value { display: block; margin-top: 4px; font-weight: 700; overflow-wrap: anywhere; }
+    .notice { margin-top: 18px; padding: 12px 14px; border-left: 4px solid var(--amber); background: #fff8e7; color: #4a3511; }
+    .metrics { display: grid; grid-template-columns: repeat(6, minmax(140px, 1fr)); gap: 12px; margin: 18px 0 8px; }
+    .metric { padding: 14px; }
+    .metric strong { display: block; margin-top: 4px; font-size: 1.45rem; line-height: 1.1; }
+    .metric .small { color: var(--muted); font-size: 0.86rem; }
+    .panel { padding: 18px; margin-bottom: 16px; }
+    .plots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .plot { overflow: hidden; min-width: 0; }
+    .plot figcaption { padding: 12px 14px; color: var(--muted); font-weight: 700; border-bottom: 1px solid var(--line); }
+    .plot img { display: block; width: 100%; height: auto; background: #fff; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0 18px; font-size: 0.93rem; }
+    th, td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: #eef3f8; font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; color: #334155; }
+    tr:nth-child(even) td { background: #fafbfd; }
+    @media (max-width: 900px) {
+      .meta, .metrics, .plots { grid-template-columns: 1fr; }
+      .page { width: min(100% - 20px, 1220px); }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <p class="eyebrow">AWS Cost Explorer</p>
+      <h1>AWS 90-Day Cost Attribution Report</h1>
+      <div class="meta">
+        <div><span class="label">Generated</span><span class="value">2026-06-19T01:31:50.876654Z</span></div>
+        <div><span class="label">Profile</span><span class="value">lsmc</span></div>
+        <div><span class="label">Account</span><span class="value">108782052779</span></div>
+        <div><span class="label">Window</span><span class="value">2026-03-21 to 2026-06-18</span></div>
+        <div><span class="label">Metric</span><span class="value">UnblendedCost</span></div>
+      </div>
+      <div class="notice">No AWS mutations were performed. Today, June 18, is included and may remain estimated until AWS billing settles.</div>
+    </header>
+
+    <section class="metrics"><div class="metric"><span class="label">Total 90-day spend</span><strong>$57,512.08</strong><span class="small">Unblended cost</span></div>
+<div class="metric"><span class="label">DYEC tagged</span><strong>$34,597.78</strong><span class="small">cluster-name tag</span></div>
+<div class="metric"><span class="label">DYEC EC2 compute</span><strong>$23,450.47</strong><span class="small">tagged EC2 compute</span></div>
+<div class="metric"><span class="label">RDS/Aurora</span><strong>$5,246.71</strong><span class="small">service total</span></div>
+<div class="metric"><span class="label">Dayhoff/TapDB</span><strong>$3,016.21</strong><span class="small">lsmc-project tag</span></div>
+<div class="metric"><span class="label">Resource count</span><strong>158</strong><span class="small">live inventory</span></div></section>
+
+    <section class="panel">
+      <h2>Top Spend</h2>
+      <h3>Services</h3>
+      <table><thead><tr><th>Service</th><th>90-day spend</th></tr></thead><tbody><tr><td>Amazon Elastic Compute Cloud - Compute</td><td>$26,063.88</td></tr><tr><td>Amazon FSx</td><td>$10,473.82</td></tr><tr><td>Amazon Simple Storage Service</td><td>$9,347.68</td></tr><tr><td>Amazon Relational Database Service</td><td>$5,246.71</td></tr><tr><td>EC2 - Other</td><td>$2,689.56</td></tr><tr><td>AWS Support (Developer)</td><td>$1,556.87</td></tr><tr><td>AWS Security Hub</td><td>$570.22</td></tr><tr><td>Amazon Virtual Private Cloud</td><td>$389.65</td></tr></tbody></table>
+      <h3>Regions</h3>
+      <table><thead><tr><th>Region</th><th>90-day spend</th></tr></thead><tbody><tr><td>us-west-2</td><td>$51,504.01</td></tr><tr><td>us-east-1</td><td>$3,511.07</td></tr><tr><td>global</td><td>$1,762.20</td></tr><tr><td>eu-central-1</td><td>$354.55</td></tr><tr><td>ap-south-1</td><td>$313.97</td></tr><tr><td>sa-east-1</td><td>$5.48</td></tr><tr><td>us-east-2</td><td>$5.23</td></tr><tr><td>ap-northeast-3</td><td>$4.48</td></tr></tbody></table>
+    </section>
+
+    <section>
+      <h2>Overview Plots</h2>
+      <div class="plots">
+        <figure class="plot"><figcaption>Daily spend</figcaption><img src="images/daily_spend.svg" alt="Daily spend line chart"></figure>
+        <figure class="plot"><figcaption>Top services</figcaption><img src="images/top_services.svg" alt="Top services bar chart"></figure>
+        <figure class="plot"><figcaption>Top regions</figcaption><img src="images/top_regions.svg" alt="Top regions bar chart"></figure>
+        <figure class="plot"><figcaption>Attribution surfaces</figcaption><img src="images/attribution_surfaces.svg" alt="Attribution surfaces bar chart"></figure>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Attribution Surfaces</h2>
+      <p>These surfaces are not all mutually exclusive. Historical DYEC and Dayhoff/TapDB values use active billing tags; Terrarium and Aquarium use recent resource-level data and live inventory because historical app tags are not active.</p>
+      <table><thead><tr><th>Surface</th><th>Evidence</th><th>90-day spend</th><th>Confidence</th></tr></thead><tbody><tr><td>DYEC cluster-name tagged</td><td>`parallelcluster:cluster-name` nonblank</td><td>$34,597.78</td><td>high for tagged cluster resources</td></tr><tr><td>DYEC EC2 compute subset</td><td>service=EC2 Compute + nonblank cluster-name tag</td><td>$23,450.47</td><td>high for tagged EC2 compute</td></tr><tr><td>DYEC FSx subset</td><td>service=Amazon FSx + nonblank cluster-name tag</td><td>$10,473.82</td><td>high for tagged FSx</td></tr><tr><td>Dayhoff/TapDB lsmc-project tagged</td><td>`lsmc-project` starts dayhoff/tapdb</td><td>$3,016.21</td><td>high for resources carrying lsmc-project</td></tr><tr><td>Dayhoff project tag</td><td>`project=dayhoff-all`</td><td>$1,875.36</td><td>separate tag surface; may overlap</td></tr><tr><td>Aurora/RDS service total</td><td>service=Amazon Relational Database Service</td><td>$5,246.71</td><td>high service total, not app-specific</td></tr><tr><td>Aurora/RDS instance compute subset</td><td>RDS usage types matching instance/box/multi-AZ/CPU credit</td><td>$4,902.90</td><td>usage-type heuristic</td></tr></tbody></table>
+    </section>
+
+    <section class="panel">
+      <h2>DYEC / ParallelCluster</h2>
+      <table><thead><tr><th>Service</th><th>DYEC cluster-tagged spend</th></tr></thead><tbody><tr><td>Amazon Elastic Compute Cloud - Compute</td><td>$23,450.47</td></tr><tr><td>Amazon FSx</td><td>$10,473.82</td></tr><tr><td>EC2 - Other</td><td>$594.43</td></tr><tr><td>AmazonCloudWatch</td><td>$43.73</td></tr><tr><td>Amazon Virtual Private Cloud</td><td>$23.54</td></tr><tr><td>Amazon Route 53</td><td>$11.70</td></tr><tr><td>Amazon DynamoDB</td><td>$0.09</td></tr><tr><td>AWS Lambda</td><td>$0.00</td></tr></tbody></table>
+      <h3>Top cluster-name tags</h3>
+      <table><thead><tr><th>Cluster tag value</th><th>90-day spend</th></tr></thead><tbody><tr><td>ultimarerun</td><td>$4,655.99</td></tr><tr><td>may26-d</td><td>$3,688.69</td></tr><tr><td>ifx-go</td><td>$2,635.41</td></tr><tr><td>altairval</td><td>$2,026.49</td></tr><tr><td>hyb-hg003</td><td>$1,879.23</td></tr><tr><td>mk-gotime3</td><td>$1,851.03</td></tr><tr><td>fk-260509-use</td><td>$1,824.33</td></tr><tr><td>hyb-only</td><td>$1,599.38</td></tr><tr><td>inflextion-g24</td><td>$1,382.12</td></tr><tr><td>dyecX4</td><td>$1,188.91</td></tr><tr><td>dra-enabled</td><td>$1,047.28</td></tr><tr><td>dyec-test</td><td>$844.31</td></tr><tr><td>at-sanity</td><td>$830.78</td></tr><tr><td>dec219-cluster</td><td>$827.28</td></tr><tr><td>XL-pilot</td><td>$795.05</td></tr></tbody></table>
+    </section>
+
+    <section class="panel">
+      <h2>Dayhoff / TapDB</h2>
+      <table><thead><tr><th>Service</th><th>Dayhoff/TapDB lsmc-project spend</th></tr></thead><tbody><tr><td>Amazon Relational Database Service</td><td>$1,810.61</td></tr><tr><td>Amazon Elastic Compute Cloud - Compute</td><td>$1,168.04</td></tr><tr><td>EC2 - Other</td><td>$33.07</td></tr><tr><td>Amazon Elastic Load Balancing</td><td>$1.96</td></tr><tr><td>AWS Secrets Manager</td><td>$1.51</td></tr><tr><td>Amazon Route 53</td><td>$1.00</td></tr><tr><td>Amazon EC2 Container Registry (ECR)</td><td>$0.01</td></tr><tr><td>Amazon Virtual Private Cloud</td><td>$0.01</td></tr><tr><td>Amazon Simple Notification Service</td><td>$0.00</td></tr></tbody></table>
+      <h3>Top lsmc-project values</h3>
+      <table><thead><tr><th>lsmc-project value</th><th>90-day spend</th></tr></thead><tbody><tr><td>dayhoff+us-west-2</td><td>$1,778.87</td></tr><tr><td>tapdb-us-east-1</td><td>$172.45</td></tr><tr><td>tapdb-us-west-2</td><td>$171.29</td></tr><tr><td>dayhoff-ddev96</td><td>$142.73</td></tr><tr><td>dayhoff+us-east-1</td><td>$138.84</td></tr><tr><td>dayhoff-day</td><td>$127.26</td></tr><tr><td>dayhoff-dev</td><td>$122.08</td></tr><tr><td>dayhoff-inf</td><td>$118.07</td></tr><tr><td>dayhoff-joshdev</td><td>$91.14</td></tr><tr><td>dayhoff-jemdev5</td><td>$75.00</td></tr><tr><td>dayhoff-jemdev2</td><td>$18.29</td></tr><tr><td>dayhoff-jemdev3</td><td>$17.35</td></tr><tr><td>dayhoff-inf9</td><td>$8.84</td></tr><tr><td>dayhoff-inf10</td><td>$8.43</td></tr><tr><td>dayhoff-inf11</td><td>$6.69</td></tr></tbody></table>
+    </section>
+
+    <section class="panel">
+      <h2>Aurora / RDS</h2>
+      <p>RDS/Aurora service total is $5,246.71. The apparent instance-class compute subset is $4,902.90.</p>
+      <table><thead><tr><th>RDS usage type</th><th>90-day spend</th></tr></thead><tbody><tr><td>USW2-InstanceUsageIOOptimized:db.r8g.2xl</td><td>$1,102.97</td></tr><tr><td>USW2-InstanceUsageIOOptimized:db.r8g.xl</td><td>$1,102.84</td></tr><tr><td>USW2-InstanceUsage:db.r6g.large</td><td>$558.74</td></tr><tr><td>InstanceUsage:db.r5.large</td><td>$472.54</td></tr><tr><td>USW2-InstanceUsage:db.r5.large</td><td>$431.15</td></tr><tr><td>InstanceUsage:db.r6g.large</td><td>$395.37</td></tr><tr><td>InstanceUsage:db.t3.medium</td><td>$238.36</td></tr><tr><td>USW2-Aurora:ServerlessV2IOOptimizedUsage</td><td>$219.53</td></tr><tr><td>USW2-InstanceUsage:db.r8g.large</td><td>$200.25</td></tr><tr><td>InstanceUsage:db.t4g.medium</td><td>$198.37</td></tr><tr><td>USW2-InstanceUsage:db.t4g.medium</td><td>$108.81</td></tr><tr><td>USW2-InstanceUsage:db.t4g.micro</td><td>$88.19</td></tr><tr><td>RDS:GP2-Storage</td><td>$51.91</td></tr><tr><td>USW2-RDS:GP3-Storage</td><td>$20.96</td></tr><tr><td>USW2-RDS:GP2-Storage</td><td>$18.45</td></tr></tbody></table>
+    </section>
+
+    <section class="panel">
+      <h2>Terrarium And Aquarium</h2>
+      <table><thead><tr><th>Class</th><th>Recent resource-level spend</th><th>30.4-day run-rate</th></tr></thead><tbody><tr><td>unallocated</td><td>$10,013.10</td><td>$21,769.55</td></tr><tr><td>dayhoff</td><td>$2,823.44</td><td>$6,138.46</td></tr><tr><td>terrarium</td><td>$64.85</td><td>$140.99</td></tr><tr><td>aquarium</td><td>$14.30</td><td>$31.09</td></tr></tbody></table>
+      <h3>Recent class/service split</h3>
+      <table><thead><tr><th>Class</th><th>Service</th><th>Recent spend</th><th>30.4-day run-rate</th></tr></thead><tbody><tr><td>unallocated</td><td>Amazon Elastic Compute Cloud - Compute</td><td>$9,547.59</td><td>$20,757.48</td></tr><tr><td>dayhoff</td><td>Amazon Relational Database Service</td><td>$1,910.70</td><td>$4,154.07</td></tr><tr><td>dayhoff</td><td>Amazon Elastic Compute Cloud - Compute</td><td>$809.71</td><td>$1,760.40</td></tr><tr><td>unallocated</td><td>EC2 - Other</td><td>$331.98</td><td>$721.76</td></tr><tr><td>dayhoff</td><td>EC2 - Other</td><td>$88.33</td><td>$192.04</td></tr><tr><td>unallocated</td><td>Amazon Virtual Private Cloud</td><td>$73.05</td><td>$158.82</td></tr><tr><td>unallocated</td><td>Amazon Relational Database Service</td><td>$60.48</td><td>$131.49</td></tr><tr><td>terrarium</td><td>EC2 - Other</td><td>$29.50</td><td>$64.14</td></tr><tr><td>terrarium</td><td>Amazon Elastic Container Service</td><td>$16.10</td><td>$35.00</td></tr><tr><td>dayhoff</td><td>Amazon Elastic Load Balancing</td><td>$14.69</td><td>$31.94</td></tr><tr><td>terrarium</td><td>Amazon Relational Database Service</td><td>$12.48</td><td>$27.13</td></tr><tr><td>aquarium</td><td>Amazon Elastic Container Service</td><td>$8.06</td><td>$17.52</td></tr><tr><td>terrarium</td><td>Amazon Elastic Compute Cloud - Compute</td><td>$6.76</td><td>$14.70</td></tr><tr><td>aquarium</td><td>Amazon Relational Database Service</td><td>$6.24</td><td>$13.57</td></tr></tbody></table>
+      <h3>Live resource counts</h3>
+      <table><thead><tr><th>Class</th><th>Live resources</th></tr></thead><tbody><tr><td>unallocated</td><td>64</td></tr><tr><td>dayhoff</td><td>46</td></tr><tr><td>dyec_cluster</td><td>25</td></tr><tr><td>terrarium</td><td>18</td></tr><tr><td>aquarium</td><td>5</td></tr></tbody></table>
+    </section>
+
+    <section class="panel">
+      <h2>Limits And Reproducibility</h2>
+      <p>Cost Explorer active tag keys for this window were limited to ParallelCluster/project tags. `Name`, CloudFormation stack-name, ECS service, and RDS identifier were not active historical cost allocation tags. Therefore DYEC and Dayhoff/TapDB are separated with historical tag evidence where tags exist, while Terrarium and Aquarium are separated only in live inventory and recent resource-level Cost Explorer data. Unclassified or blank-tag spend remains unallocated rather than inferred.</p>
+      <p>Collector command records: 361; expected S3 metadata misses: 37 lifecycle and 18 tag-set responses; unexpected command errors: 0.</p>
+    </section>
+  </main>
+</body>
+</html>

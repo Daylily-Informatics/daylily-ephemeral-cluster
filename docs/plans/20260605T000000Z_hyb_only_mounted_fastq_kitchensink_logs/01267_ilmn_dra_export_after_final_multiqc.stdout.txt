@@ -1,0 +1,12 @@
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+
+╭─────────────────────────────── Export failed ────────────────────────────────╮
+│                                                                              │
+│  source_path overlaps existing FSx data repository association               │
+│  dra-045fb815b04f5c3f3 at                                                    │
+│  /analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z  │
+│  /.                                                                          │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯

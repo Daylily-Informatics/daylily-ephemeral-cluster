@@ -1,0 +1,4 @@
+DAY-EC activated.
+ILMN_JOBS=20
+ILMN_STATE_R=20
+ONT_JOBS=0

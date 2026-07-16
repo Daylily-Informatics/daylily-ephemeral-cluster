@@ -22,23 +22,36 @@ WARN aborts unless ``--pass-on-warn`` is set.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 import os as _os
 import re
 import shlex
 import subprocess
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Iterable, List, Optional
 from urllib.parse import urlparse
 
 import typer
+from botocore.exceptions import ClientError
 
 from daylily_ec import ui
+from daylily_ec.aws.spot_pricing import (
+    DEFAULT_GLOBAL_SPOT_MAX_COST,
+    DEFAULT_SPOT_COST_LIMIT_PCT,
+    DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+    validate_spot_pricing_limits,
+)
 from daylily_ec.headnode_readiness import validate_headnode_readiness
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport, StateRecord
-from daylily_ec.state.store import write_preflight_report, write_state_record
+from daylily_ec.state.store import (
+    write_preflight_report,
+    write_resource_receipt,
+    write_state_record,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -50,13 +63,16 @@ EXIT_DRIFT = 3
 EXIT_TOOLCHAIN = 4
 
 CLUSTER_NAME_MIN_LENGTH = 5
-CLUSTER_NAME_MAX_LENGTH = 25
-CLUSTER_NAME_PATTERN = re.compile(r"^[A-Za-z][A-Za-z0-9-]*$")
+CLUSTER_NAME_MAX_LENGTH = 20
+CLUSTER_NAME_PATTERN = re.compile(r"^[a-z][a-z0-9-]*$")
 CLUSTER_NAME_RULE_TEXT = (
-    f"ParallelCluster requires cluster names to be {CLUSTER_NAME_MIN_LENGTH}-"
-    f"{CLUSTER_NAME_MAX_LENGTH} characters, start with a letter, "
-    "and contain only letters, digits, and hyphens"
+    f"DYEC requires cluster names to be {CLUSTER_NAME_MIN_LENGTH}-"
+    f"{CLUSTER_NAME_MAX_LENGTH} characters, start with a lowercase letter, "
+    "and contain only lowercase letters, digits, and hyphens"
 )
+DEFAULT_REGIONAL_CLUSTER_CAP = 5
+REGIONAL_CAP_INCREASE_ACK_FLAG = "--acknowledge-regional-cap-increase"
+REGIONAL_CAP_RISK_ACK_FLAG = "--acknowledge-regional-cap-risk"
 
 # ---------------------------------------------------------------------------
 # Preflight gate ordering — validators are registered in spec §10.5 order
@@ -70,17 +86,259 @@ PreflightStep = Callable[[PreflightReport], PreflightReport]
 _PREFLIGHT_STEPS: List[PreflightStep] = []
 
 CLUSTER_BOOT_CONFIG_FILENAMES = (
+    "install_slurm_job_submit_policy.sh",
+    "job_submit.lua",
+    "post_install_almalinux8_dragen.sh",
+    "post_install_rhel8_dragen.sh",
     "post_install_ubuntu_combined.sh",
     "sbatch",
     "sleep_test.sh",
 )
 BOOT_CONFIG_REFERENCE_COMPAT_LINE = b'reference_compat_root="/fsx/data"'
+DEFAULT_CREATE_CLUSTER_TYPE = "intel"
+DRAGEN_CLUSTER_TYPE = "dragen"
+SENTIEON_SINGLE_CLUSTER_TYPE = "sentieon-single"
+SENTIEON_SINGLE_REGION_AZ = "us-west-2c"
+SENTIEON_SINGLE_QUEUE_MAX_COUNT = 12
+# Pinned from 2026-07-12 read-only EC2 type, AZ-offering, and Linux Spot
+# metadata: Intel x86_64, exact queue vCPU, required local NVMe, at least
+# 1200 GB instance storage, and no accelerator hardware.
+# X-family types are intentionally excluded: their separate 128-vCPU Spot
+# quota cannot cover the fixed one-node i96nvme and i128nvme queue maxima.
+SENTIEON_SINGLE_QUEUE_INSTANCE_TYPES = {
+    "i8": (
+        "i3en.2xlarge",
+        "i4i.2xlarge",
+        "i7i.2xlarge",
+        "i7ie.2xlarge",
+    ),
+    "i96nvme": (
+        "c5d.24xlarge",
+        "c5d.metal",
+        "c6id.24xlarge",
+        "c8id.24xlarge",
+        "i3en.24xlarge",
+        "i3en.metal",
+        "i4i.24xlarge",
+        "i7i.24xlarge",
+        "i7i.metal-24xl",
+        "i7ie.24xlarge",
+        "i7ie.metal-24xl",
+        "m5d.24xlarge",
+        "m5d.metal",
+        "m5dn.24xlarge",
+        "m5dn.metal",
+        "m6id.24xlarge",
+        "m6idn.24xlarge",
+        "m8id.24xlarge",
+        "m8idb.24xlarge",
+        "m8idn.24xlarge",
+        "r5d.24xlarge",
+        "r5d.metal",
+        "r5dn.24xlarge",
+        "r5dn.metal",
+        "r6id.24xlarge",
+        "r6idn.24xlarge",
+        "r8id.24xlarge",
+        "r8idb.24xlarge",
+        "r8idn.24xlarge",
+    ),
+    "i128nvme": (
+        "c6id.32xlarge",
+        "c6id.metal",
+        "c8id.32xlarge",
+        "i4i.32xlarge",
+        "i4i.metal",
+        "m6id.32xlarge",
+        "m6id.metal",
+        "m6idn.32xlarge",
+        "m6idn.metal",
+        "m8id.32xlarge",
+        "m8idb.32xlarge",
+        "m8idn.32xlarge",
+        "r6id.32xlarge",
+        "r6id.metal",
+        "r6idn.32xlarge",
+        "r6idn.metal",
+        "r8id.32xlarge",
+        "r8idb.32xlarge",
+        "r8idn.32xlarge",
+    ),
+    "i192nvme": (
+        "c8id.48xlarge",
+        "c8id.metal-48xl",
+        "i7i.48xlarge",
+        "i7i.metal-48xl",
+        "i7ie.48xlarge",
+        "i7ie.metal-48xl",
+        "m8id.48xlarge",
+        "m8id.metal-48xl",
+        "m8idb.48xlarge",
+        "m8idn.48xlarge",
+        "r8id.48xlarge",
+        "r8id.metal-48xl",
+        "r8idb.48xlarge",
+        "r8idn.48xlarge",
+    ),
+    "i384nvme": (
+        "c8id.96xlarge",
+        "c8id.metal-96xl",
+        "m8id.96xlarge",
+        "m8id.metal-96xl",
+        "m8idb.96xlarge",
+        "m8idn.96xlarge",
+        "r8id.96xlarge",
+        "r8id.metal-96xl",
+        "r8idb.96xlarge",
+        "r8idn.96xlarge",
+    ),
+}
+SENTIEON_SINGLE_QUEUE_RESOURCE_NAMES = {
+    "i8": "price8",
+    "i96nvme": "price96nvme",
+    "i128nvme": "price128nvme",
+    "i192nvme": "price192nvme",
+    "i384nvme": "price384nvme",
+}
+CPU_ONLY_SLURM_CUSTOM_SETTINGS = [
+    {"JobSubmitPlugins": "lua"},
+    {"AccountingStoreFlags": "job_comment"},
+    {"PrologFlags": "Alloc"},
+]
+CREATE_CLUSTER_TYPES = frozenset(
+    {"intel", "rhel", DRAGEN_CLUSTER_TYPE, SENTIEON_SINGLE_CLUSTER_TYPE}
+)
+
+
+@dataclass(frozen=True)
+class DragenCreateInputs:
+    """Private inputs required to render a qualified DRAGEN cluster."""
+
+    backport: Any
+    license_secret_arn: str
+    license_policy_arn: str
+
+
+@dataclass(frozen=True)
+class DayoaDeployKeyInputs:
+    """Explicit AWS resources used for read-only DayOA repository access."""
+
+    secret_arn: str
+    policy_arn: str
+    region: str
+
+
+@dataclass(frozen=True)
+class DyecDeployKeyInputs:
+    """Explicit AWS resources used to bootstrap the private DYEC repository."""
+
+    secret_arn: str
+    policy_arn: str
+    region: str
 
 
 @dataclass(frozen=True)
 class HeadnodeRepoSpec:
     url: str
     ref: str
+
+
+@dataclass(frozen=True)
+class RegionalClusterCapDecision:
+    """Projected regional ParallelCluster count for one create request."""
+
+    effective_cap: int
+    current_count: int
+    projected_count: int
+    requested_name_present: bool
+    counted_records: tuple[tuple[str, str], ...]
+
+
+def validate_regional_cluster_cap_options(
+    regional_cluster_cap: Optional[int],
+    *,
+    acknowledge_regional_cap_increase: bool = False,
+    acknowledge_regional_cap_risk: bool = False,
+) -> int:
+    """Return the effective regional cap after validating override acknowledgements."""
+
+    acknowledgements = {
+        REGIONAL_CAP_INCREASE_ACK_FLAG: acknowledge_regional_cap_increase,
+        REGIONAL_CAP_RISK_ACK_FLAG: acknowledge_regional_cap_risk,
+    }
+    for flag, value in acknowledgements.items():
+        if not isinstance(value, bool):
+            raise ValueError(f"{flag} must be a boolean flag.")
+
+    if regional_cluster_cap is None:
+        effective_cap = DEFAULT_REGIONAL_CLUSTER_CAP
+    elif isinstance(regional_cluster_cap, bool) or not isinstance(regional_cluster_cap, int):
+        raise ValueError("--regional-cluster-cap must be an integer.")
+    else:
+        effective_cap = regional_cluster_cap
+
+    if effective_cap < 1:
+        raise ValueError("--regional-cluster-cap must be at least 1.")
+
+    has_any_acknowledgement = any(acknowledgements.values())
+    if effective_cap <= DEFAULT_REGIONAL_CLUSTER_CAP:
+        if has_any_acknowledgement:
+            raise ValueError(
+                f"{REGIONAL_CAP_INCREASE_ACK_FLAG} and {REGIONAL_CAP_RISK_ACK_FLAG} "
+                "are valid only with an explicit --regional-cluster-cap greater than "
+                f"{DEFAULT_REGIONAL_CLUSTER_CAP}."
+            )
+        return effective_cap
+
+    missing_acknowledgements = [
+        flag for flag, acknowledged in acknowledgements.items() if not acknowledged
+    ]
+    if missing_acknowledgements:
+        raise ValueError(
+            f"Increasing --regional-cluster-cap above {DEFAULT_REGIONAL_CLUSTER_CAP} "
+            "requires both independent acknowledgements; missing: "
+            + ", ".join(missing_acknowledgements)
+            + "."
+        )
+
+    return effective_cap
+
+
+def evaluate_regional_cluster_cap(
+    *,
+    cluster_name: str,
+    records: Any,
+    effective_cap: int,
+) -> RegionalClusterCapDecision:
+    """Count non-deleted records and project the requested cluster create."""
+
+    if not isinstance(records, list):
+        raise ValueError("the validated inventory does not contain a clusters list")
+
+    counted_records: list[tuple[str, str]] = []
+    for index, record in enumerate(records):
+        if not isinstance(record, dict):
+            raise ValueError(f"clusters[{index}] is not an object")
+        name = record.get("clusterName")
+        status = record.get("clusterStatus")
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError(f"clusters[{index}].clusterName is invalid")
+        if not isinstance(status, str) or not status.strip():
+            raise ValueError(f"clusters[{index}].clusterStatus is invalid")
+        if status == "DELETE_COMPLETE":
+            continue
+        counted_records.append((name, status))
+
+    requested_name_present = any(name == cluster_name for name, _status in counted_records)
+    current_count = len(counted_records)
+    projected_count = current_count + (0 if requested_name_present else 1)
+    return RegionalClusterCapDecision(
+        effective_cap=effective_cap,
+        current_count=current_count,
+        projected_count=projected_count,
+        requested_name_present=requested_name_present,
+        counted_records=tuple(counted_records),
+    )
 
 
 def register_preflight_step(step: PreflightStep) -> None:
@@ -117,43 +375,99 @@ def _git_failure_detail(proc: subprocess.CompletedProcess[str], fallback: str) -
     return proc.stderr.strip() or proc.stdout.strip() or fallback
 
 
-def _normalize_headnode_repo_url(repo_url: str) -> str:
+def _normalize_headnode_repo_url(repo_url: str, *, deploy_key_auth: bool = False) -> str:
     """Return a headnode-safe clone URL for the Daylily control repo."""
+    github_path = ""
     if repo_url.startswith("git@github.com:"):
-        repo_path = repo_url.removeprefix("git@github.com:")
-        if "/" not in repo_path:
+        github_path = repo_url.removeprefix("git@github.com:")
+        if "/" not in github_path:
             raise RuntimeError(f"Unsupported GitHub SSH repository URL: {repo_url}")
-        return f"https://github.com/{repo_path}"
-
-    if repo_url.startswith("ssh://git@github.com/"):
-        repo_path = repo_url.removeprefix("ssh://git@github.com/")
-        if "/" not in repo_path:
+    elif repo_url.startswith("ssh://git@github.com/"):
+        github_path = repo_url.removeprefix("ssh://git@github.com/")
+        if "/" not in github_path:
             raise RuntimeError(f"Unsupported GitHub SSH repository URL: {repo_url}")
-        return f"https://github.com/{repo_path}"
-
-    if repo_url.startswith("git@") or repo_url.startswith("ssh://"):
+    elif repo_url.startswith("https://github.com/"):
+        github_path = repo_url.removeprefix("https://github.com/")
+        if "/" not in github_path:
+            raise RuntimeError(f"Unsupported GitHub repository URL: {repo_url}")
+    elif repo_url.startswith("git@") or repo_url.startswith("ssh://"):
         raise RuntimeError(
             "Headnode repository clone requires HTTPS or a supported GitHub SSH remote; "
             f"got {repo_url}"
         )
 
+    if github_path:
+        if deploy_key_auth:
+            return f"git@github.com:{github_path}"
+        return f"https://github.com/{github_path}"
+    if deploy_key_auth:
+        raise RuntimeError(
+            "DYEC deploy-key bootstrap requires a supported github.com repository URL; "
+            f"got {repo_url}"
+        )
     return repo_url
 
 
-def _resolve_headnode_repo_spec(default_url: str, default_ref: str) -> HeadnodeRepoSpec:
+def _resolve_headnode_repo_spec(
+    default_url: str,
+    default_ref: str,
+    *,
+    deploy_key_auth: bool = False,
+) -> HeadnodeRepoSpec:
     repo_root_env = _os.environ.get("DAYLILY_EC_REPO_ROOT", "").strip()
     if not repo_root_env:
-        return HeadnodeRepoSpec(url=_normalize_headnode_repo_url(default_url), ref=default_ref)
+        if deploy_key_auth:
+            raise RuntimeError(
+                "DAYLILY_EC_REPO_ROOT is required to pin the exact published DYEC checkout."
+            )
+        return HeadnodeRepoSpec(
+            url=_normalize_headnode_repo_url(
+                default_url,
+                deploy_key_auth=deploy_key_auth,
+            ),
+            ref=default_ref,
+        )
 
     repo_root = Path(repo_root_env).expanduser().resolve()
     if not repo_root.exists():
         raise RuntimeError(f"DAYLILY_EC_REPO_ROOT does not exist: {repo_root}")
 
     repo_url = _normalize_headnode_repo_url(
-        _git_stdout(repo_root, "config", "--get", "remote.origin.url")
+        _git_stdout(repo_root, "config", "--get", "remote.origin.url"),
+        deploy_key_auth=deploy_key_auth,
     )
     repo_ref = _resolve_headnode_repo_ref(repo_root)
     return HeadnodeRepoSpec(url=repo_url, ref=repo_ref)
+
+
+def resolve_configured_headnode_repo_spec(*, deploy_key_auth: bool) -> HeadnodeRepoSpec:
+    """Resolve the exact published DYEC source selected by the active checkout."""
+    import yaml
+
+    from daylily_ec.resources import resource_path
+
+    user_cfg_path = Path.home() / ".config" / "daylily" / "daylily_cli_global.yaml"
+    cfg_path = (
+        user_cfg_path
+        if user_cfg_path.exists()
+        else (
+            Path("config/daylily_cli_global.yaml")
+            if Path("config/daylily_cli_global.yaml").exists()
+            else resource_path("config/daylily_cli_global.yaml")
+        )
+    )
+    with open(cfg_path, encoding="utf-8") as fh:
+        cli_cfg = yaml.safe_load(fh) or {}
+    daylily = cli_cfg.get("daylily", {}) or {}
+    repo_ref = str(daylily.get("git_ephemeral_cluster_repo_tag") or "").strip()
+    repo_url = str(daylily.get("git_ephemeral_cluster_repo") or "").strip()
+    if not repo_ref or not repo_url:
+        raise RuntimeError(f"DYEC repository URL and ref must be explicit in {cfg_path}.")
+    return _resolve_headnode_repo_spec(
+        repo_url,
+        repo_ref,
+        deploy_key_auth=deploy_key_auth,
+    )
 
 
 def _resolve_headnode_repo_ref(repo_root: Path) -> str:
@@ -181,7 +495,6 @@ def _require_published_branch(repo_root: Path, repo_ref: str) -> str:
         raise RuntimeError(
             f"Current checkout branch is not available on origin: {repo_ref} ({detail})"
         )
-
     return repo_ref
 
 
@@ -215,7 +528,17 @@ def _require_published_detached_tag(repo_root: Path) -> str:
     return tag_ref
 
 
-def _build_headnode_repo_sync_command(repo_name: str, repo_url: str, repo_ref: str) -> str:
+def _build_headnode_repo_sync_command(
+    repo_name: str,
+    repo_url: str,
+    repo_ref: str,
+    *,
+    deploy_key_secret_arn: str = "",
+    deploy_key_region: str = "",
+) -> str:
+    if bool(deploy_key_secret_arn) != bool(deploy_key_region):
+        raise ValueError("DYEC deploy-key secret ARN and region must be provided together.")
+
     repo_name_q = shlex.quote(repo_name)
     repo_url_q = shlex.quote(repo_url)
     repo_ref_q = shlex.quote(repo_ref)
@@ -233,8 +556,28 @@ def _build_headnode_repo_sync_command(repo_name: str, repo_url: str, repo_ref: s
             "fi"
         )
 
+    auth_setup = ""
+    if deploy_key_secret_arn:
+        secret_arn_q = shlex.quote(deploy_key_secret_arn)
+        region_q = shlex.quote(deploy_key_region)
+        auth_setup = (
+            "umask 077 && "
+            "dayec_key_dir=$(mktemp -d) && "
+            "trap 'rm -rf \"$dayec_key_dir\"' EXIT && "
+            f"aws secretsmanager get-secret-value --region {region_q} "
+            f"--secret-id {secret_arn_q} --query SecretString --output text "
+            '--no-cli-pager >"$dayec_key_dir/deploy_key" && '
+            'chmod 0600 "$dayec_key_dir/deploy_key" && '
+            'ssh-keygen -y -f "$dayec_key_dir/deploy_key" >/dev/null && '
+            'test -s "$HOME/.config/daylily/github_known_hosts" && '
+            "export GIT_TERMINAL_PROMPT=0 && "
+            'export GIT_SSH_COMMAND="ssh -i $dayec_key_dir/deploy_key '
+            "-o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "
+            '-o UserKnownHostsFile=$HOME/.config/daylily/github_known_hosts" && '
+        )
+
     return (
-        "mkdir -p ~/projects && cd ~/projects && "
+        auth_setup + "mkdir -p ~/projects && cd ~/projects && "
         f"if [ -e {repo_name_q} ] && [ ! -d {repo_name_q}/.git ]; then "
         f"echo {repo_error_q} >&2; exit 1; "
         "fi && "
@@ -242,8 +585,7 @@ def _build_headnode_repo_sync_command(repo_name: str, repo_url: str, repo_ref: s
         f"cd {repo_name_q} && "
         "git fetch origin --tags --prune && "
         "git reset --hard HEAD && "
-        "git clean -fdx && "
-        + checkout_cmd
+        "git clean -fdx && " + checkout_cmd
     )
 
 
@@ -433,6 +775,453 @@ def _role_bucket(roles: Dict[str, Dict[str, str]], role: str) -> str:
     return str((roles.get(role) or {}).get("bucket") or "")
 
 
+SPOT_PRICE_PARTITION_TABLE_HEADERS = (
+    "Partition",
+    "Min Inst",
+    "Max Inst",
+    "Raw Min $/hr",
+    "Raw Max $/hr",
+    "Median $/hr",
+    "Max Bid $/vCPU-hr",
+    "Uncapped Bid",
+    "Final Bid",
+    "Global Max",
+    "Warn >$",
+    "Limiter",
+    "Warn",
+    "Reference",
+)
+
+
+def _spot_price_partition_table_values(row: Dict[str, Any]) -> list[str]:
+    return [
+        str(row.get("queue", "")),
+        str(row.get("min_instances", "")),
+        str(row.get("max_instances", "")),
+        f"{float(row.get('raw_min_hourly_cost_without_limiter') or 0):.4f}",
+        f"{float(row.get('raw_max_hourly_cost_without_limiter') or 0):.4f}",
+        f"{float(row.get('max_reference_median_spot_price') or 0):.4f}",
+        f"{float(row.get('max_final_bid_usd_per_vcpu_hour') or 0):.4f}",
+        f"{float(row.get('max_uncapped_pct_bid') or 0):.4f}",
+        f"{float(row.get('max_final_bid') or 0):.4f}",
+        f"{float(row.get('global_spot_max_cost') or 0):.2f}",
+        f"{float(row.get('write_spot_pricing_warn_threshold') or 0):.2f}",
+        "yes" if row.get("global_limiter_applied") else "no",
+        "yes" if row.get("warn_threshold_exceeded") else "no",
+        str(row.get("reference_partitions", "")),
+    ]
+
+
+def _markdown_cell(value: str) -> str:
+    return value.replace("\n", " ").replace("|", r"\|")
+
+
+def _format_markdown_table(headers: Iterable[str], rows: Iterable[Iterable[str]]) -> str:
+    header_values = [_markdown_cell(str(value)) for value in headers]
+    lines = [
+        "| " + " | ".join(header_values) + " |",
+        "| " + " | ".join("---" for _ in header_values) + " |",
+    ]
+    for row in rows:
+        lines.append("| " + " | ".join(_markdown_cell(str(value)) for value in row) + " |")
+    return "\n".join(lines)
+
+
+def _write_spot_price_partition_markdown(
+    summary: Dict[str, Any],
+    *,
+    cluster_name: str,
+    output_path: Path,
+) -> None:
+    partitions = summary.get("partitions") or []
+    rows = [_spot_price_partition_table_values(row) for row in partitions]
+    body = "\n".join(
+        [
+            f"# DYEC create spot price summary: {cluster_name}",
+            "",
+            f"- Generated at: {summary.get('generated_at', '')}",
+            f"- Availability zone: {summary.get('availability_zone', '')}",
+            "",
+            _format_markdown_table(SPOT_PRICE_PARTITION_TABLE_HEADERS, rows),
+            "",
+        ]
+    )
+    try:
+        output_path.write_text(body, encoding="utf-8")
+    except OSError as exc:
+        raise RuntimeError(
+            f"Failed to write spot price markdown table {output_path}: {exc}"
+        ) from exc
+
+
+def _emit_spot_price_partition_table(
+    summary: Dict[str, Any],
+    *,
+    cluster_name: str,
+    markdown_output_path: Path,
+) -> None:
+    """Print the Ursa-facing partition spot-price summary."""
+
+    from rich.table import Table
+
+    partitions = summary.get("partitions") or []
+    if not partitions:
+        ui.info("No spot price partition rows were generated.")
+        return
+
+    table = Table(title="DYEC create spot price summary")
+    for header in SPOT_PRICE_PARTITION_TABLE_HEADERS:
+        justify = "right" if header not in {"Partition", "Limiter", "Warn", "Reference"} else "left"
+        table.add_column(header, justify=justify)
+    for row in partitions:
+        table.add_row(*_spot_price_partition_table_values(row))
+    ui.console.print(table)
+    _write_spot_price_partition_markdown(
+        summary,
+        cluster_name=cluster_name,
+        output_path=markdown_output_path,
+    )
+    ui.info(f"Spot price summary table markdown: {markdown_output_path}")
+
+
+def _has_explicit_set_value(cfg: Any, key: str) -> bool:
+    triplet = cfg.ephemeral_cluster.config.get(key)
+    return bool(
+        triplet
+        and triplet.action == "USESETVALUE"
+        and triplet.set_value.strip()
+        and triplet.set_value.strip() != "PROMPTUSER"
+    )
+
+
+def normalize_create_cluster_type(cluster_type: str) -> str:
+    """Validate and normalize the create-time cluster template family."""
+
+    normalized = str(cluster_type or "").strip().lower()
+    if normalized not in CREATE_CLUSTER_TYPES:
+        allowed = ", ".join(sorted(CREATE_CLUSTER_TYPES))
+        raise ValueError(f"--cluster-type must be one of: {allowed}")
+    return normalized
+
+
+def parse_create_repo_overrides(values: Optional[Iterable[str]]) -> Dict[str, str]:
+    """Parse repeated ``<repo-key>:<git-ref>`` create options."""
+
+    overrides: Dict[str, str] = {}
+    for raw_value in values or ():
+        value = str(raw_value).strip()
+        if ":" not in value:
+            raise ValueError(f"--repo-override must use <repo-key>:<git-ref>; got {raw_value!r}.")
+        repo_key, git_ref = (part.strip() for part in value.split(":", 1))
+        if not repo_key or not git_ref:
+            raise ValueError(
+                "--repo-override requires non-empty repository and git ref values; "
+                f"got {raw_value!r}."
+            )
+        if repo_key in overrides:
+            raise ValueError(
+                f"--repo-override was provided more than once for repository {repo_key!r}."
+            )
+        overrides[repo_key] = git_ref
+    return overrides
+
+
+def validate_create_cluster_type_region(cluster_type: str, region_az: str) -> None:
+    """Reject cluster types outside their explicitly supported AZs."""
+
+    normalized = normalize_create_cluster_type(cluster_type)
+    if normalized == SENTIEON_SINGLE_CLUSTER_TYPE and region_az != SENTIEON_SINGLE_REGION_AZ:
+        raise ValueError(
+            f"--cluster-type {SENTIEON_SINGLE_CLUSTER_TYPE} is supported only in "
+            f"{SENTIEON_SINGLE_REGION_AZ}; got {region_az!r}."
+        )
+
+
+def resolve_dragen_create_inputs(
+    cfg: Any,
+    *,
+    cluster_type: str,
+    region_az: str,
+) -> Optional[DragenCreateInputs]:
+    """Resolve explicit private inputs for the DRAGEN cluster type."""
+
+    if cluster_type != DRAGEN_CLUSTER_TYPE:
+        return None
+
+    from daylily_ec.aws.context import parse_region_az
+    from daylily_ec.pcluster.backport import load_operational_backport
+
+    values: dict[str, str] = {}
+    for key, label in (
+        ("pcluster_backport_manifest", "ParallelCluster backport manifest"),
+        ("dragen_license_secret_arn", "DRAGEN license secret ARN"),
+        ("dragen_license_policy_arn", "DRAGEN license policy ARN"),
+    ):
+        if not _has_explicit_set_value(cfg, key):
+            raise ValueError(
+                f"--cluster-type dragen requires explicit config key {key!r} ({label}); "
+                "defaults and discovery are not accepted."
+            )
+        values[key] = str(cfg.ephemeral_cluster.config[key].set_value).strip()
+
+    backport = load_operational_backport(values["pcluster_backport_manifest"])
+    region, _az = parse_region_az(region_az)
+    if backport.image_region != region:
+        raise ValueError(
+            "Qualified image region does not match requested cluster region: "
+            f"{backport.image_region} != {region}."
+        )
+
+    secret_arn = values["dragen_license_secret_arn"]
+    secret_match = re.fullmatch(
+        r"arn:(aws(?:-us-gov)?):secretsmanager:([a-z0-9-]+):(\d{12}):secret:[A-Za-z0-9/_+=.@-]+",
+        secret_arn,
+    )
+    if not secret_match or secret_match.group(2) != region:
+        raise ValueError(
+            f"dragen_license_secret_arn must be an explicit Secrets Manager ARN in {region}."
+        )
+
+    policy_arn = values["dragen_license_policy_arn"]
+    if not re.fullmatch(
+        r"arn:aws(?:-us-gov)?:iam::\d{12}:policy/[A-Za-z0-9+=,.@_/-]+",
+        policy_arn,
+    ):
+        raise ValueError("dragen_license_policy_arn must be an explicit managed-policy ARN.")
+
+    return DragenCreateInputs(
+        backport=backport,
+        license_secret_arn=secret_arn,
+        license_policy_arn=policy_arn,
+    )
+
+
+def _resolve_deploy_key_inputs(
+    cfg: Any,
+    *,
+    config_prefix: str,
+    display_name: str,
+    region_az: str,
+    account_id: str,
+    non_interactive: bool,
+) -> tuple[str, str, str]:
+    """Resolve one explicit repository deploy-key secret and policy pair."""
+
+    from daylily_ec.aws.context import parse_region_az
+
+    region, _az = parse_region_az(region_az)
+    secret_key = f"{config_prefix}_deploy_key_secret_arn"
+    policy_key = f"{config_prefix}_deploy_key_policy_arn"
+    secret_arn = _resolve_config_value(
+        cfg,
+        secret_key,
+        f"{display_name} deploy-key Secrets Manager ARN",
+        non_interactive=non_interactive,
+    ).strip()
+    policy_arn = _resolve_config_value(
+        cfg,
+        policy_key,
+        f"{display_name} deploy-key managed-policy ARN",
+        non_interactive=non_interactive,
+    ).strip()
+
+    secret_match = re.fullmatch(
+        r"arn:(aws(?:-us-gov)?):secretsmanager:([a-z0-9-]+):(\d{12}):secret:[A-Za-z0-9/_+=.@-]+",
+        secret_arn,
+    )
+    if not secret_match:
+        raise ValueError(f"{secret_key} must be an explicit Secrets Manager ARN.")
+    if secret_match.group(2) != region:
+        raise ValueError(
+            f"{secret_key} region must match the cluster region: "
+            f"{secret_match.group(2)} != {region}."
+        )
+    if secret_match.group(3) != account_id:
+        raise ValueError(f"{secret_key} must belong to the active AWS account.")
+
+    policy_match = re.fullmatch(
+        r"arn:aws(?:-us-gov)?:iam::(\d{12}):policy/[A-Za-z0-9+=,.@_/-]+",
+        policy_arn,
+    )
+    if not policy_match:
+        raise ValueError(f"{policy_key} must be an explicit managed-policy ARN.")
+    if policy_match.group(1) != account_id:
+        raise ValueError(f"{policy_key} must belong to the active AWS account.")
+
+    return secret_arn, policy_arn, region
+
+
+def resolve_dayoa_deploy_key_inputs(
+    cfg: Any,
+    *,
+    region_az: str,
+    account_id: str,
+    non_interactive: bool,
+) -> DayoaDeployKeyInputs:
+    """Resolve and validate the explicit DayOA deploy-key secret and policy."""
+
+    secret_arn, policy_arn, region = _resolve_deploy_key_inputs(
+        cfg,
+        config_prefix="dayoa",
+        display_name="DayOA",
+        region_az=region_az,
+        account_id=account_id,
+        non_interactive=non_interactive,
+    )
+
+    return DayoaDeployKeyInputs(
+        secret_arn=secret_arn,
+        policy_arn=policy_arn,
+        region=region,
+    )
+
+
+def resolve_dyec_deploy_key_inputs(
+    cfg: Any,
+    *,
+    region_az: str,
+    account_id: str,
+    non_interactive: bool,
+) -> DyecDeployKeyInputs:
+    """Resolve and validate the explicit DYEC bootstrap deploy key and policy."""
+
+    secret_arn, policy_arn, region = _resolve_deploy_key_inputs(
+        cfg,
+        config_prefix="dyec",
+        display_name="DYEC",
+        region_az=region_az,
+        account_id=account_id,
+        non_interactive=non_interactive,
+    )
+    return DyecDeployKeyInputs(
+        secret_arn=secret_arn,
+        policy_arn=policy_arn,
+        region=region,
+    )
+
+
+def attach_headnode_managed_policy(
+    cluster_yaml_path: str | Path,
+    policy_arn: str,
+) -> None:
+    """Attach one managed policy to the headnode and reject compute attachment."""
+
+    import yaml
+
+    path = Path(cluster_yaml_path)
+    payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if not isinstance(payload, dict):
+        raise ValueError("Rendered cluster YAML must be a mapping.")
+
+    queues = (payload.get("Scheduling") or {}).get("SlurmQueues") or []
+    for queue in queues:
+        if not isinstance(queue, dict):
+            continue
+        queue_policies = [
+            str(item.get("Policy") or "")
+            for item in ((queue.get("Iam") or {}).get("AdditionalIamPolicies") or [])
+            if isinstance(item, dict)
+        ]
+        if policy_arn in queue_policies:
+            raise ValueError(
+                "DayOA deploy-key policy must not be attached to compute queue "
+                f"{queue.get('Name')!r}."
+            )
+
+    headnode = payload.get("HeadNode")
+    if not isinstance(headnode, dict):
+        raise ValueError("Rendered cluster YAML is missing HeadNode.")
+    iam = headnode.get("Iam")
+    if not isinstance(iam, dict):
+        raise ValueError("Rendered cluster YAML is missing HeadNode.Iam.")
+    policies = iam.get("AdditionalIamPolicies")
+    if not isinstance(policies, list):
+        raise ValueError("Rendered cluster YAML is missing HeadNode.Iam.AdditionalIamPolicies.")
+    existing = [
+        item
+        for item in policies
+        if isinstance(item, dict) and str(item.get("Policy") or "") == policy_arn
+    ]
+    if len(existing) > 1:
+        raise ValueError("DayOA deploy-key policy appears more than once on the headnode.")
+    if not existing:
+        policies.append({"Policy": policy_arn})
+
+    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+
+
+def az_cluster_template_relative_path(cluster_type: str, region_az: str) -> Path:
+    """Return the exact AZ-scoped cluster template path for create."""
+
+    from daylily_ec.aws.context import parse_region_az
+
+    normalized_type = normalize_create_cluster_type(cluster_type)
+    region, _az = parse_region_az(region_az)
+    return (
+        Path("config/day_cluster")
+        / normalized_type
+        / region
+        / region_az
+        / f"prod_cluster_{normalized_type}_{region_az}.yaml"
+    )
+
+
+def _explicit_cluster_template_yaml(cfg: Any) -> str:
+    triplet = cfg.ephemeral_cluster.config.get("cluster_template_yaml")
+    if triplet is None:
+        return ""
+    candidate = str(triplet.set_value or "").strip()
+    if candidate and candidate != "PROMPTUSER":
+        return candidate
+    return ""
+
+
+def _resolve_existing_template_path(
+    template_path: str, resource_path_fn: Callable[[str], Path]
+) -> str:
+    candidate = Path(template_path).expanduser()
+    if candidate.is_file():
+        return str(candidate)
+    if candidate.is_absolute():
+        raise FileNotFoundError(f"Cluster template YAML not found: {candidate}")
+    return str(resource_path_fn(template_path))
+
+
+def resolve_cluster_template_yaml(
+    cfg: Any,
+    *,
+    region_az: str,
+    cluster_type: str = DEFAULT_CREATE_CLUSTER_TYPE,
+    resource_path_fn: Callable[[str], Path],
+) -> str:
+    """Resolve the cluster template for create.
+
+    Explicit non-empty ``cluster_template_yaml`` set values are honored. When no
+    explicit template is set, the exact cluster-type/AZ-scoped template path is
+    required; missing paths fail hard instead of falling back to a generic
+    template.
+    """
+
+    normalized_type = normalize_create_cluster_type(cluster_type)
+    validate_create_cluster_type_region(normalized_type, region_az)
+    explicit = _explicit_cluster_template_yaml(cfg)
+    if normalized_type == DRAGEN_CLUSTER_TYPE and explicit:
+        raise ValueError(
+            "--cluster-type dragen requires the canonical AZ-scoped template; "
+            "cluster_template_yaml overrides are not accepted."
+        )
+    if normalized_type == SENTIEON_SINGLE_CLUSTER_TYPE and explicit:
+        raise ValueError(
+            "--cluster-type sentieon-single requires the canonical us-west-2c template; "
+            "cluster_template_yaml overrides are not accepted."
+        )
+    if explicit:
+        return _resolve_existing_template_path(explicit, resource_path_fn)
+
+    relative_path = az_cluster_template_relative_path(normalized_type, region_az)
+    return _resolve_existing_template_path(str(relative_path), resource_path_fn)
+
+
 def _s3_uri_join(base_uri: str, *parts: str) -> str:
     base = base_uri.rstrip("/")
     suffix = "/".join(part.strip("/") for part in parts if part.strip("/"))
@@ -459,19 +1248,44 @@ def _boot_body_contains_legacy_fsx_data(filename: str, body: bytes) -> bool:
     )
 
 
+def cluster_boot_config_release_uri(*, base_uri: str, source_dir: Path) -> str:
+    """Return the deterministic immutable S3 prefix for one boot-config bundle."""
+
+    digest = hashlib.sha256()
+    for filename in CLUSTER_BOOT_CONFIG_FILENAMES:
+        source = source_dir / filename
+        if not source.is_file():
+            raise FileNotFoundError(f"Cluster boot config source not found: {source}")
+        body = source.read_bytes()
+        digest.update(len(filename).to_bytes(4, "big"))
+        digest.update(filename.encode("utf-8"))
+        digest.update(len(body).to_bytes(8, "big"))
+        digest.update(body)
+    return _s3_uri_join(base_uri, "releases", f"sha256-{digest.hexdigest()}")
+
+
 def publish_cluster_boot_config(
     s3_client: Any,
     *,
     cluster_boot_s3_uri: str,
     source_dir: Path,
 ) -> list[str]:
-    """Publish current packaged cluster boot scripts under reference runtime assets.
+    """Publish current packaged cluster boot scripts to a write-once release prefix.
 
     The cluster template executes these files directly from
     ``references/runtime_assets/cluster_boot_config``. Treat stale or legacy
     boot scripts as invalid because they can fail cluster creation after
     expensive FSx setup.
     """
+    if "/releases/" not in cluster_boot_s3_uri:
+        raise ValueError("Cluster boot config destination must use an immutable release prefix.")
+    base_uri = cluster_boot_s3_uri.rsplit("/releases/", 1)[0]
+    expected_uri = cluster_boot_config_release_uri(base_uri=base_uri, source_dir=source_dir)
+    if cluster_boot_s3_uri != expected_uri:
+        raise ValueError(
+            "Cluster boot config destination must be the exact content-addressed release URI: "
+            f"{expected_uri}"
+        )
     bucket, prefix = _parse_s3_destination(cluster_boot_s3_uri)
     bodies: list[tuple[str, bytes]] = []
     for filename in CLUSTER_BOOT_CONFIG_FILENAMES:
@@ -486,7 +1300,26 @@ def publish_cluster_boot_config(
     uploaded: list[str] = []
     for filename, body in bodies:
         key = f"{prefix}/{filename}" if prefix else filename
-        s3_client.put_object(Bucket=bucket, Key=key, Body=body)
+        body_sha256 = hashlib.sha256(body).hexdigest()
+        try:
+            s3_client.put_object(
+                Bucket=bucket,
+                Key=key,
+                Body=body,
+                IfNoneMatch="*",
+                Metadata={"daylily-sha256": body_sha256},
+            )
+        except ClientError as exc:
+            error_code = str(exc.response.get("Error", {}).get("Code") or "")
+            if error_code not in {"PreconditionFailed", "412"}:
+                raise
+            existing = s3_client.head_object(Bucket=bucket, Key=key)
+            metadata = existing.get("Metadata") or {}
+            if metadata.get("daylily-sha256") != body_sha256:
+                raise ValueError(
+                    "Immutable cluster boot object already exists with different content: "
+                    f"s3://{bucket}/{key}"
+                ) from exc
         uploaded.append(f"s3://{bucket}/{key}")
     return uploaded
 
@@ -502,6 +1335,16 @@ def validate_startup_dra_contract(cluster_yaml_path: str | Path) -> None:
         if not isinstance(storage, dict) or storage.get("StorageType") != "FsxLustre":
             continue
         fsx_settings = storage.get("FsxLustreSettings") or {}
+        if "FileSystemId" in fsx_settings:
+            if set(fsx_settings) != {"FileSystemId"} or not str(
+                fsx_settings.get("FileSystemId") or ""
+            ).startswith("fs-"):
+                raise ValueError(
+                    "External FSx startup settings must contain only an explicit FileSystemId."
+                )
+            # PERSISTENT_2 data repository associations are separate FSx API
+            # resources and are validated before this mount is rendered.
+            return
         for association in fsx_settings.get("DataRepositoryAssociations") or []:
             if isinstance(association, dict):
                 associations.append(association)
@@ -515,6 +1358,361 @@ def validate_startup_dra_contract(cluster_yaml_path: str | Path) -> None:
     data_repository_path = str(associations[0].get("DataRepositoryPath") or "")
     if not data_repository_path:
         raise ValueError("The /references/ startup DRA must define DataRepositoryPath.")
+
+
+def validate_cpu_only_slurm_contract(cluster_yaml_path: str | Path) -> None:
+    """Require declarative CPU-only placement and the server-side submit guard."""
+
+    import yaml
+
+    path = Path(cluster_yaml_path)
+    payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    scheduling = payload.get("Scheduling") or {}
+    if scheduling.get("Scheduler") != "slurm":
+        raise ValueError("Cluster Scheduling.Scheduler must be slurm.")
+
+    settings = scheduling.get("SlurmSettings") or {}
+    if settings.get("EnableMemoryBasedScheduling") is not False:
+        raise ValueError("SlurmSettings.EnableMemoryBasedScheduling must be false.")
+    if settings.get("CustomSlurmSettings") != CPU_ONLY_SLURM_CUSTOM_SETTINGS:
+        raise ValueError(
+            "SlurmSettings.CustomSlurmSettings must enable JobSubmitPlugins=lua, "
+            "AccountingStoreFlags=job_comment, and PrologFlags=Alloc."
+        )
+
+    head_node = payload.get("HeadNode") or {}
+    on_node_start = (head_node.get("CustomActions") or {}).get("OnNodeStart") or {}
+    start_script = str(on_node_start.get("Script") or "")
+    start_args = on_node_start.get("Args") or []
+    expected_script_name = "install_slurm_job_submit_policy.sh"
+    valid_start_args = (
+        isinstance(start_args, list)
+        and len(start_args) == 2
+        and str(start_args[0]) == str(payload.get("Region") or "")
+        and start_script == f"{str(start_args[1]).rstrip('/')}/{expected_script_name}"
+    )
+    if not valid_start_args:
+        raise ValueError(
+            "HeadNode CustomActions.OnNodeStart must install job_submit.lua before "
+            "ParallelCluster starts slurmctld: Script must be the immutable boot-config "
+            "install_slurm_job_submit_policy.sh with Args [Region, boot-config URI]."
+        )
+
+    def _contains_schedulable_memory(value: Any) -> bool:
+        if isinstance(value, dict):
+            return "SchedulableMemory" in value or any(
+                _contains_schedulable_memory(item) for item in value.values()
+            )
+        if isinstance(value, list):
+            return any(_contains_schedulable_memory(item) for item in value)
+        return False
+
+    if _contains_schedulable_memory(payload):
+        raise ValueError("CPU-only Slurm cluster config must not define SchedulableMemory.")
+
+    queues = scheduling.get("SlurmQueues") or []
+    if not isinstance(queues, list) or not queues:
+        raise ValueError("Cluster SlurmQueues must be a non-empty list.")
+    for queue in queues:
+        queue_name = str(queue.get("Name") or "<unnamed>")
+        if queue.get("JobExclusiveAllocation") is not False:
+            raise ValueError(f"Slurm queue {queue_name} must set JobExclusiveAllocation false.")
+
+
+def validate_sentieon_single_cluster_contract(cluster_yaml_path: str | Path) -> None:
+    """Require the fixed standard-quota Sentieon single-node topology."""
+
+    import yaml
+
+    path = Path(cluster_yaml_path)
+    validate_cpu_only_slurm_contract(path)
+    payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if payload.get("Region") != "us-west-2":
+        raise ValueError("Sentieon single cluster Region must be us-west-2.")
+    if payload.get("Image") != {"Os": "ubuntu2204"}:
+        raise ValueError(
+            "Sentieon single cluster Image must be standard Ubuntu 22.04 without a custom AMI."
+        )
+
+    _validate_sentieon_single_bootstrap(payload.get("HeadNode") or {}, label="HeadNode")
+
+    queues = (payload.get("Scheduling") or {}).get("SlurmQueues") or []
+    if not isinstance(queues, list):
+        raise ValueError("Sentieon single cluster SlurmQueues must be a list.")
+    expected_queue_names = list(SENTIEON_SINGLE_QUEUE_INSTANCE_TYPES)
+    queue_names = [str(queue.get("Name") or "") for queue in queues]
+    if queue_names != expected_queue_names:
+        raise ValueError(
+            "Sentieon single cluster must render exactly the i8, i96nvme, i128nvme, "
+            f"i192nvme, and i384nvme queues; rendered queues were {queue_names}."
+        )
+
+    for queue in queues:
+        queue_name = str(queue.get("Name") or "")
+        if queue.get("CapacityType") != "SPOT":
+            raise ValueError(f"Sentieon single queue {queue_name} must use SPOT capacity.")
+        if queue.get("AllocationStrategy") != "price-capacity-optimized":
+            raise ValueError(
+                f"Sentieon single queue {queue_name} must use price-capacity-optimized allocation."
+            )
+        mount_dir = (
+            ((queue.get("ComputeSettings") or {}).get("LocalStorage") or {}).get("EphemeralVolume")
+            or {}
+        ).get("MountDir")
+        if mount_dir != "/scratch":
+            raise ValueError(
+                f"Sentieon single queue {queue_name} must mount local NVMe at /scratch."
+            )
+        _validate_sentieon_single_bootstrap(queue, label=f"{queue_name} queue")
+
+        resources = queue.get("ComputeResources") or []
+        if not isinstance(resources, list) or len(resources) != 1:
+            raise ValueError(
+                f"Sentieon single queue {queue_name} must render exactly one "
+                "multi-instance compute resource."
+            )
+        resource = resources[0]
+        expected_resource_name = SENTIEON_SINGLE_QUEUE_RESOURCE_NAMES[queue_name]
+        if resource.get("Name") != expected_resource_name:
+            raise ValueError(
+                f"Sentieon single queue {queue_name} must use compute resource "
+                f"{expected_resource_name}."
+            )
+        rendered_types = [
+            str(item.get("InstanceType") or "") for item in resource.get("Instances") or []
+        ]
+        expected_types = list(SENTIEON_SINGLE_QUEUE_INSTANCE_TYPES[queue_name])
+        if rendered_types != expected_types:
+            raise ValueError(
+                f"Sentieon single queue {queue_name} instance types must match the "
+                "pinned standard-quota Intel local-NVMe pool."
+            )
+        if any(instance_type.lower().startswith("x") for instance_type in rendered_types):
+            raise ValueError(
+                f"Sentieon single queue {queue_name} must exclude X-family instance types "
+                "because they use a separate Spot quota."
+            )
+        if (
+            resource.get("MinCount") != 0
+            or resource.get("MaxCount") != SENTIEON_SINGLE_QUEUE_MAX_COUNT
+        ):
+            raise ValueError(
+                f"Sentieon single queue {queue_name} must set MinCount 0 and "
+                f"MaxCount {SENTIEON_SINGLE_QUEUE_MAX_COUNT}."
+            )
+        if ((resource.get("Efa") or {}).get("Enabled")) is not False:
+            raise ValueError(f"Sentieon single queue {queue_name} must keep EFA disabled.")
+
+    shared_storage = payload.get("SharedStorage") or []
+    if not isinstance(shared_storage, list) or len(shared_storage) != 1:
+        raise ValueError("Sentieon single cluster must define exactly one shared filesystem.")
+    fsx = shared_storage[0]
+    fsx_settings = fsx.get("FsxLustreSettings") or {}
+    if fsx.get("MountDir") != "/fsx" or fsx.get("StorageType") != "FsxLustre":
+        raise ValueError("Sentieon single cluster must mount FSx for Lustre at /fsx.")
+    if (
+        fsx_settings.get("StorageCapacity") != 1200
+        or fsx_settings.get("DeploymentType") != "SCRATCH_2"
+    ):
+        raise ValueError(
+            "Sentieon single cluster must use a 1200 GiB SCRATCH_2 FSx for Lustre filesystem."
+        )
+    associations = fsx_settings.get("DataRepositoryAssociations") or []
+    if not isinstance(associations, list) or len(associations) != 1:
+        raise ValueError("Sentieon single cluster must define exactly the standard references DRA.")
+    reference_dra = associations[0]
+    if (
+        reference_dra.get("Name") != "reference-data"
+        or reference_dra.get("FileSystemPath") != "/references/"
+        or not str(reference_dra.get("DataRepositoryPath") or "")
+        or reference_dra.get("BatchImportMetaDataOnCreate") is not True
+        or reference_dra.get("AutoImportPolicy") != ["NEW", "CHANGED", "DELETED"]
+    ):
+        raise ValueError(
+            "Sentieon single cluster must preserve the standard /references/ FSx DRA contract."
+        )
+
+
+def _validate_sentieon_single_bootstrap(node: dict[str, Any], *, label: str) -> None:
+    action = (node.get("CustomActions") or {}).get("OnNodeConfigured") or {}
+    script = str(action.get("Script") or "")
+    if not script.endswith("/post_install_ubuntu_combined.sh"):
+        raise ValueError(f"{label} must use the standard Ubuntu bootstrap.")
+    if len(action.get("Args") or []) != 3:
+        raise ValueError(f"{label} standard Ubuntu bootstrap must receive exactly three args.")
+
+
+def validate_dragen_cluster_contract(
+    cluster_yaml_path: str | Path,
+    inputs: DragenCreateInputs,
+) -> None:
+    """Require the private mixed DRAGEN/CPU topology after rendering."""
+
+    import yaml
+
+    validate_cpu_only_slurm_contract(cluster_yaml_path)
+    payload = yaml.safe_load(Path(cluster_yaml_path).read_text(encoding="utf-8")) or {}
+    image = payload.get("Image") or {}
+    if image.get("Os") != "almalinux8":
+        raise ValueError("DRAGEN cluster Image.Os must be almalinux8.")
+    if str(image.get("CustomAmi") or "").strip() != inputs.backport.image_ami_id:
+        raise ValueError("DRAGEN cluster-wide AMI does not match the qualified manifest image.")
+
+    headnode = payload.get("HeadNode") or {}
+    head_ami = ((headnode.get("Image") or {}).get("CustomAmi") or "").strip()
+    if head_ami != inputs.backport.image_ami_id:
+        raise ValueError("DRAGEN headnode AMI does not match the qualified manifest image.")
+    _validate_dragen_node_policy_and_action(
+        headnode,
+        inputs,
+        label="HeadNode",
+        expected_role="headnode",
+    )
+
+    queues = (payload.get("Scheduling") or {}).get("SlurmQueues") or []
+    if not isinstance(queues, list):
+        raise ValueError("DRAGEN cluster SlurmQueues must be a list.")
+    queue_names = [str(queue.get("Name") or "") for queue in queues]
+    if queue_names != ["dragen", "dragen-ondemand", "i192", "i192nvme"]:
+        raise ValueError(
+            "DRAGEN cluster must render exactly the dragen, dragen-ondemand, "
+            "i192, and i192nvme "
+            f"queues; rendered queues were {queue_names}."
+        )
+    queues_by_name = {str(queue.get("Name") or ""): queue for queue in queues}
+    for queue_name, capacity_type, resource_name in (
+        ("dragen", "SPOT", "f26xlarge"),
+        ("dragen-ondemand", "ONDEMAND", "f26xlargeod"),
+    ):
+        queue = queues_by_name[queue_name]
+        if queue.get("CapacityType") != capacity_type:
+            raise ValueError(f"DRAGEN queue {queue_name} must use {capacity_type} capacity.")
+        queue_ami = ((queue.get("Image") or {}).get("CustomAmi") or "").strip()
+        if queue_ami != inputs.backport.image_ami_id:
+            raise ValueError(
+                f"DRAGEN queue {queue_name} AMI does not match the qualified manifest image."
+            )
+        _validate_dragen_node_policy_and_action(
+            queue,
+            inputs,
+            label=f"{queue_name} queue",
+            expected_role="dragen",
+        )
+
+        resources = queue.get("ComputeResources") or []
+        if not isinstance(resources, list) or len(resources) != 1:
+            raise ValueError(f"DRAGEN queue {queue_name} must render exactly one compute resource.")
+        resource = resources[0]
+        if resource.get("Name") != resource_name:
+            raise ValueError(
+                f"DRAGEN queue {queue_name} must use compute resource {resource_name}."
+            )
+        instance_types = [
+            str(item.get("InstanceType") or "") for item in resource.get("Instances") or []
+        ]
+        if instance_types != ["f2.6xlarge"]:
+            raise ValueError(
+                f"DRAGEN queue {queue_name} compute resource must contain only f2.6xlarge."
+            )
+        if resource.get("MinCount") != 0 or resource.get("MaxCount") != 1:
+            raise ValueError(
+                f"DRAGEN queue {queue_name} compute resource must set MinCount 0 and MaxCount 1."
+            )
+        if ((resource.get("Efa") or {}).get("Enabled")) is not False:
+            raise ValueError(f"DRAGEN queue {queue_name} must keep EFA disabled.")
+        if capacity_type == "ONDEMAND" and "SpotPrice" in resource:
+            raise ValueError("DRAGEN on-demand compute resource must not define SpotPrice.")
+
+    for queue_name, resource_name, instance_types in (
+        ("i192", "mem192", ["m7i.48xlarge", "r7i.48xlarge"]),
+        ("i192nvme", "mem192nvme", ["i7i.48xlarge", "i7ie.48xlarge"]),
+    ):
+        cpu_queue = queues_by_name[queue_name]
+        if cpu_queue.get("CapacityType") != "SPOT":
+            raise ValueError(f"DRAGEN CPU queue {queue_name} must use SPOT capacity.")
+        cpu_ami = ((cpu_queue.get("Image") or {}).get("CustomAmi") or "").strip()
+        if cpu_ami != inputs.backport.image_ami_id:
+            raise ValueError(
+                f"DRAGEN CPU queue {queue_name} AMI does not match the qualified image."
+            )
+        _validate_dragen_cpu_node(cpu_queue, inputs, label=f"{queue_name} queue")
+        cpu_resources = cpu_queue.get("ComputeResources") or []
+        if not isinstance(cpu_resources, list) or len(cpu_resources) != 1:
+            raise ValueError(
+                f"DRAGEN CPU queue {queue_name} must render exactly one compute resource."
+            )
+        cpu_resource = cpu_resources[0]
+        if cpu_resource.get("Name") != resource_name:
+            raise ValueError(
+                f"DRAGEN CPU queue {queue_name} must use compute resource {resource_name}."
+            )
+        rendered_types = [
+            str(item.get("InstanceType") or "") for item in cpu_resource.get("Instances") or []
+        ]
+        if rendered_types != instance_types:
+            raise ValueError(
+                f"DRAGEN CPU queue {queue_name} instance types must be {instance_types}."
+            )
+        if cpu_resource.get("MinCount") != 0:
+            raise ValueError(f"DRAGEN CPU queue {queue_name} must set MinCount 0.")
+        if not isinstance(cpu_resource.get("MaxCount"), int) or cpu_resource["MaxCount"] < 1:
+            raise ValueError(f"DRAGEN CPU queue {queue_name} must set MaxCount at least 1.")
+        if ((cpu_resource.get("Efa") or {}).get("Enabled")) is not False:
+            raise ValueError(f"DRAGEN CPU queue {queue_name} must keep EFA disabled.")
+
+    cookbook_uri = (
+        (((payload.get("DevSettings") or {}).get("Cookbook") or {}).get("ChefCookbook")) or ""
+    ).strip()
+    if cookbook_uri != inputs.backport.cookbook_bundle_uri:
+        raise ValueError("DRAGEN cluster cookbook does not match the pinned backport manifest.")
+
+
+def _validate_dragen_node_policy_and_action(
+    node: dict[str, Any],
+    inputs: DragenCreateInputs,
+    *,
+    label: str,
+    expected_role: str,
+) -> None:
+    policies = [
+        str(item.get("Policy") or "")
+        for item in ((node.get("Iam") or {}).get("AdditionalIamPolicies") or [])
+    ]
+    if policies.count(inputs.license_policy_arn) != 1:
+        raise ValueError(f"{label} must attach the configured license policy exactly once.")
+
+    action = (node.get("CustomActions") or {}).get("OnNodeConfigured") or {}
+    script = str(action.get("Script") or "")
+    if not script.endswith("/post_install_almalinux8_dragen.sh"):
+        raise ValueError(f"{label} must use the AlmaLinux DRAGEN bootstrap wrapper.")
+    args = [str(value) for value in action.get("Args") or []]
+    if len(args) != 6 or args[-2] != inputs.license_secret_arn or args[-1] != expected_role:
+        raise ValueError(
+            f"{label} must pass the configured license secret ARN as arg 5 "
+            f"and role {expected_role!r} as arg 6."
+        )
+
+
+def _validate_dragen_cpu_node(
+    node: dict[str, Any],
+    inputs: DragenCreateInputs,
+    *,
+    label: str,
+) -> None:
+    policies = [
+        str(item.get("Policy") or "")
+        for item in ((node.get("Iam") or {}).get("AdditionalIamPolicies") or [])
+    ]
+    if inputs.license_policy_arn in policies:
+        raise ValueError(f"{label} must not attach the DRAGEN license policy.")
+
+    action = (node.get("CustomActions") or {}).get("OnNodeConfigured") or {}
+    script = str(action.get("Script") or "")
+    if not script.endswith("/post_install_rhel8_dragen.sh"):
+        raise ValueError(f"{label} must use the base AlmaLinux-compatible bootstrap.")
+    args = [str(value) for value in action.get("Args") or []]
+    if len(args) != 5 or args[-1] != "cpu":
+        raise ValueError(f"{label} must pass explicit CPU role as arg 5.")
 
 
 def _noop_heartbeat_result() -> Any:
@@ -647,6 +1845,70 @@ def _resolve_fsx_size(cfg: Any, *, non_interactive: bool) -> str:
         )
 
 
+def _resolve_persistent2_config(cfg: Any) -> Optional[dict[str, str]]:
+    """Return the exact explicit P2 contract, or ``None`` for managed Scratch.
+
+    Existing configs that omit the new deployment field retain their current
+    managed Scratch behavior. Once PERSISTENT_2 is requested, every P2-specific
+    value must be explicitly set; DYEC does not infer or downgrade any field.
+    """
+
+    deployment_triplet = cfg.ephemeral_cluster.config.get("fsx_deployment_type")
+    if deployment_triplet is None or not deployment_triplet.set_value.strip():
+        return None
+    deployment_type = deployment_triplet.set_value.strip().upper()
+    if deployment_type == "SCRATCH_2":
+        return None
+    if deployment_type != "PERSISTENT_2":
+        raise ValueError(
+            "fsx_deployment_type must be SCRATCH_2 or the supported PERSISTENT_2 contract."
+        )
+
+    expected = {
+        "fsx_lustre_version": "2.15",
+        "fsx_metadata_mode": "AUTOMATIC",
+        "fsx_encryption_mode": "AWS_MANAGED_FSX",
+        "fsx_owner": "DYEC",
+        "fsx_lifecycle": "CLUSTER_BOUND",
+        "sweep_protection_tag": "ursa-preserve=true",
+    }
+    resolved: dict[str, str] = {"fsx_deployment_type": deployment_type}
+    size_triplet = cfg.ephemeral_cluster.config.get("fsx_fs_size")
+    size = size_triplet.set_value.strip() if size_triplet is not None else ""
+    if not _is_valid_fsx_size(size):
+        raise ValueError(
+            "PERSISTENT_2 requires explicit fsx_fs_size matching: "
+            f"{FSX_SIZE_RULE_TEXT}; received {size!r}."
+        )
+    resolved["fsx_fs_size"] = size
+
+    throughput_triplet = cfg.ephemeral_cluster.config.get(
+        "fsx_throughput_mbps_per_tib"
+    )
+    throughput = (
+        throughput_triplet.set_value.strip()
+        if throughput_triplet is not None
+        else ""
+    )
+    if throughput not in {"125", "250", "500", "1000"}:
+        raise ValueError(
+            "PERSISTENT_2 requires explicit fsx_throughput_mbps_per_tib "
+            "of 125, 250, 500, or 1000; "
+            f"received {throughput!r}."
+        )
+    resolved["fsx_throughput_mbps_per_tib"] = throughput
+
+    for key, required_value in expected.items():
+        triplet = cfg.ephemeral_cluster.config.get(key)
+        value = triplet.set_value.strip() if triplet is not None else ""
+        if value != required_value:
+            raise ValueError(
+                f"PERSISTENT_2 requires explicit {key}={required_value}; received {value!r}."
+            )
+        resolved[key] = value
+    return resolved
+
+
 def _is_valid_headnode_instance_type(value: str) -> bool:
     """Return True when *value* is an approved headnode instance type."""
     return value in APPROVED_HEADNODE_INSTANCE_TYPES
@@ -753,6 +2015,17 @@ def _resolve_nonprompt_config_value(cfg: Any, key: str, default_value: str = "")
     return (get_effective_default(cfg, key, default_value) or "").strip()
 
 
+def _resolve_derived_max_count(
+    cfg: Any,
+    key: str,
+    parent_value: int,
+) -> str:
+    """Return an explicit subtype max count or inherit the parent family count."""
+    from daylily_ec.config.triplets import resolve_derived_max_count
+
+    return resolve_derived_max_count(cfg, key, parent_value)
+
+
 def _resolve_nonprompt_bool_config(cfg: Any, key: str, default_value: str = "false") -> bool:
     """Resolve a non-interactive boolean config value with strict validation."""
     raw = _resolve_nonprompt_config_value(cfg, key, default_value).strip().lower()
@@ -841,6 +2114,15 @@ def validate_cluster_name(cluster_name: str) -> str:
     return value
 
 
+def normalize_enforce_budget(value: str) -> str:
+    text = str(value or "").strip().strip('"').strip("'").lower()
+    if text in {"true", "1", "yes", "enforce", "enforced"}:
+        return "true"
+    if text in {"skip", "false", "0", "no"}:
+        return "skip"
+    raise ValueError(f"enforce_budget must be one of true, enforce, skip, or false; got {value!r}")
+
+
 def _validate_cluster_name(cluster_name: str) -> str:
     return validate_cluster_name(cluster_name)
 
@@ -853,7 +2135,12 @@ def _resolve_cluster_name(cfg: Any, *, non_interactive: bool) -> str:
     if triplet is not None:
         resolved = resolve_value(triplet)
         if resolved:
-            return _validate_cluster_name(resolved)
+            try:
+                return _validate_cluster_name(resolved)
+            except ValueError as exc:
+                if non_interactive:
+                    raise
+                typer.echo(str(exc))
 
     default_value = get_effective_default(cfg, "cluster_name", "prod") or "prod"
     if non_interactive:
@@ -876,8 +2163,112 @@ def _require_values(values: Dict[str, str]) -> Optional[str]:
     return "Missing required values: " + ", ".join(missing)
 
 
+def _resolve_explicit_subnet_id(
+    ec2_client: Any,
+    cfg: Any,
+    key: str,
+    *,
+    label: str,
+    region_az: str,
+) -> str:
+    """Return an explicit configured subnet after live EC2/AZ validation."""
+    from daylily_ec.config.triplets import resolve_value
+
+    triplet = cfg.ephemeral_cluster.config.get(key)
+    configured = resolve_value(triplet) if triplet is not None else ""
+    configured = configured.strip()
+    if not configured:
+        return ""
+
+    try:
+        response = ec2_client.describe_subnets(SubnetIds=[configured])
+    except Exception as exc:
+        raise ValueError(
+            f"Configured {label} does not exist or is inaccessible: {configured}"
+        ) from exc
+
+    subnets = response.get("Subnets", [])
+    if not subnets:
+        raise ValueError(f"Configured {label} does not exist: {configured}")
+    subnet = subnets[0]
+    actual_az = str(subnet.get("AvailabilityZone", ""))
+    if actual_az != region_az:
+        raise ValueError(
+            f"Configured {label} {configured} is in {actual_az}, expected {region_az}."
+        )
+    state = str(subnet.get("State", ""))
+    if state != "available":
+        raise ValueError(f"Configured {label} {configured} is {state}, expected available.")
+    return configured
+
+
+def _resolve_subnet_vpc_id(ec2_client: Any, subnet_id: str, *, label: str) -> str:
+    """Return the VPC that owns a resolved subnet."""
+    subnet_id = subnet_id.strip()
+    if not subnet_id:
+        return ""
+    try:
+        response = ec2_client.describe_subnets(SubnetIds=[subnet_id])
+    except Exception as exc:
+        raise ValueError(f"Unable to resolve VPC for {label} {subnet_id}.") from exc
+    subnets = response.get("Subnets", [])
+    if not subnets:
+        raise ValueError(f"Unable to resolve VPC for {label} {subnet_id}: subnet not found.")
+    vpc_id = str(subnets[0].get("VpcId", "")).strip()
+    if not vpc_id:
+        raise ValueError(f"Unable to resolve VPC for {label} {subnet_id}: missing VpcId.")
+    return vpc_id
+
+
+def _subnet_has_public_default_route(ec2_client: Any, subnet_id: str, *, label: str) -> bool:
+    """Return whether a subnet's active default route targets an internet gateway."""
+    subnet_id = subnet_id.strip()
+    if not subnet_id:
+        return False
+    try:
+        subnet_response = ec2_client.describe_subnets(SubnetIds=[subnet_id])
+    except Exception as exc:
+        raise ValueError(f"Unable to inspect route table for {label} {subnet_id}.") from exc
+    subnets = subnet_response.get("Subnets", [])
+    if not subnets:
+        raise ValueError(
+            f"Unable to inspect route table for {label} {subnet_id}: subnet not found."
+        )
+    vpc_id = str(subnets[0].get("VpcId", "")).strip()
+    if not vpc_id:
+        raise ValueError(f"Unable to inspect route table for {label} {subnet_id}: missing VpcId.")
+
+    try:
+        associated = ec2_client.describe_route_tables(
+            Filters=[{"Name": "association.subnet-id", "Values": [subnet_id]}]
+        ).get("RouteTables", [])
+        route_tables = associated
+        if not route_tables:
+            vpc_tables = ec2_client.describe_route_tables(
+                Filters=[{"Name": "vpc-id", "Values": [vpc_id]}]
+            ).get("RouteTables", [])
+            route_tables = [
+                table
+                for table in vpc_tables
+                if any(assoc.get("Main") for assoc in table.get("Associations", []) or [])
+            ]
+    except Exception as exc:
+        raise ValueError(f"Unable to inspect route table for {label} {subnet_id}.") from exc
+
+    for table in route_tables:
+        for route in table.get("Routes", []) or []:
+            if str(route.get("State", "")) != "active":
+                continue
+            destination = str(route.get("DestinationCidrBlock", ""))
+            gateway = str(route.get("GatewayId", ""))
+            if destination == "0.0.0.0/0" and gateway.startswith("igw-"):
+                return True
+    return False
+
+
 @dataclass(frozen=True)
 class _PostCreateInputs:
+    enforce_budget: str
     budget_email: str
     budget_amount: str
     global_budget_amount: str
@@ -893,8 +2284,23 @@ def _resolve_post_create_inputs(
     non_interactive: bool,
     budget_email_default: str,
     allowed_budget_users_default: str,
+    cluster_name: str,
+    disable_budget_enforcement: bool,
 ) -> _PostCreateInputs:
     """Resolve budget and heartbeat inputs once before the create phase."""
+    if disable_budget_enforcement:
+        enforce_budget = "skip"
+    else:
+        enforce_budget = normalize_enforce_budget(
+            _resolve_config_value(
+                cfg,
+                "enforce_budget",
+                "Enforce budget",
+                non_interactive=non_interactive,
+                default_fallback="true",
+            )
+            or "true"
+        )
     budget_email = (
         _resolve_config_value(
             cfg,
@@ -971,6 +2377,7 @@ def _resolve_post_create_inputs(
     )
 
     return _PostCreateInputs(
+        enforce_budget=enforce_budget,
         budget_email=budget_email,
         budget_amount=budget_amount,
         global_budget_amount=global_budget_amount,
@@ -1028,11 +2435,19 @@ def run_create_workflow(
     *,
     profile: Optional[str] = None,
     config_path: Optional[str] = None,
+    cluster_type: str = DEFAULT_CREATE_CLUSTER_TYPE,
     pass_on_warn: bool = False,
     debug: bool = False,
     non_interactive: bool = False,
-    create_slurm_accounting_db: bool = False,
-    scan_slurm_accounting_db: bool = False,
+    disable_budget_enforcement: bool = False,
+    budget_project: Optional[str] = None,
+    global_spot_max_cost: float = DEFAULT_GLOBAL_SPOT_MAX_COST,
+    spot_cost_limit_pct: float = DEFAULT_SPOT_COST_LIMIT_PCT,
+    write_spot_pricing_warn_threshold: float = DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+    repo_overrides: Optional[Dict[str, str]] = None,
+    regional_cluster_cap: Optional[int] = None,
+    acknowledge_regional_cap_increase: bool = False,
+    acknowledge_regional_cap_risk: bool = False,
 ) -> int:
     """End-to-end cluster creation: preflight → create → post-create.
 
@@ -1040,6 +2455,7 @@ def run_create_workflow(
     """
     from daylily_ec.aws.budgets import ensure_cluster_budget, ensure_global_budget
     from daylily_ec.aws.cloudformation import (
+        StackOutputs,
         derive_stack_name,
         ensure_pcluster_env_stack,
     )
@@ -1065,15 +2481,7 @@ def run_create_workflow(
         make_s3_bucket_preflight_step,
     )
     from daylily_ec.aws.slurm_accounting import (
-        DEFAULT_ACCOUNTING_DATABASE_NAME,
-        DEFAULT_ACCOUNTING_INSTANCE_TYPE,
-        DEFAULT_ACCOUNTING_USERNAME,
-        SlurmAccountingDb,
-        SlurmAccountingError,
         empty_slurm_accounting_render_blocks,
-        ensure_slurm_accounting_db,
-        scan_slurm_accounting_ec2_candidates,
-        slurm_accounting_render_blocks,
     )
     from daylily_ec.aws.ssm import wait_for_ssm_online
     from daylily_ec.aws.spot_pricing import apply_spot_prices
@@ -1085,6 +2493,7 @@ def run_create_workflow(
     from daylily_ec.pcluster.runner import (
         create_cluster as pcluster_create,
         dry_run_create,
+        list_clusters as pcluster_list_clusters,
         should_break_after_dry_run,
     )
     from daylily_ec.resources import resource_path
@@ -1092,6 +2501,41 @@ def run_create_workflow(
 
     if debug:
         logging.getLogger("daylily_ec").setLevel(logging.DEBUG)
+    try:
+        cluster_type = normalize_create_cluster_type(cluster_type)
+        validate_create_cluster_type_region(cluster_type, region_az)
+    except ValueError as exc:
+        logger.error("Cluster type validation failed: %s", exc)
+        ui.fail(str(exc))
+        return EXIT_VALIDATION_FAILURE
+    try:
+        effective_regional_cluster_cap = validate_regional_cluster_cap_options(
+            regional_cluster_cap,
+            acknowledge_regional_cap_increase=acknowledge_regional_cap_increase,
+            acknowledge_regional_cap_risk=acknowledge_regional_cap_risk,
+        )
+    except ValueError as exc:
+        logger.error("Regional cluster cap option validation failed: %s", exc)
+        ui.fail(str(exc))
+        return EXIT_VALIDATION_FAILURE
+    if budget_project:
+        logger.error("--budget-project is retired; cluster budgets are named by cluster name.")
+        ui.fail("--budget-project is retired; cluster budgets are named by cluster name.")
+        return EXIT_VALIDATION_FAILURE
+    try:
+        (
+            global_spot_max_cost,
+            spot_cost_limit_pct,
+            write_spot_pricing_warn_threshold,
+        ) = validate_spot_pricing_limits(
+            global_spot_max_cost=global_spot_max_cost,
+            spot_cost_limit_pct=spot_cost_limit_pct,
+            write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+        )
+    except ValueError as exc:
+        logger.error("Spot pricing validation failed: %s", exc)
+        ui.fail(str(exc))
+        return EXIT_VALIDATION_FAILURE
 
     ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
 
@@ -1101,6 +2545,27 @@ def run_create_workflow(
         effective_config = str(resource_path(effective_config))
     cfg = load_config(effective_config)
     ec = cfg.ephemeral_cluster
+
+    try:
+        persistent2_config = _resolve_persistent2_config(cfg)
+    except ValueError as exc:
+        logger.error("PERSISTENT_2 config validation failed: %s", exc)
+        ui.fail(f"PERSISTENT_2 config: {exc}")
+        return EXIT_VALIDATION_FAILURE
+
+    try:
+        dragen_inputs = resolve_dragen_create_inputs(
+            cfg,
+            cluster_type=cluster_type,
+            region_az=region_az,
+        )
+    except ValueError as exc:
+        logger.error("DRAGEN create input validation failed: %s", exc)
+        ui.fail(f"DRAGEN create inputs: {exc}")
+        return EXIT_VALIDATION_FAILURE
+    pcluster_executable = (
+        str(dragen_inputs.backport.cli_executable) if dragen_inputs else "pcluster"
+    )
 
     try:
         cluster_name = _resolve_cluster_name(cfg, non_interactive=non_interactive)
@@ -1128,6 +2593,105 @@ def run_create_workflow(
     ui.detail("Account", aws_ctx.account_id)
     ui.detail("User", aws_ctx.iam_username)
     ui.detail("Region", f"{aws_ctx.region} ({region_az})")
+    ui.detail("Cluster type", cluster_type)
+
+    cluster_inventory = pcluster_list_clusters(
+        aws_ctx.region,
+        profile=aws_ctx.profile,
+        executable=pcluster_executable,
+    )
+    if not cluster_inventory.success:
+        detail = cluster_inventory.message or (
+            f"pcluster list-clusters failed with exit code {cluster_inventory.returncode}"
+        )
+        logger.error("Regional ParallelCluster cap check failed closed: %s", detail)
+        ui.fail(
+            f"Regional ParallelCluster cap check failed closed in {aws_ctx.region}: "
+            f"{detail}. No create-side mutations were attempted."
+        )
+        return EXIT_AWS_FAILURE
+
+    try:
+        cap_decision = evaluate_regional_cluster_cap(
+            cluster_name=cluster_name,
+            records=cluster_inventory.json_body.get("clusters"),
+            effective_cap=effective_regional_cluster_cap,
+        )
+    except ValueError as exc:
+        logger.error("Regional ParallelCluster inventory validation failed: %s", exc)
+        ui.fail(
+            f"Regional ParallelCluster cap check failed closed in {aws_ctx.region}: "
+            f"{exc}. No create-side mutations were attempted."
+        )
+        return EXIT_AWS_FAILURE
+
+    ui.detail(
+        "Regional cluster cap",
+        (
+            f"current={cap_decision.current_count}, "
+            f"projected={cap_decision.projected_count}, "
+            f"cap={cap_decision.effective_cap}"
+        ),
+    )
+    if cap_decision.projected_count > cap_decision.effective_cap:
+        record_evidence = (
+            ", ".join(f"{name}={status}" for name, status in cap_decision.counted_records) or "none"
+        )
+        logger.error(
+            "Regional ParallelCluster cap exceeded in %s: current=%d projected=%d cap=%d",
+            aws_ctx.region,
+            cap_decision.current_count,
+            cap_decision.projected_count,
+            cap_decision.effective_cap,
+        )
+        ui.fail(
+            f"Regional ParallelCluster cap exceeded in {aws_ctx.region}: "
+            f"current non-deleted records={cap_decision.current_count}, "
+            f"requested cluster={cluster_name!r}, "
+            f"projected={cap_decision.projected_count}, "
+            f"cap={cap_decision.effective_cap}. "
+            f"Counted records: {record_evidence}."
+        )
+        return EXIT_VALIDATION_FAILURE
+
+    try:
+        dyec_deploy_key_inputs = resolve_dyec_deploy_key_inputs(
+            cfg,
+            region_az=region_az,
+            account_id=aws_ctx.account_id,
+            non_interactive=non_interactive,
+        )
+        dayoa_deploy_key_inputs = resolve_dayoa_deploy_key_inputs(
+            cfg,
+            region_az=region_az,
+            account_id=aws_ctx.account_id,
+            non_interactive=non_interactive,
+        )
+    except ValueError as exc:
+        logger.error("Repository deploy-key input validation failed: %s", exc)
+        ui.fail(f"Repository deploy-key inputs: {exc}")
+        return EXIT_VALIDATION_FAILURE
+    ui.detail("DYEC deploy-key secret", dyec_deploy_key_inputs.secret_arn)
+    ui.detail("DYEC deploy-key policy", dyec_deploy_key_inputs.policy_arn)
+    ui.detail("DayOA deploy-key secret", dayoa_deploy_key_inputs.secret_arn)
+    ui.detail("DayOA deploy-key policy", dayoa_deploy_key_inputs.policy_arn)
+    try:
+        dyec_repo_spec = resolve_configured_headnode_repo_spec(deploy_key_auth=True)
+    except RuntimeError as exc:
+        logger.error("DYEC repository pinning failed: %s", exc)
+        ui.fail(f"DYEC repository source: {exc}")
+        return EXIT_VALIDATION_FAILURE
+    ui.detail("DYEC repository", dyec_repo_spec.url)
+    ui.detail("DYEC ref", dyec_repo_spec.ref)
+    if dragen_inputs:
+        secret_account = dragen_inputs.license_secret_arn.split(":", 5)[4]
+        policy_account = dragen_inputs.license_policy_arn.split(":", 5)[4]
+        if secret_account != aws_ctx.account_id or policy_account != aws_ctx.account_id:
+            logger.error("DRAGEN secret/policy account does not match the active AWS account.")
+            ui.fail("DRAGEN secret and policy ARNs must belong to the active AWS account.")
+            return EXIT_VALIDATION_FAILURE
+        ui.detail("PCluster backport", dragen_inputs.backport.parallelcluster_version)
+        ui.detail("Qualified image", dragen_inputs.backport.image_ami_id)
 
     # -- 2. PREFLIGHT (Phase 1) -----------------------------------------------
     ui.phase("PREFLIGHT")
@@ -1152,6 +2716,17 @@ def run_create_workflow(
         )
         or "1"
     )
+    max_96i_nvme_text = _resolve_config_value(
+        cfg,
+        "max_count_96I_NVME",
+        "Max 96-vCPU local-NVMe count",
+        non_interactive=non_interactive,
+    )
+    if not max_96i_nvme_text:
+        logger.error("Missing required max_count_96I_NVME configuration value.")
+        ui.fail("max_count_96I_NVME must be configured explicitly.")
+        return EXIT_VALIDATION_FAILURE
+    max_96i_nvme = int(max_96i_nvme_text)
     max_128i = int(
         _resolve_config_value(
             cfg,
@@ -1172,6 +2747,39 @@ def run_create_workflow(
         )
         or "1"
     )
+    max_384i = int(
+        _resolve_config_value(
+            cfg,
+            "max_count_384I",
+            "Max 384xlarge count",
+            non_interactive=non_interactive,
+            default_fallback="1",
+        )
+        or "1"
+    )
+    max_count_values: Dict[str, str] = {
+        "max_count_8I": str(max_8i),
+        "max_count_96I_NVME": str(max_96i_nvme),
+        "max_count_128I": str(max_128i),
+        "max_count_192I": str(max_192i),
+        "max_count_384I": str(max_384i),
+        "max_count_128I_C": _resolve_derived_max_count(cfg, "max_count_128I_C", max_128i),
+        "max_count_128I_M": _resolve_derived_max_count(cfg, "max_count_128I_M", max_128i),
+        "max_count_128I_R": _resolve_derived_max_count(cfg, "max_count_128I_R", max_128i),
+        "max_count_128I_NVME": _resolve_derived_max_count(cfg, "max_count_128I_NVME", max_128i),
+        "max_count_192I_C": _resolve_derived_max_count(cfg, "max_count_192I_C", max_192i),
+        "max_count_192I_M": _resolve_derived_max_count(cfg, "max_count_192I_M", max_192i),
+        "max_count_192I_R": _resolve_derived_max_count(cfg, "max_count_192I_R", max_192i),
+        "max_count_192I_NVME_C": _resolve_derived_max_count(cfg, "max_count_192I_NVME_C", max_192i),
+        "max_count_192I_NVME_M": _resolve_derived_max_count(cfg, "max_count_192I_NVME_M", max_192i),
+        "max_count_192I_NVME_R": _resolve_derived_max_count(cfg, "max_count_192I_NVME_R", max_192i),
+        "max_count_192I_HUGENVME": _resolve_derived_max_count(
+            cfg, "max_count_192I_HUGENVME", max_192i
+        ),
+        "max_count_384I_NVME_C": _resolve_derived_max_count(cfg, "max_count_384I_NVME_C", max_384i),
+        "max_count_384I_NVME_M": _resolve_derived_max_count(cfg, "max_count_384I_NVME_M", max_384i),
+        "max_count_384I_NVME_R": _resolve_derived_max_count(cfg, "max_count_384I_NVME_R", max_384i),
+    }
 
     reference_s3_uri = _resolve_s3_role_config_value(
         cfg,
@@ -1218,8 +2826,10 @@ def run_create_workflow(
         make_quota_preflight_step(
             aws_ctx,
             max_count_8i=max_8i,
+            max_count_96i_nvme=max_96i_nvme,
             max_count_128i=max_128i,
             max_count_192i=max_192i,
+            max_count_384i=max_384i,
             non_interactive=non_interactive,
         ),
         # 6: S3 Role Validator
@@ -1233,6 +2843,51 @@ def run_create_workflow(
             interactive=not non_interactive,
         ),
     ]
+    from daylily_ec.aws.github_deploy_key import make_github_deploy_key_preflight_step
+
+    preflight_steps.insert(
+        1,
+        make_github_deploy_key_preflight_step(
+            secretsmanager_client=aws_ctx.client("secretsmanager"),
+            iam_client=aws_ctx.client("iam"),
+            secret_arn=dayoa_deploy_key_inputs.secret_arn,
+            policy_arn=dayoa_deploy_key_inputs.policy_arn,
+        ),
+    )
+    preflight_steps.insert(
+        1,
+        make_github_deploy_key_preflight_step(
+            secretsmanager_client=aws_ctx.client("secretsmanager"),
+            iam_client=aws_ctx.client("iam"),
+            secret_arn=dyec_deploy_key_inputs.secret_arn,
+            policy_arn=dyec_deploy_key_inputs.policy_arn,
+            check_id="iam.dyec_deploy_key_secret_policy",
+            display_name="DYEC",
+        ),
+    )
+    if dragen_inputs:
+        from daylily_ec.aws.dragen_license import make_dragen_license_preflight_step
+        from daylily_ec.pcluster.backport import (
+            make_operational_backport_preflight_step,
+        )
+
+        preflight_steps.insert(
+            1,
+            make_dragen_license_preflight_step(
+                secretsmanager_client=aws_ctx.client("secretsmanager"),
+                iam_client=aws_ctx.client("iam"),
+                secret_arn=dragen_inputs.license_secret_arn,
+                policy_arn=dragen_inputs.license_policy_arn,
+            ),
+        )
+        preflight_steps.insert(
+            1,
+            make_operational_backport_preflight_step(
+                s3_client=aws_ctx.client("s3"),
+                ec2_client=aws_ctx.client("ec2"),
+                backport=dragen_inputs.backport,
+            ),
+        )
 
     report = run_preflight(
         report,
@@ -1262,23 +2917,57 @@ def run_create_workflow(
         role="export_destination",
     )
 
-    cluster_boot_s3_uri = _s3_uri_join(
+    cluster_boot_s3_base_uri = _s3_uri_join(
         reference_s3_uri,
         "runtime_assets",
         "cluster_boot_config",
     )
 
-    # 3a. Baseline CFN stack
-    ui.step("Ensuring baseline CFN stack ...")
     try:
-        cfn_outputs = ensure_pcluster_env_stack(aws_ctx, region_az)
-    except (FileNotFoundError, RuntimeError) as exc:
-        logger.error("CFN stack ensure failed: %s", exc)
-        ui.fail(f"CFN stack: {exc}")
-        return EXIT_AWS_FAILURE
-    ui.ok("CFN stack ready")
+        config_accounting_create_requested = _resolve_nonprompt_bool_config(
+            cfg,
+            "slurm_accounting_create_db",
+            "false",
+        )
+        config_accounting_enabled = _resolve_nonprompt_bool_config(
+            cfg,
+            "slurm_accounting_enabled",
+            "false",
+        )
+    except ValueError as exc:
+        logger.error("Slurm accounting config validation failed: %s", exc)
+        ui.fail(f"Slurm accounting config: {exc}")
+        return EXIT_VALIDATION_FAILURE
 
+    if config_accounting_enabled or config_accounting_create_requested:
+        logger.error("Slurm accounting was requested during cluster creation.")
+        ui.fail(
+            "Slurm accounting is post-create only. Set slurm_accounting_enabled=false "
+            "and slurm_accounting_create_db=false, create the cluster, then run "
+            "dyec slurm-accounting attach."
+        )
+        return EXIT_VALIDATION_FAILURE
+
+    explicit_core_resources = all(
+        _has_explicit_set_value(cfg, key)
+        for key in ("public_subnet_id", "private_subnet_id", "iam_policy_arn")
+    )
+
+    # 3a. Baseline CFN stack
     stack_name = derive_stack_name(region_az)
+    if explicit_core_resources:
+        cfn_outputs = StackOutputs()
+        ui.step("Skipping baseline CFN stack; explicit subnet and IAM policy config present.")
+        ui.ok("Baseline CFN stack not required")
+    else:
+        ui.step("Ensuring baseline CFN stack ...")
+        try:
+            cfn_outputs = ensure_pcluster_env_stack(aws_ctx, region_az)
+        except (FileNotFoundError, RuntimeError) as exc:
+            logger.error("CFN stack ensure failed: %s", exc)
+            ui.fail(f"CFN stack: {exc}")
+            return EXIT_AWS_FAILURE
+        ui.ok("CFN stack ready")
 
     # 3b. Subnet selection (from live EC2)
     ec2 = aws_ctx.client("ec2")
@@ -1302,6 +2991,20 @@ def run_create_workflow(
             "public subnet",
             [subnet.subnet_id for subnet in pub_list],
         )
+    try:
+        explicit_public_subnet = _resolve_explicit_subnet_id(
+            ec2,
+            cfg,
+            "public_subnet_id",
+            label="public subnet",
+            region_az=region_az,
+        )
+        if explicit_public_subnet:
+            public_subnet = explicit_public_subnet
+    except ValueError as exc:
+        logger.error("Public subnet validation failed: %s", exc)
+        ui.fail(str(exc))
+        return EXIT_VALIDATION_FAILURE
 
     private_subnet = (
         select_subnet(
@@ -1317,6 +3020,20 @@ def run_create_workflow(
             "private subnet",
             [subnet.subnet_id for subnet in priv_list],
         )
+    try:
+        explicit_private_subnet = _resolve_explicit_subnet_id(
+            ec2,
+            cfg,
+            "private_subnet_id",
+            label="private subnet",
+            region_az=region_az,
+        )
+        if explicit_private_subnet:
+            private_subnet = explicit_private_subnet
+    except ValueError as exc:
+        logger.error("Private subnet validation failed: %s", exc)
+        ui.fail(str(exc))
+        return EXIT_VALIDATION_FAILURE
 
     # 3c. Policy ARN selection
     iam_client = aws_ctx.client("iam")
@@ -1331,6 +3048,8 @@ def run_create_workflow(
         )
         or cfn_outputs.policy_arn
     )
+    if not policy_arn and iam_t and _has_explicit_set_value(cfg, "iam_policy_arn"):
+        policy_arn = iam_t.set_value.strip()
     if not policy_arn and not non_interactive and policy_arns:
         policy_arn = _prompt_select("IAM policy ARN", policy_arns)
 
@@ -1369,151 +3088,18 @@ def run_create_workflow(
     ui.detail("Subnets", f"pub={public_subnet}  priv={private_subnet}")
     ui.detail("Policy", policy_arn)
 
-    accounting_db: Optional[SlurmAccountingDb] = None
     accounting_render_blocks = empty_slurm_accounting_render_blocks()
-    try:
-        config_create_accounting = _resolve_nonprompt_bool_config(
-            cfg,
-            "slurm_accounting_create_db",
-            "false",
-        )
-        accounting_create_requested = create_slurm_accounting_db or config_create_accounting
-        config_accounting_enabled = _resolve_nonprompt_bool_config(
-            cfg,
-            "slurm_accounting_enabled",
-            "false",
-        )
-    except ValueError as exc:
-        logger.error("Slurm accounting config validation failed: %s", exc)
-        ui.fail(f"Slurm accounting config: {exc}")
-        return EXIT_VALIDATION_FAILURE
-
-    if scan_slurm_accounting_db and accounting_create_requested:
-        logger.error("Slurm accounting scan was requested with create enabled.")
-        ui.fail(
-            "Slurm accounting scan cannot be combined with --create-slurm-accounting-db "
-            "or slurm_accounting_create_db=true."
-        )
-        return EXIT_VALIDATION_FAILURE
-
-    if scan_slurm_accounting_db:
-        if not cfn_outputs.vpc_id:
-            logger.error("Slurm accounting scan requires the baseline VPC output.")
-            ui.fail("Slurm accounting scan requires the baseline VPC output.")
-            return EXIT_VALIDATION_FAILURE
-
-        ui.step("Scanning EC2 for reusable Slurm accounting DB hosts ...")
-        try:
-            scan_candidates = scan_slurm_accounting_ec2_candidates(
-                aws_ctx,
-                region_az=region_az,
-                vpc_id=cfn_outputs.vpc_id,
-            )
-        except SlurmAccountingError as exc:
-            logger.error("Slurm accounting EC2 scan failed: %s", exc)
-            ui.fail(f"Slurm accounting DB scan: {exc}")
-            return EXIT_AWS_FAILURE
-
-        selectable_candidates = [
-            candidate for candidate in scan_candidates if candidate.selectable and candidate.db
-        ]
-        advisory_candidates = [
-            candidate for candidate in scan_candidates if not candidate.selectable
-        ]
-        for candidate in advisory_candidates[:5]:
-            ui.warn(
-                "Skipping non-selectable Slurm accounting candidate "
-                f"{candidate.instance_id}: {candidate.reason}"
-            )
-        if len(advisory_candidates) > 5:
-            ui.warn(
-                f"Skipping {len(advisory_candidates) - 5} additional non-selectable "
-                "Slurm accounting candidate(s)."
-            )
-
-        if not selectable_candidates:
-            ui.warn("No usable Slurm accounting DB candidates found; continuing without sacct DB.")
-        elif non_interactive:
-            ui.warn(
-                "Slurm accounting DB candidates were found, but --non-interactive was set; "
-                "continuing without sacct DB."
-            )
-        else:
-            selected_candidate = _prompt_slurm_accounting_candidate(selectable_candidates)
-            if selected_candidate is None:
-                ui.info("Slurm accounting DB skipped by selection.")
-            else:
-                accounting_db = selected_candidate.db
-
-        if accounting_db:
-            accounting_render_blocks = slurm_accounting_render_blocks(accounting_db)
-            ui.ok("Slurm accounting DB selected")
-            ui.detail("Accounting stack", accounting_db.stack_name)
-            ui.detail("Accounting URI", accounting_db.uri)
-            ui.detail("Accounting database", accounting_db.database_name)
-            ui.detail("Accounting user", accounting_db.username)
-            ui.detail("Accounting secret", accounting_db.password_secret_arn)
-            ui.detail("Accounting client SG", accounting_db.client_security_group_id)
-
-    elif accounting_create_requested or config_accounting_enabled:
-        if not cfn_outputs.vpc_id:
-            logger.error("Slurm accounting requires the baseline VPC output.")
-            ui.fail("Slurm accounting requires the baseline VPC output.")
-            return EXIT_VALIDATION_FAILURE
-
-        accounting_stack_name = _resolve_nonprompt_config_value(
-            cfg,
-            "slurm_accounting_stack_name",
-            "",
-        )
-        accounting_database_name = _resolve_nonprompt_config_value(
-            cfg,
-            "slurm_accounting_database_name",
-            DEFAULT_ACCOUNTING_DATABASE_NAME,
-        )
-        accounting_username = _resolve_nonprompt_config_value(
-            cfg,
-            "slurm_accounting_db_username",
-            DEFAULT_ACCOUNTING_USERNAME,
-        )
-        accounting_instance_type = _resolve_nonprompt_config_value(
-            cfg,
-            "slurm_accounting_instance_type",
-            DEFAULT_ACCOUNTING_INSTANCE_TYPE,
-        )
-
-        ui.step("Resolving Slurm accounting DB ...")
-        try:
-            accounting_db = ensure_slurm_accounting_db(
-                aws_ctx,
-                region_az=region_az,
-                vpc_id=cfn_outputs.vpc_id,
-                private_subnet_id=private_subnet,
-                create_if_missing=accounting_create_requested,
-                stack_name=accounting_stack_name,
-                database_name=accounting_database_name,
-                username=accounting_username,
-                instance_type=accounting_instance_type,
-            )
-        except SlurmAccountingError as exc:
-            logger.error("Slurm accounting DB resolution failed: %s", exc)
-            ui.fail(f"Slurm accounting DB: {exc}")
-            return EXIT_AWS_FAILURE
-        accounting_render_blocks = slurm_accounting_render_blocks(accounting_db)
-        ui.ok("Slurm accounting DB ready")
-        ui.detail("Accounting stack", accounting_db.stack_name)
-        ui.detail("Accounting URI", accounting_db.uri)
-        ui.detail("Accounting database", accounting_db.database_name)
-        ui.detail("Accounting user", accounting_db.username)
-        ui.detail("Accounting secret", accounting_db.password_secret_arn)
-        ui.detail("Accounting client SG", accounting_db.client_security_group_id)
-
     ui.step("Publishing cluster boot config to runtime assets ...")
     try:
+        cluster_boot_source_dir = resource_path("config/day_cluster")
+        cluster_boot_s3_uri = cluster_boot_config_release_uri(
+            base_uri=cluster_boot_s3_base_uri,
+            source_dir=cluster_boot_source_dir,
+        )
         uploaded_boot_config = publish_cluster_boot_config(
             aws_ctx.client("s3"),
             cluster_boot_s3_uri=cluster_boot_s3_uri,
-            source_dir=resource_path("config/day_cluster"),
+            source_dir=cluster_boot_source_dir,
         )
     except (FileNotFoundError, ValueError, OSError) as exc:
         logger.error("Cluster boot config publish failed: %s", exc)
@@ -1534,23 +3120,65 @@ def run_create_workflow(
         non_interactive=non_interactive,
         budget_email_default=_os.environ.get("DAY_CONTACT_EMAIL", ""),
         allowed_budget_users_default="ubuntu",
+        cluster_name=cluster_name,
+        disable_budget_enforcement=disable_budget_enforcement,
     )
+
+    # Budget resources and the project allow-list live in the reference bucket
+    # that FSx imports during cluster startup. They must exist before launch.
+    ui.phase("PRE-CREATE: BUDGETS")
+    budgets_client = aws_ctx.client("budgets")
+    s3_client = aws_ctx.client("s3")
+    global_budget = ""
+    cluster_budget = ""
+    ui.step("Ensuring budgets and project allow-list ...")
+    try:
+        global_budget = ensure_global_budget(
+            budgets_client,
+            s3_client,
+            aws_ctx.account_id,
+            amount=post_create_inputs.global_budget_amount,
+            cluster_name=cluster_name,
+            email=post_create_inputs.budget_email,
+            region=aws_ctx.region,
+            region_az=region_az,
+            bucket_name=reference_storage_bucket_name,
+            allowed_users=post_create_inputs.allowed_budget_users,
+        )
+        cluster_budget = ensure_cluster_budget(
+            budgets_client,
+            s3_client,
+            aws_ctx.account_id,
+            amount=post_create_inputs.budget_amount,
+            cluster_name=cluster_name,
+            email=post_create_inputs.budget_email,
+            region=aws_ctx.region,
+            region_az=region_az,
+            bucket_name=reference_storage_bucket_name,
+            allowed_users=post_create_inputs.allowed_budget_users,
+        )
+        logger.info("Budgets: global=%s project=%s", global_budget, cluster_budget)
+        ui.ok(f"Budgets: global={global_budget}, project={cluster_budget}")
+    except Exception as exc:
+        logger.error("Budget setup failed: %s", exc)
+        ui.fail(f"Budget setup failed: {exc}")
+        return EXIT_AWS_FAILURE
 
     # -- 5. RENDER YAML (Phase 2a) -------------------------------------------
     ui.phase("RENDER CLUSTER YAML")
 
-    template_yaml = (
-        _resolve_config_value(
+    try:
+        template_yaml = resolve_cluster_template_yaml(
             cfg,
-            "cluster_template_yaml",
-            "Cluster template YAML",
-            non_interactive=non_interactive,
-            default_fallback="config/day_cluster/prod_cluster.yaml",
+            region_az=region_az,
+            cluster_type=cluster_type,
+            resource_path_fn=resource_path,
         )
-        or "config/day_cluster/prod_cluster.yaml"
-    )
-    if not Path(template_yaml).is_file():
-        template_yaml = str(resource_path(template_yaml))
+    except (FileNotFoundError, ValueError) as exc:
+        logger.error("Cluster template resolution failed: %s", exc)
+        ui.fail(f"Cluster template YAML: {exc}")
+        return EXIT_VALIDATION_FAILURE
+    ui.detail("Cluster template", template_yaml)
 
     substitutions: Dict[str, str] = {
         "REGSUB_REGION": aws_ctx.region,
@@ -1588,6 +3216,18 @@ def run_create_workflow(
             default_fallback="false",
         )
         or "false",
+        "REGSUB_DRAGEN_PCLUSTER_AMI": (
+            dragen_inputs.backport.image_ami_id if dragen_inputs else ""
+        ),
+        "REGSUB_DRAGEN_LICENSE_POLICY_ARN": (
+            dragen_inputs.license_policy_arn if dragen_inputs else ""
+        ),
+        "REGSUB_DRAGEN_LICENSE_SECRET_ARN": (
+            dragen_inputs.license_secret_arn if dragen_inputs else ""
+        ),
+        "REGSUB_PCLUSTER_COOKBOOK_URI": (
+            dragen_inputs.backport.cookbook_bundle_uri if dragen_inputs else ""
+        ),
         # DeletionPolicy requires "Retain" or "Delete", not bool.
         "REGSUB_SAVE_FSX": (
             "Delete"
@@ -1605,32 +3245,40 @@ def run_create_workflow(
             else "Retain"
         ),
         # Tag values must be quoted strings, not bare YAML booleans.
-        "REGSUB_ENFORCE_BUDGET": '"'
-        + (
-            _resolve_config_value(
-                cfg,
-                "enforce_budget",
-                "Enforce budget",
-                non_interactive=non_interactive,
-                default_fallback="true",
-            )
-            or "true"
-        )
-        + '"',
+        "REGSUB_ENFORCE_BUDGET": '"' + post_create_inputs.enforce_budget + '"',
+        "REGSUB_COST_CENTER_REGION": "us-west-2",
+        "REGSUB_COST_CENTER_TABLE": "dayec-cost-centers",
+        "REGSUB_COST_CENTER_USAGE_TABLE": "dayec-cost-center-usage",
         "REGSUB_AWS_ACCOUNT_ID": f"aws_profile-{aws_ctx.profile}",
         "REGSUB_ALLOCATION_STRATEGY": _resolve_config_value(
             cfg,
             "spot_instance_allocation_strategy",
             "Spot allocation strategy",
             non_interactive=non_interactive,
-            default_fallback="capacity-optimized",
+            default_fallback="price-capacity-optimized",
         )
-        or "capacity-optimized",
+        or "price-capacity-optimized",
         # Tag value must be non-empty (AWS min length = 1).
         "REGSUB_DAYLILY_GIT_DEETS": "none",
-        "REGSUB_MAX_COUNT_8I": str(max_8i),
-        "REGSUB_MAX_COUNT_128I": str(max_128i),
-        "REGSUB_MAX_COUNT_192I": str(max_192i),
+        "REGSUB_MAX_COUNT_8I": max_count_values["max_count_8I"],
+        "REGSUB_MAX_COUNT_96I_NVME": max_count_values["max_count_96I_NVME"],
+        "REGSUB_MAX_COUNT_128I": max_count_values["max_count_128I"],
+        "REGSUB_MAX_COUNT_192I": max_count_values["max_count_192I"],
+        "REGSUB_MAX_COUNT_384I": max_count_values["max_count_384I"],
+        "REGSUB_MAX_COUNT_128I_C": max_count_values["max_count_128I_C"],
+        "REGSUB_MAX_COUNT_128I_M": max_count_values["max_count_128I_M"],
+        "REGSUB_MAX_COUNT_128I_R": max_count_values["max_count_128I_R"],
+        "REGSUB_MAX_COUNT_128I_NVME": max_count_values["max_count_128I_NVME"],
+        "REGSUB_MAX_COUNT_192I_C": max_count_values["max_count_192I_C"],
+        "REGSUB_MAX_COUNT_192I_M": max_count_values["max_count_192I_M"],
+        "REGSUB_MAX_COUNT_192I_R": max_count_values["max_count_192I_R"],
+        "REGSUB_MAX_COUNT_192I_NVME_C": max_count_values["max_count_192I_NVME_C"],
+        "REGSUB_MAX_COUNT_192I_NVME_M": max_count_values["max_count_192I_NVME_M"],
+        "REGSUB_MAX_COUNT_192I_NVME_R": max_count_values["max_count_192I_NVME_R"],
+        "REGSUB_MAX_COUNT_192I_HUGENVME": max_count_values["max_count_192I_HUGENVME"],
+        "REGSUB_MAX_COUNT_384I_NVME_C": max_count_values["max_count_384I_NVME_C"],
+        "REGSUB_MAX_COUNT_384I_NVME_M": max_count_values["max_count_384I_NVME_M"],
+        "REGSUB_MAX_COUNT_384I_NVME_R": max_count_values["max_count_384I_NVME_R"],
         "REGSUB_HEADNODE_INSTANCE_TYPE": _resolve_headnode_instance_type(
             cfg,
             non_interactive=non_interactive,
@@ -1638,6 +3286,9 @@ def run_create_workflow(
         "REGSUB_HEARTBEAT_EMAIL": post_create_inputs.heartbeat_email,
         "REGSUB_HEARTBEAT_SCHEDULE": post_create_inputs.heartbeat_schedule,
         "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN": (post_create_inputs.heartbeat_scheduler_role_arn),
+        # ParallelCluster CustomActions Args must be strings. The template places
+        # this token in YAML lists, so quote it before text substitution.
+        "REGSUB_SPOT_PRICE_WARN_THRESHOLD": json.dumps(f"{write_spot_pricing_warn_threshold:.2f}"),
         **accounting_render_blocks,
     }
 
@@ -1656,27 +3307,149 @@ def run_create_workflow(
 
     # 4b. Apply spot prices
     cluster_yaml_path = str(CONFIG_DIR / f"{cluster_name}_cluster_{ts}.yaml")
+    spot_price_summary_path = str(CONFIG_DIR / f"{cluster_name}_spot_price_summary_{ts}.json")
+    spot_price_summary_table_path = CONFIG_DIR / f"{cluster_name}-{ts}.md"
     ui.step("Applying spot prices ...")
     try:
-        apply_spot_prices(
+        spot_price_summary = apply_spot_prices(
             init_template_path,
             cluster_yaml_path,
             region_az,
             ec2_client=ec2,
+            global_spot_max_cost=global_spot_max_cost,
+            spot_cost_limit_pct=spot_cost_limit_pct,
+            write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+            summary_output_path=spot_price_summary_path,
         )
     except Exception as exc:
         logger.error("Spot price application failed: %s", exc)
         ui.fail(f"Spot pricing: {exc}")
         return EXIT_AWS_FAILURE
 
+    try:
+        attach_headnode_managed_policy(
+            cluster_yaml_path,
+            dayoa_deploy_key_inputs.policy_arn,
+        )
+        attach_headnode_managed_policy(
+            cluster_yaml_path,
+            dyec_deploy_key_inputs.policy_arn,
+        )
+    except ValueError as exc:
+        logger.error("Repository deploy-key headnode policy attachment failed: %s", exc)
+        ui.fail(f"Repository deploy-key headnode policy: {exc}")
+        return EXIT_VALIDATION_FAILURE
+
+    persistent2_resources = None
+    fsx_resource_receipt_path = ""
+    if persistent2_config is not None:
+        from daylily_ec.aws.fsx_persistent2 import (
+            Persistent2Spec,
+            ensure_persistent2_resources,
+            render_external_mount,
+            validate_external_mount,
+        )
+
+        ui.phase("PERSISTENT_2 FSX")
+        ui.step("Ensuring DYEC-owned P2 filesystem, client security group, and reference DRA ...")
+        persistent2_spec = Persistent2Spec(
+            cluster_name=cluster_name,
+            region=aws_ctx.region,
+            region_az=region_az,
+            subnet_id=private_subnet,
+            storage_capacity_gib=int(persistent2_config["fsx_fs_size"]),
+            throughput_mbps_per_tib=int(persistent2_config["fsx_throughput_mbps_per_tib"]),
+            reference_s3_uri=reference_s3_uri,
+            username_tag=f"{_os.environ.get('USER', 'unknown')}-{aws_ctx.iam_username}",
+            account_profile_tag=f"aws_profile-{aws_ctx.profile}",
+            enforce_budget_tag=post_create_inputs.enforce_budget,
+            cost_center_region="us-west-2",
+            cost_center_table="dayec-cost-centers",
+            cost_center_usage_table="dayec-cost-center-usage",
+            lustre_version=persistent2_config["fsx_lustre_version"],
+            metadata_mode=persistent2_config["fsx_metadata_mode"],
+            encryption_mode=persistent2_config["fsx_encryption_mode"],
+            owner=persistent2_config["fsx_owner"],
+            lifecycle=persistent2_config["fsx_lifecycle"],
+            sweep_preserve=(persistent2_config["sweep_protection_tag"] == "ursa-preserve=true"),
+        )
+        try:
+            persistent2_resources = ensure_persistent2_resources(
+                ec2,
+                aws_ctx.client("fsx"),
+                persistent2_spec,
+            )
+            render_external_mount(cluster_yaml_path, persistent2_resources)
+            validate_external_mount(cluster_yaml_path, persistent2_resources)
+            fsx_resource_receipt_path = str(
+                write_resource_receipt(
+                    cluster_name=cluster_name,
+                    run_id=ts,
+                    resource_type="fsx-persistent2",
+                    payload={
+                        "schema": "daylily.fsx_persistent2_resource_receipt/1.0",
+                        "recorded_at": datetime.now(timezone.utc).isoformat(),
+                        "spec": asdict(persistent2_spec),
+                        "resources": asdict(persistent2_resources),
+                    },
+                )
+            )
+        except ValueError as exc:
+            logger.error("PERSISTENT_2 render/contract failed: %s", exc)
+            ui.fail(f"PERSISTENT_2 contract: {exc}")
+            return EXIT_VALIDATION_FAILURE
+        except Exception as exc:
+            logger.error("PERSISTENT_2 resource ensure failed: %s", exc)
+            ui.fail(f"PERSISTENT_2 resource ensure: {exc}")
+            return EXIT_AWS_FAILURE
+        ui.ok(f"P2 FSx ready: {persistent2_resources.file_system_id}")
+        ui.detail("P2 client security group", persistent2_resources.security_group_id)
+        ui.detail(
+            "P2 reference DRA",
+            persistent2_resources.data_repository_association_id,
+        )
+        ui.detail("P2 resource receipt", fsx_resource_receipt_path)
+
     logger.info("Cluster YAML ready: %s", cluster_yaml_path)
     ui.ok(f"Cluster YAML ready: {cluster_yaml_path}")
+    logger.info("Spot price summary ready: %s", spot_price_summary_path)
+    ui.ok(f"Spot price summary ready: {spot_price_summary_path}")
+    try:
+        _emit_spot_price_partition_table(
+            spot_price_summary,
+            cluster_name=cluster_name,
+            markdown_output_path=spot_price_summary_table_path,
+        )
+    except RuntimeError as exc:
+        logger.error("Spot price table export failed: %s", exc)
+        ui.fail(f"Spot price table: {exc}")
+        return EXIT_VALIDATION_FAILURE
     try:
         validate_startup_dra_contract(cluster_yaml_path)
     except ValueError as exc:
         logger.error("Startup DRA contract failed: %s", exc)
         ui.fail(f"Startup DRA contract: {exc}")
         return EXIT_VALIDATION_FAILURE
+    try:
+        validate_cpu_only_slurm_contract(cluster_yaml_path)
+    except ValueError as exc:
+        logger.error("CPU-only Slurm contract failed: %s", exc)
+        ui.fail(f"CPU-only Slurm contract: {exc}")
+        return EXIT_VALIDATION_FAILURE
+    if dragen_inputs:
+        try:
+            validate_dragen_cluster_contract(cluster_yaml_path, dragen_inputs)
+        except ValueError as exc:
+            logger.error("DRAGEN cluster contract failed: %s", exc)
+            ui.fail(f"DRAGEN cluster contract: {exc}")
+            return EXIT_VALIDATION_FAILURE
+    if cluster_type == SENTIEON_SINGLE_CLUSTER_TYPE:
+        try:
+            validate_sentieon_single_cluster_contract(cluster_yaml_path)
+        except ValueError as exc:
+            logger.error("Sentieon single cluster contract failed: %s", exc)
+            ui.fail(f"Sentieon single cluster contract: {exc}")
+            return EXIT_VALIDATION_FAILURE
 
     # -- 6. DRY-RUN (Phase 2b) ------------------------------------------------
     ui.phase("DRY-RUN VALIDATION")
@@ -1686,6 +3459,7 @@ def run_create_workflow(
         cluster_yaml_path,
         aws_ctx.region,
         profile=aws_ctx.profile,
+        executable=pcluster_executable,
     )
     if not dry_result.success:
         logger.error("Dry-run failed: %s", dry_result.message or dry_result.stderr)
@@ -1706,6 +3480,7 @@ def run_create_workflow(
         cluster_yaml_path,
         aws_ctx.region,
         profile=aws_ctx.profile,
+        executable=pcluster_executable,
     )
     if not create_result.success:
         logger.error(
@@ -1724,6 +3499,7 @@ def run_create_workflow(
         cluster_name,
         aws_ctx.region,
         profile=aws_ctx.profile,
+        executable=pcluster_executable,
     )
     if not monitor_result.success:
         logger.error(
@@ -1731,7 +3507,9 @@ def run_create_workflow(
             monitor_result.final_status,
             monitor_result.error,
         )
-        ui.fail(f"Did not reach CREATE_COMPLETE: {monitor_result.final_status}")
+        ui.fail(
+            f"Did not reach CREATE_COMPLETE: {monitor_result.final_status}. {monitor_result.error}"
+        )
         return EXIT_AWS_FAILURE
 
     logger.info(
@@ -1766,7 +3544,13 @@ def run_create_workflow(
         head_node_instance_id=monitor_result.head_node_instance_id,
         region=aws_ctx.region,
         profile=aws_ctx.profile,
-        repo_overrides=None,  # TODO: wire from config if needed
+        dyec_deploy_key_secret_arn=dyec_deploy_key_inputs.secret_arn,
+        dyec_deploy_key_region=dyec_deploy_key_inputs.region,
+        dyec_repo_url=dyec_repo_spec.url,
+        dyec_repo_ref=dyec_repo_spec.ref,
+        dayoa_deploy_key_secret_arn=dayoa_deploy_key_inputs.secret_arn,
+        dayoa_deploy_key_region=dayoa_deploy_key_inputs.region,
+        repo_overrides=repo_overrides,
     )
     if not headnode_ok:
         logger.error("Headnode configuration failed.")
@@ -1775,47 +3559,7 @@ def run_create_workflow(
     logger.info("Headnode configuration succeeded.")
     ui.ok("Headnode configured")
 
-    # -- 9. POST-CREATE: Budgets (Phase 3a) -----------------------------------
-    ui.phase("POST-CREATE: BUDGETS")
-
-    budgets_client = aws_ctx.client("budgets")
-    s3_client = aws_ctx.client("s3")
-
-    global_budget = ""
-    cluster_budget = ""
-    ui.step("Ensuring budgets ...")
-    try:
-        global_budget = ensure_global_budget(
-            budgets_client,
-            s3_client,
-            aws_ctx.account_id,
-            amount=post_create_inputs.global_budget_amount,
-            cluster_name=cluster_name,
-            email=post_create_inputs.budget_email,
-            region=aws_ctx.region,
-            region_az=region_az,
-            bucket_name=reference_storage_bucket_name,
-            allowed_users=post_create_inputs.allowed_budget_users,
-        )
-        cluster_budget = ensure_cluster_budget(
-            budgets_client,
-            s3_client,
-            aws_ctx.account_id,
-            amount=post_create_inputs.budget_amount,
-            cluster_name=cluster_name,
-            email=post_create_inputs.budget_email,
-            region=aws_ctx.region,
-            region_az=region_az,
-            bucket_name=reference_storage_bucket_name,
-            allowed_users=post_create_inputs.allowed_budget_users,
-        )
-        logger.info("Budgets: global=%s cluster=%s", global_budget, cluster_budget)
-        ui.ok(f"Budgets: global={global_budget}, cluster={cluster_budget}")
-    except Exception as exc:
-        logger.warning("Budget setup failed (non-fatal): %s", exc)
-        ui.warn(f"Budget setup failed (non-fatal): {exc}")
-
-    # -- 10. POST-CREATE: Heartbeat (Phase 3b) --------------------------------
+    # -- 9. POST-CREATE: Heartbeat --------------------------------------------
     ui.phase("POST-CREATE: HEARTBEAT")
     scheduler_role_arn, role_source = resolve_scheduler_role(
         iam_client,
@@ -1866,6 +3610,7 @@ def run_create_workflow(
         "public_subnet_id": public_subnet,
         "private_subnet_id": private_subnet,
         "iam_policy_arn": policy_arn,
+        "enforce_budget": post_create_inputs.enforce_budget,
         "budget_email": post_create_inputs.budget_email,
         "budget_amount": post_create_inputs.budget_amount,
         "global_budget_amount": post_create_inputs.global_budget_amount,
@@ -1873,20 +3618,18 @@ def run_create_workflow(
         "heartbeat_email": post_create_inputs.heartbeat_email,
         "heartbeat_schedule": post_create_inputs.heartbeat_schedule,
         "heartbeat_scheduler_role_arn": (post_create_inputs.heartbeat_scheduler_role_arn),
-        "slurm_accounting_enabled": "true" if accounting_db else "false",
+        "dyec_deploy_key_secret_arn": dyec_deploy_key_inputs.secret_arn,
+        "dyec_deploy_key_policy_arn": dyec_deploy_key_inputs.policy_arn,
+        "dayoa_deploy_key_secret_arn": dayoa_deploy_key_inputs.secret_arn,
+        "dayoa_deploy_key_policy_arn": dayoa_deploy_key_inputs.policy_arn,
+        "slurm_accounting_enabled": "false",
         "slurm_accounting_create_db": "false",
-        "slurm_accounting_stack_name": accounting_db.stack_name if accounting_db else "",
-        "slurm_accounting_database_name": accounting_db.database_name if accounting_db else "",
-        "slurm_accounting_db_username": accounting_db.username if accounting_db else "",
-        "slurm_accounting_instance_type": (
-            _resolve_nonprompt_config_value(
-                cfg,
-                "slurm_accounting_instance_type",
-                DEFAULT_ACCOUNTING_INSTANCE_TYPE,
-            )
-            if accounting_db
-            else ""
-        ),
+        "slurm_accounting_stack_name": "",
+        "slurm_accounting_database_name": "",
+        "slurm_accounting_db_username": "",
+        "slurm_accounting_instance_type": "",
+        **(persistent2_config or {}),
+        **max_count_values,
     }
     next_run_path = CONFIG_DIR / f"{cluster_name}_next_run_{ts}.yaml"
     write_next_run_template(cfg, final_values, next_run_path)
@@ -1907,6 +3650,19 @@ def run_create_workflow(
         public_subnet_id=public_subnet,
         private_subnet_id=private_subnet,
         policy_arn=policy_arn,
+        fsx_owner=(persistent2_resources.owner if persistent2_resources else ""),
+        fsx_lifecycle=(persistent2_resources.lifecycle if persistent2_resources else ""),
+        fsx_deployment_type=(
+            persistent2_resources.deployment_type if persistent2_resources else ""
+        ),
+        fsx_file_system_id=(persistent2_resources.file_system_id if persistent2_resources else ""),
+        fsx_security_group_id=(
+            persistent2_resources.security_group_id if persistent2_resources else ""
+        ),
+        fsx_data_repository_association_id=(
+            persistent2_resources.data_repository_association_id if persistent2_resources else ""
+        ),
+        fsx_resource_receipt_path=fsx_resource_receipt_path,
         global_budget_name=global_budget,
         cluster_budget_name=cluster_budget,
         heartbeat_topic_arn=hb_result.topic_arn if hb_result.success else "",
@@ -1914,18 +3670,12 @@ def run_create_workflow(
         heartbeat_role_arn=hb_result.role_arn if hb_result.success else "",
         heartbeat_email=post_create_inputs.heartbeat_email,
         heartbeat_schedule_expression=post_create_inputs.heartbeat_schedule,
-        slurm_accounting_stack_name=accounting_db.stack_name if accounting_db else "",
-        slurm_accounting_uri=accounting_db.uri if accounting_db else "",
-        slurm_accounting_secret_arn=accounting_db.password_secret_arn if accounting_db else "",
-        slurm_accounting_client_security_group_id=(
-            accounting_db.client_security_group_id if accounting_db else ""
-        ),
-        slurm_accounting_database_name=accounting_db.database_name if accounting_db else "",
-        slurm_accounting_username=accounting_db.username if accounting_db else "",
         init_template_path=init_template_path,
         cluster_yaml_path=cluster_yaml_path,
         resolved_cli_config_path=str(next_run_path),
         cfn_stack_name=stack_name,
+        spot_price_summary_path=spot_price_summary_path,
+        spot_price_partitions=spot_price_summary.get("partitions", []),
     )
     state_path = write_state_record(state)
     logger.info("State written: %s", state_path)
@@ -1962,7 +3712,14 @@ def configure_headnode(
     region: str,
     profile: str,
     *,
+    dyec_deploy_key_secret_arn: str = "",
+    dyec_deploy_key_region: str = "",
+    dyec_repo_url: str = "",
+    dyec_repo_ref: str = "",
+    dayoa_deploy_key_secret_arn: str = "",
+    dayoa_deploy_key_region: str = "",
     repo_overrides: Optional[Dict[str, str]] = None,
+    remote_user: str = "ubuntu",
 ) -> bool:
     """Configure the headnode after a successful cluster creation."""
     import yaml
@@ -1970,41 +3727,93 @@ def configure_headnode(
     from daylily_ec.aws.ssm import SsmCommandFailedError, run_shell, write_remote_text
     from daylily_ec.resources import resource_path
 
-    user_cfg_path = Path.home() / ".config" / "daylily" / "daylily_cli_global.yaml"
-    cfg_path = (
-        user_cfg_path
-        if user_cfg_path.exists()
-        else (
-            Path("config/daylily_cli_global.yaml")
-            if Path("config/daylily_cli_global.yaml").exists()
-            else resource_path("config/daylily_cli_global.yaml")
-        )
-    )
-
-    with open(cfg_path, encoding="utf-8") as fh:
-        cli_cfg = yaml.safe_load(fh) or {}
-
-    daylily = cli_cfg.get("daylily", {}) or {}
-    repo_ref = daylily.get("git_ephemeral_cluster_repo_tag", "main")
-    repo_url = daylily.get(
-        "git_ephemeral_cluster_repo",
-        "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
-    )
     repo_name = "daylily-ephemeral-cluster"
-    try:
-        repo_spec = _resolve_headnode_repo_spec(repo_url, repo_ref)
-    except RuntimeError as exc:
-        logger.error("  ✗ Could not resolve headnode repository source: %s", exc)
+    if dyec_deploy_key_secret_arn and not dyec_deploy_key_region:
+        logger.error("  ✗ DYEC deploy-key region is required with the secret ARN")
         return False
+    if dayoa_deploy_key_secret_arn and not dayoa_deploy_key_region:
+        logger.error("  ✗ DayOA deploy-key region is required with the secret ARN")
+        return False
+    if dyec_deploy_key_secret_arn:
+        if not dyec_repo_url or not dyec_repo_ref:
+            logger.error("  ✗ DYEC repository URL and ref are required with deploy-key auth")
+            return False
+        try:
+            repo_url = _normalize_headnode_repo_url(dyec_repo_url, deploy_key_auth=True)
+        except RuntimeError as exc:
+            logger.error("  ✗ Invalid DYEC repository URL: %s", exc)
+            return False
+        repo_ref = dyec_repo_ref
+    else:
+        try:
+            repo_spec = resolve_configured_headnode_repo_spec(deploy_key_auth=False)
+        except RuntimeError as exc:
+            logger.error("  ✗ Could not resolve legacy public headnode repository source: %s", exc)
+            return False
+        repo_url = repo_spec.url
+        repo_ref = repo_spec.ref
+    logger.info(
+        "  ▸ Headnode repository source: %s @ %s",
+        repo_url,
+        repo_ref,
+    )
 
-    repo_url = repo_spec.url
-    repo_ref = repo_spec.ref
-    logger.info("  ▸ Headnode repository source: %s @ %s", repo_url, repo_ref)
+    deploy_keys: dict[str, dict[str, str]] = {}
+    if dyec_deploy_key_secret_arn:
+        deploy_keys["daylily-ephemeral-cluster"] = {
+            "region": dyec_deploy_key_region,
+            "secret_arn": dyec_deploy_key_secret_arn,
+        }
+        known_hosts_path = resource_path("config/github_known_hosts")
+        logger.info("  ▸ Deploying pinned GitHub host keys ...")
+        try:
+            write_remote_text(
+                head_node_instance_id,
+                region,
+                "~/.config/daylily/github_known_hosts",
+                known_hosts_path.read_text(encoding="utf-8"),
+                profile=profile,
+                as_user=remote_user,
+            )
+            logger.info("  ✓ Pinned GitHub host keys deployed")
+        except Exception as exc:
+            logger.error("  ✗ GitHub host-key deployment failed: %s", exc)
+            return False
+    if dayoa_deploy_key_secret_arn:
+        deploy_keys["daylily-omics-analysis"] = {
+            "region": dayoa_deploy_key_region,
+            "secret_arn": dayoa_deploy_key_secret_arn,
+        }
+    if deploy_keys:
+        deploy_key_config = {
+            "config_version": 1,
+            "deploy_keys": deploy_keys,
+        }
+        logger.info("  ▸ Deploying repository deploy-key references ...")
+        try:
+            write_remote_text(
+                head_node_instance_id,
+                region,
+                "~/.config/daylily/github_deploy_keys.yaml",
+                yaml.safe_dump(deploy_key_config, default_flow_style=False, sort_keys=False),
+                profile=profile,
+                as_user=remote_user,
+            )
+            logger.info("  ✓ Repository deploy-key references deployed")
+        except Exception as exc:
+            logger.error("  ✗ Repository deploy-key reference deployment failed: %s", exc)
+            return False
 
     steps = [
         (
             "Clone repository to headnode",
-            _build_headnode_repo_sync_command(repo_name, repo_url, repo_ref),
+            _build_headnode_repo_sync_command(
+                repo_name,
+                repo_url,
+                repo_ref,
+                deploy_key_secret_arn=dyec_deploy_key_secret_arn,
+                deploy_key_region=dyec_deploy_key_region,
+            ),
             None,
         ),
         (
@@ -2027,9 +3836,13 @@ def configure_headnode(
             None,
         ),
         (
-            "Install headnode tools",
+            "Rebuild DAY-EC and install headnode tools",
             (
                 f"cd ~/projects/{repo_name} && "
+                "source ~/miniconda3/etc/profile.d/conda.sh && "
+                "conda env update --name DAY-EC --file environment.yaml --prune && "
+                "conda activate DAY-EC && "
+                "python -m pip install --editable . && "
                 f"source ~/projects/{repo_name}/activate && "
                 f"./bin/install-daylily-headnode-tools"
             ),
@@ -2045,6 +3858,7 @@ def configure_headnode(
                 region,
                 remote_cmd,
                 profile=profile,
+                as_user=remote_user,
                 timeout=timeout,
                 comment=label,
             )
@@ -2069,10 +3883,17 @@ def configure_headnode(
             with open(avail_repos_path, encoding="utf-8") as fh:
                 repos_cfg = yaml.safe_load(fh) or {}
 
+            configured_repositories = repos_cfg.get("repositories", {}) or {}
+            unknown_repositories = sorted(set(repo_overrides) - set(configured_repositories))
+            if unknown_repositories:
+                logger.error(
+                    "  ✗ Repository override keys are absent from the command catalog: %s",
+                    ", ".join(unknown_repositories),
+                )
+                return False
             for repo_key, git_ref in repo_overrides.items():
-                if repo_key in repos_cfg.get("repositories", {}):
-                    repos_cfg["repositories"][repo_key]["default_ref"] = git_ref
-                    logger.info("    Override: %s → %s", repo_key, git_ref)
+                configured_repositories[repo_key]["default_ref"] = git_ref
+                logger.info("    Override: %s → %s", repo_key, git_ref)
 
             try:
                 write_remote_text(
@@ -2081,6 +3902,7 @@ def configure_headnode(
                     "~/.config/daylily/daylily_pipeline_command_catalog.yaml",
                     yaml.safe_dump(repos_cfg, default_flow_style=False, sort_keys=False),
                     profile=profile,
+                    as_user=remote_user,
                 )
                 logger.info("  ✓ Repository overrides deployed")
             except Exception as exc:
@@ -2099,6 +3921,7 @@ def configure_headnode(
             timeout=120,
             comment="Validate DAY-EC headnode readiness",
             repo_name=repo_name,
+            remote_user=remote_user,
         )
         logger.info("  ✓ DAY-EC headnode readiness validated")
     except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
@@ -2135,8 +3958,14 @@ def run_preflight_only(
     from daylily_ec.aws.context import AWSContext
     from daylily_ec.aws.iam import make_iam_preflight_step
     from daylily_ec.aws.quotas import make_quota_preflight_step
-    from daylily_ec.aws.s3 import make_s3_bucket_preflight_step
-    from daylily_ec.config.triplets import get_effective_default, load_config
+    from daylily_ec.aws.s3 import (
+        ROLE_CONTROL_DATA,
+        ROLE_EXPORT_DESTINATION,
+        ROLE_REFERENCE,
+        ROLE_STAGING,
+        make_s3_bucket_preflight_step,
+    )
+    from daylily_ec.config.triplets import load_config
 
     if debug:
         logging.getLogger("daylily_ec").setLevel(logging.DEBUG)
@@ -2150,6 +3979,13 @@ def run_preflight_only(
 
         effective_config = str(resource_path(effective_config))
     cfg = load_config(effective_config)
+
+    try:
+        _resolve_persistent2_config(cfg)
+    except ValueError as exc:
+        logger.error("PERSISTENT_2 config validation failed: %s", exc)
+        ui.fail(f"PERSISTENT_2 config: {exc}")
+        return EXIT_VALIDATION_FAILURE
 
     try:
         cluster_name = _resolve_cluster_name(cfg, non_interactive=True)
@@ -2176,9 +4012,89 @@ def run_preflight_only(
         caller_arn=aws_ctx.caller_arn,
     )
 
-    max_8i = int(get_effective_default(cfg, "max_count_8I", "1") or "1")
-    max_128i = int(get_effective_default(cfg, "max_count_128I", "1") or "1")
-    max_192i = int(get_effective_default(cfg, "max_count_192I", "1") or "1")
+    max_8i = int(
+        _resolve_config_value(
+            cfg,
+            "max_count_8I",
+            "Max 8xlarge count",
+            non_interactive=non_interactive,
+            default_fallback="1",
+        )
+        or "1"
+    )
+    max_96i_nvme_text = _resolve_config_value(
+        cfg,
+        "max_count_96I_NVME",
+        "Max 96-vCPU local-NVMe count",
+        non_interactive=non_interactive,
+    )
+    if not max_96i_nvme_text:
+        logger.error("Missing required max_count_96I_NVME configuration value.")
+        ui.fail("max_count_96I_NVME must be configured explicitly.")
+        return EXIT_VALIDATION_FAILURE
+    max_96i_nvme = int(max_96i_nvme_text)
+    max_128i = int(
+        _resolve_config_value(
+            cfg,
+            "max_count_128I",
+            "Max 128xlarge count",
+            non_interactive=non_interactive,
+            default_fallback="1",
+        )
+        or "1"
+    )
+    max_192i = int(
+        _resolve_config_value(
+            cfg,
+            "max_count_192I",
+            "Max 192xlarge count",
+            non_interactive=non_interactive,
+            default_fallback="1",
+        )
+        or "1"
+    )
+    max_384i = int(
+        _resolve_config_value(
+            cfg,
+            "max_count_384I",
+            "Max 384xlarge count",
+            non_interactive=non_interactive,
+            default_fallback="1",
+        )
+        or "1"
+    )
+    reference_s3_uri = _resolve_s3_role_config_value(
+        cfg,
+        "reference_s3_uri",
+        "Reference S3 URI",
+        role=ROLE_REFERENCE,
+        aws_ctx=aws_ctx,
+        non_interactive=non_interactive,
+    )
+    control_data_s3_uri = _resolve_s3_role_config_value(
+        cfg,
+        "control_data_s3_uri",
+        "Control-data S3 URI",
+        role=ROLE_CONTROL_DATA,
+        aws_ctx=aws_ctx,
+        non_interactive=non_interactive,
+    )
+    stage_s3_uri = _resolve_s3_role_config_value(
+        cfg,
+        "stage_s3_uri",
+        "Stage S3 URI",
+        role=ROLE_STAGING,
+        aws_ctx=aws_ctx,
+        non_interactive=non_interactive,
+    )
+    export_destination_s3_uri = _resolve_s3_role_config_value(
+        cfg,
+        "export_destination_s3_uri",
+        "Export destination S3 URI",
+        role=ROLE_EXPORT_DESTINATION,
+        aws_ctx=aws_ctx,
+        non_interactive=non_interactive,
+    )
 
     preflight_steps: List[PreflightStep] = [
         make_iam_preflight_step(aws_ctx, interactive=not non_interactive),
@@ -2186,20 +4102,18 @@ def run_preflight_only(
         make_quota_preflight_step(
             aws_ctx,
             max_count_8i=max_8i,
+            max_count_96i_nvme=max_96i_nvme,
             max_count_128i=max_128i,
             max_count_192i=max_192i,
+            max_count_384i=max_384i,
             non_interactive=non_interactive,
         ),
         make_s3_bucket_preflight_step(
             aws_ctx,
-            reference_s3_uri=get_effective_default(cfg, "reference_s3_uri", ""),
-            control_data_s3_uri=get_effective_default(cfg, "control_data_s3_uri", ""),
-            stage_s3_uri=get_effective_default(cfg, "stage_s3_uri", ""),
-            export_destination_s3_uri=get_effective_default(
-                cfg,
-                "export_destination_s3_uri",
-                "",
-            ),
+            reference_s3_uri=reference_s3_uri,
+            control_data_s3_uri=control_data_s3_uri,
+            stage_s3_uri=stage_s3_uri,
+            export_destination_s3_uri=export_destination_s3_uri,
             profile=aws_ctx.profile,
             interactive=not non_interactive,
         ),

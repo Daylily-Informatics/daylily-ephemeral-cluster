@@ -1,0 +1,48 @@
+DAY-EC activated.
+DAY-EC activated.
+files
+MISSING results/day/hg38/reports/DAY_final_multiqc.html
+MISSING results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json
+MISSING results/day/hg38/reports/dayoa_evidence_manifest.json
+MISSING results/day/hg38/reports/logs/all__mqc_fin_a.log
+MISSING results/day/hg38/logs/produce_multiqc_all.log
+slurm_job_891
+     JOBID ST         TIME     CPUS    PARTITION                                                         NAME
+       891 CF         2:10        4         i192                              multiqc_final_wgs-multiqc_final
+controllers
+ubuntu    498261   53952  0 10:01 ?        00:00:00 sh -c cat >> /home/ubuntu/daylily-runs/hybonly_ilmn_final_multiqc_file_20260606T100052Z/tmux.log
+ubuntu    498749  498258  0 10:01 pts/12   00:00:00 bash bin/day_run produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config aligners=["sent"] dedupers=["dmd"] snv_callers=["sentd"] htd_callers=["cyrius"] multiqc_qc={"enable_tools":["vep","metagenomics","contam_identity"]} -j 200 -p -k --rerun-triggers mtime
+ubuntu    498965  498749  0 10:01 pts/12   00:00:00 bash bin/day_run produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config aligners=["sent"] dedupers=["dmd"] snv_callers=["sentd"] htd_callers=["cyrius"] multiqc_qc={"enable_tools":["vep","metagenomics","contam_identity"]} -j 200 -p -k --rerun-triggers mtime
+ubuntu    498966  498965  4 10:01 pts/12   00:00:06 /home/ubuntu/miniconda3/envs/DAYOA/bin/python /home/ubuntu/miniconda3/envs/DAYOA/bin/snakemake --profile=/fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/day_profiles/slurm produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config aligners=["sent"] dedupers=["dmd"] snv_callers=["sentd"] htd_callers=["cyrius"] multiqc_qc={"enable_tools":["vep","metagenomics","contam_identity"]} -j 200 -p -k --rerun-triggers mtime
+ubuntu    498967  498965  0 10:01 pts/12   00:00:00 bash bin/day_run produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config aligners=["sent"] dedupers=["dmd"] snv_callers=["sentd"] htd_callers=["cyrius"] multiqc_qc={"enable_tools":["vep","metagenomics","contam_identity"]} -j 200 -p -k --rerun-triggers mtime
+latest_snakemake_log
+  - Spot Instances: "REGSUB_SPOTINSTANCES"
+  - Spot Costs per hr: "REGSUB_SPOTCOST"
+  - FQ->BAM.sort avg Costs: "REGSUB_TOTALCOST"
+  - BAM mrkdup avg Cost: "REGSUB_MRKDUPCOST"
+  - Results Dir (GB): "REGSUB_TOTALSIZE"
+  ''' > results/day/hg38/reports/multiqc_header.yaml 2>> results/day/hg38/reports/logs/all__mqc_fin_a.log;
+
+        perl -pi -e "s/REGSUB_PROJECT/$DAY_PROJECT/g;"  results/day/hg38/reports/multiqc_header.yaml >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_BUDGET/\\$dbill$USED_BUDGET of \\$dbill$TOTAL_BUDGET spent ( $PERCENT_USED\%)/g;" results/day/hg38/reports/multiqc_header.yaml >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+
+        size=$(du -hs results | cut -f1) >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_TOTALSIZE/$size/g;" results/day/hg38/reports/multiqc_header.yaml >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+
+        source bin/proc_spot_price_logs.sh >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_SPOTCOST/median: \\$dbill$MEDIAN_SPOT_PRICE  mean: \\$dbill$AVERAGE_SPOT_PRICE ( avg cost per vcpu,per min: \\$dbill$VCPU_COST_PER_MIN ) /g;"  results/day/hg38/reports/multiqc_header.yaml >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_SPOTINSTANCES/ $INSTANCE_TYPES_LINE /g;" results/day/hg38/reports/multiqc_header.yaml >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+
+        source bin/proc_aligner_costs.sh results/day/hg38/other_reports/rules_benchmark_data_mqc.tsv $VCPU_COST_PER_MIN >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_TOTALCOST/$ALNR_SUMMARY_COST/g;" results/day/hg38/reports/multiqc_header.yaml >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+
+        source bin/proc_mrkdup_costs.sh results/day/hg38/other_reports/rules_benchmark_data_mqc.tsv $VCPU_COST_PER_MIN  >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_MRKDUPCOST/$MRKDUP_AVG_MINUTES min, costing \\$dbill$MRKDUP_AVG_COST/g;" results/day/hg38/reports/multiqc_header.yaml >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+
+        module_excludes="$(python workflow/scripts/multiqc_module_exclude_args.py config/multiqc_module_exclude.txt)"
+        multiqc -f          $module_excludes         --config results/day/hg38/reports/multiqc_header.yaml         --config ./config/external_tools/multiqc_config.yaml          --custom-css-file ./config/external_tools/multiqc.css         --ignore "*/other_reports/logs/*"         --ignore "other_reports/logs/*"         --ignore "*_mqc.log"         --template default         --filename results/day/hg38/reports/DAY_final_multiqc.html         -i 'Final Multiqc Report '         -b 'https://github.com/lsmc-bio/daylily-omics-analysis (BRANCH:* jem-dev) (TAG:5.0.2) (HASH:d02a1bd) '         results/day/hg38/reports/multiqc_inputs/final >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+        python workflow/scripts/force_multiqc_dark_mode.py           --html results/day/hg38/reports/DAY_final_multiqc.html           --backup results/day/hg38/reports/DAY_final_multiqc.original.html >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+        python workflow/scripts/validate_multiqc_sample_ids.py           --manifest results/day/hg38/reports/multiqc_inputs/final/manifest.tsv           --multiqc-data results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+        ls -lt results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/DAY_final_multiqc.original.html results/day/hg38/reports/multiqc_header.yaml >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+        
+Submitted job 1 with external jobid '891'.

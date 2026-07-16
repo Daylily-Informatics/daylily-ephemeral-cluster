@@ -232,6 +232,7 @@ def directory_artifact(
         "required": True,
         "produced_by": produced_by,
         "parent_artifact_euids": [],
+        "metadata": {},
     }
 
 
@@ -756,23 +757,14 @@ def register_with_dewey(
         base + ANALYSIS_REGISTER_ENDPOINT,
         token,
         requests["analysis"],
-        idempotency_key=idempotency_key(
-            "dyec-analysis-register",
-            requests["analysis"]["analysis_euid"],
-            requests["analysis"]["manifest_sha256"],
-        ),
+        idempotency_key=canonical_sha256(requests["analysis"]),
     )
     multiqc_responses = [
         post_json(
             base + MULTIQC_REGISTER_ENDPOINT,
             token,
             multiqc_request,
-            idempotency_key=idempotency_key(
-                "dyec-multiqc-register",
-                requests["analysis"]["analysis_euid"],
-                multiqc_request["report_kind"],
-                multiqc_request["manifest_sha256"],
-            ),
+            idempotency_key=canonical_sha256(multiqc_request),
         )
         for multiqc_request in multiqc_requests
     ]

@@ -1,0 +1,32 @@
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentd\"]' 'htd_callers=[\"cyrius\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\",\"contam_identity\"]}' -j 200 -p -k --rerun-triggers mtime",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis",
+  "session_name": "hybonly_ilmn_kitchensink_mounted_20260606T053415Z",
+  "started_at": "2026-06-06T05:59:22Z"
+}
+DAY-EC activated.
+DAY-EC activated.
+JOBID  PARTITION  CPUS  ST  NODELIST  MIN_CPUS  STATE  MIN_MEMORY  TIME  NODES  NAME
+1  i192  32  R  i192-dy-all-1  32  RUNNING  3000M  3:57  1  fastqc_subsampled-20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ
+2  i192  32  R  i192-dy-all-1  32  RUNNING  3000M  3:57  1  fastqc_subsampled-20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ
+3  i192  32  R  i192-dy-all-1  32  RUNNING  3000M  3:57  1  fastqc_subsampled-20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ
+4  i192  16  R  i192-dy-all-1  16  RUNNING  3000M  3:57  1  seqfu-20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ
+5  i192  32  R  i192-dy-all-1  32  RUNNING  3000M  3:57  1  fastqc_subsampled-20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ
+6  i192  16  R  i192-dy-all-1  16  RUNNING  3000M  3:57  1  seqfu-20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ
+7  i192  16  R  i192-dy-all-1  16  RUNNING  3000M  3:57  1  seqfu-20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ
+8  i192  32  R  i192-dy-all-2  32  RUNNING  3000M  3:57  1  fastqc_subsampled-20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ
+9  i192  16  R  i192-dy-all-1  16  RUNNING  3000M  3:57  1  seqfu-20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ
+10  i192  16  R  i192-dy-all-2  16  RUNNING  3000M  3:57  1  seqfu-20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ
+11  i192  16  R  i192-dy-all-2  16  RUNNING  3000M  3:57  1  seqfu-20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ
+12  i192  32  R  i192-dy-all-2  32  RUNNING  3000M  3:57  1  fastqc_subsampled-20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ
+13  i192  16  R  i192-dy-all-2  16  RUNNING  3000M  3:57  1  seqfu-20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ
+14  i192  32  R  i192-dy-all-2  32  RUNNING  3000M  3:57  1  fastqc_subsampled-20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ
+21  i192mem  192  R  i192mem-dy-all-7  192  RUNNING  300000M  3:27  1  sentieon_bwa_sort-20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ
+15  i192mem  192  R  i192mem-dy-all-1  192  RUNNING  300000M  3:57  1  sentieon_bwa_sort-20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ
+16  i192mem  192  R  i192mem-dy-all-2  192  RUNNING  300000M  3:57  1  sentieon_bwa_sort-20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ
+17  i192mem  192  R  i192mem-dy-all-3  192  RUNNING  300000M  3:57  1  sentieon_bwa_sort-20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ
+18  i192mem  192  R  i192mem-dy-all-4  192  RUNNING  300000M  3:57  1  sentieon_bwa_sort-20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ
+19  i192mem  192  R  i192mem-dy-all-5  192  RUNNING  300000M  3:57  1  sentieon_bwa_sort-20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ
+20  i192mem  192  R  i192mem-dy-all-6  192  RUNNING  300000M  3:57  1  sentieon_bwa_sort-20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ

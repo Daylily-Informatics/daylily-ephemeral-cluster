@@ -27,6 +27,36 @@ import importlib.resources as ir
 from daylily_ec import versioning
 
 RES_DIR_ENV = "DAYLILY_EC_RESOURCES_DIR"
+INTEL_TEMPLATE_REGION_AZS = (
+    "ap-south-1a",
+    "ap-south-1b",
+    "ap-south-1c",
+    "eu-central-1a",
+    "eu-central-1b",
+    "eu-central-1c",
+    "us-east-2a",
+    "us-east-2b",
+    "us-east-2c",
+    "us-west-1a",
+    "us-west-1b",
+    "us-west-2a",
+    "us-west-2b",
+    "us-west-2c",
+    "us-west-2d",
+)
+INTEL_TEMPLATE_RELPATHS = tuple(
+    f"config/day_cluster/intel/{region_az[:-1]}/{region_az}/"
+    f"prod_cluster_intel_{region_az}.yaml"
+    for region_az in INTEL_TEMPLATE_REGION_AZS
+)
+SENTIEON_SINGLE_TEMPLATE_RELPATH = (
+    "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
+    "prod_cluster_sentieon-single_us-west-2c.yaml"
+)
+REQUIRED_CLUSTER_TEMPLATE_RELPATHS = (
+    *INTEL_TEMPLATE_RELPATHS,
+    SENTIEON_SINGLE_TEMPLATE_RELPATH,
+)
 
 
 def _xdg_config_home() -> Path:
@@ -39,9 +69,12 @@ def _xdg_config_home() -> Path:
 def _expected_subpaths(root: Path) -> Iterable[Path]:
     # Minimum layout required for the CLI + legacy scripts.
     yield root / "config"
-    yield root / "config" / "day_cluster" / "prod_cluster.yaml"
+    for relative_path in REQUIRED_CLUSTER_TEMPLATE_RELPATHS:
+        yield root / relative_path
     yield root / "config" / "day_cluster" / "pcluster_env.yml"
     yield root / "config" / "day_cluster" / "slurm_accounting_mysql_ec2.yml"
+    yield root / "config" / "day_cluster" / "install_slurm_job_submit_policy.sh"
+    yield root / "config" / "day_cluster" / "job_submit.lua"
     yield root / "environment.yaml"
     yield root / "etc"
     yield root / "bin"
@@ -60,14 +93,19 @@ def _validate_resources_dir(root: Path) -> None:
 
 
 def _resources_need_refresh(dest: Path, src: Path) -> bool:
-    for rel in (
+    refresh_rels = (
         "config/daylily_pipeline_command_catalog.yaml",
-        "config/day_cluster/prod_cluster.yaml",
+        *REQUIRED_CLUSTER_TEMPLATE_RELPATHS,
+        "config/day_cluster/pcluster_env.yml",
         "config/day_cluster/slurm_accounting_mysql_ec2.yml",
+        "config/day_cluster/install_slurm_job_submit_policy.sh",
+        "config/day_cluster/job_submit.lua",
+        "config/day_cluster/post_install_rhel8_dragen.sh",
         "config/day_cluster/post_install_ubuntu_combined.sh",
         "config/day_cluster/sbatch",
         "config/day_cluster/sleep_test.sh",
-    ):
+    )
+    for rel in refresh_rels:
         dest_file = dest / rel
         src_file = src / rel
         if not dest_file.is_file() or not src_file.is_file():
@@ -136,7 +174,7 @@ def resource_path(rel_path: str) -> Path:
     Parameters
     ----------
     rel_path:
-        Repo-relative path inside the payload (e.g. ``config/day_cluster/prod_cluster.yaml``).
+        Repo-relative path inside the payload.
     """
     rel = rel_path.lstrip("/").replace("\\", "/")
     root = ensure_extracted()

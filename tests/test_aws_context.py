@@ -153,6 +153,28 @@ class TestAWSContextBuild:
         )
 
     @patch("daylily_ec.aws.context.boto3.Session")
+    def test_build_region_success(self, mock_session_cls):
+        mock_session = MagicMock()
+        mock_session_cls.return_value = mock_session
+        mock_sts = MagicMock()
+        mock_session.client.return_value = mock_sts
+        mock_sts.get_caller_identity.return_value = {
+            "Account": "123456789012",
+            "Arn": "arn:aws:iam::123456789012:user/alice",
+            "UserId": "AIDAEXAMPLE",
+        }
+
+        ctx = AWSContext.build_region(region="us-west-2", profile="test-profile")
+
+        assert ctx.profile == "test-profile"
+        assert ctx.region == "us-west-2"
+        assert ctx.region_az == "us-west-2"
+        assert ctx.account_id == "123456789012"
+        mock_session_cls.assert_called_once_with(
+            profile_name="test-profile", region_name="us-west-2"
+        )
+
+    @patch("daylily_ec.aws.context.boto3.Session")
     def test_build_assumed_role(self, mock_session_cls):
         mock_session = MagicMock()
         mock_session_cls.return_value = mock_session
@@ -169,4 +191,3 @@ class TestAWSContextBuild:
         assert ctx.account_id == "987654321098"
         assert ctx.iam_username == "sess"
         assert ctx.region == "eu-west-1"
-

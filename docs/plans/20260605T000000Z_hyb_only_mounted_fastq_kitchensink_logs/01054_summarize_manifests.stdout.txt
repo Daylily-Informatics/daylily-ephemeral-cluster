@@ -1,0 +1,13 @@
+ONT_ROWS
+NA00232	219
+NA03986	219
+NA05164	219
+NA09677	228
+ILMN_ROWS
+HG003-a	S7	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-HG003-a_S7_R1_001.fastq.gz	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-HG003-a_S7_R2_001.fastq.gz
+HG003-b	S8	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-HG003-b_S8_R1_001.fastq.gz	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-HG003-b_S8_R2_001.fastq.gz
+HG003-c	S9	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-HG003-c_S9_R1_001.fastq.gz	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-HG003-c_S9_R2_001.fastq.gz
+NA00232	S46	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R1_001.fastq.gz	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R2_001.fastq.gz
+NA03986	S48	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA03986-DMPK_S48_R1_001.fastq.gz	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA03986-DMPK_S48_R2_001.fastq.gz
+NA05164	S49	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA05164-DMPK_S49_R1_001.fastq.gz	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA05164-DMPK_S49_R2_001.fastq.gz
+NA09677	S47	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R1_001.fastq.gz	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R2_001.fastq.gz

@@ -1,0 +1,232 @@
+time_start,time_end,estimated,amount_usd,service,tag_lsmc_project,tag_lsmc_project_value
+2026-03-21,2026-04-01,False,0.0,AWS CloudFormation,lsmc-project$,
+2026-03-21,2026-04-01,False,0.2686503011,AWS Cost Explorer,lsmc-project$,
+2026-03-21,2026-04-01,False,0.0,AWS Glue,lsmc-project$,
+2026-03-21,2026-04-01,False,1.064516112,AWS Key Management Service,lsmc-project$,
+2026-03-21,2026-04-01,False,1.63e-07,AWS Lambda,lsmc-project$,
+2026-03-21,2026-04-01,False,1.9528276787,AWS Secrets Manager,lsmc-project$,
+2026-03-21,2026-04-01,False,88.224917683,AWS Security Hub,lsmc-project$,
+2026-03-21,2026-04-01,False,0.0,AWS Service Catalog,lsmc-project$,
+2026-03-21,2026-04-01,False,1.62e-07,AWS Step Functions,lsmc-project$,
+2026-03-21,2026-04-01,False,7.471338384,AWS WAF,lsmc-project$,
+2026-03-21,2026-04-01,False,0.0,AWS X-Ray,lsmc-project$,
+2026-03-21,2026-04-01,False,2.13635e-05,Amazon CloudFront,lsmc-project$,
+2026-03-21,2026-04-01,False,0.0,Amazon Cognito,lsmc-project$,
+2026-03-21,2026-04-01,False,0.0049211613,Amazon DynamoDB,lsmc-project$,
+2026-03-21,2026-04-01,False,0.1231504824,Amazon EC2 Container Registry (ECR),lsmc-project$,
+2026-03-21,2026-04-01,False,288.8875063011,EC2 - Other,lsmc-project$,
+2026-03-21,2026-04-01,False,661.5433159991,Amazon Elastic Compute Cloud - Compute,lsmc-project$,
+2026-03-21,2026-04-01,False,6.5211423895,Amazon Elastic Container Service,lsmc-project$,
+2026-03-21,2026-04-01,False,17.8235367274,Amazon Elastic Load Balancing,lsmc-project$,
+2026-03-21,2026-04-01,False,738.8131622852,Amazon FSx,lsmc-project$,
+2026-03-21,2026-04-01,False,2.41e-07,Amazon Glacier,lsmc-project$,
+2026-03-21,2026-04-01,False,4.0483168403,Amazon GuardDuty,lsmc-project$,
+2026-03-21,2026-04-01,False,0.0,Amazon Inspector,lsmc-project$,
+2026-03-21,2026-04-01,False,142.5877785492,Amazon Relational Database Service,lsmc-project$,
+2026-03-21,2026-04-01,False,2.0609576,Amazon Route 53,lsmc-project$,
+2026-03-21,2026-04-01,False,0.0,Amazon Simple Notification Service,lsmc-project$,
+2026-03-21,2026-04-01,False,0.0,Amazon Simple Queue Service,lsmc-project$,
+2026-03-21,2026-04-01,False,333.991371299,Amazon Simple Storage Service,lsmc-project$,
+2026-03-21,2026-04-01,False,43.001134913,Amazon Virtual Private Cloud,lsmc-project$,
+2026-03-21,2026-04-01,False,0.8989247215,AmazonCloudWatch,lsmc-project$,
+2026-03-21,2026-04-01,False,0.0,CloudWatch Events,lsmc-project$,
+2026-03-21,2026-04-01,False,0.0,Tax,lsmc-project$,
+2026-04-01,2026-05-01,False,0.0,AWS Certificate Manager,lsmc-project$,
+2026-04-01,2026-05-01,False,0.0,AWS CloudFormation,lsmc-project$,
+2026-04-01,2026-05-01,False,0.9391166236,AWS Cost Explorer,lsmc-project$,
+2026-04-01,2026-05-01,False,0.0,AWS Glue,lsmc-project$,
+2026-04-01,2026-05-01,False,3.000000024,AWS Key Management Service,lsmc-project$,
+2026-04-01,2026-05-01,False,1.3567e-06,AWS Lambda,lsmc-project$,
+2026-04-01,2026-05-01,False,4.4352410308,AWS Secrets Manager,lsmc-project$,
+2026-04-01,2026-05-01,False,91.6659815437,AWS Security Hub,lsmc-project$,
+2026-04-01,2026-05-01,False,0.0,AWS Service Catalog,lsmc-project$,
+2026-04-01,2026-05-01,False,1.8823e-06,AWS Step Functions,lsmc-project$,
+2026-04-01,2026-05-01,False,261.0595463814,AWS Support (Developer),lsmc-project$,
+2026-04-01,2026-05-01,False,8.0212293499,AWS WAF,lsmc-project$,
+2026-04-01,2026-05-01,False,1.282e-07,Amazon CloudFront,lsmc-project$,
+2026-04-01,2026-05-01,False,0.14175,Amazon Cognito,lsmc-project$,
+2026-04-01,2026-05-01,False,0.0256479646,Amazon DynamoDB,lsmc-project$,
+2026-04-01,2026-05-01,False,0.4761489983,Amazon EC2 Container Registry (ECR),lsmc-project$,
+2026-04-01,2026-05-01,False,685.8035060286,EC2 - Other,lsmc-project$,
+2026-04-01,2026-05-01,False,2038.3250046005,Amazon Elastic Compute Cloud - Compute,lsmc-project$,
+2026-04-01,2026-05-01,False,35.5698970163,Amazon Elastic Container Service,lsmc-project$,
+2026-04-01,2026-05-01,False,4.52052e-05,Amazon Elastic File System,lsmc-project$,
+2026-04-01,2026-05-01,False,18.9681630235,Amazon Elastic Load Balancing,lsmc-project$,
+2026-04-01,2026-05-01,False,3924.8280150815,Amazon FSx,lsmc-project$,
+2026-04-01,2026-05-01,False,2.6714e-06,Amazon Glacier,lsmc-project$,
+2026-04-01,2026-05-01,False,15.268142109,Amazon GuardDuty,lsmc-project$,
+2026-04-01,2026-05-01,False,0.0,Amazon Inspector,lsmc-project$,
+2026-04-01,2026-05-01,False,130.0,Amazon Registrar,lsmc-project$,
+2026-04-01,2026-05-01,False,497.9875161126,Amazon Relational Database Service,lsmc-project$,
+2026-04-01,2026-05-01,False,14.3503452,Amazon Route 53,lsmc-project$,
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Notification Service,lsmc-project$,
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Queue Service,lsmc-project$,
+2026-04-01,2026-05-01,False,1479.5929508039,Amazon Simple Storage Service,lsmc-project$,
+2026-04-01,2026-05-01,False,119.2068503224,Amazon Virtual Private Cloud,lsmc-project$,
+2026-04-01,2026-05-01,False,4.8825031081,AmazonCloudWatch,lsmc-project$,
+2026-04-01,2026-05-01,False,0.0,CloudWatch Events,lsmc-project$,
+2026-04-01,2026-05-01,False,0.0,Tax,lsmc-project$,
+2026-05-01,2026-06-01,False,0.0,AWS Certificate Manager,lsmc-project$,
+2026-05-01,2026-06-01,False,0.0,AWS CloudFormation,lsmc-project$,
+2026-05-01,2026-06-01,False,32.533505,AWS CloudTrail,lsmc-project$,
+2026-05-01,2026-06-01,False,60.8757636451,AWS Cost Explorer,lsmc-project$,
+2026-05-01,2026-06-01,False,0.0,AWS Glue,lsmc-project$,
+2026-05-01,2026-06-01,False,2.934997566,AWS Key Management Service,lsmc-project$,
+2026-05-01,2026-06-01,False,6.3428e-06,AWS Lambda,lsmc-project$,
+2026-05-01,2026-06-01,False,5.7212617122,AWS Secrets Manager,lsmc-project$,
+2026-05-01,2026-06-01,False,0.1003393405,AWS Secrets Manager,lsmc-project$dayhoff+us-east-1,dayhoff+us-east-1
+2026-05-01,2026-06-01,False,0.0451962896,AWS Secrets Manager,lsmc-project$dayhoff+us-west-2,dayhoff+us-west-2
+2026-05-01,2026-06-01,False,0.0073828029,AWS Secrets Manager,lsmc-project$dayhoff-ddev80,dayhoff-ddev80
+2026-05-01,2026-06-01,False,0.0904225792,AWS Secrets Manager,lsmc-project$tapdb-us-east-1,tapdb-us-east-1
+2026-05-01,2026-06-01,False,0.0903925792,AWS Secrets Manager,lsmc-project$tapdb-us-west-2,tapdb-us-west-2
+2026-05-01,2026-06-01,False,191.551362364,AWS Security Hub,lsmc-project$,
+2026-05-01,2026-06-01,False,0.0,AWS Service Catalog,lsmc-project$,
+2026-05-01,2026-06-01,False,2.284e-06,AWS Step Functions,lsmc-project$,
+2026-05-01,2026-06-01,False,680.902151147,AWS Support (Developer),lsmc-project$,
+2026-05-01,2026-06-01,False,6.999999888,AWS WAF,lsmc-project$,
+2026-05-01,2026-06-01,False,0.0,Amazon CloudFront,lsmc-project$,
+2026-05-01,2026-06-01,False,0.02925,Amazon Cognito,lsmc-project$,
+2026-05-01,2026-06-01,False,0.0380672189,Amazon DynamoDB,lsmc-project$,
+2026-05-01,2026-06-01,False,0.0,Amazon DynamoDB,lsmc-project$zebra-day+us-west-2,zebra-day+us-west-2
+2026-05-01,2026-06-01,False,0.6906851222,Amazon EC2 Container Registry (ECR),lsmc-project$,
+2026-05-01,2026-06-01,False,0.0133329433,Amazon EC2 Container Registry (ECR),lsmc-project$dayhoff-inf9,dayhoff-inf9
+2026-05-01,2026-06-01,False,1143.817499333,EC2 - Other,lsmc-project$,
+2026-05-01,2026-06-01,False,8.1146939199,EC2 - Other,lsmc-project$dayhoff+us-east-1,dayhoff+us-east-1
+2026-05-01,2026-06-01,False,3.7952194805,EC2 - Other,lsmc-project$dayhoff+us-west-2,dayhoff+us-west-2
+2026-05-01,2026-06-01,False,0.6324663425,EC2 - Other,lsmc-project$dayhoff-ddev80,dayhoff-ddev80
+2026-05-01,2026-06-01,False,0.0500546193,EC2 - Other,lsmc-project$dayhoff-ddev81,dayhoff-ddev81
+2026-05-01,2026-06-01,False,0.0025213979,EC2 - Other,lsmc-project$dayhoff-ddev89,dayhoff-ddev89
+2026-05-01,2026-06-01,False,0.0025281308,EC2 - Other,lsmc-project$dayhoff-ddev92,dayhoff-ddev92
+2026-05-01,2026-06-01,False,0.0025538459,EC2 - Other,lsmc-project$dayhoff-ddev94,dayhoff-ddev94
+2026-05-01,2026-06-01,False,0.0025234265,EC2 - Other,lsmc-project$dayhoff-ddev96,dayhoff-ddev96
+2026-05-01,2026-06-01,False,0.0025525281,EC2 - Other,lsmc-project$dayhoff-inf10,dayhoff-inf10
+2026-05-01,2026-06-01,False,0.0025569429,EC2 - Other,lsmc-project$dayhoff-inf11,dayhoff-inf11
+2026-05-01,2026-06-01,False,0.002614407,EC2 - Other,lsmc-project$dayhoff-inf9,dayhoff-inf9
+2026-05-01,2026-06-01,False,11093.9709716891,Amazon Elastic Compute Cloud - Compute,lsmc-project$,
+2026-05-01,2026-06-01,False,23.3607457043,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff+us-east-1,dayhoff+us-east-1
+2026-05-01,2026-06-01,False,50.5691185039,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff+us-west-2,dayhoff+us-west-2
+2026-05-01,2026-06-01,False,4.0907753754,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-ddev80,dayhoff-ddev80
+2026-05-01,2026-06-01,False,5.6567822952,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-ddev81,dayhoff-ddev81
+2026-05-01,2026-06-01,False,1.2907554872,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-ddev89,dayhoff-ddev89
+2026-05-01,2026-06-01,False,0.8031371956,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-ddev92,dayhoff-ddev92
+2026-05-01,2026-06-01,False,0.2988147021,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-ddev94,dayhoff-ddev94
+2026-05-01,2026-06-01,False,2.8587788242,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-ddev96,dayhoff-ddev96
+2026-05-01,2026-06-01,False,7.8835306094,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-inf10,dayhoff-inf10
+2026-05-01,2026-06-01,False,6.6856707949,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-inf11,dayhoff-inf11
+2026-05-01,2026-06-01,False,8.1933791093,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-inf9,dayhoff-inf9
+2026-05-01,2026-06-01,False,55.1299283869,Amazon Elastic Container Service,lsmc-project$,
+2026-05-01,2026-06-01,False,7.24317e-05,Amazon Elastic File System,lsmc-project$,
+2026-05-01,2026-06-01,False,23.2516283305,Amazon Elastic Load Balancing,lsmc-project$,
+2026-05-01,2026-06-01,False,0.7875,Amazon Elastic Load Balancing,lsmc-project$dayhoff+us-east-1,dayhoff+us-east-1
+2026-05-01,2026-06-01,False,0.54,Amazon Elastic Load Balancing,lsmc-project$dayhoff-inf10,dayhoff-inf10
+2026-05-01,2026-06-01,False,0.63,Amazon Elastic Load Balancing,lsmc-project$dayhoff-inf9,dayhoff-inf9
+2026-05-01,2026-06-01,False,4675.5496062546,Amazon FSx,lsmc-project$,
+2026-05-01,2026-06-01,False,3.2412e-06,Amazon Glacier,lsmc-project$,
+2026-05-01,2026-06-01,False,20.8700168735,Amazon GuardDuty,lsmc-project$,
+2026-05-01,2026-06-01,False,0.0,Amazon Inspector,lsmc-project$,
+2026-05-01,2026-06-01,False,1714.7286265323,Amazon Relational Database Service,lsmc-project$,
+2026-05-01,2026-06-01,False,15.2135225062,Amazon Relational Database Service,lsmc-project$dayhoff+us-east-1,dayhoff+us-east-1
+2026-05-01,2026-06-01,False,241.4376385211,Amazon Relational Database Service,lsmc-project$dayhoff+us-west-2,dayhoff+us-west-2
+2026-05-01,2026-06-01,False,0.916135215,Amazon Relational Database Service,lsmc-project$dayhoff-ddev80,dayhoff-ddev80
+2026-05-01,2026-06-01,False,28.4047130769,Amazon Relational Database Service,lsmc-project$tapdb-us-east-1,tapdb-us-east-1
+2026-05-01,2026-06-01,False,28.3935158642,Amazon Relational Database Service,lsmc-project$tapdb-us-west-2,tapdb-us-west-2
+2026-05-01,2026-06-01,False,14.752048,Amazon Route 53,lsmc-project$,
+2026-05-01,2026-06-01,False,6.1824e-06,Amazon Simple Notification Service,lsmc-project$,
+2026-05-01,2026-06-01,False,3.23e-08,Amazon Simple Notification Service,lsmc-project$dayhoff+us-east-1,dayhoff+us-east-1
+2026-05-01,2026-06-01,False,3.26e-08,Amazon Simple Notification Service,lsmc-project$dayhoff-inf10,dayhoff-inf10
+2026-05-01,2026-06-01,False,3.24e-08,Amazon Simple Notification Service,lsmc-project$dayhoff-inf9,dayhoff-inf9
+2026-05-01,2026-06-01,False,0.0,Amazon Simple Queue Service,lsmc-project$,
+2026-05-01,2026-06-01,False,3638.6915673942,Amazon Simple Storage Service,lsmc-project$,
+2026-05-01,2026-06-01,False,4.4173938768,Amazon Simple Storage Service,lsmc-project$ultima-wgs,ultima-wgs
+2026-05-01,2026-06-01,False,0.0058125044,Amazon Simple Storage Service,lsmc-project$zebra-day+us-west-2,zebra-day+us-west-2
+2026-05-01,2026-06-01,False,135.8635139374,Amazon Virtual Private Cloud,lsmc-project$,
+2026-05-01,2026-06-01,False,0.00033334,Amazon Virtual Private Cloud,lsmc-project$dayhoff+us-east-1,dayhoff+us-east-1
+2026-05-01,2026-06-01,False,0.000602775,Amazon Virtual Private Cloud,lsmc-project$dayhoff-ddev80,dayhoff-ddev80
+2026-05-01,2026-06-01,False,0.000884725,Amazon Virtual Private Cloud,lsmc-project$dayhoff-ddev81,dayhoff-ddev81
+2026-05-01,2026-06-01,False,0.00031528,Amazon Virtual Private Cloud,lsmc-project$dayhoff-ddev89,dayhoff-ddev89
+2026-05-01,2026-06-01,False,0.00031389,Amazon Virtual Private Cloud,lsmc-project$dayhoff-ddev94,dayhoff-ddev94
+2026-05-01,2026-06-01,False,0.000230555,Amazon Virtual Private Cloud,lsmc-project$dayhoff-ddev96,dayhoff-ddev96
+2026-05-01,2026-06-01,False,0.00031389,Amazon Virtual Private Cloud,lsmc-project$dayhoff-inf10,dayhoff-inf10
+2026-05-01,2026-06-01,False,0.00031528,Amazon Virtual Private Cloud,lsmc-project$dayhoff-inf11,dayhoff-inf11
+2026-05-01,2026-06-01,False,0.00031389,Amazon Virtual Private Cloud,lsmc-project$dayhoff-inf9,dayhoff-inf9
+2026-05-01,2026-06-01,False,81.9202940286,AmazonCloudWatch,lsmc-project$,
+2026-05-01,2026-06-01,False,0.0,CloudWatch Events,lsmc-project$,
+2026-05-01,2026-06-01,False,0.0,Tax,lsmc-project$,
+2026-06-01,2026-06-19,True,0.0,AWS CloudFormation,lsmc-project$,
+2026-06-01,2026-06-19,True,124.86978,AWS CloudTrail,lsmc-project$,
+2026-06-01,2026-06-19,True,244.5372646666,AWS Cost Explorer,lsmc-project$,
+2026-06-01,2026-06-19,True,0.0,AWS Glue,lsmc-project$,
+2026-06-01,2026-06-19,True,5.4698956854,AWS Key Management Service,lsmc-project$,
+2026-06-01,2026-06-19,True,3.9319e-06,AWS Lambda,lsmc-project$,
+2026-06-01,2026-06-19,True,3.6673222337,AWS Secrets Manager,lsmc-project$,
+2026-06-01,2026-06-19,True,0.0011799277,AWS Secrets Manager,lsmc-project$dayhoff+us-east-1,dayhoff+us-east-1
+2026-06-01,2026-06-19,True,0.2347144632,AWS Secrets Manager,lsmc-project$dayhoff+us-west-2,dayhoff+us-west-2
+2026-06-01,2026-06-19,True,0.4693089264,AWS Secrets Manager,lsmc-project$tapdb-us-east-1,tapdb-us-east-1
+2026-06-01,2026-06-19,True,0.4692789264,AWS Secrets Manager,lsmc-project$tapdb-us-west-2,tapdb-us-west-2
+2026-06-01,2026-06-19,True,198.7730404691,AWS Security Hub,lsmc-project$,
+2026-06-01,2026-06-19,True,0.0,AWS Service Catalog,lsmc-project$,
+2026-06-01,2026-06-19,True,1.281e-06,AWS Step Functions,lsmc-project$,
+2026-06-01,2026-06-19,True,614.906181015,AWS Support (Developer),lsmc-project$,
+2026-06-01,2026-06-19,True,4.1027778106,AWS WAF,lsmc-project$,
+2026-06-01,2026-06-19,True,3.4e-09,Amazon CloudFront,lsmc-project$,
+2026-06-01,2026-06-19,True,0.0,Amazon Cognito,lsmc-project$,
+2026-06-01,2026-06-19,True,0.0197639272,Amazon DynamoDB,lsmc-project$,
+2026-06-01,2026-06-19,True,0.0,Amazon DynamoDB,lsmc-project$zebra-day+us-west-2,zebra-day+us-west-2
+2026-06-01,2026-06-19,True,3.5944261358,Amazon EC2 Container Registry (ECR),lsmc-project$,
+2026-06-01,2026-06-19,True,537.9780104991,EC2 - Other,lsmc-project$,
+2026-06-01,2026-06-19,True,0.00815164,EC2 - Other,lsmc-project$dayhoff+us-east-1,dayhoff+us-east-1
+2026-06-01,2026-06-19,True,19.0246393728,EC2 - Other,lsmc-project$dayhoff+us-west-2,dayhoff+us-west-2
+2026-06-01,2026-06-19,True,0.0287096031,EC2 - Other,lsmc-project$dayhoff-day,dayhoff-day
+2026-06-01,2026-06-19,True,0.0011240906,EC2 - Other,lsmc-project$dayhoff-ddev96,dayhoff-ddev96
+2026-06-01,2026-06-19,True,0.0135425207,EC2 - Other,lsmc-project$dayhoff-dev,dayhoff-dev
+2026-06-01,2026-06-19,True,0.0038920173,EC2 - Other,lsmc-project$dayhoff-inf,dayhoff-inf
+2026-06-01,2026-06-19,True,0.0101857671,EC2 - Other,lsmc-project$dayhoff-jemdev,dayhoff-jemdev
+2026-06-01,2026-06-19,True,0.084785024,EC2 - Other,lsmc-project$dayhoff-jemdev2,dayhoff-jemdev2
+2026-06-01,2026-06-19,True,0.4892264255,EC2 - Other,lsmc-project$dayhoff-jemdev3,dayhoff-jemdev3
+2026-06-01,2026-06-19,True,0.7174391194,EC2 - Other,lsmc-project$dayhoff-jemdev5,dayhoff-jemdev5
+2026-06-01,2026-06-19,True,0.077868275,EC2 - Other,lsmc-project$dayhoff-joshdev,dayhoff-joshdev
+2026-06-01,2026-06-19,True,0.0015969062,EC2 - Other,lsmc-project$dayhoff-tailnet-dns,dayhoff-tailnet-dns
+2026-06-01,2026-06-19,True,11102.0053771946,Amazon Elastic Compute Cloud - Compute,lsmc-project$,
+2026-06-01,2026-06-19,True,90.5617132262,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff+us-east-1,dayhoff+us-east-1
+2026-06-01,2026-06-19,True,253.0308404032,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff+us-west-2,dayhoff+us-west-2
+2026-06-01,2026-06-19,True,127.2361859231,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-day,dayhoff-day
+2026-06-01,2026-06-19,True,139.8680519833,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-ddev96,dayhoff-ddev96
+2026-06-01,2026-06-19,True,122.0635887384,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-dev,dayhoff-dev
+2026-06-01,2026-06-19,True,118.0643676841,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-inf,dayhoff-inf
+2026-06-01,2026-06-19,True,3.2149309352,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-jemdev,dayhoff-jemdev
+2026-06-01,2026-06-19,True,18.2036690753,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-jemdev2,dayhoff-jemdev2
+2026-06-01,2026-06-19,True,16.8559873745,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-jemdev3,dayhoff-jemdev3
+2026-06-01,2026-06-19,True,74.2855639079,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-jemdev5,dayhoff-jemdev5
+2026-06-01,2026-06-19,True,91.0623237346,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-joshdev,dayhoff-joshdev
+2026-06-01,2026-06-19,True,1.8998115115,Amazon Elastic Compute Cloud - Compute,lsmc-project$dayhoff-tailnet-dns,dayhoff-tailnet-dns
+2026-06-01,2026-06-19,True,31.285903183,Amazon Elastic Container Service,lsmc-project$,
+2026-06-01,2026-06-19,True,5.24745e-05,Amazon Elastic File System,lsmc-project$,
+2026-06-01,2026-06-19,True,19.0084592812,Amazon Elastic Load Balancing,lsmc-project$,
+2026-06-01,2026-06-19,True,1134.6341404544,Amazon FSx,lsmc-project$,
+2026-06-01,2026-06-19,True,1.8058e-06,Amazon Glacier,lsmc-project$,
+2026-06-01,2026-06-19,True,7.0660311593,Amazon GuardDuty,lsmc-project$,
+2026-06-01,2026-06-19,True,0.0,Amazon Inspector,lsmc-project$,
+2026-06-01,2026-06-19,True,1080.7918072714,Amazon Relational Database Service,lsmc-project$,
+2026-06-01,2026-06-19,True,0.1964223669,Amazon Relational Database Service,lsmc-project$dayhoff+us-east-1,dayhoff+us-east-1
+2026-06-01,2026-06-19,True,1210.2349666074,Amazon Relational Database Service,lsmc-project$dayhoff+us-west-2,dayhoff+us-west-2
+2026-06-01,2026-06-19,True,143.4817760228,Amazon Relational Database Service,lsmc-project$tapdb-us-east-1,tapdb-us-east-1
+2026-06-01,2026-06-19,True,142.3342984662,Amazon Relational Database Service,lsmc-project$tapdb-us-west-2,tapdb-us-west-2
+2026-06-01,2026-06-19,True,12.1373672,Amazon Route 53,lsmc-project$,
+2026-06-01,2026-06-19,True,0.5,Amazon Route 53,lsmc-project$dayhoff+us-east-1,dayhoff+us-east-1
+2026-06-01,2026-06-19,True,0.5,Amazon Route 53,lsmc-project$dayhoff+us-west-2,dayhoff+us-west-2
+2026-06-01,2026-06-19,True,2.6115e-06,Amazon Simple Notification Service,lsmc-project$,
+2026-06-01,2026-06-19,True,0.0,Amazon Simple Queue Service,lsmc-project$,
+2026-06-01,2026-06-19,True,3864.5769684251,Amazon Simple Storage Service,lsmc-project$,
+2026-06-01,2026-06-19,True,26.2894830535,Amazon Simple Storage Service,lsmc-project$ultima-wgs,ultima-wgs
+2026-06-01,2026-06-19,True,0.1118110791,Amazon Simple Storage Service,lsmc-project$zebra-day+us-west-2,zebra-day+us-west-2
+2026-06-01,2026-06-19,True,91.5723044573,Amazon Virtual Private Cloud,lsmc-project$,
+2026-06-01,2026-06-19,True,0.000230555,Amazon Virtual Private Cloud,lsmc-project$dayhoff-dev,dayhoff-dev
+2026-06-01,2026-06-19,True,0.00031389,Amazon Virtual Private Cloud,lsmc-project$dayhoff-inf,dayhoff-inf
+2026-06-01,2026-06-19,True,0.00048195,Amazon Virtual Private Cloud,lsmc-project$dayhoff-jemdev,dayhoff-jemdev
+2026-06-01,2026-06-19,True,0.000663895,Amazon Virtual Private Cloud,lsmc-project$dayhoff-jemdev2,dayhoff-jemdev2
+2026-06-01,2026-06-19,True,0.001395855,Amazon Virtual Private Cloud,lsmc-project$dayhoff-jemdev3,dayhoff-jemdev3
+2026-06-01,2026-06-19,True,0.001730585,Amazon Virtual Private Cloud,lsmc-project$dayhoff-jemdev5,dayhoff-jemdev5
+2026-06-01,2026-06-19,True,0.000229165,Amazon Virtual Private Cloud,lsmc-project$dayhoff-joshdev,dayhoff-joshdev
+2026-06-01,2026-06-19,True,129.3901835537,AmazonCloudWatch,lsmc-project$,
+2026-06-01,2026-06-19,True,0.0,CloudWatch Events,lsmc-project$,
+2026-06-01,2026-06-19,True,0.0,Tax,lsmc-project$,

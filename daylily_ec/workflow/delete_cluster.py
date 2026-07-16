@@ -206,6 +206,7 @@ def run_delete_workflow(options: DeleteOptions) -> int:
         profile_name=resolved.profile,
         region_name=resolved.region,
     )
+    fsx_client = session.client("fsx")
     existing_status = get_cluster_status(
         resolved.cluster_name,
         resolved.region,
@@ -218,9 +219,23 @@ def run_delete_workflow(options: DeleteOptions) -> int:
         )
         return 1
 
-    fsx_ids = find_fsx_associations(session.client("fsx"), resolved.cluster_name)
+    fsx_ids = find_fsx_associations(fsx_client, resolved.cluster_name)
+    from daylily_ec.aws.fsx_persistent2 import find_cluster_bound_file_systems
+
+    cluster_bound_fsx_ids = find_cluster_bound_file_systems(
+        fsx_client,
+        cluster_name=resolved.cluster_name,
+        file_system_ids=fsx_ids,
+    )
+    if cluster_bound_fsx_ids:
+        ui.warn(
+            "The following DYEC-owned CLUSTER_BOUND external P2 filesystems will be "
+            "deleted after the ParallelCluster is absent:"
+        )
+        for fsx_id in cluster_bound_fsx_ids:
+            ui.detail("External P2 FSx", fsx_id)
     repository_activity = find_active_fsx_repository_activity(
-        session.client("fsx"),
+        fsx_client,
         fsx_ids,
     )
     if repository_activity["associations"] or repository_activity["export_tasks"]:
@@ -263,6 +278,26 @@ def run_delete_workflow(options: DeleteOptions) -> int:
         poll_interval=resolved.poll_interval,
     )
     if monitor_result.success:
+        if cluster_bound_fsx_ids:
+            from daylily_ec.aws.fsx_persistent2 import delete_cluster_bound_resources
+
+            try:
+                deleted = delete_cluster_bound_resources(
+                    session.client("ec2"),
+                    fsx_client,
+                    cluster_name=resolved.cluster_name,
+                    file_system_ids=cluster_bound_fsx_ids,
+                )
+            except Exception as exc:  # noqa: BLE001
+                ui.error_panel(
+                    "Cluster deleted; external P2 cleanup failed",
+                    str(exc),
+                )
+                return 1
+            for fsx_id in deleted["file_system_ids"]:
+                ui.detail("Deleted external P2 FSx", fsx_id)
+            for security_group_id in deleted["security_group_ids"]:
+                ui.detail("Deleted P2 client security group", security_group_id)
         ui.success_panel(
             "Cluster deleted",
             f"Cluster: {resolved.cluster_name}\nRegion: {resolved.region}",
@@ -306,6 +341,13 @@ def run_delete_dry_run(options: DeleteOptions) -> int:
     )
     fsx_client = session.client("fsx")
     fsx_ids = find_fsx_associations(fsx_client, resolved.cluster_name)
+    from daylily_ec.aws.fsx_persistent2 import find_cluster_bound_file_systems
+
+    cluster_bound_fsx_ids = find_cluster_bound_file_systems(
+        fsx_client,
+        cluster_name=resolved.cluster_name,
+        file_system_ids=fsx_ids,
+    )
     repository_activity = find_active_fsx_repository_activity(fsx_client, fsx_ids)
 
     ui.info("No AWS resources were changed.")
@@ -319,6 +361,13 @@ def run_delete_dry_run(options: DeleteOptions) -> int:
         ui.warn("FSx filesystems are still associated with the cluster:")
         for fsx_id in fsx_ids:
             ui.detail("FSx", fsx_id)
+        if cluster_bound_fsx_ids:
+            ui.warn(
+                "These DYEC-owned CLUSTER_BOUND external P2 filesystems will also be "
+                "deleted after the ParallelCluster is absent:"
+            )
+            for fsx_id in cluster_bound_fsx_ids:
+                ui.detail("External P2 FSx", fsx_id)
         ui.info("Export results with `daylily-ec export` before deleting if needed.")
         if repository_activity["associations"]:
             ui.warn("Active FSx data repository associations are still attached:")

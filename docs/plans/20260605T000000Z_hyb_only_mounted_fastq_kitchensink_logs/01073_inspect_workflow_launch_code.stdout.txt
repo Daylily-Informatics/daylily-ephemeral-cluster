@@ -1,0 +1,167 @@
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+) -> None:
+    """Return the full pcluster describe-cluster payload for a headnode."""
+
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile, resolved_region, resolved_cluster = _resolve_headnode_cli_selection(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        payload = _describe_headnode_cluster(
+            profile=resolved_profile,
+            region=resolved_region,
+            cluster=resolved_cluster,
+        )
+    except CommandError as exc:
+        _exit_headnode_error(exc)
+
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+
+
+def headnode_jobs(
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+) -> None:
+    """Print Slurm jobs from the headnode using the Daylily sq format."""
+
+    from daylily_ec.aws.ssm import (
+        SsmCommandFailedError,
+        SsmError,
+        run_shell,
+        wait_for_ssm_online,
+    )
+    from daylily_ec.headnode import SQUEUE_FORMAT
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile, resolved_region, _resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        result = run_shell(
+            target.instance_id,
+            resolved_region,
+            "set -euo pipefail\nsqueue -o " + shlex.quote(SQUEUE_FORMAT),
+            profile=resolved_profile,
+            timeout=120,
+            comment="Daylily headnode Slurm jobs",
+        )
+    except SsmCommandFailedError as exc:
+        if exc.result.stderr.strip():
+            typer.echo(exc.result.stderr.rstrip(), err=True)
+        _exit_headnode_error(exc)
+    except (CommandError, SsmError, TimeoutError) as exc:
+        _exit_headnode_error(exc)
+
+    if result.stdout:
+        typer.echo(result.stdout.rstrip())
+    if result.stderr:
+        typer.echo(result.stderr.rstrip(), err=True)
+
+
+
+def headnode_configure(
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+    repo_overrides: Optional[Path] = typer.Option(
+        None,
+        "--repo-overrides",
+        help="File containing repo overrides as repo-key:git-ref lines.",
+    ),
+) -> None:
+    """Configure a cluster headnode through the supported SSM bootstrap."""
+
+    from daylily_ec.aws.ssm import SsmError, wait_for_ssm_online
+    from daylily_ec.scripts.common import CommandError
+    from daylily_ec.scripts.daylily_cfg_headnode import _load_repo_overrides
+    from daylily_ec.workflow.create_cluster import configure_headnode
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        overrides = _load_repo_overrides(str(repo_overrides) if repo_overrides else None)
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        ok = configure_headnode(
+            cluster_name=resolved_cluster,
+            head_node_instance_id=target.instance_id,
+            region=resolved_region,
+            profile=resolved_profile,
+            repo_overrides=overrides or None,
+        )
+        if not ok:
+            raise CommandError(f"Headnode configuration failed for cluster '{resolved_cluster}'.")
+    except (CommandError, SsmError, TimeoutError) as exc:
+        _exit_headnode_error(exc)
+
+    output.success(f"Headnode configured via SSM for cluster '{resolved_cluster}'.")
+
+
+def _invoke_stage_samples(argv: list[str]) -> int:
+    from daylily_ec.stage_samples import main as stage_samples_main
+
+    return int(stage_samples_main(argv))
+
+
+def _invoke_workflow_launch(argv: list[str]) -> int:
+    from daylily_ec.scripts.daylily_run_omics_analysis_headnode import main as launch_main
+
+    return int(launch_main(argv))
+

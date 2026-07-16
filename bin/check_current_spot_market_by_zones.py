@@ -109,7 +109,7 @@ def parse_arguments():
     # Add arguments with default values and %(default)s in help string
     parser.add_argument(
         "-i", "--input", 
-        default=str(resource_path("config/day_cluster/prod_cluster.yaml")),
+        default=str(resource_path("config/day_cluster/prod_cluster_v8.yaml")),
         help="YAML config path (default: %(default)s)."
     )
     

@@ -1,0 +1,390 @@
+DAY-EC activated.
+DAY-EC activated.
+tmux_sessions:
+hybonly_ilmn_final_multiqc_20260606T095442Z: 1 windows (created Sat Jun  6 09:55:26 2026)
+hybonly_ilmn_haplo96_dryrun_20260606T092653Z: 1 windows (created Sat Jun  6 09:27:05 2026)
+hybonly_ilmn_haplo96_dryrun_20260606T092935Z: 1 windows (created Sat Jun  6 09:29:47 2026)
+hybonly_ilmn_haplocheck96_dryrun_20260606T091748Z: 1 windows (created Sat Jun  6 09:25:55 2026)
+hybonly_ilmn_kitchensink_mounted_20260606T053415Z_dryrun: 1 windows (created Sat Jun  6 05:40:45 2026)
+hybonly_ont_alignsort_alignstats_dedupna_dryrun2_20260606T074609Z: 1 windows (created Sat Jun  6 07:46:32 2026)
+hybonly_ont_alignsort_alignstats_dedupna_dryrun_20260606T074315Z: 1 windows (created Sat Jun  6 07:43:39 2026)
+hybonly_ont_chipbarcode_limited_dryrun2_20260606T090029Z: 1 windows (created Sat Jun  6 09:00:56 2026)
+hybonly_ont_chipbarcode_limited_dryrun_20260606T085229Z: 1 windows (created Sat Jun  6 08:55:27 2026)
+hybonly_ont_chipbarcode_limited_live_20260606T090222Z: 1 windows (created Sat Jun  6 09:02:49 2026)
+hybonly_ont_kitchensink_mounted_20260606T053415Z: 1 windows (created Sat Jun  6 05:59:00 2026)
+hybonly_ont_kitchensink_mounted_20260606T053415Z_dryrun: 1 windows (created Sat Jun  6 05:52:28 2026)
+SESSION=hybonly_ilmn_final_multiqc_20260606T095442Z
+0: bash* (1 panes) [80x24] [layout 5963,80x24,0,0,14] @14 (active)
+0: [80x24] [history 279/2000, 92296 bytes] %14 (active)
+
+
+                # Hybrid workflow targets:
+
+                dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina
++ONT CLI
+
+                dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+O
+NT CLI (use hg38_broad)
+
+                dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina
++ONT Modular
+
+                dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+O
+NT Modular (use hg38_broad)
+
+
+
+                # Remove -n to execute (not dry-run)
+
+(DAYOA) ubuntu@ip-10-0-0-81:/fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensin
+k_mounted_20260606T053415Z/daylily-omics-analysis$ dy-a slurm hg38
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project hyb-only
+ .
+Your config files in /fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mount
+ed_20260606T053415Z/daylily-omics-analysis/config/day_profiles/slurm are newer t
+han the templates. clear 2 go.
+yq is already installed.
+Using sentieon license file: /fsx/references/runtime_assets/cached_envs/Life_Sci
+ences_Manufacturing_Corporation_eval.lic from ~/.config/daylily/daylily_cli_glob
+al.yaml
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null
+     This might be fine if you have cloned a more recent release of daylily comp
+ared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster
+headnode for days+, this is not the intended use of daylily, a fresh build might
+ be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38
+       _______ GREAT SUCCESS _______
+[Dslu](DAYOA) dy-r produce_multiqc_all --config 'aligners=["sent"]' 'dedupers=["
+dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_too
+ls":["vep","metagenomics","contam_identity"]}' -j 200 -p -k --rerun-triggers mti
+me
+Your config files in /fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mount
+ed_20260606T053415Z/daylily-omics-analysis/config/day_profiles/slurm are newer t
+han the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/hybonly_ilmn_kitchen
+sink_mounted_20260606T053415Z/daylily-omics-analysis/config/day_profiles/slurm p
+roduce_multiqc_all --config aligners=["sent"] dedupers=["dmd"] snv_callers=["sen
+td"] htd_callers=["cyrius"] multiqc_qc={"enable_tools":["vep","metagenomics","co
+ntam_identity"]} -j 200 -p -k --rerun-triggers mtime
+Config file config/global.yaml is extended by additional config specified via th
+e command line.
+loading global: /fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20
+260606T053415Z/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified
+via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensi
+nk_mounted_20260606T053415Z/daylily-omics-analysis/config/day_profiles/slurm/rul
+e_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional
+ config specified via the command line.
+INFO::: The genome build hg38 is supported.  The genome build prefix is 'chr''.
+aligners: [sent]
+aligners (final): [sent]
+deduper (final): [dmd]
+SNV Callers:[sentd]
+SNV Callers (final): [sentd]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubunt
+u/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/confi
+g/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/
+hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/
+units.tsv
+Building DAG of jobs...
+All Wildcards:    all snv_CALLERS:  ['sentd']  all ALIGNERS:  ['sent']  all CRAM
+_ALIGNERS:  []  all samples:  {'20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-al
+l-S7-PF-ILMN-NOVASEQ': ['20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF
+-ILMN-NOVASEQ'], '20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-N
+OVASEQ': ['20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ'
+], '20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ': ['202
+60526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ'], '20260526-L
+H01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ': ['20260526-LH01121-
+0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ'], '20260526-LH01121-0004-B2
+3WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ': ['20260526-LH01121-0004-B23WW2NL
+T4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ'], '20260526-LH01121-0004-B23WW2NLT4-NA0
+5164-DMPK-all-S49-PF-ILMN-NOVASEQ': ['20260526-LH01121-0004-B23WW2NLT4-NA05164-D
+MPK-all-S49-PF-ILMN-NOVASEQ'], '20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all
+-S47-PF-ILMN-NOVASEQ': ['20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF
+-ILMN-NOVASEQ']}  all concordance samples:  dict_keys(['20260526-LH01121-0004-B2
+3WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ', '20260526-LH01121-0004-B23WW2NLT4
+-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ', '20260526-LH01121-0004-B23WW2NLT4-HG003-c
+-GIAB-all-S9-PF-ILMN-NOVASEQ'])
+Nothing to be done (all requested files are present and up to date).
+
+SESSION=hybonly_ilmn_haplo96_dryrun_20260606T092653Z
+0: bash* (1 panes) [80x24] [layout 5961,80x24,0,0,12] @12 (active)
+0: [80x24] [history 256/2000, 81860 bytes] %12 (active)
+s.tsv
+
+                cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.ts
+v
+
+
+
+                # Use target names directly (tab-complete available):
+
+                dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-
+read SNV concordance
+
+                dy-r produce_alignstats -p -k -j 20 -n         # Alignment stati
+stics
+
+
+
+                # Platform-specific targets:
+
+                dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+                dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV call
+ing
+
+                dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV call
+ing (use hg38_broad)
+
+
+
+                # Hybrid workflow targets:
+
+                dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina
++ONT CLI
+
+                dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+O
+NT CLI (use hg38_broad)
+
+                dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina
++ONT Modular
+
+                dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+O
+NT Modular (use hg38_broad)
+
+
+
+                # Remove -n to execute (not dry-run)
+
+(DAYOA) ubuntu@ip-10-0-0-81:/fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensin
+k_mounted_20260606T053415Z/daylily-omics-analysis$ dy-a slurm hg38
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project hyb-only
+ .
+
+\\\\
+\\\\\\
+\\\\\\\\
+\\\\\\\\\\
+\\\\\\\\\\\\
+\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+  =================||>  WARNING  <||=================
+  One+ of the template config files in :
+/fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/d
+aylily-omics-analysis/config/day_profiles/slurm/templates
+     is newer than your active config files (or missing and is expected).
+
+  You hace 2 options. 1) remove the active files  :
+(1) rm /fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T05
+3415Z/daylily-omics-analysis/config/day_profiles/slurm/*
+    so the new template files can be copied there. Or
+    2) Keep the active local copies.  You may touch
+    them to avoid this error:
+(2) touch /fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606
+T053415Z/daylily-omics-analysis/config/day_profiles/slurm/*
+     will keep the files and avoid this warning/block.
+
+
+Please select:
+1) Remove the active config files.
+2) Touch the active config files.
+3) Exit.
+Enter your choice (1, 2, or 3): Invalid choice. Please choose 1, 2, or 3.
+
+ERROR: source bin/util/profile_freshness_warn.bash
+(DAYOA)
+SESSION=hybonly_ilmn_haplo96_dryrun_20260606T092935Z
+0: bash* (1 panes) [80x24] [layout 5962,80x24,0,0,13] @13 (active)
+0: [80x24] [history 293/2000, 98244 bytes] %13 (active)
+                dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina
++ONT Modular
+
+                dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+O
+NT Modular (use hg38_broad)
+
+
+
+                # Remove -n to execute (not dry-run)
+
+(DAYOA) ubuntu@ip-10-0-0-81:/fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensin
+k_mounted_20260606T053415Z/daylily-omics-analysis$ dy-a slurm hg38
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project hyb-only
+ .
+Your config files in /fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mount
+ed_20260606T053415Z/daylily-omics-analysis/config/day_profiles/slurm are newer t
+han the templates. clear 2 go.
+yq is already installed.
+Using sentieon license file: /fsx/references/runtime_assets/cached_envs/Life_Sci
+ences_Manufacturing_Corporation_eval.lic from ~/.config/daylily/daylily_cli_glob
+al.yaml
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null
+     This might be fine if you have cloned a more recent release of daylily comp
+ared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster
+headnode for days+, this is not the intended use of daylily, a fresh build might
+ be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38
+       _______ GREAT SUCCESS _______
+[Dslu](DAYOA) dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_v
+cf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_
+contam_estimate produce_site_mix_contam_estimate produce_global_contam_check pro
+duce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_
+multiqc_all --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd
+"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics","
+contam_identity"]}' -j 200 -p -k --rerun-triggers mtime -n
+Your config files in /fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mount
+ed_20260606T053415Z/daylily-omics-analysis/config/day_profiles/slurm are newer t
+han the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/hybonly_ilmn_kitchen
+sink_mounted_20260606T053415Z/daylily-omics-analysis/config/day_profiles/slurm p
+roduce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstat
+s produce_snv_concordances produce_relatedness produce_gatk_contam_estimate prod
+uce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_exp
+ansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config
+ aligners=["sent"] dedupers=["dmd"] snv_callers=["sentd"] htd_callers=["cyrius"]
+ multiqc_qc={"enable_tools":["vep","metagenomics","contam_identity"]} -j 200 -p
+-k --rerun-triggers mtime -n
+Config file config/global.yaml is extended by additional config specified via th
+e command line.
+loading global: /fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20
+260606T053415Z/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified
+via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensi
+nk_mounted_20260606T053415Z/daylily-omics-analysis/config/day_profiles/slurm/rul
+e_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional
+ config specified via the command line.
+INFO::: The genome build hg38 is supported.  The genome build prefix is 'chr''.
+aligners: [sent]
+aligners (final): [sent]
+...INFO: Auto-detected dedupers. DDUP updated to: ['dmd']
+deduper (final): [dmd]
+SNV Callers:[sentd]
+SNV Callers (final): [sentd]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubunt
+u/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/confi
+g/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/
+hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/
+units.tsv
+Building DAG of jobs...
+All Wildcards:    all snv_CALLERS:  ['sentd']  all ALIGNERS:  ['sent']  all CRAM
+_ALIGNERS:  []  all samples:  {'20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-al
+l-S7-PF-ILMN-NOVASEQ': ['20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF
+-ILMN-NOVASEQ'], '20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-N
+OVASEQ': ['20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ'
+], '20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ': ['202
+60526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ'], '20260526-L
+H01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ': ['20260526-LH01121-
+0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ'], '20260526-LH01121-0004-B2
+3WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ': ['20260526-LH01121-0004-B23WW2NL
+T4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ'], '20260526-LH01121-0004-B23WW2NLT4-NA0
+5164-DMPK-all-S49-PF-ILMN-NOVASEQ': ['20260526-LH01121-0004-B23WW2NLT4-NA05164-D
+MPK-all-S49-PF-ILMN-NOVASEQ'], '20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all
+-S47-PF-ILMN-NOVASEQ': ['20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF
+-ILMN-NOVASEQ']}  all concordance samples:  dict_keys(['20260526-LH01121-0004-B2
+3WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ', '20260526-LH01121-0004-B23WW2NLT4
+-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ', '20260526-LH01121-0004-B23WW2NLT4-HG003-c
+-GIAB-all-S9-PF-ILMN-NOVASEQ'])
+Singularity image docker://ensemblorg/ensembl-vep:release_114.2 will be pulled.
+Nothing to be done (all requested files are present and up to date).
+RETURN CODE: 0
+[Dslu](DAYOA)
+SESSION=hybonly_ilmn_haplocheck96_dryrun_20260606T091748Z
+0: bash* (1 panes) [80x24] [layout 5960,80x24,0,0,11] @11 (active)
+0: [80x24] [history 0/2000, 1668 bytes] %11 (active)
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-81:~$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SESSION=hybonly_ilmn_kitchensink_mounted_20260606T053415Z_dryrun
+0: bash* (1 panes) [80x24] [layout b25d,80x24,0,0,0] @0 (active)
+0: [80x24] [history 0/2000, 868 bytes] %0 (active)
+DAY-EC activated.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

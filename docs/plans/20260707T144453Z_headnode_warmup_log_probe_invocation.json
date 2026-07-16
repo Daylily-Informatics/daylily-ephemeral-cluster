@@ -1,0 +1,22 @@
+{
+    "CommandId": "89abbe89-9951-46c7-a72f-967318767319",
+    "InstanceId": "i-06e429d2a68a0b1ec",
+    "Comment": "dyec103-warmup-log-probe",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 0,
+    "ExecutionStartDateTime": "2026-07-07T16:21:33.041Z",
+    "ExecutionElapsedTime": "PT5.59S",
+    "ExecutionEndDateTime": "2026-07-07T16:21:38.041Z",
+    "Status": "Success",
+    "StatusDetails": "Success",
+    "StandardOutputContent": "DAY-EC activated.\nDAY-EC activated.\nROOT=\nROOT=\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "find: ‘’: No such file or directory\nfind: ‘’: No such file or directory\n",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}

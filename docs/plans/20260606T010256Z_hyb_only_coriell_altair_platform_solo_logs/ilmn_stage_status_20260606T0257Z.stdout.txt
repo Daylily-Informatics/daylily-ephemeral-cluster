@@ -1,0 +1,49 @@
+DAY-EC activated.
+DAY-EC activated.
+time_utc=2026-06-06T02:56:59Z
+df=/fsx
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  189G  8.6T   3% /fsx
+tmux=hybonly_stage_ilmn_20260606T010256Z
+tmux_state=running
+DAY-EC activated.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ilmn_dir
+total 32G
+-rwxr-xr-x 1 ubuntu ubuntu 35G Jun  6 02:54 Altair-HG001-a_S1_R1_001.fastq.gz
+drwxrwxr-x 2 ubuntu ubuntu 33K Jun  6 02:51 logs
+drwxrwxr-x 2 ubuntu ubuntu 33K Jun  6 02:54 tmp
+ilmn_tmp_dir
+total 0
+stage_processes
+ubuntu     30473   25793  0 02:51 pts/1    00:00:00 bash -l -c /home/ubuntu/hyb_only_stage_ilmn_data_20260606T010256Z.sh > /fsx/scratch/ILMN/logs/tmux_stage_ilmn.stdout.txt 2> /fsx/scratch/ILMN/logs/tmux_stage_ilmn.stderr.txt; rc=$?; echo $rc > /fsx/scratch/ILMN/logs/tmux_stage_ilmn.rc; exit $rc
+ubuntu     30523   30473  0 02:51 pts/1    00:00:00 bash /home/ubuntu/hyb_only_stage_ilmn_data_20260606T010256Z.sh
+ubuntu     31561   30523 99 02:54 pts/1    00:02:40 gzip -t /fsx/scratch/ILMN/Altair-HG001-a_S1_R1_001.fastq.gz
+ilmn_log_tail
+start_ilmn	2026-06-06T02:51:32Z
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T   96G  8.7T   2% /fsx
+CMD	2026-06-06T02:51:32Z	cp -- /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-HG001-a_S1_R1_001.fastq.gz /fsx/scratch/ILMN/Altair-HG001-a_S1_R1_001.fastq.gz
+ilmn_rc

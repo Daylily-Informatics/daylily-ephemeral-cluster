@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+format="%i  %P  %C  %t  %N  %c  %T  %m  %M  %D  %j"
+
+if [[ "$#" -eq 0 ]]; then
+    exec squeue -o "$format"
+fi
+
+jobs=""
+for job in "$@"; do
+    if [[ -z "$jobs" ]]; then
+        jobs="$job"
+    else
+        jobs="${jobs},${job}"
+    fi
+done
+
+exec squeue -o "$format" -j "$jobs"

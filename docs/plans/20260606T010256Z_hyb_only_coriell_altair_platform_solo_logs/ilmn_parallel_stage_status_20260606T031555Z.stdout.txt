@@ -1,0 +1,32 @@
+DAY-EC activated.
+DAY-EC activated.
+time_utc=2026-06-06T03:16:01Z
+df=/fsx
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  500G  8.3T   6% /fsx
+tmux=hybonly_stage_ilmn_20260606T010256Z
+tmux_state=absent
+tmux=hybonly_stage_ilmn_parallel_20260606T010256Z
+tmux_state=running
+ilmn_counts
+fastq_files=4
+parallel_done=0
+parallel_errors=0
+ilmn_dir_tail
+2026-06-06T02:54:19.0000000000	36755885403	Altair-HG001-a_S1_R1_001.fastq.gz
+2026-06-06T03:14:26.0000000000	36937764561	Altair-HG001-b_S2_R2_001.fastq.gz
+2026-06-06T03:14:26.0000000000	37996761497	Altair-HG001-a_S1_R2_001.fastq.gz
+2026-06-06T03:14:27.0000000000	36128822409	Altair-HG001-b_S2_R1_001.fastq.gz
+stage_processes
+ubuntu     35440   25793  0 03:10 pts/2    00:00:00 bash -l -c /home/ubuntu/hyb_only_stage_ilmn_parallel_20260606T010256Z.sh > /fsx/scratch/ILMN/logs/tmux_stage_ilmn_parallel.stdout.txt 2> /fsx/scratch/ILMN/logs/tmux_stage_ilmn_parallel.stderr.txt; rc=$?; echo $rc > /fsx/scratch/ILMN/logs/tmux_stage_ilmn_parallel.rc; exit $rc
+ubuntu     35489   35440  0 03:10 pts/2    00:00:00 bash /home/ubuntu/hyb_only_stage_ilmn_parallel_20260606T010256Z.sh
+ubuntu     35500   35489  0 03:10 pts/2    00:00:00 xargs -n 2 -P 4 bash -c stage_one "$1" "$2" _
+ubuntu     35519   35501 99 03:10 pts/2    00:05:47 gzip -t /fsx/scratch/ILMN/Altair-HG001-a_S1_R1_001.fastq.gz
+ubuntu     37100   35504 99 03:14 pts/2    00:01:35 gzip -t /fsx/scratch/ILMN/Altair-HG001-b_S2_R2_001.fastq.gz
+ubuntu     37102   35502 99 03:14 pts/2    00:01:35 gzip -t /fsx/scratch/ILMN/Altair-HG001-a_S1_R2_001.fastq.gz
+ubuntu     37104   35503 99 03:14 pts/2    00:01:33 gzip -t /fsx/scratch/ILMN/Altair-HG001-b_S2_R1_001.fastq.gz
+parallel_log_tail
+start_ilmn_parallel	2026-06-06T03:10:13Z	jobs=4
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  293G  8.5T   4% /fsx
+parallel_rc

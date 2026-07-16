@@ -1,0 +1,85 @@
+ephemeral_cluster:
+  config:
+    reference_s3_uri: [PROMPTUSER, "", ""]
+    control_data_s3_uri: [PROMPTUSER, "", ""]
+    stage_s3_uri: [PROMPTUSER, "", ""]
+    export_destination_s3_uri: [PROMPTUSER, "", ""]
+    public_subnet_id: [USESETVALUE, "", "subnet-01d555d44292054a7"]
+    private_subnet_id: [USESETVALUE, "", "subnet-07ae303adcce424ef"]
+    pcluster_backport_manifest: [USESETVALUE, "", "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/config/operational/dragen_pcluster315_almalinux8_20260710.yaml"]
+    iam_policy_arn: [USESETVALUE, "", "arn:aws:iam::108782052779:policy/pclusterTagsAndBudget"]
+    cluster_name: [USESETVALUE, "", "dragain10"]
+    budget_email: [PROMPTUSER, "", ""]
+    allowed_budget_users: [PROMPTUSER, "ubuntu", ""]
+    budget_amount: [PROMPTUSER, "200", ""]
+    global_allowed_budget_users: [PROMPTUSER, "ubuntu", ""]
+    global_budget_amount: [PROMPTUSER, "200", ""]
+    enforce_budget: [PROMPTUSER, "true", ""]
+    cluster_template_yaml: [PROMPTUSER, "", ""]
+    headnode_instance_type: [PROMPTUSER, "r7i.2xlarge", ""]
+    fsx_fs_size: [PROMPTUSER, "4800", ""]
+    enable_detailed_monitoring: [PROMPTUSER, "false", ""]
+    delete_local_root: [PROMPTUSER, "true", ""]
+    dragen_license_policy_arn: [USESETVALUE, "", "arn:aws:iam::108782052779:policy/dayec-dragen-license-read"]
+    dragen_license_secret_arn: [USESETVALUE, "", "arn:aws:secretsmanager:us-west-2:108782052779:secret:dayec/dragen/lic_creds-fug9VZ"]
+    auto_delete_fsx: [PROMPTUSER, "Delete", ""]
+    heartbeat_email: [PROMPTUSER, "", ""]
+    heartbeat_schedule: [PROMPTUSER, "rate(60 minutes)", ""]
+    heartbeat_scheduler_role_arn: [PROMPTUSER, "", ""]
+    spot_instance_allocation_strategy: [PROMPTUSER, "price-capacity-optimized", ""]
+    slurm_accounting_enabled: [PROMPTUSER, "false", ""]
+    slurm_accounting_create_db: [PROMPTUSER, "false", ""]
+    slurm_accounting_stack_name: [PROMPTUSER, "", ""]
+    slurm_accounting_database_name: [PROMPTUSER, "dayec_slurm_acct", ""]
+    slurm_accounting_db_username: [PROMPTUSER, "slurm_acct", ""]
+    slurm_accounting_instance_type: [PROMPTUSER, "t4g.micro", ""]
+    max_count_8I: [PROMPTUSER, "1", ""]
+    max_count_96I_NVME: [PROMPTUSER, "1", ""]
+    max_count_128I: [PROMPTUSER, "1", ""]
+    max_count_192I: [PROMPTUSER, "1", ""]
+    max_count_384I: [PROMPTUSER, "1", ""]
+    max_count_128I_C: [PROMPTUSER, "1", ""]
+    max_count_128I_M: [PROMPTUSER, "1", ""]
+    max_count_128I_R: [PROMPTUSER, "1", ""]
+    max_count_128I_NVME: [PROMPTUSER, "1", ""]
+    max_count_192I_C: [PROMPTUSER, "1", ""]
+    max_count_192I_M: [PROMPTUSER, "1", ""]
+    max_count_192I_R: [PROMPTUSER, "1", ""]
+    max_count_192I_NVME_C: [PROMPTUSER, "1", ""]
+    max_count_192I_NVME_M: [PROMPTUSER, "1", ""]
+    max_count_192I_NVME_R: [PROMPTUSER, "1", ""]
+    max_count_192I_HUGENVME: [PROMPTUSER, "1", ""]
+    max_count_384I_NVME_C: [PROMPTUSER, "1", ""]
+    max_count_384I_NVME_M: [PROMPTUSER, "1", ""]
+    max_count_384I_NVME_R: [PROMPTUSER, "1", ""]
+  template_defaults:
+    headnode_instance_type: "r7i.2xlarge"
+    fsx_fs_size: "4800"
+    enable_detailed_monitoring: "false"
+    delete_local_root: "true"
+    auto_delete_fsx: "Delete"
+    heartbeat_schedule: "rate(60 minutes)"
+    spot_instance_allocation_strategy: "price-capacity-optimized"
+    slurm_accounting_enabled: "false"
+    slurm_accounting_create_db: "false"
+    slurm_accounting_database_name: "dayec_slurm_acct"
+    slurm_accounting_db_username: "slurm_acct"
+    slurm_accounting_instance_type: "t4g.micro"
+    max_count_8I: "1"
+    max_count_128I: "1"
+    max_count_192I: "1"
+    max_count_384I: "1"
+    max_count_128I_C: "1"
+    max_count_128I_M: "1"
+    max_count_128I_R: "1"
+    max_count_128I_NVME: "1"
+    max_count_192I_C: "1"
+    max_count_192I_M: "1"
+    max_count_192I_R: "1"
+    max_count_192I_NVME_C: "1"
+    max_count_192I_NVME_M: "1"
+    max_count_192I_NVME_R: "1"
+    max_count_192I_HUGENVME: "1"
+    max_count_384I_NVME_C: "1"
+    max_count_384I_NVME_M: "1"
+    max_count_384I_NVME_R: "1"

@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -j 150 -p -k -T 0 -n",
+  "completed_at": "2026-06-07T17:26:43Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv_dryrun_illumina_snv_alignstats_relatedness_vep_multiqc_20260607T171725Z/daylily-omics-analysis",
+  "session_name": "ccv_dryrun_illumina_snv_alignstats_relatedness_vep_multiqc_20260607T171725Z",
+  "started_at": "2026-06-07T17:26:17Z"
+}

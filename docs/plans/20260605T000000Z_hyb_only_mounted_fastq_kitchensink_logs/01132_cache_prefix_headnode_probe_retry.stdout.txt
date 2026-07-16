@@ -1,0 +1,252 @@
+DAY-EC activated.
+DAY-EC activated.
+USER=ubuntu
+HOST=ip-10-0-0-81
+PWD=/home/ubuntu
+FSX_RESOURCES=/fsx/resources
+FSX_REFERENCES=/fsx/references
+--- selected fsx dirs ---
+/fsx/resources
+drwxr-xr-x 3 root root 33280 Jun  6 00:09 /fsx/resources
+/fsx/resources/environments
+drwxrwxrwt 6 root root 33280 Jun  6 00:18 /fsx/resources/environments
+/fsx/resources/environments/conda
+drwxrwxrwt 4 root root 33280 Jun  6 00:18 /fsx/resources/environments/conda
+/fsx/references/runtime_assets
+dr-xr-xr-x 6 root root 33280 Jun  6 00:15 /fsx/references/runtime_assets
+/fsx/references/runtime_assets/cached_envs
+drwxr-xr-x 10 root root 33280 Jun  6 00:15 /fsx/references/runtime_assets/cached_envs
+/fsx/references/runtime_assets/cluster_boot_config
+drwxr-xr-x 3 root root 33280 Jun  6 00:17 /fsx/references/runtime_assets/cluster_boot_config
+--- fsx mount ---
+10.0.1.131@tcp:/ovxjlb4v on /fsx type lustre (rw,noatime,checksum,flock,user_xattr,lruresize,lazystatfs,nouser_fid2path,verbose,encrypt)
+--- daylily cfg grep ---
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:107:    s3_uri: s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:114:    s3_uri: s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads_slim/
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:121:    s3_uri: s3://lsmc-dayoa-control-data-usw2/run_data/
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:134:    source_s3_uri_template: s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:145:    source_s3_uri_template: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:153:      - "Historical live-validation source was s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/ mounted read-only under /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/."
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:157:    source_s3_uri_template: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:169:    source_s3_uri_template: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:177:      - "Historical live-validation source was s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/ mounted read-only under /fsx/run_dir_mounts/20260513_ONT_HG003/."
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:181:    source_s3_uri_template: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN602221/2026/602221-20260417_2346/
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:189:      - "Historical live-validation source was s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN602221/2026/602221-20260417_2346/ mounted read-only under /fsx/run_dir_mounts/602221-20260417_2346/."
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:211:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:242:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:302:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:333:        artifact_registration: &dayoa_multiqc_artifact_registration
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:413:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:452:        artifact_registration: *dayoa_multiqc_artifact_registration
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:485:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:544:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:574:        artifact_registration: *dayoa_multiqc_artifact_registration
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:587:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:647:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:678:        artifact_registration: *dayoa_multiqc_artifact_registration
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:691:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:751:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:796:            failure_cause: "Dry-run failed while preparing Roche/GATK containers: missing Singularity image /fsx/resources/environments/containers/ubuntu/ip-10-0-0-103/7a424a40c6fd659f4d052893dd3554fa.simg."
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:809:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:872:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:906:        artifact_registration: *dayoa_multiqc_artifact_registration
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:919:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:968:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:1026:        runtime_parameters:
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:1080:        runtime_parameters:
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:1133:        runtime_parameters:
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:1155:        artifact_registration:
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:1202:        runtime_parameters:
+/home/ubuntu/.config/daylily/daylily_available_repositories.yaml:1256:        runtime_parameters:
+/home/ubuntu/.config/daylily/daylily_cli_global.yaml:7:  sentieon_lic_path: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+/home/ubuntu/.config/daylily/daylily_cli_global.yaml:9:  sentieon_install_dir: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/
+/home/ubuntu/.config/daylily/daylily-headnode-bootstrap.sh:23:        conda activate DAY-EC >/dev/null 2>&1 || {
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:107:    s3_uri: s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:114:    s3_uri: s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads_slim/
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:121:    s3_uri: s3://lsmc-dayoa-control-data-usw2/run_data/
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:134:    source_s3_uri_template: s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:145:    source_s3_uri_template: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:153:      - "Historical live-validation source was s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/ mounted read-only under /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/."
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:157:    source_s3_uri_template: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:169:    source_s3_uri_template: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:177:      - "Historical live-validation source was s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/ mounted read-only under /fsx/run_dir_mounts/20260513_ONT_HG003/."
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:181:    source_s3_uri_template: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN602221/2026/602221-20260417_2346/
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:189:      - "Historical live-validation source was s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN602221/2026/602221-20260417_2346/ mounted read-only under /fsx/run_dir_mounts/602221-20260417_2346/."
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:211:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:242:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:302:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:333:        artifact_registration: &dayoa_multiqc_artifact_registration
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:413:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:452:        artifact_registration: *dayoa_multiqc_artifact_registration
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:485:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:544:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:574:        artifact_registration: *dayoa_multiqc_artifact_registration
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:587:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:647:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:678:        artifact_registration: *dayoa_multiqc_artifact_registration
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:691:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:751:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:796:            failure_cause: "Dry-run failed while preparing Roche/GATK containers: missing Singularity image /fsx/resources/environments/containers/ubuntu/ip-10-0-0-103/7a424a40c6fd659f4d052893dd3554fa.simg."
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:809:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:872:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:906:        artifact_registration: *dayoa_multiqc_artifact_registration
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:919:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:968:        runtime_parameters: {}
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:1026:        runtime_parameters:
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:1080:        runtime_parameters:
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:1133:        runtime_parameters:
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:1155:        artifact_registration:
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:1202:        runtime_parameters:
+/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml:1256:        runtime_parameters:
+--- env cache listing ---
+/fsx/resources/environments/conda/ubuntu
+/fsx/resources/environments/conda/ubuntu/i192-dy-all-7
+/fsx/resources/environments/conda/ubuntu/i192mem-dy-all-1
+/fsx/resources/environments/conda/ubuntu/i192mem-dy-all-6
+/fsx/resources/environments/conda/ubuntu/i192-dy-all-4
+/fsx/resources/environments/conda/ubuntu/i192mem-dy-all-2
+/fsx/resources/environments/conda/ubuntu/i192mem-dy-all-5
+/fsx/resources/environments/conda/ubuntu/i192-dy-all-3
+/fsx/resources/environments/conda/ubuntu/i192mem-dy-all-7
+/fsx/resources/environments/conda/ubuntu/i192-dy-all-1
+/fsx/resources/environments/conda/ubuntu/i192-dy-all-6
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/e16773008a9eb117d91285f7b1cb6ab6_
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/e16773008a9eb117d91285f7b1cb6ab6_/ssl
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/e16773008a9eb117d91285f7b1cb6ab6_/include
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/e16773008a9eb117d91285f7b1cb6ab6_/conda-meta
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/e16773008a9eb117d91285f7b1cb6ab6_/x86_64-conda-linux-gnu
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/e16773008a9eb117d91285f7b1cb6ab6_/sbin
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/e16773008a9eb117d91285f7b1cb6ab6_/compiler_compat
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/e16773008a9eb117d91285f7b1cb6ab6_/bin
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/e16773008a9eb117d91285f7b1cb6ab6_/etc
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/e16773008a9eb117d91285f7b1cb6ab6_/libexec
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/e16773008a9eb117d91285f7b1cb6ab6_/lib
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/e16773008a9eb117d91285f7b1cb6ab6_/share
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3a0e4f206e093d942d8271fad4d35296_
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3a0e4f206e093d942d8271fad4d35296_/ssl
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3a0e4f206e093d942d8271fad4d35296_/libexec
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3a0e4f206e093d942d8271fad4d35296_/sbin
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3a0e4f206e093d942d8271fad4d35296_/man
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3a0e4f206e093d942d8271fad4d35296_/share
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3a0e4f206e093d942d8271fad4d35296_/bin
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3a0e4f206e093d942d8271fad4d35296_/etc
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3a0e4f206e093d942d8271fad4d35296_/include
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3a0e4f206e093d942d8271fad4d35296_/conda-meta
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3a0e4f206e093d942d8271fad4d35296_/lib
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3d0893252281fa51ad1d8a1c220b797a_
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3d0893252281fa51ad1d8a1c220b797a_/include
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3d0893252281fa51ad1d8a1c220b797a_/ssl
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3d0893252281fa51ad1d8a1c220b797a_/conda-meta
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3d0893252281fa51ad1d8a1c220b797a_/libexec
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3d0893252281fa51ad1d8a1c220b797a_/lib
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3d0893252281fa51ad1d8a1c220b797a_/share
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3d0893252281fa51ad1d8a1c220b797a_/sbin
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3d0893252281fa51ad1d8a1c220b797a_/bin
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3d0893252281fa51ad1d8a1c220b797a_/etc
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_/bin
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_/include
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_/etc
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_/conda-meta
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_/sbin
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_/lib
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_/ssl
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_/share
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_/fonts
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_/opt
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_/var
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_/man
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_/libexec
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_/lib
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_/compiler_compat
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_/include
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_/conda-meta
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_/etc
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_/bin
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_/sbin
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_/x86_64-conda-linux-gnu
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_/man
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_/var
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_/ssl
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_/share
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_/fonts
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_/libexec
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/7c29ee1ebe032a24169825719f2e1a4d_
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/7c29ee1ebe032a24169825719f2e1a4d_/etc
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/7c29ee1ebe032a24169825719f2e1a4d_/conda-meta
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/7c29ee1ebe032a24169825719f2e1a4d_/x86_64-conda-linux-gnu
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/7c29ee1ebe032a24169825719f2e1a4d_/bin
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/7c29ee1ebe032a24169825719f2e1a4d_/lib
+--- references runtime listing ---
+/fsx/references/runtime_assets
+/fsx/references/runtime_assets/cached_envs
+/fsx/references/runtime_assets/cached_envs/sentieon_cli-1.5.2
+/fsx/references/runtime_assets/cached_envs/sentieon_cli-1.5.2/sentieon_cli
+/fsx/references/runtime_assets/cached_envs/conda
+/fsx/references/runtime_assets/cached_envs/conda/299e0fbc02639cada3d27463747d90ee_
+/fsx/references/runtime_assets/cached_envs/conda/90535532b5c085f6da620d414197a1b3_
+/fsx/references/runtime_assets/cached_envs/conda/6e599cfa2e57aebd626e37eb557a3324_
+/fsx/references/runtime_assets/cached_envs/conda/ac1c3ad4a398b8d1d8ea053c637bc6fc_
+/fsx/references/runtime_assets/cached_envs/conda/953bd0b4f71e6bbda7ceac1c77ba9bcb_
+/fsx/references/runtime_assets/cached_envs/conda/8f9d5f2eb41496ccdbbc32d4a635e63c_
+/fsx/references/runtime_assets/cached_envs/conda/386784e83dca731ed0bee02ad1e29b2e_
+/fsx/references/runtime_assets/cached_envs/conda/05822a2009e78c2ce66483548c93bc90_
+/fsx/references/runtime_assets/cached_envs/conda/93ebe1238530a7b88d9b0377f9f327b0_
+/fsx/references/runtime_assets/cached_envs/conda/788e729f1e0864dea51355773486d36a_
+/fsx/references/runtime_assets/cached_envs/conda/7b3dbc6b9eae05a003fb9812033f0657_
+/fsx/references/runtime_assets/cached_envs/conda/650f152e7cc096c99ec308ec652b338a_
+/fsx/references/runtime_assets/cached_envs/conda/6a98d5a34ca1b5ab4b0a831930b7bb10_
+/fsx/references/runtime_assets/cached_envs/conda/5b93cf1d179903b1bf3ce7b68514bf72_
+/fsx/references/runtime_assets/cached_envs/conda/0b1aa0bf84b641b1fca3480164585362_
+/fsx/references/runtime_assets/cached_envs/conda/b1e21e866d8f229144555d1c7a6674e4_
+/fsx/references/runtime_assets/cached_envs/conda/4e50312f9c958dfca057b2c605426602_
+/fsx/references/runtime_assets/cached_envs/conda/70bd9d1b705d48d95c302435f63a874d_
+/fsx/references/runtime_assets/cached_envs/conda/608d52898d6f0fe50a35015ee2955834_
+/fsx/references/runtime_assets/cached_envs/conda/5054602efe27c1789764b4b6065a11d6_
+/fsx/references/runtime_assets/cached_envs/conda/53f40ecc487f59c0106948094149d68f_
+/fsx/references/runtime_assets/cached_envs/conda/cbee441bab3740ee8e092ae8f9cbb3b9_
+/fsx/references/runtime_assets/cached_envs/conda/dc7019ae2957291b7fd9955ae255a6d1_
+/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_
+/fsx/references/runtime_assets/cached_envs/conda/e41dc845345d49d1be556ec6298452d7_
+/fsx/references/runtime_assets/cached_envs/conda/fc10530623cc428bfa51464b358f203e_
+/fsx/references/runtime_assets/cached_envs/conda/d8a099cbe66aacd85d9653887f51ccba_
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/libexec
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/lib
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/share
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/doc
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles
+/fsx/references/runtime_assets/cached_envs/sentieon_cli-1.5.1
+/fsx/references/runtime_assets/cached_envs/sentieon_cli-1.5.1/sentieon_cli
+/fsx/references/runtime_assets/cached_envs/apptainer_cache
+/fsx/references/runtime_assets/cached_envs/apptainer_cache/cache
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-ARCHIVED
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-ARCHIVED/sentieon-genomics-202308.03
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-ARCHIVED/sentieon-genomics-202503.01.rc1
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-ARCHIVED/sentieon-genomics-202503
+/fsx/references/runtime_assets/cached_envs/nextflow
+/fsx/references/runtime_assets/cached_envs/nextflow/java-21
+/fsx/references/runtime_assets/cached_envs/nextflow/24.10.5
+/fsx/references/runtime_assets/cached_envs/containers
+/fsx/references/runtime_assets/budget_tags
+/fsx/references/runtime_assets/cluster_boot_config
+/fsx/references/runtime_assets/cluster_boot_config/backups
+/fsx/references/runtime_assets/cluster_boot_config/backups/20260509T062122Z
+/fsx/references/runtime_assets/tool_specific_resources
+/fsx/references/runtime_assets/tool_specific_resources/vep
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens
+/fsx/references/runtime_assets/tool_specific_resources/verifybamid
+/fsx/references/runtime_assets/tool_specific_resources/verifybamid/hg38
+/fsx/references/runtime_assets/tool_specific_resources/verifybam2
+/fsx/references/runtime_assets/tool_specific_resources/verifybam2/test
+/fsx/references/runtime_assets/tool_specific_resources/verifybam2/exome
+/fsx/references/runtime_assets/tool_specific_resources/H_sapiens
+/fsx/references/runtime_assets/tool_specific_resources/H_sapiens/b37
+/fsx/references/runtime_assets/tool_specific_resources/sourmash
+/fsx/references/runtime_assets/tool_specific_resources/sourmash/gtdb-rs226
+/fsx/references/runtime_assets/tool_specific_resources/ganon2
+/fsx/references/runtime_assets/tool_specific_resources/longtr
+/fsx/references/runtime_asset--output truncated--

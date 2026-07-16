@@ -1,0 +1,7 @@
+{
+  "analysis_id": "ccv_live_inflection_bjuice_product_v0_1_20260708T142032Z",
+  "command_id": "inflection-bjuice-product-v0.1",
+  "manifest": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/inflection-bjuice-product-v0.1/analysis_samples.tsv",
+  "samples": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/inflection-bjuice-product-v0.1/config/20260708T144534Z_7a59a09f_samples.tsv",
+  "units": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/inflection-bjuice-product-v0.1/config/20260708T144534Z_7a59a09f_units.tsv"
+}

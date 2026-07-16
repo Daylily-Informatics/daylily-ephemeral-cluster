@@ -24,6 +24,10 @@ from daylily_ec.aws.budgets import (
 from daylily_ec.state.models import CheckStatus
 
 
+class _BudgetNotFound(Exception):
+    response = {"Error": {"Code": "NotFoundException"}}
+
+
 # ---------------------------------------------------------------------------
 # Helper factories
 # ---------------------------------------------------------------------------
@@ -32,9 +36,17 @@ from daylily_ec.state.models import CheckStatus
 def _budgets_client(budgets_list=None, create_ok=True):
     """Return a mock budgets client."""
     c = MagicMock()
-    c.describe_budgets.return_value = {
-        "Budgets": budgets_list or [],
-    }
+    budgets = budgets_list or []
+
+    def describe_budget(AccountId, BudgetName):
+        _ = AccountId
+        for budget in budgets:
+            if budget.get("BudgetName") == BudgetName:
+                return {"Budget": budget}
+        raise _BudgetNotFound(f"Budget {BudgetName} not found")
+
+    c.describe_budget.side_effect = describe_budget
+    c.describe_budgets.return_value = {"Budgets": budgets}
     if not create_ok:
         c.create_budget.side_effect = Exception("boom")
     return c
@@ -84,13 +96,12 @@ class TestConstants:
 
 class TestBuildBudgetDict:
     def test_shape_matches_bash(self):
-        d = _build_budget_dict("mybudget", "200", "myproject", "mycluster")
+        d = _build_budget_dict("mybudget", "200", "mycluster")
         assert d["BudgetLimit"] == {"Amount": "200", "Unit": "USD"}
         assert d["BudgetName"] == "mybudget"
         assert d["BudgetType"] == "COST"
         assert d["TimeUnit"] == "MONTHLY"
         assert d["CostFilters"]["TagKeyValue"] == [
-            "user:aws-parallelcluster-project$myproject",
             "user:aws-parallelcluster-clustername$mycluster",
         ]
         ct = d["CostTypes"]
@@ -109,7 +120,7 @@ class TestBuildBudgetDict:
         assert ct["UseBlended"] is False
 
     def test_amount_is_string(self):
-        d = _build_budget_dict("b", 300, "p", "c")
+        d = _build_budget_dict("b", 300, "c")
         assert d["BudgetLimit"]["Amount"] == "300"
 
 
@@ -150,10 +161,15 @@ class TestBudgetExists:
         c = _budgets_client([])
         assert budget_exists(c, "123", "foo") is False
 
-    def test_api_error_returns_false(self):
+    def test_api_error_raises(self):
         c = MagicMock()
-        c.describe_budgets.side_effect = Exception("forbidden")
-        assert budget_exists(c, "123", "foo") is False
+        c.describe_budget.side_effect = Exception("forbidden")
+        try:
+            budget_exists(c, "123", "foo")
+        except Exception as exc:
+            assert "forbidden" in str(exc)
+        else:
+            raise AssertionError("budget_exists should raise non-NotFound API errors")
 
 
 # ===================================================================
@@ -163,10 +179,10 @@ class TestBudgetExists:
 
 class TestClusterBudgetName:
     def test_format(self):
-        assert cluster_budget_name("us-west-2b", "mycluster") == "da-us-west-2b-mycluster"
+        assert cluster_budget_name("us-west-2b", "mycluster") == "mycluster"
 
     def test_different_az(self):
-        assert cluster_budget_name("us-east-1a", "cl") == "da-us-east-1a-cl"
+        assert cluster_budget_name("us-east-1a", "cl") == "cl"
 
 
 # ===================================================================
@@ -177,7 +193,7 @@ class TestClusterBudgetName:
 class TestCreateBudget:
     def test_creates_when_not_exists(self):
         c = _budgets_client([])
-        create_budget(c, "111", "b1", "200", "p1", "c1")
+        create_budget(c, "111", "b1", "200", "c1")
         c.create_budget.assert_called_once()
         call_kw = c.create_budget.call_args
         budget_arg = (
@@ -192,7 +208,7 @@ class TestCreateBudget:
 
     def test_skips_when_exists(self):
         c = _budgets_client([{"BudgetName": "b1"}])
-        create_budget(c, "111", "b1", "200", "p1", "c1")
+        create_budget(c, "111", "b1", "200", "c1")
         c.create_budget.assert_not_called()
 
 
@@ -220,6 +236,11 @@ class TestCreateNotifications:
         # Should not raise
         create_notifications(c, "111", "b1", [50], "a@b.com")
 
+    def test_blank_email_skips_notifications(self):
+        c = MagicMock()
+        create_notifications(c, "111", "b1", [75], "")
+        c.create_notification.assert_not_called()
+
 
 # ===================================================================
 # update_tags_file
@@ -241,6 +262,12 @@ class TestUpdateTagsFile:
         body = c.put_object.call_args.kwargs["Body"].decode("utf-8")
         assert "old_proj\tubuntu,admin\n" in body
         assert "new_proj\tubuntu,dev\n" in body
+
+    def test_replaces_existing_project_line(self):
+        c = _s3_client(existing_body="proj1\tubuntu,old\nother\tubuntu\nproj1\tubuntu,dupe\n")
+        update_tags_file(c, "mybucket", "proj1", "new", "us-west-2")
+        body = c.put_object.call_args.kwargs["Body"].decode("utf-8")
+        assert body == "proj1\tubuntu,new\nother\tubuntu\n"
 
     def test_bucket_name_used(self):
         c = _s3_client(existing_body=None)
@@ -304,6 +331,7 @@ class TestEnsureGlobalBudget:
         )
         assert name == GLOBAL_BUDGET_NAME
         bc.create_budget.assert_not_called()
+        sc.put_object.assert_called_once()
 
 
 # ===================================================================
@@ -327,14 +355,14 @@ class TestEnsureClusterBudget:
             bucket_name="bkt",
             allowed_users="u1",
         )
-        assert name == "da-us-west-2b-cl1"
+        assert name == "cl1"
         bc.create_budget.assert_called_once()
         # 1 notification for cluster: 75
         assert bc.create_notification.call_count == 1
         sc.put_object.assert_called_once()
 
     def test_skips_when_exists(self):
-        bc = _budgets_client([{"BudgetName": "da-us-west-2b-cl1"}])
+        bc = _budgets_client([{"BudgetName": "cl1"}])
         sc = _s3_client()
         name = ensure_cluster_budget(
             bc,
@@ -348,8 +376,31 @@ class TestEnsureClusterBudget:
             bucket_name="bkt",
             allowed_users="u1",
         )
-        assert name == "da-us-west-2b-cl1"
+        assert name == "cl1"
         bc.create_budget.assert_not_called()
+        sc.put_object.assert_called_once()
+
+    def test_cluster_budget_ignores_project_tag_filter(self):
+        bc = _budgets_client([])
+        sc = _s3_client(existing_body=None)
+        name = ensure_cluster_budget(
+            bc,
+            sc,
+            "111",
+            amount="200",
+            cluster_name="cl1",
+            email="a@b.com",
+            region="us-west-2",
+            region_az="us-west-2b",
+            bucket_name="bkt",
+            allowed_users="u1",
+        )
+        assert name == "cl1"
+        budget_arg = bc.create_budget.call_args.kwargs["Budget"]
+        assert budget_arg["BudgetName"] == "cl1"
+        assert budget_arg["CostFilters"]["TagKeyValue"] == [
+            "user:aws-parallelcluster-clustername$cl1",
+        ]
 
 
 # ===================================================================
@@ -362,7 +413,7 @@ class TestMakeBudgetPreflightStep:
         bc = _budgets_client(
             [
                 {"BudgetName": GLOBAL_BUDGET_NAME},
-                {"BudgetName": "da-us-west-2b-cl"},
+                {"BudgetName": "cl"},
             ]
         )
         r = make_budget_preflight_step(
@@ -385,7 +436,7 @@ class TestMakeBudgetPreflightStep:
             region_az="us-west-2b",
         )
         assert r.status == CheckStatus.WARN
-        assert "da-us-west-2b-cl" in r.remediation
+        assert "cl" in r.remediation
 
     def test_neither_exist_warn(self):
         bc = _budgets_client([])
@@ -397,10 +448,10 @@ class TestMakeBudgetPreflightStep:
         )
         assert r.status == CheckStatus.WARN
         assert GLOBAL_BUDGET_NAME in r.remediation
-        assert "da-us-west-2b-cl" in r.remediation
+        assert "cl" in r.remediation
 
     def test_cluster_only_warn(self):
-        bc = _budgets_client([{"BudgetName": "da-us-west-2b-cl"}])
+        bc = _budgets_client([{"BudgetName": "cl"}])
         r = make_budget_preflight_step(
             bc,
             "111",
@@ -445,3 +496,15 @@ class TestMakeBudgetPreflightStep:
         assert "global_exists" in r.details
         assert "cluster_budget" in r.details
         assert "cluster_exists" in r.details
+
+    def test_api_error_fails(self):
+        bc = MagicMock()
+        bc.describe_budget.side_effect = Exception("AccessDenied")
+        r = make_budget_preflight_step(
+            bc,
+            "111",
+            cluster_name="cl",
+            region_az="us-west-2b",
+        )
+        assert r.status == CheckStatus.FAIL
+        assert "AccessDenied" in r.details["error"]

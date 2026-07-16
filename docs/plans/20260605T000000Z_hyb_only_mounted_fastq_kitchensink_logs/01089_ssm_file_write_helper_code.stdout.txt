@@ -1,0 +1,171 @@
+
+
+def _ubuntu_payload_guard() -> str:
+    return "\n".join(
+        [
+            'actual_user="$(id -un)"',
+            f'if [ "$actual_user" != "{SUPPORTED_REMOTE_USER}" ]; then',
+            '  echo "Daylily SSM payload must run as ubuntu; got $actual_user." >&2',
+            "  exit 64",
+            "fi",
+        ]
+    )
+
+
+def _encode_script_payload(script: str, *, as_user: Optional[str]) -> str:
+    user = _require_ubuntu_user(as_user)
+    encoded = base64.b64encode(script.encode("utf-8")).decode("ascii")
+    writer = (
+        "import base64, os, pathlib; "
+        "path = pathlib.Path(os.environ['DAYLILY_SSM_TMP']); "
+        "path.write_text(base64.b64decode(os.environ['DAYLILY_SSM_B64']).decode('utf-8'), encoding='utf-8')"
+    )
+    runner = f'sudo -iu {shlex.quote(user)} bash -l "$tmp"'
+    return "\n".join(
+        [
+            # AWS-RunShellScript uses /bin/sh for the transport wrapper on Ubuntu.
+            # Keep the wrapper POSIX-safe and run the real payload under a bash login shell as ubuntu.
+            "set -eu",
+            "tmp=$(mktemp /tmp/daylily-ssm-XXXXXX.sh)",
+            f"export DAYLILY_SSM_B64={shlex.quote(encoded)}",
+            'export DAYLILY_SSM_TMP="$tmp"',
+            f"python3 -c {shlex.quote(writer)}",
+            f'chown {shlex.quote(user)} "$tmp"',
+            'chmod 700 "$tmp"',
+            "set +e",
+            runner,
+            "rc=$?",
+            "set -e",
+            'rm -f "$tmp"',
+            "exit $rc",
+        ]
+    )
+
+
+def run_shell(
+    instance_id: str,
+    region: str,
+    script: str,
+    *,
+    profile: Optional[str] = None,
+    as_user: Optional[str] = "ubuntu",
+    timeout: Optional[int] = 300,
+    poll_interval: int = 3,
+    comment: str = "Daylily remote command",
+) -> SsmCommandResult:
+    """Run *script* on an instance via SSM Run Command and return its result."""
+    _require_ubuntu_user(as_user)
+    session = _build_boto_session(profile=profile, region=region)
+    client = session.client("ssm")
+    payload = _encode_script_payload(
+        "\n".join([_ubuntu_payload_guard(), script]),
+        as_user=as_user,
+    )
+
+    try:
+        send_kwargs = {
+            "InstanceIds": [instance_id],
+            "DocumentName": "AWS-RunShellScript",
+            "Comment": comment,
+            "Parameters": {"commands": [payload]},
+        }
+        if timeout is not None:
+            send_kwargs["TimeoutSeconds"] = max(timeout, 30)
+
+        response = client.send_command(**send_kwargs)
+    except (BotoCoreError, ClientError) as exc:
+        raise SsmError(f"Unable to start SSM Run Command on '{instance_id}': {exc}") from exc
+
+    command_id = str(response["Command"]["CommandId"])
+    deadline = None if timeout is None else time.time() + timeout
+
+    while True:
+        try:
+            invocation = client.get_command_invocation(
+                CommandId=command_id,
+                InstanceId=instance_id,
+            )
+        except client.exceptions.InvocationDoesNotExist:
+            if deadline is not None and time.time() >= deadline:
+                raise TimeoutError(f"SSM command '{command_id}' did not start within {timeout}s.")
+            time.sleep(poll_interval)
+            continue
+        except (BotoCoreError, ClientError) as exc:
+            raise SsmError(f"Unable to fetch SSM command invocation '{command_id}': {exc}") from exc
+
+        status = str(invocation.get("Status") or "")
+        if status in PENDING_STATUSES:
+            if deadline is not None and time.time() >= deadline:
+                raise TimeoutError(
+                    f"SSM command '{command_id}' did not complete within {timeout}s."
+                )
+            time.sleep(poll_interval)
+            continue
+
+        result = SsmCommandResult(
+            command_id=command_id,
+            instance_id=instance_id,
+            status=status,
+            response_code=int(invocation.get("ResponseCode") or 0),
+            stdout=str(invocation.get("StandardOutputContent") or ""),
+            stderr=str(invocation.get("StandardErrorContent") or ""),
+        )
+        if status != SUCCESS_STATUS or result.response_code != 0:
+            raise SsmCommandFailedError(
+                f"SSM command '{command_id}' failed with status={status} rc={result.response_code}",
+                result,
+            )
+        return result
+
+
+def write_remote_text(
+    instance_id: str,
+    region: str,
+    remote_path: str,
+    content: str,
+    *,
+    profile: Optional[str] = None,
+    as_user: str = "ubuntu",
+) -> SsmCommandResult:
+    """Write small text content to *remote_path* via SSM Run Command."""
+    as_user = _require_ubuntu_user(as_user)
+    target_path = _normalize_remote_path(remote_path, user=as_user)
+    encoded = base64.b64encode(content.encode("utf-8")).decode("ascii")
+    script = "\n".join(
+        [
+            "set -euo pipefail",
+            f"export DAYLILY_REMOTE_B64={shlex.quote(encoded)}",
+            f"export DAYLILY_REMOTE_PATH={shlex.quote(target_path)}",
+            "python3 -c "
+            + shlex.quote(
+                "import base64, os, pathlib; "
+                "path = pathlib.Path(os.environ['DAYLILY_REMOTE_PATH']); "
+                "path.parent.mkdir(parents=True, exist_ok=True); "
+                "path.write_text(base64.b64decode(os.environ['DAYLILY_REMOTE_B64']).decode('utf-8'), encoding='utf-8')"
+            ),
+        ]
+    )
+    return run_shell(
+        instance_id,
+        region,
+        script,
+        profile=profile,
+        as_user=as_user,
+        comment=f"Write {target_path}",
+    )
+
+
+def _require_ubuntu_session_preferences(
+    region: str,
+    *,
+    profile: Optional[str] = None,
+) -> None:
+    cmd = [
+        "aws",
+        "ssm",
+        "get-document",
+        "--name",
+        "SSM-SessionManagerRunShell",
+        "--document-format",
+        "JSON",
+        "--query",

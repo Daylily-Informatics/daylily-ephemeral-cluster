@@ -1,0 +1,148 @@
+** AUGMENT CODE RULE ** MUST NOT DO : DO NOT USE heredoc. heredoc always corrupts termainals.
+** AUGMENT CODE RULE ** MUST DO : YOU MUST use tmp script to run all commands innstead of redirecting strings printed to terminal (ie: heredoc), if you do anything other than use scripts, terminals get corrupted.
+BASH=/bin/bash
+BASH_ARGC=([0]="1")
+BASH_ARGV=([0]="pipefail")
+BASH_EXECUTION_STRING=set
+BASH_LINENO=()
+BASH_SOURCE=()
+BASH_VERSINFO=([0]="3" [1]="2" [2]="57" [3]="1" [4]="release" [5]="arm64-apple-darwin25")
+BASH_VERSION='3.2.57(1)-release'
+CODEX_CI=1
+CODEX_INTERNAL_ORIGINATOR_OVERRIDE='Codex Desktop'
+CODEX_SHELL=1
+CODEX_THREAD_ID=019e9015-6e7f-7e43-8486-49046a17534b
+COLORTERM=
+COMMAND_MODE=unix2003
+CONDA_DEFAULT_ENV=base
+CONDA_EXE=/Users/jmajor/miniconda3/bin/conda
+CONDA_PREFIX=/Users/jmajor/miniconda3
+CONDA_PROMPT_MODIFIER='(base) '
+CONDA_PYTHON_EXE=/Users/jmajor/miniconda3/bin/python
+CONDA_SHLVL=1
+DIRSTACK=()
+DISABLE_AUTO_UPDATE=true
+EUID=501
+GH_PAGER=cat
+GIT_PAGER=cat
+GROUPS=()
+HOME=/Users/jmajor
+HOSTNAME=Johns-MacBook-Pro.local
+HOSTTYPE=arm64
+IFS=$' \t\n'
+LANG=C.UTF-8
+LC_ALL=C.UTF-8
+LC_CTYPE=C.UTF-8
+LOGNAME=jmajor
+LOG_FORMAT=json
+MACHTYPE=arm64-apple-darwin25
+MallocNanoZone=0
+NO_COLOR=1
+OPTERR=1
+OPTIND=1
+OSLogRateLimit=64
+OSTYPE=darwin25
+PAGER=cat
+PATH=/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/opt/homebrew/bin:/Users/jmajor/.codex/tmp/arg0/codex-arg0wVr1rQ:/Users/jmajor/miniconda3/bin:/Users/jmajor/miniconda3/condabin:/Applications/Codex.app/Contents/Resources
+PIPESTATUS=([0]="0")
+PPID=14993
+PS1='(base) '
+PS4='+ '
+PWD=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster
+RUST_LOG=warn
+SHELL=/bin/zsh
+SHELLOPTS=braceexpand:hashall:interactive-comments
+SHLVL=3
+SSH_AUTH_SOCK=/var/run/com.apple.launchd.n46yQXkmau/Listeners
+TERM=dumb
+TMPDIR=/var/folders/rk/2n95m40s1zs48qr48ynwhxwm0000gn/T/
+UID=501
+USER=jmajor
+XPC_FLAGS=0x0
+XPC_SERVICE_NAME=0
+ZSH_TMUX_AUTOSTART=false
+ZSH_TMUX_AUTOSTARTED=true
+_='** AUGMENT CODE RULE ** MUST DO : YOU MUST use tmp script to run all commands innstead of redirecting strings printed to terminal (ie: heredoc), if you do anything other than use scripts, terminals get corrupted.'
+_CE_CONDA=
+_CE_M=
+_CONDA_EXE=/Users/jmajor/miniconda3/bin/conda
+_CONDA_ROOT=/Users/jmajor/miniconda3
+__CFBundleIdentifier=com.openai.codex
+__CF_USER_TEXT_ENCODING=0x1F5:0x0:0x0
+__conda_activate () 
+{ 
+    if [ -n "${CONDA_PS1_BACKUP:+x}" ]; then
+        PS1="$CONDA_PS1_BACKUP";
+        \unset CONDA_PS1_BACKUP;
+    fi;
+    \local ask_conda;
+    ask_conda="$(PS1="${PS1:-}" __conda_exe shell.posix "$@")" || \return;
+    \eval "$ask_conda";
+    __conda_hashr
+}
+__conda_exe () 
+{ 
+    ( if [ -n "${_CE_M:+x}" ] && [ -n "${_CE_CONDA:+x}" ]; then
+        "$CONDA_EXE" $_CE_M $_CE_CONDA "$@";
+    else
+        "$CONDA_EXE" "$@";
+    fi )
+}
+__conda_hashr () 
+{ 
+    if [ -n "${ZSH_VERSION:+x}" ]; then
+        \rehash;
+    else
+        if [ -n "${POSH_VERSION:+x}" ]; then
+            :;
+        else
+            \hash -r;
+        fi;
+    fi
+}
+__conda_reactivate () 
+{ 
+    echo "'__conda_reactivate' is deprecated and will be removed in 25.9. Use '__conda_activate reactivate' instead." 1>&2;
+    __conda_activate reactivate
+}
+conda () 
+{ 
+    \local cmd="${1-__missing__}";
+    case "$cmd" in 
+        activate | deactivate)
+            __conda_activate "$@"
+        ;;
+        install | update | upgrade | remove | uninstall)
+            __conda_exe "$@" || \return;
+            __conda_activate reactivate
+        ;;
+        *)
+            __conda_exe "$@"
+        ;;
+    esac
+}
+required
+2026-06-06 03:15:30   12675488 DAY_final_multiqc.html
+2026-06-06 03:15:30   26705126 multiqc_data.json
+2026-06-06 03:15:30    4177078 dayoa_evidence_manifest.json
+summary
+2026-06-06 03:15:30      13734 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/parse_bclconvert_samplesheet.py
+2026-06-06 03:15:29       5962 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/parse_truvari_summary.py
+2026-06-06 03:15:30       5624 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/prepare_bclconvert_demux_fastqc_inputs.py
+2026-06-06 03:15:30       6615 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/prepare_bclconvert_lane_samplesheet.py
+2026-06-06 03:15:29      11744 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/relatedness_report.py
+2026-06-06 03:15:30       9119 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh
+2026-06-06 03:15:30        717 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/sort_concat_chrm_list.py
+2026-06-06 03:15:30      30718 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/stage_multiqc_inputs.py
+2026-06-06 03:15:29       6647 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/summarize_run_qc_report.py
+2026-06-06 03:15:29       7350 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/summarize_unmapped_ganon2.py
+2026-06-06 03:15:29       7141 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/summarize_unmapped_metagenomics.py
+2026-06-06 03:15:30       9606 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/summarize_unmapped_sourmash.py
+2026-06-06 03:15:29       3656 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/tiddit_sv_to_multiqc.py
+2026-06-06 03:15:29       3810 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/validate_multiqc_sample_ids.py
+2026-06-06 03:15:30        138 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/write_dayoa_evidence_manifest.py
+2026-06-06 03:15:30       2937 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/write_illumina_run_qc_json.py
+2026-06-06 03:15:29       2417 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/write_interop_summary_csv.py
+
+Total Objects: 16042
+   Total Size: 255917543393

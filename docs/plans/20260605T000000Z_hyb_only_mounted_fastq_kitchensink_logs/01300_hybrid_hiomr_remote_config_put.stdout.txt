@@ -1,0 +1,25 @@
+SSM cfg init 20260606T105700Z_hybrid_hiomr_na4_samples.tsv: c4d87b37-c2d8-4b7f-a0a9-ceb515d39e69 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T105700Z_hybrid_hiomr_na4_samples.tsv 1: e40cccf1-b3f2-447b-8837-a816c1a0de88 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg final 20260606T105700Z_hybrid_hiomr_na4_samples.tsv: ac14951f-36f0-4e48-bdfc-e4bb834575ef rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+-rw-r--r-- 1 ubuntu ubuntu 451 Jun  6 10:57 /home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na4_20260606T105700Z_config/20260606T105700Z_hybrid_hiomr_na4_samples.tsv
+14f2fd3ccb99cef04fb69effc20451b88e090e558d9e43b1769c97b0d10067bb  /home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na4_20260606T105700Z_config/20260606T105700Z_hybrid_hiomr_na4_samples.tsv
+PUT /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/hybrid_hiomr_na4_config/20260606T105700Z_hybrid_hiomr_na4_samples.tsv -> /home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na4_20260606T105700Z_config/20260606T105700Z_hybrid_hiomr_na4_samples.tsv bytes=451 sha256=14f2fd3ccb99cef04fb69effc20451b88e090e558d9e43b1769c97b0d10067bb
+SSM cfg init 20260606T105700Z_hybrid_hiomr_na4_units.tsv: ad0dabff-b07a-43d4-a279-7e58dbda44ac rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T105700Z_hybrid_hiomr_na4_units.tsv 1: 8080fffb-946f-4002-acfc-5cba57a00998 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg final 20260606T105700Z_hybrid_hiomr_na4_units.tsv: 47e75d31-e128-4663-ae97-912dde6bedf2 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+-rw-r--r-- 1 ubuntu ubuntu 8413 Jun  6 10:57 /home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na4_20260606T105700Z_config/20260606T105700Z_hybrid_hiomr_na4_units.tsv
+f44d5d5a6c5f921749b6511e298e5f9f01e6890b3e55bbc872e96fbc2cede2b0  /home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na4_20260606T105700Z_config/20260606T105700Z_hybrid_hiomr_na4_units.tsv
+PUT /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/hybrid_hiomr_na4_config/20260606T105700Z_hybrid_hiomr_na4_units.tsv -> /home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na4_20260606T105700Z_config/20260606T105700Z_hybrid_hiomr_na4_units.tsv bytes=8413 sha256=f44d5d5a6c5f921749b6511e298e5f9f01e6890b3e55bbc872e96fbc2cede2b0
+REMOTE_STAGE_DIR=/home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na4_20260606T105700Z_config

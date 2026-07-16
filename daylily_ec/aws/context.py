@@ -152,6 +152,45 @@ class AWSContext:
             _session=session,
         )
 
+    @classmethod
+    def build_region(
+        cls,
+        region: str,
+        profile: Optional[str] = None,
+    ) -> "AWSContext":
+        """Construct an :class:`AWSContext` for a region-only service home."""
+        resolved_profile = resolve_profile(profile)
+        resolved_region = (region or "").strip()
+        if not resolved_region:
+            raise RuntimeError("AWS region is required.")
+
+        if resolved_profile == "default":
+            logger.warning("AWS_PROFILE is set to 'default'.")
+
+        session = boto3.Session(profile_name=resolved_profile, region_name=resolved_region)
+
+        try:
+            sts = session.client("sts")
+            identity = sts.get_caller_identity()
+        except (BotoCoreError, ClientError) as exc:
+            raise RuntimeError(
+                f"AWS credentials invalid or inaccessible in region {resolved_region}: {exc}"
+            ) from exc
+
+        account_id = identity["Account"]
+        caller_arn = identity["Arn"]
+        iam_username = _extract_username(caller_arn)
+
+        return cls(
+            profile=resolved_profile,
+            region=resolved_region,
+            region_az=resolved_region,
+            account_id=account_id,
+            caller_arn=caller_arn,
+            iam_username=iam_username,
+            _session=session,
+        )
+
     # -- session accessor -------------------------------------------------
 
     @property

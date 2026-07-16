@@ -398,7 +398,7 @@ S3_URI                            required positional storage role; final folder
 --auto-import                     default NEW,CHANGED; allow none|new|changed|deleted|all
 --auto-export                     forbidden unless --allow-writeback-admin is set
 --wait / --no-wait                default wait for interactive; no-wait okay for automation
---timeout-seconds                 default 900
+--timeout-seconds                 default 5400 for current operator waits
 --tag KEY=VALUE                   repeatable
 --json                            existing global mode
 ```

@@ -1,0 +1,2 @@
+source_normalized=/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/
+dest_normalized=s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/

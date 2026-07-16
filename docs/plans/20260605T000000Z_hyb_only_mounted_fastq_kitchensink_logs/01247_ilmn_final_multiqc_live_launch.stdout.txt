@@ -1,0 +1,3 @@
+DAY-EC activated.
+DAY-EC activated.
+{"dy_command": "dy-r produce_multiqc_all --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentd\"]' 'htd_callers=[\"cyrius\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\",\"contam_identity\"]}' -j 200 -p -k --rerun-triggers mtime", "repo_path": "/fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis", "session": "hybonly_ilmn_final_multiqc_20260606T095442Z", "tmux_log": "/home/ubuntu/daylily-runs/hybonly_ilmn_final_multiqc_20260606T095442Z/tmux.log"}

@@ -1,0 +1,8 @@
+{
+  "commands": [
+    "sudo -iu ubuntu bash -lc 'set -euo pipefail; cd ~/projects/daylily-ephemeral-cluster; source ./activate >/dev/null; echo __DYEC_VERSION__; dyec --json version; echo __DYEC_REPO__; git rev-parse HEAD; git describe --tags --always; echo __DAYOA_DEP__; python -c \"import importlib.metadata as m; print(m.version(\\\"daylily-omics-analysis\\\"))\"; echo __DAYOA_CATALOG_HEAD__; grep -n \"default_ref:\\|validated_version:\" config/daylily_pipeline_command_catalog.yaml | head -n 16; echo __TOOLS__; command -v dyec; command -v day-clone; dyec analysis --help >/tmp/dyec_analysis_help.txt && echo DYEC_ANALYSIS_OK; day-clone --help >/tmp/day_clone_help.txt && echo DAY_CLONE_OK; tmux -V; echo __SQUEUE__; squeue -o \"%i  %P  %C  %t  %N  %c  %T  %m  %M  %D  %j\"; echo __MOUNTS__; test -d /fsx/references && echo REFERENCES_OK; test -d /fsx/control_data && echo CONTROL_DATA_OK; df -h /fsx /fsx/references /fsx/control_data'"
+  ],
+  "executionTimeout": [
+    "120"
+  ]
+}

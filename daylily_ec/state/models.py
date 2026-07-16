@@ -152,6 +152,15 @@ class StateRecord(BaseModel):
     private_subnet_id: str = ""
     policy_arn: str = ""
 
+    # -- DYEC-owned external FSx --------------------------------------------
+    fsx_owner: str = ""
+    fsx_lifecycle: str = ""
+    fsx_deployment_type: str = ""
+    fsx_file_system_id: str = ""
+    fsx_security_group_id: str = ""
+    fsx_data_repository_association_id: str = ""
+    fsx_resource_receipt_path: str = ""
+
     # -- Budget info ---------------------------------------------------------
     global_budget_name: str = ""
     cluster_budget_name: str = ""
@@ -176,6 +185,8 @@ class StateRecord(BaseModel):
     cluster_yaml_path: str = ""
     resolved_cli_config_path: str = ""
     preflight_report_path: str = ""
+    spot_price_summary_path: str = ""
+    spot_price_partitions: List[Dict[str, Any]] = Field(default_factory=list)
 
     # -- CloudFormation ------------------------------------------------------
     cfn_stack_name: str = ""

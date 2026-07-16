@@ -1,0 +1,6 @@
+COMMAND_ID=ff70d2fd-3173-4777-92af-8323e73a6ba3
+{
+  "Status": "Success",
+  "Stdout": "## before_status\ntmux_session=present\n## active_ont_jobs_before\nkilled_tmux_session=hybonly_ont_kitchensink_mounted_20260606T053415Z_retry1\nscancel_jobs=none\n## after_status\ntmux_session=absent\n## active_ont_jobs_after\n",
+  "Stderr": "/tmp/stop_ont_workflow.sh: line 6: squeue: command not found\n/tmp/stop_ont_workflow.sh: line 7: squeue: command not found\n/tmp/stop_ont_workflow.sh: line 24: squeue: command not found\n"
+}

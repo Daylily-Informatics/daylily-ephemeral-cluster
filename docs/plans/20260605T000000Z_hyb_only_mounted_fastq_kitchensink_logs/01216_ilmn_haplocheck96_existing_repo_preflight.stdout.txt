@@ -1,0 +1,45 @@
+DAY-EC activated.
+DAY-EC activated.
+repo_path=/fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis
+## jem-dev...origin/jem-dev
+ M workflow/rules/contam_identity.smk
+ M workflow/rules/go_left.smk
+ M workflow/rules/mosdepth.smk
+ M workflow/rules/rtg_vcfeval.smk
+ M workflow/rules/vep.smk
+?? pipeline_details.md
+?? pipeline_workflow_checkpoint_20260606T055941Z.mmd
+?? pipeline_workflow_checkpoint_20260606T055941Z.pdf
+?? pipeline_workflow_checkpoint_20260606T061441Z.mmd
+?? pipeline_workflow_checkpoint_20260606T061441Z.pdf
+?? pipeline_workflow_checkpoint_20260606T062942Z.mmd
+?? pipeline_workflow_checkpoint_20260606T062942Z.pdf
+?? pipeline_workflow_checkpoint_20260606T064443Z.mmd
+?? pipeline_workflow_checkpoint_20260606T064443Z.pdf
+?? pipeline_workflow_checkpoint_20260606T065944Z.mmd
+?? pipeline_workflow_checkpoint_20260606T065944Z.pdf
+?? pipeline_workflow_checkpoint_20260606T071445Z.mmd
+?? pipeline_workflow_checkpoint_20260606T071445Z.pdf
+?? pipeline_workflow_checkpoint_20260606T073009Z.mmd
+?? pipeline_workflow_checkpoint_20260606T073009Z.pdf
+?? pipeline_workflow_checkpoint_20260606T074509Z.mmd
+?? pipeline_workflow_checkpoint_20260606T074509Z.pdf
+?? pipeline_workflow_checkpoint_20260606T080010Z.mmd
+?? pipeline_workflow_checkpoint_20260606T080010Z.pdf
+?? pipeline_workflow_checkpoint_20260606T081511Z.mmd
+?? pipeline_workflow_checkpoint_20260606T081511Z.pdf
+?? pipeline_workflow_checkpoint_20260606T083012Z.mmd
+?? pipeline_workflow_checkpoint_20260606T083012Z.pdf
+?? pipeline_workflow_checkpoint_20260606T084513Z.mmd
+?? pipeline_workflow_checkpoint_20260606T084513Z.pdf
+?? pipeline_workflow_checkpoint_20260606T090014Z.mmd
+?? pipeline_workflow_checkpoint_20260606T090014Z.pdf
+?? pipeline_workflow_planned.mmd
+?? pipeline_workflow_planned.pdf
+?? sbatch_errs.log
+commit=d02a1bd825c8c13bac3751d26854b9834c5c3a53
+branch=jem-dev
+target_code_status:
+ M workflow/rules/contam_identity.smk
+analysis_root_du:
+239G	/fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z

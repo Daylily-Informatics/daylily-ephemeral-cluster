@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'nattemptednawsns3ncpnalignstats_combo_mqc' is not defined
+/opt/homebrew/Cellar/python@3.12/3.12.12_1/Frameworks/Python.framework/Versions/3.12/Resources/Python.app/Contents/MacOS/Python: can't open file '/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/heredoc': [Errno 2] No such file or directory
+(eval):1: command not found: no

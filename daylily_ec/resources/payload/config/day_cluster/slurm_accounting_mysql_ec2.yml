@@ -16,6 +16,13 @@ Parameters:
   PrivateSubnetId:
     Type: AWS::EC2::Subnet::Id
     Description: Private subnet for the accounting DB host.
+  AssignPublicIpAddress:
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "true"
+      - "false"
+    Description: Assign a public IP when the selected subnet is public and has no NAT-backed private egress.
   InstanceType:
     Type: String
     Default: t4g.micro
@@ -182,7 +189,7 @@ Resources:
         HttpTokens: required
         HttpEndpoint: enabled
       NetworkInterfaces:
-        - AssociatePublicIpAddress: false
+        - AssociatePublicIpAddress: !Ref AssignPublicIpAddress
           DeviceIndex: 0
           GroupSet:
             - !Ref AccountingDbSecurityGroup

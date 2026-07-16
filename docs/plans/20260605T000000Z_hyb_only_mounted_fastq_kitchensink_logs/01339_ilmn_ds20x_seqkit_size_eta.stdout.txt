@@ -1,0 +1,13 @@
+DAY-EC activated.
+DAY-EC activated.
+sample	elapsed_min	source_r1_GB	fraction	expected_r1_GB	current_r1_GB	remaining_r1_GB	rate_GB_min	eta_r1_min
+NA00232	18.8	40.96	0.465	19.05	9.58	9.47	0.51	18.6
+NA09677	15.2	38.99	0.503	19.62	9.31	10.31	0.61	16.8
+NA03986	15.2	34.49	0.568	19.60	13.66	5.94	0.90	6.6
+NA05164	15.2	32.34	0.608	19.65	8.99	10.66	0.59	18.0
+SQUEUE
+             JOBID      PARTITION               NAME ST       TIME  NODES NODELIST(REASON)
+             913_3           i192  ilmn_ds20x_seqkit  R      15:10      1 i192-dy-all-5
+             913_2           i192  ilmn_ds20x_seqkit  R      15:10      1 i192-dy-all-4
+             913_1           i192  ilmn_ds20x_seqkit  R      15:10      1 i192-dy-all-4
+             913_0           i192  ilmn_ds20x_seqkit  R      18:52      1 i192-dy-all-3

@@ -1,0 +1,10 @@
+{
+  "analysis_id": "ccv_live_ultima_run_qc_20260708T163200Z",
+  "association_id": "dra-03ebcc27fecb99c6f",
+  "command_id": "ultima_run_qc",
+  "headnode_path": "/fsx/run_dir_mounts/602221-20260417_2346/",
+  "lifecycle": "AVAILABLE",
+  "mount_id": "602221-20260417_2346",
+  "run_context": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/ultima_run_qc/runs.tsv",
+  "source_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN602221/2026/602221-20260417_2346/"
+}

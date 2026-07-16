@@ -1,0 +1,33 @@
+platform	sample	panel	partition	barcode	count	bytes	source
+ONT	NA00232	SMN	chip1	barcode18	73	19642355519	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260522_ONT_4Coriells_chip1/20260522_ONT_4Coriells_chip1/20260522_2252_2B_PBM13545_f3392d36/fastq_pass/barcode18/
+ONT	NA00232	SMN	chip2	barcode18	73	16310740013	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260522_ONT_4Coriells_chip2/20260522_ONT_4Coriells_chip2/20260523_0038_1C_PBM14931_9bbdbb3f/fastq_pass/barcode18/
+ONT	NA00232	SMN	chip4	barcode18	73	15490905346	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260522_ONT_4Coriells_chip4/20260522_ONT_4Coriells_chip4/20260523_0039_3E_PBM13048_8867cb21/fastq_pass/barcode18/
+ONT	NA00232	SMN	ALL_REQUESTED_CHIPS	barcode18	219	51444000878	chip1,chip2,chip4
+ONT	NA09677	SMN	chip1	barcode19	73	24335691496	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260522_ONT_4Coriells_chip1/20260522_ONT_4Coriells_chip1/20260522_2252_2B_PBM13545_f3392d36/fastq_pass/barcode19/
+ONT	NA09677	SMN	chip2	barcode19	73	21715190539	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260522_ONT_4Coriells_chip2/20260522_ONT_4Coriells_chip2/20260523_0038_1C_PBM14931_9bbdbb3f/fastq_pass/barcode19/
+ONT	NA09677	SMN	chip3	barcode19	9	2620074996	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260522_ONT_4Coriells_chip3/20260522_ONT_4Coriells_chip3/20260523_0038_1F_PBK89072_e28a4508/fastq_pass/barcode19/
+ONT	NA09677	SMN	chip4	barcode19	73	19869801741	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260522_ONT_4Coriells_chip4/20260522_ONT_4Coriells_chip4/20260523_0039_3E_PBM13048_8867cb21/fastq_pass/barcode19/
+ONT	NA09677	SMN	ALL_REQUESTED_CHIPS	barcode19	228	68540758772	chip1,chip2,chip3,chip4
+ONT	NA03986	DMPK	chip1	barcode20	73	40979880244	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260522_ONT_4Coriells_chip1/20260522_ONT_4Coriells_chip1/20260522_2252_2B_PBM13545_f3392d36/fastq_pass/barcode20/
+ONT	NA03986	DMPK	chip2	barcode20	73	42290008906	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260522_ONT_4Coriells_chip2/20260522_ONT_4Coriells_chip2/20260523_0038_1C_PBM14931_9bbdbb3f/fastq_pass/barcode20/
+ONT	NA03986	DMPK	chip4	barcode20	73	38209419090	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260522_ONT_4Coriells_chip4/20260522_ONT_4Coriells_chip4/20260523_0039_3E_PBM13048_8867cb21/fastq_pass/barcode20/
+ONT	NA03986	DMPK	ALL_REQUESTED_CHIPS	barcode20	219	121479308240	chip1,chip2,chip4
+ONT	NA05164	DMPK	chip1	barcode21	73	19230643034	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260522_ONT_4Coriells_chip1/20260522_ONT_4Coriells_chip1/20260522_2252_2B_PBM13545_f3392d36/fastq_pass/barcode21/
+ONT	NA05164	DMPK	chip2	barcode21	73	19329507667	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260522_ONT_4Coriells_chip2/20260522_ONT_4Coriells_chip2/20260523_0038_1C_PBM14931_9bbdbb3f/fastq_pass/barcode21/
+ONT	NA05164	DMPK	chip4	barcode21	73	17791590827	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260522_ONT_4Coriells_chip4/20260522_ONT_4Coriells_chip4/20260523_0039_3E_PBM13048_8867cb21/fastq_pass/barcode21/
+ONT	NA05164	DMPK	ALL_REQUESTED_CHIPS	barcode21	219	56351741528	chip1,chip2,chip4
+ILMN	NA00232	Coriell	NA00232-SMN_S46_R1_001.fastq.gz		1	40957861653	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/NA00232-SMN_S46_R1_001.fastq.gz
+ILMN	NA00232	Coriell	NA00232-SMN_S46_R2_001.fastq.gz		1	42168686123	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/NA00232-SMN_S46_R2_001.fastq.gz
+ILMN	NA09677	Coriell	NA09677-SMN_S47_R1_001.fastq.gz		1	38992932096	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/NA09677-SMN_S47_R1_001.fastq.gz
+ILMN	NA09677	Coriell	NA09677-SMN_S47_R2_001.fastq.gz		1	40539959624	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/NA09677-SMN_S47_R2_001.fastq.gz
+ILMN	NA03986	Coriell	NA03986-DMPK_S48_R1_001.fastq.gz		1	34494365821	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/NA03986-DMPK_S48_R1_001.fastq.gz
+ILMN	NA03986	Coriell	NA03986-DMPK_S48_R2_001.fastq.gz		1	36200117444	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/NA03986-DMPK_S48_R2_001.fastq.gz
+ILMN	NA05164	Coriell	NA05164-DMPK_S49_R1_001.fastq.gz		1	32339962781	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/NA05164-DMPK_S49_R1_001.fastq.gz
+ILMN	NA05164	Coriell	NA05164-DMPK_S49_R2_001.fastq.gz		1	33672518730	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/NA05164-DMPK_S49_R2_001.fastq.gz
+ILMN	HG001	Altair	ALL_MATCHED_FASTQS		6	234245245181	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/
+ILMN	HG002	Altair	ALL_MATCHED_FASTQS		6	277264425198	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/
+ILMN	HG003	Altair	ALL_MATCHED_FASTQS		6	259335122269	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/
+ILMN	HG004	Altair	ALL_MATCHED_FASTQS		6	257051965792	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/
+ILMN	HG005	Altair	ALL_MATCHED_FASTQS		6	237924417466	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/
+ILMN	HG006	Altair	ALL_MATCHED_FASTQS		6	243720253027	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/
+ILMN	HG007	Altair	ALL_MATCHED_FASTQS		6	224920559892	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/

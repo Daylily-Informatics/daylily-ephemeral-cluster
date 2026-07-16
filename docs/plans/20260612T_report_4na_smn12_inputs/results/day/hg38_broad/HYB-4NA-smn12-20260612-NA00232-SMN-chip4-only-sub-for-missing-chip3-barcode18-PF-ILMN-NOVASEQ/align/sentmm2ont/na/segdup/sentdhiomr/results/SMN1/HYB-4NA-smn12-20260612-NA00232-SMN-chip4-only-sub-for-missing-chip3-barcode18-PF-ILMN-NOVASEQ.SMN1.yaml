@@ -1,0 +1,34 @@
+SMN1:
+  Copy numbers:
+    SMN1: 0
+    SMN2: 1
+  Variants: results/day/hg38_broad/HYB-4NA-smn12-20260612-NA00232-SMN-chip4-only-sub-for-missing-chip3-barcode18-PF-ILMN-NOVASEQ/align/sentmm2ont/na/segdup/sentdhiomr/results/SMN1/HYB-4NA-smn12-20260612-NA00232-SMN-chip4-only-sub-for-missing-chip3-barcode18-PF-ILMN-NOVASEQ.SMN1.result.vcf.gz
+config:
+  job_options:
+    genes: SMN1
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: results/day/hg38_broad/HYB-4NA-smn12-20260612-NA00232-SMN-chip4-only-sub-for-missing-chip3-barcode18-PF-ILMN-NOVASEQ/align/sentmm2ont/HYB-4NA-smn12-20260612-NA00232-SMN-chip4-only-sub-for-missing-chip3-barcode18-PF-ILMN-NOVASEQ.sentmm2ont.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: results/day/hg38_broad/HYB-4NA-smn12-20260612-NA00232-SMN-chip4-only-sub-for-missing-chip3-barcode18-PF-ILMN-NOVASEQ/align/sentmm2ont/na/segdup/sentdhiomr/results/SMN1
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta
+    sample_name: HYB-4NA-smn12-20260612-NA00232-SMN-chip4-only-sub-for-missing-chip3-barcode18-PF-ILMN-NOVASEQ
+    short_read_bam: results/day/hg38_broad/HYB-4NA-smn12-20260612-NA00232-SMN-chip4-only-sub-for-missing-chip3-barcode18-PF-ILMN-NOVASEQ/align/sentmm2ont/na/snv/sentdhiomr/HYB-4NA-smn12-20260612-NA00232-SMN-chip4-only-sub-for-missing-chip3-barcode18-PF-ILMN-NOVASEQ.sentmm2ont.na.sentdhiomr.sr_merged.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 192
+  resource_usage:
+    memory_bytes: 24086659072
+    system_time_seconds: 1169.371
+    user_time_seconds: 606.215
+    wall_time_seconds: 219.856
+  run_date: '2026-06-12'
+  run_datetime: '2026-06-12T02:46:44.885102'
+  run_time: 02:46:44
+  software_versions:
+    bcftools: 1.23.1
+    samtools: 1.23.1
+    segdup-caller: 0.5.1
+    sentieon: '202503.02'
+    whatshap: '2.8'

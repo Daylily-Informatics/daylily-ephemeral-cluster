@@ -1,0 +1,6 @@
+{
+  "captured_at": "2026-07-07T22:48:43.666232+00:00",
+  "instance_id": "i-06e429d2a68a0b1ec",
+  "stdout": "DAY-EC activated.\nDAY-EC activated.\nTue Jul  7 22:48:42 UTC 2026\nLICENSE_MODE\n755 root root 4856\nSTART1\nrc=1\nPlease set linger timeout value to at lease 300 secs\nPING1\nrc=9\nFailed to REDACTED REDACTED refused\nSTART2\nrc=1\nPlease set linger timeout value to at lease 300 secs\nPING2\nrc=9\nFailed to REDACTED REDACTED refused\nPROCS\nSTOP\nrc=9\nFailed to REDACTED REDACTED refused\nFailed to signal the server to stop\n",
+  "stderr": ""
+}

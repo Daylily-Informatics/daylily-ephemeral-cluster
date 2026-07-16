@@ -45,7 +45,7 @@ The namespace is intentionally explicit:
 | `/fsx/run_dir_mounts/<mount_id>` | Read-oriented run-folder input DRA |
 | `/fsx/analysis_results/...` | Workflow checkout and result workspace |
 
-Run-directory mounts are inputs. They do not define the export destination and are rejected as export sources. Export is a separate output DRA task from `/analysis_results/<executing_entity>/<analysis_id>/` to the requested S3 URI ending in the same `<executing_entity>/<analysis_id>/` suffix.
+Run-directory mounts are inputs. They do not define the export destination and are rejected as export sources. Export is a separate output DRA task from `/analysis_results/<executing_entity>/<analysis_id>/`. Launch auto-export may take an S3 root and expands it to `<root>/<cluster>/<analysis_id>/`; direct `dyec export` takes an explicit final S3 destination.
 
 The export receipt records `fsx_root`, `s3_root`, `dayoa_analysis_root`, and
 `dayoa_s3_root`. DYEC uses those fields for Dewey registration. DayOA remains a
@@ -60,7 +60,7 @@ Catalog v2 splits commands by input contract:
 - `sample_analysis` commands use `analysis_samples.tsv`; `dyec samples stage` writes `samples.tsv` and `units.tsv`.
 - `run_analysis` commands use `runs.tsv`; run input must be mounted under `/fsx/run_dir_mounts/<mount_id>`.
 
-The current DayOA catalog pin is `2.0.44` for the repository default and all DayOA command `git_tag` values.
+The current DayOA catalog pin is `8.0.0` for the repository default and all DayOA command `git_tag` values.
 
 DYEC can host multiple workflow managers as long as they use the same FSx and
 export contract. DayOA is the first-class Snakemake 7 catalog repository.
@@ -77,7 +77,7 @@ Headnode work is Session-Manager-first:
 - interactive sessions use `dyec headnode connect`
 - command payloads run as `ubuntu`
 - the supported shell is a login bash shell in `/home/ubuntu`
-- `day-clone` clones configured repositories under the FSx analysis root; use `day-clone --list` to inspect catalog rows, `day-clone --repository <repo-key> --destination <analysis-id> --git-tag <ref>` for explicit clones, or `day-clone -d <analysis-id> -t <ref>` for the default repository
+- `day-clone` clones configured repositories under the FSx analysis root; use `day-clone --list` to inspect catalog rows, then launch new analyses with an explicit DayOA tag using `day-clone --repository <repo-key> --destination <analysis-id> --git-tag <ref>` or `day-clone -d <analysis-id> -t <ref>` for the default repository
 
 Manual root sessions or user switching are not part of the supported path.
 

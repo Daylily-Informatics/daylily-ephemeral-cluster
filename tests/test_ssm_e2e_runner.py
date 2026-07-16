@@ -113,12 +113,12 @@ def test_default_cluster_name_fits_supported_template_limit() -> None:
 
     assert cluster_name.startswith(f"{runner_module.CLUSTER_NAME_PREFIX}-")
     assert len(cluster_name) <= runner_module.MAX_CLUSTER_NAME_LEN
-    assert runner_module.MAX_CLUSTER_NAME_LEN == 25
+    assert runner_module.MAX_CLUSTER_NAME_LEN == 20
 
 
 def test_validate_cluster_name_rejects_too_long_values() -> None:
-    with pytest.raises(CommandError, match="5-25 characters"):
-        runner_module.validate_cluster_name("daylily-ssm-e2e-20260412103248")
+    with pytest.raises(CommandError, match="5-20 characters"):
+        runner_module.validate_cluster_name("d" * 21)
 
 
 def test_build_interactive_smoke_command_targets_connect_helper(monkeypatch) -> None:

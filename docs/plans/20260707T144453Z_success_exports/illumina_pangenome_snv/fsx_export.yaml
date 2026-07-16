@@ -1,0 +1,25 @@
+fsx_export:
+  schema_version: 4
+  status: success
+  phase: complete
+  cluster_name: cmdcat-103-all-20260707
+  region: us-west-2
+  analysis_dir: ubuntu/ccv_live_illumina_pangenome_snv_20260707T190607Z
+  source_path: /analysis_results/ubuntu/ccv_live_illumina_pangenome_snv_20260707T190607Z/
+  headnode_path: /fsx/analysis_results/ubuntu/ccv_live_illumina_pangenome_snv_20260707T190607Z/
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.64/20260707T144453Z/ubuntu/ccv_live_illumina_pangenome_snv_20260707T190607Z/
+  fsx_root: /fsx/analysis_results/ubuntu/ccv_live_illumina_pangenome_snv_20260707T190607Z/
+  s3_root: s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.64/20260707T144453Z/ubuntu/ccv_live_illumina_pangenome_snv_20260707T190607Z/
+  dayoa_analysis_root: /fsx/analysis_results/ubuntu/ccv_live_illumina_pangenome_snv_20260707T190607Z/daylily-omics-analysis/
+  dayoa_s3_root: s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.64/20260707T144453Z/ubuntu/ccv_live_illumina_pangenome_snv_20260707T190607Z/daylily-omics-analysis/
+  detached: true
+  delete_data_in_file_system: false
+  failure_details: {}
+  fsx_file_system_id: fs-0e89a93ffac2f0d93
+  file_system_path: /analysis_results/ubuntu/ccv_live_illumina_pangenome_snv_20260707T190607Z/
+  association_id: dra-08c68018c96743751
+  lifecycle: AVAILABLE
+  task_id: task-000e1ee9a6142562d
+  task_lifecycle: SUCCEEDED
+  report_path: s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.64/20260707T144453Z/ubuntu/ccv_live_illumina_pangenome_snv_20260707T190607Z/_daylily_monitor/fsx-export/20260708T002825Z/export-report/
+  detach_lifecycle: DELETED

@@ -8,7 +8,7 @@ Exact-parity with the Bash script::
 
 Two budget types:
 - **Global**: ``daylily-global`` with thresholds [25, 50, 75, 99]
-- **Cluster**: ``da-<region_az>-<cluster>`` with threshold [75]
+- **Cluster**: cluster-name budget with threshold [75]
 """
 
 from __future__ import annotations
@@ -45,17 +45,15 @@ TAGS_FILE_S3_SUFFIX = "runtime_assets/budget_tags/pcluster-project-budget-tags.t
 def _build_budget_dict(
     budget_name: str,
     amount: str,
-    project_name: str,
     cluster_name: str,
 ) -> Dict[str, Any]:
-    """Return a budget dict matching the Bash BUDGET_TEMPLATE exactly."""
+    """Return a cluster-tag-scoped AWS Budget dict."""
     return {
         "BudgetLimit": {"Amount": str(amount), "Unit": "USD"},
         "BudgetName": budget_name,
         "BudgetType": "COST",
         "CostFilters": {
             "TagKeyValue": [
-                f"user:aws-parallelcluster-project${project_name}",
                 f"user:aws-parallelcluster-clustername${cluster_name}",
             ],
         },
@@ -100,22 +98,49 @@ def budget_exists(
     account_id: str,
     budget_name: str,
 ) -> bool:
-    """Return ``True`` if a budget named *budget_name* already exists.
+    """Return ``True`` only when *budget_name* exists.
 
-    Mirrors the Bash check::
-
-        aws budgets describe-budgets \\
-            --query "Budgets[?BudgetName=='<name>'] | [0].BudgetName"
+    Budget inspection errors are not treated as "missing"; callers need those
+    failures to stop before an attempted duplicate create.
     """
     try:
-        resp = budgets_client.describe_budgets(AccountId=account_id)
-        for b in resp.get("Budgets", []):
-            if b.get("BudgetName") == budget_name:
-                return True
-        return False
-    except Exception:
-        log.debug("budget_exists: could not list budgets", exc_info=True)
-        return False
+        budgets_client.describe_budget(AccountId=account_id, BudgetName=budget_name)
+        return True
+    except Exception as exc:
+        if _is_budget_not_found(exc):
+            return False
+        raise
+
+
+def _is_budget_not_found(exc: Exception) -> bool:
+    response = getattr(exc, "response", None)
+    if isinstance(response, dict):
+        code = str((response.get("Error") or {}).get("Code") or "")
+        if code in {"NotFoundException", "ResourceNotFoundException"}:
+            return True
+    name = exc.__class__.__name__
+    if name in {"NotFoundException", "ResourceNotFoundException"}:
+        return True
+    text = str(exc)
+    if "NotFoundException" in text or "not found" in text.lower():
+        return True
+    return False
+
+
+def describe_budget(
+    budgets_client: Any,
+    account_id: str,
+    budget_name: str,
+) -> Dict[str, Any] | None:
+    try:
+        return budgets_client.describe_budget(
+            AccountId=account_id,
+            BudgetName=budget_name,
+        ).get("Budget")
+    except Exception as exc:
+        if _is_budget_not_found(exc):
+            return None
+        raise
 
 
 # ---------------------------------------------------------------------------
@@ -128,14 +153,13 @@ def create_budget(
     account_id: str,
     budget_name: str,
     amount: str,
-    project_name: str,
     cluster_name: str,
 ) -> None:
     """Create a single AWS Budget (idempotent — no-op if exists)."""
     if budget_exists(budgets_client, account_id, budget_name):
         log.info("Budget '%s' already exists, skipping creation", budget_name)
         return
-    budget = _build_budget_dict(budget_name, amount, project_name, cluster_name)
+    budget = _build_budget_dict(budget_name, amount, cluster_name)
     budgets_client.create_budget(AccountId=account_id, Budget=budget)
     log.info("Created budget '%s' (%s USD/month)", budget_name, amount)
 
@@ -148,6 +172,10 @@ def create_notifications(
     email: str,
 ) -> None:
     """Add threshold notifications to an existing budget."""
+    email = email.strip()
+    if not email:
+        log.info("No budget notification email configured for '%s'; skipping notifications.", budget_name)
+        return
     for thr in thresholds:
         try:
             budgets_client.create_notification(
@@ -178,7 +206,7 @@ def update_tags_file(
     users: str,
     region: str,
 ) -> None:
-    """Append a line to the S3 budget-tags TSV (Bash ``write_or_append_tags_to_s3``).
+    """Upsert a line in the S3 budget-tags TSV.
 
     File path: ``s3://<reference-bucket>/runtime_assets/budget_tags/pcluster-project-budget-tags.tsv``
 
@@ -194,7 +222,18 @@ def update_tags_file(
 
     allowed_users = _normalize_allowed_budget_users(users)
     new_line = f"{project_name}\t{allowed_users}\n"
-    body = existing + new_line
+    body_lines = []
+    replaced = False
+    for raw_line in existing.splitlines():
+        if raw_line.split("\t", 1)[0] == project_name:
+            if not replaced:
+                body_lines.append(new_line.rstrip("\n"))
+                replaced = True
+            continue
+        body_lines.append(raw_line)
+    if not replaced:
+        body_lines.append(new_line.rstrip("\n"))
+    body = "\n".join(body_lines).rstrip("\n") + "\n"
 
     s3_client.put_object(
         Bucket=bucket_name,
@@ -222,8 +261,9 @@ def _normalize_allowed_budget_users(users: str) -> str:
 
 
 def cluster_budget_name(region_az: str, cluster_name: str) -> str:
-    """Derive the per-cluster budget name (Bash: ``da-<region_az>-<cluster>``)."""
-    return f"da-{region_az}-{cluster_name}"
+    """Derive the per-cluster budget name."""
+    _ = region_az
+    return cluster_name
 
 
 def ensure_global_budget(
@@ -246,11 +286,11 @@ def ensure_global_budget(
     name = GLOBAL_BUDGET_NAME
     already = budget_exists(budgets_client, account_id, name)
     if not already:
-        create_budget(budgets_client, account_id, name, amount, name, cluster_name)
+        create_budget(budgets_client, account_id, name, amount, cluster_name)
         create_notifications(budgets_client, account_id, name, GLOBAL_THRESHOLDS, email)
-        update_tags_file(s3_client, bucket_name, name, allowed_users, region)
     else:
         log.info("Global budget '%s' already exists", name)
+    update_tags_file(s3_client, bucket_name, name, allowed_users, region)
     return name
 
 
@@ -267,18 +307,18 @@ def ensure_cluster_budget(
     bucket_name: str,
     allowed_users: str,
 ) -> str:
-    """Ensure the per-cluster budget ``da-<region_az>-<cluster>`` exists.
+    """Ensure the per-cluster budget exists.
 
     Returns the budget name.
     """
     name = cluster_budget_name(region_az, cluster_name)
     already = budget_exists(budgets_client, account_id, name)
     if not already:
-        create_budget(budgets_client, account_id, name, amount, name, cluster_name)
+        create_budget(budgets_client, account_id, name, amount, cluster_name)
         create_notifications(budgets_client, account_id, name, CLUSTER_THRESHOLDS, email)
-        update_tags_file(s3_client, bucket_name, name, allowed_users, region)
     else:
         log.info("Cluster budget '%s' already exists", name)
+    update_tags_file(s3_client, bucket_name, name, allowed_users, region)
     return name
 
 
@@ -302,9 +342,25 @@ def make_budget_preflight_step(
     - WARN: neither exists (will be created)
     - FAIL: only on API error
     """
-    g_exists = budget_exists(budgets_client, account_id, global_budget_name)
-    c_name = cluster_budget_name(region_az, cluster_name) if cluster_name and region_az else ""
-    c_exists = budget_exists(budgets_client, account_id, c_name) if c_name else False
+    try:
+        g_exists = budget_exists(budgets_client, account_id, global_budget_name)
+        c_name = cluster_budget_name(region_az, cluster_name) if cluster_name and region_az else ""
+        c_exists = budget_exists(budgets_client, account_id, c_name) if c_name else False
+    except Exception as exc:
+        return CheckResult(
+            id="budget.readiness",
+            status=CheckStatus.FAIL,
+            details={
+                "global_budget": global_budget_name,
+                "cluster_budget": (
+                    cluster_budget_name(region_az, cluster_name)
+                    if cluster_name and region_az
+                    else ""
+                ),
+                "error": str(exc),
+            },
+            remediation="Grant budget read access and verify AWS Budgets can be inspected.",
+        )
 
     details = {
         "global_budget": global_budget_name,

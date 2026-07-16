@@ -1,0 +1,6521 @@
+{
+  "DimensionValueAttributes": [],
+  "GroupDefinitions": [
+    {
+      "Key": "RESOURCE_ID",
+      "Type": "DIMENSION"
+    }
+  ],
+  "ResultsByTime": [
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-02d1c980266b3afc3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-0b311a0dcb595e613"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-016caa7d86d41fa17"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-0b8150cde6a5fc7ae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-000a1e5904276b377"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-085448ce53cb8a8b8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08997318714e9b90d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0d366fd4150dd6012"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-01475d9f7ac8a16ca"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001120835",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-02ef5760f8f8700fd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0535defc1a36171b5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001097225",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-09e31b642e5e870fc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0a37aede87e029cce"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0053a0c36ed8792d5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-014645d801ae82b2f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.04398611",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-026f98f985a93c4bc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0365f5bd1308e7491"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e9a24108db62c0a"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-05b104d591c9d2d1e"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.10567639",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-064218f01cc92ddaa"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-06dcd6fec6df81b9c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.05712917",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0725a15da78e40c9d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-099e96a4f6c1d02b6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0a0c755b06c71877c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b7cb679115d71f09"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0bf0638cf19f78c48"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0c9ac0849e5beebb7"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.016559725",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e8383492c016f0dc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:network-interface/eni-09dec6f627819db8b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-02ac48bf0c4efb877"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400029722",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-036891e26dd789978"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400007377",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0384b7109c7362817"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400104318",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0766e7a15cf8b1a9f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-07f1e154c6ff3a42f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2422625575",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-096eaa1400b8861cb"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2426531598",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0f12344d88ada019d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-02T00:00:00Z",
+        "Start": "2026-06-01T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-02d1c980266b3afc3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-0b311a0dcb595e613"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-016caa7d86d41fa17"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-0b8150cde6a5fc7ae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-000a1e5904276b377"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-085448ce53cb8a8b8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08997318714e9b90d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0d366fd4150dd6012"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-02ef5760f8f8700fd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-04a30b6312bde260f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000119445",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-06508272a795b9cf2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-07011cf9f0f63b830"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001120835",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0e227f524a1a065c1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0fa9b61dae39f36fd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000125",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0053a0c36ed8792d5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-00d0d767fe52379a8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.050083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-014645d801ae82b2f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-021eb5cefb9ebcdff"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.052597225",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-026f98f985a93c4bc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0365f5bd1308e7491"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e9a24108db62c0a"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-064218f01cc92ddaa"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0725a15da78e40c9d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-099e96a4f6c1d02b6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-09bc761478615dc21"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0011375",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0a0c755b06c71877c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.097880555",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0a9761514db7056cf"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00011389",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b7cb679115d71f09"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0bf0638cf19f78c48"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0d4fe172ce3285626"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.024125",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e8383492c016f0dc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:network-interface/eni-09dec6f627819db8b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-02ac48bf0c4efb877"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.240002971",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-036891e26dd789978"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400007362",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0384b7109c7362817"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400099935",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0766e7a15cf8b1a9f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-07f1e154c6ff3a42f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2427543565",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-096eaa1400b8861cb"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2426514065",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0f12344d88ada019d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-03T00:00:00Z",
+        "Start": "2026-06-02T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-02d1c980266b3afc3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-0b311a0dcb595e613"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-016caa7d86d41fa17"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-0b8150cde6a5fc7ae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:elastic-ip/eipalloc-0004f38c8ac45ff0f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000230555",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:elastic-ip/eipalloc-01f4b5e56f06a182c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:elastic-ip/eipalloc-0b6cc46ecf8c48bd3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000230555",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-000a1e5904276b377"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-042ba53ad6a8384a3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.085191665",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-085448ce53cb8a8b8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08997318714e9b90d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-09fc345b72c77f5e5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.03754861",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0bd3433d9edaf167c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.09349028",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0d366fd4150dd6012"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-02ef5760f8f8700fd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0535defc1a36171b5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-07cc1bdce7eb54dda"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0aa2ba956f7dec22b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000954165",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0e053d474f9ea9edd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00112222",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0e227f524a1a065c1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001069445",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0fedaccdaf7f11e3d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000630555",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0053a0c36ed8792d5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-00d0d767fe52379a8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-014645d801ae82b2f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.005955555",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-026f98f985a93c4bc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0365f5bd1308e7491"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-037b994293240220b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.07695278",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e9a24108db62c0a"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-064218f01cc92ddaa"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0725a15da78e40c9d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-099e96a4f6c1d02b6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-09bc761478615dc21"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b7cb679115d71f09"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0bf0638cf19f78c48"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.002618055",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0d4fe172ce3285626"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e38dc479e9bccd34"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.04594722",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e76cbe6d0fa2009b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.061725005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e8383492c016f0dc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:network-interface/eni-09dec6f627819db8b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-02ac48bf0c4efb877"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400029779",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-036891e26dd789978"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400007362",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0384b7109c7362817"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400102141",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0766e7a15cf8b1a9f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-07f1e154c6ff3a42f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2423918236",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-096eaa1400b8861cb"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2426618043",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0f12344d88ada019d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-04T00:00:00Z",
+        "Start": "2026-06-03T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-02d1c980266b3afc3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-0b311a0dcb595e613"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-016caa7d86d41fa17"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-0b8150cde6a5fc7ae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-000a1e5904276b377"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-042ba53ad6a8384a3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-085448ce53cb8a8b8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08997318714e9b90d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-09fc345b72c77f5e5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0bd3433d9edaf167c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0d366fd4150dd6012"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-02ebd416ab848888d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00103889",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-02ef5760f8f8700fd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0aa2ba956f7dec22b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0e053d474f9ea9edd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0fedaccdaf7f11e3d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000405555",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0053a0c36ed8792d5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-00d0d767fe52379a8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-026f98f985a93c4bc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0365f5bd1308e7491"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-037b994293240220b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00350694",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e4d22102609e132"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.119594445",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e9a24108db62c0a"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-064218f01cc92ddaa"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0725a15da78e40c9d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-099e96a4f6c1d02b6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-09bc761478615dc21"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0a8508c605feeb56d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.11383889",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b7cb679115d71f09"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0d4fe172ce3285626"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e38dc479e9bccd34"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.003208335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e8383492c016f0dc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:network-interface/eni-09dec6f627819db8b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-02ac48bf0c4efb877"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400029872",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-036891e26dd789978"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400007366",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0384b7109c7362817"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400104387",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0766e7a15cf8b1a9f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-07f1e154c6ff3a42f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2429332169",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-096eaa1400b8861cb"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2426772053",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0f12344d88ada019d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-05T00:00:00Z",
+        "Start": "2026-06-04T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-02d1c980266b3afc3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-0b311a0dcb595e613"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-016caa7d86d41fa17"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-0b8150cde6a5fc7ae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:elastic-ip/eipalloc-0b43d16bdf1e9f3df"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00012222",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-000a1e5904276b377"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-00d701892e7aedd72"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.005586115",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-042ba53ad6a8384a3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-085448ce53cb8a8b8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08997318714e9b90d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-09fc345b72c77f5e5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0b7b49dac37ac7562"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00695972",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0bd3433d9edaf167c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0d366fd4150dd6012"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0255c5e112a4b5c39"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000468055",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-02ebd416ab848888d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-02ef5760f8f8700fd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0053a0c36ed8792d5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-00d0d767fe52379a8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-026f98f985a93c4bc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0365f5bd1308e7491"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e4d22102609e132"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e9a24108db62c0a"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-064218f01cc92ddaa"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0725a15da78e40c9d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-099e96a4f6c1d02b6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-09bc761478615dc21"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0a8508c605feeb56d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.11847778",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b7cb679115d71f09"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0d4fe172ce3285626"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e8383492c016f0dc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:network-interface/eni-09dec6f627819db8b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-02ac48bf0c4efb877"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400029891",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-036891e26dd789978"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.240000737",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0384b7109c7362817"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400100719",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0766e7a15cf8b1a9f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-07f1e154c6ff3a42f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2428985099",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-096eaa1400b8861cb"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2426785766",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0f12344d88ada019d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-06T00:00:00Z",
+        "Start": "2026-06-05T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-02d1c980266b3afc3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-0b311a0dcb595e613"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-016caa7d86d41fa17"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-0b8150cde6a5fc7ae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:elastic-ip/eipalloc-049b017d2312c6a7d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00048195",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:elastic-ip/eipalloc-09642cb3fef68b2ae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000256945",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:elastic-ip/eipalloc-09b4b34f9fd305661"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000229165",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:elastic-ip/eipalloc-0de52ee5ec826bdf6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000323615",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-000a1e5904276b377"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-00d701892e7aedd72"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.004820835",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0167bb4e066f9f50f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00803889",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-027e7af0efae0f0f4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00204028",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0319531bf3cdcf680"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00304722",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-042ba53ad6a8384a3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-04eb5a334866bdeb0"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00234028",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-05395958a77582f2b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.11445",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-053b226d261f29708"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.03264444",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0762bdb500906a5a9"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000681945",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-085448ce53cb8a8b8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08997318714e9b90d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-09a551466000ed2f3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00072639",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-09fc345b72c77f5e5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0b0b1414332196a71"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00010139",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0b7b49dac37ac7562"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0bd3433d9edaf167c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0d366fd4150dd6012"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0ea9f5c4de22550ec"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.010083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0255c5e112a4b5c39"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000569445",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-02ef5760f8f8700fd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0fb6e7c6dc92e3ae7"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000954165",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0053a0c36ed8792d5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-00d0d767fe52379a8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-026f98f985a93c4bc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0365f5bd1308e7491"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0498613234f5440b7"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.02422778",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e4d22102609e132"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e9a24108db62c0a"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-056cca991f5bdb19d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.119430555",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-064218f01cc92ddaa"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0725a15da78e40c9d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-099e96a4f6c1d02b6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-09bc761478615dc21"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b7cb679115d71f09"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0d4fe172ce3285626"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e8383492c016f0dc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:network-interface/eni-09dec6f627819db8b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-02ac48bf0c4efb877"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400029918",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-036891e26dd789978"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400007384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0384b7109c7362817"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400103051",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0766e7a15cf8b1a9f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-07f1e154c6ff3a42f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2423960765",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-096eaa1400b8861cb"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2426859767",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0f12344d88ada019d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-07T00:00:00Z",
+        "Start": "2026-06-06T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-02d1c980266b3afc3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-0b311a0dcb595e613"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-016caa7d86d41fa17"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-0b8150cde6a5fc7ae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:elastic-ip/eipalloc-0279920cf8bf8ec52"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000229165",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:elastic-ip/eipalloc-09b4b34f9fd305661"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000416675",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-000a1e5904276b377"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0167bb4e066f9f50f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-01cc29ddc8963fab0"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.017473615",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-03b287c391cc4e626"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0016125",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-042ba53ad6a8384a3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-05395958a77582f2b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-06e73bf21a00d71ee"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.11590972",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-085448ce53cb8a8b8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08997318714e9b90d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-09f79149cc7222183"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0022875",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-09fc345b72c77f5e5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0a60f6669b5cf34d1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0181875",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0b0b1414332196a71"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.062141665",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0b7b49dac37ac7562"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0bd3433d9edaf167c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0c1daaa36bfeb53ca"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00145972",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0ca9b67391a5ebdfd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00256111",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0d366fd4150dd6012"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0f3ddaeec9ccf547e"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01424028",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-007b8c51dd531d420"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00120417",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-02ef5760f8f8700fd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-03dd2617080037f65"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00011528",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0fa9b61dae39f36fd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0fb6e7c6dc92e3ae7"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0fedaccdaf7f11e3d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0053a0c36ed8792d5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-00d0d767fe52379a8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-026f98f985a93c4bc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0365f5bd1308e7491"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0498613234f5440b7"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.068386115",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e4d22102609e132"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.020536115",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e9a24108db62c0a"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-056cca991f5bdb19d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-064218f01cc92ddaa"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0725a15da78e40c9d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-07cff4be011b59eb4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.039643055",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-099e96a4f6c1d02b6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-09bc761478615dc21"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.081116665",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b7cb679115d71f09"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0d4fe172ce3285626"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0d8e306f514c47f3d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.03375417",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e8383492c016f0dc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:network-interface/eni-09dec6f627819db8b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-02ac48bf0c4efb877"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400029878",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-036891e26dd789978"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400007398",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0384b7109c7362817"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400103105",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0766e7a15cf8b1a9f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-07f1e154c6ff3a42f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2429065446",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-096eaa1400b8861cb"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2427007849",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0f12344d88ada019d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-08T00:00:00Z",
+        "Start": "2026-06-07T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-02d1c980266b3afc3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-0b311a0dcb595e613"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-016caa7d86d41fa17"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-0b8150cde6a5fc7ae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:elastic-ip/eipalloc-09b4b34f9fd305661"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00066668",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-000a1e5904276b377"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-00fd5b04febb1e565"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001820835",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0167bb4e066f9f50f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-01861d8b1416a478f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000595835",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0283de9fdf2eddbe5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00198472",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-02ca2320f29d4154d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00055",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-042ba53ad6a8384a3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-05395958a77582f2b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0609306842696e5a6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001181945",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0681a476fccbcccd1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.05380972",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-06e73bf21a00d71ee"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08001d3732ea67e1c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.003731945",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-085448ce53cb8a8b8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08997318714e9b90d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08b1a4aedd74df7a9"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001043055",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0913345455a7c0dca"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00072222",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-09f390112a892b04d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00230972",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-09fc345b72c77f5e5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0a7aff002dfb3f24d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.02547639",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0b7b49dac37ac7562"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0bd3433d9edaf167c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0c1fa4afe3dc86f4f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0025875",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0c286e1029055b12c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.003881945",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0c9a314afc5a38baf"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.004115275",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0d366fd4150dd6012"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0e14d3d1743bf44ff"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.003891665",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0e166dc2b4246f335"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0018",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0f3ddaeec9ccf547e"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.010416665",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-00d54525c8f415b09"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001018055",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-023cd21307a88e882"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001038885",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-02ef5760f8f8700fd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0e072addf412fd6af"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00095278",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0053a0c36ed8792d5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-00d0d767fe52379a8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-01375a164abcfc4d7"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.10906528",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-026f98f985a93c4bc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0365f5bd1308e7491"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e9a24108db62c0a"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-056cca991f5bdb19d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-064218f01cc92ddaa"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0725a15da78e40c9d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-07cff4be011b59eb4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-099e96a4f6c1d02b6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b34d79d126f5b67d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.103691665",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b7cb679115d71f09"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0d4fe172ce3285626"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e8383492c016f0dc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0eebbba34f556ec28"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001523615",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:network-interface/eni-09dec6f627819db8b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-02ac48bf0c4efb877"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400029861",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-036891e26dd789978"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400007402",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0384b7109c7362817"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400102999",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0766e7a15cf8b1a9f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-07f1e154c6ff3a42f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2430905564",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-096eaa1400b8861cb"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2426752254",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0f12344d88ada019d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-09T00:00:00Z",
+        "Start": "2026-06-08T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-02d1c980266b3afc3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-0b311a0dcb595e613"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-016caa7d86d41fa17"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-0b8150cde6a5fc7ae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:elastic-ip/eipalloc-09b4b34f9fd305661"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:elastic-ip/eipalloc-0de52ee5ec826bdf6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:elastic-ip/eipalloc-0e5344572ea8cc7d0"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00048056",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-000a1e5904276b377"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0167bb4e066f9f50f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.02137222",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-024ed5a73a4f31826"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.05918889",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-042ba53ad6a8384a3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-05395958a77582f2b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0681a476fccbcccd1"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.02137361",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-06e73bf21a00d71ee"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-085448ce53cb8a8b8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08997318714e9b90d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08da9659b3b051802"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.009420835",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-09fc345b72c77f5e5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0a4ca5d43605bff03"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0201625",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0b7b49dac37ac7562"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0bd3433d9edaf167c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0c1eb14b8d4cb54c4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00360278",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0d366fd4150dd6012"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-00d54525c8f415b09"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0255c5e112a4b5c39"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-02ef5760f8f8700fd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-04cb91dafeaac6884"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.001120835",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-06c2ff8cb4315bbd2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00095278",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0053a0c36ed8792d5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-00d0d767fe52379a8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-01375a164abcfc4d7"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.003434725",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-026f98f985a93c4bc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0365f5bd1308e7491"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e9a24108db62c0a"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-056cca991f5bdb19d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.003470835",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-064218f01cc92ddaa"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0725a15da78e40c9d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-07cff4be011b59eb4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-099e96a4f6c1d02b6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-09bfd9b21dde2725c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.09129861",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b34d79d126f5b67d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b7cb679115d71f09"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0c66d3a31eb5b1df2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.002943055",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0d4fe172ce3285626"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e8383492c016f0dc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:network-interface/eni-09dec6f627819db8b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-02ac48bf0c4efb877"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400029905",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-036891e26dd789978"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.240000736",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0384b7109c7362817"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400100645",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0766e7a15cf8b1a9f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-07f1e154c6ff3a42f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2430827981",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-096eaa1400b8861cb"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2426747008",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0f12344d88ada019d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-10T00:00:00Z",
+        "Start": "2026-06-09T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-02d1c980266b3afc3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-0b311a0dcb595e613"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-016caa7d86d41fa17"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-0b8150cde6a5fc7ae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-000a1e5904276b377"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-024ed5a73a4f31826"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-042ba53ad6a8384a3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-05395958a77582f2b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-06e73bf21a00d71ee"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-085448ce53cb8a8b8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08997318714e9b90d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-09fc345b72c77f5e5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0b7b49dac37ac7562"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0bd3433d9edaf167c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0d366fd4150dd6012"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-02ef5760f8f8700fd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-04a30b6312bde260f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0afac19bd56e88559"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00011389",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0053a0c36ed8792d5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-00d0d767fe52379a8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-026f98f985a93c4bc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0365f5bd1308e7491"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e9a24108db62c0a"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-064218f01cc92ddaa"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0725a15da78e40c9d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-07cff4be011b59eb4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-08bb6791a416126f7"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.019875",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-099e96a4f6c1d02b6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-09bfd9b21dde2725c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b34d79d126f5b67d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b7cb679115d71f09"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0d4fe172ce3285626"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.101305555",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e8383492c016f0dc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:network-interface/eni-09dec6f627819db8b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-02ac48bf0c4efb877"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400029887",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-036891e26dd789978"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400007389",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0384b7109c7362817"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400103009",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0766e7a15cf8b1a9f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-07f1e154c6ff3a42f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2430746467",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-096eaa1400b8861cb"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2426836799",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0f12344d88ada019d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-11T00:00:00Z",
+        "Start": "2026-06-10T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-02d1c980266b3afc3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-0b311a0dcb595e613"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-016caa7d86d41fa17"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-0b8150cde6a5fc7ae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-000a1e5904276b377"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-024ed5a73a4f31826"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-042ba53ad6a8384a3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-05395958a77582f2b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-06e73bf21a00d71ee"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-085448ce53cb8a8b8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08997318714e9b90d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-09fc345b72c77f5e5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0b7b49dac37ac7562"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0bd3433d9edaf167c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0d366fd4150dd6012"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-02ef5760f8f8700fd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0053a0c36ed8792d5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-00d0d767fe52379a8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-026f98f985a93c4bc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0365f5bd1308e7491"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e9a24108db62c0a"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-064218f01cc92ddaa"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0725a15da78e40c9d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-07cff4be011b59eb4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-08bb6791a416126f7"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-099e96a4f6c1d02b6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-09bfd9b21dde2725c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b34d79d126f5b67d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b7cb679115d71f09"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e8383492c016f0dc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:network-interface/eni-09dec6f627819db8b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-02ac48bf0c4efb877"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400029839",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-036891e26dd789978"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400007371",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0384b7109c7362817"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400105268",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0766e7a15cf8b1a9f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-07f1e154c6ff3a42f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2430864076",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-096eaa1400b8861cb"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2426854788",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0f12344d88ada019d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-12T00:00:00Z",
+        "Start": "2026-06-11T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-02d1c980266b3afc3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-0b311a0dcb595e613"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-016caa7d86d41fa17"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-0b8150cde6a5fc7ae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-000a1e5904276b377"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-024ed5a73a4f31826"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-042ba53ad6a8384a3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-05395958a77582f2b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-06e73bf21a00d71ee"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-085448ce53cb8a8b8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08997318714e9b90d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-09fc345b72c77f5e5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0b7b49dac37ac7562"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0bd3433d9edaf167c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0d366fd4150dd6012"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-02ef5760f8f8700fd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0e072addf412fd6af"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000083335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0053a0c36ed8792d5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-00d0d767fe52379a8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-026f98f985a93c4bc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0365f5bd1308e7491"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e9a24108db62c0a"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-064218f01cc92ddaa"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0725a15da78e40c9d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-07cff4be011b59eb4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-08bb6791a416126f7"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-099e96a4f6c1d02b6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-09bfd9b21dde2725c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b34d79d126f5b67d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.01114028",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b7cb679115d71f09"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e8383492c016f0dc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:network-interface/eni-09dec6f627819db8b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-02ac48bf0c4efb877"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400029816",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-036891e26dd789978"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400007386",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0384b7109c7362817"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400103061",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0766e7a15cf8b1a9f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-07f1e154c6ff3a42f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2428970754",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-096eaa1400b8861cb"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2427106136",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0f12344d88ada019d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-13T00:00:00Z",
+        "Start": "2026-06-12T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-02d1c980266b3afc3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:ap-south-1:108782052779:network-interface/eni-0b311a0dcb595e613"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-016caa7d86d41fa17"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:eu-central-1:108782052779:network-interface/eni-0b8150cde6a5fc7ae"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-000a1e5904276b377"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-024ed5a73a4f31826"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-042ba53ad6a8384a3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-05395958a77582f2b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-06e73bf21a00d71ee"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-085448ce53cb8a8b8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-08997318714e9b90d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-09fc345b72c77f5e5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0b7b49dac37ac7562"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0bd3433d9edaf167c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-east-1:108782052779:network-interface/eni-0d366fd4150dd6012"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-02ef5760f8f8700fd"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:elastic-ip/eipalloc-0985e45bd61c81b67"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.00095278",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0053a0c36ed8792d5"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-00d0d767fe52379a8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-026f98f985a93c4bc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0365f5bd1308e7491"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-04e9a24108db62c0a"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-064218f01cc92ddaa"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0725a15da78e40c9d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-07cff4be011b59eb4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0861b7f1f7b602745"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.050180555",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-08bb6791a416126f7"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-099e96a4f6c1d02b6"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-09bfd9b21dde2725c"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0b7cb679115d71f09"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:108782052779:network-interface/eni-0e8383492c016f0dc"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:network-interface/eni-09dec6f627819db8b"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.12",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-02ac48bf0c4efb877"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400029858",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-036891e26dd789978"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400007347",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0384b7109c7362817"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2400100736",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0766e7a15cf8b1a9f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-07f1e154c6ff3a42f"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2430883472",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-096eaa1400b8861cb"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2427080116",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:ec2:us-west-2:171675361862:vpc-endpoint/vpce-0f12344d88ada019d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.24",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-14T00:00:00Z",
+        "Start": "2026-06-13T00:00:00Z"
+      },
+      "Total": {}
+    }
+  ]
+}

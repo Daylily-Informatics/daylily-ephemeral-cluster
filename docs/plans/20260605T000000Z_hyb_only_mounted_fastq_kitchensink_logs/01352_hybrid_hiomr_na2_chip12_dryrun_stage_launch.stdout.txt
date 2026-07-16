@@ -1,0 +1,17 @@
+DYEC_COMMAND=/Users/jmajor/miniconda3/envs/DAY-EC/bin/dyec workflow launch --profile lsmc --region us-west-2 --cluster hyb-only --stage-dir /home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na2_chip12_fastq_20260606T120700Z_config --session-name hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z --analysis-id hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z --executing-entity ubuntu --git-tag jem-dev --genome hg38_broad --dy-command 'bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_snv_concordances produce_sentdhiomr_cnv produce_sentdhiomr_segdup produce_sentdhiomr_mito produce_expansionhunter produce_alignstats produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config '"'"'aligners=["sent"]'"'"' '"'"'dedupers=["dmd"]'"'"' '"'"'snv_callers=["sentdhiomr"]'"'"' '"'"'sv_callers=["sentdhiomr"]'"'"' '"'"'sentdhiomr={"segdup_genes":"CYP11B1,NCF1,SMN1"}'"'"' '"'"'contam_identity={"primary_snv_caller":"sentdhiomr"}'"'"' '"'"'multiqc_qc={"enable_tools":["vep","contam_identity"]}'"'"' -j 125 -p -k --rerun-triggers mtime -n' --dry-run
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_STAGE_DIR__=/home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na2_chip12_fastq_20260606T120700Z_config
+__DAYLILY_STAGE_SAMPLES__=/home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na2_chip12_fastq_20260606T120700Z_config/20260606T120700Z_hybrid_hiomr_na2_chip12_samples.tsv
+__DAYLILY_STAGE_UNITS__=/home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na2_chip12_fastq_20260606T120700Z_config/20260606T120700Z_hybrid_hiomr_na2_chip12_units.tsv
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z
+__DAYLILY_TMUX_SESSION__=hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis
+Tmux session 'hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z
+Workflow repo path: /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster hyb-only
+Then run: tmux attach -t hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z

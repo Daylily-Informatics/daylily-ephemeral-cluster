@@ -1,0 +1,16 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_STAGE_DIR__=/home/ubuntu/daylily-staged-configs/hybonly_ont_chipbarcode_limited_20260606T085229Z_config
+__DAYLILY_STAGE_SAMPLES__=/home/ubuntu/daylily-staged-configs/hybonly_ont_chipbarcode_limited_20260606T085229Z_config/20260606T083347Z_63d147c7_samples.tsv
+__DAYLILY_STAGE_UNITS__=/home/ubuntu/daylily-staged-configs/hybonly_ont_chipbarcode_limited_20260606T085229Z_config/20260606T083347Z_63d147c7_units.tsv
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=hybonly_ont_chipbarcode_limited_live_20260606T090222Z
+__DAYLILY_TMUX_SESSION__=hybonly_ont_chipbarcode_limited_live_20260606T090222Z
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/hybonly_ont_chipbarcode_limited_live_20260606T090222Z
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis
+Tmux session 'hybonly_ont_chipbarcode_limited_live_20260606T090222Z' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/hybonly_ont_chipbarcode_limited_live_20260606T090222Z
+Workflow repo path: /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster hyb-only
+Then run: tmux attach -t hybonly_ont_chipbarcode_limited_live_20260606T090222Z

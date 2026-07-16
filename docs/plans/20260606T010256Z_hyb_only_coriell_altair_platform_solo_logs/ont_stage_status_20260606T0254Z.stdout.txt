@@ -1,0 +1,52 @@
+DAY-EC activated.
+DAY-EC activated.
+time_utc=2026-06-06T02:53:37Z
+df=/fsx
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  126G  8.6T   2% /fsx
+tmux=hybonly_stage_ont_20260606T010256Z
+tmux_state=running
+DAY-EC activated.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ont_dir
+total 48G
+-rw-rw-r-- 1 ubuntu ubuntu 48G Jun  6 02:42 NA00232_SMN_R1_all.fastq.gz
+drwxrwxr-x 2 ubuntu ubuntu 33K Jun  6 02:32 logs
+drwxrwxr-x 2 ubuntu ubuntu 33K Jun  6 02:32 manifests
+drwxrwxr-x 2 ubuntu ubuntu 33K Jun  6 02:42 tmp
+ont_tmp_dir
+total 53K
+-rw-rw-r-- 1 ubuntu ubuntu 25K Jun  6 02:32 NA00232.paths.25844
+stage_processes
+ubuntu     25793       1  0 02:32 ?        00:00:00 tmux new-session -d -s hybonly_stage_ont_20260606T010256Z bash -l -c '/home/ubuntu/hyb_only_stage_ont_data_20260606T010256Z.sh > /fsx/scratch/ONT/logs/tmux_stage_ont.stdout.txt 2> /fsx/scratch/ONT/logs/tmux_stage_ont.stderr.txt; rc=$?; echo $rc > /fsx/scratch/ONT/logs/tmux_stage_ont.rc; exit $rc'
+ubuntu     25794   25793  0 02:32 pts/0    00:00:00 bash -l -c /home/ubuntu/hyb_only_stage_ont_data_20260606T010256Z.sh > /fsx/scratch/ONT/logs/tmux_stage_ont.stdout.txt 2> /fsx/scratch/ONT/logs/tmux_stage_ont.stderr.txt; rc=$?; echo $rc > /fsx/scratch/ONT/logs/tmux_stage_ont.rc; exit $rc
+ubuntu     25844   25794  0 02:32 pts/0    00:00:00 bash /home/ubuntu/hyb_only_stage_ont_data_20260606T010256Z.sh
+ubuntu     27945   25844 99 02:42 pts/0    00:10:58 gzip -t /fsx/scratch/ONT/NA00232_SMN_R1_all.fastq.gz
+ont_log_tail
+start_ont	2026-06-06T02:32:53Z
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T   92M  8.8T   1% /fsx
+CMD	2026-06-06T02:32:53Z	cat 219 sources to /fsx/scratch/ONT/NA00232_SMN_R1_all.fastq.gz
+ont_rc

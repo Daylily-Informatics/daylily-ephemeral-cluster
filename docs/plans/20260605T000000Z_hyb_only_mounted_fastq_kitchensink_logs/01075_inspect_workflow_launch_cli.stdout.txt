@@ -1,0 +1,398 @@
+def workflow_launch(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name.",
+    ),
+    stage_dir: Optional[str] = typer.Option(
+        None,
+        "--stage-dir",
+        help="Specific staging directory containing generated manifests.",
+    ),
+    run_context_file: Optional[Path] = typer.Option(
+        None,
+        "--run-context-file",
+        help="Local runs.tsv file to copy to config/runs.tsv for run-analysis workflows.",
+    ),
+    samples_file: Optional[Path] = typer.Option(
+        None,
+        "--samples-file",
+        help="Local samples.tsv file to copy to config/samples.tsv for sample-analysis workflows.",
+    ),
+    units_file: Optional[Path] = typer.Option(
+        None,
+        "--units-file",
+        help="Local units.tsv file to copy to config/units.tsv for sample-analysis workflows.",
+    ),
+    stage_base: str = typer.Option(
+        "/fsx/staging/staged_external_sequencing_data",
+        "--stage-base",
+        help="Base staging directory to scan when --stage-dir is omitted.",
+    ),
+    input_staging: bool = typer.Option(
+        True,
+        "--input-staging/--no-input-staging",
+        help="Copy staged samples/units into the workflow clone.",
+    ),
+    default_activation: bool = typer.Option(
+        True,
+        "--default-activation/--no-default-activation",
+        help="Run the standard dyoainit plus Slurm day_activate setup before --dy-command.",
+    ),
+    bootstrap_test_config: bool = typer.Option(
+        False,
+        "--bootstrap-test-config",
+        help="Copy DayOA bundled test samples and units into config/ before launch.",
+    ),
+    session_name: Optional[str] = typer.Option(
+        None,
+        "--session-name",
+        help="Tmux session name. Defaults to --analysis-id.",
+    ),
+    analysis_id: str = typer.Option(
+        ...,
+        "--analysis-id",
+        help="Required analysis identifier used for the FSx analysis directory.",
+    ),
+    executing_entity: Optional[str] = typer.Option(
+        None,
+        "--executing-entity",
+        "-u",
+        help="User or system identifier used under /fsx/analysis_results. Defaults to --cluster.",
+    ),
+    repository: str = typer.Option(
+        "daylily-omics-analysis",
+        "--repository",
+        help="Repository key to pass to day-clone.",
+    ),
+    git_tag: str = typer.Option(
+        "main",
+        "--git-tag",
+        "-t",
+        help="Git branch or tag passed to day-clone.",
+    ),
+    project: Optional[str] = typer.Option(None, "--project", help="Project/budget for dyoainit."),
+    skip_project_check: bool = typer.Option(
+        True,
+        "--skip-project-check/--strict-project-check",
+        help="Skip or enable upstream project validation in dyoainit.",
+    ),
+    genome: str = typer.Option("hg38", "--genome", help="Genome build."),
+    jobs: int = typer.Option(6, "--jobs", help="Snakemake job count."),
+    aligners: str = typer.Option("bwa2a", "--aligners", help="Comma-separated aligner list."),
+    dedupers: str = typer.Option("dmd", "--dedupers", help="Comma-separated deduper list."),
+    snv_callers: str = typer.Option(
+        "deep",
+        "--snv-callers",
+        help="Comma-separated SNV caller list.",
+    ),
+    sv_callers: str = typer.Option(
+        "",
+        "--sv-callers",
+        help="Comma-separated SV caller list.",
+    ),
+    target: str = typer.Option(
+        "produce_snv_concordances",
+        "--target",
+        help="Workflow target.",
+    ),
+    dy_command: Optional[str] = typer.Option(
+        None,
+        "--dy-command",
+        help="Override the dy-r command entirely.",
+    ),
+    snakemake_extra: Optional[str] = typer.Option(
+        None,
+        "--snakemake-extra",
+        help="Additional arguments appended to dy-r.",
+    ),
+    no_containerized: bool = typer.Option(
+        False,
+        "--no-containerized",
+        help="Disable DAY_CONTAINERIZED.",
+    ),
+    export_destination_s3_uri: Optional[str] = typer.Option(
+        None,
+        "--export-destination-s3-uri",
+        help="Full S3 prefix ending in <executing-entity>/<analysis-id>/ for auto-export.",
+    ),
+    export_trigger: str = typer.Option(
+        "none",
+        "--export-trigger",
+        help="Auto-export trigger: none, on-success, on-fail, or all.",
+    ),
+    delete_on_export_success: bool = typer.Option(
+        False,
+        "--delete-on-export-success",
+        help="Delete the FSx analysis directory after a successful requested export.",
+    ),
+    replace_existing_analysis_dir: bool = typer.Option(
+        False,
+        "--replace-existing-analysis-dir",
+        help=(
+            "Explicit retry mode: remove an existing same analysis directory before launch. "
+            "Existing analysis directories fail hard unless this flag is set."
+        ),
+    ),
+    artifact_registration_command_id: Optional[str] = typer.Option(
+        None,
+        "--artifact-registration-command-id",
+        help="Catalog command id whose artifact_registration policy should run after export.",
+    ),
+    dewey_url: Optional[str] = typer.Option(
+        None,
+        "--dewey-url",
+        help="Dewey base URL for post-export artifact registration.",
+    ),
+    dewey_token_env: Optional[str] = typer.Option(
+        None,
+        "--dewey-token-env",
+        help="Environment variable containing the Dewey bearer token.",
+    ),
+    dewey_analysis_dir_external_object_id: Optional[str] = typer.Option(
+        None,
+        "--dewey-analysis-dir-external-object-id",
+        help="External object id for the exported daylily-omics-analysis S3 directory.",
+    ),
+    dewey_run_artifact_euid: Optional[str] = typer.Option(
+        None,
+        "--dewey-run-artifact-euid",
+        help="Dewey run artifact EUID to link to the exported analysis directory external object.",
+    ),
+    dewey_ursa_analysis_euid: Optional[str] = typer.Option(
+        None,
+        "--dewey-ursa-analysis-euid",
+        help="Ursa analysis EUID to link to the exported analysis directory external object.",
+    ),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Launch a dry-run workflow command."),
+) -> None:
+    """Launch daylily-omics-analysis inside tmux on the headnode."""
+
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    resolved_executing_entity = _resolve_executing_entity_option(
+        executing_entity=executing_entity,
+        cluster=cluster,
+    )
+    _validate_analysis_launch_options(
+        analysis_id=analysis_id,
+        executing_entity=resolved_executing_entity,
+        export_destination_s3_uri=export_destination_s3_uri,
+        export_trigger=export_trigger,
+        delete_on_export_success=delete_on_export_success,
+    )
+    if artifact_registration_command_id and export_trigger == "none":
+        raise typer.BadParameter("--artifact-registration-command-id requires --export-trigger")
+    if artifact_registration_command_id and not dewey_url:
+        raise typer.BadParameter("--dewey-url is required with --artifact-registration-command-id")
+    if artifact_registration_command_id and not dewey_token_env:
+        raise typer.BadParameter(
+            "--dewey-token-env is required with --artifact-registration-command-id"
+        )
+    if not artifact_registration_command_id and (dewey_url or dewey_token_env):
+        raise typer.BadParameter(
+            "--artifact-registration-command-id is required when Dewey registration options are set"
+        )
+    _validate_dewey_analysis_directory_link_options(
+        artifact_registration_command_id=artifact_registration_command_id,
+        dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
+        dewey_run_artifact_euid=dewey_run_artifact_euid,
+        dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
+    )
+    resolved_session_name = session_name or analysis_id
+    argv: list[str] = []
+    for flag, value in (
+        ("--profile", profile),
+        ("--region", region),
+        ("--cluster", cluster),
+        ("--stage-dir", stage_dir),
+        ("--run-context-file", str(run_context_file.expanduser()) if run_context_file else None),
+        ("--samples-file", str(samples_file.expanduser()) if samples_file else None),
+        ("--units-file", str(units_file.expanduser()) if units_file else None),
+        ("--stage-base", stage_base),
+        ("--session-name", resolved_session_name),
+        ("--analysis-id", analysis_id),
+        ("--executing-entity", resolved_executing_entity),
+        ("--repository", repository),
+        ("--git-tag", git_tag),
+        ("--project", project),
+        ("--genome", genome),
+        ("--jobs", str(jobs)),
+        ("--aligners", aligners),
+        ("--dedupers", dedupers),
+        ("--snv-callers", snv_callers),
+        ("--sv-callers", sv_callers),
+        ("--target", target),
+        ("--dy-command", dy_command),
+        ("--snakemake-extra", snakemake_extra),
+        ("--export-destination-s3-uri", export_destination_s3_uri),
+        ("--export-trigger", export_trigger),
+        ("--artifact-registration-command-id", artifact_registration_command_id),
+        ("--dewey-url", dewey_url),
+        ("--dewey-token-env", dewey_token_env),
+        ("--dewey-analysis-dir-external-object-id", dewey_analysis_dir_external_object_id),
+        ("--dewey-run-artifact-euid", dewey_run_artifact_euid),
+        ("--dewey-ursa-analysis-euid", dewey_ursa_analysis_euid),
+    ):
+        if value is not None:
+            argv.extend([flag, value])
+    if not input_staging:
+        argv.append("--no-input-staging")
+    if not default_activation:
+        argv.append("--no-default-activation")
+    if bootstrap_test_config:
+        argv.append("--bootstrap-test-config")
+    argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
+    if no_containerized:
+        argv.append("--no-containerized")
+    if delete_on_export_success:
+        argv.append("--delete-on-export-success")
+    if replace_existing_analysis_dir:
+        argv.append("--replace-existing-analysis-dir")
+    if dry_run:
+        argv.append("--dry-run")
+
+    try:
+        raise typer.Exit(_invoke_workflow_launch(argv))
+    except CommandError as exc:
+        _exit_headnode_error(exc)
+
+
+def repositories_commands(
+    config: Optional[Path] = typer.Option(
+        stage_config = None
+    elif args.input_staging:
+        stage_config = discover_stage_config(
+            target.instance_id,
+            args.profile,
+            region,
+            args.stage_dir,
+            args.stage_base,
+        )
+    else:
+        if args.stage_dir:
+            raise CommandError("--stage-dir cannot be used with --no-input-staging.")
+        stage_config = None
+
+    if args.dy_command:
+        dy_command = args.dy_command
+    else:
+        dy_command = build_default_command(
+            target=args.target,
+            genome=args.genome,
+            jobs=args.jobs,
+            aligners=args.aligners.split(","),
+            dedupers=args.dedupers.split(","),
+            snv_callers=args.snv_callers.split(","),
+            sv_callers=[value for value in args.sv_callers.split(",") if value],
+            containerized=not args.no_containerized,
+            dry_run=args.dry_run,
+            extra=args.snakemake_extra,
+        )
+
+    project_arg = shlex.quote(args.project) if args.project else ""
+    repository_literal = json.dumps(args.repository)
+    dy_command_literal = shlex.quote(dy_command)
+    skip_check = "true" if args.skip_project_check else "false"
+    run_context_mode = run_context_content is not None
+    sample_config_mode = samples_content is not None or units_content is not None
+  echo "[ERROR] Missing conda profile script at $HOME/miniconda3/etc/profile.d/conda.sh"
+  exit 10
+fi
+. "$HOME/miniconda3/etc/profile.d/conda.sh"
+shopt -s expand_aliases
+MERMAID_CHROME="$HOME/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome"
+if [[ -z "${{PUPPETEER_EXECUTABLE_PATH:-}}" && -x "$MERMAID_CHROME" ]]; then
+  export PUPPETEER_EXECUTABLE_PATH="$MERMAID_CHROME"
+fi
+
+run_dy_command() {{
+  local command="$1"
+  local dyoainit_source_needed=false
+  if [[ "$command" == source\\ dyoainit\\;* ]]; then
+    dyoainit_source_needed=true
+    command="${{command#source dyoainit;}}"
+  elif [[ "$command" == .\\ dyoainit\\;* ]]; then
+    dyoainit_source_needed=true
+    command="${{command#. dyoainit;}}"
+  fi
+  command="${{command#"${{command%%[![:space:]]*}}"}}"
+  if [[ "$dyoainit_source_needed" == "true" ]]; then
+    set +u
+    set --
+    source dyoainit
+    local source_status=$?
+    set -u
+    if [[ "$source_status" != "0" ]]; then
+      return "$source_status"
+    fi
+  fi
+  set +u
+  eval "$command"
+  local command_status=$?
+  set -u
+  return "$command_status"
+}}
+
+declare -a dyoa_args=()
+if [[ -n "$PROJECT_VALUE" ]]; then
+  dyoa_args+=(--project {project_arg})
+  export PROJECT="$PROJECT_VALUE"
+else
+  unset PROJECT || true
+fi
+if [[ "$SKIP_PROJECT_CHECK" == "true" ]]; then
+  dyoa_args+=(--skip-project-check)
+fi
+if [[ "$DEFAULT_ACTIVATION" == "true" ]]; then
+  set +u
+  . dyoainit "${{dyoa_args[@]}}"
+  set -u
+  set +e
+  set +u
+  . bin/day_activate slurm {shlex.quote(args.genome)} remote
+  activate_status=$?
+  set -u
+  set -e
+  if [[ "$activate_status" != "0" ]]; then
+    echo "[ERROR] day_activate failed with status $activate_status"
+    exit "$activate_status"
+  fi
+fi
+if [[ "$BCLCONVERT_PROFILE_PATCH_REQUESTED" == "true" ]]; then
+  patch_bclconvert_profile_config
+  patch_bclconvert_lane_split
+fi
+	if ont_run_qc_runtime_repair_requested; then
+	  patch_pycoqc_readonly_sort
+	fi
+	if goleft_indexcov_runtime_repair_requested; then
+	  patch_goleft_indexcov_empty_sex_arg
+	fi
+	if mosdepth_empty_output_runtime_repair_requested; then
+	  patch_mosdepth_empty_outputs
+	fi
+	if rtg_vcfeval_parse_runtime_repair_requested; then
+	  patch_rtg_vcfeval_parse_output_dir
+	fi
+	if vep_zero_variant_runtime_repair_requested; then
+	  patch_vep_empty_concat_fofn
+	fi
+	if contam_identity_zero_variant_runtime_repair_requested; then
+	  patch_contam_identity_zero_variant_outputs
+	fi
+	set +e
+	run_dy_command "$DY_COMMAND"
+workflow_status=$?
+set -e
+should_export=false
+case "$EXPORT_TRIGGER" in
+  none) should_export=false ;;
+  on-success) [[ "$workflow_status" -eq 0 ]] && should_export=true ;;
+  on-fail) [[ "$workflow_status" -ne 0 ]] && should_export=true ;;
+  all) should_export=true ;;
+  *) echo "[ERROR] Invalid EXPORT_TRIGGER=$EXPORT_TRIGGER"; workflow_status=20 ;;

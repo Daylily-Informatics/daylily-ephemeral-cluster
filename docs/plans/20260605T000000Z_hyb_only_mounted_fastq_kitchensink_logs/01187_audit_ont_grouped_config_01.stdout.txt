@@ -1,0 +1,16 @@
+## grouped units
+chip1 NA00232 barcode18-chip1 73
+chip1 NA03986 barcode20-chip1 73
+chip1 NA05164 barcode21-chip1 73
+chip1 NA09677 barcode19-chip1 73
+chip2 NA00232 barcode18-chip2 73
+chip2 NA03986 barcode20-chip2 73
+chip2 NA05164 barcode21-chip2 73
+chip2 NA09677 barcode19-chip2 73
+chip3 NA09677 barcode19-chip3 9
+chip4 NA00232 barcode18-chip4 73
+chip4 NA03986 barcode20-chip4 73
+chip4 NA05164 barcode21-chip4 73
+chip4 NA09677 barcode19-chip4 73
+## active ONT jobs
+DAY-EC activated.

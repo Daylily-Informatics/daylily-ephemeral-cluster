@@ -1,0 +1,23 @@
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+  · Attached export DRA dra-0b08ae10b2951d798 at 
+/fsx/analysis_results/ubuntu/ccv_dryrun_hybrid_ilmn_ont_snv_kitchensink_20260609
+T063015Z/
+
+╭────────────────────────────── Export complete ───────────────────────────────╮
+│                                                                              │
+│  Cluster: dyecX4                                                             │
+│  FSx: fs-04960a3a07c091cf3                                                   │
+│  Source:                                                                     │
+│  /analysis_results/ubuntu/ccv_dryrun_hybrid_ilmn_ont_snv_kitchensink_202606  │
+│  09T063015Z/                                                                 │
+│  S3:                                                                         │
+│  s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/ccv  │
+│  _dryrun_hybrid_ilmn_ont_snv_kitchensink_20260609T063015Z/                   │
+│  Status file:                                                                │
+│  /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260611T  │
+│  004801Z_dyecX4_4na_smn12_export_cleanup_logs/exports/ccv_dryrun_hybrid_ilm  │
+│  n_ont_snv_kitchensink_20260609T063015Z/fsx_export.yaml                      │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯

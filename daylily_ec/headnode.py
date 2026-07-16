@@ -274,15 +274,15 @@ def build_shell_code(state: HeadnodeState) -> str:
             f'export DAY_CONTACT_EMAIL="${{DAY_CONTACT_EMAIL:-{DEFAULT_CONTACT_EMAIL}}}"',
             f"export DAY_PROJECT={shlex.quote(state.project)}",
             f"export DAY_AWS_REGION={shlex.quote(state.region)}",
-            'export APPTAINER_HOME="${APPTAINER_HOME:-/fsx/tmp/apptainer_home/$USER}"',
+            'export APPTAINER_HOME="${APPTAINER_HOME:-/fsx/tmp/apptainer_home/${USER:-$(id -un)}}"',
             'export DAYLILY_APPTAINER_CACHE="${DAYLILY_APPTAINER_CACHE:-/fsx/resources/environments/apptainer}"',
-            'export DAYLILY_CONTAINER_CACHE="${DAYLILY_CONTAINER_CACHE:-/fsx/resources/environments/containers/$USER/$(hostname)}"',
+            'export DAYLILY_CONTAINER_CACHE="${DAYLILY_CONTAINER_CACHE:-/fsx/resources/environments/containers/${USER:-$(id -un)}/$(hostname)}"',
             'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-$DAYLILY_APPTAINER_CACHE}"',
             'export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-$APPTAINER_CACHEDIR}"',
             'export DAY_BIOME="AWSPC"',
             'export DAY_ROOT="${PWD}"',
-            'export ORIG_PATH="${ORIG_PATH:-$PATH}"',
-            'export ORIG_PS1="${ORIG_PS1:-$PS1}"',
+            'export ORIG_PATH="${ORIG_PATH:-${PATH:-}}"',
+            'export ORIG_PS1="${ORIG_PS1:-${PS1:-}}"',
             f"reference_s3_uri={shlex.quote(state.reference_s3_uri)}",
             'if [ -n "${DAYLILY_EC_REPO_ROOT:-}" ]; then',
             '    alias dy-b="${DAYLILY_EC_REPO_ROOT}/bin/init_dayec"',
@@ -374,7 +374,6 @@ def _create_missing_budgets(
             account_id,
             GLOBAL_BUDGET_NAME,
             global_amount,
-            GLOBAL_BUDGET_NAME,
             cluster_name,
         )
         create_notifications(
@@ -400,31 +399,30 @@ def _create_missing_budgets(
     create_budget(
         budgets_client,
         account_id,
-        project_name,
+        cluster_name,
         budget_amount,
-        project_name,
         cluster_name,
     )
     create_notifications(
         budgets_client,
         account_id,
-        project_name,
+        cluster_name,
         CLUSTER_THRESHOLDS,
         budget_email,
     )
     update_tags_file(
         s3_client,
         bucket_name,
-        project_name,
+        cluster_name,
         allowed_users.replace(" ", ""),
         state.region,
     )
 
     refreshed = budgets_client.describe_budgets(AccountId=account_id)
     for budget in refreshed.get("Budgets", []):
-        if budget.get("BudgetName") == project_name:
+        if budget.get("BudgetName") == cluster_name:
             return _build_budget_summary(budget)
-    return BudgetSummary(name=project_name, exists=True)
+    return BudgetSummary(name=cluster_name, exists=True)
 
 
 def _print_state(state: HeadnodeState) -> None:

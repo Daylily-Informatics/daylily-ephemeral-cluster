@@ -1,0 +1,153 @@
+# HG003 1x HIOMRS four-cluster comparison and P2-default rollout ledger
+
+Created: `2026-07-15T17:52:02Z`
+
+## Objective
+
+Run the exact HG003 SR1x+LR1x HIOMRS kitchensink workflow from immutable DayOA
+tag `11.0.6` on the four live Oregon clusters in parallel. Integrate and release
+the already proven DYEC-owned `PERSISTENT_2` lifecycle as the explicit default,
+pin the current HIOMRS command to DayOA `11.0.6`, support a 14.4-TiB P2
+filesystem at the highest supported SSD throughput tier, then create a fifth
+cluster and run the same workflow there when all execution gates are satisfied.
+
+Amendment at `2026-07-15T19:41:46Z`: publish the current DayOA
+`sentieon-single` branch as the next patch release, advance DYEC through its
+DayOA-pin and self-pin releases, and replace the uncreated 14,400-GiB
+`us-west-2d` candidate with a 12,000-GiB `PERSISTENT_2` filesystem at 1000
+MB/s/TiB in `us-west-2c`. The new AWS cluster budget is `$600`, for which the
+user supplied the explicit second approval. Slurm accounting must be attached
+and verified through the supported post-create path before the HG003 controller
+is launched.
+
+## Gate 0 baseline
+
+- AWS account/profile/region: `108782052779` / `lsmc` / `us-west-2`.
+- DayOA release: annotated tag `11.0.6`, peeled commit
+  `5e245f59fefb80c9a6fb85dec748a2bd4d828f2b`. The preceding accepted HG003 1x
+  root reached controller rc 0 and produced final MultiQC plus the DayOA
+  evidence manifest on the 1,200-GiB `SCRATCH_2` filesystem, but provenance
+  inspection shows its checkout remained at tag `11.0.5` / commit
+  `ee86670c3c5347cb4d821f570283c8c034c23671`. Its two runtime-modified files
+  have SHA-256 values exactly matching the eventual `11.0.6` release; therefore
+  it is a valid live-tested-code baseline, not an exact-tag `11.0.6` checkout.
+- DYEC source: clean worktree
+  `/Users/jmajor/projects/lsmc/.worktrees/dyec-p2-default-hiomrs-1106`, branch
+  `codex/p2-default-hiomrs-1106`, based on `origin/sentieon-single` commit
+  `80a32383370d79e9a3913495835b9436eb765955`.
+- Latest published DYEC release: annotated tag `10.3.7`, peeled commit
+  `a943d8e71b0d4bc9366f3bdc801318c968174c77`. Its command catalog still pins
+  DayOA/HIOMRS to `10.3.0`, so a new pin release is required.
+- Proven P2 canary source: commits `904c1c9b`, `e3aafb9d`, and `7347d1b0` on
+  `origin/codex/p2-fsx-canary`; live canary filesystem
+  `fs-0e8434a86af264b29` is `PERSISTENT_2`, 4,800 GiB, 250 MB/s/TiB, Lustre
+  2.15, metadata `AUTOMATIC`, and `AVAILABLE`.
+- Four target clusters are live and idle at Gate 0:
+  `ifx-p2-250-0714`, `ifx-sacctoff-1037`, `ifx-20260719h`, and
+  `sent-hg003-5x-0712`. Each headnode is reachable as `ubuntu` through the
+  supported DYEC/SSM login shell, `/fsx` is mounted read/write, the exact Daylily
+  `squeue` format is empty, and `dyec analysis` is available.
+- FSx comparison shapes: 4,800-GiB P2-250; 4,800-GiB Scratch_2; 14,400-GiB
+  Scratch_2; and 1,200-GiB Scratch_2.
+- The requested 14,000 GiB is not an FSx Lustre SSD capacity quantum. Persistent
+  SSD capacity at this size must be a multiple of 2,400 GiB, so the exact fifth
+  configuration is 14,400 GiB. AWS supports P2 SSD throughput tiers 125, 250,
+  500, and 1000 MB/s/TiB; the requested highest tier is therefore 1000.
+- The three `ifx-*` clusters do not have same-named DYEC cost centers. All five
+  comparison runs use the already active `sent-hg003-5x-0712` project/cost
+  center (cap `$750`, allowed user `ubuntu`) explicitly in `dyoainit`; no budget
+  or cost-center cap is changed.
+- HG003 manifests come only from tag `11.0.6`:
+  `.test_data/data/hybrid/empty_cells/hiomr/samples.tsv` and the header plus
+  first data row of `.test_data/data/hybrid/empty_cells/hiomr/units.tsv`.
+  Expected SHA-256 values are `15bf42e9348a52f921fd785ff82c86615ea060b9b0aa6b646a0c1f928efd17c0`
+  and `a5b3d5ba0cd585b26aee2fa57bc200d9060fbfe1947b11409074b897d7ecb4ec`.
+- No raw Snakemake, SSH, silent fallback, filesystem deletion, DRA deletion,
+  Slurm administration, budget increase, or foreign lock takeover is allowed.
+- Release-train Gate 0 amendment: DayOA source is
+  `/Users/jmajor/projects/lsmc/daylily-omics-analysis-sentieon-single`, branch
+  `sentieon-single`, HEAD/origin `59015411f9ea9d2ece3bc29da353705342b52817`,
+  five commits beyond annotated `11.0.6`. Tracked dirt is limited to the two
+  execution-ledger files named below. Untracked `jemxxx_tmp/` (2.8 MiB, three
+  generated files) and `tmp_sent-singleton/` (404 KiB, four generated files)
+  are explicitly preserved and excluded from release staging. DYEC source is
+  clean at `78bc0dcf` on `codex/p2-default-hiomrs-1106`, matching
+  `origin/sentieon-single`; annotated releases `10.3.8` and `10.3.9` already
+  exist and will not be moved.
+
+## Control ledger
+
+| ID | Area | Requirement | Status | Category | Approval gate | Owner | Evidence | Root cause | Terminal note |
+|---|---|---|---|---|---|---|---|---|---|
+| G0-001 | Inventory | Freeze repos, releases, inputs, clusters, queues, filesystems, cost centers, and no-fallback contract | SUCCESS | feature_implementation | Gate 0 | orchestrator | Gate 0 baseline above |  | Baseline complete before workflow or AWS mutation. |
+| AMEND-001 | Requested release train | Replace the uncreated 14,400-GiB `us-west-2d` candidate with released DayOA/DYEC source and a 12,000-GiB `us-west-2c` P2-1000 cluster | SUCCESS | plan_amendment | Gate 0 | orchestrator | User clarified the exact AZ/capacity, requested the full DayOA-to-DYEC release train, gave second approval for a new `$600` AWS budget, and required post-create `sacct` before workflow launch |  | Supersedes only the uncreated fifth-cluster candidate; the four live comparison runs remain untouched. |
+| DAYREL-001 | DayOA release | Validate, commit the relevant tracked dirt, push `sentieon-single`, and create the next unused annotated patch tag | SUCCESS | contract_test | Gate 2 | orchestrator | Full suite `765 passed`; Ruff and diff checks clean; commit `978f5640177203f159a9ea3b5a79bd21ff382ac3`; annotated tag `11.0.7`; branch and tag pushed and verified remotely; generated untracked directories excluded |  | Published without moving an existing tag. |
+| DYREL-003 | DYEC DayOA pin | Pin default and HIOMRS catalog refs to DAYREL-001, correct the exact fifth config, validate, commit/push, and create the next annotated patch tag | SUCCESS | contract_test | Gate 3 | orchestrator | Source/payload catalogs and tests pin `11.0.7`; exact config is `ifx-p2-1000-120-0715`, `us-west-2c`, 12,000-GiB P2-1000, `$600`, and accounting disabled until the post-create attach gate. Focused suite `98 passed`; full suite `1541 passed, 11 skipped`; Ruff, source/payload comparison, and diff checks clean; commit `3295296da9d39fc1118902fda7e445cc5b5d5943`; annotated tag `10.3.10`; branch and tag pushed and remotely verified. |  | Published without moving an existing tag. |
+| DYREL-004 | DYEC self-pin | Advance source/payload DYEC self-pin to DYREL-003, validate, commit/push, and create the following annotated patch tag | SUCCESS | contract_test | Gate 3 | orchestrator | Source/payload global config and fork contract pin `10.3.10`; focused suite `77 passed`; source/payload comparison, Ruff, and diff checks clean; commit `3c2c9ac3986e80f1ae7f9636d936c9321266e97e`; annotated tag `10.3.11`; feature branch, `sentieon-single`, and tag pushed; remote tag peels to the release commit |  | Published without moving an existing tag. |
+| DYREL-005 | DYEC accounting dry-run fix | Publish the live-proven exact-message handling for ParallelCluster update dry runs | SUCCESS | contract_test | Gate 5 | orchestrator | Live accounting attach on `ifx-p2-1000-120-0715` completed through the supported DYEC path; focused runner/attach suites `39 passed` and `58 passed`; full suite `1542 passed, 11 skipped`; Ruff and diff checks clean; commit `5ce99ada`; annotated tag `10.3.12`; feature branch, `sentieon-single`, and tag pushed | The installed LSMC ParallelCluster fork returns rc 1 with the canonical successful dry-run message. | Published without moving an existing tag. |
+| DYREL-006 | DYEC accounting-fix self-pin | Advance source/payload DYEC self-pin to DYREL-005 and publish the following annotated patch tag | SUCCESS | contract_test | Gate 5 | orchestrator | Source/payload global config and fork contract pin `10.3.12`; focused suite `269 passed`; source/payload comparison, Ruff, and diff checks clean; commit `4596b9e49146bf889676fa43abdae5302ba4b177`; annotated tag `10.3.13`; feature branch, `sentieon-single`, and tag pushed; remote tag peels to the release commit |  | Published without moving an existing tag. |
+| ENV-001 | Local DYEC environment | From the DYEC checkout, run `source ./activate` and install the released checkout editable | SUCCESS | contract_test | Gate 3 | orchestrator | `pip install -e .` completed; installed distribution metadata is `daylily-ephemeral-cluster 10.3.13`; imported `daylily_ec` resolves to this exact worktree; `git describe` is `10.3.13` |  | The CLI has no `--version` option, so verification used Python distribution metadata and exact import path. |
+| RUN-001 | `ifx-p2-250-0714` | Fresh exact-tag HG003 1x HIOMRS dry-run then live controller | RUNNING | feature_implementation | Gate 1 | orchestrator | Root `/fsx/analysis_results/ifx-p2-250-0714/hg003-1x-hiomrs-1106-20260715T1754Z`; tmux `hg003-1x-hiomrs-1106-p2-250-20260715`; exact tag/commit and input hashes verified; 174-job dry-run rc 0; live controller is creating pinned conda environments |  | Controller live; no terminal claim. |
+| RUN-002 | `ifx-sacctoff-1037` | Fresh exact-tag HG003 1x HIOMRS dry-run then live controller | RUNNING | feature_implementation | Gate 1 | orchestrator | Root `/fsx/analysis_results/ifx-sacctoff-1037/hg003-1x-hiomrs-1106-20260715T1754Z`; tmux `hg003-1x-hiomrs-1106-s2-48-20260715`; exact tag/commit and input hashes verified; 174-job dry-run rc 0; live controller is creating pinned conda environments |  | Controller live; no terminal claim. |
+| RUN-003 | `ifx-20260719h` | Fresh exact-tag HG003 1x HIOMRS dry-run then live controller | RUNNING | feature_implementation | Gate 1 | orchestrator | Root `/fsx/analysis_results/ifx-20260719h/hg003-1x-hiomrs-1106-20260715T1754Z`; tmux `hg003-1x-hiomrs-1106-s2-144-20260715`; exact tag/commit and input hashes verified; 174-job dry-run rc 0; live jobs 1-5 submitted with zero Slurm memory placement |  | Controller live; initial LR/SR preparation and QC jobs are configuring. |
+| RUN-004 | `sent-hg003-5x-0712` | Fresh exact-tag HG003 1x HIOMRS dry-run then live controller | RUNNING | feature_implementation | Gate 1 | orchestrator | Root `/fsx/analysis_results/sent-hg003-5x-0712/hg003-1x-hiomrs-1106-20260715T1754Z`; tmux `hg003-1x-hiomrs-1106-s2-12-20260715`; 174-job dry-run rc 0. First live submission failed closed on stale cost-center evidence, released its lock, then authoritative refresh and explicit visit/lock reacquisition admitted jobs 1149-1153. At `2026-07-15T18:15Z`, 4 of 172 live steps were complete and jobs 1150-1160 were active. Existing unrelated tmux sessions remain untouched. | Missing `refresh-usage` integration left a 43.05-hour snapshot behind the 36-hour enforcement maximum. | Controller live; current jobs use zero Slurm memory placement. |
+| SRC-001 | DYEC P2 | Integrate the proven cluster-bound P2 implementation without unrelated canary evidence | SUCCESS | feature_implementation | Gate 2 | orchestrator | Cherry-picked canary commits `904c1c9b`, `e3aafb9d`, `7347d1b0` as `a412508a`, `6ee6fe83`, `1ca3236c` |  | Proven implementation and evidence integrated. |
+| SRC-002 | DYEC P2 | Make P2 the explicit default and accept valid capacity/throughput pairs including 14,400/1000 | SUCCESS | feature_implementation | Gate 2 | orchestrator | Source/payload defaults now use cluster-bound P2 4,800/250; validator accepts AWS P2 tiers and 14,400/1000; exact fifth config `config/daylily_ephemeral_cluster_ifx_p2_1000_144_20260715.yaml` resolves to 14,400 GiB and 1000 MB/s/TiB |  | Source complete; release pending. |
+| SRC-003 | DYEC catalog | Pin default DayOA and HIOMRS command-catalog refs to `11.0.6` in source and packaged payload | SUCCESS | feature_implementation | Gate 2 | orchestrator | Source and packaged catalogs pin default plus both HIOMRS commands to DayOA `11.0.6`; focused catalog/fork tests passed before refresh integration |  | Source complete; release pending. |
+| SRC-004 | DYEC cost controls | Integrate authoritative dedicated-cluster CUR refresh so stale usage is repaired without fabricated timestamps | SUCCESS | feature_implementation | Gate 2 | orchestrator | Added fail-closed `dyec cost-centers refresh-usage`; 162 focused tests passed. Dry-run and live refresh each read 838 EC2 CUR rows; DDB readback is `$401.88672953969999999994924` through `2026-07-15T06:00:00Z`. | The tested command existed only on an older internal line and was absent from `sentieon-single`. | Live admission restored without changing either `$750` cap. |
+| REL-001 | DYEC release | Focused/full validation, commit, push branch, and cut next unused annotated pin release | SUCCESS | contract_test | Gate 3 | orchestrator | Full suite: `1540 passed, 11 skipped`; focused Ruff clean; source/payload comparisons, exact fifth-config YAML assertions, and `git diff --check` passed; release commit `878f595e3844a60a00580d7c85ee7f6c19eb60d6`; annotated tag `10.3.8` |  | First release commit and annotated tag complete. |
+| REL-002 | DYEC self-pin | Advance source and packaged DYEC self-pin to REL-001, validate, commit, push, and cut next patch tag | SUCCESS | contract_test | Gate 3 | orchestrator | Source and packaged global config plus fork-contract test pin `10.3.8`; focused suite `77 passed`; commit `4bb672ff7167daa66f7928929ed332b9a1baa7db`; annotated tag `10.3.9`; branch `codex/p2-default-hiomrs-1106`, `sentieon-single`, and both tags pushed to origin |  | Published without moving an existing tag. |
+| SACCT-001 | `ifx-p2-250-0714` | Attach supported Slurm accounting without interrupting the comparison run | OPEN | contract_test | Gate 4 | orchestrator | `AccountingStorageType=(null)`; at `2026-07-15T18:40Z` the exact-tag controller was 46/174 with five running jobs; supported `dyec slurm-accounting attach` requires `CREATE_COMPLETE` plus a stopped compute fleet | Active exact-tag controller owns running scope; fleet will be stopped only after the workflow is terminal and the queue is empty. | Deferred, not skipped. |
+| SACCT-002 | `ifx-sacctoff-1037` | Attach supported Slurm accounting without interrupting the comparison run | OPEN | contract_test | Gate 4 | orchestrator | `AccountingStorageType=(null)`; at `2026-07-15T18:40Z` the exact-tag controller was 38/174 with seven running jobs; supported `dyec slurm-accounting attach` requires `CREATE_COMPLETE` plus a stopped compute fleet | Active exact-tag controller owns running scope; fleet will be stopped only after the workflow is terminal and the queue is empty. | Deferred, not skipped. |
+| SACCT-003 | `ifx-20260719h` | Verify existing Slurm accounting | SUCCESS | contract_test | Gate 4 | orchestrator | `AccountingStorageType=accounting_storage/slurmdbd`, accounting host `ip-10-0-0-56`, port `6819`; `sacct` responds |  | Accounting already attached. |
+| SACCT-004 | `sent-hg003-5x-0712` | Verify existing Slurm accounting | SUCCESS | contract_test | Gate 4 | orchestrator | `AccountingStorageType=accounting_storage/slurmdbd`, accounting host `ip-10-0-0-203`, port `6819`; `sacct` shows current jobs 1149-1153 |  | Accounting already attached and active. |
+| SACCT-005 | Fifth cluster | Enable Slurm accounting in the creation contract | NO_LONGER_NEEDED | feature_implementation | Gate 4 | orchestrator | The amended user contract explicitly requires accounting after cluster creation |  | Replaced by SACCT-006; create remains independent of accounting. |
+| SACCT-006 | New 12,000-GiB cluster | After `CREATE_COMPLETE`, stop the empty fleet, attach accounting through dry-run/live update, restart, and verify `sacct` | SUCCESS | contract_test | Gate 5 | orchestrator | New headnode `i-09b566e847c16233b` was queue-empty with no tmux sessions. Fleet transitioned `RUNNING -> STOP_REQUESTED -> STOPPING -> STOPPED`; supported dry run passed against stack `dayec-slurm-accounting-us-west-2c`; live update reached `UPDATE_COMPLETE`; fleet restarted to `RUNNING`. Headnode readback: `AccountingStorageType=accounting_storage/slurmdbd`, host `ip-10-0-0-22`, port `6819`, `SelectTypeParameters=CR_CPU`, `JobSubmitPlugins=lua`, empty queue, and `sacct` rc 0. | DYEC update dry runs incorrectly required both the canonical success message and rc 0, while the installed LSMC ParallelCluster fork returns rc 1 with the exact canonical success JSON. | Small source fix makes the exact canonical success message authoritative for update dry runs, matching create dry runs; focused runner/attach suite `39 passed` and Ruff clean. No validator was suppressed. |
+| AWS-000 | Failed cluster cleanup | Delete hard-failed `ifx-20260719g` after explicit double approval | SUCCESS | removable_compatibility_debt | Gate 4 | orchestrator | `dyec delete --yes` reached terminal deletion in 15m18s; final `pcluster list-clusters` contains four records; CloudFormation stack and FSx `fs-0d376633755dc5a49` return not found; DRA `dra-0cfeaea12c25b953a` list is empty | Initial rollback had failed because an active metadata-import task blocked DRA deletion; the retry deleted the now-available DRA before the 14,400-GiB `SCRATCH_2` filesystem. | Backing `s3://lsmc-dayoa-references-usw2` objects were not deleted. |
+| AWS-001 | Fifth cluster | Validate quota/cap/config and create 12,000-GiB P2-1000 cluster in `us-west-2c` without fallback | SUCCESS | feature_implementation | Gate 4 | orchestrator | Four ParallelCluster records remained, so the default regional cap of five was sufficient. User supplied second approval for the new cluster AWS budget: nonexistent/`$0` to `$600`. DayOA `11.0.7`, DYEC pin `10.3.10`, self-pin `10.3.11`, and the editable `10.3.11` environment were proven. Full preflight passed 12/12; both create-contract preflights passed 14/14; exact `$600` budget read back; immutable boot bundle `sha256-4c5836a802238cd96f33e3558999c1bd5ca4cf8d3a619d3838a62d6356dd1336`; P2 filesystem `fs-0cc0657362d4140c2` and reference DRA `dra-01ccdf9b169976dbe` are `AVAILABLE`; ParallelCluster dry run passed; stack `ifx-p2-1000-120-0715` reached `CREATE_COMPLETE` in 10m48s; headnode configuration returned rc 0. |  | Cluster is live in `us-west-2c`; headnode `i-09b566e847c16233b`; Slurm accounting is separately proven by SACCT-006. |
+| RUN-005 | Fifth cluster | Verify head/compute FSx and accounting contracts, then launch the identical HG003 1x HIOMRS controller from the new exact DayOA tag | RUNNING | feature_implementation | Gate 6 | orchestrator | Headnode `ip-10-0-0-22`; 12-TiB Lustre mount is read/write and 1% used; accounting and empty queue reconfirmed. Active cost center `sent-hg003-5x-0712` has cap `$750` and allows `ubuntu`; no new cost center was created. Root `/fsx/analysis_results/ifx-p2-1000-120-0715/hg003-1x-hiomrs-1107-20260715T210036Z`; tmux `hg003-1x-hiomrs-1107-p2-120-20260715`; exact DayOA tag `11.0.7` / commit `978f5640177203f159a9ea3b5a79bd21ff382ac3`; sample hash `15bf42e9348a52f921fd785ff82c86615ea060b9b0aa6b646a0c1f928efd17c0`; unit hash `a5b3d5ba0cd585b26aee2fa57bc200d9060fbfe1947b11409074b897d7ecb4ec`; exact 174-job dry run, maximum 192 threads, rc 0; live controller owns the root lock and is creating pinned per-rule conda environments before submission | Fresh headnode Mermaid initialization installed Chrome but its first cold start exceeded Puppeteer's fixed 30-second WebSocket wait. The browser then started normally and the identical smoke render completed in 0.72 seconds. | Supported initialization rerun succeeded without a source patch; no Slurm job has failed. |
+| ACC-001 | Acceptance | Track controller, queue, final MultiQC/evidence, wall time, benchmark cost, and FSx shape for all runs | OPEN | contract_test | Gate 6 | orchestrator | Pending terminal runs |  |  |
+
+## Speed comparison baseline
+
+- The accepted predecessor root is
+  `/fsx/analysis_results/sent-hg003-5x-0712/hg003-1x-hiomrs-1105-20260714T230848Z`
+  on 1,200-GiB `SCRATCH_2`.
+- End-to-end analysis-root timestamp to final evidence manifest was
+  `2026-07-14T23:08:48Z` to `2026-07-15T03:35:23Z`, or `4:26:35`.
+- The first recorded Snakemake attempt began at `2026-07-14T23:15:42Z`; the
+  final log closed at `2026-07-15T03:35:33Z`, a multi-attempt controller span
+  of `4:19:51`.
+- Its final benchmark summary contains 131 priced rows totaling `$4.609317` in
+  task-attributed benchmark cost.
+- Final comparative conclusions remain open until the four exact-tag runs reach
+  the same final evidence gate. Cold conda-environment creation is tracked
+  separately from compute-phase time because the first three clusters did not
+  have the tag's environments cached while the existing `sent-*` headnode did.
+
+## Exact workflow contract
+
+- Genome: `hg38`.
+- Targets: `produce_hiomrs produce_snv_concordances produce_tiddit_sv_vcf
+  produce_alignstats produce_relatedness produce_peddy
+  produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep
+  produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics
+  produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html
+  results/day/hg38/reports/dayoa_evidence_manifest.json`.
+- Config: `aligners=["sent"]`, `dedupers=["na"]`,
+  `snv_callers=["hiomrs"]`, `sv_callers=["tiddit"]`,
+  `htd_callers=["smn12"]`, and final MultiQC tools `vep`,
+  `unmapped_metagenomics_ganon2`, `gatk_contam`, `site_mix`, `peddy`.
+- Flags: `-j 250 -p -T 0 --rerun-triggers mtime --rerun-incomplete`; dry-run
+  adds only `-n`. No `-k`.
+- Every controller is an interactive `ubuntu` bash login shell in one persistent,
+  meaningfully named tmux pane. Commands remain separate: `source dyoainit`,
+  `dy-a slurm hg38`, and `dy-r ...`.
+
+## Completion condition
+
+Starting a tmux session or seeing an empty queue is not success. A run succeeds
+only with controller rc 0, final `DAY_final_multiqc.html`, final MultiQC data,
+and `dayoa_evidence_manifest.json`. The overall objective also requires a
+terminal fifth-cluster create result, verified post-create Slurm accounting,
+and every ledger row in a terminal state.

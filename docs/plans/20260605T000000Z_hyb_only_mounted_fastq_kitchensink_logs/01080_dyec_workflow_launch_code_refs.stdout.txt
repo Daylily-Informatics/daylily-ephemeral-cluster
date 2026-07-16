@@ -1,0 +1,195 @@
+daylily_ec/aws/validation.py:877:                "ssm:SendCommand",
+daylily_ec/cli.py:2576:            "dy_command": command.dryrun_dy_command if dry_run else command.dy_command,
+daylily_ec/cli.py:2621:        "--samples-file",
+daylily_ec/cli.py:2626:        "--units-file",
+daylily_ec/cli.py:2636:        "--input-staging/--no-input-staging",
+daylily_ec/cli.py:2701:    dy_command: Optional[str] = typer.Option(
+daylily_ec/cli.py:2813:        ("--samples-file", str(samples_file.expanduser()) if samples_file else None),
+daylily_ec/cli.py:2814:        ("--units-file", str(units_file.expanduser()) if units_file else None),
+daylily_ec/cli.py:2829:        ("--dy-command", dy_command),
+daylily_ec/cli.py:2843:        argv.append("--no-input-staging")
+tests/test_repository_catalog.py:111:        dy_command: bin/day_run produce_illumina_run_qc
+tests/test_repository_catalog.py:112:        dryrun_dy_command: bin/day_run produce_illumina_run_qc -n
+tests/test_repository_catalog.py:214:    assert "bin/day_run" in command.dy_command
+tests/test_repository_catalog.py:215:    assert command.dryrun_dy_command.endswith(" -n")
+tests/test_repository_catalog.py:360:            assert command.dy_command.startswith("bin/day_run ")
+tests/test_repository_catalog.py:361:            assert command.dryrun_dy_command.startswith("bin/day_run ")
+tests/test_repository_catalog.py:362:            assert command.dryrun_dy_command.endswith(" -n")
+tests/test_repository_catalog.py:389:        assert command.dy_command.startswith("bin/day_run ")
+tests/test_repository_catalog.py:390:        assert command.dryrun_dy_command.startswith("bin/day_run ")
+tests/test_repository_catalog.py:391:        assert command.dryrun_dy_command.endswith(" -n")
+tests/test_repository_catalog.py:405:    assert "produce_cgt7p_snv_vcf" in complete_genomics.dy_command
+tests/test_repository_catalog.py:406:    assert "produce_sentcg_align" in complete_genomics.dy_command
+tests/test_repository_catalog.py:407:    assert "produce_dmd_dedup_cram" in complete_genomics.dy_command
+tests/test_repository_catalog.py:408:    assert "produce_smd_dedup_cram" not in complete_genomics.dy_command
+tests/test_repository_catalog.py:409:    assert "aligners=['sentcg']" not in complete_genomics.dy_command
+tests/test_repository_catalog.py:416:    assert "produce_sentdhiomr_sv" in hybrid_ilmn_ont.dy_command
+tests/test_repository_catalog.py:417:    assert "produce_sentdhiomr_snv_vcf" in hybrid_ilmn_ont.dy_command
+tests/test_repository_catalog.py:418:    assert "produce_sentdhiom_sv" not in hybrid_ilmn_ont.dy_command
+tests/test_repository_catalog.py:419:    assert "produce_sentdhiom_snv_vcf" not in hybrid_ilmn_ont.dy_command
+tests/test_repository_catalog.py:420:    assert "dedupers=[" in hybrid_ilmn_ont.dy_command
+tests/test_repository_catalog.py:431:        assert "produce_sentdhiom_sv" not in command.dy_command
+tests/test_repository_catalog.py:432:        assert "produce_sentdhiom_snv_vcf" not in command.dy_command
+tests/test_repository_catalog.py:433:        assert "produce_sentdhuom_snv_vcf" not in command.dy_command
+tests/test_repository_catalog.py:446:    assert "multiqc_qc=" in vep_multiqc.dy_command
+tests/test_repository_catalog.py:447:    assert "enable_tools" in vep_multiqc.dy_command
+tests/test_repository_catalog.py:472:    assert 'htd_callers=["cyrius"]' in illumina_kitchensink.dy_command
+tests/test_repository_catalog.py:473:    assert "--rerun-triggers mtime" in illumina_kitchensink.dy_command
+tests/test_repository_catalog.py:474:    assert "produce_metagenomics" in illumina_kitchensink.dy_command
+tests/test_repository_catalog.py:475:    assert "produce_multiqc_all" in illumina_kitchensink.dy_command
+tests/test_repository_catalog.py:476:    assert "contam_identity" in illumina_kitchensink.dy_command
+tests/test_repository_catalog.py:492:    assert "produce_multiqc_all" in ultima_kitchensink.dy_command
+tests/test_repository_catalog.py:493:    assert "multiqc_qc=" in ultima_kitchensink.dy_command
+tests/test_repository_catalog.py:494:    assert "enable_tools" in ultima_kitchensink.dy_command
+tests/test_repository_catalog.py:498:    assert "produce_sentdont_snv_vcf" in ont.dy_command
+tests/test_repository_catalog.py:499:    assert "produce_sentmm2ont_align" not in ont.dy_command
+tests/test_repository_catalog.py:500:    assert "produce_na_dedup_cram" not in ont.dy_command
+tests/test_repository_catalog.py:518:    assert "produce_sentmm2ont_align" not in ont_kitchensink.dy_command
+tests/test_repository_catalog.py:519:    assert "produce_multiqc_all" in ont_kitchensink.dy_command
+tests/test_repository_catalog.py:520:    assert "multiqc_qc=" in ont_kitchensink.dy_command
+tests/test_repository_catalog.py:536:    assert "produce_sentdhiomr_sv" in hybrid_kitchensink.dy_command
+tests/test_repository_catalog.py:537:    assert "produce_sentdhiomr_snv_vcf" in hybrid_kitchensink.dy_command
+tests/test_repository_catalog.py:538:    assert "produce_sentdhiom_sv" not in hybrid_kitchensink.dy_command
+tests/test_repository_catalog.py:539:    assert "produce_sentdhiom_snv_vcf" not in hybrid_kitchensink.dy_command
+tests/test_repository_catalog.py:540:    assert "produce_multiqc_all" in hybrid_kitchensink.dy_command
+tests/test_repository_catalog.py:541:    assert "multiqc_qc=" in hybrid_kitchensink.dy_command
+tests/test_repository_catalog.py:561:    assert "produce_sentdhiomr_segdup" in inflection_bjuice.dy_command
+tests/test_repository_catalog.py:562:    assert 'sentdhiomr={"segdup_genes":"CYP11B1,NCF1,SMN1"}' in (inflection_bjuice.dy_command)
+tests/test_repository_catalog.py:563:    assert " -j 125 -p -k" in inflection_bjuice.dy_command
+tests/test_repository_catalog.py:564:    assert inflection_bjuice.dryrun_dy_command.endswith(" -n")
+tests/test_repository_catalog.py:574:    assert simple_test.dy_command == SIMPLE_TEST_DY_COMMAND
+tests/test_repository_catalog.py:575:    assert simple_test.dryrun_dy_command == simple_test.dy_command
+tests/test_repository_catalog.py:581:    assert simple_test.dy_command in simple_launch_argv
+tests/test_repository_catalog.py:582:    assert "--no-input-staging" in simple_launch_argv
+tests/test_repository_catalog.py:644:    dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
+tests/test_repository_catalog.py:645:    assert "produce_illumina_run_qc" in dy_command
+tests/test_repository_catalog.py:646:    assert "run_context_file=config/runs.tsv" in dy_command
+tests/test_repository_catalog.py:647:    assert "samples_table=.test_data/data/samples.tsv" in dy_command
+tests/test_repository_catalog.py:648:    assert "units_table=.test_data/data/units.tsv" in dy_command
+tests/test_repository_catalog.py:649:    assert dy_command.endswith(
+tests/test_repository_catalog.py:668:    combined_dy_command = combined_argv[combined_argv.index("--dy-command") + 1]
+tests/test_repository_catalog.py:669:    assert "produce_illumina_run_qc_and_bclconvert" in combined_dy_command
+tests/test_repository_catalog.py:670:    assert "bootstrap_bclconvert=true" in combined_dy_command
+tests/test_repository_catalog.py:671:    assert "bclconvert/samples.tsv" not in combined_dy_command
+tests/test_repository_catalog.py:672:    assert "bclconvert/units.tsv" not in combined_dy_command
+tests/test_repository_catalog.py:682:    ont_dy_command = ont_argv[ont_argv.index("--dy-command") + 1]
+tests/test_repository_catalog.py:683:    assert "produce_ont_run_qc" in ont_dy_command
+tests/test_repository_catalog.py:684:    assert "produce_ont_run_qc_and_demux_multiqc" not in ont_dy_command
+tests/test_repository_catalog.py:685:    assert "run_context_file=config/runs.tsv" in ont_dy_command
+tests/test_repository_catalog.py:739:        "        dy_command: bin/day_run produce_alignstats\n"
+tests/test_repository_catalog.py:740:        "        dryrun_dy_command: bin/day_run produce_alignstats -n\n"
+tests/test_repository_catalog.py:777:        "        dy_command: bin/day_run produce_alignstats\n"
+tests/test_repository_catalog.py:778:        "        dryrun_dy_command: bin/day_run produce_alignstats -n\n"
+daylily_ec/scripts/daylily_run_ephemeral_cluster_remote_tests.py:41:    parser.add_argument("--no-launch", action="store_true", help="Skip the workflow launch")
+daylily_ec/scripts/daylily_run_ephemeral_cluster_remote_tests.py:95:        raise CommandError("Remote workflow launch did not report a tmux session name.")
+daylily_ec/repositories.py:434:    """Structured daylily-ec workflow launch profile."""
+daylily_ec/repositories.py:460:    dy_command: str
+daylily_ec/repositories.py:461:    dryrun_dy_command: str
+daylily_ec/repositories.py:481:        "dy_command",
+daylily_ec/repositories.py:482:        "dryrun_dy_command",
+daylily_ec/repositories.py:604:        """Render a daylily-ec workflow launch argv for this profile."""
+daylily_ec/repositories.py:645:        dy_command = self.dryrun_dy_command if dry_run else self.dy_command
+daylily_ec/repositories.py:656:            dy_command = f"{dy_command} --config {runtime_config}"
+daylily_ec/repositories.py:682:            dy_command,
+daylily_ec/repositories.py:690:            ("--samples-file", samples_file),
+daylily_ec/repositories.py:691:            ("--units-file", units_file),
+daylily_ec/repositories.py:701:            argv.extend(["--no-input-staging", "--no-default-activation"])
+tests/test_script_entrypoints.py:359:            comment="Validate DAY-EC headnode readiness before workflow launch",
+tests/test_script_entrypoints.py:382:        assert 'run_dy_command "$DY_COMMAND"' in script
+tests/test_script_entrypoints.py:384:            'run_dy_command "$DY_COMMAND"'
+tests/test_script_entrypoints.py:578:                "--samples-file",
+tests/test_script_entrypoints.py:580:                "--units-file",
+tests/test_script_entrypoints.py:1156:                "--no-input-staging",
+tests/test_script_entrypoints.py:1176:        assert 'run_dy_command "$DY_COMMAND"' in script
+tests/test_staging_examples_live.py:37:    dy_command: str
+tests/test_staging_examples_live.py:38:    dryrun_dy_command: str
+tests/test_staging_examples_live.py:43:        dy_command=(
+tests/test_staging_examples_live.py:48:        dryrun_dy_command=(
+tests/test_staging_examples_live.py:55:        dy_command=(
+tests/test_staging_examples_live.py:58:        dryrun_dy_command=(
+tests/test_staging_examples_live.py:63:        dy_command=(
+tests/test_staging_examples_live.py:66:        dryrun_dy_command=(
+tests/test_staging_examples_live.py:71:        dy_command=(
+tests/test_staging_examples_live.py:75:        dryrun_dy_command=(
+tests/test_staging_examples_live.py:81:        dy_command=(
+tests/test_staging_examples_live.py:86:        dryrun_dy_command=(
+tests/test_staging_examples_live.py:93:        dy_command=(
+tests/test_staging_examples_live.py:96:        dryrun_dy_command=(
+tests/test_staging_examples_live.py:191:    assert not missing, f"workflow launch output missing {sorted(missing)}:\n{stdout}"
+tests/test_staging_examples_live.py:351:    dy_command = workflow_spec.dy_command if options.non_dryrun else workflow_spec.dryrun_dy_command
+tests/test_staging_examples_live.py:372:        dy_command,
+tests/test_staging_examples_live.py:395:                "dy_command": dy_command,
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:472:        "--samples-file",
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:476:        "--units-file",
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:485:        "--no-input-staging",
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:693:        comment="Validate DAY-EC headnode readiness before workflow launch",
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:701:            raise CommandError("--run-context-file cannot be used with --no-input-staging.")
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:706:                "--run-context-file cannot be used with --samples-file or --units-file."
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:716:                "--samples-file/--units-file cannot be used with --no-input-staging."
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:719:            raise CommandError("--stage-dir cannot be used with --samples-file/--units-file.")
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:721:            raise CommandError("--samples-file and --units-file must be provided together.")
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:741:            raise CommandError("--stage-dir cannot be used with --no-input-staging.")
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:744:    if args.dy_command:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:745:        dy_command = args.dy_command
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:747:        dy_command = build_default_command(
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:762:    dy_command_literal = shlex.quote(dy_command)
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:822:	DY_COMMAND={dy_command_literal}
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:1710:run_dy_command() {{
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:1786:	run_dy_command "$DY_COMMAND"
+daylily_ec/ssh_to_ssm_e2e_runner.py:168:        help="Analysis identifier passed through to the headnode workflow launcher",
+daylily_ec/ssh_to_ssm_e2e_runner.py:173:        help="Executing entity passed through to the headnode workflow launcher",
+daylily_ec/ssh_to_ssm_e2e_runner.py:178:        help="Git branch or tag passed through to the headnode workflow launcher",
+daylily_ec/ssh_to_ssm_e2e_runner.py:183:        help="Comma-separated aligner list passed through to the headnode workflow launcher",
+daylily_ec/ssh_to_ssm_e2e_runner.py:188:        help="Comma-separated deduper list passed through to the headnode workflow launcher",
+daylily_ec/ssh_to_ssm_e2e_runner.py:193:        help="Comma-separated SNV caller list passed through to the headnode workflow launcher",
+daylily_ec/ssh_to_ssm_e2e_runner.py:199:        help="Parallelism passed through to the headnode workflow launcher",
+daylily_ec/ssh_to_ssm_e2e_runner.py:305:        raise CommandError("Unable to determine workflow launch details from launcher output.")
+tests/test_forked_catalog_jitter_driver.py:118:    assert "--sentieon-start-jitter" in events[-1]["dy_command"]
+tests/test_forked_catalog_jitter_driver.py:119:    assert "--rerun-triggers mtime" in events[-1]["dy_command"]
+tests/test_forked_catalog_jitter_driver.py:120:    assert "--isolated-conda-prefix" in events[-1]["dy_command"]
+tests/test_cli_registry_v2.py:1635:    dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
+tests/test_cli_registry_v2.py:1636:    assert "produce_cgt7p_snv_vcf" in dy_command
+tests/test_cli_registry_v2.py:1637:    assert "produce_sentcg_align" in dy_command
+tests/test_cli_registry_v2.py:1638:    assert "produce_dmd_dedup_cram" in dy_command
+tests/test_cli_registry_v2.py:1639:    assert "produce_smd_dedup_cram" not in dy_command
+tests/test_cli_registry_v2.py:1640:    assert dy_command.endswith(" -n")
+tests/test_cli_registry_v2.py:2088:            "--no-input-staging",
+tests/test_cli_registry_v2.py:2096:    assert "--no-input-staging" in argv
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:221:        dy_command: "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:222:        dryrun_dy_command: "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:262:        dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:263:        dryrun_dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20 -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:325:        dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:326:        dryrun_dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:442:        dy_command: >-
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:444:        dryrun_dy_command: >-
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:504:        dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances -p -j 20 -k"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:505:        dryrun_dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances -p -j 20 -k -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:566:        dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:567:        dryrun_dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:607:        dy_command: "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances -p -j 5 -k"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:608:        dryrun_dy_command: "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances -p -j 5 -k -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:670:        dy_command: "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:671:        dryrun_dy_command: "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:711:        dy_command: "bin/day_run produce_sentmm2_align produce_na_dedup_cram produce_sentdpb_snv_vcf produce_alignstats produce_snv_concordances -p -j 2 -k -T 1"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:712:        dryrun_dy_command: "bin/day_run produce_sentmm2_align produce_na_dedup_cram produce_sentdpb_snv_vcf produce_alignstats produce_snv_concordances -p -j 2 -k -T 1 -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:770:        dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentD_vcf -p -j 5 -k"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:771:        dryrun_dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentD_vcf -p -j 5 -k -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:831:        dy_command: "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf --config 'dedupers=[\"dmd\"]' -p -j 100 -k"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:832:        dryrun_dy_command: "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf --config 'dedupers=[\"dmd\"]' -p -j 100 -k -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:897:        dy_command: "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf produce_relatedness produce_vep produce_multiqc_all --config 'dedupers=[\"dmd\"]' 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:898:        dryrun_dy_command: "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf produce_relatedness produce_vep produce_multiqc_all --config 'dedupers=[\"dmd\"]' 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:947:        dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_sv produce_snv_concordances produce_sentdhiomr_snv_vcf produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_expansionhunter --config 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' -j 125 -p -k"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:948:        dryrun_dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_sv produce_snv_concordances produce_sentdhiomr_snv_vcf produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_expansionhunter --config 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' -j 125 -p -k -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:988:        dy_command: "bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:989:        dryrun_dy_command: "bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:1041:        dy_command: "bin/day_run produce_illumina_run_qc -p -j 5 -k"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:1042:        dryrun_dy_command: "bin/day_run produce_illumina_run_qc -p -j 5 -k -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:1094:        dy_command: "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:1095:        dryrun_dy_command: "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:1147:        dy_command: "bin/day_run produce_illumina_run_qc_and_bclconvert -p -j 20 -k"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:1148:        dryrun_dy_command: "bin/day_run produce_illumina_run_qc_and_bclconvert -p -j 20 -k -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:1217:        dy_command: "bin/day_run produce_ont_run_qc -p -j 5 -k"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:1218:        dryrun_dy_command: "bin/day_run produce_ont_run_qc -p -j 5 -k -n"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:1271:        dy_command: "bin/day_run produce_ultima_run_qc -p -j 5 -k"
+daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml:1272:        dryrun_dy_command: "bin/day_run produce_ultima_run_qc -p -j 5 -k -n"

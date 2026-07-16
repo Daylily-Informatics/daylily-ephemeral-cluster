@@ -7,7 +7,7 @@ vcpu_cost_per_min: 0.05
 storage_rate: 0.023
 transfer_rate: 0.01
 genome_coverage: 30
-cluster_config_yaml: "config/day_cluster/prod_cluster.yaml"
+cluster_config_yaml: "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
 partition: i192
 tasks:
   - name: Alignment

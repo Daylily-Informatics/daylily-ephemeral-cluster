@@ -196,13 +196,24 @@ class TestWaitForCreation:
         r = wait_for_creation("cl", "us-west-2", max_failures=5, _sleep_fn=_noop_sleep)
         assert r.success is True
 
+    @patch("daylily_ec.pcluster.monitor.get_cluster_details")
     @patch("daylily_ec.pcluster.monitor.get_cluster_status")
-    def test_unexpected_status_fails(self, mock_status):
+    def test_unexpected_status_fails(self, mock_status, mock_details):
         mock_status.return_value = "CREATE_FAILED"
+        mock_details.return_value = {
+            "failures": [
+                {
+                    "failureCode": "HeadNodeBootstrapFailure",
+                    "failureReason": "Failed to set up the head node.",
+                }
+            ]
+        }
         r = wait_for_creation("cl", "us-west-2", _sleep_fn=_noop_sleep)
         assert r.success is False
         assert r.final_status == "CREATE_FAILED"
         assert "unexpected" in r.error.lower()
+        assert "HeadNodeBootstrapFailure" in r.error
+        assert "Failed to set up the head node" in r.error
 
     @patch("daylily_ec.pcluster.monitor.get_cluster_details")
     @patch("daylily_ec.pcluster.monitor.get_cluster_status")
@@ -211,6 +222,31 @@ class TestWaitForCreation:
         mock_details.return_value = {"headNode": {}}
         wait_for_creation("cl", "us-west-2", profile="p", _sleep_fn=_noop_sleep)
         mock_status.assert_called_with("cl", "us-west-2", profile="p")
+
+    @patch("daylily_ec.pcluster.monitor.get_cluster_details")
+    @patch("daylily_ec.pcluster.monitor.get_cluster_status")
+    def test_backport_executable_passed(self, mock_status, mock_details):
+        mock_status.return_value = STATUS_COMPLETE
+        mock_details.return_value = {"headNode": {}}
+        executable = "/opt/daylily/pcluster/bin/pcluster"
+        wait_for_creation(
+            "cl",
+            "us-west-2",
+            executable=executable,
+            _sleep_fn=_noop_sleep,
+        )
+        mock_status.assert_called_with(
+            "cl",
+            "us-west-2",
+            profile=None,
+            executable=executable,
+        )
+        mock_details.assert_called_with(
+            "cl",
+            "us-west-2",
+            profile=None,
+            executable=executable,
+        )
 
 
 class TestWaitForDeletion:

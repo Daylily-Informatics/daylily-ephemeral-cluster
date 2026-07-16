@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/daylily_ec/aws/ssm.py", line 318, in run_shell
+    raise TimeoutError(
+TimeoutError: SSM command 'cf8da0d4-c914-4534-8474-f2d6183927e0' did not complete within 180s.

@@ -1,0 +1,3 @@
+Export DRA detached: dra-045fb815b04f5c3f3
+Lifecycle: DELETED
+DeleteDataInFileSystem: false

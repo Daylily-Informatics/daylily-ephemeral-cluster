@@ -39,18 +39,42 @@ ALL_SUBSTITUTION_KEYS: FrozenSet[str] = frozenset(
         "REGSUB_USERNAME",
         "REGSUB_PROJECT",
         "REGSUB_DELETE_LOCAL_ROOT",
+        "REGSUB_DRAGEN_PCLUSTER_AMI",
+        "REGSUB_DRAGEN_LICENSE_POLICY_ARN",
+        "REGSUB_DRAGEN_LICENSE_SECRET_ARN",
+        "REGSUB_PCLUSTER_COOKBOOK_URI",
         "REGSUB_SAVE_FSX",
         "REGSUB_ENFORCE_BUDGET",
+        "REGSUB_COST_CENTER_REGION",
+        "REGSUB_COST_CENTER_TABLE",
+        "REGSUB_COST_CENTER_USAGE_TABLE",
         "REGSUB_AWS_ACCOUNT_ID",
         "REGSUB_ALLOCATION_STRATEGY",
         "REGSUB_DAYLILY_GIT_DEETS",
         "REGSUB_MAX_COUNT_8I",
+        "REGSUB_MAX_COUNT_96I_NVME",
         "REGSUB_MAX_COUNT_128I",
         "REGSUB_MAX_COUNT_192I",
+        "REGSUB_MAX_COUNT_384I",
+        "REGSUB_MAX_COUNT_128I_C",
+        "REGSUB_MAX_COUNT_128I_M",
+        "REGSUB_MAX_COUNT_128I_R",
+        "REGSUB_MAX_COUNT_128I_NVME",
+        "REGSUB_MAX_COUNT_192I_C",
+        "REGSUB_MAX_COUNT_192I_M",
+        "REGSUB_MAX_COUNT_192I_R",
+        "REGSUB_MAX_COUNT_192I_NVME_C",
+        "REGSUB_MAX_COUNT_192I_NVME_M",
+        "REGSUB_MAX_COUNT_192I_NVME_R",
+        "REGSUB_MAX_COUNT_192I_HUGENVME",
+        "REGSUB_MAX_COUNT_384I_NVME_C",
+        "REGSUB_MAX_COUNT_384I_NVME_M",
+        "REGSUB_MAX_COUNT_384I_NVME_R",
         "REGSUB_HEADNODE_INSTANCE_TYPE",
         "REGSUB_HEARTBEAT_EMAIL",
         "REGSUB_HEARTBEAT_SCHEDULE",
         "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN",
+        "REGSUB_SPOT_PRICE_WARN_THRESHOLD",
         "REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING",
         "REGSUB_SLURM_ACCOUNTING_DATABASE",
     },
@@ -84,7 +108,7 @@ def render_template(
     Parameters
     ----------
     template_text:
-        Raw template content (e.g. from ``config/day_cluster/prod_cluster.yaml``).
+        Raw template content.
     substitutions:
         Mapping of key → value.  Keys should include the ``REGSUB_`` prefix
         (e.g. ``{"REGSUB_REGION": "us-west-2", ...}``).

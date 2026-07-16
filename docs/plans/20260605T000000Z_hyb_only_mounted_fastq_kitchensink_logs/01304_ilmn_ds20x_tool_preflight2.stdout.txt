@@ -1,0 +1,8 @@
+DAY-EC activated.
+DAY-EC activated.
+tools
+seqtk=pigz=/usr/bin/pigz
+gzip=/usr/bin/gzip
+tmux=/usr/bin/tmux
+dest
+missing

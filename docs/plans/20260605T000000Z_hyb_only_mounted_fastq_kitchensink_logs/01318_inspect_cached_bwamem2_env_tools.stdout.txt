@@ -1,0 +1,57 @@
+DAY-EC activated.
+DAY-EC activated.
+CACHED_ENV_TOOL_PROBE
+ROOT=/fsx/references/runtime_assets/cached_envs
+/fsx/references/runtime_assets/cached_envs/conda/0b1aa0bf84b641b1fca3480164585362_/bin/pigz
+/fsx/references/runtime_assets/cached_envs/conda/0b1aa0bf84b641b1fca3480164585362_/bin/seqkit
+/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_/bin/bwa-mem2
+/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_/bin/bwa-mem2.avx2
+/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_/bin/seqkit
+/fsx/references/runtime_assets/cached_envs/conda/53f40ecc487f59c0106948094149d68f_/bin/pigz
+/fsx/references/runtime_assets/cached_envs/conda/5b93cf1d179903b1bf3ce7b68514bf72_/bin/pigz
+/fsx/references/runtime_assets/cached_envs/conda/6a98d5a34ca1b5ab4b0a831930b7bb10_/bin/pigz
+/fsx/references/runtime_assets/cached_envs/conda/70bd9d1b705d48d95c302435f63a874d_/bin/pigz
+/fsx/references/runtime_assets/cached_envs/conda/7b3dbc6b9eae05a003fb9812033f0657_/bin/bwa-mem2
+/fsx/references/runtime_assets/cached_envs/conda/7b3dbc6b9eae05a003fb9812033f0657_/bin/bwa-mem2.avx2
+/fsx/references/runtime_assets/cached_envs/conda/7b3dbc6b9eae05a003fb9812033f0657_/bin/seqkit
+/fsx/references/runtime_assets/cached_envs/conda/8f9d5f2eb41496ccdbbc32d4a635e63c_/bin/seqkit
+/fsx/references/runtime_assets/cached_envs/conda/b1e21e866d8f229144555d1c7a6674e4_/bin/pigz
+/fsx/references/runtime_assets/cached_envs/conda/e41dc845345d49d1be556ec6298452d7_/bin/pigz
+/fsx/references/runtime_assets/cached_envs/conda/e41dc845345d49d1be556ec6298452d7_/bin/seqkit
+/fsx/references/runtime_assets/cached_envs/conda/fc10530623cc428bfa51464b358f203e_/bin/pigz
+ROOT=/fsx/references/runtime_assets
+RULE_CONFIG_ENV_REFS
+19:# these may be set on the command line as --config genome_build=hg38 aligners=['bwa2a','sent','strobe']  dedupers=['dmd']  snv_callers=['oct','clair3','deep','sentd','lfq2','strelka2'] sv_callers=['manta','tiddit','dysgu']
+25:#    - bwa2a
+163:bwa_mem2a_aln_sort:
+164:    env_yaml: "../envs/bwasamtools_v0.1.yaml"
+167:    bwa_threads: 254 # 384-vCPU c8id scratch tuning test
+173:    cmd: " numactl --interleave=all env OMP_NUM_THREADS=384 OMP_PLACES=cores OMP_PROC_BIND=spread OMP_DYNAMIC=false OMP_MAX_ACTIVE_LEVELS=1 OMP_SCHEDULE=dynamic OMP_WAIT_POLICY=ACTIVE resources/bwa-mem2/bwa-mem2 "
+174:    bwa_opts: "  -k 19 -Y -M -K 2000000000  "
+1129:    bwa_threads: 96
+1141:    bwa_model: "/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaWGS2.2.bundle/bwa.model"
+1147:    bwa_threads: 96
+1159:    bwa_model: "/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeMGIWGS2.1.bundle/bwa.model"
+1211:    bwa_threads: 192
+1222:    bwa_model: "/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaWGS2.2.bundle/bwa.model"
+PATH_CANDIDATES
+/fsx/references/runtime_assets/cached_envs/conda/0b1aa0bf84b641b1fca3480164585362_/share/sentieon-202112.06-2
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeElementBioWGS2.1.bundle
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaPangenomeRealignWGS1.0.bundle
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaPangenomeWGS1.0.bundle
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonUltimaPangenomeRealignWGS1.0.bundle
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/lib/python/sentieon
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-ARCHIVED
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-ARCHIVED/sentieon-genomics-202308.03
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-ARCHIVED/sentieon-genomics-202503
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-ARCHIVED/sentieon-genomics-202503.01.rc1
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-ARCHIVED/sentieon-genomics-202503.01.rc1/bundles/DNAscopeElementBioWGS2.1.bundle
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-ARCHIVED/sentieon-genomics-202503.01.rc1/bundles/SentieonIlluminaPangenomeRealignWGS1.0.bundle
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-ARCHIVED/sentieon-genomics-202503.01.rc1/bundles/SentieonIlluminaPangenomeWGS1.0.bundle
+/fsx/references/runtime_assets/cached_envs/sentieon-genomics-ARCHIVED/sentieon-genomics-202503.01.rc1/bundles/SentieonUltimaPangenomeRealignWGS1.0.bundle
+/fsx/references/runtime_assets/cached_envs/sentieon_cli-1.5.1
+/fsx/references/runtime_assets/cached_envs/sentieon_cli-1.5.1/sentieon_cli
+/fsx/references/runtime_assets/cached_envs/sentieon_cli-1.5.2
+/fsx/references/runtime_assets/cached_envs/sentieon_cli-1.5.2/sentieon_cli
+/fsx/references/runtime_assets/tool_specific_resources/sentieon_models_2_2

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="488" viewBox="0 0 980 488">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="24" y="36" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#17212b">Top Regions</text>
+<text x="24" y="82" font-family="Arial, sans-serif" font-size="14" fill="#17212b">us-west-2</text>
+<rect x="260" y="64" width="620" height="20" rx="3" fill="#1f5f99"/>
+<text x="888" y="80" font-family="Arial, sans-serif" font-size="13" fill="#334155">$51,504.01</text>
+<text x="24" y="116" font-family="Arial, sans-serif" font-size="14" fill="#17212b">us-east-1</text>
+<rect x="260" y="98" width="42" height="20" rx="3" fill="#1f5f99"/>
+<text x="310" y="114" font-family="Arial, sans-serif" font-size="13" fill="#334155">$3,511.07</text>
+<text x="24" y="150" font-family="Arial, sans-serif" font-size="14" fill="#17212b">global</text>
+<rect x="260" y="132" width="21" height="20" rx="3" fill="#1f5f99"/>
+<text x="289" y="148" font-family="Arial, sans-serif" font-size="13" fill="#334155">$1,762.20</text>
+<text x="24" y="184" font-family="Arial, sans-serif" font-size="14" fill="#17212b">eu-central-1</text>
+<rect x="260" y="166" width="4" height="20" rx="3" fill="#1f5f99"/>
+<text x="272" y="182" font-family="Arial, sans-serif" font-size="13" fill="#334155">$354.55</text>
+<text x="24" y="218" font-family="Arial, sans-serif" font-size="14" fill="#17212b">ap-south-1</text>
+<rect x="260" y="200" width="3" height="20" rx="3" fill="#1f5f99"/>
+<text x="271" y="216" font-family="Arial, sans-serif" font-size="13" fill="#334155">$313.97</text>
+<text x="24" y="252" font-family="Arial, sans-serif" font-size="14" fill="#17212b">sa-east-1</text>
+<rect x="260" y="234" width="1" height="20" rx="3" fill="#1f5f99"/>
+<text x="269" y="250" font-family="Arial, sans-serif" font-size="13" fill="#334155">$5.48</text>
+<text x="24" y="286" font-family="Arial, sans-serif" font-size="14" fill="#17212b">us-east-2</text>
+<rect x="260" y="268" width="1" height="20" rx="3" fill="#1f5f99"/>
+<text x="269" y="284" font-family="Arial, sans-serif" font-size="13" fill="#334155">$5.23</text>
+<text x="24" y="320" font-family="Arial, sans-serif" font-size="14" fill="#17212b">ap-northeast-3</text>
+<rect x="260" y="302" width="1" height="20" rx="3" fill="#1f5f99"/>
+<text x="269" y="318" font-family="Arial, sans-serif" font-size="13" fill="#334155">$4.48</text>
+<text x="24" y="354" font-family="Arial, sans-serif" font-size="14" fill="#17212b">ap-northeast-1</text>
+<rect x="260" y="336" width="1" height="20" rx="3" fill="#1f5f99"/>
+<text x="269" y="352" font-family="Arial, sans-serif" font-size="13" fill="#334155">$4.35</text>
+<text x="24" y="388" font-family="Arial, sans-serif" font-size="14" fill="#17212b">ap-southeast-2</text>
+<rect x="260" y="370" width="1" height="20" rx="3" fill="#1f5f99"/>
+<text x="269" y="386" font-family="Arial, sans-serif" font-size="13" fill="#334155">$4.29</text>
+<text x="24" y="422" font-family="Arial, sans-serif" font-size="14" fill="#17212b">ap-northeast-2</text>
+<rect x="260" y="404" width="1" height="20" rx="3" fill="#1f5f99"/>
+<text x="269" y="420" font-family="Arial, sans-serif" font-size="13" fill="#334155">$4.29</text>
+<text x="24" y="456" font-family="Arial, sans-serif" font-size="14" fill="#17212b">ap-southeast-1</text>
+<rect x="260" y="438" width="1" height="20" rx="3" fill="#1f5f99"/>
+<text x="269" y="454" font-family="Arial, sans-serif" font-size="13" fill="#334155">$4.29</text>
+</svg>

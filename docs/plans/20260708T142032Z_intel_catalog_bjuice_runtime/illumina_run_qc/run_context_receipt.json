@@ -1,0 +1,10 @@
+{
+  "analysis_id": "ccv_live_illumina_run_qc_20260708T152112Z",
+  "association_id": "dra-0e31c89df77176d37",
+  "command_id": "illumina_run_qc",
+  "headnode_path": "/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/",
+  "lifecycle": "AVAILABLE",
+  "mount_id": "20260514_LH01106_0009_B23TVLGLT4",
+  "run_context": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/illumina_run_qc/runs.tsv",
+  "source_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/"
+}

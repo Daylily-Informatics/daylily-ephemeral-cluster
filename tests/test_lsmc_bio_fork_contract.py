@@ -8,6 +8,9 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
+DAYOA_DEFAULT_TAG = "11.0.9"
+DAYOA_VALIDATED_TAG = "11.0.7"
+DYEC_BLESSED_TAG = "10.3.15"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
     f"{_OLD_ORG}/daylily-omics-analysis",
@@ -44,14 +47,11 @@ def test_active_surfaces_do_not_reference_daylily_informatics_dayoa_or_dyec() ->
     assert not offenders
 
 
-def test_pyproject_uses_lsmc_bio_dayoa_github_release_pin() -> None:
+def test_pyproject_does_not_install_dayoa_as_a_python_dependency() -> None:
     data = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     dependencies = data["project"]["dependencies"]
 
-    assert (
-        "daylily-omics-analysis @ "
-        "git+https://github.com/lsmc-bio/daylily-omics-analysis.git@5.0.1"
-    ) in dependencies
+    assert not any("daylily-omics-analysis" in dependency for dependency in dependencies)
 
 
 def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
@@ -61,8 +61,8 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
     ):
         data = yaml.safe_load((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
         daylily = data["daylily"]
-        assert daylily["git_ephemeral_cluster_repo_tag"] == "7.0.1"
-        assert daylily["git_ephemeral_cluster_repo_release_tag"] == "7.0.1"
+        assert daylily["git_ephemeral_cluster_repo_tag"] == DYEC_BLESSED_TAG
+        assert daylily["git_ephemeral_cluster_repo_release_tag"] == DYEC_BLESSED_TAG
         assert (
             daylily["git_ephemeral_cluster_repo"]
             == "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git"
@@ -76,4 +76,13 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
         repo = data["repositories"]["daylily-omics-analysis"]
         assert repo["https_url"] == "https://github.com/lsmc-bio/daylily-omics-analysis.git"
         assert repo["ssh_url"] == "git@github.com:lsmc-bio/daylily-omics-analysis.git"
-        assert repo["default_ref"] == "5.0.1"
+        assert repo["clone_transport"] == "ssh"
+        assert repo["auth_mode"] == "aws_deploy_key"
+        assert repo["default_ref"] == DAYOA_DEFAULT_TAG
+        commands = {command["command_id"]: command for command in repo["analysis_commands"]}
+        for command_id in (
+            "hybrid_ilmn_ont_hiomrs",
+            "hybrid_ilmn_ont_hiomrs_kitchensink",
+        ):
+            assert commands[command_id]["git_tag"] == DAYOA_DEFAULT_TAG
+            assert commands[command_id]["validated_version"] == DAYOA_VALIDATED_TAG

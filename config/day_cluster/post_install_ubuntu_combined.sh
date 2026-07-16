@@ -15,6 +15,8 @@ export HOME="${HOME:-/root}"
 
 timestamp=$(date +"%Y%m%d_%H%M%S")
 node_type="${cfn_node_type:-unknown}"
+slurm_partition="${cfn_scheduler_queue_name:-${cfn_queue_name:-}}"
+compute_resource="${cfn_scheduler_compute_resource_name:-${cfn_compute_resource_name:-}}"
 node_type_slug="$(echo "${node_type}" | tr '[:upper:]' '[:lower:]')"
 local_log_dir="/var/log/daylily"
 local_log_fn="${local_log_dir}/$(hostname)_${node_type_slug}_${timestamp}_postinstall.log"
@@ -32,6 +34,17 @@ touch /tmp/$(hostname).postinstallBEGIN
 
 region="$1"
 boot_s3_uri="${2%/}"  # s3://.../cluster_boot_config
+spot_price_warn_threshold="${3:?spot price warn threshold argument is required}"
+python3 - "${spot_price_warn_threshold}" <<'PY'
+import sys
+
+try:
+    value = float(sys.argv[1])
+except ValueError as exc:
+    raise SystemExit(f"spot price warn threshold must be numeric: {sys.argv[1]!r}") from exc
+if value <= 0:
+    raise SystemExit(f"spot price warn threshold must be > 0: {value}")
+PY
 runtime_assets_root="/fsx/references/runtime_assets"
 references_root="/fsx/references"
 reference_compat_root="/fsx/data"
@@ -42,16 +55,53 @@ apptainer_deb="${runtime_assets_root}/cached_envs/apptainer_1.4.5_amd64.deb"
 apptainer_deb_sha256="70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05"
 reference_wait_timeout_seconds=1800
 reference_wait_interval_seconds=30
-sbatch_wrapper_sha256="8c5d8eb0cb7f34784c872c4c70848fa442894165b7b5459cf6206a3f09c70369"
-sleep_test_sha256="024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae"
+spot_lifecycle_state_dir="/var/lib/daylily/spot_lifecycle"
+spot_lifecycle_state_file="${spot_lifecycle_state_dir}/metadata.env"
 
-echo "[$timestamp] Running post_install_ubuntu_combined.sh ${region} ${boot_s3_uri} on $(hostname) as ${node_type}"
+echo "[$timestamp] Running post_install_ubuntu_combined.sh ${region} ${boot_s3_uri} ${spot_price_warn_threshold} on $(hostname) as ${node_type}"
 echo "[$timestamp] Local log: ${local_log_fn}"
 if [ "${fsx_log_fn:-}" ]; then
   echo "[$timestamp] FSx log: ${fsx_log_fn}"
 fi
 
 aws configure set region $region
+
+resolve_cluster_name_for_tags() {
+  if [ -n "${cfn_cluster_name:-}" ]; then
+    echo "${cfn_cluster_name}"
+    return 0
+  fi
+  if [ -n "${stack_name:-}" ]; then
+    echo "${stack_name}"
+    return 0
+  fi
+  echo "ERROR: unable to resolve cluster name from /etc/parallelcluster/cfnconfig" >&2
+  return 1
+}
+
+repair_compute_cluster_tags() {
+  if [ "${cfn_node_type:-}" != "ComputeFleet" ]; then
+    return 0
+  fi
+  local cluster_name_for_tags
+  local token
+  local instance_id
+  cluster_name_for_tags="$(resolve_cluster_name_for_tags)"
+  token="$(curl -fsS -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")"
+  instance_id="$(curl -fsS -H "X-aws-ec2-metadata-token: ${token}" http://169.254.169.254/latest/meta-data/instance-id)"
+  if [ -z "${region}" ] || [ -z "${instance_id}" ]; then
+    echo "ERROR: region or instance id missing; cannot repair compute cluster tags" >&2
+    exit 1
+  fi
+  aws ec2 create-tags \
+    --resources "${instance_id}" \
+    --tags \
+      Key=parallelcluster:cluster-name,Value="${cluster_name_for_tags}" \
+      Key=aws-parallelcluster-clustername,Value="${cluster_name_for_tags}" \
+    --region "${region}"
+}
+
+repair_compute_cluster_tags
 
 # Configure rclone to use AWS environment credentials in the current region
 mkdir -p "$HOME/.config/rclone"
@@ -71,6 +121,7 @@ log_spot_price() {
 
   TOKEN=$(curl -X PUT 'http://169.254.169.254/latest/api/token' -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600')
   instance_type=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-type)
+  instance_id=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
   availability_zone=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone)
 
   # Get the current spot price for the running instance type in the specific AZ
@@ -84,13 +135,259 @@ log_spot_price() {
 
   # Log the spot price and AZ to a file in the FSx scratch directory
   log_file="/fsx/scratch/$(hostname)_spot_price.log"
-  echo "$(date '+%Y-%m-%d %H:%M:%S') - Region: $region, AZ: $availability_zone, Instance type: $instance_type, Spot price: $spot_price USD/hour" >> "$log_file"
+  warn_log_file="/fsx/scratch/spot_price_warn_exception_messages.log"
+  recorded_at="$(date -u '+%Y-%m-%d %H:%M:%S')"
+  recorded_at_epoch="$(date -u +%s)"
+  echo "${recorded_at} - Node type: ${node_type}, Partition: ${slurm_partition}, Compute resource: ${compute_resource}, Hostname: $(hostname), Instance id: ${instance_id}, Region: $region, AZ: $availability_zone, Instance type: $instance_type, Spot price: $spot_price USD/hour" >> "$log_file"
+  write_spot_price_warn_exception \
+    "${spot_price}" \
+    "${spot_price_warn_threshold}" \
+    "${warn_log_file}" \
+    "${recorded_at}" \
+    "${recorded_at_epoch}" \
+    "${node_type}" \
+    "${slurm_partition}" \
+    "${compute_resource}" \
+    "$(hostname)" \
+    "${instance_id}" \
+    "${region}" \
+    "${availability_zone}" \
+    "${instance_type}" \
+    "${log_file}" \
+    "$(resolve_cluster_name_for_tags)"
+
+  install -d -m 0755 "${spot_lifecycle_state_dir}"
+  {
+    printf 'NODE_TYPE=%s\n' "${node_type}"
+    printf 'SLURM_PARTITION=%s\n' "${slurm_partition}"
+    printf 'COMPUTE_RESOURCE=%s\n' "${compute_resource}"
+    printf 'HOSTNAME=%s\n' "$(hostname)"
+    printf 'INSTANCE_ID=%s\n' "${instance_id}"
+    printf 'REGION=%s\n' "${region}"
+    printf 'AVAILABILITY_ZONE=%s\n' "${availability_zone}"
+    printf 'INSTANCE_TYPE=%s\n' "${instance_type}"
+    printf 'SPOT_PRICE=%s\n' "${spot_price}"
+    printf 'LOG_FILE=%s\n' "${log_file}"
+    printf 'START_RECORDED_AT=%s\n' "${recorded_at}"
+    printf 'START_RECORDED_AT_EPOCH=%s\n' "${recorded_at_epoch}"
+  } > "${spot_lifecycle_state_file}"
+  chmod 0644 "${spot_lifecycle_state_file}"
 }
 
-append_once() {
-  local line="$1"
-  local file="$2"
-  grep -Fxq "$line" "$file" 2>/dev/null || echo "$line" >> "$file"
+write_spot_price_warn_exception() {
+  local spot_price="$1"
+  local threshold="$2"
+  local warn_log_file="$3"
+  local recorded_at="$4"
+  local recorded_at_epoch="$5"
+  local current_node_type="$6"
+  local current_partition="$7"
+  local current_compute_resource="$8"
+  local current_hostname="$9"
+  local current_instance_id="${10}"
+  local current_region="${11}"
+  local current_availability_zone="${12}"
+  local current_instance_type="${13}"
+  local source_log_file="${14}"
+  local current_cluster="${15}"
+
+  if [ "${current_node_type}" != "ComputeFleet" ]; then
+    return 0
+  fi
+  install -d -m 1777 "$(dirname "${warn_log_file}")"
+  python3 - \
+    "${spot_price}" \
+    "${threshold}" \
+    "${warn_log_file}" \
+    "${recorded_at}" \
+    "${recorded_at_epoch}" \
+    "${current_node_type}" \
+    "${current_partition}" \
+    "${current_compute_resource}" \
+    "${current_hostname}" \
+    "${current_instance_id}" \
+    "${current_region}" \
+    "${current_availability_zone}" \
+    "${current_instance_type}" \
+    "${source_log_file}" \
+    "${current_cluster}" <<'PY'
+import json
+import sys
+
+spot_price = float(sys.argv[1])
+threshold = float(sys.argv[2])
+if spot_price <= threshold:
+    raise SystemExit(0)
+
+path = sys.argv[3]
+row = {
+    "schema_version": "dyec.spot_price_warn_exception.v1",
+    "recorded_at": sys.argv[4],
+    "recorded_at_epoch": sys.argv[5],
+    "event": "node_start",
+    "node_type": sys.argv[6],
+    "slurm_partition": sys.argv[7],
+    "compute_resource": sys.argv[8],
+    "hostname": sys.argv[9],
+    "instance_id": sys.argv[10],
+    "region": sys.argv[11],
+    "availability_zone": sys.argv[12],
+    "instance_type": sys.argv[13],
+    "spot_price_usd_per_hour": spot_price,
+    "warn_threshold_usd_per_hour": threshold,
+    "source_log_file": sys.argv[14],
+    "cluster": sys.argv[15],
+}
+with open(path, "a", encoding="utf-8") as handle:
+    handle.write(json.dumps(row, sort_keys=True) + "\n")
+PY
+}
+
+install_spot_lifecycle_hooks() {
+  if [ "${node_type}" != "ComputeFleet" ]; then
+    echo "Spot lifecycle shutdown logging is enabled only on ComputeFleet nodes; skipping for ${node_type}."
+    return 0
+  fi
+  if [ ! -s "${spot_lifecycle_state_file}" ]; then
+    echo "ERROR: spot lifecycle metadata was not persisted: ${spot_lifecycle_state_file}" >&2
+    exit 1
+  fi
+
+  install -d -m 0755 /opt/daylily/bin "${spot_lifecycle_state_dir}" /var/log/daylily
+  cat > /opt/daylily/bin/daylily-spot-lifecycle-event <<'EOF'
+#!/bin/bash
+set -Eeuo pipefail
+
+event="${1:?event argument is required}"
+shutdown_reason="${2:-}"
+state_file="/var/lib/daylily/spot_lifecycle/metadata.env"
+state_dir="/var/lib/daylily/spot_lifecycle"
+error_log="/var/log/daylily/spot_lifecycle_shutdown_errors.log"
+
+if [ ! -s "${state_file}" ]; then
+  printf '%s ERROR: missing spot lifecycle state: %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "${state_file}" >> "${error_log}"
+  exit 0
+fi
+
+# shellcheck disable=SC1090
+source "${state_file}"
+
+recorded_at="$(date -u '+%Y-%m-%d %H:%M:%S')"
+recorded_at_epoch="$(date -u +%s)"
+line="${recorded_at} - Event: ${event}, Node type: ${NODE_TYPE}, Partition: ${SLURM_PARTITION}, Compute resource: ${COMPUTE_RESOURCE}, Hostname: ${HOSTNAME}, Instance id: ${INSTANCE_ID}, Region: ${REGION}, AZ: ${AVAILABILITY_ZONE}, Instance type: ${INSTANCE_TYPE}, Spot price: ${SPOT_PRICE} USD/hour, Recorded epoch: ${recorded_at_epoch}"
+
+case "${event}" in
+  interruption_notice)
+    interruption_action=""
+    interruption_time=""
+    if [ -s "${state_dir}/interruption_action" ]; then
+      read -r interruption_action < "${state_dir}/interruption_action"
+    fi
+    if [ -s "${state_dir}/interruption_time" ]; then
+      read -r interruption_time < "${state_dir}/interruption_time"
+    fi
+    if [ -z "${interruption_action}" ] || [ -z "${interruption_time}" ]; then
+      printf '%s ERROR: interruption_notice missing action/time metadata\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" >> "${error_log}"
+      exit 1
+    fi
+    line="${line}, Interruption action: ${interruption_action}, Interruption time: ${interruption_time}"
+    ;;
+  shutdown)
+    if [ -z "${shutdown_reason}" ]; then
+      shutdown_reason="systemd-stop"
+    fi
+    line="${line}, Shutdown reason: ${shutdown_reason}"
+    ;;
+  *)
+    printf '%s ERROR: unsupported spot lifecycle event: %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "${event}" >> "${error_log}"
+    exit 1
+    ;;
+esac
+
+if ! printf '%s\n' "${line}" >> "${LOG_FILE}"; then
+  printf '%s ERROR: failed writing lifecycle event to %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "${LOG_FILE}" >> "${error_log}"
+fi
+EOF
+  chmod 0755 /opt/daylily/bin/daylily-spot-lifecycle-event
+
+  cat > /opt/daylily/bin/daylily-spot-interruption-watch <<'EOF'
+#!/bin/bash
+set -Eeuo pipefail
+
+state_dir="/var/lib/daylily/spot_lifecycle"
+notice_marker="${state_dir}/interruption_notice_logged"
+
+imds_token() {
+  curl -fsS -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"
+}
+
+while true; do
+  token="$(imds_token)"
+  if body="$(curl -fsS -H "X-aws-ec2-metadata-token: ${token}" "http://169.254.169.254/latest/meta-data/spot/instance-action" 2>/dev/null)"; then
+    action="$(printf '%s\n' "${body}" | sed -n 's/.*"action"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+    interruption_time="$(printf '%s\n' "${body}" | sed -n 's/.*"time"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+    if [ -z "${action}" ] || [ -z "${interruption_time}" ]; then
+      echo "ERROR: IMDS spot instance-action did not include action and time: ${body}" >&2
+      exit 1
+    fi
+    if [ ! -f "${notice_marker}" ]; then
+      printf '%s\n' "${action}" > "${state_dir}/interruption_action"
+      printf '%s\n' "${interruption_time}" > "${state_dir}/interruption_time"
+      /opt/daylily/bin/daylily-spot-lifecycle-event interruption_notice
+      touch "${notice_marker}"
+    fi
+  fi
+  sleep 5
+done
+EOF
+  chmod 0755 /opt/daylily/bin/daylily-spot-interruption-watch
+
+  cat > /etc/systemd/system/daylily-spot-lifecycle-shutdown.service <<'EOF'
+[Unit]
+Description=Daylily spot lifecycle shutdown logger
+DefaultDependencies=no
+Before=shutdown.target reboot.target halt.target poweroff.target umount.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/true
+ExecStop=/opt/daylily/bin/daylily-spot-lifecycle-event shutdown systemd-stop
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  cat > /etc/systemd/system/daylily-spot-interruption-watch.service <<'EOF'
+[Unit]
+Description=Daylily spot interruption watcher
+After=network-online.target daylily-spot-lifecycle-shutdown.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/opt/daylily/bin/daylily-spot-interruption-watch
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  systemctl daemon-reload
+  systemctl enable --now daylily-spot-lifecycle-shutdown.service
+  systemctl enable --now daylily-spot-interruption-watch.service
+}
+
+install_sentieon_license_client_profile() {
+  cat <<'EOF' > /etc/profile.d/daylily-sentieon-license.sh
+# Managed by DAY-EC node setup. Sentieon clients use the dedicated regional service.
+export SENTIEON_LICENSE="license.sentieon.lsmc.bio:8990"
+EOF
+  chmod 0644 /etc/profile.d/daylily-sentieon-license.sh
+  stat -c "Sentieon license client profile: %A %U:%G %n" \
+    /etc/profile.d/daylily-sentieon-license.sh
 }
 
 link_cached_entries() {
@@ -297,17 +594,48 @@ EOF
   stat -c "DayOA runtime cache profile: %A %U:%G %n" /etc/profile.d/daylily-runtime-cache.sh
 }
 
-install_verified_s3_executable() {
+install_s3_executable() {
   local s3_key="$1"
   local destination="$2"
-  local expected_sha256="$3"
   local temp_path
 
   temp_path="$(mktemp "${destination}.download.XXXXXX")"
   aws s3 cp "${boot_s3_uri}/${s3_key}" "${temp_path}"
-  echo "${expected_sha256}  ${temp_path}" | sha256sum -c -
   install -m 0755 "${temp_path}" "${destination}"
   rm -f "${temp_path}"
+}
+
+install_slurm_submission_policy() {
+  install -d -m 0755 /opt/daylily/bin
+  install_s3_executable \
+    "install_slurm_job_submit_policy.sh" \
+    /opt/daylily/bin/install_slurm_job_submit_policy
+  /opt/daylily/bin/install_slurm_job_submit_policy "${region}" "${boot_s3_uri}"
+}
+
+install_slurm_job_hooks() {
+  local prolog_dir="/opt/slurm/etc/scripts/prolog.d"
+  local epilog_dir="/opt/slurm/etc/scripts/epilog.d"
+
+  install -d -m 0755 "${prolog_dir}" "${epilog_dir}"
+  cat <<'EOF' > "${prolog_dir}/50_daylily_job_tags"
+#!/bin/bash
+set -euo pipefail
+install -d -m 1777 /tmp/jobs
+echo "${SLURM_JOB_USER}" >> /tmp/jobs/jobs_users
+echo "${SLURM_JOBID}" >> /tmp/jobs/jobs_ids
+EOF
+
+  cat <<'EOF' > "${epilog_dir}/50_daylily_job_tags"
+#!/bin/bash
+set -euo pipefail
+sed -i "0,/${SLURM_JOB_USER}/d" /tmp/jobs/jobs_users 2>/dev/null || true
+sed -i "0,/${SLURM_JOBID}/d" /tmp/jobs/jobs_ids 2>/dev/null || true
+EOF
+
+  chmod 0755 \
+    "${prolog_dir}/50_daylily_job_tags" \
+    "${epilog_dir}/50_daylily_job_tags"
 }
 
 # GLOBAL ACTIONS HeadNode and ComputeFleet
@@ -317,6 +645,7 @@ wait_for_reference_data
 make_role_data_read_only
 prepare_reference_compat_symlink
 prepare_dayoa_environment_cache
+install_sentieon_license_client_profile
 echo "DayOA conda, container, and Nextflow caches are seeded from ${runtime_assets_root}/cached_envs into ${environment_cache_root}"
 
 # Configure hugepages and namespaces (common to both head and compute nodes)
@@ -330,6 +659,7 @@ sysctl -p
 adduser --uid 1002 --disabled-password --gecos "" daylily || echo "daylily user add failed"
 
 log_spot_price
+install_spot_lifecycle_hooks
 
 # Update and install necessary packages
 export DEBIAN_FRONTEND=noninteractive
@@ -373,7 +703,7 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   else
     echo "Original sbatch already present: /opt/slurm/sbin/sbatch"
   fi
-  install_verified_s3_executable "sbatch" /opt/slurm/bin/sbatch "${sbatch_wrapper_sha256}"
+  install_s3_executable "sbatch" /opt/slurm/bin/sbatch
 
   if [ ! -e /opt/slurm/sbin/srun ]; then
     mv /opt/slurm/bin/srun /opt/slurm/sbin/srun
@@ -382,11 +712,8 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   fi
   ln -sfn /opt/slurm/bin/sbatch /opt/slurm/bin/srun
 
-  install_verified_s3_executable "sleep_test.sh" /opt/slurm/bin/sleep_test.sh "${sleep_test_sha256}"
-
-
-  # Restart SLURM Controller
-  systemctl restart slurmctld
+  install_s3_executable "sleep_test.sh" /opt/slurm/bin/sleep_test.sh
+  install_slurm_submission_policy
   touch /tmp/$(hostname).postslurmcfg
   
 fi
@@ -407,7 +734,6 @@ aws configure set region $region
 update=0
 tag_userid=""
 tag_jobid=""
-tag_project=""
 
 if [ ! -f /tmp/jobs/jobs_users ] || [ ! -f /tmp/jobs/jobs_ids ]; then
   exit 0
@@ -417,31 +743,19 @@ active_users=$(cat /tmp/jobs/jobs_users | sort | uniq )
 active_jobs=$(cat /tmp/jobs/jobs_ids | sort )
 echo $active_users > /tmp/jobs/tmp_jobs_users
 echo $active_jobs > /tmp/jobs/tmp_jobs_ids
-if [ -f /tmp/jobs/jobs_projects ]; then
-  active_projects=$(cat /tmp/jobs/jobs_projects | sort | uniq )
-  echo $active_projects > /tmp/jobs/tmp_jobs_projects
-fi
-
 
 if [ ! -f /tmp/jobs/tag_userid ] || [ ! -f /tmp/jobs/tag_jobid ]; then
 
   echo $active_users > /tmp/jobs/tag_userid
   echo $active_jobs > /tmp/jobs/tag_jobid
-  echo $active_projects > /tmp/jobs/tag_project
   update=1
 
 else
 
   active_users=$(cat /tmp/jobs/tmp_jobs_users)
   active_jobs=$(cat /tmp/jobs/tmp_jobs_ids)
-  if [ -f /tmp/jobs/tmp_jobs_projects ]; then
-    active_projects=$(cat /tmp/jobs/tmp_jobs_projects)
-  fi 
   tag_userid=$(cat /tmp/jobs/tag_userid)
   tag_jobid=$(cat /tmp/jobs/tag_jobid)
-  if [ -f /tmp/jobs/tag_project ]; then
-    tag_project=$(cat /tmp/jobs/tag_project)
-  fi
   
   if [ "${active_users}" != "${tag_userid}" ]; then
     tag_userid="${active_users}"
@@ -452,12 +766,6 @@ else
   if [ "${active_jobs}" != "${tag_jobid}" ]; then
     tag_jobid="${active_jobs}"
     echo ${tag_jobid} > /tmp/jobs/tag_jobid
-    update=1
-  fi
-  
-  if [ "${active_projects}" != "${tag_project}" ]; then
-    tag_project="${active_projects}"
-    echo ${tag_project} > /tmp/jobs/tag_project
     update=1
   fi
 
@@ -471,15 +779,15 @@ if [ ${update} -eq 1 ]; then
   MyInstID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
   tag_userid=$(cat /tmp/jobs/tag_userid)
   tag_jobid=$(cat /tmp/jobs/tag_jobid)
-  tag_project=$(cat /tmp/jobs/tag_project)
   aws ec2 create-tags --resources ${MyInstID} --tags Key=aws-parallelcluster-username,Value="${tag_userid}" --region ${region}
   aws ec2 create-tags --resources ${MyInstID} --tags Key=aws-parallelcluster-jobid,Value="${tag_jobid}" --region ${region}
-  aws ec2 create-tags --resources ${MyInstID} --tags Key=aws-parallelcluster-project,Value="${tag_project}" --region ${region}  
 fi
 
 EOF
 
 chmod a+x /opt/slurm/sbin/check_tags.sh
+
+install_slurm_job_hooks
 
 if [ "${cfn_node_type}" == "ComputeFleet" ];then
 
@@ -491,51 +799,6 @@ if [ "${cfn_node_type}" == "ComputeFleet" ];then
   echo "
 * * * * * /opt/slurm/sbin/check_tags.sh
 " | crontab -
-else
-   
-   # Create Prolog and Epilog to tag the instances
-   cat <<'EOF' > /opt/slurm/sbin/prolog.sh
-#!/bin/bash
-
-#slurm directory
-export SLURM_ROOT=/opt/slurm
-echo "${SLURM_JOB_USER}" >> /tmp/jobs/jobs_users
-echo "${SLURM_JOBID}" >> /tmp/jobs/jobs_ids
-
-#load the comment of the job.
-Project=$($SLURM_ROOT/bin/scontrol show job ${SLURM_JOB_ID} | grep Comment | awk -F'=' '{print $2}')
-Project_Tag=""
-if [ ! -z "${Project}" ];then
-  echo "${Project}" >> /tmp/jobs/jobs_projects
-fi
-
-EOF
-
-   cat <<'EOF' > /opt/slurm/sbin/epilog.sh
-#!/bin/bash
-#slurm directory
-export SLURM_ROOT=/opt/slurm
-sed -i "0,/${SLURM_JOB_USER}/d" /tmp/jobs/jobs_users
-sed -i "0,/${SLURM_JOBID}/d" /tmp/jobs/jobs_ids
-
-#load the comment of the job.
-Project=$($SLURM_ROOT/bin/scontrol show job ${SLURM_JOB_ID} | grep Comment | awk -F'=' '{print $2}')
-Project_Tag=""
-if [ ! -z "${Project}" ];then
-  sed -i "0,/${Project}/d" /tmp/jobs/jobs_projects
-fi
-
-EOF
-
-   chmod a+x /opt/slurm/sbin/prolog.sh
-   chmod a+x /opt/slurm/sbin/epilog.sh
-   
-   # Configure slurm to use Prolog and Epilog
-   append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf
-   append_once "Prolog=/opt/slurm/sbin/prolog.sh" /opt/slurm/etc/slurm.conf
-   append_once "Epilog=/opt/slurm/sbin/epilog.sh" /opt/slurm/etc/slurm.conf
-   
-   systemctl restart slurmctld
 fi
 
 

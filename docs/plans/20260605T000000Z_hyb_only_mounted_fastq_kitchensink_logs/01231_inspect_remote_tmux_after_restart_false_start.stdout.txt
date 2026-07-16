@@ -1,0 +1,66 @@
+DAY-EC activated.
+DAY-EC activated.
+tmux_sessions:
+hybonly_ilmn_haplocheck96_dryrun_20260606T091748Z: 1 windows (created Sat Jun  6 09:25:55 2026)
+hybonly_ilmn_kitchensink_mounted_20260606T053415Z_dryrun: 1 windows (created Sat Jun  6 05:40:45 2026)
+hybonly_ont_alignsort_alignstats_dedupna_dryrun2_20260606T074609Z: 1 windows (created Sat Jun  6 07:46:32 2026)
+hybonly_ont_alignsort_alignstats_dedupna_dryrun_20260606T074315Z: 1 windows (created Sat Jun  6 07:43:39 2026)
+hybonly_ont_chipbarcode_limited_dryrun2_20260606T090029Z: 1 windows (created Sat Jun  6 09:00:56 2026)
+hybonly_ont_chipbarcode_limited_dryrun_20260606T085229Z: 1 windows (created Sat Jun  6 08:55:27 2026)
+hybonly_ont_chipbarcode_limited_live_20260606T090222Z: 1 windows (created Sat Jun  6 09:02:49 2026)
+hybonly_ont_kitchensink_mounted_20260606T053415Z: 1 windows (created Sat Jun  6 05:59:00 2026)
+hybonly_ont_kitchensink_mounted_20260606T053415Z_dryrun: 1 windows (created Sat Jun  6 05:52:28 2026)
+SESSION=hybonly_ilmn_haplocheck96_dryrun_20260606T091748Z
+0: bash* (1 panes) [80x24] [layout 5960,80x24,0,0,11] @11 (active)
+0: [80x24] [history 0/2000, 1668 bytes] %11 (active)
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-81:~$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SESSION=hybonly_ilmn_kitchensink_mounted_20260606T053415Z_dryrun
+0: bash* (1 panes) [80x24] [layout b25d,80x24,0,0,0] @0 (active)
+0: [80x24] [history 0/2000, 868 bytes] %0 (active)
+DAY-EC activated.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

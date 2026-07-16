@@ -1,0 +1,11 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=ccv_dryrun_illumina_hg002_kitchensink_multiqc
+__DAYLILY_TMUX_SESSION__=ccv_dryrun_illumina_hg002_kitchensink_multiqc
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/ccv_dryrun_illumina_hg002_kitchensink_multiqc
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/ccv_dryrun_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis
+Tmux session 'ccv_dryrun_illumina_hg002_kitchensink_multiqc' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/ccv_dryrun_illumina_hg002_kitchensink_multiqc
+Workflow repo path: /fsx/analysis_results/ubuntu/ccv_dryrun_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster dyec800
+Then run: tmux attach -t ccv_dryrun_illumina_hg002_kitchensink_multiqc

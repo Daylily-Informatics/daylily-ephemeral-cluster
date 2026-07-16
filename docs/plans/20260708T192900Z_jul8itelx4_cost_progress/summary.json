@@ -1,0 +1,30 @@
+{
+  "remote_now_utc": "2026-07-08T19:30:43+00:00",
+  "queue_text": "117 PENDING\n      2 RUNNING",
+  "commands": 15,
+  "avg_workflow_pct_unweighted": 53.266666666666666,
+  "complete_count": 6,
+  "failed_count": 1,
+  "active_step_pct_partial_only": 11.05318039624609,
+  "active_step_done": 318,
+  "active_step_total": 2877,
+  "spot_compute_intervals": 42,
+  "closed_or_terminated_intervals": 41,
+  "open_running_intervals": 1,
+  "unresolved_interval_count": 0,
+  "spot_compute_cost_so_far_usd": 26.819756083333342,
+  "current_open_spot_burn_usd_per_hr_history_avg": 2.3007,
+  "current_open_spot_burn_usd_per_hr_logged": 2.3007,
+  "predicted_remaining_usd_progress_ratio": 23.530224048080946,
+  "predicted_total_usd_progress_ratio": 50.349980131414284,
+  "predicted_remaining_wall_hours_from_unweighted_progress": 3.877141218189404,
+  "predicted_remaining_usd_current_burn": 8.920138800688362,
+  "assumptions": [
+    "ComputeFleet spot intervals only; headnode excluded.",
+    "Starts use EC2 LaunchTime where visible, otherwise CloudTrail RunInstances, otherwise the FSx spot-log timestamp.",
+    "Closed intervals use EC2 state transition time when visible, otherwise CloudTrail TerminateInstances time.",
+    "Cost integrates EC2 Spot price history over each interval; logged price is fallback only.",
+    "Remaining cost progress-ratio model uses unweighted average of the 15 command percentages.",
+    "Current-burn model assumes only currently open spot instances continue running at current burn rate."
+  ]
+}

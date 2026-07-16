@@ -1,0 +1,4 @@
+Precheck passed: rows checked=1, samples checked=1, source objects checked=22, concordance directories checked=1.
+Generated configuration files:
+  samples.tsv -> docs/plans/20260707T225128Z_dyec_tests_command_catalog_inflection_no_vcfconvert_candidate_logs/inflection-bjuice-product-v0.1/config/20260707T225150Z_c24bd27a_samples.tsv
+  units.tsv   -> docs/plans/20260707T225128Z_dyec_tests_command_catalog_inflection_no_vcfconvert_candidate_logs/inflection-bjuice-product-v0.1/config/20260707T225150Z_c24bd27a_units.tsv

@@ -1,0 +1,145 @@
+DAY-EC activated.
+DAY-EC activated.
+NOW_UTC	2026-06-06T12:22:59Z
+
+## DF
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  1.4T  7.4T  16% /fsx
+
+## SQUEUE
+             JOBID PARTITION                         NAME ST         TIME  NODES NODELIST(REASON)
+               963      i192 gen_samstats-ONT-4Coriells-c  R         0:15      1 i192-dy-all-1
+             913_3      i192            ilmn_ds20x_seqkit  R         2:48      1 i192-dy-all-1
+               955      i192 calc_coverage_evenness-ONT-4  R         2:48      1 i192-dy-all-1
+               958      i192 calc_coverage_evenness-ONT-4  R         2:48      1 i192-dy-all-1
+               960      i192 gen_samstats-ONT-4Coriells-c  R         2:48      1 i192-dy-all-1
+               962      i192 calc_coverage_evenness-ONT-4  R         2:48      1 i192-dy-all-1
+             913_1      i192            ilmn_ds20x_seqkit  R        49:18      1 i192-dy-all-4
+             913_2      i192            ilmn_ds20x_seqkit  R        49:18      1 i192-dy-all-4
+
+## DOWNSAMPLE_FINALS
+
+## DOWNSAMPLE_TMPS
+NA00232-SMN_S46_ds20x_R1_001.fastq.gz.seqkit.914_0.tmp.gz	15481420538
+NA03986-DMPK_S48_ds20x_R1_001.fastq.gz.seqkit.916_2.tmp.gz	17473881214
+NA03986-DMPK_S48_ds20x_R2_001.fastq.gz.seqkit.916_2.tmp.gz	16656632463
+NA05164-DMPK_S49_ds20x_R1_001.fastq.gz.seqkit.913_3.tmp.gz	3196366573
+NA09677-SMN_S47_ds20x_R1_001.fastq.gz.seqkit.915_1.tmp.gz	17645396330
+NA09677-SMN_S47_ds20x_R2_001.fastq.gz.seqkit.915_1.tmp.gz	6266420155
+
+## DOWNSAMPLE_LOGS
+--- seqkit_913_0.out
+/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_/bin/seqkit
+seqkit v2.9.0
+SLURM_JOB_ID=914
+SLURM_ARRAY_TASK_ID=0
+SLURM_CPUS_PER_TASK=96
+HOSTNAME=i192-dy-all-3
+START_UTC=2026-06-06T11:30:01Z
+sample=NA00232 target_cov=20 source_cov=43.00 fraction=0.4651162791 seed=2302
+r1=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R1_001.fastq.gz
+r2=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R2_001.fastq.gz
+out_r1=/fsx/analysis_results/4_nas_ds_to_20x/NA00232-SMN_S46_ds20x_R1_001.fastq.gz
+out_r2=/fsx/analysis_results/4_nas_ds_to_20x/NA00232-SMN_S46_ds20x_R2_001.fastq.gz
+--- seqkit_913_1.out
+/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_/bin/seqkit
+seqkit v2.9.0
+SLURM_JOB_ID=915
+SLURM_ARRAY_TASK_ID=1
+SLURM_CPUS_PER_TASK=96
+HOSTNAME=i192-dy-all-4
+START_UTC=2026-06-06T11:33:42Z
+sample=NA09677 target_cov=20 source_cov=39.75 fraction=0.5031446541 seed=9677
+r1=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R1_001.fastq.gz
+r2=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R2_001.fastq.gz
+out_r1=/fsx/analysis_results/4_nas_ds_to_20x/NA09677-SMN_S47_ds20x_R1_001.fastq.gz
+out_r2=/fsx/analysis_results/4_nas_ds_to_20x/NA09677-SMN_S47_ds20x_R2_001.fastq.gz
+--- seqkit_913_2.out
+/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_/bin/seqkit
+seqkit v2.9.0
+SLURM_JOB_ID=916
+SLURM_ARRAY_TASK_ID=2
+SLURM_CPUS_PER_TASK=96
+HOSTNAME=i192-dy-all-4
+START_UTC=2026-06-06T11:33:42Z
+sample=NA03986 target_cov=20 source_cov=35.19 fraction=0.5683432793 seed=3986
+r1=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA03986-DMPK_S48_R1_001.fastq.gz
+r2=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA03986-DMPK_S48_R2_001.fastq.gz
+out_r1=/fsx/analysis_results/4_nas_ds_to_20x/NA03986-DMPK_S48_ds20x_R1_001.fastq.gz
+out_r2=/fsx/analysis_results/4_nas_ds_to_20x/NA03986-DMPK_S48_ds20x_R2_001.fastq.gz
+--- seqkit_913_3.out
+/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_/bin/seqkit
+seqkit v2.9.0
+SLURM_JOB_ID=913
+SLURM_ARRAY_TASK_ID=3
+SLURM_CPUS_PER_TASK=96
+HOSTNAME=i192-dy-all-1
+START_UTC=2026-06-06T12:20:14Z
+sample=NA05164 target_cov=20 source_cov=32.91 fraction=0.6077195381 seed=5164
+r1=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA05164-DMPK_S49_R1_001.fastq.gz
+r2=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA05164-DMPK_S49_R2_001.fastq.gz
+out_r1=/fsx/analysis_results/4_nas_ds_to_20x/NA05164-DMPK_S49_ds20x_R1_001.fastq.gz
+out_r2=/fsx/analysis_results/4_nas_ds_to_20x/NA05164-DMPK_S49_ds20x_R2_001.fastq.gz
+--- seqkit_913_0.err
+[INFO][0m sample by proportion
+--- seqkit_913_1.err
+[INFO][0m sample by proportion
+[INFO][0m 273920406 sequences outputted
+[INFO][0m sample by proportion
+--- seqkit_913_2.err
+[INFO][0m sample by proportion
+[INFO][0m 273799171 sequences outputted
+[INFO][0m sample by proportion
+--- seqkit_913_3.err
+[INFO][0m sample by proportion
+
+## Tmux sessions hybrid/ds
+hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z: 1 windows (created Sat Jun  6 12:05:24 2026)
+
+## Remote daylily run status files
+--- hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_snv_concordances produce_sentdhiomr_cnv produce_sentdhiomr_segdup produce_sentdhiomr_mito produce_expansionhunter produce_alignstats produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"sentdhiomr\"]' 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' 'contam_identity={\"primary_snv_caller\":\"sentdhiomr\"}' 'multiqc_qc={\"enable_tools\":[\"vep\",\"contam_identity\"]}' -j 125 -p -k --rerun-triggers mtime -n",
+  "completed_at": "2026-06-06T12:07:31Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis",
+  "session_name": "hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z",
+  "started_at": "2026-06-06T12:05:26Z"
+}
+--- hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun2_20260606T120700Z
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_snv_concordances produce_sentdhiomr_cnv produce_sentdhiomr_segdup produce_sentdhiomr_mito produce_expansionhunter produce_alignstats produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentd\",\"sentdhiomr\"]' 'sv_callers=[\"sentdhiomr\"]' 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' 'contam_identity={\"primary_snv_caller\":\"sentd\"}' 'multiqc_qc={\"enable_tools\":[\"vep\",\"contam_identity\"]}' -j 125 -p -k --rerun-triggers mtime -n",
+  "completed_at": "2026-06-06T12:12:52Z",
+  "exit_code": 130,
+  "repo_path": "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun2_20260606T120700Z/daylily-omics-analysis",
+  "session_name": "hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun2_20260606T120700Z",
+  "started_at": "2026-06-06T12:09:06Z",
+  "stop_cancelled_slurm_job_ids": [],
+  "stop_reason": "dyec workflow stop",
+  "stopped": true
+}
+
+## LOCAL_DYEC_STATUS
+--- hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z
+rc= 0
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_snv_concordances produce_sentdhiomr_cnv produce_sentdhiomr_segdup produce_sentdhiomr_mito produce_expansionhunter produce_alignstats produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"sentdhiomr\"]' 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' 'contam_identity={\"primary_snv_caller\":\"sentdhiomr\"}' 'multiqc_qc={\"enable_tools\":[\"vep\",\"contam_identity\"]}' -j 125 -p -k --rerun-triggers mtime -n",
+  "completed_at": "2026-06-06T12:07:31Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis",
+  "session_name": "hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z",
+  "started_at": "2026-06-06T12:05:26Z"
+}
+--- hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun2_20260606T120700Z
+rc= 0
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_snv_concordances produce_sentdhiomr_cnv produce_sentdhiomr_segdup produce_sentdhiomr_mito produce_expansionhunter produce_alignstats produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentd\",\"sentdhiomr\"]' 'sv_callers=[\"sentdhiomr\"]' 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' 'contam_identity={\"primary_snv_caller\":\"sentd\"}' 'multiqc_qc={\"enable_tools\":[\"vep\",\"contam_identity\"]}' -j 125 -p -k --rerun-triggers mtime -n",
+  "completed_at": "2026-06-06T12:12:52Z",
+  "exit_code": 130,
+  "repo_path": "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun2_20260606T120700Z/daylily-omics-analysis",
+  "session_name": "hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun2_20260606T120700Z",
+  "started_at": "2026-06-06T12:09:06Z",
+  "stop_cancelled_slurm_job_ids": [],
+  "stop_reason": "dyec workflow stop",
+  "stopped": true
+}

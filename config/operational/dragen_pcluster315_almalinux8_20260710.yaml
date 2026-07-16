@@ -1,0 +1,23 @@
+schema_version: dyec.parallelcluster_backport.v1
+parallelcluster:
+  version: 3.15.0
+  repository: https://github.com/iamh2o/aws-parallelcluster.git
+  commit: fb900dd94b8bb1ca97334c499d4b7d27c5a9ebb6
+  source_root: /Users/jmajor/projects/aws-parallelcluster-almalinux8-v3.15.0
+  executable: /Users/jmajor/projects/aws-parallelcluster-almalinux8-v3.15.0/.venv-pcluster/bin/pcluster
+node:
+  repository: https://github.com/aws/aws-parallelcluster-node.git
+  commit: 56267ba9928832d5a1414753f99365574a6b89f3
+  bundle_uri: s3://lsmc-dayoa-references-usw2/runtime_assets/pcluster_backports/almalinux8/v3.15.0/fb900dd94b8bb1ca97334c499d4b7d27c5a9ebb6/aws-parallelcluster-node-3.15.0-56267ba9928832d5a1414753f99365574a6b89f3.tgz
+  bundle_sha256: 0670399bd9d7574852cc40048afd2ef475a6b4254203b7429e57deaaa053e924
+cookbook:
+  repository: https://github.com/iamh2o/aws-parallelcluster-cookbook.git
+  commit: beed3d3f15b7e2e45ec5022d4e50da60dbab1d12
+  bundle_uri: s3://lsmc-dayoa-references-usw2/runtime_assets/pcluster_backports/almalinux8/v3.15.0/fb900dd94b8bb1ca97334c499d4b7d27c5a9ebb6/aws-parallelcluster-cookbook-3.15.0-beed3d3f15b7.tgz
+  bundle_sha256: 44f8b379dd719c86accc9898988db2a38dae88806ab0c1dc5db784e1e1bb6894
+image:
+  ami_id: ami-046ab49ce477823fe
+  parent_ami_id: ami-044bef021cb86a54c
+  region: us-west-2
+  qualification_status: passed
+  qualification_id: dragen-pcluster315-imagebuilder-20260710T094407Z

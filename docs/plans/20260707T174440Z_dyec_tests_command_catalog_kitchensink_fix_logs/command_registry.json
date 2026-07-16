@@ -1,0 +1,10 @@
+{
+  "command_ids": [
+    "illumina_hg002_kitchensink_multiqc"
+  ],
+  "dayoa_version": "4b26211e2429d5bf1c869dfa971ce7a861777817",
+  "dry_run_only": false,
+  "evidence_prefix_s3_uri": "s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.65-candidate/20260707T144453Z/cmdcat-103-all-20260707/command_catalog_results/4b26211e2429d5bf1c869dfa971ce7a861777817-20260707T174440Z/",
+  "jobs": 250,
+  "parallel": 1
+}

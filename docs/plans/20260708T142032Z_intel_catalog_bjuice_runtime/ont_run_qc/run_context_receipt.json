@@ -1,0 +1,10 @@
+{
+  "analysis_id": "ccv_live_ont_run_qc_20260708T152112Z",
+  "association_id": "dra-0a60db320f05c1eb1",
+  "command_id": "ont_run_qc",
+  "headnode_path": "/fsx/run_dir_mounts/20260513_ONT_HG003/",
+  "lifecycle": "AVAILABLE",
+  "mount_id": "20260513_ONT_HG003",
+  "run_context": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/ont_run_qc/runs.tsv",
+  "source_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/"
+}

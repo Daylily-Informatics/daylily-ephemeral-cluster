@@ -1,0 +1,7 @@
+{
+  "analysis_id": "ccv_live_illumina_hg002_kitchensink_multiqc_20260708T142032Z",
+  "command_id": "illumina_hg002_kitchensink_multiqc",
+  "manifest": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/illumina_hg002_kitchensink_multiqc/analysis_samples.tsv",
+  "samples": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/illumina_hg002_kitchensink_multiqc/config/20260708T144352Z_daf9ffff_samples.tsv",
+  "units": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/illumina_hg002_kitchensink_multiqc/config/20260708T144352Z_daf9ffff_units.tsv"
+}

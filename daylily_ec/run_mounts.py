@@ -34,6 +34,14 @@ MOUNT_PURPOSES = (
     MOUNT_PURPOSE_STAGING,
     MOUNT_PURPOSE_CUSTOM,
 )
+IMPORT_ONLY_MOUNT_PURPOSES = frozenset(
+    (
+        MOUNT_PURPOSE_RUN,
+        MOUNT_PURPOSE_REFERENCE,
+        MOUNT_PURPOSE_CONTROL_DATA,
+        MOUNT_PURPOSE_STAGING,
+    )
+)
 PURPOSE_FSX_ROOTS = {
     MOUNT_PURPOSE_RUN: "/run_dir_mounts/",
     MOUNT_PURPOSE_REFERENCE: "/references/",
@@ -342,6 +350,48 @@ def parse_auto_export_events(
     return _parse_event_tokens(raw, default=())
 
 
+def enforce_run_mount_readonly_policy(
+    *,
+    file_system_path: str,
+    read_only: bool,
+    auto_export_events: Sequence[str],
+) -> None:
+    """Keep run-directory mount projections permanently read-only."""
+    normalized = _normalize_absolute_fsx_api_path(file_system_path)
+    if not normalized.startswith(FSX_RUN_MOUNT_ROOT):
+        return
+    if (not read_only) or auto_export_events:
+        raise RunMountError(
+            "Mounts under /run_dir_mounts/ are always read-only and must not use "
+            "AutoExport. For read/write or AutoExport DRA mounts, choose an explicit "
+            "non-/run_dir_mounts --file-system-path and opt in with "
+            "--allow-writeback-admin."
+        )
+
+
+def enforce_import_mount_readonly_policy(
+    *,
+    purpose: str,
+    read_only: bool,
+    auto_export_events: Sequence[str],
+) -> None:
+    """Keep managed S3 import mounts import-only.
+
+    New or changed source data must be added to S3 and brought into FSx through
+    AutoImport; managed imports must not be promoted to FSx writeback mounts.
+    """
+    normalized_purpose = normalize_mount_purpose(purpose)
+    if normalized_purpose not in IMPORT_ONLY_MOUNT_PURPOSES:
+        return
+    if read_only and not auto_export_events:
+        return
+    raise RunMountError(
+        f"Mount purpose {normalized_purpose!r} is import-only and always read-only: do not use "
+        "--no-read-only or AutoExport. Add new or changed files to the source "
+        "S3 prefix and let FSx AutoImport materialize them under /fsx."
+    )
+
+
 def atlas_rw_marker_candidates(source_s3_uri: str) -> List[tuple[str, str]]:
     """Return allowed ancestor marker keys for an opt-in read/write S3 prefix."""
     normalized = normalize_s3_uri(source_s3_uri)
@@ -431,6 +481,16 @@ def create_run_mount(
     )
     auto_import_events = list(request.auto_import_events)
     auto_export_events = list(request.auto_export_events)
+    enforce_import_mount_readonly_policy(
+        purpose=purpose,
+        read_only=request.read_only,
+        auto_export_events=auto_export_events,
+    )
+    enforce_run_mount_readonly_policy(
+        file_system_path=file_system_path,
+        read_only=request.read_only,
+        auto_export_events=auto_export_events,
+    )
     writeback_requested = (not request.read_only) or bool(auto_export_events)
     verified_rw_marker: Optional[str] = None
     if writeback_requested:
@@ -1200,8 +1260,9 @@ def _create_association_params(
         "FileSystemPath": file_system_path,
         "DataRepositoryPath": source_s3_uri,
         "BatchImportMetaDataOnCreate": batch_import_metadata_on_create,
-        "Tags": [{"Key": key, "Value": value} for key, value in sorted(tags.items())],
     }
+    if tags:
+        params["Tags"] = [{"Key": key, "Value": value} for key, value in sorted(tags.items())]
     s3_policy: Dict[str, Any] = {}
     if auto_import_events:
         s3_policy["AutoImportPolicy"] = {"Events": list(auto_import_events)}

@@ -1,0 +1,323 @@
+                "Compatible modes: " + ", ".join(command.compatible_data_modes)
+            )
+        artifact_registration_command_id = None
+        if dewey_url or dewey_token_env:
+            if export_trigger == "none":
+                raise CommandError("--dewey-url/--dewey-token-env require --export-trigger.")
+            if not dewey_url or not dewey_token_env:
+                raise CommandError("--dewey-url and --dewey-token-env must be provided together.")
+            if command.artifact_registration is None:
+                raise CommandError(
+                    f"Analysis command {command.command_id} has no artifact_registration policy."
+                )
+            artifact_registration_command_id = command.command_id
+        try:
+            _validate_dewey_analysis_directory_link_options(
+                artifact_registration_command_id=artifact_registration_command_id,
+                dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
+                dewey_run_artifact_euid=dewey_run_artifact_euid,
+                dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
+            )
+        except typer.BadParameter as exc:
+            raise CommandError(str(exc)) from exc
+        resolved_profile = _resolved_aws_profile(profile)
+        resolved_region = (
+            region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
+        )
+
+        stage_argv = [
+            str(analysis_path),
+            "--reference-s3-uri",
+            reference_s3_uri,
+            "--control-data-s3-uri",
+            control_data_s3_uri,
+            "--stage-s3-uri",
+            stage_s3_uri,
+            "--stage-target",
+            stage_target,
+        ]
+        for spec in run_metric_staging or []:
+            stage_argv.extend(["--run-metric-staging", spec])
+        resolved_config_dir = config_dir.expanduser() if config_dir else analysis_path.parent
+        stage_argv.extend(["--config-dir", str(resolved_config_dir)])
+        stage_argv.extend(["--profile", resolved_profile])
+        if resolved_region:
+            stage_argv.extend(["--region", resolved_region])
+        if cluster:
+            stage_argv.extend(["--cluster", cluster])
+        if debug:
+            stage_argv.append("--debug")
+
+        stage_stdout_buffer = io.StringIO()
+        with contextlib.redirect_stdout(stage_stdout_buffer):
+            stage_rc = _invoke_stage_samples(stage_argv)
+        stage_stdout = stage_stdout_buffer.getvalue()
+        if stage_stdout:
+            typer.echo(stage_stdout, nl=False)
+        if stage_rc != 0:
+            raise typer.Exit(stage_rc)
+
+        remote_stage_dir = _parse_remote_stage_dir(stage_stdout)
+        resolved_session_name = session_name or analysis_id
+        resolved_git_tag = git_tag or command.git_tag
+        workflow_cli_argv = command.launch_argv(
+            analysis_id=analysis_id,
+            executing_entity=resolved_executing_entity,
+            git_tag=resolved_git_tag,
+            profile=resolved_profile,
+            region=resolved_region,
+            cluster=cluster,
+            stage_dir=remote_stage_dir,
+            session_name=resolved_session_name,
+            project=project,
+            dry_run=dry_run,
+            skip_project_check=skip_project_check,
+            export_destination_s3_uri=export_destination_s3_uri,
+            export_trigger=export_trigger,
+            delete_on_export_success=delete_on_export_success,
+            replace_existing_analysis_dir=replace_existing_analysis_dir,
+            artifact_registration_command_id=artifact_registration_command_id,
+            dewey_url=dewey_url,
+            dewey_token_env=dewey_token_env,
+            dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
+            dewey_run_artifact_euid=dewey_run_artifact_euid,
+            dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
+        )
+        launch_stdout_buffer = io.StringIO()
+        with contextlib.redirect_stdout(launch_stdout_buffer):
+            launch_rc = _invoke_workflow_launch(workflow_cli_argv[2:])
+        launch_stdout = launch_stdout_buffer.getvalue()
+        if launch_stdout:
+            typer.echo(launch_stdout, nl=False)
+        if launch_rc != 0:
+            raise typer.Exit(launch_rc)
+
+        stage_name = Path(remote_stage_dir.rstrip("/")).name
+        timestamp = stage_name.replace("remote_stage_", "")
+        receipt_path = resolved_config_dir / f"{timestamp}_samples_run_receipt.json"
+        receipt_path.parent.mkdir(parents=True, exist_ok=True)
+        receipt = {
+            "analysis_samples": str(analysis_path),
+            "command_id": command.command_id,
+            "compatible_data_modes": command.compatible_data_modes,
+            "detected_data_modes": data_modes,
+            "analysis_id": analysis_id,
+            "executing_entity": resolved_executing_entity,
+            "dry_run": dry_run,
+            "dy_command": command.dryrun_dy_command if dry_run else command.dy_command,
+            "export_destination_s3_uri": export_destination_s3_uri,
+            "export_trigger": export_trigger,
+            "delete_on_export_success": delete_on_export_success,
+            "replace_existing_analysis_dir": replace_existing_analysis_dir,
+            "dewey_analysis_dir_external_object_id": dewey_analysis_dir_external_object_id,
+            "dewey_run_artifact_euid": dewey_run_artifact_euid,
+            "dewey_ursa_analysis_euid": dewey_ursa_analysis_euid,
+            "git_tag": resolved_git_tag,
+            "remote_stage_dir": remote_stage_dir,
+            "samples_tsv": str(resolved_config_dir / f"{timestamp}_samples.tsv"),
+            "session_name": resolved_session_name,
+            "units_tsv": str(resolved_config_dir / f"{timestamp}_units.tsv"),
+            "workflow_argv": workflow_cli_argv,
+            "workflow_launch": _parse_workflow_launch_metadata(launch_stdout),
+        }
+        receipt_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        typer.echo(f"Samples run receipt: {receipt_path}")
+    except typer.Exit:
+        raise
+        debug=args.debug,
+        rows=prechecked_rows,
+    )
+    created_files.extend(
+        stage_run_metrics(
+            run_metric_files,
+            stage,
+            reference_s3_uri=s3_role_uris,
+            aws_env=aws_env,
+            debug=args.debug,
+        )
+    )
+
+    timestamp = stage.remote_stage_name.replace("remote_stage_", "")
+    samples_filename = f"{timestamp}_samples.tsv"
+    units_filename = f"{timestamp}_units.tsv"
+
+    if args.config_dir:
+        config_dir = Path(args.config_dir).expanduser()
+    else:
+        config_dir = analysis_samples.parent
+
+    samples_path = config_dir / samples_filename
+    units_path = config_dir / units_filename
+    unique_samples_rows = deduplicate_rows(samples_rows, SAMPLES_HEADER)
+    normalise_units_paths(units_rows)
+
+    write_tsv(samples_path, SAMPLES_HEADER, unique_samples_rows)
+    write_tsv(units_path, UNITS_HEADER, units_rows)
+
+    if args.config_only:
+        print("Generated configuration files:")
+        print(f"  samples.tsv -> {samples_path}")
+        print(f"  units.tsv   -> {units_path}")
+        return 0
+
+    remote_samples_path = f"{stage.remote_s3_stage}/{samples_filename}"
+    remote_units_path = f"{stage.remote_s3_stage}/{units_filename}"
+
+    aws_copy(str(samples_path), remote_samples_path, aws_env=aws_env, debug=args.debug)
+    aws_copy(str(units_path), remote_units_path, aws_env=aws_env, debug=args.debug)
+
+    staging_mount = create_staged_prefix_mount(
+        stage,
+        cluster_name=args.cluster_name,
+        fsx_file_system_id=args.fsx_file_system_id,
+        profile=aws_config.profile,
+        region=aws_config.region,
+        timeout_seconds=args.staging_mount_timeout_seconds,
+    )
+
+    print("Remote staging completed successfully.")
+    print(f"Remote FSx stage directory: {headnode_visible_path(stage.remote_fsx_stage)}")
+    if staging_mount is not None:
+        print(f"Staging DRA: {staging_mount.association_id}")
+        print(f"Staging DRA lifecycle: {staging_mount.lifecycle}")
+
+@dataclass
+class RemoteConfig:
+    stage_dir: str
+    samples_path: str
+    units_path: str
+
+
+@dataclass
+class WorkflowLaunchInfo:
+    session_name: str
+    run_dir: str
+    repo_path: str
+
+
+def normalize_remote_path(path: str) -> str:
+    if path.startswith("~/"):
+        return path.replace("~/", "/home/ubuntu/", 1)
+    if path == "~":
+        return "/home/ubuntu"
+    return path
+
+
+def parse_remote_config(stdout: str) -> RemoteConfig:
+    stage_dir = samples_path = units_path = None
+    for line in stdout.splitlines():
+        if line.startswith("__DAYLILY_STAGE_DIR__="):
+            stage_dir = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_STAGE_SAMPLES__="):
+            samples_path = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_STAGE_UNITS__="):
+            units_path = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_ERROR__="):
+            raise CommandError(f"Remote lookup failed: {line.split('=', 1)[1]}")
+    if not (stage_dir and samples_path and units_path):
+        raise CommandError("Unable to determine staged config paths on the head node.")
+    return RemoteConfig(stage_dir, samples_path, units_path)
+
+
+def parse_workflow_launch(stdout: str) -> WorkflowLaunchInfo:
+    session_name = run_dir = repo_path = None
+    for line in stdout.splitlines():
+        if line.startswith("__DAYLILY_SESSION__="):
+            session_name = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_RUN_DIR__="):
+            run_dir = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_REPO_PATH__="):
+            repo_path = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_ERROR__="):
+            raise CommandError(line.split("=", 1)[1])
+    if not (session_name and run_dir and repo_path):
+        raise CommandError("Tmux session creation did not report success.")
+    return WorkflowLaunchInfo(session_name=session_name, run_dir=run_dir, repo_path=repo_path)
+
+
+def discover_stage_config(
+    instance_id: str,
+    profile: str,
+    region: str,
+    stage_dir: Optional[str],
+    stage_base: str,
+) -> RemoteConfig:
+    remote_wait_seconds = max(1, STAGE_CONFIG_DISCOVERY_TIMEOUT_SECONDS - 15)
+    if stage_dir:
+        target_dir = normalize_remote_path(stage_dir.rstrip("/"))
+        script = f"""
+set -euo pipefail
+if [[ "$(id -un)" != "ubuntu" ]]; then
+  echo "__DAYLILY_ERROR__=wrong_user"
+  exit 5
+fi
+STAGE_DIR={shlex.quote(target_dir)}
+WAIT_DEADLINE=$((SECONDS + {remote_wait_seconds}))
+last_error=missing_stage_dir
+found_config=false
+while true; do
+  if [[ -d "$STAGE_DIR" ]]; then
+    samples_file=$(ls -1 "$STAGE_DIR"/*_samples.tsv 2>/dev/null | head -n 1 || true)
+    units_file=$(ls -1 "$STAGE_DIR"/*_units.tsv 2>/dev/null | head -n 1 || true)
+    if [[ -n "$samples_file" && -n "$units_file" ]]; then
+      echo "__DAYLILY_STAGE_DIR__=$STAGE_DIR"
+      echo "__DAYLILY_STAGE_SAMPLES__=$samples_file"
+      echo "__DAYLILY_STAGE_UNITS__=$units_file"
+      found_config=true
+      break
+    fi
+    last_error=missing_config
+  else
+    last_error=missing_stage_dir
+  fi
+  if (( SECONDS >= WAIT_DEADLINE )); then
+    echo "__DAYLILY_ERROR__=$last_error"
+    if [[ "$last_error" == "missing_stage_dir" ]]; then
+      exit 2
+    fi
+    exit 3
+  fi
+  sleep 5
+done
+if [[ "$found_config" == "true" ]]; then
+  true
+fi
+"""
+    else:
+        stage_base_norm = normalize_remote_path(stage_base.rstrip("/"))
+        script = f"""
+set -euo pipefail
+if [[ "$(id -un)" != "ubuntu" ]]; then
+  echo "__DAYLILY_ERROR__=wrong_user"
+  exit 5
+fi
+STAGE_BASE={shlex.quote(stage_base_norm)}
+if [[ ! -d "$STAGE_BASE" ]]; then
+  echo "__DAYLILY_ERROR__=missing_stage_base"
+  exit 2
+fi
+WAIT_DEADLINE=$((SECONDS + {remote_wait_seconds}))
+last_error=no_stage_runs
+found_config=false
+while true; do
+  latest_dir=$(ls -1dt "$STAGE_BASE"/*/ 2>/dev/null | head -n 1 || true)
+  if [[ -n "$latest_dir" ]]; then
+    samples_file=$(ls -1 "$latest_dir"/*_samples.tsv 2>/dev/null | head -n 1 || true)
+    units_file=$(ls -1 "$latest_dir"/*_units.tsv 2>/dev/null | head -n 1 || true)
+    if [[ -n "$samples_file" && -n "$units_file" ]]; then
+      echo "__DAYLILY_STAGE_DIR__=$latest_dir"
+      echo "__DAYLILY_STAGE_SAMPLES__=$samples_file"
+      echo "__DAYLILY_STAGE_UNITS__=$units_file"
+      found_config=true
+      break
+    fi
+    last_error=missing_config
+  else
+    last_error=no_stage_runs
+  fi
+  if (( SECONDS >= WAIT_DEADLINE )); then
+    echo "__DAYLILY_ERROR__=$last_error"
+    if [[ "$last_error" == "missing_config" ]]; then
+      exit 4
+    fi
+    exit 3

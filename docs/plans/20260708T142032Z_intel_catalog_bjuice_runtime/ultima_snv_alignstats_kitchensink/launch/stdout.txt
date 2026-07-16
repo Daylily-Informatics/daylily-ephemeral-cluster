@@ -1,0 +1,11 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=ccv_live_ultima_snv_alignstats_kitchensink_20260708T152112Z
+__DAYLILY_TMUX_SESSION__=ccv_live_ultima_snv_alignstats_kitchensink_20260708T152112Z
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/ccv_live_ultima_snv_alignstats_kitchensink_20260708T152112Z
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/ccv_live_ultima_snv_alignstats_kitchensink_20260708T152112Z/daylily-omics-analysis
+Tmux session 'ccv_live_ultima_snv_alignstats_kitchensink_20260708T152112Z' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/ccv_live_ultima_snv_alignstats_kitchensink_20260708T152112Z
+Workflow repo path: /fsx/analysis_results/ubuntu/ccv_live_ultima_snv_alignstats_kitchensink_20260708T152112Z/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster jul8itelx4
+Then run: tmux attach -t ccv_live_ultima_snv_alignstats_kitchensink_20260708T152112Z

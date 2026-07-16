@@ -1,0 +1,22 @@
+{
+    "CommandId": "791c4fc4-259c-4c27-a719-a6a39703a0fb",
+    "InstanceId": "i-06e429d2a68a0b1ec",
+    "Comment": "Launch daylily workflow tmux session",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 1,
+    "ExecutionStartDateTime": "2026-07-07T16:30:48.082Z",
+    "ExecutionElapsedTime": "PT5.652S",
+    "ExecutionEndDateTime": "2026-07-07T16:30:53.082Z",
+    "Status": "Failed",
+    "StatusDetails": "Failed",
+    "StandardOutputContent": "DAY-EC activated.\nDAY-EC activated.\n__DAYLILY_ERROR__=session_exists\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "failed to run commands: exit status 1",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}

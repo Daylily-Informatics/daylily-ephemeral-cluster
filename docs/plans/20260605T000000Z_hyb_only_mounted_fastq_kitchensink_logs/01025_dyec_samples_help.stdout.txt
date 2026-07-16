@@ -1,0 +1,14 @@
+                                                                                
+ Usage: dyec samples [OPTIONS] COMMAND [ARGS]...                                
+                                                                                
+ Sample staging helpers.                                                        
+                                                                                
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                  │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ stage  Stage analysis samples and generate workflow manifests.               │
+│ run    Stage analysis samples and launch a compatible catalog workflow       │
+│        command.                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+

@@ -1,0 +1,25 @@
+fsx_export:
+  schema_version: 4
+  status: success
+  phase: complete
+  cluster_name: cmdcat-103-all-20260707
+  region: us-west-2
+  analysis_dir: ubuntu/ccv_live_illumina_hg002_kitchensink_multiqc_20260707T185605Z
+  source_path: /analysis_results/ubuntu/ccv_live_illumina_hg002_kitchensink_multiqc_20260707T185605Z/
+  headnode_path: /fsx/analysis_results/ubuntu/ccv_live_illumina_hg002_kitchensink_multiqc_20260707T185605Z/
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.64/20260707T144453Z/ubuntu/ccv_live_illumina_hg002_kitchensink_multiqc_20260707T185605Z/
+  fsx_root: /fsx/analysis_results/ubuntu/ccv_live_illumina_hg002_kitchensink_multiqc_20260707T185605Z/
+  s3_root: s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.64/20260707T144453Z/ubuntu/ccv_live_illumina_hg002_kitchensink_multiqc_20260707T185605Z/
+  dayoa_analysis_root: /fsx/analysis_results/ubuntu/ccv_live_illumina_hg002_kitchensink_multiqc_20260707T185605Z/daylily-omics-analysis/
+  dayoa_s3_root: s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.64/20260707T144453Z/ubuntu/ccv_live_illumina_hg002_kitchensink_multiqc_20260707T185605Z/daylily-omics-analysis/
+  detached: true
+  delete_data_in_file_system: false
+  failure_details: {}
+  fsx_file_system_id: fs-0e89a93ffac2f0d93
+  file_system_path: /analysis_results/ubuntu/ccv_live_illumina_hg002_kitchensink_multiqc_20260707T185605Z/
+  association_id: dra-0ce779315bc8534ab
+  lifecycle: AVAILABLE
+  task_id: task-0254f81a36477cb7c
+  task_lifecycle: SUCCEEDED
+  report_path: s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.64/20260707T144453Z/ubuntu/ccv_live_illumina_hg002_kitchensink_multiqc_20260707T185605Z/_daylily_monitor/fsx-export/20260708T002358Z/export-report/
+  detach_lifecycle: DELETED

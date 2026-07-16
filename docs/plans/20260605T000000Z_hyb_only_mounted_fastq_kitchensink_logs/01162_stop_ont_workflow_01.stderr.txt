@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/stop_ont_workflow.py", line 19, in <module>
+    tmux has-session -t {ONT_SESSION@Q} 2>/dev/null && echo "tmux_session=present" || echo "tmux_session=absent"
+                                     ^
+NameError: name 'Q' is not defined

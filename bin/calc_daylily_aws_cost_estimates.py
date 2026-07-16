@@ -34,8 +34,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument(
         "--config",
-        default=str(resource_path("config/day_cluster/prod_cluster.yaml")),
-        help="Path to cluster YAML (default: packaged prod_cluster.yaml).",
+        default=str(resource_path("config/day_cluster/prod_cluster_v8.yaml")),
+        help="Path to cluster YAML (default: packaged prod_cluster_v8.yaml).",
     )
     p.add_argument(
         "--profile",

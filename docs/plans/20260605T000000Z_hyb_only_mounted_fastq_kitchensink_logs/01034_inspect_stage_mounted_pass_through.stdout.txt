@@ -1,0 +1,175 @@
+
+    try:
+        return run_mounts.create_run_mount(
+            run_mounts.CreateRunMountRequest(
+                cluster_name=cluster_name,
+                fsx_file_system_id=fsx_file_system_id,
+                region=region,
+                profile=profile,
+                source_s3_uri=stage.remote_s3_stage,
+                mount_id=stage.remote_stage_name,
+                run_id=stage.remote_stage_name,
+                purpose=run_mounts.MOUNT_PURPOSE_STAGING,
+                platform="STAGING",
+                file_system_path=file_system_path,
+                read_only=True,
+                batch_import_metadata_on_create=True,
+                auto_import_events=(),
+                wait=False,
+                timeout_seconds=timeout_seconds,
+                tags={"daylily:staging-root": ACTIVE_EXTERNAL_STAGE_ROOT},
+            )
+        )
+    except run_mounts.RunMountError as exc:
+        raise CommandError(f"Unable to create staged-prefix FSx DRA: {exc}") from exc
+
+
+def headnode_visible_path(path: str) -> str:
+    if (
+        path == "/data"
+        or path.startswith("/data/")
+        or path == "/fsx/data"
+        or path.startswith("/fsx/data/")
+    ):
+        raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
+    reject_retired_stage_path(path)
+    return path
+
+
+def is_retired_stage_path(path: str) -> bool:
+    return any(path == root or path.startswith(f"{root}/") for root in RETIRED_STAGE_ROOTS)
+
+
+def reject_retired_stage_path(path: str) -> None:
+    if is_retired_stage_path(path):
+        raise CommandError(
+            f"The retired staging path {path} is not supported; "
+            f"use {ACTIVE_EXTERNAL_STAGE_ROOT} for external sequencing staging."
+        )
+
+
+def is_mounted_run_dir_path(path: str) -> bool:
+    return any(path == root or path.startswith(f"{root}/") for root in MOUNT_PATH_ROOTS)
+
+
+def validate_mount_id(value: str) -> str:
+    mount_id = (value or "").strip()
+    if not mount_id:
+        raise CommandError(f"{MOUNT_ID} is required for STAGE_DIRECTIVE=mounted_readonly.")
+    if mount_id in {".", ".."} or not MOUNT_ID_RE.fullmatch(mount_id):
+        raise CommandError(
+            f"{MOUNT_ID} must be a safe path component containing only letters, numbers, "
+            f"underscore, dash, or dot: {value}"
+        )
+    return mount_id
+
+
+def parse_mounted_run_dir_path(path: str, *, field: str) -> Tuple[str, str, Tuple[str, ...]]:
+    for root in MOUNT_PATH_ROOTS:
+        if path != root and not path.startswith(f"{root}/"):
+            continue
+        relative = path[len(root) :]
+            if len(r1_paths) > 1 and r2_paths:
+                try:
+                    validate_fastq_pair_order(
+                        r1_paths,
+                        r2_paths,
+                        row_number=row_number,
+                        r1_field=r1_field,
+                        r2_field=r2_field,
+                    )
+                except CommandError as exc:
+                    add_issue(f"{r1_field}/{r2_field}", str(exc), r1_value)
+            if r1_field == ONT_R1_FQ and not r2_paths and directive != "pass_through":
+                add_issue(
+                    f"{r1_field}/{r2_field}",
+                    (
+                        f"Row {row_number} uses single-end ONT raw FASTQ; "
+                        f"set {STAGE_DIRECTIVE}=pass_through or use {ONT_FASTQ_PREFIX} "
+                        "for staged ONT shards."
+                    ),
+                    r1_value,
+                )
+        except CommandError as exc:
+            r1_paths = [r1_value] if r1_value else []
+            r2_paths = [r2_value] if r2_value else []
+            add_issue(f"{r1_field}/{r2_field}", str(exc), r1_value or r2_value)
+        for source_path in r1_paths:
+            if is_headnode_scratch_path(source_path) and directive != "pass_through":
+                add_issue(
+                    r1_field,
+                    (
+                        f"Row {row_number} uses scratch source {source_path}; "
+                        f"set {STAGE_DIRECTIVE}=pass_through for /fsx/scratch inputs."
+                    ),
+                    source_path,
+                )
+            maybe_check_source_path(r1_field, source_path)
+        for source_path in r2_paths:
+            if is_headnode_scratch_path(source_path) and directive != "pass_through":
+                add_issue(
+                    r2_field,
+                    (
+                        f"Row {row_number} uses scratch source {source_path}; "
+                        f"set {STAGE_DIRECTIVE}=pass_through for /fsx/scratch inputs."
+                    ),
+                    source_path,
+                )
+            maybe_check_source_path(r2_field, source_path)
+        if directive == "pass_through":
+        row.unit.seq_vendor,
+        row.unit.seq_platform,
+    )
+
+
+def should_merge_rows(entries: Sequence[ManifestRow]) -> bool:
+    if len(entries) <= 1:
+        return False
+    for entry in entries:
+        raw_groups = raw_groups_present(entry.original)
+        if len(raw_groups) != 1 or raw_groups[0][:2] != (ILMN_R1_FQ, ILMN_R2_FQ):
+            return False
+        if any(get_entry_value(entry.original, field) for field in ALIGNED_SOURCE_FIELDS):
+            return False
+        if entry.staging.stage_directive == "pass_through":
+            raise CommandError(
+                "Multi-lane Illumina inputs require staging and cannot use STAGE_DIRECTIVE=pass_through."
+            )
+        if entry.staging.stage_directive == "mounted_readonly":
+            return False
+    return True
+
+
+def build_sample_context(
+    row: ManifestRow,
+) -> Tuple[str, str, str, str]:
+    composite_sample_id = (
+        f"{row.sample.sample_id}-{row.unit.seq_platform}-{row.unit.lib_prep}-"
+        f"{row.sample.sample_type}-{row.unit.experiment_id}"
+    )
+    sample_name = f"{row.unit.run_id}_{composite_sample_id}"
+    sample_prefix = f"{row.unit.run_id}_{composite_sample_id}_{row.unit.seqbc_id}_0"
+    dest_fsx_dir = sample_prefix
+    r1_field, r2_field, unit_r1_field, unit_r2_field = spec
+    r1 = get_entry_value(row.sources, r1_field)
+    r2 = get_entry_value(row.sources, r2_field)
+    r1_paths, r2_paths = paired_fastq_path_lists(
+        r1,
+        r2,
+        r1_field=r1_field,
+        r2_field=r2_field,
+        row_number=row.row_number,
+        require_r2=r1_field != ONT_R1_FQ,
+    )
+    if len(r1_paths) > 1:
+        if (r1_field, r2_field) != (ILMN_R1_FQ, ILMN_R2_FQ):
+            raise CommandError(
+                f"Row {row.row_number} comma-separated FASTQ lists are only supported for "
+                f"{ILMN_R1_FQ}/{ILMN_R2_FQ}."
+            )
+        validate_fastq_pair_order(
+            r1_paths,
+            r2_paths,
+            row_number=row.row_number,
+            r1_field=r1_field,
+            r2_field=r2_field,

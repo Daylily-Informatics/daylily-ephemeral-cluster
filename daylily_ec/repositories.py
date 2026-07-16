@@ -4,19 +4,21 @@ from __future__ import annotations
 
 import shlex
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Sequence
+from typing import Any, Dict, Iterable, List, Literal, Optional, Sequence
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from daylily_ec.analysis_identity import validate_analysis_segment
 from daylily_ec.resources import resource_path
+from daylily_ec.workflow.dyr_preflight import normalize_dyr_preflight_options
 
 
 CATALOG_VERSION = 2
 SUPPORTED_CATALOG_VERSIONS = {1, CATALOG_VERSION}
 COMMAND_CLASSES = {"sample_analysis", "run_analysis", "utility"}
-COMMAND_TYPES = {"prod", "test", "dev"}
+COMMAND_TYPES = {"prod", "test", "dev", "research"}
+CLUSTER_TYPES = {"daywgs", "dragen", "sentieon-single"}
 INPUT_CONTRACTS = {"sample_manifest", "run_context", "none"}
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 VALIDATION_STATUSES = {"success", "failed", "blocked", "not_run"}
@@ -189,6 +191,7 @@ class TestDataProfile(BaseModel):
     locations: List[str] = Field(default_factory=list)
     run_context_source_s3_column: str = ""
     run_context_mount_id_column: str = ""
+    run_context_values: Dict[str, str] = Field(default_factory=dict)
     source_notes: List[str] = Field(default_factory=list)
 
     @field_validator("description", "source_mount_mode")
@@ -230,6 +233,14 @@ class TestDataProfile(BaseModel):
     def _validate_optional_strings(cls, value: str) -> str:
         return str(value or "").strip()
 
+    @field_validator("run_context_values")
+    @classmethod
+    def _validate_run_context_values(cls, values: Dict[str, str]) -> Dict[str, str]:
+        return {
+            _clean_id(str(key), field_name="run_context_values key"): str(value or "").strip()
+            for key, value in values.items()
+        }
+
     @model_validator(mode="after")
     def _validate_mount_contract(self) -> "TestDataProfile":
         if self.source_mount_mode == "none":
@@ -237,6 +248,8 @@ class TestDataProfile(BaseModel):
                 raise ValueError("source_mount_mode none must not declare source locations")
             if self.run_context_source_s3_column or self.run_context_mount_id_column:
                 raise ValueError("source_mount_mode none must not declare run-context columns")
+            if self.run_context_values:
+                raise ValueError("source_mount_mode none must not declare run-context values")
         elif self.source_mount_mode == "default_mounted":
             if not self.locations:
                 raise ValueError("default_mounted profiles must declare locations")
@@ -246,15 +259,21 @@ class TestDataProfile(BaseModel):
                 raise ValueError("default_mounted profiles must declare source_fsx_prefix")
             if self.run_context_source_s3_column or self.run_context_mount_id_column:
                 raise ValueError("default_mounted profiles must not declare run-context columns")
+            if self.run_context_values:
+                raise ValueError("default_mounted profiles must not declare run-context values")
         elif self.source_mount_mode == "run_dra_required":
             if not self.source_s3_uri_template:
                 raise ValueError("run_dra_required profiles must declare source_s3_uri_template")
             if not self.source_fsx_prefix:
                 raise ValueError("run_dra_required profiles must declare source_fsx_prefix")
             if not self.run_context_source_s3_column:
-                raise ValueError("run_dra_required profiles must declare run_context_source_s3_column")
+                raise ValueError(
+                    "run_dra_required profiles must declare run_context_source_s3_column"
+                )
             if not self.run_context_mount_id_column:
-                raise ValueError("run_dra_required profiles must declare run_context_mount_id_column")
+                raise ValueError(
+                    "run_dra_required profiles must declare run_context_mount_id_column"
+                )
         return self
 
 
@@ -366,6 +385,8 @@ class ArtifactRegistrationPolicy(BaseModel):
     include_classifications: List[str] = Field(default_factory=list)
     include_paths: List[str] = Field(default_factory=list)
     require_existing: bool = True
+    allow_s3_body_sha256: bool = False
+    s3_body_sha256_max_bytes: int = 50_000_000
     parser_family_hint: str
     multiqc_report_kind: str
     multiqc_version: str
@@ -422,11 +443,15 @@ class ArtifactRegistrationPolicy(BaseModel):
             raise ValueError(
                 "enabled artifact_registration requires include_classifications or include_paths"
             )
+        if self.s3_body_sha256_max_bytes <= 0:
+            raise ValueError("artifact_registration.s3_body_sha256_max_bytes must be positive")
         if self.enabled and self.parser_family_hint == "multiqc" and not self.multiqc_reports:
             raise ValueError("enabled MultiQC artifact_registration requires multiqc_reports")
         report_kinds = [report.report_kind for report in self.multiqc_reports]
         if len(set(report_kinds)) != len(report_kinds):
-            raise ValueError("artifact_registration.multiqc_reports report_kind values must be unique")
+            raise ValueError(
+                "artifact_registration.multiqc_reports report_kind values must be unique"
+            )
         return self
 
 
@@ -440,6 +465,7 @@ class AnalysisCommand(BaseModel):
     type: str
     validated_version: str
     test_data_profile: str
+    sample_manifest_template: str = ""
     display_name: str
     description: str = ""
     datasource: str
@@ -452,7 +478,10 @@ class AnalysisCommand(BaseModel):
     input_requirements: CommandInputRequirements = Field(default_factory=CommandInputRequirements)
     targets: List[str]
     genome: str
+    day_profile: str = "slurm"
     jobs: int = Field(gt=0)
+    keep_going: bool = True
+    restart_times: int = Field(default=1, ge=0)
     aligners: List[str]
     dedupers: List[str]
     snv_callers: List[str]
@@ -460,9 +489,11 @@ class AnalysisCommand(BaseModel):
     dy_command: str
     dryrun_dy_command: str
     compatible_platforms: List[str]
+    compatible_cluster_types: List[str]
     compatible_data_modes: List[str]
     git_tag: str = "main"
     no_containerized: bool = False
+    default_activation: bool = True
     optional_features: Dict[str, AnalysisCommandFeature] = Field(default_factory=dict)
     validation_runs: List[CommandValidationRun] = Field(default_factory=list)
     artifact_registration: Optional[ArtifactRegistrationPolicy] = None
@@ -478,6 +509,7 @@ class AnalysisCommand(BaseModel):
         "command_class",
         "input_contract",
         "genome",
+        "day_profile",
         "dy_command",
         "dryrun_dy_command",
         "git_tag",
@@ -501,6 +533,7 @@ class AnalysisCommand(BaseModel):
         "snv_callers",
         "sv_callers",
         "compatible_platforms",
+        "compatible_cluster_types",
         "compatible_data_modes",
     )
     @classmethod
@@ -518,6 +551,17 @@ class AnalysisCommand(BaseModel):
             cleaned_key = _clean_id(key, field_name="runtime_parameters key")
             cleaned_value = _clean_id(str(value), field_name=f"runtime_parameters.{cleaned_key}")
             cleaned[cleaned_key] = cleaned_value
+        return cleaned
+
+    @field_validator("sample_manifest_template")
+    @classmethod
+    def _validate_sample_manifest_template(cls, value: str) -> str:
+        cleaned = str(value or "").strip()
+        if not cleaned:
+            return ""
+        path = Path(cleaned)
+        if path.is_absolute() or ".." in path.parts:
+            raise ValueError("sample_manifest_template must be a relative path without '..'")
         return cleaned
 
     @model_validator(mode="after")
@@ -551,8 +595,38 @@ class AnalysisCommand(BaseModel):
                 raise ValueError("utility commands must not require run mounts")
         if not self.compatible_platforms:
             raise ValueError("compatible_platforms must not be empty")
+        if not self.compatible_cluster_types:
+            raise ValueError("compatible_cluster_types must not be empty")
+        unknown_cluster_types = set(self.compatible_cluster_types) - CLUSTER_TYPES
+        if unknown_cluster_types:
+            raise ValueError(
+                "compatible_cluster_types must use known cluster types: "
+                + ", ".join(sorted(unknown_cluster_types))
+            )
         if not self.compatible_data_modes:
             raise ValueError("compatible_data_modes must not be empty")
+        if not self.default_activation:
+            activation_prefixes = ("source dyoainit;", ". dyoainit;")
+            if not self.dy_command.startswith(activation_prefixes):
+                raise ValueError(
+                    "commands with default_activation=false must source dyoainit in dy_command"
+                )
+            if not self.dryrun_dy_command.startswith(activation_prefixes):
+                raise ValueError(
+                    "commands with default_activation=false must source dyoainit in dryrun_dy_command"
+                )
+        if self.day_profile != "slurm":
+            expected_activation = f"dy-a {self.day_profile} {self.genome}"
+            if self.default_activation:
+                raise ValueError(
+                    "commands with non-default day_profile must set default_activation=false"
+                )
+            if expected_activation not in self.dy_command:
+                raise ValueError(f"dy_command must explicitly activate {expected_activation!r}")
+            if expected_activation not in self.dryrun_dy_command:
+                raise ValueError(
+                    f"dryrun_dy_command must explicitly activate {expected_activation!r}"
+                )
         return self
 
     def with_features(self, feature_ids: Iterable[str]) -> "AnalysisCommand":
@@ -656,6 +730,7 @@ class AnalysisCommand(BaseModel):
             dy_command = f"{dy_command} --config {runtime_config}"
         elif run_context_file:
             raise ValueError("run_context_file is only valid for run_analysis commands")
+        dy_command = normalize_dyr_preflight_options(dy_command)
         if samples_file or units_file:
             if not (samples_file and units_file):
                 raise ValueError("samples_file and units_file must be provided together")
@@ -697,8 +772,12 @@ class AnalysisCommand(BaseModel):
         argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
         if self.no_containerized:
             argv.append("--no-containerized")
+        if not self.default_activation:
+            argv.append("--no-default-activation")
         if self.input_contract == "none":
-            argv.extend(["--no-input-staging", "--no-default-activation"])
+            argv.append("--no-input-staging")
+            if "--no-default-activation" not in argv:
+                argv.append("--no-default-activation")
             argv.append("--bootstrap-test-config")
         if export_destination_s3_uri:
             argv.extend(["--export-destination-s3-uri", export_destination_s3_uri])
@@ -739,11 +818,22 @@ class RepositoryDefinition(BaseModel):
 
     display_name: str = ""
     description: str = ""
+    clone_transport: Literal["https", "ssh"]
+    auth_mode: Literal["none", "aws_deploy_key"]
     https_url: str
     ssh_url: Optional[str] = None
     default_ref: str
     relative_path: str
     analysis_commands: List[AnalysisCommand] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_clone_auth(self) -> "RepositoryDefinition":
+        if self.auth_mode == "aws_deploy_key":
+            if self.clone_transport != "ssh":
+                raise ValueError("aws_deploy_key authentication requires clone_transport ssh")
+            if not self.ssh_url:
+                raise ValueError("aws_deploy_key authentication requires ssh_url")
+        return self
 
 
 class RepositoryCatalog(BaseModel):
@@ -913,6 +1003,8 @@ def _migrate_v1_analysis_commands(raw: Dict[str, Any]) -> Dict[str, Any]:
             migrated_repositories[repo_key] = repo_value
             continue
         repo = dict(repo_value)
+        repo.setdefault("clone_transport", "https")
+        repo.setdefault("auth_mode", "none")
         commands = repo.get("analysis_commands")
         if isinstance(commands, list):
             migrated_commands = []
@@ -929,6 +1021,7 @@ def _migrate_v1_analysis_commands(raw: Dict[str, Any]) -> Dict[str, Any]:
                 command["requires_staging"] = True
                 command["requires_run_mount"] = False
                 command["runtime_parameters"] = {}
+                command.setdefault("compatible_cluster_types", ["daywgs"])
                 migrated_commands.append(command)
             repo["analysis_commands"] = migrated_commands
         migrated_repositories[repo_key] = repo

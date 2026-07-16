@@ -1,0 +1,11 @@
+DAY-EC                   /Users/jmajor/miniconda3/envs/DAY-EC
+DAYHOFF-day              /Users/jmajor/miniconda3/envs/DAYHOFF-day
+DAYHOFF-qeoday           /Users/jmajor/miniconda3/envs/DAYHOFF-qeoday
+DEWEY-day                /Users/jmajor/miniconda3/envs/DEWEY-day
+DEWEY-qeoday             /Users/jmajor/miniconda3/envs/DEWEY-qeoday
+LSMC_OAUTH_LOGIN-day     /Users/jmajor/miniconda3/envs/LSMC_OAUTH_LOGIN-day
+QEO-qeoday               /Users/jmajor/miniconda3/envs/QEO-qeoday
+URSA-day                 /Users/jmajor/miniconda3/envs/URSA-day
+URSA-qeoday              /Users/jmajor/miniconda3/envs/URSA-qeoday
+ZEBRA_DAY-dayfly5        /Users/jmajor/miniconda3/envs/ZEBRA_DAY-dayfly5
+/Users/jmajor/miniconda3/envs/DAY-EC/bin/dyec

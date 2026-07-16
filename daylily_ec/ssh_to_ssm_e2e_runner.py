@@ -35,7 +35,7 @@ from daylily_ec.workflow.create_cluster import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH = Path.home() / ".config" / "daylily" / "daylily_ephemeral_cluster.yaml"
-CLUSTER_NAME_PREFIX = "dy-ssm-e2e"
+CLUSTER_NAME_PREFIX = "dye2e"
 MAX_CLUSTER_NAME_LEN = CLUSTER_NAME_MAX_LENGTH
 
 

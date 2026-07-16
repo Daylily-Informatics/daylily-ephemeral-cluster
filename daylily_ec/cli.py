@@ -12,12 +12,13 @@ import subprocess
 import sys
 import traceback
 import time
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, List, Optional
 
 import click
 import typer
 from cli_core_yo import output
+from cli_core_yo import app as cli_core_app
 from cli_core_yo.app import create_app
 from cli_core_yo.errors import CliCoreYoError
 from cli_core_yo.runtime import get_context
@@ -47,22 +48,36 @@ from daylily_ec._registry_v2 import (
     register_root_command,
     required_policy,
 )
+from daylily_ec import versioning
+from daylily_ec.aws.spot_pricing import (
+    DEFAULT_GLOBAL_SPOT_MAX_COST,
+    DEFAULT_SPOT_COST_LIMIT_PCT,
+    DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+    MAX_GLOBAL_SPOT_MAX_COST,
+    MAX_SPOT_COST_LIMIT_PCT,
+    MIN_SPOT_COST_LIMIT_PCT,
+    validate_spot_pricing_limits,
+)
 from daylily_ec.resources import ensure_extracted
-
+from daylily_ec.workflow.snakemake_resources import DEFAULT_JOB_MAX_RUNTIME_MINUTES
 
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
+BENCHMARK_GENOME_BUILDS = {"hg38", "hg38_broad", "b37"}
+DEFAULT_CREATE_REGION_AZ = "us-west-2d"
+DEFAULT_CREATE_CLUSTER_TYPE = "intel"
 
 
 def _validate_analysis_launch_options(
     *,
     analysis_id: str,
     executing_entity: str,
+    cluster: Optional[str],
     export_destination_s3_uri: Optional[str],
     export_trigger: str,
     delete_on_export_success: bool,
-) -> None:
+) -> Optional[str]:
     from daylily_ec.analysis_identity import analysis_source_path, validate_analysis_segment
-    from daylily_ec.workflow.export_data import validate_export_destination_s3_uri
+    from daylily_ec.workflow.export_data import resolve_launch_export_destination_s3_uri
 
     try:
         resolved_analysis_id = validate_analysis_segment(
@@ -83,15 +98,18 @@ def _validate_analysis_launch_options(
             raise ValueError("--export-destination-s3-uri is required when --export-trigger is set")
         if delete_on_export_success and not export_destination_s3_uri:
             raise ValueError("--delete-on-export-success requires --export-destination-s3-uri")
+        resolved_export_destination_s3_uri = None
         if export_destination_s3_uri:
-            validate_export_destination_s3_uri(
+            resolved_export_destination_s3_uri = resolve_launch_export_destination_s3_uri(
                 export_destination_s3_uri,
                 source_path=analysis_source_path(
                     executing_entity=resolved_executing_entity,
                     analysis_id=resolved_analysis_id,
                     headnode=True,
                 ),
+                cluster_name=cluster,
             )
+        return resolved_export_destination_s3_uri
     except (RuntimeError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc
 
@@ -114,6 +132,20 @@ def _resolve_executing_entity_option(
 
 def _dayec_info_hook() -> list[tuple[str, str]]:
     return [("Project Root", str(Path(__file__).resolve().parents[1]))]
+
+
+def _install_dayec_version_provider() -> None:
+    original_get_dist_version = cli_core_app._get_dist_version
+
+    def _get_dist_version(dist_name: str) -> str:
+        if dist_name == versioning.DIST_NAME:
+            return versioning.get_version()
+        return original_get_dist_version(dist_name)
+
+    cli_core_app._get_dist_version = _get_dist_version
+
+
+_install_dayec_version_provider()
 
 
 spec = CliSpec(
@@ -340,6 +372,7 @@ def _cluster_headnode_config_status(
             region,
             script,
             profile=profile,
+            as_user="auto",
             timeout=60,
             comment=f"Check headnode configuration for {row['name']}",
         )
@@ -537,14 +570,40 @@ def _emit_cluster_table(
 
 def create(
     region_az: str = typer.Option(
-        ...,
+        DEFAULT_CREATE_REGION_AZ,
         "--region-az",
-        help="AWS region + availability zone (e.g. us-west-2b).",
+        help=f"AWS region + availability zone. Defaults to {DEFAULT_CREATE_REGION_AZ}.",
+    ),
+    cluster_type: str = typer.Option(
+        DEFAULT_CREATE_CLUSTER_TYPE,
+        "--cluster-type",
+        help=(
+            "Cluster template family to autoselect when config does not set "
+            "cluster_template_yaml. One of: dragen, intel, rhel, sentieon-single."
+        ),
     ),
     profile: Optional[str] = typer.Option(
         None,
         "--profile",
         help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    regional_cluster_cap: Optional[int] = typer.Option(
+        None,
+        "--regional-cluster-cap",
+        help=(
+            "Maximum projected non-deleted ParallelCluster records in the target region. "
+            "Effective default: 5. Values above 5 require both acknowledgement flags."
+        ),
+    ),
+    acknowledge_regional_cap_increase: bool = typer.Option(
+        False,
+        "--acknowledge-regional-cap-increase",
+        help="Acknowledge the explicit policy override when raising the regional cap above 5.",
+    ),
+    acknowledge_regional_cap_risk: bool = typer.Option(
+        False,
+        "--acknowledge-regional-cap-risk",
+        help="Acknowledge the regional capacity and cost risk when raising the cap above 5.",
     ),
     config: Optional[str] = typer.Option(
         None,
@@ -576,27 +635,82 @@ def create(
         "--non-interactive",
         help="Disable interactive prompts; use config defaults or fail.",
     ),
-    create_slurm_accounting_db: bool = typer.Option(
+    disable_budget_enforcement: bool = typer.Option(
         False,
-        "--create-slurm-accounting-db",
-        help="Create the DayEC Slurm accounting MariaDB stack if no tagged stack exists.",
+        "--disable-budget-enforcement",
+        help="Skip cluster AWS Budget enforcement; sbatch cost-center validation remains required.",
     ),
-    scan_slurm_accounting_db: bool = typer.Option(
-        False,
-        "--scan-slurm-accounting-db",
-        help="Scan same-VPC EC2 instances for an existing Slurm accounting DB to reuse.",
+    budget_project: Optional[str] = typer.Option(
+        None,
+        "--budget-project",
+        help="Retired. Cluster budgets are named by cluster name.",
+    ),
+    global_spot_max_cost: float = typer.Option(
+        DEFAULT_GLOBAL_SPOT_MAX_COST,
+        "--global-spot-max-cost",
+        help=(
+            "Global maximum PCluster SpotPrice bid per compute resource. "
+            f"Defaults to {DEFAULT_GLOBAL_SPOT_MAX_COST:.2f}; hard limit "
+            f"0 < value <= {MAX_GLOBAL_SPOT_MAX_COST:.2f}."
+        ),
+    ),
+    spot_cost_limit_pct: float = typer.Option(
+        DEFAULT_SPOT_COST_LIMIT_PCT,
+        "--spot-cost-limit-pct",
+        help=(
+            "Multiplier applied to each reference median spot price before the global cap. "
+            f"Defaults to {DEFAULT_SPOT_COST_LIMIT_PCT:.2f}; hard limit "
+            f"{MIN_SPOT_COST_LIMIT_PCT:.1f} <= value <= {MAX_SPOT_COST_LIMIT_PCT:.1f}."
+        ),
+    ),
+    write_spot_pricing_warn_threshold: float = typer.Option(
+        DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+        "--write-spot-pricing-warn-threshold",
+        help=(
+            "Runtime observed spot price threshold that writes "
+            "spot_price_warn_exception_messages.log rows. "
+            f"Defaults to {DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD:.2f}."
+        ),
     ),
 ) -> None:
     """Create an ephemeral AWS ParallelCluster environment."""
 
-    from daylily_ec.workflow.create_cluster import run_create_workflow
+    from daylily_ec.workflow.create_cluster import (
+        normalize_create_cluster_type,
+        parse_create_repo_overrides,
+        run_create_workflow,
+        validate_create_cluster_type_region,
+        validate_regional_cluster_cap_options,
+    )
 
     _warn_if_dayec_env_inactive()
-    _ = repo_override
-    if create_slurm_accounting_db and scan_slurm_accounting_db:
-        raise typer.BadParameter(
-            "--scan-slurm-accounting-db cannot be combined with --create-slurm-accounting-db."
+    try:
+        cluster_type = normalize_create_cluster_type(cluster_type)
+        validate_create_cluster_type_region(cluster_type, region_az)
+        repo_overrides = parse_create_repo_overrides(repo_override)
+        validate_regional_cluster_cap_options(
+            regional_cluster_cap,
+            acknowledge_regional_cap_increase=acknowledge_regional_cap_increase,
+            acknowledge_regional_cap_risk=acknowledge_regional_cap_risk,
         )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    if budget_project:
+        raise typer.BadParameter(
+            "--budget-project is retired; cluster budgets are named by cluster name."
+        )
+    try:
+        (
+            global_spot_max_cost,
+            spot_cost_limit_pct,
+            write_spot_pricing_warn_threshold,
+        ) = validate_spot_pricing_limits(
+            global_spot_max_cost=global_spot_max_cost,
+            spot_cost_limit_pct=spot_cost_limit_pct,
+            write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -605,11 +719,19 @@ def create(
         region_az,
         profile=profile,
         config_path=config,
+        cluster_type=cluster_type,
         pass_on_warn=pass_on_warn,
         debug=debug,
         non_interactive=non_interactive,
-        create_slurm_accounting_db=create_slurm_accounting_db,
-        scan_slurm_accounting_db=scan_slurm_accounting_db,
+        disable_budget_enforcement=disable_budget_enforcement,
+        budget_project=budget_project,
+        global_spot_max_cost=global_spot_max_cost,
+        spot_cost_limit_pct=spot_cost_limit_pct,
+        write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+        repo_overrides=repo_overrides or None,
+        regional_cluster_cap=regional_cluster_cap,
+        acknowledge_regional_cap_increase=acknowledge_regional_cap_increase,
+        acknowledge_regional_cap_risk=acknowledge_regional_cap_risk,
     )
     raise SystemExit(rc)
 
@@ -628,7 +750,7 @@ def slurm_accounting_ensure(
     stack_name: str = typer.Option(
         "",
         "--stack-name",
-        help="Explicit DayEC Slurm accounting stack name. Defaults from --region-az.",
+        help="Explicit regional DayEC Slurm accounting stack name.",
     ),
     database_name: str = typer.Option(
         "dayec_slurm_acct",
@@ -646,7 +768,7 @@ def slurm_accounting_ensure(
         help="EC2 instance type for a newly created MariaDB host.",
     ),
 ) -> None:
-    """Ensure a DayEC Slurm accounting MariaDB stack for one VPC/AZ."""
+    """Ensure the single DayEC Slurm accounting MariaDB stack for a region."""
 
     from daylily_ec.aws.cloudformation import ensure_pcluster_env_stack
     from daylily_ec.aws.context import AWSContext
@@ -660,9 +782,7 @@ def slurm_accounting_ensure(
         aws_ctx = AWSContext.build(region_az, profile=profile)
         cfn_outputs = ensure_pcluster_env_stack(aws_ctx, region_az)
         if not cfn_outputs.vpc_id or not cfn_outputs.private_subnet_id:
-            raise SlurmAccountingError(
-                "Baseline stack is missing VPC or private subnet outputs."
-            )
+            raise SlurmAccountingError("Baseline stack is missing VPC or private subnet outputs.")
         db = ensure_slurm_accounting_db(
             aws_ctx,
             region_az=region_az,
@@ -673,6 +793,7 @@ def slurm_accounting_ensure(
             database_name=database_name,
             username=db_username,
             instance_type=instance_type,
+            warning_callback=output.warning,
         )
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
@@ -680,11 +801,8 @@ def slurm_accounting_ensure(
     payload = {
         "stack_name": db.stack_name,
         "status": db.status,
-        "uri": db.uri,
-        "private_ip": db.private_ip,
         "database_name": db.database_name,
         "username": db.username,
-        "password_secret_arn": db.password_secret_arn,
         "client_security_group_id": db.client_security_group_id,
         "instance_id": db.instance_id,
     }
@@ -695,13 +813,562 @@ def slurm_accounting_ensure(
     output.heading("Slurm accounting DB")
     output.print_text(f"Stack:     {db.stack_name}")
     output.print_text(f"Status:    {db.status}")
-    output.print_text(f"URI:       {db.uri}")
     output.print_text(f"Database:  {db.database_name}")
     output.print_text(f"User:      {db.username}")
-    output.print_text(f"Secret:    {db.password_secret_arn}")
     output.print_text(f"Client SG: {db.client_security_group_id}")
     if db.instance_id:
         output.print_text(f"Instance:  {db.instance_id}")
+
+
+def slurm_accounting_attach(
+    cluster: str = typer.Option(
+        ...,
+        "--cluster",
+        help="Existing ParallelCluster name.",
+    ),
+    region: str = typer.Option(
+        ...,
+        "--region",
+        help="AWS region containing the existing cluster.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE.",
+    ),
+    cluster_configuration: Optional[Path] = typer.Option(
+        None,
+        "--cluster-configuration",
+        help=(
+            "Original ParallelCluster YAML. Defaults to the newest matching " "DYEC state record."
+        ),
+    ),
+    stack_name: str = typer.Option(
+        "",
+        "--stack-name",
+        help="Explicit existing regional DayEC Slurm accounting stack name.",
+    ),
+    database_name: str = typer.Option(
+        "dayec_slurm_acct",
+        "--database-name",
+        help="Slurm accounting database name.",
+    ),
+    db_username: str = typer.Option(
+        "slurm_acct",
+        "--db-username",
+        help="Slurm accounting database user name.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Validate and write the update config without submitting the real update.",
+    ),
+) -> None:
+    """Attach existing Slurm accounting to a healthy cluster after creation."""
+    from daylily_ec.workflow.attach_slurm_accounting import (
+        attach_slurm_accounting,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        result = attach_slurm_accounting(
+            cluster_name=cluster,
+            region=region,
+            profile=profile,
+            cluster_configuration=cluster_configuration,
+            stack_name=stack_name,
+            database_name=database_name,
+            db_username=db_username,
+            dry_run_only=dry_run,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+    payload = {
+        "cluster_name": result.cluster_name,
+        "region": result.region,
+        "accounting_stack_name": result.accounting_stack_name,
+        "update_config_path": result.update_config_path,
+        "dry_run_only": result.dry_run_only,
+        "update_submitted": result.update_submitted,
+    }
+    if _json_mode():
+        output.emit_json(payload)
+        return
+
+    output.heading("Slurm accounting attachment")
+    output.print_text(f"Cluster:       {result.cluster_name}")
+    output.print_text(f"Region:        {result.region}")
+    output.print_text(f"Stack:         {result.accounting_stack_name}")
+    output.print_text(f"Update config: {result.update_config_path}")
+    if result.dry_run_only:
+        output.success("ParallelCluster update dry-run succeeded; no update was submitted.")
+    else:
+        output.success("ParallelCluster accounting update submitted.")
+
+
+def _cost_center_context(profile: Optional[str], home_region: str):
+    from daylily_ec.aws.context import AWSContext
+
+    aws_ctx = AWSContext.build_region(home_region, profile=profile)
+    return aws_ctx, aws_ctx.client("dynamodb")
+
+
+def cost_centers_ensure_registry(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    table_name: str = typer.Option(
+        "dayec-cost-centers", "--table-name", help="Registry table name."
+    ),
+    usage_table_name: str = typer.Option(
+        "dayec-cost-center-usage",
+        "--usage-table-name",
+        help="Usage summary table name.",
+    ),
+) -> None:
+    """Ensure global cost-center registry DynamoDB tables exist."""
+    from daylily_ec.aws.cost_centers import ensure_cost_center_registry
+
+    _warn_if_dayec_env_inactive()
+    try:
+        aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        payload = ensure_cost_center_registry(
+            dynamodb,
+            table_name=table_name,
+            usage_table_name=usage_table_name,
+            actor_arn=aws_ctx.caller_arn,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(payload, f"Cost-center registry ready: {payload}")
+
+
+def cost_centers_create(
+    name: str = typer.Argument(..., help="Cost-center name."),
+    monthly_cap_usd: str = typer.Option(..., "--monthly-cap-usd", help="Monthly cap in USD."),
+    allowed_user: Optional[List[str]] = typer.Option(None, "--allowed-user", help="Allowed user."),
+    allowed_group: Optional[List[str]] = typer.Option(
+        None, "--allowed-group", help="Allowed group."
+    ),
+    owner_email: Optional[List[str]] = typer.Option(None, "--owner-email", help="Owner email."),
+    notes: str = typer.Option("", "--notes", help="Free-text notes."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    table_name: str = typer.Option(
+        "dayec-cost-centers", "--table-name", help="Registry table name."
+    ),
+    usage_table_name: str = typer.Option(
+        "dayec-cost-center-usage",
+        "--usage-table-name",
+        help="Usage summary table initialized for immediate Slurm submission.",
+    ),
+) -> None:
+    """Create an active cost center and its current-month zero usage snapshot."""
+    from daylily_ec.aws.cost_centers import create_cost_center
+
+    _warn_if_dayec_env_inactive()
+    try:
+        aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        item = create_cost_center(
+            dynamodb,
+            name,
+            monthly_cap_usd=monthly_cap_usd,
+            allowed_users=allowed_user or (),
+            allowed_groups=allowed_group or (),
+            owner_emails=owner_email or (),
+            notes=notes,
+            actor_arn=aws_ctx.caller_arn,
+            table_name=table_name,
+            usage_table_name=usage_table_name,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(item.to_dict(), f"Created cost center: {item.name}")
+
+
+def cost_centers_edit(
+    name: str = typer.Argument(..., help="Cost-center name."),
+    monthly_cap_usd: Optional[str] = typer.Option(
+        None, "--monthly-cap-usd", help="Monthly cap in USD."
+    ),
+    allowed_user: Optional[List[str]] = typer.Option(
+        None, "--allowed-user", help="Replacement allowed user list."
+    ),
+    allowed_group: Optional[List[str]] = typer.Option(
+        None, "--allowed-group", help="Replacement allowed group list."
+    ),
+    owner_email: Optional[List[str]] = typer.Option(
+        None, "--owner-email", help="Replacement owner email list."
+    ),
+    notes: Optional[str] = typer.Option(None, "--notes", help="Replacement notes."),
+    status: Optional[str] = typer.Option(
+        None, "--status", help="Replacement status: active or disabled."
+    ),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    table_name: str = typer.Option(
+        "dayec-cost-centers", "--table-name", help="Registry table name."
+    ),
+) -> None:
+    """Edit provided cost-center fields."""
+    from daylily_ec.aws.cost_centers import edit_cost_center
+
+    _warn_if_dayec_env_inactive()
+    try:
+        aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        item = edit_cost_center(
+            dynamodb,
+            name,
+            monthly_cap_usd=monthly_cap_usd,
+            allowed_users=allowed_user,
+            allowed_groups=allowed_group,
+            owner_emails=owner_email,
+            notes=notes,
+            status=status,
+            actor_arn=aws_ctx.caller_arn,
+            table_name=table_name,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(item.to_dict(), f"Updated cost center: {item.name}")
+
+
+def cost_centers_disable(
+    name: str = typer.Argument(..., help="Cost-center name."),
+    reason: str = typer.Option(..., "--reason", help="Disable reason."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    table_name: str = typer.Option(
+        "dayec-cost-centers", "--table-name", help="Registry table name."
+    ),
+) -> None:
+    """Disable a cost center."""
+    from daylily_ec.aws.cost_centers import disable_cost_center
+
+    _warn_if_dayec_env_inactive()
+    try:
+        aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        item = disable_cost_center(
+            dynamodb,
+            name,
+            reason=reason,
+            actor_arn=aws_ctx.caller_arn,
+            table_name=table_name,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(item.to_dict(), f"Disabled cost center: {item.name}")
+
+
+def cost_centers_show(
+    name: str = typer.Argument(..., help="Cost-center name."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    table_name: str = typer.Option(
+        "dayec-cost-centers", "--table-name", help="Registry table name."
+    ),
+) -> None:
+    """Show one cost center."""
+    from daylily_ec.aws.cost_centers import get_cost_center
+
+    _warn_if_dayec_env_inactive()
+    try:
+        _aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        item = get_cost_center(dynamodb, name, table_name=table_name)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(item.to_dict(), json.dumps(item.to_dict(), indent=2))
+
+
+def cost_centers_list(
+    status: str = typer.Option("all", "--status", help="active, disabled, system, or all."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    table_name: str = typer.Option(
+        "dayec-cost-centers", "--table-name", help="Registry table name."
+    ),
+) -> None:
+    """List cost centers."""
+    from daylily_ec.aws.cost_centers import list_cost_centers
+
+    _warn_if_dayec_env_inactive()
+    try:
+        _aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        items = list_cost_centers(dynamodb, table_name=table_name, status=status)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    payload = {"cost_centers": [item.to_dict() for item in items]}
+    _emit_payload(payload, json.dumps(payload, indent=2))
+
+
+def cost_centers_usage(
+    name: Optional[str] = typer.Argument(None, help="Optional cost-center name."),
+    month: str = typer.Option(..., "--month", help="Usage month YYYY-MM."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    usage_table_name: str = typer.Option(
+        "dayec-cost-center-usage",
+        "--usage-table-name",
+        help="Usage summary table name.",
+    ),
+) -> None:
+    """Show latest monthly usage snapshot for one or all cost centers."""
+    from daylily_ec.aws.cost_centers import get_cost_center_usage, list_cost_center_usage
+
+    _warn_if_dayec_env_inactive()
+    try:
+        _aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        if name:
+            item = get_cost_center_usage(
+                dynamodb,
+                name,
+                month=month,
+                usage_table_name=usage_table_name,
+                allow_missing=True,
+            )
+            payload: dict[str, object] = {"usage": item.to_dict() if item else None}
+        else:
+            payload = {
+                "usage": [
+                    item.to_dict()
+                    for item in list_cost_center_usage(
+                        dynamodb,
+                        month=month,
+                        usage_table_name=usage_table_name,
+                    )
+                ]
+            }
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(payload, json.dumps(payload, indent=2))
+
+
+def cost_centers_put_usage(
+    name: str = typer.Argument(..., help="Cost-center name."),
+    month: str = typer.Option(..., "--month", help="Usage month YYYY-MM."),
+    monthly_spend_usd: str = typer.Option(
+        ...,
+        "--monthly-spend-usd",
+        help="Monthly spend snapshot in USD.",
+    ),
+    latest_processed_hour: str = typer.Option(
+        ...,
+        "--latest-processed-hour",
+        help="Latest processed UTC hour, for example 2026-07-08T15:00:00Z.",
+    ),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option("us-west-2", "--home-region", help="Cost-center home region."),
+    table_name: str = typer.Option(
+        "dayec-cost-centers", "--table-name", help="Registry table name."
+    ),
+    usage_table_name: str = typer.Option(
+        "dayec-cost-center-usage",
+        "--usage-table-name",
+        help="Usage summary table name.",
+    ),
+) -> None:
+    """Create or replace one monthly cost-center usage snapshot."""
+    from daylily_ec.aws.cost_centers import (
+        CostCenterUsage,
+        get_cost_center,
+        put_cost_center_usage,
+        utc_now_iso,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        _aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        get_cost_center(dynamodb, name, table_name=table_name)
+        item = put_cost_center_usage(
+            dynamodb,
+            CostCenterUsage(
+                name=name,
+                month=month,
+                monthly_spend_usd=monthly_spend_usd,
+                latest_processed_hour=latest_processed_hour,
+                updated_at=utc_now_iso(),
+            ),
+            usage_table_name=usage_table_name,
+        )
+        payload: dict[str, object] = {"usage": item.to_dict()}
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(payload, json.dumps(payload, indent=2))
+
+
+def cost_centers_refresh_usage(
+    name: str = typer.Argument(..., help="Dedicated cost-center name."),
+    cluster: str = typer.Option(
+        ...,
+        "--cluster",
+        help="ParallelCluster name. Must exactly equal the cost-center name.",
+    ),
+    month: str = typer.Option(..., "--month", help="Usage month YYYY-MM."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    home_region: str = typer.Option(
+        "us-west-2", "--home-region", help="Cost-center DynamoDB home region."
+    ),
+    athena_region: str = typer.Option(
+        "us-east-1", "--athena-region", help="Region containing the CUR Athena table."
+    ),
+    database: str = typer.Option("dayec_cur", "--database", help="CUR Glue database."),
+    table: str = typer.Option("cur2_hourly", "--table", help="CUR Glue table."),
+    athena_output_s3_uri: Optional[str] = typer.Option(
+        None,
+        "--athena-output-s3-uri",
+        help=(
+            "Athena query-results S3 URI. Defaults to the authenticated account's "
+            "dayec-cur bucket."
+        ),
+    ),
+    registry_table_name: str = typer.Option(
+        "dayec-cost-centers", "--registry-table-name", help="Cost-center registry table."
+    ),
+    usage_table_name: str = typer.Option(
+        "dayec-cost-center-usage", "--usage-table-name", help="Usage snapshot table."
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Query and calculate authoritative usage without writing DynamoDB.",
+    ),
+) -> None:
+    """Refresh dedicated-cluster monthly usage from authoritative CUR rows."""
+    from daylily_ec.aws.cur import CurAthenaConfig
+    from daylily_ec.cost_center_refresh import refresh_dedicated_cluster_usage
+
+    _warn_if_dayec_env_inactive()
+    try:
+        aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        output_s3_uri = athena_output_s3_uri or (
+            f"s3://dayec-cur-{aws_ctx.account_id}-us-east-1/"
+            "dayec-cur/athena-results/"
+        )
+        result = refresh_dedicated_cluster_usage(
+            athena_client=aws_ctx.session.client("athena", region_name=athena_region),
+            dynamodb_client=dynamodb,
+            cost_center_name=name,
+            cluster_name=cluster,
+            month=month,
+            cur_config=CurAthenaConfig(
+                database=database,
+                table=table,
+                output_s3_uri=output_s3_uri,
+                cluster_tag_column="",
+                cluster_tag_map_column="resource_tags",
+                cluster_tag_key="user_parallelcluster_cluster_name",
+                region_column="product_region_code",
+                currency_column="line_item_currency_code",
+            ),
+            registry_table_name=registry_table_name,
+            usage_table_name=usage_table_name,
+            dry_run=dry_run,
+        )
+        payload = result.to_dict()
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(payload, json.dumps(payload, indent=2))
+
+
+def cost_centers_ensure_cur_export(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    billing_region: str = typer.Option(
+        "us-east-1",
+        "--billing-region",
+        help="BCM Data Exports home region.",
+    ),
+    bucket: Optional[str] = typer.Option(
+        None,
+        "--bucket",
+        help="S3 bucket for the CUR 2.0 export. Defaults to dayec-cur-<account>-us-east-1.",
+    ),
+    bucket_region: str = typer.Option(
+        "us-east-1",
+        "--bucket-region",
+        help="Region for the CUR export bucket.",
+    ),
+    athena_region: Optional[str] = typer.Option(
+        None,
+        "--athena-region",
+        help="Region for Glue/Athena metadata. Defaults to --bucket-region.",
+    ),
+    export_name: str = typer.Option(
+        "dayec-cur2-hourly",
+        "--export-name",
+        help="BCM Data Export name.",
+    ),
+    s3_prefix: str = typer.Option(
+        "dayec-cur",
+        "--s3-prefix",
+        help="S3 prefix for delivered export data.",
+    ),
+    database: str = typer.Option(
+        "dayec_cur",
+        "--database",
+        help="Glue database for Athena CUR queries.",
+    ),
+    table: str = typer.Option(
+        "cur2_hourly",
+        "--table",
+        help="Glue table for Athena CUR queries.",
+    ),
+    athena_output_s3_uri: str = typer.Option(
+        "",
+        "--athena-output-s3-uri",
+        help="Athena query result output URI. Defaults under the CUR bucket/prefix.",
+    ),
+    cluster_tag_key: str = typer.Option(
+        "user_parallelcluster_cluster_name",
+        "--cluster-tag-key",
+        help="CUR resource_tags key used for cluster attribution.",
+    ),
+    update_existing_export: bool = typer.Option(
+        False,
+        "--update-existing-export",
+        help="Explicitly update an existing same-name Data Export if its definition differs.",
+    ),
+    adopt_glue_table: bool = typer.Option(
+        False,
+        "--adopt-glue-table",
+        help="Explicitly adopt an existing same-name Glue table that is not dayec-managed.",
+    ),
+) -> None:
+    """Ensure the CUR 2.0 Data Export and Athena table used for cost-center accounting."""
+    from daylily_ec.aws.context import AWSContext
+    from daylily_ec.aws.cur_export import (
+        CurExportConfig,
+        default_cur_export_bucket,
+        ensure_cur2_athena_source,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        aws_ctx = AWSContext.build_region(billing_region, profile=profile)
+        resolved_bucket = bucket or default_cur_export_bucket(aws_ctx.account_id)
+        resolved_athena_region = athena_region or bucket_region
+        payload = ensure_cur2_athena_source(
+            s3_client=aws_ctx.session.client("s3", region_name=bucket_region),
+            bcm_client=aws_ctx.client("bcm-data-exports"),
+            glue_client=aws_ctx.session.client("glue", region_name=resolved_athena_region),
+            config=CurExportConfig(
+                account_id=aws_ctx.account_id,
+                bucket=resolved_bucket,
+                bucket_region=bucket_region,
+                billing_region=billing_region,
+                athena_region=resolved_athena_region,
+                export_name=export_name,
+                s3_prefix=s3_prefix,
+                database=database,
+                table=table,
+                athena_output_s3_uri=athena_output_s3_uri,
+                cluster_tag_key=cluster_tag_key,
+            ),
+            update_existing_export=update_existing_export,
+            adopt_glue_table=adopt_glue_table,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+    _emit_payload(payload, json.dumps(payload, indent=2, sort_keys=True))
 
 
 def preflight(
@@ -1115,6 +1782,125 @@ def cluster_wait(
         time.sleep(max(poll_interval, 1))
 
 
+def _emit_cluster_tags_text(payload: dict[str, Any]) -> None:
+    cluster = payload["cluster"]
+    region = payload["region"]
+    if payload["dry_run"]:
+        output.heading(f"Cluster tag dry-run: {cluster} ({region})")
+    elif payload["updated"]:
+        output.heading(f"Cluster tags updated: {cluster} ({region})")
+    else:
+        output.heading(f"Cluster tags: {cluster} ({region})")
+    output.print_text(f"Stack:  {payload['stack_id']}")
+    output.print_text(f"Status: {payload['stack_status']}")
+    if payload["set"]:
+        output.print_text(
+            "Set:    " + ", ".join(f"{k}={v}" for k, v in sorted(payload["set"].items()))
+        )
+    if payload["deleted"]:
+        output.print_text("Delete: " + ", ".join(payload["deleted"]))
+    if payload["updated"] and payload["waited"]:
+        output.print_text("Update: complete")
+    elif payload["updated"]:
+        output.print_text("Update: requested")
+    elif payload["dry_run"]:
+        output.print_text("Update: not submitted")
+    else:
+        output.print_text("Update: no changes")
+
+    output.print_text("")
+    output.print_text("%-42s %s" % ("KEY", "VALUE"))
+    output.print_text("%s %s" % ("-" * 42, "-" * 32))
+    for key, value in sorted(payload["after"].items()):
+        output.print_text("%-42s %s" % (key, value))
+
+
+def cluster_tags(
+    region: str = typer.Option(
+        ...,
+        "--region",
+        help="AWS region to query (e.g. us-west-2).",
+    ),
+    cluster: str = typer.Option(
+        ...,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    set_values: Optional[List[str]] = typer.Option(
+        None,
+        "--set",
+        metavar="KEY=VALUE",
+        help="Set or replace a cluster tag. Repeat for multiple tags.",
+    ),
+    delete_values: Optional[List[str]] = typer.Option(
+        None,
+        "--delete",
+        metavar="KEY",
+        help="Delete an existing cluster tag. Repeat for multiple tags.",
+    ),
+    wait: bool = typer.Option(
+        True,
+        "--wait/--no-wait",
+        help="Wait for the CloudFormation tag update to complete.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Show the requested tag result without updating AWS.",
+    ),
+) -> None:
+    """List or edit tags on the CloudFormation stack backing a cluster."""
+
+    import boto3
+
+    from daylily_ec.aws.cluster_tags import (
+        ClusterTagError,
+        parse_tag_assignments,
+        parse_tag_deletions,
+        stack_id_from_describe_cluster,
+        update_cluster_stack_tags,
+    )
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile = _resolved_aws_profile(profile)
+        describe_payload = _describe_cluster_payload(
+            profile=resolved_profile,
+            region=region,
+            cluster=cluster,
+        )
+        stack_id = stack_id_from_describe_cluster(describe_payload)
+        set_tags = parse_tag_assignments(set_values)
+        delete_keys = parse_tag_deletions(delete_values)
+        cfn_client = boto3.Session(
+            profile_name=resolved_profile,
+            region_name=region,
+        ).client("cloudformation")
+        result = update_cluster_stack_tags(
+            cfn_client,
+            stack_id=stack_id,
+            set_tags=set_tags,
+            delete_keys=delete_keys,
+            wait=wait,
+            dry_run=dry_run,
+        )
+    except (ClusterTagError, CommandError) as exc:
+        _exit_headnode_error(exc)
+
+    payload = result.to_payload(cluster=cluster, region=region)
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    _emit_cluster_tags_text(payload)
+
+
 def _validate_dewey_analysis_directory_link_options(
     *,
     artifact_registration_command_id: Optional[str],
@@ -1358,6 +2144,7 @@ def exports_run(
             fsx_file_system_id=resolved_fsx_id,
             source_path=source_path,
             destination_s3_uri=destination_s3_uri,
+            cluster_name=cluster_name,
             wait=wait,
             timeout_seconds=timeout_seconds,
             fsx_client=client,
@@ -1610,6 +2397,188 @@ def pricing_snapshot(
     typer.echo(json.dumps(payload, indent=2, sort_keys=False))
 
 
+def pricing_spot_logs(
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+    path: Optional[List[str]] = typer.Option(
+        None,
+        "--path",
+        help="Remote directory to scan. Repeatable. Defaults to /fsx/logs, /fsx/scratch, and /fsx/tmp.",
+    ),
+    name_glob: Optional[List[str]] = typer.Option(
+        None,
+        "--name-glob",
+        help="Remote file-name glob to scan. Repeatable. Defaults to *.log.",
+    ),
+    output_file: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Write CSV to this local file instead of stdout.",
+    ),
+    cost_output: Optional[Path] = typer.Option(
+        None,
+        "--cost-output",
+        help="Write per-instance compute cost interval summary CSV to this local file.",
+    ),
+    cost_price_source: str = typer.Option(
+        "history",
+        "--cost-price-source",
+        help="Price source for cost intervals: history or logged.",
+    ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote login user for SSM Run Command: auto, ubuntu, or ec2-user.",
+    ),
+    timeout: int = typer.Option(
+        300,
+        "--timeout",
+        help="SSM command timeout in seconds.",
+    ),
+    allow_empty: bool = typer.Option(
+        False,
+        "--allow-empty",
+        help="Emit an empty CSV/JSON payload instead of failing when no rows are found.",
+    ),
+) -> None:
+    """Fetch cluster spot-price logs from the head node as one CSV."""
+
+    from daylily_ec.aws.ssm import (
+        SsmCommandFailedError,
+        SsmError,
+        run_shell,
+        wait_for_ssm_online,
+    )
+    from daylily_ec.scripts.common import CommandError
+    from daylily_ec.spot_price_logs import (
+        DEFAULT_SPOT_LOG_NAME_GLOBS,
+        DEFAULT_SPOT_LOG_PATHS,
+        build_spot_cost_intervals,
+        build_remote_spot_price_log_script,
+        extract_remote_spot_price_payload,
+        normalize_spot_price_rows,
+        spot_cost_intervals_to_csv,
+        spot_price_rows_to_csv,
+    )
+
+    _warn_if_dayec_env_inactive()
+    remote_paths = path or list(DEFAULT_SPOT_LOG_PATHS)
+    remote_name_globs = name_glob or list(DEFAULT_SPOT_LOG_NAME_GLOBS)
+    try:
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        result = run_shell(
+            target.instance_id,
+            resolved_region,
+            build_remote_spot_price_log_script(
+                paths=remote_paths,
+                name_globs=remote_name_globs,
+            ),
+            profile=resolved_profile,
+            as_user=remote_user,
+            timeout=timeout,
+            comment="Daylily spot price log export",
+        )
+        remote_payload = extract_remote_spot_price_payload(result.stdout)
+    except SsmCommandFailedError as exc:
+        if exc.result.stderr.strip():
+            typer.echo(exc.result.stderr.rstrip(), err=True)
+        _exit_headnode_error(exc)
+    except (CommandError, SsmError, TimeoutError, ValueError, json.JSONDecodeError) as exc:
+        _exit_headnode_error(exc)
+
+    rows = normalize_spot_price_rows(
+        remote_payload["rows"],
+        cluster=resolved_cluster,
+        headnode_instance_id=target.instance_id,
+    )
+    if not rows and not allow_empty:
+        _exit_headnode_error(
+            RuntimeError(
+                "No spot price log rows found under "
+                + ", ".join(remote_paths)
+                + " with name globs "
+                + ", ".join(remote_name_globs)
+            )
+        )
+
+    ec2_client = None
+    if cost_price_source == "history" and any(
+        row.get("node_type") == "ComputeFleet" for row in rows
+    ):
+        import boto3
+
+        ec2_client = boto3.Session(
+            profile_name=resolved_profile,
+            region_name=resolved_region,
+        ).client("ec2")
+    try:
+        cost_intervals = build_spot_cost_intervals(
+            rows,
+            price_source=cost_price_source,
+            ec2_client=ec2_client,
+            compute_only=True,
+        )
+    except ValueError as exc:
+        _exit_headnode_error(exc)
+
+    payload = {
+        "cluster": resolved_cluster,
+        "headnode_instance_id": target.instance_id,
+        "region": resolved_region,
+        "paths": remote_payload.get("paths", remote_paths),
+        "name_globs": remote_payload.get("name_globs", remote_name_globs),
+        "visited_files": remote_payload.get("visited_files", 0),
+        "row_count": len(rows),
+        "rows": rows,
+        "cost_interval_count": len(cost_intervals),
+        "cost_intervals": cost_intervals,
+    }
+    if cost_output is not None:
+        cost_output.parent.mkdir(parents=True, exist_ok=True)
+        cost_output.write_text(spot_cost_intervals_to_csv(cost_intervals), encoding="utf-8")
+    if _json_mode():
+        output.emit_json(payload)
+        return
+
+    csv_text = spot_price_rows_to_csv(rows)
+    if output_file is not None:
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        output_file.write_text(csv_text, encoding="utf-8")
+        if cost_output is not None:
+            typer.echo(f"{output_file}\n{cost_output}")
+        else:
+            typer.echo(str(output_file))
+        return
+    if cost_output is not None:
+        typer.echo(f"cost intervals: {cost_output}", err=True)
+    typer.echo(csv_text.rstrip("\n"))
+
+
 def _run_aws_validate_command(
     mode: str,
     *,
@@ -1656,7 +2625,22 @@ def _run_aws_validate_command(
             report.summary.get("FAIL", 0),
         )
     )
+    root_unverified = [
+        check
+        for check in report.checks
+        if check.id.startswith("iam.simulation.")
+        and check.status.value == "WARN"
+        and check.details.get("simulation_performed") is False
+    ]
+    if root_unverified:
+        output.warning(
+            "WARN iam.simulation.root_unverified: IAM cannot simulate the account-root "
+            f"principal; {len(root_unverified)} operator permission groups are UNKNOWN. "
+            "Use the actual non-root operator profile for PASS/FAIL decisions."
+        )
     for check in report.checks:
+        if check in root_unverified:
+            continue
         if check.status.value == "PASS":
             continue
         line = f"{check.status.value} {check.id}"
@@ -1667,11 +2651,11 @@ def _run_aws_validate_command(
         else:
             output.warning(line)
     if gap_analysis is not None:
-        output.print_text(f"Gap analysis written: {gap_analysis}")
+        output.print_text(f"Validation report written: {gap_analysis}")
     if rc == 0:
         output.success("AWS validation passed.")
     else:
-        output.error("AWS validation found permission or quota gaps.")
+        output.error("AWS validation found permission, readiness, or quota gaps.")
     raise SystemExit(rc)
 
 
@@ -1689,12 +2673,12 @@ def aws_validate_permissions(
     config: Optional[str] = typer.Option(
         None,
         "--config",
-        help="Daylily config path. Accepted for report context.",
+        help="Daylily config path used for runtime-policy and cost-control readiness.",
     ),
     gap_analysis: Optional[Path] = typer.Option(
         None,
         "--gap-analysis",
-        help="Write an AWS-admin Markdown gap analysis report.",
+        help="Write the complete AWS permissions, readiness, and quotas Markdown report.",
     ),
 ) -> None:
     """Validate AWS permissions needed by Daylily."""
@@ -1727,7 +2711,7 @@ def aws_validate_quotas(
     gap_analysis: Optional[Path] = typer.Option(
         None,
         "--gap-analysis",
-        help="Write an AWS-admin Markdown gap analysis report.",
+        help="Write the complete AWS permissions, readiness, and quotas Markdown report.",
     ),
 ) -> None:
     """Validate AWS quotas needed by the rendered Daylily cluster."""
@@ -1755,12 +2739,12 @@ def aws_validate_all(
     config: Optional[str] = typer.Option(
         None,
         "--config",
-        help="Daylily config path to render for quota demand.",
+        help="Daylily config path used for readiness checks and rendered quota demand.",
     ),
     gap_analysis: Optional[Path] = typer.Option(
         None,
         "--gap-analysis",
-        help="Write an AWS-admin Markdown gap analysis report.",
+        help="Write the complete AWS permissions, readiness, and quotas Markdown report.",
     ),
 ) -> None:
     """Validate AWS permissions and quotas needed by Daylily."""
@@ -2027,6 +3011,11 @@ def headnode_jobs(
         "--cluster-name",
         help="ParallelCluster name. Prompts when omitted.",
     ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote login user for SSM Run Command: auto, ubuntu, or ec2-user.",
+    ),
 ) -> None:
     """Print Slurm jobs from the headnode using the Daylily sq format."""
 
@@ -2057,6 +3046,7 @@ def headnode_jobs(
             resolved_region,
             "set -euo pipefail\nsqueue -o " + shlex.quote(SQUEUE_FORMAT),
             profile=resolved_profile,
+            as_user=remote_user,
             timeout=120,
             comment="Daylily headnode Slurm jobs",
         )
@@ -2071,6 +3061,69 @@ def headnode_jobs(
         typer.echo(result.stdout.rstrip())
     if result.stderr:
         typer.echo(result.stderr.rstrip(), err=True)
+
+
+def _configure_headnode_command(
+    *,
+    profile: Optional[str],
+    region: Optional[str],
+    cluster: Optional[str],
+    repo_overrides: Optional[Path],
+    dyec_deploy_key_secret_arn: str,
+    dayoa_deploy_key_secret_arn: str,
+    remote_user: str,
+) -> None:
+    from daylily_ec.aws.ssm import SsmError, wait_for_ssm_online
+    from daylily_ec.scripts.common import CommandError
+    from daylily_ec.scripts.daylily_cfg_headnode import _load_repo_overrides
+    from daylily_ec.workflow.create_cluster import (
+        configure_headnode,
+        resolve_configured_headnode_repo_spec,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        overrides = _load_repo_overrides(str(repo_overrides) if repo_overrides else None)
+        dyec_secret_arn = dyec_deploy_key_secret_arn.strip()
+        try:
+            dyec_repo_spec = (
+                resolve_configured_headnode_repo_spec(deploy_key_auth=True)
+                if dyec_secret_arn
+                else None
+            )
+        except RuntimeError as exc:
+            raise CommandError(f"Unable to pin the active DYEC checkout: {exc}") from exc
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        ok = configure_headnode(
+            cluster_name=resolved_cluster,
+            head_node_instance_id=target.instance_id,
+            region=resolved_region,
+            profile=resolved_profile,
+            dyec_deploy_key_secret_arn=dyec_secret_arn,
+            dyec_deploy_key_region=resolved_region if dyec_secret_arn else "",
+            dyec_repo_url=dyec_repo_spec.url if dyec_repo_spec else "",
+            dyec_repo_ref=dyec_repo_spec.ref if dyec_repo_spec else "",
+            dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn.strip(),
+            dayoa_deploy_key_region=resolved_region if dayoa_deploy_key_secret_arn.strip() else "",
+            repo_overrides=overrides or None,
+            remote_user=remote_user,
+        )
+        if not ok:
+            raise CommandError(f"Headnode configuration failed for cluster '{resolved_cluster}'.")
+    except (CommandError, SsmError, TimeoutError) as exc:
+        _exit_headnode_error(exc)
+
+    output.success(f"Headnode configured via SSM for cluster '{resolved_cluster}'.")
 
 
 def headnode_configure(
@@ -2095,41 +3148,86 @@ def headnode_configure(
         "--repo-overrides",
         help="File containing repo overrides as repo-key:git-ref lines.",
     ),
+    dyec_deploy_key_secret_arn: str = typer.Option(
+        "",
+        "--dyec-deploy-key-secret-arn",
+        help=(
+            "Exact Secrets Manager ARN for the DYEC read-only deploy key. The headnode "
+            "role must already allow access to this secret."
+        ),
+    ),
+    dayoa_deploy_key_secret_arn: str = typer.Option(
+        "",
+        "--dayoa-deploy-key-secret-arn",
+        help=(
+            "Exact Secrets Manager ARN for the DayOA read-only deploy key. Required when "
+            "configuring a legacy headnode that does not already have the reference."
+        ),
+    ),
 ) -> None:
-    """Configure a cluster headnode through the supported SSM bootstrap."""
+    """Configure a cluster headnode through the supported Ubuntu SSM bootstrap."""
 
-    from daylily_ec.aws.ssm import SsmError, wait_for_ssm_online
-    from daylily_ec.scripts.common import CommandError
-    from daylily_ec.scripts.daylily_cfg_headnode import _load_repo_overrides
-    from daylily_ec.workflow.create_cluster import configure_headnode
+    _configure_headnode_command(
+        profile=profile,
+        region=region,
+        cluster=cluster,
+        repo_overrides=repo_overrides,
+        dyec_deploy_key_secret_arn=dyec_deploy_key_secret_arn,
+        dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
+        remote_user="ubuntu",
+    )
 
-    _warn_if_dayec_env_inactive()
-    try:
-        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
-            profile=profile,
-            region=region,
-            cluster=cluster,
-        )
-        overrides = _load_repo_overrides(str(repo_overrides) if repo_overrides else None)
-        wait_for_ssm_online(
-            target.instance_id,
-            resolved_region,
-            profile=resolved_profile,
-            timeout=120,
-        )
-        ok = configure_headnode(
-            cluster_name=resolved_cluster,
-            head_node_instance_id=target.instance_id,
-            region=resolved_region,
-            profile=resolved_profile,
-            repo_overrides=overrides or None,
-        )
-        if not ok:
-            raise CommandError(f"Headnode configuration failed for cluster '{resolved_cluster}'.")
-    except (CommandError, SsmError, TimeoutError) as exc:
-        _exit_headnode_error(exc)
 
-    output.success(f"Headnode configured via SSM for cluster '{resolved_cluster}'.")
+def headnode_configure_dragen(
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+    repo_overrides: Optional[Path] = typer.Option(
+        None,
+        "--repo-overrides",
+        help="File containing repo overrides as repo-key:git-ref lines.",
+    ),
+    dyec_deploy_key_secret_arn: str = typer.Option(
+        "",
+        "--dyec-deploy-key-secret-arn",
+        help=(
+            "Exact Secrets Manager ARN for the DYEC read-only deploy key. The headnode "
+            "role must already allow access to this secret."
+        ),
+    ),
+    dayoa_deploy_key_secret_arn: str = typer.Option(
+        "",
+        "--dayoa-deploy-key-secret-arn",
+        help=(
+            "Exact Secrets Manager ARN for the DayOA read-only deploy key. Required when "
+            "configuring a legacy headnode that does not already have the reference."
+        ),
+    ),
+) -> None:
+    """Configure a RHEL/DRAGEN cluster headnode through SSM as ec2-user."""
+
+    _configure_headnode_command(
+        profile=profile,
+        region=region,
+        cluster=cluster,
+        repo_overrides=repo_overrides,
+        dyec_deploy_key_secret_arn=dyec_deploy_key_secret_arn,
+        dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
+        remote_user="ec2-user",
+    )
 
 
 def _invoke_stage_samples(argv: list[str]) -> int:
@@ -2164,6 +3262,8 @@ def _parse_workflow_launch_metadata(launch_stdout: str) -> dict[str, str]:
             parsed["run_dir"] = line.split("=", 1)[1].strip()
         elif line.startswith("__DAYLILY_REPO_PATH__="):
             parsed["repo_path"] = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_DY_COMMAND__="):
+            parsed["dy_command"] = line.split("=", 1)[1].strip()
     return parsed
 
 
@@ -2203,6 +3303,14 @@ def samples_stage(
         help=(
             "Copy run metric files into runs/<RUN_UID>/ from RUN_UID:PLATFORM:FOFN. "
             "Can be specified multiple times."
+        ),
+    ),
+    fsx_s3_uri_map: Optional[List[str]] = typer.Option(
+        None,
+        "--fsx-s3-uri-map",
+        help=(
+            "Explicit FSx-to-S3 mapping for mounted read-only subpaths. "
+            "Use /fsx/prefix=s3://bucket/prefix; can be specified multiple times."
         ),
     ),
     profile: Optional[str] = typer.Option(
@@ -2266,6 +3374,8 @@ def samples_stage(
     ]
     for spec in run_metric_staging or []:
         argv.extend(["--run-metric-staging", spec])
+    for mapping in fsx_s3_uri_map or []:
+        argv.extend(["--fsx-s3-uri-map", mapping])
     if config_dir:
         argv.extend(["--config-dir", str(config_dir)])
     if profile:
@@ -2380,10 +3490,20 @@ def samples_run(
         help="Skip or enable upstream project validation in dyoainit.",
     ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Launch the catalog dry-run command."),
+    max_runtime_minutes: int = typer.Option(
+        DEFAULT_JOB_MAX_RUNTIME_MINUTES,
+        "--max-runtime-minutes",
+        help=(
+            "Deprecated compatibility option. DYEC does not append Snakemake --default-resources."
+        ),
+    ),
     export_destination_s3_uri: Optional[str] = typer.Option(
         None,
         "--export-destination-s3-uri",
-        help="Full S3 prefix ending in <executing-entity>/<analysis-id>/ for auto-export.",
+        help=(
+            "S3 auto-export destination. A full destination is preserved; an export root "
+            "is expanded to <root>/<cluster>/<analysis-id>/."
+        ),
     ),
     export_trigger: str = typer.Option(
         "none",
@@ -2452,9 +3572,10 @@ def samples_run(
             executing_entity=executing_entity,
             cluster=cluster,
         )
-        _validate_analysis_launch_options(
+        resolved_export_destination_s3_uri = _validate_analysis_launch_options(
             analysis_id=analysis_id,
             executing_entity=resolved_executing_entity,
+            cluster=cluster,
             export_destination_s3_uri=export_destination_s3_uri,
             export_trigger=export_trigger,
             delete_on_export_success=delete_on_export_success,
@@ -2541,7 +3662,7 @@ def samples_run(
             project=project,
             dry_run=dry_run,
             skip_project_check=skip_project_check,
-            export_destination_s3_uri=export_destination_s3_uri,
+            export_destination_s3_uri=resolved_export_destination_s3_uri,
             export_trigger=export_trigger,
             delete_on_export_success=delete_on_export_success,
             replace_existing_analysis_dir=replace_existing_analysis_dir,
@@ -2552,6 +3673,7 @@ def samples_run(
             dewey_run_artifact_euid=dewey_run_artifact_euid,
             dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
         )
+        workflow_cli_argv.extend(["--max-runtime-minutes", str(max_runtime_minutes)])
         launch_stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(launch_stdout_buffer):
             launch_rc = _invoke_workflow_launch(workflow_cli_argv[2:])
@@ -2565,17 +3687,23 @@ def samples_run(
         timestamp = stage_name.replace("remote_stage_", "")
         receipt_path = resolved_config_dir / f"{timestamp}_samples_run_receipt.json"
         receipt_path.parent.mkdir(parents=True, exist_ok=True)
+        workflow_launch_metadata = _parse_workflow_launch_metadata(launch_stdout)
+        effective_dy_command = workflow_launch_metadata.get("dy_command")
+        if not effective_dy_command:
+            raise CommandError("Workflow launch output did not include the effective dy-r command.")
         receipt = {
             "analysis_samples": str(analysis_path),
             "command_id": command.command_id,
             "compatible_data_modes": command.compatible_data_modes,
+            "compatible_cluster_types": command.compatible_cluster_types,
             "detected_data_modes": data_modes,
             "analysis_id": analysis_id,
             "executing_entity": resolved_executing_entity,
             "dry_run": dry_run,
-            "dy_command": command.dryrun_dy_command if dry_run else command.dy_command,
-            "export_destination_s3_uri": export_destination_s3_uri,
+            "dy_command": effective_dy_command,
+            "export_destination_s3_uri": resolved_export_destination_s3_uri,
             "export_trigger": export_trigger,
+            "max_runtime_minutes": max_runtime_minutes,
             "delete_on_export_success": delete_on_export_success,
             "replace_existing_analysis_dir": replace_existing_analysis_dir,
             "dewey_analysis_dir_external_object_id": dewey_analysis_dir_external_object_id,
@@ -2587,7 +3715,7 @@ def samples_run(
             "session_name": resolved_session_name,
             "units_tsv": str(resolved_config_dir / f"{timestamp}_units.tsv"),
             "workflow_argv": workflow_cli_argv,
-            "workflow_launch": _parse_workflow_launch_metadata(launch_stdout),
+            "workflow_launch": workflow_launch_metadata,
         }
         receipt_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
         typer.echo(f"Samples run receipt: {receipt_path}")
@@ -2708,6 +3836,33 @@ def workflow_launch(
         "--snakemake-extra",
         help="Additional arguments appended to dy-r.",
     ),
+    produce_ursa_manifest: Optional[str] = typer.Option(
+        None,
+        "--produce-ursa-manifest",
+        help="Override the DYEC default passed to dy-r; value must be true or false.",
+    ),
+    produce_rulegraph: Optional[str] = typer.Option(
+        None,
+        "--produce-rulegraph",
+        help="Override the DYEC default passed to dy-r; value must be true or false.",
+    ),
+    produce_filegraph: Optional[str] = typer.Option(
+        None,
+        "--produce-filegraph",
+        help="Override the DYEC default passed to dy-r; value must be true or false.",
+    ),
+    produce_dag: Optional[str] = typer.Option(
+        None,
+        "--produce-dag",
+        help="Override the DYEC default passed to dy-r; value must be true or false.",
+    ),
+    max_runtime_minutes: int = typer.Option(
+        DEFAULT_JOB_MAX_RUNTIME_MINUTES,
+        "--max-runtime-minutes",
+        help=(
+            "Deprecated compatibility option. DYEC does not append Snakemake --default-resources."
+        ),
+    ),
     no_containerized: bool = typer.Option(
         False,
         "--no-containerized",
@@ -2716,7 +3871,10 @@ def workflow_launch(
     export_destination_s3_uri: Optional[str] = typer.Option(
         None,
         "--export-destination-s3-uri",
-        help="Full S3 prefix ending in <executing-entity>/<analysis-id>/ for auto-export.",
+        help=(
+            "S3 auto-export destination. A full destination is preserved; an export root "
+            "is expanded to <root>/<cluster>/<analysis-id>/."
+        ),
     ),
     export_trigger: str = typer.Option(
         "none",
@@ -2771,15 +3929,34 @@ def workflow_launch(
     """Launch daylily-omics-analysis inside tmux on the headnode."""
 
     from daylily_ec.scripts.common import CommandError
+    from daylily_ec.workflow.dyr_preflight import (
+        DyrPreflightOptionsError,
+        parse_strict_bool,
+    )
 
     _warn_if_dayec_env_inactive()
+    producer_option_values: dict[str, str] = {}
+    for flag, value in (
+        ("--produce-ursa-manifest", produce_ursa_manifest),
+        ("--produce-rulegraph", produce_rulegraph),
+        ("--produce-filegraph", produce_filegraph),
+        ("--produce-dag", produce_dag),
+    ):
+        if value is None:
+            continue
+        try:
+            parsed = parse_strict_bool(value, option=flag)
+        except DyrPreflightOptionsError as exc:
+            raise typer.BadParameter(str(exc), param_hint=flag) from exc
+        producer_option_values[flag] = "true" if parsed else "false"
     resolved_executing_entity = _resolve_executing_entity_option(
         executing_entity=executing_entity,
         cluster=cluster,
     )
-    _validate_analysis_launch_options(
+    resolved_export_destination_s3_uri = _validate_analysis_launch_options(
         analysis_id=analysis_id,
         executing_entity=resolved_executing_entity,
+        cluster=cluster,
         export_destination_s3_uri=export_destination_s3_uri,
         export_trigger=export_trigger,
         delete_on_export_success=delete_on_export_success,
@@ -2828,7 +4005,8 @@ def workflow_launch(
         ("--target", target),
         ("--dy-command", dy_command),
         ("--snakemake-extra", snakemake_extra),
-        ("--export-destination-s3-uri", export_destination_s3_uri),
+        ("--max-runtime-minutes", str(max_runtime_minutes)),
+        ("--export-destination-s3-uri", resolved_export_destination_s3_uri),
         ("--export-trigger", export_trigger),
         ("--artifact-registration-command-id", artifact_registration_command_id),
         ("--dewey-url", dewey_url),
@@ -2839,6 +4017,8 @@ def workflow_launch(
     ):
         if value is not None:
             argv.extend([flag, value])
+    for flag, value in producer_option_values.items():
+        argv.extend([flag, value])
     if not input_staging:
         argv.append("--no-input-staging")
     if not default_activation:
@@ -3375,6 +4555,472 @@ def workflow_logs(
         typer.echo(result.stderr.rstrip(), err=True)
 
 
+def _normalize_benchmark_genome_build(genome_build: str) -> str:
+    resolved = str(genome_build or "").strip()
+    if resolved not in BENCHMARK_GENOME_BUILDS:
+        raise typer.BadParameter(
+            "--genome-build must be one of: " + ", ".join(sorted(BENCHMARK_GENOME_BUILDS))
+        )
+    return resolved
+
+
+def _normalize_benchmark_analysis_root(analysis_root: str) -> str:
+    raw = str(analysis_root or "").strip().rstrip("/")
+    if not raw:
+        raise typer.BadParameter("--analysis-root is required")
+    if "\x00" in raw or "\n" in raw or "\r" in raw:
+        raise typer.BadParameter("--analysis-root must be a single POSIX path")
+    path = PurePosixPath(raw)
+    if not path.is_absolute():
+        raise typer.BadParameter("--analysis-root must be an absolute headnode path")
+    if any(part in {".", ".."} for part in path.parts):
+        raise typer.BadParameter("--analysis-root must not contain . or .. path segments")
+    if path.parts[:3] != ("/", "fsx", "analysis_results"):
+        raise typer.BadParameter(
+            "--analysis-root must be under /fsx/analysis_results/<owner>/<analysis_id>"
+        )
+    if path.name == "daylily-omics-analysis":
+        raise typer.BadParameter(
+            "--analysis-root must be the parent analysis directory, not the DayOA clone. "
+            "Use /fsx/analysis_results/<owner>/<analysis_id>."
+        )
+    if len(path.parts) != 5:
+        raise typer.BadParameter(
+            "--analysis-root must be /fsx/analysis_results/<owner>/<analysis_id>"
+        )
+    return path.as_posix()
+
+
+def _build_workflow_collect_benchmarks_script(
+    *,
+    analysis_root: str,
+    genome_build: str,
+    cluster: str,
+    human_requestor: str,
+) -> str:
+    return f"""
+set -euo pipefail
+if [[ "$(id -un)" != "ubuntu" ]]; then
+  echo "DYEC benchmark collection must run as ubuntu; got $(id -un)." >&2
+  exit 64
+fi
+
+ANALYSIS_ROOT={shlex.quote(analysis_root)}
+GENOME_BUILD={shlex.quote(genome_build)}
+DYEC_CLUSTER_NAME={shlex.quote(cluster)}
+export DAYOA_HUMAN_REQUESTOR={shlex.quote(human_requestor)}
+agent_stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+export DAYOA_AGENT_ID="dyec-benchmark-${{GENOME_BUILD}}-${{agent_stamp}}-$$"
+export DAYOA_AGENT_KIND="dyec-cli"
+export DAYOA_TMUX_SESSION=""
+export DAYOA_LEDGER_PATH=""
+export DYEC_CLUSTER="$DYEC_CLUSTER_NAME"
+
+DAYOA_ROOT="${{ANALYSIS_ROOT}}/daylily-omics-analysis"
+COLLECTOR="bin/util/benchmarks/collect_day_benchmark_data.sh"
+REPORT_DIR="${{DAYOA_ROOT}}/results/day/${{GENOME_BUILD}}/reports"
+SUMMARY_TSV="${{REPORT_DIR}}/benchmarks_summary.tsv"
+
+case "$GENOME_BUILD" in
+  hg38|hg38_broad|b37) ;;
+  *)
+    echo "Unsupported genome build: $GENOME_BUILD. Expected hg38, hg38_broad, or b37." >&2
+    exit 64
+    ;;
+esac
+if [[ "$ANALYSIS_ROOT" != /fsx/analysis_results/* ]]; then
+  echo "Analysis root must be under /fsx/analysis_results: $ANALYSIS_ROOT" >&2
+  exit 64
+fi
+if [[ ! -d "$ANALYSIS_ROOT" ]]; then
+  echo "Analysis root does not exist on the headnode: $ANALYSIS_ROOT" >&2
+  exit 66
+fi
+if [[ ! -d "$DAYOA_ROOT" ]]; then
+  echo "DayOA clone does not exist: $DAYOA_ROOT" >&2
+  exit 66
+fi
+if [[ ! -f "$DAYOA_ROOT/dayoainit" ]]; then
+  echo "DayOA initializer missing: $DAYOA_ROOT/dayoainit" >&2
+  exit 66
+fi
+if [[ ! -f "$DAYOA_ROOT/$COLLECTOR" ]]; then
+  echo "DayOA benchmark collector missing: $DAYOA_ROOT/$COLLECTOR" >&2
+  exit 66
+fi
+if ! command -v dyec >/dev/null 2>&1; then
+  echo "dyec CLI is required on the headnode for analysis lock auditing. Run dyec headnode configure, then retry." >&2
+  exit 66
+fi
+
+lock_acquired=0
+release_lock() {{
+  local rc="$1"
+  if [[ "$lock_acquired" == "1" ]]; then
+    if ! dyec analysis lock release \\
+      --analysis-root "$ANALYSIS_ROOT" \\
+      --human-requestor "$DAYOA_HUMAN_REQUESTOR" \\
+      --note "benchmark collector finished rc=${{rc}}" >/dev/null; then
+      echo "Warning: failed to release DYEC analysis lock for $ANALYSIS_ROOT" >&2
+    fi
+  fi
+}}
+trap 'rc=$?; release_lock "$rc"; exit "$rc"' EXIT
+
+dyec analysis lock acquire \\
+  --analysis-root "$ANALYSIS_ROOT" \\
+  --operation write \\
+  --intent "collect DayOA benchmark summary for $GENOME_BUILD" \\
+  --human-requestor "$DAYOA_HUMAN_REQUESTOR" \\
+  --command-summary "bash $COLLECTOR $GENOME_BUILD" \\
+  --operation-scope "benchmark-collection:$GENOME_BUILD" >/dev/null
+lock_acquired=1
+
+cd "$DAYOA_ROOT"
+source dyoainit
+if ! type dy-a >/dev/null 2>&1; then
+  echo "DayOA activation did not define dy-a after source dyoainit." >&2
+  exit 66
+fi
+dy-a local "$GENOME_BUILD"
+bash "$COLLECTOR" "$GENOME_BUILD"
+
+if [[ ! -s "$SUMMARY_TSV" ]]; then
+  echo "Benchmark summary was not created or is empty: $SUMMARY_TSV" >&2
+  exit 1
+fi
+
+export DAYLILY_BENCHMARK_ANALYSIS_ROOT="$ANALYSIS_ROOT"
+export DAYLILY_BENCHMARK_DAYOA_ROOT="$DAYOA_ROOT"
+export DAYLILY_BENCHMARK_GENOME_BUILD="$GENOME_BUILD"
+export DAYLILY_BENCHMARK_REPORT_DIR="$REPORT_DIR"
+export DAYLILY_BENCHMARK_SUMMARY_TSV="$SUMMARY_TSV"
+export DAYLILY_BENCHMARK_ROW_COUNT="$(wc -l < "$SUMMARY_TSV" | tr -d ' ')"
+export DAYLILY_BENCHMARK_BYTES="$(wc -c < "$SUMMARY_TSV" | tr -d ' ')"
+python3 - <<'PY'
+import json
+import os
+
+payload = {{
+    "analysis_root": os.environ["DAYLILY_BENCHMARK_ANALYSIS_ROOT"],
+    "dayoa_root": os.environ["DAYLILY_BENCHMARK_DAYOA_ROOT"],
+    "genome_build": os.environ["DAYLILY_BENCHMARK_GENOME_BUILD"],
+    "report_dir": os.environ["DAYLILY_BENCHMARK_REPORT_DIR"],
+    "summary_tsv": os.environ["DAYLILY_BENCHMARK_SUMMARY_TSV"],
+    "row_count": int(os.environ["DAYLILY_BENCHMARK_ROW_COUNT"] or "0"),
+    "bytes": int(os.environ["DAYLILY_BENCHMARK_BYTES"] or "0"),
+}}
+print("__DAYLILY_BENCHMARK_COLLECTION__=" + json.dumps(payload, sort_keys=True))
+PY
+"""
+
+
+def _parse_benchmark_collection_payload(stdout: str) -> dict[str, Any]:
+    from daylily_ec.scripts.common import CommandError
+
+    marker = "__DAYLILY_BENCHMARK_COLLECTION__="
+    for line in stdout.splitlines():
+        if line.startswith(marker):
+            payload = json.loads(line.split("=", 1)[1])
+            if not isinstance(payload, dict):
+                raise CommandError("Benchmark collection payload contained non-object JSON.")
+            return payload
+    raise CommandError("Benchmark collection output did not include a payload marker.")
+
+
+def workflow_collect_benchmarks(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    analysis_root: str = typer.Option(
+        ...,
+        "--analysis-root",
+        help="/fsx/analysis_results/<owner>/<analysis_id> directory containing daylily-omics-analysis.",
+    ),
+    genome_build: str = typer.Option(
+        ...,
+        "--genome-build",
+        "--build",
+        help="DayOA genome build: hg38, hg38_broad, or b37.",
+    ),
+    human_requestor: Optional[str] = typer.Option(
+        None,
+        "--human-requestor",
+        "--human",
+        help="Human recorded in analysis-root lock and visit metadata.",
+    ),
+    timeout: int = typer.Option(
+        1800,
+        "--timeout",
+        help="Maximum seconds for the remote benchmark collection command.",
+    ),
+) -> None:
+    """Collect DayOA benchmark TSVs into results/day/<genome-build>/reports."""
+
+    from daylily_ec.aws.ssm import (
+        SsmCommandFailedError,
+        SsmError,
+        run_shell,
+        wait_for_ssm_online,
+    )
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_build = _normalize_benchmark_genome_build(genome_build)
+        resolved_analysis_root = _normalize_benchmark_analysis_root(analysis_root)
+        resolved_human = (
+            str(human_requestor or "").strip()
+            or os.environ.get("DAYOA_HUMAN_REQUESTOR", "").strip()
+            or os.environ.get("USER", "").strip()
+            or os.environ.get("LOGNAME", "").strip()
+            or "dyec"
+        )
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        script = _build_workflow_collect_benchmarks_script(
+            analysis_root=resolved_analysis_root,
+            genome_build=resolved_build,
+            cluster=resolved_cluster,
+            human_requestor=resolved_human,
+        )
+        result = run_shell(
+            target.instance_id,
+            resolved_region,
+            script,
+            profile=resolved_profile,
+            timeout=timeout,
+            comment=f"Collect DayOA benchmarks for {resolved_analysis_root}",
+        )
+        payload = _parse_benchmark_collection_payload(result.stdout)
+    except SsmCommandFailedError as exc:
+        if exc.result.stdout.strip():
+            typer.echo(exc.result.stdout.rstrip())
+        if exc.result.stderr.strip():
+            typer.echo(exc.result.stderr.rstrip(), err=True)
+        _exit_headnode_error(exc)
+    except (CommandError, SsmError, TimeoutError, json.JSONDecodeError) as exc:
+        _exit_headnode_error(exc)
+
+    if result.stderr:
+        typer.echo(result.stderr.rstrip(), err=True)
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    output.success("Benchmark summary collected.")
+    output.print_text(f"Analysis root: {payload['analysis_root']}")
+    output.print_text(f"DayOA root:    {payload['dayoa_root']}")
+    output.print_text(f"Genome build:  {payload['genome_build']}")
+    output.print_text(f"Summary TSV:   {payload['summary_tsv']}")
+    output.print_text(f"Rows:          {payload['row_count']}")
+
+
+def _parse_workflow_stop_payload(stdout: str) -> dict[str, Any]:
+    from daylily_ec.scripts.common import CommandError
+
+    marker = "__DAYLILY_WORKFLOW_STOP__="
+    for line in stdout.splitlines():
+        if line.startswith(marker):
+            payload = json.loads(line.split("=", 1)[1])
+            if not isinstance(payload, dict):
+                raise CommandError("Workflow stop payload contained non-object JSON.")
+            return payload
+    raise CommandError("Workflow stop output did not include a stop payload marker.")
+
+
+def workflow_stop(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    session: Optional[str] = typer.Option(None, "--session", help="Tmux session/run name."),
+    run_dir: Optional[str] = typer.Option(None, "--run-dir", help="Explicit run directory."),
+    cancel_slurm_jobs: bool = typer.Option(
+        False,
+        "--cancel-slurm-jobs",
+        help="Also cancel active Slurm jobs whose names match --job-name-pattern.",
+    ),
+    job_name_pattern: Optional[str] = typer.Option(
+        None,
+        "--job-name-pattern",
+        help="Python regex used to select Slurm job names when --cancel-slurm-jobs is set.",
+    ),
+    timeout: int = typer.Option(
+        120,
+        "--timeout",
+        help="Maximum seconds for the remote stop command.",
+    ),
+) -> None:
+    """Stop a headnode workflow tmux controller, with explicit optional Slurm cancellation."""
+
+    from daylily_ec.aws.ssm import SsmError, run_shell, wait_for_ssm_online
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    if cancel_slurm_jobs and not str(job_name_pattern or "").strip():
+        raise typer.BadParameter("--job-name-pattern is required with --cancel-slurm-jobs")
+    if job_name_pattern and not cancel_slurm_jobs:
+        raise typer.BadParameter("--job-name-pattern requires --cancel-slurm-jobs")
+
+    try:
+        resolved_run_dir = _workflow_run_dir(session, run_dir)
+        resolved_session = session or Path(resolved_run_dir).name
+        resolved_profile, resolved_region, _resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        script = f"""
+set -euo pipefail
+export DAYLILY_WORKFLOW_SESSION={shlex.quote(resolved_session)}
+export DAYLILY_WORKFLOW_RUN_DIR={shlex.quote(resolved_run_dir)}
+export DAYLILY_CANCEL_SLURM_JOBS={shlex.quote("true" if cancel_slurm_jobs else "false")}
+export DAYLILY_JOB_NAME_PATTERN={shlex.quote(job_name_pattern or "")}
+python3 - <<'PY'
+import datetime
+import json
+import os
+import pathlib
+import re
+import subprocess
+import sys
+
+
+def run(command):
+    return subprocess.run(command, capture_output=True, text=True)
+
+
+def require_command(name):
+    result = run(["bash", "-lc", f"command -v {{name}}"])
+    if result.returncode != 0:
+        raise SystemExit(f"required command not found on headnode PATH: {{name}}")
+
+
+def tmux_session_name(session_name):
+    return re.sub(r"[^A-Za-z0-9_-]", "_", session_name)
+
+
+def tmux_present(name):
+    return run(["tmux", "has-session", "-t", f"={{name}}"]).returncode == 0
+
+
+def slurm_jobs_matching(pattern_text):
+    require_command("squeue")
+    pattern = re.compile(pattern_text)
+    result = run(["squeue", "-h", "-o", "%A\\t%j"])
+    if result.returncode != 0:
+        raise SystemExit(result.stderr.strip() or result.stdout.strip() or "squeue failed")
+    jobs = []
+    for raw_line in result.stdout.splitlines():
+        if not raw_line.strip():
+            continue
+        try:
+            job_id, job_name = raw_line.split("\\t", 1)
+        except ValueError:
+            continue
+        if pattern.search(job_name):
+            jobs.append({{"job_id": job_id, "name": job_name}})
+    return jobs
+
+
+session = os.environ["DAYLILY_WORKFLOW_SESSION"]
+run_dir = pathlib.Path(os.environ["DAYLILY_WORKFLOW_RUN_DIR"])
+cancel_slurm = os.environ["DAYLILY_CANCEL_SLURM_JOBS"] == "true"
+job_name_pattern = os.environ.get("DAYLILY_JOB_NAME_PATTERN", "")
+session_tmux = tmux_session_name(session)
+require_command("tmux")
+before_tmux = tmux_present(session_tmux)
+jobs_before = slurm_jobs_matching(job_name_pattern) if cancel_slurm else []
+
+killed_tmux = False
+if before_tmux:
+    kill = run(["tmux", "kill-session", "-t", f"={{session_tmux}}"])
+    if kill.returncode != 0:
+        raise SystemExit(kill.stderr.strip() or kill.stdout.strip() or "tmux kill-session failed")
+    killed_tmux = True
+
+scancelled_job_ids = []
+if cancel_slurm and jobs_before:
+    require_command("scancel")
+    scancelled_job_ids = [job["job_id"] for job in jobs_before]
+    cancel = run(["scancel", *scancelled_job_ids])
+    if cancel.returncode != 0:
+        raise SystemExit(cancel.stderr.strip() or cancel.stdout.strip() or "scancel failed")
+
+after_tmux = tmux_present(session_tmux)
+jobs_after = slurm_jobs_matching(job_name_pattern) if cancel_slurm else []
+status_path = run_dir / "status.json"
+status_updated = False
+if killed_tmux or scancelled_job_ids:
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+    status = {{}}
+    if status_path.is_file():
+        try:
+            status = json.loads(status_path.read_text(encoding="utf-8") or "{{}}")
+        except json.JSONDecodeError:
+            status = {{}}
+    if not isinstance(status, dict):
+        status = {{}}
+    status.setdefault("session_name", session)
+    status["completed_at"] = now
+    status["exit_code"] = 130
+    status["stopped"] = True
+    status["stop_reason"] = "dyec workflow stop"
+    status["stop_cancelled_slurm_job_ids"] = scancelled_job_ids
+    status_path.parent.mkdir(parents=True, exist_ok=True)
+    status_path.write_text(json.dumps(status, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+    status_updated = True
+
+payload = {{
+    "session_name": session,
+    "run_dir": str(run_dir),
+    "tmux_session_name": session_tmux,
+    "tmux_session_before": before_tmux,
+    "tmux_session_after": after_tmux,
+    "killed_tmux_session": killed_tmux,
+    "cancel_slurm_jobs": cancel_slurm,
+    "job_name_pattern": job_name_pattern,
+    "slurm_jobs_before": jobs_before,
+    "scancelled_job_ids": scancelled_job_ids,
+    "slurm_jobs_after": jobs_after,
+    "status_path": str(status_path),
+    "status_updated": status_updated,
+}}
+print("__DAYLILY_WORKFLOW_STOP__=" + json.dumps(payload, sort_keys=True))
+PY
+"""
+        result = run_shell(
+            target.instance_id,
+            resolved_region,
+            script,
+            profile=resolved_profile,
+            timeout=timeout,
+            comment=f"Stop Daylily workflow {resolved_session}",
+        )
+        payload = _parse_workflow_stop_payload(result.stdout)
+    except (CommandError, SsmError, TimeoutError, json.JSONDecodeError) as exc:
+        _exit_headnode_error(exc)
+
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+
+
 def _state_payload(path: Path) -> dict[str, Any]:
     from daylily_ec.state.store import load_state_record
 
@@ -3475,6 +5121,551 @@ def state_show(
     typer.echo(json.dumps(payload, indent=2, sort_keys=False))
 
 
+def _emit_analysis_payload(payload: Any, *, text: Optional[str] = None) -> None:
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    if text is not None:
+        typer.echo(text)
+        return
+    typer.echo(json.dumps(payload, indent=2, sort_keys=True, default=str))
+
+
+def analysis_visit(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Analysis root path."),
+    intent: str = typer.Option(..., "--intent", help="Reason for the visit."),
+    mode: str = typer.Option(
+        "read",
+        "--mode",
+        help="Visit mode: read, monitor, log, search, query, export, write, unlock, delete, kill.",
+    ),
+    note: Optional[str] = typer.Option(None, "--note", help="Short visit note."),
+    human_requestor: Optional[str] = typer.Option(
+        None,
+        "--human-requestor",
+        "--human",
+        help="Human on whose behalf this visit is happening.",
+    ),
+    s3_visit_uri: Optional[str] = typer.Option(
+        None,
+        "--s3-visit-uri",
+        help="Optional S3 analysis/report prefix where a no-delete visit marker is written.",
+    ),
+) -> None:
+    """Record an analysis-root visit without requiring write-lock ownership."""
+
+    try:
+        from daylily_ec.analysis_lock import write_visit
+
+        payload = write_visit(
+            analysis_root,
+            mode=mode,
+            intent=intent,
+            note=note,
+            human_requestor=human_requestor,
+            s3_visit_uri=s3_visit_uri,
+        )
+        _emit_analysis_payload(
+            payload,
+            text=f"recorded {mode} visit for {payload['analysis_root']}",
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def analysis_guard(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Analysis root path."),
+    operation: str = typer.Option(
+        ...,
+        "--operation",
+        help="Operation to guard: read, export, write, unlock, delete, or kill.",
+    ),
+    intent: str = typer.Option(..., "--intent", help="Reason for the guarded operation."),
+    human_requestor: Optional[str] = typer.Option(
+        None,
+        "--human-requestor",
+        "--human",
+        help="Human on whose behalf this operation is happening.",
+    ),
+    command: List[str] = typer.Argument(
+        [],
+        metavar="[-- COMMAND...]",
+        help="Optional command to execute only after the guard passes.",
+    ),
+) -> None:
+    """Guard a read/write-like operation against the analysis-root lock state."""
+
+    try:
+        from daylily_ec.analysis_lock import assert_operation_allowed, guarded_run
+
+        if command:
+            rc = guarded_run(
+                analysis_root,
+                operation=operation,
+                intent=intent,
+                command=command,
+                human_requestor=human_requestor,
+            )
+            raise typer.Exit(rc)
+        payload = assert_operation_allowed(
+            analysis_root,
+            operation=operation,
+            intent=intent,
+            human_requestor=human_requestor,
+            command_summary=None,
+        )
+        _emit_analysis_payload(payload, text=f"allowed {operation} for {analysis_root}")
+    except typer.Exit:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def analysis_lock_status(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Analysis root path."),
+) -> None:
+    """Show the current write-lock owner for an analysis root."""
+
+    try:
+        from daylily_ec.analysis_lock import lock_status
+
+        payload = lock_status(analysis_root)
+        text = "unlocked"
+        if payload["locked"]:
+            owner = payload["owner"] or {}
+            text = "locked by " + str(owner.get("agent_id", "unknown"))
+        _emit_analysis_payload(payload, text=text)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def analysis_lock_acquire(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Analysis root path."),
+    operation: str = typer.Option(
+        "write",
+        "--operation",
+        help="Protected operation scope: write, unlock, delete, or kill.",
+    ),
+    intent: str = typer.Option(..., "--intent", help="Reason for acquiring the lock."),
+    human_requestor: Optional[str] = typer.Option(
+        None,
+        "--human-requestor",
+        "--human",
+        help="Human on whose behalf this lock is acquired.",
+    ),
+    command_summary: Optional[str] = typer.Option(
+        None,
+        "--command-summary",
+        help="Short summary of the controller/workflow command protected by this lock.",
+    ),
+    operation_scope: Optional[str] = typer.Option(
+        None,
+        "--operation-scope",
+        help="Optional narrower scope recorded in owner metadata.",
+    ),
+) -> None:
+    """Acquire an atomic analysis-root write lock with mkdir semantics."""
+
+    try:
+        from daylily_ec.analysis_lock import acquire_lock
+
+        payload = acquire_lock(
+            analysis_root,
+            operation=operation,
+            intent=intent,
+            human_requestor=human_requestor,
+            command_summary=command_summary,
+            operation_scope=operation_scope,
+        )
+        _emit_analysis_payload(payload, text=f"acquired {operation} lock for {analysis_root}")
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def analysis_lock_release(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Analysis root path."),
+    human_requestor: Optional[str] = typer.Option(
+        None,
+        "--human-requestor",
+        "--human",
+        help="Human on whose behalf this lock is released.",
+    ),
+    note: Optional[str] = typer.Option(None, "--note", help="Release note."),
+) -> None:
+    """Release the current agent's analysis-root write lock."""
+
+    try:
+        from daylily_ec.analysis_lock import release_lock
+
+        payload = release_lock(
+            analysis_root,
+            human_requestor=human_requestor,
+            note=note,
+        )
+        _emit_analysis_payload(payload, text=f"released lock for {analysis_root}")
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def analysis_lock_heartbeat(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Analysis root path."),
+    human_requestor: Optional[str] = typer.Option(
+        None,
+        "--human-requestor",
+        "--human",
+        help="Human on whose behalf this heartbeat is recorded.",
+    ),
+    note: Optional[str] = typer.Option(None, "--note", help="Heartbeat note."),
+) -> None:
+    """Append a heartbeat for the current agent's active write lock."""
+
+    try:
+        from daylily_ec.analysis_lock import heartbeat_lock
+
+        payload = heartbeat_lock(
+            analysis_root,
+            human_requestor=human_requestor,
+            note=note,
+        )
+        _emit_analysis_payload(payload, text=f"heartbeat recorded for {analysis_root}")
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def analysis_lock_takeover(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Analysis root path."),
+    operation: str = typer.Option(
+        "write",
+        "--operation",
+        help="Protected operation scope: write, unlock, delete, or kill.",
+    ),
+    reason: str = typer.Option(..., "--reason", help="Reason takeover is being requested."),
+    request: bool = typer.Option(
+        False,
+        "--request/--no-request",
+        help="Print the takeover token and current owner without mutating the lock.",
+    ),
+    confirm_token: Optional[str] = typer.Option(
+        None,
+        "--confirm-token",
+        help="Token from a prior --request output.",
+    ),
+    approved_by: Optional[str] = typer.Option(
+        None,
+        "--approved-by",
+        help="Human approver for the explicit takeover.",
+    ),
+    intent: str = typer.Option(
+        "explicit approved takeover",
+        "--intent",
+        help="Intent recorded for the new lock owner.",
+    ),
+    human_requestor: Optional[str] = typer.Option(
+        None,
+        "--human-requestor",
+        "--human",
+        help="Human on whose behalf the takeover is happening.",
+    ),
+    command_summary: Optional[str] = typer.Option(
+        None,
+        "--command-summary",
+        help="Short summary of the command protected after takeover.",
+    ),
+) -> None:
+    """Request or execute a double-approved lock takeover."""
+
+    try:
+        from daylily_ec.analysis_lock import takeover_lock, takeover_request
+
+        if request:
+            payload = takeover_request(analysis_root, operation=operation, reason=reason)
+            _emit_analysis_payload(
+                payload,
+                text=(
+                    "takeover token "
+                    + str(payload["token"])
+                    + " for "
+                    + str(payload["analysis_root"])
+                ),
+            )
+            return
+        if not confirm_token:
+            raise typer.BadParameter("--confirm-token is required unless --request is set")
+        payload = takeover_lock(
+            analysis_root,
+            operation=operation,
+            confirm_token=confirm_token,
+            approved_by=approved_by or "",
+            reason=reason,
+            intent=intent,
+            human_requestor=human_requestor,
+            command_summary=command_summary,
+        )
+        _emit_analysis_payload(payload, text=f"took over {operation} lock for {analysis_root}")
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def tests_pytest(
+    coverage: bool = typer.Option(
+        False,
+        "--coverage",
+        help="Run pytest with branch coverage for daylily_ec and fail below 80%.",
+    ),
+    pytest_args: Optional[List[str]] = typer.Argument(
+        None,
+        help="Arguments passed to pytest after `--`.",
+    ),
+) -> None:
+    """Run the local pytest suite through the active Python environment."""
+
+    from daylily_ec.tests_runner import TestsRunnerError, run_pytest
+
+    _warn_if_dayec_env_inactive()
+    try:
+        rc = run_pytest(coverage=coverage, pytest_args=pytest_args or [])
+    except TestsRunnerError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    raise typer.Exit(rc)
+
+
+def tests_command_catalog(
+    cluster: str = typer.Option(..., "--cluster", "--cluster-name", help="Target cluster name."),
+    profile: str = typer.Option(..., "--profile", help="AWS CLI profile."),
+    region: str = typer.Option(..., "--region", help="AWS region."),
+    command_codes: str = typer.Option(
+        ...,
+        "--command-codes",
+        help=(
+            "Comma/space-separated catalog command ids, dyec-released-core, or dyec-released-all."
+        ),
+    ),
+    evidence_s3_uri: str = typer.Option(
+        ...,
+        "--evidence-s3-uri",
+        help="S3 root for command-catalog evidence export.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Launch only dry-run workflow phases.",
+    ),
+    create_missing_mounts: bool = typer.Option(
+        False,
+        "--create-missing-mounts",
+        help="Create missing unique run-directory DRAs after read-only preflight.",
+    ),
+    parallel: int = typer.Option(16, "--parallel", help="Maximum concurrent launched phases."),
+    jobs: Optional[int] = typer.Option(
+        None,
+        "--jobs",
+        help="Override the per-command Snakemake job count from the catalog.",
+    ),
+    max_runtime_minutes: int = typer.Option(
+        DEFAULT_JOB_MAX_RUNTIME_MINUTES,
+        "--max-runtime-minutes",
+        help=(
+            "Deprecated compatibility option. DYEC does not append Snakemake --default-resources."
+        ),
+    ),
+    executing_entity: str = typer.Option(
+        "ubuntu",
+        "--executing-entity",
+        "-u",
+        help="Analysis-result owner under /fsx/analysis_results.",
+    ),
+    output_dir: Optional[Path] = typer.Option(
+        None,
+        "--output-dir",
+        help="Local evidence directory. Defaults to docs/plans/<stamp>_dyec_tests_command_catalog_logs.",
+    ),
+    stamp: Optional[str] = typer.Option(
+        None,
+        "--stamp",
+        help="UTC stamp for reproducible evidence paths. Defaults to current UTC.",
+    ),
+    timeout_minutes: int = typer.Option(
+        360,
+        "--timeout-minutes",
+        help="Minutes to wait for each launched workflow phase to finish.",
+    ),
+    poll_interval_seconds: int = typer.Option(
+        30,
+        "--poll-interval-seconds",
+        help="Seconds between workflow status polls.",
+    ),
+    catalog_config: Optional[Path] = typer.Option(
+        None,
+        "--catalog-config",
+        help="Path to daylily_pipeline_command_catalog.yaml.",
+    ),
+) -> None:
+    """Run command-catalog prep tests on a cluster with exported evidence."""
+
+    from daylily_ec.tests_runner import (
+        CommandCatalogOptions,
+        RenderedPhase,
+        TestsRunnerError,
+        WorkflowLaunchMetadata,
+        run_command_catalog,
+    )
+
+    _warn_if_dayec_env_inactive()
+
+    def status_reader(
+        metadata: WorkflowLaunchMetadata,
+        phase: RenderedPhase,
+    ) -> dict[str, Any]:
+        session_name = metadata.session_name or phase.session_name
+        result = _read_workflow_file(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            session=session_name,
+            run_dir=None if session_name else (metadata.run_dir or None),
+            filename="status.json",
+        )
+        return _parse_workflow_status_payload(result.stdout)
+
+    try:
+        result = run_command_catalog(
+            CommandCatalogOptions(
+                cluster=cluster,
+                profile=profile,
+                region=region,
+                command_codes=command_codes,
+                evidence_s3_uri=evidence_s3_uri,
+                dry_run_only=dry_run,
+                create_missing_mounts=create_missing_mounts,
+                parallel=parallel,
+                jobs=jobs,
+                max_runtime_minutes=max_runtime_minutes,
+                executing_entity=executing_entity,
+                output_dir=output_dir,
+                stamp=stamp,
+                timeout_minutes=timeout_minutes,
+                poll_interval_seconds=poll_interval_seconds,
+                catalog_config=catalog_config,
+            ),
+            launch_func=_invoke_workflow_launch,
+            status_func=status_reader,
+        )
+    except (TestsRunnerError, RuntimeError, ValueError) as exc:
+        _exit_headnode_error(exc)
+
+    payload = result.to_payload()
+    if _json_mode():
+        output.emit_json(payload)
+    else:
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+    raise typer.Exit(result.rc)
+
+
+def tests_command_catalog_performance(
+    benchmark_rows_tsv: Path = typer.Option(
+        ...,
+        "--benchmark-rows",
+        help="Command-catalog benchmark_rows.tsv produced from DayOA benchmark files.",
+    ),
+    rule_summary_tsv: Optional[Path] = typer.Option(
+        None,
+        "--rule-summary",
+        help="Optional rule_resource_summary.tsv with per-rule recommendations and packing.",
+    ),
+    slurm_jobs_tsv: Optional[Path] = typer.Option(
+        None,
+        "--slurm-jobs",
+        help="Optional slurm_jobs_with_packing.tsv with job/node packing evidence.",
+    ),
+    dyec_version: str = typer.Option(..., "--dyec-version", help="DYEC version key to record."),
+    dayoa_version: str = typer.Option("", "--dayoa-version", help="DayOA version/ref under test."),
+    cluster: str = typer.Option("", "--cluster", "--cluster-name", help="Cluster name."),
+    run_id: str = typer.Option("", "--run-id", help="Command-catalog run id or stamp."),
+    output_dir: Path = typer.Option(
+        ...,
+        "--output-dir",
+        help="Directory for command_catalog_performance_profile.json and summary TSV.",
+    ),
+    history_json: Optional[Path] = typer.Option(
+        None,
+        "--history-json",
+        help="Historical comparator JSON keyed by DYEC version.",
+    ),
+    catalog_config: Optional[Path] = typer.Option(
+        None,
+        "--catalog-config",
+        help="Path to daylily_pipeline_command_catalog.yaml.",
+    ),
+    command_id: Optional[List[str]] = typer.Option(
+        None,
+        "--command-id",
+        help="Explicit command id to include; repeatable. Defaults to ids present in TSVs.",
+    ),
+    include_all_catalog_commands: bool = typer.Option(
+        False,
+        "--include-all-catalog-commands",
+        help="Include every catalog command even if no benchmark rows were captured.",
+    ),
+    dev_command_id: Optional[List[str]] = typer.Option(
+        None,
+        "--dev-command-id",
+        help="Command id to classify as the dev evidence cohort; repeatable.",
+    ),
+    prod_command_id: Optional[List[str]] = typer.Option(
+        None,
+        "--prod-command-id",
+        help="Command id to force into the prod evidence cohort; repeatable.",
+    ),
+    captured_at: Optional[str] = typer.Option(
+        None,
+        "--captured-at",
+        help="Optional UTC timestamp to store in the profile.",
+    ),
+    replace_existing_version: bool = typer.Option(
+        False,
+        "--replace-existing-version",
+        help="Replace an existing dyec_versions[--dyec-version] history entry.",
+    ),
+) -> None:
+    """Summarize command-catalog benchmarks and update the performance history."""
+
+    from daylily_ec.command_catalog_performance import (
+        CommandCatalogPerformanceError,
+        CommandCatalogPerformanceOptions,
+        build_command_catalog_performance_profile,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        profile = build_command_catalog_performance_profile(
+            CommandCatalogPerformanceOptions(
+                benchmark_rows_tsv=benchmark_rows_tsv,
+                rule_summary_tsv=rule_summary_tsv,
+                slurm_jobs_tsv=slurm_jobs_tsv,
+                dyec_version=dyec_version,
+                dayoa_version=dayoa_version,
+                cluster=cluster,
+                run_id=run_id,
+                output_dir=output_dir,
+                history_json=history_json,
+                catalog_config=catalog_config,
+                command_ids=tuple(command_id or []),
+                include_all_catalog_commands=include_all_catalog_commands,
+                dev_command_ids=frozenset(dev_command_id or []),
+                prod_command_ids=frozenset(prod_command_id or []),
+                captured_at=captured_at,
+                replace_existing_version=replace_existing_version,
+            )
+        )
+    except (CommandCatalogPerformanceError, RuntimeError, ValueError) as exc:
+        _exit_headnode_error(exc)
+
+    if _json_mode():
+        output.emit_json(profile)
+    else:
+        typer.echo(json.dumps(profile, indent=2, sort_keys=True))
+
+
 def register(registry, cli_spec) -> None:
     _ = cli_spec
     register_root_command(
@@ -3523,7 +5714,10 @@ def register(registry, cli_spec) -> None:
         registry,
         "pricing",
         "Spot pricing inspection helpers.",
-        [("snapshot", pricing_snapshot, REQUIRED_JSON)],
+        [
+            ("snapshot", pricing_snapshot, REQUIRED_JSON),
+            ("spot-logs", pricing_spot_logs, required_policy(supports_json=True)),
+        ],
     )
     register_group_commands(
         registry,
@@ -3559,6 +5753,60 @@ def register(registry, cli_spec) -> None:
                 slurm_accounting_ensure,
                 required_policy(supports_json=True, mutates_state=True, long_running=True),
             ),
+            (
+                "attach",
+                slurm_accounting_attach,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "cost-centers",
+        "Global cost-center registry helpers.",
+        [
+            (
+                "ensure-registry",
+                cost_centers_ensure_registry,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "create",
+                cost_centers_create,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
+                "edit",
+                cost_centers_edit,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
+                "disable",
+                cost_centers_disable,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            ("show", cost_centers_show, REQUIRED_JSON),
+            ("list", cost_centers_list, REQUIRED_JSON),
+            ("usage", cost_centers_usage, REQUIRED_JSON),
+            (
+                "put-usage",
+                cost_centers_put_usage,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
+                "refresh-usage",
+                cost_centers_refresh_usage,
+                required_policy(
+                    supports_json=True,
+                    mutates_state=True,
+                    long_running=True,
+                ),
+            ),
+            (
+                "ensure-cur-export",
+                cost_centers_ensure_cur_export,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
         ],
     )
     register_group_commands(
@@ -3569,6 +5817,11 @@ def register(registry, cli_spec) -> None:
             ("list", cluster_list, REQUIRED_JSON),
             ("describe", cluster_describe, REQUIRED_JSON),
             ("wait", cluster_wait, REQUIRED_LONG_RUNNING),
+            (
+                "tags",
+                cluster_tags,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
         ],
     )
     register_group_commands(
@@ -3581,6 +5834,7 @@ def register(registry, cli_spec) -> None:
             ("info", headnode_info, REQUIRED_JSON),
             ("jobs", headnode_jobs, required_policy()),
             ("configure", headnode_configure, REQUIRED_MUTATING_LONG_RUNNING),
+            ("configure-dragen", headnode_configure_dragen, REQUIRED_MUTATING_LONG_RUNNING),
         ],
     )
     register_group_commands(
@@ -3600,6 +5854,12 @@ def register(registry, cli_spec) -> None:
             ("launch", workflow_launch, REQUIRED_MUTATING_LONG_RUNNING),
             ("status", workflow_status, REQUIRED_JSON),
             ("logs", workflow_logs, required_policy()),
+            (
+                "collect-benchmarks",
+                workflow_collect_benchmarks,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            ("stop", workflow_stop, required_policy(supports_json=True, mutates_state=True)),
         ],
     )
     register_group_commands(
@@ -3607,6 +5867,24 @@ def register(registry, cli_spec) -> None:
         "repositories",
         "Repository catalog and blessed analysis command helpers.",
         [("commands", repositories_commands, EXEMPT_JSON)],
+    )
+    register_group_commands(
+        registry,
+        "tests",
+        "Local and cluster prep-test helpers.",
+        [
+            ("pytest", tests_pytest, REQUIRED_LONG_RUNNING),
+            (
+                "command-catalog",
+                tests_command_catalog,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "command-catalog-performance",
+                tests_command_catalog_performance,
+                EXEMPT_JSON,
+            ),
+        ],
     )
     register_group_commands(
         registry,
@@ -3674,6 +5952,43 @@ def register(registry, cli_spec) -> None:
         [
             ("list", state_list, EXEMPT_JSON),
             ("show", state_show, EXEMPT_JSON),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "analysis",
+        "Analysis-root visit logging and ownership guards.",
+        [
+            ("visit", analysis_visit, required_policy(supports_json=True, mutates_state=True)),
+            ("guard", analysis_guard, required_policy(mutates_state=True)),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "analysis/lock",
+        "Analysis-root write-lock helpers.",
+        [
+            ("status", analysis_lock_status, required_policy(supports_json=True)),
+            (
+                "acquire",
+                analysis_lock_acquire,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
+                "release",
+                analysis_lock_release,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
+                "heartbeat",
+                analysis_lock_heartbeat,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
+                "takeover",
+                analysis_lock_takeover,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
         ],
     )
 

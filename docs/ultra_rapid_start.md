@@ -22,7 +22,13 @@ export EXPORT_DIR="$PWD/tmp-export/$ANALYSIS_ID"
 export EXPORT_S3_URI="$ANALYSIS_RESULTS_S3_URI/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID/"
 
 dyec preflight --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
-dyec create --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
+dyec create \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --config "$DAY_EX_CFG" \
+  --global-spot-max-cost 9.99 \
+  --spot-cost-limit-pct 1.7 \
+  --write-spot-pricing-warn-threshold 6.00
 
 dyec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
@@ -39,7 +45,7 @@ dyec workflow launch \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 2.0.44 \
+  --git-tag 8.0.0 \
   --genome hg38_broad \
   --target produce_alignstats
 

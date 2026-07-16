@@ -1,0 +1,22 @@
+{
+    "CommandId": "0aaee4c8-166d-467a-920b-05863bedf80d",
+    "InstanceId": "i-05374380b57fad901",
+    "Comment": "inspect cache prefix",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 2,
+    "ExecutionStartDateTime": "2026-06-06T06:26:36.290Z",
+    "ExecutionElapsedTime": "PT4.413S",
+    "ExecutionEndDateTime": "2026-06-06T06:26:40.290Z",
+    "Status": "Failed",
+    "StatusDetails": "Failed",
+    "StandardOutputContent": "DAY-EC activated.\nDAY-EC activated.\nUSER=jmajor\nHOST=Johns-MacBook-Pro.local\nPWD=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster\nFSX_RESOURCES=\nFSX_REFERENCES=\n/fsx/resources\ndrwxr-xr-x 3 root root 33280 Jun  6 00:09 /fsx/resources\n/fsx/resources/environments\ndrwxrwxrwt 6 root root 33280 Jun  6 00:18 /fsx/resources/environments\n/fsx/resources/environments/conda\ndrwxrwxrwt 4 root root 33280 Jun  6 00:18 /fsx/resources/environments/conda\n/fsx/references/runtime_assets\ndr-xr-xr-x 6 root root 33280 Jun  6 00:15 /fsx/references/runtime_assets\n/fsx/references/runtime_assets/cached_envs\ndrwxr-xr-x 10 root root 33280 Jun  6 00:15 /fsx/references/runtime_assets/cached_envs\n/fsx/references/runtime_assets/cluster_boot_config\ndrwxr-xr-x 3 root root 33280 Jun  6 00:17 /fsx/references/runtime_assets/cluster_boot_config\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "/tmp/daylily-ssm-M8zXMy.sh: line 13: printf: --: invalid option\nprintf: usage: printf [-v var] format [arguments]\nfailed to run commands: exit status 2",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}

@@ -1,0 +1,12 @@
+/Users/jmajor/projects/lsmc/offwithyou-seqnas-xfer/AGENTS.md
+/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/AGENTS.md
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/AGENTS.md
+/Users/jmajor/projects/lsmc/archived/MultiQC/AGENTS.md
+/Users/jmajor/projects/lsmc/archived/MultiQC/CLAUDE.md
+/Users/jmajor/projects/lsmc/archived/lsmc-asterism/AGENTS.md
+/Users/jmajor/projects/lsmc/archived/daylily-ephemeral-cluster/AGENTS.md
+/Users/jmajor/projects/lsmc/archived/qeo/AGENTS.md
+/Users/jmajor/projects/lsmc/archived/terrarium/AGENTS.md
+/Users/jmajor/projects/lsmc/archived/daylily-omics-analysis/AGENTS.md
+/Users/jmajor/projects/lsmc/archived/daylily-ursa/AGENTS.md
+/Users/jmajor/projects/lsmc/archived/AGENTS.md

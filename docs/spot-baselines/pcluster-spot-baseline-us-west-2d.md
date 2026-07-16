@@ -1,0 +1,46 @@
+# ParallelCluster Spot Baseline: us-west-2d
+
+- Region: `us-west-2`
+- Availability Zone: `us-west-2d`
+- Cluster config: `config/day_cluster/prod_cluster_v8.yaml`
+- CSV: `docs/spot-baselines/pcluster-spot-baseline-us-west-2d.csv`
+
+| queue | compute_resource | instance_type | az | spot_price_per_hour | spot_timestamp | vcpu | memory_gib | local_scratch_summary | local_scratch_total_tb | network_performance | ebs_optimized_bandwidth |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| i8 | r7gb64 | r7i.2xlarge | us-west-2d | 0.222500 | 2026-06-07T08:00:04.000Z | 8 | 64.0 | none | 0.0 | Up to 12.5 Gigabit | 2500 |
+| i8 | r6gb64 | r6i.2xlarge | us-west-2d | 0.157600 | 2026-06-07T17:00:21.000Z | 8 | 64.0 | none | 0.0 | Up to 12.5 Gigabit | 2500 |
+| i128 | c128 | c6i.32xlarge | us-west-2d | 1.703400 | 2026-06-07T17:01:17.000Z | 128 | 256.0 | none | 0.0 | 50 Gigabit | 40000 |
+| i128 | c128 | c6i.metal | us-west-2d | 1.517100 | 2026-06-07T19:00:40.000Z | 128 | 256.0 | none | 0.0 | 50 Gigabit | 40000 |
+| i128 | m128 | m6i.32xlarge | us-west-2d | 1.340300 | 2026-06-07T18:00:12.000Z | 128 | 512.0 | none | 0.0 | 50 Gigabit | 40000 |
+| i128 | m128 | m6i.metal | us-west-2d | 0.954000 | 2026-06-07T17:00:43.000Z | 128 | 512.0 | none | 0.0 | 50 Gigabit | 40000 |
+| i128 | r128 | r6i.32xlarge | us-west-2d | 2.381000 | 2026-06-07T14:00:40.000Z | 128 | 1024.0 | none | 0.0 | 50 Gigabit | 40000 |
+| i128 | r128 | r6i.metal | us-west-2d | 1.339000 | 2026-06-07T19:00:28.000Z | 128 | 1024.0 | none | 0.0 | 50 Gigabit | 40000 |
+| i128nvme | i4i128 | i4i.32xlarge | us-west-2d | 2.344200 | 2026-06-07T18:00:53.000Z | 128 | 1024.0 | 8x3750GB | 29.297 | 75 Gigabit | 40000 |
+| i192 | c192 | c7i.48xlarge | us-west-2d | 3.053200 | 2026-06-07T17:00:06.000Z | 192 | 384.0 | none | 0.0 | 50 Gigabit | 40000 |
+| i192 | c192 | c7i.metal-48xl | us-west-2d | 2.483000 | 2026-06-07T14:00:47.000Z | 192 | 384.0 | none | 0.0 | 50 Gigabit | 40000 |
+| i192 | c192 | c8i.48xlarge | us-west-2d | 3.368600 | 2026-06-07T08:00:57.000Z | 192 | 384.0 | none | 0.0 | 75 Gigabit | 60000 |
+| i192 | c192 | c8i.metal-48xl | us-west-2d | 2.529700 | 2026-06-07T14:00:57.000Z | 192 | 384.0 | none | 0.0 | 75 Gigabit | 60000 |
+| i192 | m192 | m7i.48xlarge | us-west-2d | 3.774100 | 2026-06-07T13:01:13.000Z | 192 | 768.0 | none | 0.0 | 50 Gigabit | 40000 |
+| i192 | m192 | m7i.metal-48xl | us-west-2d | 3.214000 | 2026-06-07T13:00:28.000Z | 192 | 768.0 | none | 0.0 | 50 Gigabit | 40000 |
+| i192 | m192 | m8i.48xlarge | us-west-2d | 3.211400 | 2026-06-07T19:00:46.000Z | 192 | 768.0 | none | 0.0 | 75 Gigabit | 60000 |
+| i192 | m192 | m8i.metal-48xl | us-west-2d | 3.089000 | 2026-06-07T17:00:10.000Z | 192 | 768.0 | none | 0.0 | 75 Gigabit | 60000 |
+| i192 | r192 | r7i.48xlarge | us-west-2d | 4.211800 | 2026-06-07T15:00:15.000Z | 192 | 1536.0 | none | 0.0 | 50 Gigabit | 40000 |
+| i192 | r192 | r7i.metal-48xl | us-west-2d | 3.847300 | 2026-06-07T19:00:40.000Z | 192 | 1536.0 | none | 0.0 | 50 Gigabit | 40000 |
+| i192 | r192 | r8i.48xlarge | us-west-2d | 3.994100 | 2026-06-07T18:00:58.000Z | 192 | 1536.0 | none | 0.0 | 75 Gigabit | 60000 |
+| i192 | r192 | r8i.metal-48xl | us-west-2d | 2.011700 | 2026-06-07T14:00:22.000Z | 192 | 1536.0 | none | 0.0 | 75 Gigabit | 60000 |
+| i192nvme | c8id192 | c8id.48xlarge | us-west-2d | 3.468700 | 2026-06-07T15:00:42.000Z | 192 | 384.0 | 3x3800GB | 11.133 | 75 Gigabit | 60000 |
+| i192nvme | c8id192 | c8id.metal-48xl | us-west-2d | 2.023800 | 2026-06-07T15:00:59.000Z | 192 | 384.0 | 3x3800GB | 11.133 | 75 Gigabit | 60000 |
+| i192nvme | m8id192 | m8id.48xlarge | us-west-2d | 2.556900 | 2026-06-07T17:01:24.000Z | 192 | 768.0 | 3x3800GB | 11.133 | 75 Gigabit | 60000 |
+| i192nvme | m8id192 | m8id.metal-48xl | us-west-2d | 3.598800 | 2026-06-07T18:00:40.000Z | 192 | 768.0 | 3x3800GB | 11.133 | 75 Gigabit | 60000 |
+| i192nvme | r8id192 | r8id.48xlarge | us-west-2d | 3.216800 | 2026-06-07T15:00:50.000Z | 192 | 1536.0 | 3x3800GB | 11.133 | 75 Gigabit | 60000 |
+| i192nvme | r8id192 | r8id.metal-48xl | us-west-2d | 2.095000 | 2026-06-07T15:00:54.000Z | 192 | 1536.0 | 3x3800GB | 11.133 | 75 Gigabit | 60000 |
+| i384nvme | c8id384 | c8id.96xlarge | us-west-2d | 3.542800 | 2026-06-07T15:00:31.000Z | 384 | 768.0 | 6x3800GB | 22.266 | 100 Gigabit | 80000 |
+| i384nvme | c8id384 | c8id.metal-96xl | us-west-2d | 3.075100 | 2026-06-07T18:00:25.000Z | 384 | 768.0 | 6x3800GB | 22.266 | 100 Gigabit | 80000 |
+| i384nvme | m8id384 | m8id.96xlarge | us-west-2d | 6.948400 | 2026-06-07T19:00:28.000Z | 384 | 1536.0 | 6x3800GB | 22.266 | 100 Gigabit | 80000 |
+| i384nvme | m8id384 | m8id.metal-96xl | us-west-2d | 4.263400 | 2026-06-07T18:00:26.000Z | 384 | 1536.0 | 6x3800GB | 22.266 | 100 Gigabit | 80000 |
+| i384nvme | r8id384 | r8id.96xlarge | us-west-2d | 4.384600 | 2026-06-07T18:00:13.000Z | 384 | 3072.0 | 6x3800GB | 22.266 | 100 Gigabit | 80000 |
+| i384nvme | r8id384 | r8id.metal-96xl | us-west-2d | 3.743100 | 2026-06-07T16:00:55.000Z | 384 | 3072.0 | 6x3800GB | 22.266 | 100 Gigabit | 80000 |
+| i192hugenvme | i7i192 | i7i.48xlarge | us-west-2d | 3.200400 | 2026-06-07T16:00:22.000Z | 192 | 1536.0 | 12x3750GB | 43.945 | Up to 100 Gigabit | 60000 |
+| i192hugenvme | i7i192 | i7i.metal-48xl | us-west-2d | 3.526800 | 2026-06-07T17:00:38.000Z | 192 | 1536.0 | 12x3750GB | 43.945 | Up to 100 Gigabit | 60000 |
+| i192hugenvme | i7ie192 | i7ie.48xlarge | us-west-2d | 4.621800 | 2026-06-07T16:00:56.000Z | 192 | 1536.0 | 16x7500GB | 117.188 | 100 Gigabit | 60000 |
+| i192hugenvme | i7ie192 | i7ie.metal-48xl | us-west-2d | 3.474600 | 2026-06-07T16:00:56.000Z | 192 | 1536.0 | 16x7500GB | 117.188 | 100 Gigabit | 60000 |

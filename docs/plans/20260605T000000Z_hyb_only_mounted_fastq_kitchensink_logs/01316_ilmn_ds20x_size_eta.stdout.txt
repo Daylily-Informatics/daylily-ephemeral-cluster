@@ -1,0 +1,55 @@
+DAY-EC activated.
+DAY-EC activated.
+sample	mate	current_GB	expected_GB	pct_expected
+NA00232	R1	3.46	19.05	18.2
+NA00232	R2	3.57	19.61	18.2
+NA09677	R1	3.75	19.62	19.1
+NA09677	R2	3.91	20.40	19.2
+NA03986	R1	3.72	19.60	19.0
+NA03986	R2	3.93	20.57	19.1
+NA05164	R1	4.35	19.65	22.1
+NA05164	R2	4.56	20.46	22.3
+
+PROGRESS
+--- NA00232.downsample.log
+NA00232	processed=117000000	kept=54418094
+NA00232	processed=118000000	kept=54883504
+NA00232	processed=119000000	kept=55348184
+NA00232	processed=120000000	kept=55812908
+NA00232	processed=121000000	kept=56278133
+--- NA03986.downsample.log
+NA03986	processed=104000000	kept=59106531
+NA03986	processed=105000000	kept=59674784
+NA03986	processed=106000000	kept=60242978
+NA03986	processed=107000000	kept=60811224
+NA03986	processed=108000000	kept=61378760
+--- NA05164.downsample.log
+NA05164	processed=114000000	kept=69284740
+NA05164	processed=115000000	kept=69892571
+NA05164	processed=116000000	kept=70500310
+NA05164	processed=117000000	kept=71107630
+NA05164	processed=118000000	kept=71714932
+--- NA09677.downsample.log
+NA09677	processed=118000000	kept=59365594
+NA09677	processed=119000000	kept=59868706
+NA09677	processed=120000000	kept=60372384
+NA09677	processed=121000000	kept=60875587
+NA09677	processed=122000000	kept=61378502
+
+PROCS
+ubuntu    530802  530797 99 11:05 pts/15   00:13:14 python3 /fsx/analysis_results/4_nas_ds_to_20x/scripts/paired_downsample_fastq.py --sample NA00232 --r1 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R1_001.fastq.gz --r2 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R2_001.fastq.gz --out-r1 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA00232.R1.530789.fastq.gz --out-r2 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA00232.R2.530789.fastq.gz --fraction 0.4651162791 --seed 2302 --pigz-threads 4
+ubuntu    530806  530799 99 11:05 pts/15   00:13:14 python3 /fsx/analysis_results/4_nas_ds_to_20x/scripts/paired_downsample_fastq.py --sample NA09677 --r1 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R1_001.fastq.gz --r2 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R2_001.fastq.gz --out-r1 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA09677.R1.530789.fastq.gz --out-r2 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA09677.R2.530789.fastq.gz --fraction 0.5031446541 --seed 9677 --pigz-threads 4
+ubuntu    530807  530801 99 11:05 pts/15   00:13:14 python3 /fsx/analysis_results/4_nas_ds_to_20x/scripts/paired_downsample_fastq.py --sample NA03986 --r1 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA03986-DMPK_S48_R1_001.fastq.gz --r2 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA03986-DMPK_S48_R2_001.fastq.gz --out-r1 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA03986.R1.530789.fastq.gz --out-r2 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA03986.R2.530789.fastq.gz --fraction 0.5683432793 --seed 3986 --pigz-threads 4
+ubuntu    530809  530804 99 11:05 pts/15   00:13:14 python3 /fsx/analysis_results/4_nas_ds_to_20x/scripts/paired_downsample_fastq.py --sample NA05164 --r1 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA05164-DMPK_S49_R1_001.fastq.gz --r2 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA05164-DMPK_S49_R2_001.fastq.gz --out-r1 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA05164.R1.530789.fastq.gz --out-r2 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA05164.R2.530789.fastq.gz --fraction 0.6077195381 --seed 5164 --pigz-threads 4
+ubuntu    530810  530802 99 11:05 pts/15   00:19:44 pigz -p 4 -c
+ubuntu    530811  530802 99 11:05 pts/15   00:20:24 pigz -p 4 -c
+ubuntu    530812  530806 99 11:05 pts/15   00:21:20 pigz -p 4 -c
+ubuntu    530813  530806 99 11:05 pts/15   00:22:19 pigz -p 4 -c
+ubuntu    530817  530807 99 11:05 pts/15   00:21:09 pigz -p 4 -c
+ubuntu    530819  530807 99 11:05 pts/15   00:22:22 pigz -p 4 -c
+ubuntu    530820  530809 99 11:05 pts/15   00:24:36 pigz -p 4 -c
+ubuntu    530822  530809 99 11:05 pts/15   00:25:56 pigz -p 4 -c
+
+DF
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  1.3T  7.5T  15% /fsx

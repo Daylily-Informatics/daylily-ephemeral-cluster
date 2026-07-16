@@ -6,6 +6,7 @@ ephemeral_cluster:
     export_destination_s3_uri: [PROMPTUSER, "", ""]
     public_subnet_id: [PROMPTUSER, "", ""]
     private_subnet_id: [PROMPTUSER, "", ""]
+    pcluster_backport_manifest: [PROMPTUSER, "", ""]
     iam_policy_arn: [PROMPTUSER, "", ""]
     cluster_name: [PROMPTUSER, "majors-cluster", ""]
     budget_email: [PROMPTUSER, "", ""]
@@ -13,12 +14,26 @@ ephemeral_cluster:
     budget_amount: [PROMPTUSER, "200", ""]
     global_allowed_budget_users: [PROMPTUSER, "ubuntu", ""]
     global_budget_amount: [PROMPTUSER, "200", ""]
-    enforce_budget: [PROMPTUSER, "skip", ""]
-    cluster_template_yaml: [PROMPTUSER, "config/day_cluster/prod_cluster.yaml", ""]
+    enforce_budget: [PROMPTUSER, "true", ""]
+    cluster_template_yaml: [PROMPTUSER, "", ""]
     headnode_instance_type: [PROMPTUSER, "r7i.2xlarge", ""]
-    fsx_fs_size: [PROMPTUSER, "4800", ""]
+    fsx_fs_size: [USESETVALUE, "", "4800"]
+    fsx_deployment_type: [USESETVALUE, "", "PERSISTENT_2"]
+    fsx_throughput_mbps_per_tib: [USESETVALUE, "", "250"]
+    fsx_lustre_version: [USESETVALUE, "", "2.15"]
+    fsx_metadata_mode: [USESETVALUE, "", "AUTOMATIC"]
+    fsx_encryption_mode: [USESETVALUE, "", "AWS_MANAGED_FSX"]
+    fsx_owner: [USESETVALUE, "", "DYEC"]
+    fsx_lifecycle: [USESETVALUE, "", "CLUSTER_BOUND"]
+    sweep_protection_tag: [USESETVALUE, "", "ursa-preserve=true"]
     enable_detailed_monitoring: [PROMPTUSER, "false", ""]
     delete_local_root: [PROMPTUSER, "true", ""] # false or true
+    dragen_license_policy_arn: [PROMPTUSER, "", ""]
+    dragen_license_secret_arn: [PROMPTUSER, "", ""]
+    dyec_deploy_key_policy_arn: [USESETVALUE, "", "arn:aws:iam::108782052779:policy/DayECHeadnodeGitHubClone"]
+    dyec_deploy_key_secret_arn: [USESETVALUE, "", "arn:aws:secretsmanager:us-west-2:108782052779:secret:dayec/github-deploy-keys/lsmc-bio/daylily-ephemeral-cluster-pE4FFN"]
+    dayoa_deploy_key_policy_arn: [USESETVALUE, "", "arn:aws:iam::108782052779:policy/DayECHeadnodeGitHubClone"]
+    dayoa_deploy_key_secret_arn: [USESETVALUE, "", "arn:aws:secretsmanager:us-west-2:108782052779:secret:dayec/github-deploy-keys/lsmc-bio-daylily-omics-analysis-igtfHD"]
     auto_delete_fsx: [PROMPTUSER, "Delete", ""] # Delete or Retain
     heartbeat_email: [PROMPTUSER, "", ""]
     heartbeat_schedule: [PROMPTUSER, "rate(60 minutes)", ""]
@@ -31,8 +46,24 @@ ephemeral_cluster:
     slurm_accounting_db_username: [PROMPTUSER, "slurm_acct", ""]
     slurm_accounting_instance_type: [PROMPTUSER, "t4g.micro", ""]
     max_count_8I: [PROMPTUSER, "1", ""]
+    max_count_96I_NVME: [PROMPTUSER, "1", ""]
     max_count_128I: [PROMPTUSER, "1", ""]
     max_count_192I: [PROMPTUSER, "1", ""]
+    max_count_384I: [PROMPTUSER, "1", ""]
+    max_count_128I_C: [PROMPTUSER, "1", ""]
+    max_count_128I_M: [PROMPTUSER, "1", ""]
+    max_count_128I_R: [PROMPTUSER, "1", ""]
+    max_count_128I_NVME: [PROMPTUSER, "1", ""]
+    max_count_192I_C: [PROMPTUSER, "1", ""]
+    max_count_192I_M: [PROMPTUSER, "1", ""]
+    max_count_192I_R: [PROMPTUSER, "1", ""]
+    max_count_192I_NVME_C: [PROMPTUSER, "1", ""]
+    max_count_192I_NVME_M: [PROMPTUSER, "1", ""]
+    max_count_192I_NVME_R: [PROMPTUSER, "1", ""]
+    max_count_192I_HUGENVME: [PROMPTUSER, "1", ""]
+    max_count_384I_NVME_C: [PROMPTUSER, "1", ""]
+    max_count_384I_NVME_M: [PROMPTUSER, "1", ""]
+    max_count_384I_NVME_R: [PROMPTUSER, "1", ""]
   template_defaults:
     # keep as you had; these are fallbacks if default_value is empty
     headnode_instance_type: "r7i.2xlarge"
@@ -48,5 +79,21 @@ ephemeral_cluster:
     slurm_accounting_db_username: "slurm_acct"
     slurm_accounting_instance_type: "t4g.micro"
     max_count_8I: "1"
+    max_count_96I_NVME: "1"
     max_count_128I: "1"
     max_count_192I: "1"
+    max_count_384I: "1"
+    max_count_128I_C: "1"
+    max_count_128I_M: "1"
+    max_count_128I_R: "1"
+    max_count_128I_NVME: "1"
+    max_count_192I_C: "1"
+    max_count_192I_M: "1"
+    max_count_192I_R: "1"
+    max_count_192I_NVME_C: "1"
+    max_count_192I_NVME_M: "1"
+    max_count_192I_NVME_R: "1"
+    max_count_192I_HUGENVME: "1"
+    max_count_384I_NVME_C: "1"
+    max_count_384I_NVME_M: "1"
+    max_count_384I_NVME_R: "1"

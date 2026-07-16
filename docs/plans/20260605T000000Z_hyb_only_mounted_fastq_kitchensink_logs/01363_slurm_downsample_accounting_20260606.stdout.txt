@@ -1,0 +1,40 @@
+DAY-EC activated.
+DAY-EC activated.
+NOW_UTC	2026-06-06T12:24:07Z
+
+## SQUEUE_DS
+             JOBID PARTITION                         NAME ST         TIME  NODES NODELIST(REASON)
+             913_3      i192            ilmn_ds20x_seqkit  R         3:56      1 i192-dy-all-1
+             913_1      i192            ilmn_ds20x_seqkit  R        50:26      1 i192-dy-all-4
+             913_2      i192            ilmn_ds20x_seqkit  R        50:26      1 i192-dy-all-4
+
+## SACCT_DS
+
+## SCONTROL_914
+
+## FILES
+NA00232-SMN_S46_ds20x_R1_001.fastq.gz.seqkit.914_0.tmp.gz	15481420538	2026-06-06T12:10:44.0000000000
+NA03986-DMPK_S48_ds20x_R1_001.fastq.gz.seqkit.916_2.tmp.gz	17473881214	2026-06-06T12:00:29.0000000000
+NA03986-DMPK_S48_ds20x_R2_001.fastq.gz.seqkit.916_2.tmp.gz	17039778443	2026-06-06T12:24:07.0000000000
+NA05164-DMPK_S49_ds20x_R1_001.fastq.gz.seqkit.913_3.tmp.gz	4171841819	2026-06-06T12:24:07.0000000000
+NA09677-SMN_S47_ds20x_R1_001.fastq.gz.seqkit.915_1.tmp.gz	17645396330	2026-06-06T12:17:20.0000000000
+NA09677-SMN_S47_ds20x_R2_001.fastq.gz.seqkit.915_1.tmp.gz	7043325088	2026-06-06T12:24:07.0000000000
+downsample_plan.tsv	1489	2026-06-06T11:05:20.0000000000
+downsample_plan_seqkit.tsv	1489	2026-06-06T11:29:59.0000000000
+
+## LOGS_914
+--- /fsx/analysis_results/4_nas_ds_to_20x/logs/seqkit_913_0.out
+/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_/bin/seqkit
+seqkit v2.9.0
+SLURM_JOB_ID=914
+SLURM_ARRAY_TASK_ID=0
+SLURM_CPUS_PER_TASK=96
+HOSTNAME=i192-dy-all-3
+START_UTC=2026-06-06T11:30:01Z
+sample=NA00232 target_cov=20 source_cov=43.00 fraction=0.4651162791 seed=2302
+r1=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R1_001.fastq.gz
+r2=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R2_001.fastq.gz
+out_r1=/fsx/analysis_results/4_nas_ds_to_20x/NA00232-SMN_S46_ds20x_R1_001.fastq.gz
+out_r2=/fsx/analysis_results/4_nas_ds_to_20x/NA00232-SMN_S46_ds20x_R2_001.fastq.gz
+--- /fsx/analysis_results/4_nas_ds_to_20x/logs/seqkit_913_0.err
+[INFO][0m sample by proportion

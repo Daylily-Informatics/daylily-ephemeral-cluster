@@ -1,0 +1,8 @@
+DAY-EC activated.
+DAY-EC activated.
+before_remaining
+after_remaining
+scratch_dirs
+df
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  254G  8.5T   3% /fsx

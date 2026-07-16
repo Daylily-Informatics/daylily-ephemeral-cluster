@@ -1,0 +1,5 @@
+Usage: dyec headnode [OPTIONS] COMMAND [ARGS]...
+Try 'dyec headnode --help' for help.
+
+Error: No such command 'run-shell'.
+ERROR conda.cli.main_run:execute(148): `conda run dyec headnode run-shell --profile lsmc --region us-west-2 --cluster hyb-only --command df -h /fsx` failed. (See above for error)

@@ -1,0 +1,26 @@
+112:MANIFEST_REQUIRED_FIELDS = [
+167:    *MANIFEST_REQUIRED_FIELDS,
+2394:        missing_fields = [field for field in MANIFEST_REQUIRED_FIELDS if field not in header_fields]
+3133:        missing_fields = [field for field in MANIFEST_REQUIRED_FIELDS if field not in header_fields]
+3399:        missing_fields = [field for field in MANIFEST_REQUIRED_FIELDS if field not in header_fields]
+    LONGREADTRIM_MODE,
+    ULTIMA_CRAM_ALIGNER,
+    ULTIMA_CRAM_SNV_CALLER,
+    ULTIMA_SUBSAMPLE_PCT,
+    ONT_CRAM_ALIGNER,
+    ONT_CRAM_SNV_CALLER,
+    ONT_SUBSAMPLE_PCT,
+    PB_BAM_ALIGNER,
+    PB_BAM_SNV_CALLER,
+    ONT_BAM_ALIGNER,
+    ONT_BAM_SNV_CALLER,
+    ROCHE_BAM_ALIGNER,
+    ROCHE_BAM_SNV_CALLER,
+    ROCHE_DOWNSAMPLE_RATIO,
+]
+
+ALLOWED_MANIFEST_FIELDS = {
+    *MANIFEST_REQUIRED_FIELDS,
+    SAMPLESOURCE,
+    SAMPLECLASS,
+    BIOLOGICAL_SEX,

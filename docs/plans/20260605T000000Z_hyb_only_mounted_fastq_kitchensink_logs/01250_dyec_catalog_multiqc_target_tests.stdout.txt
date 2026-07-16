@@ -1,0 +1,8 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.12, pytest-9.0.3, pluggy-1.6.0
+rootdir: /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster
+configfile: pyproject.toml
+plugins: playwright-0.7.2, cov-7.1.0, typeguard-2.13.3, base-url-2.1.0, anyio-4.13.0
+collected 0 items
+
+============================ no tests ran in 0.00s =============================

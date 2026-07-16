@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf --config 'dedupers=[\"dmd\"]' -j 150 -p -k -T 0 -n",
+  "completed_at": "2026-06-07T17:27:25Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv_dryrun_hybrid_ilmn_ont_snv_20260607T171725Z/daylily-omics-analysis",
+  "session_name": "ccv_dryrun_hybrid_ilmn_ont_snv_20260607T171725Z",
+  "started_at": "2026-06-07T17:26:58Z"
+}

@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from pcluster.schemas.cluster_schema import ClusterSchema
 
 from daylily_ec.render.renderer import (
     ALL_SUBSTITUTION_KEYS,
@@ -14,6 +15,7 @@ from daylily_ec.render.renderer import (
     render_template,
     write_init_artifacts,
 )
+from daylily_ec.resources import INTEL_TEMPLATE_RELPATHS
 from daylily_ec.aws.slurm_accounting import (
     SlurmAccountingDb,
     empty_slurm_accounting_render_blocks,
@@ -48,7 +50,7 @@ def _full_subs() -> dict[str, str]:
 
 class TestConstants:
     def test_all_keys_count(self):
-        assert len(ALL_SUBSTITUTION_KEYS) == 33
+        assert len(ALL_SUBSTITUTION_KEYS) == 57
 
     def test_required_keys_subset(self):
         assert REQUIRED_KEYS.issubset(ALL_SUBSTITUTION_KEYS)
@@ -163,26 +165,51 @@ class TestAllSubstitutionKeys:
             "REGSUB_USERNAME",
             "REGSUB_PROJECT",
             "REGSUB_DELETE_LOCAL_ROOT",
+            "REGSUB_DRAGEN_PCLUSTER_AMI",
+            "REGSUB_DRAGEN_LICENSE_POLICY_ARN",
+            "REGSUB_DRAGEN_LICENSE_SECRET_ARN",
+            "REGSUB_PCLUSTER_COOKBOOK_URI",
             "REGSUB_SAVE_FSX",
             "REGSUB_ENFORCE_BUDGET",
+            "REGSUB_COST_CENTER_REGION",
+            "REGSUB_COST_CENTER_TABLE",
+            "REGSUB_COST_CENTER_USAGE_TABLE",
             "REGSUB_AWS_ACCOUNT_ID",
             "REGSUB_ALLOCATION_STRATEGY",
             "REGSUB_DAYLILY_GIT_DEETS",
             "REGSUB_MAX_COUNT_8I",
+            "REGSUB_MAX_COUNT_96I_NVME",
             "REGSUB_MAX_COUNT_128I",
             "REGSUB_MAX_COUNT_192I",
+            "REGSUB_MAX_COUNT_384I",
+            "REGSUB_MAX_COUNT_128I_C",
+            "REGSUB_MAX_COUNT_128I_M",
+            "REGSUB_MAX_COUNT_128I_R",
+            "REGSUB_MAX_COUNT_128I_NVME",
+            "REGSUB_MAX_COUNT_192I_C",
+            "REGSUB_MAX_COUNT_192I_M",
+            "REGSUB_MAX_COUNT_192I_R",
+            "REGSUB_MAX_COUNT_192I_NVME_C",
+            "REGSUB_MAX_COUNT_192I_NVME_M",
+            "REGSUB_MAX_COUNT_192I_NVME_R",
+            "REGSUB_MAX_COUNT_192I_HUGENVME",
+            "REGSUB_MAX_COUNT_384I_NVME_C",
+            "REGSUB_MAX_COUNT_384I_NVME_M",
+            "REGSUB_MAX_COUNT_384I_NVME_R",
             "REGSUB_HEADNODE_INSTANCE_TYPE",
             "REGSUB_HEARTBEAT_EMAIL",
             "REGSUB_HEARTBEAT_SCHEDULE",
             "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN",
             "REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING",
             "REGSUB_SLURM_ACCOUNTING_DATABASE",
+            "REGSUB_SPOT_PRICE_WARN_THRESHOLD",
         }
         assert ALL_SUBSTITUTION_KEYS == expected
 
     def test_accounting_disabled_template_has_no_dangling_tokens(self):
         template = (
-            Path(__file__).resolve().parents[1] / "config/day_cluster/prod_cluster.yaml"
+            Path(__file__).resolve().parents[1]
+            / "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
         ).read_text(encoding="utf-8")
         subs = _full_subs()
         subs.update(empty_slurm_accounting_render_blocks())
@@ -197,7 +224,8 @@ class TestAllSubstitutionKeys:
 
     def test_accounting_enabled_template_includes_slurm_database(self):
         template = (
-            Path(__file__).resolve().parents[1] / "config/day_cluster/prod_cluster.yaml"
+            Path(__file__).resolve().parents[1]
+            / "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
         ).read_text(encoding="utf-8")
         db = SlurmAccountingDb(
             stack_name="dayec-slurm-accounting-us-west-2b",
@@ -233,6 +261,146 @@ class TestAllSubstitutionKeys:
             ),
             "DatabaseName": "dayec_slurm_acct",
         }
+
+    def test_sentieon_single_template_renders_and_loads_parallelcluster_schema(
+        self, monkeypatch
+    ):
+        monkeypatch.setenv("AWS_DEFAULT_REGION", "us-west-2")
+        template = (
+            Path(__file__).resolve().parents[1]
+            / "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
+            "prod_cluster_sentieon-single_us-west-2c.yaml"
+        ).read_text(encoding="utf-8")
+        subs = _full_subs()
+        subs.update(empty_slurm_accounting_render_blocks())
+        subs.update(
+            {
+                "REGSUB_REGION": "us-west-2",
+                "REGSUB_PUB_SUBNET": "subnet-0123456789abcdef0",
+                "REGSUB_PRIVATE_SUBNET": "subnet-0123456789abcdef1",
+                "REGSUB_CLUSTER_NAME": "sentieon-test",
+                "REGSUB_HEADNODE_INSTANCE_TYPE": "r7i.2xlarge",
+                "REGSUB_S3_BUCKET_INIT": "s3://dayec-assets/cluster_boot_config",
+                "REGSUB_S3_IAM_POLICY": ("arn:aws:iam::123456789012:policy/dayec-cluster"),
+                "REGSUB_S3_REFERENCE_BUCKET": "dayec-references",
+                "REGSUB_S3_CONTROL_DATA_BUCKET": "dayec-controls",
+                "REGSUB_S3_STAGE_BUCKET": "dayec-stage",
+                "REGSUB_S3_EXPORT_BUCKET": "dayec-export",
+                "REGSUB_S3_REFERENCE_URI": "s3://dayec-references",
+                "REGSUB_DETAILED_MONITORING": "false",
+                "REGSUB_DELETE_LOCAL_ROOT": "true",
+                "REGSUB_SAVE_FSX": "Delete",
+                "REGSUB_ENFORCE_BUDGET": '"true"',
+                "REGSUB_SPOT_PRICE_WARN_THRESHOLD": '"8.00"',
+            }
+        )
+
+        rendered = render_template(template, subs)
+
+        assert "${" not in rendered
+        payload = yaml.safe_load(rendered)
+        for queue in payload["Scheduling"]["SlurmQueues"]:
+            queue["ComputeResources"][0]["SpotPrice"] = 8.0
+        cluster = ClusterSchema(cluster_name="sentieon-test").load(payload)
+        assert cluster.image.os == "ubuntu2204"
+        assert len(cluster.scheduling.queues) == 5
+        assert payload["SharedStorage"][0]["Name"] == "fsx-hiomrs"
+
+    def test_all_intel_az_templates_render_and_load_parallelcluster_schema(
+        self, monkeypatch
+    ):
+        repo_root = Path(__file__).resolve().parents[1]
+        for relative_path in INTEL_TEMPLATE_RELPATHS:
+            region_az = Path(relative_path).parent.name
+            region = region_az[:-1]
+            monkeypatch.setenv("AWS_DEFAULT_REGION", region)
+            template = (repo_root / relative_path).read_text(encoding="utf-8")
+            subs = _full_subs()
+            subs.update(empty_slurm_accounting_render_blocks())
+            subs.update(
+                {
+                    key: "1"
+                    for key in ALL_SUBSTITUTION_KEYS
+                    if key.startswith("REGSUB_MAX_COUNT_")
+                }
+            )
+            subs.update(
+                {
+                    "REGSUB_REGION": region,
+                    "REGSUB_PUB_SUBNET": "subnet-0123456789abcdef0",
+                    "REGSUB_PRIVATE_SUBNET": "subnet-0123456789abcdef1",
+                    "REGSUB_CLUSTER_NAME": "intel-schema-test",
+                    "REGSUB_HEADNODE_INSTANCE_TYPE": "r7i.2xlarge",
+                    "REGSUB_S3_BUCKET_INIT": "s3://dayec-assets/cluster_boot_config",
+                    "REGSUB_S3_IAM_POLICY": (
+                        "arn:aws:iam::123456789012:policy/dayec-cluster"
+                    ),
+                    "REGSUB_S3_REFERENCE_BUCKET": "dayec-references",
+                    "REGSUB_S3_CONTROL_DATA_BUCKET": "dayec-controls",
+                    "REGSUB_S3_STAGE_BUCKET": "dayec-stage",
+                    "REGSUB_S3_EXPORT_BUCKET": "dayec-export",
+                    "REGSUB_S3_REFERENCE_URI": "s3://dayec-references",
+                    "REGSUB_FSX_SIZE": "4800",
+                    "REGSUB_DETAILED_MONITORING": "false",
+                    "REGSUB_DELETE_LOCAL_ROOT": "true",
+                    "REGSUB_SAVE_FSX": "Delete",
+                    "REGSUB_ENFORCE_BUDGET": '"true"',
+                    "REGSUB_ALLOCATION_STRATEGY": "price-capacity-optimized",
+                    "REGSUB_SPOT_PRICE_WARN_THRESHOLD": '"8.00"',
+                }
+            )
+
+            rendered = render_template(template, subs)
+
+            assert "${" not in rendered
+            payload = yaml.safe_load(rendered)
+            for queue in payload["Scheduling"]["SlurmQueues"]:
+                for resource in queue["ComputeResources"]:
+                    resource["SpotPrice"] = 8.0
+            cluster = ClusterSchema(cluster_name="intel-schema-test").load(payload)
+            assert cluster.image.os == "ubuntu2204"
+            assert cluster.scheduling.queues
+
+    def test_rhel_dragen_template_renders_rhel_boot_script_with_full_arg_contract(self):
+        template = (
+            Path(__file__).resolve().parents[1]
+            / "config/day_cluster/prod_cluster_dragen_pcluster_image_rhel8.yaml"
+        ).read_text(encoding="utf-8")
+        subs = _full_subs()
+        subs.update(empty_slurm_accounting_render_blocks())
+        subs.update(
+            {
+                "REGSUB_REGION": "us-west-2",
+                "REGSUB_S3_BUCKET_INIT": (
+                    "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
+                ),
+                "REGSUB_SPOT_PRICE_WARN_THRESHOLD": '"6.00"',
+                "REGSUB_DRAGEN_PCLUSTER_AMI": "ami-0123456789abcdef0",
+            }
+        )
+
+        rendered = render_template(template, subs)
+
+        assert "post_install_ubuntu_combined.sh" not in rendered
+        payload = yaml.safe_load(rendered)
+        assert payload["Image"]["Os"] == "rhel8"
+        headnode_action = payload["HeadNode"]["CustomActions"]["OnNodeConfigured"]
+        assert headnode_action == {
+            "Script": (
+                "s3://lsmc-dayoa-references-usw2/runtime_assets/"
+                "cluster_boot_config/post_install_rhel8_dragen.sh"
+            ),
+            "Args": [
+                "us-west-2",
+                "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config",
+                "6.00",
+                "fsx",
+            ],
+        }
+        queue_action = payload["Scheduling"]["SlurmQueues"][0]["CustomActions"][
+            "OnNodeConfigured"
+        ]
+        assert queue_action == headnode_action
 
 
 # ── TestWriteInitArtifacts ───────────────────────────────────────────

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="488" viewBox="0 0 980 488">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="24" y="36" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#17212b">Top Services</text>
+<text x="24" y="82" font-family="Arial, sans-serif" font-size="14" fill="#17212b">Amazon Elastic Compute Cloud - Compute</text>
+<rect x="260" y="64" width="620" height="20" rx="3" fill="#1f5f99"/>
+<text x="888" y="80" font-family="Arial, sans-serif" font-size="13" fill="#334155">$19,146.19</text>
+<text x="24" y="116" font-family="Arial, sans-serif" font-size="14" fill="#17212b">Amazon FSx</text>
+<rect x="260" y="98" width="330" height="20" rx="3" fill="#1f5f99"/>
+<text x="598" y="114" font-family="Arial, sans-serif" font-size="13" fill="#334155">$10,198.94</text>
+<text x="24" y="150" font-family="Arial, sans-serif" font-size="14" fill="#17212b">Amazon Simple Storage Service</text>
+<rect x="260" y="132" width="275" height="20" rx="3" fill="#1f5f99"/>
+<text x="543" y="148" font-family="Arial, sans-serif" font-size="13" fill="#334155">$8,517.15</text>
+<text x="24" y="184" font-family="Arial, sans-serif" font-size="14" fill="#17212b">Amazon Relational Database Service</text>
+<rect x="260" y="166" width="150" height="20" rx="3" fill="#1f5f99"/>
+<text x="418" y="182" font-family="Arial, sans-serif" font-size="13" fill="#334155">$4,641.79</text>
+<text x="24" y="218" font-family="Arial, sans-serif" font-size="14" fill="#17212b">EC2 - Other</text>
+<rect x="260" y="200" width="84" height="20" rx="3" fill="#1f5f99"/>
+<text x="352" y="216" font-family="Arial, sans-serif" font-size="13" fill="#334155">$2,620.04</text>
+<text x="24" y="252" font-family="Arial, sans-serif" font-size="14" fill="#17212b">AWS Support (Developer)</text>
+<rect x="260" y="234" width="41" height="20" rx="3" fill="#1f5f99"/>
+<text x="309" y="250" font-family="Arial, sans-serif" font-size="13" fill="#334155">$1,286.99</text>
+<text x="24" y="286" font-family="Arial, sans-serif" font-size="14" fill="#17212b">AWS Security Hub</text>
+<rect x="260" y="268" width="16" height="20" rx="3" fill="#1f5f99"/>
+<text x="284" y="284" font-family="Arial, sans-serif" font-size="13" fill="#334155">$511.22</text>
+<text x="24" y="320" font-family="Arial, sans-serif" font-size="14" fill="#17212b">Amazon Virtual Private Cloud</text>
+<rect x="260" y="302" width="12" height="20" rx="3" fill="#1f5f99"/>
+<text x="280" y="318" font-family="Arial, sans-serif" font-size="13" fill="#334155">$375.14</text>
+<text x="24" y="354" font-family="Arial, sans-serif" font-size="14" fill="#17212b">AWS Cost Explorer</text>
+<rect x="260" y="336" width="8" height="20" rx="3" fill="#1f5f99"/>
+<text x="276" y="352" font-family="Arial, sans-serif" font-size="13" fill="#334155">$262.02</text>
+<text x="24" y="388" font-family="Arial, sans-serif" font-size="14" fill="#17212b">AmazonCloudWatch</text>
+<rect x="260" y="370" width="5" height="20" rx="3" fill="#1f5f99"/>
+<text x="273" y="386" font-family="Arial, sans-serif" font-size="13" fill="#334155">$176.66</text>
+<text x="24" y="422" font-family="Arial, sans-serif" font-size="14" fill="#17212b">Amazon Registrar</text>
+<rect x="260" y="404" width="4" height="20" rx="3" fill="#1f5f99"/>
+<text x="272" y="420" font-family="Arial, sans-serif" font-size="13" fill="#334155">$130.00</text>
+<text x="24" y="456" font-family="Arial, sans-serif" font-size="14" fill="#17212b">Amazon Elastic Container Service</text>
+<rect x="260" y="438" width="3" height="20" rx="3" fill="#1f5f99"/>
+<text x="271" y="454" font-family="Arial, sans-serif" font-size="13" fill="#334155">$123.33</text>
+</svg>

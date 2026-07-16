@@ -1,0 +1,11 @@
+DAY-EC activated.
+DAY-EC activated.
+start_tmp_cleanup	2026-06-06T03:26:14Z
+before_processes
+before_tmp_matches
+after_tmp_matches
+after_processes
+df
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  254G  8.5T   3% /fsx
+finish_tmp_cleanup	2026-06-06T03:26:14Z

@@ -3,111 +3,315 @@
 # MIT No Attribution
 # Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
-parameters=$@
+set -euo pipefail
 
-# Extract the project name from --comment
-if [ -z "${project}" ]; then
-    export project=$(echo $@ | sed -n -e 's/.*comment //p' | awk '{print $1}')
-fi
+slurm_command="$(basename "$0")"
+cluster_config="/opt/parallelcluster/shared/cluster-config.yaml"
+budget_monitor_base_url="https://ursa.day.lsmc.bio/ursa-actions#budgets?budget="
+cost_center_monitor_base_url="https://ursa.day.lsmc.bio/ursa-actions#cost-centers?cost_center="
+reserved_idle_cost_center="idle"
+max_usage_age_hours="36"
 
-slurm_command=$(basename "$0")
+cost_center=""
+cluster_name=""
+declare -a passthrough_args=()
 
-if [ -z "${project}" ]; then
-    echo "ERROR: Please specify a project/budget name with the comment flag. '--comment ProjectName' to proceed with any sbatch command." >&2
-    echo "Available budgets/projects in /fsx/references/runtime_assets/budget_tags/pcluster-project-budget-tags.tsv are:" >&2
-    cat /fsx/references/runtime_assets/budget_tags/pcluster-project-budget-tags.tsv  >&2
-    echo ""  >&2
-    echo "you may modify this script to fully block unknown projects, for now this will tag with the specified project and proceed."  >&2
-    echo "a log of warnings/errors will be written to ./sbatch_errs.log"  >&2
-    echo "setting project=unknown-project "  >&2
-    project="unknown-project"
-fi
+urlencode() {
+    python3 -c 'from urllib.parse import quote; import sys; print(quote(sys.argv[1], safe=""))' "$1"
+}
 
-# Path to the file containing budget names and users
-budget_file="/fsx/references/runtime_assets/budget_tags/pcluster-project-budget-tags.tsv"
+budget_monitor_url() {
+    printf "%s%s" "${budget_monitor_base_url}" "$(urlencode "$1")"
+}
 
-# Default value for the modified project name
-modified_project="${project}"
+cost_center_monitor_url() {
+    printf "%s%s" "${cost_center_monitor_base_url}" "$(urlencode "$1")"
+}
 
-# Check if the budget file exists
-if [ ! -f "${budget_file}" ]; then
-    echo "WARNING: Budget file ${budget_file} not found." >> ./sbatch_errs.log 2>&1
-    modified_project="${project}-no-file"
-    echo "" >> ./sbatch_errs.log >> ./sbatch_errs.log 2>&1
-    echo "Proceeding with the tag: $modified_project  ...continuing in 3 seconds." >> ./sbatch_errs.log 2>&1
-    echo "" >> ./sbatch_errs.log >> ./sbatch_errs.log 2>&1
-
-else
-    # Check if the project exists and the user is authorized
-    project_users=$(awk -F'\t' -v proj="${project}" '$1 == proj && NF == 2 {print $2}' "${budget_file}" | tr ',' '\n')
-
-    if [ -z "${project_users}" ]; then
-        echo "WARNING: Project '${project}' not found in budget file. " >> ./sbatch_errs.log 2>&1
-        echo "Available budgets/projects are:" >> ./sbatch_errs.log 2>&1
-        cat "${budget_file}" >> ./sbatch_errs.log 2>&1
-        echo "" >> ./sbatch_errs.log 2>&1
-        modified_project="${project}-invalid-project"
-        echo "Proceeding with the tag: $modified_project  ...continuing in 3 seconds." >> ./sbatch_errs.log 2>&1
-
-    elif ! echo "${project_users}" | grep -qx "${USER}"; then
-        echo "WARNING: User '${USER}' is not authorized for project '${project}'." >> ./sbatch_errs.log 2>&1
-        echo "" >> ./sbatch_errs.log 2>&1
-        modified_project="${project}-invalid-user"
-        echo "Proceeding with the tag: $modified_project  ...continuing in 3 seconds." >> ./sbatch_errs.log 2>&1
+fail() {
+    local message="$1"
+    echo "ERROR: ${message}" >&2
+    if [ -n "${cluster_name:-}" ]; then
+        echo "Cluster budget: ${cluster_name}" >&2
+        echo "Cluster budget monitor: $(budget_monitor_url "${cluster_name}")" >&2
     fi
-fi
-
-
-## HELLO- THIS IS NOT SUPER TESTED YET. THE PIECES SHOULD ALL BE IN PLACE, BUT HAVE NOT RUN MANY USE CASES YET.
-# Check for 'aws-parallelcluster-enforce-budget' tag in pcluster-config.yaml
-enforce_budget=$(awk '/Key: aws-parallelcluster-enforce-budget/ {getline; print $2}' /opt/parallelcluster/shared/cluster-config.yaml)
-
-if [ "$enforce_budget" != "enforce" ]; then
-    #echo "Budget enforcement is not enabled. Skipping budget check."
-    sleep 0.0001
-else
-    # Budget Check
-    AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
-    region=$(cat  /etc/parallelcluster/cfnconfig | grep cfn_region | cut -d '=' -f 2)
-    if [ -z "$region" ]; then
-        echo "ERROR: Region is not set. Cannot verify budget." 
-        exit 1
+    if [ -n "${cost_center:-}" ]; then
+        echo "Cost center: ${cost_center}" >&2
+        echo "Cost-center report: $(cost_center_monitor_url "${cost_center}")" >&2
     fi
+    exit 1
+}
 
-    BUDGETS=$(aws budgets describe-budgets --account-id "$AWS_ACCOUNT_ID" --region "$region" 2>/dev/null)
+info() {
+    echo "DYEC sbatch enforcement: $*" >&2
+}
 
-    if [ -z "$BUDGETS" ]; then
-        echo "WARNING: Unable to retrieve AWS budgets. Continuing without budget check." >> ./sbatch_errs.log 2>&1
-    else
-        MATCHING_BUDGET=$(echo "$BUDGETS" | jq -r ".Budgets[] | select(.BudgetName==\"$project\")")
-
-        if [ -z "$MATCHING_BUDGET" ]; then
-            echo "WARNING: No matching AWS budget found for project '$project'. Continuing..." >> ./sbatch_errs.log 2>&1
-        else
-            TOTAL_BUDGET=$(echo "$MATCHING_BUDGET" | jq -r ".BudgetLimit.Amount")
-            USED_BUDGET=$(echo "$MATCHING_BUDGET" | jq -r ".CalculatedSpend.ActualSpend.Amount")
-
-            if [ -z "$TOTAL_BUDGET" ] || [ -z "$USED_BUDGET" ]; then
-                echo "ERROR: Unable to retrieve budget details for project '$project'." 
-                exit 1
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --comment)
+            if [ -n "${cost_center}" ]; then
+                fail "multiple --comment values are not allowed"
             fi
-
-            PERCENT_USED=$(awk "BEGIN {print ($USED_BUDGET / $TOTAL_BUDGET) * 100}")
-
-            echo "" >> ./sbatch_errs.log 2>&1
-            echo "________________________________________________________" >> ./sbatch_errs.log 2>&1
-            echo "AWS Budget for project '$project' in region '$region':" >> ./sbatch_errs.log 2>&1
-            echo "  Total: $TOTAL_BUDGET USD" >> ./sbatch_errs.log 2>&1
-            echo "  Used: $USED_BUDGET USD" >> ./sbatch_errs.log 2>&1
-            echo "  Percent Used: $PERCENT_USED%" >> ./sbatch_errs.log 2>&1
-            echo "________________________________________________________" >> ./sbatch_errs.log 2>&1
-
-            if (( $(echo "$PERCENT_USED >= 100" | bc -l) )); then
-                echo "WARNING: Budget for project '$project' is exhausted! Continuing anyway..." >> ./sbatch_errs.log 2>&1
+            shift
+            if [ "$#" -eq 0 ] || [ -z "${1:-}" ]; then
+                fail "--comment requires a cost-center value"
             fi
-        fi
+            cost_center="$1"
+            ;;
+        --comment=*)
+            if [ -n "${cost_center}" ]; then
+                fail "multiple --comment values are not allowed"
+            fi
+            cost_center="${1#--comment=}"
+            if [ -z "${cost_center}" ]; then
+                fail "--comment requires a cost-center value"
+            fi
+            ;;
+        --mem|--mem=*|--mem-per-cpu|--mem-per-cpu=*|--mem-per-gpu|--mem-per-gpu=*|--mem-per-tres|--mem-per-tres=*)
+            fail "Slurm memory placement is disabled; remove '${1}'. Select capacity with --partition and CPU/thread count."
+            ;;
+        *)
+            passthrough_args+=("$1")
+            ;;
+    esac
+    shift
+done
+
+if [ -z "${cost_center}" ]; then
+    echo "ERROR: Please specify a cost center with --comment <cost-center>." >&2
+    exit 1
+fi
+
+if [[ "${cost_center}" =~ [[:space:]\|] ]]; then
+    fail "--comment cost center must not contain whitespace or '|'"
+fi
+
+if ! [[ "${cost_center}" =~ ^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,127}$ ]]; then
+    fail "--comment cost center must start with a letter or number and contain only letters, numbers, '.', '_', ':', '@', '+', or '-'"
+fi
+
+if [ "${cost_center}" = "${reserved_idle_cost_center}" ]; then
+    fail "'${reserved_idle_cost_center}' is reserved for no-job allocation and cannot be submitted"
+fi
+
+if [ ! -f "${cluster_config}" ]; then
+    fail "cluster config not found at ${cluster_config}"
+fi
+
+cluster_tag_value() {
+    local key="$1"
+    awk -v key="${key}" '$0 ~ "Key: " key "$" {getline; print $2; exit}' "${cluster_config}" |
+        sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//"
+}
+
+cluster_name="$(cluster_tag_value "aws-parallelcluster-clustername")"
+if [ -z "${cluster_name}" ]; then
+    fail "aws-parallelcluster-clustername tag is missing from ${cluster_config}"
+fi
+
+enforce_budget="$(
+    cluster_tag_value "aws-parallelcluster-enforce-budget"
+)"
+cost_center_region="$(cluster_tag_value "aws-parallelcluster-cost-center-region")"
+cost_center_table="$(cluster_tag_value "aws-parallelcluster-cost-center-table")"
+cost_center_usage_table="$(cluster_tag_value "aws-parallelcluster-cost-center-usage-table")"
+
+if [ -z "${cost_center_region}" ]; then
+    fail "aws-parallelcluster-cost-center-region tag is missing from ${cluster_config}"
+fi
+if [ -z "${cost_center_table}" ]; then
+    fail "aws-parallelcluster-cost-center-table tag is missing from ${cluster_config}"
+fi
+if [ -z "${cost_center_usage_table}" ]; then
+    fail "aws-parallelcluster-cost-center-usage-table tag is missing from ${cluster_config}"
+fi
+
+case "${enforce_budget}" in
+    skip|false|False|0|no|No)
+        info "cluster AWS Budget check skipped by cluster config '${enforce_budget}' for cluster '${cluster_name}'."
+        ;;
+    true|True|1|yes|Yes|enforce|enforced)
+        enforce_budget="true"
+        ;;
+    "")
+        fail "aws-parallelcluster-enforce-budget tag is missing from ${cluster_config}"
+        ;;
+    *)
+        fail "unknown aws-parallelcluster-enforce-budget value '${enforce_budget}'"
+        ;;
+esac
+
+current_user="${USER:-$(id -un 2>/dev/null || true)}"
+if [ -z "${current_user}" ]; then
+    fail "USER is not set and id -un failed; cannot validate cost-center membership"
+fi
+current_groups="$(id -Gn "${current_user}" 2>/dev/null | tr ' ' ',' || true)"
+
+region="$(
+    awk -F'=' '$1 == "cfn_region" {print $2; exit}' /etc/parallelcluster/cfnconfig 2>/dev/null ||
+        true
+)"
+if [ -z "${region}" ]; then
+    fail "region is not set in /etc/parallelcluster/cfnconfig; cannot verify budget"
+fi
+
+AWS_ACCOUNT_ID="$(aws sts get-caller-identity --query "Account" --output text 2>/dev/null || true)"
+if [ -z "${AWS_ACCOUNT_ID}" ] || [ "${AWS_ACCOUNT_ID}" = "None" ]; then
+    fail "unable to resolve AWS account id with sts get-caller-identity"
+fi
+
+if [ "${enforce_budget}" = "true" ]; then
+    budget_values="$(
+        aws budgets describe-budget \
+            --account-id "${AWS_ACCOUNT_ID}" \
+            --budget-name "${cluster_name}" \
+            --region "${region}" \
+            --query 'Budget.[BudgetLimit.Amount,CalculatedSpend.ActualSpend.Amount,BudgetLimit.Unit]' \
+            --output text 2>&1
+    )" || fail "no readable AWS Budget named '${cluster_name}' in account ${AWS_ACCOUNT_ID}: ${budget_values}"
+
+    read -r total_budget used_budget budget_unit _extra <<< "${budget_values}"
+    if [ -z "${total_budget:-}" ] || [ -z "${used_budget:-}" ] || [ "${total_budget}" = "None" ] || [ "${used_budget}" = "None" ]; then
+        fail "AWS Budget '${cluster_name}' did not include BudgetLimit.Amount and CalculatedSpend.ActualSpend.Amount"
+    fi
+
+    if ! awk -v total="${total_budget}" -v used="${used_budget}" 'BEGIN { exit !((total + 0) > 0 && used >= 0) }'; then
+        fail "AWS Budget '${cluster_name}' has invalid numeric values total='${total_budget}' used='${used_budget}'"
+    fi
+
+    percent_used="$(awk -v total="${total_budget}" -v used="${used_budget}" 'BEGIN { printf "%.2f", (used / total) * 100 }')"
+
+    info "cluster '${cluster_name}' budget in region '${region}': total=${total_budget} ${budget_unit:-USD}, used=${used_budget} ${budget_unit:-USD}, percent=${percent_used}%."
+    info "cluster budget monitor: $(budget_monitor_url "${cluster_name}")"
+
+    if awk -v percent="${percent_used}" 'BEGIN { exit !(percent >= 100) }'; then
+        fail "AWS Budget '${cluster_name}' is exhausted: ${percent_used}% used (${used_budget}/${total_budget} ${budget_unit:-USD})"
     fi
 fi
 
-# Append the modified --comment to the Slurm command
-/opt/slurm/sbin/${slurm_command} --comment="${modified_project}" --export=ALL "$@" 
+cost_center_json="$(
+    aws dynamodb get-item \
+        --table-name "${cost_center_table}" \
+        --region "${cost_center_region}" \
+        --key "{\"cost_center\":{\"S\":\"${cost_center}\"}}" \
+        --consistent-read \
+        --output json 2>&1
+)" || fail "unable to read cost-center registry '${cost_center_table}' in ${cost_center_region}: ${cost_center_json}"
+
+registry_validation="$(
+    COST_CENTER_JSON="${cost_center_json}" \
+    COST_CENTER="${cost_center}" \
+    CURRENT_USER="${current_user}" \
+    CURRENT_GROUPS="${current_groups}" \
+    python3 <<'PY'
+import json
+import os
+import sys
+from decimal import Decimal, InvalidOperation
+
+raw_payload = os.environ["COST_CENTER_JSON"]
+if not raw_payload.strip():
+    print("cost-center registry lookup returned empty JSON")
+    sys.exit(14)
+try:
+    payload = json.loads(raw_payload)
+except json.JSONDecodeError as exc:
+    print(f"cost-center registry lookup returned invalid JSON: {exc.msg}")
+    sys.exit(14)
+if not isinstance(payload, dict):
+    print("cost-center registry lookup returned JSON that is not an object")
+    sys.exit(14)
+item = payload.get("Item") or {}
+if not item:
+    print(f"cost center '{os.environ.get('COST_CENTER', '')}' does not exist")
+    sys.exit(10)
+status = item.get("status", {}).get("S", "")
+if status != "active":
+    print(f"cost center is not active: status={status or '<missing>'}")
+    sys.exit(11)
+try:
+    cap = Decimal(item.get("monthly_cap_usd", {}).get("N", ""))
+except (InvalidOperation, ValueError):
+    print("cost center monthly_cap_usd is missing or invalid")
+    sys.exit(12)
+allowed_users = set(item.get("allowed_users", {}).get("SS", []))
+allowed_groups = set(item.get("allowed_groups", {}).get("SS", []))
+current_user = os.environ["CURRENT_USER"]
+current_groups = {g for g in os.environ.get("CURRENT_GROUPS", "").split(",") if g}
+if "*" not in allowed_users and current_user not in allowed_users and not (allowed_groups & current_groups):
+    print(f"user '{current_user}' is not authorized for this cost center")
+    sys.exit(13)
+print(str(cap))
+PY
+)" || fail "${registry_validation}"
+
+current_month="$(date -u +%Y-%m)"
+usage_json="$(
+    aws dynamodb get-item \
+        --table-name "${cost_center_usage_table}" \
+        --region "${cost_center_region}" \
+        --key "{\"cost_center\":{\"S\":\"${cost_center}\"},\"month\":{\"S\":\"${current_month}\"}}" \
+        --consistent-read \
+        --output json 2>&1
+)" || fail "unable to read cost-center usage table '${cost_center_usage_table}' in ${cost_center_region}: ${usage_json}"
+
+usage_validation="$(
+    USAGE_JSON="${usage_json}" \
+    MONTHLY_CAP_USD="${registry_validation}" \
+    MAX_USAGE_AGE_HOURS="${max_usage_age_hours}" \
+    python3 <<'PY'
+import json
+import os
+import sys
+from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
+
+raw_payload = os.environ["USAGE_JSON"]
+if not raw_payload.strip():
+    print("cost-center usage lookup returned empty JSON")
+    sys.exit(26)
+try:
+    payload = json.loads(raw_payload)
+except json.JSONDecodeError as exc:
+    print(f"cost-center usage lookup returned invalid JSON: {exc.msg}")
+    sys.exit(26)
+if not isinstance(payload, dict):
+    print("cost-center usage lookup returned JSON that is not an object")
+    sys.exit(26)
+item = payload.get("Item") or {}
+if not item:
+    print("no monthly usage snapshot exists for this cost center")
+    sys.exit(20)
+try:
+    cap = Decimal(os.environ["MONTHLY_CAP_USD"])
+    spend = Decimal(item.get("monthly_spend_usd", {}).get("N", ""))
+except (InvalidOperation, ValueError):
+    print("cost-center cap or monthly spend is not numeric")
+    sys.exit(21)
+latest = item.get("latest_processed_hour", {}).get("S", "")
+if not latest:
+    print("cost-center usage snapshot is missing latest_processed_hour")
+    sys.exit(22)
+try:
+    latest_dt = datetime.fromisoformat(latest.replace("Z", "+00:00"))
+except ValueError:
+    print(f"latest_processed_hour is invalid: {latest}")
+    sys.exit(23)
+if latest_dt.tzinfo is None:
+    latest_dt = latest_dt.replace(tzinfo=timezone.utc)
+age_hours = (datetime.now(timezone.utc) - latest_dt.astimezone(timezone.utc)).total_seconds() / 3600.0
+max_age = float(os.environ["MAX_USAGE_AGE_HOURS"])
+if age_hours > max_age:
+    print(f"cost-center usage is stale: latest_processed_hour={latest}, age_hours={age_hours:.2f}, max_hours={max_age:.2f}")
+    sys.exit(24)
+if spend >= cap:
+    print(f"cost-center monthly cap exceeded: spend={spend}, cap={cap}, latest_processed_hour={latest}")
+    sys.exit(25)
+print(f"spend={spend}, cap={cap}, latest_processed_hour={latest}, age_hours={age_hours:.2f}")
+PY
+)" || fail "${usage_validation}"
+
+info "cost center '${cost_center}' usage ok: ${usage_validation}."
+info "cost-center report: $(cost_center_monitor_url "${cost_center}")"
+
+exec "/opt/slurm/sbin/${slurm_command}" --comment="${cost_center}" --export=ALL "${passthrough_args[@]}"

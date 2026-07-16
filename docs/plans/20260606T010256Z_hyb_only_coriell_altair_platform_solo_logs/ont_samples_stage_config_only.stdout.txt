@@ -1,0 +1,4 @@
+Precheck passed: rows checked=4, samples checked=4, source objects checked=4, concordance directories checked=0.
+Generated configuration files:
+  samples.tsv -> docs/plans/20260606T010256Z_hyb_only_coriell_altair_platform_solo_logs/generated_configs/ont/20260606T024346Z_1e7a4d91_samples.tsv
+  units.tsv   -> docs/plans/20260606T010256Z_hyb_only_coriell_altair_platform_solo_logs/generated_configs/ont/20260606T024346Z_1e7a4d91_units.tsv

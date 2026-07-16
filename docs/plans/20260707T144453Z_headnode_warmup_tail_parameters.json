@@ -1,0 +1,8 @@
+{
+  "commands": [
+    "sudo -iu ubuntu bash -lc 'echo __STATUS__; cat /home/ubuntu/daylily-runs/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z/status.json; echo __TMUX_LOG__; tail -n 120 /home/ubuntu/daylily-runs/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z/tmux.log; echo __DAY_CMD__; tail -n 160 /fsx/analysis_results/ubuntu/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z/daylily-omics-analysis/day_cmd.log; echo __SNAKEMAKE__; tail -n 200 /fsx/analysis_results/ubuntu/ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z/daylily-omics-analysis/.snakemake/log/2026-07-07T162007.716498.snakemake.log'"
+  ],
+  "executionTimeout": [
+    "120"
+  ]
+}

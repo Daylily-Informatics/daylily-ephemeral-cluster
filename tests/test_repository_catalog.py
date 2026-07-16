@@ -13,6 +13,8 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
+DAYOA_BLESSED_TAG = "10.0.97"
+DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG_PATH = (
@@ -35,12 +37,21 @@ OLD_PACKAGED_CATALOG_LINK = (
 UNVALIDATED_COMMAND_IDS = {
     "simple-test",
     "illumina_run_qc_bclconvert",
+    "all_metagenomic_pipelines",
     "ultima_snv_alignstats_kitchensink",
     "ont_snv_alignstats_kitchensink",
     "hybrid_ilmn_ont_snv_kitchensink",
+    "hybrid_ilmn_ont_hiomrs",
+    "hybrid_ilmn_ont_hiomrs_kitchensink",
     "inflection-bjuice-product-v0.1",
+    "illumina_pangenome_snv",
+    "illumina_dragen_pangenome_snv_concordance",
+    "ultima_pangenome_snv",
 }
 SIMPLE_TEST_DY_COMMAND = "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
+HIOMR_STRICT_SLIM_MANIFEST = (
+    "examples/staging/hybrid_ilmn_ont_hg003_5x5x/analysis_samples_manifest.tsv"
+)
 
 
 def _minimal_run_catalog_yaml(
@@ -86,6 +97,8 @@ test_data_profiles:
     locations: [default_run_data]
 repositories:
   repo:
+    clone_transport: https
+    auth_mode: none
     https_url: https://example.invalid/repo.git
     default_ref: main
     relative_path: repo
@@ -111,6 +124,7 @@ repositories:
         dy_command: bin/day_run produce_illumina_run_qc
         dryrun_dy_command: bin/day_run produce_illumina_run_qc -n
         compatible_platforms: [ILMN]
+        compatible_cluster_types: [daywgs]
         compatible_data_modes: [run_directory_mount]
 """
 
@@ -126,21 +140,16 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         "default_control_reads_slim",
         "default_control_run_data",
     ]
-    assert catalog.test_data_locations[0].mount_path == "/fsx/references"
-    assert (
-        catalog.test_data_locations[0].data_root
-        == "/fsx/references/genomic_data/organism_reads_slim"
-    )
-    assert "default reference mount" in catalog.test_data_locations[0].description
+    assert catalog.test_data_locations[0].mount_path == "/fsx/data"
+    assert catalog.test_data_locations[0].data_root == "/fsx/data/genomic_data/organism_reads_slim"
+    assert "default /fsx/data path" in catalog.test_data_locations[0].description
     default_reads = catalog.test_data_profiles["default_reads_slim"]
     assert default_reads.source_mount_mode == "default_mounted"
     assert (
         default_reads.source_s3_uri_template
         == "s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/"
     )
-    assert default_reads.source_fsx_prefix == (
-        "/fsx/references/genomic_data/organism_reads_slim/"
-    )
+    assert default_reads.source_fsx_prefix == ("/fsx/data/genomic_data/organism_reads_slim/")
     assert default_reads.run_context_source_s3_column == ""
     assert default_reads.run_context_mount_id_column == ""
     assert manifest_contract.source_table is not None
@@ -198,7 +207,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "2.0.44"
+    assert command.git_tag == DAYOA_BLESSED_TAG
     assert len(command.validation_runs) == 1
     validation_run = command.validation_runs[0]
     assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
@@ -210,6 +219,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert validation_run.dryrun_status == "success"
     assert validation_run.live_status == "success"
     assert command.compatible_platforms == ["ILMN"]
+    assert command.compatible_cluster_types == ["daywgs"]
     assert command.compatible_data_modes == ["ilmn_solo"]
     assert "bin/day_run" in command.dy_command
     assert command.dryrun_dy_command.endswith(" -n")
@@ -232,10 +242,23 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert multiqc_command.artifact_registration.multiqc_reports[0].report_kind == "final"
     assert multiqc_command.artifact_registration.identity.analysis_euid == "{analysis_id}"
 
+    plain_run_qc_command = catalog.get_command("illumina_run_qc")
+    assert plain_run_qc_command.artifact_registration is not None
+    assert plain_run_qc_command.artifact_registration.manifest_source == "s3_inventory"
+    assert plain_run_qc_command.artifact_registration.allow_s3_body_sha256 is True
+    assert plain_run_qc_command.artifact_registration.s3_body_sha256_max_bytes == 50_000_000
+    assert {
+        report.report_kind for report in plain_run_qc_command.artifact_registration.multiqc_reports
+    } == {"run_qc_illumina"}
+    assert "config/samples.tsv" not in plain_run_qc_command.artifact_registration.include_paths
+    assert "config/units.tsv" not in plain_run_qc_command.artifact_registration.include_paths
+
     run_qc_command = catalog.get_command("illumina_run_qc_bclconvert")
     assert run_qc_command.artifact_registration is not None
     assert run_qc_command.artifact_registration.manifest_source == "s3_inventory"
-    assert {report.report_kind for report in run_qc_command.artifact_registration.multiqc_reports} == {
+    assert {
+        report.report_kind for report in run_qc_command.artifact_registration.multiqc_reports
+    } == {
         "bclconvert",
         "run_qc_illumina",
     }
@@ -251,7 +274,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "2.0.44" in launch_argv
+    assert DAYOA_BLESSED_TAG in launch_argv
 
     export_argv = command.launch_argv(
         analysis_id="run-1",
@@ -327,6 +350,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "simple-test",
         "illumina_snv_alignstats",
         "illumina_snv_alignstats_relatedness_vep_multiqc",
+        "all_metagenomic_pipelines",
         "illumina_hg002_kitchensink_multiqc",
         "ultima_snv_alignstats",
         "ultima_snv_alignstats_kitchensink",
@@ -336,7 +360,10 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "roche_snv_alignstats",
         "hybrid_ilmn_ont_snv",
         "hybrid_ilmn_ont_snv_kitchensink",
-        "hybrid_ultima_ont_snv",
+        "hybrid_ilmn_ont_hiomrs_kitchensink",
+        "illumina_pangenome_snv",
+        "illumina_dragen_pangenome_snv_concordance",
+        "ultima_pangenome_snv",
         "complete_genomics_mgi_snv_concordance",
     } <= command_ids
 
@@ -362,8 +389,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert command.dryrun_dy_command.startswith("bin/day_run ")
             assert command.dryrun_dy_command.endswith(" -n")
             assert command.compatible_platforms
+            assert command.compatible_cluster_types == ["daywgs"]
             assert command.compatible_data_modes
-            assert command.git_tag == "2.0.44"
+            assert command.git_tag == DAYOA_BLESSED_TAG
             assert (
                 command.input_requirements.required_source_columns
                 or command.input_requirements.accepted_source_column_sets
@@ -391,15 +419,18 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.startswith("bin/day_run ")
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
+        assert command.compatible_cluster_types == ["daywgs"]
         assert command.compatible_data_modes
-        assert command.git_tag == "2.0.44"
+        assert command.git_tag == DAYOA_BLESSED_TAG
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets
         )
 
     complete_genomics = catalog.get_command("complete_genomics_mgi_snv_concordance")
+    assert complete_genomics.type == "dev"
     assert complete_genomics.compatible_platforms == ["CG/MGI"]
+    assert complete_genomics.compatible_cluster_types == ["daywgs"]
     assert complete_genomics.compatible_data_modes == ["complete_genomics_solo"]
     assert complete_genomics.aligners == ["sentcg"]
     assert complete_genomics.dedupers == ["dmd"]
@@ -409,25 +440,81 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_smd_dedup_cram" not in complete_genomics.dy_command
     assert "aligners=['sentcg']" not in complete_genomics.dy_command
 
+    illumina_pangenome = catalog.get_command("illumina_pangenome_snv")
+    assert illumina_pangenome.type == "dev"
+    assert illumina_pangenome.git_tag == DAYOA_BLESSED_TAG
+    assert illumina_pangenome.genome == "hg38"
+    assert illumina_pangenome.targets == ["produce_sentpg_snv_vcf"]
+    assert illumina_pangenome.snv_callers == ["sentpg"]
+    assert illumina_pangenome.compatible_platforms == ["ILMN"]
+    assert illumina_pangenome.compatible_cluster_types == ["daywgs"]
+    assert illumina_pangenome.compatible_data_modes == ["ilmn_solo"]
+
+    dragen_pangenome = catalog.get_command("illumina_dragen_pangenome_snv_concordance")
+    assert dragen_pangenome.type == "dev"
+    assert dragen_pangenome.git_tag == DRAGEN_DAYOA_REF
+    assert dragen_pangenome.test_data_profile == "default_reads_slim"
+    assert dragen_pangenome.genome == "hg38"
+    assert dragen_pangenome.day_profile == "slurm_rhel"
+    assert dragen_pangenome.default_activation is False
+    assert dragen_pangenome.targets == [
+        "produce_drgpg_snv_vcf",
+        "produce_snv_concordances",
+    ]
+    assert dragen_pangenome.aligners == ["drbwa"]
+    assert dragen_pangenome.dedupers == ["na"]
+    assert dragen_pangenome.snv_callers == ["drgpg"]
+    assert dragen_pangenome.compatible_platforms == ["ILMN"]
+    assert dragen_pangenome.compatible_cluster_types == ["dragen"]
+    assert dragen_pangenome.compatible_data_modes == ["ilmn_solo"]
+    assert dragen_pangenome.input_requirements.required_source_columns == [
+        "ILMN_R1_FQ",
+        "ILMN_R2_FQ",
+    ]
+    assert dragen_pangenome.dy_command.startswith("source dyoainit;")
+    assert "dy-a slurm_rhel hg38" in dragen_pangenome.dy_command
+    assert "dy-r produce_drgpg_snv_vcf produce_snv_concordances" in dragen_pangenome.dy_command
+    assert "produce_drgpg_snv_vcf" in dragen_pangenome.dy_command
+    assert "produce_snv_concordances" in dragen_pangenome.dy_command
+    assert 'aligners=["drbwa"]' in dragen_pangenome.dy_command
+    assert 'dedupers=["na"]' in dragen_pangenome.dy_command
+    assert 'snv_callers=["drgpg"]' in dragen_pangenome.dy_command
+
+    ultima_pangenome = catalog.get_command("ultima_pangenome_snv")
+    assert ultima_pangenome.type == "dev"
+    assert ultima_pangenome.git_tag == DAYOA_BLESSED_TAG
+    assert ultima_pangenome.genome == "hg38"
+    assert ultima_pangenome.targets == ["produce_pangenome_ug_vcf"]
+    assert ultima_pangenome.aligners == ["pangenome_ug"]
+    assert ultima_pangenome.snv_callers == ["sentpg"]
+    assert ultima_pangenome.compatible_platforms == ["ULTIMA"]
+
+    bclconvert = catalog.get_command("illumina_bclconvert")
+    assert bclconvert.type == "research"
+    assert bclconvert.command_class == "run_analysis"
+    assert bclconvert.requires_run_mount is True
+
+    run_qc_bclconvert = catalog.get_command("illumina_run_qc_bclconvert")
+    assert run_qc_bclconvert.type == "research"
+    assert run_qc_bclconvert.command_class == "run_analysis"
+    assert run_qc_bclconvert.requires_run_mount is True
+    assert ultima_pangenome.compatible_cluster_types == ["daywgs"]
+    assert ultima_pangenome.compatible_data_modes == ["ultima_solo"]
+
     hybrid_ilmn_ont = catalog.get_command("hybrid_ilmn_ont_snv")
+    assert hybrid_ilmn_ont.sample_manifest_template == HIOMR_STRICT_SLIM_MANIFEST
     assert hybrid_ilmn_ont.aligners == ["sent"]
-    assert hybrid_ilmn_ont.dedupers == ["dmd"]
+    assert hybrid_ilmn_ont.dedupers == ["na"]
     assert hybrid_ilmn_ont.snv_callers == ["sentdhiomr"]
     assert hybrid_ilmn_ont.sv_callers == ["sentdhiomr"]
     assert "produce_sentdhiomr_sv" in hybrid_ilmn_ont.dy_command
     assert "produce_sentdhiomr_snv_vcf" in hybrid_ilmn_ont.dy_command
     assert "produce_sentdhiom_sv" not in hybrid_ilmn_ont.dy_command
     assert "produce_sentdhiom_snv_vcf" not in hybrid_ilmn_ont.dy_command
-    assert "dedupers=[" in hybrid_ilmn_ont.dy_command
-
-    hybrid_ultima_ont = catalog.get_command("hybrid_ultima_ont_snv")
-    assert hybrid_ultima_ont.aligners == ["ug"]
-    assert hybrid_ultima_ont.dedupers == ["na"]
-    assert hybrid_ultima_ont.snv_callers == ["sentdhuomr"]
-    assert "produce_sentdhuomr_snv_vcf" in hybrid_ultima_ont.dy_command
-    assert "produce_sentdhuom_snv_vcf" not in hybrid_ultima_ont.dy_command
-    assert hybrid_ultima_ont.validation_runs[0].status == "failed"
-    assert "sentdhuomr_hybrid_select" in hybrid_ultima_ont.validation_runs[0].failure_cause
+    assert 'dedupers=["na"]' in hybrid_ilmn_ont.dy_command
+    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
+        hybrid_ilmn_ont.input_requirements.accepted_source_column_sets
+    )
 
     for command in catalog.commands():
         if command.command_class != "sample_analysis":
@@ -466,15 +553,20 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "produce_relatedness",
         "produce_gatk_contam_estimate",
         "produce_site_mix_contam_estimate",
-        "produce_global_contam_check",
         "produce_vep",
         "produce_expansionhunter",
         "produce_htd_calls",
         "produce_metagenomics",
         "produce_multiqc_all",
+        "results/day/hg38/reports/DAY_final_multiqc.html",
+        "results/day/hg38/reports/dayoa_evidence_manifest.json",
     ]
     assert illumina_kitchensink.genome == "hg38"
     assert illumina_kitchensink.jobs == 200
+    assert (
+        illumina_kitchensink.sample_manifest_template
+        == "examples/staging/ilmn_hg002_solo/analysis_samples_manifest.tsv"
+    )
     assert illumina_kitchensink.aligners == ["sent"]
     assert illumina_kitchensink.dedupers == ["dmd"]
     assert illumina_kitchensink.snv_callers == ["sentd"]
@@ -483,7 +575,27 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "--rerun-triggers mtime" in illumina_kitchensink.dy_command
     assert "produce_metagenomics" in illumina_kitchensink.dy_command
     assert "produce_multiqc_all" in illumina_kitchensink.dy_command
-    assert "contam_identity" in illumina_kitchensink.dy_command
+    assert "results/day/hg38/reports/DAY_final_multiqc.html" in illumina_kitchensink.dy_command
+    assert (
+        "results/day/hg38/reports/dayoa_evidence_manifest.json" in illumina_kitchensink.dy_command
+    )
+    assert "produce_global_contam_check" not in illumina_kitchensink.dy_command
+    assert "contam_identity" not in illumina_kitchensink.dy_command
+
+    metagenomics = catalog.get_command("all_metagenomic_pipelines")
+    assert metagenomics.type == "dev"
+    assert metagenomics.targets == ["produce_metagenomics"]
+    assert metagenomics.sample_manifest_template == (
+        "examples/staging/ilmn_hg003_5x_solo/analysis_samples_manifest.tsv"
+    )
+    assert metagenomics.genome == "hg38"
+    assert metagenomics.jobs == 100
+    assert metagenomics.aligners == ["sent"]
+    assert metagenomics.dedupers == ["dmd"]
+    assert metagenomics.snv_callers == []
+    assert metagenomics.sv_callers == []
+    assert "produce_metagenomics" in metagenomics.dy_command
+    assert 'multiqc_qc={"enable_tools":["metagenomics"]}' in metagenomics.dy_command
 
     ultima_kitchensink = catalog.get_command("ultima_snv_alignstats_kitchensink")
     assert ultima_kitchensink.validation_runs == []
@@ -494,6 +606,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "produce_snv_concordances",
         "produce_relatedness",
         "produce_vep",
+        "produce_metagenomics",
         "produce_multiqc_all",
     ]
     assert ultima_kitchensink.aligners == ["ug"]
@@ -502,6 +615,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_multiqc_all" in ultima_kitchensink.dy_command
     assert "multiqc_qc=" in ultima_kitchensink.dy_command
     assert "enable_tools" in ultima_kitchensink.dy_command
+    assert "produce_metagenomics" in ultima_kitchensink.dy_command
+    assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (ultima_kitchensink.dy_command)
 
     ont = catalog.get_command("ont_snv_alignstats")
     assert ont.aligners == ["ont"]
@@ -516,61 +631,140 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert ont_kitchensink.validation_runs == []
     assert ont_kitchensink.targets == [
         "produce_alignstats",
+        "produce_na_dedup_cram",
         "produce_sentdont_snv_vcf",
         "produce_snv_concordances",
         "produce_relatedness",
         "produce_vep",
+        "produce_metagenomics",
         "produce_multiqc_all",
+        "results/day/hg38/reports/DAY_final_multiqc.html",
+        "results/day/hg38/reports/dayoa_evidence_manifest.json",
     ]
+    assert ont_kitchensink.jobs == 250
     assert ont_kitchensink.aligners == ["ont"]
     assert ont_kitchensink.dedupers == ["na"]
     assert ont_kitchensink.snv_callers == ["sentdont"]
     assert "produce_sentmm2ont_align" not in ont_kitchensink.dy_command
+    assert "produce_na_dedup_cram" in ont_kitchensink.dy_command
+    assert "--rerun-triggers mtime" in ont_kitchensink.dy_command
+    assert "--rerun-triggers mtime -n" in ont_kitchensink.dryrun_dy_command
+    assert " -j 250 " in ont_kitchensink.dy_command
     assert "produce_multiqc_all" in ont_kitchensink.dy_command
+    assert "results/day/hg38/reports/DAY_final_multiqc.html" in ont_kitchensink.dy_command
+    assert "results/day/hg38/reports/dayoa_evidence_manifest.json" in ont_kitchensink.dy_command
     assert "multiqc_qc=" in ont_kitchensink.dy_command
+    assert "produce_metagenomics" in ont_kitchensink.dy_command
+    assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (ont_kitchensink.dy_command)
 
     hybrid_kitchensink = catalog.get_command("hybrid_ilmn_ont_snv_kitchensink")
+    assert hybrid_kitchensink.sample_manifest_template == HIOMR_STRICT_SLIM_MANIFEST
     assert hybrid_kitchensink.validation_runs == []
     assert hybrid_kitchensink.targets == [
+        "produce_sentdhiomr_snv_vcf",
         "produce_snv_concordances",
         "produce_sentdhiomr_sv",
-        "produce_sentdhiomr_snv_vcf",
+        "produce_tiddit_sv_vcf",
+        "produce_sentdhiomr_cnv",
+        "produce_sentdhiomr_segdup",
+        "produce_sentdhiomr_mito",
+        "produce_expansionhunter",
+        "produce_alignstats",
         "produce_relatedness",
+        "produce_peddy",
+        "produce_gatk_contam_estimate",
+        "produce_site_mix_contam_estimate",
         "produce_vep",
+        "produce_htd_calls",
+        "produce_smn12_orthogonal_calls",
+        "produce_metagenomics",
         "produce_multiqc_all",
+        "results/day/hg38/reports/DAY_final_multiqc.html",
+        "results/day/hg38/reports/dayoa_evidence_manifest.json",
     ]
     assert hybrid_kitchensink.aligners == ["sent"]
-    assert hybrid_kitchensink.dedupers == ["dmd"]
+    assert hybrid_kitchensink.dedupers == ["na"]
     assert hybrid_kitchensink.snv_callers == ["sentdhiomr"]
-    assert hybrid_kitchensink.sv_callers == ["sentdhiomr"]
+    assert hybrid_kitchensink.sv_callers == ["sentdhiomr", "tiddit"]
+    assert hybrid_kitchensink.jobs == 250
+    assert hybrid_kitchensink.keep_going is False
+    assert hybrid_kitchensink.restart_times == 0
     assert "produce_sentdhiomr_sv" in hybrid_kitchensink.dy_command
+    assert "produce_tiddit_sv_vcf" in hybrid_kitchensink.dy_command
+    assert "produce_manta_sv_vcf" not in hybrid_kitchensink.dy_command
+    assert "manta" not in hybrid_kitchensink.description.lower()
+    assert "produce_sentdhiomr_segdup" in hybrid_kitchensink.dy_command
+    assert 'sentdhiomr={"segdup_genes":"SMN1"}' in hybrid_kitchensink.dy_command
+    assert "produce_htd_calls" in hybrid_kitchensink.dy_command
+    assert "produce_smn12_orthogonal_calls" in hybrid_kitchensink.dy_command
     assert "produce_sentdhiomr_snv_vcf" in hybrid_kitchensink.dy_command
     assert "produce_sentdhiom_sv" not in hybrid_kitchensink.dy_command
     assert "produce_sentdhiom_snv_vcf" not in hybrid_kitchensink.dy_command
     assert "produce_multiqc_all" in hybrid_kitchensink.dy_command
+    assert "produce_gatk_contam_estimate" in hybrid_kitchensink.dy_command
+    assert "produce_site_mix_contam_estimate" in hybrid_kitchensink.dy_command
+    for target in (
+        "produce_sentdhiomr_cnv",
+        "produce_sentdhiomr_mito",
+        "produce_expansionhunter",
+        "produce_alignstats",
+        "produce_peddy",
+        "results/day/hg38/reports/DAY_final_multiqc.html",
+        "results/day/hg38/reports/dayoa_evidence_manifest.json",
+    ):
+        assert target in hybrid_kitchensink.dy_command
+    assert 'dedupers=["na"]' in hybrid_kitchensink.dy_command
+    assert 'aligners=["sent"]' in hybrid_kitchensink.dy_command
+    assert 'snv_callers=["sentdhiomr"]' in hybrid_kitchensink.dy_command
+    assert 'sv_callers=["sentdhiomr","tiddit"]' in hybrid_kitchensink.dy_command
+    assert "manta" not in hybrid_kitchensink.dryrun_dy_command
+    assert 'htd_callers=["smn12"]' in hybrid_kitchensink.dy_command
+    for excluded in ("smaca", "sma_finder", "hapsma"):
+        assert excluded not in hybrid_kitchensink.dy_command
     assert "multiqc_qc=" in hybrid_kitchensink.dy_command
+    assert "produce_metagenomics" in hybrid_kitchensink.dy_command
+    assert (
+        'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2",'
+        '"gatk_contam","site_mix","peddy"]}' in hybrid_kitchensink.dy_command
+    )
+    expected_flags = "-j 250 -p -T 0 --rerun-triggers mtime --rerun-incomplete"
+    assert hybrid_kitchensink.dy_command.endswith(expected_flags)
+    assert hybrid_kitchensink.dryrun_dy_command.endswith(f"{expected_flags} -n")
+    for excluded in ("manta", "truvari", "dmd", "kraken", "sourmash"):
+        assert excluded not in hybrid_kitchensink.dy_command.lower()
+    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
+        hybrid_kitchensink.input_requirements.accepted_source_column_sets
+    )
 
     inflection_bjuice = catalog.get_command("inflection-bjuice-product-v0.1")
+    assert inflection_bjuice.sample_manifest_template == HIOMR_STRICT_SLIM_MANIFEST
     assert inflection_bjuice.validation_runs == []
     assert inflection_bjuice.targets == [
         "produce_sent_align",
         "produce_dmd_dedup_cram",
-        "produce_sentdhiomr_sv",
-        "produce_snv_concordances",
         "produce_sentdhiomr_snv_vcf",
+        "produce_sentdhiomr_sv",
         "produce_sentdhiomr_cnv",
-        "produce_sentdhiomr_mito",
         "produce_sentdhiomr_segdup",
+        "produce_sentdhiomr_mito",
         "produce_expansionhunter",
+        "produce_alignstats",
     ]
-    assert inflection_bjuice.jobs == 125
+    assert inflection_bjuice.jobs == 250
     assert inflection_bjuice.aligners == ["sent"]
-    assert inflection_bjuice.dedupers == ["dmd"]
+    assert inflection_bjuice.dedupers == ["dmd", "na"]
     assert inflection_bjuice.snv_callers == ["sentdhiomr"]
     assert inflection_bjuice.sv_callers == ["sentdhiomr"]
+    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
+        inflection_bjuice.input_requirements.accepted_source_column_sets
+    )
     assert "produce_sentdhiomr_segdup" in inflection_bjuice.dy_command
     assert 'sentdhiomr={"segdup_genes":"CYP11B1,NCF1,SMN1"}' in (inflection_bjuice.dy_command)
-    assert " -j 125 -p -k" in inflection_bjuice.dy_command
+    assert 'aligners=["sent"]' in inflection_bjuice.dy_command
+    assert 'dedupers=["dmd","na"]' in inflection_bjuice.dy_command
+    assert 'snv_callers=["sentdhiomr"]' in inflection_bjuice.dy_command
+    assert 'sv_callers=["sentdhiomr"]' in inflection_bjuice.dy_command
+    assert " -j 250 -p -k --rerun-triggers mtime -T 1" in inflection_bjuice.dy_command
     assert inflection_bjuice.dryrun_dy_command.endswith(" -n")
 
     simple_test = catalog.get_command("simple-test")
@@ -581,6 +775,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert simple_test.targets == ["help"]
     assert simple_test.genome == "hg38"
     assert simple_test.jobs == 1
+    assert simple_test.keep_going is True
+    assert simple_test.restart_times == 1
     assert simple_test.dy_command == SIMPLE_TEST_DY_COMMAND
     assert simple_test.dryrun_dy_command == simple_test.dy_command
     simple_launch_argv = simple_test.launch_argv(
@@ -588,7 +784,12 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         executing_entity="johnm",
     )
     assert "--dy-command" in simple_launch_argv
-    assert simple_test.dy_command in simple_launch_argv
+    simple_effective = simple_launch_argv[simple_launch_argv.index("--dy-command") + 1]
+    assert simple_effective.startswith(simple_test.dy_command)
+    assert "--produce-ursa-manifest true" in simple_effective
+    assert "--produce-rulegraph true" in simple_effective
+    assert "--produce-filegraph false" in simple_effective
+    assert "--produce-dag false" in simple_effective
     assert "--no-input-staging" in simple_launch_argv
     assert "--no-default-activation" in simple_launch_argv
     assert "--bootstrap-test-config" in simple_launch_argv
@@ -637,6 +838,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert command.input_requirements.required_run_context_values == {"PLATFORM": "ILMN"}
     assert command.targets == ["produce_illumina_run_qc"]
     assert command.compatible_platforms == ["ILMN"]
+    assert command.compatible_cluster_types == ["daywgs"]
 
     with pytest.raises(ValueError, match="run_context_file is required"):
         command.launch_argv(analysis_id="run-qc", executing_entity="johnm")
@@ -656,11 +858,13 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "run_context_file=config/runs.tsv" in dy_command
     assert "samples_table=.test_data/data/samples.tsv" in dy_command
     assert "units_table=.test_data/data/units.tsv" in dy_command
-    assert dy_command.endswith(
+    assert (
         "--config run_context_file=config/runs.tsv "
         "samples_table=.test_data/data/samples.tsv "
         "units_table=.test_data/data/units.tsv"
-    )
+    ) in dy_command
+    assert "--produce-ursa-manifest true" in dy_command
+    assert "--produce-rulegraph true" in dy_command
 
     combined = catalog.get_command("illumina_run_qc_bclconvert")
     assert combined.command_class == "run_analysis"
@@ -693,6 +897,11 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "produce_ont_run_qc" in ont_dy_command
     assert "produce_ont_run_qc_and_demux_multiqc" not in ont_dy_command
     assert "run_context_file=config/runs.tsv" in ont_dy_command
+
+    ultima_profile = catalog.test_data_profiles["ultima_run_directory"]
+    assert ultima_profile.run_context_values == {
+        "METRICS_PATH": ".test_data/data/ultima_run_qc/ultima_demux_summary_mqc.tsv"
+    }
 
 
 def test_repository_catalog_rejects_run_analysis_without_run_dra_profile(
@@ -760,6 +969,7 @@ def test_repository_catalog_v1_migrates_to_sample_analysis(tmp_path: Path) -> No
     assert command.requires_run_mount is False
     assert command.runtime_parameters == {}
     assert command.input_requirements.required_source_columns == []
+    assert command.compatible_cluster_types == ["daywgs"]
 
 
 def test_repository_catalog_v2_requires_command_class(tmp_path: Path) -> None:
@@ -769,6 +979,8 @@ def test_repository_catalog_v2_requires_command_class(tmp_path: Path) -> None:
         "default_repository: repo\n"
         "repositories:\n"
         "  repo:\n"
+        "    clone_transport: https\n"
+        "    auth_mode: none\n"
         "    https_url: https://example.invalid/repo.git\n"
         "    default_ref: main\n"
         "    relative_path: repo\n"
@@ -787,11 +999,26 @@ def test_repository_catalog_v2_requires_command_class(tmp_path: Path) -> None:
         "        dy_command: bin/day_run produce_alignstats\n"
         "        dryrun_dy_command: bin/day_run produce_alignstats -n\n"
         "        compatible_platforms: [ILMN]\n"
+        "        compatible_cluster_types: [daywgs]\n"
         "        compatible_data_modes: [ilmn_solo]\n",
         encoding="utf-8",
     )
 
     with pytest.raises(ValueError, match="command_class"):
+        load_repository_catalog(path)
+
+
+def test_repository_catalog_rejects_unknown_cluster_type(tmp_path: Path) -> None:
+    path = tmp_path / "bad-cluster-type.yaml"
+    path.write_text(
+        _minimal_run_catalog_yaml().replace(
+            "compatible_cluster_types: [daywgs]",
+            "compatible_cluster_types: [gpu]",
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="compatible_cluster_types"):
         load_repository_catalog(path)
 
 
@@ -848,7 +1075,7 @@ def test_repositories_commands_json_cli_lists_blessed_command() -> None:
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert payload["test_data_locations"][0]["data_root"] == (
-        "/fsx/references/genomic_data/organism_reads_slim"
+        "/fsx/data/genomic_data/organism_reads_slim"
     )
     assert payload["test_data_profiles"]["default_reads_slim"]["source_mount_mode"] == (
         "default_mounted"
@@ -856,7 +1083,7 @@ def test_repositories_commands_json_cli_lists_blessed_command() -> None:
     assert payload["test_data_profiles"]["illumina_run_directory"]["source_mount_mode"] == (
         "run_dra_required"
     )
-    assert "default reference mount" in payload["test_data_locations"][0]["description"]
+    assert "default /fsx/data path" in payload["test_data_locations"][0]["description"]
     assert payload["input_contracts"]["sample_manifest"]["source_table"]["required_columns"] == [
         "RUN_ID",
         "SAMPLE_ID",
@@ -870,6 +1097,7 @@ def test_repositories_commands_json_cli_lists_blessed_command() -> None:
     ]
     assert [item["command_id"] for item in payload["commands"]] == ["illumina_snv_alignstats"]
     assert payload["commands"][0]["compatible_platforms"] == ["ILMN"]
+    assert payload["commands"][0]["compatible_cluster_types"] == ["daywgs"]
     assert payload["commands"][0]["command_class"] == "sample_analysis"
     assert payload["commands"][0]["input_requirements"]["required_source_columns"] == [
         "ILMN_R1_FQ",

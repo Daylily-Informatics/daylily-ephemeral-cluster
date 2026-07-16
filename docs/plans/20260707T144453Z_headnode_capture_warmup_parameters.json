@@ -1,0 +1,8 @@
+{
+  "commands": [
+    "sudo -iu ubuntu bash -lc 'tmux capture-pane -pt ccv_warmup_illumina_hg002_kitchensink_multiqc_20260707T144453Z -S -200 || true'"
+  ],
+  "executionTimeout": [
+    "120"
+  ]
+}

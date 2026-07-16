@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
+import yaml
 
 from daylily_ec.aws.ssm import HeadNodeTarget, SsmError
 from daylily_ec.scripts.common import CommandError
@@ -112,6 +113,60 @@ class TestSshIntoHeadnodeScript:
 
 
 class TestRunOmicsAnalysisHeadnodeScript:
+    def test_bclconvert_profile_patch_inserts_yaml_keys_at_existing_child_indent(
+        self, tmp_path, monkeypatch
+    ):
+        run_dir = tmp_path / "run-dir"
+        run_dir.mkdir()
+        (tmp_path / "config").mkdir()
+        (tmp_path / "config" / "runs.tsv").write_text(
+            f"RUNID\tPLATFORM\tRUN_DIR\nRUN-1\tILMN\t{run_dir}\n",
+            encoding="utf-8",
+        )
+        profile_dir = tmp_path / "profile"
+        profile_dir.mkdir()
+        rule_config = profile_dir / "rule_config.yaml"
+        rule_config.write_text(
+            "\n".join(
+                [
+                    "other:",
+                    "  value: true",
+                    "bclconvert:",
+                    "  run_dir: ''",
+                    "  force: 'false'",
+                    "  threads: '1'",
+                    "  partition: i1",
+                    "  parallel_tiles: '1'",
+                    "  conversion_threads: '1'",
+                    "  compression_threads: '1'",
+                    "  decompression_threads: '1'",
+                    "  fastq_gzip_compression_level: '4'",
+                    "  tmpdir: /tmp",
+                    "next:",
+                    "  value: true",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("DAY_PROFILE_DIR", str(profile_dir))
+
+        exec(run_omics_module.BCLCONVERT_PROFILE_PATCH_SCRIPT, {})
+
+        text = rule_config.read_text(encoding="utf-8")
+        parsed = yaml.safe_load(text)
+        assert parsed["bclconvert"]["adapter_read1"] == ""
+        assert parsed["bclconvert"]["sample_sheet_settings"] == "{}"
+        assert parsed["bclconvert"]["barcode_mismatches_index1"] == "0"
+        assert parsed["bclconvert"]["threads"] == "48"
+        assert parsed["bclconvert"]["parallel_tiles"] == "8"
+        assert parsed["bclconvert"]["conversion_threads"] == "2"
+        assert parsed["bclconvert"]["compression_threads"] == "24"
+        assert parsed["bclconvert"]["decompression_threads"] == "8"
+        assert "\n  adapter_read1:" in text
+        assert "\n    adapter_read1:" not in text
+
     def test_parse_remote_config_success(self):
         result = run_omics_module.parse_remote_config(
             "\n".join(
@@ -144,6 +199,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                     "__DAYLILY_SESSION__=sess-1",
                     "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1",
                     "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis",
+                    "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true",
                 ]
             )
             + "\n"
@@ -152,6 +208,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert launch.session_name == "sess-1"
         assert launch.run_dir == "/home/ubuntu/daylily-runs/sess-1"
         assert launch.repo_path.endswith("/daylily-omics-analysis")
+        assert "--produce-ursa-manifest true" in launch.dy_command
 
     def test_build_default_command_includes_requested_flags(self):
         command = run_omics_module.build_default_command(
@@ -174,6 +231,33 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "-j 8" in command
         assert "-n" in command
         assert "--rerun-incomplete" in command
+        assert "--produce-ursa-manifest true" in command
+        assert "--produce-rulegraph true" in command
+        assert "--produce-filegraph false" in command
+        assert "--produce-dag false" in command
+
+        overridden = run_omics_module.build_default_command(
+            target="help",
+            genome="hg38",
+            jobs=1,
+            aligners=["bwa2a"],
+            dedupers=["dmd"],
+            snv_callers=["deep"],
+            sv_callers=[],
+            containerized=False,
+            dry_run=True,
+            extra=None,
+            producer_overrides={
+                "--produce-ursa-manifest": "false",
+                "--produce-rulegraph": "false",
+                "--produce-filegraph": "true",
+                "--produce-dag": "true",
+            },
+        )
+        assert "--produce-ursa-manifest false" in overridden
+        assert "--produce-rulegraph false" in overridden
+        assert "--produce-filegraph true" in overridden
+        assert "--produce-dag true" in overridden
 
     def test_main_rejects_dewey_options_without_artifact_registration(self):
         with pytest.raises(CommandError, match="artifact-registration-command-id"):
@@ -282,6 +366,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=sess-1\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/analysis/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -345,6 +430,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "analysis",
                 "--executing-entity",
                 "johnm",
+                "--project",
+                "project-alpha",
                 "--dry-run",
             ]
         )
@@ -365,14 +452,40 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'STATUS_FILE="${DAYLILY_RUN_DIR}/status.json"' in script
         assert "python3 -c " in script
         assert "nohup tmux new-session" in script
-        assert '-e "DAYLILY_RUN_DIR=$run_dir"' in script
-        assert '-e "DAYLILY_REPO_PATH=$repo_path"' in script
-        assert '-e "DAYLILY_TMUX_LOG=$tmux_log"' in script
+        assert 'env DAYLILY_RUN_DIR="$run_dir"' in script
+        assert 'DAYLILY_REPO_PATH="$repo_path"' in script
+        assert 'DAYLILY_TMUX_LOG="$tmux_log"' in script
         assert 'tmux_session_name="${SESSION_NAME//[^A-Za-z0-9_-]/_}"' in script
         assert 'tmux has-session -t "=$tmux_session_name"' in script
+        assert 'runtime_tmp_name="${SESSION_NAME//[^A-Za-z0-9_-]/_}"' in script
+        assert (
+            'export DAYOA_RUNTIME_TMPDIR="${DAYOA_RUNTIME_TMPDIR:-/tmp/dayoa-conda-tmp-$runtime_tmp_name}"'
+            in script
+        )
+        assert 'export TMPDIR="$DAYOA_RUNTIME_TMPDIR"' in script
+        assert 'export TMP="$DAYOA_RUNTIME_TMPDIR"' in script
+        assert 'export TEMP="$DAYOA_RUNTIME_TMPDIR"' in script
+        assert 'export PIP_CACHE_DIR="${PIP_CACHE_DIR:-$DAYOA_RUNTIME_TMPDIR/pip-cache}"' in script
+        assert (
+            'export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$DAYOA_RUNTIME_TMPDIR/xdg-cache}"' in script
+        )
+        assert (
+            'export PIP_BUILD_TRACKER="${PIP_BUILD_TRACKER:-$DAYOA_RUNTIME_TMPDIR/pip-build-tracker}"'
+            in script
+        )
+        assert "patch_dayoa_runtime_tmpdir_wrappers()" in script
+        assert "DayOA runtime TMPDIR wrapper repair" in script
+        assert "configured_tmpdir=$(yq -r '.daylily.sentieon_tmpdir'" in script
+        assert script.index("patch_dayoa_runtime_tmpdir_wrappers") < script.index(
+            '. "$HOME/miniconda3/etc/profile.d/conda.sh"'
+        )
+        assert script.index("patch_dayoa_runtime_tmpdir_wrappers") < script.index(
+            ". bin/day_activate slurm hg38 remote"
+        )
         assert 'repo_key = "daylily-omics-analysis"' in script
         assert "DAY_CONTAINERIZED=true" in script
         assert "DY_COMMAND='DAY_CONTAINERIZED=true" in script
+        assert "--default-resources" not in script
         assert "shopt -s expand_aliases" in script
         assert (
             'MERMAID_CHROME="$HOME/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome"'
@@ -386,6 +499,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'mkdir -p "$(dirname "$clone_root")"' in script
         assert 'mkdir -p "$clone_root"' not in script
         assert "REPLACE_EXISTING_ANALYSIS_DIR=false" in script
+        assert 'dayec_conda_profile="$HOME/miniconda3/etc/profile.d/conda.sh"' in script
+        assert "conda activate DAY-EC" in script
+        assert "python3 -c 'import yaml'" in script
+        assert script.index("conda activate DAY-EC") < script.index("day-clone")
         assert "day-clone" in script
         assert '--destination "$ANALYSIS_ID"' in script
         assert '--executing-entity "$EXECUTING_ENTITY"' in script
@@ -397,7 +514,9 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'rm -rf -- "$clone_root"' in script
         assert 'if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then' in script
         assert '. "$HOME/miniconda3/etc/profile.d/conda.sh"' in script
-        assert "unset PROJECT || true" in script
+        assert "PROJECT_VALUE=project-alpha" in script
+        assert "dyoa_args+=(--project project-alpha)" in script
+        assert 'export PROJECT="$PROJECT_VALUE"' in script
         assert "dyoa_args+=(--skip-project-check)" in script
         assert "set +u" in script
         assert "set -u" in script
@@ -408,7 +527,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert ". bin/day_activate slurm hg38 remote" in script
         assert "bin/day_run" in script
         assert 'local links_dir="$repo_path/config/run_dir_links"' in script
-        assert 'if ! remove_run_dir_projection_links; then' in script
+        assert "if ! remove_run_dir_projection_links; then" in script
         assert script.index("remove_run_dir_projection_links") < script.index(
             "env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export"
         )
@@ -439,6 +558,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=run-qc\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/run-qc\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/run-qc/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -510,6 +630,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "RUN_CONTEXT_MODE=true" in script
         assert "RUN-1" in script
         assert "printf '%s' \"$RUN_CONTEXT_PAYLOAD\" > config/runs.tsv" in script
+        assert 'row["RUN_DIR"] = str(link_abs) + "/"' in script
         assert "materialize_runtime_table samples_table config/samples.tsv" in script
         assert "materialize_runtime_table units_table config/units.tsv" in script
         assert "[ERROR] Runtime config $key points to missing file: $source_path" in script
@@ -522,6 +643,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=sample-config\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sample-config\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/sample-config/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -602,6 +724,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=bcl-run\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/bcl-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/bcl-run/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -663,6 +786,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
         mock_discover.assert_not_called()
         script = mock_run_shell.call_args.args[2]
         assert "bclconvert_runtime_tables_requested" in script
+        assert "*produce_illumina_run_qc*|" not in script
+        assert "*produce_illumina_run_qc_and_bclconvert*" in script
         assert "generate_bclconvert_runtime_tables" in script
         assert "project_run_context_mounts" in script
         assert "patch_bclconvert_profile_config" in script
@@ -671,12 +796,12 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'replace_required_scalar("force", "true")' in script
         assert 'upsert_scalar("merge_lane_fastqs", "false")' in script
         assert 'upsert_scalar("merge_tile_fastqs", "false")' in script
-        assert 'replace_required_scalar("partition", "i192mem,i192bigmem")' in script
-        assert 'replace_required_scalar("parallel_tiles", "24")' in script
-        assert 'replace_required_scalar("conversion_threads", "4")' in script
-        assert 'replace_required_scalar("compression_threads", "64")' in script
-        assert 'replace_required_scalar("decompression_threads", "32")' in script
-        assert 'upsert_scalar("shared_thread_odirect_output", "auto")' in script
+        assert 'replace_required_scalar("partition", "i192hugenvme")' in script
+        assert 'replace_required_scalar("parallel_tiles", "8")' in script
+        assert 'replace_required_scalar("conversion_threads", "2")' in script
+        assert 'replace_required_scalar("compression_threads", "24")' in script
+        assert 'replace_required_scalar("decompression_threads", "8")' in script
+        assert 'upsert_scalar("shared_thread_odirect_output", "false")' in script
         assert 'upsert_scalar("num_unknown_barcodes_reported", "1000")' in script
         assert 'upsert_scalar("output_legacy_stats", "true")' in script
         assert 'upsert_scalar("barcode_mismatches_index1", "0")' in script
@@ -714,6 +839,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=ultima-run\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/ultima-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/ultima-run/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -790,6 +916,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=ont-run\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/ont-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/ont-run/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -849,6 +976,14 @@ class TestRunOmicsAnalysisHeadnodeScript:
         mock_discover.assert_not_called()
         script = mock_run_shell.call_args.args[2]
         assert "ont_run_qc_runtime_repair_requested" in script
+        assert "patch_run_qc_reports_numpy_dependency" in script
+        assert "workflow/envs/run_qc_reports_v0.1.yaml" in script
+        assert 'anchor = "' in script
+        assert "  - pandas" in script
+        assert 'anchor + "  - numpy' in script
+        assert "patch_run_qc_reports_pycoqc_python" in script
+        assert "workflow/rules/run_qc_reports.smk" in script
+        assert '$(dirname "$(command -v pycoQC)")/python' in script
         assert "patch_pycoqc_readonly_sort" in script
         assert "data = data.dropna().values" in script
         assert 'data = data.dropna().astype("int64").to_numpy(copy=True)' in script
@@ -865,6 +1000,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=alignstats-run\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/alignstats-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/alignstats-run/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -925,6 +1061,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "goleft indexcov --directory $gl --sex {params.sexchrms:q}" in script
         assert "goleft indexcov --directory $gl " in script
         assert "goleft_status=$?" in script
+        assert "goleft empty-sex guard already native in DayOA" in script
+        assert 'goleft indexcov --directory $gl "${{sex_args[@]}}"' in script
         assert "no usable chroms?omes|no usable chromosomes" in script
         assert "--fai {params.huref}.fai {input.crai}" in script
         assert "\nPYGOLEFT\n" in script
@@ -942,6 +1080,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=snv-concordance-run\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/snv-concordance-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/snv-concordance-run/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -1001,7 +1140,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "patch_rtg_vcfeval_parse_output_dir" in script
         assert "if rtg_vcfeval_parse_runtime_repair_requested; then" in script
         assert 'mkdir -p "$(dirname {output.mqc})"' in script
-        assert 'rtg_mem_gb=$(( ({resources.mem_mb} * 85 / 100 + 1023) / 1024 ))' in script
+        assert "rtg_mem_gb=$(( ({resources.mem_mb} * 85 / 100 + 1023) / 1024 ))" in script
         assert 'RTG_MEM="${{rtg_mem_gb}}G" rtg vcfeval' in script
 
     @patch(
@@ -1011,6 +1150,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=kitchensink-run\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/kitchensink-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/kitchensink-run/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -1110,6 +1250,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=simple-test\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/simple-test\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/simple-test/daylily-omics-analysis\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
             ),
             stderr="",
         ),
@@ -1168,7 +1309,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "bootstrap_test_config()" in script
         assert "[INFO] Bootstrapped DayOA test samples and units tables." in script
         assert 'cp "$STAGE_SAMPLES" config/samples.tsv' in script
-        assert ("DY_COMMAND='source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help'") in script
+        assert "DY_COMMAND='source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help" in script
+        assert "--default-resources" not in script
         assert 'if [[ "$command" == source\\ dyoainit\\;* ]]; then' in script
         assert "set --" in script
         assert "source dyoainit" in script
@@ -1283,6 +1425,12 @@ class TestCfgHeadnodeScript:
             head_node_instance_id="i-abc123",
             region="us-west-2",
             profile="dev",
+            dyec_deploy_key_secret_arn="",
+            dyec_deploy_key_region="",
+            dyec_repo_url="",
+            dyec_repo_ref="",
+            dayoa_deploy_key_secret_arn="",
+            dayoa_deploy_key_region="",
             repo_overrides={"daylily-omics-analysis": "release-1"},
         )
         assert "Headnode configured via SSM" in capsys.readouterr().out
@@ -1326,7 +1474,7 @@ class TestRemoteTestsScript:
             return_value=registry,
         ):
             assert remote_tests_module._load_default_repo() == (
-                "https://example.com/test.git",
+                "test-repo",
                 "release-1",
             )
 
@@ -1371,7 +1519,7 @@ class TestRemoteTestsScript:
     )
     @patch(
         "daylily_ec.scripts.daylily_run_ephemeral_cluster_remote_tests._load_default_repo",
-        return_value=("https://example.com/test.git", "release-1"),
+        return_value=("test-repo", "release-1"),
     )
     @patch("daylily_ec.scripts.daylily_run_ephemeral_cluster_remote_tests.wait_for_ssm_online")
     @patch(
@@ -1403,7 +1551,10 @@ class TestRemoteTestsScript:
         assert rc == 0
         script = mock_run_shell.call_args.args[2]
         assert "tmux new-session" in script
-        assert "git clone -b release-1 https://example.com/test.git" in script
+        assert "day-clone --repository test-repo" in script
+        assert "--git-tag release-1" in script
+        assert "--executing-entity ubuntu" in script
+        assert "git clone" not in script
         out = capsys.readouterr().out
         assert "Tmux session 'sess-2' created" in out
         assert "Then run: tmux attach -t sess-2" in out
@@ -1414,7 +1565,7 @@ class TestRemoteTestsScript:
     )
     @patch(
         "daylily_ec.scripts.daylily_run_ephemeral_cluster_remote_tests._load_default_repo",
-        return_value=("https://example.com/test.git", "release-1"),
+        return_value=("test-repo", "release-1"),
     )
     @patch("daylily_ec.scripts.daylily_run_ephemeral_cluster_remote_tests.wait_for_ssm_online")
     @patch(

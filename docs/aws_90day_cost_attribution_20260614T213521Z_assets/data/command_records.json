@@ -1,0 +1,2182 @@
+[
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_total_daily.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity DAILY --metrics UnblendedCost --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_service_daily.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity DAILY --metrics UnblendedCost --group-by Type=DIMENSION,Key=SERVICE --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_service_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=SERVICE --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_region_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=REGION --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_usage_type_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=USAGE_TYPE --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_operation_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=OPERATION --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_service_usage_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=SERVICE Type=DIMENSION,Key=USAGE_TYPE --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_service_operation_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=SERVICE Type=DIMENSION,Key=OPERATION --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ce get-tags --time-period Start=2026-03-16,End=2026-06-14 --tag-key lsmc-project --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_tag_lsmc_project_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=TAG,Key=lsmc-project --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_service_tag_lsmc_project_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=SERVICE Type=TAG,Key=lsmc-project --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ce get-tags --time-period Start=2026-03-16,End=2026-06-14 --tag-key project --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_tag_project_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=TAG,Key=project --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_service_tag_project_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=SERVICE Type=TAG,Key=project --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ce get-tags --time-period Start=2026-03-16,End=2026-06-14 --tag-key parallelcluster:cluster-name --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_tag_parallelcluster_cluster_name_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=TAG,Key=parallelcluster:cluster-name --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_service_tag_parallelcluster_cluster_name_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=SERVICE Type=TAG,Key=parallelcluster:cluster-name --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ce get-tags --time-period Start=2026-03-16,End=2026-06-14 --tag-key aws-parallelcluster-clustername --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_tag_aws_parallelcluster_clustername_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=TAG,Key=aws-parallelcluster-clustername --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_service_tag_aws_parallelcluster_clustername_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=SERVICE Type=TAG,Key=aws-parallelcluster-clustername --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ce get-tags --time-period Start=2026-03-16,End=2026-06-14 --tag-key aws-parallelcluster-project --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_tag_aws_parallelcluster_project_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=TAG,Key=aws-parallelcluster-project --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_service_tag_aws_parallelcluster_project_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=SERVICE Type=TAG,Key=aws-parallelcluster-project --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ce get-tags --time-period Start=2026-03-16,End=2026-06-14 --tag-key aws-parallelcluster-username --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_tag_aws_parallelcluster_username_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=TAG,Key=aws-parallelcluster-username --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_service_tag_aws_parallelcluster_username_monthly.json",
+    "cmd": "aws ce get-cost-and-usage --time-period Start=2026-03-16,End=2026-06-14 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=SERVICE Type=TAG,Key=aws-parallelcluster-username --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_resource_amazon_elastic_compute_cloud_compute.json",
+    "cmd": "aws ce get-cost-and-usage-with-resources --time-period Start=2026-06-01,End=2026-06-14 --granularity DAILY --metrics UnblendedCost --filter {\"Dimensions\":{\"Key\":\"SERVICE\",\"Values\":[\"Amazon Elastic Compute Cloud - Compute\"]}} --group-by Type=DIMENSION,Key=RESOURCE_ID --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_resource_ec2_other.json",
+    "cmd": "aws ce get-cost-and-usage-with-resources --time-period Start=2026-06-01,End=2026-06-14 --granularity DAILY --metrics UnblendedCost --filter {\"Dimensions\":{\"Key\":\"SERVICE\",\"Values\":[\"EC2 - Other\"]}} --group-by Type=DIMENSION,Key=RESOURCE_ID --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_resource_amazon_relational_database_service.json",
+    "cmd": "aws ce get-cost-and-usage-with-resources --time-period Start=2026-06-01,End=2026-06-14 --granularity DAILY --metrics UnblendedCost --filter {\"Dimensions\":{\"Key\":\"SERVICE\",\"Values\":[\"Amazon Relational Database Service\"]}} --group-by Type=DIMENSION,Key=RESOURCE_ID --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_resource_amazon_elastic_load_balancing.json",
+    "cmd": "aws ce get-cost-and-usage-with-resources --time-period Start=2026-06-01,End=2026-06-14 --granularity DAILY --metrics UnblendedCost --filter {\"Dimensions\":{\"Key\":\"SERVICE\",\"Values\":[\"Amazon Elastic Load Balancing\"]}} --group-by Type=DIMENSION,Key=RESOURCE_ID --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_resource_amazon_virtual_private_cloud.json",
+    "cmd": "aws ce get-cost-and-usage-with-resources --time-period Start=2026-06-01,End=2026-06-14 --granularity DAILY --metrics UnblendedCost --filter {\"Dimensions\":{\"Key\":\"SERVICE\",\"Values\":[\"Amazon Virtual Private Cloud\"]}} --group-by Type=DIMENSION,Key=RESOURCE_ID --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "artifact": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/aws_90day_cost_attribution_20260614T213521Z_assets/raw/ce_resource_amazon_elastic_container_service.json",
+    "cmd": "aws ce get-cost-and-usage-with-resources --time-period Start=2026-06-01,End=2026-06-14 --granularity DAILY --metrics UnblendedCost --filter {\"Dimensions\":{\"Key\":\"SERVICE\",\"Values\":[\"Amazon Elastic Container Service\"]}} --group-by Type=DIMENSION,Key=RESOURCE_ID --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "ap-south-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "ap-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "ca-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "eu-central-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "us-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-instance-1 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-api --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-dr-drill-20260521-reader-ha --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dev-writer --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dr-drill-standalone-20260521 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:staging-writer --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-dr-drill-20260521 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-lsmcok1-tapdb --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-lsmcq7-tapdb --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:dev --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:labcore-dev --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:staging --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-tags --resource-arns arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs describe-clusters --clusters arn:aws:ecs:us-west-2:108782052779:cluster/terrarium-dev-cluster arn:aws:ecs:us-west-2:108782052779:cluster/terrarium-prod-cluster arn:aws:ecs:us-west-2:108782052779:cluster/aquarium-dev-cluster --include TAGS --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-services --cluster arn:aws:ecs:us-west-2:108782052779:cluster/aquarium-dev-cluster --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs describe-services --cluster arn:aws:ecs:us-west-2:108782052779:cluster/aquarium-dev-cluster --services arn:aws:ecs:us-west-2:108782052779:service/aquarium-dev-cluster/aquarium-dev-app --include TAGS --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-services --cluster arn:aws:ecs:us-west-2:108782052779:cluster/terrarium-dev-cluster --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs describe-services --cluster arn:aws:ecs:us-west-2:108782052779:cluster/terrarium-dev-cluster --services arn:aws:ecs:us-west-2:108782052779:service/terrarium-dev-cluster/terrarium-dev-api --include TAGS --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-services --cluster arn:aws:ecs:us-west-2:108782052779:cluster/terrarium-prod-cluster --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs describe-services --cluster arn:aws:ecs:us-west-2:108782052779:cluster/terrarium-prod-cluster --services arn:aws:ecs:us-west-2:108782052779:service/terrarium-prod-cluster/terrarium-prod-api --include TAGS --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "af-south-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "eu-north-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "eu-west-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "eu-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "eu-west-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "ap-northeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "ap-northeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "ap-northeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "sa-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "ap-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "ap-southeast-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "ap-southeast-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "ap-southeast-3",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:db:auruse1-writer --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-instance-1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-api --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:db:dayhoff-dr-drill-use1-20260522-reader-ha --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:db:dev-writer --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:db:dr-drill-standalone-use1-20260526 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:cluster:auruse1 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:cluster:dayhoff-dr-drill-use1-20260522 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:cluster:dev --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-tags --resource-arns arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679 --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "us-east-1",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-instances --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-volumes --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-addresses --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-file-systems --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-instances --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws rds describe-db-clusters --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws ecs list-clusters --output json",
+    "region": "us-east-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api list-buckets --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket aquarium-tfstate-dev --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket aquarium-tfstate-dev --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket aquarium-tfstate-prod --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket aquarium-tfstate-prod --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket asterism-note-screenshots-dev --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket asterism-note-screenshots-dev --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket cdk-hnb659fds-assets-108782052779-us-east-1 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket cdk-hnb659fds-assets-108782052779-us-east-1 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket cdk-hnb659fds-assets-108782052779-us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket cdk-hnb659fds-assets-108782052779-us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket cf-templates-pfrobpqqun1c-us-east-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket cf-templates-pfrobpqqun1c-us-east-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket daylily-customer-lsmc-a0477268 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket daylily-customer-lsmc-a0477268 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-atlas-demo --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-atlas-demo --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-atlas-dev --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-atlas-dev --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-bio-oauth-static-site-108782052779-us-east-1 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-bio-oauth-static-site-108782052779-us-east-1 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-copy-ultimagen-lsmc-cro-316 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-copy-ultimagen-lsmc-cro-316 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-analysis-results-usw2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-analysis-results-usw2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-control-data-usw2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-control-data-usw2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-omics-analysis-us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-omics-analysis-us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-references-usw2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-references-usw2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-runtime-assets-usw2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-runtime-assets-usw2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-staging-usw2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-staging-usw2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-dewey-0 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dewey-0 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-healthomics-failiover --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-healthomics-failiover --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-healthomics-results --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-healthomics-results --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-illumina-public-data --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-illumina-public-data --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-meridian-governance-registry --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-meridian-governance-registry --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-public-ont-data --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-public-ont-data --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-ssf-sequencing-data --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-ssf-sequencing-data --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-terraform-state --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-terraform-state --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-twenty-prod-storage --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-twenty-prod-storage --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-ursa-customers-usw2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-ursa-customers-usw2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket parallelcluster-4da281c1dc024f1c-v1-do-not-delete --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket parallelcluster-4da281c1dc024f1c-v1-do-not-delete --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket parallelcluster-730cb6d53cf2deec-v1-do-not-delete --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket parallelcluster-730cb6d53cf2deec-v1-do-not-delete --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket parallelcluster-e781c59d26140bab-v1-do-not-delete --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket parallelcluster-e781c59d26140bab-v1-do-not-delete --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket terrarium-dev-media --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-dev-media --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket terrarium-dev-web --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-dev-web --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket terrarium-prod-media --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-prod-media --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket terrarium-prod-web --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-prod-web --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket terrarium-tfstate-dev --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-tfstate-dev --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket terrarium-tfstate-prod --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-tfstate-prod --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket ursa-us-west-2-052779-default-customer-1d8c14 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket ursa-us-west-2-052779-default-customer-1d8c14 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket zebra-day-cfg-us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 0,
+    "stderr": ""
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket zebra-day-cfg-us-west-2 --output json",
+    "region": "us-west-2",
+    "returncode": 255,
+    "stderr": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist"
+  }
+]

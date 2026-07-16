@@ -1,0 +1,24 @@
+## ONT retry1
+            echo "ERROR: TMPDIR disappeared before pipeline start: $tdir" >> results/day/hg38_broad/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-0017-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-0017-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+                echo "ERROR: unsupported sentmm2ont input kind: fastq" >> results/day/hg38_broad/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-0017-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-0017-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+Submitted job 2738 with external jobid '154'.
+Finished job 1062.
+rule sentmm2ont_align_sort:
+        ulimit -n 65536 || echo "ulimit mod failed";
+            echo "ERROR: Failed to create TMPDIR: $TMPDIR" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-0012-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-0012-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+            echo "ERROR: TMPDIR disappeared before pipeline start: $tdir" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-0012-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-0012-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+                echo "ERROR: unsupported sentmm2ont input kind: fastq" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-0012-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-0012-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+Submitted job 2098 with external jobid '156'.
+Finished job 370.
+rule sentmm2ont_align_sort:
+        ulimit -n 65536 || echo "ulimit mod failed";
+            echo "ERROR: Failed to create TMPDIR: $TMPDIR" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0019-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0019-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+## ILMN
+            echo "ERROR: expected exactly one somalier extract output in $tmp_dir, found ${#somalier_outputs[@]}" >> results/day/hg38/other_reports/relatedness/sent/dmd/somalier/logs/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ.extract.log
+Submitted job 98 with external jobid '136'.
+rule mosdepth:
+Submitted job 667 with external jobid '137'.
+rule cyrius:
+Submitted job 718 with external jobid '138'.
+rule unmapped_metagenomics_kraken2_quick:
+        test -s results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ/align/sent/dmd/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ.sent.dmd.cram || (echo "ERROR: missing alignment input: results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ/align/sent/dmd/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ.sent.dmd.cram" | tee -a results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/logs/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN---output truncated--

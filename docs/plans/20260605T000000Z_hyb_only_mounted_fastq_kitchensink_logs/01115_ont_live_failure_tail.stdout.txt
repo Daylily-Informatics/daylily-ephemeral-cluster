@@ -1,0 +1,151 @@
+DAY-EC activated.
+DAY-EC activated.
+Cloning into '/fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis'...
+Updating files:  54% (706/1287)Updating files:  55% (708/1287)Updating files:  56% (721/1287)Updating files:  57% (734/1287)Updating files:  58% (747/1287)Updating files:  59% (760/1287)Updating files:  60% (773/1287)Updating files:  61% (786/1287)Updating files:  62% (798/1287)Updating files:  63% (811/1287)Updating files:  64% (824/1287)Updating files:  65% (837/1287)Updating files:  66% (850/1287)Updating files:  67% (863/1287)Updating files:  68% (876/1287)Updating files:  69% (889/1287)Updating files:  69% (900/1287)Updating files:  70% (901/1287)Updating files:  71% (914/1287)Updating files:  72% (927/1287)Updating files:  73% (940/1287)Updating files:  74% (953/1287)Updating files:  75% (966/1287)Updating files:  76% (979/1287)Updating files:  77% (991/1287)Updating files:  78% (1004/1287)Updating files:  79% (1017/1287)Updating files:  80% (1030/1287)Updating files:  81% (1043/1287)Updating files:  82% (1056/1287)Updating files:  83% (1069/1287)Updating files:  84% (1082/1287)Updating files:  85% (1094/1287)Updating files:  86% (1107/1287)Updating files:  87% (1120/1287)Updating files:  88% (1133/1287)Updating files:  89% (1146/1287)Updating files:  90% (1159/1287)Updating files:  90% (1170/1287)Updating files:  91% (1172/1287)Updating files:  92% (1185/1287)Updating files:  93% (1197/1287)Updating files:  94% (1210/1287)Updating files:  95% (1223/1287)Updating files:  96% (1236/1287)Updating files:  97% (1249/1287)Updating files:  98% (1262/1287)Updating files:  99% (1275/1287)Updating files: 100% (1287/1287)Updating files: 100% (1287/1287), done.
+Cloning repository...
+
+Great success! Daylily repository cloned.
+Repository: https://github.com/lsmc-bio/daylily-omics-analysis.git
+Reference : jem-dev
+Location  : /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis
+
+To get started:
+  cd /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis
+  # initialize and run the analysis repository per its documentation
+Notice: --project not set. Using default project name: hyb-only
+Project: hyb-only
+Skip Project Check: true
+Skipping project validation as --skip-project-check was passed.
+
+________________________________________________________
+AWS Budget lookup skipped for project 'hyb-only' in region 'us-west-2'.
+  Total: NA
+  Used: NA
+  Percent Used: NA
+________________________________________________________
+Using configured Sentieon license file: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+# conda environments:
+#
+base                   /home/ubuntu/miniconda3
+DAY-EC               * /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
+
+Day CLI initialized for project 'hyb-only' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+ 
+	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
+	                           
+	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
+	                           
+	(day-run / dy-r)          - Run a command in the current environment.
+	                           <tab> for exposed targets, -<tab> for all command line flags.
+	                           
+	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
+	                           Use --block-and-poll to wait for completion.
+	                           
+	(day-deactivate / dy-d)   - Deactivate the current environment.
+	                           Use 'dy-d reset' to hard reset the environment.
+	                           
+	                           
+	                           
+	                           
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
+	                           
+	(example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+		dy-a slurm hg38 # or hg38_broad or b37
+
+	(example): RUN ANALYSES
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv
+
+
+
+		# Use target names directly (tab-complete available):
+
+		dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance
+
+		dy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics
+
+
+
+		# Platform-specific targets:
+
+		dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+		dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling
+
+		dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)
+
+
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project hyb-only .
+Remote call detected. Activating conda hack
+ > >> >>> 
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+Using sentieon license file: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic from ~/.config/daylily/daylily_cli_global.yaml
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38_broad  
+       _______ GREAT SUCCESS _______       
+[INFO] Patched goleft empty-sex/no-usable-chromosomes repair: workflow/rules/go_left.smk
+[INFO] Patched mosdepth empty-output repair: workflow/rules/mosdepth.smk
+[INFO] Patched RTG vcfeval parse/JVM-memory repair: workflow/rules/rtg_vcfeval.smk
+[INFO] Patched VEP zero-variant concat repair: workflow/rules/vep.smk
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+...AUTO-CONFIG: snv_callers=sentdont (from target rules → env)
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/day_profiles/slurm produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config multiqc_qc={"enable_tools":["vep"]} -p -j 5 -k
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+...INFO: Auto-detected SNV callers from env: ['sentdont']
+SNV Callers (final): [sentdont]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+All Wildcards:    all snv_CALLERS:  ['sentdont']  all ALIGNERS:  []  all CRAM_ALIGNERS:  ['sentmm2ont']  all samples:  {'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0000-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0000-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0001-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0001-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0002-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0002-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0003-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0003-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0004-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0004-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0005-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0005-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0006-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0006-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0007-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0007-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0008-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0008-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0009-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0009-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0010-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0010-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0011-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0011-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0012-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0012-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0013-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0013-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0014-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0014-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0015-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0015-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0016-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0016-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0017-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0017-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0018-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0018-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0019-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0019-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0020-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0020-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0021-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0021-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0022-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0022-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0023-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0023-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0024-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0024-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0025-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0025-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0026-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0026-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0027-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0027-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0028-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0028-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0029-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0029-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0030-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0030-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0031-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0031-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0032-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0032-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0033-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0033-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0034-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0034-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0035-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0035-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0036-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0036-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0037-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0037-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0038-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0038-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0039-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0039-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0040-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0040-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0041-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0041-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0042-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0042-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0043-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0043-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0044-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0044-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0045-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0045-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0046-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0046-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0047-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0047-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0048-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0048-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0049-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0049-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0050-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0050-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0051-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0051-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0052-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0052-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0053-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0053-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0054-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0054-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0055-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0055-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0056-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0056-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0057-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0057-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0058-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0058-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0059-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0059-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0060-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0060-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0061-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0061-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0062-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0062-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0063-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0063-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0064-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0064-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0065-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0065-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0066-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0066-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0067-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0067-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0068-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0068-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0069-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0069-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0070-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0070-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0071-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0071-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0072-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0072-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0000-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0000-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0001-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0001-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0002-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0002-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0003-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0003-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0004-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0004-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0005-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0005-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0006-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0006-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0007-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0007-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0008-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0008-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0009-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0009-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0010-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0010-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0011-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0011-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0012-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0012-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0013-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0013-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0014-PF-ONT-PROMETHION': ['ONT-4Coriells-ch--output truncated--

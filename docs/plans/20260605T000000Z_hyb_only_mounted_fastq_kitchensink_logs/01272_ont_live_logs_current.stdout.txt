@@ -1,0 +1,122 @@
+DAY-EC activated.
+DAY-EC activated.
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, threads=1, time=5440, vcpu=1
+Select jobs to execute...
+[Sat Jun  6 09:43:20 2026]
+Finished job 19.
+51 of 57 steps (89%) done
+[Sat Jun  6 09:43:27 2026]
+Finished job 40.
+52 of 57 steps (91%) done
+Select jobs to execute...
+
+[Sat Jun  6 09:43:27 2026]
+localrule finish_align_stats:
+    input: results/day/hg38_broad/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    output: results/day/hg38_broad/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv
+    log: results/day/hg38_broad/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION/logs/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION.sentmm2ont.na.finish_align_stats.log
+    jobid: 39
+    reason: Missing output files: results/day/hg38_broad/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv; Input files updated by another job: results/day/hg38_broad/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    wildcards: sample=ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION, alnr=sentmm2ont, ddup=na
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+loading global: /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/config/global_AWSPC.yaml
+loading profile rule_config: /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+...INFO: Auto-detected aligners from env: ['sentmm2ont']
+aligners (final): [sentmm2ont]
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+...INFO: Auto-detected dedupers. DDUP updated to: ['na']
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+SNV Callers (final): []
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, threads=1, time=5440, vcpu=1
+Select jobs to execute...
+[Sat Jun  6 09:43:30 2026]
+Finished job 39.
+53 of 57 steps (93%) done
+[Sat Jun  6 09:44:57 2026]
+Finished job 27.
+54 of 57 steps (95%) done
+Select jobs to execute...
+
+[Sat Jun  6 09:44:57 2026]
+localrule alignstats_gather:
+    input: results/day/hg38_broad/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip1-NA05164-DMPK-chip1-barcode21-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA05164-DMPK-chip1-barcode21-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip3-NA09677-SMN-chip3-barcode19-chip3-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip3-NA09677-SMN-chip3-barcode19-chip3-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv
+    output: results/day/hg38_broad/other_reports/alignstats_summary_gather.done, results/day/hg38_broad/benchmarks/all.alignstats_summary.bench.tsv
+    log: results/day/hg38_broad/logs/alignstats_summary_gather.log
+    jobid: 2
+    benchmark: results/day/hg38_broad/benchmarks/all.alignstats_summary.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/other_reports/alignstats_summary_gather.done; Input files updated by another job: results/day/hg38_broad/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip1-NA05164-DMPK-chip1-barcode21-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA05164-DMPK-chip1-barcode21-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip3-NA09677-SMN-chip3-barcode19-chip3-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip3-NA09677-SMN-chip3-barcode19-chip3-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+ touch results/day/hg38_broad/other_reports/alignstats_summary_gather.done; touch results/day/hg38_broad/benchmarks/all.alignstats_summary.bench.tsv
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-81/bc1a74e52dbef168e070adef567b9cfa_
+[Sat Jun  6 09:44:57 2026]
+Finished job 2.
+55 of 57 steps (96%) done
+Select jobs to execute...
+
+[Sat Jun  6 09:44:57 2026]
+localrule alignstats_compile:
+    input: results/day/hg38_broad/other_reports/alignstats_summary_gather.done
+    output: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv, results/day/hg38_broad/other_reports/alignstats_csummary.tsv, results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv, results/day/hg38_broad/other_reports/alignstats_gs_mqc.tsv
+    log: results/day/hg38_broad/logs/alignstats_summary_compile.log
+    jobid: 1
+    benchmark: results/day/hg38_broad/benchmarks/all.alignstats_smmary_compile.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv; Input files updated by another job: results/day/hg38_broad/other_reports/alignstats_summary_gather.done
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        python workflow/scripts/compile_alignstats.py           --mdir results/day/hg38_broad/           --log results/day/hg38_broad/logs/alignstats_summary_compile.log           --bsummary results/day/hg38_broad/other_reports/alignstats_bsummary.tsv           --csummary results/day/hg38_broad/other_reports/alignstats_csummary.tsv           --combo results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv           --generalstats results/day/hg38_broad/other_reports/alignstats_gs_mqc.tsv
+        
+[Sat Jun  6 09:44:58 2026]
+Finished job 1.
+56 of 57 steps (98%) done
+Removing temporary output results/day/hg38_broad/other_reports/alignstats_csummary.tsv.
+Select jobs to execute...
+
+[Sat Jun  6 09:44:58 2026]
+localrule produce_alignstats:
+    input: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv
+    log: results/day/hg38_broad/logs/produce_alignstats.log
+    jobid: 0
+    reason: Input files updated by another job: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat Jun  6 09:44:58 2026]
+Finished job 0.
+57 of 57 steps (100%) done
+Removing temporary output results/day/hg38_broad/other_reports/alignstats_bsummary.tsv.
+Complete log: .snakemake/log/2026-06-06T090310.974427.snakemake.log
+
+
+	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
+
+
+ 
+]]]]--------WORKFLOW SUCCESS====================]]]]]--
+RETURN CODE: 0
+[INFO] Workflow exited with status 0
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-81:/fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis$

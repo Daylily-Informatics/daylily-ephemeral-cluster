@@ -1,0 +1,208 @@
+DAY-EC activated.
+DAY-EC activated.
+session=hybonly_ilmn_final_multiqc_file_20260606T100052Z
+tmux=present
+0: bash* (1 panes) [80x24] [layout 5964,80x24,0,0,15] @15 (active)
+0: [80x24] [history 1510/2000, 597888 bytes] %15 (active)
+capture_tail:
+ad_haps/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ.sen
+t.dmd.sentd.read_haps.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG00
+3-b-GIAB-all-S8-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_ha
+ps/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ.sent.dmd
+.sentd.read_haps.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-c-G
+IAB-all-S9-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20
+260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ.sent.dmd.sent
+d.read_haps.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-al
+l-S46-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/2026052
+6-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ.sent.dmd.sentd.rea
+d_haps.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S4
+8-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH
+01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_h
+aps.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-P
+F-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH011
+21-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps
+.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-IL
+MN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH01121-0
+004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt
+results/day/hg38/other_reports/bcftools_variant_stats_mqc.tsv results/day/hg38/o
+ther_reports/rtg_vcfstats_mqc.tsv logs/peddy_gathered.done results/day/hg38/othe
+r_reports/peddy_sample_qc_mqc.tsv results/day/hg38/other_reports/expansionhunter
+_mqc.tsv results/day/hg38/other_reports/vep_annotation_mqc.tsv results/day/hg38/
+other_reports/htd_calls_mqc.tsv results/day/hg38/other_reports/giab_concordance_
+mqc.tsv results/day/hg38/other_reports/rules_benchmark_data_mqc.tsv > results/da
+y/hg38/reports/logs/final_multiqc_input_staging.log 2>&1
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip
+-10-0-0-81/be5f834cbbdb5fa84aa89d321fd38c36_
+Touching output file results/day/hg38/reports/multiqc_inputs/final/.stage.done.
+[Sat Jun  6 10:01:28 2026]
+Finished job 712.
+4 of 7 steps (57%) done
+Select jobs to execute...
+
+[Sat Jun  6 10:01:28 2026]
+rule multiqc_final_wgs:
+    input: results/day/hg38/logs/report_components_aggregated.done, results/day/
+hg38/other_reports/rules_benchmark_data_mqc.tsv, results/day/hg38/reports/multiq
+c_inputs/final/.stage.done, results/day/hg38/reports/multiqc_inputs/final/manife
+st.tsv, config/multiqc_module_exclude.txt
+    output: results/day/hg38/reports/DAY_final_multiqc.html, results/day/hg38/re
+ports/DAY_final_multiqc.original.html, results/day/hg38/reports/multiqc_header.y
+aml, results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json, results/
+day/hg38/reports/DAY_final_multiqc_data/multiqc_general_stats.txt, results/day/h
+g38/reports/DAY_final_multiqc_data/multiqc_sources.txt, results/day/hg38/reports
+/DAY_final_multiqc_data/multiqc.log
+    log: results/day/hg38/reports/logs/all__mqc_fin_a.log
+    jobid: 1
+    benchmark: results/day/hg38/benchmarks/DAY_all.final_multiqc.bench.tsv
+    reason: Missing output files: results/day/hg38/reports/DAY_final_multiqc_dat
+a/multiqc_general_stats.txt, results/day/hg38/reports/DAY_final_multiqc_data/mul
+tiqc_data.json, results/day/hg38/reports/DAY_final_multiqc_data/multiqc.log, res
+ults/day/hg38/reports/DAY_final_multiqc_data/multiqc_sources.txt, results/day/hg
+38/reports/DAY_final_multiqc.html; Input files updated by another job: results/d
+ay/hg38/other_reports/rules_benchmark_data_mqc.tsv, results/day/hg38/logs/report
+_components_aggregated.done, results/day/hg38/reports/multiqc_inputs/final/.stag
+e.done, results/day/hg38/reports/multiqc_inputs/final/manifest.tsv
+    priority: 50
+    threads: 4
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TB
+D>, threads=4, time=5440, partition=i192,i192mem,i128, vcpu=1, distribution=bloc
+k, exclusive=, constraint=, exclude=, include=
+
+
+        dbill='$';
+        mkdir -p $(dirname results/day/hg38/reports/DAY_final_multiqc.html) $(di
+rname results/day/hg38/reports/logs/all__mqc_fin_a.log)
+        python workflow/scripts/multiqc_log_guard.py --log-dir results/day/hg38/
+other_reports/logs > results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1
+        multiqc --version >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>
+&1 || true
+        echo '''
+report_header_info:
+  - Project/Budget: "REGSUB_PROJECT"
+  - Budget @ Runtime: "REGSUB_BUDGET"
+  - Spot Instances: "REGSUB_SPOTINSTANCES"
+  - Spot Costs per hr: "REGSUB_SPOTCOST"
+  - FQ->BAM.sort avg Costs: "REGSUB_TOTALCOST"
+  - BAM mrkdup avg Cost: "REGSUB_MRKDUPCOST"
+  - Results Dir (GB): "REGSUB_TOTALSIZE"
+  ''' > results/day/hg38/reports/multiqc_header.yaml 2>> results/day/hg38/report
+s/logs/all__mqc_fin_a.log;
+
+        perl -pi -e "s/REGSUB_PROJECT/$DAY_PROJECT/g;"  results/day/hg38/reports
+/multiqc_header.yaml >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_BUDGET/\\$dbill$USED_BUDGET of \\$dbill$TOTAL_BUDG
+ET spent ( $PERCENT_USED\%)/g;" results/day/hg38/reports/multiqc_header.yaml >>
+results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+
+        size=$(du -hs results | cut -f1) >> results/day/hg38/reports/logs/all__m
+qc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_TOTALSIZE/$size/g;" results/day/hg38/reports/multi
+qc_header.yaml >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+
+        source bin/proc_spot_price_logs.sh >> results/day/hg38/reports/logs/all_
+_mqc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_SPOTCOST/median: \\$dbill$MEDIAN_SPOT_PRICE  mean:
+ \\$dbill$AVERAGE_SPOT_PRICE ( avg cost per vcpu,per min: \\$dbill$VCPU_COST_PER
+_MIN ) /g;"  results/day/hg38/reports/multiqc_header.yaml >> results/day/hg38/re
+ports/logs/all__mqc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_SPOTINSTANCES/ $INSTANCE_TYPES_LINE /g;" results/d
+ay/hg38/reports/multiqc_header.yaml >> results/day/hg38/reports/logs/all__mqc_fi
+n_a.log 2>&1;
+
+        source bin/proc_aligner_costs.sh results/day/hg38/other_reports/rules_be
+nchmark_data_mqc.tsv $VCPU_COST_PER_MIN >> results/day/hg38/reports/logs/all__mq
+c_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_TOTALCOST/$ALNR_SUMMARY_COST/g;" results/day/hg38/
+reports/multiqc_header.yaml >> results/day/hg38/reports/logs/all__mqc_fin_a.log
+2>&1;
+
+        source bin/proc_mrkdup_costs.sh results/day/hg38/other_reports/rules_ben
+chmark_data_mqc.tsv $VCPU_COST_PER_MIN  >> results/day/hg38/reports/logs/all__mq
+c_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_MRKDUPCOST/$MRKDUP_AVG_MINUTES min, costing \\$dbi
+ll$MRKDUP_AVG_COST/g;" results/day/hg38/reports/multiqc_header.yaml >> results/d
+ay/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+
+        module_excludes="$(python workflow/scripts/multiqc_module_exclude_args.p
+y config/multiqc_module_exclude.txt)"
+        multiqc -f          $module_excludes         --config results/day/hg38/r
+eports/multiqc_header.yaml         --config ./config/external_tools/multiqc_conf
+ig.yaml          --custom-css-file ./config/external_tools/multiqc.css         -
+-ignore "*/other_reports/logs/*"         --ignore "other_reports/logs/*"
+ --ignore "*_mqc.log"         --template default         --filename results/day/
+hg38/reports/DAY_final_multiqc.html         -i 'Final Multiqc Report '         -
+b 'https://github.com/lsmc-bio/daylily-omics-analysis (BRANCH:* jem-dev) (TAG:5.
+0.2) (HASH:d02a1bd) '         results/day/hg38/reports/multiqc_inputs/final >> r
+esults/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+        python workflow/scripts/force_multiqc_dark_mode.py           --html resu
+lts/day/hg38/reports/DAY_final_multiqc.html           --backup results/day/hg38/
+reports/DAY_final_multiqc.original.html >> results/day/hg38/reports/logs/all__mq
+c_fin_a.log 2>&1;
+        python workflow/scripts/validate_multiqc_sample_ids.py           --manif
+est results/day/hg38/reports/multiqc_inputs/final/manifest.tsv           --multi
+qc-data results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json >> res
+ults/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+        ls -lt results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/
+reports/DAY_final_multiqc.original.html results/day/hg38/reports/multiqc_header.
+yaml >> results/day/hg38/reports/logs/all__mqc_fin_a.log 2>&1;
+
+Submitted job 1 with external jobid '891'.
+
+tmux_log=/home/ubuntu/daylily-runs/hybonly_ilmn_final_multiqc_file_20260606T100052Z/tmux.log
+tmux_log_tail:
+[1m[38;5;79mSNV Callers (final): [sentd][0m
+[1m[38;5;79mSomatic SNV Callers:[senttn][0m
+[1m[48;5;166m[38;5;79m... WARNING: No sv_callers set in the config.[0m
+[1m[38;5;79mSV Callers (final): [][0m
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/units.tsv
+[33mBuilding DAG of jobs...[0m
+All Wildcards:    all snv_CALLERS:  ['sentd']  all ALIGNERS:  ['sent']  all CRAM_ALIGNERS:  []  all samples:  {'20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ': ['20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ'], '20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ': ['20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ'], '20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ': ['20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ'], '20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ': ['20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ'], '20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ': ['20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ'], '20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ': ['20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ'], '20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ': ['20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ']}  all concordance samples:  dict_keys(['20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ', '20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ', '20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ'])
+[33mUsing shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash[0m
+[33mProvided cluster nodes: 200[0m
+[33mJob stats:
+job                              count    min threads    max threads
+-----------------------------  -------  -------------  -------------
+aggregate_report_components          1              2              2
+collect_rules_benchmark_data         1              1              1
+contam_identity_mqc_gather           1              1              1
+multiqc_final_wgs                    1              4              4
+produce_multiqc_all                  1              1              1
+stage_multiqc_inputs                 1              1              1
+write_dayoa_evidence_manifest        1              1              1
+total                                7              1              4
+[0m
+[33mSelect jobs to execute...[0m
+[32m[0m
+[32m[Sat Jun  6 10:01:23 2026][0m
+[32mlocalrule contam_identity_mqc_gather:
+    input: results/day/hg38/other_reports/contamination_mqc.tsv, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt
+    output: results/day/hg38/other_reports/contam_identity_mqc.tsv, results/day/hg38/other_reports/haplocheck_mtdna_mqc.tsv, results/day/hg38/other_reports/read_haps_mqc.tsv
+    log: results/day/hg38/other_reports/logs/contam_identity_custom_data.log
+    jobid: 197
+    benchmark: results/day/hg38/benchmarks/contam_identity_mqc_gather.bench.tsv
+    reason: Missing output files: results/day/hg38/other_reports/contam_identity_mqc.tsv, results/day/hg38/other_reports/haplocheck_mtdna_mqc.tsv, results/day/hg38/other_reports/read_haps_mqc.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=[0m
+[32m[0m
+[33m
+        set -euo pipefail
+        mkdir -p "$(dirname results/day/hg38/other_reports/contam_identity_mqc.tsv)" "$(dirname results/day/hg38/other_reports/logs/contam_identity_custom_data.log)"
+        python workflow/scripts/compile_contam_identity_mqc.py \
+          --sample-map-json '{"20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ": "HG003", "20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ": "HG003", "20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ": "HG003", "20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ": "NA00232", "20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ": "NA03986", "20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ": "NA05164", "20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ": "NA09677"}' \
+          --contam-identity-output results/day/hg38/other_reports/contam_identity_mqc.tsv \
+          --haplocheck-output results/day/hg38/other_reports/haplocheck_mtdna_mqc.tsv \
+          --read-haps-output results/day/hg38/other_reports/read_haps_mqc.tsv \
+          --contamination results/day/hg38/other_reports/contamination_mqc.tsv \
+          --haplocheck results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt \
+          --read-haps results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt \
+          > results/day/hg38/other_reports/logs/contam_identity_custom_data.log 2>&1
+        [0m
+[32m[Sat Jun  6 10:01:23 2026][0m
+[32mFinished job 197.[0m
+[32m1 of 7 steps (14%) done[0m
+[33mSelect jobs to execute...[0m
+[32m[0m
+[32m[Sat Jun  6 10:01:23 2026][0m
+[32mlocalrule aggregate_report_components:
+    input: results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ/seqqc/fastqc/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ.fastqc.done, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ/seqqc/fastqc/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ.fastqc.done, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ/seqqc/fastqc/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ.fastqc.done, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ/seqqc/fastqc/20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ.fastqc.done, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ/seqqc/fastqc/20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ.fastqc.done, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ/seqqc/fastqc/20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ.fastqc.done, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ/seqqc/fastqc/20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ.fastqc.done, results/day/hg38/other_reports/seqfu_mqc.tsv, results/day/hg38/other_reports/input_sample_libraries_mqc.tsv, results/day/hg38/other_reports/sequence_qc_outputs_mqc.tsv, results/day/hg38/other_reports/alignstats_combo_mqc.tsv, results/day/hg38/other_reports/norm_cov_evenness_combo_mqc.tsv, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/samtmetrics/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ.sent.dmd.complete, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ/align/sent/na/alignqc/samtmetrics/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ.sent.na.complete, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/samtmetrics/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ.sent.dmd.complete, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ/align/sent/na/alignqc/samtmetrics/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ.sent.na.complete, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/samtmetrics/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ.sent.dmd.complete, results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ/align/sent/na/alignqc/samtmetrics/202605--output truncated--

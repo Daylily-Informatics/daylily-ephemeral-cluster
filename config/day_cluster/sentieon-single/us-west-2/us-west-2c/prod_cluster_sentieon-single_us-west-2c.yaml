@@ -1,0 +1,397 @@
+Region: ${REGSUB_REGION}
+Image:
+  Os: ubuntu2204
+HeadNode:
+  InstanceType: ${REGSUB_HEADNODE_INSTANCE_TYPE}
+  Networking:
+    ElasticIp: false
+    SubnetId: ${REGSUB_PUB_SUBNET}
+    # ${REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING}
+  DisableSimultaneousMultithreading: false
+  Dcv:
+    Enabled: false
+  LocalStorage:
+    RootVolume:
+      Size: 421
+      VolumeType: gp3
+      DeleteOnTermination: ${REGSUB_DELETE_LOCAL_ROOT}
+    EphemeralVolume:
+      MountDir: /head_root
+  CustomActions:
+    OnNodeStart:
+      Script: ${REGSUB_S3_BUCKET_INIT}/install_slurm_job_submit_policy.sh
+      Args:
+      - ${REGSUB_REGION}
+      - ${REGSUB_S3_BUCKET_INIT}
+    OnNodeConfigured:
+      Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+      Args:
+      - ${REGSUB_REGION}
+      - ${REGSUB_S3_BUCKET_INIT}
+      - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+  Iam:
+    S3Access:
+    - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+      EnableWriteAccess: false
+    - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+      EnableWriteAccess: false
+    - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+      EnableWriteAccess: false
+    - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+      EnableWriteAccess: true
+    AdditionalIamPolicies:
+    - Policy: ${REGSUB_S3_IAM_POLICY}
+    - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+Scheduling:
+  Scheduler: slurm
+  SlurmSettings:
+    EnableMemoryBasedScheduling: false
+    CustomSlurmSettings:
+    - JobSubmitPlugins: lua
+    - AccountingStoreFlags: job_comment
+    - PrologFlags: Alloc
+    ScaledownIdletime: 5
+    Dns:
+      DisableManagedDns: false
+    QueueUpdateStrategy: DRAIN
+    # ${REGSUB_SLURM_ACCOUNTING_DATABASE}
+  SlurmQueues:
+  - Name: i8
+    JobExclusiveAllocation: false
+    CapacityType: SPOT
+    AllocationStrategy: price-capacity-optimized
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    ComputeResources:
+    - Name: price8
+      Instances:
+      - InstanceType: i3en.2xlarge
+      - InstanceType: i4i.2xlarge
+      - InstanceType: i7i.2xlarge
+      - InstanceType: i7ie.2xlarge
+      MinCount: 0
+      MaxCount: 12
+      SpotPrice: CALCULATE_MAX_SPOT_PRICE
+      DynamicNodePriority: 100
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i96nvme
+    JobExclusiveAllocation: false
+    CapacityType: SPOT
+    AllocationStrategy: price-capacity-optimized
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    ComputeResources:
+    - Name: price96nvme
+      Instances:
+      - InstanceType: c5d.24xlarge
+      - InstanceType: c5d.metal
+      - InstanceType: c6id.24xlarge
+      - InstanceType: c8id.24xlarge
+      - InstanceType: i3en.24xlarge
+      - InstanceType: i3en.metal
+      - InstanceType: i4i.24xlarge
+      - InstanceType: i7i.24xlarge
+      - InstanceType: i7i.metal-24xl
+      - InstanceType: i7ie.24xlarge
+      - InstanceType: i7ie.metal-24xl
+      - InstanceType: m5d.24xlarge
+      - InstanceType: m5d.metal
+      - InstanceType: m5dn.24xlarge
+      - InstanceType: m5dn.metal
+      - InstanceType: m6id.24xlarge
+      - InstanceType: m6idn.24xlarge
+      - InstanceType: m8id.24xlarge
+      - InstanceType: m8idb.24xlarge
+      - InstanceType: m8idn.24xlarge
+      - InstanceType: r5d.24xlarge
+      - InstanceType: r5d.metal
+      - InstanceType: r5dn.24xlarge
+      - InstanceType: r5dn.metal
+      - InstanceType: r6id.24xlarge
+      - InstanceType: r6idn.24xlarge
+      - InstanceType: r8id.24xlarge
+      - InstanceType: r8idb.24xlarge
+      - InstanceType: r8idn.24xlarge
+      MinCount: 0
+      MaxCount: 12
+      SpotPrice: CALCULATE_MAX_SPOT_PRICE
+      DynamicNodePriority: 100
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i128nvme
+    JobExclusiveAllocation: false
+    CapacityType: SPOT
+    AllocationStrategy: price-capacity-optimized
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    ComputeResources:
+    - Name: price128nvme
+      Instances:
+      - InstanceType: c6id.32xlarge
+      - InstanceType: c6id.metal
+      - InstanceType: c8id.32xlarge
+      - InstanceType: i4i.32xlarge
+      - InstanceType: i4i.metal
+      - InstanceType: m6id.32xlarge
+      - InstanceType: m6id.metal
+      - InstanceType: m6idn.32xlarge
+      - InstanceType: m6idn.metal
+      - InstanceType: m8id.32xlarge
+      - InstanceType: m8idb.32xlarge
+      - InstanceType: m8idn.32xlarge
+      - InstanceType: r6id.32xlarge
+      - InstanceType: r6id.metal
+      - InstanceType: r6idn.32xlarge
+      - InstanceType: r6idn.metal
+      - InstanceType: r8id.32xlarge
+      - InstanceType: r8idb.32xlarge
+      - InstanceType: r8idn.32xlarge
+      MinCount: 0
+      MaxCount: 12
+      SpotPrice: CALCULATE_MAX_SPOT_PRICE
+      DynamicNodePriority: 100
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i192nvme
+    JobExclusiveAllocation: false
+    CapacityType: SPOT
+    AllocationStrategy: price-capacity-optimized
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    ComputeResources:
+    - Name: price192nvme
+      Instances:
+      - InstanceType: c8id.48xlarge
+      - InstanceType: c8id.metal-48xl
+      - InstanceType: i7i.48xlarge
+      - InstanceType: i7i.metal-48xl
+      - InstanceType: i7ie.48xlarge
+      - InstanceType: i7ie.metal-48xl
+      - InstanceType: m8id.48xlarge
+      - InstanceType: m8id.metal-48xl
+      - InstanceType: m8idb.48xlarge
+      - InstanceType: m8idn.48xlarge
+      - InstanceType: r8id.48xlarge
+      - InstanceType: r8id.metal-48xl
+      - InstanceType: r8idb.48xlarge
+      - InstanceType: r8idn.48xlarge
+      MinCount: 0
+      MaxCount: 12
+      SpotPrice: CALCULATE_MAX_SPOT_PRICE
+      DynamicNodePriority: 100
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i384nvme
+    JobExclusiveAllocation: false
+    CapacityType: SPOT
+    AllocationStrategy: price-capacity-optimized
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    ComputeResources:
+    - Name: price384nvme
+      Instances:
+      - InstanceType: c8id.96xlarge
+      - InstanceType: c8id.metal-96xl
+      - InstanceType: m8id.96xlarge
+      - InstanceType: m8id.metal-96xl
+      - InstanceType: m8idb.96xlarge
+      - InstanceType: m8idn.96xlarge
+      - InstanceType: r8id.96xlarge
+      - InstanceType: r8id.metal-96xl
+      - InstanceType: r8idb.96xlarge
+      - InstanceType: r8idn.96xlarge
+      MinCount: 0
+      MaxCount: 12
+      SpotPrice: CALCULATE_MAX_SPOT_PRICE
+      DynamicNodePriority: 100
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+Monitoring:
+  DetailedMonitoring: ${REGSUB_DETAILED_MONITORING}
+  Logs:
+    CloudWatch:
+      Enabled: true
+      RetentionInDays: 3
+SharedStorage:
+- MountDir: /fsx
+  Name: fsx-hiomrs
+  StorageType: FsxLustre
+  FsxLustreSettings:
+    StorageCapacity: 1200
+    DeploymentType: SCRATCH_2
+    DeletionPolicy: ${REGSUB_SAVE_FSX}
+    DataRepositoryAssociations:
+    - Name: reference-data
+      FileSystemPath: /references/
+      DataRepositoryPath: ${REGSUB_S3_REFERENCE_URI}/
+      BatchImportMetaDataOnCreate: true
+      AutoImportPolicy:
+      - NEW
+      - CHANGED
+      - DELETED
+Tags:
+- Key: aws-parallelcluster-username
+  Value: ${REGSUB_USERNAME}
+- Key: aws-parallelcluster-jobid
+  Value: ${REGSUB_AWS_ACCOUNT_ID}
+- Key: aws-parallelcluster-project
+  Value: ${REGSUB_PROJECT}
+- Key: aws-parallelcluster-clustername
+  Value: ${REGSUB_CLUSTER_NAME}
+- Key: aws-parallelcluster-enforce-budget
+  Value: ${REGSUB_ENFORCE_BUDGET}
+- Key: aws-parallelcluster-cost-center-region
+  Value: ${REGSUB_COST_CENTER_REGION}
+- Key: aws-parallelcluster-cost-center-table
+  Value: ${REGSUB_COST_CENTER_TABLE}
+- Key: aws-parallelcluster-cost-center-usage-table
+  Value: ${REGSUB_COST_CENTER_USAGE_TABLE}
+- Key: aws-parallelcluster-daylily-git-deets
+  Value: ${REGSUB_DAYLILY_GIT_DEETS}
+- Key: aws-parallelcluster-monitor-bucket
+  Value: ${REGSUB_S3_BUCKET_INIT}
+DevSettings:
+  Timeouts:
+    HeadNodeBootstrapTimeout: 3600
+    ComputeNodeBootstrapTimeout: 3600

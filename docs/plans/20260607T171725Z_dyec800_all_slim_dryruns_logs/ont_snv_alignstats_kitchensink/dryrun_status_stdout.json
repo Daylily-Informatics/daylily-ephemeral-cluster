@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' --rerun-triggers mtime -j 150 -p -k -T 0 -n",
+  "completed_at": "2026-06-07T17:23:16Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv_dryrun_ont_snv_alignstats_kitchensink_20260607T171725Z/daylily-omics-analysis",
+  "session_name": "ccv_dryrun_ont_snv_alignstats_kitchensink_20260607T171725Z",
+  "started_at": "2026-06-07T17:22:49Z"
+}

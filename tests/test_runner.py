@@ -11,8 +11,12 @@ from daylily_ec.pcluster.runner import (
     _run_pcluster,
     create_cluster,
     delete_cluster,
+    describe_cluster,
+    describe_compute_fleet,
     dry_run_create,
+    list_clusters,
     should_break_after_dry_run,
+    update_cluster,
 )
 
 
@@ -76,6 +80,12 @@ class TestRunPcluster:
         assert env_used["AWS_PROFILE"] == "myprof"
 
     @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_explicit_backport_executable(self, mock_run):
+        mock_run.return_value = _completed()
+        _run_pcluster(["list-clusters"], executable="/opt/daylily/pcluster/bin/pcluster")
+        assert mock_run.call_args.args[0][0] == "/opt/daylily/pcluster/bin/pcluster"
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
     def test_not_found(self, mock_run):
         mock_run.side_effect = FileNotFoundError("pcluster")
         r = _run_pcluster(["create-cluster"])
@@ -87,6 +97,133 @@ class TestRunPcluster:
         mock_run.return_value = _completed(stdout="not json")
         r = _run_pcluster(["list-clusters"])
         assert r.json_body == {}
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_non_object_json_stdout(self, mock_run):
+        mock_run.return_value = _completed(stdout="[]")
+        r = _run_pcluster(["list-clusters"])
+        assert r.json_body == {}
+
+
+# ── TestListClusters ─────────────────────────────────────────────────────
+
+
+class TestListClusters:
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_uses_active_executable_profile_and_region(self, mock_run):
+        mock_run.return_value = _completed(
+            stdout=json.dumps(
+                {
+                    "clusters": [
+                        {
+                            "clusterName": "alpha",
+                            "clusterStatus": "CREATE_COMPLETE",
+                            "cloudformationStackArn": "not-retained",
+                        }
+                    ]
+                }
+            )
+        )
+
+        result = list_clusters(
+            "us-west-2",
+            profile="lsmc",
+            executable="/opt/daylily/pcluster/bin/pcluster",
+        )
+
+        assert result.success is True
+        assert result.json_body == {
+            "clusters": [
+                {
+                    "clusterName": "alpha",
+                    "clusterStatus": "CREATE_COMPLETE",
+                }
+            ]
+        }
+        assert mock_run.call_args.args[0] == [
+            "/opt/daylily/pcluster/bin/pcluster",
+            "list-clusters",
+            "--region",
+            "us-west-2",
+        ]
+        assert mock_run.call_args.kwargs["env"]["AWS_PROFILE"] == "lsmc"
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_paginates_until_next_token_is_absent(self, mock_run):
+        mock_run.side_effect = [
+            _completed(
+                stdout=json.dumps(
+                    {
+                        "clusters": [
+                            {
+                                "clusterName": "alpha",
+                                "clusterStatus": "CREATE_COMPLETE",
+                            }
+                        ],
+                        "nextToken": "page-2",
+                    }
+                )
+            ),
+            _completed(
+                stdout=json.dumps(
+                    {
+                        "clusters": [
+                            {
+                                "clusterName": "beta",
+                                "clusterStatus": "CREATE_IN_PROGRESS",
+                            }
+                        ]
+                    }
+                )
+            ),
+        ]
+
+        result = list_clusters("us-west-2")
+
+        assert result.success is True
+        assert [record["clusterName"] for record in result.json_body["clusters"]] == [
+            "alpha",
+            "beta",
+        ]
+        assert mock_run.call_args_list[1].args[0] == [
+            "pcluster",
+            "list-clusters",
+            "--region",
+            "us-west-2",
+            "--next-token",
+            "page-2",
+        ]
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_fails_closed_when_list_command_fails(self, mock_run):
+        mock_run.return_value = _completed(stderr="access denied", rc=2)
+
+        result = list_clusters("us-west-2")
+
+        assert result.success is False
+        assert result.returncode == 2
+        assert result.message == "pcluster list-clusters failed with exit code 2"
+        assert result.json_body == {}
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_fails_closed_on_malformed_json(self, mock_run):
+        mock_run.return_value = _completed(stdout="not-json")
+
+        result = list_clusters("us-west-2")
+
+        assert result.success is False
+        assert result.message == "pcluster list-clusters returned malformed JSON"
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_fails_closed_on_malformed_record(self, mock_run):
+        mock_run.return_value = _completed(
+            stdout=json.dumps({"clusters": [{"clusterName": "alpha"}]})
+        )
+
+        result = list_clusters("us-west-2")
+
+        assert result.success is False
+        assert "clusterStatus" in result.message
 
 
 # ── TestDryRunCreate ─────────────────────────────────────────────────────
@@ -130,6 +267,17 @@ class TestDryRunCreate:
             "--region",
             "us-east-1",
         ]
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_explicit_backport_executable(self, mock_run):
+        mock_run.return_value = _completed(stdout=_dry_run_ok_json())
+        dry_run_create(
+            "my-cl",
+            "/tmp/c.yaml",
+            "us-east-1",
+            executable="/opt/daylily/pcluster/bin/pcluster",
+        )
+        assert mock_run.call_args.args[0][0] == "/opt/daylily/pcluster/bin/pcluster"
 
 
 # ── TestShouldBreakAfterDryRun ───────────────────────────────────────────
@@ -183,6 +331,87 @@ class TestCreateCluster:
             "eu-west-1",
         ]
         assert mock_run.call_args.kwargs["env"]["AWS_PROFILE"] == "p"
+
+
+class TestDescribeAndUpdateCluster:
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_describe_cluster(self, mock_run):
+        mock_run.return_value = _completed(stdout=json.dumps({"clusterStatus": "CREATE_COMPLETE"}))
+
+        result = describe_cluster("cl1", "us-west-2", profile="p")
+
+        assert result.success is True
+        assert mock_run.call_args.args[0] == [
+            "pcluster",
+            "describe-cluster",
+            "-n",
+            "cl1",
+            "--region",
+            "us-west-2",
+        ]
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_describe_compute_fleet(self, mock_run):
+        mock_run.return_value = _completed(stdout=json.dumps({"status": "STOPPED"}))
+
+        result = describe_compute_fleet("cl1", "us-west-2")
+
+        assert result.success is True
+        assert "describe-compute-fleet" in mock_run.call_args.args[0]
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_update_cluster_dry_run_requires_exact_success_message(self, mock_run):
+        # The LSMC ParallelCluster fork returns rc=1 for a successful update
+        # dry run, so the exact AWS success message is authoritative here just
+        # as it is for create-cluster dry runs.
+        mock_run.return_value = _completed(stdout=_dry_run_ok_json(), rc=1)
+
+        result = update_cluster(
+            "cl1",
+            "/tmp/update.yaml",
+            "us-west-2",
+            profile="p",
+            dry_run=True,
+        )
+
+        assert result.success is True
+        assert result.returncode == 1
+        assert mock_run.call_args.args[0] == [
+            "pcluster",
+            "update-cluster",
+            "-n",
+            "cl1",
+            "-c",
+            "/tmp/update.yaml",
+            "--dryrun",
+            "true",
+            "--region",
+            "us-west-2",
+        ]
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_update_cluster_submit_uses_false_dry_run(self, mock_run):
+        mock_run.return_value = _completed(stdout=json.dumps({"clusterName": "cl1"}))
+
+        result = update_cluster("cl1", "/tmp/update.yaml", "us-west-2")
+
+        assert result.success is True
+        assert mock_run.call_args.args[0][-2:] == ["--region", "us-west-2"]
+        assert mock_run.call_args.args[0][6:8] == ["--dryrun", "false"]
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_update_cluster_dry_run_rejects_noncanonical_message_at_rc_zero(self, mock_run):
+        mock_run.return_value = _completed(stdout=_dry_run_fail_json(), rc=0)
+
+        result = update_cluster(
+            "cl1",
+            "/tmp/update.yaml",
+            "us-west-2",
+            dry_run=True,
+        )
+
+        assert result.success is False
+        assert result.returncode == 0
 
 
 class TestDeleteCluster:

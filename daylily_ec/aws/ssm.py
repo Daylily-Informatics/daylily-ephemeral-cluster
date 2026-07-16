@@ -22,8 +22,12 @@ logger = logging.getLogger(__name__)
 
 PENDING_STATUSES = {"Pending", "InProgress", "Delayed"}
 SUCCESS_STATUS = "Success"
-SUPPORTED_REMOTE_USER = "ubuntu"
-SUPPORTED_SESSION_HOME = f"/home/{SUPPORTED_REMOTE_USER}"
+DEFAULT_REMOTE_USER = "ubuntu"
+EC2_REMOTE_USER = "ec2-user"
+AUTO_REMOTE_USER = "auto"
+SUPPORTED_REMOTE_USERS = (DEFAULT_REMOTE_USER, EC2_REMOTE_USER)
+SUPPORTED_REMOTE_USER = DEFAULT_REMOTE_USER
+SUPPORTED_SESSION_HOME = f"/home/{DEFAULT_REMOTE_USER}"
 SUPPORTED_SESSION_SHELL_PROFILE = (
     f"cd {SUPPORTED_SESSION_HOME} && {{ stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }}"
 )
@@ -213,26 +217,100 @@ def _normalize_remote_path(path: str, *, user: str) -> str:
     return path
 
 
-def _require_ubuntu_user(as_user: Optional[str]) -> str:
-    if as_user != SUPPORTED_REMOTE_USER:
-        raise SsmError(f"Supported SSM commands must run as ubuntu; got {as_user!r}.")
-    return SUPPORTED_REMOTE_USER
+def _remote_user_home(as_user: str) -> str:
+    return f"/home/{as_user}"
 
 
-def _ubuntu_payload_guard() -> str:
+def _session_shell_profile(as_user: str) -> str:
+    return (
+        f"cd {_remote_user_home(as_user)} && "
+        "{ stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }"
+    )
+
+
+def _require_supported_remote_user(as_user: Optional[str]) -> str:
+    if as_user not in SUPPORTED_REMOTE_USERS:
+        supported = ", ".join(SUPPORTED_REMOTE_USERS)
+        raise SsmError(f"Supported SSM commands must run as one of {supported}; got {as_user!r}.")
+    return str(as_user)
+
+
+def _remote_user_from_platform(platform_name: str, platform_version: str = "") -> str:
+    haystack = f"{platform_name} {platform_version}".strip().lower()
+    if "ubuntu" in haystack:
+        return DEFAULT_REMOTE_USER
+    if any(
+        marker in haystack
+        for marker in (
+            "red hat",
+            "rhel",
+            "amazon linux",
+            "almalinux",
+            "alma linux",
+            "rocky",
+            "centos",
+        )
+    ):
+        return EC2_REMOTE_USER
+    raise SsmError(
+        "Unable to determine supported SSM remote user from managed instance platform "
+        f"metadata: PlatformName={platform_name!r}, PlatformVersion={platform_version!r}. "
+        f"Pass as_user explicitly as one of {', '.join(SUPPORTED_REMOTE_USERS)}."
+    )
+
+
+def resolve_remote_user(
+    instance_id: str,
+    region: str,
+    *,
+    profile: Optional[str] = None,
+    as_user: Optional[str] = AUTO_REMOTE_USER,
+) -> str:
+    """Resolve the remote login user for SSM Run Command.
+
+    ``as_user="auto"`` is explicit platform-based detection. Unknown platforms
+    fail hard instead of retrying or silently falling back.
+    """
+    if as_user != AUTO_REMOTE_USER:
+        return _require_supported_remote_user(as_user)
+
+    session = _build_boto_session(profile=profile, region=region)
+    client = session.client("ssm")
+    try:
+        response = client.describe_instance_information(
+            Filters=[{"Key": "InstanceIds", "Values": [instance_id]}]
+        )
+    except (BotoCoreError, ClientError) as exc:
+        raise SsmError(
+            f"Unable to query SSM managed instance platform for '{instance_id}': {exc}"
+        ) from exc
+
+    info_list = response.get("InstanceInformationList", []) or []
+    if not info_list:
+        raise SsmInstanceUnavailableError(
+            f"Head node instance '{instance_id}' is not available in SSM for remote user detection."
+        )
+    info = info_list[0]
+    return _remote_user_from_platform(
+        str(info.get("PlatformName") or ""),
+        str(info.get("PlatformVersion") or ""),
+    )
+
+
+def _payload_guard(as_user: str) -> str:
     return "\n".join(
         [
             'actual_user="$(id -un)"',
-            f'if [ "$actual_user" != "{SUPPORTED_REMOTE_USER}" ]; then',
-            '  echo "Daylily SSM payload must run as ubuntu; got $actual_user." >&2',
+            f'if [ "$actual_user" != "{as_user}" ]; then',
+            f'  echo "Daylily SSM payload must run as {as_user}; got $actual_user." >&2',
             "  exit 64",
             "fi",
         ]
     )
 
 
-def _encode_script_payload(script: str, *, as_user: Optional[str]) -> str:
-    user = _require_ubuntu_user(as_user)
+def _encode_script_payload(script: str, *, as_user: str) -> str:
+    user = _require_supported_remote_user(as_user)
     encoded = base64.b64encode(script.encode("utf-8")).decode("ascii")
     writer = (
         "import base64, os, pathlib; "
@@ -243,7 +321,7 @@ def _encode_script_payload(script: str, *, as_user: Optional[str]) -> str:
     return "\n".join(
         [
             # AWS-RunShellScript uses /bin/sh for the transport wrapper on Ubuntu.
-            # Keep the wrapper POSIX-safe and run the real payload under a bash login shell as ubuntu.
+            # Keep the wrapper POSIX-safe and run the real payload under a bash login shell.
             "set -eu",
             "tmp=$(mktemp /tmp/daylily-ssm-XXXXXX.sh)",
             f"export DAYLILY_SSM_B64={shlex.quote(encoded)}",
@@ -267,18 +345,23 @@ def run_shell(
     script: str,
     *,
     profile: Optional[str] = None,
-    as_user: Optional[str] = "ubuntu",
+    as_user: Optional[str] = DEFAULT_REMOTE_USER,
     timeout: Optional[int] = 300,
     poll_interval: int = 3,
     comment: str = "Daylily remote command",
 ) -> SsmCommandResult:
     """Run *script* on an instance via SSM Run Command and return its result."""
-    _require_ubuntu_user(as_user)
+    resolved_user = resolve_remote_user(
+        instance_id,
+        region,
+        profile=profile,
+        as_user=as_user,
+    )
     session = _build_boto_session(profile=profile, region=region)
     client = session.client("ssm")
     payload = _encode_script_payload(
-        "\n".join([_ubuntu_payload_guard(), script]),
-        as_user=as_user,
+        "\n".join([_payload_guard(resolved_user), script]),
+        as_user=resolved_user,
     )
 
     try:
@@ -344,11 +427,16 @@ def write_remote_text(
     content: str,
     *,
     profile: Optional[str] = None,
-    as_user: str = "ubuntu",
+    as_user: str = DEFAULT_REMOTE_USER,
 ) -> SsmCommandResult:
     """Write small text content to *remote_path* via SSM Run Command."""
-    as_user = _require_ubuntu_user(as_user)
-    target_path = _normalize_remote_path(remote_path, user=as_user)
+    resolved_user = resolve_remote_user(
+        instance_id,
+        region,
+        profile=profile,
+        as_user=as_user,
+    )
+    target_path = _normalize_remote_path(remote_path, user=resolved_user)
     encoded = base64.b64encode(content.encode("utf-8")).decode("ascii")
     script = "\n".join(
         [
@@ -369,16 +457,18 @@ def write_remote_text(
         region,
         script,
         profile=profile,
-        as_user=as_user,
+        as_user=resolved_user,
         comment=f"Write {target_path}",
     )
 
 
-def _require_ubuntu_session_preferences(
+def _require_session_preferences(
     region: str,
     *,
     profile: Optional[str] = None,
+    as_user: str = DEFAULT_REMOTE_USER,
 ) -> None:
+    as_user = _require_supported_remote_user(as_user)
     cmd = [
         "aws",
         "ssm",
@@ -422,12 +512,9 @@ def _require_ubuntu_session_preferences(
     linux_shell_profile = ""
     if isinstance(shell_profile, dict):
         linux_shell_profile = str(shell_profile.get("linux") or "")
-    if (
-        inputs.get("runAsEnabled") is not True
-        or inputs.get("runAsDefaultUser") != SUPPORTED_REMOTE_USER
-    ):
+    if inputs.get("runAsEnabled") is not True or inputs.get("runAsDefaultUser") != as_user:
         raise SsmError(
-            "Session Manager must be configured to run shell sessions as ubuntu "
+            f"Session Manager must be configured to run shell sessions as {as_user} "
             "via SSM-SessionManagerRunShell."
         )
     if not linux_shell_profile or (
@@ -436,23 +523,25 @@ def _require_ubuntu_session_preferences(
         and "daylily-headnode-bootstrap.sh" not in linux_shell_profile
     ):
         raise SsmError(
-            "Session Manager must source the ubuntu login shell via "
+            f"Session Manager must source the {as_user} login shell via "
             "SSM-SessionManagerRunShell shellProfile.linux."
         )
-    if not _shell_profile_enters_ubuntu_home(linux_shell_profile):
+    if not _shell_profile_enters_user_home(linux_shell_profile, as_user=as_user):
+        expected_profile = _session_shell_profile(as_user)
         raise SsmError(
-            "Session Manager must cd to /home/ubuntu before starting the ubuntu login shell "
+            f"Session Manager must cd to {_remote_user_home(as_user)} before starting the "
+            f"{as_user} login shell "
             "via SSM-SessionManagerRunShell shellProfile.linux. Expected a shell profile "
-            f"like: {SUPPORTED_SESSION_SHELL_PROFILE!r}."
+            f"like: {expected_profile!r}."
         )
 
 
-def _shell_profile_enters_ubuntu_home(shell_profile: str) -> bool:
+def _shell_profile_enters_user_home(shell_profile: str, *, as_user: str) -> bool:
     normalized = shell_profile.replace('"', "").replace("'", "")
     return any(
         marker in normalized
         for marker in (
-            f"cd {SUPPORTED_SESSION_HOME}",
+            f"cd {_remote_user_home(as_user)}",
             "cd ~",
             "cd $HOME",
             "cd ${HOME}",
@@ -466,7 +555,17 @@ def ensure_ubuntu_session_preferences(
     profile: Optional[str] = None,
 ) -> None:
     """Validate that Session Manager shell sessions land in the ubuntu login shell."""
-    _require_ubuntu_session_preferences(region, profile=profile)
+    ensure_session_preferences(region, profile=profile, as_user=DEFAULT_REMOTE_USER)
+
+
+def ensure_session_preferences(
+    region: str,
+    *,
+    profile: Optional[str] = None,
+    as_user: str = DEFAULT_REMOTE_USER,
+) -> None:
+    """Validate that Session Manager shell sessions land in a supported login shell."""
+    _require_session_preferences(region, profile=profile, as_user=as_user)
 
 
 def _disable_local_software_flow_control() -> None:
@@ -521,11 +620,13 @@ def start_session(
     region: str,
     *,
     profile: Optional[str] = None,
+    as_user: str = DEFAULT_REMOTE_USER,
     replace_process: bool = False,
 ) -> int:
     """Start an interactive Session Manager shell."""
+    as_user = _require_supported_remote_user(as_user)
     require_session_manager_plugin()
-    ensure_ubuntu_session_preferences(region, profile=profile)
+    ensure_session_preferences(region, profile=profile, as_user=as_user)
     _disable_local_software_flow_control()
     flow_control_guard = _start_local_software_flow_control_guard()
     cmd = [

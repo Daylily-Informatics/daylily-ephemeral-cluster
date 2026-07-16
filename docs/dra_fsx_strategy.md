@@ -12,7 +12,8 @@ This is the current DayEC data-plane model. FSx for Lustre is the high-performan
 | Staging | `/fsx/staging/staged_external_sequencing_data/...` | `/staging/staged_external_sequencing_data/...` | `<raw-seq-bucket>/staged_external_data/...` | Created on demand |
 | Run inputs | `/fsx/run_dir_mounts/<mount_id>/` | `/run_dir_mounts/<mount_id>/` | selected run prefix | Created and deleted on demand |
 | Workflow outputs | `/fsx/analysis_results/...` | `/analysis_results/...` | none by default | Local to the FSx filesystem until exported |
-| Direct analysis export | `/fsx/analysis_results/<executing_entity>/<analysis_id>/` | `/analysis_results/<executing_entity>/<analysis_id>/` | `s3://bucket/prefix/<executing_entity>/<analysis_id>/` | Temporary output DRA |
+| Launch auto-export | `/fsx/analysis_results/<executing_entity>/<analysis_id>/` | `/analysis_results/<executing_entity>/<analysis_id>/` | `s3://bucket/prefix/<cluster>/<analysis_id>/` when an export root is supplied | Temporary output DRA after workflow exit |
+| Direct analysis export | `/fsx/analysis_results/<executing_entity>/<analysis_id>/` | `/analysis_results/<executing_entity>/<analysis_id>/` | Explicit `s3://bucket/prefix/<executing_entity>/<analysis_id>/` or `<cluster>/<analysis_id>/` | Temporary output DRA |
 
 Run-directory DRAs are read-oriented by default. They configure AutoImport events and no AutoExport policy. Export DRAs are created directly on one completed analysis directory, run one explicit FSx export task, and are detached after the task completes.
 
@@ -90,7 +91,7 @@ flowchart LR
 
 ## Pipeline Catalog Flow
 
-`config/daylily_pipeline_command_catalog.yaml` defines repositories and launch profiles. The DayOA repository and every DayOA command are pinned to `2.0.44`.
+`config/daylily_pipeline_command_catalog.yaml` defines repositories and launch profiles. The DayOA repository and every DayOA command are pinned to `10.0.69`.
 
 Catalog `test_data_profile` entries make the source-mount contract explicit.
 `default_mounted` profiles read from default cluster DRAs such as `/fsx/references`
@@ -101,7 +102,7 @@ external source data.
 
 ```mermaid
 flowchart TB
-  Catalog["Repository catalog v2"] --> Repo["daylily-omics-analysis @ 2.0.44"]
+  Catalog["Repository catalog v2"] --> Repo["daylily-omics-analysis @ 10.0.69"]
   Repo --> Sample["sample_analysis"]
   Repo --> Run["run_analysis"]
 

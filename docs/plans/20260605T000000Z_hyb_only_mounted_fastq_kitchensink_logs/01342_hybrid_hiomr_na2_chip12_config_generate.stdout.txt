@@ -1,0 +1,7 @@
+samples=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/hybrid_hiomr_na2_chip12_fastq_config/20260606T120700Z_hybrid_hiomr_na2_chip12_samples.tsv
+units=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/hybrid_hiomr_na2_chip12_fastq_config/20260606T120700Z_hybrid_hiomr_na2_chip12_units.tsv
+manifest=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/hybrid_hiomr_na2_chip12_fastq_config/20260606T120700Z_hybrid_hiomr_na2_chip12_source_manifest.tsv
+sample_rows=2
+unit_rows=2
+summary	NA00232	unit=chip1-chip2	ont_chips=chip1,chip2	ont_fastqs=146	ilmn_r1=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R1_001.fastq.gz	ilmn_r2=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R2_001.fastq.gz
+summary	NA09677	unit=chip1-chip2	ont_chips=chip1,chip2	ont_fastqs=146	ilmn_r1=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R1_001.fastq.gz	ilmn_r2=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R2_001.fastq.gz

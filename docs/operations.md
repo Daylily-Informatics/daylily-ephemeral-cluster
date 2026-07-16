@@ -31,7 +31,7 @@ dyec headnode configure \
   --cluster "$CLUSTER_NAME"
 ```
 
-Use this after a cluster exists but the DayEC headnode tools, catalog, or login shell need repair.
+Use this after a cluster exists but the DayEC headnode tools, catalog, analysis guard surface, or login shell need repair. In particular, if a DayOA run reports `No such command 'analysis'`, rerun this command from an activated local checkout and then verify `dyec analysis --help` on the headnode before workflow writes.
 
 ## Inspect Cluster And Jobs
 
@@ -40,6 +40,23 @@ dyec cluster list --profile "$AWS_PROFILE" --region "$REGION" --verbose
 dyec --json cluster describe --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 dyec headnode jobs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 ```
+
+To expose Ursa scheduling eligibility without changing Slurm state, use cluster
+stack tags:
+
+```bash
+dyec --json cluster tags --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec cluster tags --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" \
+  --set daylily-accept-jobs=false \
+  --set ursa-drain-reason=maintenance
+dyec cluster tags --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" \
+  --set daylily-accept-jobs=true \
+  --delete ursa-drain-reason
+```
+
+`cluster tags` updates only the CloudFormation stack tags identified by
+ParallelCluster `describe-cluster`. It does not cancel, hold, release, drain, or
+resume jobs or nodes.
 
 ## Stage Sample Inputs
 
@@ -73,7 +90,32 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --dry-run
 ```
 
-The catalog pin for DayOA commands is `2.0.44`.
+The catalog pin for DayOA commands is `9.0.0`.
+
+Use `--project <project>` on `dyec samples run` or `dyec workflow launch` when
+the cost-center/comment string should differ from the default. DYEC passes that
+value to `dyoainit`, DayOA exports it as `DAY_PROJECT`, and Slurm receives it as
+`sbatch --comment "$DAY_PROJECT"`. The value is not the cluster AWS Budget name.
+
+## Collect DayOA Benchmark Summary
+
+Use this after a DayOA checkout already exists under an analysis result root:
+
+```bash
+dyec --json workflow collect-benchmarks \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --analysis-root "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
+  --genome-build hg38_broad
+```
+
+DYEC runs the collector on the headnode as `ubuntu`, from
+`<analysis-root>/daylily-omics-analysis`. The remote command acquires an
+analysis-root write lock, runs `source dyoainit`, `dy-a local <genome-build>`,
+then runs `bash bin/util/benchmarks/collect_day_benchmark_data.sh <genome-build>`.
+The combined output is
+`results/day/<genome-build>/reports/benchmarks_summary.tsv`.
 
 ## Attach Run Folders
 
@@ -144,7 +186,7 @@ dyec workflow launch \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id dayoa \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.44 \
+  --git-tag 9.0.0 \
   --genome hg38_broad \
   --target produce_alignstats
 ```
@@ -159,7 +201,7 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.44 \
+  --git-tag 9.0.0 \
   --genome hg38_broad \
   --jobs 5 \
   --target produce_illumina_run_qc \
@@ -168,12 +210,91 @@ dyec workflow launch \
 
 The launcher creates `/home/ubuntu/daylily-runs/<session>/` with `launch.sh`, `tmux.log`, and `status.json`.
 
+## Budget Enforcement
+
+New clusters enforce the cluster AWS Budget by default. `dyec create` creates or
+checks an AWS Budget whose name is the cluster name, renders
+`aws-parallelcluster-project` as the cluster name, and renders
+`aws-parallelcluster-enforce-budget=true` unless
+`--disable-budget-enforcement` is explicitly set.
+
+The staged Slurm wrapper always requires `sbatch --comment <cost-center>`.
+That cost center must be active in the global DynamoDB registry, allowed for
+the submitting user or group, have a usage snapshot newer than 36 hours, and be
+below its monthly cap. When a job is blocked, the wrapper prints the Ursa
+cluster budget monitor URL and the cost-center report URL.
+
+Disabling budget enforcement skips only the cluster AWS Budget lookup. It does
+not remove the `--comment <cost-center>` requirement or cost-center validation.
+
+## Create-Time Spot Bid Safeguards
+
+`dyec create` caps generated ParallelCluster `SpotPrice` values with:
+
+```text
+min(reference_median_spot_price * spot_cost_limit_pct, global_spot_max_cost)
+```
+
+The default flags are `--global-spot-max-cost 9.99`,
+`--spot-cost-limit-pct 1.7`, and
+`--write-spot-pricing-warn-threshold 6.00`. Values outside the hard limits fail
+before cluster submission. Every resource uses its own median reference price,
+including i384 resources.
+
+Each create writes `config/<cluster>_spot_price_summary_<run_id>.json` and the
+state record stores the summary path plus partition rows for Ursa cluster-card
+rendering. Compute nodes append runtime high-price JSONL rows to
+`/fsx/scratch/spot_price_warn_exception_messages.log`, or
+`/var/log/daylily/spot_price_warn_exception_messages.log` for DRAGEN no-FSx
+mode.
+
+## Hourly Cost-Center Accounting
+
+Cost-center spend is computed from hourly CUR EC2 instance cost joined to
+Slurm accounting job intervals. Allocation is time-weighted within each
+instance-hour. If one cost center runs for the full hour and a second cost
+center overlaps for 10 minutes, the first receives 50 minutes solo plus half of
+the 10-minute overlap, or 55/60 of that instance-hour. The second receives
+5/60. Time with no jobs is assigned to the reserved system cost center `idle`.
+
+For a dedicated cluster whose cost-center name exactly matches the cluster
+name, refresh a stale usage snapshot from authoritative CUR rows with:
+
+```bash
+dyec --json cost-centers refresh-usage "$CLUSTER_NAME" \
+  --cluster "$CLUSTER_NAME" \
+  --month "$(date -u +%Y-%m)" \
+  --profile "$AWS_PROFILE" \
+  --dry-run
+```
+
+Repeat without `--dry-run` only after checking the row count, amount, and
+latest processed hour. The command fails closed for shared clusters; those
+require Slurm job-time allocation.
+
+Before live CUR-backed allocation can run in a new AWS account, create or
+validate the billing source:
+
+```bash
+dyec --json cost-centers ensure-cur-export --profile "$AWS_PROFILE"
+```
+
+The command creates or validates the dedicated S3 delivery bucket, BCM Data
+Export, Glue database/table, and current billing-period Athena partition. It is
+configured for the CUR 2.0 normalized resource tag key
+`user_parallelcluster_cluster_name`, which corresponds to EC2 tag
+`parallelcluster:cluster-name`. It is
+explicit about drift: a same-name export with a different definition requires
+`--update-existing-export`, and a same-name Glue table not marked
+`dayec:managed=true` requires `--adopt-glue-table`. New exports may have no
+queryable rows until AWS Data Exports refreshes the current CUR partition.
+
 For repo-native work that is not a catalog workflow command, clone the pinned repository on the headnode and then follow that repository's documented launch path:
 
 ```bash
 day-clone --list
-day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 2.0.44 --executing-entity "$EXECUTING_ENTITY"
-day-clone -d "$ANALYSIS_ID" -t 2.0.44
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 9.0.0 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 9.0.0
 ```
 
 `-t` is the short form of `--git-tag`; `-d` is required and is the short form of `--destination`. The clone target is `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`.

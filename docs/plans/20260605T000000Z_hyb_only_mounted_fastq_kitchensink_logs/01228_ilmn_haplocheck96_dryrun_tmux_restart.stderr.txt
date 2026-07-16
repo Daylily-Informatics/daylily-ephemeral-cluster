@@ -1,0 +1,5 @@
+  File "<stdin>", line 17
+    text = "
+           ^
+SyntaxError: unterminated string literal (detected at line 17)
+failed to run commands: exit status 1

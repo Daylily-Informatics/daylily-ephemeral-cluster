@@ -1,0 +1,4 @@
+Precheck passed: rows checked=13, samples checked=4, source objects checked=885, concordance directories checked=0.
+Generated configuration files:
+  samples.tsv -> docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ont_config_by_chip_barcode/20260606T083347Z_63d147c7_samples.tsv
+  units.tsv   -> docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ont_config_by_chip_barcode/20260606T083347Z_63d147c7_units.tsv

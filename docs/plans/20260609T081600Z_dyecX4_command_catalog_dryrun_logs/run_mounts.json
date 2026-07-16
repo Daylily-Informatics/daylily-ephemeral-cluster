@@ -1,0 +1,90 @@
+{
+  "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/": {
+    "association_id": "dra-0a0713fd9cfac78c7",
+    "auto_export_events": [],
+    "auto_import_events": [
+      "NEW",
+      "CHANGED"
+    ],
+    "batch_import_metadata_on_create": true,
+    "cluster_name": "dyecX4",
+    "created_at": "2026-06-09T06:32:32Z",
+    "created_by": "jmajor",
+    "file_system_path": "/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/",
+    "fsx_file_system_id": "fs-04960a3a07c091cf3",
+    "headnode_path": "/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/",
+    "lifecycle": "AVAILABLE",
+    "local_projection_status": "missing",
+    "mount_id": "20260514_LH01106_0009_B23TVLGLT4",
+    "platform": "OTHER",
+    "profile_hint": "lsmc",
+    "purpose": "run",
+    "read_only": true,
+    "region": "us-west-2",
+    "run_id": "20260514_LH01106_0009_B23TVLGLT4",
+    "source_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/",
+    "tags": {},
+    "updated_at": "2026-06-09T08:16:46Z",
+    "warnings": []
+  },
+  "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN602221/2026/602221-20260417_2346/": {
+    "association_id": "dra-09a619392c7f2bdc0",
+    "auto_export_events": [],
+    "auto_import_events": [
+      "NEW",
+      "CHANGED"
+    ],
+    "batch_import_metadata_on_create": true,
+    "cluster_name": "dyecX4",
+    "created_at": "2026-06-09T06:36:37Z",
+    "created_by": "jmajor",
+    "file_system_path": "/run_dir_mounts/602221-20260417_2346/",
+    "fsx_file_system_id": "fs-04960a3a07c091cf3",
+    "headnode_path": "/fsx/run_dir_mounts/602221-20260417_2346/",
+    "lifecycle": "AVAILABLE",
+    "local_projection_status": "present",
+    "mount_id": "602221-20260417_2346",
+    "platform": "ULTIMA",
+    "profile_hint": "lsmc",
+    "purpose": "run",
+    "read_only": true,
+    "region": "us-west-2",
+    "run_id": "602221-20260417_2346",
+    "source_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN602221/2026/602221-20260417_2346/",
+    "tags": {
+      "lsmc:purpose": "run-dir-mount"
+    },
+    "updated_at": "2026-06-09T08:16:46Z",
+    "warnings": []
+  },
+  "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/": {
+    "association_id": "dra-0c94f040d9917cdf4",
+    "auto_export_events": [],
+    "auto_import_events": [
+      "NEW",
+      "CHANGED"
+    ],
+    "batch_import_metadata_on_create": true,
+    "cluster_name": "dyecX4",
+    "created_at": "2026-06-09T06:36:37Z",
+    "created_by": "jmajor",
+    "file_system_path": "/run_dir_mounts/20260513_ONT_HG003/",
+    "fsx_file_system_id": "fs-04960a3a07c091cf3",
+    "headnode_path": "/fsx/run_dir_mounts/20260513_ONT_HG003/",
+    "lifecycle": "AVAILABLE",
+    "local_projection_status": "present",
+    "mount_id": "20260513_ONT_HG003",
+    "platform": "ONT",
+    "profile_hint": "lsmc",
+    "purpose": "run",
+    "read_only": true,
+    "region": "us-west-2",
+    "run_id": "20260513_ONT_HG003",
+    "source_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/",
+    "tags": {
+      "lsmc:purpose": "run-dir-mount"
+    },
+    "updated_at": "2026-06-09T08:16:46Z",
+    "warnings": []
+  }
+}

@@ -1,0 +1,2 @@
+** AUGMENT CODE RULE ** MUST NOT DO : DO NOT USE heredoc. heredoc always corrupts termainals.
+** AUGMENT CODE RULE ** MUST DO : YOU MUST use tmp script to run all commands innstead of redirecting strings printed to terminal (ie: heredoc), if you do anything other than use scripts, terminals get corrupted.

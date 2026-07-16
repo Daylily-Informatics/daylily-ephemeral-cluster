@@ -1,0 +1,19 @@
+{
+    "Association": {
+        "AssociationId": "dra-0d7c2f7e65eecadb6",
+        "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-04960a3a07c091cf3/dra-0d7c2f7e65eecadb6",
+        "FileSystemId": "fs-04960a3a07c091cf3",
+        "Lifecycle": "CREATING",
+        "FileSystemPath": "/control_data/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ug/",
+        "DataRepositoryPath": "s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ug/",
+        "BatchImportMetaDataOnCreate": true,
+        "ImportedFileChunkSize": 1024,
+        "Tags": [
+            {
+                "Key": "lsmc:purpose",
+                "Value": "pangenome-control-data"
+            }
+        ],
+        "CreationTime": 1781001856.803
+    }
+}

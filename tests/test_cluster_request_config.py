@@ -28,6 +28,10 @@ def test_write_noninteractive_cluster_config_uses_current_dayec_triplets(tmp_pat
         "",
         "dayoa-results/analysis_results/ops/run-a/",
     ]
+    assert "budget_project" not in values
     assert values["budget_email"].to_list() == ["USESETVALUE", "", "ops@example.com"]
-    assert values["enforce_budget"].to_list() == ["USESETVALUE", "", "skip"]
+    assert values["enforce_budget"].to_list() == ["USESETVALUE", "", "true"]
     assert values["cluster_template_yaml"].to_list() == ["PROMPTUSER", "", ""]
+    assert values["pcluster_backport_manifest"].to_list() == ["PROMPTUSER", "", ""]
+    assert values["dragen_license_secret_arn"].to_list() == ["PROMPTUSER", "", ""]
+    assert values["dragen_license_policy_arn"].to_list() == ["PROMPTUSER", "", ""]

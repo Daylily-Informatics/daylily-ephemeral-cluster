@@ -14,6 +14,18 @@ PAYLOAD_ENV = REPO_ROOT / "daylily_ec" / "resources" / "payload" / "environment.
 INIT_DAYEC = REPO_ROOT / "bin" / "init_dayec"
 PAYLOAD_INIT_DAYEC = REPO_ROOT / "daylily_ec" / "resources" / "payload" / "bin" / "init_dayec"
 PYPROJECT = REPO_ROOT / "pyproject.toml"
+LEGACY_CREATE = REPO_ROOT / "bin" / "legacy" / "daylily-create-ephemeral-cluster.bash"
+PAYLOAD_LEGACY_CREATE = (
+    REPO_ROOT
+    / "daylily_ec"
+    / "resources"
+    / "payload"
+    / "quarantine"
+    / "bin"
+    / "legacy"
+    / "daylily-create-ephemeral-cluster.bash"
+)
+PARALLELCLUSTER_VERSION = "3.15.0"
 
 ACTIVE_ENV_FILES = [
     REPO_ROOT / "activate",
@@ -139,6 +151,24 @@ def test_pyproject_declares_expected_runtime_python_dependencies() -> None:
     }
     assert expected <= deps
     assert "optional-dependencies" not in project["project"]
+
+
+def test_pyproject_pins_parallelcluster_exactly() -> None:
+    project = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
+    specs = [
+        dep.strip()
+        for dep in project["project"]["dependencies"]
+        if _dep_name(dep) == "aws-parallelcluster"
+    ]
+
+    assert specs == [f"aws-parallelcluster=={PARALLELCLUSTER_VERSION}"]
+
+
+def test_legacy_parallelcluster_version_guards_match_active_pin() -> None:
+    expected = f'expected_pcluster_version="{PARALLELCLUSTER_VERSION}"'
+
+    assert expected in LEGACY_CREATE.read_text(encoding="utf-8")
+    assert expected in PAYLOAD_LEGACY_CREATE.read_text(encoding="utf-8")
 
 
 def test_pyproject_declares_cli_entrypoints() -> None:

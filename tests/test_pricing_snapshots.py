@@ -66,25 +66,25 @@ def test_load_partition_instance_types_reads_packaged_prod_config():
     mapping = load_partition_instance_types()
     assert tuple(mapping.keys()) == DEFAULT_PRODUCTION_PARTITIONS
     assert "c7i.48xlarge" in mapping["i192"]
-    assert "r7i.48xlarge" in mapping["i192bigmem"]
-    assert "c8id.96xlarge" in mapping["bcl2fq-i384-nvme-test"]
+    assert "i4i.32xlarge" in mapping["i128nvme"]
+    assert "c8id.96xlarge" in mapping["i384nvme"]
 
 
 def test_collect_pricing_snapshot_returns_raw_points():
     snapshot = collect_pricing_snapshot(
         regions=["us-west-2"],
-        partitions=["i192bigmem"],
+        partitions=["i192nvme"],
         captured_at="2026-03-08T12:00:00Z",
         session_factory=_fake_session_factory,
     )
 
     assert snapshot.captured_at == "2026-03-08T12:00:00Z"
     assert snapshot.regions == ["us-west-2"]
-    assert snapshot.partitions == ["i192bigmem"]
+    assert snapshot.partitions == ["i192nvme"]
     assert snapshot.points
 
     first_point = snapshot.points[0]
-    assert first_point.partition == "i192bigmem"
+    assert first_point.partition == "i192nvme"
     assert first_point.region == "us-west-2"
     assert first_point.availability_zone == "us-west-2a"
     assert first_point.vcpu_cost_per_hour == round(first_point.hourly_spot_price / first_point.vcpu_count, 8)
@@ -93,7 +93,7 @@ def test_collect_pricing_snapshot_returns_raw_points():
 def test_collect_pricing_snapshot_skips_missing_prices():
     snapshot = collect_pricing_snapshot(
         regions=["us-west-2"],
-        partitions=["i192bigmem"],
+        partitions=["i192nvme"],
         session_factory=_fake_session_factory,
     )
     skipped = [

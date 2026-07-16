@@ -14,6 +14,7 @@ from daylily_ec.aws.ssm import (
     SsmInstanceUnavailableError,
     SsmError,
     resolve_headnode_instance_id,
+    resolve_remote_user,
     require_session_manager_plugin,
     run_shell,
     start_session,
@@ -163,6 +164,69 @@ class TestRunShell:
         assert "Daylily SSM payload must run as ubuntu" in decoded
         assert 'if [ "$actual_user" != "ubuntu" ]; then' in decoded
 
+    @patch("daylily_ec.aws.ssm.boto3.Session")
+    def test_explicit_ec2_user_success(self, mock_session_cls):
+        client = MagicMock()
+        client.send_command.return_value = {"Command": {"CommandId": "cmd-1"}}
+        client.get_command_invocation.return_value = {
+            "Status": "Success",
+            "ResponseCode": 0,
+            "StandardOutputContent": "ok\n",
+            "StandardErrorContent": "",
+        }
+        mock_session_cls.return_value.client.return_value = client
+
+        result = run_shell(
+            "i-abc123",
+            "us-west-2",
+            "echo hi",
+            profile="dev",
+            as_user="ec2-user",
+        )
+
+        assert result.command_id == "cmd-1"
+        sent = client.send_command.call_args.kwargs
+        command = sent["Parameters"]["commands"][0]
+        assert 'chown ec2-user "$tmp"' in command
+        assert 'sudo -iu ec2-user bash -l "$tmp"' in command
+        encoded = command.split("DAYLILY_SSM_B64=")[1].split("\n", 1)[0]
+        decoded = base64.b64decode(encoded).decode("utf-8")
+        assert "Daylily SSM payload must run as ec2-user" in decoded
+        assert 'if [ "$actual_user" != "ec2-user" ]; then' in decoded
+
+    @patch("daylily_ec.aws.ssm.boto3.Session")
+    def test_auto_user_uses_rhel_platform_ec2_user(self, mock_session_cls):
+        client = MagicMock()
+        client.describe_instance_information.return_value = {
+            "InstanceInformationList": [
+                {
+                    "PlatformName": "Red Hat Enterprise Linux",
+                    "PlatformVersion": "8.10",
+                }
+            ]
+        }
+        client.send_command.return_value = {"Command": {"CommandId": "cmd-1"}}
+        client.get_command_invocation.return_value = {
+            "Status": "Success",
+            "ResponseCode": 0,
+            "StandardOutputContent": "ok\n",
+            "StandardErrorContent": "",
+        }
+        mock_session_cls.return_value.client.return_value = client
+
+        result = run_shell(
+            "i-abc123",
+            "us-west-2",
+            "echo hi",
+            profile="dev",
+            as_user="auto",
+        )
+
+        assert result.command_id == "cmd-1"
+        client.describe_instance_information.assert_called_once()
+        sent = client.send_command.call_args.kwargs
+        assert 'sudo -iu ec2-user bash -l "$tmp"' in sent["Parameters"]["commands"][0]
+
     @patch("daylily_ec.aws.ssm.time.sleep", return_value=None)
     @patch("daylily_ec.aws.ssm.boto3.Session")
     def test_no_timeout_omits_send_command_timeout_and_waits_until_success(
@@ -205,8 +269,8 @@ class TestRunShell:
 
     @pytest.mark.parametrize("as_user", [None, "root", "ssm-user"])
     @patch("daylily_ec.aws.ssm.boto3.Session")
-    def test_rejects_non_ubuntu_users(self, mock_session_cls, as_user):
-        with pytest.raises(SsmError, match="must run as ubuntu"):
+    def test_rejects_unsupported_users(self, mock_session_cls, as_user):
+        with pytest.raises(SsmError, match="must run as one of ubuntu, ec2-user"):
             run_shell("i-abc123", "us-west-2", "echo hi", profile="dev", as_user=as_user)
         mock_session_cls.assert_not_called()
 
@@ -268,8 +332,8 @@ class TestRunShell:
 class TestWriteRemoteText:
     @pytest.mark.parametrize("as_user", [None, "root", "ssm-user"])
     @patch("daylily_ec.aws.ssm.run_shell")
-    def test_rejects_non_ubuntu_users(self, mock_run_shell, as_user):
-        with pytest.raises(SsmError, match="must run as ubuntu"):
+    def test_rejects_unsupported_users(self, mock_run_shell, as_user):
+        with pytest.raises(SsmError, match="must run as one of ubuntu, ec2-user"):
             write_remote_text(
                 "i-abc123",
                 "us-west-2",
@@ -294,6 +358,64 @@ class TestWriteRemoteText:
 
         script = mock_run_shell.call_args.args[2]
         assert "/home/ubuntu/.config/daylily/test.yaml" in script
+
+    @patch("daylily_ec.aws.ssm.run_shell")
+    def test_expands_ec2_user_home_path(self, mock_run_shell):
+        mock_run_shell.return_value = MagicMock()
+
+        write_remote_text(
+            "i-abc123",
+            "us-west-2",
+            "~/.config/daylily/test.yaml",
+            "hello: world\n",
+            profile="dev",
+            as_user="ec2-user",
+        )
+
+        script = mock_run_shell.call_args.args[2]
+        assert "/home/ec2-user/.config/daylily/test.yaml" in script
+        assert mock_run_shell.call_args.kwargs["as_user"] == "ec2-user"
+
+
+class TestResolveRemoteUser:
+    @pytest.mark.parametrize(
+        ("platform_name", "expected_user"),
+        [
+            ("Ubuntu", "ubuntu"),
+            ("Red Hat Enterprise Linux", "ec2-user"),
+            ("Amazon Linux", "ec2-user"),
+            ("Rocky Linux", "ec2-user"),
+            ("AlmaLinux", "ec2-user"),
+        ],
+    )
+    @patch("daylily_ec.aws.ssm.boto3.Session")
+    def test_auto_maps_supported_platforms(self, mock_session_cls, platform_name, expected_user):
+        client = MagicMock()
+        client.describe_instance_information.return_value = {
+            "InstanceInformationList": [
+                {
+                    "PlatformName": platform_name,
+                    "PlatformVersion": "8.10",
+                }
+            ]
+        }
+        mock_session_cls.return_value.client.return_value = client
+
+        assert (
+            resolve_remote_user("i-abc123", "us-west-2", profile="dev", as_user="auto")
+            == expected_user
+        )
+
+    @patch("daylily_ec.aws.ssm.boto3.Session")
+    def test_auto_rejects_unknown_platform(self, mock_session_cls):
+        client = MagicMock()
+        client.describe_instance_information.return_value = {
+            "InstanceInformationList": [{"PlatformName": "Debian GNU/Linux"}]
+        }
+        mock_session_cls.return_value.client.return_value = client
+
+        with pytest.raises(SsmError, match="Unable to determine supported SSM remote user"):
+            resolve_remote_user("i-abc123", "us-west-2", profile="dev", as_user="auto")
 
 
 class TestStartSession:

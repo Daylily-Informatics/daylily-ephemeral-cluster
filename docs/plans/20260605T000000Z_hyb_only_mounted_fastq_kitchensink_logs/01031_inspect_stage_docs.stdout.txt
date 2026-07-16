@@ -1,0 +1,120 @@
+README.md:116:dyec samples run ./analysis_samples.tsv \
+README.md:203:- `sample_analysis`: consumes `analysis_samples.tsv`, stages sample/unit manifests, and launches a repository command.
+tests/test_ssm_e2e_runner.py:142:        analysis_samples="/tmp/analysis_samples.tsv",
+tests/test_ssm_e2e_runner.py:172:        analysis_samples="/tmp/analysis_samples.tsv",
+tests/test_ssm_e2e_runner.py:259:        analysis_samples="/tmp/analysis_samples.tsv",
+tests/test_ssm_e2e_runner.py:307:        analysis_samples="/tmp/analysis_samples.tsv",
+tests/test_ssm_e2e_runner.py:354:        analysis_samples="/tmp/analysis_samples.tsv",
+tests/test_ssm_e2e_runner.py:388:    analysis_samples = tmp_path / "analysis_samples.tsv"
+tests/test_ssm_e2e_runner.py:395:    analysis_samples.write_text("RUN_ID\tSAMPLE_ID\n", encoding="utf-8")
+tests/test_ssm_e2e_runner.py:488:            str(analysis_samples),
+tests/test_ssm_e2e_runner.py:549:    analysis_samples = tmp_path / "analysis_samples.tsv"
+tests/test_ssm_e2e_runner.py:552:    analysis_samples.write_text("RUN_ID\tSAMPLE_ID\n", encoding="utf-8")
+tests/test_ssm_e2e_runner.py:632:            str(analysis_samples),
+tests/test_ssm_e2e_runner.py:661:    analysis_samples = tmp_path / "analysis_samples.tsv"
+tests/test_ssm_e2e_runner.py:664:    analysis_samples.write_text("RUN_ID\tSAMPLE_ID\n", encoding="utf-8")
+tests/test_ssm_e2e_runner.py:742:            str(analysis_samples),
+docs/tstver411b_command_catalog_test_results.md:58:| Hybrid Ultima+ONT | Ultima HG003 5x CRAM/CRAI plus ONT HG003 5x CRAM/CRAI, with `STAGE_DIRECTIVE=pass_through` | `hybrid_ultima_ont_hg003_5x5x.tsv` |
+docs/quickest_start.md:40:export ANALYSIS_SAMPLES=./analysis_samples.tsv
+docs/quickest_start.md:104:Use this path when inputs are represented by `analysis_samples.tsv`. `dyec samples run` is the preferred command because it stages manifests, validates the catalog command, launches the workflow, and can trigger export.
+daylily_ec/cli.py:2171:    analysis_samples: Path = typer.Argument(
+daylily_ec/cli.py:2173:        help="Path to analysis_samples.tsv.",
+daylily_ec/cli.py:2257:        str(analysis_samples),
+daylily_ec/cli.py:2296:    analysis_samples: Path = typer.Argument(
+daylily_ec/cli.py:2298:        help="Path to analysis_samples.tsv.",
+daylily_ec/cli.py:2449:    analysis_path = analysis_samples.expanduser().resolve()
+daylily_ec/cli.py:2569:            "analysis_samples": str(analysis_path),
+tests/test_repository_catalog.py:147:    assert manifest_contract.source_table.path == "analysis_samples.tsv"
+tests/test_repository_catalog.py:186:        "ILMN_R1_FQ",
+tests/test_repository_catalog.py:865:        "ILMN_R1_FQ",
+daylily_ec/stage_samples.py:43:ILMN_R1_FQ = "ILMN_R1_FQ"
+daylily_ec/stage_samples.py:49:ONT_R1_FQ = "ONT_R1_FQ"
+daylily_ec/stage_samples.py:51:ONT_FASTQ_PREFIX = "ONT_FASTQ_PREFIX"
+daylily_ec/stage_samples.py:73:STAGE_DIRECTIVE = "STAGE_DIRECTIVE"
+daylily_ec/stage_samples.py:125:    (ILMN_R1_FQ, ILMN_R2_FQ, "ILMN_R1_PATH", "ILMN_R2_PATH"),
+daylily_ec/stage_samples.py:128:    (ONT_R1_FQ, ONT_R2_FQ, "ONT_R1_PATH", "ONT_R2_PATH"),
+daylily_ec/stage_samples.py:177:    ILMN_R1_FQ,
+daylily_ec/stage_samples.py:183:    ONT_R1_FQ,
+daylily_ec/stage_samples.py:185:    ONT_FASTQ_PREFIX,
+daylily_ec/stage_samples.py:207:    STAGE_DIRECTIVE,
+daylily_ec/stage_samples.py:228:    R1_FQ: ILMN_R1_FQ,
+daylily_ec/stage_samples.py:440:    parser.add_argument("analysis_samples", help="Path to analysis_samples.tsv")
+daylily_ec/stage_samples.py:657:        raise CommandError(f"{MOUNT_ID} is required for STAGE_DIRECTIVE=mounted_readonly.")
+daylily_ec/stage_samples.py:1271:            f"Scratch source {source} is headnode-only; set {STAGE_DIRECTIVE}=pass_through."
+daylily_ec/stage_samples.py:1284:            f"{ONT_FASTQ_PREFIX} must point to an S3 fastq_pass/<tag>/ prefix: {prefix_uri}"
+daylily_ec/stage_samples.py:1289:            f"{ONT_FASTQ_PREFIX} must be under an ONT run directory like YYYYMMDD_ONT_*: {prefix_uri}"
+daylily_ec/stage_samples.py:1457:            f"{ONT_FASTQ_PREFIX} {prefix_uri} contains zero-byte objects: "
+daylily_ec/stage_samples.py:1466:            f"{ONT_FASTQ_PREFIX} {prefix_uri} contains non-FASTQ objects: {', '.join(unexpected)}"
+daylily_ec/stage_samples.py:1474:            f"{ONT_FASTQ_PREFIX} {prefix_uri} contains multiple flowcells "
+daylily_ec/stage_samples.py:1489:            f"{ONT_FASTQ_PREFIX} {prefix_uri} must resolve to one tag; found {', '.join(selected_tags)}."
+daylily_ec/stage_samples.py:1526:        "Use STAGE_DIRECTIVE=stage_data to copy it into the remote stage."
+daylily_ec/stage_samples.py:2026:            get_entry_value(entry.sources, ILMN_R1_FQ),
+daylily_ec/stage_samples.py:2207:        f"Unsupported STAGE_DIRECTIVE '{value}'. Supported values are "
+daylily_ec/stage_samples.py:2312:    ont_fastq_prefix = get_entry_value(normalized, ONT_FASTQ_PREFIX)
+daylily_ec/stage_samples.py:2334:        stage_directive=normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE)),
+daylily_ec/stage_samples.py:2341:            ILMN_R1_FQ,
+daylily_ec/stage_samples.py:2347:            ONT_R1_FQ,
+daylily_ec/stage_samples.py:2349:            ONT_FASTQ_PREFIX,
+daylily_ec/stage_samples.py:2377:    analysis_samples: Path,
+daylily_ec/stage_samples.py:2384:    with analysis_samples.open(newline="") as ff:
+daylily_ec/stage_samples.py:2539:    ont_fastq_prefix = get_entry_value(normalized, ONT_FASTQ_PREFIX)
+daylily_ec/stage_samples.py:2545:        directive = normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE))
+daylily_ec/stage_samples.py:2548:        add_exception(STAGE_DIRECTIVE, exc, get_entry_value(normalized, STAGE_DIRECTIVE))
+daylily_ec/stage_samples.py:2595:                ONT_FASTQ_PREFIX,
+daylily_ec/stage_samples.py:2597:                    f"Row {row_number} uses STAGE_DIRECTIVE=mounted_readonly, which requires "
+daylily_ec/stage_samples.py:2598:                    "mounted FASTQ/CRAM/BAM file paths instead of ONT_FASTQ_PREFIX."
+daylily_ec/stage_samples.py:2619:                f"Row {row_number} requires {SEQ_VENDOR}=ONT for {ONT_FASTQ_PREFIX}.",
+daylily_ec/stage_samples.py:2624:            for field in (ONT_R1_FQ, ONT_R2_FQ, ONT_CRAM, ONT_BAM)
+daylily_ec/stage_samples.py:2629:                ONT_FASTQ_PREFIX,
+daylily_ec/stage_samples.py:2631:                    f"Row {row_number} must not combine {ONT_FASTQ_PREFIX} "
+daylily_ec/stage_samples.py:2638:                STAGE_DIRECTIVE,
+daylily_ec/stage_samples.py:2639:                f"Row {row_number} requires STAGE_DIRECTIVE=stage_data for {ONT_FASTQ_PREFIX}.",
+daylily_ec/stage_samples.py:2640:                get_entry_value(normalized, STAGE_DIRECTIVE),
+daylily_ec/stage_samples.py:2645:            add_issue(ONT_FASTQ_PREFIX, str(exc), ont_fastq_prefix)
+daylily_ec/stage_samples.py:2657:                require_r2=r1_field != ONT_R1_FQ,
+daylily_ec/stage_samples.py:2659:            if len(r1_paths) > 1 and (r1_field, r2_field) != (ILMN_R1_FQ, ILMN_R2_FQ):
+daylily_ec/stage_samples.py:2664:                        f"{ILMN_R1_FQ}/{ILMN_R2_FQ}."
+daylily_ec/stage_samples.py:2679:            if r1_field == ONT_R1_FQ and not r2_paths and directive != "pass_through":
+daylily_ec/stage_samples.py:2684:                        f"set {STAGE_DIRECTIVE}=pass_through or use {ONT_FASTQ_PREFIX} "
+daylily_ec/stage_samples.py:2699:                        f"set {STAGE_DIRECTIVE}=pass_through for /fsx/scratch inputs."
+daylily_ec/stage_samples.py:2710:                        f"set {STAGE_DIRECTIVE}=pass_through for /fsx/scratch inputs."
+daylily_ec/stage_samples.py:2835:            normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE))
+daylily_ec/stage_samples.py:3102:    analysis_samples: Path,
+daylily_ec/stage_samples.py:3115:    with analysis_samples.open(newline="") as ff:
+daylily_ec/stage_samples.py:3124:                    path=str(analysis_samples),
+daylily_ec/stage_samples.py:3146:                    path=str(analysis_samples),
+daylily_ec/stage_samples.py:3210:            ont_fastq_prefix = get_entry_value(normalized, ONT_FASTQ_PREFIX)
+daylily_ec/stage_samples.py:3212:                directive = normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE))
+daylily_ec/stage_samples.py:3236:                                field=ONT_FASTQ_PREFIX,
+daylily_ec/stage_samples.py:3338:    if get_entry_value(row, ILMN_R1_FQ) or get_entry_value(row, ILMN_R2_FQ):
+daylily_ec/stage_samples.py:3349:        get_entry_value(row, ONT_R1_FQ)
+daylily_ec/stage_samples.py:3351:        or get_entry_value(row, ONT_FASTQ_PREFIX)
+daylily_ec/stage_samples.py:3385:def detect_manifest_data_modes(analysis_samples: Path) -> List[str]:
+daylily_ec/stage_samples.py:3389:    with analysis_samples.open(newline="") as ff:
+daylily_ec/stage_samples.py:3417:        raise CommandError(f"No data rows found in analysis samples manifest: {analysis_samples}")
+daylily_ec/stage_samples.py:3438:        if len(raw_groups) != 1 or raw_groups[0][:2] != (ILMN_R1_FQ, ILMN_R2_FQ):
+daylily_ec/stage_samples.py:3444:                "Multi-lane Illumina inputs require staging and cannot use STAGE_DIRECTIVE=pass_through."
+daylily_ec/stage_samples.py:3497:        require_r2=r1_field != ONT_R1_FQ,
+daylily_ec/stage_samples.py:3500:        if (r1_field, r2_field) != (ILMN_R1_FQ, ILMN_R2_FQ):
+daylily_ec/stage_samples.py:3503:                f"{ILMN_R1_FQ}/{ILMN_R2_FQ}."
+daylily_ec/stage_samples.py:3641:    analysis_samples: Path,
+daylily_ec/stage_samples.py:3711:            r1_files = [get_entry_value(entry.sources, ILMN_R1_FQ) for entry in entries]
+daylily_ec/stage_samples.py:3756:            ont_fastq_prefix = get_entry_value(entry.sources, ONT_FASTQ_PREFIX)
+daylily_ec/stage_samples.py:3899:    analysis_samples = Path(args.analysis_samples).expanduser().resolve()
+daylily_ec/stage_samples.py:3900:    if not analysis_samples.exists():
+daylily_ec/stage_samples.py:3901:        raise CommandError(f"Analysis samples TSV not found: {analysis_samples}")
+daylily_ec/stage_samples.py:3914:        analysis_samples,
+daylily_ec/stage_samples.py:3946:                "--config-only requires all rows to use STAGE_DIRECTIVE=pass_through or "
+daylily_ec/stage_samples.py:3956:        analysis_samples,
+daylily_ec/stage_samples.py:3980:        config_dir = analysis_samples.parent
+tests/test_headnode_init.py:371:    (resources_dir / "etc" / "analysis_samples_template.tsv").write_text(
+tests/test_headnode_init.py:521:    (resources_dir / "etc" / "analysis_samples_template.tsv").write_text(
+tests/test_headnode_init.py:595:        (root / "etc" / "analysis_samples_template.tsv").write_text(
+tests/test_staging_examples.py:53:    module.ILMN_R1_FQ,
+tests/test_staging_examples.py:57:    module.ONT_R1_FQ,
+tests/test_staging_examples.py:59:    module.ONT_FASTQ_PREFIX,
+tests/test_staging_examples.py:80:    return EXAMPLE_ROOT / example_name / "analysis_samples_manifest.tsv"
+tests/test_staging_examples.py:130:    has_ont_fastq_prefix = bool(row.get(module.ONT_FASTQ_PREFIX))
+tests/test_staging_examples.py:151:            assert row[module.STAGE_DIRECTIVE] == "stage_data"
+tests/test_staging_examples.py:159:                        if field == module.ONT_FASTQ_PREFIX
+tests/test_ont_fastq_prefix_staging.py:12:ONT_FASTQ_PREFIX = "ONT_FASTQ_PREFIX"

@@ -1,0 +1,105 @@
+    )
+    vendor = canonical_manifest_seq_vendor(get_entry_value(normalized, SEQ_VENDOR))
+    ont_fastq_prefix = get_entry_value(normalized, ONT_FASTQ_PREFIX)
+    if ont_fastq_prefix:
+        _prefix_uri, ont_tag, ont_run_id, _run_output_prefix = parse_ont_fastq_prefix(
+            ont_fastq_prefix
+        )
+    else:
+        ont_tag = ""
+        ont_run_id = ""
+    unit = UnitMetadata(
+        run_id=ont_run_id or normalise_run_id(get_entry_value(normalized, RUN_ID)),
+        experiment_id=normalise_identifier(get_entry_value(normalized, EXPERIMENT_ID)),
+        lib_prep=canonical_manifest_libprep(get_entry_value(normalized, LIB_PREP), vendor=vendor),
+        seq_vendor=vendor,
+        seq_platform=canonical_manifest_seq_platform(
+            get_entry_value(normalized, SEQ_PLATFORM), vendor=vendor
+        ),
+        lane=normalise_identifier(
+            get_entry_value(normalized, ONT_FLOWCELL_ID) or get_entry_value(normalized, LANE)
+        ),
+        seqbc_id=ont_tag or normalise_identifier(get_entry_value(normalized, SEQBC_ID)),
+    )
+    staging = StagingOptions(
+        stage_directive=normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE)),
+        stage_target=get_entry_value(normalized, STAGE_TARGET),
+        subsample_pct=validate_subsample_pct(get_entry_value(normalized, SUBSAMPLE_PCT, "na")),
+    )
+    sources = {
+        field: get_entry_value(normalized, field)
+        for field in {
+            ILMN_R1_FQ,
+            ILMN_R2_FQ,
+            CG_R1_FQ,
+            CG_R2_FQ,
+            PACBIO_R1_FQ,
+            PACBIO_R2_FQ,
+            ONT_R1_FQ,
+            ONT_R2_FQ,
+            ONT_FASTQ_PREFIX,
+            ONT_FLOWCELL_ID,
+            UG_R1_FQ,
+            UG_R2_FQ,
+            ULTIMA_CRAM,
+            ONT_CRAM,
+            PB_BAM,
+            ONT_BAM,
+            ROCHE_BAM,
+        }
+    }
+    units_passthrough = {
+        field: get_entry_value(normalized, field)
+        for field in MANIFEST_UNITS_PASSTHROUGH_FIELDS
+        if get_entry_value(normalized, field)
+    }
+    return ManifestRow(
+    analysis_samples: Path,
+    *,
+    reference_s3_uri: str,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> List[ManifestRow]:
+    rows: List[ManifestRow] = []
+    with analysis_samples.open(newline="") as ff:
+        reader = csv.DictReader(ff, delimiter="\t")
+        if reader.fieldnames is None:
+            raise CommandError("Input TSV is missing a header row")
+        header_fields = [field.strip() for field in reader.fieldnames if field and field.strip()]
+        unknown_fields = sorted(set(header_fields) - ALLOWED_MANIFEST_FIELDS)
+        if unknown_fields:
+            raise CommandError(
+                "Unknown columns in analysis samples manifest: " + ", ".join(unknown_fields)
+            )
+        missing_fields = [field for field in MANIFEST_REQUIRED_FIELDS if field not in header_fields]
+        if missing_fields:
+            raise CommandError(f"Missing required columns: {', '.join(missing_fields)}")
+
+        for row_number, row in enumerate(reader, start=2):
+            if not row:
+                continue
+            normalized = normalize_manifest_row(row, row_number=row_number)
+            if not any(normalized.values()):
+                continue
+            validate_manifest_row(
+                normalized,
+                row_number=row_number,
+                reference_s3_uri=reference_s3_uri,
+                aws_env=aws_env,
+                debug=debug,
+            )
+            rows.append(build_manifest_row(normalized, row_number=row_number))
+
+    return rows
+
+
+def _row_issue(
+    normalized: Mapping[str, str],
+    *,
+    row_number: int,
+    field: str,
+    path: str = "",
+    message: str,
+) -> PrecheckIssue:
+    sample_id = normalise_identifier(get_entry_value(normalized, SAMPLE_ID)) or "na"
+    run_id = normalise_run_id(get_entry_value(normalized, RUN_ID)) or "na"

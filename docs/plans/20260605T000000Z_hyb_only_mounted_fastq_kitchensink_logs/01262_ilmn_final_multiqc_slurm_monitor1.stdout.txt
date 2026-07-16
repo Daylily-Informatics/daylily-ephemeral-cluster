@@ -1,0 +1,12 @@
+DAY-EC activated.
+DAY-EC activated.
+job_891
+     JOBID    STATE         TIME     CPUS    PARTITION     NODELIST(REASON)                                                         NAME
+       891  RUNNING         0:19        4         i192        i192-dy-all-1                              multiqc_final_wgs-multiqc_final
+relevant_queue
+     JOBID ST         TIME     CPUS    PARTITION     NODELIST(REASON)                                                         NAME
+       891  R         0:19        4         i192        i192-dy-all-1                              multiqc_final_wgs-multiqc_final
+partition_i192
+PARTITION AVAIL TIMELIMIT NODES STATE NODELIST
+i192 up infinite 17 idle~ i192-dy-all-[2-18]
+i192 up infinite 1 mix i192-dy-all-1

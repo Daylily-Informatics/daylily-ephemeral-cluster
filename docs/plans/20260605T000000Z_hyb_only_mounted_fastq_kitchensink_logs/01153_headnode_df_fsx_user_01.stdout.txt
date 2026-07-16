@@ -1,0 +1,6 @@
+COMMAND_ID=43cd3c86-cc49-4e51-bf46-4a49c90f0d0e
+{
+    "Status": "Success",
+    "Stdout": "Filesystem                Size  Used Avail Use% Mounted on\n10.0.1.131@tcp:/ovxjlb4v  8.8T  1.5T  7.3T  17% /fsx\n",
+    "Stderr": ""
+}

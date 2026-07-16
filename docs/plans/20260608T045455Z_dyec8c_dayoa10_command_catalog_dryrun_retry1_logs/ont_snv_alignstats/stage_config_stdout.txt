@@ -1,0 +1,4 @@
+Precheck passed: rows checked=1, samples checked=1, source objects checked=20, concordance directories checked=1.
+Generated configuration files:
+  samples.tsv -> docs/plans/20260608T045455Z_dyec8c_dayoa10_command_catalog_dryrun_retry1_logs/ont_snv_alignstats/config/20260608T050015Z_7f098d48_samples.tsv
+  units.tsv   -> docs/plans/20260608T045455Z_dyec8c_dayoa10_command_catalog_dryrun_retry1_logs/ont_snv_alignstats/config/20260608T050015Z_7f098d48_units.tsv

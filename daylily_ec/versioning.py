@@ -25,7 +25,6 @@ def _source_tree_version() -> str | None:
     try:
         return scm_get_version(
             root=str(root),
-            relative_to=__file__,
             version_scheme="guess-next-dev",
             local_scheme="node-and-date",
             fallback_version="0.0.0.dev0",

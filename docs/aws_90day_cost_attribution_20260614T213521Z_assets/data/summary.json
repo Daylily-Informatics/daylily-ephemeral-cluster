@@ -1,0 +1,676 @@
+{
+  "account_id": "108782052779",
+  "attribution_limits": "Cost Explorer active tag keys for this window were limited to ParallelCluster/project tags. `Name`, CloudFormation stack-name, ECS service, and RDS identifier were not active historical cost allocation tags. Therefore DYEC and Dayhoff/TapDB are separated with historical tag evidence where tags exist, while Terrarium and Aquarium are separated only in live inventory and recent resource-level Cost Explorer data. Unclassified or blank-tag spend remains unallocated rather than inferred.",
+  "category_surfaces": [
+    {
+      "amount_usd": 27660.67,
+      "confidence": "high for tagged cluster resources",
+      "evidence": "`parallelcluster:cluster-name` nonblank",
+      "surface": "DYEC cluster-name tagged"
+    },
+    {
+      "amount_usd": 16815.51,
+      "confidence": "high for tagged EC2 compute",
+      "evidence": "service=EC2 Compute + nonblank cluster-name tag",
+      "surface": "DYEC EC2 compute subset"
+    },
+    {
+      "amount_usd": 10198.94,
+      "confidence": "high for tagged FSx",
+      "evidence": "service=Amazon FSx + nonblank cluster-name tag",
+      "surface": "DYEC FSx subset"
+    },
+    {
+      "amount_usd": 2308.39,
+      "confidence": "high for resources carrying lsmc-project",
+      "evidence": "`lsmc-project` starts dayhoff/tapdb",
+      "surface": "Dayhoff/TapDB lsmc-project tagged"
+    },
+    {
+      "amount_usd": 1318.04,
+      "confidence": "separate tag surface; may overlap",
+      "evidence": "`project=dayhoff-all`",
+      "surface": "Dayhoff project tag"
+    },
+    {
+      "amount_usd": 4641.79,
+      "confidence": "high service total, not app-specific",
+      "evidence": "service=Amazon Relational Database Service",
+      "surface": "Aurora/RDS service total"
+    },
+    {
+      "amount_usd": 4329.35,
+      "confidence": "usage-type heuristic",
+      "evidence": "RDS usage types matching instance/box/multi-AZ/CPU credit",
+      "surface": "Aurora/RDS instance compute subset"
+    }
+  ],
+  "command_count": 360,
+  "command_error_count": 55,
+  "dayhoff_lsmc_project_service_breakdown": [
+    {
+      "amount_usd": 1423.25,
+      "name": "Amazon Relational Database Service"
+    },
+    {
+      "amount_usd": 853.43,
+      "name": "Amazon Elastic Compute Cloud - Compute"
+    },
+    {
+      "amount_usd": 27.53,
+      "name": "EC2 - Other"
+    },
+    {
+      "amount_usd": 1.96,
+      "name": "Amazon Elastic Load Balancing"
+    },
+    {
+      "amount_usd": 1.2,
+      "name": "AWS Secrets Manager"
+    },
+    {
+      "amount_usd": 1.0,
+      "name": "Amazon Route 53"
+    },
+    {
+      "amount_usd": 0.01,
+      "name": "Amazon EC2 Container Registry (ECR)"
+    },
+    {
+      "amount_usd": 0.01,
+      "name": "Amazon Virtual Private Cloud"
+    },
+    {
+      "amount_usd": 0.0,
+      "name": "Amazon Simple Notification Service"
+    }
+  ],
+  "dayhoff_lsmc_project_total": 2308.39,
+  "dayhoff_project_total": 1318.04,
+  "dyec_cluster_service_breakdown": [
+    {
+      "amount_usd": 16815.51,
+      "name": "Amazon Elastic Compute Cloud - Compute"
+    },
+    {
+      "amount_usd": 10198.94,
+      "name": "Amazon FSx"
+    },
+    {
+      "amount_usd": 568.98,
+      "name": "EC2 - Other"
+    },
+    {
+      "amount_usd": 42.51,
+      "name": "AmazonCloudWatch"
+    },
+    {
+      "amount_usd": 23.13,
+      "name": "Amazon Virtual Private Cloud"
+    },
+    {
+      "amount_usd": 11.5,
+      "name": "Amazon Route 53"
+    },
+    {
+      "amount_usd": 0.08,
+      "name": "Amazon DynamoDB"
+    },
+    {
+      "amount_usd": 0.0,
+      "name": "AWS Lambda"
+    }
+  ],
+  "dyec_cluster_tagged_total": 27660.67,
+  "dyec_ec2_compute": 16815.51,
+  "dyec_fsx": 10198.94,
+  "expected_s3_no_lifecycle_count": 37,
+  "expected_s3_no_tag_set_count": 18,
+  "generated_at": "2026-06-14T21:48:21.167146Z",
+  "live_rds_by_class": [
+    {
+      "count": 20,
+      "name": "dayhoff"
+    },
+    {
+      "count": 4,
+      "name": "unallocated"
+    },
+    {
+      "count": 2,
+      "name": "dyec_cluster"
+    },
+    {
+      "count": 2,
+      "name": "terrarium"
+    },
+    {
+      "count": 1,
+      "name": "aquarium"
+    }
+  ],
+  "live_resource_counts_by_class": [
+    {
+      "count": 64,
+      "name": "unallocated"
+    },
+    {
+      "count": 46,
+      "name": "dayhoff"
+    },
+    {
+      "count": 23,
+      "name": "dyec_cluster"
+    },
+    {
+      "count": 18,
+      "name": "terrarium"
+    },
+    {
+      "count": 5,
+      "name": "aquarium"
+    }
+  ],
+  "monthly_totals": [
+    {
+      "amount_usd": 2831.44,
+      "name": "2026-03-16"
+    },
+    {
+      "amount_usd": 9334.55,
+      "name": "2026-04-01"
+    },
+    {
+      "amount_usd": 24026.22,
+      "name": "2026-05-01"
+    },
+    {
+      "amount_usd": 12151.43,
+      "name": "2026-06-01"
+    }
+  ],
+  "profile": "lsmc",
+  "rds_compute_subset": 4329.35,
+  "rds_total": 4641.79,
+  "rds_usage_type_breakdown": [
+    {
+      "amount_usd": 946.45,
+      "name": "USW2-InstanceUsageIOOptimized:db.r8g.2xl"
+    },
+    {
+      "amount_usd": 946.32,
+      "name": "USW2-InstanceUsageIOOptimized:db.r8g.xl"
+    },
+    {
+      "amount_usd": 561.6,
+      "name": "USW2-InstanceUsage:db.r6g.large"
+    },
+    {
+      "amount_usd": 377.13,
+      "name": "InstanceUsage:db.r5.large"
+    },
+    {
+      "amount_usd": 366.77,
+      "name": "InstanceUsage:db.r6g.large"
+    },
+    {
+      "amount_usd": 336.03,
+      "name": "USW2-InstanceUsage:db.r5.large"
+    },
+    {
+      "amount_usd": 247.0,
+      "name": "InstanceUsage:db.t3.medium"
+    },
+    {
+      "amount_usd": 192.02,
+      "name": "InstanceUsage:db.t4g.medium"
+    },
+    {
+      "amount_usd": 184.33,
+      "name": "USW2-Aurora:ServerlessV2IOOptimizedUsage"
+    },
+    {
+      "amount_usd": 170.17,
+      "name": "USW2-InstanceUsage:db.r8g.large"
+    },
+    {
+      "amount_usd": 93.77,
+      "name": "USW2-InstanceUsage:db.t4g.medium"
+    },
+    {
+      "amount_usd": 86.8,
+      "name": "USW2-InstanceUsage:db.t4g.micro"
+    },
+    {
+      "amount_usd": 53.77,
+      "name": "RDS:GP2-Storage"
+    },
+    {
+      "amount_usd": 18.14,
+      "name": "USW2-RDS:GP2-Storage"
+    },
+    {
+      "amount_usd": 17.45,
+      "name": "USW2-RDS:GP3-Storage"
+    },
+    {
+      "amount_usd": 14.47,
+      "name": "Aurora:ServerlessV2Usage"
+    },
+    {
+      "amount_usd": 11.24,
+      "name": "Aurora:StorageIOUsage"
+    },
+    {
+      "amount_usd": 9.84,
+      "name": "USW2-Aurora:StorageIOUsage"
+    },
+    {
+      "amount_usd": 5.05,
+      "name": "USW2-InstanceUsage:db.t3.medium"
+    },
+    {
+      "amount_usd": 1.37,
+      "name": "RDS:GP3-Storage"
+    }
+  ],
+  "recent_resource_costs_by_class": [
+    {
+      "amount_usd": 4851.3,
+      "monthly_run_rate_usd": 11358.57,
+      "name": "unallocated"
+    },
+    {
+      "amount_usd": 2625.6,
+      "monthly_run_rate_usd": 6147.44,
+      "name": "dayhoff"
+    },
+    {
+      "amount_usd": 62.07,
+      "monthly_run_rate_usd": 145.33,
+      "name": "terrarium"
+    },
+    {
+      "amount_usd": 13.7,
+      "monthly_run_rate_usd": 32.08,
+      "name": "aquarium"
+    }
+  ],
+  "recent_resource_costs_by_class_service": [
+    {
+      "amount_usd": 4451.13,
+      "classification": "unallocated",
+      "monthly_run_rate_usd": 10421.64,
+      "service": "Amazon Elastic Compute Cloud - Compute"
+    },
+    {
+      "amount_usd": 1832.89,
+      "classification": "dayhoff",
+      "monthly_run_rate_usd": 4291.43,
+      "service": "Amazon Relational Database Service"
+    },
+    {
+      "amount_usd": 700.59,
+      "classification": "dayhoff",
+      "monthly_run_rate_usd": 1640.32,
+      "service": "Amazon Elastic Compute Cloud - Compute"
+    },
+    {
+      "amount_usd": 275.43,
+      "classification": "unallocated",
+      "monthly_run_rate_usd": 644.88,
+      "service": "EC2 - Other"
+    },
+    {
+      "amount_usd": 78.07,
+      "classification": "dayhoff",
+      "monthly_run_rate_usd": 182.79,
+      "service": "EC2 - Other"
+    },
+    {
+      "amount_usd": 66.72,
+      "classification": "unallocated",
+      "monthly_run_rate_usd": 156.21,
+      "service": "Amazon Virtual Private Cloud"
+    },
+    {
+      "amount_usd": 58.03,
+      "classification": "unallocated",
+      "monthly_run_rate_usd": 135.87,
+      "service": "Amazon Relational Database Service"
+    },
+    {
+      "amount_usd": 28.35,
+      "classification": "terrarium",
+      "monthly_run_rate_usd": 66.38,
+      "service": "EC2 - Other"
+    },
+    {
+      "amount_usd": 15.42,
+      "classification": "terrarium",
+      "monthly_run_rate_usd": 36.1,
+      "service": "Amazon Elastic Container Service"
+    },
+    {
+      "amount_usd": 14.05,
+      "classification": "dayhoff",
+      "monthly_run_rate_usd": 32.9,
+      "service": "Amazon Elastic Load Balancing"
+    },
+    {
+      "amount_usd": 11.98,
+      "classification": "terrarium",
+      "monthly_run_rate_usd": 28.05,
+      "service": "Amazon Relational Database Service"
+    },
+    {
+      "amount_usd": 7.71,
+      "classification": "aquarium",
+      "monthly_run_rate_usd": 18.05,
+      "service": "Amazon Elastic Container Service"
+    },
+    {
+      "amount_usd": 6.33,
+      "classification": "terrarium",
+      "monthly_run_rate_usd": 14.82,
+      "service": "Amazon Elastic Compute Cloud - Compute"
+    },
+    {
+      "amount_usd": 5.99,
+      "classification": "aquarium",
+      "monthly_run_rate_usd": 14.02,
+      "service": "Amazon Relational Database Service"
+    }
+  ],
+  "recent_resource_window": {
+    "days": 13,
+    "end_exclusive": "2026-06-14",
+    "start": "2026-06-01"
+  },
+  "resource_cost_error_count": 0,
+  "resource_count": 156,
+  "top_dayhoff_lsmc_projects": [
+    {
+      "amount_usd": 1395.19,
+      "name": "dayhoff+us-west-2"
+    },
+    {
+      "amount_usd": 135.15,
+      "name": "tapdb-us-east-1"
+    },
+    {
+      "amount_usd": 134.31,
+      "name": "tapdb-us-west-2"
+    },
+    {
+      "amount_usd": 106.56,
+      "name": "dayhoff-ddev96"
+    },
+    {
+      "amount_usd": 106.32,
+      "name": "dayhoff+us-east-1"
+    },
+    {
+      "amount_usd": 91.3,
+      "name": "dayhoff-day"
+    },
+    {
+      "amount_usd": 85.97,
+      "name": "dayhoff-dev"
+    },
+    {
+      "amount_usd": 81.97,
+      "name": "dayhoff-inf"
+    },
+    {
+      "amount_usd": 55.27,
+      "name": "dayhoff-joshdev"
+    },
+    {
+      "amount_usd": 38.42,
+      "name": "dayhoff-jemdev5"
+    },
+    {
+      "amount_usd": 18.29,
+      "name": "dayhoff-jemdev2"
+    },
+    {
+      "amount_usd": 17.35,
+      "name": "dayhoff-jemdev3"
+    },
+    {
+      "amount_usd": 8.84,
+      "name": "dayhoff-inf9"
+    },
+    {
+      "amount_usd": 8.43,
+      "name": "dayhoff-inf10"
+    },
+    {
+      "amount_usd": 6.69,
+      "name": "dayhoff-inf11"
+    },
+    {
+      "amount_usd": 5.71,
+      "name": "dayhoff-ddev81"
+    },
+    {
+      "amount_usd": 5.65,
+      "name": "dayhoff-ddev80"
+    },
+    {
+      "amount_usd": 3.23,
+      "name": "dayhoff-jemdev"
+    },
+    {
+      "amount_usd": 1.34,
+      "name": "dayhoff-tailnet-dns"
+    },
+    {
+      "amount_usd": 1.29,
+      "name": "dayhoff-ddev89"
+    }
+  ],
+  "top_dyec_clusters": [
+    {
+      "amount_usd": 3688.69,
+      "name": "may26-d"
+    },
+    {
+      "amount_usd": 2630.45,
+      "name": "ifx-go"
+    },
+    {
+      "amount_usd": 1879.23,
+      "name": "hyb-hg003"
+    },
+    {
+      "amount_usd": 1851.03,
+      "name": "mk-gotime3"
+    },
+    {
+      "amount_usd": 1824.33,
+      "name": "fk-260509-use"
+    },
+    {
+      "amount_usd": 1599.38,
+      "name": "hyb-only"
+    },
+    {
+      "amount_usd": 1382.12,
+      "name": "inflextion-g24"
+    },
+    {
+      "amount_usd": 1047.28,
+      "name": "dra-enabled"
+    },
+    {
+      "amount_usd": 874.55,
+      "name": "dyecX4"
+    },
+    {
+      "amount_usd": 844.31,
+      "name": "dyec-test"
+    },
+    {
+      "amount_usd": 830.78,
+      "name": "at-sanity"
+    },
+    {
+      "amount_usd": 827.28,
+      "name": "dec219-cluster"
+    },
+    {
+      "amount_usd": 795.05,
+      "name": "XL-pilot"
+    },
+    {
+      "amount_usd": 742.62,
+      "name": "BigB-4-mk"
+    },
+    {
+      "amount_usd": 520.01,
+      "name": "daylily-1773059211"
+    },
+    {
+      "amount_usd": 474.78,
+      "name": "pilot-largecluster"
+    },
+    {
+      "amount_usd": 432.69,
+      "name": "mk-gotime"
+    },
+    {
+      "amount_usd": 424.39,
+      "name": "test-smn1-case1"
+    },
+    {
+      "amount_usd": 420.06,
+      "name": "forked"
+    },
+    {
+      "amount_usd": 390.59,
+      "name": "pilot-mk"
+    }
+  ],
+  "top_regions": [
+    {
+      "amount_usd": 43002.45,
+      "name": "us-west-2"
+    },
+    {
+      "amount_usd": 3104.21,
+      "name": "us-east-1"
+    },
+    {
+      "amount_usd": 1492.09,
+      "name": "global"
+    },
+    {
+      "amount_usd": 362.14,
+      "name": "eu-central-1"
+    },
+    {
+      "amount_usd": 317.41,
+      "name": "ap-south-1"
+    },
+    {
+      "amount_usd": 5.42,
+      "name": "sa-east-1"
+    },
+    {
+      "amount_usd": 4.87,
+      "name": "us-east-2"
+    },
+    {
+      "amount_usd": 4.47,
+      "name": "ap-northeast-3"
+    },
+    {
+      "amount_usd": 4.35,
+      "name": "ap-northeast-1"
+    },
+    {
+      "amount_usd": 4.3,
+      "name": "ap-southeast-2"
+    },
+    {
+      "amount_usd": 4.3,
+      "name": "ap-northeast-2"
+    },
+    {
+      "amount_usd": 4.3,
+      "name": "ap-southeast-1"
+    }
+  ],
+  "top_services": [
+    {
+      "amount_usd": 19146.19,
+      "name": "Amazon Elastic Compute Cloud - Compute"
+    },
+    {
+      "amount_usd": 10198.94,
+      "name": "Amazon FSx"
+    },
+    {
+      "amount_usd": 8517.15,
+      "name": "Amazon Simple Storage Service"
+    },
+    {
+      "amount_usd": 4641.79,
+      "name": "Amazon Relational Database Service"
+    },
+    {
+      "amount_usd": 2620.04,
+      "name": "EC2 - Other"
+    },
+    {
+      "amount_usd": 1286.99,
+      "name": "AWS Support (Developer)"
+    },
+    {
+      "amount_usd": 511.22,
+      "name": "AWS Security Hub"
+    },
+    {
+      "amount_usd": 375.14,
+      "name": "Amazon Virtual Private Cloud"
+    },
+    {
+      "amount_usd": 262.02,
+      "name": "AWS Cost Explorer"
+    },
+    {
+      "amount_usd": 176.66,
+      "name": "AmazonCloudWatch"
+    },
+    {
+      "amount_usd": 130.0,
+      "name": "Amazon Registrar"
+    },
+    {
+      "amount_usd": 123.33,
+      "name": "Amazon Elastic Container Service"
+    },
+    {
+      "amount_usd": 121.01,
+      "name": "AWS CloudTrail"
+    },
+    {
+      "amount_usd": 81.48,
+      "name": "Amazon Elastic Load Balancing"
+    },
+    {
+      "amount_usd": 47.24,
+      "name": "Amazon GuardDuty"
+    }
+  ],
+  "total_cost": 48343.63,
+  "unexpected_command_error_count": 0,
+  "unexpected_command_errors": [],
+  "window": {
+    "end_exclusive": "2026-06-14",
+    "last_inclusive_day": "2026-06-13",
+    "start": "2026-03-16"
+  }
+}

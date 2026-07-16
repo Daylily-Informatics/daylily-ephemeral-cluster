@@ -11,6 +11,7 @@ Use pip install only when building an external environment that will provide the
 ## Install
 
 ```bash
+python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
@@ -27,7 +28,7 @@ The shell still needs:
 
 - AWS CLI
 - AWS Session Manager plugin
-- ParallelCluster CLI compatible with this repo
+- ParallelCluster CLI pinned by this repo: `aws-parallelcluster==3.15.0`
 - Conda or another Python environment with the package dependencies installed
 
 Verify:
@@ -40,13 +41,16 @@ aws --version
 session-manager-plugin
 ```
 
+`pcluster version` must report `3.15.0`. Do not install `aws-parallelcluster` with an unpinned `--upgrade` or `latest` target.
+
 ## Catalog Resources
 
-Installed packages use packaged resources under `daylily_ec/resources/payload/`. The packaged repository catalog must match the source catalog. Current DayOA pins are `2.0.44`.
+Installed packages use packaged resources under `daylily_ec/resources/payload/`. The packaged repository catalog must match the source catalog. Current DayOA pins are `9.0.0`.
 
 For local development after changing catalog or resource files:
 
 ```bash
+python -m pip install --upgrade pip
 python -m pip install -e .
 dyec repositories commands --command-id illumina_run_qc
 ```

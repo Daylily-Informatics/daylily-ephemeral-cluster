@@ -1,0 +1,1547 @@
+{
+  "DimensionValueAttributes": [],
+  "GroupDefinitions": [
+    {
+      "Key": "SERVICE",
+      "Type": "DIMENSION"
+    }
+  ],
+  "ResultsByTime": [
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "AWS CloudFormation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Cost Explorer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2686503011",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.064516112",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000163",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.9528276787",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "88.224917683",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000162",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS WAF"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.471338384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS X-Ray"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000213635",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0049211613",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1231504824",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "288.8875063011",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "661.5433159991",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Container Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.5211423895",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.8235367274",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "738.8131622852",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000241",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.0483168403",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "142.5877785492",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.0609576",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "333.991371299",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "43.001134913",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.8989247215",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CloudWatch Events"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Tax"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-04-01",
+        "Start": "2026-03-21"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "AWS Certificate Manager"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudFormation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Cost Explorer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.9391166236",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.000000024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000013567",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.4352410308",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "91.6659815437",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000018823",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Support (Developer)"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "261.0595463814",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS WAF"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "8.0212293499",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000001282",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.14175",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0256479646",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4761489983",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "685.8035060286",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2038.3250046005",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Container Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "35.5698970163",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic File System"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000452052",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "18.9681630235",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3924.8280150815",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000026714",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "15.268142109",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Registrar"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "130",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "497.9875161126",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "14.3503452",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1479.5929508039",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "119.2068503224",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.8825031081",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CloudWatch Events"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Tax"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-05-01",
+        "Start": "2026-04-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "AWS Certificate Manager"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudFormation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "32.533505",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Cost Explorer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "60.8757636451",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.934997566",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000063428",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.0549953036",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "191.551362364",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000002284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Support (Developer)"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "680.902151147",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS WAF"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.999999888",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.02925",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0380672189",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.7040180655",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1156.4277843743",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "11205.6624602906",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Container Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "55.1299283869",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic File System"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000724317",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "25.2091283305",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4675.5496062546",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000032412",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "20.8700168735",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2029.0941517157",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "14.752048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000062797",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3643.1147737754",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "135.8671375624",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "81.9202940286",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CloudWatch Events"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Tax"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-01",
+        "Start": "2026-05-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "AWS CloudFormation"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "124.86978",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Cost Explorer"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "244.5372646666",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.4698956854",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000039319",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.8418044774",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "198.7730404691",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000001281",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Support (Developer)"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "614.906181015",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS WAF"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.1027778106",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000034",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0197639272",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.5944261358",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "558.4391712608",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "12158.3524116919",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Container Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "31.285903183",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic File System"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000524745",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "19.0084592812",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1134.6341404544",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000018058",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.0660311593",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2577.0392707347",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "13.1373672",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000026115",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3890.9782625577",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "91.5773503523",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "129.3901835537",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CloudWatch Events"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Tax"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-19",
+        "Start": "2026-06-01"
+      },
+      "Total": {}
+    }
+  ]
+}

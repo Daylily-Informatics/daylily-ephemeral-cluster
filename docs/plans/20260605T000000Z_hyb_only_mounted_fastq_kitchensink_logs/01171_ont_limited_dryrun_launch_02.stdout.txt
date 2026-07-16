@@ -1,0 +1,16 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_STAGE_DIR__=/home/ubuntu/daylily-staged-configs/hybonly_ont_kitchensink_mounted_20260606T053415Z_config
+__DAYLILY_STAGE_SAMPLES__=/home/ubuntu/daylily-staged-configs/hybonly_ont_kitchensink_mounted_20260606T053415Z_config/20260606T053415Z_13973636_samples.tsv
+__DAYLILY_STAGE_UNITS__=/home/ubuntu/daylily-staged-configs/hybonly_ont_kitchensink_mounted_20260606T053415Z_config/20260606T053415Z_13973636_units.tsv
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=hybonly_ont_alignsort_alignstats_dedupna_dryrun2_20260606T074609Z
+__DAYLILY_TMUX_SESSION__=hybonly_ont_alignsort_alignstats_dedupna_dryrun2_20260606T074609Z
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/hybonly_ont_alignsort_alignstats_dedupna_dryrun2_20260606T074609Z
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/hybonly_ont_alignsort_alignstats_dedupna_dryrun2_20260606T074609Z/daylily-omics-analysis
+Tmux session 'hybonly_ont_alignsort_alignstats_dedupna_dryrun2_20260606T074609Z' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/hybonly_ont_alignsort_alignstats_dedupna_dryrun2_20260606T074609Z
+Workflow repo path: /fsx/analysis_results/ubuntu/hybonly_ont_alignsort_alignstats_dedupna_dryrun2_20260606T074609Z/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster hyb-only
+Then run: tmux attach -t hybonly_ont_alignsort_alignstats_dedupna_dryrun2_20260606T074609Z

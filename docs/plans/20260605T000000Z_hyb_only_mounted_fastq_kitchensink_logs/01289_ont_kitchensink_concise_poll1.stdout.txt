@@ -1,0 +1,35 @@
+DAY-EC activated.
+DAY-EC activated.
+session=hybonly_ont_kitchensink_rest_20260606T102845Z
+tmux=present
+controllers=4
+slurm_summary:
+      5 CONFIGURING
+slurm_jobs:
+             JOBID PARTITION     NAME    STATE       TIME  NODES          NODELIST(REASON)
+               892   i192mem sent_snv CONFIGUR       4:24      1          i192mem-dy-all-1
+               893   i192mem sent_snv CONFIGUR       4:24      1          i192mem-dy-all-2
+               894   i192mem sent_snv CONFIGUR       4:24      1          i192mem-dy-all-3
+               895   i192mem sent_snv CONFIGUR       4:24      1          i192mem-dy-all-4
+               896   i192mem sent_snv CONFIGUR       4:24      1          i192mem-dy-all-5
+reports:
+/fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/results/day/hg38_broad/reports/DAY_final_multiqc.html|MISSING|
+/fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_data.json|MISSING|
+/fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/results/day/hg38_broad/reports/dayoa_evidence_manifest.json|MISSING|
+latest_snakemake_log=/fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/.snakemake/log/2026-06-06T102910.104898.snakemake.log
+snakemake_progress:
+Building DAG of jobs...
+Select jobs to execute...
+Submitted job 160 with external jobid '892'.
+Submitted job 178 with external jobid '893'.
+Submitted job 168 with external jobid '894'.
+Submitted job 172 with external jobid '895'.
+Submitted job 164 with external jobid '896'.
+tmux_markers:
+[33mSubmitted job 160 with external jobid '892'.[0m
+[33mSubmitted job 178 with external jobid '893'.[0m
+[33mSubmitted job 168 with external jobid '894'.[0m
+[33mSubmitted job 172 with external jobid '895'.[0m
+[33mSubmitted job 164 with external jobid '896'.[0m
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  1.3T  7.5T  15% /fsx

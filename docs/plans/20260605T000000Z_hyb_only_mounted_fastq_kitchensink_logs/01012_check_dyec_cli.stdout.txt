@@ -1,0 +1,1 @@
+/Users/jmajor/miniconda3/envs/DAY-EC/bin/dyec

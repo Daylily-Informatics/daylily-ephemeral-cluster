@@ -1,0 +1,144 @@
+{
+  "command": "bin/day_run produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram -p -j 5 -k --rerun-triggers mtime -n",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_dryrun2_20260606T090029Z/daylily-omics-analysis",
+  "session_name": "hybonly_ont_chipbarcode_limited_dryrun2_20260606T090029Z",
+  "started_at": "2026-06-06T09:00:58Z"
+}
+DAY-EC activated.
+DAY-EC activated.
+    reason: Missing output files: results/day/hg38_broad/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv; Input files updated by another job: results/day/hg38_broad/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    wildcards: sample=ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ONT-PROMETHION, alnr=sentmm2ont, ddup=na
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat Jun  6 09:01:22 2026]
+localrule finish_align_stats:
+    input: results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    output: results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv
+    log: results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/logs/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.finish_align_stats.log
+    jobid: 37
+    reason: Missing output files: results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv; Input files updated by another job: results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    wildcards: sample=ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION, alnr=sentmm2ont, ddup=na
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat Jun  6 09:01:22 2026]
+localrule finish_align_stats:
+    input: results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    output: results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv
+    log: results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/logs/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.finish_align_stats.log
+    jobid: 45
+    reason: Missing output files: results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv; Input files updated by another job: results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    wildcards: sample=ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION, alnr=sentmm2ont, ddup=na
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat Jun  6 09:01:22 2026]
+localrule finish_align_stats:
+    input: results/day/hg38_broad/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    output: results/day/hg38_broad/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv
+    log: results/day/hg38_broad/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION/logs/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION.sentmm2ont.na.finish_align_stats.log
+    jobid: 55
+    reason: Missing output files: results/day/hg38_broad/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv; Input files updated by another job: results/day/hg38_broad/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    wildcards: sample=ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION, alnr=sentmm2ont, ddup=na
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat Jun  6 09:01:22 2026]
+localrule finish_align_stats:
+    input: results/day/hg38_broad/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    output: results/day/hg38_broad/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv
+    log: results/day/hg38_broad/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION/logs/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION.sentmm2ont.na.finish_align_stats.log
+    jobid: 39
+    reason: Missing output files: results/day/hg38_broad/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv; Input files updated by another job: results/day/hg38_broad/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    wildcards: sample=ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION, alnr=sentmm2ont, ddup=na
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat Jun  6 09:01:22 2026]
+localrule finish_align_stats:
+    input: results/day/hg38_broad/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    output: results/day/hg38_broad/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv
+    log: results/day/hg38_broad/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION/logs/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION.sentmm2ont.na.finish_align_stats.log
+    jobid: 31
+    reason: Missing output files: results/day/hg38_broad/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv; Input files updated by another job: results/day/hg38_broad/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    wildcards: sample=ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION, alnr=sentmm2ont, ddup=na
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat Jun  6 09:01:22 2026]
+localrule finish_align_stats:
+    input: results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    output: results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv
+    log: results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION/logs/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION.sentmm2ont.na.finish_align_stats.log
+    jobid: 41
+    reason: Missing output files: results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv; Input files updated by another job: results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    wildcards: sample=ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION, alnr=sentmm2ont, ddup=na
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat Jun  6 09:01:22 2026]
+localrule finish_align_stats:
+    input: results/day/hg38_broad/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    output: results/day/hg38_broad/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv
+    log: results/day/hg38_broad/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION/logs/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION.sentmm2ont.na.finish_align_stats.log
+    jobid: 53
+    reason: Missing output files: results/day/hg38_broad/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv; Input files updated by another job: results/day/hg38_broad/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    wildcards: sample=ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION, alnr=sentmm2ont, ddup=na
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat Jun  6 09:01:22 2026]
+localrule finish_align_stats:
+    input: results/day/hg38_broad/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    output: results/day/hg38_broad/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv
+    log: results/day/hg38_broad/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION/logs/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION.sentmm2ont.na.finish_align_stats.log
+    jobid: 43
+    reason: Missing output files: results/day/hg38_broad/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv; Input files updated by another job: results/day/hg38_broad/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.json
+    wildcards: sample=ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION, alnr=sentmm2ont, ddup=na
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat Jun  6 09:01:22 2026]
+localrule alignstats_gather:
+    input: results/day/hg38_broad/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip1-NA05164-DMPK-chip1-barcode21-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA05164-DMPK-chip1-barcode21-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip3-NA09677-SMN-chip3-barcode19-chip3-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip3-NA09677-SMN-chip3-barcode19-chip3-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv
+    output: results/day/hg38_broad/other_reports/alignstats_summary_gather.done, results/day/hg38_broad/benchmarks/all.alignstats_summary.bench.tsv
+    log: results/day/hg38_broad/logs/alignstats_summary_gather.log
+    jobid: 30
+    benchmark: results/day/hg38_broad/benchmarks/all.alignstats_summary.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/other_reports/alignstats_summary_gather.done; Input files updated by another job: results/day/hg38_broad/ONT-4Coriells-chip1-NA05164-DMPK-chip1-barcode21-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA05164-DMPK-chip1-barcode21-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip3-NA09677-SMN-chip3-barcode19-chip3-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip3-NA09677-SMN-chip3-barcode19-chip3-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv, results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/alignqc/alignstats/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.alignstats.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+ touch results/day/hg38_broad/other_reports/alignstats_summary_gather.done; touch results/day/hg38_broad/benchmarks/all.alignstats_summary.bench.tsv
+
+[Sat Jun  6 09:01:22 2026]
+localrule alignstats_compile:
+    input: results/day/hg38_broad/other_reports/alignstats_summary_gather.done
+    output: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv, results/day/hg38_broad/other_reports/alignstats_csummary.tsv, results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv, results/day/hg38_broad/other_reports/alignstats_gs_mqc.tsv
+    log: results/day/hg38_broad/logs/alignstats_summary_compile.log
+    jobid: 29
+    benchmark: results/day/hg38_broad/benchmarks/all.alignstats_smmary_compile.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv; Input files updated by another job: results/day/hg38_broad/other_reports/alignstats_summary_gather.done
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        python workflow/scripts/compile_alignstats.py           --mdir results/day/hg38_broad/           --log results/day/hg38_broad/logs/alignstats_summary_compile.log           --bsummary results/day/hg38_broad/other_reports/alignstats_bsummary.tsv           --csummary results/day/hg38_broad/other_reports/alignstats_csummary.tsv           --combo results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv           --generalstats results/day/hg38_broad/other_reports/alignstats_gs_mqc.tsv
+        
+Would remove temporary output results/day/hg38_broad/other_reports/alignstats_csummary.tsv
+
+[Sat Jun  6 09:01:22 2026]
+localrule produce_alignstats:
+    input: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv
+    log: results/day/hg38_broad/logs/produce_alignstats.log
+    jobid: 28
+    reason: Input files updated by another job: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+Would remove temporary output results/day/hg38_broad/other_reports/alignstats_bsummary.tsv
+Job stats:
+job                         count    min threads    max threads
+------------------------  -------  -----------output truncated--

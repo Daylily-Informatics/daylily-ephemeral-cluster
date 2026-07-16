@@ -1,0 +1,199 @@
+Region: ${REGSUB_REGION}
+Image:
+  Os: rhel8
+HeadNode:
+  InstanceType: ${REGSUB_HEADNODE_INSTANCE_TYPE}
+  Networking:
+    ElasticIp: false
+    SubnetId: ${REGSUB_PUB_SUBNET}
+    # ${REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING}
+  DisableSimultaneousMultithreading: false
+  Dcv:
+    Enabled: false
+  LocalStorage:
+    RootVolume:
+      Size: 421
+      VolumeType: gp3
+      DeleteOnTermination: ${REGSUB_DELETE_LOCAL_ROOT}
+    EphemeralVolume:
+      MountDir: /head_root
+  CustomActions:
+    OnNodeStart:
+      Script: ${REGSUB_S3_BUCKET_INIT}/install_slurm_job_submit_policy.sh
+      Args:
+      - ${REGSUB_REGION}
+      - ${REGSUB_S3_BUCKET_INIT}
+    OnNodeConfigured:
+      Script: ${REGSUB_S3_BUCKET_INIT}/post_install_rhel8_dragen.sh
+      Args:
+      - ${REGSUB_REGION}
+      - ${REGSUB_S3_BUCKET_INIT}
+      - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+      - fsx
+  Iam:
+    S3Access:
+    - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+      EnableWriteAccess: false
+    - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+      EnableWriteAccess: false
+    - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+      EnableWriteAccess: false
+    - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+      EnableWriteAccess: true
+    AdditionalIamPolicies:
+    - Policy: ${REGSUB_S3_IAM_POLICY}
+    - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+Scheduling:
+  Scheduler: slurm
+  SlurmSettings:
+    EnableMemoryBasedScheduling: false
+    CustomSlurmSettings:
+    - JobSubmitPlugins: lua
+    - AccountingStoreFlags: job_comment
+    - PrologFlags: Alloc
+    ScaledownIdletime: 5
+    Dns:
+      DisableManagedDns: false
+    QueueUpdateStrategy: DRAIN
+    # ${REGSUB_SLURM_ACCOUNTING_DATABASE}
+  SlurmQueues:
+  - Name: dragen
+    JobExclusiveAllocation: false
+    CapacityType: SPOT
+    AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    Image:
+      CustomAmi: ami-044bef021cb86a54c
+    ComputeResources:
+    - Name: f26xlarge
+      Instances:
+      - InstanceType: f2.6xlarge
+      MinCount: 0
+      MaxCount: 2
+      DynamicNodePriority: 100
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_rhel8_dragen.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+        - fsx
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: dragen-ondemand
+    JobExclusiveAllocation: false
+    CapacityType: ONDEMAND
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    Image:
+      CustomAmi: ami-044bef021cb86a54c
+    ComputeResources:
+    - Name: f26xlargeod
+      Instances:
+      - InstanceType: f2.6xlarge
+      MinCount: 0
+      MaxCount: 1
+      DynamicNodePriority: 100
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_rhel8_dragen.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+        - fsx
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+Monitoring:
+  DetailedMonitoring: ${REGSUB_DETAILED_MONITORING}
+  Logs:
+    CloudWatch:
+      Enabled: true
+      RetentionInDays: 3
+SharedStorage:
+- MountDir: /fsx
+  Name: fsx-${REGSUB_CLUSTER_NAME}
+  StorageType: FsxLustre
+  FsxLustreSettings:
+    StorageCapacity: ${REGSUB_FSX_SIZE}
+    DeploymentType: SCRATCH_2
+    DeletionPolicy: ${REGSUB_SAVE_FSX}
+    DataRepositoryAssociations:
+    - Name: reference-data
+      FileSystemPath: /references/
+      DataRepositoryPath: ${REGSUB_S3_REFERENCE_URI}/
+      BatchImportMetaDataOnCreate: true
+      AutoImportPolicy:
+      - NEW
+      - CHANGED
+      - DELETED
+Tags:
+- Key: aws-parallelcluster-username
+  Value: "${REGSUB_USERNAME}"
+- Key: aws-parallelcluster-jobid
+  Value: "${REGSUB_AWS_ACCOUNT_ID}"
+- Key: aws-parallelcluster-project
+  Value: "${REGSUB_PROJECT}"
+- Key: aws-parallelcluster-clustername
+  Value: "${REGSUB_CLUSTER_NAME}"
+- Key: aws-parallelcluster-enforce-budget
+  Value: ${REGSUB_ENFORCE_BUDGET}
+- Key: aws-parallelcluster-cost-center-region
+  Value: "${REGSUB_COST_CENTER_REGION}"
+- Key: aws-parallelcluster-cost-center-table
+  Value: "${REGSUB_COST_CENTER_TABLE}"
+- Key: aws-parallelcluster-cost-center-usage-table
+  Value: "${REGSUB_COST_CENTER_USAGE_TABLE}"
+- Key: aws-parallelcluster-daylily-git-deets
+  Value: "${REGSUB_DAYLILY_GIT_DEETS}"
+- Key: aws-parallelcluster-monitor-bucket
+  Value: "${REGSUB_S3_BUCKET_INIT}"
+DevSettings:
+  Timeouts:
+    HeadNodeBootstrapTimeout: 3600
+    ComputeNodeBootstrapTimeout: 3600

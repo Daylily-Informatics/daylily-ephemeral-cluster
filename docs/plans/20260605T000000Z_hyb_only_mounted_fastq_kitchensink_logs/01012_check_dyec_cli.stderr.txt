@@ -1,0 +1,4 @@
+Usage: dyec [OPTIONS] COMMAND [ARGS]...
+Try 'dyec --help' for help.
+
+Error: No such option '--version'. Did you mean '--json'?

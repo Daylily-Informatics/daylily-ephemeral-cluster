@@ -18,9 +18,12 @@ pcluster version
 session-manager-plugin
 ```
 
+The active ParallelCluster target is exactly `aws-parallelcluster==3.15.0`; `pcluster version` should report `3.15.0`.
+
 If the active editable install is stale, refresh it:
 
 ```bash
+python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
@@ -56,7 +59,7 @@ The source and packaged catalogs must match:
 cmp -s config/daylily_pipeline_command_catalog.yaml daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml
 ```
 
-The current DayOA pin should be `2.0.44` everywhere in the catalog:
+The current DayOA pin should be `10.0.69` everywhere in the catalog:
 
 ```bash
 rg -n "2\\.0\\.29|0\\.7\\.758|\\b1\\.0\\.[0-9]\\b" \

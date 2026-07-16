@@ -1,0 +1,30 @@
+Wed Jul  8 01:23:22 UTC 2026
+command_id=ont_run_qc
+session=ccv_live_ont_run_qc_20260707T170900Z
+source_path=/fsx/analysis_results/ubuntu/ccv_live_ont_run_qc_20260707T170900Z
+destination_s3_uri=s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.64/20260707T144453Z/ubuntu/ccv_live_ont_run_qc_20260707T170900Z/
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+2026-07-07 18:23:22,911 INFO Found credentials in shared credentials file: ~/.aws/credentials
+  · Attached export DRA dra-0005aa5a24aafae2a at 
+/fsx/analysis_results/ubuntu/ccv_live_ont_run_qc_20260707T170900Z/
+2026-07-07 18:26:47,554 INFO Task task-060de93bc1ea62066 status: PENDING
+2026-07-07 18:27:17,931 INFO Task task-060de93bc1ea62066 status: EXECUTING
+2026-07-07 18:27:48,381 INFO Task task-060de93bc1ea62066 status: SUCCEEDED
+2026-07-07 18:28:19,603 INFO Wrote export status to /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260707T144453Z_success_exports/ont_run_qc/fsx_export.yaml
+
+╭────────────────────────────── Export complete ───────────────────────────────╮
+│                                                                              │
+│  Cluster: cmdcat-103-all-20260707                                            │
+│  FSx: fs-0e89a93ffac2f0d93                                                   │
+│  Source: /analysis_results/ubuntu/ccv_live_ont_run_qc_20260707T170900Z/      │
+│  S3:                                                                         │
+│  s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-  │
+│  10.0.64/20260707T144453Z/ubuntu/ccv_live_ont_run_qc_20260707T170900Z/       │
+│  Status file:                                                                │
+│  /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260707T  │
+│  144453Z_success_exports/ont_run_qc/fsx_export.yaml                          │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Wed Jul  8 01:28:19 UTC 2026

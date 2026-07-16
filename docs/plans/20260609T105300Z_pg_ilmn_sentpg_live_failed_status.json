@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_sentpg_snv_vcf -p -j 150 -k -T 0 --rerun-triggers mtime --default-resources time=100",
+  "completed_at": "2026-06-09T10:55:32Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/pg_ilmn_sentpg_live_20260609T105300Z/daylily-omics-analysis",
+  "session_name": "pg_ilmn_sentpg_live_20260609T105300Z",
+  "started_at": "2026-06-09T10:53:42Z"
+}

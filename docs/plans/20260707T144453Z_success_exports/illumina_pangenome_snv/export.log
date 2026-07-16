@@ -1,0 +1,32 @@
+Wed Jul  8 00:25:32 UTC 2026
+command_id=illumina_pangenome_snv
+session=ccv_live_illumina_pangenome_snv_20260707T190607Z
+source_path=/fsx/analysis_results/ubuntu/ccv_live_illumina_pangenome_snv_20260707T190607Z
+destination_s3_uri=s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-10.0.64/20260707T144453Z/ubuntu/ccv_live_illumina_pangenome_snv_20260707T190607Z/
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+2026-07-07 17:25:32,820 INFO Found credentials in shared credentials file: ~/.aws/credentials
+  · Attached export DRA dra-08c68018c96743751 at 
+/fsx/analysis_results/ubuntu/ccv_live_illumina_pangenome_snv_20260707T190607Z/
+2026-07-07 17:28:25,760 INFO Task task-000e1ee9a6142562d status: PENDING
+2026-07-07 17:28:56,160 INFO Task task-000e1ee9a6142562d status: EXECUTING
+2026-07-07 17:29:26,458 INFO Task task-000e1ee9a6142562d status: SUCCEEDED
+2026-07-07 17:29:58,049 INFO Wrote export status to /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260707T144453Z_success_exports/illumina_pangenome_snv/fsx_export.yaml
+
+╭────────────────────────────── Export complete ───────────────────────────────╮
+│                                                                              │
+│  Cluster: cmdcat-103-all-20260707                                            │
+│  FSx: fs-0e89a93ffac2f0d93                                                   │
+│  Source:                                                                     │
+│  /analysis_results/ubuntu/ccv_live_illumina_pangenome_snv_20260707T190607Z/  │
+│  S3:                                                                         │
+│  s3://lsmc-ssf-sequencing-data/derived/command-catalog/dyec-10.0.103/dayoa-  │
+│  10.0.64/20260707T144453Z/ubuntu/ccv_live_illumina_pangenome_snv_20260707T1  │
+│  90607Z/                                                                     │
+│  Status file:                                                                │
+│  /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260707T  │
+│  144453Z_success_exports/illumina_pangenome_snv/fsx_export.yaml              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Wed Jul  8 00:29:58 UTC 2026

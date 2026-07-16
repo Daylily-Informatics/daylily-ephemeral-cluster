@@ -1,0 +1,5 @@
+Mount verified: ont-4coriells-chip4
+Purpose: run
+Association ID: dra-04eed3eb137920869
+Headnode path: /fsx/run_dir_mounts/ont-4coriells-chip4/
+Lifecycle: AVAILABLE

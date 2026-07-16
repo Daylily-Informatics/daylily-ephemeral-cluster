@@ -1,0 +1,4 @@
+Precheck passed: rows checked=1, samples checked=1, source objects checked=22, concordance directories checked=1.
+Generated configuration files:
+  samples.tsv -> docs/plans/20260707T165057Z_dyec_tests_command_catalog_sample_noautoexport_logs/hybrid_ilmn_ont_snv/config/20260707T165315Z_74f96c9a_samples.tsv
+  units.tsv   -> docs/plans/20260707T165057Z_dyec_tests_command_catalog_sample_noautoexport_logs/hybrid_ilmn_ont_snv/config/20260707T165315Z_74f96c9a_units.tsv

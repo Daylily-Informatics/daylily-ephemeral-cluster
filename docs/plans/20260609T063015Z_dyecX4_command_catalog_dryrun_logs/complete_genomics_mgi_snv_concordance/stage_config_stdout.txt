@@ -1,0 +1,4 @@
+Precheck passed: rows checked=1, samples checked=1, source objects checked=20, concordance directories checked=1.
+Generated configuration files:
+  samples.tsv -> docs/plans/20260609T063015Z_dyecX4_command_catalog_dryrun_logs/complete_genomics_mgi_snv_concordance/config/20260609T073807Z_2b46d76c_samples.tsv
+  units.tsv   -> docs/plans/20260609T063015Z_dyecX4_command_catalog_dryrun_logs/complete_genomics_mgi_snv_concordance/config/20260609T073807Z_2b46d76c_units.tsv

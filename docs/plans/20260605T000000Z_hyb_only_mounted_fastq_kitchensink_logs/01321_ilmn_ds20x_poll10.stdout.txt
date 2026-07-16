@@ -1,0 +1,91 @@
+DAY-EC activated.
+DAY-EC activated.
+SESSION_STATUS
+present
+MARKERS
+DONE=missing
+FAILED=missing
+OUTPUTS
+TMP_OUTPUTS
+NA00232.R1.530789.fastq.gz	5648026272
+NA00232.R2.530789.fastq.gz	5832727203
+NA03986.R1.530789.fastq.gz	6062391730
+NA03986.R2.530789.fastq.gz	6396561181
+NA05164.R1.530789.fastq.gz	7046972728
+NA05164.R2.530789.fastq.gz	7394633688
+NA09677.R1.530789.fastq.gz	6112954656
+NA09677.R2.530789.fastq.gz	6380432664
+LOG_TAILS
+--- NA00232.downsample.log
+NA00232	processed=186000000	kept=86513196
+NA00232	processed=187000000	kept=86977770
+NA00232	processed=188000000	kept=87441806
+NA00232	processed=189000000	kept=87906617
+NA00232	processed=190000000	kept=88372136
+NA00232	processed=191000000	kept=88837845
+NA00232	processed=192000000	kept=89302926
+NA00232	processed=193000000	kept=89767590
+NA00232	processed=194000000	kept=90233395
+NA00232	processed=195000000	kept=90698624
+NA00232	processed=196000000	kept=91164098
+NA00232	processed=197000000	kept=91628931
+--- NA03986.downsample.log
+NA03986	processed=164000000	kept=93211669
+NA03986	processed=165000000	kept=93780374
+NA03986	processed=166000000	kept=94348871
+NA03986	processed=167000000	kept=94917320
+NA03986	processed=168000000	kept=95485307
+NA03986	processed=169000000	kept=96053552
+NA03986	processed=170000000	kept=96621874
+NA03986	processed=171000000	kept=97190245
+NA03986	processed=172000000	kept=97758445
+NA03986	processed=173000000	kept=98326645
+NA03986	processed=174000000	kept=98896405
+NA03986	processed=175000000	kept=99465085
+--- NA05164.downsample.log
+NA05164	processed=180000000	kept=109391588
+NA05164	processed=181000000	kept=109999217
+NA05164	processed=182000000	kept=110607338
+NA05164	processed=183000000	kept=111215030
+NA05164	processed=184000000	kept=111822479
+NA05164	processed=185000000	kept=112431032
+NA05164	processed=186000000	kept=113038093
+NA05164	processed=187000000	kept=113645566
+NA05164	processed=188000000	kept=114252420
+NA05164	processed=189000000	kept=114859251
+NA05164	processed=190000000	kept=115467045
+NA05164	processed=191000000	kept=116074604
+--- NA09677.downsample.log
+NA09677	processed=187000000	kept=94075185
+NA09677	processed=188000000	kept=94577563
+NA09677	processed=189000000	kept=95080141
+NA09677	processed=190000000	kept=95582846
+NA09677	processed=191000000	kept=96086356
+NA09677	processed=192000000	kept=96589660
+NA09677	processed=193000000	kept=97092866
+NA09677	processed=194000000	kept=97596377
+NA09677	processed=195000000	kept=98099283
+NA09677	processed=196000000	kept=98602589
+NA09677	processed=197000000	kept=99105493
+NA09677	processed=198000000	kept=99608594
+PROCS
+ubuntu    530789   53952  0 11:05 pts/15   00:00:00 bash /fsx/analysis_results/4_nas_ds_to_20x/scripts/run_downsample_20x.sh
+ubuntu    530797  530789  0 11:05 pts/15   00:00:00 bash /fsx/analysis_results/4_nas_ds_to_20x/scripts/run_downsample_20x.sh
+ubuntu    530799  530789  0 11:05 pts/15   00:00:00 bash /fsx/analysis_results/4_nas_ds_to_20x/scripts/run_downsample_20x.sh
+ubuntu    530801  530789  0 11:05 pts/15   00:00:00 bash /fsx/analysis_results/4_nas_ds_to_20x/scripts/run_downsample_20x.sh
+ubuntu    530802  530797 99 11:05 pts/15   00:21:31 python3 /fsx/analysis_results/4_nas_ds_to_20x/scripts/paired_downsample_fastq.py --sample NA00232 --r1 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R1_001.fastq.gz --r2 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R2_001.fastq.gz --out-r1 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA00232.R1.530789.fastq.gz --out-r2 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA00232.R2.530789.fastq.gz --fraction 0.4651162791 --seed 2302 --pigz-threads 4
+ubuntu    530804  530789  0 11:05 pts/15   00:00:00 bash /fsx/analysis_results/4_nas_ds_to_20x/scripts/run_downsample_20x.sh
+ubuntu    530806  530799 99 11:05 pts/15   00:21:31 python3 /fsx/analysis_results/4_nas_ds_to_20x/scripts/paired_downsample_fastq.py --sample NA09677 --r1 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R1_001.fastq.gz --r2 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R2_001.fastq.gz --out-r1 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA09677.R1.530789.fastq.gz --out-r2 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA09677.R2.530789.fastq.gz --fraction 0.5031446541 --seed 9677 --pigz-threads 4
+ubuntu    530807  530801 99 11:05 pts/15   00:21:31 python3 /fsx/analysis_results/4_nas_ds_to_20x/scripts/paired_downsample_fastq.py --sample NA03986 --r1 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA03986-DMPK_S48_R1_001.fastq.gz --r2 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA03986-DMPK_S48_R2_001.fastq.gz --out-r1 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA03986.R1.530789.fastq.gz --out-r2 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA03986.R2.530789.fastq.gz --fraction 0.5683432793 --seed 3986 --pigz-threads 4
+ubuntu    530809  530804 99 11:05 pts/15   00:21:31 python3 /fsx/analysis_results/4_nas_ds_to_20x/scripts/paired_downsample_fastq.py --sample NA05164 --r1 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA05164-DMPK_S49_R1_001.fastq.gz --r2 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA05164-DMPK_S49_R2_001.fastq.gz --out-r1 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA05164.R1.530789.fastq.gz --out-r2 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA05164.R2.530789.fastq.gz --fraction 0.6077195381 --seed 5164 --pigz-threads 4
+ubuntu    530810  530802 99 11:05 pts/15   00:32:10 pigz -p 4 -c
+ubuntu    530811  530802 99 11:05 pts/15   00:33:16 pigz -p 4 -c
+ubuntu    530812  530806 99 11:05 pts/15   00:34:45 pigz -p 4 -c
+ubuntu    530813  530806 99 11:05 pts/15   00:36:22 pigz -p 4 -c
+ubuntu    530817  530807 99 11:05 pts/15   00:34:25 pigz -p 4 -c
+ubuntu    530819  530807 99 11:05 pts/15   00:36:26 pigz -p 4 -c
+ubuntu    530820  530809 99 11:05 pts/15   00:39:52 pigz -p 4 -c
+ubuntu    530822  530809 99 11:05 pts/15   00:42:02 pigz -p 4 -c
+DF
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  1.4T  7.4T  16% /fsx

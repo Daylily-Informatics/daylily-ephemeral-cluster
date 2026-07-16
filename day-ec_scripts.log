@@ -84,7 +84,7 @@ ensure_dayec || exit 1
 ## Key Dependencies Provided by DAY-EC
 - Python 3.11
 - Bash 5.2.37
-- aws-parallelcluster==3.13.2
+- aws-parallelcluster==3.15.0
 - awscli==2.22.4
 - boto3 (via aws-parallelcluster)
 - tabulate, colr, rich
@@ -103,4 +103,3 @@ Create DAY-EC if it doesn't exist:
 ```bash
 ./bin/init_dayec
 ```
-

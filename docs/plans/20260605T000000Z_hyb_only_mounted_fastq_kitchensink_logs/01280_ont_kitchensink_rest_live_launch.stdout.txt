@@ -1,0 +1,3 @@
+DAY-EC activated.
+DAY-EC activated.
+{"dy_command": "dy-r produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k --rerun-triggers mtime", "genome": "hg38_broad", "repo_path": "/fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis", "session": "hybonly_ont_kitchensink_rest_20260606T102845Z", "tmux_log": "/home/ubuntu/daylily-runs/hybonly_ont_kitchensink_rest_20260606T102845Z/tmux.log"}

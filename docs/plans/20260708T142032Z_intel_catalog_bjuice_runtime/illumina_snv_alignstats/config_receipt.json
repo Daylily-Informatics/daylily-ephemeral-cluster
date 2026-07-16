@@ -1,0 +1,7 @@
+{
+  "analysis_id": "ccv_live_illumina_snv_alignstats_20260708T142032Z",
+  "command_id": "illumina_snv_alignstats",
+  "manifest": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/illumina_snv_alignstats/analysis_samples.tsv",
+  "samples": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/illumina_snv_alignstats/config/20260708T144330Z_dba52907_samples.tsv",
+  "units": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260708T142032Z_intel_catalog_bjuice_runtime/illumina_snv_alignstats/config/20260708T144330Z_dba52907_units.tsv"
+}

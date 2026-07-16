@@ -1,0 +1,6 @@
+Submitted job 5 with external jobid '15'.
+rule sentieon_bwa_sort:
+        ulimit -n 65536 || echo "ulimit mod failed" > results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ/align/sent/logs/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
+Submitted job 20 with external jobid '16'.
+rule sentieon_bwa_sort:
+        ulimit -n 65536 || echo "ulimit mod failed" > results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ/align/sent/logs/20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;

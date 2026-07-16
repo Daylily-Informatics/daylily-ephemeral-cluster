@@ -1,0 +1,22 @@
+{
+    "CommandId": "7587b4f6-9207-4820-bdfe-7d177e3bd32c",
+    "InstanceId": "i-06e429d2a68a0b1ec",
+    "Comment": "i192hugenvme capacity state",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 0,
+    "ExecutionStartDateTime": "2026-07-07T20:17:10.648Z",
+    "ExecutionElapsedTime": "PT5.502S",
+    "ExecutionEndDateTime": "2026-07-07T20:17:15.648Z",
+    "Status": "Success",
+    "StatusDetails": "Success",
+    "StandardOutputContent": "DAY-EC activated.\nDAY-EC activated.\nSINFO_I192HUGENVME\nPARTITION NODELIST STATE REASON\ni192hugenvme i192hugenvme-dy-price192hugenvme-1 down# (Code:InsufficientInstanceCapacity)Failure when resuming nodes - Check the slurm_resume log for EC2 error codes\nDOWN_REASONS\nREASON               USER      TIMESTAMP           NODELIST\n(Code:InsufficientIn root      2026-07-07T20:12:58 i192nvme-dy-price192nvme-1\n(Code:InsufficientIn root      2026-07-07T20:13:49 i192nvme-dy-price192nvme-2\n(Code:InsufficientIn root      2026-07-07T20:06:46 i192hugenvme-dy-price192hugenvme-1\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}

@@ -1,0 +1,244 @@
+DAY-EC activated.
+DAY-EC activated.
+session=hybonly_ont_kitchensink_rest_20260606T102845Z
+tmux=present
+0: bash* (1 panes) [80x24] [layout 5965,80x24,0,0,16] @16 (active)
+0: [80x24] [history 1599/2000, 562193 bytes] %16 (active)
+capture_tail:
+        fi
+
+        # --- bin/dayoa_sentieon_cli dnascope-longread (ONT) ---
+        # The CLI runs the full two-pass phased pipeline internally.
+        # Outputs: <basename>.vcf.gz (SNV/indel) and <basename>.sv.vcf.gz (SV)
+        cli_out="$TMPDIR/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-P
+F-ONT-PROMETHION.sentmm2ont.sentdont";
+
+        echo "bin/dayoa_sentieon_cli dnascope-longread starting: model=/fsx/refe
+rences/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeON
+T2.2.bundle/DNAscopeONT2.2.bundle tech=ONT" >> results/day/hg38_broad/ONT-4Corie
+lls-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/n
+a/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-
+PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+        echo "bin/dayoa_sentieon_cli dnascope-longread retain_tmpdir enabled; TM
+PDIR=$TMPDIR" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-ba
+rcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriel
+ls-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentd
+ont.snv.log 2>&1;
+        set +e;
+        bin/dayoa_sentieon_cli dnascope-longread             -r /fsx/references/
+genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fa
+sta             -i results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-
+barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/ONT-4Coriells-chip1-NA0967
+7-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.cram             -m
+"/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/
+DNAscopeONT2.2.bundle/DNAscopeONT2.2.bundle"             -d "/fsx/references/gen
+omic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz"
+        -t 191             --tech ONT             --retain_tmpdir              -
+b /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/hg38_dip
+loid_male.bed   --haploid_bed /fsx/references/genomic_data/organism_references/H
+_sapiens/hg38_broad/hg38_haploid_male.bed              "${cli_out}.vcf.gz" >> re
+sults/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ON
+T-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SM
+N-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+
+        cli_rc=$?;
+        set -e;
+        echo "sentieon-cli exit code: $cli_rc" >> results/day/hg38_broad/ONT-4Co
+riells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2on
+t/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-O
+NT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+        if [ $cli_rc -ne 0 ]; then
+            echo "ERROR: bin/dayoa_sentieon_cli dnascope-longread failed with ex
+it code $cli_rc" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1
+-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Cor
+iells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.se
+ntdont.snv.log 2>&1;
+            exit $cli_rc;
+        fi
+
+        # --- Reheader SNV VCF: rename sample to cluster_sample ---
+        if [ -f "${cli_out}.vcf.gz" ]; then
+            oldname=$(bcftools query -l "${cli_out}.vcf.gz" | head -n1);
+            echo -e "${oldname} ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-
+chip1-PF-ONT-PROMETHION" > "$TMPDIR/rename.txt";
+            bcftools reheader -s "$TMPDIR/rename.txt" -o results/day/hg38_broad/
+ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/se
+ntmm2ont/na/snv/sentdont/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-P
+F-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.sort.vcf.gz "${cli_out}.vcf.gz" >> r
+esults/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-O
+NT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-S
+MN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+            bcftools index -f -t --threads 191 -o results/day/hg38_broad/ONT-4Co
+riells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2on
+t/na/snv/sentdont/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-P
+ROMETHION.sentmm2ont.na.sentdont.snv.sort.vcf.gz.tbi results/day/hg38_broad/ONT-
+4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm
+2ont/na/snv/sentdont/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ON
+T-PROMETHION.sentmm2ont.na.sentdont.snv.sort.vcf.gz >> results/day/hg38_broad/ON
+T-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sent
+mm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1
+-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+        else
+            echo "ERROR: SNV VCF not produced by sentieon-cli" >> results/day/hg
+38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION
+/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barc
+ode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+            exit 20;
+        fi
+
+        # --- Reheader SV VCF ---
+        if [ -f "${cli_out}.sv.vcf.gz" ]; then
+            bcftools reheader -s "$TMPDIR/rename.txt" -o results/day/hg38_broad/
+ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/se
+ntmm2ont/na/snv/sentdont/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-P
+F-ONT-PROMETHION.sentmm2ont.na.sentdont.sv.vcf.gz "${cli_out}.sv.vcf.gz" >> resu
+lts/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-
+PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-
+chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+            bcftools index -f -t --threads 191 -o results/day/hg38_broad/ONT-4Co
+riells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2on
+t/na/snv/sentdont/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-P
+ROMETHION.sentmm2ont.na.sentdont.sv.vcf.gz.tbi results/day/hg38_broad/ONT-4Corie
+lls-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/n
+a/snv/sentdont/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROM
+ETHION.sentmm2ont.na.sentdont.sv.vcf.gz >> results/day/hg38_broad/ONT-4Coriells-
+chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/sn
+v/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROM
+ETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+        else
+            echo "WARNING: SV VCF not produced; creating empty placeholder" >> r
+esults/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-O
+NT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-S
+MN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+            touch results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-b
+arcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-
+chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont
+.sv.vcf.gz results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode1
+9-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-chip1-N
+A09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.sv.vcf
+.gz.tbi;
+        fi
+
+        end_time=$(date +%s);
+        elapsed_time=$((($end_time - $start_time) / 60));
+        echo "Elapsed-Time-min: $itype  $elapsed_time" >> results/day/hg38_broad
+/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/s
+entmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-ch
+ip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+
+
+Submitted job 164 with external jobid '896'.
+
+tmux_log=/home/ubuntu/daylily-runs/hybonly_ont_kitchensink_rest_20260606T102845Z/tmux.log
+tmux_log_tail:
+        echo "sentieon-cli exit code: $cli_rc" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+        if [ $cli_rc -ne 0 ]; then
+            echo "ERROR: bin/dayoa_sentieon_cli dnascope-longread failed with exit code $cli_rc" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+            exit $cli_rc;
+        fi
+
+        # --- Reheader SNV VCF: rename sample to cluster_sample ---
+        if [ -f "${cli_out}.vcf.gz" ]; then
+            oldname=$(bcftools query -l "${cli_out}.vcf.gz" | head -n1);
+            echo -e "${oldname}	ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION" > "$TMPDIR/rename.txt";
+            bcftools reheader -s "$TMPDIR/rename.txt" -o results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.sort.vcf.gz "${cli_out}.vcf.gz" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+            bcftools index -f -t --threads 191 -o results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.sort.vcf.gz.tbi results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.sort.vcf.gz >> results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+        else
+            echo "ERROR: SNV VCF not produced by sentieon-cli" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+            exit 20;
+        fi
+
+        # --- Reheader SV VCF ---
+        if [ -f "${cli_out}.sv.vcf.gz" ]; then
+            bcftools reheader -s "$TMPDIR/rename.txt" -o results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.sv.vcf.gz "${cli_out}.sv.vcf.gz" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+            bcftools index -f -t --threads 191 -o results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.sv.vcf.gz.tbi results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.sv.vcf.gz >> results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+        else
+            echo "WARNING: SV VCF not produced; creating empty placeholder" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+            touch results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.sv.vcf.gz results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.sv.vcf.gz.tbi;
+        fi
+
+        end_time=$(date +%s);
+        elapsed_time=$((($end_time - $start_time) / 60));
+        echo "Elapsed-Time-min:	$itype	$elapsed_time" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+
+        [0m
+[33mSubmitted job 172 with external jobid '895'.[0m
+[32m[0m
+[32m[Sat Jun  6 10:29:17 2026][0m
+[32mrule sent_snv_ont:
+    input: results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.cram, results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.cram.crai
+    output: results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.sort.vcf.gz, results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.sort.vcf.gz.tbi, results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.sv.vcf.gz, results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.sv.vcf.gz.tbi
+    log: results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log
+    jobid: 164
+    benchmark: results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/benchmarks/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.sort.vcf.gz, results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.sort.vcf.gz.tbi
+    wildcards: sample=ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION, alnr=sentmm2ont, ddup=na
+    priority: 45
+    threads: 191
+    resources: mem_mb=300000, mem_mib=286103, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=191, time=5440, partition=i192mem,i192bigmem, vcpu=191, distribution=block, exclusive=, constraint=, exclude=, include=, attempt_n=1[0m
+[32m[0m
+[33m
+        export PATH=$PATH:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/
+        timestamp=$(date +%Y%m%d%H%M%S)_$$;
+
+        export TMPDIR=/dev/shm/sentdont_tmp_$timestamp;
+        export SENTIEON_TMPDIR=$TMPDIR;
+        mkdir -p $TMPDIR;
+        export APPTAINER_HOME=$TMPDIR;
+        trap 'status=$?; keep_tmp="False"; if [ "$keep_tmp" = "True" ] || [ "$keep_tmp" = "true" ] || [ "$keep_tmp" = "1" ]; then echo "Retaining sentdont TMPDIR because sentdont.keep_tmp_dirs=true: $TMPDIR" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1; df -h /dev/shm >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1 || true; else rm -rf "$TMPDIR" 2>/dev/null || true; fi; trap - EXIT; exit "$status"' EXIT;
+
+        if [ -z "$SENTIEON_LICENSE" ]; then
+            echo "SENTIEON_LICENSE not set." >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+            exit 3;
+        fi
+
+        if [ ! -f "$SENTIEON_LICENSE" ]; then
+            echo "SENTIEON_LICENSE file not found: '$SENTIEON_LICENSE'" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+            exit 4;
+        fi
+
+        TOKEN=$(curl -s -X PUT 'http://169.254.169.254/latest/api/token' -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600');
+        itype=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-type);
+        echo "INSTANCE TYPE: $itype" > results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log;
+        start_time=$(date +%s);
+
+        ulimit -n 65536 || echo "ulimit mod failed" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+
+        # Find jemalloc in the active conda environment
+        jemalloc_path="";
+        for _dir in "$CONDA_PREFIX/lib" "$CONDA_PREFIX/lib64" "$CONDA_PREFIX/lib/x86_64-linux-gnu"; do
+            if [[ -d "$_dir" ]]; then
+                for _ext in so dylib; do
+                    _candidate=$(find "$_dir" -maxdepth 1 -name "libjemalloc*.$_ext*" 2>/dev/null | head -n 1);
+                    if [[ -n "$_candidate" && -r "$_candidate" ]]; then
+                        jemalloc_path="$_candidate";
+                        break 2;
+                    fi
+                done
+            fi
+        done
+
+        if [[ -n "$jemalloc_path" ]]; then
+            export LD_PRELOAD="$jemalloc_path";
+            export MALLOC_CONF=background_thread:true,metadata_thp:auto,dirty_decay_ms:5000,muzzy_decay_ms:5000;
+            echo "LD_PRELOAD set to: $LD_PRELOAD" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log;
+            echo "MALLOC_CONF set to: $MALLOC_CONF" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log;
+        else
+            echo "WARNING: libjemalloc not found in CONDA_PREFIX=$CONDA_PREFIX" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log;
+        fi
+
+        # --- bin/dayoa_sentieon_cli dnascope-longread (ONT) ---
+        # The CLI runs the full two-pass phased pipeline internally.
+        # Outputs: <basename>.vcf.gz (SNV/indel) and <basename>.sv.vcf.gz (SV)
+        cli_out="$TMPDIR/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.sentdont";
+
+        echo "bin/dayoa_sentieon_cli dnascope-longread starting: model=/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.2.bundle/DNAscopeONT2.2.bundle tech=ONT" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+        echo "bin/dayoa_sentieon_cli dnascope-longread retain_tmpdir enabled; TMPDIR=$TMPDIR" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+        set +e;
+        bin/dayoa_sentieon_cli dnascope-longread             -r /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta             -i results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.cram             -m "/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.2.bundle/DNAscopeONT2.2.bundle"             -d "/fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz"             -t 191             --tech ONT             --retain_tmpdir              -b /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/hg38_diploid_male.bed   --haploid_bed /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/hg38_haploid_male.bed              "${cli_out}.vcf.gz" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+
+        cli_rc=$?;
+        set -e;
+        echo "sentieon-cli exit code: $cli_rc" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION.sentmm2ont.na.sentdont.snv.log 2>&1;
+        if [ $cli_rc -ne 0 ]; then
+            echo "ERROR: bin/dayoa_sentieon_cli dnascope-longread failed with exit code $cli_rc" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ONT-PROMETHION/align/sentmm2ont/na/snv/sentdont/log/ONT-4Coriells-chip1-NA09677-SMN-chip1-barco--output truncated--

@@ -1,0 +1,22 @@
+{
+    "CommandId": "908d7664-8076-4076-b031-12766bf5763c",
+    "InstanceId": "i-06e429d2a68a0b1ec",
+    "Comment": "dyec103-capture-warmup-pane",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 0,
+    "ExecutionStartDateTime": "2026-07-07T16:20:41.142Z",
+    "ExecutionElapsedTime": "PT5.327S",
+    "ExecutionEndDateTime": "2026-07-07T16:20:46.142Z",
+    "Status": "Success",
+    "StatusDetails": "Success",
+    "StandardOutputContent": "DAY-EC activated.\nDAY-EC activated.\nDAY-EC activated.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}

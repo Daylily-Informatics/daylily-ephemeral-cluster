@@ -21,6 +21,7 @@ Expected:
 - `dyec` and `daylily-ec` resolve to the same CLI
 - runtime backend is `day-ec-conda`
 - `aws`, `pcluster`, and `session-manager-plugin` are available
+- `pcluster version` reports `3.15.0`
 - missing dependencies fail clearly instead of being guessed
 
 ## 2. Set Variables
@@ -40,7 +41,8 @@ export ANALYSIS_ID=<analysis-id>
 export ANALYSIS_SAMPLES=./analysis_samples.tsv
 export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
 export EXPORT_DIR="$PWD/tmp-export/$ANALYSIS_ID"
-export EXPORT_S3_URI="$ANALYSIS_RESULTS_S3_URI/$EXECUTING_ENTITY/$ANALYSIS_ID/"
+export EXPORT_S3_ROOT="$ANALYSIS_RESULTS_S3_URI/"
+export EXPORT_S3_URI="$EXPORT_S3_ROOT$CLUSTER_NAME/$ANALYSIS_ID/"
 ```
 
 Sanity checks:
@@ -62,16 +64,30 @@ dyec preflight \
 
 Preflight checks identity, IAM, quotas, repository catalog validity, bucket access, network resources, and rendered cluster demand. Treat failures as contract gaps to fix explicitly.
 
+For a pcluster-only schema check, validate only a rendered cluster YAML:
+
+```bash
+pcluster validate-cluster-configuration --cluster-configuration <rendered-cluster.yaml> --region "$REGION"
+```
+
+Do not run `pcluster create-cluster`, `pcluster update-cluster`, or `pcluster delete-cluster` while only validating the pinned CLI upgrade.
+
 ## 4. Create
 
 ```bash
 dyec create \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
-  --config "$DAY_EX_CFG"
+  --config "$DAY_EX_CFG" \
+  --global-spot-max-cost 9.99 \
+  --spot-cost-limit-pct 1.7 \
+  --write-spot-pricing-warn-threshold 6.00
 ```
 
 Wait for the CLI to return successfully. The cluster is not DayEC-ready just because ParallelCluster reports that infrastructure exists.
+`dyec create` writes `config/<cluster>_spot_price_summary_<run_id>.json` and
+runtime compute nodes append high-price JSONL exceptions to
+`spot_price_warn_exception_messages.log` beside the normal spot logs.
 
 Sanity checks:
 
@@ -92,12 +108,15 @@ whoami
 pwd
 command -v day-clone
 day-clone --list
+day-clone --check-auth --repository daylily-omics-analysis --git-tag <dayoa_version>
 command -v tmux
 command -v squeue
 exit
 ```
 
-Expected user is `ubuntu` and the login shell starts in `/home/ubuntu`. `day-clone --list` must print the repository rows and clone syntax from the headnode catalog.
+Expected user is `ubuntu` and the login shell starts in `/home/ubuntu`. `day-clone --list` must print the repository rows and clone syntax from the headnode catalog. The authentication check must resolve the requested private DayOA ref before any analysis checkout is created.
+
+For any new DayOA analysis, resolve the intended DayOA release tag before launch and pass it explicitly. Manual launches use `day-clone -t <dayoa_version> -d <analysis_id>`; DYEC launches use `--git-tag <dayoa_version>`. Do not rely on default refs.
 
 ## 5. Sample-Manifest Analysis
 
@@ -115,16 +134,20 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --config-dir "$STAGE_CFG_DIR" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
-  --export-destination-s3-uri "$EXPORT_S3_URI" \
+  --export-destination-s3-uri "$EXPORT_S3_ROOT" \
   --export-trigger on-success \
   --dry-run
 ```
 
 Remove `--dry-run` only after the rendered command, staging paths, export destination, and cluster state are correct.
 
+For `dyec samples run` and `dyec workflow launch`, `--export-destination-s3-uri`
+can be a full destination or an export root. Export roots are expanded to
+`<root>/<cluster>/<analysis-id>/`.
+
 ## 6. Run-Folder Analysis
 
-Use this path when raw run directories should stay in S3 and be read through an ephemeral run DRA. Run mounts can legitimately spend many minutes in `CREATING`, especially for large run directories; use a timeout comfortably above 30 minutes when the CLI supports one.
+Use this path when raw run directories should stay in S3 and be read through an ephemeral run DRA. Run mounts can legitimately spend more than 40 minutes in `CREATING`, especially for large run directories; use a timeout comfortably above that window when the CLI supports one.
 
 ```bash
 dyec --json mounts create "s3://<sequencing-run-bucket>/<run-prefix>/" \
@@ -134,7 +157,7 @@ dyec --json mounts create "s3://<sequencing-run-bucket>/<run-prefix>/" \
   --platform ILMN \
   --read-only \
   --wait \
-  --timeout-seconds 3600
+  --timeout-seconds 5400
 
 dyec --json mounts verify \
   --profile "$AWS_PROFILE" \
@@ -151,7 +174,7 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --repository daylily-omics-analysis \
-  --git-tag 2.0.44 \
+  --git-tag 10.0.69 \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "$EXECUTING_ENTITY" \
@@ -208,9 +231,9 @@ Expected receipt values:
 - `detached: true`
 - `delete_data_in_file_system: false`
 - `source_path: /analysis_results/<executing_entity>/<analysis_id>/`
-- `destination_s3_uri` ending in `<executing_entity>/<analysis_id>/`
+- `destination_s3_uri` ending in `<cluster>/<analysis_id>/` for launch auto-export, or `<executing_entity>/<analysis_id>/` for explicit direct export
 - `fsx_root: /fsx/analysis_results/<executing_entity>/<analysis_id>/`
-- `s3_root: s3://.../<executing_entity>/<analysis_id>/`
+- `s3_root: s3://.../<cluster>/<analysis_id>/` for launch auto-export, or `s3://.../<executing_entity>/<analysis_id>/` for explicit direct export
 - `dayoa_analysis_root` under `fsx_root` when exporting DayOA
 - `dayoa_s3_root` under `s3_root` when exporting DayOA
 

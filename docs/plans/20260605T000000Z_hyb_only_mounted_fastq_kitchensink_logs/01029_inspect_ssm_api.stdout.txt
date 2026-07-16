@@ -1,0 +1,77 @@
+def run_shell(
+    instance_id: str,
+    region: str,
+    script: str,
+    *,
+    profile: Optional[str] = None,
+    as_user: Optional[str] = "ubuntu",
+    timeout: Optional[int] = 300,
+    poll_interval: int = 3,
+    comment: str = "Daylily remote command",
+) -> SsmCommandResult:
+    """Run *script* on an instance via SSM Run Command and return its result."""
+    _require_ubuntu_user(as_user)
+    session = _build_boto_session(profile=profile, region=region)
+    client = session.client("ssm")
+    payload = _encode_script_payload(
+        "\n".join([_ubuntu_payload_guard(), script]),
+        as_user=as_user,
+    )
+
+    try:
+        send_kwargs = {
+            "InstanceIds": [instance_id],
+            "DocumentName": "AWS-RunShellScript",
+            "Comment": comment,
+            "Parameters": {"commands": [payload]},
+        }
+        if timeout is not None:
+            send_kwargs["TimeoutSeconds"] = max(timeout, 30)
+
+        response = client.send_command(**send_kwargs)
+    except (BotoCoreError, ClientError) as exc:
+        raise SsmError(f"Unable to start SSM Run Command on '{instance_id}': {exc}") from exc
+
+    command_id = str(response["Command"]["CommandId"])
+    deadline = None if timeout is None else time.time() + timeout
+
+    while True:
+        try:
+            invocation = client.get_command_invocation(
+                CommandId=command_id,
+                InstanceId=instance_id,
+            )
+        except client.exceptions.InvocationDoesNotExist:
+            if deadline is not None and time.time() >= deadline:
+                raise TimeoutError(f"SSM command '{command_id}' did not start within {timeout}s.")
+            time.sleep(poll_interval)
+            continue
+        except (BotoCoreError, ClientError) as exc:
+            raise SsmError(f"Unable to fetch SSM command invocation '{command_id}': {exc}") from exc
+
+        status = str(invocation.get("Status") or "")
+        if status in PENDING_STATUSES:
+            if deadline is not None and time.time() >= deadline:
+                raise TimeoutError(
+                    f"SSM command '{command_id}' did not complete within {timeout}s."
+                )
+            time.sleep(poll_interval)
+            continue
+
+        result = SsmCommandResult(
+            command_id=command_id,
+            instance_id=instance_id,
+            status=status,
+            response_code=int(invocation.get("ResponseCode") or 0),
+            stdout=str(invocation.get("StandardOutputContent") or ""),
+            stderr=str(invocation.get("StandardErrorContent") or ""),
+        )
+        if status != SUCCESS_STATUS or result.response_code != 0:
+            raise SsmCommandFailedError(
+                f"SSM command '{command_id}' failed with status={status} rc={result.response_code}",
+                result,
+            )
+        return result
+
+
+def write_remote_text(

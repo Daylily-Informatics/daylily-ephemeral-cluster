@@ -1,0 +1,229 @@
+time_start,time_end,estimated,amount_usd,service,tag_aws_parallelcluster_username,tag_aws_parallelcluster_username_value
+2026-03-16,2026-04-01,False,0.0,AWS CloudFormation,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,0.3705480431,AWS Cost Explorer,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,0.0,AWS Glue,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,1.548387072,AWS Key Management Service,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,1.63e-07,AWS Lambda,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,0.0,AWS Lambda,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-03-16,2026-04-01,False,0.0,AWS Lambda,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-03-16,2026-04-01,False,3.0051807267,AWS Secrets Manager,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,98.2604380874,AWS Security Hub,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,0.0,AWS Service Catalog,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,1.62e-07,AWS Step Functions,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,10.866514104,AWS WAF,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,0.0,AWS X-Ray,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,3.50307e-05,Amazon CloudFront,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,0.0,Amazon Cognito,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,4.84732e-05,Amazon DynamoDB,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,0.0033334375,Amazon DynamoDB,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-03-16,2026-04-01,False,0.0033601875,Amazon DynamoDB,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-03-16,2026-04-01,False,0.1777561881,Amazon EC2 Container Registry (ECR),aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,343.0049436888,EC2 - Other,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,35.4972054802,EC2 - Other,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-03-16,2026-04-01,False,17.4605694589,EC2 - Other,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-03-16,2026-04-01,False,0.0,EC2 - Other,aws-parallelcluster-username$ubuntu,ubuntu
+2026-03-16,2026-04-01,False,267.9085820298,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,117.2039821408,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-03-16,2026-04-01,False,43.7842672557,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-03-16,2026-04-01,False,315.2587334208,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$ubuntu,ubuntu
+2026-03-16,2026-04-01,False,9.4912876413,Amazon Elastic Container Service,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,23.2480381051,Amazon Elastic Load Balancing,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,619.5662390782,Amazon FSx,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-03-16,2026-04-01,False,173.4500668343,Amazon FSx,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-03-16,2026-04-01,False,2.41e-07,Amazon Glacier,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,5.7538310848,Amazon GuardDuty,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,0.0,Amazon Inspector,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,205.8208699052,Amazon Relational Database Service,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,1.0882864,Amazon Route 53,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,1.0,Amazon Route 53,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Notification Service,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,0.0,Amazon Simple Queue Service,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,483.2036923466,Amazon Simple Storage Service,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,51.211279363,Amazon Virtual Private Cloud,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,1.04037639,Amazon Virtual Private Cloud,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-03-16,2026-04-01,False,1.09687639,Amazon Virtual Private Cloud,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-03-16,2026-04-01,False,1.1110101947,AmazonCloudWatch,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,0.0,AmazonCloudWatch,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-03-16,2026-04-01,False,0.0,AmazonCloudWatch,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-03-16,2026-04-01,False,0.0,CloudWatch Events,aws-parallelcluster-username$,
+2026-03-16,2026-04-01,False,0.0,Tax,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,0.0,AWS Certificate Manager,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,0.0,AWS CloudFormation,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,0.9391166236,AWS Cost Explorer,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,0.0,AWS Glue,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,3.000000024,AWS Key Management Service,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,1.3567e-06,AWS Lambda,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-04-01,2026-05-01,False,0.0,AWS Lambda,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-04-01,2026-05-01,False,4.4352410308,AWS Secrets Manager,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,91.6659815437,AWS Security Hub,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,0.0,AWS Service Catalog,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,1.8823e-06,AWS Step Functions,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,261.0595463814,AWS Support (Developer),aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,8.0212293499,AWS WAF,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,1.282e-07,Amazon CloudFront,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,0.14175,Amazon Cognito,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,0.0001662146,Amazon DynamoDB,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,0.0158054375,Amazon DynamoDB,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-04-01,2026-05-01,False,0.002868875,Amazon DynamoDB,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-04-01,2026-05-01,False,0.0068074375,Amazon DynamoDB,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-04-01,2026-05-01,False,0.4761489983,Amazon EC2 Container Registry (ECR),aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,496.9024657122,EC2 - Other,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,113.8855605927,EC2 - Other,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-04-01,2026-05-01,False,53.7486886556,EC2 - Other,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-04-01,2026-05-01,False,21.2667910681,EC2 - Other,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-04-01,2026-05-01,False,0.0,EC2 - Other,aws-parallelcluster-username$ubuntu,ubuntu
+2026-04-01,2026-05-01,False,804.7302448421,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,567.2982506795,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-04-01,2026-05-01,False,56.6146574054,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-04-01,2026-05-01,False,240.9463647089,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-04-01,2026-05-01,False,368.7354869646,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$ubuntu,ubuntu
+2026-04-01,2026-05-01,False,35.5698970163,Amazon Elastic Container Service,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,4.52052e-05,Amazon Elastic File System,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,18.9681630235,Amazon Elastic Load Balancing,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,2901.1559141503,Amazon FSx,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-04-01,2026-05-01,False,515.7658337145,Amazon FSx,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-04-01,2026-05-01,False,507.9062672167,Amazon FSx,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-04-01,2026-05-01,False,2.6714e-06,Amazon Glacier,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,15.268142109,Amazon GuardDuty,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,0.0,Amazon Inspector,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,130.0,Amazon Registrar,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,497.9875161126,Amazon Relational Database Service,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,12.0503452,Amazon Route 53,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,0.9,Amazon Route 53,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-04-01,2026-05-01,False,0.2,Amazon Route 53,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-04-01,2026-05-01,False,1.2,Amazon Route 53,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Notification Service,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,0.0,Amazon Simple Queue Service,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,1479.5929508039,Amazon Simple Storage Service,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,110.8268669624,Amazon Virtual Private Cloud,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,4.83238057,Amazon Virtual Private Cloud,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-04-01,2026-05-01,False,0.964795835,Amazon Virtual Private Cloud,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-04-01,2026-05-01,False,2.582806955,Amazon Virtual Private Cloud,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-04-01,2026-05-01,False,4.8825031081,AmazonCloudWatch,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-04-01,2026-05-01,False,0.0,AmazonCloudWatch,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-04-01,2026-05-01,False,0.0,CloudWatch Events,aws-parallelcluster-username$,
+2026-04-01,2026-05-01,False,0.0,Tax,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,0.0,AWS Certificate Manager,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,0.0,AWS CloudFormation,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,32.533505,AWS CloudTrail,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,60.8757636451,AWS Cost Explorer,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,0.0,AWS Glue,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,2.934997566,AWS Key Management Service,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,6.3428e-06,AWS Lambda,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-05-01,2026-06-01,False,0.0,AWS Lambda,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-05-01,2026-06-01,False,6.0549953036,AWS Secrets Manager,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,191.551362364,AWS Security Hub,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,0.0,AWS Service Catalog,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,2.284e-06,AWS Step Functions,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,680.902151147,AWS Support (Developer),aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,6.999999888,AWS WAF,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,0.0,Amazon CloudFront,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,0.02925,Amazon Cognito,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,0.0003780314,Amazon DynamoDB,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,0.0061909375,Amazon DynamoDB,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-05-01,2026-06-01,False,0.0237960625,Amazon DynamoDB,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-05-01,2026-06-01,False,0.000397375,Amazon DynamoDB,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-05-01,2026-06-01,False,0.0073048125,Amazon DynamoDB,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-05-01,2026-06-01,False,0.7040180655,Amazon EC2 Container Registry (ECR),aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,920.3390281027,EC2 - Other,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,84.7840415929,EC2 - Other,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-05-01,2026-06-01,False,127.5995922092,EC2 - Other,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-05-01,2026-06-01,False,1.164281177,EC2 - Other,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-05-01,2026-06-01,False,22.5408412925,EC2 - Other,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-05-01,2026-06-01,False,0.0,EC2 - Other,aws-parallelcluster-username$ubuntu,ubuntu
+2026-05-01,2026-06-01,False,2454.6456656364,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,238.9294021597,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-05-01,2026-06-01,False,1506.1805626636,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-05-01,2026-06-01,False,13.5201625076,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-05-01,2026-06-01,False,487.8093073821,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-05-01,2026-06-01,False,6504.5773599412,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$ubuntu,ubuntu
+2026-05-01,2026-06-01,False,55.1299283869,Amazon Elastic Container Service,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,7.24317e-05,Amazon Elastic File System,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,25.2091283305,Amazon Elastic Load Balancing,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,1446.0178842132,Amazon FSx,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-05-01,2026-06-01,False,1793.1201074908,Amazon FSx,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-05-01,2026-06-01,False,34.4304542824,Amazon FSx,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-05-01,2026-06-01,False,1401.9811602682,Amazon FSx,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-05-01,2026-06-01,False,3.2412e-06,Amazon Glacier,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,20.8700168735,Amazon GuardDuty,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,0.0,Amazon Inspector,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,2029.0941517157,Amazon Relational Database Service,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,10.252048,Amazon Route 53,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,1.0,Amazon Route 53,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-05-01,2026-06-01,False,2.2,Amazon Route 53,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-05-01,2026-06-01,False,0.1,Amazon Route 53,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-05-01,2026-06-01,False,1.2,Amazon Route 53,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-05-01,2026-06-01,False,6.2797e-06,Amazon Simple Notification Service,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,0.0,Amazon Simple Queue Service,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,3643.1147737754,Amazon Simple Storage Service,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,126.1776083074,Amazon Virtual Private Cloud,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,1.79219446,Amazon Virtual Private Cloud,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-05-01,2026-06-01,False,5.33531395,Amazon Virtual Private Cloud,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-05-01,2026-06-01,False,0.129959725,Amazon Virtual Private Cloud,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-05-01,2026-06-01,False,2.43206112,Amazon Virtual Private Cloud,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-05-01,2026-06-01,False,40.0744644076,AmazonCloudWatch,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,0.0008164823,AmazonCloudWatch,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-05-01,2026-06-01,False,41.8170844188,AmazonCloudWatch,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-05-01,2026-06-01,False,0.0027682493,AmazonCloudWatch,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-05-01,2026-06-01,False,0.0251604706,AmazonCloudWatch,aws-parallelcluster-username$michael.kennemer-mike-tmp,michael.kennemer-mike-tmp
+2026-05-01,2026-06-01,False,0.0,CloudWatch Events,aws-parallelcluster-username$,
+2026-05-01,2026-06-01,False,0.0,Tax,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,0.0,AWS CloudFormation,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,88.479571,AWS CloudTrail,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,199.8344126667,AWS Cost Explorer,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,0.0,AWS Glue,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,3.4976514583,AWS Key Management Service,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,3.6479e-06,AWS Lambda,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,0.0,AWS Lambda,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-06-01,2026-06-14,True,0.0,AWS Lambda,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-06-01,2026-06-14,True,3.4271938094,AWS Secrets Manager,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,129.7401347856,AWS Security Hub,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,0.0,AWS Service Catalog,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,9.465e-07,AWS Step Functions,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,345.0288933945,AWS Support (Developer),aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,3.0333333576,AWS WAF,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,0.0,Amazon CloudFront,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,0.0,Amazon Cognito,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,4.76247e-05,Amazon DynamoDB,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,0.010491125,Amazon DynamoDB,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-06-01,2026-06-14,True,0.001684625,Amazon DynamoDB,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-06-01,2026-06-14,True,1.9523423785,Amazon EC2 Container Registry (ECR),aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,290.8156302378,EC2 - Other,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,29.1893333472,EC2 - Other,aws-parallelcluster-username$jmajor-daylily-service,jmajor-daylily-service
+2026-06-01,2026-06-14,True,56.5553065851,EC2 - Other,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-06-01,2026-06-14,True,5.2849955647,EC2 - Other,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-06-01,2026-06-14,True,0.0,EC2 - Other,aws-parallelcluster-username$ubuntu,ubuntu
+2026-06-01,2026-06-14,True,1568.6668571207,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,1022.830729848,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-06-01,2026-06-14,True,176.2737414447,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-06-01,2026-06-14,True,2390.2764883027,Amazon Elastic Compute Cloud - Compute,aws-parallelcluster-username$ubuntu,ubuntu
+2026-06-01,2026-06-14,True,23.1340503581,Amazon Elastic Container Service,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,3.87575e-05,Amazon Elastic File System,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,14.0504670573,Amazon Elastic Load Balancing,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,672.2126650091,Amazon FSx,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-06-01,2026-06-14,True,133.3376247917,Amazon FSx,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-06-01,2026-06-14,True,1.339e-06,Amazon Glacier,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,5.3483360774,Amazon GuardDuty,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,0.0,Amazon Inspector,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,1908.8848887036,Amazon Relational Database Service,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,9.1630368,Amazon Route 53,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,2.7,Amazon Route 53,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-06-01,2026-06-14,True,1.0,Amazon Route 53,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-06-01,2026-06-14,True,1.6894e-06,Amazon Simple Notification Service,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,0.0,Amazon Simple Queue Service,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,2911.2354314972,Amazon Simple Storage Service,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,63.7931801895,Amazon Virtual Private Cloud,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,2.400995885,Amazon Virtual Private Cloud,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-06-01,2026-06-14,True,0.526034735,Amazon Virtual Private Cloud,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-06-01,2026-06-14,True,88.0740030891,AmazonCloudWatch,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,0.6432968565,AmazonCloudWatch,aws-parallelcluster-username$jmajor-root,jmajor-root
+2026-06-01,2026-06-14,True,0.0251773706,AmazonCloudWatch,aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com,michael.kennemer-michael.kennemer@lsmc.com
+2026-06-01,2026-06-14,True,0.0,CloudWatch Events,aws-parallelcluster-username$,
+2026-06-01,2026-06-14,True,0.0,Tax,aws-parallelcluster-username$,

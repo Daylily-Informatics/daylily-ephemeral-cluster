@@ -1,0 +1,61 @@
+DAY-EC activated.
+DAY-EC activated.
+LOG_PATH /home/ubuntu/daylily-runs/hybonly_ont_kitchensink_mounted_20260606T053415Z/tmux.log
+LINE_COUNT 254
+MATCH_COUNT 4
+00000194 len=40 [1m[38;5;79mSV Callers (final): [][0m
+00000195 len=172 A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/samples.tsv
+00000196 len=168 A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/config/units.tsv
+00000197 len=23 Building DAG of jobs...
+00000198 len=144406 All Wildcards:    all snv_CALLERS:  ['sentdont']  all ALIGNERS:  []  all CRAM_ALIGNERS:  ['sentmm2ont']  all samples:  {'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0000-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0000-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0001-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0001-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0002-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0002-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0003-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0003-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0004-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0004-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0005-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0005-PF-ONT-PROMETHION'], 'ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-0006-PF-ONT-PROMETHION': ['ONT-4Coriells-chip1-NA0023...<truncated len=144406>
+00000199 len=62 Creating conda environment workflow/envs/rtgtools_v0.1.yaml...
+00000200 len=43 Downloading and installing remote packages.
+00000201 len=273 Environment for /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/rules/../envs/rtgtools_v0.1.yaml created (location: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_)
+00000202 len=75 Removing incomplete Conda environment workflow/envs/gatkcontam_v0.1.yaml...
+00000203 len=64 Creating conda environment workflow/envs/sentmm2ont_v0.1.yaml...
+00000204 len=43 Downloading and installing remote packages.
+00000205 len=275 Environment for /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/rules/../envs/sentmm2ont_v0.1.yaml created (location: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-81/35fb4175790f4023c274462ba7075854_)
+00000206 len=62 Creating conda environment workflow/envs/sentieon_v0.3.yaml...
+00000207 len=43 Downloading and installing remote packages.
+00000208 len=273 Environment for /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/rules/../envs/sentieon_v0.3.yaml created (location: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-81/adc26e8656bed67f886fa90365098b54_)
+00000209 len=62 Creating conda environment workflow/envs/samtools_v0.1.yaml...
+00000210 len=43 Downloading and installing remote packages.
+00000215 len=61 Creating conda environment workflow/envs/vanilla_v0.1.yaml...
+00000216 len=43 Downloading and installing remote packages.
+00000217 len=272 Environment for /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/rules/../envs/vanilla_v0.1.yaml created (location: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-81/be5f834cbbdb5fa84aa89d321fd38c36_)
+00000218 len=61 Creating conda environment workflow/envs/multiqc_v0.1.yaml...
+00000219 len=43 Downloading and installing remote packages.
+00000220 len=272 Environment for /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/rules/../envs/multiqc_v0.1.yaml created (location: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-81/fb5136439b50c216431e912fdab988a8_)
+00000221 len=62 Creating conda environment workflow/envs/mosdepth_v0.1.yaml...
+00000222 len=43 Downloading and installing remote packages.
+00000223 len=32 CreateCondaEnvironmentException:
+00000224 len=183 Could not create conda environment from /fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/rules/../envs/mosdepth_v0.1.yaml:
+00000225 len=8 Command:
+00000226 len=225 conda env create --quiet --file "/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8d1cfbb0e385ff40e65802642a116261_.yaml" --prefix "/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8d1cfbb0e385ff40e65802642a116261_"
+00000227 len=7 Output:
+00000228 len=35 2 channel Terms of Service accepted
+00000229 len=9 Channels:
+00000230 len=14  - conda-forge
+00000231 len=11  - bioconda
+00000233 len=4  - r
+00000234 len=11  - defaults
+00000235 len=18 Platform: linux-64
+00000236 len=63 Collecting package metadata (repodata.json): ...working... done
+00000237 len=39 Solving environment: ...working... done
+00000238 len=41 Preparing transaction: ...working... done
+00000239 len=41 Verifying transaction: ...working... done
+00000240 len=41 Executing transaction: ...working... done
+00000241 len=119 ERROR conda.core.link:_execute(1026): An error occurred while installing package 'conda-forge::ncurses-6.6-hdb14827_0'.
+00000242 len=44 Rolling back transaction: ...working... done
+00000243 len=0 
+00000244 len=169 [Errno 2] No such file or directory: '.././70/prism12' -> '/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8d1cfbb0e385ff40e65802642a116261_/share/terminfo/70/p12'
+00000245 len=52 (FileNotFoundError(2, 'No such file or directory'),)
+00000246 len=0 
+00000247 len=0 
+00000248 len=38 [5m[48;5;118m[30mRETURN CODE: 1[0m
+00000249 len=36 [INFO] Workflow exited with status 1
+00000250 len=70 To run a command as administrator (user "root"), use "sudo <command>".
+00000251 len=32 See "man sudo_root" for details.
+00000252 len=0 
+00000253 len=17 DAY-EC activated.
+

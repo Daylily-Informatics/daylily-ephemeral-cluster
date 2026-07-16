@@ -1,0 +1,46 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.12, pytest-9.0.3, pluggy-1.6.0
+rootdir: /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster
+configfile: pyproject.toml
+plugins: playwright-0.7.2, cov-7.1.0, typeguard-2.13.3, base-url-2.1.0, anyio-4.13.0
+collected 3 items
+
+tests/test_lsmc_bio_fork_contract.py ..F                                 [100%]
+
+=================================== FAILURES ===================================
+______________ test_catalogs_and_self_config_are_lsmc_bio_pinned _______________
+
+    def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
+        for relative_path in (
+            "config/daylily_cli_global.yaml",
+            "daylily_ec/resources/payload/config/daylily_cli_global.yaml",
+        ):
+            data = yaml.safe_load((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
+            daylily = data["daylily"]
+            assert daylily["git_ephemeral_cluster_repo_tag"] == "7.0.1"
+            assert daylily["git_ephemeral_cluster_repo_release_tag"] == "7.0.1"
+            assert (
+                daylily["git_ephemeral_cluster_repo"]
+                == "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git"
+            )
+    
+        for relative_path in (
+            "config/daylily_pipeline_command_catalog.yaml",
+            "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml",
+        ):
+            data = yaml.safe_load((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
+            repo = data["repositories"]["daylily-omics-analysis"]
+            assert repo["https_url"] == "https://github.com/lsmc-bio/daylily-omics-analysis.git"
+            assert repo["ssh_url"] == "git@github.com:lsmc-bio/daylily-omics-analysis.git"
+>           assert repo["default_ref"] == "5.0.1"
+E           AssertionError: assert '5.0.2' == '5.0.1'
+E             
+E             - 5.0.1
+E             ?     ^
+E             + 5.0.2
+E             ?     ^
+
+tests/test_lsmc_bio_fork_contract.py:79: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_lsmc_bio_fork_contract.py::test_catalogs_and_self_config_are_lsmc_bio_pinned
+========================= 1 failed, 2 passed in 0.06s ==========================

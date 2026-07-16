@@ -1,0 +1,4 @@
+Precheck passed: rows checked=7, samples checked=7, source objects checked=68, concordance directories checked=3.
+Generated configuration files:
+  samples.tsv -> docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ilmn_config/20260606T053415Z_2cb106be_samples.tsv
+  units.tsv   -> docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ilmn_config/20260606T053415Z_2cb106be_units.tsv

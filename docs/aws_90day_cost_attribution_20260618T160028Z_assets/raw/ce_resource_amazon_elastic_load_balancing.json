@@ -1,0 +1,459 @@
+{
+  "DimensionValueAttributes": [],
+  "GroupDefinitions": [
+    {
+      "Key": "RESOURCE_ID",
+      "Type": "DIMENSION"
+    }
+  ],
+  "ResultsByTime": [
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.54",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5401443315",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-06T00:00:00Z",
+        "Start": "2026-06-05T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.54",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5401603561",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-07T00:00:00Z",
+        "Start": "2026-06-06T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.54",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5403980248",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-08T00:00:00Z",
+        "Start": "2026-06-07T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.54",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5406632165",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-09T00:00:00Z",
+        "Start": "2026-06-08T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.54",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5416587583",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-10T00:00:00Z",
+        "Start": "2026-06-09T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.54",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5408392298",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-11T00:00:00Z",
+        "Start": "2026-06-10T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.54",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5417939075",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-12T00:00:00Z",
+        "Start": "2026-06-11T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.54",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5410111782",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-13T00:00:00Z",
+        "Start": "2026-06-12T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.54",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5429844575",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-14T00:00:00Z",
+        "Start": "2026-06-13T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.54",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5435007762",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-15T00:00:00Z",
+        "Start": "2026-06-14T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.54",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5417728851",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-16T00:00:00Z",
+        "Start": "2026-06-15T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.54",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5414806639",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-17T00:00:00Z",
+        "Start": "2026-06-16T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.54",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.5406435592",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-18T00:00:00Z",
+        "Start": "2026-06-17T00:00:00Z"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.315",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.3155943395",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-19T00:00:00Z",
+        "Start": "2026-06-18T00:00:00Z"
+      },
+      "Total": {}
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+Precheck passed: rows checked=25, samples checked=11, source objects checked=50, concordance directories checked=0.

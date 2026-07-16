@@ -133,6 +133,12 @@ def _prepare_fake_runtime(
 printf 'existing-env:%s\\n' "$*"
 """,
             )
+            _write_executable(
+                env_bin / "pcluster",
+                """#!/usr/bin/env bash
+printf 'existing-pcluster:%s\\n' "$*"
+""",
+            )
 
     _write_executable(fake_bin / "conda", _fake_conda_script())
     _write_executable(
@@ -141,6 +147,12 @@ printf 'existing-env:%s\\n' "$*"
 echo "Traceback (most recent call last):" >&2
 echo "ModuleNotFoundError: No module named 'cli_core_yo'" >&2
 exit 17
+""",
+    )
+    _write_executable(
+        fake_bin / "pcluster",
+        """#!/usr/bin/env bash
+echo '{"version":"global"}'
 """,
     )
 
@@ -217,7 +229,9 @@ def test_activate_reuses_existing_dayec_without_create_update_pip_or_smoke_tests
 
     result = _source_activate_and_run(
         env,
-        'printf "prefix=%s\\n" "$CONDA_PREFIX" && daylily-ec --help',
+        'printf "prefix=%s\\n" "$CONDA_PREFIX" && '
+        'printf "pythonpath=%s\\n" "$PYTHONPATH" && '
+        "daylily-ec --help",
     )
 
     expected_prefix = fake_root / "envs" / "DAY-EC"
@@ -225,6 +239,7 @@ def test_activate_reuses_existing_dayec_without_create_update_pip_or_smoke_tests
 
     assert result.returncode == 0
     assert f"prefix={expected_prefix}" in result.stdout
+    assert f"pythonpath={REPO_ROOT}" in result.stdout
     assert "existing-env:--help" in result.stdout
     assert "env create -n DAY-EC" not in log
     assert "env update" not in log
@@ -257,3 +272,23 @@ def test_activate_uses_dayec_cli_before_broken_global_path(tmp_path: Path) -> No
     assert "existing-env:--help" in result.stdout
     assert "ModuleNotFoundError" not in combined
     assert "fake-bin/daylily-ec" not in result.stdout
+
+
+def test_activate_uses_dayec_pcluster_before_global_path(tmp_path: Path) -> None:
+    env, _, fake_root = _prepare_fake_runtime(
+        tmp_path,
+        existing_env=True,
+        existing_env_cli=True,
+    )
+
+    result = _source_activate_and_run(
+        env,
+        'printf "pcluster=%s\\n" "$(type -P pcluster)" && pcluster version',
+    )
+
+    expected_pcluster = fake_root / "envs" / "DAY-EC" / "bin" / "pcluster"
+
+    assert result.returncode == 0
+    assert f"pcluster={expected_pcluster}" in result.stdout
+    assert "existing-pcluster:version" in result.stdout
+    assert '{"version":"global"}' not in result.stdout

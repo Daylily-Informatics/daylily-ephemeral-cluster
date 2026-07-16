@@ -1,0 +1,6 @@
+{
+  "captured_at": "2026-07-07T22:47:11.870453+00:00",
+  "instance_id": "i-06e429d2a68a0b1ec",
+  "stdout": "DAY-EC activated.\nDAY-EC activated.\nTue Jul  7 22:47:11 UTC 2026\nHELP\nUsage: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/libexec/licsrvr [--start|--stop|--dump|--ping] [-d|--debug] [-l|--log log_file] [-a|--auth auth_script] [-R|--report report_file] [-t|--thread_count num_thrs] [-T|--request_timeout msecs] [--linger secs] [--version] [license_file]\nVERSION\nsentieon-genomics-202503.03\nLICENSE_CANDIDATES\n/fsx/references/runtime_assets/cached_envs/REDACTED.lic\n",
+  "stderr": ""
+}

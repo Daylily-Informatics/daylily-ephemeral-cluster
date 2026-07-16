@@ -98,6 +98,35 @@ def _write_manifest(tmp_path: Path, header: str, rows: list[str]) -> Path:
     return path
 
 
+def test_build_reference_uri_uses_explicit_fsx_s3_mapping_before_role_root() -> None:
+    roles = module.S3RoleUris(
+        reference_s3_uri="s3://reference-bucket",
+        control_data_s3_uri="s3://control-data-bucket",
+        stage_s3_uri="s3://stage-bucket",
+        fsx_s3_uri_maps=module.parse_fsx_s3_uri_maps(
+            [
+                (
+                    "/fsx/control_data/ssf_derived/dyecX4/10.0.10/PR-evidence/input="
+                    "s3://lsmc-ssf-sequencing-data/derived/dyecX4/10.0.10/PR-evidence/input"
+                )
+            ]
+        ),
+    )
+
+    uri = module.build_reference_uri(
+        (
+            "/fsx/control_data/ssf_derived/dyecX4/10.0.10/PR-evidence/input/"
+            "20260609T193111Z/illumina_30x/HG002_30x_R1.fastq.gz"
+        ),
+        roles,
+    )
+
+    assert uri == (
+        "s3://lsmc-ssf-sequencing-data/derived/dyecX4/10.0.10/PR-evidence/input/"
+        "20260609T193111Z/illumina_30x/HG002_30x_R1.fastq.gz"
+    )
+
+
 def _prechecked_rows(
     monkeypatch: pytest.MonkeyPatch,
     analysis_samples: Path,
@@ -196,10 +225,10 @@ def test_main_config_only_writes_local_configs_without_remote_stage(
                     "1",
                     "D0",
                     concordance,
-                    "/fsx/references/genomic_data/organism_reads_slim/fastq/"
+                    "/fsx/data/genomic_data/organism_reads_slim/fastq/"
                     "H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/"
                     "downsampled/HG003_5x_R1.fastq.gz",
-                    "/fsx/references/genomic_data/organism_reads_slim/fastq/"
+                    "/fsx/data/genomic_data/organism_reads_slim/fastq/"
                     "H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/"
                     "downsampled/HG003_5x_R2.fastq.gz",
                     "pass_through",
@@ -246,7 +275,7 @@ def test_main_config_only_writes_local_configs_without_remote_stage(
     assert rc == 0
     generated = sorted(config_dir.glob("*_*.tsv"))
     assert [path.name.rsplit("_", 1)[-1] for path in generated] == ["samples.tsv", "units.tsv"]
-    assert "/fsx/references/genomic_data/organism_reads_slim" in generated[1].read_text(
+    assert "/fsx/data/genomic_data/organism_reads_slim" in generated[1].read_text(
         encoding="utf-8"
     )
     out = capsys.readouterr().out
@@ -326,19 +355,327 @@ def test_main_config_only_rejects_stage_data_rows(
 def test_headnode_visible_path_rejects_legacy_data_prefix() -> None:
     with pytest.raises(module.CommandError, match="explicit role roots"):
         module.headnode_visible_path("/data")
-    with pytest.raises(module.CommandError, match="explicit role roots"):
-        module.headnode_visible_path("/fsx/data")
+    assert module.headnode_visible_path("/fsx/data") == "/fsx/data"
+    assert (
+        module.headnode_visible_path("/fsx/data/genomic_data/organism_reads_slim")
+        == "/fsx/data/genomic_data/organism_reads_slim"
+    )
     assert (
         module.headnode_visible_path("/fsx/staging/staged_external_sequencing_data/remote_stage_1")
         == "/fsx/staging/staged_external_sequencing_data/remote_stage_1"
     )
+    assert module.is_headnode_visible_path(
+        "/fsx/data/genomic_data/organism_reads_slim/HG003/R1.fastq.gz"
+    )
     assert module.is_headnode_visible_path("/fsx/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz")
     assert module.is_headnode_visible_path("/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz")
+    assert module.is_headnode_visible_path("/fsx/scratch/ILMN/S1_R1.fastq.gz")
     assert (
         module.headnode_visible_path("/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz")
         == "/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz"
     )
+    assert (
+        module.headnode_visible_path("/fsx/scratch/ILMN/S1_R1.fastq.gz")
+        == "/fsx/scratch/ILMN/S1_R1.fastq.gz"
+    )
     assert module.headnode_visible_path("/tmp/local") == "/tmp/local"
+
+
+def test_pass_through_accepts_fsx_scratch_fastqs_without_s3_lookup(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "PATH_TO_CONCORDANCE_DATA_DIR",
+                "R1_FQ",
+                "R2_FQ",
+                "STAGE_DIRECTIVE",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "RUN-1",
+                    "NA00232",
+                    "SMN",
+                    "gdna",
+                    "PF",
+                    "ILMN",
+                    "NOVASEQ",
+                    "0",
+                    "S46",
+                    "na",
+                    "/fsx/scratch/ILMN/NA00232-SMN_S46_R1_001.fastq.gz",
+                    "/fsx/scratch/ILMN/NA00232-SMN_S46_R2_001.fastq.gz",
+                    "pass_through",
+                ]
+            )
+        ],
+    )
+
+    def forbidden_s3_lookup(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("scratch pass-through paths must not be resolved through S3")
+
+    monkeypatch.setattr(module, "check_s3_path", forbidden_s3_lookup)
+    rows = _prechecked_rows(monkeypatch, analysis_samples)
+    _samples, units, created, _run_ids = module.process_samples(
+        analysis_samples,
+        _stage_paths(),
+        reference_s3_uri=_s3_role_uris(),
+        aws_env={},
+        debug=False,
+        rows=rows,
+    )
+
+    assert created == []
+    assert units[0]["ILMN_R1_PATH"] == "/fsx/scratch/ILMN/NA00232-SMN_S46_R1_001.fastq.gz"
+    assert units[0]["ILMN_R2_PATH"] == "/fsx/scratch/ILMN/NA00232-SMN_S46_R2_001.fastq.gz"
+
+
+def test_stage_data_rejects_fsx_scratch_fastqs(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "PATH_TO_CONCORDANCE_DATA_DIR",
+                "R1_FQ",
+                "R2_FQ",
+                "STAGE_DIRECTIVE",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "RUN-1",
+                    "NA00232",
+                    "SMN",
+                    "gdna",
+                    "PF",
+                    "ILMN",
+                    "NOVASEQ",
+                    "0",
+                    "S46",
+                    "na",
+                    "/fsx/scratch/ILMN/NA00232-SMN_S46_R1_001.fastq.gz",
+                    "/fsx/scratch/ILMN/NA00232-SMN_S46_R2_001.fastq.gz",
+                    "stage_data",
+                ]
+            )
+        ],
+    )
+
+    monkeypatch.setattr(module, "detect_giab_roi_dirs", lambda *args, **kwargs: ["giabHC"])
+    report, _rows = module.precheck_manifest(
+        analysis_samples,
+        reference_s3_uri=_s3_role_uris(),
+        aws_env={},
+        debug=False,
+    )
+
+    assert "set STAGE_DIRECTIVE=pass_through" in module.format_precheck_failure(report)
+
+
+def test_pass_through_accepts_single_end_ont_fastq(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "PATH_TO_CONCORDANCE_DATA_DIR",
+                "ONT_R1_FQ",
+                "ONT_R2_FQ",
+                "STAGE_DIRECTIVE",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "RUN-1",
+                    "NA00232",
+                    "SMN",
+                    "gdna",
+                    "LSK114",
+                    "ONT",
+                    "PROMETHION",
+                    "0",
+                    "barcode18",
+                    "na",
+                    "/fsx/scratch/ONT/NA00232_SMN_R1_all.fastq.gz",
+                    "",
+                    "pass_through",
+                ]
+            )
+        ],
+    )
+
+    monkeypatch.setattr(module, "check_s3_path", lambda *args, **kwargs: None)
+    rows = _prechecked_rows(monkeypatch, analysis_samples)
+    _samples, units, created, _run_ids = module.process_samples(
+        analysis_samples,
+        _stage_paths(),
+        reference_s3_uri=_s3_role_uris(),
+        aws_env={},
+        debug=False,
+        rows=rows,
+    )
+
+    assert created == []
+    assert units[0]["ONT_R1_PATH"] == "/fsx/scratch/ONT/NA00232_SMN_R1_all.fastq.gz"
+    assert units[0]["ONT_R2_PATH"] == "na"
+
+
+def test_pass_through_accepts_comma_separated_single_end_ont_fastqs(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "PATH_TO_CONCORDANCE_DATA_DIR",
+                "ONT_R1_FQ",
+                "ONT_R2_FQ",
+                "STAGE_DIRECTIVE",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "RUN-1",
+                    "NA00232",
+                    "SMN",
+                    "gdna",
+                    "LSK114",
+                    "ONT",
+                    "PROMETHION",
+                    "chip1",
+                    "barcode18-chip1",
+                    "na",
+                    "/fsx/run_dir_mounts/ont-chip1/fastq_pass/barcode18/read1.fastq.gz,/fsx/run_dir_mounts/ont-chip1/fastq_pass/barcode18/read2.fastq.gz",
+                    "",
+                    "pass_through",
+                ]
+            )
+        ],
+    )
+
+    monkeypatch.setattr(module, "check_s3_path", lambda *args, **kwargs: None)
+    rows = _prechecked_rows(monkeypatch, analysis_samples)
+    _samples, units, created, _run_ids = module.process_samples(
+        analysis_samples,
+        _stage_paths(),
+        reference_s3_uri=_s3_role_uris(),
+        aws_env={},
+        debug=False,
+        rows=rows,
+    )
+
+    assert created == []
+    assert units[0]["ONT_R1_PATH"] == (
+        "/fsx/run_dir_mounts/ont-chip1/fastq_pass/barcode18/read1.fastq.gz,"
+        "/fsx/run_dir_mounts/ont-chip1/fastq_pass/barcode18/read2.fastq.gz"
+    )
+    assert units[0]["ONT_R2_PATH"] == "na"
+
+
+def test_stage_data_rejects_single_end_ont_fastq(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "PATH_TO_CONCORDANCE_DATA_DIR",
+                "ONT_R1_FQ",
+                "ONT_R2_FQ",
+                "STAGE_DIRECTIVE",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "RUN-1",
+                    "NA00232",
+                    "SMN",
+                    "gdna",
+                    "LSK114",
+                    "ONT",
+                    "PROMETHION",
+                    "0",
+                    "barcode18",
+                    "na",
+                    "s3://bucket/run/fastq_pass/barcode18/read.fastq.gz",
+                    "",
+                    "stage_data",
+                ]
+            )
+        ],
+    )
+
+    monkeypatch.setattr(module, "detect_giab_roi_dirs", lambda *args, **kwargs: ["giabHC"])
+    monkeypatch.setattr(module, "check_s3_path", lambda *args, **kwargs: None)
+    report, _rows = module.precheck_manifest(
+        analysis_samples,
+        reference_s3_uri=_s3_role_uris(),
+        aws_env={},
+        debug=False,
+    )
+
+    assert "single-end ONT raw FASTQ" in module.format_precheck_failure(report)
 
 
 def test_create_staged_prefix_mount_uses_runtime_staging_dra(
@@ -408,6 +745,13 @@ def test_retired_staging_paths_are_rejected() -> None:
             module.headnode_visible_path(path)
         with pytest.raises(module.CommandError, match="retired staging path"):
             module.build_reference_uri(path, _s3_role_uris())
+
+
+def test_build_reference_uri_supports_fsx_data_reference_namespace() -> None:
+    assert module.build_reference_uri(
+        "/fsx/data/genomic_data/organism_reads_slim/HG003/R1.fastq.gz",
+        _s3_role_uris(),
+    ) == "s3://reference-bucket/genomic_data/organism_reads_slim/HG003/R1.fastq.gz"
 
 
 def test_stage_target_only_allows_external_sequencing_data_root() -> None:

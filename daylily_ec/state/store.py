@@ -95,8 +95,25 @@ def write_state_record(record: StateRecord) -> Path:
     return dest
 
 
+def write_resource_receipt(
+    *,
+    cluster_name: str,
+    run_id: str,
+    resource_type: str,
+    payload: dict,
+) -> Path:
+    """Persist a pre-cluster AWS resource receipt before pcluster submission."""
+
+    cluster = _safe_cluster_name(cluster_name)
+    safe_resource_type = _safe_cluster_name(resource_type)
+    filename = f"resource_{safe_resource_type}_{cluster}_{run_id}.json"
+    dest = config_dir() / filename
+    dest.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    logger.info("Resource receipt written to %s", dest)
+    return dest
+
+
 def load_state_record(path: Path) -> StateRecord:
     """Load a :class:`StateRecord` from a JSON file."""
     data = json.loads(path.read_text(encoding="utf-8"))
     return StateRecord(**data)
-

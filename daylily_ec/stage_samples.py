@@ -91,6 +91,7 @@ DEEP_MODEL = "DEEP_MODEL"
 
 S3_MULTIPART_MIN_PART_SIZE = 5 * 1024 * 1024
 MOUNT_PATH_ROOTS = ("/fsx/run_dir_mounts", "/run_dir_mounts")
+SCRATCH_PATH_ROOTS = ("/fsx/scratch",)
 MOUNT_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 ONT_FASTQ_SHARD_RE = re.compile(
     r"^(?P<flowcell_id>[^_]+)_pass_(?P<tag>barcode[0-9]+|unclassified)_"
@@ -420,6 +421,7 @@ class S3RoleUris:
     reference_s3_uri: str
     control_data_s3_uri: str = ""
     stage_s3_uri: str = ""
+    fsx_s3_uri_maps: Tuple[Tuple[str, str], ...] = ()
 
 
 GIAB_TRUTH_SUFFIXES = (".bed", ".vcf.gz", ".vcf.gz.tbi")
@@ -445,7 +447,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--reference-s3-uri",
         required=True,
-        help="S3 URI (s3://bucket[/prefix]) mapped to /fsx/references",
+        help="S3 URI (s3://bucket[/prefix]) mapped to /fsx/references and /fsx/data",
     )
     parser.add_argument(
         "--control-data-s3-uri",
@@ -458,6 +460,16 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help=(
             "S3 URI (s3://bucket[/prefix]) used as the exact root for external "
             "staging remote_stage_* prefixes"
+        ),
+    )
+    parser.add_argument(
+        "--fsx-s3-uri-map",
+        action="append",
+        default=[],
+        metavar="/fsx/prefix=s3://bucket/prefix",
+        help=(
+            "Explicit FSx-to-S3 mapping for mounted read-only subpaths. "
+            "Can be specified multiple times; longest prefix wins."
         ),
     )
     parser.add_argument(
@@ -623,12 +635,7 @@ def create_staged_prefix_mount(
 
 
 def headnode_visible_path(path: str) -> str:
-    if (
-        path == "/data"
-        or path.startswith("/data/")
-        or path == "/fsx/data"
-        or path.startswith("/fsx/data/")
-    ):
+    if path == "/data" or path.startswith("/data/"):
         raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
     reject_retired_stage_path(path)
     return path
@@ -866,12 +873,19 @@ def is_headnode_visible_path(path: str) -> bool:
     return (
         path == "/fsx/references"
         or path.startswith("/fsx/references/")
+        or path == "/fsx/data"
+        or path.startswith("/fsx/data/")
         or path == "/fsx/control_data"
         or path.startswith("/fsx/control_data/")
         or path == "/fsx/staging"
         or path.startswith("/fsx/staging/")
+        or is_headnode_scratch_path(path)
         or is_mounted_run_dir_path(path)
     )
+
+
+def is_headnode_scratch_path(path: str) -> bool:
+    return any(path == root or path.startswith(f"{root}/") for root in SCRATCH_PATH_ROOTS)
 
 
 def _coerce_s3_role_uris(reference_s3_uri: str | S3RoleUris) -> S3RoleUris:
@@ -906,24 +920,49 @@ def _join_s3_uri(base: str, relative: str) -> str:
     return f"{base}/{relative}" if relative else base
 
 
+def parse_fsx_s3_uri_maps(values: Optional[Sequence[str]]) -> Tuple[Tuple[str, str], ...]:
+    mappings: List[Tuple[str, str]] = []
+    for raw in values or []:
+        if "=" not in raw:
+            raise CommandError(
+                "--fsx-s3-uri-map must use /fsx/prefix=s3://bucket/prefix syntax."
+            )
+        fsx_prefix, s3_uri = (part.strip() for part in raw.split("=", 1))
+        fsx_prefix = fsx_prefix.rstrip("/")
+        s3_uri = s3_uri.rstrip("/")
+        if not fsx_prefix.startswith("/fsx/"):
+            raise CommandError(f"--fsx-s3-uri-map FSx prefix must start with /fsx/: {raw}")
+        if not s3_uri.startswith("s3://"):
+            raise CommandError(f"--fsx-s3-uri-map S3 URI must start with s3://: {raw}")
+        mappings.append((fsx_prefix, s3_uri))
+    return tuple(sorted(mappings, key=lambda item: len(item[0]), reverse=True))
+
+
+def _explicit_mapped_s3_uri(path: str, roles: S3RoleUris) -> Optional[str]:
+    for fsx_prefix, s3_uri in roles.fsx_s3_uri_maps:
+        if path == fsx_prefix or path.startswith(f"{fsx_prefix}/"):
+            return _join_s3_uri(s3_uri, _role_relative(path, fsx_prefix))
+    return None
+
+
 def build_reference_uri(path: str, reference_s3_uri: str | S3RoleUris) -> str:
     roles = _coerce_s3_role_uris(reference_s3_uri)
     if is_mounted_run_dir_path(path):
         raise CommandError(
             f"Mounted run-directory paths are not static role-bucket objects: {path}"
         )
-    if (
-        path == "/data"
-        or path.startswith("/data/")
-        or path == "/fsx/data"
-        or path.startswith("/fsx/data/")
-    ):
+    if path == "/data" or path.startswith("/data/"):
         raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
     if path == "/fsx/runtime_assets" or path.startswith("/fsx/runtime_assets/"):
         raise CommandError(
             "The /fsx/runtime_assets namespace is not supported; use /fsx/references/runtime_assets."
         )
     reject_retired_stage_path(path)
+    explicit_uri = _explicit_mapped_s3_uri(path, roles)
+    if explicit_uri:
+        return explicit_uri
+    if path == "/fsx/data" or path.startswith("/fsx/data/"):
+        return _join_s3_uri(roles.reference_s3_uri, _role_relative(path, "/fsx/data"))
     if path == "/fsx/references" or path.startswith("/fsx/references/"):
         return _join_s3_uri(roles.reference_s3_uri, _role_relative(path, "/fsx/references"))
     if path == "/fsx/control_data" or path.startswith("/fsx/control_data/"):
@@ -936,7 +975,7 @@ def build_reference_uri(path: str, reference_s3_uri: str | S3RoleUris) -> str:
 def check_source_path(
     path: str,
     *,
-    reference_s3_uri: str,
+    reference_s3_uri: str | S3RoleUris,
     aws_env: Dict[str, str],
     debug: bool,
     allow_directory: bool = False,
@@ -949,6 +988,8 @@ def check_source_path(
         return
     if is_mounted_run_dir_path(path):
         parse_mounted_run_dir_path(path, field="source path")
+        return
+    if is_headnode_scratch_path(path):
         return
     if is_headnode_visible_path(path):
         check_s3_path(
@@ -1258,6 +1299,10 @@ def source_copy_reference(source: str, *, reference_s3_uri: str) -> str:
         return source
     if is_mounted_run_dir_path(source):
         return headnode_visible_path(source)
+    if is_headnode_scratch_path(source):
+        raise CommandError(
+            f"Scratch source {source} is headnode-only; set {STAGE_DIRECTIVE}=pass_through."
+        )
     if is_headnode_visible_path(source):
         return build_reference_uri(source, reference_s3_uri)
     return os.path.expanduser(source)
@@ -2052,13 +2097,18 @@ def paired_fastq_path_lists(
     r1_field: str,
     r2_field: str,
     row_number: int,
+    require_r2: bool = True,
 ) -> Tuple[List[str], List[str]]:
     r1_paths = split_fastq_path_list(r1_value, field=r1_field)
     r2_paths = split_fastq_path_list(r2_value, field=r2_field)
     if not r1_paths and not r2_paths:
         return [], []
-    if not r1_paths or not r2_paths:
+    if require_r2 and (not r1_paths or not r2_paths):
         raise CommandError(f"Row {row_number} must populate both {r1_field} and {r2_field}.")
+    if not require_r2 and not r1_paths:
+        raise CommandError(f"Row {row_number} must populate {r1_field}.")
+    if not require_r2 and not r2_paths:
+        return r1_paths, []
     if len(r1_paths) != len(r2_paths):
         raise CommandError(
             f"Row {row_number} {r1_field}/{r2_field} comma-separated lists must have the "
@@ -2125,12 +2175,7 @@ def deduplicate_rows(rows: Sequence[Dict[str, str]], header: Sequence[str]) -> L
 
 
 def _normalise_headnode_data_path(value: str) -> str:
-    if (
-        value == "/data"
-        or value.startswith("/data/")
-        or value == "/fsx/data"
-        or value.startswith("/fsx/data/")
-    ):
+    if value == "/data" or value.startswith("/data/"):
         raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
     return value
 
@@ -2145,8 +2190,6 @@ def normalise_units_paths(rows: Sequence[Dict[str, str]]) -> None:
                 if any(
                     part.startswith("/data/")
                     or part == "/data"
-                    or part.startswith("/fsx/data/")
-                    or part == "/fsx/data"
                     for part in parts
                 ):
                     row[field] = ",".join(_normalise_headnode_data_path(part) for part in parts)
@@ -2637,17 +2680,21 @@ def collect_manifest_row_issues(
                 r1_field=r1_field,
                 r2_field=r2_field,
                 row_number=row_number,
+                require_r2=r1_field != ONT_R1_FQ,
             )
-            if len(r1_paths) > 1 and (r1_field, r2_field) != (ILMN_R1_FQ, ILMN_R2_FQ):
+            if len(r1_paths) > 1 and (r1_field, r2_field) not in {
+                (ILMN_R1_FQ, ILMN_R2_FQ),
+                (ONT_R1_FQ, ONT_R2_FQ),
+            }:
                 add_issue(
                     f"{r1_field}/{r2_field}",
                     (
-                        f"Row {row_number} comma-separated FASTQ lists are only supported for "
-                        f"{ILMN_R1_FQ}/{ILMN_R2_FQ}."
+                        f"Row {row_number} comma-separated FASTQ lists are only supported "
+                        f"for {ILMN_R1_FQ}/{ILMN_R2_FQ} or {ONT_R1_FQ}/{ONT_R2_FQ}."
                     ),
                     r1_value,
                 )
-            if len(r1_paths) > 1:
+            if len(r1_paths) > 1 and r2_paths:
                 try:
                     validate_fastq_pair_order(
                         r1_paths,
@@ -2658,13 +2705,41 @@ def collect_manifest_row_issues(
                     )
                 except CommandError as exc:
                     add_issue(f"{r1_field}/{r2_field}", str(exc), r1_value)
+            if r1_field == ONT_R1_FQ and not r2_paths and directive != "pass_through":
+                add_issue(
+                    f"{r1_field}/{r2_field}",
+                    (
+                        f"Row {row_number} uses single-end ONT raw FASTQ; "
+                        f"set {STAGE_DIRECTIVE}=pass_through or use {ONT_FASTQ_PREFIX} "
+                        "for staged ONT shards."
+                    ),
+                    r1_value,
+                )
         except CommandError as exc:
             r1_paths = [r1_value] if r1_value else []
             r2_paths = [r2_value] if r2_value else []
             add_issue(f"{r1_field}/{r2_field}", str(exc), r1_value or r2_value)
         for source_path in r1_paths:
+            if is_headnode_scratch_path(source_path) and directive != "pass_through":
+                add_issue(
+                    r1_field,
+                    (
+                        f"Row {row_number} uses scratch source {source_path}; "
+                        f"set {STAGE_DIRECTIVE}=pass_through for /fsx/scratch inputs."
+                    ),
+                    source_path,
+                )
             maybe_check_source_path(r1_field, source_path)
         for source_path in r2_paths:
+            if is_headnode_scratch_path(source_path) and directive != "pass_through":
+                add_issue(
+                    r2_field,
+                    (
+                        f"Row {row_number} uses scratch source {source_path}; "
+                        f"set {STAGE_DIRECTIVE}=pass_through for /fsx/scratch inputs."
+                    ),
+                    source_path,
+                )
             maybe_check_source_path(r2_field, source_path)
         if directive == "pass_through":
             for field, value in (
@@ -3448,20 +3523,25 @@ def emit_single_raw_group(
         r1_field=r1_field,
         r2_field=r2_field,
         row_number=row.row_number,
+        require_r2=r1_field != ONT_R1_FQ,
     )
     if len(r1_paths) > 1:
-        if (r1_field, r2_field) != (ILMN_R1_FQ, ILMN_R2_FQ):
+        if (r1_field, r2_field) not in {
+            (ILMN_R1_FQ, ILMN_R2_FQ),
+            (ONT_R1_FQ, ONT_R2_FQ),
+        }:
             raise CommandError(
-                f"Row {row.row_number} comma-separated FASTQ lists are only supported for "
-                f"{ILMN_R1_FQ}/{ILMN_R2_FQ}."
+                f"Row {row.row_number} comma-separated FASTQ lists are only supported "
+                f"for {ILMN_R1_FQ}/{ILMN_R2_FQ} or {ONT_R1_FQ}/{ONT_R2_FQ}."
             )
-        validate_fastq_pair_order(
-            r1_paths,
-            r2_paths,
-            row_number=row.row_number,
-            r1_field=r1_field,
-            r2_field=r2_field,
-        )
+        if r2_paths:
+            validate_fastq_pair_order(
+                r1_paths,
+                r2_paths,
+                row_number=row.row_number,
+                r1_field=r1_field,
+                r2_field=r2_field,
+            )
     if row.staging.stage_directive in {"pass_through", "mounted_readonly"}:
         for path in r1_paths:
             require_headnode_visible_path(path, field=r1_field)
@@ -3469,7 +3549,11 @@ def emit_single_raw_group(
             require_headnode_visible_path(path, field=r2_field)
         return {
             unit_r1_field: ",".join(headnode_visible_path(path) for path in r1_paths),
-            unit_r2_field: ",".join(headnode_visible_path(path) for path in r2_paths),
+            unit_r2_field: (
+                ",".join(headnode_visible_path(path) for path in r2_paths)
+                if r2_paths
+                else "na"
+            ),
         }, []
     if len(r1_paths) > 1:
         remote_r1_paths: List[str] = []
@@ -3856,6 +3940,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         reference_s3_uri=args.reference_s3_uri,
         control_data_s3_uri=args.control_data_s3_uri,
         stage_s3_uri=args.stage_s3_uri,
+        fsx_s3_uri_maps=parse_fsx_s3_uri_maps(args.fsx_s3_uri_map),
     )
     stage = build_stage_paths(args.stage_target, args.stage_s3_uri)
     run_metric_specs = parse_run_metric_staging_specs(args.run_metric_staging)

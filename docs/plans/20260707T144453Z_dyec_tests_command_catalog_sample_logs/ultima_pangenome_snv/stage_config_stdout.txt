@@ -1,0 +1,4 @@
+Precheck passed: rows checked=1, samples checked=1, source objects checked=20, concordance directories checked=1.
+Generated configuration files:
+  samples.tsv -> docs/plans/20260707T144453Z_dyec_tests_command_catalog_sample_logs/ultima_pangenome_snv/config/20260707T161541Z_b48b9a63_samples.tsv
+  units.tsv   -> docs/plans/20260707T144453Z_dyec_tests_command_catalog_sample_logs/ultima_pangenome_snv/config/20260707T161541Z_b48b9a63_units.tsv

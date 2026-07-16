@@ -1,0 +1,80 @@
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:450:alias dy-a="source bin/day_activate"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:451:alias dy-d="source bin/day_deactivate"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:452:alias dy-r="bin/day_run"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:453:alias dy-m="bin/day_monitor"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:455:alias dy-h="bin/day_run help"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:457:alias dy-g="source bin/day_set_genome_build"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:517:echo -e "\t(day-run / dy-r)          - Run a command in the current environment."
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:542:echo -e "\t\tdy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:543:echo -e "\t\tdy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:546:echo -e "\t\tdy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:547:echo -e "\t\tdy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:548:echo -e "\t\tdy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:551:echo -e "\t\tdy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:552:echo -e "\t\tdy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:553:echo -e "\t\tdy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:554:echo -e "\t\tdy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:450:alias dy-a="source bin/day_activate"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:451:alias dy-d="source bin/day_deactivate"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:452:alias dy-r="bin/day_run"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:453:alias dy-m="bin/day_monitor"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:455:alias dy-h="bin/day_run help"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:457:alias dy-g="source bin/day_set_genome_build"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:517:echo -e "\t(day-run / dy-r)          - Run a command in the current environment."
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:542:echo -e "\t\tdy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:543:echo -e "\t\tdy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:546:echo -e "\t\tdy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:547:echo -e "\t\tdy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:548:echo -e "\t\tdy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:551:echo -e "\t\tdy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:552:echo -e "\t\tdy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:553:echo -e "\t\tdy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/dyoainit:554:echo -e "\t\tdy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)\n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/tests/test_cli_commands.sh:93:  printf 'dy-r produce_alignstats -p -j 1\n' > "$tmpdir/day_cmd.log"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/tests/test_cli_commands.sh:97:  grep -q 'dy-r produce_alignstats -p -j 1' /tmp/test_monitor_cmd_log.txt
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/tests/test_cli_commands.sh:115:  printf 'dy-r produce_alignstats -p -j 1\n' > "$tmpdir/day_cmd.log"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/tests/test_cli_commands.sh:186:  grep -q 'alias dy-m="bin/day_monitor"' dyoainit
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/docs/plans/20260526T132508Z_hg003_hiomr_export_tools/remote_launch_downsample_1_0_24.sh:32:        | awk '/snakemake|dy-r|day_run/ && /hg003a_altair3_hiomr_/ && !/awk/ {n++} END {print n + 0}'
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/docs/plans/20260526T132508Z_hg003_hiomr_export_tools/remote_launch_downsample_1_0_24.sh:51:tmux send-keys -t "${session_name}" "dy-r produce_alignstats produce_sentdhiomr_snv_vcf produce_snv_concordances --config 'dedupers=[\"dmd\"]' -p -j 190 -k -T 0 --rerun-triggers mtime --max-jobs-per-second 8 > daylily_run_1024_j190.log 2>&1; echo __${label}_RUN1024_J190_RC__:\$? | tee '${rc_file}'" Enter
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/docs/plans/20260526T132508Z_hg003_hiomr_export_tools/remote_launch_downsample_1_0_24.sh:63:    ps -fu ubuntu | awk '/snakemake|dy-r|day_run/ && !/awk/ {print}'
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/docs/plans/20260526T085407Z_hg003_ds002_status/remote_check_ds002_status.sh:39:    ps -fu ubuntu | awk '/snakemake|dy-r|day_run/ && !/awk/ {print}' | head -60
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/config/day/day_env_installer.sh:199:        echo "  dy-r help"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/config/day/day_env_installer.sh:211:echo "  dy-r help"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/docs/plans/20260526T112407Z_hg003_ds003_status/remote_check_ds003_status.sh:39:    ps -fu ubuntu | awk '/snakemake|dy-r|day_run/ && !/awk/ {print}' | head -60
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/setup_modular_hybrid_tests.sh:36:echo ". dyoainit && dy-a slurm hg38 && dy-r produce_sentdhiom_vcf produce_alignstats produce_snv_concordances -p -k -j 10"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/setup_modular_hybrid_tests.sh:40:echo ". dyoainit && dy-a slurm hg38 && dy-r produce_sentdhuom_vcf produce_alignstats produce_snv_concordances -p -k -j 10"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/bin/launch_sleepjob_spotinstance.sh:71:echo "AND, importantly, you may ssh to the compute nodes with: 'ssh <nodelist-name-from-squeue>' (ie: i8-dy-r6gb64-1)"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/docs/plans/20260526T114000Z_hg003_parallel_j190/remote_launch_ds004_ds005_j190.sh:46:    tmux send-keys -t "${session}" "dy-r produce_alignstats produce_sentdhiomr_snv_vcf produce_snv_concordances --config 'dedupers=[\"dmd\"]' -p -j 190 -k -T 0 --rerun-triggers mtime --max-jobs-per-second 8 > daylily_run_1024_j190.log 2>&1; echo __${ds_id}_RUN1024_J190_RC__:\$? | tee ${rc_file}" Enter
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/docs/plans/20260526T114000Z_hg003_parallel_j190/remote_launch_ds004_ds005_j190.sh:79:    ps -fu ubuntu | awk '/snakemake|dy-r|day_run/ && !/awk/ {print}' | head -100
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/docs/plans/20260526T082407Z_hg003_ds001_dra_export/remote_verify_ds002_launch.sh:18:    ps -fu ubuntu | awk '/snakemake|dy-r|day_run/ && !/awk/ {print}' | head -40
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/restart_io_mod_test.sh:17:tmux send-keys -t test-hybrid-io-mod-5x-run 'cd /fsx/analysis_results/ubuntu/test-hybrid-io-mod-5x/daylily-omics-analysis && source ~/.bashrc && . dyoainit --project da-us-west-2d-agbt-12t-usw2d && dy-a slurm hg38 && dy-r produce_sentdhiom_vcf -p -j 20 -k -T 2 2>&1 | tee /tmp/test-hybrid-io-mod-5x-run.log' Enter
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/bin/tabcomp.bash:81:complete -F _dyr day-run dy-r
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/docs/plans/20260526T125508Z_hg003_hiomr_downsample_status.sh:27:  ps -fu ubuntu | awk '/snakemake|dy-r|day_run/ && !/awk/ {print}'
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/docs/plans/20260526T130200Z_hg003_hiomr_success_gate.sh:38:ps -fu ubuntu | awk '/snakemake|dy-r|day_run/ && !/awk/ {print}'
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/bin/tmp_launch_mod_ug_ont.sh:22:tmux send-keys -t "$SESSION" "dy-r produce_sentdhuom_vcf -p -k -j 300" Enter
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/docs/plans/20260526T082407Z_hg003_ds001_dra_export/remote_launch_ds002_1_0_24.sh:39:tmux send-keys -t "${SESSION}" "dy-r produce_alignstats produce_sentdhiomr_snv_vcf produce_snv_concordances --config 'dedupers=[\"dmd\"]' -p -j 234 -k -T 0 --rerun-triggers mtime --max-jobs-per-second 8 > daylily_run_1024.log 2>&1; echo __DS002_RUN1024_RC__:\$? | tee ${RC_FILE}" Enter
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_test_on_headnode.sh:10:# Source dyoainit to get dy-a and dy-r functions
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_test_on_headnode.sh:25:        CMD="dy-r produce_sentdhuo_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_test_on_headnode.sh:30:        CMD="dy-r produce_sentdhio_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_test_on_headnode.sh:35:        CMD="dy-r produce_sentD_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_test_on_headnode.sh:40:        CMD="dy-r produce_sentieon_bwa_sort_bam produce_bwa_mem2_sort_bam dedup_doppelmark dedup_sentieon produce_sentD_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_test_on_headnode.sh:45:        CMD="dy-r produce_sentdpb_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_test_on_headnode.sh:50:        CMD="dy-r produce_sentdug_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/bin/verify_ensemble_integration.sh:99:echo "  1. Test with dry run: dy-r produce_ensemble_vcf -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/docs/plans/20260526T115408Z_hg003_parallel_status/remote_check_parallel_status.sh:61:    ps -fu ubuntu | awk '/snakemake|dy-r|day_run/ && !/awk/ {print}' | head -120
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/docs/plans/20260526T110500Z_hg003_hiomr_status/remote_status.sh:40:ps -fu ubuntu | awk '/snakemake|dy-r|day_run/ && !/awk/ {print}' | head -60
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_headnode_test.sh:6:# dy-a and dy-r are aliases (not functions), so they don't expand in
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_headnode_test.sh:9:#   dy-r  → bin/day_run
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_headnode_test.sh:31:        CMD="dy-r produce_sentdhuo_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_headnode_test.sh:36:        CMD="dy-r produce_sentdhio_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_headnode_test.sh:41:        CMD="dy-r produce_sentD_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_headnode_test.sh:46:        CMD="dy-r produce_sentieon_bwa_sort_bam produce_bwa_mem2_sort_bam dedup_doppelmark dedup_sentieon produce_sentD_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_headnode_test.sh:51:        CMD="dy-r produce_sentdpb_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_headnode_test.sh:56:        CMD="dy-r produce_sentdug_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_headnode_test.sh:68:# Use bin/day_run directly (the command behind dy-r alias)
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/run_headnode_test.sh:69:eval "${CMD//dy-r/bin/day_run}"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/dryrun_all_tests.sh:69:    "dy-r produce_sentdhuo_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/dryrun_all_tests.sh:75:    "dy-r produce_sentdhio_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/dryrun_all_tests.sh:81:    "dy-r produce_sentD_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/dryrun_all_tests.sh:87:    "dy-r produce_sentieon_bwa_sort_bam produce_bwa_mem2_sort_bam dedup_doppelmark dedup_sentieon produce_sentD_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"
+/Users/jmajor/projects/lsmc/daylily-omics-analysis/scripts/dryrun_all_tests.sh:93:    "dy-r produce_sentdpb_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -n"

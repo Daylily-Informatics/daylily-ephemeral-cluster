@@ -1,0 +1,4 @@
+Precheck passed: rows checked=1, samples checked=1, source objects checked=20, concordance directories checked=1.
+Generated configuration files:
+  samples.tsv -> docs/plans/20260607T163831Z_dyec800_mounts_and_slim_dryruns_retry2_logs/illumina_snv_alignstats_relatedness_vep_multiqc/config/20260607T164728Z_e438c82b_samples.tsv
+  units.tsv   -> docs/plans/20260607T163831Z_dyec800_mounts_and_slim_dryruns_retry2_logs/illumina_snv_alignstats_relatedness_vep_multiqc/config/20260607T164728Z_e438c82b_units.tsv

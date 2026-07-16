@@ -1,0 +1,625 @@
+---
+Region: us-west-2
+Image:
+  Os: ubuntu2204
+HeadNode:
+  InstanceType: r7i.8xlarge
+  Networking:
+    ElasticIp: true
+    SubnetId: subnet-0e9acb65aba5a0330
+    # 
+  DisableSimultaneousMultithreading: false
+  Dcv:
+    Enabled: false
+  LocalStorage:
+    RootVolume:
+      Size: 421
+      VolumeType: gp3
+      DeleteOnTermination: true
+    EphemeralVolume:
+      MountDir: /head_root
+  CustomActions:
+    OnNodeConfigured:
+      Script: 
+        s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+      Args:
+      - us-west-2
+      - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+      - "6.00"
+  Iam:
+    S3Access:
+    - BucketName: lsmc-dayoa-references-usw2
+      EnableWriteAccess: false
+    - BucketName: lsmc-dayoa-control-data-usw2
+      EnableWriteAccess: false
+    - BucketName: lsmc-ssf-sequencing-data
+      EnableWriteAccess: false
+    - BucketName: lsmc-ssf-sequencing-data
+      EnableWriteAccess: true
+    AdditionalIamPolicies:
+    - Policy: arn:aws:iam::108782052779:policy/pclusterTagsAndBudget
+    - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+Scheduling:
+  Scheduler: slurm
+  SlurmSettings:
+    EnableMemoryBasedScheduling: false
+    ScaledownIdletime: 5
+    Dns:
+      DisableManagedDns: false
+    QueueUpdateStrategy: DRAIN
+    # 
+  SlurmQueues:
+  - Name: i8
+    CapacityType: SPOT
+    AllocationStrategy: price-capacity-optimized
+    ComputeResources:
+    - Name: price8
+      Instances:
+      - InstanceType: r5.2xlarge
+      - InstanceType: r6i.2xlarge
+      - InstanceType: r6id.2xlarge
+      - InstanceType: r7i.2xlarge
+      - InstanceType: r8i.2xlarge
+      - InstanceType: i4i.2xlarge
+      - InstanceType: i7i.2xlarge
+      - InstanceType: i7ie.2xlarge
+      - InstanceType: x8i.2xlarge
+      MinCount: 0
+      MaxCount: 8
+      SpotPrice: 0.2951 # Calculated from reference median spot price with DYEC create cap.
+      DynamicNodePriority: 100
+      SchedulableMemory: 62259
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - subnet-087a4872d0c34e642
+    CustomActions:
+      OnNodeConfigured:
+        Script: 
+          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+        Args:
+        - us-west-2
+        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+        - "6.00"
+    Iam:
+      S3Access:
+      - BucketName: lsmc-dayoa-references-usw2
+        EnableWriteAccess: false
+      - BucketName: lsmc-dayoa-control-data-usw2
+        EnableWriteAccess: false
+      - BucketName: lsmc-ssf-sequencing-data
+        EnableWriteAccess: false
+      - BucketName: lsmc-ssf-sequencing-data
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: arn:aws:iam::108782052779:policy/pclusterTagsAndBudget
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i128
+    CapacityType: SPOT
+    AllocationStrategy: price-capacity-optimized
+    ComputeResources:
+    - Name: price128
+      Instances:
+      - InstanceType: c6i.32xlarge
+      - InstanceType: c6i.metal
+      - InstanceType: m6i.32xlarge
+      - InstanceType: m6i.metal
+      - InstanceType: m6id.32xlarge
+      - InstanceType: m6id.metal
+      - InstanceType: m6in.32xlarge
+      - InstanceType: m6in.metal
+      - InstanceType: m6idn.32xlarge
+      - InstanceType: m6idn.metal
+      - InstanceType: r6i.32xlarge
+      - InstanceType: r6i.metal
+      - InstanceType: r6id.32xlarge
+      - InstanceType: r6id.metal
+      - InstanceType: i4i.32xlarge
+      - InstanceType: i4i.metal
+      - InstanceType: c8i.32xlarge
+      - InstanceType: m8i.32xlarge
+      - InstanceType: r8i.32xlarge
+      - InstanceType: x8i.32xlarge
+      MinCount: 0
+      MaxCount: 14
+      SpotPrice: 3.0584 # Calculated from reference median spot price with DYEC create cap.
+      DynamicNodePriority: 100
+      SchedulableMemory: 262144
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    - Name: mem128
+      Instances:
+      - InstanceType: m6i.32xlarge
+      - InstanceType: m6i.metal
+      - InstanceType: m6id.32xlarge
+      - InstanceType: m6id.metal
+      - InstanceType: m6in.32xlarge
+      - InstanceType: m6in.metal
+      - InstanceType: m6idn.32xlarge
+      - InstanceType: m6idn.metal
+      - InstanceType: r6i.32xlarge
+      - InstanceType: r6i.metal
+      - InstanceType: r6id.32xlarge
+      - InstanceType: r6id.metal
+      - InstanceType: i4i.32xlarge
+      - InstanceType: i4i.metal
+      - InstanceType: m8i.32xlarge
+      - InstanceType: r8i.32xlarge
+      - InstanceType: x8i.32xlarge
+      MinCount: 0
+      MaxCount: 14
+      SpotPrice: 3.6685 # Calculated from reference median spot price with DYEC create cap.
+      DynamicNodePriority: 200
+      SchedulableMemory: 498073
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    - Name: bigmem128
+      Instances:
+      - InstanceType: r6i.32xlarge
+      - InstanceType: r6i.metal
+      - InstanceType: r6id.32xlarge
+      - InstanceType: r6id.metal
+      - InstanceType: i4i.32xlarge
+      - InstanceType: i4i.metal
+      - InstanceType: r8i.32xlarge
+      - InstanceType: x8i.32xlarge
+      MinCount: 0
+      MaxCount: 14
+      SpotPrice: 4.3378 # Calculated from reference median spot price with DYEC create cap.
+      DynamicNodePriority: 300
+      SchedulableMemory: 996147
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - subnet-087a4872d0c34e642
+    CustomActions:
+      OnNodeConfigured:
+        Script: 
+          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+        Args:
+        - us-west-2
+        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+        - "6.00"
+    Iam:
+      S3Access:
+      - BucketName: lsmc-dayoa-references-usw2
+        EnableWriteAccess: false
+      - BucketName: lsmc-dayoa-control-data-usw2
+        EnableWriteAccess: false
+      - BucketName: lsmc-ssf-sequencing-data
+        EnableWriteAccess: false
+      - BucketName: lsmc-ssf-sequencing-data
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: arn:aws:iam::108782052779:policy/pclusterTagsAndBudget
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i128nvme
+    CapacityType: SPOT
+    AllocationStrategy: price-capacity-optimized
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    ComputeResources:
+    - Name: price128nvme
+      Instances:
+      - InstanceType: i4i.32xlarge
+      - InstanceType: i4i.metal
+      MinCount: 0
+      MaxCount: 14
+      SpotPrice: 4.4942 # Calculated from reference median spot price with DYEC create cap.
+      DynamicNodePriority: 100
+      SchedulableMemory: 996147
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - subnet-087a4872d0c34e642
+    CustomActions:
+      OnNodeConfigured:
+        Script: 
+          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+        Args:
+        - us-west-2
+        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+        - "6.00"
+    Iam:
+      S3Access:
+      - BucketName: lsmc-dayoa-references-usw2
+        EnableWriteAccess: false
+      - BucketName: lsmc-dayoa-control-data-usw2
+        EnableWriteAccess: false
+      - BucketName: lsmc-ssf-sequencing-data
+        EnableWriteAccess: false
+      - BucketName: lsmc-ssf-sequencing-data
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: arn:aws:iam::108782052779:policy/pclusterTagsAndBudget
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i192
+    CapacityType: SPOT
+    AllocationStrategy: price-capacity-optimized
+    ComputeResources:
+    - Name: price192
+      Instances:
+      - InstanceType: c7i.48xlarge
+      - InstanceType: c7i.metal-48xl
+      - InstanceType: m7i.48xlarge
+      - InstanceType: m7i.metal-48xl
+      - InstanceType: r7i.48xlarge
+      - InstanceType: r7i.metal-48xl
+      - InstanceType: c8i.48xlarge
+      - InstanceType: c8i.metal-48xl
+      - InstanceType: m8i.48xlarge
+      - InstanceType: m8i.metal-48xl
+      - InstanceType: r8i.48xlarge
+      - InstanceType: r8i.metal-48xl
+      - InstanceType: i7i.48xlarge
+      - InstanceType: i7i.metal-48xl
+      - InstanceType: i7ie.48xlarge
+      - InstanceType: i7ie.metal-48xl
+      - InstanceType: x8i.48xlarge
+      - InstanceType: x8i.metal-48xl
+      MinCount: 0
+      MaxCount: 14
+      SpotPrice: 4.013 # Calculated from reference median spot price with DYEC create cap.
+      DynamicNodePriority: 100
+      SchedulableMemory: 364544
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    - Name: mem192
+      Instances:
+      - InstanceType: m7i.48xlarge
+      - InstanceType: m7i.metal-48xl
+      - InstanceType: r7i.48xlarge
+      - InstanceType: r7i.metal-48xl
+      - InstanceType: m8i.48xlarge
+      - InstanceType: m8i.metal-48xl
+      - InstanceType: r8i.48xlarge
+      - InstanceType: r8i.metal-48xl
+      - InstanceType: i7i.48xlarge
+      - InstanceType: i7i.metal-48xl
+      - InstanceType: i7ie.48xlarge
+      - InstanceType: i7ie.metal-48xl
+      - InstanceType: x8i.48xlarge
+      - InstanceType: x8i.metal-48xl
+      MinCount: 0
+      MaxCount: 14
+      SpotPrice: 4.0123 # Calculated from reference median spot price with DYEC create cap.
+      DynamicNodePriority: 200
+      SchedulableMemory: 747110
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    - Name: bigmem192
+      Instances:
+      - InstanceType: r7i.48xlarge
+      - InstanceType: r7i.metal-48xl
+      - InstanceType: r8i.48xlarge
+      - InstanceType: r8i.metal-48xl
+      - InstanceType: i7i.48xlarge
+      - InstanceType: i7i.metal-48xl
+      - InstanceType: i7ie.48xlarge
+      - InstanceType: i7ie.metal-48xl
+      - InstanceType: x8i.48xlarge
+      - InstanceType: x8i.metal-48xl
+      MinCount: 0
+      MaxCount: 14
+      SpotPrice: 4.1853 # Calculated from reference median spot price with DYEC create cap.
+      DynamicNodePriority: 300
+      SchedulableMemory: 1494220
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - subnet-087a4872d0c34e642
+    CustomActions:
+      OnNodeConfigured:
+        Script: 
+          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+        Args:
+        - us-west-2
+        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+        - "6.00"
+    Iam:
+      S3Access:
+      - BucketName: lsmc-dayoa-references-usw2
+        EnableWriteAccess: false
+      - BucketName: lsmc-dayoa-control-data-usw2
+        EnableWriteAccess: false
+      - BucketName: lsmc-ssf-sequencing-data
+        EnableWriteAccess: false
+      - BucketName: lsmc-ssf-sequencing-data
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: arn:aws:iam::108782052779:policy/pclusterTagsAndBudget
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i192nvme
+    CapacityType: SPOT
+    AllocationStrategy: price-capacity-optimized
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    ComputeResources:
+    - Name: price192nvme
+      Instances:
+      - InstanceType: i7i.48xlarge
+      - InstanceType: i7i.metal-48xl
+      - InstanceType: i7ie.48xlarge
+      - InstanceType: i7ie.metal-48xl
+      MinCount: 0
+      MaxCount: 14
+      SpotPrice: 8.3691 # Calculated from reference median spot price with DYEC create cap.
+      DynamicNodePriority: 100
+      SchedulableMemory: 364544
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    - Name: mem192nvme
+      Instances:
+      - InstanceType: i7i.48xlarge
+      - InstanceType: i7i.metal-48xl
+      - InstanceType: i7ie.48xlarge
+      - InstanceType: i7ie.metal-48xl
+      MinCount: 0
+      MaxCount: 14
+      SpotPrice: 8.3691 # Calculated from reference median spot price with DYEC create cap.
+      DynamicNodePriority: 200
+      SchedulableMemory: 747110
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    - Name: bigmem192nvme
+      Instances:
+      - InstanceType: i7i.48xlarge
+      - InstanceType: i7i.metal-48xl
+      - InstanceType: i7ie.48xlarge
+      - InstanceType: i7ie.metal-48xl
+      MinCount: 0
+      MaxCount: 14
+      SpotPrice: 8.3691 # Calculated from reference median spot price with DYEC create cap.
+      DynamicNodePriority: 300
+      SchedulableMemory: 1494220
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - subnet-087a4872d0c34e642
+    CustomActions:
+      OnNodeConfigured:
+        Script: 
+          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+        Args:
+        - us-west-2
+        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+        - "6.00"
+    Iam:
+      S3Access:
+      - BucketName: lsmc-dayoa-references-usw2
+        EnableWriteAccess: false
+      - BucketName: lsmc-dayoa-control-data-usw2
+        EnableWriteAccess: false
+      - BucketName: lsmc-ssf-sequencing-data
+        EnableWriteAccess: false
+      - BucketName: lsmc-ssf-sequencing-data
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: arn:aws:iam::108782052779:policy/pclusterTagsAndBudget
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i384nvme
+    CapacityType: SPOT
+    AllocationStrategy: price-capacity-optimized
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    ComputeResources:
+    - Name: price384nvme
+      Instances:
+      # Spot AZs checked with AWS_PROFILE=lsmc on 2026-06-08.
+      - InstanceType: c8id.96xlarge       # us-west-2=a/b/c/d; us-east-1=a/b/c/d/f; ap-south-1=none; eu-central-1=a/b/c
+      - InstanceType: c8id.metal-96xl     # us-west-2=a/b/c/d; us-east-1=a/b/c/d/f; ap-south-1=none; eu-central-1=a/b/c
+      - InstanceType: m8id.96xlarge       # us-west-2=a/b/c/d; us-east-1=a/b/c/d/f; ap-south-1=none; eu-central-1=a/b/c
+      - InstanceType: m8id.metal-96xl     # us-west-2=a/b/c/d; us-east-1=a/b/c/d/f; ap-south-1=none; eu-central-1=a/b/c
+      - InstanceType: m8idn.96xlarge      # us-west-2=a/b/c/d; us-east-1=a/b/d; ap-south-1=none; eu-central-1=none
+      - InstanceType: m8idb.96xlarge      # us-west-2=a/b/c/d; us-east-1=a/b/d; ap-south-1=none; eu-central-1=none
+      - InstanceType: r8id.96xlarge       # us-west-2=a/b/c/d; us-east-1=a/b/c/d/f; ap-south-1=none; eu-central-1=a/b/c
+      - InstanceType: r8id.metal-96xl     # us-west-2=a/b/c/d; us-east-1=a/b/c/d/f; ap-south-1=none; eu-central-1=a/b/c
+      MinCount: 0
+      MaxCount: 14
+      SpotPrice: 8.3691 # Calculated from reference median spot price with DYEC create cap.
+      DynamicNodePriority: 100
+      SchedulableMemory: 747110
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    - Name: mem384nvme
+      Instances:
+      # Spot AZs checked with AWS_PROFILE=lsmc on 2026-06-08.
+      - InstanceType: m8id.96xlarge       # us-west-2=a/b/c/d; us-east-1=a/b/c/d/f; ap-south-1=none; eu-central-1=a/b/c
+      - InstanceType: m8id.metal-96xl     # us-west-2=a/b/c/d; us-east-1=a/b/c/d/f; ap-south-1=none; eu-central-1=a/b/c
+      - InstanceType: m8idn.96xlarge      # us-west-2=a/b/c/d; us-east-1=a/b/d; ap-south-1=none; eu-central-1=none
+      - InstanceType: m8idb.96xlarge      # us-west-2=a/b/c/d; us-east-1=a/b/d; ap-south-1=none; eu-central-1=none
+      - InstanceType: r8id.96xlarge       # us-west-2=a/b/c/d; us-east-1=a/b/c/d/f; ap-south-1=none; eu-central-1=a/b/c
+      - InstanceType: r8id.metal-96xl     # us-west-2=a/b/c/d; us-east-1=a/b/c/d/f; ap-south-1=none; eu-central-1=a/b/c
+      MinCount: 0
+      MaxCount: 14
+      SpotPrice: 8.3691 # Calculated from reference median spot price with DYEC create cap.
+      DynamicNodePriority: 200
+      SchedulableMemory: 1494220
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    - Name: bigmem384nvme
+      Instances:
+      # Spot AZs checked with AWS_PROFILE=lsmc on 2026-06-08.
+      - InstanceType: r8id.96xlarge       # us-west-2=a/b/c/d; us-east-1=a/b/c/d/f; ap-south-1=none; eu-central-1=a/b/c
+      - InstanceType: r8id.metal-96xl     # us-west-2=a/b/c/d; us-east-1=a/b/c/d/f; ap-south-1=none; eu-central-1=a/b/c
+      MinCount: 0
+      MaxCount: 14
+      SpotPrice: 8.3691 # Calculated from reference median spot price with DYEC create cap.
+      DynamicNodePriority: 300
+      SchedulableMemory: 2988441
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - subnet-087a4872d0c34e642
+    CustomActions:
+      OnNodeConfigured:
+        Script: 
+          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+        Args:
+        - us-west-2
+        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+        - "6.00"
+    Iam:
+      S3Access:
+      - BucketName: lsmc-dayoa-references-usw2
+        EnableWriteAccess: false
+      - BucketName: lsmc-dayoa-control-data-usw2
+        EnableWriteAccess: false
+      - BucketName: lsmc-ssf-sequencing-data
+        EnableWriteAccess: false
+      - BucketName: lsmc-ssf-sequencing-data
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: arn:aws:iam::108782052779:policy/pclusterTagsAndBudget
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i192hugenvme
+    CapacityType: SPOT
+    AllocationStrategy: price-capacity-optimized
+    ComputeSettings:
+      LocalStorage:
+        EphemeralVolume:
+          MountDir: /scratch
+    ComputeResources:
+    - Name: price192hugenvme
+      Instances:
+      - InstanceType: i7i.48xlarge
+      - InstanceType: i7i.metal-48xl
+      - InstanceType: i7ie.48xlarge
+      - InstanceType: i7ie.metal-48xl
+      MinCount: 0
+      MaxCount: 14
+      SpotPrice: 8.3691 # Calculated from reference median spot price with DYEC create cap.
+      DynamicNodePriority: 100
+      SchedulableMemory: 1494220
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - subnet-087a4872d0c34e642
+    CustomActions:
+      OnNodeConfigured:
+        Script: 
+          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+        Args:
+        - us-west-2
+        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+        - "6.00"
+    Iam:
+      S3Access:
+      - BucketName: lsmc-dayoa-references-usw2
+        EnableWriteAccess: false
+      - BucketName: lsmc-dayoa-control-data-usw2
+        EnableWriteAccess: false
+      - BucketName: lsmc-ssf-sequencing-data
+        EnableWriteAccess: false
+      - BucketName: lsmc-ssf-sequencing-data
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: arn:aws:iam::108782052779:policy/pclusterTagsAndBudget
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+Monitoring:
+  DetailedMonitoring: false
+  Logs:
+    CloudWatch:
+      Enabled: true
+      RetentionInDays: 3
+SharedStorage:
+- MountDir: /fsx
+  Name: fsx-ifx-reworkB
+  StorageType: FsxLustre
+  FsxLustreSettings:
+    StorageCapacity: 12000
+    DeploymentType: SCRATCH_2
+    DeletionPolicy: Delete
+    DataRepositoryAssociations:
+    - Name: reference-data
+      FileSystemPath: /references/
+      DataRepositoryPath: s3://lsmc-dayoa-references-usw2/
+      BatchImportMetaDataOnCreate: true
+      AutoImportPolicy:
+      - NEW
+      - CHANGED
+      - DELETED
+Tags:
+- Key: aws-parallelcluster-username
+  Value: jmajor-root
+- Key: aws-parallelcluster-jobid
+  Value: aws_profile-lsmc
+- Key: aws-parallelcluster-project
+  Value: ifx-reworkB
+- Key: aws-parallelcluster-clustername
+  Value: ifx-reworkB
+- Key: aws-parallelcluster-enforce-budget
+  Value: "true"
+- Key: aws-parallelcluster-cost-center-region
+  Value: us-west-2
+- Key: aws-parallelcluster-cost-center-table
+  Value: dayec-cost-centers
+- Key: aws-parallelcluster-cost-center-usage-table
+  Value: dayec-cost-center-usage
+- Key: aws-parallelcluster-daylily-git-deets
+  Value: none
+- Key: aws-parallelcluster-monitor-bucket
+  Value: s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+DevSettings:
+  Timeouts:
+    HeadNodeBootstrapTimeout: 3600
+    ComputeNodeBootstrapTimeout: 3600
+...

@@ -1,0 +1,6 @@
+time_start,time_end,estimated,amount_usd,tag_project,tag_project_value
+2026-03-16,2026-04-01,False,2831.4357391244,project$,
+2026-04-01,2026-05-01,False,9334.5476065665,project$,
+2026-05-01,2026-06-01,False,24026.22153037,project$,
+2026-06-01,2026-06-14,True,10833.3905784958,project$,
+2026-06-01,2026-06-14,True,1318.0374949808,project$dayhoff-all,dayhoff-all

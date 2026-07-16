@@ -1,0 +1,16 @@
+partition,resource,reference_partition,reference_resource,reference_source,reference_median_initial_maxprice,old_1p2_maxprice,new_1p55_maxprice,live_config_spotprice_before
+i8,price8,i8,price8,self,0.1904,0.2285,0.2951,0.2285
+i128,price128,i128,price128,self,1.9731,2.3677,3.0584,2.3678
+i128,mem128,i128,mem128,self,2.3668,2.8402,3.6685,2.8363
+i128,bigmem128,i128,bigmem128,self,2.7986,3.3583,4.3378,3.3583
+i128nvme,price128nvme,i128nvme,price128nvme,self,2.8995,3.4794,4.4942,3.4794
+i192,price192,i192,price192,self,2.5890,3.1068,4.0130,3.1168
+i192,mem192,i192,mem192,self,2.5885,3.1062,4.0123,3.1063
+i192,bigmem192,i192,bigmem192,self,2.7002,3.2402,4.1853,3.2402
+i192nvme,price192nvme,i192nvme,price192nvme,self,5.3994,6.4793,8.3691,6.5141
+i192nvme,mem192nvme,i192nvme,mem192nvme,self,5.3994,6.4793,8.3691,6.5141
+i192nvme,bigmem192nvme,i192nvme,bigmem192nvme,self,5.3994,6.4793,8.3691,6.5141
+i384nvme,price384nvme,i192nvme,price192nvme,i192_reference,5.3994,6.4793,8.3691,6.5141
+i384nvme,mem384nvme,i192nvme,mem192nvme,i192_reference,5.3994,6.4793,8.3691,6.5141
+i384nvme,bigmem384nvme,i192nvme,bigmem192nvme,i192_reference,5.3994,6.4793,8.3691,6.5141
+i192hugenvme,price192hugenvme,i192hugenvme,price192hugenvme,self,5.3994,6.4793,8.3691,6.5141

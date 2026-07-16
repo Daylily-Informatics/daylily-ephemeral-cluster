@@ -61,7 +61,7 @@ Ensure required config keys exist, patch config file	~L640-L700 + ensure_config_
 Auto-select semantics with DAY_DISABLE_AUTO_SELECT	should_auto_apply_config_value ~L489-L520	TripletResolver.should_auto_apply(action, set_value, env)	Preserve: if set_value present and auto-select enabled, use it even if action != USESETVALUE.
 Compute resource max counts prompts (8I/128I/192I)	~L1160-L1230	CreateClusterWorkflow.resolve_capacity_config()	Preserve prompt defaults and final config values.
 Toolchain prerequisite check (bin/check_prereq_sw.sh)	~L1230-L1275	ToolchainValidator.validate_versions()	Preserve pass-on-warn behavior.
-pcluster version check equals 3.13.2	~L1260-L1275	ToolchainValidator.validate_pcluster_version(expected="3.13.2")	Preserve warn vs fail logic.
+pcluster version check equals 3.15.0	~L1260-L1275	ToolchainValidator.validate_pcluster_version(expected="3.15.0")	Preserve warn vs fail logic.
 AWS identity check (sts get-caller-identity)	~L1290-L1315	AwsIdentityValidator.validate_credentials()	Must be first AWS call in preflight.
 Derive AWS user name from STS Arn	~L1278	AwsContext.from_sts().aws_cli_user	Preserve behavior for user ARNs. If assumed-role ARN, use last path segment.
 Check required Daylily managed policies attached to user or group	~L1319-L1365	IamPermissionValidator.check_daylily_policies()	Preserve: prompt “continue anyway?” unless --non-interactive (new) then fail.

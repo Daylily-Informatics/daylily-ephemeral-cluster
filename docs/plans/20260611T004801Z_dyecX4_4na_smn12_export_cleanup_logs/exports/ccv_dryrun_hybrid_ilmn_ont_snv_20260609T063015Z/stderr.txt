@@ -1,0 +1,6 @@
+2026-06-10 18:45:40,578 INFO Found credentials in shared credentials file: ~/.aws/credentials
+2026-06-10 18:54:09,053 INFO Task task-048d0057811dfde71 status: PENDING
+2026-06-10 18:54:39,373 INFO Task task-048d0057811dfde71 status: EXECUTING
+2026-06-10 18:55:09,702 INFO Task task-048d0057811dfde71 status: EXECUTING
+2026-06-10 18:55:40,055 INFO Task task-048d0057811dfde71 status: SUCCEEDED
+2026-06-10 18:56:11,391 INFO Wrote export status to /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260611T004801Z_dyecX4_4na_smn12_export_cleanup_logs/exports/ccv_dryrun_hybrid_ilmn_ont_snv_20260609T063015Z/fsx_export.yaml

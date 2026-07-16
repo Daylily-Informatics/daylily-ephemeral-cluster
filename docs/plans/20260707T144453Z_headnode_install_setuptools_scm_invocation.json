@@ -1,0 +1,22 @@
+{
+    "CommandId": "48072286-d601-4a6c-8ee7-836ab436c336",
+    "InstanceId": "i-06e429d2a68a0b1ec",
+    "Comment": "dyec103-install-setuptools-scm-version-fix",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 0,
+    "ExecutionStartDateTime": "2026-07-07T16:09:41.846Z",
+    "ExecutionElapsedTime": "PT7.522S",
+    "ExecutionEndDateTime": "2026-07-07T16:09:48.846Z",
+    "Status": "Success",
+    "StatusDetails": "Success",
+    "StandardOutputContent": "DAY-EC activated.\nDAY-EC activated.\nCollecting setuptools-scm>=8\n  Using cached setuptools_scm-10.2.0-py3-none-any.whl.metadata (6.6 kB)\nCollecting vcs-versioning<3,>=2.0.0.dev0 (from setuptools-scm>=8)\n  Using cached vcs_versioning-2.2.2-py3-none-any.whl.metadata (1.7 kB)\nRequirement already satisfied: packaging>=20 in /home/ubuntu/miniconda3/envs/DAY-EC/lib/python3.11/site-packages (from setuptools-scm>=8) (25.0)\nRequirement already satisfied: setuptools in /home/ubuntu/miniconda3/envs/DAY-EC/lib/python3.11/site-packages (from setuptools-scm>=8) (80.10.2)\nUsing cached setuptools_scm-10.2.0-py3-none-any.whl (27 kB)\nUsing cached vcs_versioning-2.2.2-py3-none-any.whl (108 kB)\nInstalling collected packages: vcs-versioning, setuptools-scm\n\nSuccessfully installed setuptools-scm-10.2.0 vcs-versioning-2.2.2\n{\n  \"app\": \"Daylily Ephemeral Cluster\",\n  \"version\": \"10.0.99\"\n}\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}

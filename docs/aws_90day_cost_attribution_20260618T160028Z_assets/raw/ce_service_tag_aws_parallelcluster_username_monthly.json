@@ -1,0 +1,2791 @@
+{
+  "DimensionValueAttributes": [],
+  "GroupDefinitions": [
+    {
+      "Key": "SERVICE",
+      "Type": "DIMENSION"
+    },
+    {
+      "Key": "aws-parallelcluster-username",
+      "Type": "TAG"
+    }
+  ],
+  "ResultsByTime": [
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "AWS CloudFormation",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Cost Explorer",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2686503011",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.064516112",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000163",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.9528276787",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "88.224917683",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000162",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS WAF",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.471338384",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS X-Ray",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000213635",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000327863",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0033334375",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0015549375",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1231504824",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "246.802850512",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "30.0649474162",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "12.0197083729",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$ubuntu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "209.9816333455",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "117.2039821408",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "20.744267092",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$ubuntu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "313.6134334208",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Container Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.5211423895",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "17.8235367274",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "619.5662390782",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "119.246923207",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000000241",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.0483168403",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "142.5877785492",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.0609576",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "333.991371299",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "41.463882133",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.04037639",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.49687639",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.8989247215",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CloudWatch Events",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Tax",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-04-01",
+        "Start": "2026-03-21"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "AWS Certificate Manager",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudFormation",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Cost Explorer",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.9391166236",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.000000024",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000013567",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.4352410308",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "91.6659815437",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000018823",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Support (Developer)",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "261.0595463814",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS WAF",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "8.0212293499",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000001282",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.14175",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0001662146",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0158054375",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.002868875",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0068074375",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.4761489983",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "496.9024657122",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "113.8855605927",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "53.7486886556",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "21.2667910681",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$ubuntu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "804.7302448421",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "567.2982506795",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "56.6146574054",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "240.9463647089",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$ubuntu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "368.7354869646",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Container Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "35.5698970163",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic File System",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000452052",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "18.9681630235",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2901.1559141503",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "515.7658337145",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "507.9062672167",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000026714",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "15.268142109",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Registrar",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "130",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "497.9875161126",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "12.0503452",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.9",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.2",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.2",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1479.5929508039",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "110.8268669624",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.83238057",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.964795835",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.582806955",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.8825031081",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CloudWatch Events",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Tax",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-05-01",
+        "Start": "2026-04-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "AWS Certificate Manager",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudFormation",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "32.533505",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Cost Explorer",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "60.8757636451",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.934997566",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000063428",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.0549953036",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "191.551362364",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000002284",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Support (Developer)",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "680.902151147",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS WAF",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6.999999888",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.02925",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0003780314",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0061909375",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0237960625",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000397375",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0073048125",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.7040180655",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "920.3390281027",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "84.7840415929",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "127.5995922092",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.164281177",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "22.5408412925",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$ubuntu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2454.6456656364",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "238.9294021597",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1506.1805626636",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "13.5201625076",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "487.8093073821",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$ubuntu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6504.5773599412",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Container Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "55.1299283869",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic File System",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000724317",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "25.2091283305",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1446.0178842132",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1793.1201074908",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "34.4304542824",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1401.9811602682",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000032412",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "20.8700168735",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2029.0941517157",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "10.252048",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.2",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.2",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000062797",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3643.1147737754",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "126.1776083074",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.79219446",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.33531395",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.129959725",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.43206112",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "40.0744644076",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0008164823",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "41.8170844188",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0027682493",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0251604706",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CloudWatch Events",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Tax",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-01",
+        "Start": "2026-05-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "AWS CloudFormation",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS CloudTrail",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "124.86978",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Cost Explorer",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "244.5372646666",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Glue",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Key Management Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.4698956854",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000039319",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Lambda",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Secrets Manager",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.8418044774",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Security Hub",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "198.7730404691",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Service Catalog",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Step Functions",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.000001281",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS Support (Developer)",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "614.906181015",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AWS WAF",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.1027778106",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon CloudFront",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000000034",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Cognito",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000478022",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.017916625",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon DynamoDB",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0017995",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon EC2 Container Registry (ECR)",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.5944261358",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "431.0853473298",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "39.1062222408",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "82.6504070244",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.5971946658",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "EC2 - Other",
+            "aws-parallelcluster-username$ubuntu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3195.0438440963",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1612.2072813584",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "180.3524937577",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Compute Cloud - Compute",
+            "aws-parallelcluster-username$ubuntu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7170.7487924795",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Container Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "31.285903183",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic File System",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000524745",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Elastic Load Balancing",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "19.0084592812",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "994.1517757807",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon FSx",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "140.4823646737",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Glacier",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000018058",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon GuardDuty",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7.0660311593",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Inspector",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Relational Database Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2577.0392707347",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "9.2373672",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.9",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Route 53",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Notification Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0000026115",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Queue Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Simple Storage Service",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3890.9782625577",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "87.6410377773",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3.371965335",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Amazon Virtual Private Cloud",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.56434724",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "127.5090484229",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1.8553392591",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "AmazonCloudWatch",
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.0257958717",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "CloudWatch Events",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "Tax",
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-19",
+        "Start": "2026-06-01"
+      },
+      "Total": {}
+    }
+  ]
+}

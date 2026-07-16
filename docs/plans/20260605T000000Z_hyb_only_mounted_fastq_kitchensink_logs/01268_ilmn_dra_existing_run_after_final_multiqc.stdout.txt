@@ -1,0 +1,3 @@
+Export task started: task-09a46cfe3c7f9c071
+Lifecycle: SUCCEEDED
+Report path: s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/_daylily_monitor/fsx-export/20260606T101231Z/export-report/

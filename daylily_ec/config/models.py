@@ -87,14 +87,13 @@ class EphemeralClusterConfig(BaseModel):
 class ConfigFile(BaseModel):
     """Root model wrapping ``ephemeral_cluster:`` key."""
 
-    ephemeral_cluster: EphemeralClusterConfig = Field(
-        default_factory=EphemeralClusterConfig
-    )
+    ephemeral_cluster: EphemeralClusterConfig = Field(default_factory=EphemeralClusterConfig)
 
 
 # ---------------------------------------------------------------------------
 # Required config keys — must exist in the config section.  If missing,
-# ``ensure_required_keys`` adds them as ``[PROMPTUSER, "", ""]``.
+# ``ensure_required_keys`` adds them as promptable triplets with the defaults
+# declared here.
 # ---------------------------------------------------------------------------
 
 REQUIRED_CONFIG_KEYS: list[str] = [
@@ -105,9 +104,22 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "cluster_name",
     "cluster_template_yaml",
     "delete_local_root",
+    "dragen_license_policy_arn",
+    "dragen_license_secret_arn",
+    "dyec_deploy_key_policy_arn",
+    "dyec_deploy_key_secret_arn",
+    "dayoa_deploy_key_policy_arn",
+    "dayoa_deploy_key_secret_arn",
     "enable_detailed_monitoring",
     "enforce_budget",
+    "fsx_deployment_type",
+    "fsx_encryption_mode",
     "fsx_fs_size",
+    "fsx_lifecycle",
+    "fsx_lustre_version",
+    "fsx_metadata_mode",
+    "fsx_owner",
+    "fsx_throughput_mbps_per_tib",
     "global_allowed_budget_users",
     "global_budget_amount",
     "headnode_instance_type",
@@ -117,8 +129,25 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "iam_policy_arn",
     "max_count_128I",
     "max_count_192I",
+    "max_count_384I",
     "max_count_8I",
+    "max_count_96I_NVME",
+    "max_count_128I_C",
+    "max_count_128I_M",
+    "max_count_128I_R",
+    "max_count_128I_NVME",
+    "max_count_192I_C",
+    "max_count_192I_M",
+    "max_count_192I_R",
+    "max_count_192I_NVME_C",
+    "max_count_192I_NVME_M",
+    "max_count_192I_NVME_R",
+    "max_count_192I_HUGENVME",
+    "max_count_384I_NVME_C",
+    "max_count_384I_NVME_M",
+    "max_count_384I_NVME_R",
     "private_subnet_id",
+    "pcluster_backport_manifest",
     "public_subnet_id",
     "reference_s3_uri",
     "control_data_s3_uri",
@@ -131,12 +160,14 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "slurm_accounting_db_username",
     "slurm_accounting_instance_type",
     "spot_instance_allocation_strategy",
+    "sweep_protection_tag",
 ]
 
 
 # ---------------------------------------------------------------------------
 # Normalization helper (matches Bash ``normalize_config_component``)
 # ---------------------------------------------------------------------------
+
 
 def _normalize(value: str) -> str:
     """Normalize a single config component string.

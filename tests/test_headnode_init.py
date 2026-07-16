@@ -5,6 +5,7 @@ import shlex
 import subprocess
 from pathlib import Path
 
+import pytest
 from typer.testing import CliRunner
 
 import daylily_ec.headnode as headnode
@@ -49,6 +50,31 @@ def _activate_dayec_runtime(monkeypatch) -> None:
 def _write_executable(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
     path.chmod(0o755)
+
+
+def _write_headnode_utils(path: Path, marker: str = "helper") -> None:
+    _write_executable(path / "day-clone", f"#!/usr/bin/env bash\necho {marker}\n")
+    _write_executable(path / "sq", '#!/usr/bin/env bash\nexec sqq "$@"\n')
+    _write_executable(
+        path / "sqq",
+        (
+            "#!/usr/bin/env bash\n"
+            "set -euo pipefail\n"
+            'format="SQ_FORMAT"\n'
+            'if [[ "$#" -eq 0 ]]; then\n'
+            '    exec squeue -o "$format"\n'
+            "fi\n"
+            'jobs=""\n'
+            'for job in "$@"; do\n'
+            '    if [[ -z "$jobs" ]]; then\n'
+            '        jobs="$job"\n'
+            "    else\n"
+            '        jobs="${jobs},${job}"\n'
+            "    fi\n"
+            "done\n"
+            'exec squeue -o "$format" -j "$jobs"\n'
+        ),
+    )
 
 
 def test_collect_headnode_state_reads_project_budget_and_bucket(
@@ -195,18 +221,20 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
     )
     assert "export DAY_PROJECT=da-us-west-2b-demo" in shell_code
     assert "export DAY_AWS_REGION=us-west-2" in shell_code
-    assert 'export APPTAINER_HOME="${APPTAINER_HOME:-/fsx/tmp/apptainer_home/$USER}"' in shell_code
+    assert (
+        'export APPTAINER_HOME="${APPTAINER_HOME:-/fsx/tmp/apptainer_home/'
+        '${USER:-$(id -un)}}"' in shell_code
+    )
     assert (
         'export DAYLILY_APPTAINER_CACHE="${DAYLILY_APPTAINER_CACHE:-/fsx/resources/environments/apptainer}"'
         in shell_code
     )
     assert (
-        'export DAYLILY_CONTAINER_CACHE="${DAYLILY_CONTAINER_CACHE:-/fsx/resources/environments/containers/$USER/$(hostname)}"'
-        in shell_code
+        'export DAYLILY_CONTAINER_CACHE="${DAYLILY_CONTAINER_CACHE:-/fsx/resources/'
+        'environments/containers/${USER:-$(id -un)}/$(hostname)}"' in shell_code
     )
     assert (
-        'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-$DAYLILY_APPTAINER_CACHE}"'
-        in shell_code
+        'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-$DAYLILY_APPTAINER_CACHE}"' in shell_code
     )
     assert (
         'export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-$APPTAINER_CACHEDIR}"' in shell_code
@@ -218,6 +246,27 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
     assert 'alias day-build-env="${DAYLILY_EC_REPO_ROOT}/bin/init_dayec"' in shell_code
     assert "alias sq=sqq" in shell_code
     assert headnode.SQUEUE_FORMAT in shell_code
+
+
+def test_build_shell_code_is_safe_with_unset_user_and_ps1(tmp_path: Path) -> None:
+    shell_code = headnode.build_shell_code(
+        headnode.HeadnodeState(
+            region="us-west-2",
+            project="test-project",
+            reference_s3_uri="s3://reference-bucket",
+        )
+    )
+    script = tmp_path / "headnode-shell.sh"
+    script.write_text("set -u\nunset USER PS1\n" + shell_code, encoding="utf-8")
+
+    result = subprocess.run(
+        ["bash", str(script)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
 
 
 def test_run_headnode_init_emit_shell_non_interactive_fails_on_missing_budget_tags(
@@ -362,10 +411,18 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         path.mkdir(parents=True, exist_ok=True)
 
     (resources_dir / "config" / "daylily_cli_global.yaml").write_text(
-        "daylily: {}\n", encoding="utf-8"
+        "daylily:\n"
+        "  sentieon_license:\n"
+        "    mode: server\n"
+        "    endpoint: license.sentieon.lsmc.bio:8990\n",
+        encoding="utf-8",
     )
     (resources_dir / "config" / "daylily_pipeline_command_catalog.yaml").write_text(
         "default_repository: daylily-omics-analysis\nrepositories: {}\n",
+        encoding="utf-8",
+    )
+    (resources_dir / "config" / "github_known_hosts").write_text(
+        "github.com ssh-ed25519 test-host-key\n",
         encoding="utf-8",
     )
     (resources_dir / "etc" / "analysis_samples_template.tsv").write_text(
@@ -378,9 +435,10 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         encoding="utf-8",
     )
 
+    _write_headnode_utils(resources_dir / "bin" / "headnode_utils", marker="day-clone")
     _write_executable(
-        resources_dir / "bin" / "headnode_utils" / "day-clone",
-        "#!/usr/bin/env bash\necho day-clone\n",
+        fake_bin / "squeue",
+        '#!/usr/bin/env bash\nprintf \'%s\\n\' "$@" >"${SQUEUE_ARG_LOG}"\n',
     )
     _write_executable(
         resources_dir / "bin" / "install_miniconda",
@@ -437,6 +495,7 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
             "FAKE_DAYLILY_BIN": str(fake_bin),
             "HEADNODE_TEST_LOG": str(log_dir / "installer.log"),
             "HOME": str(home_dir),
+            "SQUEUE_ARG_LOG": str(log_dir / "squeue.args"),
             "PATH": f"{fake_bin}:{env.get('PATH', '')}",
         }
     )
@@ -480,13 +539,33 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         'eval "$(daylily-ec headnode init --emit-shell --non-interactive --skip-project-check)"'
         in bootstrap_text
     )
+    assert 'export SENTIEON_LICENSE="$sentieon_license_endpoint"' in bootstrap_text
+    assert "legacy daylily.sentieon_lic_path is forbidden" in bootstrap_text
+    assert "license.sentieon.lsmc.bio:8990" in bootstrap_text
     assert "daylily_headnode_bootstrap()" not in bootstrap_text
     assert "unset -f daylily_headnode_bootstrap" not in bootstrap_text
     assert (home_dir / ".config" / "daylily" / "daylily_pipeline_command_catalog.yaml").is_file()
+    assert (home_dir / ".config" / "daylily" / "github_known_hosts").is_file()
     legacy_catalog = home_dir / ".config" / "daylily" / "daylily_available_repositories.yaml"
     assert legacy_catalog.is_symlink()
     assert legacy_catalog.readlink() == Path("daylily_pipeline_command_catalog.yaml")
     assert (user_bin_dir / "day-clone").is_file()
+    assert (user_bin_dir / "sq").is_file()
+    assert (user_bin_dir / "sqq").is_file()
+    sq_result = subprocess.run(
+        ["/bin/sh", "-c", "sq 123 456"],
+        env={**env, "PATH": f"{user_bin_dir}:{fake_bin}:{env.get('PATH', '')}"},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert sq_result.returncode == 0, sq_result.stderr
+    assert (log_dir / "squeue.args").read_text(encoding="utf-8").splitlines() == [
+        "-o",
+        "SQ_FORMAT",
+        "-j",
+        "123,456",
+    ]
     assert log_text.count("install_miniconda") >= 2
     assert log_text.count("activate") == 2
     assert (
@@ -495,6 +574,81 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         )
         == 2
     )
+    bootstrap_result = subprocess.run(
+        [
+            "bash",
+            "-c",
+            f"source {shlex.quote(str(bootstrap_file))}; printf '%s' \"$SENTIEON_LICENSE\"",
+        ],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert bootstrap_result.returncode == 0, bootstrap_result.stderr
+    assert bootstrap_result.stdout == "license.sentieon.lsmc.bio:8990"
+
+
+@pytest.mark.parametrize(
+    ("config_text", "expected_error"),
+    (
+        (
+            "daylily:\n  sentieon_lic_path: /fsx/legacy.lic\n",
+            "legacy daylily.sentieon_lic_path is forbidden",
+        ),
+        (
+            "daylily:\n"
+            "  sentieon_license:\n"
+            "    mode: local\n"
+            "    endpoint: license.sentieon.lsmc.bio:8990\n",
+            "daylily.sentieon_license.mode must be server",
+        ),
+        (
+            "daylily:\n"
+            "  sentieon_license:\n"
+            "    mode: server\n"
+            "    endpoint: usw2d-01.sentieon.lsmc.bio:8990\n",
+            "daylily.sentieon_license.endpoint must be license.sentieon.lsmc.bio:8990",
+        ),
+    ),
+)
+def test_install_headnode_tools_rejects_noncanonical_sentieon_license_config(
+    tmp_path: Path,
+    config_text: str,
+    expected_error: str,
+) -> None:
+    resources_dir = tmp_path / "resources"
+    (resources_dir / "config").mkdir(parents=True)
+    (resources_dir / "config" / "daylily_cli_global.yaml").write_text(
+        config_text,
+        encoding="utf-8",
+    )
+
+    env = os.environ.copy()
+    env.update(
+        {
+            "DAYLILY_EC_RESOURCES_DIR": str(resources_dir),
+            "HOME": str(tmp_path / "home"),
+        }
+    )
+    result = subprocess.run(
+        ["bash", str(REPO_ROOT / "bin" / "install-daylily-headnode-tools")],
+        cwd=REPO_ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert expected_error in result.stderr
+    assert not (
+        tmp_path
+        / "home"
+        / ".config"
+        / "daylily"
+        / "daylily-headnode-bootstrap.sh"
+    ).exists()
 
 
 def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Path) -> None:
@@ -512,10 +666,18 @@ def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Pat
         path.mkdir(parents=True, exist_ok=True)
 
     (resources_dir / "config" / "daylily_cli_global.yaml").write_text(
-        "daylily: {}\n", encoding="utf-8"
+        "daylily:\n"
+        "  sentieon_license:\n"
+        "    mode: server\n"
+        "    endpoint: license.sentieon.lsmc.bio:8990\n",
+        encoding="utf-8",
     )
     (resources_dir / "config" / "daylily_pipeline_command_catalog.yaml").write_text(
         "default_repository: daylily-omics-analysis\nrepositories: {}\n",
+        encoding="utf-8",
+    )
+    (resources_dir / "config" / "github_known_hosts").write_text(
+        "github.com ssh-ed25519 test-host-key\n",
         encoding="utf-8",
     )
     (resources_dir / "etc" / "analysis_samples_template.tsv").write_text(
@@ -528,10 +690,7 @@ def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Pat
         encoding="utf-8",
     )
 
-    _write_executable(
-        resources_dir / "bin" / "headnode_utils" / "day-clone",
-        "#!/usr/bin/env bash\necho day-clone\n",
-    )
+    _write_headnode_utils(resources_dir / "bin" / "headnode_utils", marker="day-clone")
     _write_executable(
         resources_dir / "bin" / "install_miniconda",
         "#!/usr/bin/env bash\nexit 42\n",
@@ -585,21 +744,25 @@ def test_install_headnode_tools_prefers_checkout_over_installed_resources(
         ):
             path.mkdir(parents=True, exist_ok=True)
         (root / "config" / "daylily_cli_global.yaml").write_text(
-            "daylily: {}\n",
+            "daylily:\n"
+            "  sentieon_license:\n"
+            "    mode: server\n"
+            "    endpoint: license.sentieon.lsmc.bio:8990\n",
             encoding="utf-8",
         )
         (root / "config" / "daylily_pipeline_command_catalog.yaml").write_text(
             "default_repository: daylily-omics-analysis\nrepositories: {}\n",
             encoding="utf-8",
         )
+        (root / "config" / "github_known_hosts").write_text(
+            "github.com ssh-ed25519 test-host-key\n",
+            encoding="utf-8",
+        )
         (root / "etc" / "analysis_samples_template.tsv").write_text(
             "<REF-S3-URI>\n",
             encoding="utf-8",
         )
-        _write_executable(
-            root / "bin" / "headnode_utils" / "day-clone",
-            f"#!/usr/bin/env bash\necho {marker}\n",
-        )
+        _write_headnode_utils(root / "bin" / "headnode_utils", marker=marker)
     _write_executable(
         repo_root / "bin" / "install_miniconda",
         "#!/usr/bin/env bash\nexit 42\n",
@@ -672,13 +835,55 @@ def test_packaged_install_headnode_tools_matches_source() -> None:
     assert packaged.read_text(encoding="utf-8") == source.read_text(encoding="utf-8")
 
 
+def test_headnode_squeue_helpers_are_watchable_from_non_interactive_shell(
+    tmp_path: Path,
+) -> None:
+    fake_bin = tmp_path / "fake-bin"
+    fake_bin.mkdir()
+    arg_log = tmp_path / "squeue.args"
+    _write_executable(
+        fake_bin / "squeue",
+        '#!/usr/bin/env bash\nprintf \'%s\\n\' "$@" >"${SQUEUE_ARG_LOG}"\n',
+    )
+    env = os.environ.copy()
+    env.update(
+        {
+            "PATH": f"{REPO_ROOT / 'bin' / 'headnode_utils'}:{fake_bin}:{env.get('PATH', '')}",
+            "SQUEUE_ARG_LOG": str(arg_log),
+        }
+    )
+
+    result = subprocess.run(
+        ["/bin/sh", "-c", "sq 123 456"],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert arg_log.read_text(encoding="utf-8").splitlines() == [
+        "-o",
+        headnode.SQUEUE_FORMAT,
+        "-j",
+        "123,456",
+    ]
+
+
+def test_headnode_squeue_helper_format_matches_headnode_init_constant() -> None:
+    script = (REPO_ROOT / "bin" / "headnode_utils" / "sqq").read_text(encoding="utf-8")
+
+    assert f'format="{headnode.SQUEUE_FORMAT}"' in script
+
+
 def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> None:
     script = (REPO_ROOT / "config/day_cluster/post_install_ubuntu_combined.sh").read_text(
         encoding="utf-8"
     )
 
     assert "set -Ee -o pipefail" in script
-    assert "set -Eeuo pipefail" not in script
+    outer_script = script.split("install_spot_lifecycle_hooks()")[0]
+    assert "set -Eeuo pipefail" not in outer_script
     assert 'export HOME="${HOME:-/root}"' in script
     assert "trap 'rc=$?; echo \"[$(date +%Y%m%d_%H%M%S)] ERROR rc=${rc}" in script
     assert 'exec > >(tee -a "${local_log_fn}" "${fsx_log_fn}") 2>&1' in script
@@ -702,17 +907,23 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert 'chmod a-w "${role_root}"' in script
     assert 'stat -c "Role data permissions: %A %n" "${role_root}"' in script
     assert "fd-find ripgrep docker.io" in script
-    assert "8c5d8eb0cb7f34784c872c4c70848fa442894165b7b5459cf6206a3f09c70369" in script
-    assert "024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae" in script
+    assert "sbatch_wrapper_sha256" not in script
+    assert "sleep_test_sha256" not in script
     assert "cached Apptainer deb not found" in script
     assert 'apt-get install -y "${apptainer_deb}"' in script
     assert 'ln -sfn "$(command -v apptainer)" /usr/local/bin/singularity' in script
     assert 'ln -sfn "${runtime_assets_root}/tool_specific_resources/cromwell_87.jar"' in script
     assert 'ln -sfn "${runtime_assets_root}/tool_specific_resources/womtool_87.jar"' in script
     assert "prepare_common_writable_dirs" in script
+    assert 'spot_lifecycle_state_dir="/var/lib/daylily/spot_lifecycle"' in script
+    assert "daylily-spot-lifecycle-shutdown.service" in script
+    assert "daylily-spot-interruption-watch.service" in script
+    assert "ExecStop=/opt/daylily/bin/daylily-spot-lifecycle-event shutdown systemd-stop" in script
+    assert "latest/meta-data/spot/instance-action" in script
+    assert "install_spot_lifecycle_hooks" in script
     assert "prepare_headnode_writable_dirs" in script
     assert "prepare_dayoa_environment_cache" in script
-    assert 'install -d -m 1777 \\' in script
+    assert "install -d -m 1777 \\" in script
     assert '"${work_root}"' in script
     assert '"${run_mounts_root}"' in script
     assert "install -d -m 0777 /fsx/analysis_results" in script
@@ -741,10 +952,7 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
         'export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-${DAYLILY_APPTAINER_CACHE}}"'
         in script
     )
-    assert (
-        'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-${DAYLILY_APPTAINER_CACHE}}"'
-        in script
-    )
+    assert 'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-${DAYLILY_APPTAINER_CACHE}}"' in script
     assert (
         "DayOA conda, container, and Nextflow caches are seeded from "
         "${runtime_assets_root}/cached_envs into ${environment_cache_root}" in script
@@ -764,12 +972,17 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "Original sbatch already present" in script
     assert "Original srun already present" in script
     assert "ln -sfn /opt/slurm/bin/sbatch /opt/slurm/bin/srun" in script
-    assert "install_verified_s3_executable" in script
+    assert "install_s3_executable" in script
     assert 'aws s3 cp "${boot_s3_uri}/${s3_key}" "${temp_path}"' in script
-    assert 'install_verified_s3_executable "sbatch"' in script
-    assert 'install_verified_s3_executable "sleep_test.sh"' in script
+    assert 'install_s3_executable "sbatch"' in script
+    assert 'install_s3_executable "sleep_test.sh"' in script
     assert 'install -m 0755 "${temp_path}" "${destination}"' in script
-    assert 'append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf' in script
+    assert "install_slurm_submission_policy" in script
+    assert "install_slurm_job_submit_policy.sh" in script
+    assert "/opt/slurm/etc/scripts/prolog.d" in script
+    assert "/opt/slurm/etc/scripts/epilog.d" in script
+    assert "/opt/slurm/etc/slurm.conf" not in script
+    assert "systemctl restart slurm" not in script
     assert "mv /opt/slurm/bin/sbatch /opt/slurm/sbin/sbatch" in script
     assert "mv /opt/slurm/bin/srun /opt/slurm/sbin/srun" in script
     assert "ln -s /fsx/references/runtime_assets/cached_envs/conda/*" not in script
@@ -777,7 +990,6 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "chmod +x /opt/slurm/bin/sbatch" not in script
     assert "chmod a+x /opt/slurm/bin/sleep_test.sh" not in script
     assert "ln -s /fsx/data/cached_envs/conda/*" not in script
-    assert 'echo "PrologFlags=Alloc" >> /opt/slurm/etc/slurm.conf' not in script
     assert "ppa:apptainer/ppa" not in script
     assert "command -v apptainer" in script
     assert "command -v singularity" in script
@@ -797,7 +1009,7 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
         'echo "Expanding /dev/shm to 80% of total memory"'
     )
     compute_branch = script.split('if [ "${cfn_node_type}" == "ComputeFleet" ];then', 1)[1]
-    compute_branch = compute_branch.split("else", 1)[0]
+    compute_branch = compute_branch.split("\nfi\n", 1)[0]
     assert "exit 0" not in compute_branch
 
 
@@ -809,3 +1021,34 @@ def test_packaged_post_install_bootstrap_matches_source() -> None:
     )
 
     assert packaged.read_text(encoding="utf-8") == source.read_text(encoding="utf-8")
+
+
+def test_rhel_dragen_post_install_removes_cromwell_and_requires_womtool() -> None:
+    source = (REPO_ROOT / "config/day_cluster/post_install_rhel8_dragen.sh").read_text(
+        encoding="utf-8"
+    )
+    packaged = (
+        REPO_ROOT / "daylily_ec/resources/payload/config/day_cluster/post_install_rhel8_dragen.sh"
+    ).read_text(encoding="utf-8")
+
+    for script in (source, packaged):
+        assert 'wait_for_dir "${runtime_assets_root}/tool_specific_resources"' in script
+        assert "wait_for_file()" in script
+        assert (
+            'wait_for_file "${runtime_assets_root}/tool_specific_resources/womtool_87.jar"'
+            in script
+        )
+        assert "cromwell_87.jar" not in script
+        assert "cromwell.jar" not in script
+        assert "/fsx/analysis_results/cromwell_executions" not in script
+        assert "not found or empty after" in script
+        assert "install_womtool_link" in script
+        assert "dnf_install_with_rpmdb_repair" in script
+        assert "RHEL rpm database failure detected during dnf install" in script
+        assert "DB_RUNRECOVERY" in script
+        assert "configure_dragen_memlock_limits()" in script
+        assert 'limits_file="/etc/security/limits.d/99-edico.conf"' in script
+        assert "memlock   unlimited" in script
+        assert "configure_dragen_memlock_limits\nconfigure_kernel_and_shm" in script
+
+    assert source == packaged

@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/patch_existing_ilmn_haplocheck96.py", line 50, in <module>
+    if "export HAPLOCHECK_THREADS={threads}" not in rule_text:
+                                   ^^^^^^^
+NameError: name 'threads' is not defined

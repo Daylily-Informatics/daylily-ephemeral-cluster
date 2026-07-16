@@ -1,0 +1,15 @@
+{
+  "cancel_slurm_jobs": false,
+  "job_name_pattern": "",
+  "killed_tmux_session": true,
+  "run_dir": "/home/ubuntu/daylily-runs/hybonly_ilmn_kitchensink_mounted_20260606T053415Z",
+  "scancelled_job_ids": [],
+  "session_name": "hybonly_ilmn_kitchensink_mounted_20260606T053415Z",
+  "slurm_jobs_after": [],
+  "slurm_jobs_before": [],
+  "status_path": "/home/ubuntu/daylily-runs/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/status.json",
+  "status_updated": true,
+  "tmux_session_after": false,
+  "tmux_session_before": true,
+  "tmux_session_name": "hybonly_ilmn_kitchensink_mounted_20260606T053415Z"
+}

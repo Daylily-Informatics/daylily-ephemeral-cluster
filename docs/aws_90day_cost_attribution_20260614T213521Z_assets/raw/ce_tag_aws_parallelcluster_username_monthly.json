@@ -1,0 +1,271 @@
+{
+  "DimensionValueAttributes": [],
+  "GroupDefinitions": [
+    {
+      "Key": "aws-parallelcluster-username",
+      "Type": "TAG"
+    }
+  ],
+  "ResultsByTime": [
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1506.0707290505",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "774.3111365267",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "235.7951401264",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$ubuntu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "315.2587334208",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-04-01",
+        "Start": "2026-03-16"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3976.5183263002",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3588.08791143",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "627.2968444855",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "773.9090373862",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$ubuntu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "368.7354869646",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-05-01",
+        "Start": "2026-04-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "10307.4933251261",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1772.5305298456",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3476.2764567949",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "49.3480233163",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$michael.kennemer-mike-tmp"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1915.9958353459",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$ubuntu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "6504.5773599412",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-01",
+        "Start": "2026-05-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "aws-parallelcluster-username$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "7658.1595079863",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$jmajor-daylily-service"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "29.1893333472",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$jmajor-root"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1757.3534853087",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$michael.kennemer-michael.kennemer@lsmc.com"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "316.4492585317",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "aws-parallelcluster-username$ubuntu"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2390.2764883027",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-06-14",
+        "Start": "2026-06-01"
+      },
+      "Total": {}
+    }
+  ]
+}

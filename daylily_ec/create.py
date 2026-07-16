@@ -15,8 +15,6 @@ def create_cluster(
     pass_on_warn: bool = False,
     debug: bool = False,
     non_interactive: bool = True,
-    create_slurm_accounting_db: bool = False,
-    scan_slurm_accounting_db: bool = False,
 ) -> int:
     """Create a cluster using the supported daylily-ec workflow."""
     return run_create_workflow(
@@ -26,6 +24,4 @@ def create_cluster(
         pass_on_warn=pass_on_warn,
         debug=debug,
         non_interactive=non_interactive,
-        create_slurm_accounting_db=create_slurm_accounting_db,
-        scan_slurm_accounting_db=scan_slurm_accounting_db,
     )

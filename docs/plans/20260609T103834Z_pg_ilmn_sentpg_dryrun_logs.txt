@@ -1,0 +1,6 @@
+DAY-EC activated.
+DAY-EC activated.
+Cloning into '/fsx/analysis_results/ubuntu/pg_ilmn_sentpg_dryrun_20260609T103834Z/daylily-omics-analysis'...
+fatal: Remote branch 2be1a32 not found in upstream origin
+Error: Git clone failed with exit code 128.
+Cloning repository...

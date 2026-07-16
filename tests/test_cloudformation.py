@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -195,15 +196,50 @@ class TestDescribeStackStatus:
 # ===================================================================
 
 
-def _make_aws_ctx(cfn_client, iam_client):
+def _make_aws_ctx(cfn_client, iam_client, *, region_az="us-west-2a", ec2_client=None):
     """Build a fake AWSContext that returns pre-configured clients."""
     ctx = MagicMock()
+    if ec2_client is None:
+        ec2_client = MagicMock()
+
+        def _describe_vpcs(*, VpcIds):
+            return {
+                "Vpcs": [
+                    {"VpcId": vpc_id, "State": "available"}
+                    for vpc_id in VpcIds
+                ]
+            }
+
+        def _describe_subnets(*, SubnetIds):
+            vpc_id = "vpc-live"
+            try:
+                described_vpcs = ec2_client.describe_vpcs.call_args.kwargs["VpcIds"]
+                if described_vpcs:
+                    vpc_id = described_vpcs[0]
+            except (AttributeError, KeyError, TypeError):
+                pass
+            return {
+                "Subnets": [
+                    {
+                        "SubnetId": subnet_id,
+                        "VpcId": vpc_id,
+                        "AvailabilityZone": region_az,
+                        "State": "available",
+                    }
+                    for subnet_id in SubnetIds
+                ]
+            }
+
+        ec2_client.describe_vpcs.side_effect = _describe_vpcs
+        ec2_client.describe_subnets.side_effect = _describe_subnets
 
     def _client(service, **kwargs):
         if service == "cloudformation":
             return cfn_client
         if service == "iam":
             return iam_client
+        if service == "ec2":
+            return ec2_client
         raise ValueError(f"unexpected service: {service}")
 
     ctx.client = _client
@@ -239,15 +275,29 @@ class TestEnsurePclusterEnvStack:
         cfn.create_stack.assert_not_called()
 
     def test_skip_if_update_complete(self):
-        cfn = self._cfn_with_status("UPDATE_COMPLETE", {"VPC": "vpc-2"})
+        cfn = self._cfn_with_status(
+            "UPDATE_COMPLETE",
+            {
+                "VPC": "vpc-2",
+                "PublicSubnets": "sub-pub-2",
+                "PrivateSubnet": "sub-priv-2",
+            },
+        )
         iam = MagicMock()
-        ctx = _make_aws_ctx(cfn, iam)
+        ctx = _make_aws_ctx(cfn, iam, region_az="us-east-1a")
         result = ensure_pcluster_env_stack(ctx, "us-east-1a")
         assert result.vpc_id == "vpc-2"
         cfn.create_stack.assert_not_called()
 
     def test_waits_if_in_progress(self):
-        cfn = self._cfn_with_status("CREATE_IN_PROGRESS", {"VPC": "vpc-w"})
+        cfn = self._cfn_with_status(
+            "CREATE_IN_PROGRESS",
+            {
+                "VPC": "vpc-w",
+                "PublicSubnets": "sub-pub-w",
+                "PrivateSubnet": "sub-priv-w",
+            },
+        )
         waiter = MagicMock()
         cfn.get_waiter.return_value = waiter
         iam = MagicMock()
@@ -256,6 +306,30 @@ class TestEnsurePclusterEnvStack:
         result = ensure_pcluster_env_stack(ctx, "us-west-2a")
         waiter.wait.assert_called_once()
         assert result.vpc_id == "vpc-w"
+
+    def test_complete_stack_with_deleted_subnet_outputs_fails_clear(self):
+        outputs = {
+            "VPC": "vpc-gone",
+            "PublicSubnets": "subnet-public-gone",
+            "PrivateSubnet": "subnet-private-gone",
+            "PclusterPolicy": "arn:p",
+        }
+        cfn = self._cfn_with_status("CREATE_COMPLETE", outputs)
+        iam = MagicMock()
+        ec2 = MagicMock()
+        ec2.describe_vpcs.return_value = {"Vpcs": [{"VpcId": "vpc-gone"}]}
+        ec2.describe_subnets.side_effect = Exception("InvalidSubnetID.NotFound")
+        ctx = _make_aws_ctx(cfn, iam, ec2_client=ec2)
+
+        with pytest.raises(
+            RuntimeError,
+            match=(
+                "pcluster-vpc-stack-2c.*stale or drifted.*one or more output subnets"
+            ),
+        ):
+            ensure_pcluster_env_stack(ctx, "us-west-2c")
+
+        cfn.create_stack.assert_not_called()
 
     def test_creates_stack_when_none_exists(self, tmp_path):
         # describe returns no stack (exception → None status)
@@ -332,7 +406,11 @@ class TestEnsurePclusterEnvStack:
                 "Stacks": [
                     {
                         "StackStatus": "CREATE_COMPLETE",
-                        "Outputs": [{"OutputKey": "VPC", "OutputValue": "vpc-x"}],
+                        "Outputs": [
+                            {"OutputKey": "VPC", "OutputValue": "vpc-x"},
+                            {"OutputKey": "PublicSubnets", "OutputValue": "sub-pub-x"},
+                            {"OutputKey": "PrivateSubnet", "OutputValue": "sub-priv-x"},
+                        ],
                     }
                 ],
             }
@@ -349,7 +427,7 @@ class TestEnsurePclusterEnvStack:
         iam = MagicMock()
         iam.get_paginator.return_value = iam_paginator
 
-        ctx = _make_aws_ctx(cfn, iam)
+        ctx = _make_aws_ctx(cfn, iam, region_az="us-east-1a")
         tpl = tmp_path / "t.yml"
         tpl.write_text("template\n")
 
@@ -370,6 +448,19 @@ class TestEnsurePclusterEnvStack:
             ensure_pcluster_env_stack(
                 ctx, "us-west-2a", template_path="/no/such/file.yml",
             )
+
+    def test_blocking_terminal_stack_status_raises_clear_error(self):
+        cfn = self._cfn_with_status("ROLLBACK_COMPLETE")
+        iam = MagicMock()
+        ctx = _make_aws_ctx(cfn, iam)
+
+        with pytest.raises(
+            RuntimeError,
+            match="pcluster-vpc-stack-2b.*ROLLBACK_COMPLETE.*explicit public_subnet_id",
+        ):
+            ensure_pcluster_env_stack(ctx, "us-west-2b")
+
+        cfn.create_stack.assert_not_called()
 
 
 # ===================================================================
@@ -436,3 +527,14 @@ class TestConstants:
     def test_in_progress_statuses(self):
         assert "CREATE_IN_PROGRESS" in IN_PROGRESS_STATUSES
 
+    def test_pcluster_policy_templates_allow_cost_center_reads(self):
+        root = Path(__file__).resolve().parents[1]
+        templates = [
+            root / "config/day_cluster/pcluster_env.yml",
+            root / "daylily_ec/resources/payload/config/day_cluster/pcluster_env.yml",
+        ]
+        for template in templates:
+            body = template.read_text(encoding="utf-8")
+            assert "dynamodb:GetItem" in body
+            assert "table/dayec-cost-centers" in body
+            assert "table/dayec-cost-center-usage" in body

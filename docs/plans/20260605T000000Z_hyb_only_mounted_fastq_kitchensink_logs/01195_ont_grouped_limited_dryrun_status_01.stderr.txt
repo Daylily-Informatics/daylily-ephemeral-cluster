@@ -1,0 +1,2 @@
+⚠ Active conda environment is 'base', not DAY-EC. Continuing anyway; the 
+supported path is `source ./activate`.

@@ -1,0 +1,22 @@
+{
+    "CommandId": "2ce15802-afc0-492d-84a3-1083d9d82284",
+    "InstanceId": "i-06e429d2a68a0b1ec",
+    "Comment": "hybrid failed shard tails only",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 0,
+    "ExecutionStartDateTime": "2026-07-07T20:37:24.996Z",
+    "ExecutionElapsedTime": "PT5.306S",
+    "ExecutionEndDateTime": "2026-07-07T20:37:29.996Z",
+    "Status": "Success",
+    "StatusDetails": "Success",
+    "StandardOutputContent": "DAY-EC activated.\nDAY-EC activated.\nLOG1\nStarting annotation transfer shard 14 (regions: chr14) at Tue Jul  7 20:24:09 UTC 2026\nAnno VCF original sample: HIOa-HG003-SR1x-ONT1x-0-D0-PF-ILMN-NOVASEQ, target sample: HIOa-HG003-SR1x-ONT1x-0-D0-PF-ILMN-NOVASEQ\nAnno VCF sample already matches target; using existing indexed input without reheader\nTransferring annotations from pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz for regions-file: /tmp/sentdhiomr_transfer_5_14_20260707202409_145480/transfer.14.bed\nTransfer merge step started at Tue Jul  7 20:24:09 UTC 2026\n[W::bcf_hdr_check_sanity] LPL should be declared as Number=LG\n[W::bcf_hdr_check_sanity] LAD should be declared as Number=LR\nTransfer merge BCF to VCF step started at Tue Jul  7 20:26:18 UTC 2026\n[W::bcf_hdr_check_sanity] LPL should be declared as Number=LG\n[W::bcf_hdr_check_sanity] LAD should be declared as Number=LR\n[main_vcfview] Error: cannot write to /tmp/sentdhiomr_transfer_5_14_20260707202409_145480/transfer_merged.14.vcf\nLOG2\nStarting annotation transfer shard 8 (regions: chr8) at Tue Jul  7 20:22:02 UTC 2026\nAnno VCF original sample: HIOa-HG003-SR1x-ONT1x-0-D0-PF-ILMN-NOVASEQ, target sample: HIOa-HG003-SR1x-ONT1x-0-D0-PF-ILMN-NOVASEQ\nAnno VCF sample already matches target; using existing indexed input without reheader\nTransferring annotations from pop_vcf: /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz for regions-file: /tmp/sentdhiomr_transfer_10_8_20260707202202_124210/transfer.8.bed\nTransfer merge step started at Tue Jul  7 20:22:02 UTC 2026\n[W::bcf_hdr_check_sanity] LPL should be declared as Number=LG\n[W::bcf_hdr_check_sanity] LAD should be declared as Number=LR\nTransfer merge BCF to VCF step started at Tue Jul  7 20:24:52 UTC 2026\n[W::bcf_hdr_check_sanity] LPL should be declared as Number=LG\n[W::bcf_hdr_check_sanity] LAD should be declared as Number=LR\n[main_vcfview] Error: cannot write to /tmp/sentdhiomr_transfer_10_8_20260707202202_124210/transfer_merged.8.vcf\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}

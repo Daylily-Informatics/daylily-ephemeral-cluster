@@ -1,0 +1,25 @@
+daylily_ec/cli.py:1538:    dry_run: bool = typer.Option(
+daylily_ec/cli.py:1548:        run_delete_dry_run,
+daylily_ec/cli.py:1560:    rc = run_delete_dry_run(options) if dry_run else run_delete_workflow(options)
+daylily_ec/cli.py:1921:    dry_run: bool = typer.Option(
+daylily_ec/cli.py:1956:        if dry_run:
+daylily_ec/cli.py:2382:    dry_run: bool = typer.Option(False, "--dry-run", help="Launch the catalog dry-run command."),
+daylily_ec/cli.py:2542:            dry_run=dry_run,
+daylily_ec/cli.py:2575:            "dry_run": dry_run,
+daylily_ec/cli.py:2576:            "dy_command": command.dryrun_dy_command if dry_run else command.dy_command,
+daylily_ec/cli.py:2600:def workflow_launch(
+daylily_ec/cli.py:2701:    dy_command: Optional[str] = typer.Option(
+daylily_ec/cli.py:2769:    dry_run: bool = typer.Option(False, "--dry-run", help="Launch a dry-run workflow command."),
+daylily_ec/cli.py:2829:        ("--dy-command", dy_command),
+daylily_ec/cli.py:2855:    if dry_run:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:428:    dry_run: bool,
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:449:    if dry_run:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:693:        comment="Validate DAY-EC headnode readiness before workflow launch",
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:744:    if args.dy_command:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:745:        dy_command = args.dy_command
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:747:        dy_command = build_default_command(
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:756:            dry_run=args.dry_run,
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:762:    dy_command_literal = shlex.quote(dy_command)
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:822:	DY_COMMAND={dy_command_literal}
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:1710:run_dy_command() {{
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:1786:	run_dy_command "$DY_COMMAND"

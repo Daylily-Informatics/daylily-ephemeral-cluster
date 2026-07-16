@@ -4,6 +4,8 @@
 - For AWS EC2, ParallelCluster, and other remote Linux hosts, default to an interactive `bash` login shell as `ubuntu`. Do not use `root` unless the user explicitly grants permission for that specific work; use targeted `sudo` from `ubuntu` when escalation is required.
 - For Daylily/DayOA/DAY-EC headnode workflow work, use an interactive `ubuntu` tmux/login-shell pane for controllers and workflow commands. Run setup as separate commands in that pane (`source dyoainit`, then `dy-a ...`, then `dy-r ...`) so aliases/functions are defined before use.
 - SSM Run Command is for simple inspection or for writing helper scripts through the supported helpers. Do not launch workflow controllers or rely on `dy-*` aliases from non-interactive SSM scripts.
+- Budget-cap increases require double approval before an agent changes AWS Budgets, DYEC cost-center caps, or equivalent controls: treat the request as the first approval, restate the exact budget or cost center and old/new caps, then wait for a second explicit approval. Exception: an increase submitted through the Ursa GUI by an authenticated human user does not require an additional agent-side approval; retain and verify the authenticated audit evidence.
+- Before any DayOA workflow work, read `/Users/jmajor/.codex/AGENTS-HOW-TO-RUN-DAYOA.md`. Never invoke `snakemake` directly for DayOA work. Always use `dy-r` inside a persistent, meaningfully named `tmux` session running an interactive bash login shell as `ubuntu`; `dy-r` passes all targets and flags through to Snakemake for you.
 
 # DayOA Workflow Command Contract
 
@@ -18,13 +20,58 @@
 - Example DayOA smoke/dry-run command: `dy-r help -p -k -j 1 -n`.
 - For BCL/DayOA execution, send these commands into the persistent `tmux` pane as separate commands. Do not collapse setup and execution into a one-shot non-interactive SSM script.
 
+# Analysis-Root Agent Locking
+
+- Before touching `/fsx/analysis_results/**`, record a visit with `dyec analysis visit --analysis-root <root> --mode <read|export|write|unlock|delete|kill> --intent "<reason>"`.
+- Read/search/monitor/log review and no-delete S3 export do not require write-lock ownership, but they must leave visit logs under `<analysis_root>/.dayoa_agent/visits/` and `/fsx/analysis_results/.dayoa_agent_visits/`.
+- Live workflow writes, `dy-r --unlock`, file edits/touches/moves in the analysis root, local FSx deletes, job kill/cancel, DRA detach tied to that root, and cluster/resource teardown tied to that root require the current agent to own `<analysis_root>/.dayoa_agent/write.lock/`.
+- Acquire with `dyec analysis lock acquire --analysis-root <root> --operation write --intent "<reason>"`; release with `dyec analysis lock release --analysis-root <root>`.
+- Use `dyec analysis guard --analysis-root <root> --operation <write|unlock|delete|kill> -- <command...>` for protected shell actions such as `scancel`, local deletes, and recovery commands.
+- Do not take over another owner silently. Use `dyec analysis lock takeover --request`, show the exact owner/path/action to the user, and proceed only after explicit double approval with the printed token.
+- Set a stable `DAYOA_AGENT_ID`, `DAYOA_AGENT_KIND`, `DAYOA_HUMAN_REQUESTOR`, `DAYOA_TMUX_SESSION`, and `DAYOA_LEDGER_PATH` before long-lived headnode work.
+- Full command reference: `docs/analysis_root_agent_locking.md`.
+
+# DayOA Benchmark Collection
+
+When comparing DayOA workflow runtime, threads, instance mix, or task cost from DAY-EC/headnode work, collect the combined benchmark report from the target DayOA analysis repo root instead of scraping partial summaries. Run from the headnode as `ubuntu` in an interactive bash login shell after initializing DayOA:
+
+```bash
+source dyoainit
+dy-a slurm <genome_build>
+bash bin/util/benchmarks/collect_day_benchmark_data.sh <genome_build>
+```
+
+For hybrid Broad-reference runs, the genome build is usually `hg38_broad`, producing:
+
+```text
+results/day/hg38_broad/reports/benchmarks_summary.tsv
+```
+
+Use the collector output because it adds the authoritative `sample` column from the benchmark file directory structure. Raw task benchmark files live under:
+
+```text
+results/day/<genome_build>/**/benchmarks/*.bench.tsv
+```
+
+The combined benchmark TSV contains task-level runtime/cost metadata, including `sample`, `rule`, `s`, `h:m:s`, memory fields, `io_in`, `io_out`, `mean_load`, `cpu_time`, `hostname`, `ip`, `nproc`, `cpu_efficiency`, `instance_type`, `region_az`, `spot_cost`, `snakemake_threads`, and `task_cost`.
+
+For cost/performance reports, aggregate directly from those rows: `sum(s)` for task wall time, `sum(cpu_time)` for observed CPU time, `sum(s * snakemake_threads / 3600)` for allocated vCPU-hours, and `sum(task_cost)` for task cost. Keep this separate from cluster startup, Slurm pending/configuring time, and controller wall clock unless the user explicitly asks for broader accounting.
+
+# Long-Running Rule Monitoring
+
+- When monitoring long-running DayOA/Slurm rules, compute-node Glances spot checks are appropriate read-only evidence alongside `squeue`, controller logs, rule logs, and benchmark TSVs.
+- From the headnode, use bounded, non-interactive checks only against nodes currently allocated to the workflow. Prefer `glances --stdout` with an explicit timeout and capture CPU, load, memory, swap, filesystem usage, disk I/O, network I/O, and process count together with node name, Slurm job/rule, and elapsed runtime.
+- Treat each Glances sample as a point-in-time observation, not proof that a job is healthy, stuck, or correctly sized. Compare it with rule benchmarks and repeated snapshots before recommending resource changes.
+- If Glances is missing or a compute node cannot be reached, report that explicitly. Do not install packages, restart services, alter jobs, or administer nodes merely to obtain monitoring data.
+- Glances evidence does not authorize Slurm or node intervention; existing approval boundaries for cancel, requeue, drain, resume, restart, and configuration changes still apply.
+
 # Safety Preferences
 
 - Do not execute destructive AWS resource changes unless the user gives a second explicit approval after being told the action is destructive.
 - Do not answer interactive confirmation prompts for destructive AWS changes unless that second explicit approval has already been given in the current thread.
 - Treat an initial request to "teardown", "destroy", "delete", or similar as permission to inspect, prepare, or dry-run only. Before any live destructive action, restate the exact effect and wait for a separate explicit confirmation.
 - Always read `.md` and other instruction files in `~/.agents/*`, `~/.codex/*`, `./.agents`, `./.codex`, `./AGENTS.md`, and `./CLAUDE.md`.
-- Unless the user explicitly asks for fallback behavior in the current thread, do not add, preserve, or rely on fallback behavior. Prefer direct fixes and hard failures over silent fallback paths.
+- Fallback behavior is an antipattern that wastes time and money in this workspace. Unless the user explicitly approves a specific fallback in the current thread, do not add, preserve, or rely on fallback behavior, compatibility shims, legacy aliases, inferred defaults, generated alternate paths, or service-side discovery. Missing config, missing files, missing deployment identity, missing credentials, malformed commands, or unexpected runtime state must fail hard with a clear error.
 
 # Headnode SSM Access
 
@@ -32,15 +79,19 @@
 - Do not use `root` for headnode work. The `ubuntu` user is in sudoers; use targeted `sudo` from `ubuntu` only when escalation is required.
 - Interactive sessions must use `SSM-SessionManagerRunShell` configured with `runAsDefaultUser=ubuntu` and bash login-shell behavior.
 - Command payloads must go through the central `daylily_ec.aws.ssm.run_shell` and `daylily_ec.aws.ssm.write_remote_text` helpers rather than ad hoc `aws ssm send-command` calls.
-- `daylily-ec headnode connect` must preserve interactive TUI/editor key chords, especially Emacs `Ctrl-S` and `Ctrl-X Ctrl-S`. Keep both layers of XON/XOFF protection: the remote ubuntu login shell must disable flow control, and the local `daylily_ec.aws.ssm.start_session` path must keep a local `/dev/tty` flow-control guard running while Session Manager owns the terminal. A one-time local `stty -ixon -ixoff` is not sufficient because the AWS Session Manager/plugin startup path can leave the live local TTY with flow control enabled again.
-- Do not remove or bypass the `tests/test_ssm.py` guardrail coverage for the local flow-control guard. Regression evidence should include a real `daylily-ec headnode connect` session where `cat -v` receives bare `Ctrl-S` as `^S`; for editor validation, `emacs -Q` should enter `I-search` on `Ctrl-S` and write the file on `Ctrl-X Ctrl-S`.
+- Use `dyec` for current docs and runbooks. The headnode signature is `dyec headnode connect --profile <profile> --region <region> --cluster <cluster>` and `dyec headnode configure --profile <profile> --region <region> --cluster <cluster>`. Prefer `--cluster`; keep `--cluster-name` for tools such as `pcluster` that require it.
+- `dyec headnode connect` must preserve interactive TUI/editor key chords, especially Emacs `Ctrl-S` and `Ctrl-X Ctrl-S`. Keep both layers of XON/XOFF protection: the remote ubuntu login shell must disable flow control, and the local `daylily_ec.aws.ssm.start_session` path must keep a local `/dev/tty` flow-control guard running while Session Manager owns the terminal. A one-time local `stty -ixon -ixoff` is not sufficient because the AWS Session Manager/plugin startup path can leave the live local TTY with flow control enabled again.
+- Do not remove or bypass the `tests/test_ssm.py` guardrail coverage for the local flow-control guard. Regression evidence should include a real `dyec headnode connect` session where `cat -v` receives bare `Ctrl-S` as `^S`; for editor validation, `emacs -Q` should enter `I-search` on `Ctrl-S` and write the file on `Ctrl-X Ctrl-S`.
 
 # Local Environment
 
-- Use the repo activation flow before running Daylily commands. If the `DAY-EC` Conda environment is not present or dependencies are missing, run `source ./activate` from the repo root to create/activate it, then use the `DAY-EC` environment for tests and CLI commands.
+- Use the repo activation flow before running Daylily commands: `cd /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster && source ./activate`. If the `DAY-EC` Conda environment is not present or dependencies are missing, run `source ./activate` from the repo root to create/activate it, then use the `DAY-EC` environment for tests and CLI commands.
 
-# Working Docs And Plan Ledgers
+# Plan Ledger Workflow
 
+- For multi-step, cross-repo, long-running, risky, or explicitly plan-driven work, use `/Users/jmajor/.codex/docs/plan-ledger-workflow.md` as the default execution SOP.
+- Treat the controlling plan or plan ledger as the source of truth for tracked execution: record Gate 0 inventory/baseline first, track rows to terminal states, preserve evidence, and report whether all rows are terminal and whether the objective is actually complete.
+- Do not use the ledger workflow for tiny single-change tasks unless the user asks for it.
 - Every repo should have a `docs/plans/` directory. Create it when it is missing.
 - Store plans, ledger plans, execution ledgers, and AI working documents used to carry out repo work under `docs/plans/`.
 - Treat these files as durable repo artifacts: check them in and preserve them with the repo unless the user explicitly asks to remove or archive one.
@@ -53,12 +104,18 @@
 
 # DYEC Run Mounts
 
-- Do not treat FSx/DYEC run-mount creation as timed out before at least 30 minutes. Dynamic FSx data repository associations can legitimately stay in `CREATING` for around 30 minutes, especially large Illumina run directories.
-- When running `dyec mounts create --wait` or equivalent run-mount operations, set an explicit timeout comfortably above 30 minutes when the CLI supports it, and continue read-only lifecycle polling rather than retrying, duplicating, deleting, or declaring failure at the default short timeout.
+- Do not treat FSx/DYEC run-mount creation as timed out before at least 40 minutes. Dynamic FSx data repository associations can legitimately stay in `CREATING` for around 40 minutes, especially large Illumina run directories.
+- When running `dyec mounts create --wait` or equivalent run-mount operations, set an explicit timeout comfortably above 40 minutes when the CLI supports it, and continue read-only lifecycle polling rather than retrying, duplicating, deleting, or declaring failure at the default short timeout.
 
 # Version Tags
 
-- Daylily version tags should not use a leading `v`. When determining the next version, use non-`v` semver tags as the source of truth.
+- Use non-v semver tags for package releases, e.g. `2.0.19` or `5.0.21`, not `v2.0.19`.
+- Commit first, then tag the exact clean release commit.
+- Use annotated tags for release provenance: `git tag -a 2.0.19 -m "Release 2.0.19"`.
+- Lightweight tags are acceptable only for scratch/internal marks, not package releases.
+- Do not move or overwrite pushed version tags. If a pushed tag is wrong, cut the next patch version.
+- If signing is configured and expected, use signed annotated tags: `git tag -s 2.0.19 -m "Release 2.0.19"`.
+- Verify tag type with `git cat-file -t 2.0.18`; `tag` means annotated and `commit` means lightweight.
 
 # Slurm Service Boundary
 
@@ -68,3 +125,14 @@
 - Do not actively manage workflow jobs. Scheduling, retries, queue state, and job lifecycle are Snakemake/Slurm responsibilities. Do not cancel, requeue, hold, release, reprioritize, drain/resume, restart services for, or otherwise manipulate jobs or scheduler state unless the user explicitly approves that exact action in the current thread.
 - Monitoring and reporting are allowed. Jobs running for more than 3 hours may be flagged as `needs investigation`, but do not take corrective action without confirmed user approval.
 - If Slurm is unavailable or unhealthy, record the blocker and route the durable fix through ParallelCluster/pcluster configuration or infrastructure code changes.
+
+# Brainstorming and Advice Disposition
+
+For any topic, default to:
+
+- Map possibility first.
+- Separate evidence from norms.
+- Separate legality/safety from truth.
+- Separate recommendation from capability.
+- Keep weird/radical/nonstandard frames alive unless they are actually incoherent or harmful.
+- Do not make the user drag the conversation out of the dull center every time.

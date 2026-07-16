@@ -1,0 +1,195 @@
+DAY-EC activated.
+DAY-EC activated.
+Cloning into '/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis'...
+Updating files:  55% (709/1287)Updating files:  56% (721/1287)Updating files:  57% (734/1287)Updating files:  58% (747/1287)Updating files:  59% (760/1287)Updating files:  60% (773/1287)Updating files:  61% (786/1287)Updating files:  62% (798/1287)Updating files:  63% (811/1287)Updating files:  64% (824/1287)Updating files:  65% (837/1287)Updating files:  66% (850/1287)Updating files:  67% (863/1287)Updating files:  68% (876/1287)Updating files:  69% (889/1287)Updating files:  69% (900/1287)Updating files:  70% (901/1287)Updating files:  71% (914/1287)Updating files:  72% (927/1287)Updating files:  73% (940/1287)Updating files:  74% (953/1287)Updating files:  75% (966/1287)Updating files:  76% (979/1287)Updating files:  77% (991/1287)Updating files:  78% (1004/1287)Updating files:  79% (1017/1287)Updating files:  80% (1030/1287)Updating files:  81% (1043/1287)Updating files:  82% (1056/1287)Updating files:  83% (1069/1287)Updating files:  84% (1082/1287)Updating files:  85% (1094/1287)Updating files:  86% (1107/1287)Updating files:  87% (1120/1287)Updating files:  88% (1133/1287)Updating files:  89% (1146/1287)Updating files:  90% (1159/1287)Updating files:  91% (1172/1287)Updating files:  91% (1176/1287)Updating files:  92% (1185/1287)Updating files:  93% (1197/1287)Updating files:  94% (1210/1287)Updating files:  95% (1223/1287)Updating files:  96% (1236/1287)Updating files:  97% (1249/1287)Updating files:  98% (1262/1287)Updating files:  99% (1275/1287)Updating files: 100% (1287/1287)Updating files: 100% (1287/1287), done.
+Cloning repository...
+
+Great success! Daylily repository cloned.
+Repository: https://github.com/lsmc-bio/daylily-omics-analysis.git
+Reference : jem-dev
+Location  : /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis
+
+To get started:
+  cd /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis
+  # initialize and run the analysis repository per its documentation
+Notice: --project not set. Using default project name: hyb-only
+Project: hyb-only
+Skip Project Check: true
+Skipping project validation as --skip-project-check was passed.
+
+________________________________________________________
+AWS Budget lookup skipped for project 'hyb-only' in region 'us-west-2'.
+  Total: NA
+  Used: NA
+  Percent Used: NA
+________________________________________________________
+Using configured Sentieon license file: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+# conda environments:
+#
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/29f97eda4256feaf020134a890479ff1_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/33327866ded710a14c3e73cc8116eec0_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/35fb4175790f4023c274462ba7075854_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3a0e4f206e093d942d8271fad4d35296_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3d0893252281fa51ad1d8a1c220b797a_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/4c31f8647962b8e3834ad37fb4a58585_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/78f3045fcae4980edd6182a4d4c7b898_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/7c29ee1ebe032a24169825719f2e1a4d_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8d1cfbb0e385ff40e65802642a116261_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/a2363387ce455d48f02d1fd7a1643fdc_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/adc26e8656bed67f886fa90365098b54_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/aeb93d5e853ec27fe200a4a0e6b1cb1b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/b63d181b1412fcb12187b3f526fa0fb7_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/b7b00565f6d6e15ef0dac3373783b014_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/bc1a74e52dbef168e070adef567b9cfa_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/be5f834cbbdb5fa84aa89d321fd38c36_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/cb3e084a2b91b0f9dbf54b67853eb975_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/cbbbc9232aca1ecab85b8cd15aaa8927_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/e16773008a9eb117d91285f7b1cb6ab6_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/eba8eddca110a7475a7d6f3081ca273b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/ece8bf2dfb9a32ee5a36d91fa49a722b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/fb5136439b50c216431e912fdab988a8_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/ff4326369a074729b1ce16ec028c4a31_
+base                   /home/ubuntu/miniconda3
+DAY-EC               * /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
+
+Day CLI initialized for project 'hyb-only' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+ 
+	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
+	                           
+	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
+	                           
+	(day-run / dy-r)          - Run a command in the current environment.
+	                           <tab> for exposed targets, -<tab> for all command line flags.
+	                           
+	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
+	                           Use --block-and-poll to wait for completion.
+	                           
+	(day-deactivate / dy-d)   - Deactivate the current environment.
+	                           Use 'dy-d reset' to hard reset the environment.
+	                           
+	                           
+	                           
+	                           
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
+	                           
+	(example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+		dy-a slurm hg38 # or hg38_broad or b37
+
+	(example): RUN ANALYSES
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv
+
+
+
+		# Use target names directly (tab-complete available):
+
+		dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance
+
+		dy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics
+
+
+
+		# Platform-specific targets:
+
+		dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+		dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling
+
+		dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)
+
+
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project hyb-only .
+Remote call detected. Activating conda hack
+ > >> >>> 
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+Using sentieon license file: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic from ~/.config/daylily/daylily_cli_global.yaml
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38_broad  
+       _______ GREAT SUCCESS _______       
+[INFO] Patched goleft empty-sex/no-usable-chromosomes repair: workflow/rules/go_left.smk
+[INFO] Patched mosdepth empty-output repair: workflow/rules/mosdepth.smk
+[INFO] Patched RTG vcfeval parse/JVM-memory repair: workflow/rules/rtg_vcfeval.smk
+[INFO] Patched VEP zero-variant concat repair: workflow/rules/vep.smk
+[INFO] Patched contamination identity zero-variant repair: workflow/rules/contam_identity.smk
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/config/day_profiles/slurm produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_snv_concordances produce_sentdhiomr_cnv produce_sentdhiomr_segdup produce_sentdhiomr_mito produce_expansionhunter produce_alignstats produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config aligners=["sent"] dedupers=["dmd"] snv_callers=["sentdhiomr"] sv_callers=["sentdhiomr"] sentdhiomr={"segdup_genes":"CYP11B1,NCF1,SMN1"} contam_identity={"primary_snv_caller":"sentdhiomr"} multiqc_qc={"enable_tools":["vep","contam_identity"]} -j 125 -p -k --rerun-triggers mtime -n
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+aligners: [sent]
+aligners (final): [sent]
+...INFO: Auto-detected dedupers. DDUP updated to: ['dmd']
+deduper (final): [dmd]
+SNV Callers:[sentdhiomr]
+SNV Callers (final): [sentdhiomr]
+Somatic SNV Callers:[senttn]
+SV Callers:[sentdhiomr]
+SV Callers (final): [sentdhiomr]
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+InputFunctionException in rule aggregate_report_components in file /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/workflow/rules/multiqc_final_wgs.smk, line 548:
+Error:
+  WorkflowError:
+    Global contamination/identity primary SNV caller produced no valid CRAM-capable aligner pairs: 'sentdhiomr'.
+Wildcards:
+
+Traceback:
+  File "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/workflow/rules/multiqc_final_wgs.smk", line 385, in _final_component_inputs
+  File "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/workflow/rules/multiqc_final_wgs.smk", line 350, in _variant_component_inputs
+  File "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/workflow/rules/multiqc_final_wgs.smk", line 57, in _alignment_component_inputs
+  File "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/workflow/rules/contam_identity.smk", line 228, in _contam_identity_native_inputs
+  File "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/workflow/rules/contam_identity.smk", line 183, in _haplocheck_outputs
+  File "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/workflow/rules/contam_identity.smk", line 169, in _haplocheck_vcf_outputs
+  File "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis/workflow/rules/contam_identity.smk", line 102, in _contam_identity_primary_snv_pairs
+RETURN CODE: 1
+[INFO] Workflow exited with status 1
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-81:/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun_20260606T120700Z/daylily-omics-analysis$

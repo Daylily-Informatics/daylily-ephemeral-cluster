@@ -26,12 +26,12 @@ from daylily_ec.config.triplets import (
     has_effective_set_value,
     is_auto_select_disabled,
     load_config,
+    resolve_derived_max_count,
     resolve_value,
     should_auto_apply,
     write_config,
     write_next_run_template,
 )
-
 
 # ── Triplet parsing (AC-5) ──────────────────────────────────────────────
 
@@ -291,16 +291,14 @@ class TestLoadConfig:
 
     def test_load_from_yaml(self, tmp_path):
         p = tmp_path / "test.yaml"
-        p.write_text(
-            textwrap.dedent("""\
+        p.write_text(textwrap.dedent("""\
             ephemeral_cluster:
               config:
                 reference_s3_uri: [USESETVALUE, "", "my-bucket"]
                 cluster_name: PROMPTUSER
               template_defaults:
                 fsx_fs_size: "7200"
-        """)
-        )
+        """))
         cfg = load_config(p)
         assert cfg.ephemeral_cluster.config["reference_s3_uri"].set_value == "my-bucket"
         assert cfg.ephemeral_cluster.config["cluster_name"].action == "PROMPTUSER"
@@ -321,7 +319,7 @@ class TestLoadConfig:
             pytest.skip("template file not found")
         cfg = load_config(tpl)
         ec = cfg.ephemeral_cluster
-        assert len(ec.config) == 33
+        assert set(ec.config) == set(REQUIRED_CONFIG_KEYS)
         assert "ssh_key_name" not in ec.config
         assert ec.config["export_destination_s3_uri"].action == "PROMPTUSER"
         assert ec.config["slurm_accounting_enabled"].default_value == "false"
@@ -329,7 +327,64 @@ class TestLoadConfig:
         assert ec.config["budget_amount"].default_value == "200"
         assert ec.config["allowed_budget_users"].default_value == "ubuntu"
         assert ec.config["global_allowed_budget_users"].default_value == "ubuntu"
+        assert ec.config["pcluster_backport_manifest"].default_value == ""
+        assert ec.config["dragen_license_secret_arn"].default_value == ""
+        assert ec.config["dragen_license_policy_arn"].default_value == ""
+        assert ec.config["fsx_deployment_type"].set_value == "PERSISTENT_2"
+        assert ec.config["fsx_fs_size"].set_value == "4800"
+        assert ec.config["fsx_throughput_mbps_per_tib"].set_value == "250"
+        assert ec.config["fsx_lustre_version"].set_value == "2.15"
+        assert ec.config["fsx_metadata_mode"].set_value == "AUTOMATIC"
+        assert ec.config["fsx_encryption_mode"].set_value == "AWS_MANAGED_FSX"
+        assert ec.config["fsx_owner"].set_value == "DYEC"
+        assert ec.config["fsx_lifecycle"].set_value == "CLUSTER_BOUND"
+        assert ec.config["sweep_protection_tag"].set_value == "ursa-preserve=true"
         assert ec.template_defaults["fsx_fs_size"] == "7200"
+        assert ec.template_defaults["max_count_192I_HUGENVME"] == "1"
+        assert ec.config["max_count_384I"].default_value == "1"
+        assert ec.config["max_count_384I_NVME_R"].default_value == "1"
+
+
+class TestDerivedMaxCount:
+    def test_inherits_parent_when_subtype_has_no_set_value(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {
+                        "max_count_128I_C": ["USESETVALUE", "1", ""],
+                    }
+                }
+            }
+        )
+
+        assert resolve_derived_max_count(cfg, "max_count_128I_C", 16) == "16"
+
+    def test_explicit_subtype_set_value_wins(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {
+                        "max_count_128I_C": ["USESETVALUE", "1", "7"],
+                    }
+                }
+            }
+        )
+
+        assert resolve_derived_max_count(cfg, "max_count_128I_C", 16) == "7"
+
+    def test_invalid_explicit_subtype_set_value_fails(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {
+                        "max_count_128I_C": ["USESETVALUE", "1", "sixteen"],
+                    }
+                }
+            }
+        )
+
+        with pytest.raises(ValueError):
+            resolve_derived_max_count(cfg, "max_count_128I_C", 16)
 
 
 # ── write_config ─────────────────────────────────────────────────────

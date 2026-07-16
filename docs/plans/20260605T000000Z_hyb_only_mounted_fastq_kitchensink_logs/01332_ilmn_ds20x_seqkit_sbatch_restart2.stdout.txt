@@ -1,0 +1,16 @@
+DAY-EC activated.
+DAY-EC activated.
+STOP_OLD_SESSION
+old_session_missing
+CLEAN_PARTIALS
+seqkit v2.9.0
+SUBMIT
+SBATCH_CMD=sbatch --partition=i192\,i192mem\,i192bigmem --cpus-per-task=96 --array=0-3 --job-name=ilmn_ds20x_seqkit --output=/fsx/analysis_results/4_nas_ds_to_20x/logs/seqkit_%A_%a.out --error=/fsx/analysis_results/4_nas_ds_to_20x/logs/seqkit_%A_%a.err /fsx/analysis_results/4_nas_ds_to_20x/scripts/seqkit_downsample_one.sh 
+Submitted batch job 913
+             JOBID PARTITION     NAME ST       TIME  NODES NODELIST(REASON)
+               912      i192 calc_cov  R       2:04      1 i192-dy-all-3
+               911      i192 gatk_con  R       3:04      1 i192-dy-all-1
+               907      i192 gatk_con  R       4:48      1 i192-dy-all-2
+         913_[0-3] i192,i192 ilmn_ds2 PD       0:00      1 (None)
+               903   i192mem sent_snv  R      15:47      1 i192mem-dy-all-4
+               902   i192mem sent_snv  R      15:57      1 i192mem-dy-all-5

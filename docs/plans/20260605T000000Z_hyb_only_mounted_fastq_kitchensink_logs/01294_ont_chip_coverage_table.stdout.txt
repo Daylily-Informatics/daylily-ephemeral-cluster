@@ -1,0 +1,22 @@
+DAY-EC activated.
+DAY-EC activated.
+chip	barcode	sample	target	mean_cov_x	median_cov_x	mapped_Gb	yield_Gb	mapped_reads_M	yield_reads_M	10x_pct	20x_pct
+chip1	barcode18	NA00232	SMN	5.81	5	21.86	21.86	4.94	4.95	12.13	0.31
+chip2	barcode18	NA00232	SMN	4.82	4	18.16	18.16	3.98	3.99	6.06	0.24
+chip4	barcode18	NA00232	SMN	4.57	4	17.26	17.27	3.86	3.87	4.92	0.21
+chip1	barcode19	NA09677	SMN	7.32	7	26.65	26.65	4.35	4.36	24.67	0.59
+chip2	barcode19	NA09677	SMN	6.53	6	23.79	23.79	3.69	3.70	17.31	0.44
+chip3	barcode19	NA09677	SMN	0.79	0	2.87	2.87	0.41	0.41	0.08	0.03
+chip4	barcode19	NA09677	SMN	5.97	6	21.77	21.77	3.54	3.55	12.74	0.38
+chip1	barcode20	NA03986	DMPK	12.45	12	43.12	43.13	4.54	4.55	71.18	7.20
+chip2	barcode20	NA03986	DMPK	12.83	13	44.47	44.47	4.60	4.60	73.11	8.62
+chip4	barcode20	NA03986	DMPK	11.57	11	40.16	40.16	4.30	4.31	65.69	4.68
+chip1	barcode21	NA05164	DMPK	5.76	5	21.54	21.54	3.68	3.70	11.70	0.29
+chip2	barcode21	NA05164	DMPK	5.78	5	21.64	21.65	3.62	3.64	11.91	0.29
+chip4	barcode21	NA05164	DMPK	5.32	5	19.95	19.95	3.47	3.49	8.81	0.26
+
+sample	barcode	chips	total_mapped_Gb	total_yield_Gb	coverage_x_sum_approx
+NA00232	barcode18	chip1,chip2,chip4	57.28	57.29	15.21
+NA03986	barcode20	chip1,chip2,chip4	127.75	127.75	36.85
+NA05164	barcode21	chip1,chip2,chip4	63.13	63.14	16.86
+NA09677	barcode19	chip1,chip2,chip3,chip4	75.08	75.09	20.61

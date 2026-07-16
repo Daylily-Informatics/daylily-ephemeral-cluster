@@ -1,0 +1,19 @@
+DAY-EC activated.
+DAY-EC activated.
+JOBID  PARTITION  CPUS  ST  NODELIST  MIN_CPUS  STATE  MIN_MEMORY  TIME  NODES  NAME
+16  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L004
+15  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L001
+14  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L008
+13  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L005
+12  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L002
+11  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L003
+10  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L007
+9  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L006
+8  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L003
+7  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L007
+6  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L001
+5  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L005
+4  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L004
+3  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L008
+2  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L002
+1  i192hugenvme  48  PD    48  PENDING  500000M  0:00  1  run_bclconvert_lane-run_bclconvert_L006

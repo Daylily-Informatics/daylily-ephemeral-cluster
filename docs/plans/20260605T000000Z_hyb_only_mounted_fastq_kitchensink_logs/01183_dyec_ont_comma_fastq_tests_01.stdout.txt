@@ -1,0 +1,10 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.15, pytest-9.0.3, pluggy-1.6.0
+rootdir: /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster
+configfile: pyproject.toml
+plugins: cov-7.1.0, typeguard-2.13.3
+collected 52 items / 49 deselected / 3 selected
+
+tests/test_stage_samples_from_local_to_headnode.py ...                   [100%]
+
+======================= 3 passed, 49 deselected in 0.07s =======================

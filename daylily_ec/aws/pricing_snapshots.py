@@ -15,12 +15,16 @@ DEFAULT_MONITORED_REGIONS: tuple[str, ...] = ("us-west-2", "us-east-1", "eu-cent
 DEFAULT_PRODUCTION_PARTITIONS: tuple[str, ...] = (
     "i8",
     "i128",
+    "i128nvme",
     "i192",
-    "i192mem",
-    "i192bigmem",
-    "bcl2fq-i384-nvme-test",
+    "i192nvme",
+    "i384nvme",
+    "i192hugenvme",
 )
 _INSTANCE_TYPE_BATCH_SIZE = 100
+DEFAULT_CLUSTER_CONFIG_RELPATH = (
+    "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_us-west-2d.yaml"
+)
 
 
 def _now_iso() -> str:
@@ -28,7 +32,7 @@ def _now_iso() -> str:
 
 
 def _default_cluster_config_path() -> Path:
-    return resource_path("config/day_cluster/prod_cluster.yaml")
+    return resource_path(DEFAULT_CLUSTER_CONFIG_RELPATH)
 
 
 def resolve_cluster_config_path(cluster_config_path: Optional[str] = None) -> Path:
