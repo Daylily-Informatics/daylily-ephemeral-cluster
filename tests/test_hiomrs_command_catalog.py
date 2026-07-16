@@ -45,7 +45,7 @@ def test_hiomrs_catalog_entry_is_serial_native_dyr_and_mirrored() -> None:
     assert command.compatible_platforms == ["ILMN", "ONT"]
     assert command.compatible_cluster_types == ["sentieon-single"]
     assert command.compatible_data_modes == ["hybrid_ilmn_ont"]
-    assert command.git_tag == "11.0.11"
+    assert command.git_tag == "11.0.12"
     assert command.validated_version == "11.0.7"
     assert command.input_requirements.accepted_source_column_sets == [
         [
@@ -62,31 +62,32 @@ def test_hiomrs_catalog_entry_is_serial_native_dyr_and_mirrored() -> None:
         assert forbidden not in command.dryrun_dy_command
 
 
-def test_hiomrs_kitchensink_preserves_hiomr_adjunct_targets() -> None:
+def test_hiomrs_kitchensink_has_explicit_native_targets_and_retires_hiomr() -> None:
     catalog = load_repository_catalog(SOURCE_CATALOG)
     command = catalog.get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
-    hiomr_kitchensink = catalog.get_command("hybrid_ilmn_ont_snv_kitchensink")
-
-    hiomr_core_targets = {
-        "produce_sentdhiomr_snv_vcf",
-        "produce_sentdhiomr_sv",
-        "produce_sentdhiomr_cnv",
-        "produce_sentdhiomr_segdup",
-        "produce_sentdhiomr_mito",
-        "produce_expansionhunter",
-    }
-    expected_adjuncts = [
-        target
-        for target in hiomr_kitchensink.targets
-        if target not in hiomr_core_targets
-    ]
 
     assert command.type == "dev"
     assert command.sample_manifest_template == (
         "examples/staging/hybrid_ilmn_ont_hg003_5x5x/"
         "analysis_samples_manifest.tsv"
     )
-    assert command.targets == ["produce_hiomrs", *expected_adjuncts]
+    assert command.targets == [
+        "produce_hiomrs",
+        "produce_snv_concordances",
+        "produce_tiddit_sv_vcf",
+        "produce_alignstats",
+        "produce_relatedness",
+        "produce_peddy",
+        "produce_gatk_contam_estimate",
+        "produce_site_mix_contam_estimate",
+        "produce_vep",
+        "produce_htd_calls",
+        "produce_smn12_orthogonal_calls",
+        "produce_metagenomics",
+        "produce_multiqc_all",
+        "results/day/hg38/reports/DAY_final_multiqc.html",
+        "results/day/hg38/reports/dayoa_evidence_manifest.json",
+    ]
     assert command.jobs == 250
     assert command.keep_going is False
     assert command.restart_times == 0
@@ -95,7 +96,7 @@ def test_hiomrs_kitchensink_preserves_hiomr_adjunct_targets() -> None:
     assert command.snv_callers == ["hiomrs"]
     assert command.sv_callers == ["tiddit"]
     assert command.compatible_cluster_types == ["sentieon-single"]
-    assert command.git_tag == "11.0.11"
+    assert command.git_tag == "11.0.12"
     assert command.validated_version == "11.0.7"
     assert command.dy_command.startswith("dy-r produce_hiomrs ")
     assert command.dryrun_dy_command == f"{command.dy_command} -n"
@@ -113,3 +114,7 @@ def test_hiomrs_kitchensink_preserves_hiomr_adjunct_targets() -> None:
     for forbidden in ("sentdhiomr", "produce_expansionhunter", " -k"):
         assert forbidden not in command.dy_command
         assert forbidden not in command.dryrun_dy_command
+
+    command_ids = {item.command_id for item in catalog.commands()}
+    assert "hybrid_ilmn_ont_snv" not in command_ids
+    assert "hybrid_ilmn_ont_snv_kitchensink" not in command_ids

@@ -40,7 +40,6 @@ UNVALIDATED_COMMAND_IDS = {
     "all_metagenomic_pipelines",
     "ultima_snv_alignstats_kitchensink",
     "ont_snv_alignstats_kitchensink",
-    "hybrid_ilmn_ont_snv_kitchensink",
     "hybrid_ilmn_ont_hiomrs",
     "hybrid_ilmn_ont_hiomrs_kitchensink",
     "inflection-bjuice-product-v0.1",
@@ -358,8 +357,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "ont_snv_alignstats_kitchensink",
         "pacbio_snv_alignstats",
         "roche_snv_alignstats",
-        "hybrid_ilmn_ont_snv",
-        "hybrid_ilmn_ont_snv_kitchensink",
+        "hybrid_ilmn_ont_hiomrs",
         "hybrid_ilmn_ont_hiomrs_kitchensink",
         "illumina_pangenome_snv",
         "illumina_dragen_pangenome_snv_concordance",
@@ -501,18 +499,16 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert ultima_pangenome.compatible_cluster_types == ["daywgs"]
     assert ultima_pangenome.compatible_data_modes == ["ultima_solo"]
 
-    hybrid_ilmn_ont = catalog.get_command("hybrid_ilmn_ont_snv")
+    hybrid_ilmn_ont = catalog.get_command("hybrid_ilmn_ont_hiomrs")
     assert hybrid_ilmn_ont.sample_manifest_template == HIOMR_STRICT_SLIM_MANIFEST
-    assert hybrid_ilmn_ont.aligners == ["sent"]
+    assert hybrid_ilmn_ont.aligners == ["ont"]
     assert hybrid_ilmn_ont.dedupers == ["na"]
-    assert hybrid_ilmn_ont.snv_callers == ["sentdhiomr"]
-    assert hybrid_ilmn_ont.sv_callers == ["sentdhiomr"]
-    assert "produce_sentdhiomr_sv" in hybrid_ilmn_ont.dy_command
-    assert "produce_sentdhiomr_snv_vcf" in hybrid_ilmn_ont.dy_command
-    assert "produce_sentdhiom_sv" not in hybrid_ilmn_ont.dy_command
-    assert "produce_sentdhiom_snv_vcf" not in hybrid_ilmn_ont.dy_command
+    assert hybrid_ilmn_ont.snv_callers == ["hiomrs"]
+    assert hybrid_ilmn_ont.sv_callers == []
+    assert hybrid_ilmn_ont.targets == ["produce_hiomrs", "produce_snv_concordances"]
+    assert hybrid_ilmn_ont.dy_command.startswith("dy-r produce_hiomrs ")
     assert 'dedupers=["na"]' in hybrid_ilmn_ont.dy_command
-    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
+    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_CRAM", "ONT_CRAM_ALIGNER", "ONT_CRAM_SNV_CALLER"] in (
         hybrid_ilmn_ont.input_requirements.accepted_source_column_sets
     )
 
@@ -657,82 +653,39 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_metagenomics" in ont_kitchensink.dy_command
     assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (ont_kitchensink.dy_command)
 
-    hybrid_kitchensink = catalog.get_command("hybrid_ilmn_ont_snv_kitchensink")
+    hybrid_kitchensink = catalog.get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
     assert hybrid_kitchensink.sample_manifest_template == HIOMR_STRICT_SLIM_MANIFEST
     assert hybrid_kitchensink.validation_runs == []
-    assert hybrid_kitchensink.targets == [
-        "produce_sentdhiomr_snv_vcf",
-        "produce_snv_concordances",
-        "produce_sentdhiomr_sv",
-        "produce_tiddit_sv_vcf",
-        "produce_sentdhiomr_cnv",
-        "produce_sentdhiomr_segdup",
-        "produce_sentdhiomr_mito",
-        "produce_expansionhunter",
-        "produce_alignstats",
-        "produce_relatedness",
-        "produce_peddy",
-        "produce_gatk_contam_estimate",
-        "produce_site_mix_contam_estimate",
-        "produce_vep",
-        "produce_htd_calls",
-        "produce_smn12_orthogonal_calls",
-        "produce_metagenomics",
-        "produce_multiqc_all",
-        "results/day/hg38/reports/DAY_final_multiqc.html",
-        "results/day/hg38/reports/dayoa_evidence_manifest.json",
-    ]
+    assert hybrid_kitchensink.targets[0] == "produce_hiomrs"
+    assert "produce_tiddit_sv_vcf" in hybrid_kitchensink.targets
+    assert "produce_smn12_orthogonal_calls" in hybrid_kitchensink.targets
+    assert "produce_multiqc_all" in hybrid_kitchensink.targets
     assert hybrid_kitchensink.aligners == ["sent"]
     assert hybrid_kitchensink.dedupers == ["na"]
-    assert hybrid_kitchensink.snv_callers == ["sentdhiomr"]
-    assert hybrid_kitchensink.sv_callers == ["sentdhiomr", "tiddit"]
+    assert hybrid_kitchensink.snv_callers == ["hiomrs"]
+    assert hybrid_kitchensink.sv_callers == ["tiddit"]
     assert hybrid_kitchensink.jobs == 250
     assert hybrid_kitchensink.keep_going is False
     assert hybrid_kitchensink.restart_times == 0
-    assert "produce_sentdhiomr_sv" in hybrid_kitchensink.dy_command
+    assert hybrid_kitchensink.dy_command.startswith("dy-r produce_hiomrs ")
     assert "produce_tiddit_sv_vcf" in hybrid_kitchensink.dy_command
-    assert "produce_manta_sv_vcf" not in hybrid_kitchensink.dy_command
-    assert "manta" not in hybrid_kitchensink.description.lower()
-    assert "produce_sentdhiomr_segdup" in hybrid_kitchensink.dy_command
-    assert 'sentdhiomr={"segdup_genes":"SMN1"}' in hybrid_kitchensink.dy_command
-    assert "produce_htd_calls" in hybrid_kitchensink.dy_command
     assert "produce_smn12_orthogonal_calls" in hybrid_kitchensink.dy_command
-    assert "produce_sentdhiomr_snv_vcf" in hybrid_kitchensink.dy_command
-    assert "produce_sentdhiom_sv" not in hybrid_kitchensink.dy_command
-    assert "produce_sentdhiom_snv_vcf" not in hybrid_kitchensink.dy_command
     assert "produce_multiqc_all" in hybrid_kitchensink.dy_command
     assert "produce_gatk_contam_estimate" in hybrid_kitchensink.dy_command
     assert "produce_site_mix_contam_estimate" in hybrid_kitchensink.dy_command
-    for target in (
-        "produce_sentdhiomr_cnv",
-        "produce_sentdhiomr_mito",
-        "produce_expansionhunter",
-        "produce_alignstats",
-        "produce_peddy",
-        "results/day/hg38/reports/DAY_final_multiqc.html",
-        "results/day/hg38/reports/dayoa_evidence_manifest.json",
-    ):
-        assert target in hybrid_kitchensink.dy_command
     assert 'dedupers=["na"]' in hybrid_kitchensink.dy_command
     assert 'aligners=["sent"]' in hybrid_kitchensink.dy_command
-    assert 'snv_callers=["sentdhiomr"]' in hybrid_kitchensink.dy_command
-    assert 'sv_callers=["sentdhiomr","tiddit"]' in hybrid_kitchensink.dy_command
-    assert "manta" not in hybrid_kitchensink.dryrun_dy_command
+    assert 'snv_callers=["hiomrs"]' in hybrid_kitchensink.dy_command
+    assert 'sv_callers=["tiddit"]' in hybrid_kitchensink.dy_command
     assert 'htd_callers=["smn12"]' in hybrid_kitchensink.dy_command
-    for excluded in ("smaca", "sma_finder", "hapsma"):
-        assert excluded not in hybrid_kitchensink.dy_command
     assert "multiqc_qc=" in hybrid_kitchensink.dy_command
     assert "produce_metagenomics" in hybrid_kitchensink.dy_command
-    assert (
-        'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2",'
-        '"gatk_contam","site_mix","peddy"]}' in hybrid_kitchensink.dy_command
-    )
     expected_flags = "-j 250 -p -T 0 --rerun-triggers mtime --rerun-incomplete"
     assert hybrid_kitchensink.dy_command.endswith(expected_flags)
     assert hybrid_kitchensink.dryrun_dy_command.endswith(f"{expected_flags} -n")
-    for excluded in ("manta", "truvari", "dmd", "kraken", "sourmash"):
+    for excluded in ("sentdhiomr", "manta", "truvari", "dmd", "kraken", "sourmash"):
         assert excluded not in hybrid_kitchensink.dy_command.lower()
-    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
+    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_CRAM", "ONT_CRAM_ALIGNER", "ONT_CRAM_SNV_CALLER"] in (
         hybrid_kitchensink.input_requirements.accepted_source_column_sets
     )
 
