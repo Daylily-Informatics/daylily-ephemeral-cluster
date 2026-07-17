@@ -109,3 +109,25 @@ def test_hiomrs_kitchensink_has_explicit_native_targets_and_retires_hiomr() -> N
     command_ids = {item.command_id for item in catalog.commands()}
     assert "hybrid_ilmn_ont_snv" not in command_ids
     assert "hybrid_ilmn_ont_snv_kitchensink" not in command_ids
+
+
+def test_betelgeuser_prod_preserves_current_main_entry_on_v12_contract() -> None:
+    catalog = load_repository_catalog(SOURCE_CATALOG)
+    command = catalog.get_command("betelgeuser_hiomr_prod_v1")
+    kitchen_sink = catalog.get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
+
+    assert command.type == "prod"
+    assert command.git_tag == "12.0.0"
+    assert command.validated_version == "12.0.0"
+    assert command.input_contract == "sample_manifest_v12"
+    assert command.sample_manifest_template == ""
+    assert command.dy_command.startswith("dy-r produce_hiomrs ")
+    assert command.dryrun_dy_command == f"{command.dy_command} -n"
+    assert command.targets[-2:] == [
+        "results/day/hg38/reports/DAY_final_multiqc.html",
+        "results/day/hg38/reports/dayoa_evidence_manifest.json",
+    ]
+    identity_fields = {"command_id", "type", "display_name", "description"}
+    assert command.model_dump(exclude=identity_fields) == kitchen_sink.model_dump(
+        exclude=identity_fields
+    )

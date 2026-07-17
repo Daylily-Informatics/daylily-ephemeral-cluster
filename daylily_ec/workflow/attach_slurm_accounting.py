@@ -186,6 +186,7 @@ def prepare_slurm_accounting_update(
     profile: Optional[str] = None,
     cluster_configuration: Optional[Path] = None,
     stack_name: str = "",
+    privatelink_stack_name: str = "",
     database_name: str = DEFAULT_ACCOUNTING_DATABASE_NAME,
     db_username: str = DEFAULT_ACCOUNTING_USERNAME,
     create_if_missing: bool,
@@ -269,49 +270,81 @@ def prepare_slurm_accounting_update(
             reason_code="subnet_inspection_failed",
         ) from None
 
-    try:
-        regional_stack_count = len(
-            list_regional_slurm_accounting_stacks(
+    regional_stack_count: int | None = None
+    if privatelink_stack_name.strip():
+        from daylily_ec.aws.slurm_accounting_privatelink import (
+            SlurmAccountingPrivateLinkError,
+            resolve_slurm_accounting_privatelink_bridge,
+        )
+
+        try:
+            bridge = resolve_slurm_accounting_privatelink_bridge(
+                aws_ctx,
+                stack_name=privatelink_stack_name.strip(),
+            )
+            if bridge.consumer_vpc_id != vpc_id:
+                raise SlurmAccountingPrivateLinkError(
+                    "PrivateLink consumer VPC does not match the cluster VPC."
+                )
+            if stack_name.strip() and bridge.provider_accounting_stack_name != stack_name.strip():
+                raise SlurmAccountingPrivateLinkError(
+                    "PrivateLink provider stack does not match --stack-name."
+                )
+            db = bridge.as_accounting_db()
+            service_created = False
+        except SlurmAccountingPrivateLinkError:
+            raise SlurmAccountingPreparationError(
+                "The requested Slurm accounting PrivateLink bridge is unavailable or "
+                "incompatible; no compute-fleet request was issued.",
+                stage="service_resolution",
+                reason_code="privatelink_incompatible",
+            ) from None
+    else:
+        try:
+            regional_stack_count = len(
+                list_regional_slurm_accounting_stacks(
+                    aws_ctx,
+                    region_az=region_az,
+                )
+            )
+        except SlurmAccountingError:
+            raise SlurmAccountingPreparationError(
+                "Regional Slurm accounting service discovery did not complete safely.",
+                stage="service_resolution",
+                reason_code="service_discovery_failed",
+            ) from None
+
+        try:
+            resolution = resolve_slurm_accounting_db(
                 aws_ctx,
                 region_az=region_az,
+                vpc_id=vpc_id,
+                private_subnet_id=headnode_subnet_id,
+                create_if_missing=create_if_missing,
+                stack_name=stack_name.strip(),
+                database_name=database_name,
+                username=db_username,
+                warning_callback=warning_callback,
+                sleep_fn=sleep_fn,
             )
-        )
-    except SlurmAccountingError:
-        raise SlurmAccountingPreparationError(
-            "Regional Slurm accounting service discovery did not complete safely.",
-            stage="service_resolution",
-            reason_code="service_discovery_failed",
-        ) from None
-
-    try:
-        resolution = resolve_slurm_accounting_db(
-            aws_ctx,
-            region_az=region_az,
-            vpc_id=vpc_id,
-            private_subnet_id=headnode_subnet_id,
-            create_if_missing=create_if_missing,
-            stack_name=stack_name.strip(),
-            database_name=database_name,
-            username=db_username,
-            warning_callback=warning_callback,
-            sleep_fn=sleep_fn,
-        )
-    except SlurmAccountingError:
-        raise SlurmAccountingPreparationError(
-            "No compatible regional Slurm accounting service was prepared; "
-            "no compute-fleet request was issued.",
-            stage="service_resolution",
-            reason_code=(
-                "service_missing" if regional_stack_count == 0 else "service_incompatible"
-            ),
-            regional_stack_count=regional_stack_count,
-        ) from None
+            db = resolution.db
+            service_created = resolution.service_created
+        except SlurmAccountingError:
+            raise SlurmAccountingPreparationError(
+                "No compatible regional Slurm accounting service was prepared; "
+                "no compute-fleet request was issued.",
+                stage="service_resolution",
+                reason_code=(
+                    "service_missing" if regional_stack_count == 0 else "service_incompatible"
+                ),
+                regional_stack_count=regional_stack_count,
+            ) from None
 
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
     destination_dir = output_dir.expanduser() if output_dir else config_dir()
     update_config = destination_dir / (f"{cluster_name}_slurm_accounting_update_{timestamp}.yaml")
     try:
-        render_slurm_accounting_update_config(source_config, update_config, resolution.db)
+        render_slurm_accounting_update_config(source_config, update_config, db)
     except (OSError, SlurmAccountingAttachError, SlurmAccountingError, yaml.YAMLError):
         raise SlurmAccountingPreparationError(
             "The Slurm accounting update configuration could not be rendered safely; "
@@ -324,9 +357,9 @@ def prepare_slurm_accounting_update(
     return PreparedSlurmAccountingUpdate(
         cluster_name=cluster_name,
         region=region,
-        accounting_stack_name=resolution.db.stack_name,
+        accounting_stack_name=db.stack_name,
         update_config_path=update_config,
-        service_created=resolution.service_created,
+        service_created=service_created,
     )
 
 
@@ -337,13 +370,14 @@ def attach_slurm_accounting(
     profile: Optional[str] = None,
     cluster_configuration: Optional[Path] = None,
     stack_name: str = "",
+    privatelink_stack_name: str = "",
     database_name: str = DEFAULT_ACCOUNTING_DATABASE_NAME,
     db_username: str = DEFAULT_ACCOUNTING_USERNAME,
     dry_run_only: bool = False,
     output_dir: Optional[Path] = None,
     pcluster_executable: str = "pcluster",
 ) -> SlurmAccountingAttachResult:
-    """Attach an existing, same-VPC accounting service to a stopped cluster.
+    """Attach a direct or PrivateLink accounting service to a stopped cluster.
 
     This function never stops compute capacity, creates an accounting stack,
     forces a ParallelCluster update, or edits the original cluster config.
@@ -399,6 +433,7 @@ def attach_slurm_accounting(
         cluster_configuration=cluster_configuration,
         create_if_missing=False,
         stack_name=stack_name.strip(),
+        privatelink_stack_name=privatelink_stack_name.strip(),
         database_name=database_name,
         db_username=db_username,
         output_dir=output_dir,

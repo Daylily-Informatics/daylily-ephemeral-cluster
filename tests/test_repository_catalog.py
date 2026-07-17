@@ -42,6 +42,7 @@ UNVALIDATED_COMMAND_IDS = {
     "ont_snv_alignstats_kitchensink",
     "hybrid_ilmn_ont_hiomrs",
     "hybrid_ilmn_ont_hiomrs_kitchensink",
+    "betelgeuser_hiomr_prod_v1",
     "inflection-bjuice-product-v0.2",
     "illumina_pangenome_snv",
     "illumina_dragen_pangenome_snv_concordance",

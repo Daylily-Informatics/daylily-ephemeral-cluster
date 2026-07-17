@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from daylily_ec.aws.slurm_accounting import (
@@ -14,6 +16,17 @@ from daylily_ec.aws.slurm_accounting import (
     ensure_slurm_accounting_db,
     scan_slurm_accounting_ec2_candidates,
 )
+
+
+def test_packaged_accounting_template_tolerates_nlb_health_checks() -> None:
+    root = Path(__file__).resolve().parents[1]
+    repo = root / "config/day_cluster/slurm_accounting_mysql_ec2.yml"
+    packaged = (
+        root
+        / "daylily_ec/resources/payload/config/day_cluster/slurm_accounting_mysql_ec2.yml"
+    )
+    assert repo.read_bytes() == packaged.read_bytes()
+    assert "max_connect_errors = 4294967295" in repo.read_text(encoding="utf-8")
 
 
 def _tags(region_az: str = "us-west-2b", vpc_id: str = "vpc-123") -> list[dict[str, str]]:

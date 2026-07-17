@@ -935,6 +935,11 @@ def slurm_accounting_attach(
         "--stack-name",
         help="Explicit existing regional DayEC Slurm accounting stack name.",
     ),
+    privatelink_stack_name: str = typer.Option(
+        "",
+        "--privatelink-stack-name",
+        help="Explicit healthy DayEC accounting PrivateLink bridge stack.",
+    ),
     database_name: str = typer.Option(
         "dayec_slurm_acct",
         "--database-name",
@@ -964,6 +969,7 @@ def slurm_accounting_attach(
             profile=profile,
             cluster_configuration=cluster_configuration,
             stack_name=stack_name,
+            privatelink_stack_name=privatelink_stack_name,
             database_name=database_name,
             db_username=db_username,
             dry_run_only=dry_run,
@@ -992,6 +998,84 @@ def slurm_accounting_attach(
         output.success("ParallelCluster update dry-run succeeded; no update was submitted.")
     else:
         output.success("ParallelCluster accounting update submitted.")
+
+
+def slurm_accounting_privatelink_ensure(
+    region: str = typer.Option(
+        ...,
+        "--region",
+        help="AWS region containing the provider and consumer VPCs.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE.",
+    ),
+    provider_accounting_stack: str = typer.Option(
+        ...,
+        "--provider-accounting-stack",
+        help="Explicit existing DayEC MariaDB accounting stack.",
+    ),
+    consumer_vpc_id: str = typer.Option(
+        ...,
+        "--consumer-vpc-id",
+        help="VPC whose ParallelCluster headnodes will use the bridge.",
+    ),
+    consumer_endpoint_subnet_cidr: str = typer.Option(
+        ...,
+        "--consumer-endpoint-subnet-cidr",
+        help="Unused canonical IPv4 /28 for the consumer endpoint subnet.",
+    ),
+    stack_name: str = typer.Option(
+        "",
+        "--stack-name",
+        help="Explicit bridge stack name; otherwise derived from the consumer VPC ID.",
+    ),
+) -> None:
+    """Ensure an account-restricted TCP/3306 PrivateLink accounting bridge."""
+    from daylily_ec.aws.context import AWSContext
+    from daylily_ec.aws.slurm_accounting_privatelink import (
+        ensure_slurm_accounting_privatelink_bridge,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        aws_ctx = AWSContext.build_region(region, profile=profile)
+        bridge = ensure_slurm_accounting_privatelink_bridge(
+            aws_ctx,
+            provider_accounting_stack_name=provider_accounting_stack,
+            consumer_vpc_id=consumer_vpc_id,
+            consumer_endpoint_subnet_cidr=consumer_endpoint_subnet_cidr,
+            stack_name=stack_name,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+    payload = {
+        "stack_name": bridge.stack_name,
+        "status": bridge.status,
+        "provider_accounting_stack_name": bridge.provider_accounting_stack_name,
+        "provider_vpc_id": bridge.provider_vpc_id,
+        "consumer_vpc_id": bridge.consumer_vpc_id,
+        "endpoint_id": bridge.endpoint_id,
+        "endpoint_service_id": bridge.endpoint_service_id,
+        "endpoint_subnet_id": bridge.endpoint_subnet_id,
+        "client_security_group_id": bridge.client_security_group_id,
+        "accounting_instance_id": bridge.accounting_instance_id,
+    }
+    if _json_mode():
+        output.emit_json(payload)
+        return
+
+    output.heading("Slurm accounting PrivateLink bridge")
+    output.print_text(f"Stack:        {bridge.stack_name}")
+    output.print_text(f"Status:       {bridge.status}")
+    output.print_text(f"Provider DB:  {bridge.provider_accounting_stack_name}")
+    output.print_text(f"Provider VPC: {bridge.provider_vpc_id}")
+    output.print_text(f"Consumer VPC: {bridge.consumer_vpc_id}")
+    output.print_text(f"Endpoint:     {bridge.endpoint_id}")
+    output.print_text(f"Client SG:    {bridge.client_security_group_id}")
+    output.success("PrivateLink database target is healthy on TCP 3306.")
 
 
 def _cost_center_context(profile: Optional[str], home_region: str):
@@ -6578,6 +6662,18 @@ def register(registry, cli_spec) -> None:
             (
                 "attach",
                 slurm_accounting_attach,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "slurm-accounting/privatelink",
+        "TCP-only PrivateLink bridges to existing Slurm accounting databases.",
+        [
+            (
+                "ensure",
+                slurm_accounting_privatelink_ensure,
                 required_policy(supports_json=True, mutates_state=True, long_running=True),
             ),
         ],
