@@ -59,6 +59,7 @@ FAILED_STATES = {
     "TIMEOUT",
 }
 ACTIVE_STATES = {"RUNNING", "CONFIGURING", "COMPLETING"}
+SAFE_WORKFLOW_IDENTIFIER_RE = re.compile(r"[A-Za-z0-9_.-]+")
 
 
 def _normalized_slurm_state(value: Any) -> str:
@@ -86,6 +87,177 @@ def _tail(path: Path, lines: int) -> list[str]:
         return []
     with path.open("r", encoding="utf-8", errors="replace") as handle:
         return handle.readlines()[-lines:]
+
+
+def _manifest_rows(path: Path) -> list[dict[str, str]]:
+    if not path.is_file():
+        raise AnalysisStatusError(f"required analysis manifest does not exist: {path}")
+    with path.open(newline="", encoding="utf-8-sig") as handle:
+        rows = [
+            {str(key).strip().upper(): str(value or "") for key, value in row.items()}
+            for row in csv.DictReader(handle, delimiter="\t")
+        ]
+    if not rows:
+        raise AnalysisStatusError(f"required analysis manifest has no data rows: {path}")
+    return rows
+
+
+def _unique_manifest_values(
+    rows: Sequence[dict[str, str]],
+    field: str,
+    path: Path,
+) -> list[str]:
+    values = [row.get(field, "") for row in rows]
+    if any(not value for value in values):
+        raise AnalysisStatusError(f"every {path.name} row must have {field}: {path}")
+    if any(value != value.strip() for value in values):
+        raise AnalysisStatusError(
+            f"{field} values must be byte-exact without surrounding whitespace: {path}"
+        )
+    if len(set(values)) != len(values):
+        raise AnalysisStatusError(f"{field} values must be unique: {path}")
+    return values
+
+
+def _optional_unique_manifest_values(
+    rows: Sequence[dict[str, str]],
+    field: str,
+    path: Path,
+) -> list[str]:
+    values = [row.get(field, "") for row in rows]
+    populated = [value for value in values if value]
+    if any(value != value.strip() for value in populated):
+        raise AnalysisStatusError(
+            f"{field} values must be byte-exact without surrounding whitespace: {path}"
+        )
+    if len(set(populated)) != len(populated):
+        raise AnalysisStatusError(f"nonblank {field} values must be unique: {path}")
+    return values
+
+
+def _dayoa_analysis_unit_uid(row: dict[str, str], path: Path) -> str:
+    supplied = row.get("ANALYSIS_UNIT_UID", "")
+    if supplied:
+        value = supplied
+    else:
+        parts = [
+            row.get(field, "")
+            for field in (
+                "RUNID",
+                "SAMPLEID",
+                "EXPERIMENTID",
+                "LANEID",
+                "BARCODEID",
+                "LIBPREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+            )
+        ]
+        parts = [part for part in parts if part and part.lower() not in {"na", "none"}]
+        if not parts:
+            raise AnalysisStatusError(
+                f"cannot construct ANALYSIS_UNIT_UID from the exact libraries.tsv fields: {path}"
+            )
+        value = "-".join(parts)
+    if SAFE_WORKFLOW_IDENTIFIER_RE.fullmatch(value) is None:
+        raise AnalysisStatusError(
+            f"unsafe ANALYSIS_UNIT_UID {value!r}; DayOA does not rewrite identifiers: {path}"
+        )
+    return value
+
+
+def _analysis_manifests(dayoa_root: Path) -> dict[str, Any]:
+    config_root = dayoa_root / "config"
+    paths = {
+        name: config_root / name
+        for name in ("specimens.tsv", "samples.tsv", "libraries.tsv", "units.tsv")
+    }
+    present = {name for name, path in paths.items() if path.is_file()}
+    if not present:
+        return {
+            "available": False,
+            "input_contract": None,
+            "files": [],
+            "row_counts": {},
+            "note": "this command has no sample-manifest inputs",
+        }
+
+    if present & {"specimens.tsv", "libraries.tsv"}:
+        if "units.tsv" in present:
+            raise AnalysisStatusError(
+                "DayOA 12 analysis status rejects mixed config/units.tsv; migrate with `dayoa "
+                "migrate-manifests` and retain only specimens.tsv, samples.tsv, and libraries.tsv"
+            )
+        required = {"specimens.tsv", "samples.tsv", "libraries.tsv"}
+        missing = sorted(required - present)
+        if missing:
+            raise AnalysisStatusError(
+                "DayOA 12 analysis manifest set is incomplete; missing: " + ", ".join(missing)
+            )
+        specimens = _manifest_rows(paths["specimens.tsv"])
+        samples = _manifest_rows(paths["samples.tsv"])
+        libraries = _manifest_rows(paths["libraries.tsv"])
+        specimen_ids = set(
+            _unique_manifest_values(specimens, "SPECIMEN_ID", paths["specimens.tsv"])
+        )
+        _optional_unique_manifest_values(specimens, "SPECIMEN_EUID", paths["specimens.tsv"])
+        sample_ids = set(_unique_manifest_values(samples, "SAMPLEID", paths["samples.tsv"]))
+        _optional_unique_manifest_values(samples, "SAMPLE_EUID", paths["samples.tsv"])
+        analysis_units = [
+            _dayoa_analysis_unit_uid(row, paths["libraries.tsv"]) for row in libraries
+        ]
+        if len(set(analysis_units)) != len(analysis_units):
+            raise AnalysisStatusError(
+                f"constructed or supplied ANALYSIS_UNIT_UID values must be unique: "
+                f"{paths['libraries.tsv']}"
+            )
+        _optional_unique_manifest_values(libraries, "LIBRARY_EUID", paths["libraries.tsv"])
+        missing_specimens = sorted({row.get("SPECIMEN_ID", "") for row in samples} - specimen_ids)
+        missing_samples = sorted({row.get("SAMPLEID", "") for row in libraries} - sample_ids)
+        if missing_specimens:
+            raise AnalysisStatusError(
+                "samples.tsv SPECIMEN_ID values are absent from specimens.tsv: "
+                + ", ".join(missing_specimens)
+            )
+        if missing_samples:
+            raise AnalysisStatusError(
+                "libraries.tsv SAMPLEID values are absent from samples.tsv: "
+                + ", ".join(missing_samples)
+            )
+        return {
+            "available": True,
+            "input_contract": "sample_manifest_v12",
+            "files": ["specimens.tsv", "samples.tsv", "libraries.tsv"],
+            "row_counts": {
+                "specimens": len(specimens),
+                "samples": len(samples),
+                "libraries": len(libraries),
+            },
+            "lineage_validated": True,
+        }
+
+    required = {"samples.tsv", "units.tsv"}
+    missing = sorted(required - present)
+    if missing:
+        raise AnalysisStatusError(
+            "legacy analysis manifest set is incomplete; missing: " + ", ".join(missing)
+        )
+    samples = _manifest_rows(paths["samples.tsv"])
+    units = _manifest_rows(paths["units.tsv"])
+    sample_ids = set(_unique_manifest_values(samples, "SAMPLEID", paths["samples.tsv"]))
+    _unique_manifest_values(units, "ANALYSIS_UNIT_UID", paths["units.tsv"])
+    missing_samples = sorted({row.get("SAMPLEID", "") for row in units} - sample_ids)
+    if missing_samples:
+        raise AnalysisStatusError(
+            "units.tsv SAMPLEID values are absent from samples.tsv: " + ", ".join(missing_samples)
+        )
+    return {
+        "available": True,
+        "input_contract": "sample_manifest",
+        "files": ["samples.tsv", "units.tsv"],
+        "row_counts": {"samples": len(samples), "units": len(units)},
+        "lineage_validated": True,
+    }
 
 
 def _tail_summary(path: Path | None, lines: int, *, excerpt_lines: int) -> dict[str, Any]:
@@ -815,6 +987,7 @@ def collect_analysis_status(
         full=full,
         tail_lines=tail_lines,
     )
+    manifests = _analysis_manifests(dayoa_root)
     artifacts = _canonical_artifacts(dayoa_root)
     progress = workflow["progress"]
     terminal_evidence = _terminal_evidence(
@@ -856,6 +1029,7 @@ def collect_analysis_status(
         "controller": controller,
         "slurm": slurm,
         "accounting": accounting,
+        "manifests": manifests,
         "filesystem": _filesystem(root, runner=runner),
         "canonical_artifacts": artifacts,
         "warnings": [],

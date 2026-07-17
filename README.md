@@ -216,6 +216,21 @@ dyec samples run ./analysis_samples.tsv \
   --dry-run
 ```
 
+DayOA 12 sample commands use the explicit `sample_manifest_v12` contract. The
+source manifest must supply exact `SPECIMEN_ID`, `SAMPLEID`,
+`ANALYSIS_UNIT_UID`, and persisted specimen/sample/library EUIDs. DYEC writes
+`specimens.tsv`, `samples.tsv`, and `libraries.tsv`; it never infers or rewrites
+those identities. A legacy `units.tsv` is rejected for DayOA 12. Convert an old
+two-file configuration offline with DayOA's reviewed identity-map workflow:
+
+```bash
+dayoa migrate-manifests \
+  --samples old-samples.tsv \
+  --units old-units.tsv \
+  --identity-map identity-map.tsv \
+  --output-dir config/
+```
+
 For run-folder analysis, attach a read-only run mount before launching a run-context command:
 
 ```bash
@@ -381,7 +396,7 @@ The DYEC launch equivalent is also explicit: pass `--git-tag <dayoa_version>` to
 Catalog command classes:
 
 - `utility`: no sample or run inputs, usually used for smoke tests.
-- `sample_analysis`: consumes `analysis_samples.tsv`, stages sample/unit manifests, and launches a repository command.
+- `sample_analysis`: consumes `analysis_samples.tsv` under an explicit catalog contract. DayOA 12 commands stage specimens/samples/libraries; commands pinned before DayOA 12 may explicitly retain the legacy samples/units contract.
 - `run_analysis`: consumes `runs.tsv` and requires a matching `/fsx/run_dir_mounts/<mount_id>` input mount.
 
 Each command also declares `compatible_cluster_types`, using `daywgs` for the standard DayOA/Sentieon whole-genome clusters and `dragen` for DRAGEN f2 clusters.
@@ -505,7 +520,7 @@ matching rule is `running <elapsed>`, terminal exact-root failure evidence is
 `failed`, and an unstarted artifact is `pending`. Values missing from their
 authoritative TSV, metadata JSON, QC file, or report stay null with source/state
 evidence; identifiers and operational metadata are never inferred or silently
-normalized. With DayOA `11.0.25`, the Mito milestone is the native HIOMRS
+normalized. With DayOA `12.0.0`, the Mito milestone is the native HIOMRS
 `<analysis-unit>.mito.vcf.gz` artifact and participates in the configured unit
 completion denominator. Missing, running, and failed mitochondrial calls use
 the same explicit states as the other artifact milestones.

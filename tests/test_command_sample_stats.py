@@ -101,12 +101,18 @@ def analysis_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     root = tmp_path / "analysis"
     dayoa = root / "daylily-omics-analysis"
     _write(
-        dayoa / "config" / "units.tsv",
-        "ANALYSIS_UNIT_UID\tSAMPLEID\nHG003_unit\tHG003\n",
+        dayoa / "config" / "specimens.tsv",
+        "SPECIMEN_ID\tSPECIMEN_EUID\tBIOLOGICAL_SEX\tSPECIMEN_TYPE\n"
+        "HG003_specimen\tfixture-specimen-owned-003\tXY\tblood\n",
     )
     _write(
         dayoa / "config" / "samples.tsv",
-        "SAMPLEID\tBIOLOGICAL_SEX\tSAMPLESOURCE\tSAMPLEUSE\tORDER_TYPE\nHG003\tXY\tblood\tvalidation\tpositive_control\n",
+        "SAMPLEID\tSAMPLE_EUID\tSPECIMEN_ID\tSAMPLEUSE\tORDER_TYPE\n"
+        "HG003\tfixture-sample-owned-003\tHG003_specimen\tvalidation\tpositive_control\n",
+    )
+    _write(
+        dayoa / "config" / "libraries.tsv",
+        "ANALYSIS_UNIT_UID\tLIBRARY_EUID\tSAMPLEID\nHG003_unit\tfixture-library-owned-003\tHG003\n",
     )
     _write(
         dayoa / "config" / "day_profiles" / "slurm" / "templates" / "rule_config.yaml",
@@ -189,7 +195,7 @@ def analysis_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         "_git_identity",
         lambda *_args, **_kwargs: {
             "commit": "abc",
-            "exact_tag": "11.0.25",
+            "exact_tag": "11.0.15",
             "dirty": False,
             "dirty_paths": [],
         },
@@ -209,12 +215,20 @@ def test_collect_sample_stats_contract(analysis_root: Path) -> None:
     assert report["schema_version"] == "dyec.command_sample_stats.v2"
     assert report["compatible_schema_versions"] == ["dyec.command_sample_stats.v1"]
     assert report["command_details"]["command_catalog_key"] == "hybrid_ilmn_ont_hiomrs_kitchensink"
-    assert report["command_details"]["git_tag"] == "11.0.25"
+    assert report["command_details"]["git_tag"] == "12.0.0"
     assert report["command_details"]["retried_jobs"]["count"] == 1
     assert report["analysis"]["started_at_source"] == "controller process elapsed time"
     assert 599 <= report["analysis"]["runtime_seconds"] <= 601
+    assert report["pipeline"]["input_contract"] == "sample_manifest_v12"
+    assert report["pipeline"]["manifest_files"] == [
+        "specimens.tsv",
+        "samples.tsv",
+        "libraries.tsv",
+    ]
+    assert report["pipeline"]["specimens_rows"] == 1
     assert report["pipeline"]["samples_rows"] == 1
     assert report["pipeline"]["units_rows"] == 1
+    assert report["pipeline"]["libraries_rows"] == 1
     assert report["pipeline"]["jobs_submitted"] == 4
     assert report["pipeline"]["jobs_still_to_run"] == 6
     assert report["pipeline"]["jobs_retried"] == 1
@@ -230,6 +244,10 @@ def test_collect_sample_stats_contract(analysis_root: Path) -> None:
     }
     unit = report["library_units"][0]
     assert unit["analysis_unit_uid"] == "HG003_unit"
+    assert unit["library_euid"] == "fixture-library-owned-003"
+    assert unit["sample_euid"] == "fixture-sample-owned-003"
+    assert unit["specimen_id"] == "HG003_specimen"
+    assert unit["specimen_euid"] == "fixture-specimen-owned-003"
     assert unit["overall_percent_complete"] == 100.0
     assert unit["milestones"]["mitochondrial"]["state"] == "complete"
     assert unit["milestones"]["segdup"]["completed_targets"] == 2
@@ -317,12 +335,58 @@ def test_v2_preserves_the_public_v1_field_surface(analysis_root: Path) -> None:
     } <= unit["metrics"].keys()
 
 
-def test_authoritative_analysis_unit_uid_is_required_and_unique(analysis_root: Path) -> None:
-    units = analysis_root / "daylily-omics-analysis" / "config" / "units.tsv"
-    units.write_text(
-        "ANALYSIS_UNIT_UID\tSAMPLEID\nHG003_unit\tHG003\nHG003_unit\tHG003\n", encoding="utf-8"
+def test_authoritative_analysis_unit_uid_is_unique_when_supplied(analysis_root: Path) -> None:
+    libraries = analysis_root / "daylily-omics-analysis" / "config" / "libraries.tsv"
+    libraries.write_text(
+        "ANALYSIS_UNIT_UID\tLIBRARY_EUID\tSAMPLEID\n"
+        "HG003_unit\tfixture-library-owned-003\tHG003\n"
+        "HG003_unit\tfixture-library-owned-004\tHG003\n",
+        encoding="utf-8",
     )
     with pytest.raises(module.CommandSampleStatsError, match="must be unique"):
+        module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomrs-kitchensink")
+
+
+def test_dayoa12_sample_stats_constructs_blank_analysis_unit_without_rewriting(
+    analysis_root: Path,
+) -> None:
+    libraries = analysis_root / "daylily-omics-analysis" / "config" / "libraries.tsv"
+    libraries.write_text(
+        "ANALYSIS_UNIT_UID\tLIBRARY_EUID\tSAMPLEID\tRUNID\tEXPERIMENTID\tLANEID\t"
+        "BARCODEID\tLIBPREP\tSEQ_VENDOR\tSEQ_PLATFORM\n"
+        "\t\tHG003\trun1\tfull\t1\tbc1\tPCRFREE\tILMN\tNOVASEQ\n",
+        encoding="utf-8",
+    )
+
+    rows, _samples, _specimens, label = module._load_analysis_manifests(
+        analysis_root / "daylily-omics-analysis",
+        input_contract="sample_manifest_v12",
+    )
+
+    assert label == "libraries.tsv"
+    assert rows[0]["ANALYSIS_UNIT_UID"] == "run1-HG003-full-1-bc1-PCRFREE-ILMN-NOVASEQ"
+    assert rows[0]["LIBRARY_EUID"] == ""
+
+
+def test_dayoa12_sample_stats_rejects_legacy_units_even_with_three_manifests(
+    analysis_root: Path,
+) -> None:
+    _write(
+        analysis_root / "daylily-omics-analysis" / "config" / "units.tsv",
+        "ANALYSIS_UNIT_UID\tSAMPLEID\nHG003_unit\tHG003\n",
+    )
+    with pytest.raises(module.CommandSampleStatsError, match="rejects config/units.tsv"):
+        module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomrs-kitchensink")
+
+
+def test_dayoa12_sample_stats_validates_specimen_foreign_key(analysis_root: Path) -> None:
+    samples = analysis_root / "daylily-omics-analysis" / "config" / "samples.tsv"
+    samples.write_text(
+        "SAMPLEID\tSAMPLE_EUID\tSPECIMEN_ID\tSAMPLEUSE\tORDER_TYPE\n"
+        "HG003\tfixture-sample-owned-003\tmissing-specimen\tvalidation\tpositive_control\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(module.CommandSampleStatsError, match="absent from specimens.tsv"):
         module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomrs-kitchensink")
 
 

@@ -24,6 +24,13 @@ from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
 RUN_ID = "RUN_ID"
 SAMPLE_ID = "SAMPLE_ID"
+SAMPLEID = "SAMPLEID"
+SPECIMEN_ID = "SPECIMEN_ID"
+SPECIMEN_EUID = "SPECIMEN_EUID"
+SAMPLE_EUID = "SAMPLE_EUID"
+ANALYSIS_UNIT_UID = "ANALYSIS_UNIT_UID"
+LIBRARY_EUID = "LIBRARY_EUID"
+INFLECTION_DELIVERY_ID = "INFLECTION_DELIVERY_ID"
 EXPERIMENT_ID = "EXPERIMENTID"
 SAMPLE_TYPE = "SAMPLE_TYPE"
 SAMPLESOURCE = "SAMPLESOURCE"
@@ -86,6 +93,18 @@ N_X = "N_X"
 N_Y = "N_Y"
 EXTERNAL_SAMPLE_ID = "EXTERNAL_SAMPLE_ID"
 SAMPLEUSE = "SAMPLEUSE"
+SPECIMEN_TYPE = "SPECIMEN_TYPE"
+EXTERNAL_SPECIMEN_ID = "EXTERNAL_SPECIMEN_ID"
+ORDER_TYPE = "ORDER_TYPE"
+IDDNA_UID = "IDDNA_UID"
+SPECIMEN_COMMENT = "SPECIMEN_COMMENT"
+SAMPLE_COMMENT = "SAMPLE_COMMENT"
+LIBRARY_COMMENT = "LIBRARY_COMMENT"
+SR_VCF_PATH = "SR_VCF_PATH"
+LR_VCF_PATH = "LR_VCF_PATH"
+AMPLIFICATION_TYPE = "AMPLIFICATION_TYPE"
+ALIGNED_REF_UID = "ALIGNED_REF_UID"
+MERGE_SINGLE = "MERGE_SINGLE"
 BWA_KMER = "BWA_KMER"
 DEEP_MODEL = "DEEP_MODEL"
 
@@ -120,6 +139,60 @@ MANIFEST_REQUIRED_FIELDS = [
     LANE,
     SEQBC_ID,
 ]
+
+DAYOA12_MANIFEST_REQUIRED_FIELDS = [
+    SPECIMEN_ID,
+    SPECIMEN_EUID,
+    SAMPLEID,
+    SAMPLE_EUID,
+    ANALYSIS_UNIT_UID,
+    LIBRARY_EUID,
+    RUN_ID,
+    EXPERIMENT_ID,
+    SAMPLE_TYPE,
+    SAMPLESOURCE,
+    SPECIMEN_TYPE,
+    SAMPLECLASS,
+    SAMPLEUSE,
+    ORDER_TYPE,
+    BIOLOGICAL_SEX,
+    LIB_PREP,
+    SEQ_VENDOR,
+    SEQ_PLATFORM,
+    LANE,
+    SEQBC_ID,
+]
+
+# These columns are part of the DayOA 12 schema, but their values are
+# intentionally conditional.  Persisted EUIDs are required only when metadata
+# enrichment or customer packaging is requested, INFLECTION_DELIVERY_ID is
+# required only for Inflection delivery, and a blank ANALYSIS_UNIT_UID retains
+# DayOA's established deterministic construction contract.
+DAYOA12_CONDITIONALLY_REQUIRED_FIELDS = {
+    SPECIMEN_EUID,
+    SAMPLE_EUID,
+    ANALYSIS_UNIT_UID,
+    LIBRARY_EUID,
+    INFLECTION_DELIVERY_ID,
+}
+DAYOA12_NONBLANK_REQUIRED_FIELDS = [
+    field
+    for field in DAYOA12_MANIFEST_REQUIRED_FIELDS
+    if field not in DAYOA12_CONDITIONALLY_REQUIRED_FIELDS
+]
+
+DAYOA12_BYTE_EXACT_IDENTITY_FIELDS = (
+    SPECIMEN_ID,
+    SPECIMEN_EUID,
+    SAMPLEID,
+    SAMPLE_EUID,
+    ANALYSIS_UNIT_UID,
+    LIBRARY_EUID,
+    INFLECTION_DELIVERY_ID,
+    EXTERNAL_SPECIMEN_ID,
+    EXTERNAL_SAMPLE_ID,
+    IDDNA_UID,
+)
 
 RAW_SOURCE_SPECS = (
     (ILMN_R1_FQ, ILMN_R2_FQ, "ILMN_R1_PATH", "ILMN_R2_PATH"),
@@ -222,6 +295,25 @@ ALLOWED_MANIFEST_FIELDS = {
     SAMPLEUSE,
     BWA_KMER,
     DEEP_MODEL,
+    SAMPLEID,
+    SPECIMEN_ID,
+    SPECIMEN_EUID,
+    SAMPLE_EUID,
+    ANALYSIS_UNIT_UID,
+    LIBRARY_EUID,
+    INFLECTION_DELIVERY_ID,
+    SPECIMEN_TYPE,
+    EXTERNAL_SPECIMEN_ID,
+    ORDER_TYPE,
+    IDDNA_UID,
+    SPECIMEN_COMMENT,
+    SAMPLE_COMMENT,
+    LIBRARY_COMMENT,
+    SR_VCF_PATH,
+    LR_VCF_PATH,
+    AMPLIFICATION_TYPE,
+    ALIGNED_REF_UID,
+    MERGE_SINGLE,
 }
 
 LEGACY_SOURCE_ALIASES = {
@@ -273,6 +365,49 @@ UNITS_HEADER = [
     ONT_BAM_SNV_CALLER,
 ]
 
+SPECIMENS_HEADER = [
+    SPECIMEN_ID,
+    SPECIMEN_EUID,
+    SAMPLESOURCE,
+    SPECIMEN_TYPE,
+    EXTERNAL_SPECIMEN_ID,
+    BIOLOGICAL_SEX,
+    N_X,
+    N_Y,
+    SPECIMEN_COMMENT,
+]
+
+DAYOA12_SAMPLES_HEADER = [
+    SAMPLEID,
+    SAMPLE_EUID,
+    SPECIMEN_ID,
+    SAMPLECLASS,
+    SAMPLE_TYPE,
+    SAMPLEUSE,
+    ORDER_TYPE,
+    "CONCORDANCE_CONTROL_PATH",
+    "IS_POSITIVE_CONTROL",
+    "IS_NEGATIVE_CONTROL",
+    TUM_NRM_SAMPLEID_MATCH,
+    EXTERNAL_SAMPLE_ID,
+    IDDNA_UID,
+    TRUTH_DATA_DIR,
+    SAMPLE_COMMENT,
+]
+
+LIBRARIES_HEADER = [
+    ANALYSIS_UNIT_UID,
+    LIBRARY_EUID,
+    INFLECTION_DELIVERY_ID,
+    *[column for column in UNITS_HEADER if column != SAMPLEUSE],
+    "SR_VCF_PATH",
+    "LR_VCF_PATH",
+    "AMPLIFICATION_TYPE",
+    "ALIGNED_REF_UID",
+    "MERGE_SINGLE",
+    LIBRARY_COMMENT,
+]
+
 SAMPLES_HEADER = [
     "SAMPLEID",
     "SAMPLESOURCE",
@@ -322,6 +457,16 @@ class SampleMetadata:
     n_x: str
     n_y: str
     external_sample_id: str
+    specimen_id: str = ""
+    specimen_euid: str = ""
+    sample_euid: str = ""
+    specimen_type: str = ""
+    external_specimen_id: str = ""
+    sample_use: str = ""
+    order_type: str = ""
+    iddna_uid: str = ""
+    specimen_comment: str = ""
+    sample_comment: str = ""
 
 
 @dataclass(frozen=True)
@@ -333,6 +478,10 @@ class UnitMetadata:
     seq_platform: str
     lane: str
     seqbc_id: str
+    analysis_unit_uid: str = ""
+    library_euid: str = ""
+    inflection_delivery_id: str = ""
+    library_comment: str = ""
 
 
 @dataclass(frozen=True)
@@ -351,6 +500,7 @@ class ManifestRow:
     units_passthrough: Mapping[str, str]
     original: Mapping[str, str]
     row_number: int = 0
+    manifest_contract: str = "legacy_v11"
 
 
 @dataclass(frozen=True)
@@ -440,6 +590,16 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument("analysis_samples", help="Path to analysis_samples.tsv")
     parser.add_argument(
+        "--manifest-contract",
+        choices=("legacy_v11", "dayoa12"),
+        default="legacy_v11",
+        help=(
+            "Explicit generated-manifest contract. dayoa12 requires persisted lineage "
+            "identifiers and writes specimens.tsv, samples.tsv, and libraries.tsv; "
+            "legacy_v11 is only for commands explicitly pinned before DayOA 12."
+        ),
+    )
+    parser.add_argument(
         "--stage-target",
         default=ACTIVE_EXTERNAL_STAGE_ROOT,
         help="FSx staging base directory (default: %(default)s)",
@@ -474,7 +634,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--config-dir",
-        help="Directory to place generated samples.tsv/units.tsv (default: TSV dir)",
+        help=(
+            "Directory for generated manifests (default: TSV dir). dayoa12 writes "
+            "specimens.tsv, samples.tsv, and libraries.tsv; legacy_v11 writes "
+            "samples.tsv and units.tsv."
+        ),
     )
     parser.add_argument(
         "--profile",
@@ -516,7 +680,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         "--config-only",
         action="store_true",
         help=(
-            "Validate the manifest and write generated samples.tsv/units.tsv locally without "
+            "Validate the manifest and write generated manifests locally without "
             "uploading a remote stage or creating a staged-prefix DRA. All sample inputs must "
             "use pass_through or mounted_readonly."
         ),
@@ -924,9 +1088,7 @@ def parse_fsx_s3_uri_maps(values: Optional[Sequence[str]]) -> Tuple[Tuple[str, s
     mappings: List[Tuple[str, str]] = []
     for raw in values or []:
         if "=" not in raw:
-            raise CommandError(
-                "--fsx-s3-uri-map must use /fsx/prefix=s3://bucket/prefix syntax."
-            )
+            raise CommandError("--fsx-s3-uri-map must use /fsx/prefix=s3://bucket/prefix syntax.")
         fsx_prefix, s3_uri = (part.strip() for part in raw.split("=", 1))
         fsx_prefix = fsx_prefix.rstrip("/")
         s3_uri = s3_uri.rstrip("/")
@@ -1049,6 +1211,16 @@ def normalise_identifier(value: str) -> str:
     if "/" in value or "\\" in value:
         raise CommandError(f"Identifier fields must not contain path separators: {value}")
     return value.replace("_", "-")
+
+
+def exact_source_identifier(value: str, *, field: str) -> str:
+    if not value:
+        raise CommandError(f"{field} must not be blank")
+    if value != value.strip():
+        raise CommandError(f"{field} must not have surrounding whitespace")
+    if "/" in value or "\\" in value:
+        raise CommandError(f"{field} must not contain path separators: {value}")
+    return value
 
 
 def normalise_run_id(value: str) -> str:
@@ -2174,6 +2346,24 @@ def deduplicate_rows(rows: Sequence[Dict[str, str]], header: Sequence[str]) -> L
     return unique_rows
 
 
+def unique_entity_rows(
+    rows: Sequence[Dict[str, str]],
+    *,
+    key_field: str,
+    entity: str,
+) -> List[Dict[str, str]]:
+    by_key: Dict[str, Dict[str, str]] = {}
+    for row in rows:
+        key = row.get(key_field, "")
+        if not key:
+            raise CommandError(f"Generated {entity} row is missing {key_field}")
+        existing = by_key.get(key)
+        if existing is not None and existing != row:
+            raise CommandError(f"Generated {entity} rows conflict for {key_field}={key!r}")
+        by_key[key] = row
+    return [by_key[key] for key in sorted(by_key)]
+
+
 def _normalise_headnode_data_path(value: str) -> str:
     if value == "/data" or value.startswith("/data/"):
         raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
@@ -2187,11 +2377,7 @@ def normalise_units_paths(rows: Sequence[Dict[str, str]]) -> None:
                 continue
             if "," in value:
                 parts = [part.strip() for part in value.split(",")]
-                if any(
-                    part.startswith("/data/")
-                    or part == "/data"
-                    for part in parts
-                ):
+                if any(part.startswith("/data/") or part == "/data" for part in parts):
                     row[field] = ",".join(_normalise_headnode_data_path(part) for part in parts)
                 continue
             row[field] = _normalise_headnode_data_path(value)
@@ -2213,6 +2399,16 @@ def normalize_manifest_row(
         if legacy_value and not canonical_value:
             normalized[canonical_field] = legacy_value
     return normalized
+
+
+def validate_raw_dayoa12_identities(row: Mapping[str, str], *, row_number: int) -> None:
+    for field in DAYOA12_BYTE_EXACT_IDENTITY_FIELDS:
+        raw = str(row.get(field) or "")
+        if raw and raw != raw.strip():
+            raise CommandError(
+                f"Row {row_number} {field} contains surrounding whitespace; DayOA 12 identity "
+                "and delivery fields are byte-exact and are never silently rewritten"
+            )
 
 
 def raw_groups_present(row: Mapping[str, str]) -> List[Tuple[str, str, str, str]]:
@@ -2307,7 +2503,21 @@ def validate_manifest_row(
         raise CommandError(issues[0].message)
 
 
-def build_manifest_row(normalized: Mapping[str, str], *, row_number: int = 0) -> ManifestRow:
+def build_manifest_row(
+    normalized: Mapping[str, str],
+    *,
+    row_number: int = 0,
+    manifest_contract: str = "legacy_v11",
+) -> ManifestRow:
+    if manifest_contract not in {"legacy_v11", "dayoa12"}:
+        raise CommandError(f"Unsupported manifest contract: {manifest_contract}")
+    source_sample_field = SAMPLEID if manifest_contract == "dayoa12" else SAMPLE_ID
+    source_sample_id = get_entry_value(normalized, source_sample_field)
+    sample_id = (
+        exact_source_identifier(source_sample_id, field=SAMPLEID)
+        if manifest_contract == "dayoa12"
+        else normalise_identifier(source_sample_id)
+    )
     sample_type = normalise_identifier(get_entry_value(normalized, SAMPLE_TYPE))
     sample_source = get_entry_value(normalized, SAMPLESOURCE) or sample_type
     sample_class = get_entry_value(normalized, SAMPLECLASS) or "research"
@@ -2321,7 +2531,7 @@ def build_manifest_row(normalized: Mapping[str, str], *, row_number: int = 0) ->
     if TUM_NRM_SAMPLEID_MATCH not in normalized:
         tum_nrm_sampleid_match = "na"
     sample = SampleMetadata(
-        sample_id=normalise_identifier(get_entry_value(normalized, SAMPLE_ID)),
+        sample_id=sample_id,
         sample_type=sample_type,
         sample_source=sample_source,
         sample_class=sample_class,
@@ -2333,6 +2543,16 @@ def build_manifest_row(normalized: Mapping[str, str], *, row_number: int = 0) ->
         n_x=n_x,
         n_y=n_y,
         external_sample_id=get_entry_value(normalized, EXTERNAL_SAMPLE_ID) or "na",
+        specimen_id=get_entry_value(normalized, SPECIMEN_ID),
+        specimen_euid=get_entry_value(normalized, SPECIMEN_EUID),
+        sample_euid=get_entry_value(normalized, SAMPLE_EUID),
+        specimen_type=get_entry_value(normalized, SPECIMEN_TYPE),
+        external_specimen_id=get_entry_value(normalized, EXTERNAL_SPECIMEN_ID),
+        sample_use=get_entry_value(normalized, SAMPLEUSE),
+        order_type=get_entry_value(normalized, ORDER_TYPE),
+        iddna_uid=get_entry_value(normalized, IDDNA_UID),
+        specimen_comment=get_entry_value(normalized, SPECIMEN_COMMENT),
+        sample_comment=get_entry_value(normalized, SAMPLE_COMMENT),
     )
     vendor = canonical_manifest_seq_vendor(get_entry_value(normalized, SEQ_VENDOR))
     ont_fastq_prefix = get_entry_value(normalized, ONT_FASTQ_PREFIX)
@@ -2355,6 +2575,10 @@ def build_manifest_row(normalized: Mapping[str, str], *, row_number: int = 0) ->
             get_entry_value(normalized, ONT_FLOWCELL_ID) or get_entry_value(normalized, LANE)
         ),
         seqbc_id=ont_tag or normalise_identifier(get_entry_value(normalized, SEQBC_ID)),
+        analysis_unit_uid=get_entry_value(normalized, ANALYSIS_UNIT_UID),
+        library_euid=get_entry_value(normalized, LIBRARY_EUID),
+        inflection_delivery_id=get_entry_value(normalized, INFLECTION_DELIVERY_ID),
+        library_comment=get_entry_value(normalized, LIBRARY_COMMENT),
     )
     staging = StagingOptions(
         stage_directive=normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE)),
@@ -2396,6 +2620,7 @@ def build_manifest_row(normalized: Mapping[str, str], *, row_number: int = 0) ->
         units_passthrough=units_passthrough,
         original=dict(normalized),
         row_number=row_number,
+        manifest_contract=manifest_contract,
     )
 
 
@@ -2405,6 +2630,7 @@ def load_manifest_rows(
     reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
+    manifest_contract: str = "legacy_v11",
 ) -> List[ManifestRow]:
     rows: List[ManifestRow] = []
     with analysis_samples.open(newline="") as ff:
@@ -2417,16 +2643,32 @@ def load_manifest_rows(
             raise CommandError(
                 "Unknown columns in analysis samples manifest: " + ", ".join(unknown_fields)
             )
-        missing_fields = [field for field in MANIFEST_REQUIRED_FIELDS if field not in header_fields]
+        required_fields = (
+            DAYOA12_MANIFEST_REQUIRED_FIELDS
+            if manifest_contract == "dayoa12"
+            else MANIFEST_REQUIRED_FIELDS
+        )
+        missing_fields = [field for field in required_fields if field not in header_fields]
         if missing_fields:
             raise CommandError(f"Missing required columns: {', '.join(missing_fields)}")
 
         for row_number, row in enumerate(reader, start=2):
             if not row:
                 continue
+            if manifest_contract == "dayoa12":
+                validate_raw_dayoa12_identities(row, row_number=row_number)
             normalized = normalize_manifest_row(row, row_number=row_number)
             if not any(normalized.values()):
                 continue
+            if manifest_contract == "dayoa12":
+                blank_required = [
+                    field for field in DAYOA12_NONBLANK_REQUIRED_FIELDS if not normalized.get(field)
+                ]
+                if blank_required:
+                    raise CommandError(
+                        "DayOA 12 source manifests require explicit nonblank values; blank "
+                        f"columns: {', '.join(blank_required)}. DYEC does not infer identifiers."
+                    )
             validate_manifest_row(
                 normalized,
                 row_number=row_number,
@@ -2434,8 +2676,16 @@ def load_manifest_rows(
                 aws_env=aws_env,
                 debug=debug,
             )
-            rows.append(build_manifest_row(normalized, row_number=row_number))
+            rows.append(
+                build_manifest_row(
+                    normalized,
+                    row_number=row_number,
+                    manifest_contract=manifest_contract,
+                )
+            )
 
+    if manifest_contract == "dayoa12":
+        validate_dayoa12_lineage(rows)
     return rows
 
 
@@ -2447,7 +2697,11 @@ def _row_issue(
     path: str = "",
     message: str,
 ) -> PrecheckIssue:
-    sample_id = normalise_identifier(get_entry_value(normalized, SAMPLE_ID)) or "na"
+    sample_id = (
+        get_entry_value(normalized, SAMPLEID)
+        or normalise_identifier(get_entry_value(normalized, SAMPLE_ID))
+        or "na"
+    )
     run_id = normalise_run_id(get_entry_value(normalized, RUN_ID)) or "na"
     message = re.sub(rf"^Row {row_number}\s+", "", message).strip()
     return PrecheckIssue(
@@ -2483,6 +2737,110 @@ def _issue_from_exception(
         path=path,
         message=message,
     )
+
+
+def _require_consistent_entity(
+    records: Dict[str, Dict[str, str]],
+    *,
+    key: str,
+    row: Dict[str, str],
+    entity: str,
+) -> None:
+    value = row[key]
+    existing = records.get(value)
+    if existing is not None and existing != row:
+        raise CommandError(f"Conflicting {entity} metadata for {key}={value!r}")
+    records[value] = row
+
+
+def build_specimens_rows(rows: Sequence[ManifestRow]) -> List[Dict[str, str]]:
+    specimens: Dict[str, Dict[str, str]] = {}
+    for entry in rows:
+        row = {
+            SPECIMEN_ID: entry.sample.specimen_id,
+            SPECIMEN_EUID: entry.sample.specimen_euid,
+            SAMPLESOURCE: entry.sample.sample_source,
+            SPECIMEN_TYPE: entry.sample.specimen_type,
+            EXTERNAL_SPECIMEN_ID: entry.sample.external_specimen_id,
+            BIOLOGICAL_SEX: entry.sample.biological_sex,
+            N_X: entry.sample.n_x,
+            N_Y: entry.sample.n_y,
+            SPECIMEN_COMMENT: entry.sample.specimen_comment,
+        }
+        _require_consistent_entity(
+            specimens,
+            key=SPECIMEN_ID,
+            row=row,
+            entity="specimen",
+        )
+    return [specimens[key] for key in sorted(specimens)]
+
+
+def validate_dayoa12_lineage(rows: Sequence[ManifestRow]) -> None:
+    specimen_euids: Dict[str, str] = {}
+    sample_euids: Dict[str, str] = {}
+    library_euids: Dict[str, str] = {}
+    sample_specimens: Dict[str, str] = {}
+    analysis_units: Dict[str, str] = {}
+    delivery_ids: Dict[str, str] = {}
+    for entry in rows:
+        for field, value in (
+            (SPECIMEN_ID, entry.sample.specimen_id),
+            (SAMPLEID, entry.sample.sample_id),
+        ):
+            exact_source_identifier(value, field=field)
+        for field, value in (
+            (SPECIMEN_EUID, entry.sample.specimen_euid),
+            (SAMPLE_EUID, entry.sample.sample_euid),
+            (ANALYSIS_UNIT_UID, entry.unit.analysis_unit_uid),
+            (LIBRARY_EUID, entry.unit.library_euid),
+        ):
+            if value:
+                exact_source_identifier(value, field=field)
+        identities = (
+            ("specimen", entry.sample.specimen_euid, entry.sample.specimen_id, specimen_euids),
+            ("sample", entry.sample.sample_euid, entry.sample.sample_id, sample_euids),
+            ("library", entry.unit.library_euid, entry.unit.analysis_unit_uid, library_euids),
+        )
+        for entity, euid, key, seen in identities:
+            if not euid:
+                continue
+            existing = seen.get(euid)
+            if existing is not None and existing != key:
+                raise CommandError(
+                    f"{entity} EUID {euid!r} is assigned to multiple identifiers: "
+                    f"{existing!r}, {key!r}"
+                )
+            seen[euid] = key
+        delivery_id = entry.unit.inflection_delivery_id
+        if delivery_id:
+            exact_source_identifier(delivery_id, field=INFLECTION_DELIVERY_ID)
+            delivery_owner = (
+                entry.unit.analysis_unit_uid
+                or entry.unit.library_euid
+                or f"{entry.sample.sample_id}:{entry.row_number}"
+            )
+            existing_delivery = delivery_ids.get(delivery_id)
+            if existing_delivery is not None and existing_delivery != delivery_owner:
+                raise CommandError(
+                    f"INFLECTION_DELIVERY_ID {delivery_id!r} is assigned to multiple "
+                    f"library rows: {existing_delivery!r}, {delivery_owner!r}"
+                )
+            delivery_ids[delivery_id] = delivery_owner
+        existing_specimen = sample_specimens.get(entry.sample.sample_id)
+        if existing_specimen is not None and existing_specimen != entry.sample.specimen_id:
+            raise CommandError(
+                f"SAMPLEID {entry.sample.sample_id!r} references multiple SPECIMEN_ID values"
+            )
+        sample_specimens[entry.sample.sample_id] = entry.sample.specimen_id
+        if entry.unit.analysis_unit_uid:
+            existing_library = analysis_units.get(entry.unit.analysis_unit_uid)
+            if existing_library is not None and existing_library != entry.unit.library_euid:
+                raise CommandError(
+                    f"ANALYSIS_UNIT_UID {entry.unit.analysis_unit_uid!r} references multiple "
+                    "LIBRARY_EUID values"
+                )
+            analysis_units[entry.unit.analysis_unit_uid] = entry.unit.library_euid
 
 
 def collect_manifest_row_issues(
@@ -3133,6 +3491,7 @@ def precheck_manifest(
     reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
+    manifest_contract: str = "legacy_v11",
 ) -> Tuple[PrecheckReport, List[ManifestRow]]:
     rows: List[ManifestRow] = []
     issues: List[PrecheckIssue] = []
@@ -3159,7 +3518,12 @@ def precheck_manifest(
 
         header_fields = [field.strip() for field in reader.fieldnames if field and field.strip()]
         unknown_fields = sorted(set(header_fields) - ALLOWED_MANIFEST_FIELDS)
-        missing_fields = [field for field in MANIFEST_REQUIRED_FIELDS if field not in header_fields]
+        required_fields = (
+            DAYOA12_MANIFEST_REQUIRED_FIELDS
+            if manifest_contract == "dayoa12"
+            else MANIFEST_REQUIRED_FIELDS
+        )
+        missing_fields = [field for field in required_fields if field not in header_fields]
         for field_group, message in (
             (unknown_fields, "Unknown columns in analysis samples manifest"),
             (missing_fields, "Missing required columns"),
@@ -3184,6 +3548,8 @@ def precheck_manifest(
             if not row:
                 continue
             try:
+                if manifest_contract == "dayoa12":
+                    validate_raw_dayoa12_identities(row, row_number=row_number)
                 normalized = normalize_manifest_row(row, row_number=row_number)
             except CommandError as exc:
                 placeholder = {key: value or "" for key, value in row.items() if key}
@@ -3199,8 +3565,32 @@ def precheck_manifest(
             if not any(normalized.values()):
                 continue
 
+            if manifest_contract == "dayoa12":
+                blank_required = [
+                    field for field in DAYOA12_NONBLANK_REQUIRED_FIELDS if not normalized.get(field)
+                ]
+                if blank_required:
+                    issues.append(
+                        _row_issue(
+                            normalized,
+                            row_number=row_number,
+                            field=blank_required[0],
+                            message=(
+                                "DayOA 12 source manifests require explicit nonblank values; "
+                                f"blank columns: {', '.join(blank_required)}. Use "
+                                "`dayoa migrate-manifests` with a reviewed identity map; DYEC "
+                                "does not infer identifiers."
+                            ),
+                        )
+                    )
+                    continue
+
             rows_checked += 1
-            sample_id = normalise_identifier(get_entry_value(normalized, SAMPLE_ID))
+            sample_id = (
+                get_entry_value(normalized, SAMPLEID)
+                if manifest_contract == "dayoa12"
+                else normalise_identifier(get_entry_value(normalized, SAMPLE_ID))
+            )
             if sample_id:
                 samples_checked.add(sample_id)
 
@@ -3307,7 +3697,13 @@ def precheck_manifest(
                 continue
 
             try:
-                rows.append(build_manifest_row(normalized, row_number=row_number))
+                rows.append(
+                    build_manifest_row(
+                        normalized,
+                        row_number=row_number,
+                        manifest_contract=manifest_contract,
+                    )
+                )
             except CommandError as exc:
                 issues.append(
                     _issue_from_exception(
@@ -3319,6 +3715,20 @@ def precheck_manifest(
                 )
 
     issues.extend(_precheck_manifest_groups(rows))
+    if manifest_contract == "dayoa12" and not issues:
+        try:
+            validate_dayoa12_lineage(rows)
+        except CommandError as exc:
+            issues.append(
+                PrecheckIssue(
+                    row_number=1,
+                    sample_id="na",
+                    run_id="na",
+                    field="lineage",
+                    path=str(analysis_samples),
+                    message=str(exc),
+                )
+            )
     report = PrecheckReport(
         rows_checked=rows_checked,
         samples_checked=len(samples_checked),
@@ -3550,9 +3960,7 @@ def emit_single_raw_group(
         return {
             unit_r1_field: ",".join(headnode_visible_path(path) for path in r1_paths),
             unit_r2_field: (
-                ",".join(headnode_visible_path(path) for path in r2_paths)
-                if r2_paths
-                else "na"
+                ",".join(headnode_visible_path(path) for path in r2_paths) if r2_paths else "na"
             ),
         }, []
     if len(r1_paths) > 1:
@@ -3623,7 +4031,8 @@ def build_units_row_from_manifest(
     lane_id: str,
     source_values: Mapping[str, str],
 ) -> Dict[str, str]:
-    units_row = {column: "" for column in UNITS_HEADER}
+    header = LIBRARIES_HEADER if row.manifest_contract == "dayoa12" else UNITS_HEADER
+    units_row = {column: "" for column in header}
     units_row.update(
         {
             "RUNID": row.unit.run_id,
@@ -3635,12 +4044,30 @@ def build_units_row_from_manifest(
             "SEQ_VENDOR": row.unit.seq_vendor,
             "SEQ_PLATFORM": row.unit.seq_platform,
             "SUBSAMPLE_PCT": row.staging.subsample_pct,
-            "SAMPLEUSE": row.units_passthrough.get(SAMPLEUSE)
-            or ("posControl" if row.sample.is_pos_ctrl == "true" else "sample"),
             "BWA_KMER": row.units_passthrough.get(BWA_KMER) or "19",
         }
     )
+    if row.manifest_contract == "dayoa12":
+        units_row.update(
+            {
+                ANALYSIS_UNIT_UID: row.unit.analysis_unit_uid,
+                LIBRARY_EUID: row.unit.library_euid,
+                INFLECTION_DELIVERY_ID: row.unit.inflection_delivery_id,
+                LIBRARY_COMMENT: row.unit.library_comment,
+                "SR_VCF_PATH": get_entry_value(row.original, "SR_VCF_PATH"),
+                "LR_VCF_PATH": get_entry_value(row.original, "LR_VCF_PATH"),
+                "AMPLIFICATION_TYPE": get_entry_value(row.original, "AMPLIFICATION_TYPE"),
+                "ALIGNED_REF_UID": get_entry_value(row.original, "ALIGNED_REF_UID"),
+                "MERGE_SINGLE": get_entry_value(row.original, "MERGE_SINGLE"),
+            }
+        )
+    else:
+        units_row["SAMPLEUSE"] = row.units_passthrough.get(SAMPLEUSE) or (
+            "posControl" if row.sample.is_pos_ctrl == "true" else "sample"
+        )
     for field in MANIFEST_UNITS_PASSTHROUGH_FIELDS:
+        if row.manifest_contract == "dayoa12" and field == SAMPLEUSE:
+            continue
         value = row.units_passthrough.get(field, "")
         if value:
             units_row[field] = value
@@ -3653,6 +4080,24 @@ def build_samples_row(
     *,
     concordance_path: str,
 ) -> Dict[str, str]:
+    if row.manifest_contract == "dayoa12":
+        return {
+            SAMPLEID: row.sample.sample_id,
+            SAMPLE_EUID: row.sample.sample_euid,
+            SPECIMEN_ID: row.sample.specimen_id,
+            SAMPLECLASS: row.sample.sample_class,
+            SAMPLE_TYPE: row.sample.sample_type,
+            SAMPLEUSE: row.sample.sample_use,
+            ORDER_TYPE: row.sample.order_type,
+            "CONCORDANCE_CONTROL_PATH": concordance_path,
+            "IS_POSITIVE_CONTROL": row.sample.is_pos_ctrl,
+            "IS_NEGATIVE_CONTROL": row.sample.is_neg_ctrl,
+            TUM_NRM_SAMPLEID_MATCH: row.sample.tum_nrm_sampleid_match,
+            EXTERNAL_SAMPLE_ID: row.sample.external_sample_id,
+            IDDNA_UID: row.sample.iddna_uid,
+            TRUTH_DATA_DIR: concordance_path,
+            SAMPLE_COMMENT: row.sample.sample_comment,
+        }
     return {
         "SAMPLEID": row.sample.sample_id,
         "SAMPLESOURCE": row.sample.sample_source,
@@ -3949,6 +4394,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         reference_s3_uri=s3_role_uris,
         aws_env=aws_env,
         debug=args.debug,
+        manifest_contract=args.manifest_contract,
     )
     if precheck_report.issues:
         print(format_precheck_failure(precheck_report), file=sys.stderr)
@@ -4005,7 +4451,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     )
 
     timestamp = stage.remote_stage_name.replace("remote_stage_", "")
+    specimens_filename = f"{timestamp}_specimens.tsv"
     samples_filename = f"{timestamp}_samples.tsv"
+    libraries_filename = f"{timestamp}_libraries.tsv"
     units_filename = f"{timestamp}_units.tsv"
 
     if args.config_dir:
@@ -4014,24 +4462,64 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         config_dir = analysis_samples.parent
 
     samples_path = config_dir / samples_filename
-    units_path = config_dir / units_filename
-    unique_samples_rows = deduplicate_rows(samples_rows, SAMPLES_HEADER)
+    generated_sample_header = (
+        DAYOA12_SAMPLES_HEADER if args.manifest_contract == "dayoa12" else SAMPLES_HEADER
+    )
+    generated_library_header = (
+        LIBRARIES_HEADER if args.manifest_contract == "dayoa12" else UNITS_HEADER
+    )
+    unique_samples_rows = deduplicate_rows(samples_rows, generated_sample_header)
     normalise_units_paths(units_rows)
+    if args.manifest_contract == "dayoa12":
+        if all(row.get(ANALYSIS_UNIT_UID) for row in units_rows):
+            units_rows = unique_entity_rows(
+                units_rows,
+                key_field=ANALYSIS_UNIT_UID,
+                entity="library",
+            )
+        else:
+            # DayOA constructs blank ANALYSIS_UNIT_UID values from the exact
+            # library fields after loading.  Preserve those rows byte-for-byte
+            # here and only collapse exact duplicates.
+            units_rows = deduplicate_rows(units_rows, generated_library_header)
+    write_tsv(samples_path, generated_sample_header, unique_samples_rows)
 
-    write_tsv(samples_path, SAMPLES_HEADER, unique_samples_rows)
-    write_tsv(units_path, UNITS_HEADER, units_rows)
+    specimens_path: Optional[Path] = None
+    libraries_path: Optional[Path] = None
+    units_path: Optional[Path] = None
+    if args.manifest_contract == "dayoa12":
+        specimens_path = config_dir / specimens_filename
+        libraries_path = config_dir / libraries_filename
+        write_tsv(specimens_path, SPECIMENS_HEADER, build_specimens_rows(prechecked_rows))
+        write_tsv(libraries_path, generated_library_header, units_rows)
+    else:
+        units_path = config_dir / units_filename
+        write_tsv(units_path, generated_library_header, units_rows)
 
     if args.config_only:
         print("Generated configuration files:")
+        if specimens_path is not None:
+            print(f"  specimens.tsv -> {specimens_path}")
         print(f"  samples.tsv -> {samples_path}")
-        print(f"  units.tsv   -> {units_path}")
+        if libraries_path is not None:
+            print(f"  libraries.tsv -> {libraries_path}")
+        if units_path is not None:
+            print(f"  units.tsv   -> {units_path}")
         return 0
 
+    remote_specimens_path = f"{stage.remote_s3_stage}/{specimens_filename}"
     remote_samples_path = f"{stage.remote_s3_stage}/{samples_filename}"
+    remote_libraries_path = f"{stage.remote_s3_stage}/{libraries_filename}"
     remote_units_path = f"{stage.remote_s3_stage}/{units_filename}"
 
     aws_copy(str(samples_path), remote_samples_path, aws_env=aws_env, debug=args.debug)
-    aws_copy(str(units_path), remote_units_path, aws_env=aws_env, debug=args.debug)
+    if args.manifest_contract == "dayoa12":
+        assert specimens_path is not None and libraries_path is not None
+        aws_copy(str(specimens_path), remote_specimens_path, aws_env=aws_env, debug=args.debug)
+        aws_copy(str(libraries_path), remote_libraries_path, aws_env=aws_env, debug=args.debug)
+    else:
+        assert units_path is not None
+        aws_copy(str(units_path), remote_units_path, aws_env=aws_env, debug=args.debug)
 
     staging_mount = create_staged_prefix_mount(
         stage,
@@ -4051,8 +4539,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     for path in created_files:
         print(f"  {headnode_visible_path(path)}")
     print("Generated configuration files:")
+    if args.manifest_contract == "dayoa12":
+        print(f"  specimens.tsv -> {remote_specimens_path}")
     print(f"  samples.tsv -> {remote_samples_path}")
-    print(f"  units.tsv   -> {remote_units_path}")
+    if args.manifest_contract == "dayoa12":
+        print(f"  libraries.tsv -> {remote_libraries_path}")
+    else:
+        print(f"  units.tsv   -> {remote_units_path}")
     return 0
 
 

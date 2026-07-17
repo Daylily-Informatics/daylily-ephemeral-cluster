@@ -43,15 +43,12 @@ UNVALIDATED_COMMAND_IDS = {
     "hybrid_ilmn_ont_hiomrs",
     "hybrid_ilmn_ont_hiomrs_kitchensink",
     "betelgeuser_hiomr_prod_v1",
-    "inflection-bjuice-product-v0.1",
+    "inflection-bjuice-product-v0.2",
     "illumina_pangenome_snv",
     "illumina_dragen_pangenome_snv_concordance",
     "ultima_pangenome_snv",
 }
 SIMPLE_TEST_DY_COMMAND = "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
-HIOMR_STRICT_SLIM_MANIFEST = (
-    "examples/staging/hybrid_ilmn_ont_hg003_5x5x/analysis_samples_manifest.tsv"
-)
 
 
 def _minimal_run_catalog_yaml(
@@ -360,7 +357,6 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "roche_snv_alignstats",
         "hybrid_ilmn_ont_hiomrs",
         "hybrid_ilmn_ont_hiomrs_kitchensink",
-        "betelgeuser_hiomr_prod_v1",
         "illumina_pangenome_snv",
         "illumina_dragen_pangenome_snv_concordance",
         "ultima_pangenome_snv",
@@ -502,7 +498,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert ultima_pangenome.compatible_data_modes == ["ultima_solo"]
 
     hybrid_ilmn_ont = catalog.get_command("hybrid_ilmn_ont_hiomrs")
-    assert hybrid_ilmn_ont.sample_manifest_template == HIOMR_STRICT_SLIM_MANIFEST
+    assert hybrid_ilmn_ont.sample_manifest_template == ""
     assert hybrid_ilmn_ont.aligners == ["ont"]
     assert hybrid_ilmn_ont.dedupers == ["na"]
     assert hybrid_ilmn_ont.snv_callers == ["hiomrs"]
@@ -656,7 +652,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (ont_kitchensink.dy_command)
 
     hybrid_kitchensink = catalog.get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
-    assert hybrid_kitchensink.sample_manifest_template == HIOMR_STRICT_SLIM_MANIFEST
+    assert hybrid_kitchensink.sample_manifest_template == ""
     assert hybrid_kitchensink.validation_runs == []
     assert hybrid_kitchensink.targets[0] == "produce_hiomrs"
     assert "produce_tiddit_sv_vcf" in hybrid_kitchensink.targets
@@ -691,35 +687,32 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         hybrid_kitchensink.input_requirements.accepted_source_column_sets
     )
 
-    inflection_bjuice = catalog.get_command("inflection-bjuice-product-v0.1")
-    assert inflection_bjuice.sample_manifest_template == HIOMR_STRICT_SLIM_MANIFEST
+    inflection_bjuice = catalog.get_command("inflection-bjuice-product-v0.2")
+    assert inflection_bjuice.sample_manifest_template == ""
     assert inflection_bjuice.validation_runs == []
     assert inflection_bjuice.targets == [
-        "produce_sent_align",
-        "produce_dmd_dedup_cram",
-        "produce_sentdhiomr_snv_vcf",
-        "produce_sentdhiomr_sv",
-        "produce_sentdhiomr_cnv",
-        "produce_sentdhiomr_segdup",
-        "produce_sentdhiomr_mito",
-        "produce_expansionhunter",
-        "produce_alignstats",
+        "produce_hiomrs",
+        "produce_tiddit_sv_vcf",
+        "produce_smn12_orthogonal_calls",
+        "produce_inflection_delivery_set",
     ]
     assert inflection_bjuice.jobs == 250
     assert inflection_bjuice.aligners == ["sent"]
-    assert inflection_bjuice.dedupers == ["dmd", "na"]
-    assert inflection_bjuice.snv_callers == ["sentdhiomr"]
-    assert inflection_bjuice.sv_callers == ["sentdhiomr"]
-    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
+    assert inflection_bjuice.dedupers == ["na"]
+    assert inflection_bjuice.snv_callers == ["hiomrs"]
+    assert inflection_bjuice.sv_callers == ["tiddit"]
+    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_CRAM", "ONT_CRAM_ALIGNER", "ONT_CRAM_SNV_CALLER"] in (
         inflection_bjuice.input_requirements.accepted_source_column_sets
     )
-    assert "produce_sentdhiomr_segdup" in inflection_bjuice.dy_command
-    assert 'sentdhiomr={"segdup_genes":"CYP11B1,NCF1,SMN1"}' in (inflection_bjuice.dy_command)
+    assert "produce_inflection_delivery_set" in inflection_bjuice.dy_command
+    assert "INFLECTION_DELIVERY_BATCH_ID:?" in inflection_bjuice.dy_command
     assert 'aligners=["sent"]' in inflection_bjuice.dy_command
-    assert 'dedupers=["dmd","na"]' in inflection_bjuice.dy_command
-    assert 'snv_callers=["sentdhiomr"]' in inflection_bjuice.dy_command
-    assert 'sv_callers=["sentdhiomr"]' in inflection_bjuice.dy_command
-    assert " -j 250 -p -k --rerun-triggers mtime -T 1" in inflection_bjuice.dy_command
+    assert 'dedupers=["na"]' in inflection_bjuice.dy_command
+    assert 'snv_callers=["hiomrs"]' in inflection_bjuice.dy_command
+    assert 'sv_callers=["tiddit"]' in inflection_bjuice.dy_command
+    assert (
+        " -j 250 -p -T 1 --rerun-triggers mtime --rerun-incomplete" in inflection_bjuice.dy_command
+    )
     assert inflection_bjuice.dryrun_dy_command.endswith(" -n")
 
     simple_test = catalog.get_command("simple-test")

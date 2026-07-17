@@ -77,8 +77,51 @@ def test_slim_status_records_visit_and_does_not_claim_empty_queue_success(
     assert payload["filesystem"]["use_percent"] == 25
     assert payload["slurm"]["available"] is False
     assert payload["visit"]["mode"] == "monitor"
+    assert payload["manifests"]["available"] is False
     assert (root / ".dayoa_agent" / "visits").is_dir()
     assert "Progress: 10/20 (50%)" in render_analysis_status(payload)
+
+
+def test_status_reads_and_validates_exact_dayoa12_manifest_triple(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _root(tmp_path)
+    config = root / "daylily-omics-analysis" / "config"
+    config.mkdir(parents=True)
+    (config / "specimens.tsv").write_text(
+        "SPECIMEN_ID\tSPECIMEN_EUID\nspecimen-1\t\n",
+        encoding="utf-8",
+    )
+    (config / "samples.tsv").write_text(
+        "SAMPLEID\tSAMPLE_EUID\tSPECIMEN_ID\nsample-1\tfixture-sample-owned-1\tspecimen-1\n",
+        encoding="utf-8",
+    )
+    (config / "libraries.tsv").write_text(
+        "ANALYSIS_UNIT_UID\tLIBRARY_EUID\tSAMPLEID\tRUNID\tEXPERIMENTID\tLANEID\t"
+        "BARCODEID\tLIBPREP\tSEQ_VENDOR\tSEQ_PLATFORM\n"
+        "\t\tsample-1\trun1\tfull\t1\tbc1\tPCRFREE\tILMN\tNOVASEQ\n",
+        encoding="utf-8",
+    )
+    _activate(monkeypatch)
+    monkeypatch.setattr("daylily_ec.analysis_status.shutil.which", lambda _name: None)
+
+    payload = collect_analysis_status(root, mode="slim", runner=_fake_runner)
+
+    assert payload["manifests"] == {
+        "available": True,
+        "input_contract": "sample_manifest_v12",
+        "files": ["specimens.tsv", "samples.tsv", "libraries.tsv"],
+        "row_counts": {"specimens": 1, "samples": 1, "libraries": 1},
+        "lineage_validated": True,
+    }
+
+    (config / "units.tsv").write_text(
+        "ANALYSIS_UNIT_UID\tSAMPLEID\nanalysis-unit-1\tsample-1\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(AnalysisStatusError, match="rejects mixed config/units.tsv"):
+        collect_analysis_status(root, mode="slim", runner=_fake_runner)
 
 
 def test_success_requires_complete_progress_and_all_canonical_artifacts(

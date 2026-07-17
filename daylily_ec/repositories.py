@@ -19,7 +19,8 @@ SUPPORTED_CATALOG_VERSIONS = {1, CATALOG_VERSION}
 COMMAND_CLASSES = {"sample_analysis", "run_analysis", "utility"}
 COMMAND_TYPES = {"prod", "test", "dev", "research"}
 CLUSTER_TYPES = {"daywgs", "dragen", "sentieon-single"}
-INPUT_CONTRACTS = {"sample_manifest", "run_context", "none"}
+INPUT_CONTRACTS = {"sample_manifest", "sample_manifest_v12", "run_context", "none"}
+SAMPLE_INPUT_CONTRACTS = {"sample_manifest", "sample_manifest_v12"}
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 VALIDATION_STATUSES = {"success", "failed", "blocked", "not_run"}
 SOURCE_MOUNT_MODES = {"none", "default_mounted", "run_dra_required"}
@@ -573,8 +574,10 @@ class AnalysisCommand(BaseModel):
         if self.input_contract not in INPUT_CONTRACTS:
             raise ValueError("input_contract must be one of: " + ", ".join(sorted(INPUT_CONTRACTS)))
         if self.command_class == "sample_analysis":
-            if self.input_contract != "sample_manifest":
-                raise ValueError("sample_analysis commands must use sample_manifest input")
+            if self.input_contract not in SAMPLE_INPUT_CONTRACTS:
+                raise ValueError(
+                    "sample_analysis commands must use an explicit sample manifest input contract"
+                )
             if not self.requires_staging:
                 raise ValueError("sample_analysis commands must require staging")
             if self.requires_run_mount:
@@ -660,7 +663,9 @@ class AnalysisCommand(BaseModel):
         session_name: Optional[str] = None,
         project: Optional[str] = None,
         run_context_file: Optional[str] = None,
+        specimens_file: Optional[str] = None,
         samples_file: Optional[str] = None,
+        libraries_file: Optional[str] = None,
         units_file: Optional[str] = None,
         dry_run: bool = False,
         skip_project_check: bool = True,
@@ -731,12 +736,28 @@ class AnalysisCommand(BaseModel):
         elif run_context_file:
             raise ValueError("run_context_file is only valid for run_analysis commands")
         dy_command = normalize_dyr_preflight_options(dy_command)
-        if samples_file or units_file:
+        if self.input_contract == "sample_manifest_v12":
+            if units_file:
+                raise ValueError(
+                    "DayOA 12 commands reject units.tsv. Provide specimens_file, samples_file, "
+                    "and libraries_file, or run `dayoa migrate-manifests` with a reviewed "
+                    "identity map."
+                )
+            provided = (specimens_file, samples_file, libraries_file)
+            if any(provided) and not all(provided):
+                raise ValueError(
+                    "specimens_file, samples_file, and libraries_file must be provided together"
+                )
+        elif specimens_file or libraries_file:
+            raise ValueError(
+                "specimens_file and libraries_file require the DayOA 12 sample_manifest_v12 contract"
+            )
+        elif samples_file or units_file:
             if not (samples_file and units_file):
                 raise ValueError("samples_file and units_file must be provided together")
             if self.input_contract != "sample_manifest":
                 raise ValueError(
-                    "samples_file and units_file are only valid for sample_analysis commands"
+                    "samples_file and units_file are only valid for legacy sample_analysis commands"
                 )
         if stage_dir and not self.requires_staging:
             raise ValueError("stage_dir is only valid for commands that require staging")
@@ -762,7 +783,9 @@ class AnalysisCommand(BaseModel):
             ("--cluster", cluster),
             ("--stage-dir", stage_dir),
             ("--run-context-file", run_context_file),
+            ("--specimens-file", specimens_file),
             ("--samples-file", samples_file),
+            ("--libraries-file", libraries_file),
             ("--units-file", units_file),
             ("--session-name", session_name),
             ("--project", project),
@@ -779,6 +802,10 @@ class AnalysisCommand(BaseModel):
             if "--no-default-activation" not in argv:
                 argv.append("--no-default-activation")
             argv.append("--bootstrap-test-config")
+        elif self.input_contract == "sample_manifest_v12":
+            argv.extend(["--input-contract", "sample_manifest_v12"])
+        elif self.input_contract == "sample_manifest":
+            argv.extend(["--input-contract", "sample_manifest"])
         if export_destination_s3_uri:
             argv.extend(["--export-destination-s3-uri", export_destination_s3_uri])
         if export_trigger != "none":
