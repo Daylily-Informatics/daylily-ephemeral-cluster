@@ -189,7 +189,7 @@ def analysis_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         "_git_identity",
         lambda *_args, **_kwargs: {
             "commit": "abc",
-            "exact_tag": "11.0.15",
+            "exact_tag": "11.0.25",
             "dirty": False,
             "dirty_paths": [],
         },
@@ -209,7 +209,7 @@ def test_collect_sample_stats_contract(analysis_root: Path) -> None:
     assert report["schema_version"] == "dyec.command_sample_stats.v2"
     assert report["compatible_schema_versions"] == ["dyec.command_sample_stats.v1"]
     assert report["command_details"]["command_catalog_key"] == "hybrid_ilmn_ont_hiomrs_kitchensink"
-    assert report["command_details"]["git_tag"] == "11.0.15"
+    assert report["command_details"]["git_tag"] == "11.0.25"
     assert report["command_details"]["retried_jobs"]["count"] == 1
     assert report["analysis"]["started_at_source"] == "controller process elapsed time"
     assert 599 <= report["analysis"]["runtime_seconds"] <= 601

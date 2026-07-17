@@ -626,7 +626,7 @@ def _unit_runtime(
             "state": "not_available",
             "source": None,
             "note": (
-                "DayOA 11.0.15 evidence does not emit task dependency timing; "
+                "DayOA 11.0.25 evidence does not emit task dependency timing; "
                 "benchmark duration sums are not a DAG critical path"
             ),
         },

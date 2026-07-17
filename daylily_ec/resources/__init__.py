@@ -79,6 +79,7 @@ def _expected_subpaths(root: Path) -> Iterable[Path]:
         yield root / relative_path
     yield root / "config" / "day_cluster" / "pcluster_env.yml"
     yield root / "config" / "day_cluster" / "slurm_accounting_mysql_ec2.yml"
+    yield root / "config" / "day_cluster" / "slurm_accounting_privatelink.yml"
     yield root / "config" / "day_cluster" / "install_slurm_job_submit_policy.sh"
     yield root / "config" / "day_cluster" / "job_submit.lua"
     yield root / "environment.yaml"
@@ -104,6 +105,7 @@ def _resources_need_refresh(dest: Path, src: Path) -> bool:
         *REQUIRED_CLUSTER_TEMPLATE_RELPATHS,
         "config/day_cluster/pcluster_env.yml",
         "config/day_cluster/slurm_accounting_mysql_ec2.yml",
+        "config/day_cluster/slurm_accounting_privatelink.yml",
         "config/day_cluster/install_slurm_job_submit_policy.sh",
         "config/day_cluster/job_submit.lua",
         "config/day_cluster/post_install_rhel8_dragen.sh",

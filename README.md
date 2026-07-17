@@ -505,7 +505,7 @@ matching rule is `running <elapsed>`, terminal exact-root failure evidence is
 `failed`, and an unstarted artifact is `pending`. Values missing from their
 authoritative TSV, metadata JSON, QC file, or report stay null with source/state
 evidence; identifiers and operational metadata are never inferred or silently
-normalized. With DayOA `11.0.15`, the Mito milestone is the native HIOMRS
+normalized. With DayOA `11.0.25`, the Mito milestone is the native HIOMRS
 `<analysis-unit>.mito.vcf.gz` artifact and participates in the configured unit
 completion denominator. Missing, running, and failed mitochondrial calls use
 the same explicit states as the other artifact milestones.

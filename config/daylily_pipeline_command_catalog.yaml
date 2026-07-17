@@ -199,7 +199,7 @@ repositories:
     auth_mode: aws_deploy_key
     https_url: https://github.com/lsmc-bio/daylily-omics-analysis.git
     ssh_url: git@github.com:lsmc-bio/daylily-omics-analysis.git
-    default_ref: 11.0.15
+    default_ref: 11.0.25
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: simple-test
@@ -985,7 +985,7 @@ repositories:
             failure_cause: "Dry-run failed while preparing Roche/GATK containers: missing Singularity image /fsx/resources/environments/containers/ubuntu/ip-10-0-0-103/7a424a40c6fd659f4d052893dd3554fa.simg."
       - command_id: hybrid_ilmn_ont_hiomrs
         type: dev
-        validated_version: 11.0.15
+        validated_version: 11.0.25
         test_data_profile: default_reads_slim
         sample_manifest_template: examples/staging/hybrid_ilmn_ont_hg003_5x5x/analysis_samples_manifest.tsv
         display_name: "Hybrid ILMN+ONT Single-Node HIOMRS"
@@ -1023,11 +1023,11 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 11.0.15
+        git_tag: 11.0.25
         no_containerized: false
       - command_id: hybrid_ilmn_ont_hiomrs_kitchensink
         type: dev
-        validated_version: 11.0.15
+        validated_version: 11.0.25
         test_data_profile: default_reads_slim
         sample_manifest_template: examples/staging/hybrid_ilmn_ont_hg003_5x5x/analysis_samples_manifest.tsv
         display_name: "Hybrid ILMN+ONT Single-Node HIOMRS Kitchen Sink"
@@ -1079,7 +1079,63 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 11.0.15
+        git_tag: 11.0.25
+        no_containerized: false
+      - command_id: betelgeuser_hiomr_prod_v1
+        type: prod
+        validated_version: 11.0.25
+        test_data_profile: default_reads_slim
+        sample_manifest_template: examples/staging/hybrid_ilmn_ont_hg003_5x5x/analysis_samples_manifest.tsv
+        display_name: "Betelgeuser HIOMR Prod v1"
+        description: "Production catalog copy of the single-node HIOMRS kitchen-sink contract for Betelgeuser."
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_CRAM, ONT_CRAM_ALIGNER, ONT_CRAM_SNV_CALLER]
+        targets:
+          - produce_hiomrs
+          - produce_snv_concordances
+          - produce_tiddit_sv_vcf
+          - produce_alignstats
+          - produce_relatedness
+          - produce_peddy
+          - produce_gatk_contam_estimate
+          - produce_site_mix_contam_estimate
+          - produce_vep
+          - produce_htd_calls
+          - produce_smn12_orthogonal_calls
+          - produce_metagenomics
+          - produce_multiqc_all
+          - results/day/hg38/reports/DAY_final_multiqc.html
+          - results/day/hg38/reports/dayoa_evidence_manifest.json
+        genome: hg38
+        jobs: 250
+        keep_going: false
+        restart_times: 0
+        aligners:
+          - sent
+        dedupers:
+          - na
+        snv_callers:
+          - hiomrs
+        sv_callers:
+          - tiddit
+        dy_command: "dy-r produce_hiomrs produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=[\"sent\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' -j 250 -p -T 0 --rerun-triggers mtime --rerun-incomplete"
+        dryrun_dy_command: "dy-r produce_hiomrs produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=[\"sent\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' -j 250 -p -T 0 --rerun-triggers mtime --rerun-incomplete -n"
+        compatible_platforms:
+          - ILMN
+          - ONT
+        compatible_cluster_types:
+          - sentieon-single
+        compatible_data_modes:
+          - hybrid_ilmn_ont
+        git_tag: 11.0.25
         no_containerized: false
       - command_id: inflection-bjuice-product-v0.1
         type: dev

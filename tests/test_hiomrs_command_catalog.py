@@ -45,8 +45,8 @@ def test_hiomrs_catalog_entry_is_serial_native_dyr_and_mirrored() -> None:
     assert command.compatible_platforms == ["ILMN", "ONT"]
     assert command.compatible_cluster_types == ["sentieon-single"]
     assert command.compatible_data_modes == ["hybrid_ilmn_ont"]
-    assert command.git_tag == "11.0.15"
-    assert command.validated_version == "11.0.15"
+    assert command.git_tag == "11.0.25"
+    assert command.validated_version == "11.0.25"
     assert command.input_requirements.accepted_source_column_sets == [
         [
             "ILMN_R1_FQ",
@@ -96,8 +96,8 @@ def test_hiomrs_kitchensink_has_explicit_native_targets_and_retires_hiomr() -> N
     assert command.snv_callers == ["hiomrs"]
     assert command.sv_callers == ["tiddit"]
     assert command.compatible_cluster_types == ["sentieon-single"]
-    assert command.git_tag == "11.0.15"
-    assert command.validated_version == "11.0.15"
+    assert command.git_tag == "11.0.25"
+    assert command.validated_version == "11.0.25"
     assert command.dy_command.startswith("dy-r produce_hiomrs ")
     assert command.dryrun_dy_command == f"{command.dy_command} -n"
     assert "produce_snv_concordances" in command.dy_command
@@ -118,3 +118,23 @@ def test_hiomrs_kitchensink_has_explicit_native_targets_and_retires_hiomr() -> N
     command_ids = {item.command_id for item in catalog.commands()}
     assert "hybrid_ilmn_ont_snv" not in command_ids
     assert "hybrid_ilmn_ont_snv_kitchensink" not in command_ids
+
+
+def test_betelgeuser_prod_v1_is_exact_hiomrs_kitchensink_copy() -> None:
+    assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
+
+    catalog = load_repository_catalog(SOURCE_CATALOG)
+    source = catalog.get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
+    copied = catalog.get_command("betelgeuser_hiomr_prod_v1")
+
+    assert copied.type == "prod"
+    assert copied.display_name == "Betelgeuser HIOMR Prod v1"
+    assert copied.description == (
+        "Production catalog copy of the single-node HIOMRS kitchen-sink "
+        "contract for Betelgeuser."
+    )
+
+    identity_fields = {"command_id", "type", "display_name", "description"}
+    assert copied.model_dump(exclude=identity_fields) == source.model_dump(
+        exclude=identity_fields
+    )

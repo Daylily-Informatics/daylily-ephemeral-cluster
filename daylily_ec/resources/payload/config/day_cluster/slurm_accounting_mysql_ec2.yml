@@ -240,6 +240,9 @@ Resources:
           if ! grep -Eq '^[[:space:]]*bind-address[[:space:]]*=' /etc/mysql/mariadb.conf.d/50-server.cnf; then
             printf '\nbind-address = 0.0.0.0\n' >> /etc/mysql/mariadb.conf.d/50-server.cnf
           fi
+          sed -i '/^[[:space:]]*max_connect_errors[[:space:]]*=/d' /etc/mysql/mariadb.conf.d/50-server.cnf
+          sed -i '/^\[mysqld\]$/a max_connect_errors = 4294967295' /etc/mysql/mariadb.conf.d/50-server.cnf
+          grep -Fxq 'max_connect_errors = 4294967295' /etc/mysql/mariadb.conf.d/50-server.cnf
 
           systemctl enable mariadb
           systemctl restart mariadb

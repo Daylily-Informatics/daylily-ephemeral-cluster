@@ -345,6 +345,64 @@ def test_prepare_missing_service_has_machine_readable_reason(tmp_path, monkeypat
     assert caught.value.regional_stack_count == 0
 
 
+def test_prepare_uses_explicit_healthy_privatelink_bridge(tmp_path, monkeypatch) -> None:
+    source = _config(tmp_path / "source.yaml")
+    bridge_db = SlurmAccountingDb(
+        stack_name="dayec-sacct-pl-vpc-cluster",
+        status="CREATE_COMPLETE",
+        uri="vpce-accounting.example:3306",
+        private_ip="10.0.2.4",
+        database_name="dayec_slurm_acct",
+        username="slurm_acct",
+        password_secret_arn="arn:aws:secretsmanager:us-west-2:123:secret:acct",
+        client_security_group_id="sg-consumer-client",
+        instance_id="i-accounting",
+    )
+
+    class Bridge:
+        consumer_vpc_id = "vpc-cluster"
+        provider_accounting_stack_name = "dayec-slurm-accounting-us-west-2c"
+
+        @staticmethod
+        def as_accounting_db():
+            return bridge_db
+
+    monkeypatch.setattr(
+        attach_module.AWSContext,
+        "build_region",
+        classmethod(lambda _cls, _region, profile=None: _AwsContext()),
+    )
+    monkeypatch.setattr(
+        "daylily_ec.aws.slurm_accounting_privatelink.resolve_slurm_accounting_privatelink_bridge",
+        lambda *_args, **_kwargs: Bridge(),
+    )
+    monkeypatch.setattr(
+        attach_module,
+        "list_regional_slurm_accounting_stacks",
+        lambda *_args, **_kwargs: pytest.fail("direct discovery must not run"),
+    )
+
+    prepared = prepare_slurm_accounting_update(
+        cluster_name="cluster-a",
+        region="us-west-2",
+        profile="lsmc",
+        cluster_configuration=source,
+        stack_name="dayec-slurm-accounting-us-west-2c",
+        privatelink_stack_name="dayec-sacct-pl-vpc-cluster",
+        create_if_missing=False,
+        output_dir=tmp_path,
+    )
+
+    rendered = yaml.safe_load(Path(prepared.update_config_path).read_text(encoding="utf-8"))
+    assert prepared.accounting_stack_name == "dayec-sacct-pl-vpc-cluster"
+    assert rendered["HeadNode"]["Networking"]["AdditionalSecurityGroups"][-1] == (
+        "sg-consumer-client"
+    )
+    assert rendered["Scheduling"]["SlurmSettings"]["Database"]["Uri"] == (
+        "vpce-accounting.example:3306"
+    )
+
+
 def test_secret_values_are_hidden_from_accounting_result_repr(tmp_path) -> None:
     db = _db()
     resolution = SlurmAccountingDbResolution(db=db, service_created=False)

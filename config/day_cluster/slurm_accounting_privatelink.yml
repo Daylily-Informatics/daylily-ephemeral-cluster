@@ -1,0 +1,235 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: PrivateLink-only TCP bridge to an existing DayEC Slurm accounting database.
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    AllowedPattern: "^[A-Za-z][A-Za-z0-9-]{1,127}$"
+  ProviderVpcId:
+    Type: AWS::EC2::VPC::Id
+  ProviderSubnetId:
+    Type: AWS::EC2::Subnet::Id
+  ProviderDatabasePrivateIp:
+    Type: String
+    AllowedPattern: "^[0-9.]+$"
+  ProviderDatabaseSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+  ProviderAccountingStackName:
+    Type: String
+  ProviderAccountingPasswordSecretArn:
+    Type: String
+  AccountingDatabaseName:
+    Type: String
+    AllowedPattern: "^[a-z0-9_]{1,64}$"
+  AccountingUserName:
+    Type: String
+    AllowedPattern: "^[A-Za-z0-9_]{1,32}$"
+  AccountingInstanceId:
+    Type: String
+  ConsumerVpcId:
+    Type: AWS::EC2::VPC::Id
+  ConsumerEndpointAvailabilityZone:
+    Type: AWS::EC2::AvailabilityZone::Name
+  ConsumerEndpointSubnetCidr:
+    Type: String
+    AllowedPattern: "^[0-9./]+$"
+
+Resources:
+  ProviderNlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "${EnvironmentName} PrivateLink NLB to MariaDB"
+      VpcId: !Ref ProviderVpcId
+      SecurityGroupEgress: []
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-nlb"
+        - Key: daylily-ec:component
+          Value: slurm-accounting-privatelink
+
+  ProviderNlbToDatabaseEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref ProviderNlbSecurityGroup
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      DestinationSecurityGroupId: !Ref ProviderDatabaseSecurityGroupId
+
+  ProviderDatabaseIngressFromNlb:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref ProviderDatabaseSecurityGroupId
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      SourceSecurityGroupId: !Ref ProviderNlbSecurityGroup
+
+  AccountingTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPort: "3306"
+      HealthCheckProtocol: TCP
+      HealthyThresholdCount: 2
+      IpAddressType: ipv4
+      Port: 3306
+      Protocol: TCP
+      TargetType: ip
+      Targets:
+        - Id: !Ref ProviderDatabasePrivateIp
+          Port: 3306
+      UnhealthyThresholdCount: 2
+      VpcId: !Ref ProviderVpcId
+      Tags:
+        - Key: daylily-ec:component
+          Value: slurm-accounting-privatelink
+
+  AccountingNetworkLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      EnforceSecurityGroupInboundRulesOnPrivateLinkTraffic: "off"
+      IpAddressType: ipv4
+      Scheme: internal
+      SecurityGroups:
+        - !Ref ProviderNlbSecurityGroup
+      Subnets:
+        - !Ref ProviderSubnetId
+      Type: network
+      Tags:
+        - Key: daylily-ec:component
+          Value: slurm-accounting-privatelink
+
+  AccountingListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref AccountingTargetGroup
+      LoadBalancerArn: !Ref AccountingNetworkLoadBalancer
+      Port: 3306
+      Protocol: TCP
+
+  AccountingEndpointService:
+    Type: AWS::EC2::VPCEndpointService
+    DependsOn: AccountingListener
+    Properties:
+      AcceptanceRequired: false
+      NetworkLoadBalancerArns:
+        - !Ref AccountingNetworkLoadBalancer
+      SupportedIpAddressTypes:
+        - ipv4
+      Tags:
+        - Key: daylily-ec:component
+          Value: slurm-accounting-privatelink
+
+  AccountingEndpointServicePermissions:
+    Type: AWS::EC2::VPCEndpointServicePermissions
+    Properties:
+      AllowedPrincipals:
+        - !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+      ServiceId: !Ref AccountingEndpointService
+
+  ConsumerEndpointSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref ConsumerEndpointAvailabilityZone
+      CidrBlock: !Ref ConsumerEndpointSubnetCidr
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref ConsumerVpcId
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-endpoint"
+        - Key: daylily-ec:component
+          Value: slurm-accounting-privatelink
+
+  ConsumerClientSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "${EnvironmentName} headnode clients to endpoint"
+      VpcId: !Ref ConsumerVpcId
+      SecurityGroupEgress: []
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-client"
+        - Key: daylily-ec:component
+          Value: slurm-accounting-privatelink
+
+  ConsumerEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "${EnvironmentName} interface endpoint"
+      VpcId: !Ref ConsumerVpcId
+      SecurityGroupEgress: []
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-endpoint"
+        - Key: daylily-ec:component
+          Value: slurm-accounting-privatelink
+
+  ConsumerClientToEndpointEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref ConsumerClientSecurityGroup
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      DestinationSecurityGroupId: !Ref ConsumerEndpointSecurityGroup
+
+  ConsumerEndpointToClientEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref ConsumerEndpointSecurityGroup
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      DestinationSecurityGroupId: !Ref ConsumerClientSecurityGroup
+
+  ConsumerEndpointIngressFromClient:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref ConsumerEndpointSecurityGroup
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      SourceSecurityGroupId: !Ref ConsumerClientSecurityGroup
+
+  ConsumerEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    DependsOn: AccountingEndpointServicePermissions
+    Properties:
+      PrivateDnsEnabled: false
+      SecurityGroupIds:
+        - !Ref ConsumerEndpointSecurityGroup
+      ServiceName: !Sub "com.amazonaws.vpce.${AWS::Region}.${AccountingEndpointService}"
+      SubnetIds:
+        - !Ref ConsumerEndpointSubnet
+      VpcEndpointType: Interface
+      VpcId: !Ref ConsumerVpcId
+
+Outputs:
+  AccountingClientSecurityGroupId:
+    Value: !Ref ConsumerClientSecurityGroup
+  AccountingDatabaseName:
+    Value: !Ref AccountingDatabaseName
+  AccountingEndpointId:
+    Value: !Ref ConsumerEndpoint
+  AccountingEndpointServiceId:
+    Value: !Ref AccountingEndpointService
+  AccountingInstanceId:
+    Value: !Ref AccountingInstanceId
+  AccountingPasswordSecretArn:
+    Value: !Ref ProviderAccountingPasswordSecretArn
+  AccountingTargetGroupArn:
+    Value: !Ref AccountingTargetGroup
+  AccountingUserName:
+    Value: !Ref AccountingUserName
+  ConsumerEndpointSubnetId:
+    Value: !Ref ConsumerEndpointSubnet
+  ConsumerVpcId:
+    Value: !Ref ConsumerVpcId
+  ProviderAccountingStackName:
+    Value: !Ref ProviderAccountingStackName
+  ProviderVpcId:
+    Value: !Ref ProviderVpcId
