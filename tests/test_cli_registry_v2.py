@@ -1765,7 +1765,9 @@ def test_pricing_snapshot_table_view_renders_ascii_table(monkeypatch) -> None:
     assert "Spot Placement Score target: 384 vCPUs" in result.stdout
 
 
-def test_pricing_snapshot_table_view_requires_explicit_target_before_collection(monkeypatch) -> None:
+def test_pricing_snapshot_table_view_requires_explicit_target_before_collection(
+    monkeypatch,
+) -> None:
     import daylily_ec.aws.pricing_snapshots as pricing_module
 
     _activate_dayec_runtime(monkeypatch)
@@ -2736,6 +2738,8 @@ def test_samples_stage_calls_python_staging_entrypoint(monkeypatch, tmp_path) ->
     assert result.exit_code == 0
     assert calls["argv"] == [
         str(samples),
+        "--manifest-contract",
+        "dayoa12",
         "--reference-s3-uri",
         "s3://reference-bucket",
         "--control-data-s3-uri",
@@ -2881,6 +2885,8 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert result.exit_code == 0
     assert calls["stage_argv"] == [
         str(manifest.resolve()),
+        "--manifest-contract",
+        "legacy_v11",
         "--reference-s3-uri",
         "s3://reference-bucket",
         "--control-data-s3-uri",

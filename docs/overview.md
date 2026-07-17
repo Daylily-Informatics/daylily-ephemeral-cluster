@@ -57,10 +57,12 @@ local `/fsx` workflow and does not receive Dewey, S3, or QEO configuration.
 
 Catalog v2 splits commands by input contract:
 
-- `sample_analysis` commands use `analysis_samples.tsv`; `dyec samples stage` writes `samples.tsv` and `units.tsv`.
+- DayOA 12 `sample_analysis` commands use `sample_manifest_v12`; `dyec samples stage --manifest-contract dayoa12` writes `specimens.tsv`, `samples.tsv`, and `libraries.tsv` from explicit source-owned identities. Commands explicitly pinned before DayOA 12 retain the named legacy two-file contract only.
 - `run_analysis` commands use `runs.tsv`; run input must be mounted under `/fsx/run_dir_mounts/<mount_id>`.
 
-The current DayOA catalog pin is `8.0.0` for the repository default and all DayOA command `git_tag` values.
+The current DayOA repository default is `12.0.0`. HIOMRS, HIOMRS kitchensink,
+and Inflection v0.2 are exact DayOA 12 commands; older command rows remain
+explicitly pinned to their validated pre-12 refs.
 
 DYEC can host multiple workflow managers as long as they use the same FSx and
 export contract. DayOA is the first-class Snakemake 7 catalog repository.
@@ -86,7 +88,7 @@ Manual root sessions or user switching are not part of the supported path.
 DayEC writes operational artifacts that should be kept with the run record:
 
 - preflight and state files in the DayEC config/state directory
-- local staged `*_samples.tsv` and `*_units.tsv`
+- local staged `*_specimens.tsv`, `*_samples.tsv`, and `*_libraries.tsv` for DayOA 12, or explicit legacy `*_samples.tsv`/`*_units.tsv` for pre-12 commands
 - headnode `/home/ubuntu/daylily-runs/<session>/status.json`
 - headnode `/home/ubuntu/daylily-runs/<session>/tmux.log`
 - local `fsx_export.yaml`

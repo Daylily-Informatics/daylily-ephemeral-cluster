@@ -40,13 +40,12 @@ CONTROLLER_TARGET_SCHEMA_VERSION = "dyec.controller_target.v1"
 def shlex_quote_compressed_python(source: str) -> str:
     payload = base64.b64encode(gzip.compress(source.encode("utf-8"), mtime=0)).decode("ascii")
     command = (
-        "import base64,gzip; "
-        f"exec(gzip.decompress(base64.b64decode({payload!r})).decode('utf-8'))"
+        f"import base64,gzip; exec(gzip.decompress(base64.b64decode({payload!r})).decode('utf-8'))"
     )
     return shlex.quote(command)
 
 
-BCL_RUN_CONTEXT_PROJECTION_SCRIPT = r'''
+BCL_RUN_CONTEXT_PROJECTION_SCRIPT = r"""
 import csv
 import re
 import shutil
@@ -135,10 +134,10 @@ if changed:
     print(f"[INFO] Projected mounted RUN_DIR values through {links_dir}")
 else:
     print("[INFO] No external mounted RUN_DIR values required projection.")
-'''
+"""
 
 
-BCLCONVERT_PROFILE_PATCH_SCRIPT = r'''
+BCLCONVERT_PROFILE_PATCH_SCRIPT = r"""
 import csv
 import os
 import re
@@ -264,7 +263,7 @@ upsert_scalar("sample_sheet_settings", "{}")
 upsert_scalar("sample_sheet_settings_by_lane", "{}")
 rule_config.write_text("".join(lines), encoding="utf-8")
 print(f"[INFO] Patched {rule_config} bclconvert direct mounted-input mode for {run_id}: {run_dir}")
-'''
+"""
 
 
 BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT = '\nfrom pathlib import Path\n\nrule_path = Path("workflow/rules/bclconvert.smk")\nif not rule_path.is_file():\n    raise SystemExit(f"[ERROR] BCL Convert lane-split patch target missing: {rule_path}")\n\nscripts_dir = Path("workflow/scripts")\nscripts_dir.mkdir(parents=True, exist_ok=True)\n\nprepare_lane_samplesheet = scripts_dir / "dyec_prepare_bclconvert_lane_samplesheet.py"\nprepare_lane_samplesheet.write_text(r"""#!/usr/bin/env python3\nfrom __future__ import annotations\n\nimport argparse\nimport csv\nimport io\nimport json\nimport re\nfrom pathlib import Path\nfrom typing import Any\n\nSECTION_RE = re.compile(r"^\\[(?P<name>[^\\]]+)\\]")\nALLOWED_SETTINGS = {\n    "AdapterRead1",\n    "AdapterRead2",\n    "AdapterBehavior",\n    "AdapterStringency",\n    "MinimumAdapterOverlap",\n    "BarcodeMismatchesIndex1",\n    "BarcodeMismatchesIndex2",\n    "CreateFastqForIndexReads",\n    "MinimumTrimmedReadLength",\n    "MaskShortReads",\n    "OverrideCycles",\n    "SoftwareVersion",\n    "TrimUMI",\n    "NoLaneSplitting",\n}\n\n\ndef parse_args():\n    parser = argparse.ArgumentParser(description="Prepare a lane-specific BCL Convert sample sheet.")\n    parser.add_argument("--sample-sheet", required=True)\n    parser.add_argument("--out", required=True)\n    parser.add_argument("--lane", required=True)\n    parser.add_argument("--settings-json", default="{}")\n    parser.add_argument("--settings-by-lane-json", default="{}")\n    return parser.parse_args()\n\n\ndef normalize_lane(value: str) -> str:\n    text = str(value or "").strip()\n    if text.upper().startswith("L"):\n        text = text[1:]\n    return str(int(text))\n\n\ndef load_mapping(text: str, *, label: str) -> dict[str, Any]:\n    payload = str(text or "").strip()\n    if not payload:\n        return {}\n    try:\n        value = json.loads(payload)\n    except json.JSONDecodeError as exc:\n        raise SystemExit(f"ERROR: {label} must be a JSON object") from exc\n    if not isinstance(value, dict):\n        raise SystemExit(f"ERROR: {label} must be a JSON object")\n    return value\n\n\ndef canonical_updates(settings: dict[str, Any], *, label: str) -> dict[str, str]:\n    updates: dict[str, str] = {}\n    for key, value in settings.items():\n        canonical = str(key or "").strip()\n        if canonical not in ALLOWED_SETTINGS:\n            allowed = ", ".join(sorted(ALLOWED_SETTINGS))\n            raise SystemExit(f"ERROR: unsupported {label} setting {canonical!r}; allowed: {allowed}")\n        if value is None:\n            continue\n        text = str(value).strip()\n        if text == "":\n            continue\n        updates[canonical] = text\n    return updates\n\n\ndef lane_updates(settings_by_lane: dict[str, Any], lane: str) -> dict[str, str]:\n    lane_number = normalize_lane(lane)\n    candidates = [lane_number, f"L{int(lane_number):03d}", f"l{int(lane_number):03d}"]\n    for key in candidates:\n        value = settings_by_lane.get(key)\n        if value is None:\n            continue\n        if not isinstance(value, dict):\n            raise SystemExit("ERROR: sample_sheet_settings_by_lane values must be JSON objects")\n        return canonical_updates(value, label=f"sample_sheet_settings_by_lane[{key}]")\n    return {}\n\n\ndef validate_updates(updates: dict[str, str]) -> None:\n    for key in ("BarcodeMismatchesIndex1", "BarcodeMismatchesIndex2"):\n        if key not in updates:\n            continue\n        if updates[key] not in {"0", "1", "2"}:\n            raise SystemExit(f"ERROR: {key} must be 0, 1, or 2: {updates[key]}")\n\n\ndef csv_line(row: list[str]) -> str:\n    buffer = io.StringIO()\n    writer = csv.writer(buffer, lineterminator="")\n    writer.writerow(row)\n    return buffer.getvalue()\n\n\ndef upsert_settings(lines: list[str], updates: dict[str, str]) -> list[str]:\n    section_start = None\n    section_end = len(lines)\n    for index, raw_line in enumerate(lines):\n        stripped = raw_line.strip()\n        match = SECTION_RE.match(stripped)\n        if not match:\n            continue\n        if match.group("name").strip() == "BCLConvert_Settings":\n            section_start = index\n            continue\n        if section_start is not None and index > section_start:\n            section_end = index\n            break\n    if section_start is None:\n        raise SystemExit("ERROR: normalized sample sheet lacks [BCLConvert_Settings]")\n\n    remaining = dict(updates)\n    for index in range(section_start + 1, section_end):\n        if not lines[index].strip():\n            continue\n        row = next(csv.reader([lines[index]]))\n        key = row[0].strip() if row else ""\n        if key in remaining:\n            lines[index] = csv_line([key, remaining.pop(key)])\n\n    insert_at = section_end\n    for key, value in remaining.items():\n        lines.insert(insert_at, csv_line([key, value]))\n        insert_at += 1\n    return lines\n\n\ndef main() -> int:\n    args = parse_args()\n    global_settings = canonical_updates(load_mapping(args.settings_json, label="sample_sheet_settings"), label="sample_sheet_settings")\n    by_lane = load_mapping(args.settings_by_lane_json, label="sample_sheet_settings_by_lane")\n    updates = {**global_settings, **lane_updates(by_lane, args.lane)}\n    validate_updates(updates)\n    source = Path(args.sample_sheet)\n    output = Path(args.out)\n    lines = source.read_text(encoding="utf-8-sig").splitlines()\n    # Untested pending feature: this only changes content when explicit settings are supplied.\n    if updates:\n        lines = upsert_settings(lines, updates)\n    output.parent.mkdir(parents=True, exist_ok=True)\n    output.write_text("\\n".join(lines) + "\\n", encoding="utf-8")\n    print(\n        "prepared_lane_samplesheet "\n        f"lane={normalize_lane(args.lane)} "\n        f"settings={\'<unchanged>\' if not updates else json.dumps(updates, sort_keys=True)} "\n        f"out={output}"\n    )\n    return 0\n\n\nif __name__ == "__main__":\n    raise SystemExit(main())\n""", encoding="utf-8")\nprepare_lane_samplesheet.chmod(0o755)\n\nrun_lane_helper = scripts_dir / "dyec_run_bclconvert_lane.sh"\nrun_lane_helper.write_text(r"""#!/usr/bin/env bash\nset -euo pipefail\ncontainer_uri="$1"\nrun_dir="$2"\nlane_output_dir="$3"\nsample_sheet="$4"\nlane_number="$5"\nlane_sample_sheet="$6"\nstrict_mode="$7"\nfirst_tile_only="$8"\nsampleproject_subdirectories="$9"\nfastq_gzip_compression_level="${10}"\nparallel_tiles="${11}"\nconversion_threads="${12}"\ncompression_threads="${13}"\ndecompression_threads="${14}"\nshared_thread_odirect_output="${15}"\noutput_legacy_stats="${16}"\nnum_unknown_barcodes_reported="${17}"\nsample_sheet_settings_json="${18}"\nsample_sheet_settings_by_lane_json="${19}"\nforce_arg="${20}"\nthreads="${21}"\nlog_path="${22}"\nfastq_list="${23}"\ndemux_stats="${24}"\ndone_path="${25}"\n\nmkdir -p "$lane_output_dir" "$(dirname "$lane_sample_sheet")" "$(dirname "$log_path")"\n: > "$log_path"\nexport TMPDIR="${TMPDIR:-/dev/shm}"\nmkdir -p "$TMPDIR"\nif [[ ! -d "$run_dir" ]]; then\n  echo "BCL input directory does not exist: $run_dir" >> "$log_path"\n  exit 2\nfi\n\npython workflow/scripts/dyec_prepare_bclconvert_lane_samplesheet.py \\\n  --sample-sheet "$sample_sheet" \\\n  --out "$lane_sample_sheet" \\\n  --lane "$lane_number" \\\n  --settings-json "$sample_sheet_settings_json" \\\n  --settings-by-lane-json "$sample_sheet_settings_by_lane_json" \\\n  >> "$log_path" 2>&1\n\necho "run_bclconvert_lane L$(printf \'%03d\' "$lane_number") started: $(date -Is)" >> "$log_path"\necho "host: $(hostname)" >> "$log_path"\necho "threads: $threads" >> "$log_path"\necho "TMPDIR: $TMPDIR" >> "$log_path"\necho "bcl_input_directory: $run_dir" >> "$log_path"\necho "output_directory: $lane_output_dir" >> "$log_path"\necho "sample_sheet: $lane_sample_sheet" >> "$log_path"\necho "bcl_only_lane: $lane_number" >> "$log_path"\necho "sample_sheet_settings_json: $sample_sheet_settings_json" >> "$log_path"\necho "sample_sheet_settings_by_lane_json: $sample_sheet_settings_by_lane_json" >> "$log_path"\necho "output_legacy_stats: $output_legacy_stats" >> "$log_path"\necho "num_unknown_barcodes_reported: $num_unknown_barcodes_reported" >> "$log_path"\nnproc >> "$log_path" 2>&1 || true\ndf -h "$TMPDIR" "$run_dir" "$lane_output_dir" >> "$log_path" 2>&1 || true\ncommand -v singularity >> "$log_path" 2>&1\nsingularity_bind_args=(--bind /fsx:/fsx)\necho "singularity_bind_args: ${singularity_bind_args[*]}" >> "$log_path"\nsingularity exec "${singularity_bind_args[@]}" "$container_uri" bcl-convert --version >> "$log_path" 2>&1\n\nheavy_threads="$((parallel_tiles * conversion_threads + compression_threads + decompression_threads))"\nif [[ "$heavy_threads" -lt 1 ]]; then\n  echo "BCLConvert CPU-heavy thread total must be >= 1" >> "$log_path"\n  exit 2\nfi\nif [[ "$heavy_threads" -gt "$threads" ]]; then\n  echo "BCLConvert thread allocation exceeds requested threads: heavy_threads=$heavy_threads threads=$threads" >> "$log_path"\n  exit 2\nfi\n\necho "bcl_num_parallel_tiles: $parallel_tiles" >> "$log_path"\necho "bcl_num_conversion_threads: $conversion_threads" >> "$log_path"\necho "bcl_num_compression_threads: $compression_threads" >> "$log_path"\necho "bcl_num_decompression_threads: $decompression_threads" >> "$log_path"\necho "bcl_cpu_heavy_threads: $heavy_threads" >> "$log_path"\n\nbcl_flags=(\n  --bcl-input-directory "$run_dir"\n  --output-directory "$lane_output_dir"\n  --sample-sheet "$lane_sample_sheet"\n  --bcl-only-lane "$lane_number"\n  --strict-mode "$strict_mode"\n  --first-tile-only "$first_tile_only"\n  --bcl-sampleproject-subdirectories "$sampleproject_subdirectories"\n  --fastq-gzip-compression-level "$fastq_gzip_compression_level"\n  --bcl-num-parallel-tiles "$parallel_tiles"\n  --bcl-num-conversion-threads "$conversion_threads"\n  --bcl-num-compression-threads "$compression_threads"\n  --bcl-num-decompression-threads "$decompression_threads"\n  --shared-thread-odirect-output "$shared_thread_odirect_output"\n  --output-legacy-stats "$output_legacy_stats"\n  --num-unknown-barcodes-reported "$num_unknown_barcodes_reported"\n)\nif [[ -n "$force_arg" ]]; then\n  bcl_flags+=("$force_arg")\nfi\n\nprintf \'bcl-convert command:\' >> "$log_path"\nprintf \' %q\' singularity exec "${singularity_bind_args[@]}" "$container_uri" bcl-convert "${bcl_flags[@]}" >> "$log_path"\nprintf \'\\n\' >> "$log_path"\nsingularity exec "${singularity_bind_args[@]}" "$container_uri" bcl-convert "${bcl_flags[@]}" >> "$log_path" 2>&1\n\ntest -s "$fastq_list"\ntest -s "$demux_stats"\nmkdir -p "$(dirname "$done_path")"\ntouch "$done_path"\necho "run_bclconvert_lane L$(printf \'%03d\' "$lane_number") finished: $(date -Is)" >> "$log_path"\n""", encoding="utf-8")\nrun_lane_helper.chmod(0o755)\n\nmerge_helper = scripts_dir / "dyec_merge_bclconvert_lanes.py"\nmerge_helper.write_text(r"""#!/usr/bin/env python3\nfrom __future__ import annotations\n\nimport argparse\nimport csv\nimport os\nimport shutil\nfrom pathlib import Path\n\n\ndef parse_args():\n    parser = argparse.ArgumentParser(description="Merge DYEC lane-split BCL Convert outputs.")\n    parser.add_argument("--lane-fastq-root", required=True)\n    parser.add_argument("--final-fastq-dir", required=True)\n    parser.add_argument("--report-dir", required=True)\n    parser.add_argument("--lanes", required=True)\n    parser.add_argument("--done", required=True)\n    parser.add_argument("--log", required=True)\n    return parser.parse_args()\n\n\ndef read_csv(path: Path, *, required: bool) -> tuple[list[str], list[dict[str, str]]]:\n    if not path.exists():\n        if required:\n            raise SystemExit(f"ERROR: missing required BCL Convert report: {path}")\n        return [], []\n    with path.open("r", encoding="utf-8-sig", newline="") as handle:\n        reader = csv.DictReader(handle)\n        fieldnames = reader.fieldnames or []\n        if required and not fieldnames:\n            raise SystemExit(f"ERROR: report has no header: {path}")\n        return fieldnames, [dict(row) for row in reader]\n\n\ndef write_csv(path: Path, fieldnames: list[str], rows: list[dict[str, str]]) -> None:\n    if not fieldnames:\n        return\n    path.parent.mkdir(parents=True, exist_ok=True)\n    with path.open("w", encoding="utf-8", newline="") as handle:\n        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\\n")\n        writer.writeheader()\n        writer.writerows(rows)\n\n\ndef merge_report(lane_dirs: list[Path], report_name: str, dest: Path, *, required: bool) -> None:\n    merged_header: list[str] | None = None\n    merged_rows: list[dict[str, str]] = []\n    for lane_dir in lane_dirs:\n        header, rows = read_csv(lane_dir / "Reports" / report_name, required=required)\n        if not header:\n            continue\n        if merged_header is None:\n            merged_header = header\n        elif header != merged_header:\n            raise SystemExit(f"ERROR: {report_name} header mismatch in {lane_dir / \'Reports\' / report_name}")\n        merged_rows.extend(rows)\n    if merged_header is None:\n        if required:\n            raise SystemExit(f"ERROR: no lane reports found for {report_name}")\n        return\n    write_csv(dest, merged_header, merged_rows)\n\n\ndef move_lane_fastqs(lane_dirs: list[Path], final_fastq_dir: Path) -> dict[str, str]:\n    moved: dict[str, str] = {}\n    by_name: dict[str, str] = {}\n    final_fastq_dir.mkdir(parents=True, exist_ok=True)\n    for lane_dir in lane_dirs:\n        if not lane_dir.is_dir():\n            raise SystemExit(f"ERROR: missing lane output directory: {lane_dir}")\n        for src in sorted(lane_dir.rglob("*.fastq.gz")):\n            rel = src.relative_to(lane_dir)\n            if rel.parts and rel.parts[0] == "Reports":\n                continue\n            dst = final_fastq_dir / rel\n            dst.parent.mkdir(parents=True, exist_ok=True)\n            if dst.exists():\n                raise SystemExit(f"ERROR: refusing to overwrite merged FASTQ: {dst}")\n            src_abs = str(src.resolve())\n            src_text = str(src)\n            os.replace(src, dst)\n            dst_text = str(dst)\n            moved[src_abs] = dst_text\n            moved[src_text] = dst_text\n            by_name[src.name] = dst_text\n    moved.update({f"__BASENAME__/{name}": path for name, path in by_name.items()})\n    return moved\n\n\ndef copy_lane_artifacts(lane_dirs: list[Path], report_dir: Path) -> None:\n    by_lane_root = report_dir / "by_lane"\n    for lane_dir in lane_dirs:\n        lane_dest = by_lane_root / lane_dir.name\n        lane_dest.mkdir(parents=True, exist_ok=True)\n        for child in sorted(lane_dir.iterdir()):\n            if child.is_file() and child.name.endswith(".fastq.gz"):\n                continue\n            dest = lane_dest / child.name\n            if child.is_dir():\n                if dest.exists():\n                    shutil.rmtree(dest)\n                shutil.copytree(child, dest, ignore=shutil.ignore_patterns("*.fastq.gz"))\n            elif child.is_file():\n                shutil.copy2(child, dest)\n\n\ndef rewrite_fastq_path(value: str, lane_dirs: list[Path], moved: dict[str, str]) -> str:\n    text = str(value or "").strip()\n    if not text:\n        return text\n    if text in moved:\n        return moved[text]\n    path = Path(text)\n    try:\n        resolved = str(path.resolve())\n    except OSError:\n        resolved = text\n    if resolved in moved:\n        return moved[resolved]\n    basename_key = "__BASENAME__/" + path.name\n    if basename_key in moved:\n        return moved[basename_key]\n    for lane_dir in lane_dirs:\n        candidate = lane_dir / text\n        if str(candidate) in moved:\n            return moved[str(candidate)]\n        try:\n            candidate_resolved = str(candidate.resolve())\n        except OSError:\n            candidate_resolved = str(candidate)\n        if candidate_resolved in moved:\n            return moved[candidate_resolved]\n    if text.endswith(".fastq.gz"):\n        raise SystemExit(f"ERROR: FASTQ listed by BCL Convert was not produced for merge: {text}")\n    return text\n\n\ndef merge_fastq_list(lane_dirs: list[Path], dest: Path, moved: dict[str, str]) -> None:\n    merged_header: list[str] | None = None\n    merged_rows: list[dict[str, str]] = []\n    for lane_dir in lane_dirs:\n        header, rows = read_csv(lane_dir / "Reports" / "fastq_list.csv", required=True)\n        if merged_header is None:\n            merged_header = header\n        elif header != merged_header:\n            raise SystemExit(f"ERROR: fastq_list.csv header mismatch in {lane_dir}")\n        for row in rows:\n            for key in ("Read1File", "Read2File", "READ1FILE", "READ2FILE", "Read1_File", "Read2_File"):\n                if key in row:\n                    row[key] = rewrite_fastq_path(row[key], lane_dirs, moved)\n            merged_rows.append(row)\n    if merged_header is None:\n        raise SystemExit("ERROR: no lane fastq_list.csv files found")\n    write_csv(dest, merged_header, merged_rows)\n\n\ndef main() -> int:\n    args = parse_args()\n    lane_fastq_root = Path(args.lane_fastq_root)\n    final_fastq_dir = Path(args.final_fastq_dir)\n    report_dir = Path(args.report_dir)\n    log_path = Path(args.log)\n    done_path = Path(args.done)\n    lanes = [lane for lane in args.lanes.split(",") if lane]\n    if not lanes:\n        raise SystemExit("ERROR: no BCL lanes were provided to merge")\n    lane_dirs = [lane_fastq_root / lane for lane in lanes]\n    report_dir.mkdir(parents=True, exist_ok=True)\n    log_path.parent.mkdir(parents=True, exist_ok=True)\n    with log_path.open("a", encoding="utf-8") as log:\n        print(f"DYEC lane merge lanes: {\',\'.join(lanes)}", file=log)\n        print(f"DYEC lane merge root: {lane_fastq_root}", file=log)\n        print(f"DYEC final fastq dir: {final_fastq_dir}", file=log)\n    moved = move_lane_fastqs(lane_dirs, final_fastq_dir)\n    copy_lane_artifacts(lane_dirs, report_dir)\n    merge_fastq_list(lane_dirs, report_dir / "fastq_list.csv", moved)\n    merge_report(lane_dirs, "Demultiplex_Stats.csv", report_dir / "Demultiplex_Stats.csv", required=True)\n    merge_report(lane_dirs, "Top_Unknown_Barcodes.csv", report_dir / "Top_Unknown_Barcodes.csv", required=False)\n    merge_report(lane_dirs, "Index_Hopping_Counts.csv", report_dir / "Index_Hopping_Counts.csv", required=False)\n    done_path.parent.mkdir(parents=True, exist_ok=True)\n    done_path.touch()\n    return 0\n\n\nif __name__ == "__main__":\n    raise SystemExit(main())\n""", encoding="utf-8")\nmerge_helper.chmod(0o755)\n\nlane_globals_marker = \'BCL_CONTAINER_URI = f"docker://nfcore/bclconvert:{BCL_RUNTIME_VERSION}"\\n\\n\\nlocalrules:\'\nlane_globals = r"""\nimport json\n\nBCL_CONTAINER_URI = f"docker://nfcore/bclconvert:{BCL_RUNTIME_VERSION}"\nBCL_OUTPUT_LEGACY_STATS = _bool(BCLCFG.get("output_legacy_stats", False), False)\nBCL_NUM_UNKNOWN_BARCODES_REPORTED = _intish(BCLCFG.get("num_unknown_barcodes_reported", 1000), 1000)\n# Untested pending feature: optional sample-sheet setting injection is dormant unless config supplies values.\nBCL_SAMPLE_SHEET_SETTING_CONFIG_KEYS = {\n    "AdapterRead1": "adapter_read1",\n    "AdapterRead2": "adapter_read2",\n    "AdapterBehavior": "adapter_behavior",\n    "AdapterStringency": "adapter_stringency",\n    "MinimumAdapterOverlap": "minimum_adapter_overlap",\n    "BarcodeMismatchesIndex1": "barcode_mismatches_index1",\n    "BarcodeMismatchesIndex2": "barcode_mismatches_index2",\n    "CreateFastqForIndexReads": "create_fastq_for_index_reads",\n    "MinimumTrimmedReadLength": "minimum_trimmed_read_length",\n    "MaskShortReads": "mask_short_reads",\n    "OverrideCycles": "override_cycles",\n    "SoftwareVersion": "software_version",\n    "TrimUMI": "trim_umi",\n    "NoLaneSplitting": "no_lane_splitting",\n}\n\n\ndef _bcl_mapping(value, *, name):\n    if value in (None, "", "None"):\n        return {}\n    if isinstance(value, dict):\n        return value\n    if isinstance(value, str):\n        try:\n            parsed = json.loads(value)\n        except json.JSONDecodeError as exc:\n            raise WorkflowError(f"bclconvert.{name} must be a mapping or JSON object string") from exc\n        if not isinstance(parsed, dict):\n            raise WorkflowError(f"bclconvert.{name} must be a mapping or JSON object string")\n        return parsed\n    raise WorkflowError(f"bclconvert.{name} must be a mapping or JSON object string")\n\n\nBCL_SAMPLE_SHEET_SETTINGS = {\n    canonical: str(BCLCFG.get(config_key, "") or "").strip()\n    for canonical, config_key in BCL_SAMPLE_SHEET_SETTING_CONFIG_KEYS.items()\n    if str(BCLCFG.get(config_key, "") or "").strip()\n}\nBCL_SAMPLE_SHEET_SETTINGS.update(_bcl_mapping(BCLCFG.get("sample_sheet_settings", {}), name="sample_sheet_settings"))\nBCL_SAMPLE_SHEET_SETTINGS_BY_LANE = _bcl_mapping(\n    BCLCFG.get("sample_sheet_settings_by_lane", {}), name="sample_sheet_settings_by_lane"\n)\nBCL_SAMPLE_SHEET_SETTINGS_JSON = json.dumps(BCL_SAMPLE_SHEET_SETTINGS, sort_keys=True)\nBCL_SAMPLE_SHEET_SETTINGS_BY_LANE_JSON = json.dumps(BCL_SAMPLE_SHEET_SETTINGS_BY_LANE, sort_keys=True)\n\nDYEC_BCLCONVERT_LANE_SPLIT_PATCH = True\nBCL_LANE_ROOT = Path(BCL_RUN_DIR) / "Data" / "Intensities" / "BaseCalls"\nif BCL_TARGET_REQUESTED:\n    if not BCL_LANE_ROOT.is_dir():\n        raise WorkflowError(f"BCL run directory is missing lane root: {BCL_LANE_ROOT}")\n    BCL_LANES = sorted(\n        path.name\n        for path in BCL_LANE_ROOT.iterdir()\n        if path.is_dir() and re.fullmatch(r"L[0-9][0-9][0-9]", path.name)\n    )\n    if not BCL_LANES:\n        raise WorkflowError(f"BCL run directory has no L### lane directories under {BCL_LANE_ROOT}")\nelse:\n    BCL_LANES = []\nBCL_LANE_FASTQ_ROOT = f"{BCL_ROOT}/lane_fastqs"\nBCL_LANE_REPORT_ROOT = f"{BCL_ROOT}/lane_reports"\nBCL_LANE_DONE_FILES = expand(f"{BCL_LANE_REPORT_ROOT}/{{lane}}/bclconvert.done", lane=BCL_LANES)\nBCL_LANE_FASTQ_LIST_FILES = expand(f"{BCL_LANE_FASTQ_ROOT}/{{lane}}/Reports/fastq_list.csv", lane=BCL_LANES)\nBCL_LANE_DEMUX_STATS_FILES = expand(f"{BCL_LANE_FASTQ_ROOT}/{{lane}}/Reports/Demultiplex_Stats.csv", lane=BCL_LANES)\nBCL_LANE_SAMPLE_SHEET_FILES = expand(f"{BCL_LANE_REPORT_ROOT}/{{lane}}/SampleSheet.csv", lane=BCL_LANES)\n\n\nlocalrules:"""\nlane_rule = r"""\nrule run_bclconvert_lane:\n    input:\n        validated=BCL_VALIDATE_OK,\n        sample_sheet=BCL_NORMALIZED_SAMPLE_SHEET,\n    output:\n        done=f"{BCL_LANE_REPORT_ROOT}/{{lane}}/bclconvert.done",\n        fastq_list=f"{BCL_LANE_FASTQ_ROOT}/{{lane}}/Reports/fastq_list.csv",\n        demux_stats=f"{BCL_LANE_FASTQ_ROOT}/{{lane}}/Reports/Demultiplex_Stats.csv",\n        lane_sample_sheet=f"{BCL_LANE_REPORT_ROOT}/{{lane}}/SampleSheet.csv",\n    wildcard_constraints:\n        lane="L[0-9][0-9][0-9]",\n    threads:\n        BCL_THREADS\n    resources:\n        partition=BCL_PARTITION,\n        vcpu=BCL_THREADS,\n        threads=BCL_THREADS,\n        mem_mb=BCL_MEM_MB,\n        tmpdir=BCL_TMPDIR,\n        exclusive="",\n    params:\n        cluster_sample=lambda wildcards: f"run_bclconvert_{wildcards.lane}",\n        run_dir=BCL_RUN_DIR,\n        container_uri=BCL_CONTAINER_URI,\n        tmpdir=BCL_TMPDIR,\n        lane_number=lambda wildcards: str(int(wildcards.lane[1:])),\n        lane_output_dir=lambda wildcards: f"{BCL_LANE_FASTQ_ROOT}/{wildcards.lane}",\n        parallel_tiles=BCL_PARALLEL_TILES,\n        conversion_threads=BCL_CONVERSION_THREADS,\n        compression_threads=BCL_COMPRESSION_THREADS,\n        decompression_threads=BCL_DECOMPRESSION_THREADS,\n        fastq_gzip_compression_level=BCL_FASTQ_GZIP_COMPRESSION_LEVEL,\n        shared_thread_odirect_output="true" if BCL_SHARED_THREAD_ODIRECT_OUTPUT else "false",\n        output_legacy_stats="true" if BCL_OUTPUT_LEGACY_STATS else "false",\n        num_unknown_barcodes_reported=BCL_NUM_UNKNOWN_BARCODES_REPORTED,\n        sample_sheet_settings_json=BCL_SAMPLE_SHEET_SETTINGS_JSON,\n        sample_sheet_settings_by_lane_json=BCL_SAMPLE_SHEET_SETTINGS_BY_LANE_JSON,\n        force="-f" if BCL_FORCE else "",\n        strict_mode="true" if BCL_STRICT_MODE else "false",\n        first_tile_only="true" if BCL_FIRST_TILE_ONLY else "false",\n        sampleproject_subdirectories="true" if BCL_SAMPLEPROJECT_SUBDIRS else "false",\n    log:\n        f"{BCL_LOG_DIR}/run_bclconvert.{{lane}}.log",\n    benchmark:\n        f"{BCL_BENCH_DIR}/run_bclconvert.{{lane}}.bench.tsv",\n    shell:\n        "TMPDIR={params.tmpdir:q} bash workflow/scripts/dyec_run_bclconvert_lane.sh "\n        "{params.container_uri:q} {params.run_dir:q} {params.lane_output_dir:q} {input.sample_sheet:q} "\n        "{params.lane_number:q} {output.lane_sample_sheet:q} {params.strict_mode:q} "\n        "{params.first_tile_only:q} {params.sampleproject_subdirectories:q} "\n        "{params.fastq_gzip_compression_level:q} {params.parallel_tiles:q} "\n        "{params.conversion_threads:q} {params.compression_threads:q} "\n        "{params.decompression_threads:q} {params.shared_thread_odirect_output:q} "\n        "{params.output_legacy_stats:q} {params.num_unknown_barcodes_reported:q} "\n        "{params.sample_sheet_settings_json:q} {params.sample_sheet_settings_by_lane_json:q} "\n        "{params.force:q} {threads:q} {log:q} {output.fastq_list:q} "\n        "{output.demux_stats:q} {output.done:q}"\n\n\nrule run_bclconvert:\n    input:\n        validated=BCL_VALIDATE_OK,\n        sample_sheet=BCL_NORMALIZED_SAMPLE_SHEET,\n        lane_done=BCL_LANE_DONE_FILES,\n        fastq_lists=BCL_LANE_FASTQ_LIST_FILES,\n        demux_stats=BCL_LANE_DEMUX_STATS_FILES,\n        lane_sample_sheets=BCL_LANE_SAMPLE_SHEET_FILES,\n    output:\n        done=BCL_DONE,\n        fastq_list=f"{BCL_REPORT_DIR}/fastq_list.csv",\n        demux_stats=f"{BCL_REPORT_DIR}/Demultiplex_Stats.csv",\n    threads:\n        1\n    resources:\n        partition=BCL_PARTITION,\n        vcpu=1,\n        threads=1,\n        mem_mb=3000,\n        tmpdir=BCL_TMPDIR,\n    params:\n        cluster_sample="run_bclconvert_merge_lanes",\n        lanes=",".join(BCL_LANES),\n        lane_fastq_root=BCL_LANE_FASTQ_ROOT,\n        final_fastq_dir=BCL_FASTQ_DIR,\n        report_dir=BCL_REPORT_DIR,\n    log:\n        f"{BCL_LOG_DIR}/run_bclconvert.merge_lanes.log",\n    benchmark:\n        f"{BCL_BENCH_DIR}/run_bclconvert.merge_lanes.bench.tsv",\n    shell:\n        "python workflow/scripts/dyec_merge_bclconvert_lanes.py "\n        "--lane-fastq-root {params.lane_fastq_root:q} "\n        "--final-fastq-dir {params.final_fastq_dir:q} "\n        "--report-dir {params.report_dir:q} "\n        "--lanes {params.lanes:q} "\n        "--done {output.done:q} "\n        "--log {log:q} >> {log:q} 2>&1 && "\n        "test -s {output.fastq_list:q} && test -s {output.demux_stats:q}"\n"""\n\ntext = rule_path.read_text(encoding="utf-8")\nif "DYEC_BCLCONVERT_LANE_SPLIT_PATCH = True" not in text:\n    if lane_globals_marker not in text:\n        raise SystemExit(f"[ERROR] BCL Convert lane globals insertion point not found in {rule_path}")\n    text = text.replace(lane_globals_marker, lane_globals, 1)\n\nlocalrules_marker = "localrules:\\n    bclconvert_validate_inputs,\\n"\nlocalrules_patch = (\n    "localrules:\\n"\n    "    bclconvert_validate_inputs,\\n"\n    "    run_bclconvert,\\n"\n    "    bclconvert_metrics_summary,\\n"\n    "    bclconvert_generate_units_tsv,\\n"\n)\nif "run_bclconvert,\\n    bclconvert_metrics_summary" not in text:\n    if localrules_marker not in text:\n        raise SystemExit(f"[ERROR] BCL Convert localrules insertion point not found in {rule_path}")\n    text = text.replace(localrules_marker, localrules_patch, 1)\n\nstart_marker = "\\nrule run_bclconvert:\\n"\nend_marker = "\\n\\nrule bclconvert_generate_units_tsv:"\nif "rule run_bclconvert_lane:" not in text:\n    start = text.find(start_marker)\n    end = text.find(end_marker, start + len(start_marker))\n    if start < 0 or end < 0:\n        raise SystemExit(f"[ERROR] BCL Convert run_bclconvert rule block not found in {rule_path}")\n    text = text[:start] + "\\n" + lane_rule + text[end:]\n\nrule_path.write_text(text, encoding="utf-8")\nprint(\n    "[INFO] Patched BCL Convert direct lane-split rules in "\n    f"{rule_path}; helpers={prepare_lane_samplesheet},{run_lane_helper},{merge_helper}"\n)\n'
@@ -274,7 +273,9 @@ BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT = '\nfrom pathlib import Path\n\nrule_path = 
 class RemoteConfig:
     stage_dir: str
     samples_path: str
-    units_path: str
+    specimens_path: str = ""
+    libraries_path: str = ""
+    units_path: str = ""
 
 
 @dataclass(frozen=True)
@@ -317,8 +318,8 @@ def normalize_remote_path(path: str) -> str:
     return path
 
 
-def parse_remote_config(stdout: str) -> RemoteConfig:
-    stage_dir = samples_path = units_path = None
+def parse_remote_config(stdout: str, *, input_contract: str = "sample_manifest") -> RemoteConfig:
+    stage_dir = samples_path = units_path = specimens_path = libraries_path = None
     for line in stdout.splitlines():
         if line.startswith("__DAYLILY_STAGE_DIR__="):
             stage_dir = line.split("=", 1)[1].strip()
@@ -326,11 +327,29 @@ def parse_remote_config(stdout: str) -> RemoteConfig:
             samples_path = line.split("=", 1)[1].strip()
         elif line.startswith("__DAYLILY_STAGE_UNITS__="):
             units_path = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_STAGE_SPECIMENS__="):
+            specimens_path = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_STAGE_LIBRARIES__="):
+            libraries_path = line.split("=", 1)[1].strip()
         elif line.startswith("__DAYLILY_ERROR__="):
             raise CommandError(f"Remote lookup failed: {line.split('=', 1)[1]}")
+    if input_contract == "sample_manifest_v12":
+        if not (stage_dir and specimens_path and samples_path and libraries_path):
+            raise CommandError(
+                "Unable to determine DayOA 12 specimens/samples/libraries paths on the head node; "
+                "legacy units.tsv is not accepted."
+            )
+        return RemoteConfig(
+            stage_dir,
+            samples_path,
+            specimens_path=specimens_path,
+            libraries_path=libraries_path,
+        )
     if not (stage_dir and samples_path and units_path):
-        raise CommandError("Unable to determine staged config paths on the head node.")
-    return RemoteConfig(stage_dir, samples_path, units_path)
+        raise CommandError(
+            "Unable to determine staged legacy samples/units paths on the head node."
+        )
+    return RemoteConfig(stage_dir, samples_path, units_path=units_path)
 
 
 def _controller_target_path(value: object, *, field: str) -> str:
@@ -375,7 +394,11 @@ def parse_controller_target(raw: str) -> ControllerTargetReceipt:
             "controller target receipt schema must be " + CONTROLLER_TARGET_SCHEMA_VERSION
         )
     controller_id = payload["controller_id"]
-    if not isinstance(controller_id, str) or not controller_id or controller_id != controller_id.strip():
+    if (
+        not isinstance(controller_id, str)
+        or not controller_id
+        or controller_id != controller_id.strip()
+    ):
         raise CommandError("controller target controller_id must be non-empty text")
     pid = payload["pid"]
     if isinstance(pid, bool) or not isinstance(pid, int) or pid < 1:
@@ -435,7 +458,10 @@ def parse_workflow_launch(stdout: str) -> WorkflowLaunchInfo:
     if controller_target.controller_id != tmux_session_name:
         raise CommandError("workflow tmux session and controller target identifiers disagree")
     expected_analysis_root = posixpath.dirname(repo_path)
-    if controller_target.cwd != repo_path or controller_target.analysis_root != expected_analysis_root:
+    if (
+        controller_target.cwd != repo_path
+        or controller_target.analysis_root != expected_analysis_root
+    ):
         raise CommandError("workflow paths and controller target paths disagree")
     return WorkflowLaunchInfo(
         session_name=session_name,
@@ -453,8 +479,11 @@ def discover_stage_config(
     region: str,
     stage_dir: Optional[str],
     stage_base: str,
+    input_contract: str = "sample_manifest",
 ) -> RemoteConfig:
     remote_wait_seconds = max(1, STAGE_CONFIG_DISCOVERY_TIMEOUT_SECONDS - 15)
+    if input_contract not in {"sample_manifest", "sample_manifest_v12"}:
+        raise CommandError(f"Unsupported staged input contract: {input_contract}")
     if stage_dir:
         target_dir = normalize_remote_path(stage_dir.rstrip("/"))
         script = f"""
@@ -464,14 +493,24 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
   exit 5
 fi
 STAGE_DIR={shlex.quote(target_dir)}
+INPUT_CONTRACT={shlex.quote(input_contract)}
 WAIT_DEADLINE=$((SECONDS + {remote_wait_seconds}))
 last_error=missing_stage_dir
 found_config=false
 while true; do
   if [[ -d "$STAGE_DIR" ]]; then
     samples_file=$(ls -1 "$STAGE_DIR"/*_samples.tsv 2>/dev/null | head -n 1 || true)
+    specimens_file=$(ls -1 "$STAGE_DIR"/*_specimens.tsv 2>/dev/null | head -n 1 || true)
+    libraries_file=$(ls -1 "$STAGE_DIR"/*_libraries.tsv 2>/dev/null | head -n 1 || true)
     units_file=$(ls -1 "$STAGE_DIR"/*_units.tsv 2>/dev/null | head -n 1 || true)
-    if [[ -n "$samples_file" && -n "$units_file" ]]; then
+    if [[ "$INPUT_CONTRACT" == "sample_manifest_v12" && -n "$specimens_file" && -n "$samples_file" && -n "$libraries_file" ]]; then
+      echo "__DAYLILY_STAGE_DIR__=$STAGE_DIR"
+      echo "__DAYLILY_STAGE_SPECIMENS__=$specimens_file"
+      echo "__DAYLILY_STAGE_SAMPLES__=$samples_file"
+      echo "__DAYLILY_STAGE_LIBRARIES__=$libraries_file"
+      found_config=true
+      break
+    elif [[ "$INPUT_CONTRACT" == "sample_manifest" && -n "$samples_file" && -n "$units_file" ]]; then
       echo "__DAYLILY_STAGE_DIR__=$STAGE_DIR"
       echo "__DAYLILY_STAGE_SAMPLES__=$samples_file"
       echo "__DAYLILY_STAGE_UNITS__=$units_file"
@@ -504,6 +543,7 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
   exit 5
 fi
 STAGE_BASE={shlex.quote(stage_base_norm)}
+INPUT_CONTRACT={shlex.quote(input_contract)}
 if [[ ! -d "$STAGE_BASE" ]]; then
   echo "__DAYLILY_ERROR__=missing_stage_base"
   exit 2
@@ -515,8 +555,17 @@ while true; do
   latest_dir=$(ls -1dt "$STAGE_BASE"/*/ 2>/dev/null | head -n 1 || true)
   if [[ -n "$latest_dir" ]]; then
     samples_file=$(ls -1 "$latest_dir"/*_samples.tsv 2>/dev/null | head -n 1 || true)
+    specimens_file=$(ls -1 "$latest_dir"/*_specimens.tsv 2>/dev/null | head -n 1 || true)
+    libraries_file=$(ls -1 "$latest_dir"/*_libraries.tsv 2>/dev/null | head -n 1 || true)
     units_file=$(ls -1 "$latest_dir"/*_units.tsv 2>/dev/null | head -n 1 || true)
-    if [[ -n "$samples_file" && -n "$units_file" ]]; then
+    if [[ "$INPUT_CONTRACT" == "sample_manifest_v12" && -n "$specimens_file" && -n "$samples_file" && -n "$libraries_file" ]]; then
+      echo "__DAYLILY_STAGE_DIR__=$latest_dir"
+      echo "__DAYLILY_STAGE_SPECIMENS__=$specimens_file"
+      echo "__DAYLILY_STAGE_SAMPLES__=$samples_file"
+      echo "__DAYLILY_STAGE_LIBRARIES__=$libraries_file"
+      found_config=true
+      break
+    elif [[ "$INPUT_CONTRACT" == "sample_manifest" && -n "$samples_file" && -n "$units_file" ]]; then
       echo "__DAYLILY_STAGE_DIR__=$latest_dir"
       echo "__DAYLILY_STAGE_SAMPLES__=$samples_file"
       echo "__DAYLILY_STAGE_UNITS__=$units_file"
@@ -553,7 +602,7 @@ fi
         print(result.stdout, end="")
     if result.stderr:
         print(result.stderr, file=sys.stderr, end="")
-    return parse_remote_config(result.stdout)
+    return parse_remote_config(result.stdout, input_contract=input_contract)
 
 
 def format_list(values: List[str]) -> str:
@@ -614,19 +663,33 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cluster", help="ParallelCluster name")
     parser.add_argument(
         "--stage-dir",
-        help="Specific staging directory containing *_samples.tsv and *_units.tsv",
+        help="Specific staging directory containing the exact --input-contract manifests",
+    )
+    parser.add_argument(
+        "--input-contract",
+        choices=("sample_manifest", "sample_manifest_v12", "run_context", "none"),
+        default="sample_manifest",
+        help="Explicit workflow input contract; DayOA 12 sample commands require sample_manifest_v12.",
     )
     parser.add_argument(
         "--run-context-file",
         help="Local runs.tsv file to write as config/runs.tsv for run-analysis workflows",
     )
     parser.add_argument(
+        "--specimens-file",
+        help="Local specimens.tsv for a DayOA 12 sample-analysis workflow",
+    )
+    parser.add_argument(
         "--samples-file",
         help="Local samples.tsv file to write as config/samples.tsv for sample-analysis workflows",
     )
     parser.add_argument(
+        "--libraries-file",
+        help="Local libraries.tsv for a DayOA 12 sample-analysis workflow",
+    )
+    parser.add_argument(
         "--units-file",
-        help="Local units.tsv file to write as config/units.tsv for sample-analysis workflows",
+        help="Legacy local units.tsv; rejected for DayOA 12 commands",
     )
     parser.add_argument(
         "--stage-base",
@@ -706,8 +769,7 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=DEFAULT_JOB_MAX_RUNTIME_MINUTES,
         help=(
-            "Deprecated compatibility option. DYEC does not append Snakemake "
-            "--default-resources."
+            "Deprecated compatibility option. DYEC does not append Snakemake --default-resources."
         ),
     )
     parser.add_argument(
@@ -860,39 +922,67 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
 
     run_context_content: Optional[str] = None
+    specimens_content: Optional[str] = None
     samples_content: Optional[str] = None
+    libraries_content: Optional[str] = None
     units_content: Optional[str] = None
     if args.run_context_file:
         if not args.input_staging:
             raise CommandError("--run-context-file cannot be used with --no-input-staging.")
         if args.stage_dir:
             raise CommandError("--stage-dir cannot be used with --run-context-file.")
-        if args.samples_file or args.units_file:
-            raise CommandError(
-                "--run-context-file cannot be used with --samples-file or --units-file."
-            )
+        if args.specimens_file or args.samples_file or args.libraries_file or args.units_file:
+            raise CommandError("--run-context-file cannot be combined with sample manifest files.")
         run_context_path = Path(args.run_context_file).expanduser()
         if not run_context_path.is_file():
             raise CommandError(f"Run context file not found: {run_context_path}")
         run_context_content = run_context_path.read_text(encoding="utf-8")
         stage_config = None
-    elif args.samples_file or args.units_file:
+    elif args.specimens_file or args.samples_file or args.libraries_file or args.units_file:
         if not args.input_staging:
-            raise CommandError(
-                "--samples-file/--units-file cannot be used with --no-input-staging."
-            )
+            raise CommandError("manifest file options cannot be used with --no-input-staging.")
         if args.stage_dir:
-            raise CommandError("--stage-dir cannot be used with --samples-file/--units-file.")
-        if not args.samples_file or not args.units_file:
-            raise CommandError("--samples-file and --units-file must be provided together.")
+            raise CommandError("--stage-dir cannot be combined with explicit manifest files.")
+        if args.input_contract == "sample_manifest_v12":
+            if args.units_file:
+                raise CommandError(
+                    "DayOA 12 commands reject units.tsv. Provide specimens.tsv, samples.tsv, "
+                    "and libraries.tsv, or run `dayoa migrate-manifests` with a reviewed identity map."
+                )
+            if not (args.specimens_file and args.samples_file and args.libraries_file):
+                raise CommandError(
+                    "--specimens-file, --samples-file, and --libraries-file are required together "
+                    "for sample_manifest_v12."
+                )
+        elif args.input_contract == "sample_manifest":
+            if args.specimens_file or args.libraries_file:
+                raise CommandError("--specimens-file/--libraries-file require sample_manifest_v12.")
+            if not args.samples_file or not args.units_file:
+                raise CommandError("--samples-file and --units-file must be provided together.")
+        else:
+            raise CommandError(
+                f"Explicit sample manifest files are invalid for {args.input_contract}."
+            )
+        specimens_path = Path(args.specimens_file).expanduser() if args.specimens_file else None
         samples_path = Path(args.samples_file).expanduser()
-        units_path = Path(args.units_file).expanduser()
+        libraries_path = Path(args.libraries_file).expanduser() if args.libraries_file else None
+        units_path = Path(args.units_file).expanduser() if args.units_file else None
+        if specimens_path is not None and not specimens_path.is_file():
+            raise CommandError(f"Specimens file not found: {specimens_path}")
         if not samples_path.is_file():
             raise CommandError(f"Samples file not found: {samples_path}")
-        if not units_path.is_file():
+        if libraries_path is not None and not libraries_path.is_file():
+            raise CommandError(f"Libraries file not found: {libraries_path}")
+        if units_path is not None and not units_path.is_file():
             raise CommandError(f"Units file not found: {units_path}")
+        specimens_content = (
+            specimens_path.read_text(encoding="utf-8") if specimens_path is not None else None
+        )
         samples_content = samples_path.read_text(encoding="utf-8")
-        units_content = units_path.read_text(encoding="utf-8")
+        libraries_content = (
+            libraries_path.read_text(encoding="utf-8") if libraries_path is not None else None
+        )
+        units_content = units_path.read_text(encoding="utf-8") if units_path is not None else None
         stage_config = None
     elif args.input_staging:
         stage_config = discover_stage_config(
@@ -901,6 +991,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             region,
             args.stage_dir,
             args.stage_base,
+            input_contract=args.input_contract,
         )
     else:
         if args.stage_dir:
@@ -945,23 +1036,32 @@ def main(argv: Optional[List[str]] = None) -> int:
     dy_command_literal = shlex.quote(dy_command)
     skip_check = "true" if args.skip_project_check else "false"
     run_context_mode = run_context_content is not None
-    sample_config_mode = samples_content is not None or units_content is not None
+    sample_config_mode = any(
+        value is not None
+        for value in (specimens_content, samples_content, libraries_content, units_content)
+    )
     run_context_mode_literal = "true" if run_context_mode else "false"
     sample_config_mode_literal = "true" if sample_config_mode else "false"
     input_staging_mode_literal = "true" if args.input_staging else "false"
     default_activation_literal = "true" if args.default_activation else "false"
     bootstrap_test_config_literal = "true" if args.bootstrap_test_config else "false"
     run_context_payload = shlex.quote(run_context_content or "")
+    specimens_payload = shlex.quote(specimens_content or "")
     samples_payload = shlex.quote(samples_content or "")
+    libraries_payload = shlex.quote(libraries_content or "")
     units_payload = shlex.quote(units_content or "")
     export_destination_literal = shlex.quote(args.export_destination_s3_uri or "")
     delete_on_export_success = "true" if args.delete_on_export_success else "false"
     replace_existing_analysis_dir = "true" if args.replace_existing_analysis_dir else "false"
     if stage_config is None:
+        stage_specimens_path = ""
         stage_samples_path = ""
+        stage_libraries_path = ""
         stage_units_path = ""
     else:
+        stage_specimens_path = stage_config.specimens_path
         stage_samples_path = stage_config.samples_path
+        stage_libraries_path = stage_config.libraries_path
         stage_units_path = stage_config.units_path
     write_status_python = shlex.quote(
         "import json, os, pathlib; "
@@ -1022,13 +1122,18 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	EXECUTING_ENTITY={shlex.quote(executing_entity)}
 	RUN_CONTEXT_MODE={run_context_mode_literal}
 	SAMPLE_CONFIG_MODE={sample_config_mode_literal}
+	INPUT_CONTRACT={shlex.quote(args.input_contract)}
 	INPUT_STAGING_MODE={input_staging_mode_literal}
 	DEFAULT_ACTIVATION={default_activation_literal}
 	BOOTSTRAP_TEST_CONFIG={bootstrap_test_config_literal}
 	RUN_CONTEXT_PAYLOAD={run_context_payload}
+	SPECIMENS_PAYLOAD={specimens_payload}
 	SAMPLES_PAYLOAD={samples_payload}
+	LIBRARIES_PAYLOAD={libraries_payload}
 	UNITS_PAYLOAD={units_payload}
+	STAGE_SPECIMENS={shlex.quote(stage_specimens_path)}
 	STAGE_SAMPLES={shlex.quote(stage_samples_path)}
+	STAGE_LIBRARIES={shlex.quote(stage_libraries_path)}
 	STAGE_UNITS={shlex.quote(stage_units_path)}
 	PROJECT_VALUE={project_arg if project_arg else ""}
 	SKIP_PROJECT_CHECK={skip_check}
@@ -2045,11 +2150,25 @@ PYCONTAMZERO
 	    append_ultima_run_qc_config
 	  fi
 	elif [[ "$SAMPLE_CONFIG_MODE" == "true" ]]; then
-	  printf '%s' "$SAMPLES_PAYLOAD" > config/samples.tsv
-	  printf '%s' "$UNITS_PAYLOAD" > config/units.tsv
+	  if [[ "$INPUT_CONTRACT" == "sample_manifest_v12" ]]; then
+	    printf '%s' "$SPECIMENS_PAYLOAD" > config/specimens.tsv
+	    printf '%s' "$SAMPLES_PAYLOAD" > config/samples.tsv
+	    printf '%s' "$LIBRARIES_PAYLOAD" > config/libraries.tsv
+	    rm -f config/units.tsv
+	  else
+	    printf '%s' "$SAMPLES_PAYLOAD" > config/samples.tsv
+	    printf '%s' "$UNITS_PAYLOAD" > config/units.tsv
+	  fi
 	elif [[ "$INPUT_STAGING_MODE" == "true" ]]; then
-	  cp "$STAGE_SAMPLES" config/samples.tsv
-	  cp "$STAGE_UNITS" config/units.tsv
+	  if [[ "$INPUT_CONTRACT" == "sample_manifest_v12" ]]; then
+	    cp "$STAGE_SPECIMENS" config/specimens.tsv
+	    cp "$STAGE_SAMPLES" config/samples.tsv
+	    cp "$STAGE_LIBRARIES" config/libraries.tsv
+	    rm -f config/units.tsv
+	  else
+	    cp "$STAGE_SAMPLES" config/samples.tsv
+	    cp "$STAGE_UNITS" config/units.tsv
+	  fi
 	elif [[ "$BOOTSTRAP_TEST_CONFIG" == "true" ]]; then
 	  bootstrap_test_config
 	else
@@ -2458,8 +2577,7 @@ emit_controller_target
     print(f"Workflow repo path: {launch_info.repo_path}")
     print(f"Effective dy-r command: {launch_info.dy_command}")
     print(
-        "Controller target: "
-        + json.dumps(launch_info.controller_target.to_dict(), sort_keys=True)
+        "Controller target: " + json.dumps(launch_info.controller_target.to_dict(), sort_keys=True)
     )
     print(
         "Reconnect with: daylily-ssh-into-headnode --profile {profile} --region {region} --cluster {cluster}".format(

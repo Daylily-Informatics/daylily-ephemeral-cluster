@@ -873,6 +873,7 @@ def test_main_precheck_and_config_only_control_flow(tmp_path, monkeypatch, capsy
         cluster_name=None,
         fsx_file_system_id=None,
         staging_mount_timeout_seconds=60,
+        manifest_contract="legacy_v11",
     )
     monkeypatch.setattr(m, "parse_args", lambda argv: args)
     monkeypatch.setattr(m, "build_stage_paths", lambda *a, **k: stage)
@@ -1079,6 +1080,7 @@ def test_main_remote_success_and_config_only_rejections(tmp_path, monkeypatch, c
         cluster_name="cluster",
         fsx_file_system_id=None,
         staging_mount_timeout_seconds=60,
+        manifest_contract="legacy_v11",
     )
     monkeypatch.setattr(m, "parse_args", lambda argv: args)
     monkeypatch.setattr(m, "build_stage_paths", lambda *a, **k: stage)

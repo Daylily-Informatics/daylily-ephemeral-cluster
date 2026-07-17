@@ -97,7 +97,9 @@ def _fake_launch_factory(calls: list[list[str]]):
         session = argv[argv.index("--session-name") + 1]
         print(f"__DAYLILY_SESSION__={session}")
         print(f"__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/{session}")
-        print(f"__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/{session}/daylily-omics-analysis")
+        print(
+            f"__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/{session}/daylily-omics-analysis"
+        )
         print(f"__DAYLILY_DY_COMMAND__={argv[argv.index('--dy-command') + 1]}")
         return 0
 
@@ -205,8 +207,7 @@ def test_command_code_parser_exact_released_sets_duplicate_and_unknown() -> None
         == "complete_genomics_mgi_snv_concordance"
     )
     assert (
-        parse_command_codes("illumina_bclconvert", catalog)[0].command_id
-        == "illumina_bclconvert"
+        parse_command_codes("illumina_bclconvert", catalog)[0].command_id == "illumina_bclconvert"
     )
     with pytest.raises(RunnerError, match="Duplicate command id"):
         parse_command_codes("ont_snv_alignstats ont_snv_alignstats", catalog)
@@ -253,7 +254,7 @@ def test_render_dy_command_normalizes_flags_and_warmup() -> None:
     assert " -n" not in f" {live} "
     assert " --conda-create-envs-only " in f" {warmup} "
     assert "--default-resources" not in warmup
-    assert "x={\"y\":1}" in dry
+    assert 'x={"y":1}' in dry
     assert (
         render_dy_command(
             "bin/day_run target --default-resources time=240 -j 20",
@@ -315,16 +316,12 @@ def test_complete_genomics_slim_fixture_can_be_written(tmp_path: Path) -> None:
     assert "\tpass_through\t/fsx/staging/staged_external_sequencing_data\t" in text
 
 
-def test_write_sample_manifest_uses_command_specific_templates(tmp_path: Path) -> None:
+def test_write_legacy_sample_manifest_uses_command_specific_templates(tmp_path: Path) -> None:
     catalog = load_repository_catalog()
     ilmn_dir = tmp_path / "ilmn"
     metagenomics_dir = tmp_path / "metagenomics"
-    hybrid_dir = tmp_path / "hybrid"
-    inflection_dir = tmp_path / "inflection"
     ilmn_dir.mkdir()
     metagenomics_dir.mkdir()
-    hybrid_dir.mkdir()
-    inflection_dir.mkdir()
 
     ilmn_manifest = write_sample_manifest(
         catalog.get_command("illumina_hg002_kitchensink_multiqc"), ilmn_dir
@@ -332,22 +329,10 @@ def test_write_sample_manifest_uses_command_specific_templates(tmp_path: Path) -
     metagenomics_manifest = write_sample_manifest(
         catalog.get_command("all_metagenomic_pipelines"), metagenomics_dir
     )
-    hybrid_manifest = write_sample_manifest(
-        catalog.get_command("hybrid_ilmn_ont_hiomrs_kitchensink"), hybrid_dir
-    )
-    inflection_manifest = write_sample_manifest(
-        catalog.get_command("inflection-bjuice-product-v0.1"), inflection_dir
-    )
-
     with ilmn_manifest.open(newline="", encoding="utf-8") as handle:
         ilmn_row = next(csv.DictReader(handle, delimiter="\t"))
     with metagenomics_manifest.open(newline="", encoding="utf-8") as handle:
         metagenomics_row = next(csv.DictReader(handle, delimiter="\t"))
-    with hybrid_manifest.open(newline="", encoding="utf-8") as handle:
-        hybrid_row = next(csv.DictReader(handle, delimiter="\t"))
-    with inflection_manifest.open(newline="", encoding="utf-8") as handle:
-        inflection_row = next(csv.DictReader(handle, delimiter="\t"))
-
     assert ilmn_row["SAMPLE_ID"] == "HG002"
     assert ilmn_row["EXTERNAL_SAMPLE_ID"] == "HG002"
     assert ilmn_row["EXPERIMENTID"] == "5x"
@@ -361,23 +346,19 @@ def test_write_sample_manifest_uses_command_specific_templates(tmp_path: Path) -
     assert ilmn_row["ILMN_R2_FQ"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
     assert ilmn_row["STAGE_DIRECTIVE"] == "pass_through"
 
-    assert hybrid_row["SAMPLE_ID"] == "HG003"
-    assert hybrid_row["EXTERNAL_SAMPLE_ID"] == "HG003"
-    assert hybrid_row["EXPERIMENTID"] == "SR5x-ONT5x"
-    assert hybrid_row["ILMN_R1_FQ"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
-    assert hybrid_row["ILMN_R2_FQ"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
-    assert hybrid_row["ONT_CRAM"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
-    assert "HG003_5x_R1.fastq.gz" in hybrid_row["ILMN_R1_FQ"]
-    assert "HG003_5x_R2.fastq.gz" in hybrid_row["ILMN_R2_FQ"]
-    assert "HG003_5x.cleaned.cram" in hybrid_row["ONT_CRAM"]
-    assert hybrid_row["STAGE_DIRECTIVE"] == "pass_through"
 
-    assert inflection_row["SAMPLE_ID"] == "HG003"
-    assert inflection_row["EXPERIMENTID"] == "SR5x-ONT5x"
-    assert "HG003_5x_R1.fastq.gz" in inflection_row["ILMN_R1_FQ"]
-    assert "HG003_5x_R2.fastq.gz" in inflection_row["ILMN_R2_FQ"]
-    assert "HG003_5x.cleaned.cram" in inflection_row["ONT_CRAM"]
-    assert inflection_row["STAGE_DIRECTIVE"] == "pass_through"
+@pytest.mark.parametrize(
+    "command_id",
+    ["hybrid_ilmn_ont_hiomrs_kitchensink", "inflection-bjuice-product-v0.2"],
+)
+def test_dayoa12_test_runner_never_synthesizes_lineage_euids(
+    tmp_path: Path,
+    command_id: str,
+) -> None:
+    command = load_repository_catalog().get_command(command_id)
+
+    with pytest.raises(RunnerError, match="synthesize or infer lineage identities"):
+        write_sample_manifest(command, tmp_path)
 
 
 def test_prepare_run_mounts_blocks_then_creates_missing() -> None:
@@ -450,7 +431,9 @@ def test_run_command_catalog_dry_run_only_renders_and_exports(tmp_path: Path) ->
         status_func=lambda _metadata, _phase: {"exit_code": 0},
         mount_list_func=lambda **_kwargs: [
             _run_mount_record(source_s3_uri=ont_source, mount_id="ONT-RUN", platform="ONT"),
-            _run_mount_record(source_s3_uri=ultima_source, mount_id="ULTIMA-RUN", platform="ULTIMA"),
+            _run_mount_record(
+                source_s3_uri=ultima_source, mount_id="ULTIMA-RUN", platform="ULTIMA"
+            ),
         ],
     )
 
@@ -466,7 +449,9 @@ def test_run_command_catalog_dry_run_only_renders_and_exports(tmp_path: Path) ->
     assert all("-n" in call[call.index("--dy-command") + 1] for call in launch_calls)
     assert all("--export-destination-s3-uri" not in call for call in launch_calls)
     assert all("--export-trigger" not in call for call in launch_calls)
-    ont_call = next(call for call in launch_calls if "ont_run_qc" in call[call.index("--analysis-id") + 1])
+    ont_call = next(
+        call for call in launch_calls if "ont_run_qc" in call[call.index("--analysis-id") + 1]
+    )
     ont_command = ont_call[ont_call.index("--dy-command") + 1]
     assert "run_context_file=config/runs.tsv" in ont_command
     assert "samples_table=.test_data/data/samples.tsv" in ont_command
@@ -573,9 +558,7 @@ def test_run_command_catalog_live_runs_all_requested_after_dryrun(tmp_path: Path
     assert all("--conda-create-envs-only" in command for command in warmup_commands)
     assert all("--export-destination-s3-uri" not in call for call in launch_calls)
     assert json.loads(
-        (tmp_path / "illumina_snv_alignstats" / "live_rendered.json").read_text(
-            encoding="utf-8"
-        )
+        (tmp_path / "illumina_snv_alignstats" / "live_rendered.json").read_text(encoding="utf-8")
     )["export_destination_s3_uri"].endswith(
         "/ubuntu/ccv_live_illumina_snv_alignstats_20260607T000000Z/"
     )
@@ -648,21 +631,18 @@ def test_run_command_catalog_renders_dragen_dev_command_with_rhel_profile(
     assert "-n" in dy_command
     assert "bin/day_run" not in dy_command
     rendered = json.loads(
-        (tmp_path / "illumina_dragen_pangenome_snv_concordance" / "dryrun_rendered.json")
-        .read_text(encoding="utf-8")
+        (tmp_path / "illumina_dragen_pangenome_snv_concordance" / "dryrun_rendered.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert rendered["command_type"] == "dev"
     assert rendered["day_profile"] == "slurm_rhel"
-    with (
-        tmp_path / "illumina_dragen_pangenome_snv_concordance" / "analysis_samples.tsv"
-    ).open(newline="", encoding="utf-8") as handle:
+    with (tmp_path / "illumina_dragen_pangenome_snv_concordance" / "analysis_samples.tsv").open(
+        newline="", encoding="utf-8"
+    ) as handle:
         rows = list(csv.DictReader(handle, delimiter="\t"))
-    assert rows[0]["ILMN_R1_FQ"].startswith(
-        "/fsx/data/genomic_data/organism_reads_slim/"
-    )
-    assert rows[0]["ILMN_R2_FQ"].startswith(
-        "/fsx/data/genomic_data/organism_reads_slim/"
-    )
+    assert rows[0]["ILMN_R1_FQ"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
+    assert rows[0]["ILMN_R2_FQ"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
     assert rows[0]["STAGE_DIRECTIVE"] == "pass_through"
 
 
@@ -773,9 +753,7 @@ def test_runner_payloads_and_small_helpers(tmp_path: Path, monkeypatch: pytest.M
         session_name="ccv_dryrun_illumina_snv_alignstats",
         dy_command="dy-r all -j 150 -p -k -T 1 -n",
         workflow_argv=("workflow", "launch", "--analysis-id", "ccv_dryrun_illumina_snv_alignstats"),
-        export_destination_s3_uri=(
-            "s3://bucket/root/ubuntu/ccv_dryrun_illumina_snv_alignstats/"
-        ),
+        export_destination_s3_uri=("s3://bucket/root/ubuntu/ccv_dryrun_illumina_snv_alignstats/"),
     )
 
     assert PhaseResult(phase=phase, launch_rc=1).succeeded is False
@@ -813,16 +791,22 @@ def test_runner_payloads_and_small_helpers(tmp_path: Path, monkeypatch: pytest.M
     assert run_pytest(coverage=False, pytest_args=[]) == 0
     assert captured["cmd"][-1] == "-q"
 
-    assert parse_workflow_launch_metadata(
-        "__DAYLILY_SESSION__=s1\n"
-        "__DAYLILY_RUN_DIR__=/runs/s1\n"
-        "__DAYLILY_REPO_PATH__=/repo\n"
-        "__DAYLILY_DY_COMMAND__=dy-r all --produce-ursa-manifest true\n"
-    ).repo_path == "/repo"
+    assert (
+        parse_workflow_launch_metadata(
+            "__DAYLILY_SESSION__=s1\n"
+            "__DAYLILY_RUN_DIR__=/runs/s1\n"
+            "__DAYLILY_REPO_PATH__=/repo\n"
+            "__DAYLILY_DY_COMMAND__=dy-r all --produce-ursa-manifest true\n"
+        ).repo_path
+        == "/repo"
+    )
     write_phase_plan(tmp_path / "phase_plan.json", [phase])
-    assert json.loads((tmp_path / "phase_plan.json").read_text(encoding="utf-8"))["phases"][0][
-        "command_id"
-    ] == "illumina_snv_alignstats"
+    assert (
+        json.loads((tmp_path / "phase_plan.json").read_text(encoding="utf-8"))["phases"][0][
+            "command_id"
+        ]
+        == "illumina_snv_alignstats"
+    )
     assert list(chunked([phase, phase, phase], 2)) == [[phase, phase], [phase]]
 
 
@@ -859,12 +843,15 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
         "dy-r target -j 150 -p -k -T 1 --rerun-triggers mtime --rerun-incomplete "
     )
     assert "--produce-ursa-manifest true" in no_runtime
-    assert build_evidence_prefix(
-        evidence_s3_uri="s3://bucket/root",
-        cluster="dyec800",
-        dayoa_version="10.0.0",
-        stamp="20260607T000000Z",
-    ) == "s3://bucket/root/dyec800/command_catalog_results/10.0.0-20260607T000000Z/"
+    assert (
+        build_evidence_prefix(
+            evidence_s3_uri="s3://bucket/root",
+            cluster="dyec800",
+            dayoa_version="10.0.0",
+            stamp="20260607T000000Z",
+        )
+        == "s3://bucket/root/dyec800/command_catalog_results/10.0.0-20260607T000000Z/"
+    )
     assert (
         role_root_uri(
             mount_path="/fsx/data",
@@ -881,11 +868,14 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
         )
         == "s3://bucket/"
     )
-    assert role_root_uri(
-        mount_path="/fsx/references",
-        data_root="/fsx/references/hg38",
-        s3_uri="s3://bucket/dayoa/hg38/",
-    ) == "s3://bucket/dayoa/"
+    assert (
+        role_root_uri(
+            mount_path="/fsx/references",
+            data_root="/fsx/references/hg38",
+            s3_uri="s3://bucket/dayoa/hg38/",
+        )
+        == "s3://bucket/dayoa/"
+    )
 
     config_dir = tmp_path / "empty-config"
     config_dir.mkdir()
@@ -982,8 +972,7 @@ def test_manifest_conversion_and_stage_failure(tmp_path: Path) -> None:
         {
             None: "ignored",
             "SLIM": (
-                "s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/"
-                "HG003/R1.fastq.gz"
+                "s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/HG003/R1.fastq.gz"
             ),
             "REFERENCE": "s3://lsmc-dayoa-references-usw2/hg38/file.fa",
             "CONTROL": "s3://lsmc-dayoa-control-data-usw2/truth.vcf.gz",

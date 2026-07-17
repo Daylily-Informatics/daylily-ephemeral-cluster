@@ -8,8 +8,82 @@ default_repository: daylily-omics-analysis
 # is omitted, it uses the selected repository's default_ref. The checkout path
 # below /fsx/analysis_results/<executing_entity>/<analysis_id>/ is relative_path.
 input_contracts:
+  sample_manifest_v12:
+    description: "DYEC stages an explicit persisted-lineage source manifest into DayOA 12 config/specimens.tsv, config/samples.tsv, and config/libraries.tsv. No identifier or EUID is inferred."
+    source_table:
+      path: analysis_samples.tsv
+      required_columns:
+        - SPECIMEN_ID
+        - SPECIMEN_EUID
+        - SAMPLEID
+        - SAMPLE_EUID
+        - ANALYSIS_UNIT_UID
+        - LIBRARY_EUID
+        - RUN_ID
+        - EXPERIMENTID
+        - SAMPLE_TYPE
+        - SAMPLESOURCE
+        - SPECIMEN_TYPE
+        - SAMPLECLASS
+        - SAMPLEUSE
+        - ORDER_TYPE
+        - BIOLOGICAL_SEX
+        - LIB_PREP
+        - SEQ_VENDOR
+        - SEQ_PLATFORM
+        - LANE
+        - SEQBC_ID
+    generated_tables:
+      specimens_tsv:
+        path: config/specimens.tsv
+        required_columns:
+          - SPECIMEN_ID
+          - SPECIMEN_EUID
+          - SAMPLESOURCE
+          - SPECIMEN_TYPE
+          - EXTERNAL_SPECIMEN_ID
+          - BIOLOGICAL_SEX
+          - N_X
+          - N_Y
+          - SPECIMEN_COMMENT
+      samples_tsv:
+        path: config/samples.tsv
+        required_columns:
+          - SAMPLEID
+          - SAMPLE_EUID
+          - SPECIMEN_ID
+          - SAMPLECLASS
+          - SAMPLE_TYPE
+          - SAMPLEUSE
+          - ORDER_TYPE
+          - CONCORDANCE_CONTROL_PATH
+          - IS_POSITIVE_CONTROL
+          - IS_NEGATIVE_CONTROL
+          - TUM_NRM_SAMPLEID_MATCH
+          - EXTERNAL_SAMPLE_ID
+          - IDDNA_UID
+          - TRUTH_DATA_DIR
+          - SAMPLE_COMMENT
+      libraries_tsv:
+        path: config/libraries.tsv
+        required_columns:
+          - ANALYSIS_UNIT_UID
+          - LIBRARY_EUID
+          - INFLECTION_DELIVERY_ID
+          - RUNID
+          - SAMPLEID
+          - EXPERIMENTID
+          - LANEID
+          - BARCODEID
+          - LIBPREP
+          - SEQ_VENDOR
+          - SEQ_PLATFORM
+          - ILMN_R1_PATH
+          - ILMN_R2_PATH
+          - ONT_R1_PATH
+          - ONT_R2_PATH
   sample_manifest:
-    description: "DayEC stages analysis_samples.tsv into DayOA config/samples.tsv and config/units.tsv."
+    description: "Explicit legacy contract for catalog commands pinned before DayOA 12; stages config/samples.tsv and config/units.tsv. DayOA 12 commands reject it with migration guidance."
     source_table:
       path: analysis_samples.tsv
       required_columns:
@@ -199,7 +273,7 @@ repositories:
     auth_mode: aws_deploy_key
     https_url: https://github.com/lsmc-bio/daylily-omics-analysis.git
     ssh_url: git@github.com:lsmc-bio/daylily-omics-analysis.git
-    default_ref: 11.0.15
+    default_ref: 12.0.0
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: simple-test
@@ -985,15 +1059,14 @@ repositories:
             failure_cause: "Dry-run failed while preparing Roche/GATK containers: missing Singularity image /fsx/resources/environments/containers/ubuntu/ip-10-0-0-103/7a424a40c6fd659f4d052893dd3554fa.simg."
       - command_id: hybrid_ilmn_ont_hiomrs
         type: dev
-        validated_version: 11.0.15
+        validated_version: 12.0.0
         test_data_profile: default_reads_slim
-        sample_manifest_template: examples/staging/hybrid_ilmn_ont_hg003_5x5x/analysis_samples_manifest.tsv
         display_name: "Hybrid ILMN+ONT Single-Node HIOMRS"
         description: "Single-node Sentieon dnascope-hybrid, segdup-caller, ExpansionHunter, and GIAB concordance profile using local NVMe scratch."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
-        input_contract: sample_manifest
+        input_contract: sample_manifest_v12
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
@@ -1023,19 +1096,18 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 11.0.15
+        git_tag: 12.0.0
         no_containerized: false
       - command_id: hybrid_ilmn_ont_hiomrs_kitchensink
         type: dev
-        validated_version: 11.0.15
+        validated_version: 12.0.0
         test_data_profile: default_reads_slim
-        sample_manifest_template: examples/staging/hybrid_ilmn_ont_hg003_5x5x/analysis_samples_manifest.tsv
         display_name: "Hybrid ILMN+ONT Single-Node HIOMRS Kitchen Sink"
         description: "Single-node Sentieon DNAscope Hybrid SNV, SV, CNV, segdup, and ExpansionHunter outputs plus TIDDIT SV, alignstats, relatedness, Peddy, GATK and site-mix contamination, VEP, SMNCopyNumberCaller SMN12 evidence, Ganon2 metagenomics, GIAB concordance, final MultiQC, and evidence manifest."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
-        input_contract: sample_manifest
+        input_contract: sample_manifest_v12
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
@@ -1079,58 +1151,55 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 11.0.15
+        git_tag: 12.0.0
         no_containerized: false
-      - command_id: inflection-bjuice-product-v0.1
+      - command_id: inflection-bjuice-product-v0.2
         type: dev
-        validated_version: 10.0.97
+        validated_version: 12.0.0
         test_data_profile: default_reads_slim
-        sample_manifest_template: examples/staging/hybrid_ilmn_ont_hg003_5x5x/analysis_samples_manifest.tsv
-        display_name: "Inflection BJuice Product v0.1"
-        description: "Inflection hybrid Illumina plus ONT HIOMR product profile with align, dmd CRAM, SNV, SV, CNV, mito, segdup limited to CYP11B1/NCF1/SMN1, expansionhunter, and concordance targets."
+        display_name: "Inflection BJuice Product v0.2"
+        description: "Current HIOMRS analysis plus strict first-class Inflection delivery packaging, delivery-only MultiQC, evidence manifests, hashes, and the complete configured 14-gene SegDup panel. Requires persisted specimen/sample/library EUIDs, explicit per-library INFLECTION_DELIVERY_ID, and INFLECTION_DELIVERY_BATCH_ID in the controller environment."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
-        input_contract: sample_manifest
+        input_contract: sample_manifest_v12
         requires_staging: true
         requires_run_mount: false
-        runtime_parameters: {}
+        runtime_parameters:
+          inflection_delivery_batch_id_env: INFLECTION_DELIVERY_BATCH_ID
         input_requirements:
+          required_source_columns:
+            - SPECIMEN_EUID
+            - SAMPLE_EUID
+            - LIBRARY_EUID
+            - INFLECTION_DELIVERY_ID
           accepted_source_column_sets:
-            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_R1_FQ]
-            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_FASTQ_PREFIX]
             - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_CRAM, ONT_CRAM_ALIGNER, ONT_CRAM_SNV_CALLER]
         targets:
-          - produce_sent_align
-          - produce_dmd_dedup_cram
-          - produce_sentdhiomr_snv_vcf
-          - produce_sentdhiomr_sv
-          - produce_sentdhiomr_cnv
-          - produce_sentdhiomr_segdup
-          - produce_sentdhiomr_mito
-          - produce_expansionhunter
-          - produce_alignstats
+          - produce_hiomrs
+          - produce_tiddit_sv_vcf
+          - produce_smn12_orthogonal_calls
+          - produce_inflection_delivery_set
         genome: hg38
         jobs: 250
         aligners:
           - sent
         dedupers:
-          - dmd
           - na
         snv_callers:
-          - sentdhiomr
+          - hiomrs
         sv_callers:
-          - sentdhiomr
-        dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_segdup produce_sentdhiomr_mito produce_expansionhunter produce_alignstats --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\",\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"sentdhiomr\"]' 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' -j 250 -p -k --rerun-triggers mtime -T 1"
-        dryrun_dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_segdup produce_sentdhiomr_mito produce_expansionhunter produce_alignstats --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\",\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"sentdhiomr\"]' 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' -j 250 -p -k --rerun-triggers mtime -T 1 -n"
+          - tiddit
+        dy_command: "dy-r produce_hiomrs produce_tiddit_sv_vcf produce_smn12_orthogonal_calls produce_inflection_delivery_set --config 'aligners=[\"sent\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' \"inflection_delivery_batch_id=${INFLECTION_DELIVERY_BATCH_ID:?Set persisted Inflection delivery batch ID}\" -j 250 -p -T 1 --rerun-triggers mtime --rerun-incomplete"
+        dryrun_dy_command: "dy-r produce_hiomrs produce_tiddit_sv_vcf produce_smn12_orthogonal_calls produce_inflection_delivery_set --config 'aligners=[\"sent\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' \"inflection_delivery_batch_id=${INFLECTION_DELIVERY_BATCH_ID:?Set persisted Inflection delivery batch ID}\" -j 250 -p -T 1 --rerun-triggers mtime --rerun-incomplete -n"
         compatible_platforms:
           - ILMN
           - ONT
         compatible_cluster_types:
-          - daywgs
+          - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 10.0.97
+        git_tag: 12.0.0
         no_containerized: false
       - command_id: complete_genomics_mgi_snv_concordance
         type: dev

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import base64
+import csv
 import functools
 import hashlib
 import io
@@ -927,9 +928,7 @@ def slurm_accounting_attach(
     cluster_configuration: Optional[Path] = typer.Option(
         None,
         "--cluster-configuration",
-        help=(
-            "Original ParallelCluster YAML. Defaults to the newest matching " "DYEC state record."
-        ),
+        help=("Original ParallelCluster YAML. Defaults to the newest matching DYEC state record."),
     ),
     stack_name: str = typer.Option(
         "",
@@ -1305,8 +1304,7 @@ def cost_centers_refresh_usage(
         None,
         "--athena-output-s3-uri",
         help=(
-            "Athena query-results S3 URI. Defaults to the authenticated account's "
-            "dayec-cur bucket."
+            "Athena query-results S3 URI. Defaults to the authenticated account's dayec-cur bucket."
         ),
     ),
     registry_table_name: str = typer.Option(
@@ -1329,7 +1327,7 @@ def cost_centers_refresh_usage(
     try:
         aws_ctx, dynamodb = _cost_center_context(profile, home_region)
         output_s3_uri = athena_output_s3_uri or (
-            f"s3://dayec-cur-{aws_ctx.account_id}-us-east-1/" "dayec-cur/athena-results/"
+            f"s3://dayec-cur-{aws_ctx.account_id}-us-east-1/dayec-cur/athena-results/"
         )
         result = refresh_dedicated_cluster_usage(
             athena_client=aws_ctx.session.client("athena", region_name=athena_region),
@@ -2849,9 +2847,7 @@ def pricing_snapshot(
     if table_view and _json_mode():
         raise typer.BadParameter("--table-view cannot be combined with --json")
     if table_view and target_capacity_vcpus is None:
-        raise typer.BadParameter(
-            "--target-capacity-vcpus is required with --table-view"
-        )
+        raise typer.BadParameter("--target-capacity-vcpus is required with --table-view")
     payload = collect_pricing_snapshot(
         regions=region,
         partitions=partition,
@@ -3725,6 +3721,43 @@ def _parse_remote_stage_dir(stage_stdout: str) -> str:
     raise CommandError("Staging output did not include a Remote FSx stage directory.")
 
 
+def _validate_sample_command_input_requirements(analysis_path: Path, command: Any) -> None:
+    """Fail before staging when a command's explicit source contract is not satisfied."""
+
+    from daylily_ec.scripts.common import CommandError
+
+    required = list(command.input_requirements.required_source_columns)
+    accepted_sets = list(command.input_requirements.accepted_source_column_sets)
+    if not required and not accepted_sets:
+        return
+    with analysis_path.open(newline="", encoding="utf-8-sig") as handle:
+        reader = csv.DictReader(handle, delimiter="\t")
+        headers = set(reader.fieldnames or [])
+        missing_headers = sorted(set(required) - headers)
+        if missing_headers:
+            raise CommandError(
+                f"Analysis command {command.command_id} requires source column(s): "
+                + ", ".join(missing_headers)
+            )
+        rows = list(reader)
+    for row_number, row in enumerate(rows, start=2):
+        blank_required = [field for field in required if not str(row.get(field) or "").strip()]
+        if blank_required:
+            raise CommandError(
+                f"Analysis command {command.command_id} requires explicit nonblank source "
+                f"value(s) on row {row_number}: {', '.join(blank_required)}"
+            )
+        if accepted_sets and not any(
+            all(str(row.get(field) or "").strip() for field in column_set)
+            for column_set in accepted_sets
+        ):
+            rendered_sets = " or ".join("+".join(column_set) for column_set in accepted_sets)
+            raise CommandError(
+                f"Analysis command {command.command_id} row {row_number} must populate one "
+                f"accepted source column set: {rendered_sets}"
+            )
+
+
 def _parse_workflow_launch_metadata(launch_stdout: str) -> dict[str, str]:
     parsed: dict[str, str] = {}
     for line in launch_stdout.splitlines():
@@ -3744,6 +3777,14 @@ def samples_stage(
         ...,
         help="Path to analysis_samples.tsv.",
     ),
+    manifest_contract: str = typer.Option(
+        "dayoa12",
+        "--manifest-contract",
+        help=(
+            "Explicit output contract: dayoa12 (specimens/samples/libraries) or "
+            "legacy_v11 for commands explicitly pinned before DayOA 12."
+        ),
+    ),
     reference_s3_uri: str = typer.Option(
         ...,
         "--reference-s3-uri",
@@ -3762,7 +3803,7 @@ def samples_stage(
     config_dir: Optional[Path] = typer.Option(
         None,
         "--config-dir",
-        help="Directory for generated samples.tsv and units.tsv.",
+        help="Directory for the exact generated manifest contract.",
     ),
     stage_target: str = typer.Option(
         "/fsx/staging/staged_external_sequencing_data",
@@ -3825,7 +3866,7 @@ def samples_stage(
         False,
         "--config-only",
         help=(
-            "Validate the manifest and write generated samples.tsv/units.tsv locally without "
+            "Validate the manifest and write the exact generated manifests locally without "
             "creating a staged-prefix DRA."
         ),
     ),
@@ -3835,6 +3876,8 @@ def samples_stage(
     _warn_if_dayec_env_inactive()
     argv = [
         str(analysis_samples),
+        "--manifest-contract",
+        manifest_contract,
         "--reference-s3-uri",
         reference_s3_uri,
         "--control-data-s3-uri",
@@ -3913,7 +3956,10 @@ def samples_run(
     config_dir: Optional[Path] = typer.Option(
         None,
         "--config-dir",
-        help="Directory for generated samples.tsv, units.tsv, and run receipt.",
+        help=(
+            "Directory for generated command-contract manifests and the run receipt. "
+            "DayOA 12 commands emit specimens.tsv, samples.tsv, and libraries.tsv."
+        ),
     ),
     stage_target: str = typer.Option(
         "/fsx/staging/staged_external_sequencing_data",
@@ -4062,6 +4108,7 @@ def samples_run(
                 f"manifest data mode(s): {', '.join(incompatible)}. "
                 "Compatible modes: " + ", ".join(command.compatible_data_modes)
             )
+        _validate_sample_command_input_requirements(analysis_path, command)
         artifact_registration_command_id = None
         if dewey_url or dewey_token_env:
             if export_trigger == "none":
@@ -4089,6 +4136,8 @@ def samples_run(
 
         stage_argv = [
             str(analysis_path),
+            "--manifest-contract",
+            "dayoa12" if command.input_contract == "sample_manifest_v12" else "legacy_v11",
             "--reference-s3-uri",
             reference_s3_uri,
             "--control-data-s3-uri",
@@ -4183,9 +4232,24 @@ def samples_run(
             "dewey_ursa_analysis_euid": dewey_ursa_analysis_euid,
             "git_tag": resolved_git_tag,
             "remote_stage_dir": remote_stage_dir,
+            "input_contract": command.input_contract,
+            "specimens_tsv": (
+                str(resolved_config_dir / f"{timestamp}_specimens.tsv")
+                if command.input_contract == "sample_manifest_v12"
+                else None
+            ),
             "samples_tsv": str(resolved_config_dir / f"{timestamp}_samples.tsv"),
             "session_name": resolved_session_name,
-            "units_tsv": str(resolved_config_dir / f"{timestamp}_units.tsv"),
+            "libraries_tsv": (
+                str(resolved_config_dir / f"{timestamp}_libraries.tsv")
+                if command.input_contract == "sample_manifest_v12"
+                else None
+            ),
+            "units_tsv": (
+                str(resolved_config_dir / f"{timestamp}_units.tsv")
+                if command.input_contract == "sample_manifest"
+                else None
+            ),
             "workflow_argv": workflow_cli_argv,
             "workflow_launch": workflow_launch_metadata,
         }
@@ -4211,20 +4275,35 @@ def workflow_launch(
         "--stage-dir",
         help="Specific staging directory containing generated manifests.",
     ),
+    input_contract: str = typer.Option(
+        "sample_manifest",
+        "--input-contract",
+        help="Explicit input contract: sample_manifest, sample_manifest_v12, run_context, or none.",
+    ),
     run_context_file: Optional[Path] = typer.Option(
         None,
         "--run-context-file",
         help="Local runs.tsv file to copy to config/runs.tsv for run-analysis workflows.",
+    ),
+    specimens_file: Optional[Path] = typer.Option(
+        None,
+        "--specimens-file",
+        help="Local specimens.tsv for a DayOA 12 sample-analysis workflow.",
     ),
     samples_file: Optional[Path] = typer.Option(
         None,
         "--samples-file",
         help="Local samples.tsv file to copy to config/samples.tsv for sample-analysis workflows.",
     ),
+    libraries_file: Optional[Path] = typer.Option(
+        None,
+        "--libraries-file",
+        help="Local libraries.tsv for a DayOA 12 sample-analysis workflow.",
+    ),
     units_file: Optional[Path] = typer.Option(
         None,
         "--units-file",
-        help="Local units.tsv file to copy to config/units.tsv for sample-analysis workflows.",
+        help="Legacy local units.tsv; rejected for DayOA 12 commands.",
     ),
     stage_base: str = typer.Option(
         "/fsx/staging/staged_external_sequencing_data",
@@ -4234,7 +4313,7 @@ def workflow_launch(
     input_staging: bool = typer.Option(
         True,
         "--input-staging/--no-input-staging",
-        help="Copy staged samples/units into the workflow clone.",
+        help="Copy the exact staged input-contract manifests into the workflow clone.",
     ),
     default_activation: bool = typer.Option(
         True,
@@ -4458,8 +4537,11 @@ def workflow_launch(
         ("--region", region),
         ("--cluster", cluster),
         ("--stage-dir", stage_dir),
+        ("--input-contract", input_contract),
         ("--run-context-file", str(run_context_file.expanduser()) if run_context_file else None),
+        ("--specimens-file", str(specimens_file.expanduser()) if specimens_file else None),
         ("--samples-file", str(samples_file.expanduser()) if samples_file else None),
+        ("--libraries-file", str(libraries_file.expanduser()) if libraries_file else None),
         ("--units-file", str(units_file.expanduser()) if units_file else None),
         ("--stage-base", stage_base),
         ("--session-name", resolved_session_name),
@@ -5709,7 +5791,7 @@ def analysis_status(
                 "--tail-lines",
                 str(tail_lines),
             ]
-            script = "set -euo pipefail\n" "command -v dyec >/dev/null\n" + shlex.join(remote_argv)
+            script = "set -euo pipefail\ncommand -v dyec >/dev/null\n" + shlex.join(remote_argv)
             result = run_shell(
                 target.instance_id,
                 resolved_region,

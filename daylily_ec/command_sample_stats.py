@@ -43,6 +43,7 @@ ERROR_MARKER_RE = re.compile(
     r"\b(?:Traceback|Exception|FAILED|Failed)\b|execution failed"
 )
 ETA_MARKER_RE = re.compile(r"\beta\b|estimated completion", re.IGNORECASE)
+SAFE_WORKFLOW_IDENTIFIER_RE = re.compile(r"[A-Za-z0-9_.-]+")
 
 
 def _utc_timestamp(value: float) -> str:
@@ -71,9 +72,159 @@ def _read_tsv(path: Path) -> list[dict[str, str]]:
     if not rows:
         raise CommandSampleStatsError(f"required TSV has no data rows: {path}")
     return [
-        {str(key).strip().upper(): str(value or "").strip() for key, value in row.items()}
-        for row in rows
+        {str(key).strip().upper(): str(value or "") for key, value in row.items()} for row in rows
     ]
+
+
+def _require_unique_manifest_field(
+    rows: Sequence[dict[str, str]],
+    field: str,
+    path: Path,
+) -> list[str]:
+    values = [row.get(field, "") for row in rows]
+    if any(not value for value in values):
+        raise CommandSampleStatsError(f"every {path.name} row must have {field}: {path}")
+    if any(value != value.strip() for value in values):
+        raise CommandSampleStatsError(
+            f"{field} values must be byte-exact without surrounding whitespace: {path}"
+        )
+    if len(set(values)) != len(values):
+        raise CommandSampleStatsError(f"{field} values must be unique: {path}")
+    return values
+
+
+def _optional_unique_manifest_field(
+    rows: Sequence[dict[str, str]],
+    field: str,
+    path: Path,
+) -> list[str]:
+    values = [row.get(field, "") for row in rows]
+    populated = [value for value in values if value]
+    if any(value != value.strip() for value in populated):
+        raise CommandSampleStatsError(
+            f"{field} values must be byte-exact without surrounding whitespace: {path}"
+        )
+    if len(set(populated)) != len(populated):
+        raise CommandSampleStatsError(f"nonblank {field} values must be unique: {path}")
+    return values
+
+
+def _dayoa_analysis_unit_uid(row: dict[str, str], path: Path) -> str:
+    supplied = row.get("ANALYSIS_UNIT_UID", "")
+    if supplied:
+        value = supplied
+    else:
+        parts = [
+            row.get(field, "")
+            for field in (
+                "RUNID",
+                "SAMPLEID",
+                "EXPERIMENTID",
+                "LANEID",
+                "BARCODEID",
+                "LIBPREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+            )
+        ]
+        parts = [part for part in parts if part and part.lower() not in {"na", "none"}]
+        if not parts:
+            raise CommandSampleStatsError(
+                f"cannot construct ANALYSIS_UNIT_UID from the exact libraries.tsv fields: {path}"
+            )
+        value = "-".join(parts)
+    if SAFE_WORKFLOW_IDENTIFIER_RE.fullmatch(value) is None:
+        raise CommandSampleStatsError(
+            f"unsafe ANALYSIS_UNIT_UID {value!r}; DayOA does not rewrite identifiers: {path}"
+        )
+    return value
+
+
+def _load_analysis_manifests(
+    dayoa_root: Path,
+    *,
+    input_contract: str,
+) -> tuple[
+    list[dict[str, str]],
+    list[dict[str, str]],
+    dict[str, dict[str, str]],
+    str,
+]:
+    config_root = dayoa_root / "config"
+    specimens_path = config_root / "specimens.tsv"
+    samples_path = config_root / "samples.tsv"
+    libraries_path = config_root / "libraries.tsv"
+    units_path = config_root / "units.tsv"
+
+    if input_contract == "sample_manifest_v12":
+        if units_path.exists():
+            raise CommandSampleStatsError(
+                "DayOA 12 command sample-stats rejects config/units.tsv; migrate the analysis "
+                "with `dayoa migrate-manifests` and retain only specimens.tsv, samples.tsv, "
+                "and libraries.tsv"
+            )
+        specimens = _read_tsv(specimens_path)
+        samples = _read_tsv(samples_path)
+        libraries = _read_tsv(libraries_path)
+        specimen_ids = _require_unique_manifest_field(specimens, "SPECIMEN_ID", specimens_path)
+        _optional_unique_manifest_field(specimens, "SPECIMEN_EUID", specimens_path)
+        sample_ids = _require_unique_manifest_field(samples, "SAMPLEID", samples_path)
+        _optional_unique_manifest_field(samples, "SAMPLE_EUID", samples_path)
+        for row in libraries:
+            row["ANALYSIS_UNIT_UID"] = _dayoa_analysis_unit_uid(row, libraries_path)
+        _require_unique_manifest_field(libraries, "ANALYSIS_UNIT_UID", libraries_path)
+        _optional_unique_manifest_field(libraries, "LIBRARY_EUID", libraries_path)
+
+        specimen_by_id = dict(zip(specimen_ids, specimens, strict=True))
+        sample_by_id = dict(zip(sample_ids, samples, strict=True))
+        missing_specimens = sorted(
+            {
+                row.get("SPECIMEN_ID", "")
+                for row in samples
+                if row.get("SPECIMEN_ID", "") not in specimen_by_id
+            }
+        )
+        if missing_specimens:
+            raise CommandSampleStatsError(
+                "samples.tsv SPECIMEN_ID values are absent from specimens.tsv: "
+                + ", ".join(missing_specimens)
+            )
+        missing_samples = sorted(
+            {
+                row.get("SAMPLEID", "")
+                for row in libraries
+                if row.get("SAMPLEID", "") not in sample_by_id
+            }
+        )
+        if missing_samples:
+            raise CommandSampleStatsError(
+                "libraries.tsv SAMPLEID values are absent from samples.tsv: "
+                + ", ".join(missing_samples)
+            )
+        return libraries, samples, specimen_by_id, "libraries.tsv"
+
+    if input_contract != "sample_manifest":
+        raise CommandSampleStatsError(
+            f"sample-stats does not support input contract {input_contract!r}"
+        )
+    if specimens_path.exists() or libraries_path.exists():
+        raise CommandSampleStatsError(
+            "legacy sample_manifest analysis must not mix specimens.tsv or libraries.tsv with "
+            "samples.tsv and units.tsv"
+        )
+    samples = _read_tsv(samples_path)
+    units = _read_tsv(units_path)
+    sample_ids = _require_unique_manifest_field(samples, "SAMPLEID", samples_path)
+    _require_unique_manifest_field(units, "ANALYSIS_UNIT_UID", units_path)
+    sample_by_id = dict(zip(sample_ids, samples, strict=True))
+    missing_samples = sorted(
+        {row.get("SAMPLEID", "") for row in units if row.get("SAMPLEID", "") not in sample_by_id}
+    )
+    if missing_samples:
+        raise CommandSampleStatsError(
+            "units.tsv SAMPLEID values are absent from samples.tsv: " + ", ".join(missing_samples)
+        )
+    return units, samples, {}, "units.tsv"
 
 
 def _scalar(value: Any, *, source: str | None, state: str | None = None) -> dict[str, Any]:
@@ -343,7 +494,9 @@ def _milestone_execution_evidence(
             source=(
                 "exact-workdir squeue/scontrol"
                 if current
-                else "exact-workdir sacct -X" if latest else None
+                else "exact-workdir sacct -X"
+                if latest
+                else None
             ),
         ),
         "job_name": _scalar(
@@ -351,7 +504,9 @@ def _milestone_execution_evidence(
             source=(
                 "exact-workdir squeue/scontrol"
                 if current
-                else "exact-workdir sacct -X" if latest else None
+                else "exact-workdir sacct -X"
+                if latest
+                else None
             ),
         ),
         "rule": _scalar(rule, source=status.get("workflow", {}).get("master_log")),
@@ -360,7 +515,9 @@ def _milestone_execution_evidence(
             source=(
                 "exact-workdir squeue/scontrol"
                 if current
-                else "exact-workdir sacct -X" if latest else None
+                else "exact-workdir sacct -X"
+                if latest
+                else None
             ),
         ),
         "scheduler_reason": _scalar(
@@ -368,7 +525,9 @@ def _milestone_execution_evidence(
             source=(
                 "exact-workdir squeue/scontrol"
                 if current
-                else "exact-workdir sacct -X" if latest else None
+                else "exact-workdir sacct -X"
+                if latest
+                else None
             ),
         ),
         "elapsed": _scalar(
@@ -376,7 +535,9 @@ def _milestone_execution_evidence(
             source=(
                 "exact-workdir squeue/scontrol"
                 if current
-                else "exact-workdir sacct -X" if latest else None
+                else "exact-workdir sacct -X"
+                if latest
+                else None
             ),
         ),
         "elapsed_seconds": _scalar(
@@ -384,7 +545,9 @@ def _milestone_execution_evidence(
             source=(
                 "exact-workdir squeue/scontrol"
                 if current
-                else "exact-workdir sacct -X" if latest else None
+                else "exact-workdir sacct -X"
+                if latest
+                else None
             ),
         ),
         "eta": _last_tail_marker(active_jobs, ETA_MARKER_RE),
@@ -637,6 +800,7 @@ def _unit_row(
     *,
     unit_row: dict[str, str],
     sample_row: dict[str, str],
+    specimen_row: dict[str, str],
     build_root: Path,
     status: dict[str, Any],
     segdup_genes: list[str],
@@ -736,7 +900,9 @@ def _unit_row(
 
     fields = {
         "required_gender": _first_explicit(
-            sample_row, ("BIOLOGICAL_SEX", "REQUIRED_GENDER", "SEX"), source="config/samples.tsv"
+            specimen_row or sample_row,
+            ("BIOLOGICAL_SEX", "REQUIRED_GENDER", "SEX"),
+            source="config/specimens.tsv" if specimen_row else "config/samples.tsv",
         ),
         "observed_gender": _scalar(
             observed_gender, source=str(observed_path) if observed_gender is not None else None
@@ -762,9 +928,9 @@ def _unit_row(
             source=str(lr_stats_path) if lr_stats else None,
         ),
         "specimen_type": _first_explicit(
-            sample_row,
+            specimen_row or sample_row,
             ("SPECIMEN_TYPE", "SAMPLESOURCE", "SAMPLE_TYPE"),
-            source="config/samples.tsv",
+            source="config/specimens.tsv" if specimen_row else "config/samples.tsv",
         ),
         "sample_use": _first_explicit(
             sample_row, ("SAMPLEUSE", "SAMPLE_USE"), source="config/samples.tsv"
@@ -785,7 +951,11 @@ def _unit_row(
     }
     return {
         "analysis_unit_uid": unit,
+        "library_euid": unit_row.get("LIBRARY_EUID") or None,
         "sample_id": unit_row.get("SAMPLEID"),
+        "sample_euid": sample_row.get("SAMPLE_EUID") or None,
+        "specimen_id": sample_row.get("SPECIMEN_ID") or None,
+        "specimen_euid": specimen_row.get("SPECIMEN_EUID") or None,
         "overall_percent_complete": (
             round(100 * complete / len(configured), 1) if configured else 0.0
         ),
@@ -958,34 +1128,15 @@ def collect_command_sample_stats(
     root = Path(analysis_root).expanduser().resolve()
     dayoa_root = root / "daylily-omics-analysis"
     status = collect_analysis_status(root, mode="full", tail_lines=tail_lines, runner=runner)
-    units_path = dayoa_root / "config" / "units.tsv"
-    samples_path = dayoa_root / "config" / "samples.tsv"
-    units = _read_tsv(units_path)
-    samples = _read_tsv(samples_path)
-    if any(not row.get("ANALYSIS_UNIT_UID") for row in units):
-        raise CommandSampleStatsError(
-            f"every units.tsv row must have ANALYSIS_UNIT_UID: {units_path}"
-        )
-    unit_ids = [row["ANALYSIS_UNIT_UID"] for row in units]
-    if len(set(unit_ids)) != len(unit_ids):
-        raise CommandSampleStatsError(f"ANALYSIS_UNIT_UID values must be unique: {units_path}")
-    sample_ids = [row.get("SAMPLEID", "") for row in samples]
-    if any(not sample_id for sample_id in sample_ids):
-        raise CommandSampleStatsError(f"every samples.tsv row must have SAMPLEID: {samples_path}")
-    if len(set(sample_ids)) != len(sample_ids):
-        raise CommandSampleStatsError(f"SAMPLEID values must be unique: {samples_path}")
-    sample_by_id = {row.get("SAMPLEID", ""): row for row in samples}
-    missing_samples = sorted(
-        {row.get("SAMPLEID", "") for row in units if row.get("SAMPLEID", "") not in sample_by_id}
-    )
-    if missing_samples:
-        raise CommandSampleStatsError(
-            "units.tsv SAMPLEID values are absent from samples.tsv: " + ", ".join(missing_samples)
-        )
     from daylily_ec.repositories import load_repository_catalog
 
     catalog = load_repository_catalog()
     command = catalog.get_command(PIPELINES[pipeline])
+    units, samples, specimen_by_id, unit_label = _load_analysis_manifests(
+        dayoa_root,
+        input_contract=command.input_contract,
+    )
+    sample_by_id = {row["SAMPLEID"]: row for row in samples}
     build_root = dayoa_root / "results" / "day" / command.genome
     genes = _segdup_genes(dayoa_root)
     generated = datetime.now(timezone.utc)
@@ -995,6 +1146,9 @@ def collect_command_sample_stats(
         _unit_row(
             unit_row=unit,
             sample_row=sample_by_id[unit["SAMPLEID"]],
+            specimen_row=specimen_by_id.get(
+                sample_by_id[unit["SAMPLEID"]].get("SPECIMEN_ID", ""), {}
+            ),
             build_root=build_root,
             status=status,
             segdup_genes=genes,
@@ -1106,8 +1260,16 @@ def collect_command_sample_stats(
         },
         "pipeline": {
             "name": pipeline,
+            "input_contract": command.input_contract,
+            "manifest_files": (
+                ["specimens.tsv", "samples.tsv", "libraries.tsv"]
+                if command.input_contract == "sample_manifest_v12"
+                else ["samples.tsv", "units.tsv"]
+            ),
+            "specimens_rows": len(specimen_by_id) if specimen_by_id else None,
             "samples_rows": len(samples),
             "units_rows": len(units),
+            "libraries_rows": len(units) if unit_label == "libraries.tsv" else None,
             "jobs_total": total,
             "jobs_complete": complete,
             "jobs_failed": failed,

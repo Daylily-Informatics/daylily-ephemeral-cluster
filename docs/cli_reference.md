@@ -234,6 +234,7 @@ Use `--cluster` for DYEC headnode commands. `--cluster-name` is for command surf
 
 ```bash
 dyec samples stage "$ANALYSIS_SAMPLES" \
+  --manifest-contract dayoa12 \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --reference-s3-uri "$REF_S3_URI" \
@@ -241,6 +242,12 @@ dyec samples stage "$ANALYSIS_SAMPLES" \
   --stage-s3-uri "$STAGE_S3_URI" \
   --config-dir "$STAGE_CFG_DIR"
 ```
+
+The `dayoa12` contract requires exact lineage identifiers and persisted EUIDs
+in the source row and emits `specimens.tsv`, `samples.tsv`, and
+`libraries.tsv`. It does not discover or accept `units.tsv`. Use
+`--manifest-contract legacy_v11` only for a catalog command explicitly pinned
+before DayOA 12; this is an explicit historical contract, not a fallback.
 
 `samples run` stages the manifest, validates it against a catalog command, and launches the workflow:
 
@@ -459,7 +466,7 @@ configured repository/ref without creating an analysis directory.
 Command classes:
 
 - `utility`: no sample or run source data
-- `sample_analysis`: uses `analysis_samples.tsv`, staging, `samples.tsv`, and `units.tsv`
+- `sample_analysis`: uses an explicit catalog contract; DayOA 12 stages `specimens.tsv`, `samples.tsv`, and `libraries.tsv`, while explicitly pre-12 commands may retain legacy `samples.tsv`/`units.tsv`
 - `run_analysis`: uses `runs.tsv` and requires a run mount
 
 ## Export

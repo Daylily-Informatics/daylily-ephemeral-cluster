@@ -151,7 +151,9 @@ class RenderedPhase:
     workflow_argv: tuple[str, ...]
     export_destination_s3_uri: str
     manifest_path: Optional[str] = None
+    specimens_path: Optional[str] = None
     samples_path: Optional[str] = None
+    libraries_path: Optional[str] = None
     units_path: Optional[str] = None
     run_context_path: Optional[str] = None
 
@@ -238,9 +240,7 @@ def _reject_coverage_gate_overrides(pytest_args: Sequence[str]) -> None:
     offenders = [
         arg
         for arg in pytest_args
-        if arg == "--no-cov"
-        or arg == "--cov-fail-under"
-        or arg.startswith("--cov-fail-under=")
+        if arg == "--no-cov" or arg == "--cov-fail-under" or arg.startswith("--cov-fail-under=")
     ]
     if offenders:
         raise TestsRunnerError(
@@ -249,14 +249,18 @@ def _reject_coverage_gate_overrides(pytest_args: Sequence[str]) -> None:
         )
 
 
-def parse_command_codes(command_codes: str, catalog: RepositoryCatalog) -> tuple[AnalysisCommand, ...]:
+def parse_command_codes(
+    command_codes: str, catalog: RepositoryCatalog
+) -> tuple[AnalysisCommand, ...]:
     """Resolve a command-code string to catalog commands."""
     requested = str(command_codes or "").strip()
     if not requested:
         raise TestsRunnerError("--command-codes is required.")
     lowered = requested.lower()
     if lowered == DYEC_RELEASED_CORE_COMMAND_TOKEN:
-        return tuple(catalog.get_command(command_id) for command_id in DYEC_RELEASED_CORE_COMMAND_IDS)
+        return tuple(
+            catalog.get_command(command_id) for command_id in DYEC_RELEASED_CORE_COMMAND_IDS
+        )
     if lowered == DYEC_RELEASED_ALL_COMMAND_TOKEN:
         return tuple(command for command in catalog.commands() if command.type != "research")
     tokens = [token for token in requested.replace(",", " ").split() if token]
@@ -570,7 +574,8 @@ def run_command_catalog(
     initially_ready = [
         command
         for command in selected
-        if command.input_contract != "run_context" or run_profile_source(command, catalog) in run_mounts
+        if command.input_contract != "run_context"
+        or run_profile_source(command, catalog) in run_mounts
     ]
     run_ready_commands(initially_ready)
 
@@ -741,7 +746,9 @@ def write_run_mounts(output_dir: Path, run_mounts: Mapping[str, RunMountRecord])
     )
 
 
-def run_profile_source(command: AnalysisCommand, catalog: Optional[RepositoryCatalog] = None) -> str:
+def run_profile_source(
+    command: AnalysisCommand, catalog: Optional[RepositoryCatalog] = None
+) -> str:
     resolved_catalog = catalog or load_repository_catalog()
     profile = resolved_catalog.test_data_profiles.get(command.test_data_profile)
     if profile is None:
@@ -793,7 +800,7 @@ def prepare_command_inputs(
     for command in commands:
         command_dir = output_dir / command.command_id
         command_dir.mkdir(parents=True, exist_ok=True)
-        if command.input_contract == "sample_manifest":
+        if command.input_contract in {"sample_manifest", "sample_manifest_v12"}:
             manifest = write_sample_manifest(command, command_dir)
             config_dir = command_dir / "config"
             stdout = io.StringIO()
@@ -801,6 +808,12 @@ def prepare_command_inputs(
                 rc = stage_func(
                     [
                         str(manifest),
+                        "--manifest-contract",
+                        (
+                            "dayoa12"
+                            if command.input_contract == "sample_manifest_v12"
+                            else "legacy_v11"
+                        ),
                         "--config-only",
                         "--config-dir",
                         str(config_dir),
@@ -818,15 +831,28 @@ def prepare_command_inputs(
                         cluster,
                     ]
                 )
-            (command_dir / "stage_config_stdout.txt").write_text(stdout.getvalue(), encoding="utf-8")
+            (command_dir / "stage_config_stdout.txt").write_text(
+                stdout.getvalue(), encoding="utf-8"
+            )
             if rc != 0:
-                raise TestsRunnerError(f"Config generation failed for {command.command_id}: rc={rc}")
-            samples, units = generated_config_paths(config_dir)
-            manifests[command.command_id] = {
-                "manifest_path": str(manifest),
-                "samples_path": str(samples),
-                "units_path": str(units),
-            }
+                raise TestsRunnerError(
+                    f"Config generation failed for {command.command_id}: rc={rc}"
+                )
+            if command.input_contract == "sample_manifest_v12":
+                specimens, samples, libraries = generated_dayoa12_config_paths(config_dir)
+                manifests[command.command_id] = {
+                    "manifest_path": str(manifest),
+                    "specimens_path": str(specimens),
+                    "samples_path": str(samples),
+                    "libraries_path": str(libraries),
+                }
+            else:
+                samples, units = generated_config_paths(config_dir)
+                manifests[command.command_id] = {
+                    "manifest_path": str(manifest),
+                    "samples_path": str(samples),
+                    "units_path": str(units),
+                }
         elif command.input_contract == "run_context":
             run_context = command_dir / "runs.tsv"
             source = run_profile_source(command, catalog)
@@ -853,6 +879,12 @@ def prepare_command_inputs(
 
 def write_sample_manifest(command: AnalysisCommand, output_dir: Path) -> Path:
     explicit_template = getattr(command, "sample_manifest_template", "")
+    if command.input_contract == "sample_manifest_v12" and not explicit_template:
+        raise TestsRunnerError(
+            f"Command {command.command_id} requires an operator-supplied DayOA 12 source "
+            "manifest with persisted specimen/sample/library EUIDs. DYEC tests do not "
+            "synthesize or infer lineage identities."
+        )
     if explicit_template:
         source = Path.cwd() / explicit_template
     else:
@@ -921,6 +953,19 @@ def generated_config_paths(config_dir: Path) -> tuple[Path, Path]:
             f"found {len(samples)} samples and {len(units)} units."
         )
     return samples[0], units[0]
+
+
+def generated_dayoa12_config_paths(config_dir: Path) -> tuple[Path, Path, Path]:
+    specimens = sorted(config_dir.glob("*_specimens.tsv"))
+    samples = sorted(config_dir.glob("*_samples.tsv"))
+    libraries = sorted(config_dir.glob("*_libraries.tsv"))
+    if len(specimens) != 1 or len(samples) != 1 or len(libraries) != 1:
+        raise TestsRunnerError(
+            f"Expected one generated specimens.tsv, samples.tsv, and libraries.tsv under "
+            f"{config_dir}; found {len(specimens)} specimens, {len(samples)} samples, and "
+            f"{len(libraries)} libraries."
+        )
+    return specimens[0], samples[0], libraries[0]
 
 
 def write_run_context(
@@ -1099,7 +1144,13 @@ def render_phase(
         argv.append("--no-default-activation")
     if dry_run:
         argv.append("--dry-run")
-    if command.input_contract == "sample_manifest":
+    if command.input_contract == "sample_manifest_v12":
+        argv.extend(["--input-contract", "sample_manifest_v12"])
+        argv.extend(["--specimens-file", manifests["specimens_path"]])
+        argv.extend(["--samples-file", manifests["samples_path"]])
+        argv.extend(["--libraries-file", manifests["libraries_path"]])
+    elif command.input_contract == "sample_manifest":
+        argv.extend(["--input-contract", "sample_manifest"])
         argv.extend(["--samples-file", manifests["samples_path"]])
         argv.extend(["--units-file", manifests["units_path"]])
     elif command.input_contract == "run_context":
@@ -1130,7 +1181,9 @@ def render_phase(
         workflow_argv=tuple(argv),
         export_destination_s3_uri=export_destination,
         manifest_path=manifests.get("manifest_path"),
+        specimens_path=manifests.get("specimens_path"),
         samples_path=manifests.get("samples_path"),
+        libraries_path=manifests.get("libraries_path"),
         units_path=manifests.get("units_path"),
         run_context_path=manifests.get("run_context_path"),
     )
@@ -1232,7 +1285,9 @@ def execute_batch(
     poll_interval_seconds: int,
     output_dir: Path,
 ) -> list[PhaseResult]:
-    launched = [launch_phase(phase, launch_func=launch_func, output_dir=output_dir) for phase in phases]
+    launched = [
+        launch_phase(phase, launch_func=launch_func, output_dir=output_dir) for phase in phases
+    ]
     if status_func is None:
         return launched
     waited: list[PhaseResult] = []
