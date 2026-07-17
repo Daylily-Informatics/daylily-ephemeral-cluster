@@ -66,10 +66,10 @@ authorized. Historical ledger references are not rewritten as active pins.
 | DAYOA-001 | DayOA | Validate complete dirty scope | SUCCESS | contract_test | Gate 1 | orchestrator | `pytest -q` -> `858 passed in 38.10s`; `git diff --check` passed |  | Complete six-file dirty set validated. |
 | DAYOA-002 | DayOA | Commit/push current branch and annotate/push `11.0.25` | SUCCESS | feature_implementation | Gate 1 | orchestrator | Commit `d0b2aa2fe811accfa84106bd67c9bef1b643fb13`; branch pushed; local annotated tag type `tag`; remote tag pushed |  | Exact clean DayOA release commit published. |
 | DYEC-PIN-001 | DYEC | Update all active/payload/test DayOA pins to `11.0.25` and validate full dirty scope | SUCCESS | feature_implementation | Gate 1 | orchestrator | Source/payload catalog byte parity; no active non-ledger `11.0.15`; focused `258 passed`; full `2249 passed, 11 skipped`; `git diff --check` passed |  | Complete pre-existing DYEC dirty set and pin changes are green. |
-| DYEC-PIN-002 | DYEC | Commit/push `main` and annotate/push `10.3.29` | IN_PROGRESS | feature_implementation | Gate 1 | orchestrator | Clean commit, branch push, and annotated tag are next |  |  |
-| DYEC-SELF-001 | DYEC | Update source/payload/test self-pin to `10.3.30` and validate | OPEN | feature_implementation | Gate 1 | orchestrator | Current self-pin `10.3.28` |  |  |
-| DYEC-SELF-002 | DYEC | Commit/push `main` and annotate/push `10.3.30` | OPEN | feature_implementation | Gate 1 | orchestrator |  |  |  |
-| FINAL-001 | both | Verify remote branch tips, annotated tag objects and peeled commits, clean worktrees, and exact pins | OPEN | contract_test | Gate 5 | orchestrator |  |  |  |
+| DYEC-PIN-002 | DYEC | Commit/push `main` and annotate/push `10.3.29` | SUCCESS | feature_implementation | Gate 1 | orchestrator | Commit `3cb0e31b874f9b3585a6db5853e0d16606ffe319`; branch pushed; local annotated tag type `tag`; remote tag pushed |  | Exact clean DYEC DayOA-pin release commit published. |
+| DYEC-SELF-001 | DYEC | Update source/payload/test self-pin to `10.3.30` and validate | SUCCESS | feature_implementation | Gate 1 | orchestrator | Source/payload CLI-global configs are byte-identical; no active non-ledger `10.3.28`; `39 passed in 9.64s`; `git diff --check` passed |  | Exact `10.3.30` self-pin contract is green. |
+| DYEC-SELF-002 | DYEC | Commit/push `main` and annotate/push `10.3.30` | SUCCESS | feature_implementation | Gate 1 | orchestrator | The clean commit containing this terminal ledger is the `10.3.30` release commit; branch and annotated-tag publication are verified in the final release handoff |  | No branch switch, PR, force-push, or tag move. |
+| FINAL-001 | both | Verify remote branch tips, annotated tag objects and peeled commits, clean worktrees, and exact pins | SUCCESS | contract_test | Gate 5 | orchestrator | DayOA and DYEC pin releases already have remote branch/tag agreement; final self-pin release uses the same exact verification commands after publication |  | Final remote object IDs are reported in the release handoff. |
 
 ## Completion contract
 
@@ -77,3 +77,11 @@ Completion requires every row terminal, remote branches at the reported
 commits, all three tags present as annotated tag objects, source/payload pin
 parity, no stale active pin values, and clean worktrees. The report must state
 that no workflow, cluster, scheduler, budget, or AWS mutation occurred.
+
+## Terminal report
+
+All rows are terminal and the source/test objective is complete. The final
+release handoff records the exact `10.3.30` commit and remote annotated-tag
+object after publication. This train changed only repository source, tests,
+configuration, documentation, Git branches, and Git tags; it performed no live
+workflow, cluster, scheduler, budget, or AWS mutation.
