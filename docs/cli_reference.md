@@ -119,9 +119,12 @@ validation-style name. Legacy component-tagged stacks without the newer region
 tag also count. If more than one compatible service exists, DYEC emits the
 existing 90-second warning and selects the Ursa-associated or most-attached
 service. The singleton uses a private address and must be in the selected
-cluster VPC. If any regional service exists but none is compatible with the
-cluster VPC, DYEC warns and leaves accounting disabled; it never creates a
-second accounting database as a fallback.
+cluster VPC. If direct attachment is incompatible, DYEC checks only the
+deterministically named, already-existing managed PrivateLink bridge for the
+cluster VPC and reuses it when its consumer VPC, optional provider identity,
+endpoint, and database target are healthy. It never creates a bridge or second
+accounting database through this reuse path. If neither direct attachment nor
+that exact bridge is compatible, DYEC warns and leaves accounting disabled.
 
 Each create run writes an Ursa-readable summary JSON:
 
@@ -525,7 +528,9 @@ render failure happens before any compute-fleet stop request.
 If no regional service exists, interactive use asks two confirmations, both
 defaulting No. Non-interactive use never prompts; an authenticated caller such
 as Ursa must pass both creation-approval flags. If any incompatible regional
-service exists, DYEC does not create a duplicate.
+service exists, DYEC reuses only the exact healthy managed PrivateLink bridge
+for the cluster VPC when it already exists; otherwise it does not create a
+duplicate.
 
 For an initially running fleet, DYEC stops it, dry-runs and submits the update,
 waits for terminal update state, restores the fleet, validates headnode

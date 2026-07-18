@@ -194,6 +194,15 @@ DAYOA12_BYTE_EXACT_IDENTITY_FIELDS = (
     IDDNA_UID,
 )
 
+# DayOA 12.0.2 consumes these values after constructing its combined metadata,
+# but its strict libraries schema does not accept them as input columns.  Blank
+# source columns are therefore omitted from generated libraries.tsv files;
+# populated values must fail explicitly rather than being silently discarded.
+DAYOA12_UNSUPPORTED_LIBRARY_FIELDS = (
+    ULTIMA_SUBSAMPLE_PCT,
+    ONT_SUBSAMPLE_PCT,
+)
+
 RAW_SOURCE_SPECS = (
     (ILMN_R1_FQ, ILMN_R2_FQ, "ILMN_R1_PATH", "ILMN_R2_PATH"),
     (CG_R1_FQ, CG_R2_FQ, "ILMN_R1_PATH", "ILMN_R2_PATH"),
@@ -399,7 +408,11 @@ LIBRARIES_HEADER = [
     ANALYSIS_UNIT_UID,
     LIBRARY_EUID,
     INFLECTION_DELIVERY_ID,
-    *[column for column in UNITS_HEADER if column != SAMPLEUSE],
+    *[
+        column
+        for column in UNITS_HEADER
+        if column != SAMPLEUSE and column not in DAYOA12_UNSUPPORTED_LIBRARY_FIELDS
+    ],
     "SR_VCF_PATH",
     "LR_VCF_PATH",
     "AMPLIFICATION_TYPE",
@@ -2411,6 +2424,16 @@ def validate_raw_dayoa12_identities(row: Mapping[str, str], *, row_number: int) 
             )
 
 
+def validate_dayoa12_library_schema_fields(row: Mapping[str, str], *, row_number: int) -> None:
+    unsupported = [field for field in DAYOA12_UNSUPPORTED_LIBRARY_FIELDS if row.get(field)]
+    if unsupported:
+        raise CommandError(
+            f"Row {row_number} sets {', '.join(unsupported)}, but the DayOA 12.0.2 "
+            "libraries schema does not accept those columns. Leave them blank until "
+            "the pinned DayOA schema supports them."
+        )
+
+
 def raw_groups_present(row: Mapping[str, str]) -> List[Tuple[str, str, str, str]]:
     present: List[Tuple[str, str, str, str]] = []
     for spec in RAW_SOURCE_SPECS:
@@ -2669,6 +2692,7 @@ def load_manifest_rows(
                         "DayOA 12 source manifests require explicit nonblank values; blank "
                         f"columns: {', '.join(blank_required)}. DYEC does not infer identifiers."
                     )
+                validate_dayoa12_library_schema_fields(normalized, row_number=row_number)
             validate_manifest_row(
                 normalized,
                 row_number=row_number,
@@ -3581,6 +3605,18 @@ def precheck_manifest(
                                 "`dayoa migrate-manifests` with a reviewed identity map; DYEC "
                                 "does not infer identifiers."
                             ),
+                        )
+                    )
+                    continue
+                try:
+                    validate_dayoa12_library_schema_fields(normalized, row_number=row_number)
+                except CommandError as exc:
+                    issues.append(
+                        _issue_from_exception(
+                            normalized,
+                            row_number=row_number,
+                            default_field="libraries schema",
+                            exc=exc,
                         )
                     )
                     continue

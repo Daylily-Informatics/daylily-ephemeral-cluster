@@ -1,0 +1,244 @@
+→ Creating cluster in us-west-2d ...
+
+── INIT · majors-cluster ──
+    Ursa root: (not configured)
+    Headnode: r7i.2xlarge
+    FSx deployment type: PERSISTENT_2
+    FSx capacity: 4800 GiB
+    FSx throughput: 250 MB/s/TiB
+    FSx lifecycle: Dedicated DYEC-owned CLUSTER_BOUND filesystem
+  · FSx is writable cluster workspace; S3 output export is explicit, not 
+automatic.
+    Account: 108782052779
+    User: root
+    Region: us-west-2 (us-west-2d)
+    Cluster type: intel
+    Configured idle estimate: $1.9612/hour
+    Regional cluster cap: current=1, projected=2, cap=5
+    DYEC deploy-key secret: validated
+    DYEC deploy-key policy: 
+arn:aws:iam::108782052779:policy/DayECHeadnodeGitHubClone
+    DayOA deploy-key secret: validated
+    DayOA deploy-key policy: 
+arn:aws:iam::108782052779:policy/DayECHeadnodeGitHubClone
+    DYEC repository: git@github.com:lsmc-bio/daylily-ephemeral-cluster.git
+    DYEC ref: refs/tags/11.0.4
+
+── PREFLIGHT ──
+  ✓ iam.policy.global
+  ✓ iam.policy.regional
+  ✓ iam.pcluster_omics_policy
+  ✓ iam.dyec_deploy_key_secret_policy
+  ✓ iam.dayoa_deploy_key_secret_policy
+  ✓ config.repository_catalog
+  ✓ quota.ondemand_vcpu
+  ✓ quota.spot_vcpu
+  ✓ quota.vpcs
+  ✓ quota.elastic_ips
+  ✓ quota.nat_gateways
+  ✓ quota.internet_gateways
+  ✓ s3.role_config
+  ✓ s3.role_verify
+  ✓ Preflight passed — 14 checks OK
+
+── RESOURCE RESOLUTION ──
+  › Skipping baseline CFN stack; explicit subnet and IAM policy config present.
+  ✓ Baseline CFN stack not required
+  ✓ Resources resolved
+    Reference: s3://lsmc-dayoa-references-usw2/
+    Control data: s3://lsmc-dayoa-control-data-usw2/
+    Runtime assets: s3://lsmc-dayoa-references-usw2/runtime_assets
+    Staging: s3://lsmc-ssf-sequencing-data/staged_external_data/
+    Export destination: s3://lsmc-ssf-sequencing-data/derived/
+    Subnets: pub=subnet-0e9acb65aba5a0330  priv=subnet-087a4872d0c34e642
+    Policy: arn:aws:iam::108782052779:policy/pclusterTagsAndBudget
+  › Publishing cluster boot config to runtime assets ...
+  ✓ Cluster boot config published: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/releases/sha2
+56-4c5836a802238cd96f33e3558999c1bd5ca4cf8d3a619d3838a62d6356dd1336
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/releases/sha2
+56-4c5836a802238cd96f33e3558999c1bd5ca4cf8d3a619d3838a62d6356dd1336/install_slur
+m_job_submit_policy.sh
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/releases/sha2
+56-4c5836a802238cd96f33e3558999c1bd5ca4cf8d3a619d3838a62d6356dd1336/job_submit.l
+ua
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/releases/sha2
+56-4c5836a802238cd96f33e3558999c1bd5ca4cf8d3a619d3838a62d6356dd1336/post_install
+_almalinux8_dragen.sh
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/releases/sha2
+56-4c5836a802238cd96f33e3558999c1bd5ca4cf8d3a619d3838a62d6356dd1336/post_install
+_rhel8_dragen.sh
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/releases/sha2
+56-4c5836a802238cd96f33e3558999c1bd5ca4cf8d3a619d3838a62d6356dd1336/post_install
+_ubuntu_combined.sh
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/releases/sha2
+56-4c5836a802238cd96f33e3558999c1bd5ca4cf8d3a619d3838a62d6356dd1336/sbatch
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/releases/sha2
+56-4c5836a802238cd96f33e3558999c1bd5ca4cf8d3a619d3838a62d6356dd1336/sleep_test.s
+h
+
+── PRE-CREATE: BUDGETS & HEARTBEAT ──
+
+── PRE-CREATE: BUDGETS ──
+  › Ensuring budgets and project allow-list ...
+  ✓ Budgets: global=daylily-global, project=majors-cluster
+
+── RENDER CLUSTER YAML ──
+    Cluster template: 
+config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d
+.yaml
+  › Rendering YAML template ...
+  › Applying spot prices ...
+
+── LIVE AWS STORAGE PROVISIONING ──
+  › Creating or resuming this cluster's DYEC-owned P2 filesystem, client 
+security group, and reference DRA ...
+  · P2 client security group sg-064c7835c97eb6838: ready.
+  · P2 filesystem fs-0c3980010a92252b1: create submitted; checking lifecycle 
+every 45s.
+  · P2 filesystem fs-0c3980010a92252b1: lifecycle=CREATING; waiting for 
+AVAILABLE (45s elapsed).
+  · P2 filesystem fs-0c3980010a92252b1: lifecycle=CREATING; waiting for 
+AVAILABLE (90s elapsed).
+  · P2 filesystem fs-0c3980010a92252b1: lifecycle=CREATING; waiting for 
+AVAILABLE (135s elapsed).
+  · P2 filesystem fs-0c3980010a92252b1: lifecycle=CREATING; waiting for 
+AVAILABLE (180s elapsed).
+  · P2 filesystem fs-0c3980010a92252b1: lifecycle=CREATING; waiting for 
+AVAILABLE (225s elapsed).
+  · P2 filesystem fs-0c3980010a92252b1: lifecycle=CREATING; waiting for 
+AVAILABLE (270s elapsed).
+  · P2 filesystem fs-0c3980010a92252b1: lifecycle=CREATING; waiting for 
+AVAILABLE (315s elapsed).
+  · P2 filesystem fs-0c3980010a92252b1: lifecycle=CREATING; waiting for 
+AVAILABLE (360s elapsed).
+  · P2 filesystem fs-0c3980010a92252b1: lifecycle=CREATING; waiting for 
+AVAILABLE (405s elapsed).
+  · P2 filesystem fs-0c3980010a92252b1: lifecycle=AVAILABLE (435s elapsed).
+  · Reference DRA dra-06a58d32ab234e73d: create submitted; associating S3 
+metadata with /references/; checking lifecycle every 45s.
+  · Reference DRA dra-06a58d32ab234e73d: lifecycle=CREATING; associating S3 
+metadata with /references/ (45s elapsed).
+  · Reference DRA dra-06a58d32ab234e73d: lifecycle=CREATING; associating S3 
+metadata with /references/ (90s elapsed).
+  · Reference DRA dra-06a58d32ab234e73d: lifecycle=CREATING; associating S3 
+metadata with /references/ (135s elapsed).
+  · Reference DRA dra-06a58d32ab234e73d: lifecycle=CREATING; associating S3 
+metadata with /references/ (180s elapsed).
+  · Reference DRA dra-06a58d32ab234e73d: lifecycle=CREATING; associating S3 
+metadata with /references/ (225s elapsed).
+  · Reference DRA dra-06a58d32ab234e73d: lifecycle=CREATING; associating S3 
+metadata with /references/ (270s elapsed).
+  · Reference DRA dra-06a58d32ab234e73d: lifecycle=CREATING; associating S3 
+metadata with /references/ (315s elapsed).
+  · Reference DRA dra-06a58d32ab234e73d: lifecycle=CREATING; associating S3 
+metadata with /references/ (360s elapsed).
+  · Reference DRA dra-06a58d32ab234e73d: lifecycle=CREATING; associating S3 
+metadata with /references/ (405s elapsed).
+  · Reference DRA dra-06a58d32ab234e73d: lifecycle=CREATING; associating S3 
+metadata with /references/ (450s elapsed).
+  · Reference DRA dra-06a58d32ab234e73d: lifecycle=CREATING; associating S3 
+metadata with /references/ (495s elapsed).
+  · Reference DRA dra-06a58d32ab234e73d: lifecycle=AVAILABLE (540s elapsed).
+  ✓ P2 FSx ready: fs-0c3980010a92252b1
+    P2 client security group: sg-064c7835c97eb6838
+    P2 reference DRA: dra-06a58d32ab234e73d
+    P2 resource receipt: 
+/Users/jmajor/.config/daylily/resource_fsx-persistent2_majors-cluster_2026071809
+1339.json
+  ✓ Cluster YAML ready: 
+/Users/jmajor/.config/daylily/majors-cluster_cluster_20260718091339.yaml
+  ✓ Spot price summary ready: 
+/Users/jmajor/.config/daylily/majors-cluster_spot_price_summary_20260718091339.j
+son
+                         DYEC create spot price summary                         
+┏━━━━━┳━━━━━┳━━━━━┳━━━━━┳━━━━┳━━━━━┳━━━━┳━━━━━┳━━━━┳━━━━━┳━━━━┳━━━━━┳━━━━┳━━━━━┓
+┃     ┃     ┃     ┃ Raw ┃ R… ┃     ┃ M… ┃     ┃    ┃     ┃    ┃     ┃    ┃     ┃
+┃     ┃ Min ┃ Max ┃ Min ┃ M… ┃ Me… ┃ B… ┃ Un… ┃ F… ┃ Gl… ┃ W… ┃     ┃    ┃     ┃
+┃ Pa… ┃ In… ┃ In… ┃ $/… ┃ $… ┃ $/… ┃ $… ┃ Bid ┃ B… ┃ Max ┃ >$ ┃ Li… ┃ W… ┃ Re… ┃
+┡━━━━━╇━━━━━╇━━━━━╇━━━━━╇━━━━╇━━━━━╇━━━━╇━━━━━╇━━━━╇━━━━━╇━━━━╇━━━━━╇━━━━╇━━━━━┩
+│ i8  │   0 │   8 │ 0.… │ 1… │ 0.… │ 0… │ 0.… │ 0… │ 9.… │ 8… │ no  │ no │ i8  │
+│ i9… │   0 │   8 │ 0.… │ 2… │ 2.… │ 0… │ 4.… │ 4… │ 9.… │ 8… │ no  │ no │ i9… │
+│ i1… │   0 │  24 │ 0.… │ 6… │ 3.… │ 0… │ 5.… │ 5… │ 9.… │ 8… │ no  │ no │ i1… │
+│ i1… │   0 │   8 │ 0.… │ 1… │ 2.… │ 0… │ 4.… │ 4… │ 9.… │ 8… │ no  │ no │ i1… │
+│ i1… │   0 │   8 │ 0.… │ 2… │ 3.… │ 0… │ 5.… │ 5… │ 9.… │ 8… │ no  │ no │ i1… │
+│ i1… │   0 │   8 │ 0.… │ 2… │ 3.… │ 0… │ 5.… │ 5… │ 9.… │ 8… │ no  │ no │ i1… │
+│ i1… │   0 │  24 │ 0.… │ 7… │ 3.… │ 0… │ 6.… │ 6… │ 9.… │ 8… │ no  │ no │ i1… │
+│ i1… │   0 │   8 │ 0.… │ 2… │ 2.… │ 0… │ 5.… │ 5… │ 9.… │ 8… │ no  │ no │ i1… │
+│ i1… │   0 │   8 │ 0.… │ 2… │ 3.… │ 0… │ 6.… │ 6… │ 9.… │ 8… │ no  │ no │ i1… │
+│ i1… │   0 │  24 │ 0.… │ 9… │ 4.… │ 0… │ 7.… │ 7… │ 9.… │ 8… │ no  │ no │ i1… │
+│ i3… │   0 │  24 │ 0.… │ 2… │ 9.… │ 0… │ 16… │ 9… │ 9.… │ 8… │ yes │ y… │ i3… │
+│ i1… │   0 │   8 │ 0.… │ 3… │ 4.… │ 0… │ 7.… │ 7… │ 9.… │ 8… │ no  │ no │ i1… │
+└─────┴─────┴─────┴─────┴────┴─────┴────┴─────┴────┴─────┴────┴─────┴────┴─────┘
+  · Spot price summary table markdown: 
+/Users/jmajor/.config/daylily/majors-cluster-20260718091339.md
+
+── DRY-RUN VALIDATION ──
+  › Running pcluster dry-run ...
+  ✓ Dry-run passed
+
+── CREATE CLUSTER ──
+  › Submitting cluster creation: majors-cluster ...
+  ✓ Cluster creation submitted
+
+── MONITOR ──
+  › Waiting for CREATE_COMPLETE ...
+  › Cluster creating ... 2s
+  › Cluster creating ... 35s
+  › Cluster creating ... 1m 7s
+  › Cluster creating ... 1m 39s
+  › Cluster creating ... 8m 48s
+  › Cluster creating ... 9m 21s
+  › Cluster creating ... 9m 54s
+  ✓ Cluster created in 10m 29s
+
+── HEADNODE CONFIGURATION ──
+  › Waiting for headnode SSM registration ...
+  › Configuring headnode ...
+  ✓ Headnode configured
+
+── POST-CREATE: HEARTBEAT ──
+  › Configuring heartbeat ...
+  ✓ Heartbeat configured (source=existing_role:eventbridge-scheduler-to-sns)
+
+── STATE SNAPSHOT ──
+  › Writing state record ...
+  ✓ State written: 
+/Users/jmajor/.config/daylily/state_majors-cluster_20260718091339.json
+
+── POST-CREATE: SLURM ACCOUNTING ──
+  ⚠ SLURM ACCOUNTING WARNING: cluster creation succeeded and the cluster was 
+retained, but accounting failed during service preparation. Accounting remains 
+disabled. Inspect the non-secret accounting receipt for the bounded lifecycle 
+state. After resolving its recorded stage, retry with dyec slurm-accounting 
+attach while the fleet is explicitly STOPPED.
+    Slurm accounting receipt: 
+/Users/jmajor/.config/daylily/slurm_accounting_majors-cluster_20260718091339_rec
+eipt.json
+
+╭───────────────────────── CLUSTER CREATION COMPLETE ──────────────────────────╮
+│                                                                              │
+│  Cluster:  majors-cluster                                                    │
+│  Region:   us-west-2 (us-west-2d)                                            │
+│  Elapsed:  10m 29s                                                           │
+│  Accounting: WARNING                                                         │
+│  Idle total:  $1.9612/hour                                                   │
+│    Headnode r7i.2xlarge: $0.5292/hour                                        │
+│    Root EBS gp3 421 GiB: $0.0461/hour                                        │
+│    FSx PERSISTENT_2 250 MB/s/TiB 4800 GiB: $1.3808/hour                      │
+│    Public IPv4: $0.0050/hour                                                 │
+│  Ursa:  (root URL not configured)                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster majors-cluster
+Idle cluster hourly estimate: $1.9612/hour
+...fin!
+Ursa cluster page: not configured (set ursa_root_url)
+Total DYEC create runtime: 31m 38s (1898.8s)

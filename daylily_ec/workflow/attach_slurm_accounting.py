@@ -330,15 +330,33 @@ def prepare_slurm_accounting_update(
             db = resolution.db
             service_created = resolution.service_created
         except SlurmAccountingError:
-            raise SlurmAccountingPreparationError(
-                "No compatible regional Slurm accounting service was prepared; "
-                "no compute-fleet request was issued.",
-                stage="service_resolution",
-                reason_code=(
-                    "service_missing" if regional_stack_count == 0 else "service_incompatible"
-                ),
-                regional_stack_count=regional_stack_count,
-            ) from None
+            bridge = None
+            if regional_stack_count:
+                from daylily_ec.aws.slurm_accounting_privatelink import (
+                    SlurmAccountingPrivateLinkError,
+                    resolve_slurm_accounting_privatelink_bridge_for_consumer,
+                )
+
+                try:
+                    bridge = resolve_slurm_accounting_privatelink_bridge_for_consumer(
+                        aws_ctx,
+                        consumer_vpc_id=vpc_id,
+                        provider_accounting_stack_name=stack_name.strip(),
+                    )
+                except SlurmAccountingPrivateLinkError:
+                    bridge = None
+            if bridge is None:
+                raise SlurmAccountingPreparationError(
+                    "No compatible regional Slurm accounting service was prepared; "
+                    "no compute-fleet request was issued.",
+                    stage="service_resolution",
+                    reason_code=(
+                        "service_missing" if regional_stack_count == 0 else "service_incompatible"
+                    ),
+                    regional_stack_count=regional_stack_count,
+                ) from None
+            db = bridge.as_accounting_db()
+            service_created = False
 
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
     destination_dir = output_dir.expanduser() if output_dir else config_dir()
