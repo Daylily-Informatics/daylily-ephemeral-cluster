@@ -33,9 +33,9 @@ Cross-repository ledger: `/Users/jmajor/projects/lsmc-snakemake-7.25.0b113-20260
 | DYEC-003 | Tests | Update exact pin tests and pass focused plus full DYEC validation. | SUCCESS | contract_test | Gate 5 | Exact pin contracts: `32 passed`; complete DYEC suite in `DAY-EC`: `2264 passed, 11 skipped` in 65.63s; Ruff, YAML parsing, catalog byte identity, and `git diff --check` passed. | Three touched test files are already non-Black on `origin/main`; no unrelated bulk reformat was introduced. |
 | DYEC-004 | Release | Commit, push, PR-merge, and annotate the first DYEC pin release as `11.0.3`. | SUCCESS | feature_implementation | Gate 5 | Commit `e9265aba5ea4fbe5bbcbd45cb4d36befdba2cb67`; PR `https://github.com/lsmc-bio/daylily-ephemeral-cluster/pull/33`; merge `ef575f71c68ef0d2565321e216b4ed63db55c03a`; annotated remote tag `11.0.3` peels to that merge and package version reports exactly `11.0.3`. | First release carries the DayOA `12.0.2` pin. |
 | DYEC-005 | Self-pin | Update both shipped DYEC self-pin copies and their exact test to `11.0.3`. | SUCCESS | config_or_startup_contract | Gate 4 | Annotated `11.0.3` is published; both source and packaged global configs plus the exact fork contract now use `11.0.3`; configs are byte-identical; focused gate `51 passed`; second complete suite `2264 passed, 11 skipped` in 66.17s. | Both shipped bootstrap copies advance together. |
-| DYEC-006 | Release | Commit, push, PR-merge, and annotate the final self-pinned DYEC release as `11.0.4`. | IN_PROGRESS | feature_implementation | Gate 5 | Validated self-pin change is ready for commit. |  |
-| DYEC-007 | Ledgers | Close this ledger and append the DYEC promotion receipts to the cross-repository Snakemake release ledger. | OPEN | durable_evidence | Gate 5 | Pending final tags. |  |
-| DYEC-008 | Verification | Verify clean/synced fork state, annotated tag objects and peeled commits, exact pin chain, and non-success rows. | OPEN | contract_test | Gate 5 | Pending. |  |
+| DYEC-006 | Release | Commit, push, PR-merge, and annotate the final self-pinned DYEC release as `11.0.4`. | SUCCESS | feature_implementation | Gate 5 | Commit `c189969a62639582759bbd6971d385a5de4da2e5`; PR `https://github.com/lsmc-bio/daylily-ephemeral-cluster/pull/34`; merge `93e0042cad38d4bc5623b6b5ea52c68e4d35e48a`; annotated tag object `f37d16f1b3161e7eb575e46917e16e4db681301b` peels to that merge and package version reports exactly `11.0.4`. | Final release carries the tested `11.0.3` bootstrap self-pin. |
+| DYEC-007 | Ledgers | Close this ledger and append the DYEC promotion receipts to the cross-repository Snakemake release ledger. | IN_PROGRESS | durable_evidence | Gate 5 | Cross-repository ledger PR `https://github.com/lsmc-bio/daylily-omics-analysis/pull/34` merged as `420c405277f28d6e626d19481333a2811e9b1f86`; local terminal closeout is pending its docs-only PR. | Cross-repository ledger has 14 SUCCESS rows and no non-success rows. |
+| DYEC-008 | Verification | Verify clean/synced fork state, annotated tag objects and peeled commits, exact pin chain, and non-success rows. | SUCCESS | contract_test | Gate 5 | Fork `origin/main` is `93e0042cad38d4bc5623b6b5ea52c68e4d35e48a`; both release tags are annotated and peel to their recorded merges; source/package copies are byte-identical; exact chain is DYEC `11.0.4` -> bootstrap DYEC `11.0.3` -> DayOA `12.0.2` -> Snakemake `7.25.0b113`. | No PyPI, Docker, AWS, cluster, or workflow mutation was performed. |
 
 ## Final Report
 
@@ -45,8 +45,8 @@ Objective complete: **no**
 
 Status counts:
 
-- SUCCESS: 5
+- SUCCESS: 7
 - IN_PROGRESS: 1
-- OPEN: 2
+- OPEN: 0
 - BLOCKED: 0
 - FAIL: 0
