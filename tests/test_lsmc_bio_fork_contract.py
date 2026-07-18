@@ -8,8 +8,8 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_DEFAULT_TAG = "12.0.1"
-DAYOA_VALIDATED_TAG = "12.0.1"
+DAYOA_DEFAULT_TAG = "12.0.2"
+DAYOA_VALIDATED_TAG = "12.0.2"
 DYEC_BLESSED_TAG = "11.0.1"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
