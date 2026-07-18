@@ -8,7 +8,7 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_DEFAULT_TAG = "12.0.2"
+DAYOA_DEFAULT_TAG = "12.0.3"
 DAYOA_VALIDATED_TAG = "12.0.2"
 DYEC_BLESSED_TAG = "11.0.3"
 
@@ -83,6 +83,8 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
         for command_id in (
             "hybrid_ilmn_ont_hiomrs",
             "hybrid_ilmn_ont_hiomrs_kitchensink",
+            "betelgeuser_hiomr_prod_v1",
+            "inflection-bjuice-product-v0.2",
         ):
             assert commands[command_id]["git_tag"] == DAYOA_DEFAULT_TAG
             assert commands[command_id]["validated_version"] == DAYOA_VALIDATED_TAG
