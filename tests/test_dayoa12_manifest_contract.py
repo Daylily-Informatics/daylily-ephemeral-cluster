@@ -261,7 +261,7 @@ def test_headnode_remote_config_requires_exact_dayoa12_triple() -> None:
 
 def test_inflection_v02_requires_explicit_lineage_and_delivery_contract() -> None:
     command = load_repository_catalog(CATALOG).get_command("inflection-bjuice-product-v0.2")
-    assert command.git_tag == "12.0.1"
+    assert command.git_tag == "12.0.2"
     assert command.input_contract == "sample_manifest_v12"
     assert command.input_requirements.required_source_columns == [
         "SPECIMEN_EUID",
