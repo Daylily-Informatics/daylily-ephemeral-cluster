@@ -31,9 +31,9 @@ Cross-repository ledger: `/Users/jmajor/projects/lsmc-snakemake-7.25.0b113-20260
 | DYEC-001 | Baseline | Prove current fork `main`, existing pins, available next tags, and the DayOA -> Snakemake lineage. | SUCCESS | inventory | Gate 0 | Exact commits/tags and both pin hops recorded above; remote `11.0.3` and `11.0.4` were absent. | Isolated fork-only branch starts from current `origin/main`. |
 | DYEC-002 | Catalog | Update source and packaged DayOA defaults plus active HIOMRS/Inflection command pins to `12.0.2`. | SUCCESS | config_or_startup_contract | Gate 2 | Both catalog copies now use `12.0.2` for the default plus HIOMRS, kitchen-sink, Betelgeuser, and Inflection `git_tag`/`validated_version` fields; `cmp` proves byte identity. | Old active `12.0.1` pins are absent. |
 | DYEC-003 | Tests | Update exact pin tests and pass focused plus full DYEC validation. | SUCCESS | contract_test | Gate 5 | Exact pin contracts: `32 passed`; complete DYEC suite in `DAY-EC`: `2264 passed, 11 skipped` in 65.63s; Ruff, YAML parsing, catalog byte identity, and `git diff --check` passed. | Three touched test files are already non-Black on `origin/main`; no unrelated bulk reformat was introduced. |
-| DYEC-004 | Release | Commit, push, PR-merge, and annotate the first DYEC pin release as `11.0.3`. | OPEN | feature_implementation | Gate 5 | Pending. |  |
-| DYEC-005 | Self-pin | Update both shipped DYEC self-pin copies and their exact test to `11.0.3`. | OPEN | config_or_startup_contract | Gate 4 | Pending publication of `11.0.3`. |  |
-| DYEC-006 | Release | Commit, push, PR-merge, and annotate the final self-pinned DYEC release as `11.0.4`. | OPEN | feature_implementation | Gate 5 | Pending. |  |
+| DYEC-004 | Release | Commit, push, PR-merge, and annotate the first DYEC pin release as `11.0.3`. | SUCCESS | feature_implementation | Gate 5 | Commit `e9265aba5ea4fbe5bbcbd45cb4d36befdba2cb67`; PR `https://github.com/lsmc-bio/daylily-ephemeral-cluster/pull/33`; merge `ef575f71c68ef0d2565321e216b4ed63db55c03a`; annotated remote tag `11.0.3` peels to that merge and package version reports exactly `11.0.3`. | First release carries the DayOA `12.0.2` pin. |
+| DYEC-005 | Self-pin | Update both shipped DYEC self-pin copies and their exact test to `11.0.3`. | SUCCESS | config_or_startup_contract | Gate 4 | Annotated `11.0.3` is published; both source and packaged global configs plus the exact fork contract now use `11.0.3`; configs are byte-identical; focused gate `51 passed`; second complete suite `2264 passed, 11 skipped` in 66.17s. | Both shipped bootstrap copies advance together. |
+| DYEC-006 | Release | Commit, push, PR-merge, and annotate the final self-pinned DYEC release as `11.0.4`. | IN_PROGRESS | feature_implementation | Gate 5 | Validated self-pin change is ready for commit. |  |
 | DYEC-007 | Ledgers | Close this ledger and append the DYEC promotion receipts to the cross-repository Snakemake release ledger. | OPEN | durable_evidence | Gate 5 | Pending final tags. |  |
 | DYEC-008 | Verification | Verify clean/synced fork state, annotated tag objects and peeled commits, exact pin chain, and non-success rows. | OPEN | contract_test | Gate 5 | Pending. |  |
 
@@ -45,8 +45,8 @@ Objective complete: **no**
 
 Status counts:
 
-- SUCCESS: 3
-- IN_PROGRESS: 0
-- OPEN: 5
+- SUCCESS: 5
+- IN_PROGRESS: 1
+- OPEN: 2
 - BLOCKED: 0
 - FAIL: 0
