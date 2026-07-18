@@ -5,10 +5,14 @@ from pathlib import Path
 import pytest
 import yaml
 
+from daylily_ec.aws import slurm_accounting_privatelink as privatelink_module
 from daylily_ec.aws.slurm_accounting import (
     SlurmAccountingDb,
     SlurmAccountingDbResolution,
     SlurmAccountingError,
+)
+from daylily_ec.aws.slurm_accounting_privatelink import (
+    SlurmAccountingPrivateLinkError,
 )
 from daylily_ec.pcluster.runner import PclusterResult
 from daylily_ec.workflow import attach_slurm_accounting as attach_module
@@ -292,6 +296,13 @@ def test_prepare_incompatible_service_error_is_structured_and_redacted(
         lambda *_args, **_kwargs: (_ for _ in ()).throw(SlurmAccountingError(sentinel)),
     )
     monkeypatch.setattr(
+        privatelink_module,
+        "resolve_slurm_accounting_privatelink_bridge_for_consumer",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            SlurmAccountingPrivateLinkError("no compatible bridge")
+        ),
+    )
+    monkeypatch.setattr(
         attach_module.pcluster_runner,
         "update_cluster",
         lambda *_args, **_kwargs: pytest.fail("failed preparation must not run pcluster"),
@@ -311,6 +322,79 @@ def test_prepare_incompatible_service_error_is_structured_and_redacted(
     assert caught.value.regional_stack_count == 1
     assert sentinel not in str(caught.value)
     assert caught.value.__cause__ is None
+
+
+def test_prepare_auto_reuses_deterministic_healthy_privatelink_bridge(
+    tmp_path, monkeypatch
+) -> None:
+    source = _config(tmp_path / "source.yaml")
+    bridge_db = SlurmAccountingDb(
+        stack_name="dayec-sacct-pl-vpc-cluster",
+        status="UPDATE_COMPLETE",
+        uri="vpce-accounting.example:3306",
+        private_ip="10.0.2.4",
+        database_name="dayec_slurm_acct",
+        username="slurm_acct",
+        password_secret_arn="arn:aws:secretsmanager:us-west-2:123:secret:acct",
+        client_security_group_id="sg-consumer-client",
+        instance_id="i-accounting",
+    )
+    bridge_calls = []
+
+    class Bridge:
+        @staticmethod
+        def as_accounting_db():
+            return bridge_db
+
+    monkeypatch.setattr(
+        attach_module.AWSContext,
+        "build_region",
+        classmethod(lambda _cls, _region, profile=None: _AwsContext()),
+    )
+    monkeypatch.setattr(
+        attach_module,
+        "list_regional_slurm_accounting_stacks",
+        lambda *_args, **_kwargs: [{"StackName": "existing-other-vpc"}],
+    )
+    monkeypatch.setattr(
+        attach_module,
+        "resolve_slurm_accounting_db",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            SlurmAccountingError("direct VPC mismatch")
+        ),
+    )
+
+    def resolve_bridge(*_args, **kwargs):
+        bridge_calls.append(kwargs)
+        return Bridge()
+
+    monkeypatch.setattr(
+        privatelink_module,
+        "resolve_slurm_accounting_privatelink_bridge_for_consumer",
+        resolve_bridge,
+    )
+
+    prepared = prepare_slurm_accounting_update(
+        cluster_name="cluster-a",
+        region="us-west-2",
+        profile="lsmc",
+        cluster_configuration=source,
+        create_if_missing=False,
+        output_dir=tmp_path,
+    )
+
+    rendered = yaml.safe_load(Path(prepared.update_config_path).read_text(encoding="utf-8"))
+    assert prepared.accounting_stack_name == "dayec-sacct-pl-vpc-cluster"
+    assert prepared.service_created is False
+    assert bridge_calls == [
+        {
+            "consumer_vpc_id": "vpc-cluster",
+            "provider_accounting_stack_name": "",
+        }
+    ]
+    assert rendered["Scheduling"]["SlurmSettings"]["Database"]["Uri"] == (
+        "vpce-accounting.example:3306"
+    )
 
 
 def test_prepare_missing_service_has_machine_readable_reason(tmp_path, monkeypatch) -> None:

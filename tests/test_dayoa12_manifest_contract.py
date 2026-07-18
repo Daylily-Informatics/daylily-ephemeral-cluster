@@ -112,8 +112,36 @@ def test_dayoa12_config_only_writes_exact_three_manifest_contract(
     assert library["LIBRARY_EUID"] == "fixture-library-owned-001"
     assert library["ANALYSIS_UNIT_UID"] == "analysis-unit-001"
     assert library["INFLECTION_DELIVERY_ID"] == "delivery-001"
+    assert "ULTIMA_SUBSAMPLE_PCT" not in library
+    assert "ONT_SUBSAMPLE_PCT" not in library
     assert specimen["SPECIMEN_ID"] == sample["SPECIMEN_ID"] == "specimen-001"
     assert sample["SAMPLEID"] == library["SAMPLEID"] == "sample-001"
+
+
+def test_dayoa12_rejects_populated_library_fields_missing_from_pinned_schema(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    source = _source_manifest(tmp_path)
+    with source.open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    rows[0]["ONT_SUBSAMPLE_PCT"] = "0.5"
+    with source.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]), delimiter="\t")
+        writer.writeheader()
+        writer.writerows(rows)
+    monkeypatch.setattr(stage, "check_source_path", lambda *args, **kwargs: None)
+
+    report, generated = stage.precheck_manifest(
+        source,
+        reference_s3_uri="s3://references",
+        aws_env={},
+        debug=False,
+        manifest_contract="dayoa12",
+    )
+
+    assert generated == []
+    assert any("DayOA 12.0.2 libraries schema" in issue.message for issue in report.issues)
 
 
 def test_dayoa12_preserves_blank_conditional_euid_without_inference(
@@ -261,7 +289,7 @@ def test_headnode_remote_config_requires_exact_dayoa12_triple() -> None:
 
 def test_inflection_v02_requires_explicit_lineage_and_delivery_contract() -> None:
     command = load_repository_catalog(CATALOG).get_command("inflection-bjuice-product-v0.2")
-    assert command.git_tag == "12.0.3"
+    assert command.git_tag == "12.0.5"
     assert command.input_contract == "sample_manifest_v12"
     assert command.input_requirements.required_source_columns == [
         "SPECIMEN_EUID",

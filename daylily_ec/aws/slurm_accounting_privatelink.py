@@ -182,8 +182,7 @@ def ensure_slurm_accounting_privatelink_bridge(
         "ConsumerEndpointSubnetCidr": consumer_endpoint_subnet_cidr,
     }
     stack_parameters = [
-        {"ParameterKey": key, "ParameterValue": value}
-        for key, value in parameters.items()
+        {"ParameterKey": key, "ParameterValue": value} for key, value in parameters.items()
     ]
     if existing is not None:
         try:
@@ -262,14 +261,48 @@ def resolve_slurm_accounting_privatelink_bridge(
     cfn = aws_ctx.client("cloudformation")
     stack = _describe_stack(cfn, stack_name.strip())
     if stack is None:
-        raise SlurmAccountingPrivateLinkError(
-            f"PrivateLink stack '{stack_name}' does not exist."
-        )
+        raise SlurmAccountingPrivateLinkError(f"PrivateLink stack '{stack_name}' does not exist.")
     return _resolve_bridge(
         aws_ctx,
         stack,
         require_healthy_target=require_healthy_target,
     )
+
+
+def resolve_slurm_accounting_privatelink_bridge_for_consumer(
+    aws_ctx: Any,
+    *,
+    consumer_vpc_id: str,
+    provider_accounting_stack_name: str = "",
+    require_healthy_target: bool = True,
+) -> SlurmAccountingPrivateLinkBridge:
+    """Resolve the one deterministic, already-existing bridge for a consumer VPC.
+
+    This is reuse-only: it derives the managed bridge stack name from the exact
+    consumer VPC and never creates, updates, or broadly selects infrastructure.
+    An explicit provider name, when supplied, is an additional identity check.
+    """
+    consumer_vpc_id = consumer_vpc_id.strip()
+    bridge = resolve_slurm_accounting_privatelink_bridge(
+        aws_ctx,
+        stack_name=derive_privatelink_stack_name(consumer_vpc_id),
+        require_healthy_target=require_healthy_target,
+    )
+    if bridge.consumer_vpc_id != consumer_vpc_id:
+        raise SlurmAccountingPrivateLinkError(
+            "The deterministic PrivateLink bridge consumer VPC does not match the "
+            "requested cluster VPC."
+        )
+    provider_accounting_stack_name = provider_accounting_stack_name.strip()
+    if (
+        provider_accounting_stack_name
+        and bridge.provider_accounting_stack_name != provider_accounting_stack_name
+    ):
+        raise SlurmAccountingPrivateLinkError(
+            "The deterministic PrivateLink bridge provider does not match the "
+            "requested accounting stack."
+        )
+    return bridge
 
 
 def _resolve_provider(cfn: Any, ec2: Any, stack_name: str) -> _Provider:
@@ -292,9 +325,7 @@ def _resolve_provider(cfn: Any, ec2: Any, stack_name: str) -> _Provider:
     outputs = _outputs(stack, REQUIRED_PROVIDER_OUTPUTS)
     instance_id = outputs["AccountingInstanceId"]
     try:
-        reservations = ec2.describe_instances(InstanceIds=[instance_id]).get(
-            "Reservations", []
-        )
+        reservations = ec2.describe_instances(InstanceIds=[instance_id]).get("Reservations", [])
         instances = [
             instance
             for reservation in reservations
@@ -386,8 +417,7 @@ def _validate_consumer_network(
         existing = ipaddress.ip_network(subnet["CidrBlock"], strict=True)
         if network.overlaps(existing) and subnet.get("SubnetId") != allowed_existing_subnet_id:
             raise SlurmAccountingPrivateLinkError(
-                f"Consumer endpoint subnet CIDR overlaps existing subnet "
-                f"{subnet.get('SubnetId')}."
+                f"Consumer endpoint subnet CIDR overlaps existing subnet {subnet.get('SubnetId')}."
             )
 
 
@@ -491,12 +521,9 @@ def _resolve_bridge(
             "The PrivateLink database target could not be inspected safely."
         ) from None
     if require_healthy_target and not any(
-        item.get("TargetHealth", {}).get("State") == "healthy"
-        for item in target_descriptions
+        item.get("TargetHealth", {}).get("State") == "healthy" for item in target_descriptions
     ):
-        raise SlurmAccountingPrivateLinkError(
-            "The PrivateLink database target is not healthy."
-        )
+        raise SlurmAccountingPrivateLinkError("The PrivateLink database target is not healthy.")
     return SlurmAccountingPrivateLinkBridge(
         stack_name=name,
         status=status,
@@ -532,8 +559,7 @@ def _outputs(stack: dict[str, Any], required: frozenset[str]) -> dict[str, str]:
 
 def _tags(stack: dict[str, Any]) -> dict[str, str]:
     return {
-        str(item.get("Key") or ""): str(item.get("Value") or "")
-        for item in stack.get("Tags", [])
+        str(item.get("Key") or ""): str(item.get("Value") or "") for item in stack.get("Tags", [])
     }
 
 

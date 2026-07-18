@@ -10,6 +10,7 @@ from daylily_ec.aws.slurm_accounting_privatelink import (
     derive_privatelink_stack_name,
     ensure_slurm_accounting_privatelink_bridge,
     resolve_slurm_accounting_privatelink_bridge,
+    resolve_slurm_accounting_privatelink_bridge_for_consumer,
 )
 
 
@@ -31,9 +32,7 @@ def _bridge_stack() -> dict:
     return {
         "StackName": "dayec-sacct-pl-vpc-consumer",
         "StackStatus": "CREATE_COMPLETE",
-        "Outputs": [
-            {"OutputKey": key, "OutputValue": value} for key, value in values.items()
-        ],
+        "Outputs": [{"OutputKey": key, "OutputValue": value} for key, value in values.items()],
     }
 
 
@@ -51,9 +50,7 @@ class _Ec2:
                 {
                     "State": "available",
                     "DnsEntries": [
-                        {
-                            "DnsName": "vpce-123.vpce-svc-123.us-west-2.vpce.amazonaws.com"
-                        }
+                        {"DnsName": "vpce-123.vpce-svc-123.us-west-2.vpce.amazonaws.com"}
                     ],
                     "NetworkInterfaceIds": ["eni-endpoint"],
                 }
@@ -96,6 +93,60 @@ def test_derive_bridge_name_requires_real_vpc_id() -> None:
     )
     with pytest.raises(SlurmAccountingPrivateLinkError, match="valid consumer VPC"):
         derive_privatelink_stack_name("consumer-vpc")
+
+
+def test_consumer_bridge_resolution_uses_exact_deterministic_stack(monkeypatch) -> None:
+    consumer_vpc_id = "vpc-0123456789abcdef0"
+    calls = []
+
+    class Bridge:
+        consumer_vpc_id = "vpc-0123456789abcdef0"
+        provider_accounting_stack_name = "dayec-slurm-accounting-us-west-2c"
+
+    bridge = Bridge()
+
+    def resolve(*_args, **kwargs):
+        calls.append(kwargs)
+        return bridge
+
+    monkeypatch.setattr(
+        privatelink,
+        "resolve_slurm_accounting_privatelink_bridge",
+        resolve,
+    )
+
+    result = resolve_slurm_accounting_privatelink_bridge_for_consumer(
+        object(),
+        consumer_vpc_id=consumer_vpc_id,
+        provider_accounting_stack_name="dayec-slurm-accounting-us-west-2c",
+    )
+
+    assert result is bridge
+    assert calls == [
+        {
+            "stack_name": "dayec-sacct-pl-vpc-0123456789abcdef0",
+            "require_healthy_target": True,
+        }
+    ]
+
+
+def test_consumer_bridge_resolution_rejects_provider_mismatch(monkeypatch) -> None:
+    class Bridge:
+        consumer_vpc_id = "vpc-0123456789abcdef0"
+        provider_accounting_stack_name = "different-provider"
+
+    monkeypatch.setattr(
+        privatelink,
+        "resolve_slurm_accounting_privatelink_bridge",
+        lambda *_args, **_kwargs: Bridge(),
+    )
+
+    with pytest.raises(SlurmAccountingPrivateLinkError, match="provider"):
+        resolve_slurm_accounting_privatelink_bridge_for_consumer(
+            object(),
+            consumer_vpc_id="vpc-0123456789abcdef0",
+            provider_accounting_stack_name="dayec-slurm-accounting-us-west-2c",
+        )
 
 
 def test_ensure_updates_existing_stack_and_allows_its_owned_subnet(
@@ -183,8 +234,7 @@ def test_packaged_and_repo_templates_match() -> None:
     root = Path(__file__).resolve().parents[1]
     repo = root / "config/day_cluster/slurm_accounting_privatelink.yml"
     packaged = (
-        root
-        / "daylily_ec/resources/payload/config/day_cluster/slurm_accounting_privatelink.yml"
+        root / "daylily_ec/resources/payload/config/day_cluster/slurm_accounting_privatelink.yml"
     )
     assert repo.read_bytes() == packaged.read_bytes()
     text = repo.read_text(encoding="utf-8")
@@ -193,4 +243,4 @@ def test_packaged_and_repo_templates_match() -> None:
     assert "DestinationSecurityGroupId: !Ref ConsumerClientSecurityGroup" in text
     assert "Port: 3306" in text
     assert "AcceptanceRequired: false" in text
-    assert 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root' in text
+    assert "arn:${AWS::Partition}:iam::${AWS::AccountId}:root" in text
