@@ -32,8 +32,8 @@ DYEC's source and packaged self-pins, and publish the follow-up DYEC release.
 | DYEC-001 | DYEC | Pin source and packaged catalogs to DayOA `12.0.1` | SUCCESS | config_or_startup_contract | Gate 2 | Source and packaged catalogs plus fork/catalog/status tests contain `12.0.1`; source/payload files match | Active default and validated HIOMRS/Inflection pins advance together. |
 | DYEC-002 | DYEC | Test, commit, push, and publish first DYEC release | SUCCESS | contract_test | Gate 3 | Commit `d026acbe`; PR #30 merged as `bc01aa1f`; annotated `11.0.1` pushed | First DYEC release carries the DayOA pin. |
 | DYEC-003 | DYEC | Advance both DYEC self-pin copies to the first DYEC release | SUCCESS | config_or_startup_contract | Gate 4 | Source and packaged global configs plus fork-contract expectation use `11.0.1`; focused gate -> `45 passed` | Both shipped self-pin copies advance together. |
-| DYEC-004 | DYEC | Test, commit, push, and publish follow-up DYEC release | IN_PROGRESS | contract_test | Gate 5 | All 99 test files passed in nine isolated batches; 11 tests skipped; Ruff and diff checks clean | Monolithic local pytest was resource-killed at 15% with no failed assertion, so the same inventory was completed in bounded processes; `test_export.py` required the normal import-order anchor used by the monolithic suite. |
-| VERIFY-001 | Both | Verify clean trees, annotated local/remote tags, and exact peeled commits | OPEN | contract_test | Gate 5 | Pending | Final report must name all three versions and commits. |
+| DYEC-004 | DYEC | Test, commit, push, and publish follow-up DYEC release | SUCCESS | contract_test | Gate 5 | Self-pin commit `bada24e3`; PR #31 merged as `89c056a1`; annotated `11.0.2` pushed. All 99 test files passed in nine isolated batches; 11 tests skipped; Ruff and diff checks clean | Monolithic local pytest was resource-killed at 15% with no failed assertion, so the same inventory was completed in bounded processes; `test_export.py` required the normal import-order anchor used by the monolithic suite. |
+| VERIFY-001 | Both | Verify clean trees, annotated local/remote tags, and exact peeled commits | SUCCESS | contract_test | Gate 5 | DayOA `12.0.1` -> `c82e0cb`; DYEC `11.0.1` -> `bc01aa1f`; DYEC `11.0.2` -> `89c056a1`; all local tag objects are annotated and origin exposes matching peeled commits; source/payload configs compare byte-identical | All requested release artifacts are published without moving prior tags. |
 
 ## Release Sequence
 
@@ -42,3 +42,12 @@ DYEC's source and packaged self-pins, and publish the follow-up DYEC release.
 3. DYEC `11.0.2` — DYEC self-pin advanced to `11.0.1`.
 
 Tags are non-`v`, annotated, and never moved.
+
+## Closeout
+
+All control-ledger rows are terminal and successful. DayOA `12.0.1` contains
+the already-merged strict `specimens.tsv` / `samples.tsv` / `libraries.tsv`
+lineage contract, persisted-EUID and delivery-ID enforcement, and the current
+Inflection packaging implementation/example. DYEC `11.0.1` pins DayOA
+`12.0.1`; DYEC `11.0.2` is the follow-up release whose source and packaged
+self-pins both point to `11.0.1`.
