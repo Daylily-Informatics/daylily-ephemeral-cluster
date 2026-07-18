@@ -69,3 +69,11 @@ Warnings retained in successful rows:
 - Slurm job `10` was requeued below Snakemake, so its benchmark row represents the one workflow attempt Snakemake observed; both physical allocations remain in duplicate `sacct` records.
 - Signal-killed SiteMix allocation `58` could not finish a process-level failed benchmark row; failed allocation `58` and successful retry `164` remain explicit in `sacct`.
 - The live-proven DYEC and DayOA fixes remain dirty and unpublished by design; this execution did not authorize a new commit, tag, release, push, or PR.
+
+## Release follow-through
+
+The final warning above records the boundary at this execution ledger's original closeout. Subsequent explicit user authorization published the live-proven changes through fork-only pull requests and annotated tags:
+
+- DayOA `12.0.5` peels to `ecc9d93b86db4f4134fdef2d6a6edd05c9c56cc1`.
+- DYEC `11.0.6` peels to `2159402969e50612b454d17f585fc10bfefc8804` and contains all implementation and run-evidence files from this ledger plus the DayOA `12.0.5` checkout pins.
+- DYEC `11.0.7` peels to `b5f2eb3a19b65a4abaf480e6a0489a09816ea7dd` and ships the DYEC self-pin at released `11.0.6`.
