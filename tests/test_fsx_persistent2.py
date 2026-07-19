@@ -62,7 +62,7 @@ def _filesystem() -> dict:
             {"Key": "dyec:resource-role", "Value": "fsx"},
             {"Key": "dyec:fsx-owner", "Value": "DYEC"},
             {"Key": "dyec:fsx-lifecycle", "Value": "CLUSTER_BOUND"},
-            {"Key": "ursa-preserve", "Value": "true"},
+            {"Key": "dyec-preserve", "Value": "true"},
         ],
     }
 
@@ -180,7 +180,7 @@ def test_ensure_file_system_creates_exact_p2_metadata_contract() -> None:
         "AutomaticBackupRetentionDays": 0,
         "CopyTagsToBackups": True,
     }
-    assert {item["Key"]: item["Value"] for item in kwargs["Tags"]}["ursa-preserve"] == "true"
+    assert {item["Key"]: item["Value"] for item in kwargs["Tags"]}["dyec-preserve"] == "true"
 
 
 def test_ensure_file_system_reports_lifecycle_every_45_seconds() -> None:
@@ -340,4 +340,4 @@ def test_render_external_mount_adds_all_clients_and_sweeper_tag(tmp_path) -> Non
         queue["Networking"]["AdditionalSecurityGroups"] == ["sg-p2"]
         for queue in payload["Scheduling"]["SlurmQueues"]
     )
-    assert {item["Key"]: item["Value"] for item in payload["Tags"]}["ursa-preserve"] == "true"
+    assert {item["Key"]: item["Value"] for item in payload["Tags"]}["dyec-preserve"] == "true"

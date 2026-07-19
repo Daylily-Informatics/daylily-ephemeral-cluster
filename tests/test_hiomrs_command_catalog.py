@@ -41,7 +41,7 @@ def test_hiomrs_catalog_entry_is_serial_native_dyr_and_mirrored() -> None:
     assert command.compatible_data_modes == ["hybrid_ilmn_ont"]
     assert command.git_tag == "12.0.5"
     assert command.validated_version == "12.0.2"
-    assert command.input_contract == "sample_manifest_v12"
+    assert command.input_contract == "six_manifest"
     assert command.input_requirements.accepted_source_column_sets == [
         [
             "ILMN_R1_FQ",
@@ -90,7 +90,7 @@ def test_hiomrs_kitchensink_has_explicit_native_targets_and_retires_hiomr() -> N
     assert command.compatible_cluster_types == ["sentieon-single"]
     assert command.git_tag == "12.0.5"
     assert command.validated_version == "12.0.2"
-    assert command.input_contract == "sample_manifest_v12"
+    assert command.input_contract == "six_manifest"
     assert command.dy_command.startswith("dy-r produce_hiomrs ")
     assert command.dryrun_dy_command == f"{command.dy_command} -n"
     assert "produce_snv_concordances" in command.dy_command
@@ -111,7 +111,7 @@ def test_hiomrs_kitchensink_has_explicit_native_targets_and_retires_hiomr() -> N
     assert "hybrid_ilmn_ont_snv_kitchensink" not in command_ids
 
 
-def test_betelgeuser_prod_preserves_current_main_entry_on_v12_contract() -> None:
+def test_betelgeuser_prod_preserves_current_main_entry_on_six_manifest_contract() -> None:
     catalog = load_repository_catalog(SOURCE_CATALOG)
     command = catalog.get_command("betelgeuser_hiomr_prod_v1")
     kitchen_sink = catalog.get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
@@ -119,7 +119,7 @@ def test_betelgeuser_prod_preserves_current_main_entry_on_v12_contract() -> None
     assert command.type == "prod"
     assert command.git_tag == "12.0.5"
     assert command.validated_version == "12.0.2"
-    assert command.input_contract == "sample_manifest_v12"
+    assert command.input_contract == "six_manifest"
     assert command.sample_manifest_template == ""
     assert command.dy_command.startswith("dy-r produce_hiomrs ")
     assert command.dryrun_dy_command == f"{command.dy_command} -n"

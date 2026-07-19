@@ -879,6 +879,11 @@ def prepare_command_inputs(
 
 def write_sample_manifest(command: AnalysisCommand, output_dir: Path) -> Path:
     explicit_template = getattr(command, "sample_manifest_template", "")
+    if command.input_contract == "six_manifest":
+        raise TestsRunnerError(
+            f"Command {command.command_id} requires an operator-supplied DayOA 13 "
+            "six-manifest directory. DYEC tests do not synthesize or infer lineage identities."
+        )
     if command.input_contract == "sample_manifest_v12" and not explicit_template:
         raise TestsRunnerError(
             f"Command {command.command_id} requires an operator-supplied DayOA 12 source "

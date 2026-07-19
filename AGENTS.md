@@ -20,6 +20,23 @@
 - Example DayOA smoke/dry-run command: `dy-r help -p -k -j 1 -n`.
 - For BCL/DayOA execution, send these commands into the persistent `tmux` pane as separate commands. Do not collapse setup and execution into a one-shot non-interactive SSM script.
 
+# Provider-Neutral Execution Boundary
+
+- DYEC is a standalone cluster/workflow CLI. It must not require, import,
+  authenticate to, query, or create records in Dayhoff, Ursa, Bloom, TapDB, or
+  any metadata/identity service.
+- Upstream systems and human operators invoke the same public DYEC commands.
+  DYEC consumes explicit local manifests and receipts; it does not discover or
+  resolve identities through a service URL, token, SDK, or network request.
+- Keep identity validation, planning, application, status, and evidence
+  provider-neutral and file-based. Missing supplied identity evidence fails
+  locally when a requested operation requires it.
+- Do not add service-specific launch defaults, artifact names, URLs, tokens,
+  registration calls, or fallback discovery to new DYEC interfaces.
+- Ordinary DayOA/HIOMRS execution must work with no EUIDs and no identity
+  service. Customer-release preparation may require owner-issued identifiers,
+  but they must already be present in the supplied manifests and receipts.
+
 # Analysis-Root Agent Locking
 
 - Before touching `/fsx/analysis_results/**`, record a visit with `dyec analysis visit --analysis-root <root> --mode <read|export|write|unlock|delete|kill> --intent "<reason>"`.
@@ -72,6 +89,10 @@ For cost/performance reports, aggregate directly from those rows: `sum(s)` for t
 - Treat an initial request to "teardown", "destroy", "delete", or similar as permission to inspect, prepare, or dry-run only. Before any live destructive action, restate the exact effect and wait for a separate explicit confirmation.
 - Always read `.md` and other instruction files in `~/.agents/*`, `~/.codex/*`, `./.agents`, `./.codex`, `./AGENTS.md`, and `./CLAUDE.md`.
 - Fallback behavior is an antipattern that wastes time and money in this workspace. Unless the user explicitly approves a specific fallback in the current thread, do not add, preserve, or rely on fallback behavior, compatibility shims, legacy aliases, inferred defaults, generated alternate paths, or service-side discovery. Missing config, missing files, missing deployment identity, missing credentials, malformed commands, or unexpected runtime state must fail hard with a clear error.
+- Never invent production TapDB/Meridian EUIDs. Artificial or fixture EUIDs
+  that intentionally exercise Meridian-shaped identity fields must use the
+  reserved `Z-` prefix. `Z-` values are test-only and must never be persisted,
+  registered, treated as owner-issued, or accepted for customer release.
 
 # Headnode SSM Access
 

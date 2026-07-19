@@ -225,14 +225,19 @@ def test_analysis_command_model_and_launch_error_branches() -> None:
         {"export_trigger": "bad"},
         {"export_destination_s3_uri": "s3://b/k"},
         {"delete_on_export_success": True},
-        {"artifact_registration_command_id": "cmd"},
-        {"dewey_url": "url"},
-        {"dewey_analysis_dir_external_object_id": "one"},
         {"run_context_file": "context.tsv"},
         {"samples_file": "samples.tsv"},
     ]:
         with pytest.raises(ValueError):
             sample.launch_argv(**common, **kwargs)
+
+    for removed in (
+        {"artifact_registration_command_id": "cmd"},
+        {"dewey_url": "url"},
+        {"dewey_analysis_dir_external_object_id": "one"},
+    ):
+        with pytest.raises(TypeError):
+            sample.launch_argv(**common, **removed)
     with pytest.raises(ValueError, match="run_context_file is required"):
         run.launch_argv(**common)
     with pytest.raises(ValueError, match="only valid for run_analysis"):

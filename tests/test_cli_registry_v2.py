@@ -41,7 +41,11 @@ EXPECTED_COMMANDS = {
     ("exports", "attach"),
     ("exports", "run"),
     ("exports", "detach"),
-    ("exports", "register-dewey"),
+    ("identities", "validate"),
+    ("identities", "plan"),
+    ("identities", "apply"),
+    ("identities", "status"),
+    ("identities", "evidence"),
     ("delete",),
     ("resources-dir",),
     ("env", "status"),
@@ -1531,7 +1535,7 @@ def test_export_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
     assert options.output_dir == tmp_path.resolve()
 
 
-def test_export_command_rejects_dewey_options_without_policy(monkeypatch, tmp_path) -> None:
+def test_export_command_rejects_removed_provider_options(monkeypatch, tmp_path) -> None:
     _activate_dayec_runtime(monkeypatch)
 
     result = runner.invoke(
@@ -1556,10 +1560,10 @@ def test_export_command_rejects_dewey_options_without_policy(monkeypatch, tmp_pa
     )
 
     assert result.exit_code != 0
-    assert "artifact-registration-command-id" in result.output
+    assert "No such option" in result.output
 
 
-def test_export_command_passes_dewey_external_link_options(monkeypatch, tmp_path) -> None:
+def test_export_command_has_only_provider_neutral_export_options(monkeypatch, tmp_path) -> None:
     import daylily_ec.workflow.export_data as export_module
 
     calls: dict[str, object] = {}
@@ -1585,26 +1589,13 @@ def test_export_command_passes_dewey_external_link_options(monkeypatch, tmp_path
             "us-west-2",
             "--output-dir",
             str(tmp_path),
-            "--artifact-registration-command-id",
-            "illumina_snv_alignstats_relatedness_vep_multiqc",
-            "--dewey-url",
-            "https://dewey.example",
-            "--dewey-token-env",
-            "DEWEY_TOKEN",
-            "--dewey-analysis-dir-external-object-id",
-            "M-RGX-9S3G",
-            "--dewey-run-artifact-euid",
-            "M-DGX-9SD7",
-            "--dewey-ursa-analysis-euid",
-            "M-RGX-9S3G",
         ],
     )
 
     assert result.exit_code == 0
     options = calls["options"]
-    assert options.dewey_analysis_dir_external_object_id == "M-RGX-9S3G"
-    assert options.dewey_run_artifact_euid == "M-DGX-9SD7"
-    assert options.dewey_ursa_analysis_euid == "M-RGX-9S3G"
+    assert not hasattr(options, "dewey_url")
+    assert not hasattr(options, "artifact_registration_policy")
 
 
 def test_delete_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
@@ -2926,7 +2917,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "produce_dmd_dedup_cram" in dy_command
     assert "produce_smd_dedup_cram" not in dy_command
     assert " -n " in dy_command
-    assert "--produce-ursa-manifest true" in dy_command
+    assert "--produce-analysis-artifact-manifest true" in dy_command
     assert "--produce-rulegraph true" in dy_command
     assert "--produce-filegraph false" in dy_command
     assert "--produce-dag false" in dy_command
@@ -3266,6 +3257,8 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
             "johnm",
             "--git-tag",
             "release-1",
+            "--input-contract",
+            "sample_manifest",
             "--project",
             "project-alpha",
             "--session-name",
@@ -3276,21 +3269,9 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
             "on-success",
             "--delete-on-export-success",
             "--replace-existing-analysis-dir",
-            "--artifact-registration-command-id",
-            "illumina_snv_alignstats_relatedness_vep_multiqc",
-            "--dewey-url",
-            "https://dewey.example",
-            "--dewey-token-env",
-            "DEWEY_TOKEN",
-            "--dewey-analysis-dir-external-object-id",
-            "M-RGX-9S3G",
-            "--dewey-run-artifact-euid",
-            "M-DGX-9SD7",
-            "--dewey-ursa-analysis-euid",
-            "M-RGX-9S3G",
             "--sv-callers",
             "tiddit",
-            "--produce-ursa-manifest",
+            "--produce-analysis-artifact-manifest",
             "false",
             "--produce-rulegraph",
             "false",
@@ -3327,15 +3308,11 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "on-success" in argv
     assert "--delete-on-export-success" in argv
     assert "--replace-existing-analysis-dir" in argv
-    assert "--dewey-analysis-dir-external-object-id" in argv
-    assert "M-RGX-9S3G" in argv
-    assert "--dewey-run-artifact-euid" in argv
-    assert "M-DGX-9SD7" in argv
     assert "--sv-callers" in argv
     assert "tiddit" in argv
     assert "--max-runtime-minutes" in argv
     assert "100" in argv
-    assert argv[argv.index("--produce-ursa-manifest") + 1] == "false"
+    assert argv[argv.index("--produce-analysis-artifact-manifest") + 1] == "false"
     assert argv[argv.index("--produce-rulegraph") + 1] == "false"
     assert argv[argv.index("--produce-filegraph") + 1] == "true"
     assert argv[argv.index("--produce-dag") + 1] == "true"
@@ -3368,6 +3345,11 @@ def test_workflow_launch_expands_export_root_to_cluster_analysis(monkeypatch) ->
             "cluster-a",
             "--analysis-id",
             "run-1",
+            "--git-tag",
+            "release-1",
+            "--input-contract",
+            "none",
+            "--no-input-staging",
             "--executing-entity",
             "johnm",
             "--export-destination-s3-uri",
@@ -3401,6 +3383,11 @@ def test_workflow_launch_rejects_invalid_producer_boolean(monkeypatch) -> None:
             "cluster-a",
             "--analysis-id",
             "run-1",
+            "--git-tag",
+            "release-1",
+            "--input-contract",
+            "none",
+            "--no-input-staging",
             "--executing-entity",
             "johnm",
             "--produce-dag",
@@ -3412,7 +3399,7 @@ def test_workflow_launch_rejects_invalid_producer_boolean(monkeypatch) -> None:
     assert "requires true or false" in result.output
 
 
-def test_workflow_launch_rejects_dewey_options_without_policy(monkeypatch) -> None:
+def test_workflow_launch_rejects_removed_provider_options(monkeypatch) -> None:
     _activate_dayec_runtime(monkeypatch)
 
     result = runner.invoke(
@@ -3444,7 +3431,7 @@ def test_workflow_launch_rejects_dewey_options_without_policy(monkeypatch) -> No
     )
 
     assert result.exit_code != 0
-    assert "artifact-registration-command-id" in result.output
+    assert "No such option" in result.output
 
 
 def test_workflow_launch_defaults_executing_entity_to_cluster(monkeypatch) -> None:
@@ -3472,6 +3459,11 @@ def test_workflow_launch_defaults_executing_entity_to_cluster(monkeypatch) -> No
             "cluster-a",
             "--analysis-id",
             "run-1",
+            "--git-tag",
+            "release-1",
+            "--input-contract",
+            "none",
+            "--no-input-staging",
         ],
     )
 
@@ -3509,6 +3501,10 @@ def test_workflow_launch_forwards_run_context_file(monkeypatch, tmp_path) -> Non
             str(run_context),
             "--analysis-id",
             "run-1",
+            "--git-tag",
+            "release-1",
+            "--input-contract",
+            "run_context",
             "--executing-entity",
             "johnm",
         ],
@@ -3546,6 +3542,10 @@ def test_workflow_launch_forwards_no_input_utility_flags(monkeypatch) -> None:
             "cluster-a",
             "--analysis-id",
             "simple-test",
+            "--git-tag",
+            "release-1",
+            "--input-contract",
+            "none",
             "--executing-entity",
             "johnm",
             "--dy-command",
@@ -3615,6 +3615,10 @@ def test_workflow_launch_rejects_unsafe_analysis_id_before_entrypoint(monkeypatc
             "/fsx/stage/run-1",
             "--analysis-id",
             "../bad",
+            "--git-tag",
+            "release-1",
+            "--input-contract",
+            "sample_manifest",
             "--executing-entity",
             "johnm",
         ],

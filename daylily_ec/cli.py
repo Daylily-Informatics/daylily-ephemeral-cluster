@@ -2070,32 +2070,6 @@ def cluster_tags(
     _emit_cluster_tags_text(payload)
 
 
-def _validate_dewey_analysis_directory_link_options(
-    *,
-    artifact_registration_command_id: Optional[str],
-    dewey_analysis_dir_external_object_id: Optional[str],
-    dewey_run_artifact_euid: Optional[str],
-    dewey_ursa_analysis_euid: Optional[str],
-) -> None:
-    options = {
-        "--dewey-analysis-dir-external-object-id": dewey_analysis_dir_external_object_id,
-        "--dewey-run-artifact-euid": dewey_run_artifact_euid,
-        "--dewey-ursa-analysis-euid": dewey_ursa_analysis_euid,
-    }
-    if not any(str(value or "").strip() for value in options.values()):
-        return
-    missing = [option for option, value in options.items() if not str(value or "").strip()]
-    if missing:
-        raise typer.BadParameter(
-            "Dewey analysis-directory external-link options must be provided together: "
-            + ", ".join(missing)
-        )
-    if not artifact_registration_command_id:
-        raise typer.BadParameter(
-            "--artifact-registration-command-id is required with Dewey external-link options"
-        )
-
-
 def export(
     cluster_name: Optional[str] = typer.Option(
         None,
@@ -2140,81 +2114,15 @@ def export(
     ),
     wait: bool = typer.Option(True, "--wait/--no-wait", help="Wait for DRA/task/detach."),
     timeout_seconds: int = typer.Option(3600, "--timeout-seconds", help="Wait timeout."),
-    artifact_registration_command_id: Optional[str] = typer.Option(
-        None,
-        "--artifact-registration-command-id",
-        help="Repository catalog command id whose explicit artifact_registration policy should be applied after export.",
-    ),
-    repository_catalog: Optional[Path] = typer.Option(
-        None,
-        "--repository-catalog",
-        help="Repository catalog YAML path. Defaults to the packaged catalog.",
-    ),
-    dewey_url: str = typer.Option(
-        "",
-        "--dewey-url",
-        help="Dewey base URL for post-export artifact registration.",
-    ),
-    dewey_token_env: str = typer.Option(
-        "",
-        "--dewey-token-env",
-        help="Environment variable containing the Dewey bearer token.",
-    ),
-    dewey_analysis_dir_external_object_id: str = typer.Option(
-        "",
-        "--dewey-analysis-dir-external-object-id",
-        help="External object id for the exported daylily-omics-analysis S3 directory.",
-    ),
-    dewey_run_artifact_euid: str = typer.Option(
-        "",
-        "--dewey-run-artifact-euid",
-        help="Dewey run artifact EUID to link to the exported analysis directory external object.",
-    ),
-    dewey_ursa_analysis_euid: str = typer.Option(
-        "",
-        "--dewey-ursa-analysis-euid",
-        help="Ursa analysis EUID to link to the exported analysis directory external object.",
-    ),
 ) -> None:
-    """Export FSx outputs through an explicit temporary DRA."""
+    """Export FSx outputs through an explicit DRA and immutable S3 receipt."""
 
     from daylily_ec.workflow.export_data import (
         ExportOptions,
         configure_logging,
         run_export_workflow,
     )
-    from daylily_ec.repositories import load_repository_catalog
-
     _warn_if_dayec_env_inactive()
-    artifact_registration_policy = None
-    artifact_registration_genome = ""
-    _validate_dewey_analysis_directory_link_options(
-        artifact_registration_command_id=artifact_registration_command_id,
-        dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
-        dewey_run_artifact_euid=dewey_run_artifact_euid,
-        dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
-    )
-    if artifact_registration_command_id:
-        catalog = load_repository_catalog(repository_catalog)
-        command = catalog.get_command(artifact_registration_command_id)
-        if command.artifact_registration is None:
-            raise typer.BadParameter(
-                f"Command {artifact_registration_command_id!r} has no artifact_registration policy"
-            )
-        artifact_registration_policy = command.artifact_registration
-        artifact_registration_genome = command.genome
-        if not dewey_url:
-            raise typer.BadParameter(
-                "--dewey-url is required with --artifact-registration-command-id"
-            )
-        if not dewey_token_env:
-            raise typer.BadParameter(
-                "--dewey-token-env is required with --artifact-registration-command-id"
-            )
-    elif dewey_url or dewey_token_env:
-        raise typer.BadParameter(
-            "--artifact-registration-command-id is required when Dewey registration options are set"
-        )
     configure_logging(verbose)
     rc = run_export_workflow(
         ExportOptions(
@@ -2227,14 +2135,6 @@ def export(
             output_dir=output_dir.expanduser().resolve(),
             wait=wait,
             timeout_seconds=timeout_seconds,
-            artifact_registration_policy=artifact_registration_policy,
-            artifact_registration_genome=artifact_registration_genome,
-            dewey_url=dewey_url,
-            dewey_token_env=dewey_token_env,
-            dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
-            dewey_run_artifact_euid=dewey_run_artifact_euid,
-            dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
-            artifact_registration_command_id=artifact_registration_command_id or "",
         )
     )
     raise typer.Exit(rc)
@@ -2360,109 +2260,6 @@ def exports_detach(
         )
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
-
-
-def exports_register_dewey(
-    source_path: str = typer.Option(
-        ...,
-        "--source-path",
-        help="Exported analysis directory under /fsx/analysis_results/<executing-entity>/<analysis-id>/.",
-    ),
-    destination_s3_uri: str = typer.Option(
-        ...,
-        "--destination-s3-uri",
-        help="Existing S3 URI ending in <executing-entity>/<analysis-id>/.",
-    ),
-    region: str = typer.Option(..., "--region", help="AWS region for S3 access."),
-    output_dir: Path = typer.Option(
-        ...,
-        "--output-dir",
-        help="Directory where fsx_export.yaml and dewey_registration_receipt.json will be written.",
-    ),
-    artifact_registration_command_id: str = typer.Option(
-        ...,
-        "--artifact-registration-command-id",
-        help="Repository catalog command id whose explicit artifact_registration policy should be applied.",
-    ),
-    manifest_source: str = typer.Option(
-        ...,
-        "--manifest-source",
-        help="Registration manifest source: dayoa-manifest or s3-inventory.",
-    ),
-    repository_catalog: Optional[Path] = typer.Option(
-        None,
-        "--repository-catalog",
-        help="Repository catalog YAML path. Defaults to the packaged catalog.",
-    ),
-    dewey_url: str = typer.Option(..., "--dewey-url", help="Dewey base URL."),
-    dewey_token_env: str = typer.Option(
-        ...,
-        "--dewey-token-env",
-        help="Environment variable containing the Dewey bearer token.",
-    ),
-    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
-    verbose: bool = typer.Option(False, "--verbose", help="Enable verbose registration logging."),
-    dewey_analysis_dir_external_object_id: str = typer.Option(
-        "",
-        "--dewey-analysis-dir-external-object-id",
-        help="External object id for the exported daylily-omics-analysis S3 directory.",
-    ),
-    dewey_run_artifact_euid: str = typer.Option(
-        "",
-        "--dewey-run-artifact-euid",
-        help="Dewey run artifact EUID to link to the exported analysis directory external object.",
-    ),
-    dewey_ursa_analysis_euid: str = typer.Option(
-        "",
-        "--dewey-ursa-analysis-euid",
-        help="Ursa analysis EUID to link to the exported analysis directory external object.",
-    ),
-) -> None:
-    """Register an existing exported analysis directory with Dewey without running FSx export."""
-
-    from daylily_ec.repositories import load_repository_catalog
-    from daylily_ec.workflow.export_data import (
-        RegisterExistingExportOptions,
-        configure_logging,
-        run_dewey_registration_for_existing_export,
-    )
-
-    _warn_if_dayec_env_inactive()
-    normalized_manifest_source = manifest_source.strip().replace("-", "_")
-    if normalized_manifest_source not in {"dayoa_manifest", "s3_inventory"}:
-        raise typer.BadParameter("--manifest-source must be dayoa-manifest or s3-inventory")
-    _validate_dewey_analysis_directory_link_options(
-        artifact_registration_command_id=artifact_registration_command_id,
-        dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
-        dewey_run_artifact_euid=dewey_run_artifact_euid,
-        dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
-    )
-    catalog = load_repository_catalog(repository_catalog)
-    command = catalog.get_command(artifact_registration_command_id)
-    if command.artifact_registration is None:
-        raise typer.BadParameter(
-            f"Command {artifact_registration_command_id!r} has no artifact_registration policy"
-        )
-    configure_logging(verbose)
-    rc = run_dewey_registration_for_existing_export(
-        RegisterExistingExportOptions(
-            source_path=source_path,
-            destination_s3_uri=destination_s3_uri,
-            region=region,
-            profile=profile,
-            output_dir=output_dir.expanduser().resolve(),
-            artifact_registration_policy=command.artifact_registration,
-            artifact_registration_genome=command.genome,
-            artifact_registration_manifest_source=normalized_manifest_source,
-            artifact_registration_command_id=artifact_registration_command_id,
-            dewey_url=dewey_url,
-            dewey_token_env=dewey_token_env,
-            dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
-            dewey_run_artifact_euid=dewey_run_artifact_euid,
-            dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
-        )
-    )
-    raise typer.Exit(rc)
 
 
 def delete(
@@ -4125,31 +3922,6 @@ def samples_run(
             "Existing analysis directories fail hard unless this flag is set."
         ),
     ),
-    dewey_url: Optional[str] = typer.Option(
-        None,
-        "--dewey-url",
-        help="Dewey base URL for post-export artifact registration.",
-    ),
-    dewey_token_env: Optional[str] = typer.Option(
-        None,
-        "--dewey-token-env",
-        help="Environment variable containing the Dewey bearer token.",
-    ),
-    dewey_analysis_dir_external_object_id: Optional[str] = typer.Option(
-        None,
-        "--dewey-analysis-dir-external-object-id",
-        help="External object id for the exported daylily-omics-analysis S3 directory.",
-    ),
-    dewey_run_artifact_euid: Optional[str] = typer.Option(
-        None,
-        "--dewey-run-artifact-euid",
-        help="Dewey run artifact EUID to link to the exported analysis directory external object.",
-    ),
-    dewey_ursa_analysis_euid: Optional[str] = typer.Option(
-        None,
-        "--dewey-ursa-analysis-euid",
-        help="Ursa analysis EUID to link to the exported analysis directory external object.",
-    ),
     catalog_config: Optional[Path] = typer.Option(
         None,
         "--catalog-config",
@@ -4184,6 +3956,12 @@ def samples_run(
         )
         catalog = load_repository_catalog(catalog_config)
         command = catalog.get_command(command_id)
+        if command.input_contract == "six_manifest":
+            raise CommandError(
+                "dyec samples run does not infer DayOA 13 topology from a consolidated table; "
+                "validate six local manifests, then use `dyec workflow launch --manifest-dir DIR "
+                "--git-tag TAG`"
+            )
         data_modes = detect_manifest_data_modes(analysis_path)
         incompatible = command.incompatible_modes(data_modes)
         if incompatible:
@@ -4193,26 +3971,6 @@ def samples_run(
                 "Compatible modes: " + ", ".join(command.compatible_data_modes)
             )
         _validate_sample_command_input_requirements(analysis_path, command)
-        artifact_registration_command_id = None
-        if dewey_url or dewey_token_env:
-            if export_trigger == "none":
-                raise CommandError("--dewey-url/--dewey-token-env require --export-trigger.")
-            if not dewey_url or not dewey_token_env:
-                raise CommandError("--dewey-url and --dewey-token-env must be provided together.")
-            if command.artifact_registration is None:
-                raise CommandError(
-                    f"Analysis command {command.command_id} has no artifact_registration policy."
-                )
-            artifact_registration_command_id = command.command_id
-        try:
-            _validate_dewey_analysis_directory_link_options(
-                artifact_registration_command_id=artifact_registration_command_id,
-                dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
-                dewey_run_artifact_euid=dewey_run_artifact_euid,
-                dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
-            )
-        except typer.BadParameter as exc:
-            raise CommandError(str(exc)) from exc
         resolved_profile = _resolved_aws_profile(profile)
         resolved_region = (
             region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
@@ -4271,12 +4029,6 @@ def samples_run(
             export_trigger=export_trigger,
             delete_on_export_success=delete_on_export_success,
             replace_existing_analysis_dir=replace_existing_analysis_dir,
-            artifact_registration_command_id=artifact_registration_command_id,
-            dewey_url=dewey_url,
-            dewey_token_env=dewey_token_env,
-            dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
-            dewey_run_artifact_euid=dewey_run_artifact_euid,
-            dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
         )
         workflow_cli_argv.extend(["--max-runtime-minutes", str(max_runtime_minutes)])
         launch_stdout_buffer = io.StringIO()
@@ -4311,9 +4063,6 @@ def samples_run(
             "max_runtime_minutes": max_runtime_minutes,
             "delete_on_export_success": delete_on_export_success,
             "replace_existing_analysis_dir": replace_existing_analysis_dir,
-            "dewey_analysis_dir_external_object_id": dewey_analysis_dir_external_object_id,
-            "dewey_run_artifact_euid": dewey_run_artifact_euid,
-            "dewey_ursa_analysis_euid": dewey_ursa_analysis_euid,
             "git_tag": resolved_git_tag,
             "remote_stage_dir": remote_stage_dir,
             "input_contract": command.input_contract,
@@ -4345,6 +4094,101 @@ def samples_run(
         _exit_headnode_error(exc)
 
 
+def _run_identity_operation(operation, *, output_path: Optional[Path], **kwargs: object) -> None:
+    """Execute one provider-neutral local identity operation."""
+
+    from daylily_ec.identity_receipts import IdentityReceiptError, write_payload
+    from daylily_ec.manifest_set import ManifestSetError
+
+    try:
+        payload = operation(**kwargs)
+        write_payload(payload, output_path)
+    except (IdentityReceiptError, ManifestSetError, OSError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    if _json_mode():
+        output.emit_json(payload)
+    else:
+        output.print_text(json.dumps(payload, indent=2, sort_keys=True))
+        if output_path is not None:
+            output.success(f"Wrote identity evidence: {output_path.expanduser().resolve()}")
+
+
+def identities_validate(
+    manifest_dir: Path = typer.Option(..., "--manifest-dir", help="Exact six-manifest directory."),
+    output_path: Optional[Path] = typer.Option(None, "--output", help="Optional JSON receipt path."),
+) -> None:
+    """Validate local six-manifest topology and identity eligibility."""
+
+    from daylily_ec.identity_receipts import validate
+
+    _run_identity_operation(
+        validate,
+        output_path=output_path,
+        manifest_dir=manifest_dir,
+    )
+
+
+def identities_plan(
+    manifest_dir: Path = typer.Option(..., "--manifest-dir", help="Exact six-manifest directory."),
+    identity_receipt: Optional[Path] = typer.Option(
+        None,
+        "--identity-receipt",
+        help="Optional local owner-issued identity receipt; no service lookup is performed.",
+    ),
+    output_path: Optional[Path] = typer.Option(None, "--output", help="Optional plan JSON path."),
+) -> None:
+    """Plan hash-bound local identity receipt application without network access."""
+
+    from daylily_ec.identity_receipts import plan
+
+    _run_identity_operation(
+        plan,
+        output_path=output_path,
+        manifest_dir=manifest_dir,
+        identity_receipt=identity_receipt,
+    )
+
+
+def identities_apply(
+    manifest_dir: Path = typer.Option(..., "--manifest-dir", help="Exact source manifests."),
+    plan_path: Path = typer.Option(..., "--plan", help="Hash-bound local identity plan JSON."),
+    output_dir: Path = typer.Option(..., "--output-dir", help="Required empty output directory."),
+) -> None:
+    """Apply a verified local receipt into a new manifest directory."""
+
+    from daylily_ec.identity_receipts import apply
+
+    _run_identity_operation(
+        apply,
+        output_path=None,
+        manifest_dir=manifest_dir,
+        plan_path=plan_path,
+        output_dir=output_dir,
+    )
+
+
+def identities_status(
+    manifest_dir: Path = typer.Option(..., "--manifest-dir", help="Exact six-manifest directory."),
+    output_path: Optional[Path] = typer.Option(None, "--output", help="Optional status JSON path."),
+) -> None:
+    """Report blank, test, and owner-issued local identifier counts."""
+
+    from daylily_ec.identity_receipts import status
+
+    _run_identity_operation(status, output_path=output_path, manifest_dir=manifest_dir)
+
+
+def identities_evidence(
+    manifest_dir: Path = typer.Option(..., "--manifest-dir", help="Exact six-manifest directory."),
+    output_path: Path = typer.Option(..., "--output", help="Required evidence JSON path."),
+) -> None:
+    """Write checksumed provider-neutral identity evidence."""
+
+    from daylily_ec.identity_receipts import evidence
+
+    _run_identity_operation(evidence, output_path=output_path, manifest_dir=manifest_dir)
+
+
 def workflow_launch(
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
@@ -4359,10 +4203,15 @@ def workflow_launch(
         "--stage-dir",
         help="Specific staging directory containing generated manifests.",
     ),
+    manifest_dir: Optional[Path] = typer.Option(
+        None,
+        "--manifest-dir",
+        help="Local directory containing exactly the six DayOA 13 manifests.",
+    ),
     input_contract: str = typer.Option(
-        "sample_manifest",
+        "six_manifest",
         "--input-contract",
-        help="Explicit input contract: sample_manifest, sample_manifest_v12, run_context, or none.",
+        help="Explicit input contract: six_manifest, run_context, or none.",
     ),
     run_context_file: Optional[Path] = typer.Option(
         None,
@@ -4430,11 +4279,11 @@ def workflow_launch(
         "--repository",
         help="Repository key to pass to day-clone.",
     ),
-    git_tag: str = typer.Option(
-        "main",
+    git_tag: Optional[str] = typer.Option(
+        None,
         "--git-tag",
         "-t",
-        help="Git branch or tag passed to day-clone.",
+        help="Required explicit DayOA branch or tag passed to day-clone.",
     ),
     project: Optional[str] = typer.Option(None, "--project", help="Project/budget for dyoainit."),
     skip_project_check: bool = typer.Option(
@@ -4471,9 +4320,9 @@ def workflow_launch(
         "--snakemake-extra",
         help="Additional arguments appended to dy-r.",
     ),
-    produce_ursa_manifest: Optional[str] = typer.Option(
+    produce_analysis_artifact_manifest: Optional[str] = typer.Option(
         None,
-        "--produce-ursa-manifest",
+        "--produce-analysis-artifact-manifest",
         help="Override the DYEC default passed to dy-r; value must be true or false.",
     ),
     produce_rulegraph: Optional[str] = typer.Option(
@@ -4529,36 +4378,6 @@ def workflow_launch(
             "Existing analysis directories fail hard unless this flag is set."
         ),
     ),
-    artifact_registration_command_id: Optional[str] = typer.Option(
-        None,
-        "--artifact-registration-command-id",
-        help="Catalog command id whose artifact_registration policy should run after export.",
-    ),
-    dewey_url: Optional[str] = typer.Option(
-        None,
-        "--dewey-url",
-        help="Dewey base URL for post-export artifact registration.",
-    ),
-    dewey_token_env: Optional[str] = typer.Option(
-        None,
-        "--dewey-token-env",
-        help="Environment variable containing the Dewey bearer token.",
-    ),
-    dewey_analysis_dir_external_object_id: Optional[str] = typer.Option(
-        None,
-        "--dewey-analysis-dir-external-object-id",
-        help="External object id for the exported daylily-omics-analysis S3 directory.",
-    ),
-    dewey_run_artifact_euid: Optional[str] = typer.Option(
-        None,
-        "--dewey-run-artifact-euid",
-        help="Dewey run artifact EUID to link to the exported analysis directory external object.",
-    ),
-    dewey_ursa_analysis_euid: Optional[str] = typer.Option(
-        None,
-        "--dewey-ursa-analysis-euid",
-        help="Ursa analysis EUID to link to the exported analysis directory external object.",
-    ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Launch a dry-run workflow command."),
 ) -> None:
     """Launch daylily-omics-analysis inside tmux on the headnode."""
@@ -4570,9 +4389,36 @@ def workflow_launch(
     )
 
     _warn_if_dayec_env_inactive()
+    if not str(git_tag or "").strip():
+        raise typer.BadParameter(
+            "--git-tag is required; DYEC never discovers or defaults a DayOA revision",
+            param_hint="--git-tag",
+        )
+    if manifest_dir is not None:
+        if input_contract != "six_manifest":
+            raise typer.BadParameter(
+                "--manifest-dir requires --input-contract six_manifest",
+                param_hint="--manifest-dir",
+            )
+        if any((stage_dir, specimens_file, samples_file, libraries_file, units_file)):
+            raise typer.BadParameter(
+                "--manifest-dir cannot be combined with legacy staging or individual manifest options",
+                param_hint="--manifest-dir",
+            )
+        from daylily_ec.manifest_set import ManifestSetError, load_manifest_set
+
+        try:
+            load_manifest_set(manifest_dir)
+        except ManifestSetError as exc:
+            raise typer.BadParameter(str(exc), param_hint="--manifest-dir") from exc
+    elif input_contract == "six_manifest" and input_staging:
+        raise typer.BadParameter(
+            "six_manifest workflow launch requires --manifest-dir",
+            param_hint="--manifest-dir",
+        )
     producer_option_values: dict[str, str] = {}
     for flag, value in (
-        ("--produce-ursa-manifest", produce_ursa_manifest),
+        ("--produce-analysis-artifact-manifest", produce_analysis_artifact_manifest),
         ("--produce-rulegraph", produce_rulegraph),
         ("--produce-filegraph", produce_filegraph),
         ("--produce-dag", produce_dag),
@@ -4596,24 +4442,6 @@ def workflow_launch(
         export_trigger=export_trigger,
         delete_on_export_success=delete_on_export_success,
     )
-    if artifact_registration_command_id and export_trigger == "none":
-        raise typer.BadParameter("--artifact-registration-command-id requires --export-trigger")
-    if artifact_registration_command_id and not dewey_url:
-        raise typer.BadParameter("--dewey-url is required with --artifact-registration-command-id")
-    if artifact_registration_command_id and not dewey_token_env:
-        raise typer.BadParameter(
-            "--dewey-token-env is required with --artifact-registration-command-id"
-        )
-    if not artifact_registration_command_id and (dewey_url or dewey_token_env):
-        raise typer.BadParameter(
-            "--artifact-registration-command-id is required when Dewey registration options are set"
-        )
-    _validate_dewey_analysis_directory_link_options(
-        artifact_registration_command_id=artifact_registration_command_id,
-        dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
-        dewey_run_artifact_euid=dewey_run_artifact_euid,
-        dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
-    )
     resolved_session_name = session_name or analysis_id
     argv: list[str] = []
     for flag, value in (
@@ -4621,6 +4449,7 @@ def workflow_launch(
         ("--region", region),
         ("--cluster", cluster),
         ("--stage-dir", stage_dir),
+        ("--manifest-dir", str(manifest_dir.expanduser()) if manifest_dir else None),
         ("--input-contract", input_contract),
         ("--run-context-file", str(run_context_file.expanduser()) if run_context_file else None),
         ("--specimens-file", str(specimens_file.expanduser()) if specimens_file else None),
@@ -4646,12 +4475,6 @@ def workflow_launch(
         ("--max-runtime-minutes", str(max_runtime_minutes)),
         ("--export-destination-s3-uri", resolved_export_destination_s3_uri),
         ("--export-trigger", export_trigger),
-        ("--artifact-registration-command-id", artifact_registration_command_id),
-        ("--dewey-url", dewey_url),
-        ("--dewey-token-env", dewey_token_env),
-        ("--dewey-analysis-dir-external-object-id", dewey_analysis_dir_external_object_id),
-        ("--dewey-run-artifact-euid", dewey_run_artifact_euid),
-        ("--dewey-ursa-analysis-euid", dewey_ursa_analysis_euid),
     ):
         if value is not None:
             argv.extend([flag, value])
@@ -6766,6 +6589,26 @@ def register(registry, cli_spec) -> None:
     )
     register_group_commands(
         registry,
+        "identities",
+        "Provider-neutral local manifest identity receipts; never contacts an identity service.",
+        [
+            ("validate", identities_validate, REQUIRED_JSON),
+            ("plan", identities_plan, REQUIRED_JSON),
+            (
+                "apply",
+                identities_apply,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            ("status", identities_status, REQUIRED_JSON),
+            (
+                "evidence",
+                identities_evidence,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+        ],
+    )
+    register_group_commands(
+        registry,
         "workflow",
         "Headnode workflow helpers.",
         [
@@ -6823,11 +6666,6 @@ def register(registry, cli_spec) -> None:
                 "detach",
                 exports_detach,
                 required_policy(supports_json=True, mutates_state=True, long_running=True),
-            ),
-            (
-                "register-dewey",
-                exports_register_dewey,
-                required_policy(supports_json=True, mutates_state=True),
             ),
         ],
     )

@@ -2,7 +2,7 @@
 
 [![Latest release](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_release_tag&label=latest%20release&cacheSeconds=300&color=teal)](https://github.com/lsmc-bio/daylily-ephemeral-cluster/releases) [![Latest tag](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_tag&label=latest%20tag&color=pink&cacheSeconds=300)](https://github.com/lsmc-bio/daylily-ephemeral-cluster/tags)
 
-Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the Daylily control plane for short-lived AWS ParallelCluster environments. It renders cluster configuration, validates AWS prerequisites, creates FSx for Lustre storage, connects to headnodes through AWS Systems Manager, stages inputs, launches workflow repositories, exports completed analysis directories, and optionally registers exported evidence with Dewey for downstream QEO ingestion.
+Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the Daylily control plane for short-lived AWS ParallelCluster environments. It renders cluster configuration, validates AWS prerequisites, creates FSx for Lustre storage, connects to headnodes through AWS Systems Manager, stages inputs, launches workflow repositories, and exports completed analysis directories with immutable local receipts.
 
 The cluster is disposable. The S3 inputs, reference bucket, analysis-export bucket, command catalog, and evidence receipts are durable. Do not delete a cluster until the export receipt and expected S3 outputs are verified.
 
@@ -11,6 +11,44 @@ The cluster is disposable. The S3 inputs, reference bucket, analysis-export buck
 DYEC is deliberately not a dogma-locked workflow manager. It provisions and exports the execution environment. The checked-out repository owns its workflow engine, command syntax, containers, profile, and final file layout below the analysis root. DayOA/Snakemake is the first-class Daylily workflow repository, and nf-core/Nextflow repositories such as `daylily-sarek` can also run on the same cluster when they honor the same FSx analysis-root and export contract.
 
 The operating contract is strict. Missing config, credentials, references, run mounts, licenses, runtime assets, invalid sample identity, unsafe path segments, non-empty export destinations, and malformed command catalog rows should fail hard. DYEC should not guess a bucket, invent a credential, choose a replacement reference, or silently fall back to a legacy launch path.
+
+### DayOA 13 six-manifest launch
+
+New DayOA 13 sample analyses are launched from an explicit local directory
+containing exactly these six validated TSVs:
+
+```text
+specimens.tsv
+samples.tsv
+libraries.tsv
+sequencing_inputs.tsv
+analysis_units.tsv
+analysis_unit_inputs.tsv
+```
+
+`sequencing_inputs.tsv` declares `MODALITY` as exactly `sr` or `lr`, declares
+an exact layout (`paired_fastq`, `single_fastq`, `aligned_bam`, `aligned_cram`,
+or `vcf`), and populates exactly one supported DayOA source bundle. Each
+`analysis_unit_inputs.tsv` role must equal its selected input modality and its
+positive `INPUT_ORDINAL` values must be unique and contiguous. DYEC validates
+all foreign keys and copies the six files byte-for-byte; the headnode verifies
+their SHA-256 hashes before DayOA starts. Legacy `units.tsv`, partial sets, and
+topology inference fail.
+
+```bash
+dyec identities validate --manifest-dir config/
+dyec identities status --manifest-dir config/
+dyec workflow launch \
+  --profile lsmc --region us-west-2 --cluster <cluster> \
+  --analysis-id <analysis-id> --executing-entity <owner> \
+  --manifest-dir config/ --git-tag <exact-dyoa-tag>
+```
+
+`dyec identities plan|apply|evidence` operate only on local files and
+hash-bound receipts. They never create or resolve identities and accept no
+service URL or token. Blank and reserved `Z-` test identifiers are valid for
+analysis but make the corresponding analysis unit ineligible for customer
+release.
 
 ## Architecture
 
@@ -28,8 +66,6 @@ flowchart LR
   Repo --> Results["/fsx/analysis_results/<entity>/<analysis_id>"]
   Results -->|temporary export DRA| AnalysisBucket["analysis S3 bucket"]
   AnalysisBucket --> Receipt["fsx_export.yaml"]
-  Receipt --> Dewey["Dewey registration"]
-  Dewey --> QEO["QEO ingestion"]
 ```
 
 ## Filesystem Contract
@@ -56,17 +92,6 @@ Interactive `dyec create` runs explicitly ask for:
 The offered defaults are `PERSISTENT_2`, `4800` GiB, and `250` MB/s/TiB.
 They remain visible interactive choices: pressing Enter accepts them, while a
 different listed value can be selected before any AWS context or provisioning.
-
-At the start of an interactive create, DYEC also asks for an optional explicit
-Ursa root URL. When supplied, a successful create ends with the canonical
-cluster-detail link:
-
-```text
-https://<ursa-root>/clusters/<cluster-name>?region=<region>
-```
-
-The service root is never inferred. A configured URL must be an absolute HTTP
-or HTTPS root without credentials, query parameters, or a fragment.
 
 Before AWS context and provisioning, DYEC prints the selected type, capacity,
 applicable throughput, and lifecycle. Each cluster receives its own filesystem;
@@ -529,19 +554,23 @@ The initial selector is exactly `hiomrs-kitchensink`, mapped to catalog key
 `hybrid_ilmn_ont_hiomrs_kitchensink`. `bjuice-v1` fails clearly until its own
 artifact contract is implemented; there is no compatibility fallback.
 
-## Supporting Services
+## Provider-neutral operation
 
-- **Dewey**: DYEC can register exported DayOA evidence after a successful export when the command catalog declares an explicit `artifact_registration` policy.
-- **QEO**: QEO loading is requested through Dewey/outbox events. DayOA emits local evidence; DYEC maps that evidence to exported S3 artifacts.
-- **Ursa**: Ursa can own operator worksets and launch UX above DYEC. DYEC remains the cluster and export control plane. DRAGEN cluster creation and run notes live in [running_dragen_manually.md](docs/other/running_dragen_manually.md).
-- **PCUI**: PCUI-style interfaces should call the same catalog and CLI/API surfaces rather than duplicating launch policy.
-- **Slurm**: Slurm is cluster infrastructure. Monitoring with `squeue`, `sacct` when configured, logs, and DYEC status commands is allowed. Scheduler, node, job, drain/resume, requeue, cancel, or service interventions require explicit operator approval.
+DYEC is a standalone cluster, workflow-staging, monitoring, and immutable S3
+export tool. It does not call an identity service or metadata service, does not
+create or resolve production identities, and does not require a service URL or
+token. Upstream systems and human operators may invoke the same CLI contract.
+Owner-issued identifiers are accepted only as local manifest or receipt data;
+blank identifiers and reserved `Z-` test identifiers remain valid for ordinary
+analysis, while customer-release eligibility requires non-test owner-issued
+identities.
 
-### Ursa Service User Cluster Management
+An immutable S3 export produces a provider-neutral local receipt. Registration,
+delivery, and downstream service ingestion are separate responsibilities and
+are not performed by DYEC.
 
-When Ursa is managing two live cluster families, keep the cluster family
-explicit in workset and launch metadata. The two families are not
-interchangeable:
+Keep the two supported live cluster families explicit in launch metadata; they
+are not interchangeable:
 
 - Standard DayOA/Sentieon cluster: command catalog rows declare
   `compatible_cluster_types: [daywgs]`; launch through the standard Ubuntu
@@ -553,7 +582,8 @@ interchangeable:
   verified equivalent RHEL/f2 AZ, then run native DRAGEN work on the DRAGEN
   Slurm partition.
 
-Ursa should persist these fields for every cluster-backed workset:
+An upstream orchestration system may persist these fields for each
+cluster-backed workset without changing DYEC's standalone contract:
 
 - AWS profile: usually `lsmc`
 - AWS region: usually `us-west-2`

@@ -112,7 +112,26 @@ def analysis_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     )
     _write(
         dayoa / "config" / "libraries.tsv",
-        "ANALYSIS_UNIT_UID\tLIBRARY_EUID\tSAMPLEID\nHG003_unit\tfixture-library-owned-003\tHG003\n",
+        "LIBRARY_ID\tLIBRARY_EUID\tSAMPLEID\n"
+        "HG003_sr_library\tfixture-library-owned-003\tHG003\n"
+        "HG003_lr_library\tfixture-library-owned-004\tHG003\n",
+    )
+    _write(
+        dayoa / "config" / "sequencing_inputs.tsv",
+        "SEQUENCING_INPUT_UID\tLIBRARY_ID\tMODALITY\tLAYOUT\tILMN_R1_PATH\tILMN_R2_PATH\tONT_R1_PATH\n"
+        "HG003_sr_input\tHG003_sr_library\tsr\tpaired_fastq\t/data/sr_R1.fastq.gz\t/data/sr_R2.fastq.gz\t\n"
+        "HG003_lr_input\tHG003_lr_library\tlr\tsingle_fastq\t\t\t/data/lr.fastq.gz\n",
+    )
+    _write(
+        dayoa / "config" / "analysis_units.tsv",
+        "ANALYSIS_UNIT_UID\tSAMPLEID\tANALYSIS_UNIT_EUID\tDELIVERY_EUID\n"
+        "HG003_unit\tHG003\tZ-AU-HG003\tZ-DELIVERY-HG003\n",
+    )
+    _write(
+        dayoa / "config" / "analysis_unit_inputs.tsv",
+        "ANALYSIS_UNIT_UID\tSEQUENCING_INPUT_UID\tROLE\tINPUT_ORDINAL\n"
+        "HG003_unit\tHG003_sr_input\tsr\t1\n"
+        "HG003_unit\tHG003_lr_input\tlr\t2\n",
     )
     _write(
         dayoa / "config" / "day_profiles" / "slurm" / "templates" / "rule_config.yaml",
@@ -219,16 +238,19 @@ def test_collect_sample_stats_contract(analysis_root: Path) -> None:
     assert report["command_details"]["retried_jobs"]["count"] == 1
     assert report["analysis"]["started_at_source"] == "controller process elapsed time"
     assert 599 <= report["analysis"]["runtime_seconds"] <= 601
-    assert report["pipeline"]["input_contract"] == "sample_manifest_v12"
+    assert report["pipeline"]["input_contract"] == "six_manifest"
     assert report["pipeline"]["manifest_files"] == [
         "specimens.tsv",
         "samples.tsv",
         "libraries.tsv",
+        "sequencing_inputs.tsv",
+        "analysis_units.tsv",
+        "analysis_unit_inputs.tsv",
     ]
     assert report["pipeline"]["specimens_rows"] == 1
     assert report["pipeline"]["samples_rows"] == 1
     assert report["pipeline"]["units_rows"] == 1
-    assert report["pipeline"]["libraries_rows"] == 1
+    assert report["pipeline"]["libraries_rows"] == 2
     assert report["pipeline"]["jobs_submitted"] == 4
     assert report["pipeline"]["jobs_still_to_run"] == 6
     assert report["pipeline"]["jobs_retried"] == 1
@@ -244,7 +266,11 @@ def test_collect_sample_stats_contract(analysis_root: Path) -> None:
     }
     unit = report["library_units"][0]
     assert unit["analysis_unit_uid"] == "HG003_unit"
-    assert unit["library_euid"] == "fixture-library-owned-003"
+    assert unit["library_euid"] is None
+    assert unit["library_euids"] == [
+        "fixture-library-owned-003",
+        "fixture-library-owned-004",
+    ]
     assert unit["sample_euid"] == "fixture-sample-owned-003"
     assert unit["specimen_id"] == "HG003_specimen"
     assert unit["specimen_euid"] == "fixture-specimen-owned-003"
@@ -336,57 +362,48 @@ def test_v2_preserves_the_public_v1_field_surface(analysis_root: Path) -> None:
 
 
 def test_authoritative_analysis_unit_uid_is_unique_when_supplied(analysis_root: Path) -> None:
-    libraries = analysis_root / "daylily-omics-analysis" / "config" / "libraries.tsv"
-    libraries.write_text(
-        "ANALYSIS_UNIT_UID\tLIBRARY_EUID\tSAMPLEID\n"
-        "HG003_unit\tfixture-library-owned-003\tHG003\n"
-        "HG003_unit\tfixture-library-owned-004\tHG003\n",
+    units = analysis_root / "daylily-omics-analysis" / "config" / "analysis_units.tsv"
+    units.write_text(
+        "ANALYSIS_UNIT_UID\tSAMPLEID\n"
+        "HG003_unit\tHG003\n"
+        "HG003_unit\tHG003\n",
         encoding="utf-8",
     )
-    with pytest.raises(module.CommandSampleStatsError, match="must be unique"):
+    with pytest.raises(module.CommandSampleStatsError, match="duplicate key"):
         module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomrs-kitchensink")
 
 
-def test_dayoa12_sample_stats_constructs_blank_analysis_unit_without_rewriting(
+def test_dayoa13_sample_stats_rejects_blank_analysis_unit_without_rewriting(
     analysis_root: Path,
 ) -> None:
-    libraries = analysis_root / "daylily-omics-analysis" / "config" / "libraries.tsv"
-    libraries.write_text(
-        "ANALYSIS_UNIT_UID\tLIBRARY_EUID\tSAMPLEID\tRUNID\tEXPERIMENTID\tLANEID\t"
-        "BARCODEID\tLIBPREP\tSEQ_VENDOR\tSEQ_PLATFORM\n"
-        "\t\tHG003\trun1\tfull\t1\tbc1\tPCRFREE\tILMN\tNOVASEQ\n",
+    units = analysis_root / "daylily-omics-analysis" / "config" / "analysis_units.tsv"
+    units.write_text(
+        "ANALYSIS_UNIT_UID\tSAMPLEID\n\tHG003\n",
         encoding="utf-8",
     )
-
-    rows, _samples, _specimens, label = module._load_analysis_manifests(
-        analysis_root / "daylily-omics-analysis",
-        input_contract="sample_manifest_v12",
-    )
-
-    assert label == "libraries.tsv"
-    assert rows[0]["ANALYSIS_UNIT_UID"] == "run1-HG003-full-1-bc1-PCRFREE-ILMN-NOVASEQ"
-    assert rows[0]["LIBRARY_EUID"] == ""
+    with pytest.raises(module.CommandSampleStatsError, match="blank or whitespace"):
+        module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomrs-kitchensink")
 
 
-def test_dayoa12_sample_stats_rejects_legacy_units_even_with_three_manifests(
+def test_dayoa13_sample_stats_rejects_legacy_units_even_with_six_manifests(
     analysis_root: Path,
 ) -> None:
     _write(
         analysis_root / "daylily-omics-analysis" / "config" / "units.tsv",
         "ANALYSIS_UNIT_UID\tSAMPLEID\nHG003_unit\tHG003\n",
     )
-    with pytest.raises(module.CommandSampleStatsError, match="rejects config/units.tsv"):
+    with pytest.raises(module.CommandSampleStatsError, match="legacy manifest files are prohibited"):
         module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomrs-kitchensink")
 
 
-def test_dayoa12_sample_stats_validates_specimen_foreign_key(analysis_root: Path) -> None:
+def test_dayoa13_sample_stats_validates_specimen_foreign_key(analysis_root: Path) -> None:
     samples = analysis_root / "daylily-omics-analysis" / "config" / "samples.tsv"
     samples.write_text(
         "SAMPLEID\tSAMPLE_EUID\tSPECIMEN_ID\tSAMPLEUSE\tORDER_TYPE\n"
         "HG003\tfixture-sample-owned-003\tmissing-specimen\tvalidation\tpositive_control\n",
         encoding="utf-8",
     )
-    with pytest.raises(module.CommandSampleStatsError, match="absent from specimens.tsv"):
+    with pytest.raises(module.CommandSampleStatsError, match="orphan SPECIMEN_ID"):
         module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomrs-kitchensink")
 
 

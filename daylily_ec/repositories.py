@@ -19,8 +19,14 @@ SUPPORTED_CATALOG_VERSIONS = {1, CATALOG_VERSION}
 COMMAND_CLASSES = {"sample_analysis", "run_analysis", "utility"}
 COMMAND_TYPES = {"prod", "test", "dev", "research"}
 CLUSTER_TYPES = {"daywgs", "dragen", "sentieon-single"}
-INPUT_CONTRACTS = {"sample_manifest", "sample_manifest_v12", "run_context", "none"}
-SAMPLE_INPUT_CONTRACTS = {"sample_manifest", "sample_manifest_v12"}
+INPUT_CONTRACTS = {
+    "six_manifest",
+    "sample_manifest",
+    "sample_manifest_v12",
+    "run_context",
+    "none",
+}
+SAMPLE_INPUT_CONTRACTS = {"six_manifest", "sample_manifest", "sample_manifest_v12"}
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 VALIDATION_STATUSES = {"success", "failed", "blocked", "not_run"}
 SOURCE_MOUNT_MODES = {"none", "default_mounted", "run_dra_required"}
@@ -660,6 +666,7 @@ class AnalysisCommand(BaseModel):
         region: Optional[str] = None,
         cluster: Optional[str] = None,
         stage_dir: Optional[str] = None,
+        manifest_dir: Optional[str] = None,
         session_name: Optional[str] = None,
         project: Optional[str] = None,
         run_context_file: Optional[str] = None,
@@ -672,12 +679,6 @@ class AnalysisCommand(BaseModel):
         export_destination_s3_uri: Optional[str] = None,
         export_trigger: str = "none",
         delete_on_export_success: bool = False,
-        artifact_registration_command_id: Optional[str] = None,
-        dewey_url: Optional[str] = None,
-        dewey_token_env: Optional[str] = None,
-        dewey_analysis_dir_external_object_id: Optional[str] = None,
-        dewey_run_artifact_euid: Optional[str] = None,
-        dewey_ursa_analysis_euid: Optional[str] = None,
         replace_existing_analysis_dir: bool = False,
     ) -> List[str]:
         """Render a daylily-ec workflow launch argv for this profile."""
@@ -695,32 +696,6 @@ class AnalysisCommand(BaseModel):
             )
         if delete_on_export_success and not export_destination_s3_uri:
             raise ValueError("delete_on_export_success requires export_destination_s3_uri")
-        if artifact_registration_command_id and (not dewey_url or not dewey_token_env):
-            raise ValueError(
-                "artifact_registration_command_id requires dewey_url and dewey_token_env"
-            )
-        if not artifact_registration_command_id and (dewey_url or dewey_token_env):
-            raise ValueError(
-                "dewey_url and dewey_token_env require artifact_registration_command_id"
-            )
-        dewey_link_options = {
-            "dewey_analysis_dir_external_object_id": dewey_analysis_dir_external_object_id,
-            "dewey_run_artifact_euid": dewey_run_artifact_euid,
-            "dewey_ursa_analysis_euid": dewey_ursa_analysis_euid,
-        }
-        if any(str(value or "").strip() for value in dewey_link_options.values()):
-            missing = [
-                name for name, value in dewey_link_options.items() if not str(value or "").strip()
-            ]
-            if missing:
-                raise ValueError(
-                    "Dewey analysis-directory external-link options must be provided together: "
-                    + ", ".join(missing)
-                )
-            if not artifact_registration_command_id:
-                raise ValueError(
-                    "artifact_registration_command_id is required with Dewey external-link options"
-                )
         dy_command = self.dryrun_dy_command if dry_run else self.dy_command
         if self.input_contract == "run_context":
             if not run_context_file:
@@ -736,7 +711,16 @@ class AnalysisCommand(BaseModel):
         elif run_context_file:
             raise ValueError("run_context_file is only valid for run_analysis commands")
         dy_command = normalize_dyr_preflight_options(dy_command)
-        if self.input_contract == "sample_manifest_v12":
+        if self.input_contract == "six_manifest":
+            if not manifest_dir:
+                raise ValueError("six_manifest commands require manifest_dir")
+            if any((stage_dir, specimens_file, samples_file, libraries_file, units_file)):
+                raise ValueError(
+                    "manifest_dir cannot be combined with legacy stage or manifest arguments"
+                )
+        elif manifest_dir:
+            raise ValueError("manifest_dir requires the six_manifest input contract")
+        elif self.input_contract == "sample_manifest_v12":
             if units_file:
                 raise ValueError(
                     "DayOA 12 commands reject units.tsv. Provide specimens_file, samples_file, "
@@ -782,6 +766,7 @@ class AnalysisCommand(BaseModel):
             ("--region", region),
             ("--cluster", cluster),
             ("--stage-dir", stage_dir),
+            ("--manifest-dir", manifest_dir),
             ("--run-context-file", run_context_file),
             ("--specimens-file", specimens_file),
             ("--samples-file", samples_file),
@@ -802,6 +787,8 @@ class AnalysisCommand(BaseModel):
             if "--no-default-activation" not in argv:
                 argv.append("--no-default-activation")
             argv.append("--bootstrap-test-config")
+        elif self.input_contract == "six_manifest":
+            argv.extend(["--input-contract", "six_manifest"])
         elif self.input_contract == "sample_manifest_v12":
             argv.extend(["--input-contract", "sample_manifest_v12"])
         elif self.input_contract == "sample_manifest":
@@ -814,19 +801,6 @@ class AnalysisCommand(BaseModel):
             argv.append("--delete-on-export-success")
         if replace_existing_analysis_dir:
             argv.append("--replace-existing-analysis-dir")
-        if artifact_registration_command_id:
-            argv.extend(["--artifact-registration-command-id", artifact_registration_command_id])
-            if dewey_url:
-                argv.extend(["--dewey-url", dewey_url])
-            if dewey_token_env:
-                argv.extend(["--dewey-token-env", dewey_token_env])
-            for flag, value in (
-                ("--dewey-analysis-dir-external-object-id", dewey_analysis_dir_external_object_id),
-                ("--dewey-run-artifact-euid", dewey_run_artifact_euid),
-                ("--dewey-ursa-analysis-euid", dewey_ursa_analysis_euid),
-            ):
-                if value:
-                    argv.extend([flag, value])
         if dry_run:
             argv.append("--dry-run")
         return argv
@@ -839,7 +813,7 @@ class AnalysisCommand(BaseModel):
 
 
 class RepositoryDefinition(BaseModel):
-    """A repository configured for day-clone and optional Ursa launches."""
+    """A repository configured for explicit-ref day-clone launches."""
 
     model_config = ConfigDict(extra="forbid")
 

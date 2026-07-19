@@ -9,7 +9,7 @@ class DyrPreflightOptionsError(ValueError):
 
 
 PRODUCER_OPTION_DEFAULTS: tuple[tuple[str, bool], ...] = (
-    ("--produce-ursa-manifest", True),
+    ("--produce-analysis-artifact-manifest", True),
     ("--produce-rulegraph", True),
     ("--produce-filegraph", False),
     ("--produce-dag", False),

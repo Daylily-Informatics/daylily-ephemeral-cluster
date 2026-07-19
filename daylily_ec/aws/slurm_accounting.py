@@ -661,7 +661,7 @@ def _select_duplicate_accounting_candidate(
             return (
                 preferred,
                 "explicit slurm_accounting_stack_name preference "
-                "(the Ursa configuration selection hook)",
+                "(the configured accounting selection hook)",
             )
 
     selected = sorted(
@@ -704,19 +704,18 @@ def _warn_and_delay_duplicate_accounting_selection(
             f"Candidate {candidate.stack_name}: status={candidate.status}; "
             f"vpc={candidate.vpc_id or 'missing'}; "
             f"compatible={'yes' if candidate.compatible else 'no'}; "
-            f"attached_hosts={attached}; ursa_or_config_preferred={preference}; "
+            f"attached_hosts={attached}; configured_preferred={preference}; "
             f"reason={candidate.reason}"
         )
     preferred_stack_name = preferred_stack_name.strip()
     if preferred_stack_name and selected.stack_name != preferred_stack_name:
         warning_callback(
-            f"Configured Ursa/accounting preference {preferred_stack_name} was not selected "
+            f"Configured accounting preference {preferred_stack_name} was not selected "
             "because it was not found among the compatible services."
         )
     warning_callback(
         f"AUTO-SELECTED {selected.stack_name}: {selection_reason}. "
-        "Set Ursa's slurm_accounting.stack_name to the service used by "
-        "ursa.day.lsmc.bio when that preference is known."
+        "Set slurm_accounting.stack_name to the intended accounting service when known."
     )
     warning_callback(
         f"Automatic selection continues in {MULTIPLE_ACCOUNTING_SELECTION_DELAY_SECONDS} "

@@ -150,81 +150,31 @@ def _load_analysis_manifests(
     dict[str, dict[str, str]],
     str,
 ]:
+    from daylily_ec.manifest_set import (
+        ManifestSetError,
+        load_manifest_set,
+        selected_input_details,
+    )
+
     config_root = dayoa_root / "config"
-    specimens_path = config_root / "specimens.tsv"
-    samples_path = config_root / "samples.tsv"
-    libraries_path = config_root / "libraries.tsv"
-    units_path = config_root / "units.tsv"
-
-    if input_contract == "sample_manifest_v12":
-        if units_path.exists():
-            raise CommandSampleStatsError(
-                "DayOA 12 command sample-stats rejects config/units.tsv; migrate the analysis "
-                "with `dayoa migrate-manifests` and retain only specimens.tsv, samples.tsv, "
-                "and libraries.tsv"
-            )
-        specimens = _read_tsv(specimens_path)
-        samples = _read_tsv(samples_path)
-        libraries = _read_tsv(libraries_path)
-        specimen_ids = _require_unique_manifest_field(specimens, "SPECIMEN_ID", specimens_path)
-        _optional_unique_manifest_field(specimens, "SPECIMEN_EUID", specimens_path)
-        sample_ids = _require_unique_manifest_field(samples, "SAMPLEID", samples_path)
-        _optional_unique_manifest_field(samples, "SAMPLE_EUID", samples_path)
-        for row in libraries:
-            row["ANALYSIS_UNIT_UID"] = _dayoa_analysis_unit_uid(row, libraries_path)
-        _require_unique_manifest_field(libraries, "ANALYSIS_UNIT_UID", libraries_path)
-        _optional_unique_manifest_field(libraries, "LIBRARY_EUID", libraries_path)
-
-        specimen_by_id = dict(zip(specimen_ids, specimens, strict=True))
-        sample_by_id = dict(zip(sample_ids, samples, strict=True))
-        missing_specimens = sorted(
-            {
-                row.get("SPECIMEN_ID", "")
-                for row in samples
-                if row.get("SPECIMEN_ID", "") not in specimen_by_id
-            }
-        )
-        if missing_specimens:
-            raise CommandSampleStatsError(
-                "samples.tsv SPECIMEN_ID values are absent from specimens.tsv: "
-                + ", ".join(missing_specimens)
-            )
-        missing_samples = sorted(
-            {
-                row.get("SAMPLEID", "")
-                for row in libraries
-                if row.get("SAMPLEID", "") not in sample_by_id
-            }
-        )
-        if missing_samples:
-            raise CommandSampleStatsError(
-                "libraries.tsv SAMPLEID values are absent from samples.tsv: "
-                + ", ".join(missing_samples)
-            )
-        return libraries, samples, specimen_by_id, "libraries.tsv"
-
-    if input_contract != "sample_manifest":
+    if input_contract != "six_manifest":
         raise CommandSampleStatsError(
             f"sample-stats does not support input contract {input_contract!r}"
         )
-    if specimens_path.exists() or libraries_path.exists():
-        raise CommandSampleStatsError(
-            "legacy sample_manifest analysis must not mix specimens.tsv or libraries.tsv with "
-            "samples.tsv and units.tsv"
-        )
-    samples = _read_tsv(samples_path)
-    units = _read_tsv(units_path)
-    sample_ids = _require_unique_manifest_field(samples, "SAMPLEID", samples_path)
-    _require_unique_manifest_field(units, "ANALYSIS_UNIT_UID", units_path)
-    sample_by_id = dict(zip(sample_ids, samples, strict=True))
-    missing_samples = sorted(
-        {row.get("SAMPLEID", "") for row in units if row.get("SAMPLEID", "") not in sample_by_id}
-    )
-    if missing_samples:
-        raise CommandSampleStatsError(
-            "units.tsv SAMPLEID values are absent from samples.tsv: " + ", ".join(missing_samples)
-        )
-    return units, samples, {}, "units.tsv"
+    try:
+        manifests = load_manifest_set(config_root)
+    except ManifestSetError as exc:
+        raise CommandSampleStatsError(str(exc)) from exc
+    specimens = list(manifests.rows["specimens.tsv"])
+    samples = list(manifests.rows["samples.tsv"])
+    units = [dict(row) for row in manifests.rows["analysis_units.tsv"]]
+    details = selected_input_details(manifests)
+    for unit in units:
+        selected = details[unit["ANALYSIS_UNIT_UID"]]
+        unit["SELECTED_LIBRARY_IDS"] = json.dumps(selected["library_ids"])
+        unit["SELECTED_LIBRARY_EUIDS"] = json.dumps(selected["library_euids"])
+        unit["SELECTED_SEQUENCING_INPUTS"] = json.dumps(selected["sequencing_inputs"])
+    return units, samples, {row["SPECIMEN_ID"]: row for row in specimens}, "analysis_units.tsv"
 
 
 def _scalar(value: Any, *, source: str | None, state: str | None = None) -> dict[str, Any]:
@@ -809,6 +759,11 @@ def _unit_row(
     benchmark_cost: dict[str, Any] | None,
 ) -> dict[str, Any]:
     unit = unit_row["ANALYSIS_UNIT_UID"]
+    selected_library_ids = json.loads(unit_row.get("SELECTED_LIBRARY_IDS", "[]"))
+    selected_library_euids = json.loads(unit_row.get("SELECTED_LIBRARY_EUIDS", "[]"))
+    selected_sequencing_inputs = json.loads(
+        unit_row.get("SELECTED_SEQUENCING_INPUTS", "[]")
+    )
     prefix = build_root / unit
     sr_root = prefix / "align" / "hiomrs_sr" / "na"
     lr_root = prefix / "align" / "hiomrs_lr" / "na"
@@ -951,7 +906,15 @@ def _unit_row(
     }
     return {
         "analysis_unit_uid": unit,
-        "library_euid": unit_row.get("LIBRARY_EUID") or None,
+        "analysis_unit_euid": unit_row.get("ANALYSIS_UNIT_EUID") or None,
+        "delivery_euid": unit_row.get("DELIVERY_EUID") or None,
+        "library_id": selected_library_ids[0] if len(selected_library_ids) == 1 else None,
+        "library_euid": (
+            selected_library_euids[0] if len(selected_library_euids) == 1 else None
+        ),
+        "library_ids": selected_library_ids,
+        "library_euids": selected_library_euids,
+        "sequencing_inputs": selected_sequencing_inputs,
         "sample_id": unit_row.get("SAMPLEID"),
         "sample_euid": sample_row.get("SAMPLE_EUID") or None,
         "specimen_id": sample_row.get("SPECIMEN_ID") or None,
@@ -1132,7 +1095,7 @@ def collect_command_sample_stats(
 
     catalog = load_repository_catalog()
     command = catalog.get_command(PIPELINES[pipeline])
-    units, samples, specimen_by_id, unit_label = _load_analysis_manifests(
+    units, samples, specimen_by_id, _unit_label = _load_analysis_manifests(
         dayoa_root,
         input_contract=command.input_contract,
     )
@@ -1261,15 +1224,21 @@ def collect_command_sample_stats(
         "pipeline": {
             "name": pipeline,
             "input_contract": command.input_contract,
-            "manifest_files": (
-                ["specimens.tsv", "samples.tsv", "libraries.tsv"]
-                if command.input_contract == "sample_manifest_v12"
-                else ["samples.tsv", "units.tsv"]
-            ),
+            "manifest_files": [
+                "specimens.tsv",
+                "samples.tsv",
+                "libraries.tsv",
+                "sequencing_inputs.tsv",
+                "analysis_units.tsv",
+                "analysis_unit_inputs.tsv",
+            ],
             "specimens_rows": len(specimen_by_id) if specimen_by_id else None,
             "samples_rows": len(samples),
+            "analysis_units_rows": len(units),
             "units_rows": len(units),
-            "libraries_rows": len(units) if unit_label == "libraries.tsv" else None,
+            "libraries_rows": sum(
+                len(row.get("library_ids", [])) for row in rows
+            ),
             "jobs_total": total,
             "jobs_complete": complete,
             "jobs_failed": failed,

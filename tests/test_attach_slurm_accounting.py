@@ -154,7 +154,7 @@ def test_default_templates_prompt_for_fsx_storage_selection() -> None:
         "fsx_encryption_mode": ["USESETVALUE", "", "AWS_MANAGED_FSX"],
         "fsx_owner": ["USESETVALUE", "", "DYEC"],
         "fsx_lifecycle": ["USESETVALUE", "", "CLUSTER_BOUND"],
-        "sweep_protection_tag": ["USESETVALUE", "", "ursa-preserve=true"],
+        "sweep_protection_tag": ["USESETVALUE", "", "dyec-preserve=true"],
     }
     for relative in (
         "config/daylily_ephemeral_cluster_template.yaml",

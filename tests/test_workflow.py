@@ -48,7 +48,6 @@ from daylily_ec.workflow.create_cluster import (
     az_cluster_template_relative_path,
     attach_headnode_managed_policy,
     _build_connection_command,
-    _build_ursa_cluster_url,
     _is_valid_fsx_size,
     _is_valid_headnode_instance_type,
     _extract_selected,
@@ -57,8 +56,6 @@ from daylily_ec.workflow.create_cluster import (
     _resolve_fsx_size,
     _resolve_persistent2_config,
     _resolve_headnode_instance_type,
-    _resolve_ursa_root_url,
-    _normalize_ursa_root_url,
     _read_headnode_root_volume_spec,
     _resolve_s3_role_config_value,
     _noop_heartbeat_result,
@@ -1133,53 +1130,6 @@ class TestWorkflowResolutionHelpers:
             == "daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster majors-cluster"
         )
 
-    def test_ursa_root_url_is_explicit_normalized_and_canonical(self):
-        assert (
-            _normalize_ursa_root_url("https://ursa.example.test/service/")
-            == "https://ursa.example.test/service"
-        )
-        assert (
-            _build_ursa_cluster_url(
-                "https://ursa.example.test/",
-                "cluster name",
-                "us-west-2",
-            )
-            == "https://ursa.example.test/clusters/cluster%20name?region=us-west-2"
-        )
-
-    @pytest.mark.parametrize(
-        "value",
-        [
-            "ursa.example.test",
-            "ftp://ursa.example.test",
-            "https://user:secret@ursa.example.test",
-            "https://ursa.example.test?next=/clusters",
-            "https://ursa.example.test/#clusters",
-        ],
-    )
-    def test_ursa_root_url_rejects_non_root_or_credentialed_values(self, value):
-        with pytest.raises(ValueError, match="ursa_root_url"):
-            _normalize_ursa_root_url(value)
-
-    def test_optional_ursa_root_prompts_and_accepts_blank(self):
-        cfg = ConfigFile.model_validate(
-            {
-                "ephemeral_cluster": {
-                    "config": {"ursa_root_url": ["PROMPTUSER", "", ""]},
-                    "template_defaults": {},
-                }
-            }
-        )
-        with patch(
-            "daylily_ec.workflow.create_cluster.typer.prompt",
-            return_value="",
-        ) as prompt:
-            assert _resolve_ursa_root_url(cfg, non_interactive=False) == ""
-        prompt.assert_called_once_with(
-            "Ursa root URL (leave blank to skip)",
-            default="",
-        )
-
     def test_reads_exact_headnode_root_volume_from_template(self, tmp_path):
         template = tmp_path / "cluster.yaml"
         template.write_text(
@@ -1426,7 +1376,7 @@ HeadNode:
                         "sweep_protection_tag": [
                             "USESETVALUE",
                             "",
-                            "ursa-preserve=true",
+                            "dyec-preserve=true",
                         ],
                     }
                 }
@@ -1883,22 +1833,6 @@ class TestRunCreateWorkflow:
             ("us-west-2", {"profile": "lsmc", "executable": "pcluster"})
         ]
 
-    def test_optional_ursa_root_is_the_first_interactive_prompt(self, tmp_path, monkeypatch):
-        records = _run_stubbed_create_workflow(
-            tmp_path,
-            monkeypatch,
-            interactive=True,
-            head_node_ip="54.1.2.3",
-            say_available=False,
-            config_overrides={
-                "ursa_root_url": ["PROMPTUSER", "", ""],
-            },
-        )
-
-        assert records["rc"] == EXIT_SUCCESS
-        assert records["prompt_labels"][0] == "Ursa root URL (leave blank to skip)"
-        assert records["next_run_values"]["ursa_root_url"] == ("https://ursa.example.test")
-
     def test_sixth_projected_cluster_is_blocked_before_mutations(self, tmp_path, monkeypatch):
         clusters = [
             {"clusterName": f"cluster-{index}", "clusterStatus": "CREATE_COMPLETE"}
@@ -2305,7 +2239,7 @@ class TestRunCreateWorkflow:
         assert substitutions["REGSUB_MAX_COUNT_192I_NVME_R"] == "19"
         assert substitutions["REGSUB_MAX_COUNT_384I_NVME_R"] == "38"
 
-    def test_prints_idle_cost_and_ends_with_ursa_link(self, tmp_path, monkeypatch):
+    def test_prints_idle_cost_and_connection_command(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
             tmp_path,
             monkeypatch,
@@ -2315,14 +2249,10 @@ class TestRunCreateWorkflow:
         )
 
         assert records["rc"] == EXIT_SUCCESS
-        assert records["echoes"][-4:] == [
+        assert records["echoes"][-3:] == [
             "daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster majors-cluster",
             "Idle cluster hourly estimate: $1.9611/hour",
             "...fin!",
-            (
-                "Ursa cluster page: "
-                "https://ursa.example.test/clusters/majors-cluster?region=us-west-2"
-            ),
         ]
         assert "$1.9611/hour" in records["success_panel"][1]
         assert "FSx SCRATCH_2 2400 GiB" in records["success_panel"][1]
@@ -2352,14 +2282,10 @@ class TestRunCreateWorkflow:
         )
 
         assert records["rc"] == EXIT_SUCCESS
-        assert records["echoes"][-4:] == [
+        assert records["echoes"][-3:] == [
             "daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster majors-cluster",
             "Idle cluster hourly estimate: $1.9611/hour",
             "...fin!",
-            (
-                "Ursa cluster page: "
-                "https://ursa.example.test/clusters/majors-cluster?region=us-west-2"
-            ),
         ]
         assert records["subprocess_calls"] == [["/bin/sh", "-lc", "command -v say >/dev/null 2>&1"]]
 
@@ -3427,7 +3353,6 @@ def _build_workflow_config(
 ) -> ConfigFile:
     config = {
         "cluster_name": ["USESETVALUE", "", "majors-cluster"],
-        "ursa_root_url": ["USESETVALUE", "", "https://ursa.example.test"],
         "reference_s3_uri": ["USESETVALUE", "", "s3://dayoa-references"],
         "control_data_s3_uri": ["USESETVALUE", "", "s3://dayoa-control-data"],
         "stage_s3_uri": [
@@ -3611,7 +3536,6 @@ HeadNode:
         records["prompt_labels"].append(label)
         records["events"].append(("prompt", label))
         answers = {
-            "Ursa root URL (leave blank to skip)": "https://ursa.example.test",
             "Max 8xlarge count": "8",
             "Max 96-vCPU local-NVMe count": "9",
             "Max 128xlarge count": "12",

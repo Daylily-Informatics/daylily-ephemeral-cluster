@@ -55,7 +55,7 @@ def _filesystem(**overrides: object) -> dict:
             {"Key": "dyec:resource-role", "Value": "fsx"},
             {"Key": "dyec:fsx-owner", "Value": "DYEC"},
             {"Key": "dyec:fsx-lifecycle", "Value": "CLUSTER_BOUND"},
-            {"Key": "ursa-preserve", "Value": "true"},
+            {"Key": "dyec-preserve", "Value": "true"},
         ],
     }
     payload.update(overrides)
@@ -71,7 +71,7 @@ def _filesystem(**overrides: object) -> dict:
         ({"metadata_mode": "USER_PROVISIONED"}, "metadata mode"),
         ({"encryption_mode": "KMS"}, "encryption mode"),
         ({"owner": "OTHER"}, "ownership"),
-        ({"sweep_preserve": False}, "ursa-preserve"),
+        ({"sweep_preserve": False}, "dyec-preserve"),
         ({"reference_s3_uri": "https://example.org"}, "explicit s3:// URI"),
     ],
 )
@@ -376,9 +376,9 @@ def _resources() -> Persistent2Resources:
             {
                 "SharedStorage": [{"StorageType": "FsxLustre", "MountDir": "/fsx"}],
                 "Scheduling": {"SlurmQueues": [{"Name": "q"}]},
-                "Tags": [{"Key": "ursa-preserve", "Value": "false"}],
+                "Tags": [{"Key": "dyec-preserve", "Value": "false"}],
             },
-            "conflicting ursa-preserve",
+            "conflicting dyec-preserve",
         ),
     ],
 )

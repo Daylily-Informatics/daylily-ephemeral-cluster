@@ -345,7 +345,7 @@ class TestLoadConfig:
         assert ec.config["fsx_encryption_mode"].set_value == "AWS_MANAGED_FSX"
         assert ec.config["fsx_owner"].set_value == "DYEC"
         assert ec.config["fsx_lifecycle"].set_value == "CLUSTER_BOUND"
-        assert ec.config["sweep_protection_tag"].set_value == "ursa-preserve=true"
+        assert ec.config["sweep_protection_tag"].set_value == "dyec-preserve=true"
         assert ec.template_defaults["fsx_fs_size"] == "4800"
         assert ec.config["max_count_384I"].default_value == "1"
         assert set(ec.config).isdisjoint(DERIVED_MAX_COUNT_KEYS)

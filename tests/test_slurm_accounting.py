@@ -360,7 +360,7 @@ def test_explicit_ursa_preference_wins_when_multiple_stacks_exist() -> None:
     assert sleeps == [60, 20, 10]
     assert sum(sleeps) == 90
     assert any("there should be exactly one" in warning for warning in warnings)
-    assert any("ursa.day.lsmc.bio" in warning for warning in warnings)
+    assert not any("http" in warning for warning in warnings)
     assert any("attached_hosts=2" in warning for warning in warnings)
     assert any(f"AUTO-SELECTED {preferred_name}" in warning for warning in warnings)
     assert all("10.0.1.11:3306" not in warning for warning in warnings)

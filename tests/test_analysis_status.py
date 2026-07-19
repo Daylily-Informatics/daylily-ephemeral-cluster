@@ -82,7 +82,7 @@ def test_slim_status_records_visit_and_does_not_claim_empty_queue_success(
     assert "Progress: 10/20 (50%)" in render_analysis_status(payload)
 
 
-def test_status_reads_and_validates_exact_dayoa12_manifest_triple(
+def test_status_reads_and_validates_exact_dayoa13_six_manifest_set(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -98,9 +98,21 @@ def test_status_reads_and_validates_exact_dayoa12_manifest_triple(
         encoding="utf-8",
     )
     (config / "libraries.tsv").write_text(
-        "ANALYSIS_UNIT_UID\tLIBRARY_EUID\tSAMPLEID\tRUNID\tEXPERIMENTID\tLANEID\t"
-        "BARCODEID\tLIBPREP\tSEQ_VENDOR\tSEQ_PLATFORM\n"
-        "\t\tsample-1\trun1\tfull\t1\tbc1\tPCRFREE\tILMN\tNOVASEQ\n",
+        "LIBRARY_ID\tLIBRARY_EUID\tSAMPLEID\nlibrary-1\t\tsample-1\n",
+        encoding="utf-8",
+    )
+    (config / "sequencing_inputs.tsv").write_text(
+        "SEQUENCING_INPUT_UID\tLIBRARY_ID\tMODALITY\tLAYOUT\tILMN_R1_PATH\tILMN_R2_PATH\n"
+        "input-1\tlibrary-1\tsr\tpaired_fastq\t/data/r1.fastq.gz\t/data/r2.fastq.gz\n",
+        encoding="utf-8",
+    )
+    (config / "analysis_units.tsv").write_text(
+        "ANALYSIS_UNIT_UID\tSAMPLEID\nanalysis-unit-1\tsample-1\n",
+        encoding="utf-8",
+    )
+    (config / "analysis_unit_inputs.tsv").write_text(
+        "ANALYSIS_UNIT_UID\tSEQUENCING_INPUT_UID\tROLE\tINPUT_ORDINAL\n"
+        "analysis-unit-1\tinput-1\tsr\t1\n",
         encoding="utf-8",
     )
     _activate(monkeypatch)
@@ -110,9 +122,40 @@ def test_status_reads_and_validates_exact_dayoa12_manifest_triple(
 
     assert payload["manifests"] == {
         "available": True,
-        "input_contract": "sample_manifest_v12",
-        "files": ["specimens.tsv", "samples.tsv", "libraries.tsv"],
-        "row_counts": {"specimens": 1, "samples": 1, "libraries": 1},
+        "input_contract": "six_manifest",
+        "files": [
+            "specimens.tsv",
+            "samples.tsv",
+            "libraries.tsv",
+            "sequencing_inputs.tsv",
+            "analysis_units.tsv",
+            "analysis_unit_inputs.tsv",
+        ],
+        "hashes": payload["manifests"]["hashes"],
+        "row_counts": {
+            "specimens": 1,
+            "samples": 1,
+            "libraries": 1,
+            "sequencing_inputs": 1,
+            "analysis_units": 1,
+            "analysis_unit_inputs": 1,
+        },
+        "analysis_units": [
+            {
+                "analysis_unit_uid": "analysis-unit-1",
+                "library_ids": ["library-1"],
+                "library_euids": [],
+                "sequencing_inputs": [
+                    {
+                        "sequencing_input_uid": "input-1",
+                        "role": "sr",
+                        "input_ordinal": 1,
+                        "library_id": "library-1",
+                        "library_euid": None,
+                    }
+                ],
+            }
+        ],
         "lineage_validated": True,
     }
 
@@ -120,7 +163,7 @@ def test_status_reads_and_validates_exact_dayoa12_manifest_triple(
         "ANALYSIS_UNIT_UID\tSAMPLEID\nanalysis-unit-1\tsample-1\n",
         encoding="utf-8",
     )
-    with pytest.raises(AnalysisStatusError, match="rejects mixed config/units.tsv"):
+    with pytest.raises(AnalysisStatusError, match="legacy manifest files are prohibited"):
         collect_analysis_status(root, mode="slim", runner=_fake_runner)
 
 

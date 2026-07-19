@@ -7,8 +7,6 @@ set -euo pipefail
 
 slurm_command="$(basename "$0")"
 cluster_config="/opt/parallelcluster/shared/cluster-config.yaml"
-budget_monitor_base_url="https://ursa.day.lsmc.bio/ursa-actions#budgets?budget="
-cost_center_monitor_base_url="https://ursa.day.lsmc.bio/ursa-actions#cost-centers?cost_center="
 reserved_idle_cost_center="idle"
 max_usage_age_hours="36"
 
@@ -16,28 +14,14 @@ cost_center=""
 cluster_name=""
 declare -a passthrough_args=()
 
-urlencode() {
-    python3 -c 'from urllib.parse import quote; import sys; print(quote(sys.argv[1], safe=""))' "$1"
-}
-
-budget_monitor_url() {
-    printf "%s%s" "${budget_monitor_base_url}" "$(urlencode "$1")"
-}
-
-cost_center_monitor_url() {
-    printf "%s%s" "${cost_center_monitor_base_url}" "$(urlencode "$1")"
-}
-
 fail() {
     local message="$1"
     echo "ERROR: ${message}" >&2
     if [ -n "${cluster_name:-}" ]; then
         echo "Cluster budget: ${cluster_name}" >&2
-        echo "Cluster budget monitor: $(budget_monitor_url "${cluster_name}")" >&2
     fi
     if [ -n "${cost_center:-}" ]; then
         echo "Cost center: ${cost_center}" >&2
-        echo "Cost-center report: $(cost_center_monitor_url "${cost_center}")" >&2
     fi
     exit 1
 }
