@@ -25,6 +25,7 @@ candidate is integrated.
 | Gate | Command | Result |
 |---|---|---|
 | Full suite | `source ./activate && pytest -q` | `2213 passed, 11 skipped` in `63.36s`; no failures. |
+| Final collection reconciliation | `source ./activate && pytest --collect-only -q` | `2224 tests collected`; exactly reconciles `2213 passed + 11 skipped`. An earlier in-progress checkpoint of `2261` preceded the final provider-surface test cleanup and is not release evidence. |
 | New-module coverage | `pytest -q tests/test_manifest_set_and_identities.py --cov=daylily_ec.manifest_set --cov=daylily_ec.identity_receipts --cov-report=term-missing --cov-fail-under=90` | `22 passed`; manifest validator `90%`, identity receipts `98%`, combined `93%`. |
 | Focused integration | Provider boundary, six-manifest status, local identities, export, workflow, and cluster tests | `348 passed`; no failures. |
 | Ruff | `ruff check daylily_ec tests` | `All checks passed!` |

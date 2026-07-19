@@ -70,7 +70,7 @@ implementation work.
 | D5 | Remove active Ursa/Dewey/Dayhoff registration, URL, tag, and discovery behavior. | PASS | Registration module/CLI removed; create, launch, export, sbatch, and FSx tags are provider-neutral. |
 | D6 | Update catalog/source payload/default DayOA pin to 13.0.0. | PENDING | Validated version stays 12.0.2 until live proof. |
 | D7 | Add static service-boundary and no-network regression blockers. | PASS | `tests/test_provider_neutral_boundary.py`. |
-| D8 | Run focused and full DYEC suites plus source/payload parity checks. | PASS | `20260719T024400Z_dyec12_provider_neutral_six_manifest_test_evidence.md`: 2213 passed, 11 opt-in live skips, new modules 93% combined. |
+| D8 | Run focused and full DYEC suites plus source/payload parity checks. | PASS | `20260719T024400Z_dyec12_provider_neutral_six_manifest_test_evidence.md`: 2,224 collected = 2,213 passed + 11 opt-in live skips; new modules 93% combined. |
 | D9 | Merge and tag clean DYEC 12.0.0 release. | PENDING | Non-v annotated tag; never move. |
 | D10 | Refresh exact target headnode and verify explicit DayOA 13 clone support. | PENDING | No workflow launch until release is proven. |
 | D11 | Publish DYEC 12.0.1 after HG003 1x controller rc 0 and final evidence. | PENDING | Update validated version and self pin only after proof. |
