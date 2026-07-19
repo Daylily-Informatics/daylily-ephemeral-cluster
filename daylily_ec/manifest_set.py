@@ -164,6 +164,12 @@ def _require_fk(
         raise ManifestSetError(f"{name} has orphan {field} value(s): {missing}")
 
 
+def _nonblank_manifest_value(value: str) -> bool:
+    """Match DayOA's case-insensitive manifest blank-sentinel contract."""
+
+    return value.lower() not in BLANK_VALUES
+
+
 def _validate_sequencing_input(row: Mapping[str, str]) -> None:
     """Require one exact source bundle whose modality and layout are explicit."""
 
@@ -183,7 +189,8 @@ def _validate_sequencing_input(row: Mapping[str, str]) -> None:
     populated: list[str] = []
     for bundle, (_, fields) in INPUT_BUNDLES.items():
         primary = row.get(fields[0], "")
-        if primary:
+        primary_populated = _nonblank_manifest_value(primary)
+        if primary_populated:
             if primary != primary.strip():
                 raise ManifestSetError(
                     f"sequencing input {uid!r} has whitespace-modified {fields[0]}"
@@ -191,11 +198,12 @@ def _validate_sequencing_input(row: Mapping[str, str]) -> None:
             populated.append(bundle)
         for secondary in fields[1:]:
             value = row.get(secondary, "")
-            if value and not primary:
+            secondary_populated = _nonblank_manifest_value(value)
+            if secondary_populated and not primary_populated:
                 raise ManifestSetError(
                     f"sequencing input {uid!r} sets {secondary} without {fields[0]}"
                 )
-            if value and value != value.strip():
+            if secondary_populated and value != value.strip():
                 raise ManifestSetError(
                     f"sequencing input {uid!r} has whitespace-modified {secondary}"
                 )
@@ -215,7 +223,7 @@ def _validate_sequencing_input(row: Mapping[str, str]) -> None:
             f"sequencing input {uid!r} LAYOUT {layout!r} conflicts with {bundle}"
         )
     if bundle.endswith("_FASTQ"):
-        has_r2 = bool(row.get(fields[1], ""))
+        has_r2 = _nonblank_manifest_value(row.get(fields[1], ""))
         expected_layout = "paired_fastq" if has_r2 else "single_fastq"
         if layout != expected_layout:
             raise ManifestSetError(

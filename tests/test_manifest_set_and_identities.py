@@ -164,6 +164,88 @@ def test_manifest_contract_requires_exact_source_bundle(
         load_manifest_set(root)
 
 
+@pytest.mark.parametrize("blank", ["", "na", "none", "null", "NA", "NoNe", "NULL"])
+def test_source_bundle_primary_uses_dayoa_blank_sentinels(tmp_path: Path, blank: str) -> None:
+    root = six_manifests(tmp_path / "m")
+    _write(
+        root / "sequencing_inputs.tsv",
+        [
+            "SEQUENCING_INPUT_UID",
+            "LIBRARY_ID",
+            "MODALITY",
+            "LAYOUT",
+            "ILMN_R1_PATH",
+            "ONT_R1_PATH",
+        ],
+        [["I1", "L1", "sr", "single_fastq", "/data/real.fastq.gz", blank]],
+    )
+    _write(
+        root / "analysis_unit_inputs.tsv",
+        ["ANALYSIS_UNIT_UID", "SEQUENCING_INPUT_UID", "ROLE", "INPUT_ORDINAL"],
+        [["AU1", "I1", "sr", "1"]],
+    )
+
+    manifests = load_manifest_set(root)
+
+    assert manifests.rows["sequencing_inputs.tsv"][0]["ILMN_R1_PATH"] == ("/data/real.fastq.gz")
+
+
+@pytest.mark.parametrize("blank", ["", "na", "none", "null", "NA", "NoNe", "NULL"])
+def test_source_bundle_secondary_uses_dayoa_blank_sentinels(tmp_path: Path, blank: str) -> None:
+    root = six_manifests(tmp_path / "m")
+    _write(
+        root / "sequencing_inputs.tsv",
+        [
+            "SEQUENCING_INPUT_UID",
+            "LIBRARY_ID",
+            "MODALITY",
+            "LAYOUT",
+            "ILMN_R1_PATH",
+            "ILMN_R2_PATH",
+        ],
+        [["I1", "L1", "sr", "single_fastq", "/data/real_R1.fastq.gz", blank]],
+    )
+    _write(
+        root / "analysis_unit_inputs.tsv",
+        ["ANALYSIS_UNIT_UID", "SEQUENCING_INPUT_UID", "ROLE", "INPUT_ORDINAL"],
+        [["AU1", "I1", "sr", "1"]],
+    )
+
+    load_manifest_set(root)
+
+
+def test_source_bundle_valid_secondary_path_requires_paired_layout(tmp_path: Path) -> None:
+    root = six_manifests(tmp_path / "m")
+    _write(
+        root / "sequencing_inputs.tsv",
+        [
+            "SEQUENCING_INPUT_UID",
+            "LIBRARY_ID",
+            "MODALITY",
+            "LAYOUT",
+            "ILMN_R1_PATH",
+            "ILMN_R2_PATH",
+        ],
+        [
+            [
+                "I1",
+                "L1",
+                "sr",
+                "paired_fastq",
+                "/data/real_R1.fastq.gz",
+                "/data/real_R2.fastq.gz",
+            ]
+        ],
+    )
+    _write(
+        root / "analysis_unit_inputs.tsv",
+        ["ANALYSIS_UNIT_UID", "SEQUENCING_INPUT_UID", "ROLE", "INPUT_ORDINAL"],
+        [["AU1", "I1", "sr", "1"]],
+    )
+
+    load_manifest_set(root)
+
+
 def test_manifest_contract_requires_join_role_to_match_input_modality(tmp_path: Path) -> None:
     root = six_manifests(tmp_path / "m")
     _write(

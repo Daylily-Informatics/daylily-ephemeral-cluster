@@ -64,7 +64,7 @@ implementation work.
 |---|---|---|---|
 | D0 | Preserve dirty primary checkout and establish clean origin/main baseline. | PASS | Worktree and commit recorded above. |
 | D1 | Add provider-neutral and `Z-` EUID rules to AGENTS/docs. | PASS | AGENTS/README define standalone operation, blank and `Z-` analytical validity, and customer-release ineligibility. |
-| D2 | Add strict six-file `--manifest-dir` staging and reject legacy files. | PASS | Exact names, hashes, FKs, `sr|lr`, exact layout/source bundle, ordered joins, and staged SHA verification. |
+| D2 | Add strict six-file `--manifest-dir` staging and reject legacy files. | PASS | Exact names, hashes, FKs, `sr|lr`, exact layout/source bundle, ordered joins, staged SHA verification, and DayOA-parity handling of case-insensitive `na`/`none`/`null` source-path sentinels. |
 | D3 | Add local-only identities validate/plan/apply/status/evidence. | PASS | Hash-bound local receipts; no URL, token, SDK, or network import. |
 | D4 | Replace Ursa-named artifact producer options/manifests with generic v3. | PASS | DYEC producer flag is `--produce-analysis-artifact-manifest`; old alias is rejected. DayOA owns v3 contents. |
 | D5 | Remove active Ursa/Dewey/Dayhoff registration, URL, tag, and discovery behavior. | PASS | Registration module/CLI removed; create, launch, export, sbatch, and FSx tags are provider-neutral. |
@@ -81,6 +81,17 @@ provider-registration/network cases were removed with the deleted integration,
 for a net reduction of 37. The final exact full-suite command collected 2,224
 tests and terminalized all of them as 2,213 passed plus 11 explicit live-test
 skips.
+
+## Post-integration parity correction
+
+At `2026-07-19T02:51:50Z`, cross-repository review found that DYEC's source-
+bundle validator used Python truthiness for primary and secondary path cells,
+while DayOA uses the central case-insensitive `BLANK_VALUES` contract. DYEC now
+uses that same contract for bundle detection, orphan-secondary detection, and
+single-versus-paired FASTQ classification. Focused regression tests cover the
+literal values `''`, `na`, `none`, and `null`, mixed/uppercase spellings, and
+real primary and secondary paths. No version, pin, release, or live state was
+changed by this correction.
 
 ## Terminal contract
 

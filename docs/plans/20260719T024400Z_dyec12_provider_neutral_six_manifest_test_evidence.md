@@ -33,6 +33,9 @@ candidate is integrated.
 | Whitespace | `git diff --check` | Exit `0`. |
 | Payload parity | `cmp` plus `tests/test_provider_neutral_boundary.py` | Source and packaged sbatch, cluster template, and command catalog are byte-identical. |
 | Active provider scan | `rg -n -i 'dayhoff|ursa|bloom|tapdb|dewey|register-dewey|produce-ursa' daylily_ec config` | No active source/config matches. |
+| Post-integration path-sentinel parity | `pytest -q tests/test_manifest_set_and_identities.py tests/test_provider_neutral_boundary.py` | `41 passed`; primary and secondary cells treat `''`, `na`, `none`, and `null` case-insensitively as blank while real paths remain populated. |
+| Post-integration focused Ruff | `ruff check daylily_ec/manifest_set.py tests/test_manifest_set_and_identities.py` | `All checks passed!`. |
+| Post-integration whitespace | `git diff --check` | Exit `0`. |
 
 The eleven skips are the repository's pre-existing opt-in live staging tests;
 they were not converted into passes and no live AWS operation was attempted.
@@ -61,3 +64,6 @@ the deleted provider-registration/network implementation: `2261 + 8 - 45 =
   alias or silent registration path.
 - S3 export creates a local immutable receipt and never registers with a service
   or deletes data from FSx.
+- Sequencing-source validation applies the same central, case-insensitive blank
+  sentinel semantics as DayOA to both primary and secondary path cells; textual
+  nulls cannot create a false source bundle or force a false paired-end layout.
