@@ -22,3 +22,7 @@ Validation evidence:
 
 This evidence covers packaged fixtures and local tests only. No headnode was
 modified, no controller was started, and no live analysis root was changed.
+
+Release candidate update: all four HIOMRS-family catalog entries and the DayOA
+default now pin exact DayOA `13.0.3`; DYEC self-pins `12.0.2`, while
+`validated_version=12.0.3` remains reserved for the post-acceptance release.
