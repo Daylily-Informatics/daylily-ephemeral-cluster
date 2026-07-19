@@ -413,8 +413,13 @@ def test_hiomrs_six_manifest_fixture_is_copied_exactly_and_rendered(
         row["ANALYSIS_UNIT_UID"]: row
         for row in manifests.rows["analysis_units.tsv"]
     }
-    assert units["HG003-SR1x-ONT1x-A4-SR0p9-ONT0p85"]["SUBSAMPLE_PCT"] == "0.9"
-    assert units["HG003-SR1x-ONT1x-A4-SR0p9-ONT0p85"]["ONT_SUBSAMPLE_PCT"] == "0.85"
+    fractions = [
+        (row["SUBSAMPLE_PCT"], row["ONT_SUBSAMPLE_PCT"])
+        for row in manifests.rows["analysis_units.tsv"]
+    ]
+    assert fractions == [("", ""), ("", ""), ("0.90", "0.90"), ("0.75", "0.75")]
+    assert "HG003-SR1x-ONT1x-A3-SR0p90-ONT0p90" in units
+    assert "HG003-SR1x-ONT1x-A4-SR0p75-ONT0p75" in units
     assert {row["LIBRARY_EUID"] for row in manifests.rows["libraries.tsv"]} == {
         "Z-HG003-LIB-01"
     }

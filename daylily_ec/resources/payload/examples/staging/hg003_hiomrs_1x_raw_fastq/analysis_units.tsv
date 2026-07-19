@@ -1,5 +1,5 @@
 ANALYSIS_UNIT_UID	ANALYSIS_UNIT_EUID	SAMPLEID	DELIVERY_EUID	DELIVERY_PROFILE	CUSTOMER_DELIVERY_ID	SUBSAMPLE_PCT	ONT_SUBSAMPLE_PCT	ALIGNED_REF_UID	BWA_KMER	DEEP_MODEL	MERGE_SINGLE	ANALYSIS_UNIT_COMMENT
 HG003-SR1x-ONT1x-A1	Z-HG003-ANALYSIS-UNIT-01	HG003							19			Full-depth validation attempt 1 using the same exact HG003 1x SR and LR FASTQs
 HG003-SR1x-ONT1x-A2	Z-HG003-ANALYSIS-UNIT-02	HG003							19			Full-depth validation attempt 2 using the same exact HG003 1x SR and LR FASTQs
-HG003-SR1x-ONT1x-A3	Z-HG003-ANALYSIS-UNIT-03	HG003							19			Full-depth validation attempt 3 using the same exact HG003 1x SR and LR FASTQs
-HG003-SR1x-ONT1x-A4-SR0p9-ONT0p85	Z-HG003-ANALYSIS-UNIT-04	HG003				0.9	0.85		19			Downsample validation attempt using existing SR and ONT subsample controls
+HG003-SR1x-ONT1x-A3-SR0p90-ONT0p90	Z-HG003-ANALYSIS-UNIT-03	HG003				0.90	0.90		19			Downsample validation attempt 3 using the same exact HG003 1x SR and LR FASTQs at 90 percent
+HG003-SR1x-ONT1x-A4-SR0p75-ONT0p75	Z-HG003-ANALYSIS-UNIT-04	HG003				0.75	0.75		19			Downsample validation attempt 4 using the same exact HG003 1x SR and LR FASTQs at 75 percent
