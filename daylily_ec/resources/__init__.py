@@ -58,6 +58,17 @@ SENTIEON_SINGLE_TEMPLATE_RELPATH = (
     "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
     "prod_cluster_sentieon-single_us-west-2c.yaml"
 )
+HG003_HIOMRS_1X_MANIFEST_RELPATHS = tuple(
+    f"examples/staging/hg003_hiomrs_1x_raw_fastq/{name}"
+    for name in (
+        "specimens.tsv",
+        "samples.tsv",
+        "libraries.tsv",
+        "sequencing_inputs.tsv",
+        "analysis_units.tsv",
+        "analysis_unit_inputs.tsv",
+    )
+)
 REQUIRED_CLUSTER_TEMPLATE_RELPATHS = (
     *INTEL_SPOT_TEMPLATE_RELPATHS,
     *INTEL_ONDEMAND_TEMPLATE_RELPATHS,
@@ -85,6 +96,8 @@ def _expected_subpaths(root: Path) -> Iterable[Path]:
     yield root / "environment.yaml"
     yield root / "etc"
     yield root / "bin"
+    for relative_path in HG003_HIOMRS_1X_MANIFEST_RELPATHS:
+        yield root / relative_path
 
 
 def _validate_resources_dir(root: Path) -> None:
@@ -102,6 +115,7 @@ def _validate_resources_dir(root: Path) -> None:
 def _resources_need_refresh(dest: Path, src: Path) -> bool:
     refresh_rels = (
         "config/daylily_pipeline_command_catalog.yaml",
+        *HG003_HIOMRS_1X_MANIFEST_RELPATHS,
         *REQUIRED_CLUSTER_TEMPLATE_RELPATHS,
         "config/day_cluster/pcluster_env.yml",
         "config/day_cluster/slurm_accounting_mysql_ec2.yml",

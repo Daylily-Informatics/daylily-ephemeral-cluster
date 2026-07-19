@@ -4,7 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from daylily_ec.resources import INTEL_TEMPLATE_REGION_AZS, ensure_extracted, resource_path
+from daylily_ec.resources import (
+    HG003_HIOMRS_1X_MANIFEST_RELPATHS,
+    INTEL_TEMPLATE_REGION_AZS,
+    ensure_extracted,
+    resource_path,
+)
 
 
 def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
@@ -14,6 +19,8 @@ def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
 
     root = ensure_extracted()
     assert root.is_dir()
+    for relative_path in HG003_HIOMRS_1X_MANIFEST_RELPATHS:
+        assert (root / relative_path).is_file()
 
     for az in INTEL_TEMPLATE_REGION_AZS:
         assert (

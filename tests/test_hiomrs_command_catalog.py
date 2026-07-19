@@ -26,6 +26,11 @@ def test_hiomrs_catalog_entry_is_serial_native_dyr_and_mirrored() -> None:
 
     assert command.type == "dev"
     assert command.sample_manifest_template == ""
+    assert (
+        command.manifest_dir_template
+        == "examples/staging/hg003_hiomrs_1x_raw_fastq"
+    )
+    assert command.test_data_profile == "hg003_hiomrs_1x_raw_fastq"
     assert command.targets == ["produce_hiomrs", "produce_snv_concordances"]
     assert command.jobs == 1
     assert command.keep_going is False
@@ -39,17 +44,11 @@ def test_hiomrs_catalog_entry_is_serial_native_dyr_and_mirrored() -> None:
     assert command.compatible_platforms == ["ILMN", "ONT"]
     assert command.compatible_cluster_types == ["sentieon-single"]
     assert command.compatible_data_modes == ["hybrid_ilmn_ont"]
-    assert command.git_tag == "13.0.0"
+    assert command.git_tag == "13.0.1"
     assert command.validated_version == "12.0.2"
     assert command.input_contract == "six_manifest"
     assert command.input_requirements.accepted_source_column_sets == [
-        [
-            "ILMN_R1_FQ",
-            "ILMN_R2_FQ",
-            "ONT_CRAM",
-            "ONT_CRAM_ALIGNER",
-            "ONT_CRAM_SNV_CALLER",
-        ]
+        ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"]
     ]
 
     for forbidden in ("bin/day_run", "sentdhiomr", " -k", ".partial", "rsync"):
@@ -63,6 +62,11 @@ def test_hiomrs_kitchensink_has_explicit_native_targets_and_retires_hiomr() -> N
 
     assert command.type == "dev"
     assert command.sample_manifest_template == ""
+    assert (
+        command.manifest_dir_template
+        == "examples/staging/hg003_hiomrs_1x_raw_fastq"
+    )
+    assert command.test_data_profile == "hg003_hiomrs_1x_raw_fastq"
     assert command.targets == [
         "produce_hiomrs",
         "produce_snv_concordances",
@@ -88,7 +92,7 @@ def test_hiomrs_kitchensink_has_explicit_native_targets_and_retires_hiomr() -> N
     assert command.snv_callers == ["hiomrs"]
     assert command.sv_callers == ["tiddit"]
     assert command.compatible_cluster_types == ["sentieon-single"]
-    assert command.git_tag == "13.0.0"
+    assert command.git_tag == "13.0.1"
     assert command.validated_version == "12.0.2"
     assert command.input_contract == "six_manifest"
     assert command.dy_command.startswith("dy-r produce_hiomrs ")
@@ -117,7 +121,7 @@ def test_betelgeuser_prod_preserves_current_main_entry_on_six_manifest_contract(
     kitchen_sink = catalog.get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
 
     assert command.type == "prod"
-    assert command.git_tag == "13.0.0"
+    assert command.git_tag == "13.0.1"
     assert command.validated_version == "12.0.2"
     assert command.input_contract == "six_manifest"
     assert command.sample_manifest_template == ""
@@ -127,7 +131,15 @@ def test_betelgeuser_prod_preserves_current_main_entry_on_six_manifest_contract(
         "results/day/hg38/reports/DAY_final_multiqc.html",
         "results/day/hg38/reports/dayoa_evidence_manifest.json",
     ]
-    identity_fields = {"command_id", "type", "display_name", "description"}
+    identity_fields = {
+        "command_id",
+        "type",
+        "display_name",
+        "description",
+        "test_data_profile",
+        "manifest_dir_template",
+        "input_requirements",
+    }
     assert command.model_dump(exclude=identity_fields) == kitchen_sink.model_dump(
         exclude=identity_fields
     )

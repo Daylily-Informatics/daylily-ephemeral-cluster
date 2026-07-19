@@ -1,7 +1,7 @@
 # DYEC 12 Provider-Neutral Six-Manifest Ledger
 
 Created: 2026-07-19T00:39:56Z
-Status: A5 IMPLEMENTATION COMPLETE; RELEASE AND LIVE PROOF PENDING
+Status: DYEC 12.0.0 RELEASED; 12.0.1 HG003 1X CATALOG PATCH IN VALIDATION
 Branch: `codex/bjuice-set1-closeout`
 Base: `origin/main` at `93154b47b9dd59f530aea673283b1d1c7931c405`
 
@@ -56,7 +56,9 @@ implementation work.
   those receipts independently; DYEC performs no service registration.
 - DayOA `13.0.0` is the exact candidate pin/default for DYEC `12.0.0`.
   `validated_version` remains the last proven tag until HG003 1x succeeds.
-- After live proof, DYEC `12.0.1` updates the validated version and self pin.
+- DayOA `13.0.1` carries the released exact HG003 1x ILMN/ONT FASTQ fixture.
+  DYEC `12.0.1` is therefore the pre-acceptance catalog/runner patch; the
+  post-live validated-version and self-pin release advances to `12.0.2`.
 
 ## Execution rows
 
@@ -68,12 +70,13 @@ implementation work.
 | D3 | Add local-only identities validate/plan/apply/status/evidence. | PASS | Hash-bound local receipts; no URL, token, SDK, or network import. |
 | D4 | Replace Ursa-named artifact producer options/manifests with generic v3. | PASS | DYEC producer flag is `--produce-analysis-artifact-manifest`; old alias is rejected. DayOA owns v3 contents. |
 | D5 | Remove active Ursa/Dewey/Dayhoff registration, URL, tag, and discovery behavior. | PASS | Registration module/CLI removed; create, launch, export, sbatch, and FSx tags are provider-neutral. |
-| D6 | Update catalog/source payload/default DayOA pin to 13.0.0. | PENDING | Validated version stays 12.0.2 until live proof. |
+| D6 | Update catalog/source payload/default DayOA pin to 13.0.0. | PASS | DYEC 12.0.0 is pinned to released DayOA 13.0.0; validated version stays 12.0.2 until live proof. |
 | D7 | Add static service-boundary and no-network regression blockers. | PASS | `tests/test_provider_neutral_boundary.py`. |
 | D8 | Run focused and full DYEC suites plus source/payload parity checks. | PASS | `20260719T024400Z_dyec12_provider_neutral_six_manifest_test_evidence.md`: 2,224 collected = 2,213 passed + 11 opt-in live skips; new modules 93% combined. |
-| D9 | Merge and tag clean DYEC 12.0.0 release. | PENDING | Non-v annotated tag; never move. |
+| D9 | Merge and tag clean DYEC 12.0.0 release. | PASS | PR 40 merged as `e32f27940fb7243a4a92bf56c3a34571fa902876`; pushed tag `12.0.0` is annotated. |
 | D10 | Refresh exact target headnode and verify explicit DayOA 13 clone support. | PENDING | No workflow launch until release is proven. |
-| D11 | Publish DYEC 12.0.1 after HG003 1x controller rc 0 and final evidence. | PENDING | Update validated version and self pin only after proof. |
+| D11 | Publish DYEC 12.0.1 with the exact HG003 1x FASTQ catalog fixture and DayOA 13.0.1 pin. | IN PROGRESS | Source/package catalogs and the six packaged fixture files must remain byte-identical; validated version remains 12.0.2. |
+| D12 | Publish DYEC 12.0.2 after HG003 1x controller rc 0 and final evidence. | PENDING | Update validated version and self pin only after proof. |
 
 The early collection checkpoint reported 2,261 tests. During provider cleanup,
 eight new strict bundle/role and boundary cases were added and 45 obsolete
@@ -93,8 +96,26 @@ literal values `''`, `na`, `none`, and `null`, mixed/uppercase spellings, and
 real primary and secondary paths. No version, pin, release, or live state was
 changed by this correction.
 
+## Exact HG003 1x command-catalog fixture
+
+DayOA `13.0.1` and the DYEC packaged fixture use the same six files byte for
+byte. The fixture contains one HG003 specimen, one sample, one physical
+library, the exact HG003 1x paired Illumina FASTQs, the receipt-bound
+primary-only HG003 1x ONT FASTQ, four analysis attempts, and eight ordered input
+links. Attempts one through three use the same full-depth inputs; attempt four
+uses the existing `SUBSAMPLE_PCT=0.9` and `ONT_SUBSAMPLE_PCT=0.85` controls.
+No input is split or synthesized. Test-only identities use the reserved `Z-`
+prefix.
+
+The two HG003 HIOMRS validation commands explicitly select
+`hg003_hiomrs_1x_raw_fastq` and stage the packaged fixture. Production and
+customer-delivery commands remain operator-manifest-driven and do not silently
+inherit a test fixture or test identities. All current HIOMRS-family catalog
+entries are pinned to DayOA `13.0.1`; `validated_version` is unchanged pending
+live proof.
+
 ## Terminal contract
 
 This ledger completes only when provider-neutral source/tests/docs are merged,
-DYEC 12.0.0 is published, the headnode is refreshed, exact DayOA 13.0.0 HG003
-1x acceptance succeeds from a new root, and DYEC 12.0.1 records that proof.
+DYEC 12.0.1 is published, the headnode is refreshed, exact DayOA 13.0.1 HG003
+1x acceptance succeeds from a new root, and DYEC 12.0.2 records that proof.
