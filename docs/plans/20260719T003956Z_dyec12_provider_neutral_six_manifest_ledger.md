@@ -102,8 +102,9 @@ DayOA `13.0.1` and the DYEC packaged fixture use the same six files byte for
 byte. The fixture contains one HG003 specimen, one sample, one physical
 library, the exact HG003 1x paired Illumina FASTQs, the receipt-bound
 primary-only HG003 1x ONT FASTQ, four analysis attempts, and eight ordered input
-links. Attempts one through three use the same full-depth inputs; attempt four
-uses the existing `SUBSAMPLE_PCT=0.9` and `ONT_SUBSAMPLE_PCT=0.85` controls.
+links. Attempts one and two use the same full-depth inputs; attempt three uses
+`SUBSAMPLE_PCT=0.90` and `ONT_SUBSAMPLE_PCT=0.90`; attempt four uses
+`SUBSAMPLE_PCT=0.75` and `ONT_SUBSAMPLE_PCT=0.75`.
 No input is split or synthesized. Test-only identities use the reserved `Z-`
 prefix.
 
