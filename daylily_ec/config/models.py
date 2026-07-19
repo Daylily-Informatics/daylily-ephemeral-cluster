@@ -140,7 +140,6 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "export_destination_s3_uri",
     "spot_instance_allocation_strategy",
     "sweep_protection_tag",
-    "ursa_root_url",
 ]
 
 

@@ -284,7 +284,7 @@ def test_render_hybrid_kitchensink_uses_fail_fast_catalog_policy() -> None:
     assert " -k " not in f" {live} "
     assert " -n " not in f" {live} "
     assert dry.endswith(
-        f"{expected_flags} -n --produce-ursa-manifest true --produce-rulegraph true "
+        f"{expected_flags} -n --produce-analysis-artifact-manifest true --produce-rulegraph true "
         "--produce-filegraph false --produce-dag false"
     )
     assert " -k " not in f" {dry} "
@@ -796,7 +796,7 @@ def test_runner_payloads_and_small_helpers(tmp_path: Path, monkeypatch: pytest.M
             "__DAYLILY_SESSION__=s1\n"
             "__DAYLILY_RUN_DIR__=/runs/s1\n"
             "__DAYLILY_REPO_PATH__=/repo\n"
-            "__DAYLILY_DY_COMMAND__=dy-r all --produce-ursa-manifest true\n"
+            "__DAYLILY_DY_COMMAND__=dy-r all --produce-analysis-artifact-manifest true\n"
         ).repo_path
         == "/repo"
     )
@@ -830,7 +830,7 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
     )
     assert compact == (
         "dy-r target -j 150 -p -k -T 1 --rerun-triggers mtime --rerun-incomplete "
-        "--produce-ursa-manifest true --produce-rulegraph true "
+        "--produce-analysis-artifact-manifest true --produce-rulegraph true "
         "--produce-filegraph false --produce-dag false"
     )
     no_runtime = render_dy_command(
@@ -842,7 +842,7 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
     assert no_runtime.startswith(
         "dy-r target -j 150 -p -k -T 1 --rerun-triggers mtime --rerun-incomplete "
     )
-    assert "--produce-ursa-manifest true" in no_runtime
+    assert "--produce-analysis-artifact-manifest true" in no_runtime
     assert (
         build_evidence_prefix(
             evidence_s3_uri="s3://bucket/root",

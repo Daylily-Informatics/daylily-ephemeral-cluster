@@ -33,7 +33,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Literal, Optional, cast
-from urllib.parse import quote, urlencode, urlparse, urlunparse
+from urllib.parse import urlparse
 
 import typer
 from botocore.exceptions import ClientError
@@ -865,7 +865,7 @@ def _emit_spot_price_partition_table(
     cluster_name: str,
     markdown_output_path: Path,
 ) -> None:
-    """Print the Ursa-facing partition spot-price summary."""
+    """Print the operator-facing partition spot-price summary."""
 
     from rich.table import Table
 
@@ -1923,7 +1923,7 @@ def _resolve_persistent2_config(
         "fsx_encryption_mode": "AWS_MANAGED_FSX",
         "fsx_owner": "DYEC",
         "fsx_lifecycle": "CLUSTER_BOUND",
-        "sweep_protection_tag": "ursa-preserve=true",
+        "sweep_protection_tag": "dyec-preserve=true",
     }
     resolved: dict[str, str] = {"fsx_deployment_type": deployment_type}
     if not _is_valid_fsx_size(fsx_size):
@@ -1953,56 +1953,6 @@ def _resolve_persistent2_config(
 def _is_valid_headnode_instance_type(value: str) -> bool:
     """Return True when *value* is an approved headnode instance type."""
     return value in APPROVED_HEADNODE_INSTANCE_TYPES
-
-
-def _normalize_ursa_root_url(value: str) -> str:
-    """Validate and normalize an explicit Ursa service root URL."""
-    raw = value.strip()
-    if not raw:
-        return ""
-    parsed = urlparse(raw)
-    if parsed.scheme.lower() not in {"http", "https"} or not parsed.netloc:
-        raise ValueError("ursa_root_url must be an absolute http:// or https:// URL.")
-    if parsed.username or parsed.password:
-        raise ValueError("ursa_root_url must not contain embedded credentials.")
-    if parsed.params or parsed.query or parsed.fragment:
-        raise ValueError(
-            "ursa_root_url must be a service root without parameters, query, or fragment."
-        )
-    return urlunparse(
-        (
-            parsed.scheme.lower(),
-            parsed.netloc,
-            parsed.path.rstrip("/"),
-            "",
-            "",
-            "",
-        )
-    )
-
-
-def _resolve_ursa_root_url(cfg: Any, *, non_interactive: bool) -> str:
-    """Prompt for the optional explicit Ursa root before AWS work."""
-    value = _resolve_config_value(
-        cfg,
-        "ursa_root_url",
-        "Ursa root URL",
-        non_interactive=non_interactive,
-        required=False,
-        allow_empty=True,
-    )
-    return _normalize_ursa_root_url(value)
-
-
-def _build_ursa_cluster_url(root_url: str, cluster_name: str, region: str) -> str:
-    """Build the canonical Ursa cluster-detail route."""
-    normalized_root = _normalize_ursa_root_url(root_url)
-    if not normalized_root:
-        return ""
-    return (
-        f"{normalized_root}/clusters/{quote(cluster_name, safe='')}?"
-        f"{urlencode({'region': region})}"
-    )
 
 
 def _format_idle_cost_summary(estimate: IdleClusterCostEstimate) -> str:
@@ -2728,16 +2678,6 @@ def run_create_workflow(
         return EXIT_VALIDATION_FAILURE
 
     try:
-        ursa_root_url = _resolve_ursa_root_url(
-            cfg,
-            non_interactive=non_interactive,
-        )
-    except ValueError as exc:
-        logger.error("Ursa root URL validation failed: %s", exc)
-        ui.fail(f"Ursa root URL: {exc}")
-        return EXIT_VALIDATION_FAILURE
-
-    try:
         fsx_deployment_type = _resolve_fsx_deployment_type(
             cfg,
             non_interactive=non_interactive,
@@ -2773,7 +2713,6 @@ def run_create_workflow(
         return EXIT_VALIDATION_FAILURE
 
     ui.phase(f"INIT · {cluster_name}")
-    ui.detail("Ursa root", ursa_root_url or "(not configured)")
     ui.detail("Headnode", headnode_instance_type)
     ui.detail("FSx deployment type", fsx_deployment_type)
     ui.detail("FSx capacity", f"{fsx_size} GiB")
@@ -3557,7 +3496,7 @@ def run_create_workflow(
             encryption_mode=persistent2_config["fsx_encryption_mode"],
             owner=persistent2_config["fsx_owner"],
             lifecycle=persistent2_config["fsx_lifecycle"],
-            sweep_preserve=(persistent2_config["sweep_protection_tag"] == "ursa-preserve=true"),
+            sweep_preserve=(persistent2_config["sweep_protection_tag"] == "dyec-preserve=true"),
         )
         try:
             persistent2_resources = ensure_persistent2_resources(
@@ -3790,7 +3729,6 @@ def run_create_workflow(
     # Write next-run template
     final_values: Dict[str, str] = {
         "cluster_name": cluster_name,
-        "ursa_root_url": ursa_root_url,
         "reference_s3_uri": reference_s3_uri,
         "control_data_s3_uri": control_data_s3_uri,
         "stage_s3_uri": stage_s3_uri,
@@ -3937,19 +3875,13 @@ def run_create_workflow(
 
     logger.info("✅ Cluster %s creation complete.", cluster_name)
     elapsed_total = monitor_result.elapsed_seconds
-    ursa_cluster_url = _build_ursa_cluster_url(
-        ursa_root_url,
-        cluster_name,
-        aws_ctx.region,
-    )
     ui.success_panel(
         "CLUSTER CREATION COMPLETE",
         f"[bold]Cluster:[/]  {cluster_name}\n"
         f"[bold]Region:[/]   {aws_ctx.region} ({region_az})\n"
         f"[bold]Elapsed:[/]  {ui.elapsed_str(elapsed_total)}\n"
         f"[bold]Accounting:[/] {accounting_outcome.value}\n"
-        f"{_format_idle_cost_summary(idle_cost)}\n"
-        f"[bold]Ursa:[/]  {ursa_cluster_url or '(root URL not configured)'}",
+        f"{_format_idle_cost_summary(idle_cost)}",
     )
     typer.echo(
         _build_connection_command(
@@ -3960,10 +3892,6 @@ def run_create_workflow(
     )
     typer.echo(f"Idle cluster hourly estimate: ${idle_cost.total_hourly_usd:.4f}/hour")
     typer.echo("...fin!")
-    if ursa_cluster_url:
-        typer.echo(f"Ursa cluster page: {ursa_cluster_url}")
-    else:
-        typer.echo("Ursa cluster page: not configured (set ursa_root_url)")
     _maybe_say_onward()
     if slurm_accounting == "on" and not accounting_result.succeeded and fail_on_sacct_error:
         return EXIT_AWS_FAILURE

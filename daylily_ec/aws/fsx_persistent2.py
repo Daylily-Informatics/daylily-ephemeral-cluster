@@ -25,7 +25,7 @@ FSX_STORAGE_TYPE = "SSD"
 FSX_LUSTRE_VERSION = "2.15"
 FSX_METADATA_MODE = "AUTOMATIC"
 FSX_ENCRYPTION_MODE = "AWS_MANAGED_FSX"
-SWEEP_PRESERVE_TAG_KEY = "ursa-preserve"
+SWEEP_PRESERVE_TAG_KEY = "dyec-preserve"
 SWEEP_PRESERVE_TAG_VALUE = "true"
 REFERENCE_FILE_SYSTEM_PATH = "/references/"
 FSX_PORT_RANGES = ((988, 988), (1021, 1023))
@@ -93,7 +93,7 @@ class Persistent2Spec:
         if self.owner != FSX_OWNER or self.lifecycle != FSX_LIFECYCLE:
             raise ValueError(f"P2 benchmark FSx ownership must be {FSX_OWNER}/{FSX_LIFECYCLE}.")
         if not self.sweep_preserve:
-            raise ValueError("P2 benchmark cluster must set ursa-preserve=true.")
+            raise ValueError("P2 benchmark cluster must set dyec-preserve=true.")
         if not self.reference_s3_uri.startswith("s3://"):
             raise ValueError("P2 FSx reference_s3_uri must be an explicit s3:// URI.")
 
@@ -613,7 +613,7 @@ def render_external_mount(
     if preserve_matches and any(
         str(item.get("Value")).lower() != SWEEP_PRESERVE_TAG_VALUE for item in preserve_matches
     ):
-        raise ValueError("Cluster YAML contains a conflicting ursa-preserve tag.")
+        raise ValueError("Cluster YAML contains a conflicting dyec-preserve tag.")
     if not preserve_matches:
         tags.append({"Key": SWEEP_PRESERVE_TAG_KEY, "Value": SWEEP_PRESERVE_TAG_VALUE})
 
@@ -650,7 +650,7 @@ def validate_external_mount(
             )
     tags = _tag_map(payload.get("Tags") or [])
     if tags.get(SWEEP_PRESERVE_TAG_KEY) != SWEEP_PRESERVE_TAG_VALUE:
-        raise ValueError("Rendered P2 cluster must set ursa-preserve=true.")
+        raise ValueError("Rendered P2 cluster must set dyec-preserve=true.")
 
 
 def find_cluster_bound_file_systems(

@@ -181,7 +181,8 @@ def test_sbatch_wrapper_rejects_unknown_cost_center(tmp_path: Path) -> None:
     result = _run(wrapper, "--comment", "project-a", "job.sh")
     assert result.returncode == 1
     assert "does not exist" in result.stderr
-    assert "https://ursa.day.lsmc.bio/ursa-actions#cost-centers?cost_center=project-a" in result.stderr
+    assert "cost center 'project-a' does not exist" in result.stderr
+    assert "http" not in result.stderr
 
 
 def test_sbatch_wrapper_rejects_empty_cost_center_registry_json(tmp_path: Path) -> None:

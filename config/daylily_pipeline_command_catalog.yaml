@@ -8,6 +8,27 @@ default_repository: daylily-omics-analysis
 # is omitted, it uses the selected repository's default_ref. The checkout path
 # below /fsx/analysis_results/<executing_entity>/<analysis_id>/ is relative_path.
 input_contracts:
+  six_manifest:
+    description: "Provider-neutral DayOA 13 contract. DYEC copies exactly six prevalidated local manifests and records byte hashes; it does not infer topology or resolve identities."
+    generated_tables:
+      specimens_tsv:
+        path: config/specimens.tsv
+        required_columns: [SPECIMEN_ID]
+      samples_tsv:
+        path: config/samples.tsv
+        required_columns: [SAMPLEID, SPECIMEN_ID]
+      libraries_tsv:
+        path: config/libraries.tsv
+        required_columns: [LIBRARY_ID, SAMPLEID]
+      sequencing_inputs_tsv:
+        path: config/sequencing_inputs.tsv
+        required_columns: [SEQUENCING_INPUT_UID, LIBRARY_ID]
+      analysis_units_tsv:
+        path: config/analysis_units.tsv
+        required_columns: [ANALYSIS_UNIT_UID, SAMPLEID]
+      analysis_unit_inputs_tsv:
+        path: config/analysis_unit_inputs.tsv
+        required_columns: [ANALYSIS_UNIT_UID, SEQUENCING_INPUT_UID, ROLE, INPUT_ORDINAL]
   sample_manifest_v12:
     description: "DYEC stages an explicit persisted-lineage source manifest into DayOA 12 config/specimens.tsv, config/samples.tsv, and config/libraries.tsv. No identifier or EUID is inferred."
     source_table:
@@ -273,7 +294,7 @@ repositories:
     auth_mode: aws_deploy_key
     https_url: https://github.com/lsmc-bio/daylily-omics-analysis.git
     ssh_url: git@github.com:lsmc-bio/daylily-omics-analysis.git
-    default_ref: 12.0.5
+    default_ref: 13.0.0
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: simple-test
@@ -1066,7 +1087,7 @@ repositories:
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
-        input_contract: sample_manifest_v12
+        input_contract: six_manifest
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
@@ -1096,7 +1117,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 12.0.5
+        git_tag: 13.0.0
         no_containerized: false
       - command_id: hybrid_ilmn_ont_hiomrs_kitchensink
         type: dev
@@ -1107,7 +1128,7 @@ repositories:
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
-        input_contract: sample_manifest_v12
+        input_contract: six_manifest
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
@@ -1151,7 +1172,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 12.0.5
+        git_tag: 13.0.0
         no_containerized: false
       - command_id: betelgeuser_hiomr_prod_v1
         type: prod
@@ -1162,7 +1183,7 @@ repositories:
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
-        input_contract: sample_manifest_v12
+        input_contract: six_manifest
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
@@ -1206,7 +1227,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 12.0.5
+        git_tag: 13.0.0
         no_containerized: false
       - command_id: inflection-bjuice-product-v0.2
         type: dev
@@ -1217,7 +1238,7 @@ repositories:
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
-        input_contract: sample_manifest_v12
+        input_contract: six_manifest
         requires_staging: true
         requires_run_mount: false
         runtime_parameters:
@@ -1254,7 +1275,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 12.0.5
+        git_tag: 13.0.0
         no_containerized: false
       - command_id: complete_genomics_mgi_snv_concordance
         type: dev

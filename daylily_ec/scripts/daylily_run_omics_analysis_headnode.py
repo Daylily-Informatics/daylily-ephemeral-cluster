@@ -666,10 +666,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Specific staging directory containing the exact --input-contract manifests",
     )
     parser.add_argument(
+        "--manifest-dir",
+        help="Local directory containing exactly the six DayOA 13 manifests",
+    )
+    parser.add_argument(
         "--input-contract",
-        choices=("sample_manifest", "sample_manifest_v12", "run_context", "none"),
-        default="sample_manifest",
-        help="Explicit workflow input contract; DayOA 12 sample commands require sample_manifest_v12.",
+        choices=("six_manifest", "sample_manifest", "sample_manifest_v12", "run_context", "none"),
+        default="six_manifest",
+        help="Explicit workflow input contract; new sample commands require six_manifest.",
     )
     parser.add_argument(
         "--run-context-file",
@@ -735,7 +739,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--git-tag",
         "-t",
-        default="main",
+        required=True,
         help="Git branch or tag to pass to day-clone",
     )
     parser.add_argument("--project", help="Project/budget to supply to dyoainit")
@@ -760,7 +764,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--target", default="produce_snv_concordances")
     parser.add_argument("--dy-command", help="Override the dy-r command entirely")
     parser.add_argument("--snakemake-extra", help="Additional arguments appended to dy-r")
-    parser.add_argument("--produce-ursa-manifest", help="Pass true or false to dy-r")
+    parser.add_argument(
+        "--produce-analysis-artifact-manifest", help="Pass true or false to dy-r"
+    )
     parser.add_argument("--produce-rulegraph", help="Pass true or false to dy-r")
     parser.add_argument("--produce-filegraph", help="Pass true or false to dy-r")
     parser.add_argument("--produce-dag", help="Pass true or false to dy-r")
@@ -803,74 +809,18 @@ def build_parser() -> argparse.ArgumentParser:
             "launching. Without this flag, existing analysis directories fail hard."
         ),
     )
-    parser.add_argument(
-        "--artifact-registration-command-id",
-        default="",
-        help="Catalog command id whose artifact_registration policy should run after export",
-    )
-    parser.add_argument(
-        "--dewey-url", default="", help="Dewey base URL for post-export registration"
-    )
-    parser.add_argument(
-        "--dewey-token-env",
-        default="",
-        help="Environment variable containing the Dewey bearer token",
-    )
-    parser.add_argument(
-        "--dewey-analysis-dir-external-object-id",
-        default="",
-        help="External object id for the exported daylily-omics-analysis S3 directory",
-    )
-    parser.add_argument(
-        "--dewey-run-artifact-euid",
-        default="",
-        help="Dewey run artifact EUID linked to the exported analysis directory external object",
-    )
-    parser.add_argument(
-        "--dewey-ursa-analysis-euid",
-        default="",
-        help="Ursa analysis EUID linked to the exported analysis directory external object",
-    )
     parser.add_argument("--dry-run", action="store_true")
     parser.set_defaults(skip_project_check=True, input_staging=True, default_activation=True)
     return parser
 
 
-def validate_export_registration_args(args: argparse.Namespace) -> None:
+def validate_export_args(args: argparse.Namespace) -> None:
     if args.export_destination_s3_uri and args.export_trigger == "none":
         raise CommandError("--export-trigger must not be none when auto-export is requested.")
     if args.export_trigger != "none" and not args.export_destination_s3_uri:
         raise CommandError("--export-destination-s3-uri is required when --export-trigger is set.")
     if args.delete_on_export_success and not args.export_destination_s3_uri:
         raise CommandError("--delete-on-export-success requires --export-destination-s3-uri.")
-    if args.artifact_registration_command_id and args.export_trigger == "none":
-        raise CommandError("--artifact-registration-command-id requires an export trigger.")
-    if args.artifact_registration_command_id and not args.dewey_url:
-        raise CommandError("--dewey-url is required with --artifact-registration-command-id.")
-    if args.artifact_registration_command_id and not args.dewey_token_env:
-        raise CommandError("--dewey-token-env is required with --artifact-registration-command-id.")
-    if not args.artifact_registration_command_id and (args.dewey_url or args.dewey_token_env):
-        raise CommandError(
-            "--artifact-registration-command-id is required when Dewey registration options are set."
-        )
-    dewey_link_options = {
-        "--dewey-analysis-dir-external-object-id": args.dewey_analysis_dir_external_object_id,
-        "--dewey-run-artifact-euid": args.dewey_run_artifact_euid,
-        "--dewey-ursa-analysis-euid": args.dewey_ursa_analysis_euid,
-    }
-    if any(str(value or "").strip() for value in dewey_link_options.values()):
-        missing = [
-            option for option, value in dewey_link_options.items() if not str(value or "").strip()
-        ]
-        if missing:
-            raise CommandError(
-                "Dewey analysis-directory external-link options must be provided together: "
-                + ", ".join(missing)
-            )
-        if not args.artifact_registration_command_id:
-            raise CommandError(
-                "--artifact-registration-command-id is required with Dewey external-link options."
-            )
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -878,7 +828,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     if not args.profile:
         raise CommandError("AWS profile is required. Set AWS_PROFILE or use --profile.")
-    validate_export_registration_args(args)
+    validate_export_args(args)
     try:
         validate_job_max_runtime_minutes(args.max_runtime_minutes)
     except ValueError as exc:
@@ -926,6 +876,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     samples_content: Optional[str] = None
     libraries_content: Optional[str] = None
     units_content: Optional[str] = None
+    six_manifest_contents: dict[str, str] = {}
+    six_manifest_receipt: dict[str, object] | None = None
     if args.run_context_file:
         if not args.input_staging:
             raise CommandError("--run-context-file cannot be used with --no-input-staging.")
@@ -937,6 +889,33 @@ def main(argv: Optional[List[str]] = None) -> int:
         if not run_context_path.is_file():
             raise CommandError(f"Run context file not found: {run_context_path}")
         run_context_content = run_context_path.read_text(encoding="utf-8")
+        stage_config = None
+    elif args.manifest_dir:
+        if not args.input_staging:
+            raise CommandError("--manifest-dir cannot be used with --no-input-staging.")
+        if args.stage_dir or any(
+            (args.specimens_file, args.samples_file, args.libraries_file, args.units_file)
+        ):
+            raise CommandError(
+                "--manifest-dir cannot be combined with stage discovery or legacy manifest files."
+            )
+        if args.input_contract != "six_manifest":
+            raise CommandError("--manifest-dir requires --input-contract six_manifest.")
+        from daylily_ec.manifest_set import (
+            ManifestSetError,
+            load_manifest_set,
+            validation_receipt,
+        )
+
+        try:
+            manifests = load_manifest_set(args.manifest_dir)
+        except ManifestSetError as exc:
+            raise CommandError(str(exc)) from exc
+        six_manifest_contents = {
+            name: manifests.paths[name].read_text(encoding="utf-8")
+            for name in manifests.paths
+        }
+        six_manifest_receipt = validation_receipt(manifests)
         stage_config = None
     elif args.specimens_file or args.samples_file or args.libraries_file or args.units_file:
         if not args.input_staging:
@@ -985,6 +964,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         units_content = units_path.read_text(encoding="utf-8") if units_path is not None else None
         stage_config = None
     elif args.input_staging:
+        if args.input_contract == "six_manifest":
+            raise CommandError("six_manifest input staging requires explicit --manifest-dir.")
         stage_config = discover_stage_config(
             target.instance_id,
             args.profile,
@@ -999,7 +980,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         stage_config = None
 
     producer_overrides = {
-        "--produce-ursa-manifest": args.produce_ursa_manifest,
+        "--produce-analysis-artifact-manifest": args.produce_analysis_artifact_manifest,
         "--produce-rulegraph": args.produce_rulegraph,
         "--produce-filegraph": args.produce_filegraph,
         "--produce-dag": args.produce_dag,
@@ -1039,17 +1020,39 @@ def main(argv: Optional[List[str]] = None) -> int:
     sample_config_mode = any(
         value is not None
         for value in (specimens_content, samples_content, libraries_content, units_content)
-    )
+    ) or bool(six_manifest_contents)
     run_context_mode_literal = "true" if run_context_mode else "false"
     sample_config_mode_literal = "true" if sample_config_mode else "false"
     input_staging_mode_literal = "true" if args.input_staging else "false"
     default_activation_literal = "true" if args.default_activation else "false"
     bootstrap_test_config_literal = "true" if args.bootstrap_test_config else "false"
     run_context_payload = shlex.quote(run_context_content or "")
-    specimens_payload = shlex.quote(specimens_content or "")
-    samples_payload = shlex.quote(samples_content or "")
-    libraries_payload = shlex.quote(libraries_content or "")
+    specimens_payload = shlex.quote(
+        specimens_content or six_manifest_contents.get("specimens.tsv", "")
+    )
+    samples_payload = shlex.quote(
+        samples_content or six_manifest_contents.get("samples.tsv", "")
+    )
+    libraries_payload = shlex.quote(
+        libraries_content or six_manifest_contents.get("libraries.tsv", "")
+    )
     units_payload = shlex.quote(units_content or "")
+    six_manifest_payloads = {
+        name: shlex.quote(six_manifest_contents.get(name, ""))
+        for name in (
+            "specimens.tsv",
+            "samples.tsv",
+            "libraries.tsv",
+            "sequencing_inputs.tsv",
+            "analysis_units.tsv",
+            "analysis_unit_inputs.tsv",
+        )
+    }
+    six_manifest_receipt_payload = shlex.quote(
+        json.dumps(six_manifest_receipt, indent=2, sort_keys=True) + "\n"
+        if six_manifest_receipt
+        else ""
+    )
     export_destination_literal = shlex.quote(args.export_destination_s3_uri or "")
     delete_on_export_success = "true" if args.delete_on_export_success else "false"
     replace_existing_analysis_dir = "true" if args.replace_existing_analysis_dir else "false"
@@ -1131,6 +1134,10 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	SAMPLES_PAYLOAD={samples_payload}
 	LIBRARIES_PAYLOAD={libraries_payload}
 	UNITS_PAYLOAD={units_payload}
+	SEQUENCING_INPUTS_PAYLOAD={six_manifest_payloads['sequencing_inputs.tsv']}
+	ANALYSIS_UNITS_PAYLOAD={six_manifest_payloads['analysis_units.tsv']}
+	ANALYSIS_UNIT_INPUTS_PAYLOAD={six_manifest_payloads['analysis_unit_inputs.tsv']}
+	SIX_MANIFEST_RECEIPT_PAYLOAD={six_manifest_receipt_payload}
 	STAGE_SPECIMENS={shlex.quote(stage_specimens_path)}
 	STAGE_SAMPLES={shlex.quote(stage_samples_path)}
 	STAGE_LIBRARIES={shlex.quote(stage_libraries_path)}
@@ -1142,12 +1149,6 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	EXPORT_TRIGGER={shlex.quote(args.export_trigger)}
 	DELETE_ON_EXPORT_SUCCESS={delete_on_export_success}
 	REPLACE_EXISTING_ANALYSIS_DIR={replace_existing_analysis_dir}
-	ARTIFACT_REGISTRATION_COMMAND_ID={shlex.quote(args.artifact_registration_command_id)}
-	DEWEY_URL={shlex.quote(args.dewey_url)}
-	DEWEY_TOKEN_ENV={shlex.quote(args.dewey_token_env)}
-	DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID={shlex.quote(args.dewey_analysis_dir_external_object_id)}
-	DEWEY_RUN_ARTIFACT_EUID={shlex.quote(args.dewey_run_artifact_euid)}
-	DEWEY_URSA_ANALYSIS_EUID={shlex.quote(args.dewey_ursa_analysis_euid)}
 STATUS_FILE="${{DAYLILY_RUN_DIR}}/status.json"
 TMUX_LOG="${{DAYLILY_TMUX_LOG}}"
 CONTROLLER_TARGET_FILE="${{DAYLILY_CONTROLLER_TARGET_FILE}}"
@@ -2150,7 +2151,41 @@ PYCONTAMZERO
 	    append_ultima_run_qc_config
 	  fi
 	elif [[ "$SAMPLE_CONFIG_MODE" == "true" ]]; then
-	  if [[ "$INPUT_CONTRACT" == "sample_manifest_v12" ]]; then
+	  if [[ "$INPUT_CONTRACT" == "six_manifest" ]]; then
+	    printf '%s' "$SPECIMENS_PAYLOAD" > config/specimens.tsv
+	    printf '%s' "$SAMPLES_PAYLOAD" > config/samples.tsv
+	    printf '%s' "$LIBRARIES_PAYLOAD" > config/libraries.tsv
+	    printf '%s' "$SEQUENCING_INPUTS_PAYLOAD" > config/sequencing_inputs.tsv
+	    printf '%s' "$ANALYSIS_UNITS_PAYLOAD" > config/analysis_units.tsv
+	    printf '%s' "$ANALYSIS_UNIT_INPUTS_PAYLOAD" > config/analysis_unit_inputs.tsv
+	    printf '%s' "$SIX_MANIFEST_RECEIPT_PAYLOAD" > config/dyec_manifest_stage_receipt.json
+	    rm -f config/units.tsv
+	    python3 - <<'PYSIXMANIFEST'
+import hashlib
+import json
+from pathlib import Path
+
+receipt_path = Path("config/dyec_manifest_stage_receipt.json")
+receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+expected_names = (
+    "specimens.tsv",
+    "samples.tsv",
+    "libraries.tsv",
+    "sequencing_inputs.tsv",
+    "analysis_units.tsv",
+    "analysis_unit_inputs.tsv",
+)
+if tuple(receipt.get("manifest_order", ())) != expected_names:
+    raise SystemExit("[ERROR] six-manifest staging receipt has unexpected manifest order")
+for name in expected_names:
+    path = Path("config") / name
+    observed = hashlib.sha256(path.read_bytes()).hexdigest()
+    expected = receipt["inputs"][name]["sha256"]
+    if observed != expected:
+        raise SystemExit(f"[ERROR] staged manifest hash mismatch: {{name}}")
+print("[INFO] Verified exact six-manifest staging hashes")
+PYSIXMANIFEST
+	  elif [[ "$INPUT_CONTRACT" == "sample_manifest_v12" ]]; then
 	    printf '%s' "$SPECIMENS_PAYLOAD" > config/specimens.tsv
 	    printf '%s' "$SAMPLES_PAYLOAD" > config/samples.tsv
 	    printf '%s' "$LIBRARIES_PAYLOAD" > config/libraries.tsv
@@ -2356,25 +2391,13 @@ if [[ "$should_export" == "true" ]]; then
       workflow_status=22
     else
       mkdir -p "$DAYLILY_RUN_DIR/export"
-      registration_args=()
-      if [[ -n "$ARTIFACT_REGISTRATION_COMMAND_ID" ]]; then
-        registration_args+=(--artifact-registration-command-id "$ARTIFACT_REGISTRATION_COMMAND_ID")
-        registration_args+=(--dewey-url "$DEWEY_URL")
-        registration_args+=(--dewey-token-env "$DEWEY_TOKEN_ENV")
-        if [[ -n "$DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID" ]]; then
-          registration_args+=(--dewey-analysis-dir-external-object-id "$DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID")
-          registration_args+=(--dewey-run-artifact-euid "$DEWEY_RUN_ARTIFACT_EUID")
-          registration_args+=(--dewey-ursa-analysis-euid "$DEWEY_URSA_ANALYSIS_EUID")
-        fi
-      fi
       set +e
       env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export \
         --region {shlex.quote(region)} \
         --cluster {shlex.quote(cluster_name)} \
         --source-path "$clone_root" \
         --destination-s3-uri "$EXPORT_DESTINATION_S3_URI" \
-        --output-dir "$DAYLILY_RUN_DIR/export" \
-        "${{registration_args[@]}}"
+        --output-dir "$DAYLILY_RUN_DIR/export"
       export_status=$?
       set -e
       if [[ "$export_status" -ne 0 ]]; then

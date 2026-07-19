@@ -227,10 +227,10 @@ def test_dayoa12_preserves_blank_analysis_unit_for_dayoa_construction(
     assert _read_one(next(output.glob("*_libraries.tsv")))["ANALYSIS_UNIT_UID"] == ""
 
 
-def test_dayoa12_catalog_commands_reject_legacy_units_paths() -> None:
+def test_dayoa13_catalog_commands_reject_legacy_manifest_paths() -> None:
     command = load_repository_catalog(CATALOG).get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
-    assert command.input_contract == "sample_manifest_v12"
-    with pytest.raises(ValueError, match="reject units.tsv"):
+    assert command.input_contract == "six_manifest"
+    with pytest.raises(ValueError, match="require manifest_dir"):
         command.launch_argv(
             analysis_id="analysis-001",
             executing_entity="cluster-001",
@@ -239,20 +239,19 @@ def test_dayoa12_catalog_commands_reject_legacy_units_paths() -> None:
         )
 
 
-def test_dayoa12_launch_transports_exact_three_manifest_paths() -> None:
+def test_dayoa13_launch_transports_exact_six_manifest_directory() -> None:
     command = load_repository_catalog(CATALOG).get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
     argv = command.launch_argv(
         analysis_id="analysis-001",
         executing_entity="cluster-001",
-        specimens_file="specimens.tsv",
-        samples_file="samples.tsv",
-        libraries_file="libraries.tsv",
+        manifest_dir="/input/manifests",
     )
 
-    assert argv[argv.index("--specimens-file") + 1] == "specimens.tsv"
-    assert argv[argv.index("--samples-file") + 1] == "samples.tsv"
-    assert argv[argv.index("--libraries-file") + 1] == "libraries.tsv"
-    assert argv[argv.index("--input-contract") + 1] == "sample_manifest_v12"
+    assert argv[argv.index("--manifest-dir") + 1] == "/input/manifests"
+    assert argv[argv.index("--input-contract") + 1] == "six_manifest"
+    assert "--specimens-file" not in argv
+    assert "--samples-file" not in argv
+    assert "--libraries-file" not in argv
     assert "--units-file" not in argv
 
 
@@ -289,8 +288,8 @@ def test_headnode_remote_config_requires_exact_dayoa12_triple() -> None:
 
 def test_inflection_v02_requires_explicit_lineage_and_delivery_contract() -> None:
     command = load_repository_catalog(CATALOG).get_command("inflection-bjuice-product-v0.2")
-    assert command.git_tag == "12.0.5"
-    assert command.input_contract == "sample_manifest_v12"
+    assert command.git_tag == "13.0.0"
+    assert command.input_contract == "six_manifest"
     assert command.input_requirements.required_source_columns == [
         "SPECIMEN_EUID",
         "SAMPLE_EUID",

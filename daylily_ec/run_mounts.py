@@ -103,7 +103,7 @@ class RunMountRecord:
         return self.source_s3_uri
 
     def to_output_payload(self) -> Dict[str, Any]:
-        """Return stable JSON fields consumed by Ursa and operators."""
+        """Return stable JSON fields consumed by operators and callers."""
         payload: Dict[str, Any] = {
             "mount_id": self.mount_id,
             "purpose": self.purpose,

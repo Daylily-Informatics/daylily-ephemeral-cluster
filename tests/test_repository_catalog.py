@@ -288,38 +288,13 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert "--delete-on-export-success" in export_argv
     assert "--replace-existing-analysis-dir" in export_argv
 
-    registration_argv = multiqc_command.launch_argv(
-        analysis_id="run-1",
-        executing_entity="johnm",
-        export_destination_s3_uri="s3://bucket/derived/johnm/run-1/",
-        export_trigger="on-success",
-        artifact_registration_command_id=multiqc_command.command_id,
-        dewey_url="https://dewey.example",
-        dewey_token_env="DEWEY_TOKEN",
-        dewey_analysis_dir_external_object_id="M-RGX-9S3G",
-        dewey_run_artifact_euid="M-DGX-9SD7",
-        dewey_ursa_analysis_euid="M-RGX-9S3G",
-    )
-    assert "--artifact-registration-command-id" in registration_argv
-    assert "illumina_snv_alignstats_relatedness_vep_multiqc" in registration_argv
-    assert "--dewey-url" in registration_argv
-    assert "--dewey-token-env" in registration_argv
-    assert "--dewey-analysis-dir-external-object-id" in registration_argv
-    assert "M-DGX-9SD7" in registration_argv
-
-    with pytest.raises(ValueError, match="dewey_url and dewey_token_env"):
+    with pytest.raises(TypeError):
         multiqc_command.launch_argv(
             analysis_id="run-1",
             executing_entity="johnm",
             export_destination_s3_uri="s3://bucket/derived/johnm/run-1/",
             export_trigger="on-success",
             artifact_registration_command_id=multiqc_command.command_id,
-        )
-
-    with pytest.raises(ValueError, match="artifact_registration_command_id"):
-        multiqc_command.launch_argv(
-            analysis_id="run-1",
-            executing_entity="johnm",
             dewey_url="https://dewey.example",
             dewey_token_env="DEWEY_TOKEN",
         )
@@ -734,7 +709,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "--dy-command" in simple_launch_argv
     simple_effective = simple_launch_argv[simple_launch_argv.index("--dy-command") + 1]
     assert simple_effective.startswith(simple_test.dy_command)
-    assert "--produce-ursa-manifest true" in simple_effective
+    assert "--produce-analysis-artifact-manifest true" in simple_effective
     assert "--produce-rulegraph true" in simple_effective
     assert "--produce-filegraph false" in simple_effective
     assert "--produce-dag false" in simple_effective
@@ -811,7 +786,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
         "samples_table=.test_data/data/samples.tsv "
         "units_table=.test_data/data/units.tsv"
     ) in dy_command
-    assert "--produce-ursa-manifest true" in dy_command
+    assert "--produce-analysis-artifact-manifest true" in dy_command
     assert "--produce-rulegraph true" in dy_command
 
     combined = catalog.get_command("illumina_run_qc_bclconvert")

@@ -11,7 +11,7 @@ from daylily_ec.workflow.dyr_preflight import (
 def test_normalizer_applies_dyec_defaults() -> None:
     command = normalize_dyr_preflight_options("bin/day_run target -j 20")
 
-    assert "--produce-ursa-manifest true" in command
+    assert "--produce-analysis-artifact-manifest true" in command
     assert "--produce-rulegraph true" in command
     assert "--produce-filegraph false" in command
     assert "--produce-dag false" in command
@@ -29,11 +29,11 @@ def test_explicit_command_values_beat_defaults() -> None:
 
 def test_top_level_overrides_beat_command_values() -> None:
     command = normalize_dyr_preflight_options(
-        "dy-r target --produce-ursa-manifest false --produce-dag=false",
-        overrides={"--produce-ursa-manifest": True, "--produce-dag": True},
+        "dy-r target --produce-analysis-artifact-manifest false --produce-dag=false",
+        overrides={"--produce-analysis-artifact-manifest": True, "--produce-dag": True},
     )
 
-    assert "--produce-ursa-manifest true" in command
+    assert "--produce-analysis-artifact-manifest true" in command
     assert "--produce-dag true" in command
 
 
@@ -58,7 +58,7 @@ def test_all_disabled_allows_non_dyr_utility_command() -> None:
     command = normalize_dyr_preflight_options(
         "echo utility",
         overrides={
-            "--produce-ursa-manifest": False,
+            "--produce-analysis-artifact-manifest": False,
             "--produce-rulegraph": False,
             "--produce-filegraph": False,
             "--produce-dag": False,

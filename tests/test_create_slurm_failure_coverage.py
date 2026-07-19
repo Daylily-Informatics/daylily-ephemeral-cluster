@@ -670,7 +670,7 @@ def test_persistent2_create_path_records_owned_storage(tmp_path, monkeypatch):
             "fsx_encryption_mode": ["USESETVALUE", "", "AWS_MANAGED_FSX"],
             "fsx_owner": ["USESETVALUE", "", "DYEC"],
             "fsx_lifecycle": ["USESETVALUE", "", "CLUSTER_BOUND"],
-            "sweep_protection_tag": ["USESETVALUE", "", "ursa-preserve=true"],
+                "sweep_protection_tag": ["USESETVALUE", "", "dyec-preserve=true"],
         },
     )
     assert records["rc"] == create_cluster.EXIT_SUCCESS
@@ -1024,11 +1024,6 @@ def test_config_prompt_and_network_failure_branches(tmp_path, monkeypatch):
         create_cluster._resolve_persistent2_config(
             cfg, deployment_type="PERSISTENT_2", fsx_size="1300", non_interactive=True
         )
-
-    for url in ("ftp://ursa.example", "https://user:pw@ursa.example", "https://ursa.example?a=1"):
-        with pytest.raises(ValueError):
-            create_cluster._normalize_ursa_root_url(url)
-    assert create_cluster._build_ursa_cluster_url("", "cluster", "us-west-2") == ""
 
     root = tmp_path / "root.yaml"
     for payload in (
@@ -1537,7 +1532,6 @@ def test_create_rejects_invalid_accounting_and_cluster_type_before_aws(tmp_path,
 @pytest.mark.parametrize(
     ("overrides", "failure"),
     [
-        ({"ursa_root_url": ["USESETVALUE", "", "ftp://invalid"]}, "ursa"),
         ({"fsx_deployment_type": ["USESETVALUE", "", "INVALID"]}, "fsx"),
         ({"max_count_96I_NVME": ["USESETVALUE", "", ""]}, "max96"),
     ],
@@ -1620,7 +1614,7 @@ def test_remaining_create_recovery_gates(tmp_path, monkeypatch, failure):
         assert records["rc"] != create_cluster.EXIT_SUCCESS
 
 
-def test_create_skips_heartbeat_and_unconfigured_ursa_page(tmp_path, monkeypatch):
+def test_create_skips_heartbeat_when_unconfigured(tmp_path, monkeypatch):
     records = _run_stubbed_create_workflow(
         tmp_path,
         monkeypatch,
@@ -1629,11 +1623,10 @@ def test_create_skips_heartbeat_and_unconfigured_ursa_page(tmp_path, monkeypatch
         say_available=False,
         config_overrides={
             "heartbeat_email": ["USESETVALUE", "", ""],
-            "ursa_root_url": ["USESETVALUE", "", ""],
         },
     )
     assert records["rc"] == create_cluster.EXIT_SUCCESS
-    assert any("not configured" in line for line in records["echoes"])
+    assert not any("cluster page" in line.lower() for line in records["echoes"])
 
 
 def test_latest_config_ignores_each_nonmatching_receipt_shape(tmp_path, monkeypatch):

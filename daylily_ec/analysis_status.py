@@ -167,12 +167,16 @@ def _dayoa_analysis_unit_uid(row: dict[str, str], path: Path) -> str:
 
 
 def _analysis_manifests(dayoa_root: Path) -> dict[str, Any]:
+    from daylily_ec.manifest_set import (
+        MANIFEST_NAMES,
+        ManifestSetError,
+        load_manifest_set,
+        selected_input_details,
+    )
+
     config_root = dayoa_root / "config"
-    paths = {
-        name: config_root / name
-        for name in ("specimens.tsv", "samples.tsv", "libraries.tsv", "units.tsv")
-    }
-    present = {name for name, path in paths.items() if path.is_file()}
+    recognized = (*MANIFEST_NAMES, "units.tsv")
+    present = {name for name in recognized if (config_root / name).is_file()}
     if not present:
         return {
             "available": False,
@@ -182,80 +186,26 @@ def _analysis_manifests(dayoa_root: Path) -> dict[str, Any]:
             "note": "this command has no sample-manifest inputs",
         }
 
-    if present & {"specimens.tsv", "libraries.tsv"}:
-        if "units.tsv" in present:
-            raise AnalysisStatusError(
-                "DayOA 12 analysis status rejects mixed config/units.tsv; migrate with `dayoa "
-                "migrate-manifests` and retain only specimens.tsv, samples.tsv, and libraries.tsv"
-            )
-        required = {"specimens.tsv", "samples.tsv", "libraries.tsv"}
-        missing = sorted(required - present)
-        if missing:
-            raise AnalysisStatusError(
-                "DayOA 12 analysis manifest set is incomplete; missing: " + ", ".join(missing)
-            )
-        specimens = _manifest_rows(paths["specimens.tsv"])
-        samples = _manifest_rows(paths["samples.tsv"])
-        libraries = _manifest_rows(paths["libraries.tsv"])
-        specimen_ids = set(
-            _unique_manifest_values(specimens, "SPECIMEN_ID", paths["specimens.tsv"])
-        )
-        _optional_unique_manifest_values(specimens, "SPECIMEN_EUID", paths["specimens.tsv"])
-        sample_ids = set(_unique_manifest_values(samples, "SAMPLEID", paths["samples.tsv"]))
-        _optional_unique_manifest_values(samples, "SAMPLE_EUID", paths["samples.tsv"])
-        analysis_units = [
-            _dayoa_analysis_unit_uid(row, paths["libraries.tsv"]) for row in libraries
-        ]
-        if len(set(analysis_units)) != len(analysis_units):
-            raise AnalysisStatusError(
-                f"constructed or supplied ANALYSIS_UNIT_UID values must be unique: "
-                f"{paths['libraries.tsv']}"
-            )
-        _optional_unique_manifest_values(libraries, "LIBRARY_EUID", paths["libraries.tsv"])
-        missing_specimens = sorted({row.get("SPECIMEN_ID", "") for row in samples} - specimen_ids)
-        missing_samples = sorted({row.get("SAMPLEID", "") for row in libraries} - sample_ids)
-        if missing_specimens:
-            raise AnalysisStatusError(
-                "samples.tsv SPECIMEN_ID values are absent from specimens.tsv: "
-                + ", ".join(missing_specimens)
-            )
-        if missing_samples:
-            raise AnalysisStatusError(
-                "libraries.tsv SAMPLEID values are absent from samples.tsv: "
-                + ", ".join(missing_samples)
-            )
-        return {
-            "available": True,
-            "input_contract": "sample_manifest_v12",
-            "files": ["specimens.tsv", "samples.tsv", "libraries.tsv"],
-            "row_counts": {
-                "specimens": len(specimens),
-                "samples": len(samples),
-                "libraries": len(libraries),
-            },
-            "lineage_validated": True,
-        }
-
-    required = {"samples.tsv", "units.tsv"}
-    missing = sorted(required - present)
-    if missing:
-        raise AnalysisStatusError(
-            "legacy analysis manifest set is incomplete; missing: " + ", ".join(missing)
-        )
-    samples = _manifest_rows(paths["samples.tsv"])
-    units = _manifest_rows(paths["units.tsv"])
-    sample_ids = set(_unique_manifest_values(samples, "SAMPLEID", paths["samples.tsv"]))
-    _unique_manifest_values(units, "ANALYSIS_UNIT_UID", paths["units.tsv"])
-    missing_samples = sorted({row.get("SAMPLEID", "") for row in units} - sample_ids)
-    if missing_samples:
-        raise AnalysisStatusError(
-            "units.tsv SAMPLEID values are absent from samples.tsv: " + ", ".join(missing_samples)
-        )
+    try:
+        manifests = load_manifest_set(config_root)
+    except ManifestSetError as exc:
+        raise AnalysisStatusError(str(exc)) from exc
+    details = selected_input_details(manifests)
     return {
         "available": True,
-        "input_contract": "sample_manifest",
-        "files": ["samples.tsv", "units.tsv"],
-        "row_counts": {"samples": len(samples), "units": len(units)},
+        "input_contract": "six_manifest",
+        "files": list(MANIFEST_NAMES),
+        "hashes": dict(manifests.hashes),
+        "row_counts": {
+            name.removesuffix(".tsv"): len(manifests.rows[name]) for name in MANIFEST_NAMES
+        },
+        "analysis_units": [
+            {
+                "analysis_unit_uid": row["ANALYSIS_UNIT_UID"],
+                **details[row["ANALYSIS_UNIT_UID"]],
+            }
+            for row in manifests.rows["analysis_units.tsv"]
+        ],
         "lineage_validated": True,
     }
 

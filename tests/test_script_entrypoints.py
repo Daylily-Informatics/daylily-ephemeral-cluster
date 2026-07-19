@@ -226,7 +226,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                     "__DAYLILY_SESSION__=sess-1",
                     "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1",
                     "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis",
-                    "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true",
+                    "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-analysis-artifact-manifest true",
                     _controller_target_marker(
                         "sess-1",
                         "/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis",
@@ -240,7 +240,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert launch.tmux_session_name == "sess-1"
         assert launch.run_dir == "/home/ubuntu/daylily-runs/sess-1"
         assert launch.repo_path.endswith("/daylily-omics-analysis")
-        assert "--produce-ursa-manifest true" in launch.dy_command
+        assert "--produce-analysis-artifact-manifest true" in launch.dy_command
         assert launch.controller_target.controller_id == "sess-1"
         assert launch.controller_target.pid == 4242
         assert launch.controller_target.analysis_root == "/fsx/analysis_results/johnm/dayoa"
@@ -330,7 +330,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "-j 8" in command
         assert "-n" in command
         assert "--rerun-incomplete" in command
-        assert "--produce-ursa-manifest true" in command
+        assert "--produce-analysis-artifact-manifest true" in command
         assert "--produce-rulegraph true" in command
         assert "--produce-filegraph false" in command
         assert "--produce-dag false" in command
@@ -347,25 +347,27 @@ class TestRunOmicsAnalysisHeadnodeScript:
             dry_run=True,
             extra=None,
             producer_overrides={
-                "--produce-ursa-manifest": "false",
+                "--produce-analysis-artifact-manifest": "false",
                 "--produce-rulegraph": "false",
                 "--produce-filegraph": "true",
                 "--produce-dag": "true",
             },
         )
-        assert "--produce-ursa-manifest false" in overridden
+        assert "--produce-analysis-artifact-manifest false" in overridden
         assert "--produce-rulegraph false" in overridden
         assert "--produce-filegraph true" in overridden
         assert "--produce-dag true" in overridden
 
-    def test_main_rejects_dewey_options_without_artifact_registration(self):
-        with pytest.raises(CommandError, match="artifact-registration-command-id"):
+    def test_main_rejects_removed_provider_registration_options(self):
+        with pytest.raises(SystemExit) as exc_info:
             run_omics_module.main(
                 [
                     "--region",
                     "us-west-2",
                     "--profile",
                     "dev",
+                    "--git-tag",
+                    "13.0.0",
                     "--analysis-id",
                     "analysis",
                     "--executing-entity",
@@ -380,6 +382,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                     "DEWEY_TOKEN",
                 ]
             )
+        assert exc_info.value.code == 2
 
     @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell")
     def test_discover_stage_config_with_explicit_stage_dir(self, mock_run_shell, capsys):
@@ -465,7 +468,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=sess-1\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/analysis/daylily-omics-analysis\n"
-                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-ursa-manifest true\n"
+                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-analysis-artifact-manifest true\n"
                 + _controller_target_marker(
                     "sess-1",
                     "/fsx/analysis_results/johnm/analysis/daylily-omics-analysis",
@@ -530,6 +533,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
             [
                 "--profile",
                 "dev",
+                "--git-tag",
+                "12.0.5",
+                "--input-contract",
+                "sample_manifest",
                 "--analysis-id",
                 "analysis",
                 "--executing-entity",
@@ -634,7 +641,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert '--executing-entity "$EXECUTING_ENTITY"' in script
         assert '-u "$EXECUTING_ENTITY"' not in script
         assert "--repository daylily-omics-analysis" in script
-        assert "--git-tag main" in script
+        assert "--git-tag 12.0.5" in script
         assert "__DAYLILY_ERROR__=analysis_dir_exists" in script
         assert "__DAYLILY_REPLACED_ANALYSIS_DIR__=$clone_root" in script
         assert 'rm -rf -- "$clone_root"' in script
@@ -659,10 +666,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
         )
         assert "env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export" in script
         assert "dyec export \\\n      --profile" not in script
-        assert "DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID=" in script
-        assert "registration_args+=(--dewey-analysis-dir-external-object-id" in script
-        assert "registration_args+=(--dewey-run-artifact-euid" in script
-        assert "registration_args+=(--dewey-ursa-analysis-euid" in script
+        assert "DEWEY_" not in script
+        assert "register-dewey" not in script
         assert 'if [[ ! -d "$clone_root" ]]; then' in script
         assert 'exit "$workflow_status"' in script
         assert "exec bash -il" in script
@@ -739,6 +744,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
             [
                 "--profile",
                 "dev",
+                "--git-tag",
+                "13.0.0",
                 "--analysis-id",
                 "run-qc",
                 "--executing-entity",
@@ -828,6 +835,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
             [
                 "--profile",
                 "dev",
+                "--git-tag",
+                "12.0.5",
+                "--input-contract",
+                "sample_manifest",
                 "--analysis-id",
                 "sample-config",
                 "--executing-entity",
@@ -910,6 +921,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
             [
                 "--profile",
                 "dev",
+                "--git-tag",
+                "13.0.0",
                 "--analysis-id",
                 "bcl-run",
                 "--executing-entity",
@@ -1030,6 +1043,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
             [
                 "--profile",
                 "dev",
+                "--git-tag",
+                "13.0.0",
                 "--analysis-id",
                 "ultima-run",
                 "--executing-entity",
@@ -1111,6 +1126,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
             [
                 "--profile",
                 "dev",
+                "--git-tag",
+                "13.0.0",
                 "--analysis-id",
                 "ont-run",
                 "--executing-entity",
@@ -1200,6 +1217,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
             [
                 "--profile",
                 "dev",
+                "--git-tag",
+                "12.0.5",
+                "--input-contract",
+                "sample_manifest",
                 "--analysis-id",
                 "alignstats-run",
                 "--executing-entity",
@@ -1285,6 +1306,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
             [
                 "--profile",
                 "dev",
+                "--git-tag",
+                "12.0.5",
+                "--input-contract",
+                "sample_manifest",
                 "--analysis-id",
                 "snv-concordance-run",
                 "--executing-entity",
@@ -1360,6 +1385,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
             [
                 "--profile",
                 "dev",
+                "--git-tag",
+                "12.0.5",
+                "--input-contract",
+                "sample_manifest",
                 "--analysis-id",
                 "kitchensink-run",
                 "--executing-entity",
@@ -1458,6 +1487,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
             [
                 "--profile",
                 "dev",
+                "--git-tag",
+                "13.0.0",
                 "--analysis-id",
                 "simple-test",
                 "--executing-entity",
@@ -1541,6 +1572,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 [
                     "--profile",
                     "dev",
+                    "--git-tag",
+                    "12.0.5",
+                    "--input-contract",
+                    "sample_manifest",
                     "--analysis-id",
                     "analysis",
                     "--executing-entity",

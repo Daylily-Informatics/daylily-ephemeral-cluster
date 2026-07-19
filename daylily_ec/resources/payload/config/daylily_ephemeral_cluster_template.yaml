@@ -9,7 +9,6 @@ ephemeral_cluster:
     pcluster_backport_manifest: [PROMPTUSER, "", ""]
     iam_policy_arn: [PROMPTUSER, "", ""]
     cluster_name: [PROMPTUSER, "majors-cluster", ""]
-    ursa_root_url: [PROMPTUSER, "", ""]
     budget_email: [PROMPTUSER, "", ""]
     allowed_budget_users: [PROMPTUSER, "ubuntu", ""]
     budget_amount: [PROMPTUSER, "200", ""]
@@ -26,7 +25,7 @@ ephemeral_cluster:
     fsx_encryption_mode: [USESETVALUE, "", "AWS_MANAGED_FSX"]
     fsx_owner: [USESETVALUE, "", "DYEC"]
     fsx_lifecycle: [USESETVALUE, "", "CLUSTER_BOUND"]
-    sweep_protection_tag: [USESETVALUE, "", "ursa-preserve=true"]
+    sweep_protection_tag: [USESETVALUE, "", "dyec-preserve=true"]
     enable_detailed_monitoring: [PROMPTUSER, "false", ""]
     delete_local_root: [PROMPTUSER, "true", ""] # false or true
     dragen_license_policy_arn: [PROMPTUSER, "", ""]
