@@ -45,10 +45,11 @@ and final `12.0.8`.
 | DYE-002 | DYEC | Commit/push branch and publish annotated intermediate tag `12.0.7` | SUCCESS | feature_implementation | Gate 3 | Branch commit `1c2f74fef7069bebb6f1199234303a5fcecc14a2`; release-lineage merge `f150ae11713403ede595f91eb7e6e41c4c8d7635`; remote annotated tag `12.0.7` peels to `f150ae11713403ede595f91eb7e6e41c4c8d7635` |  | Concurrent `12.0.3`-`12.0.6` lineage retained and immutable; collision-free intermediate release published. |
 | DYE-003 | DYEC | Advance active and packaged DYEC self-pin to `12.0.7` | SUCCESS | config_or_startup_contract | Gate 2 | Both `daylily_cli_global.yaml` copies and `DYEC_BLESSED_TAG` advanced; focused pytest `46 passed`; Ruff lint clean; runtime/payload byte parity verified; `git diff --check` clean |  | Self-pin now targets the published intermediate release exactly. |
 | DYE-004 | DYEC | Commit/push branch and publish annotated final tag `12.0.8` | SUCCESS | feature_implementation | Gate 3 | Commit `574b2820de5738724c3a911608b2e8cc80f3a015`; remote annotated tag `12.0.8` peels to that exact commit |  | Final self-pinned release published without moving an existing tag. |
-| PUB-001 | DYEC | Open PR, wait for required checks, and merge normally to `main` | IN_PROGRESS | feature_implementation | Gate 5 | PR 45: `https://github.com/lsmc-bio/daylily-ephemeral-cluster/pull/45` |  | Awaiting required checks and normal merge. |
-| ACC-001 | Both | Verify remote annotated tag objects, peeled commits, ancestry, pin parity, and clean release worktrees | IN_PROGRESS | contract_test | Gate 5 | Remote DayOA `13.0.12`, DYEC `12.0.7`, and DYEC `12.0.8` tag objects/peeled commits verified; final `main` ancestry pending PR merge |  |  |
+| PUB-001 | DYEC | Open PR, wait for required checks, and merge normally to `main` | SUCCESS | feature_implementation | Gate 5 | PR 45 merged normally at `2026-07-19T22:57:56Z`; merge commit `44ec7d4c2ac51d18b0ba8a24d225d4db2a5d83a6`; GitHub reported no required checks on the branch |  | Release branch is merged to `main` without admin bypass. |
+| ACC-001 | Both | Verify remote annotated tag objects, peeled commits, ancestry, pin parity, and clean release worktrees | SUCCESS | contract_test | Gate 5 | DayOA `13.0.12` peels to `6255b1de9847a8d2da6f048543abc2d3c513b946`; DYEC `12.0.7` peels to `f150ae11713403ede595f91eb7e6e41c4c8d7635`; DYEC `12.0.8` peels to `574b2820de5738724c3a911608b2e8cc80f3a015`; all are annotated tag objects; DYEC tags `12.0.6`-`12.0.8` are ancestors of `origin/main`; runtime/payload pins have exact parity |  | Remote tags, ancestry, and pinned-version contracts all verified. |
 
 ## Final terminal-state report
 
-- All rows terminal: no.
-- Objective complete: no.
+- Status counts: 7 `SUCCESS`; 0 other states.
+- All rows terminal: yes.
+- Objective complete: yes.
