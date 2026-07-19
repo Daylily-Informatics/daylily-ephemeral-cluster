@@ -9,6 +9,7 @@ import pytest
 from typer.testing import CliRunner
 
 from daylily_ec.cli import app
+from daylily_ec.manifest_set import MANIFEST_NAMES, load_manifest_set
 from daylily_ec.repositories import load_repository_catalog
 from daylily_ec.run_mounts import MOUNT_PURPOSE_RUN, RunMountRecord
 from daylily_ec.tests_runner import (
@@ -359,6 +360,104 @@ def test_dayoa12_test_runner_never_synthesizes_lineage_euids(
 
     with pytest.raises(RunnerError, match="synthesize or infer lineage identities"):
         write_sample_manifest(command, tmp_path)
+
+
+def test_hiomrs_six_manifest_fixture_is_copied_exactly_and_rendered(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    monkeypatch.setenv(
+        "DAYLILY_EC_RESOURCES_DIR",
+        str(repo_root / "daylily_ec" / "resources" / "payload"),
+    )
+    catalog = load_repository_catalog(
+        repo_root / "config" / "daylily_pipeline_command_catalog.yaml"
+    )
+    command = catalog.get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
+    prepared = prepare_command_inputs(
+        [command],
+        catalog=catalog,
+        output_dir=tmp_path,
+        role_uris=catalog_role_uris(catalog),
+        evidence_prefix_s3_uri="s3://bucket/evidence/",
+        profile="lsmc",
+        region="us-west-2",
+        cluster="cluster-001",
+        run_mounts={},
+        stage_func=lambda _argv: 0,
+    )
+    command_dir = tmp_path / command.command_id
+    copied = Path(prepared[command.command_id]["manifest_dir"])
+    manifests = load_manifest_set(copied)
+
+    assert tuple(manifests.paths) == MANIFEST_NAMES
+    assert len(manifests.rows["libraries.tsv"]) == 1
+    assert len(manifests.rows["sequencing_inputs.tsv"]) == 2
+    assert len(manifests.rows["analysis_units.tsv"]) == 4
+    assert len(manifests.rows["analysis_unit_inputs.tsv"]) == 8
+    inputs = {
+        row["SEQUENCING_INPUT_UID"]: row
+        for row in manifests.rows["sequencing_inputs.tsv"]
+    }
+    assert inputs["HG003-SR-1X-FASTQ"]["ILMN_R1_PATH"].endswith(
+        "/HG003_1x_R1.fastq.gz"
+    )
+    assert inputs["HG003-SR-1X-FASTQ"]["ILMN_R2_PATH"].endswith(
+        "/HG003_1x_R2.fastq.gz"
+    )
+    assert inputs["HG003-LR-1X-FASTQ"]["ONT_R1_PATH"].endswith(
+        "/HG003_1x.cleaned.primary.fastq.gz"
+    )
+    assert all(not row.get("ONT_CRAM", "") for row in inputs.values())
+    units = {
+        row["ANALYSIS_UNIT_UID"]: row
+        for row in manifests.rows["analysis_units.tsv"]
+    }
+    assert units["HG003-SR1x-ONT1x-A4-SR0p9-ONT0p85"]["SUBSAMPLE_PCT"] == "0.9"
+    assert units["HG003-SR1x-ONT1x-A4-SR0p9-ONT0p85"]["ONT_SUBSAMPLE_PCT"] == "0.85"
+    assert {row["LIBRARY_EUID"] for row in manifests.rows["libraries.tsv"]} == {
+        "Z-HG003-LIB-01"
+    }
+    assert (command_dir / "six_manifest_validation_receipt.json").is_file()
+
+    phase = render_phase(
+        command,
+        phase="dryrun",
+        manifests=prepared[command.command_id],
+        evidence_prefix_s3_uri="s3://bucket/evidence/",
+        executing_entity="cluster-001",
+        profile="lsmc",
+        region="us-west-2",
+        cluster="cluster-001",
+        jobs=100,
+        output_dir=tmp_path,
+        stamp="20260719T000000Z",
+        max_runtime_minutes=240,
+        warmup=False,
+        dry_run=True,
+    )
+    assert phase.workflow_argv[phase.workflow_argv.index("--input-contract") + 1] == "six_manifest"
+    assert phase.workflow_argv[phase.workflow_argv.index("--manifest-dir") + 1] == str(copied)
+
+
+def test_prepare_command_inputs_requires_explicit_six_manifest_template(
+    tmp_path: Path,
+) -> None:
+    catalog = load_repository_catalog()
+    command = catalog.get_command("betelgeuser_hiomr_prod_v1")
+    with pytest.raises(RunnerError, match="explicit manifest_dir_template"):
+        prepare_command_inputs(
+            [command],
+            catalog=catalog,
+            output_dir=tmp_path,
+            role_uris=catalog_role_uris(catalog),
+            evidence_prefix_s3_uri="s3://bucket/evidence/",
+            profile="lsmc",
+            region="us-west-2",
+            cluster="cluster-001",
+            run_mounts={},
+            stage_func=lambda _argv: 0,
+        )
 
 
 def test_prepare_run_mounts_blocks_then_creates_missing() -> None:

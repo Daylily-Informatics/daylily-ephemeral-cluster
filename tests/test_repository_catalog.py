@@ -474,6 +474,11 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     hybrid_ilmn_ont = catalog.get_command("hybrid_ilmn_ont_hiomrs")
     assert hybrid_ilmn_ont.sample_manifest_template == ""
+    assert (
+        hybrid_ilmn_ont.manifest_dir_template
+        == "examples/staging/hg003_hiomrs_1x_raw_fastq"
+    )
+    assert hybrid_ilmn_ont.test_data_profile == "hg003_hiomrs_1x_raw_fastq"
     assert hybrid_ilmn_ont.aligners == ["ont"]
     assert hybrid_ilmn_ont.dedupers == ["na"]
     assert hybrid_ilmn_ont.snv_callers == ["hiomrs"]
@@ -481,7 +486,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert hybrid_ilmn_ont.targets == ["produce_hiomrs", "produce_snv_concordances"]
     assert hybrid_ilmn_ont.dy_command.startswith("dy-r produce_hiomrs ")
     assert 'dedupers=["na"]' in hybrid_ilmn_ont.dy_command
-    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_CRAM", "ONT_CRAM_ALIGNER", "ONT_CRAM_SNV_CALLER"] in (
+    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
         hybrid_ilmn_ont.input_requirements.accepted_source_column_sets
     )
 
@@ -628,6 +633,11 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     hybrid_kitchensink = catalog.get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
     assert hybrid_kitchensink.sample_manifest_template == ""
+    assert (
+        hybrid_kitchensink.manifest_dir_template
+        == "examples/staging/hg003_hiomrs_1x_raw_fastq"
+    )
+    assert hybrid_kitchensink.test_data_profile == "hg003_hiomrs_1x_raw_fastq"
     assert hybrid_kitchensink.validation_runs == []
     assert hybrid_kitchensink.targets[0] == "produce_hiomrs"
     assert "produce_tiddit_sv_vcf" in hybrid_kitchensink.targets
@@ -658,7 +668,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert hybrid_kitchensink.dryrun_dy_command.endswith(f"{expected_flags} -n")
     for excluded in ("sentdhiomr", "manta", "truvari", "dmd", "kraken", "sourmash"):
         assert excluded not in hybrid_kitchensink.dy_command.lower()
-    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_CRAM", "ONT_CRAM_ALIGNER", "ONT_CRAM_SNV_CALLER"] in (
+    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
         hybrid_kitchensink.input_requirements.accepted_source_column_sets
     )
 

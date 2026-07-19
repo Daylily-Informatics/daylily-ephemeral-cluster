@@ -199,6 +199,8 @@ def test_analysis_command_model_and_launch_error_branches() -> None:
         {"targets": [""]},
         {"runtime_parameters": {"": "x"}},
         {"sample_manifest_template": "/absolute"},
+        {"manifest_dir_template": "/absolute"},
+        {"manifest_dir_template": "examples/six"},
         {"launcher": "bad"},
         {"command_class": "bad"},
         {"input_contract": "bad"},
@@ -215,6 +217,12 @@ def test_analysis_command_model_and_launch_error_branches() -> None:
     for mutation in mutations:
         with pytest.raises(ValidationError):
             repos.AnalysisCommand.model_validate({**deepcopy(base), **mutation})
+
+    six_manifest = catalog.get_command("hybrid_ilmn_ont_hiomrs")
+    with pytest.raises(ValidationError, match="must use manifest_dir_template"):
+        repos.AnalysisCommand.model_validate(
+            {**six_manifest.model_dump(), "sample_manifest_template": "examples/legacy.tsv"}
+        )
 
     with pytest.raises(KeyError, match="Unknown optional feature"):
         sample.with_features(["missing"])

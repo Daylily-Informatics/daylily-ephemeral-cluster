@@ -473,6 +473,7 @@ class AnalysisCommand(BaseModel):
     validated_version: str
     test_data_profile: str
     sample_manifest_template: str = ""
+    manifest_dir_template: str = ""
     display_name: str
     description: str = ""
     datasource: str
@@ -560,15 +561,15 @@ class AnalysisCommand(BaseModel):
             cleaned[cleaned_key] = cleaned_value
         return cleaned
 
-    @field_validator("sample_manifest_template")
+    @field_validator("sample_manifest_template", "manifest_dir_template")
     @classmethod
-    def _validate_sample_manifest_template(cls, value: str) -> str:
+    def _validate_manifest_template_path(cls, value: str) -> str:
         cleaned = str(value or "").strip()
         if not cleaned:
             return ""
         path = Path(cleaned)
         if path.is_absolute() or ".." in path.parts:
-            raise ValueError("sample_manifest_template must be a relative path without '..'")
+            raise ValueError("manifest template paths must be relative and must not contain '..'")
         return cleaned
 
     @model_validator(mode="after")
@@ -579,6 +580,16 @@ class AnalysisCommand(BaseModel):
             raise ValueError("command_class must be one of: " + ", ".join(sorted(COMMAND_CLASSES)))
         if self.input_contract not in INPUT_CONTRACTS:
             raise ValueError("input_contract must be one of: " + ", ".join(sorted(INPUT_CONTRACTS)))
+        if self.manifest_dir_template and self.input_contract != "six_manifest":
+            raise ValueError("manifest_dir_template requires the six_manifest input contract")
+        if self.sample_manifest_template and self.input_contract == "six_manifest":
+            raise ValueError(
+                "six_manifest commands must use manifest_dir_template, not sample_manifest_template"
+            )
+        if self.sample_manifest_template and self.manifest_dir_template:
+            raise ValueError(
+                "sample_manifest_template and manifest_dir_template are mutually exclusive"
+            )
         if self.command_class == "sample_analysis":
             if self.input_contract not in SAMPLE_INPUT_CONTRACTS:
                 raise ValueError(

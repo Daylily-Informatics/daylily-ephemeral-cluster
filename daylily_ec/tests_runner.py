@@ -7,6 +7,7 @@ import csv
 import io
 import json
 import shlex
+import shutil
 import subprocess
 import sys
 import time
@@ -16,12 +17,14 @@ from typing import Any, Callable, Iterable, Mapping, Optional, Sequence
 from urllib.parse import urlparse
 
 from daylily_ec.analysis_identity import analysis_source_path, validate_analysis_segment
+from daylily_ec.manifest_set import MANIFEST_NAMES, load_manifest_set, validation_receipt
 from daylily_ec.repositories import (
     AnalysisCommand,
     RepositoryCatalog,
     TestDataProfile,
     load_repository_catalog,
 )
+from daylily_ec.resources import resource_path
 from daylily_ec.run_mounts import (
     CreateRunMountRequest,
     MOUNT_PURPOSE_RUN,
@@ -150,6 +153,8 @@ class RenderedPhase:
     dy_command: str
     workflow_argv: tuple[str, ...]
     export_destination_s3_uri: str
+    manifest_dir: Optional[str] = None
+    manifest_receipt_path: Optional[str] = None
     manifest_path: Optional[str] = None
     specimens_path: Optional[str] = None
     samples_path: Optional[str] = None
@@ -800,7 +805,14 @@ def prepare_command_inputs(
     for command in commands:
         command_dir = output_dir / command.command_id
         command_dir.mkdir(parents=True, exist_ok=True)
-        if command.input_contract in {"sample_manifest", "sample_manifest_v12"}:
+        if command.input_contract == "six_manifest":
+            manifest_dir = write_manifest_directory(command, command_dir)
+            receipt_path = command_dir / "six_manifest_validation_receipt.json"
+            manifests[command.command_id] = {
+                "manifest_dir": str(manifest_dir),
+                "manifest_receipt_path": str(receipt_path),
+            }
+        elif command.input_contract in {"sample_manifest", "sample_manifest_v12"}:
             manifest = write_sample_manifest(command, command_dir)
             config_dir = command_dir / "config"
             stdout = io.StringIO()
@@ -875,6 +887,59 @@ def prepare_command_inputs(
                 f"Unsupported input contract for {command.command_id}: {command.input_contract}"
             )
     return manifests
+
+
+def write_manifest_directory(command: AnalysisCommand, output_dir: Path) -> Path:
+    """Copy and validate one explicit, packaged six-manifest test fixture."""
+
+    if command.input_contract != "six_manifest":
+        raise TestsRunnerError(
+            f"Command {command.command_id} does not use the six_manifest input contract."
+        )
+    explicit_template = getattr(command, "manifest_dir_template", "")
+    if not explicit_template:
+        raise TestsRunnerError(
+            f"Command {command.command_id} requires an explicit manifest_dir_template; "
+            "DYEC tests do not synthesize or infer six-manifest topology."
+        )
+    try:
+        source = resource_path(explicit_template)
+    except FileNotFoundError as exc:
+        raise TestsRunnerError(
+            f"Six-manifest template directory not found for {command.command_id}: "
+            f"{explicit_template}"
+        ) from exc
+    try:
+        source_manifests = load_manifest_set(source)
+    except ValueError as exc:
+        raise TestsRunnerError(
+            f"Invalid six-manifest template for {command.command_id}: {exc}"
+        ) from exc
+
+    destination = output_dir / "manifests"
+    if destination.exists():
+        raise TestsRunnerError(
+            f"Refusing to overwrite six-manifest destination for {command.command_id}: "
+            f"{destination}"
+        )
+    destination.mkdir(parents=True)
+    for name in MANIFEST_NAMES:
+        shutil.copy2(source_manifests.paths[name], destination / name)
+    try:
+        copied_manifests = load_manifest_set(destination)
+    except ValueError as exc:
+        raise TestsRunnerError(
+            f"Copied six-manifest fixture is invalid for {command.command_id}: {exc}"
+        ) from exc
+    if copied_manifests.hashes != source_manifests.hashes:
+        raise TestsRunnerError(
+            f"Copied six-manifest fixture hash mismatch for {command.command_id}"
+        )
+    write_json(
+        output_dir / "six_manifest_validation_receipt.json",
+        validation_receipt(copied_manifests),
+    )
+    return destination
 
 
 def write_sample_manifest(command: AnalysisCommand, output_dir: Path) -> Path:
@@ -1154,6 +1219,9 @@ def render_phase(
         argv.extend(["--specimens-file", manifests["specimens_path"]])
         argv.extend(["--samples-file", manifests["samples_path"]])
         argv.extend(["--libraries-file", manifests["libraries_path"]])
+    elif command.input_contract == "six_manifest":
+        argv.extend(["--input-contract", "six_manifest"])
+        argv.extend(["--manifest-dir", manifests["manifest_dir"]])
     elif command.input_contract == "sample_manifest":
         argv.extend(["--input-contract", "sample_manifest"])
         argv.extend(["--samples-file", manifests["samples_path"]])
@@ -1185,6 +1253,8 @@ def render_phase(
         dy_command=dy_command,
         workflow_argv=tuple(argv),
         export_destination_s3_uri=export_destination,
+        manifest_dir=manifests.get("manifest_dir"),
+        manifest_receipt_path=manifests.get("manifest_receipt_path"),
         manifest_path=manifests.get("manifest_path"),
         specimens_path=manifests.get("specimens_path"),
         samples_path=manifests.get("samples_path"),
@@ -1207,6 +1277,8 @@ def write_phase_plan(path: Path, phases: Sequence[RenderedPhase]) -> None:
                     "dy_command": phase.dy_command,
                     "workflow_argv": list(phase.workflow_argv),
                     "export_destination_s3_uri": phase.export_destination_s3_uri,
+                    "manifest_dir": phase.manifest_dir,
+                    "manifest_receipt_path": phase.manifest_receipt_path,
                 }
                 for phase in phases
             ]
