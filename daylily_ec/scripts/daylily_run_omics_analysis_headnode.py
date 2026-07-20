@@ -2427,6 +2427,7 @@ SESSION_NAME={shlex.quote(args.session_name)}
 ANALYSIS_ID={shlex.quote(analysis_id)}
 EXECUTING_ENTITY={shlex.quote(executing_entity)}
 REPO_KEY={shlex.quote(args.repository)}
+REPLACE_EXISTING_ANALYSIS_DIR={replace_existing_analysis_dir}
 analysis_root=$(python3 - <<'PYCONFIG'
 from pathlib import Path
 analysis_root = '/fsx/analysis_results'
