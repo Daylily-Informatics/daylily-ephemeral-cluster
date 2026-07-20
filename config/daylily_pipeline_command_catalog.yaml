@@ -304,7 +304,7 @@ repositories:
     auth_mode: aws_deploy_key
     https_url: https://github.com/lsmc-bio/daylily-omics-analysis.git
     ssh_url: git@github.com:lsmc-bio/daylily-omics-analysis.git
-    default_ref: 13.0.14
+    default_ref: 13.0.15
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: simple-test
@@ -1128,7 +1128,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.14
+        git_tag: 13.0.15
         no_containerized: false
       - command_id: hybrid_ilmn_ont_hiomrs_kitchensink
         type: dev
@@ -1184,7 +1184,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.14
+        git_tag: 13.0.15
         no_containerized: false
       - command_id: betelgeuser_hiomr_prod_v1
         type: prod
@@ -1239,7 +1239,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.14
+        git_tag: 13.0.15
         no_containerized: false
       - command_id: inflection-bjuice-product-v0.2
         type: dev
@@ -1287,7 +1287,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.14
+        git_tag: 13.0.15
         no_containerized: false
       - command_id: complete_genomics_mgi_snv_concordance
         type: dev
