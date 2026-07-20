@@ -632,6 +632,9 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'mkdir -p "$(dirname "$clone_root")"' in script
         assert 'mkdir -p "$clone_root"' not in script
         assert "REPLACE_EXISTING_ANALYSIS_DIR=false" in script
+        assert script.index("REPLACE_EXISTING_ANALYSIS_DIR=false") < script.index(
+            'if [[ -e "$clone_root" ]]; then'
+        )
         assert 'dayec_conda_profile="$HOME/miniconda3/etc/profile.d/conda.sh"' in script
         assert "conda activate DAY-EC" in script
         assert "python3 -c 'import yaml'" in script
@@ -682,6 +685,31 @@ class TestRunOmicsAnalysisHeadnodeScript:
             "daylily-ssh-into-headnode --profile dev --region us-west-2 --cluster cluster-a" in out
         )
         assert "Then run: tmux attach -t sess-1" in out
+
+        mock_run_shell.reset_mock()
+        rc = run_omics_module.main(
+            [
+                "--profile",
+                "dev",
+                "--git-tag",
+                "12.0.5",
+                "--input-contract",
+                "sample_manifest",
+                "--analysis-id",
+                "analysis",
+                "--executing-entity",
+                "johnm",
+                "--project",
+                "project-alpha",
+                "--replace-existing-analysis-dir",
+                "--dry-run",
+            ]
+        )
+        assert rc == 0
+        replace_script = mock_run_shell.call_args.args[2]
+        assert replace_script.index("REPLACE_EXISTING_ANALYSIS_DIR=true") < replace_script.index(
+            'if [[ -e "$clone_root" ]]; then'
+        )
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
