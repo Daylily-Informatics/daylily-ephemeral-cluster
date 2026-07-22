@@ -16,6 +16,7 @@ import subprocess
 import sys
 import traceback
 import time
+import uuid
 from time import monotonic as _monotonic
 from pathlib import Path, PurePosixPath
 from typing import Any, List, Optional
@@ -365,6 +366,58 @@ def _run_pcluster_json(
     if not isinstance(payload, dict):
         raise CommandError("pcluster returned non-object JSON.")
     return payload
+
+
+def agent_guidance() -> None:
+    """Print operational guidance for agents using DYEC and DayOA safely."""
+
+    guidance = {
+        "summary": "Use DYEC as the supported control plane; do not bypass it with raw Snakemake.",
+        "local_setup": [
+            "cd /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster",
+            "source ./activate",
+            "dyec --help",
+        ],
+        "headnode_access": [
+            "dyec headnode connect --profile <profile> --region <region> --cluster <cluster>",
+            "Use the interactive ubuntu bash login shell.",
+            "For DayOA controllers, use a named one-pane tmux session.",
+        ],
+        "dayoa_controller_contract": [
+            "Inside tmux, run setup as separate commands: source dyoainit; dy-a <profile> <genome>; dy-r <targets> <flags>.",
+            "Never invoke raw snakemake for DayOA workflow execution.",
+            "Use explicit DayOA tags for new clones: day-clone -t <tag> -d <analysis-id>.",
+        ],
+        "analysis_root_safety": [
+            "Record visits before reading or touching /fsx/analysis_results/**.",
+            "Acquire an analysis write lock before workflow writes, deletes, unlocks, or restarts.",
+            "Never take over another owner silently; use the token takeover flow and require explicit approval.",
+        ],
+        "headnode_file_transfer": [
+            "Upload: dyec headnode upload [-r] <local> <remote> --staging-s3-uri s3://bucket/prefix --profile <profile> --region <region> --cluster <cluster>",
+            "Download: dyec headnode download [-r] <remote> <local> --staging-s3-uri s3://bucket/prefix --profile <profile> --region <region> --cluster <cluster>",
+            "The S3 relay prefix is retained and printed for audit; clean it up explicitly if desired.",
+        ],
+        "monitoring": [
+            "Start with dyec analysis status full --analysis-root <root> --tail-lines <n> when available.",
+            "Use squeue -o '%i  %P  %C  %t  %N  %c  %T  %m  %M  %D  %j' for Slurm queue truth.",
+            "Queue emptiness is not success; terminal artifacts and controller rc matter.",
+        ],
+    }
+    if _json_mode():
+        output.emit_json(guidance)
+        return
+
+    output.print_text("DYEC agent guidance")
+    output.print_text("===================")
+    output.print_text(str(guidance["summary"]))
+    for title, values in guidance.items():
+        if title == "summary":
+            continue
+        output.print_text("")
+        output.print_text(title.replace("_", " ").title())
+        for item in values:
+            output.print_text(f"- {item}")
 
 
 def _cluster_row_from_details(name: str, details: dict[str, Any]) -> dict[str, Any]:
@@ -3412,6 +3465,323 @@ def headnode_jobs(
         typer.echo(result.stderr.rstrip(), err=True)
 
 
+def _normalize_staging_s3_uri(value: str) -> str:
+    cleaned = str(value or "").strip().rstrip("/")
+    if not cleaned.startswith("s3://"):
+        raise ValueError("--staging-s3-uri must be an s3:// URI.")
+    bucket_and_key = cleaned[len("s3://") :]
+    if not bucket_and_key or "/" not in bucket_and_key:
+        raise ValueError("--staging-s3-uri must include a bucket and prefix.")
+    return cleaned
+
+
+def _headnode_transfer_prefix(*, staging_s3_uri: str, cluster: str) -> str:
+    safe_cluster = "".join(ch if ch.isalnum() or ch in "-_" else "-" for ch in cluster)
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    return (
+        f"{_normalize_staging_s3_uri(staging_s3_uri)}/"
+        f"dyec-headnode-transfer/{safe_cluster}/{stamp}-{uuid.uuid4().hex[:12]}"
+    )
+
+
+def _run_aws_s3_cp(args: list[str], *, profile: str, region: str) -> None:
+    from daylily_ec.scripts.common import CommandError, aws_env
+
+    try:
+        proc = subprocess.run(
+            ["aws", "s3", "cp", *args],
+            capture_output=True,
+            text=True,
+            env=aws_env(profile=profile, region=region),
+        )
+    except FileNotFoundError as exc:
+        raise CommandError("aws CLI not found on PATH.") from exc
+    if proc.returncode != 0:
+        raise CommandError(f"aws s3 cp failed: {_command_failure_detail(proc)}")
+
+
+def headnode_upload(
+    local_path: Path = typer.Argument(..., help="Local file or directory to upload."),
+    remote_path: str = typer.Argument(..., help="Destination path on the headnode."),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+    staging_s3_uri: str = typer.Option(
+        ...,
+        "--staging-s3-uri",
+        help="Required temporary s3://bucket/prefix used as the relay between local and headnode.",
+    ),
+    recursive: bool = typer.Option(
+        False,
+        "-r",
+        "--recursive",
+        help="Recursively copy a directory.",
+    ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote login user for SSM Run Command: auto, ubuntu, or ec2-user.",
+    ),
+    timeout: int = typer.Option(
+        900,
+        "--timeout",
+        help="SSM command timeout in seconds for the headnode copy step.",
+    ),
+) -> None:
+    """Copy a local file or directory to the headnode through an explicit S3 relay."""
+
+    from daylily_ec.aws.ssm import (
+        SsmCommandFailedError,
+        SsmError,
+        run_shell,
+        wait_for_ssm_online,
+    )
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        source = local_path.expanduser()
+        if recursive:
+            if not source.is_dir():
+                raise CommandError(f"Recursive upload source is not a directory: {source}")
+        elif not source.is_file():
+            raise CommandError(f"Upload source is not a regular file: {source}")
+
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        transfer_prefix = _headnode_transfer_prefix(
+            staging_s3_uri=staging_s3_uri,
+            cluster=resolved_cluster,
+        )
+        if recursive:
+            relay_source = transfer_prefix + "/"
+            _run_aws_s3_cp(
+                ["--recursive", str(source), relay_source],
+                profile=resolved_profile,
+                region=resolved_region,
+            )
+            remote_script = "\n".join(
+                [
+                    "set -euo pipefail",
+                    f"mkdir -p {shlex.quote(remote_path)}",
+                    f"aws s3 cp --recursive {shlex.quote(relay_source)} {shlex.quote(remote_path)}",
+                ]
+            )
+        else:
+            relay_source = f"{transfer_prefix}/{source.name}"
+            _run_aws_s3_cp(
+                [str(source), relay_source],
+                profile=resolved_profile,
+                region=resolved_region,
+            )
+            remote_script = "\n".join(
+                [
+                    "set -euo pipefail",
+                    f"remote_path={shlex.quote(remote_path)}",
+                    'if [[ "$remote_path" == */ ]]; then mkdir -p "$remote_path"; '
+                    'else mkdir -p "$(dirname "$remote_path")"; fi',
+                    f"aws s3 cp {shlex.quote(relay_source)} \"$remote_path\"",
+                ]
+            )
+
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        result = run_shell(
+            target.instance_id,
+            resolved_region,
+            remote_script,
+            profile=resolved_profile,
+            as_user=remote_user,
+            timeout=timeout,
+            comment=f"DYEC headnode upload to {remote_path}",
+        )
+    except SsmCommandFailedError as exc:
+        if exc.result.stderr.strip():
+            typer.echo(exc.result.stderr.rstrip(), err=True)
+        _exit_headnode_error(exc)
+    except (CommandError, SsmError, TimeoutError, ValueError) as exc:
+        _exit_headnode_error(exc)
+
+    payload = {
+        "direction": "upload",
+        "cluster": resolved_cluster,
+        "region": resolved_region,
+        "instance_id": target.instance_id,
+        "local_path": str(source),
+        "remote_path": remote_path,
+        "recursive": recursive,
+        "staging_s3_uri": transfer_prefix + "/",
+        "ssm_command_id": result.command_id,
+    }
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    output.success(f"Uploaded {source} to {remote_path} on {resolved_cluster}.")
+    output.print_text(f"S3 relay retained at {transfer_prefix}/")
+
+
+def headnode_download(
+    remote_path: str = typer.Argument(..., help="Source path on the headnode."),
+    local_path: Path = typer.Argument(..., help="Local destination file or directory."),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+    staging_s3_uri: str = typer.Option(
+        ...,
+        "--staging-s3-uri",
+        help="Required temporary s3://bucket/prefix used as the relay between headnode and local.",
+    ),
+    recursive: bool = typer.Option(
+        False,
+        "-r",
+        "--recursive",
+        help="Recursively copy a directory.",
+    ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote login user for SSM Run Command: auto, ubuntu, or ec2-user.",
+    ),
+    timeout: int = typer.Option(
+        900,
+        "--timeout",
+        help="SSM command timeout in seconds for the headnode copy step.",
+    ),
+) -> None:
+    """Copy a file or directory from the headnode to local storage through an S3 relay."""
+
+    from daylily_ec.aws.ssm import (
+        SsmCommandFailedError,
+        SsmError,
+        run_shell,
+        wait_for_ssm_online,
+    )
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        transfer_prefix = _headnode_transfer_prefix(
+            staging_s3_uri=staging_s3_uri,
+            cluster=resolved_cluster,
+        )
+        if recursive:
+            relay_source = transfer_prefix + "/"
+            remote_script = "\n".join(
+                [
+                    "set -euo pipefail",
+                    f"test -d {shlex.quote(remote_path)}",
+                    f"aws s3 cp --recursive {shlex.quote(remote_path)} {shlex.quote(relay_source)}",
+                ]
+            )
+        else:
+            remote_name = PurePosixPath(remote_path).name
+            if not remote_name:
+                raise CommandError("Non-recursive remote path must name a file.")
+            relay_source = f"{transfer_prefix}/{remote_name}"
+            remote_script = "\n".join(
+                [
+                    "set -euo pipefail",
+                    f"test -f {shlex.quote(remote_path)}",
+                    f"aws s3 cp {shlex.quote(remote_path)} {shlex.quote(relay_source)}",
+                ]
+            )
+
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        result = run_shell(
+            target.instance_id,
+            resolved_region,
+            remote_script,
+            profile=resolved_profile,
+            as_user=remote_user,
+            timeout=timeout,
+            comment=f"DYEC headnode download from {remote_path}",
+        )
+        destination = local_path.expanduser()
+        if recursive:
+            destination.mkdir(parents=True, exist_ok=True)
+            _run_aws_s3_cp(
+                ["--recursive", relay_source, str(destination)],
+                profile=resolved_profile,
+                region=resolved_region,
+            )
+        else:
+            if str(local_path).endswith(os.sep):
+                destination.mkdir(parents=True, exist_ok=True)
+            elif destination.parent:
+                destination.parent.mkdir(parents=True, exist_ok=True)
+            _run_aws_s3_cp(
+                [relay_source, str(destination)],
+                profile=resolved_profile,
+                region=resolved_region,
+            )
+    except SsmCommandFailedError as exc:
+        if exc.result.stderr.strip():
+            typer.echo(exc.result.stderr.rstrip(), err=True)
+        _exit_headnode_error(exc)
+    except (CommandError, SsmError, TimeoutError, ValueError) as exc:
+        _exit_headnode_error(exc)
+
+    payload = {
+        "direction": "download",
+        "cluster": resolved_cluster,
+        "region": resolved_region,
+        "instance_id": target.instance_id,
+        "remote_path": remote_path,
+        "local_path": str(destination),
+        "recursive": recursive,
+        "staging_s3_uri": transfer_prefix + "/",
+        "ssm_command_id": result.command_id,
+    }
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    output.success(f"Downloaded {remote_path} from {resolved_cluster} to {destination}.")
+    output.print_text(f"S3 relay retained at {transfer_prefix}/")
+
+
 def _configure_headnode_command(
     *,
     profile: Optional[str],
@@ -6424,6 +6794,12 @@ def register(registry, cli_spec) -> None:
     )
     register_group_commands(
         registry,
+        "agent",
+        "Operational guidance for agents using DYEC safely.",
+        [("guidance", agent_guidance, EXEMPT_JSON)],
+    )
+    register_group_commands(
+        registry,
         "pricing",
         "Spot pricing inspection helpers.",
         [
@@ -6574,6 +6950,8 @@ def register(registry, cli_spec) -> None:
             ("connect", headnode_connect, required_policy(interactive=True)),
             ("info", headnode_info, REQUIRED_JSON),
             ("jobs", headnode_jobs, required_policy()),
+            ("upload", headnode_upload, required_policy(supports_json=True, long_running=True)),
+            ("download", headnode_download, required_policy(supports_json=True, long_running=True)),
             ("configure", headnode_configure, REQUIRED_MUTATING_LONG_RUNNING),
             ("configure-dragen", headnode_configure_dragen, REQUIRED_MUTATING_LONG_RUNNING),
         ],

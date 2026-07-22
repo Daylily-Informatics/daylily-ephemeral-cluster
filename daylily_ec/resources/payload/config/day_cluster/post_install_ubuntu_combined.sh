@@ -638,6 +638,14 @@ EOF
     "${epilog_dir}/50_daylily_job_tags"
 }
 
+install_global_pygraphviz() {
+  python3 -m pip install --upgrade pygraphviz
+  python3 - <<'PY'
+import pygraphviz
+print(f"pygraphviz global import OK: {pygraphviz.__version__}")
+PY
+}
+
 # GLOBAL ACTIONS HeadNode and ComputeFleet
 
 prepare_common_writable_dirs
@@ -667,13 +675,14 @@ apt-get update
 apt-get install -y tmux emacs rclone parallel atop htop glances fd-find ripgrep docker.io \
                     build-essential libssl-dev uuid-dev libgpgme-dev squashfs-tools \
                     libseccomp-dev pkg-config openjdk-11-jdk wget unzip nasm yasm isal \
-                    fuse2fs gocryptfs cpulimit golang-go numactl \
+                    fuse2fs gocryptfs cpulimit golang-go numactl graphviz graphviz-dev python3-pip \
                     ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 \
                     libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 \
                     libfontconfig1 libgbm1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 \
                     libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 \
                     libx11-xcb1 libxcb1 libxcomposite1 libxdamage1 libxext6 \
                     libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 xdg-utils
+install_global_pygraphviz
 
 # Install Apptainer from the FSx/S3-backed cache. Do not depend on live Launchpad/PPA reachability.
 if [ ! -s "${apptainer_deb}" ]; then

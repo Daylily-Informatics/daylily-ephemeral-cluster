@@ -4040,6 +4040,8 @@ def configure_headnode(
                 "conda env update --name DAY-EC --file environment.yaml --prune && "
                 "conda activate DAY-EC && "
                 "python -m pip install --editable . && "
+                "python -m pip install --upgrade pygraphviz && "
+                "python -c 'import pygraphviz; print(\"pygraphviz DAY-EC import OK\", pygraphviz.__version__)' && "
                 f"source ~/projects/{repo_name}/activate && "
                 f"./bin/install-daylily-headnode-tools"
             ),

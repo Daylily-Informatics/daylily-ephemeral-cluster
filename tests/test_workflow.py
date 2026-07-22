@@ -2552,6 +2552,9 @@ class TestConfigureHeadnode:
             "source ~/projects/daylily-ephemeral-cluster/activate"
             in mock_run_shell.call_args_list[3].args[2]
         )
+        rebuild_cmd = mock_run_shell.call_args_list[3].args[2]
+        assert "python -m pip install --upgrade pygraphviz" in rebuild_cmd
+        assert "pygraphviz DAY-EC import OK" in rebuild_cmd
         mock_validate_headnode_readiness.assert_called_once_with(
             "i-abc123",
             "us-west-2",

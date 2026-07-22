@@ -907,6 +907,9 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert 'chmod a-w "${role_root}"' in script
     assert 'stat -c "Role data permissions: %A %n" "${role_root}"' in script
     assert "fd-find ripgrep docker.io" in script
+    assert "graphviz graphviz-dev python3-pip" in script
+    assert "install_global_pygraphviz" in script
+    assert "pygraphviz global import OK" in script
     assert "sbatch_wrapper_sha256" not in script
     assert "sleep_test_sha256" not in script
     assert "cached Apptainer deb not found" in script
