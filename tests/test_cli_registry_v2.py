@@ -80,6 +80,13 @@ EXPECTED_COMMANDS = {
     ("headnode", "connect"),
     ("headnode", "info"),
     ("headnode", "jobs"),
+    ("headnode", "system-info"),
+    ("headnode", "fsx-usage"),
+    ("headnode", "analysis-roots"),
+    ("headnode", "dayoa-controllers"),
+    ("headnode", "dayoa-controller-action"),
+    ("headnode", "slurm-job-action"),
+    ("headnode", "slurm-drain"),
     ("headnode", "upload"),
     ("headnode", "download"),
     ("headnode", "configure"),
@@ -90,8 +97,14 @@ EXPECTED_COMMANDS = {
     ("workflow", "status"),
     ("workflow", "logs"),
     ("workflow", "collect-benchmarks"),
+    ("workflow", "benchmark-report"),
     ("workflow", "stop"),
     ("repositories", "commands"),
+    ("catalog", "list"),
+    ("catalog", "show"),
+    ("catalog", "render"),
+    ("catalog", "launch"),
+    ("catalog", "quick-launch"),
     ("tests", "pytest"),
     ("tests", "command-catalog"),
     ("tests", "command-catalog-performance"),
@@ -337,6 +350,15 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     headnode_connect_cmd = registry.get_command(("headnode", "connect"))
     headnode_info_cmd = registry.get_command(("headnode", "info"))
     headnode_jobs_cmd = registry.get_command(("headnode", "jobs"))
+    headnode_system_info_cmd = registry.get_command(("headnode", "system-info"))
+    headnode_fsx_usage_cmd = registry.get_command(("headnode", "fsx-usage"))
+    headnode_analysis_roots_cmd = registry.get_command(("headnode", "analysis-roots"))
+    headnode_dayoa_controllers_cmd = registry.get_command(("headnode", "dayoa-controllers"))
+    headnode_dayoa_controller_action_cmd = registry.get_command(
+        ("headnode", "dayoa-controller-action")
+    )
+    headnode_slurm_job_action_cmd = registry.get_command(("headnode", "slurm-job-action"))
+    headnode_slurm_drain_cmd = registry.get_command(("headnode", "slurm-drain"))
     headnode_upload_cmd = registry.get_command(("headnode", "upload"))
     headnode_download_cmd = registry.get_command(("headnode", "download"))
     headnode_configure_cmd = registry.get_command(("headnode", "configure"))
@@ -346,8 +368,14 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     workflow_status_cmd = registry.get_command(("workflow", "status"))
     workflow_logs_cmd = registry.get_command(("workflow", "logs"))
     workflow_collect_benchmarks_cmd = registry.get_command(("workflow", "collect-benchmarks"))
+    workflow_benchmark_report_cmd = registry.get_command(("workflow", "benchmark-report"))
     workflow_stop_cmd = registry.get_command(("workflow", "stop"))
     repositories_commands_cmd = registry.get_command(("repositories", "commands"))
+    catalog_list_cmd = registry.get_command(("catalog", "list"))
+    catalog_show_cmd = registry.get_command(("catalog", "show"))
+    catalog_render_cmd = registry.get_command(("catalog", "render"))
+    catalog_launch_cmd = registry.get_command(("catalog", "launch"))
+    catalog_quick_launch_cmd = registry.get_command(("catalog", "quick-launch"))
     tests_pytest_cmd = registry.get_command(("tests", "pytest"))
     tests_command_catalog_cmd = registry.get_command(("tests", "command-catalog"))
     tests_command_catalog_performance_cmd = registry.get_command(
@@ -475,6 +503,25 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert headnode_jobs_cmd.policy.runtime_guard == "required"
     assert headnode_jobs_cmd.policy.mutates_state is False
 
+    for semantic_read_cmd in (
+        headnode_system_info_cmd,
+        headnode_fsx_usage_cmd,
+        headnode_analysis_roots_cmd,
+        headnode_dayoa_controllers_cmd,
+    ):
+        assert semantic_read_cmd is not None
+        assert semantic_read_cmd.policy.supports_json is True
+        assert semantic_read_cmd.policy.mutates_state is False
+
+    for semantic_action_cmd in (
+        headnode_dayoa_controller_action_cmd,
+        headnode_slurm_job_action_cmd,
+        headnode_slurm_drain_cmd,
+    ):
+        assert semantic_action_cmd is not None
+        assert semantic_action_cmd.policy.supports_json is True
+        assert semantic_action_cmd.policy.mutates_state is True
+
     for transfer_cmd in (headnode_upload_cmd, headnode_download_cmd):
         assert transfer_cmd is not None
         assert transfer_cmd.policy.supports_json is True
@@ -507,6 +554,10 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert workflow_collect_benchmarks_cmd.policy.mutates_state is True
     assert workflow_collect_benchmarks_cmd.policy.long_running is True
 
+    assert workflow_benchmark_report_cmd is not None
+    assert workflow_benchmark_report_cmd.policy.supports_json is True
+    assert workflow_benchmark_report_cmd.policy.mutates_state is False
+
     assert workflow_stop_cmd is not None
     assert workflow_stop_cmd.policy.supports_json is True
     assert workflow_stop_cmd.policy.mutates_state is True
@@ -514,6 +565,18 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert repositories_commands_cmd is not None
     assert repositories_commands_cmd.policy.supports_json is True
     assert repositories_commands_cmd.policy.runtime_guard == "exempt"
+
+    for catalog_read_cmd in (catalog_list_cmd, catalog_show_cmd, catalog_render_cmd):
+        assert catalog_read_cmd is not None
+        assert catalog_read_cmd.policy.supports_json is True
+        assert catalog_read_cmd.policy.runtime_guard == "exempt"
+        assert catalog_read_cmd.policy.mutates_state is False
+
+    for catalog_launch_like_cmd in (catalog_launch_cmd, catalog_quick_launch_cmd):
+        assert catalog_launch_like_cmd is not None
+        assert catalog_launch_like_cmd.policy.supports_json is True
+        assert catalog_launch_like_cmd.policy.mutates_state is True
+        assert catalog_launch_like_cmd.policy.long_running is True
 
     assert tests_pytest_cmd is not None
     assert tests_pytest_cmd.policy.long_running is True
@@ -3355,6 +3418,154 @@ def test_samples_run_rejects_incompatible_catalog_command(monkeypatch, tmp_path)
     assert result.exit_code != 0
     assert "not compatible" in result.output
     assert "stage_argv" not in calls
+
+
+def test_catalog_list_and_show_expose_command_catalog_entries() -> None:
+    list_result = runner.invoke(
+        app,
+        [
+            "--json",
+            "catalog",
+            "list",
+            "--command-class",
+            "sample_analysis",
+            "--type",
+            "dev",
+        ],
+    )
+
+    assert list_result.exit_code == 0, list_result.output
+    list_payload = json.loads(list_result.stdout)
+    command_ids = {item["command_id"] for item in list_payload["commands"]}
+    assert "package_inflection_hybrid_data" in command_ids
+
+    show_result = runner.invoke(
+        app,
+        ["--json", "catalog", "show", "package_inflection_hybrid_data"],
+    )
+
+    assert show_result.exit_code == 0, show_result.output
+    show_payload = json.loads(show_result.stdout)
+    assert show_payload["command"]["command_id"] == "package_inflection_hybrid_data"
+    assert show_payload["command"]["input_contract"] == "six_manifest"
+    assert show_payload["command"]["dy_command"].startswith("dy-r produce_inflection_delivery_set")
+
+
+def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
+    manifest_dir = tmp_path / "manifests"
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "catalog",
+            "render",
+            "package_inflection_hybrid_data",
+            "--analysis-id",
+            "pkg-run",
+            "--executing-entity",
+            "johnm",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--manifest-dir",
+            str(manifest_dir),
+            "--session-name",
+            "pkg-session",
+            "--project",
+            "project-alpha",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.stdout)
+    assert payload["command"]["command_id"] == "package_inflection_hybrid_data"
+    assert payload["git_tag"] == payload["command"]["git_tag"]
+    assert payload["dry_run"] is True
+    assert payload["dy_command"].startswith("dy-r produce_inflection_delivery_set")
+    assert " -n" in payload["dy_command"]
+    argv = payload["workflow_argv"]
+    assert argv[:2] == ["workflow", "launch"]
+    assert argv[argv.index("--manifest-dir") + 1] == str(manifest_dir)
+    assert argv[argv.index("--session-name") + 1] == "pkg-session"
+    assert argv[argv.index("--project") + 1] == "project-alpha"
+    assert argv[argv.index("--dy-command") + 1] == payload["dy_command"]
+    assert "dyec workflow launch" in payload["workflow_command"]
+
+
+def test_catalog_quick_launch_uses_rendered_workflow_argv(monkeypatch, tmp_path) -> None:
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    manifest_dir = tmp_path / "manifests"
+
+    def fake_launch(argv: list[str]) -> int:
+        calls["launch_argv"] = argv
+        print("__DAYLILY_SESSION__=pkg-session")
+        print("__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/pkg-session")
+        print(
+            "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/pkg-run/"
+            "daylily-omics-analysis"
+        )
+        print(f"__DAYLILY_DY_COMMAND__={argv[argv.index('--dy-command') + 1]}")
+        return 0
+
+    monkeypatch.setattr(cli_module, "_invoke_workflow_launch", fake_launch)
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "catalog",
+            "quick-launch",
+            "package_inflection_hybrid_data",
+            "--analysis-id",
+            "pkg-run",
+            "--executing-entity",
+            "johnm",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--manifest-dir",
+            str(manifest_dir),
+            "--session-name",
+            "pkg-session",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.stdout)
+    launch_argv = calls["launch_argv"]
+    assert launch_argv[launch_argv.index("--manifest-dir") + 1] == str(manifest_dir)
+    assert launch_argv[launch_argv.index("--analysis-id") + 1] == "pkg-run"
+    assert payload["workflow_launch"]["session_name"] == "pkg-session"
+    assert payload["workflow_launch"]["dy_command"] == payload["dy_command"]
+
+
+def test_catalog_render_requires_explicit_staged_inputs_for_sample_commands() -> None:
+    result = runner.invoke(
+        app,
+        [
+            "catalog",
+            "render",
+            "complete_genomics_mgi_snv_concordance",
+            "--analysis-id",
+            "cg-run",
+            "--executing-entity",
+            "johnm",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "requires --stage-dir" in result.output
+    assert "dyec samples run" in result.output
 
 
 def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:

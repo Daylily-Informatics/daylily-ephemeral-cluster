@@ -11,6 +11,7 @@ import io
 import json
 import logging
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -3465,6 +3466,359 @@ def headnode_jobs(
         typer.echo(result.stderr.rstrip(), err=True)
 
 
+def _run_headnode_semantic_script(
+    *,
+    profile: Optional[str],
+    region: Optional[str],
+    cluster: Optional[str],
+    script: str,
+    parser,
+    comment: str,
+    timeout: int = 120,
+) -> dict[str, Any]:
+    from daylily_ec.aws.ssm import SsmCommandFailedError, SsmError, run_shell, wait_for_ssm_online
+    from daylily_ec.scripts.common import CommandError
+
+    try:
+        if isinstance(timeout, bool) or timeout < 1:
+            raise ValueError("timeout must be a positive integer")
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        try:
+            result = run_shell(
+                target.instance_id,
+                resolved_region,
+                script,
+                profile=resolved_profile,
+                as_user="ubuntu",
+                timeout=timeout,
+                comment=comment,
+            )
+        except SsmCommandFailedError as exc:
+            payload = parser(exc.result.stdout)
+            error = payload.get("error") if isinstance(payload, dict) else None
+            raise CommandError(
+                f"Semantic headnode command failed: {error or exc}"
+            ) from exc
+        payload = parser(result.stdout)
+        if not isinstance(payload, dict):
+            raise ValueError("semantic headnode parser must return a JSON object")
+        if payload.get("ok") is False:
+            raise CommandError(
+                f"Semantic headnode command failed: {payload.get('error') or 'remote probe failed'}"
+            )
+        return {
+            **payload,
+            "cluster": resolved_cluster,
+            "region": resolved_region,
+            "instance_id": target.instance_id,
+            "ssm_command_id": result.command_id,
+        }
+    except (CommandError, SsmError, TimeoutError, ValueError, RuntimeError):
+        raise
+
+
+def _emit_headnode_payload(payload: dict[str, Any]) -> None:
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+
+
+_SEMANTIC_OPERATION_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$")
+
+
+def _semantic_operation_id(value: str) -> str:
+    resolved = str(value or "")
+    if not _SEMANTIC_OPERATION_ID_RE.fullmatch(resolved):
+        raise ValueError(
+            "operation_id must be 1-64 characters using only letters, numbers, '.', '_', ':', or '-'"
+        )
+    return resolved
+
+
+def headnode_system_info(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    timeout: int = typer.Option(120, "--timeout", help="SSM command timeout in seconds."),
+) -> None:
+    """Return bounded static headnode host facts as JSON."""
+
+    from daylily_ec.headnode_observability import (
+        build_system_info_script,
+        parse_system_info_output,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        payload = _run_headnode_semantic_script(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            script=build_system_info_script(),
+            parser=parse_system_info_output,
+            comment="DYEC headnode system info",
+            timeout=timeout,
+        )
+        _emit_headnode_payload(payload)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def headnode_fsx_usage(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    timeout: int = typer.Option(120, "--timeout", help="SSM command timeout in seconds."),
+) -> None:
+    """Return bounded `df -Pk /fsx` facts as JSON."""
+
+    from daylily_ec.headnode_observability import (
+        build_fsx_usage_script,
+        parse_fsx_usage_output,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        payload = _run_headnode_semantic_script(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            script=build_fsx_usage_script(),
+            parser=parse_fsx_usage_output,
+            comment="DYEC headnode FSx usage",
+            timeout=timeout,
+        )
+        _emit_headnode_payload(payload)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def headnode_analysis_roots(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    mode: str = typer.Option(
+        "direct",
+        "--mode",
+        help="Discovery mode: direct or recursive-dayoa.",
+    ),
+    max_results: int = typer.Option(200, "--max-results", help="Maximum analyses returned."),
+    max_depth: int = typer.Option(8, "--max-depth", help="Recursive search depth."),
+    max_scanned_entries: int = typer.Option(
+        10000,
+        "--max-scanned-entries",
+        help="Maximum filesystem entries inspected.",
+    ),
+    timeout: int = typer.Option(300, "--timeout", help="SSM command timeout in seconds."),
+) -> None:
+    """Discover DayOA analysis roots under /fsx/analysis_results with bounded traversal."""
+
+    from daylily_ec.headnode_observability import (
+        build_analysis_discovery_script,
+        parse_analysis_discovery_output,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        payload = _run_headnode_semantic_script(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            script=build_analysis_discovery_script(
+                mode,
+                max_results=max_results,
+                max_depth=max_depth,
+                max_scanned_entries=max_scanned_entries,
+            ),
+            parser=parse_analysis_discovery_output,
+            comment="DYEC headnode analysis discovery",
+            timeout=timeout,
+        )
+        _emit_headnode_payload(payload)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def headnode_dayoa_controllers(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    max_controllers: int = typer.Option(20, "--max-controllers"),
+    max_tmux_panes: int = typer.Option(40, "--max-tmux-panes"),
+    max_slurm_jobs: int = typer.Option(100, "--max-slurm-jobs"),
+    timeout: int = typer.Option(180, "--timeout", help="SSM command timeout in seconds."),
+) -> None:
+    """Inventory DayOA controllers, tmux panes, and Slurm jobs without exposing command lines."""
+
+    from daylily_ec.headnode_control import (
+        build_controller_inventory_script,
+        parse_controller_inventory_output,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        payload = _run_headnode_semantic_script(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            script=build_controller_inventory_script(
+                max_controllers=max_controllers,
+                max_tmux_panes=max_tmux_panes,
+                max_slurm_jobs=max_slurm_jobs,
+            ),
+            parser=parse_controller_inventory_output,
+            comment="DYEC headnode controller inventory",
+            timeout=timeout,
+        )
+        _emit_headnode_payload(payload)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def headnode_dayoa_controller_action(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    pid: str = typer.Option(..., "--pid", help="Controller process PID."),
+    confirm_pid: str = typer.Option(
+        ...,
+        "--confirm-pid",
+        help="Must exactly match --pid.",
+    ),
+    analysis_root: str = typer.Option(
+        ...,
+        "--analysis-root",
+        help="Exact /fsx/analysis_results/<owner>/<analysis> root for the controller.",
+    ),
+    action: str = typer.Option(..., "--action", help="stop, restart, or kill."),
+    operation_id: str = typer.Option(
+        ..., "--operation-id", help="Unique caller operation identifier."
+    ),
+    timeout: int = typer.Option(120, "--timeout", help="SSM command timeout in seconds."),
+) -> None:
+    """Signal one validated DayOA controller process by exact PID and analysis root."""
+
+    from daylily_ec.headnode_control import (
+        build_controller_action_script,
+        parse_controller_action_output,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_operation_id = _semantic_operation_id(operation_id)
+        payload = _run_headnode_semantic_script(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            script=build_controller_action_script(
+                pid=pid,
+                confirm_pid=confirm_pid,
+                expected_analysis_root=analysis_root,
+                action=action,
+            ),
+            parser=parse_controller_action_output,
+            comment=f"DYEC headnode controller {action} ({resolved_operation_id})",
+            timeout=timeout,
+        )
+        payload["operation_id"] = resolved_operation_id
+        _emit_headnode_payload(payload)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def headnode_slurm_job_action(
+    job_ids: List[str] = typer.Option(
+        ..., "--job-id", help="Exact Slurm job ID; repeat for multiple jobs."
+    ),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    action: str = typer.Option(..., "--action", help="suspend, resume, or cancel."),
+    timeout: int = typer.Option(120, "--timeout", help="SSM command timeout in seconds."),
+) -> None:
+    """Run an explicit Slurm job action against listed job IDs only."""
+
+    from daylily_ec.headnode_control import (
+        build_slurm_job_action_script,
+        parse_slurm_job_action_output,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        payload = _run_headnode_semantic_script(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            script=build_slurm_job_action_script(action=action, job_ids=job_ids),
+            parser=parse_slurm_job_action_output,
+            comment=f"DYEC headnode Slurm job {action}",
+            timeout=timeout,
+        )
+        _emit_headnode_payload(payload)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def headnode_slurm_drain(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    confirm_cluster: str = typer.Option(
+        ...,
+        "--confirm-cluster",
+        help="Must exactly match the resolved --cluster.",
+    ),
+    reason: str = typer.Option(..., "--reason", help="Reason recorded for drain."),
+    operation_id: str = typer.Option(..., "--operation-id", help="Operator-provided action id."),
+    timeout: int = typer.Option(120, "--timeout", help="SSM command timeout in seconds."),
+) -> None:
+    """Drain all Slurm nodes with exact cluster confirmation; never cancel jobs."""
+
+    from daylily_ec.headnode_control import (
+        build_slurm_all_node_state_script,
+        parse_slurm_all_node_state_output,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_operation_id = _semantic_operation_id(operation_id)
+        resolved_profile, resolved_region, resolved_cluster = _resolve_headnode_cli_selection(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        script = build_slurm_all_node_state_script(
+            action="drain",
+            cluster=resolved_cluster,
+            confirm_cluster=confirm_cluster,
+            reason=reason,
+            operation_id=resolved_operation_id,
+        )
+        payload = _run_headnode_semantic_script(
+            profile=resolved_profile,
+            region=resolved_region,
+            cluster=resolved_cluster,
+            script=script,
+            parser=parse_slurm_all_node_state_output,
+            timeout=timeout,
+            comment=f"DYEC Slurm all-node drain ({resolved_operation_id})",
+        )
+        _emit_headnode_payload(payload)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
 def _normalize_staging_s3_uri(value: str) -> str:
     cleaned = str(value or "").strip().rstrip("/")
     if not cleaned.startswith("s3://"):
@@ -4621,7 +4975,12 @@ def workflow_launch(
     default_activation: bool = typer.Option(
         True,
         "--default-activation/--no-default-activation",
-        help="Run the standard dyoainit plus Slurm day_activate setup before --dy-command.",
+        help="Run the standard dyoainit plus dy-a Slurm setup before --dy-command.",
+    ),
+    analysis_lock: bool = typer.Option(
+        True,
+        "--analysis-lock/--no-analysis-lock",
+        help="Acquire an analysis-root write lock for the controller before running dy-r.",
     ),
     bootstrap_test_config: bool = typer.Option(
         False,
@@ -4854,6 +5213,8 @@ def workflow_launch(
         argv.append("--no-input-staging")
     if not default_activation:
         argv.append("--no-default-activation")
+    if not analysis_lock:
+        argv.append("--no-analysis-lock")
     if bootstrap_test_config:
         argv.append("--bootstrap-test-config")
     argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
@@ -4921,6 +5282,467 @@ def repositories_commands(
             output.emit_json(payload)
             return
         typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def _catalog_load_command(config: Optional[Path], command_id: str):
+    from daylily_ec.repositories import load_repository_catalog
+    from daylily_ec.scripts.common import CommandError
+
+    catalog = load_repository_catalog(config)
+    try:
+        command = catalog.get_command(command_id)
+    except KeyError as exc:
+        raise CommandError(str(exc)) from exc
+    return catalog, command
+
+
+def _catalog_command_summary(command: Any) -> dict[str, Any]:
+    return {
+        "command_id": command.command_id,
+        "repository": command.repository,
+        "display_name": command.display_name,
+        "description": command.description,
+        "type": command.type,
+        "validated_version": command.validated_version,
+        "command_class": command.command_class,
+        "input_contract": command.input_contract,
+        "requires_staging": command.requires_staging,
+        "requires_run_mount": command.requires_run_mount,
+        "test_data_profile": command.test_data_profile,
+        "compatible_platforms": list(command.compatible_platforms),
+        "compatible_cluster_types": list(command.compatible_cluster_types),
+        "compatible_data_modes": list(command.compatible_data_modes),
+        "git_tag": command.git_tag,
+        "genome": command.genome,
+        "day_profile": command.day_profile,
+        "jobs": command.jobs,
+        "dy_command": command.dy_command,
+        "dryrun_dy_command": command.dryrun_dy_command,
+    }
+
+
+def _catalog_validate_explicit_inputs(
+    command: Any,
+    *,
+    stage_dir: Optional[str],
+    manifest_dir: Optional[str],
+    run_context_file: Optional[str],
+    specimens_file: Optional[str],
+    samples_file: Optional[str],
+    libraries_file: Optional[str],
+    units_file: Optional[str],
+    allow_stage_discovery: bool,
+) -> None:
+    from daylily_ec.scripts.common import CommandError
+
+    if allow_stage_discovery and command.input_contract not in {
+        "sample_manifest",
+        "sample_manifest_v12",
+    }:
+        raise CommandError("--allow-stage-discovery is only valid for sample manifest commands")
+    if command.input_contract == "sample_manifest_v12" and not allow_stage_discovery:
+        if not stage_dir and not (specimens_file and samples_file and libraries_file):
+            raise CommandError(
+                f"Catalog command {command.command_id} requires --stage-dir or all of "
+                "--specimens-file, --samples-file, and --libraries-file. "
+                "Use `dyec samples run` when the source table still needs staging."
+            )
+    elif command.input_contract == "sample_manifest" and not allow_stage_discovery:
+        if not stage_dir and not (samples_file and units_file):
+            raise CommandError(
+                f"Catalog command {command.command_id} requires --stage-dir or both "
+                "--samples-file and --units-file. Use `dyec samples run` when the source "
+                "table still needs staging."
+            )
+    elif command.input_contract == "six_manifest":
+        if not manifest_dir:
+            raise CommandError(f"Catalog command {command.command_id} requires --manifest-dir.")
+    elif command.input_contract == "run_context":
+        if not run_context_file:
+            raise CommandError(f"Catalog command {command.command_id} requires --run-context-file.")
+    elif command.input_contract == "none":
+        unexpected = [
+            name
+            for name, value in (
+                ("--stage-dir", stage_dir),
+                ("--manifest-dir", manifest_dir),
+                ("--run-context-file", run_context_file),
+                ("--specimens-file", specimens_file),
+                ("--samples-file", samples_file),
+                ("--libraries-file", libraries_file),
+                ("--units-file", units_file),
+            )
+            if value
+        ]
+        if unexpected:
+            raise CommandError(
+                f"Catalog utility command {command.command_id} does not accept input files: "
+                + ", ".join(unexpected)
+            )
+
+
+def _catalog_render_payload(
+    *,
+    config: Optional[Path],
+    command_id: str,
+    analysis_id: str,
+    executing_entity: Optional[str],
+    profile: Optional[str],
+    region: Optional[str],
+    cluster: Optional[str],
+    git_tag: Optional[str],
+    stage_dir: Optional[str],
+    manifest_dir: Optional[Path],
+    run_context_file: Optional[Path],
+    specimens_file: Optional[Path],
+    samples_file: Optional[Path],
+    libraries_file: Optional[Path],
+    units_file: Optional[Path],
+    session_name: Optional[str],
+    project: Optional[str],
+    dry_run: bool,
+    skip_project_check: bool,
+    allow_stage_discovery: bool,
+    max_runtime_minutes: int,
+    export_destination_s3_uri: Optional[str],
+    export_trigger: str,
+    delete_on_export_success: bool,
+    replace_existing_analysis_dir: bool,
+) -> dict[str, Any]:
+    catalog, command = _catalog_load_command(config, command_id)
+    resolved_executing_entity = _resolve_executing_entity_option(
+        executing_entity=executing_entity,
+        cluster=cluster,
+    )
+    resolved_export_destination_s3_uri = _validate_analysis_launch_options(
+        analysis_id=analysis_id,
+        executing_entity=resolved_executing_entity,
+        cluster=cluster,
+        export_destination_s3_uri=export_destination_s3_uri,
+        export_trigger=export_trigger,
+        delete_on_export_success=delete_on_export_success,
+    )
+    manifest_dir_text = str(manifest_dir.expanduser()) if manifest_dir else None
+    run_context_file_text = str(run_context_file.expanduser()) if run_context_file else None
+    specimens_file_text = str(specimens_file.expanduser()) if specimens_file else None
+    samples_file_text = str(samples_file.expanduser()) if samples_file else None
+    libraries_file_text = str(libraries_file.expanduser()) if libraries_file else None
+    units_file_text = str(units_file.expanduser()) if units_file else None
+    _catalog_validate_explicit_inputs(
+        command,
+        stage_dir=stage_dir,
+        manifest_dir=manifest_dir_text,
+        run_context_file=run_context_file_text,
+        specimens_file=specimens_file_text,
+        samples_file=samples_file_text,
+        libraries_file=libraries_file_text,
+        units_file=units_file_text,
+        allow_stage_discovery=allow_stage_discovery,
+    )
+    resolved_git_tag = git_tag or command.git_tag
+    workflow_argv = command.launch_argv(
+        analysis_id=analysis_id,
+        executing_entity=resolved_executing_entity,
+        git_tag=resolved_git_tag,
+        profile=profile,
+        region=region,
+        cluster=cluster,
+        stage_dir=stage_dir,
+        manifest_dir=manifest_dir_text,
+        run_context_file=run_context_file_text,
+        specimens_file=specimens_file_text,
+        samples_file=samples_file_text,
+        libraries_file=libraries_file_text,
+        units_file=units_file_text,
+        session_name=session_name,
+        project=project,
+        dry_run=dry_run,
+        skip_project_check=skip_project_check,
+        export_destination_s3_uri=resolved_export_destination_s3_uri,
+        export_trigger=export_trigger,
+        delete_on_export_success=delete_on_export_success,
+        replace_existing_analysis_dir=replace_existing_analysis_dir,
+    )
+    workflow_argv.extend(["--max-runtime-minutes", str(max_runtime_minutes)])
+    dy_command = workflow_argv[workflow_argv.index("--dy-command") + 1]
+    return {
+        "command_catalog_version": catalog.command_catalog_version,
+        "command": _catalog_command_summary(command),
+        "analysis_id": analysis_id,
+        "executing_entity": resolved_executing_entity,
+        "git_tag": resolved_git_tag,
+        "dry_run": dry_run,
+        "dy_command": dy_command,
+        "workflow_argv": workflow_argv,
+        "workflow_command": shlex.join(["dyec", *workflow_argv]),
+        "export_destination_s3_uri": resolved_export_destination_s3_uri,
+    }
+
+
+def catalog_list(
+    config: Optional[Path] = typer.Option(
+        None,
+        "--config",
+        help="Path to daylily_pipeline_command_catalog.yaml.",
+    ),
+    repository: Optional[str] = typer.Option(
+        None,
+        "--repository",
+        help="Limit output to one repository key.",
+    ),
+    command_class: Optional[str] = typer.Option(
+        None,
+        "--command-class",
+        help="Limit output to sample_analysis, run_analysis, or utility.",
+    ),
+    command_type: Optional[str] = typer.Option(
+        None,
+        "--type",
+        help="Limit output to prod, test, dev, or research.",
+    ),
+) -> None:
+    """List command-catalog entries as launchable command summaries."""
+
+    from daylily_ec.repositories import load_repository_catalog
+    from daylily_ec.scripts.common import CommandError
+
+    try:
+        catalog = load_repository_catalog(config)
+        commands = catalog.commands()
+        if repository:
+            repo_key = repository.strip()
+            if repo_key not in catalog.repositories:
+                raise CommandError(f"Unknown repository: {repo_key}")
+            commands = [command for command in commands if command.repository == repo_key]
+        if command_class:
+            commands = [command for command in commands if command.command_class == command_class]
+        if command_type:
+            commands = [command for command in commands if command.type == command_type]
+        payload = {
+            "command_catalog_version": catalog.command_catalog_version,
+            "default_repository": catalog.default_repository,
+            "commands": [_catalog_command_summary(command) for command in commands],
+        }
+        if _json_mode():
+            output.emit_json(payload)
+            return
+        typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def catalog_show(
+    command_id: str = typer.Argument(..., help="Repository catalog command id."),
+    config: Optional[Path] = typer.Option(
+        None,
+        "--config",
+        help="Path to daylily_pipeline_command_catalog.yaml.",
+    ),
+) -> None:
+    """Show one command-catalog entry, including exact dy-r command strings."""
+
+    try:
+        catalog, command = _catalog_load_command(config, command_id)
+        payload = {
+            "command_catalog_version": catalog.command_catalog_version,
+            "command": command.model_dump(mode="json"),
+        }
+        if _json_mode():
+            output.emit_json(payload)
+            return
+        typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def catalog_render(
+    command_id: str = typer.Argument(..., help="Repository catalog command id."),
+    analysis_id: str = typer.Option(..., "--analysis-id", help="FSx analysis identifier."),
+    executing_entity: Optional[str] = typer.Option(
+        None,
+        "--executing-entity",
+        "-u",
+        help="User/system identifier under /fsx/analysis_results. Defaults to --cluster.",
+    ),
+    config: Optional[Path] = typer.Option(None, "--config", help="Catalog YAML path."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    git_tag: Optional[str] = typer.Option(None, "--git-tag", "-t", help="Override DayOA tag."),
+    stage_dir: Optional[str] = typer.Option(
+        None,
+        "--stage-dir",
+        help="Existing remote FSx staging directory for staged sample manifests.",
+    ),
+    manifest_dir: Optional[Path] = typer.Option(
+        None,
+        "--manifest-dir",
+        help="Local directory containing exact six-manifest DayOA inputs.",
+    ),
+    run_context_file: Optional[Path] = typer.Option(
+        None,
+        "--run-context-file",
+        help="Local run-context TSV for run-analysis commands.",
+    ),
+    specimens_file: Optional[Path] = typer.Option(None, "--specimens-file"),
+    samples_file: Optional[Path] = typer.Option(None, "--samples-file"),
+    libraries_file: Optional[Path] = typer.Option(None, "--libraries-file"),
+    units_file: Optional[Path] = typer.Option(None, "--units-file"),
+    session_name: Optional[str] = typer.Option(None, "--session-name"),
+    project: Optional[str] = typer.Option(None, "--project", help="Project/budget for dyoainit."),
+    dry_run: bool = typer.Option(False, "--dry-run", "-n", help="Render dry-run dy-r command."),
+    skip_project_check: bool = typer.Option(
+        True,
+        "--skip-project-check/--strict-project-check",
+        help="Skip or enable upstream project validation in dyoainit.",
+    ),
+    allow_stage_discovery: bool = typer.Option(
+        False,
+        "--allow-stage-discovery",
+        help="Explicitly permit workflow launch to discover the latest staged sample manifest.",
+    ),
+    max_runtime_minutes: int = typer.Option(
+        DEFAULT_JOB_MAX_RUNTIME_MINUTES,
+        "--max-runtime-minutes",
+        help="Forwarded compatibility value for workflow launch.",
+    ),
+    export_destination_s3_uri: Optional[str] = typer.Option(None, "--export-destination-s3-uri"),
+    export_trigger: str = typer.Option("none", "--export-trigger"),
+    delete_on_export_success: bool = typer.Option(False, "--delete-on-export-success"),
+    replace_existing_analysis_dir: bool = typer.Option(False, "--replace-existing-analysis-dir"),
+) -> None:
+    """Render the exact `dyec workflow launch` argv for a catalog command."""
+
+    try:
+        payload = _catalog_render_payload(
+            config=config,
+            command_id=command_id,
+            analysis_id=analysis_id,
+            executing_entity=executing_entity,
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            git_tag=git_tag,
+            stage_dir=stage_dir,
+            manifest_dir=manifest_dir,
+            run_context_file=run_context_file,
+            specimens_file=specimens_file,
+            samples_file=samples_file,
+            libraries_file=libraries_file,
+            units_file=units_file,
+            session_name=session_name,
+            project=project,
+            dry_run=dry_run,
+            skip_project_check=skip_project_check,
+            allow_stage_discovery=allow_stage_discovery,
+            max_runtime_minutes=max_runtime_minutes,
+            export_destination_s3_uri=export_destination_s3_uri,
+            export_trigger=export_trigger,
+            delete_on_export_success=delete_on_export_success,
+            replace_existing_analysis_dir=replace_existing_analysis_dir,
+        )
+        if _json_mode():
+            output.emit_json(payload)
+            return
+        typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def catalog_launch(
+    command_id: str = typer.Argument(..., help="Repository catalog command id."),
+    analysis_id: str = typer.Option(..., "--analysis-id", help="FSx analysis identifier."),
+    executing_entity: Optional[str] = typer.Option(
+        None,
+        "--executing-entity",
+        "-u",
+        help="User/system identifier under /fsx/analysis_results. Defaults to --cluster.",
+    ),
+    config: Optional[Path] = typer.Option(None, "--config", help="Catalog YAML path."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    git_tag: Optional[str] = typer.Option(None, "--git-tag", "-t", help="Override DayOA tag."),
+    stage_dir: Optional[str] = typer.Option(None, "--stage-dir"),
+    manifest_dir: Optional[Path] = typer.Option(None, "--manifest-dir"),
+    run_context_file: Optional[Path] = typer.Option(None, "--run-context-file"),
+    specimens_file: Optional[Path] = typer.Option(None, "--specimens-file"),
+    samples_file: Optional[Path] = typer.Option(None, "--samples-file"),
+    libraries_file: Optional[Path] = typer.Option(None, "--libraries-file"),
+    units_file: Optional[Path] = typer.Option(None, "--units-file"),
+    session_name: Optional[str] = typer.Option(None, "--session-name"),
+    project: Optional[str] = typer.Option(None, "--project", help="Project/budget for dyoainit."),
+    dry_run: bool = typer.Option(False, "--dry-run", "-n", help="Launch dry-run dy-r command."),
+    skip_project_check: bool = typer.Option(
+        True,
+        "--skip-project-check/--strict-project-check",
+        help="Skip or enable upstream project validation in dyoainit.",
+    ),
+    allow_stage_discovery: bool = typer.Option(
+        False,
+        "--allow-stage-discovery",
+        help="Explicitly permit workflow launch to discover the latest staged sample manifest.",
+    ),
+    max_runtime_minutes: int = typer.Option(
+        DEFAULT_JOB_MAX_RUNTIME_MINUTES,
+        "--max-runtime-minutes",
+        help="Forwarded compatibility value for workflow launch.",
+    ),
+    export_destination_s3_uri: Optional[str] = typer.Option(None, "--export-destination-s3-uri"),
+    export_trigger: str = typer.Option("none", "--export-trigger"),
+    delete_on_export_success: bool = typer.Option(False, "--delete-on-export-success"),
+    replace_existing_analysis_dir: bool = typer.Option(False, "--replace-existing-analysis-dir"),
+) -> None:
+    """Quick-launch one command-catalog entry through the standard workflow launcher."""
+
+    _warn_if_dayec_env_inactive()
+    try:
+        payload = _catalog_render_payload(
+            config=config,
+            command_id=command_id,
+            analysis_id=analysis_id,
+            executing_entity=executing_entity,
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            git_tag=git_tag,
+            stage_dir=stage_dir,
+            manifest_dir=manifest_dir,
+            run_context_file=run_context_file,
+            specimens_file=specimens_file,
+            samples_file=samples_file,
+            libraries_file=libraries_file,
+            units_file=units_file,
+            session_name=session_name,
+            project=project,
+            dry_run=dry_run,
+            skip_project_check=skip_project_check,
+            allow_stage_discovery=allow_stage_discovery,
+            max_runtime_minutes=max_runtime_minutes,
+            export_destination_s3_uri=export_destination_s3_uri,
+            export_trigger=export_trigger,
+            delete_on_export_success=delete_on_export_success,
+            replace_existing_analysis_dir=replace_existing_analysis_dir,
+        )
+        launch_stdout_buffer = io.StringIO()
+        with contextlib.redirect_stdout(launch_stdout_buffer):
+            launch_rc = _invoke_workflow_launch(payload["workflow_argv"][2:])
+        launch_stdout = launch_stdout_buffer.getvalue()
+        if launch_rc != 0:
+            if launch_stdout:
+                typer.echo(launch_stdout, nl=False)
+            raise typer.Exit(launch_rc)
+        launch_metadata = _parse_workflow_launch_metadata(launch_stdout)
+        payload["workflow_launch"] = launch_metadata
+        if _json_mode():
+            output.emit_json(payload)
+            return
+        if launch_stdout:
+            typer.echo(launch_stdout, nl=False)
+    except typer.Exit:
+        raise
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
 
@@ -5653,6 +6475,60 @@ def workflow_collect_benchmarks(
     output.print_text(f"Genome build:  {payload['genome_build']}")
     output.print_text(f"Summary TSV:   {payload['summary_tsv']}")
     output.print_text(f"Rows:          {payload['row_count']}")
+
+
+def workflow_benchmark_report(
+    analysis_root: str = typer.Option(
+        ...,
+        "--analysis-root",
+        help="Exact /fsx/analysis_results/<owner>/<analysis> root.",
+    ),
+    genome_build: str = typer.Option(
+        ...,
+        "--genome-build",
+        help="Exact benchmark genome build: b37, hg38, or hg38_broad.",
+    ),
+    max_bytes: int = typer.Option(
+        4 * 1024 * 1024,
+        "--max-bytes",
+        help="Maximum canonical benchmark TSV size to parse.",
+    ),
+    max_rows: int = typer.Option(
+        10000,
+        "--max-rows",
+        help="Maximum canonical benchmark TSV rows to return.",
+    ),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    timeout: int = typer.Option(300, "--timeout", help="SSM command timeout in seconds."),
+) -> None:
+    """Parse one existing canonical DayOA benchmark summary without modifying it."""
+
+    from daylily_ec.headnode_observability import (
+        build_benchmark_report_script,
+        parse_benchmark_report_output,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        payload = _run_headnode_semantic_script(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            script=build_benchmark_report_script(
+                analysis_root,
+                genome_build,
+                max_bytes=max_bytes,
+                max_rows=max_rows,
+            ),
+            parser=parse_benchmark_report_output,
+            comment=f"DYEC benchmark report for {analysis_root}",
+            timeout=timeout,
+        )
+        _emit_headnode_payload(payload)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
 
 
 def _parse_workflow_stop_payload(stdout: str) -> dict[str, Any]:
@@ -6950,6 +7826,25 @@ def register(registry, cli_spec) -> None:
             ("connect", headnode_connect, required_policy(interactive=True)),
             ("info", headnode_info, REQUIRED_JSON),
             ("jobs", headnode_jobs, required_policy()),
+            ("system-info", headnode_system_info, REQUIRED_JSON),
+            ("fsx-usage", headnode_fsx_usage, REQUIRED_JSON),
+            ("analysis-roots", headnode_analysis_roots, REQUIRED_JSON),
+            ("dayoa-controllers", headnode_dayoa_controllers, REQUIRED_JSON),
+            (
+                "dayoa-controller-action",
+                headnode_dayoa_controller_action,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
+                "slurm-job-action",
+                headnode_slurm_job_action,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
+                "slurm-drain",
+                headnode_slurm_drain,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
             ("upload", headnode_upload, required_policy(supports_json=True, long_running=True)),
             ("download", headnode_download, required_policy(supports_json=True, long_running=True)),
             ("configure", headnode_configure, REQUIRED_MUTATING_LONG_RUNNING),
@@ -6998,6 +7893,7 @@ def register(registry, cli_spec) -> None:
                 workflow_collect_benchmarks,
                 required_policy(supports_json=True, mutates_state=True, long_running=True),
             ),
+            ("benchmark-report", workflow_benchmark_report, REQUIRED_JSON),
             ("stop", workflow_stop, required_policy(supports_json=True, mutates_state=True)),
         ],
     )
@@ -7006,6 +7902,26 @@ def register(registry, cli_spec) -> None:
         "repositories",
         "Repository catalog and blessed analysis command helpers.",
         [("commands", repositories_commands, EXEMPT_JSON)],
+    )
+    register_group_commands(
+        registry,
+        "catalog",
+        "Command-catalog discovery, rendering, and quick-launch helpers.",
+        [
+            ("list", catalog_list, EXEMPT_JSON),
+            ("show", catalog_show, EXEMPT_JSON),
+            ("render", catalog_render, EXEMPT_JSON),
+            (
+                "launch",
+                catalog_launch,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "quick-launch",
+                catalog_launch,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+        ],
     )
     register_group_commands(
         registry,

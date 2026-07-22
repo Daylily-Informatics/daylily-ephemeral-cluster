@@ -324,7 +324,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         )
 
         assert "DAY_CONTAINERIZED=false" in command
-        assert "bin/day_run" in command
+        assert "dy-r" in command
         assert "aligners=['bwa2a','strobe']" in command
         assert "sv_callers=['tiddit']" in command
         assert "-j 8" in command
@@ -468,7 +468,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=sess-1\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/analysis/daylily-omics-analysis\n"
-                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-analysis-artifact-manifest true\n"
+                "__DAYLILY_DY_COMMAND__=dy-r help --produce-analysis-artifact-manifest true\n"
                 + _controller_target_marker(
                     "sess-1",
                     "/fsx/analysis_results/johnm/analysis/daylily-omics-analysis",
@@ -613,7 +613,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             '. "$HOME/miniconda3/etc/profile.d/conda.sh"'
         )
         assert script.index("patch_dayoa_runtime_tmpdir_wrappers") < script.index(
-            ". bin/day_activate slurm hg38 remote"
+            "dy-a slurm hg38"
         )
         assert 'repo_key = "daylily-omics-analysis"' in script
         assert "DAY_CONTAINERIZED=true" in script
@@ -630,7 +630,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
             'run_dy_command "$DY_COMMAND"'
         )
         assert 'mkdir -p "$(dirname "$clone_root")"' in script
-        assert 'mkdir -p "$clone_root"' not in script
+        assert 'mkdir -p "$clone_root"' in script
+        assert script.index('mkdir -p "$clone_root"') < script.index("day-clone")
         assert "REPLACE_EXISTING_ANALYSIS_DIR=false" in script
         assert script.index("REPLACE_EXISTING_ANALYSIS_DIR=false") < script.index(
             'if [[ -e "$clone_root" ]]; then'
@@ -659,9 +660,14 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "activate_status=$?" in script
         assert 'if [[ "$DEFAULT_ACTIVATION" == "true" ]]; then' in script
         assert "DEFAULT_ACTIVATION=true" in script
-        assert 'echo "[ERROR] day_activate failed with status $activate_status"' in script
-        assert ". bin/day_activate slurm hg38 remote" in script
-        assert "bin/day_run" in script
+        assert "ANALYSIS_LOCK_MODE=true" in script
+        assert "dyec analysis visit" in script
+        assert "dyec analysis lock acquire" in script
+        assert "dyec analysis lock release" in script
+        assert script.index("dyec analysis lock acquire") < script.index("day-clone")
+        assert 'echo "[ERROR] dy-a failed with status $activate_status"' in script
+        assert "dy-a slurm hg38" in script
+        assert "dy-r" in script
         assert 'local links_dir="$repo_path/config/run_dir_links"' in script
         assert "if ! remove_run_dir_projection_links; then" in script
         assert script.index("remove_run_dir_projection_links") < script.index(

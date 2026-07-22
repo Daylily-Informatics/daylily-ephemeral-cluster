@@ -633,7 +633,7 @@ def build_default_command(
         config_args.append(f"sv_callers={format_list(sv_callers)}")
     command = [
         "DAY_CONTAINERIZED=true" if containerized else "DAY_CONTAINERIZED=false",
-        "bin/day_run",
+        "dy-r",
         target,
         "-p",
         "-k",
@@ -710,7 +710,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-default-activation",
         dest="default_activation",
         action="store_false",
-        help="Do not run the standard dyoainit plus Slurm activation before --dy-command",
+        help="Do not run the standard dyoainit plus dy-a Slurm activation before --dy-command",
+    )
+    parser.add_argument(
+        "--analysis-lock",
+        dest="analysis_lock",
+        action="store_true",
+        help="Acquire an analysis-root write lock for the controller before running dy-r.",
+    )
+    parser.add_argument(
+        "--no-analysis-lock",
+        dest="analysis_lock",
+        action="store_false",
+        help="Do not acquire an analysis-root write lock for this controller.",
     )
     parser.add_argument(
         "--bootstrap-test-config",
@@ -810,7 +822,12 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument("--dry-run", action="store_true")
-    parser.set_defaults(skip_project_check=True, input_staging=True, default_activation=True)
+    parser.set_defaults(
+        skip_project_check=True,
+        input_staging=True,
+        default_activation=True,
+        analysis_lock=True,
+    )
     return parser
 
 
@@ -1025,6 +1042,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     sample_config_mode_literal = "true" if sample_config_mode else "false"
     input_staging_mode_literal = "true" if args.input_staging else "false"
     default_activation_literal = "true" if args.default_activation else "false"
+    analysis_lock_literal = "true" if args.analysis_lock else "false"
     bootstrap_test_config_literal = "true" if args.bootstrap_test_config else "false"
     run_context_payload = shlex.quote(run_context_content or "")
     specimens_payload = shlex.quote(
@@ -1126,9 +1144,10 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	RUN_CONTEXT_MODE={run_context_mode_literal}
 	SAMPLE_CONFIG_MODE={sample_config_mode_literal}
 	INPUT_CONTRACT={shlex.quote(args.input_contract)}
-	INPUT_STAGING_MODE={input_staging_mode_literal}
-	DEFAULT_ACTIVATION={default_activation_literal}
-	BOOTSTRAP_TEST_CONFIG={bootstrap_test_config_literal}
+		INPUT_STAGING_MODE={input_staging_mode_literal}
+		DEFAULT_ACTIVATION={default_activation_literal}
+		ANALYSIS_LOCK_MODE={analysis_lock_literal}
+		BOOTSTRAP_TEST_CONFIG={bootstrap_test_config_literal}
 	RUN_CONTEXT_PAYLOAD={run_context_payload}
 	SPECIMENS_PAYLOAD={specimens_payload}
 	SAMPLES_PAYLOAD={samples_payload}
@@ -1181,16 +1200,59 @@ export TEMP="$DAYOA_RUNTIME_TMPDIR"
 export PIP_CACHE_DIR="${{PIP_CACHE_DIR:-$DAYOA_RUNTIME_TMPDIR/pip-cache}}"
 export XDG_CACHE_HOME="${{XDG_CACHE_HOME:-$DAYOA_RUNTIME_TMPDIR/xdg-cache}}"
 export PIP_BUILD_TRACKER="${{PIP_BUILD_TRACKER:-$DAYOA_RUNTIME_TMPDIR/pip-build-tracker}}"
+export DAYOA_AGENT_ID="${{DAYOA_AGENT_ID:-dyec-workflow-$runtime_tmp_name}}"
+export DAYOA_AGENT_KIND="${{DAYOA_AGENT_KIND:-dyec-cli}}"
+export DAYOA_HUMAN_REQUESTOR="${{DAYOA_HUMAN_REQUESTOR:-${{USER:-ubuntu}}}}"
+export DAYOA_TMUX_SESSION="${{DAYLILY_TMUX_SESSION}}"
+export DAYOA_LEDGER_PATH="${{DAYOA_LEDGER_PATH:-${{DAYLILY_RUN_DIR}}/workflow-launch-ledger.md}}"
 export DAYLILY_STATUS_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export DAYLILY_STATUS_COMPLETED_AT=""
 export DAYLILY_STATUS_EXIT_CODE="__PENDING__"
 write_status
 
-trap 'status=$?; if [[ "${{DAYLILY_STATUS_FINALIZED:-0}}" != "1" ]]; then export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; export DAYLILY_STATUS_EXIT_CODE="$status"; write_status; fi' EXIT
+analysis_lock_acquired=0
+release_analysis_lock_on_exit() {{
+  local status="$1"
+  if [[ "$analysis_lock_acquired" == "1" ]]; then
+    set +e
+    dyec analysis lock release \
+      --analysis-root "$clone_root" \
+      --human-requestor "$DAYOA_HUMAN_REQUESTOR" \
+      --note "dyec workflow launch finished rc=${{status}}" >/dev/null
+    local release_status=$?
+    set -e
+    if [[ "$release_status" != "0" ]]; then
+      echo "[WARN] Failed to release analysis lock for $clone_root after rc=${{status}}"
+    fi
+  fi
+}}
+
+trap 'status=$?; release_analysis_lock_on_exit "$status"; if [[ "${{DAYLILY_STATUS_FINALIZED:-0}}" != "1" ]]; then export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; export DAYLILY_STATUS_EXIT_CODE="$status"; write_status; fi' EXIT
 
 clone_root="$(dirname "${{DAYLILY_REPO_PATH}}")"
 repo_path="${{DAYLILY_REPO_PATH}}"
 mkdir -p "$(dirname "$clone_root")"
+if [[ "$ANALYSIS_LOCK_MODE" == "true" ]]; then
+  if ! command -v dyec >/dev/null 2>&1; then
+    echo "[ERROR] dyec CLI is required on the headnode for analysis-root locking. Run dyec headnode configure, then retry."
+    exit 66
+  fi
+  mkdir -p "$clone_root"
+  dyec analysis visit \
+    --analysis-root "$clone_root" \
+    --mode write \
+    --intent "dyec workflow launch $SESSION_NAME" \
+    --human-requestor "$DAYOA_HUMAN_REQUESTOR" \
+    --note "controller tmux $DAYLILY_TMUX_SESSION" >/dev/null
+  dyec analysis lock acquire \
+    --analysis-root "$clone_root" \
+    --operation write \
+    --intent "dyec workflow launch $SESSION_NAME" \
+    --human-requestor "$DAYOA_HUMAN_REQUESTOR" \
+    --command-summary "$DY_COMMAND" \
+    --operation-scope "workflow-launch:$SESSION_NAME" >/dev/null
+  analysis_lock_acquired=1
+fi
 
 remove_run_dir_projection_links() {{
   local links_dir="$repo_path/config/run_dir_links"
@@ -2262,17 +2324,24 @@ if [[ "$SKIP_PROJECT_CHECK" == "true" ]]; then
   dyoa_args+=(--skip-project-check)
 fi
 if [[ "$DEFAULT_ACTIVATION" == "true" ]]; then
-  set +u
-  . dyoainit "${{dyoa_args[@]}}"
-  set -u
   set +e
   set +u
-  . bin/day_activate slurm {shlex.quote(args.genome)} remote
+  source dyoainit "${{dyoa_args[@]}}"
+  init_status=$?
+  set -u
+  set -e
+  if [[ "$init_status" != "0" ]]; then
+    echo "[ERROR] dyoainit failed with status $init_status"
+    exit "$init_status"
+  fi
+  set +e
+  set +u
+  dy-a slurm {shlex.quote(args.genome)}
   activate_status=$?
   set -u
   set -e
   if [[ "$activate_status" != "0" ]]; then
-    echo "[ERROR] day_activate failed with status $activate_status"
+    echo "[ERROR] dy-a failed with status $activate_status"
     exit "$activate_status"
   fi
 fi
