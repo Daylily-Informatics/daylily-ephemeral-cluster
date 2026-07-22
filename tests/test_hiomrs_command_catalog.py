@@ -44,7 +44,7 @@ def test_hiomrs_catalog_entry_is_serial_native_dyr_and_mirrored() -> None:
     assert command.compatible_platforms == ["ILMN", "ONT"]
     assert command.compatible_cluster_types == ["sentieon-single"]
     assert command.compatible_data_modes == ["hybrid_ilmn_ont"]
-    assert command.git_tag == "13.0.20"
+    assert command.git_tag == "13.0.23"
     assert command.validated_version == "12.0.3"
     assert command.input_contract == "six_manifest"
     assert command.input_requirements.accepted_source_column_sets == [
@@ -92,7 +92,7 @@ def test_hiomrs_kitchensink_has_explicit_native_targets_and_retires_hiomr() -> N
     assert command.snv_callers == ["hiomrs"]
     assert command.sv_callers == ["tiddit"]
     assert command.compatible_cluster_types == ["sentieon-single"]
-    assert command.git_tag == "13.0.20"
+    assert command.git_tag == "13.0.23"
     assert command.validated_version == "12.0.3"
     assert command.input_contract == "six_manifest"
     assert command.dy_command.startswith("dy-r produce_hiomrs ")
@@ -121,7 +121,7 @@ def test_betelgeuser_prod_preserves_current_main_entry_on_six_manifest_contract(
     kitchen_sink = catalog.get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
 
     assert command.type == "prod"
-    assert command.git_tag == "13.0.20"
+    assert command.git_tag == "13.0.23"
     assert command.validated_version == "12.0.3"
     assert command.input_contract == "six_manifest"
     assert command.sample_manifest_template == ""
