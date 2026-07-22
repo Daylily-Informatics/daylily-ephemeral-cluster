@@ -10,18 +10,29 @@ import os
 import posixpath
 import shlex
 import sys
+import tarfile
+import tempfile
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Mapping, Optional
 
 from daylily_ec.aws.ssm import (
+    resolve_remote_user,
     resolve_headnode_instance_id,
     run_shell,
     wait_for_ssm_online,
 )
 from daylily_ec.analysis_identity import analysis_source_path, validate_analysis_segment
 from daylily_ec.headnode_readiness import validate_headnode_readiness
-from daylily_ec.scripts.common import CommandError, need_cmd, resolve_cluster, resolve_region
+from daylily_ec.scripts.common import (
+    CommandError,
+    aws_env,
+    need_cmd,
+    resolve_cluster,
+    resolve_region,
+    run_command,
+)
 from daylily_ec.workflow.snakemake_resources import (
     DEFAULT_JOB_MAX_RUNTIME_MINUTES,
     append_default_job_runtime,
@@ -310,11 +321,11 @@ class WorkflowLaunchInfo:
     controller_target: ControllerTargetReceipt
 
 
-def normalize_remote_path(path: str) -> str:
+def normalize_remote_path(path: str, *, remote_user: str = "ubuntu") -> str:
     if path.startswith("~/"):
-        return path.replace("~/", "/home/ubuntu/", 1)
+        return path.replace("~/", f"/home/{remote_user}/", 1)
     if path == "~":
-        return "/home/ubuntu"
+        return f"/home/{remote_user}"
     return path
 
 
@@ -477,6 +488,7 @@ def discover_stage_config(
     instance_id: str,
     profile: str,
     region: str,
+    remote_user: str,
     stage_dir: Optional[str],
     stage_base: str,
     input_contract: str = "sample_manifest",
@@ -485,10 +497,11 @@ def discover_stage_config(
     if input_contract not in {"sample_manifest", "sample_manifest_v12"}:
         raise CommandError(f"Unsupported staged input contract: {input_contract}")
     if stage_dir:
-        target_dir = normalize_remote_path(stage_dir.rstrip("/"))
+        target_dir = normalize_remote_path(stage_dir.rstrip("/"), remote_user=remote_user)
         script = f"""
 set -euo pipefail
-if [[ "$(id -un)" != "ubuntu" ]]; then
+REMOTE_USER={shlex.quote(remote_user)}
+if [[ "$(id -un)" != "$REMOTE_USER" ]]; then
   echo "__DAYLILY_ERROR__=wrong_user"
   exit 5
 fi
@@ -535,10 +548,11 @@ if [[ "$found_config" == "true" ]]; then
 fi
 """
     else:
-        stage_base_norm = normalize_remote_path(stage_base.rstrip("/"))
+        stage_base_norm = normalize_remote_path(stage_base.rstrip("/"), remote_user=remote_user)
         script = f"""
 set -euo pipefail
-if [[ "$(id -un)" != "ubuntu" ]]; then
+REMOTE_USER={shlex.quote(remote_user)}
+if [[ "$(id -un)" != "$REMOTE_USER" ]]; then
   echo "__DAYLILY_ERROR__=wrong_user"
   exit 5
 fi
@@ -595,6 +609,7 @@ fi
         region,
         script,
         profile=profile,
+        as_user=remote_user,
         timeout=STAGE_CONFIG_DISCOVERY_TIMEOUT_SECONDS,
         comment="Discover staged config",
     )
@@ -654,6 +669,94 @@ def build_default_command(
         raise CommandError(str(exc)) from exc
 
 
+def _normalize_payload_staging_s3_uri(value: str) -> str:
+    cleaned = str(value or "").strip().rstrip("/")
+    if not cleaned.startswith("s3://"):
+        raise CommandError("--payload-staging-s3-uri must be an s3:// URI.")
+    bucket_and_key = cleaned[len("s3://") :]
+    if not bucket_and_key or "/" not in bucket_and_key:
+        raise CommandError("--payload-staging-s3-uri must include a bucket and prefix.")
+    return cleaned
+
+
+def _write_text_payload(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def stage_workflow_launch_payload(
+    *,
+    pipeline_script: str,
+    args: argparse.Namespace,
+    cluster_name: str,
+    analysis_id: str,
+    run_context_content: Optional[str],
+    specimens_content: Optional[str],
+    samples_content: Optional[str],
+    libraries_content: Optional[str],
+    units_content: Optional[str],
+    six_manifest_contents: Mapping[str, str],
+    six_manifest_receipt: Optional[Mapping[str, object]],
+) -> str:
+    """Upload a workflow launch payload tarball and return its S3 URI."""
+
+    if not args.payload_staging_s3_uri:
+        raise CommandError("payload staging requires --payload-staging-s3-uri")
+    staging_root = _normalize_payload_staging_s3_uri(args.payload_staging_s3_uri)
+    destination = (
+        f"{staging_root}/dyec-workflow-launch-payload/{cluster_name}/"
+        f"{analysis_id}/{uuid.uuid4().hex}/payload.tgz"
+    )
+    with tempfile.TemporaryDirectory(prefix="dyec-workflow-payload-") as tmpdir_text:
+        tmpdir = Path(tmpdir_text)
+        payload_root = tmpdir / "payload"
+        _write_text_payload(payload_root / "dyec-controller-launch.sh", pipeline_script)
+        if run_context_content is not None:
+            _write_text_payload(payload_root / "inputs" / "runs.tsv", run_context_content)
+        if specimens_content is not None:
+            _write_text_payload(payload_root / "inputs" / "specimens.tsv", specimens_content)
+        if samples_content is not None:
+            _write_text_payload(payload_root / "inputs" / "samples.tsv", samples_content)
+        if libraries_content is not None:
+            _write_text_payload(payload_root / "inputs" / "libraries.tsv", libraries_content)
+        if units_content is not None:
+            _write_text_payload(payload_root / "inputs" / "units.tsv", units_content)
+        for name, content in six_manifest_contents.items():
+            _write_text_payload(payload_root / "inputs" / name, content)
+        if six_manifest_receipt is not None:
+            _write_text_payload(
+                payload_root / "inputs" / "dyec_manifest_stage_receipt.json",
+                json.dumps(six_manifest_receipt, indent=2, sort_keys=True) + "\n",
+            )
+        manifest = {
+            "schema": "dyec.workflow_launch_payload.v1",
+            "analysis_id": analysis_id,
+            "cluster": cluster_name,
+            "repository": args.repository,
+            "git_tag": args.git_tag,
+            "input_contract": args.input_contract,
+            "dy_command": args.dy_command,
+            "files": sorted(
+                str(path.relative_to(payload_root))
+                for path in payload_root.rglob("*")
+                if path.is_file()
+            ),
+        }
+        _write_text_payload(
+            payload_root / "payload_manifest.json",
+            json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        )
+        tar_path = tmpdir / "payload.tgz"
+        with tarfile.open(tar_path, "w:gz") as archive:
+            archive.add(payload_root, arcname=".")
+        run_command(
+            ["aws", "s3", "cp", str(tar_path), destination],
+            capture_output=True,
+            env=aws_env(profile=args.profile, region=args.region),
+        )
+    return destination
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Clone daylily-omics-analysis and launch a workflow inside tmux.",
@@ -668,6 +771,23 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--manifest-dir",
         help="Local directory containing exactly the six DayOA 13 manifests",
+    )
+    parser.add_argument(
+        "--payload-staging-s3-uri",
+        help=(
+            "Explicit s3://bucket/prefix relay for large launch payloads. When set, DYEC "
+            "uploads controller scripts and local inputs there, then the headnode downloads "
+            "them into <analysis-root>/bin before starting tmux."
+        ),
+    )
+    parser.add_argument(
+        "--remote-user",
+        default="auto",
+        choices=("auto", "ubuntu", "ec2-user"),
+        help=(
+            "Headnode login user. auto selects from the cluster/platform class: "
+            "Ubuntu/intel DayOA headnodes use ubuntu; DRAGEN/RHEL-style headnodes use ec2-user."
+        ),
     )
     parser.add_argument(
         "--input-contract",
@@ -855,6 +975,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     need_cmd("pcluster")
 
     region = resolve_region(args.profile, args.region)
+    args.region = region
     cluster_name = resolve_cluster(args.profile, region, args.cluster)
     analysis_id = validate_analysis_segment(args.analysis_id, field_name="analysis_id")
     executing_entity = validate_analysis_segment(
@@ -880,12 +1001,19 @@ def main(argv: Optional[List[str]] = None) -> int:
         )
     target = resolve_headnode_instance_id(cluster_name, region, profile=args.profile)
     wait_for_ssm_online(target.instance_id, region, profile=args.profile, timeout=120)
+    remote_user = resolve_remote_user(
+        target.instance_id,
+        region,
+        profile=args.profile,
+        as_user=args.remote_user,
+    )
     validate_headnode_readiness(
         target.instance_id,
         region,
         profile=args.profile,
         timeout=120,
         comment="Validate DAY-EC headnode readiness before workflow launch",
+        remote_user=remote_user,
     )
 
     run_context_content: Optional[str] = None
@@ -987,6 +1115,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             target.instance_id,
             args.profile,
             region,
+            remote_user,
             args.stage_dir,
             args.stage_base,
             input_contract=args.input_contract,
@@ -1284,6 +1413,11 @@ day-clone \
   --executing-entity "$EXECUTING_ENTITY" \
   --repository {shlex.quote(args.repository)} \
   --git-tag {shlex.quote(args.git_tag)}
+mkdir -p "$clone_root/bin"
+if [[ -n "${{BASH_SOURCE[0]:-}}" && -f "${{BASH_SOURCE[0]}}" ]]; then
+  cp "${{BASH_SOURCE[0]}}" "$clone_root/bin/dyec-controller-launch.sh"
+  chmod 0700 "$clone_root/bin/dyec-controller-launch.sh"
+fi
 cd "$repo_path"
 mkdir -p "$(dirname "$CONTROLLER_LOG_PATH")" "$(dirname "$CONTROLLER_DAG_PATH")"
 exec > >(tee -a "$CONTROLLER_LOG_PATH") 2>&1
@@ -2490,6 +2624,46 @@ fi
 exec bash -il
 """
 
+    payload_s3_uri = ""
+    if args.payload_staging_s3_uri:
+        payload_s3_uri = stage_workflow_launch_payload(
+            pipeline_script=pipeline_script,
+            args=args,
+            cluster_name=cluster_name,
+            analysis_id=analysis_id,
+            run_context_content=run_context_content,
+            specimens_content=specimens_content,
+            samples_content=samples_content,
+            libraries_content=libraries_content,
+            units_content=units_content,
+            six_manifest_contents=six_manifest_contents,
+            six_manifest_receipt=six_manifest_receipt,
+        )
+
+    if payload_s3_uri:
+        work_script_materialization = f"""
+payload_archive="$run_dir/workflow-launch-payload.tgz"
+payload_dir="$run_dir/payload"
+mkdir -p "$payload_dir"
+aws s3 cp {shlex.quote(payload_s3_uri)} "$payload_archive" --region {shlex.quote(region)}
+tar -xzf "$payload_archive" -C "$payload_dir"
+work_script="$payload_dir/dyec-controller-launch.sh"
+if [[ ! -s "$work_script" ]]; then
+  echo "__DAYLILY_ERROR__=missing_payload_work_script"
+  exit 8
+fi
+chmod 0700 "$work_script"
+echo "__DAYLILY_PAYLOAD_S3_URI__={payload_s3_uri}"
+"""
+    else:
+        work_script_materialization = f"""
+work_script="$run_dir/dyec-controller-launch.sh"
+cat <<'PAYLOAD' > "$work_script"
+{pipeline_script}
+PAYLOAD
+chmod 0700 "$work_script"
+"""
+
     tmux_script = f"""
 set -euo pipefail
 SESSION_NAME={shlex.quote(args.session_name)}
@@ -2531,10 +2705,12 @@ print(relative.strip())
 PYREPOS
 )
 analysis_root=${{analysis_root%/}}
-run_dir="/home/ubuntu/daylily-runs/$SESSION_NAME"
+REMOTE_USER={shlex.quote(remote_user)}
+run_dir="/home/$REMOTE_USER/daylily-runs/$SESSION_NAME"
 clone_root="$analysis_root/$EXECUTING_ENTITY/$ANALYSIS_ID"
 repo_path="$clone_root/$repo_relative"
-work_script="$run_dir/dayoa-controller-launch.sh"
+work_script="$run_dir/dyec-controller-launch.sh"
+tmux_entrypoint="$run_dir/dyec-controller-entrypoint.sh"
 tmux_log="$run_dir/tmux.log"
 bootstrap_log="$run_dir/tmux-bootstrap.log"
 status_file="$run_dir/status.json"
@@ -2572,12 +2748,17 @@ if [[ -e "$clone_root" ]]; then
   rm -rf -- "$clone_root"
   echo "__DAYLILY_REPLACED_ANALYSIS_DIR__=$clone_root"
 fi
-cat <<'PAYLOAD' > "$work_script"
-{pipeline_script}
-PAYLOAD
-chmod 0700 "$work_script"
+{work_script_materialization}
+printf '%s\n' \
+  '#!/usr/bin/env bash' \
+  'if [[ -f ~/.bashrc ]]; then' \
+  '  source ~/.bashrc' \
+  'fi' \
+  'source "$DAYLILY_WORK_SCRIPT" >>"$DAYLILY_TMUX_LOG" 2>&1' \
+  >"$tmux_entrypoint"
+chmod 0700 "$tmux_entrypoint"
 nohup tmux new-session -d -s "$tmux_session_name" \
-  "env DAYLILY_RUN_DIR=\"$run_dir\" DAYLILY_REPO_PATH=\"$repo_path\" DAYLILY_TMUX_LOG=\"$tmux_log\" DAYLILY_TMUX_SESSION=\"$tmux_session_name\" DAYLILY_CONTROLLER_TARGET_FILE=\"$controller_target_file\" DAYLILY_CONTROLLER_LOG_PATH=\"$controller_log_path\" DAYLILY_CONTROLLER_DAG_PATH=\"$controller_dag_path\" bash -lc 'source \"$work_script\" >>\"$tmux_log\" 2>&1'" >"$bootstrap_log" 2>&1 &
+  "env DAYLILY_RUN_DIR=\"$run_dir\" DAYLILY_REPO_PATH=\"$repo_path\" DAYLILY_TMUX_LOG=\"$tmux_log\" DAYLILY_TMUX_SESSION=\"$tmux_session_name\" DAYLILY_CONTROLLER_TARGET_FILE=\"$controller_target_file\" DAYLILY_CONTROLLER_LOG_PATH=\"$controller_log_path\" DAYLILY_CONTROLLER_DAG_PATH=\"$controller_dag_path\" DAYLILY_WORK_SCRIPT=\"$work_script\" bash -il \"$tmux_entrypoint\"" >"$bootstrap_log" 2>&1 &
 
 emit_controller_target() {{
   if [[ ! -s "$controller_target_file" ]]; then
@@ -2656,6 +2837,7 @@ emit_controller_target
         region,
         tmux_script,
         profile=args.profile,
+        as_user=remote_user,
         timeout=120,
         comment="Launch daylily workflow tmux session",
     )

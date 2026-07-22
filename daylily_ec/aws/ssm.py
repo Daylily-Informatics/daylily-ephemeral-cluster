@@ -29,7 +29,9 @@ SUPPORTED_REMOTE_USERS = (DEFAULT_REMOTE_USER, EC2_REMOTE_USER)
 SUPPORTED_REMOTE_USER = DEFAULT_REMOTE_USER
 SUPPORTED_SESSION_HOME = f"/home/{DEFAULT_REMOTE_USER}"
 SUPPORTED_SESSION_SHELL_PROFILE = (
-    f"cd {SUPPORTED_SESSION_HOME} && {{ stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }}"
+    f"cd {SUPPORTED_SESSION_HOME} && "
+    "{ stty -ixon -ixoff 2>/dev/null || true; "
+    "exec bash -ilc 'if [[ -f ~/.bashrc ]]; then source ~/.bashrc; fi; exec bash -i'; }"
 )
 
 
@@ -224,7 +226,26 @@ def _remote_user_home(as_user: str) -> str:
 def _session_shell_profile(as_user: str) -> str:
     return (
         f"cd {_remote_user_home(as_user)} && "
-        "{ stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }"
+        "{ stty -ixon -ixoff 2>/dev/null || true; "
+        "exec bash -ilc 'if [[ -f ~/.bashrc ]]; then source ~/.bashrc; fi; exec bash -i'; }"
+    )
+
+
+def _bash_login_interactive_source_bashrc_invocation(script_arg: str) -> str:
+    """Return a bash command that runs *script_arg* in the required headnode context."""
+
+    bootstrap = (
+        "if [[ -f ~/.bashrc ]]; then source ~/.bashrc; fi; "
+        'source "$1"'
+    )
+    return " ".join(
+        [
+            "bash",
+            "-ilc",
+            shlex.quote(bootstrap),
+            "bash",
+            script_arg,
+        ]
     )
 
 
@@ -317,11 +338,16 @@ def _encode_script_payload(script: str, *, as_user: str) -> str:
         "path = pathlib.Path(os.environ['DAYLILY_SSM_TMP']); "
         "path.write_text(base64.b64decode(os.environ['DAYLILY_SSM_B64']).decode('utf-8'), encoding='utf-8')"
     )
-    runner = f'sudo -iu {shlex.quote(user)} bash -l "$tmp"'
+    runner = (
+        f"sudo -iu {shlex.quote(user)} "
+        f"{_bash_login_interactive_source_bashrc_invocation('$tmp')}"
+    )
     return "\n".join(
         [
             # AWS-RunShellScript uses /bin/sh for the transport wrapper on Ubuntu.
-            # Keep the wrapper POSIX-safe and run the real payload under a bash login shell.
+            # Keep the wrapper POSIX-safe and run the real payload under the
+            # supported headnode shell contract: target user + bash login/
+            # interactive semantics + explicit ~/.bashrc sourcing.
             "set -eu",
             "tmp=$(mktemp /tmp/daylily-ssm-XXXXXX.sh)",
             f"export DAYLILY_SSM_B64={shlex.quote(encoded)}",
@@ -517,13 +543,16 @@ def _require_session_preferences(
             f"Session Manager must be configured to run shell sessions as {as_user} "
             "via SSM-SessionManagerRunShell."
         )
-    if not linux_shell_profile or (
-        "bash -l" not in linux_shell_profile
-        and ".bash_profile" not in linux_shell_profile
-        and "daylily-headnode-bootstrap.sh" not in linux_shell_profile
-    ):
+    login_interactive_ok = (
+        "bash -il" in linux_shell_profile
+        or "bash -li" in linux_shell_profile
+        or ("--login" in linux_shell_profile and "--interactive" in linux_shell_profile)
+    )
+    bashrc_ok = ".bashrc" in linux_shell_profile
+    if not linux_shell_profile or not login_interactive_ok or not bashrc_ok:
         raise SsmError(
-            f"Session Manager must source the {as_user} login shell via "
+            f"Session Manager must source the {as_user} login/interactive bash shell "
+            "and ~/.bashrc via "
             "SSM-SessionManagerRunShell shellProfile.linux."
         )
     if not _shell_profile_enters_user_home(linux_shell_profile, as_user=as_user):
@@ -620,11 +649,16 @@ def start_session(
     region: str,
     *,
     profile: Optional[str] = None,
-    as_user: str = DEFAULT_REMOTE_USER,
+    as_user: str = AUTO_REMOTE_USER,
     replace_process: bool = False,
 ) -> int:
     """Start an interactive Session Manager shell."""
-    as_user = _require_supported_remote_user(as_user)
+    as_user = resolve_remote_user(
+        instance_id,
+        region,
+        profile=profile,
+        as_user=as_user,
+    )
     require_session_manager_plugin()
     ensure_session_preferences(region, profile=profile, as_user=as_user)
     _disable_local_software_flow_control()

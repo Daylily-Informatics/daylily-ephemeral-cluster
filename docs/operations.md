@@ -20,7 +20,7 @@ command -v day-clone
 command -v tmux
 ```
 
-The supported user is `ubuntu` and the supported working directory is `/home/ubuntu`.
+The supported remote user is selected by cluster/platform: `ubuntu` for Ubuntu/Intel DayOA headnodes and `ec2-user` for DRAGEN/RHEL-style headnodes. The supported working directory is that user's home directory unless a command explicitly changes it.
 
 ## Re-run Headnode Configuration
 
@@ -208,7 +208,7 @@ dyec workflow launch \
   --snakemake-extra "--config run_context_file=config/runs.tsv"
 ```
 
-The launcher creates `/home/ubuntu/daylily-runs/<session>/` with `launch.sh`, `tmux.log`, and `status.json`.
+The launcher creates `/home/<resolved-remote-user>/daylily-runs/<session>/` with the controller launch script, `tmux.log`, `status.json`, and controller receipt files.
 
 ## Budget Enforcement
 

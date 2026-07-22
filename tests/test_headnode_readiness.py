@@ -7,7 +7,7 @@ import pytest
 
 from daylily_ec.aws.ssm import SsmCommandFailedError, SsmCommandResult
 from daylily_ec.headnode_readiness import (
-    REQUIRED_HEADNODE_WORK_DIRECTORIES,
+    REQUIRED_HEADNODE_WORK_DIRECTORY_TEMPLATES,
     REQUIRED_ROLE_DIRECTORIES,
     REQUIRED_ROLE_FILES,
     REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES,
@@ -19,7 +19,7 @@ from daylily_ec.headnode_readiness import (
 def test_readiness_script_requires_day_ec_tools_and_fsx_reference_assets():
     script = build_headnode_readiness_script()
 
-    assert 'script -q -c "bash -lc' in script
+    assert 'script -q -c "bash -il' in script
     assert 'test "$(id -un)" = ubuntu' in script
     assert "DAYLILY_EC_HEADNODE_BOOTSTRAPPED" in script
     assert "CONDA_DEFAULT_ENV:-}" in script
@@ -40,9 +40,9 @@ def test_readiness_script_requires_day_ec_tools_and_fsx_reference_assets():
     for path in REQUIRED_ROLE_DIRECTORIES:
         assert f"test -d {path}" in script
     for template in REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES:
-        assert f"test -d {template.format(hostname='$(hostname)')}" in script
-    for path in REQUIRED_HEADNODE_WORK_DIRECTORIES:
-        assert f"test -d {path}" in script
+        assert f"test -d {template.format(hostname='$(hostname)', remote_user='ubuntu')}" in script
+    for template in REQUIRED_HEADNODE_WORK_DIRECTORY_TEMPLATES:
+        assert f"test -d {template.format(remote_user='ubuntu')}" in script
     assert "test -r /etc/profile.d/daylily-runtime-cache.sh" in script
     assert "DAYLILY_CONTAINER_CACHE" in script
     assert "DAYLILY_APPTAINER_CACHE" in script
@@ -55,6 +55,9 @@ def test_readiness_script_can_target_ec2_user():
 
     assert 'test "$(id -un)" = ec2-user' in script
     assert 'test "$(id -un)" = ubuntu' not in script
+    assert "/fsx/resources/environments/conda/ec2-user/$(hostname)" in script
+    assert "/fsx/resources/environments/containers/ec2-user/$(hostname)" in script
+    assert "/fsx/work/ec2-user/containers" in script
     assert "DAYLILY_EC_HEADNODE_BOOTSTRAPPED" in script
     assert "day-clone --list >/dev/null" in script
     assert "day-clone --check-auth --repository daylily-omics-analysis" in script

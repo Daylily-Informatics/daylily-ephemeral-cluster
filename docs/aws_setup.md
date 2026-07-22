@@ -117,15 +117,16 @@ SSM-SessionManagerRunShell
 It must:
 
 - enable `runAs`
-- set default user to `ubuntu`
-- start in `/home/ubuntu`
-- launch a bash login shell
+- set default user to the cluster-appropriate remote user (`ubuntu` for Ubuntu/Intel DayOA headnodes; `ec2-user` for DRAGEN/RHEL-style headnodes)
+- start in that user's home directory
+- launch a bash login/interactive shell
+- source `~/.bashrc`
 - disable terminal software flow control before the shell starts
 
-Supported shell profile shape:
+Supported Ubuntu shell profile shape:
 
 ```text
-cd /home/ubuntu && { stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }
+cd /home/ubuntu && { stty -ixon -ixoff 2>/dev/null || true; exec bash -ilc 'if [[ -f ~/.bashrc ]]; then source ~/.bashrc; fi; exec bash -i'; }
 ```
 
 `dyec headnode connect` and SSM-backed command helpers fail if this surface is wrong.

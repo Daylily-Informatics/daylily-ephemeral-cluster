@@ -691,6 +691,7 @@ class AnalysisCommand(BaseModel):
         export_trigger: str = "none",
         delete_on_export_success: bool = False,
         replace_existing_analysis_dir: bool = False,
+        remote_user: Optional[str] = None,
     ) -> List[str]:
         """Render a daylily-ec workflow launch argv for this profile."""
 
@@ -785,6 +786,7 @@ class AnalysisCommand(BaseModel):
             ("--units-file", units_file),
             ("--session-name", session_name),
             ("--project", project),
+            ("--remote-user", remote_user),
         ):
             if value:
                 argv.extend([flag, value])

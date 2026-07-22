@@ -434,7 +434,8 @@ def check_ssm_session_document(ssm_client: Any) -> CheckResult:
             details={"document": SSM_SESSION_DOCUMENT, "error": str(exc)},
             remediation=(
                 f"Create or grant ssm:GetDocument access to {SSM_SESSION_DOCUMENT}. "
-                "The document must run shell sessions as ubuntu in a login shell."
+                "The document must run shell sessions as the cluster-appropriate remote user "
+                "in a bash login/interactive shell that sources ~/.bashrc."
             ),
         )
 
@@ -447,7 +448,7 @@ def check_ssm_session_document(ssm_client: Any) -> CheckResult:
             details={"document": SSM_SESSION_DOCUMENT, "error": str(exc)},
             remediation=(
                 f"Replace {SSM_SESSION_DOCUMENT} with valid JSON Session Manager "
-                "preferences that run as ubuntu."
+                "preferences that use the cluster-appropriate remote user."
             ),
         )
 
@@ -458,10 +459,12 @@ def check_ssm_session_document(ssm_client: Any) -> CheckResult:
         linux_shell_profile = str(shell_profile.get("linux") or "")
     run_as_enabled = inputs.get("runAsEnabled") is True if isinstance(inputs, dict) else False
     run_as_user = str(inputs.get("runAsDefaultUser") or "") if isinstance(inputs, dict) else ""
-    login_shell_ok = any(
-        marker in linux_shell_profile
-        for marker in ("bash -l", ".bash_profile", "daylily-headnode-bootstrap.sh")
+    login_shell_ok = (
+        "bash -il" in linux_shell_profile
+        or "bash -li" in linux_shell_profile
+        or ("--login" in linux_shell_profile and "--interactive" in linux_shell_profile)
     )
+    bashrc_ok = ".bashrc" in linux_shell_profile
 
     details = {
         "document": SSM_SESSION_DOCUMENT,
@@ -469,7 +472,7 @@ def check_ssm_session_document(ssm_client: Any) -> CheckResult:
         "runAsDefaultUser": run_as_user,
         "shellProfileLinux": linux_shell_profile,
     }
-    if run_as_enabled and run_as_user == "ubuntu" and login_shell_ok:
+    if run_as_enabled and run_as_user in {"ubuntu", "ec2-user"} and login_shell_ok and bashrc_ok:
         return CheckResult(
             id="ssm.session_document",
             status=CheckStatus.PASS,
@@ -481,8 +484,9 @@ def check_ssm_session_document(ssm_client: Any) -> CheckResult:
         details=details,
         remediation=(
             f"Update {SSM_SESSION_DOCUMENT} so runAsEnabled is true, "
-            "runAsDefaultUser is ubuntu, and shellProfile.linux enters a bash "
-            "login shell."
+            "runAsDefaultUser is the resolved cluster user (ubuntu for Ubuntu/Intel "
+            "DayOA headnodes, ec2-user for DRAGEN/RHEL-style headnodes), and "
+            "shellProfile.linux enters a bash login/interactive shell that sources ~/.bashrc."
         ),
     )
 

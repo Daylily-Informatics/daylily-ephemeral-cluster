@@ -453,7 +453,7 @@ def _cluster_headnode_config_status(
     script = "\n".join(
         [
             "set -euo pipefail",
-            'test "$(whoami)" = "ubuntu"',
+            'case "$(whoami)" in ubuntu|ec2-user) ;; *) exit 1 ;; esac',
             'test "${CONDA_DEFAULT_ENV:-}" = "DAY-EC"',
             "command -v daylily-ec >/dev/null",
             "command -v day-clone >/dev/null",
@@ -3310,10 +3310,20 @@ def headnode_connect(
         "--dry-run",
         help="Print the Session Manager command without opening a session.",
     ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote login user: auto, ubuntu, or ec2-user.",
+    ),
 ) -> None:
-    """Open an ubuntu bash login shell on a cluster headnode via Session Manager."""
+    """Open a cluster-appropriate bash login/interactive shell on a headnode."""
 
-    from daylily_ec.aws.ssm import SsmError, start_session, wait_for_ssm_online
+    from daylily_ec.aws.ssm import (
+        SsmError,
+        resolve_remote_user,
+        start_session,
+        wait_for_ssm_online,
+    )
     from daylily_ec.scripts.common import CommandError
 
     _warn_if_dayec_env_inactive()
@@ -3329,6 +3339,12 @@ def headnode_connect(
             profile=resolved_profile,
             timeout=120,
         )
+        resolved_remote_user = resolve_remote_user(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            as_user=remote_user,
+        )
         connect_cmd = (
             "aws ssm start-session "
             f"--region {resolved_region} "
@@ -3336,7 +3352,7 @@ def headnode_connect(
             "--document-name SSM-SessionManagerRunShell"
         )
         output.print_text(
-            f"Opening Session Manager session as ubuntu to {target.instance_id} "
+            f"Opening Session Manager session as {resolved_remote_user} to {target.instance_id} "
             f"(cluster={resolved_cluster} region={resolved_region} profile={resolved_profile})"
         )
         output.print_text(f"Session Manager command: {connect_cmd}")
@@ -3347,6 +3363,7 @@ def headnode_connect(
                 target.instance_id,
                 resolved_region,
                 profile=resolved_profile,
+                as_user=resolved_remote_user,
                 replace_process=True,
             )
         )
@@ -3466,6 +3483,119 @@ def headnode_jobs(
         typer.echo(result.stderr.rstrip(), err=True)
 
 
+def headnode_run(
+    command: str = typer.Argument(..., help="Command string to run on the headnode."),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+    cwd: Optional[str] = typer.Option(
+        None,
+        "--cwd",
+        help="Optional working directory on the headnode before running the command.",
+    ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote login user for SSM Run Command: auto, ubuntu, or ec2-user.",
+    ),
+    timeout: int = typer.Option(
+        300,
+        "--timeout",
+        help="SSM command timeout in seconds.",
+    ),
+) -> None:
+    """Run one arbitrary command on the headnode and return stdout/stderr."""
+
+    from daylily_ec.aws.ssm import (
+        SsmCommandFailedError,
+        SsmError,
+        run_shell,
+        wait_for_ssm_online,
+    )
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        if not command.strip():
+            raise CommandError("command must not be blank")
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        script_lines = ["set -euo pipefail"]
+        if cwd:
+            script_lines.append(f"cd {shlex.quote(cwd)}")
+        script_lines.append(command)
+        result = run_shell(
+            target.instance_id,
+            resolved_region,
+            "\n".join(script_lines),
+            profile=resolved_profile,
+            as_user=remote_user,
+            timeout=timeout,
+            comment="DYEC headnode run",
+        )
+        payload = {
+            "ok": True,
+            "cluster": resolved_cluster,
+            "region": resolved_region,
+            "instance_id": target.instance_id,
+            "ssm_command_id": result.command_id,
+            "response_code": result.response_code,
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+        }
+        if _json_mode():
+            output.emit_json(payload)
+            return
+        if result.stdout:
+            typer.echo(result.stdout.rstrip())
+        if result.stderr:
+            typer.echo(result.stderr.rstrip(), err=True)
+    except SsmCommandFailedError as exc:
+        payload = {
+            "ok": False,
+            "instance_id": exc.result.instance_id,
+            "ssm_command_id": exc.result.command_id,
+            "status": exc.result.status,
+            "response_code": exc.result.response_code,
+            "stdout": exc.result.stdout,
+            "stderr": exc.result.stderr,
+            "error": str(exc),
+        }
+        if _json_mode():
+            output.emit_json(payload)
+        else:
+            if exc.result.stdout:
+                typer.echo(exc.result.stdout.rstrip())
+            if exc.result.stderr:
+                typer.echo(exc.result.stderr.rstrip(), err=True)
+            output.error(str(exc))
+        raise typer.Exit(exc.result.response_code or 1) from exc
+    except (CommandError, SsmError, TimeoutError) as exc:
+        _exit_headnode_error(exc)
+
+
 def _run_headnode_semantic_script(
     *,
     profile: Optional[str],
@@ -3499,7 +3629,7 @@ def _run_headnode_semantic_script(
                 resolved_region,
                 script,
                 profile=resolved_profile,
-                as_user="ubuntu",
+                as_user="auto",
                 timeout=timeout,
                 comment=comment,
             )
@@ -4932,6 +5062,19 @@ def workflow_launch(
         "--manifest-dir",
         help="Local directory containing exactly the six DayOA 13 manifests.",
     ),
+    payload_staging_s3_uri: Optional[str] = typer.Option(
+        None,
+        "--payload-staging-s3-uri",
+        help=(
+            "Explicit s3://bucket/prefix relay for large local launch payloads such as "
+            "six manifests. Required when manifest payloads would exceed SSM limits."
+        ),
+    ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Headnode login user for launch setup and tmux controller: auto, ubuntu, or ec2-user.",
+    ),
     input_contract: str = typer.Option(
         "six_manifest",
         "--input-contract",
@@ -5179,6 +5322,8 @@ def workflow_launch(
         ("--cluster", cluster),
         ("--stage-dir", stage_dir),
         ("--manifest-dir", str(manifest_dir.expanduser()) if manifest_dir else None),
+        ("--payload-staging-s3-uri", payload_staging_s3_uri),
+        ("--remote-user", remote_user),
         ("--input-contract", input_contract),
         ("--run-context-file", str(run_context_file.expanduser()) if run_context_file else None),
         ("--specimens-file", str(specimens_file.expanduser()) if specimens_file else None),
@@ -5383,6 +5528,41 @@ def _catalog_validate_explicit_inputs(
             )
 
 
+_DY_CONFIG_OVERRIDE_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*=.*$")
+
+
+def _normalize_dy_config_overrides(values: Optional[list[str]]) -> list[str]:
+    from daylily_ec.scripts.common import CommandError
+
+    normalized: list[str] = []
+    for raw in values or []:
+        value = str(raw or "").strip()
+        if not value:
+            continue
+        if not _DY_CONFIG_OVERRIDE_RE.fullmatch(value):
+            raise CommandError(
+                "--dy-config values must be explicit Snakemake config assignments like key=value"
+            )
+        normalized.append(value)
+    return normalized
+
+
+def _append_dy_config_overrides(workflow_argv: list[str], values: Optional[list[str]]) -> list[str]:
+    overrides = _normalize_dy_config_overrides(values)
+    if not overrides:
+        return []
+    try:
+        dy_command_index = workflow_argv.index("--dy-command") + 1
+    except ValueError as exc:
+        from daylily_ec.scripts.common import CommandError
+
+        raise CommandError("workflow argv does not contain --dy-command") from exc
+    dy_command = str(workflow_argv[dy_command_index]).strip()
+    dy_command = dy_command + " --config " + " ".join(shlex.quote(value) for value in overrides)
+    workflow_argv[dy_command_index] = dy_command
+    return overrides
+
+
 def _catalog_render_payload(
     *,
     config: Optional[Path],
@@ -5395,6 +5575,8 @@ def _catalog_render_payload(
     git_tag: Optional[str],
     stage_dir: Optional[str],
     manifest_dir: Optional[Path],
+    payload_staging_s3_uri: Optional[str],
+    remote_user: str,
     run_context_file: Optional[Path],
     specimens_file: Optional[Path],
     samples_file: Optional[Path],
@@ -5410,6 +5592,7 @@ def _catalog_render_payload(
     export_trigger: str,
     delete_on_export_success: bool,
     replace_existing_analysis_dir: bool,
+    dy_config: Optional[list[str]] = None,
 ) -> dict[str, Any]:
     catalog, command = _catalog_load_command(config, command_id)
     resolved_executing_entity = _resolve_executing_entity_option(
@@ -5464,8 +5647,12 @@ def _catalog_render_payload(
         export_trigger=export_trigger,
         delete_on_export_success=delete_on_export_success,
         replace_existing_analysis_dir=replace_existing_analysis_dir,
+        remote_user=remote_user,
     )
+    if payload_staging_s3_uri:
+        workflow_argv.extend(["--payload-staging-s3-uri", payload_staging_s3_uri])
     workflow_argv.extend(["--max-runtime-minutes", str(max_runtime_minutes)])
+    normalized_dy_config = _append_dy_config_overrides(workflow_argv, dy_config)
     dy_command = workflow_argv[workflow_argv.index("--dy-command") + 1]
     return {
         "command_catalog_version": catalog.command_catalog_version,
@@ -5475,9 +5662,11 @@ def _catalog_render_payload(
         "git_tag": resolved_git_tag,
         "dry_run": dry_run,
         "dy_command": dy_command,
+        "dy_config": normalized_dy_config,
         "workflow_argv": workflow_argv,
         "workflow_command": shlex.join(["dyec", *workflow_argv]),
         "export_destination_s3_uri": resolved_export_destination_s3_uri,
+        "payload_staging_s3_uri": payload_staging_s3_uri,
     }
 
 
@@ -5557,6 +5746,109 @@ def catalog_show(
         _exit_headnode_error(exc)
 
 
+def catalog_config_bjuice_preval(
+    sample: List[str] = typer.Option(
+        ...,
+        "--sample",
+        help="External sample/specimen label to include, e.g. HG003. Repeat for multiple samples.",
+    ),
+    output_dir: Path = typer.Option(
+        ...,
+        "--output-dir",
+        help="Empty output directory where six DayOA manifests will be written.",
+    ),
+    source_manifest_json: Path = typer.Option(
+        ...,
+        "--source-manifest-json",
+        help="Reviewed Bjuice source_manifest_resolved.json.",
+    ),
+    run_evidence_json: Path = typer.Option(
+        ...,
+        "--run-evidence-json",
+        help="Reviewed Bjuice run_evidence_v2.json.",
+    ),
+    library_run_matrix_tsv: Path = typer.Option(
+        ...,
+        "--library-run-matrix-tsv",
+        help="Reviewed Bjuice library/run matrix TSV with source-owned EUIDs.",
+    ),
+    sample_metadata_tsv: Path = typer.Option(
+        ...,
+        "--sample-metadata-tsv",
+        help="Reviewed legacy samples.tsv snapshot for sample/specimen metadata.",
+    ),
+    legacy_units_tsv: Path = typer.Option(
+        ...,
+        "--legacy-units-tsv",
+        help="Reviewed legacy units.tsv snapshot for former unit-level analysis fields.",
+    ),
+    sr_subsample_pct: str = typer.Option(
+        "",
+        "--sr-subsample-pct",
+        help="Value for DayOA SUBSAMPLE_PCT, e.g. 0.25. Blank means full input.",
+    ),
+    ont_subsample_pct: str = typer.Option(
+        "",
+        "--ont-subsample-pct",
+        help="Value for DayOA ONT_SUBSAMPLE_PCT, e.g. 0.25. Blank means full input.",
+    ),
+    analysis_label: str = typer.Option(
+        "BJUICEPREVAL",
+        "--analysis-label",
+        help="Prefix for generated ANALYSIS_UNIT_UID values.",
+    ),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile for S3 listing."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region for S3 listing."),
+    fsx_run_mount_root: str = typer.Option(
+        "/fsx/run_dir_mounts",
+        "--fsx-run-mount-root",
+        help="Headnode FSx run-mount root used for ILMN FASTQ paths.",
+    ),
+    ont_fsx_root: str = typer.Option(
+        "/fsx/run_dir_mounts/pca100-2026",
+        "--ont-fsx-root",
+        help="Headnode FSx run-mount root used for ONT pca100/2026 FASTQ paths.",
+    ),
+    order_type: str = typer.Option("RESEARCH", "--order-type"),
+) -> None:
+    """Generate exact DayOA six manifests for reviewed Bjuice prevalence samples."""
+
+    try:
+        from daylily_ec.bjuice_preval_config import generate_bjuice_preval_manifests
+
+        result = generate_bjuice_preval_manifests(
+            output_dir=output_dir.expanduser(),
+            samples=sample,
+            source_manifest_json=source_manifest_json.expanduser(),
+            run_evidence_json=run_evidence_json.expanduser(),
+            library_run_matrix_tsv=library_run_matrix_tsv.expanduser(),
+            sample_metadata_tsv=sample_metadata_tsv.expanduser(),
+            legacy_units_tsv=legacy_units_tsv.expanduser(),
+            sr_subsample_pct=sr_subsample_pct,
+            ont_subsample_pct=ont_subsample_pct,
+            analysis_label=analysis_label,
+            profile=profile,
+            region=region,
+            fsx_run_mount_root=fsx_run_mount_root,
+            ont_fsx_root=ont_fsx_root,
+            order_type=order_type,
+        )
+        payload = {
+            "ok": True,
+            "output_dir": str(result.output_dir),
+            "receipt_path": str(result.receipt_path),
+            "manifest_hashes": dict(result.manifest_hashes),
+            "sample_count": len(sample),
+            "samples": list(sample),
+        }
+        if _json_mode():
+            output.emit_json(payload)
+            return
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
 def catalog_render(
     command_id: str = typer.Argument(..., help="Repository catalog command id."),
     analysis_id: str = typer.Option(..., "--analysis-id", help="FSx analysis identifier."),
@@ -5580,6 +5872,16 @@ def catalog_render(
         None,
         "--manifest-dir",
         help="Local directory containing exact six-manifest DayOA inputs.",
+    ),
+    payload_staging_s3_uri: Optional[str] = typer.Option(
+        None,
+        "--payload-staging-s3-uri",
+        help="Explicit s3://bucket/prefix relay for large local launch payloads.",
+    ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Headnode login user for launch setup and tmux controller: auto, ubuntu, or ec2-user.",
     ),
     run_context_file: Optional[Path] = typer.Option(
         None,
@@ -5612,6 +5914,11 @@ def catalog_render(
     export_trigger: str = typer.Option("none", "--export-trigger"),
     delete_on_export_success: bool = typer.Option(False, "--delete-on-export-success"),
     replace_existing_analysis_dir: bool = typer.Option(False, "--replace-existing-analysis-dir"),
+    dy_config: Optional[List[str]] = typer.Option(
+        None,
+        "--dy-config",
+        help="Append one dy-r/Snakemake config assignment to the rendered command, e.g. key=value.",
+    ),
 ) -> None:
     """Render the exact `dyec workflow launch` argv for a catalog command."""
 
@@ -5627,6 +5934,8 @@ def catalog_render(
             git_tag=git_tag,
             stage_dir=stage_dir,
             manifest_dir=manifest_dir,
+            payload_staging_s3_uri=payload_staging_s3_uri,
+            remote_user=remote_user,
             run_context_file=run_context_file,
             specimens_file=specimens_file,
             samples_file=samples_file,
@@ -5642,6 +5951,7 @@ def catalog_render(
             export_trigger=export_trigger,
             delete_on_export_success=delete_on_export_success,
             replace_existing_analysis_dir=replace_existing_analysis_dir,
+            dy_config=dy_config,
         )
         if _json_mode():
             output.emit_json(payload)
@@ -5667,6 +5977,16 @@ def catalog_launch(
     git_tag: Optional[str] = typer.Option(None, "--git-tag", "-t", help="Override DayOA tag."),
     stage_dir: Optional[str] = typer.Option(None, "--stage-dir"),
     manifest_dir: Optional[Path] = typer.Option(None, "--manifest-dir"),
+    payload_staging_s3_uri: Optional[str] = typer.Option(
+        None,
+        "--payload-staging-s3-uri",
+        help="Explicit s3://bucket/prefix relay for large local launch payloads.",
+    ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Headnode login user for launch setup and tmux controller: auto, ubuntu, or ec2-user.",
+    ),
     run_context_file: Optional[Path] = typer.Option(None, "--run-context-file"),
     specimens_file: Optional[Path] = typer.Option(None, "--specimens-file"),
     samples_file: Optional[Path] = typer.Option(None, "--samples-file"),
@@ -5694,6 +6014,11 @@ def catalog_launch(
     export_trigger: str = typer.Option("none", "--export-trigger"),
     delete_on_export_success: bool = typer.Option(False, "--delete-on-export-success"),
     replace_existing_analysis_dir: bool = typer.Option(False, "--replace-existing-analysis-dir"),
+    dy_config: Optional[List[str]] = typer.Option(
+        None,
+        "--dy-config",
+        help="Append one dy-r/Snakemake config assignment to the launched command, e.g. key=value.",
+    ),
 ) -> None:
     """Quick-launch one command-catalog entry through the standard workflow launcher."""
 
@@ -5710,6 +6035,8 @@ def catalog_launch(
             git_tag=git_tag,
             stage_dir=stage_dir,
             manifest_dir=manifest_dir,
+            payload_staging_s3_uri=payload_staging_s3_uri,
+            remote_user=remote_user,
             run_context_file=run_context_file,
             specimens_file=specimens_file,
             samples_file=samples_file,
@@ -5725,6 +6052,7 @@ def catalog_launch(
             export_trigger=export_trigger,
             delete_on_export_success=delete_on_export_success,
             replace_existing_analysis_dir=replace_existing_analysis_dir,
+            dy_config=dy_config,
         )
         launch_stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(launch_stdout_buffer):
@@ -6069,14 +6397,19 @@ def mounts_verify(
         _exit_headnode_error(exc)
 
 
-def _workflow_run_dir(session: Optional[str], run_dir: Optional[str]) -> str:
+def _workflow_run_dir(
+    session: Optional[str],
+    run_dir: Optional[str],
+    *,
+    remote_user: str = "ubuntu",
+) -> str:
     from daylily_ec.scripts.common import CommandError
 
     if bool(session) == bool(run_dir):
         raise CommandError("Provide exactly one of --session or --run-dir.")
     if run_dir:
         return run_dir.rstrip("/")
-    return f"/home/ubuntu/daylily-runs/{session}"
+    return f"/home/{remote_user}/daylily-runs/{session}"
 
 
 def _read_workflow_file(
@@ -6087,13 +6420,13 @@ def _read_workflow_file(
     session: Optional[str],
     run_dir: Optional[str],
     filename: str,
+    remote_user: str = "auto",
     tail_lines: Optional[int] = None,
 ):
-    from daylily_ec.aws.ssm import SsmError, run_shell, wait_for_ssm_online
+    from daylily_ec.aws.ssm import SsmError, resolve_remote_user, run_shell, wait_for_ssm_online
     from daylily_ec.scripts.common import CommandError
 
     try:
-        resolved_run_dir = _workflow_run_dir(session, run_dir)
         resolved_profile, resolved_region, _resolved_cluster, target = _resolve_headnode_cli_target(
             profile=profile,
             region=region,
@@ -6105,6 +6438,17 @@ def _read_workflow_file(
             profile=resolved_profile,
             timeout=120,
         )
+        resolved_remote_user = resolve_remote_user(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            as_user=remote_user,
+        )
+        resolved_run_dir = _workflow_run_dir(
+            session,
+            run_dir,
+            remote_user=resolved_remote_user,
+        )
         file_path = f"{resolved_run_dir}/{filename}"
         if tail_lines is None:
             read_command = 'cat "$FILE_PATH"'
@@ -6112,7 +6456,7 @@ def _read_workflow_file(
             read_command = f'tail -n {max(tail_lines, 1)} "$FILE_PATH"'
         script = f"""
 set -euo pipefail
-if [[ "$(id -un)" != "ubuntu" ]]; then
+if [[ "$(id -un)" != {shlex.quote(resolved_remote_user)} ]]; then
   echo "__DAYLILY_ERROR__=wrong_user"
   exit 5
 fi
@@ -6128,6 +6472,7 @@ fi
             resolved_region,
             script,
             profile=resolved_profile,
+            as_user=resolved_remote_user,
             timeout=120,
             comment=f"Read Daylily workflow {filename}",
         )
@@ -6157,6 +6502,11 @@ def workflow_status(
     cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
     session: Optional[str] = typer.Option(None, "--session", help="Tmux session/run name."),
     run_dir: Optional[str] = typer.Option(None, "--run-dir", help="Explicit run directory."),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote login user for default run-dir resolution: auto, ubuntu, or ec2-user.",
+    ),
 ) -> None:
     """Read a workflow status.json file from the headnode."""
 
@@ -6171,6 +6521,7 @@ def workflow_status(
             session=session,
             run_dir=run_dir,
             filename="status.json",
+            remote_user=remote_user,
         )
         payload = _parse_workflow_status_payload(result.stdout)
     except (CommandError, json.JSONDecodeError) as exc:
@@ -6188,6 +6539,11 @@ def workflow_logs(
     cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
     session: Optional[str] = typer.Option(None, "--session", help="Tmux session/run name."),
     run_dir: Optional[str] = typer.Option(None, "--run-dir", help="Explicit run directory."),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote login user for default run-dir resolution: auto, ubuntu, or ec2-user.",
+    ),
     lines: int = typer.Option(200, "--lines", help="Number of tmux log lines to print."),
 ) -> None:
     """Tail a workflow tmux.log file from the headnode."""
@@ -6200,6 +6556,7 @@ def workflow_logs(
         session=session,
         run_dir=run_dir,
         filename="tmux.log",
+        remote_user=remote_user,
         tail_lines=lines,
     )
     if result.stdout:
@@ -6250,11 +6607,12 @@ def _build_workflow_collect_benchmarks_script(
     genome_build: str,
     cluster: str,
     human_requestor: str,
+    remote_user: str,
 ) -> str:
     return f"""
 set -euo pipefail
-if [[ "$(id -un)" != "ubuntu" ]]; then
-  echo "DYEC benchmark collection must run as ubuntu; got $(id -un)." >&2
+if [[ "$(id -un)" != {shlex.quote(remote_user)} ]]; then
+  echo "DYEC benchmark collection must run as {remote_user}; got $(id -un)." >&2
   exit 64
 fi
 
@@ -6407,6 +6765,11 @@ def workflow_collect_benchmarks(
         "--timeout",
         help="Maximum seconds for the remote benchmark collection command.",
     ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote login user for benchmark collection: auto, ubuntu, or ec2-user.",
+    ),
 ) -> None:
     """Collect DayOA benchmark TSVs into results/day/<genome-build>/reports."""
 
@@ -6429,6 +6792,8 @@ def workflow_collect_benchmarks(
             or os.environ.get("LOGNAME", "").strip()
             or "dyec"
         )
+        from daylily_ec.aws.ssm import resolve_remote_user
+
         resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
             profile=profile,
             region=region,
@@ -6440,17 +6805,25 @@ def workflow_collect_benchmarks(
             profile=resolved_profile,
             timeout=120,
         )
+        resolved_remote_user = resolve_remote_user(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            as_user=remote_user,
+        )
         script = _build_workflow_collect_benchmarks_script(
             analysis_root=resolved_analysis_root,
             genome_build=resolved_build,
             cluster=resolved_cluster,
             human_requestor=resolved_human,
+            remote_user=resolved_remote_user,
         )
         result = run_shell(
             target.instance_id,
             resolved_region,
             script,
             profile=resolved_profile,
+            as_user=resolved_remote_user,
             timeout=timeout,
             comment=f"Collect DayOA benchmarks for {resolved_analysis_root}",
         )
@@ -6550,6 +6923,11 @@ def workflow_stop(
     cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
     session: Optional[str] = typer.Option(None, "--session", help="Tmux session/run name."),
     run_dir: Optional[str] = typer.Option(None, "--run-dir", help="Explicit run directory."),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote login user for default run-dir resolution: auto, ubuntu, or ec2-user.",
+    ),
     cancel_slurm_jobs: bool = typer.Option(
         False,
         "--cancel-slurm-jobs",
@@ -6568,7 +6946,7 @@ def workflow_stop(
 ) -> None:
     """Stop a headnode workflow tmux controller, with explicit optional Slurm cancellation."""
 
-    from daylily_ec.aws.ssm import SsmError, run_shell, wait_for_ssm_online
+    from daylily_ec.aws.ssm import SsmError, resolve_remote_user, run_shell, wait_for_ssm_online
     from daylily_ec.scripts.common import CommandError
 
     _warn_if_dayec_env_inactive()
@@ -6578,8 +6956,6 @@ def workflow_stop(
         raise typer.BadParameter("--job-name-pattern requires --cancel-slurm-jobs")
 
     try:
-        resolved_run_dir = _workflow_run_dir(session, run_dir)
-        resolved_session = session or Path(resolved_run_dir).name
         resolved_profile, resolved_region, _resolved_cluster, target = _resolve_headnode_cli_target(
             profile=profile,
             region=region,
@@ -6591,6 +6967,18 @@ def workflow_stop(
             profile=resolved_profile,
             timeout=120,
         )
+        resolved_remote_user = resolve_remote_user(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            as_user=remote_user,
+        )
+        resolved_run_dir = _workflow_run_dir(
+            session,
+            run_dir,
+            remote_user=resolved_remote_user,
+        )
+        resolved_session = session or Path(resolved_run_dir).name
         script = f"""
 set -euo pipefail
 export DAYLILY_WORKFLOW_SESSION={shlex.quote(resolved_session)}
@@ -6715,6 +7103,7 @@ PY
             resolved_region,
             script,
             profile=resolved_profile,
+            as_user=resolved_remote_user,
             timeout=timeout,
             comment=f"Stop Daylily workflow {resolved_session}",
         )
@@ -6900,9 +7289,9 @@ def analysis_status(
         help="Cluster whose headnode contains the analysis root; omit when already on the headnode.",
     ),
     remote_user: str = typer.Option(
-        "ubuntu",
+        "auto",
         "--remote-user",
-        help="Remote SSM login user. DayOA headnodes normally use ubuntu.",
+        help="Remote SSM login user: auto, ubuntu, or ec2-user.",
     ),
     tail_lines: int = typer.Option(
         1000,
@@ -7038,7 +7427,11 @@ def command_sample_stats(
     cluster: Optional[str] = typer.Option(
         None, "--cluster", "--cluster-name", help="Cluster containing the analysis root."
     ),
-    remote_user: str = typer.Option("ubuntu", "--remote-user", help="Remote SSM login user."),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote SSM login user: auto, ubuntu, or ec2-user.",
+    ),
     tail_lines: int = typer.Option(
         1000, "--tail-lines", min=1, help="Bounded log lines inspected."
     ),
@@ -7825,6 +8218,11 @@ def register(registry, cli_spec) -> None:
             ("init", headnode_init, REQUIRED_MUTATING_INTERACTIVE),
             ("connect", headnode_connect, required_policy(interactive=True)),
             ("info", headnode_info, REQUIRED_JSON),
+            (
+                "run",
+                headnode_run,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
             ("jobs", headnode_jobs, required_policy()),
             ("system-info", headnode_system_info, REQUIRED_JSON),
             ("fsx-usage", headnode_fsx_usage, REQUIRED_JSON),
@@ -7910,6 +8308,11 @@ def register(registry, cli_spec) -> None:
         [
             ("list", catalog_list, EXEMPT_JSON),
             ("show", catalog_show, EXEMPT_JSON),
+            (
+                "config-bjuice-preval",
+                catalog_config_bjuice_preval,
+                required_policy(supports_json=True, long_running=True),
+            ),
             ("render", catalog_render, EXEMPT_JSON),
             (
                 "launch",

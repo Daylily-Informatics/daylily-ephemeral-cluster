@@ -1,9 +1,10 @@
 """Bounded semantic headnode-control script builders and JSON parsers.
 
 The builders in this module do not execute remote commands. Callers pass the
-returned script to the central ``daylily_ec.aws.ssm.run_shell`` helper with
-``as_user="ubuntu"``. Inputs are deliberately narrow: no builder accepts shell
-text, process selectors, node selectors, or regular expressions.
+returned script to the central ``daylily_ec.aws.ssm.run_shell`` helper. These
+DayOA controller helpers currently inspect Ubuntu-owned DayOA controllers.
+Inputs are deliberately narrow: no builder accepts shell text, process
+selectors, node selectors, or broad regular expressions.
 """
 
 from __future__ import annotations
@@ -286,7 +287,7 @@ def build_controller_inventory_script(
         if tmux_rc not in (0, 1):
             errors.append("tmux_inventory_failed")
 
-        run_root = Path("/home/ubuntu/daylily-runs")
+        run_root = Path("/home") / REMOTE_USER / "daylily-runs"
         receipt_paths = []
         receipt_scan_truncated = False
         try:

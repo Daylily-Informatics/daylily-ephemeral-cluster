@@ -79,6 +79,7 @@ EXPECTED_COMMANDS = {
     ("headnode", "init"),
     ("headnode", "connect"),
     ("headnode", "info"),
+    ("headnode", "run"),
     ("headnode", "jobs"),
     ("headnode", "system-info"),
     ("headnode", "fsx-usage"),
@@ -102,6 +103,7 @@ EXPECTED_COMMANDS = {
     ("repositories", "commands"),
     ("catalog", "list"),
     ("catalog", "show"),
+    ("catalog", "config-bjuice-preval"),
     ("catalog", "render"),
     ("catalog", "launch"),
     ("catalog", "quick-launch"),
@@ -161,6 +163,11 @@ def _patch_headnode_transfer_common(monkeypatch, calls: dict[str, object]) -> No
         lambda cluster, region, profile=None: HeadNodeTarget(cluster, region, "i-abc123"),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["run_shell"] = (instance_id, region, script, kwargs)
@@ -253,6 +260,40 @@ def test_headnode_download_recursive_uses_s3_relay_and_ssm(monkeypatch, tmp_path
     assert s3_calls[-1][0][0] == "--recursive"
     assert s3_calls[-1][0][-1] == str(destination)
     assert kwargs["comment"] == "DYEC headnode download"
+
+
+def test_headnode_run_returns_remote_stdout(monkeypatch) -> None:
+    calls: dict[str, object] = {}
+    _patch_headnode_transfer_common(monkeypatch, calls)
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "headnode",
+            "run",
+            "echo hello",
+            "--cwd",
+            "/fsx/work",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout + result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["stdout"] == "ok\n"
+    instance_id, region, script, kwargs = calls["run_shell"]
+    assert instance_id == "i-abc123"
+    assert region == "us-west-2"
+    assert "cd /fsx/work" in script
+    assert "echo hello" in script
+    assert "bash -lc" not in script
+    assert kwargs["comment"] == "DYEC headnode run"
 
 
 def test_cli_spec_uses_platform_v2_runtime() -> None:
@@ -349,6 +390,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     headnode_init_cmd = registry.get_command(("headnode", "init"))
     headnode_connect_cmd = registry.get_command(("headnode", "connect"))
     headnode_info_cmd = registry.get_command(("headnode", "info"))
+    headnode_run_cmd = registry.get_command(("headnode", "run"))
     headnode_jobs_cmd = registry.get_command(("headnode", "jobs"))
     headnode_system_info_cmd = registry.get_command(("headnode", "system-info"))
     headnode_fsx_usage_cmd = registry.get_command(("headnode", "fsx-usage"))
@@ -373,6 +415,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     repositories_commands_cmd = registry.get_command(("repositories", "commands"))
     catalog_list_cmd = registry.get_command(("catalog", "list"))
     catalog_show_cmd = registry.get_command(("catalog", "show"))
+    catalog_config_bjuice_preval_cmd = registry.get_command(("catalog", "config-bjuice-preval"))
     catalog_render_cmd = registry.get_command(("catalog", "render"))
     catalog_launch_cmd = registry.get_command(("catalog", "launch"))
     catalog_quick_launch_cmd = registry.get_command(("catalog", "quick-launch"))
@@ -499,6 +542,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert headnode_info_cmd is not None
     assert headnode_info_cmd.policy.supports_json is True
 
+    assert headnode_run_cmd is not None
+    assert headnode_run_cmd.policy.supports_json is True
+    assert headnode_run_cmd.policy.mutates_state is True
+    assert headnode_run_cmd.policy.long_running is True
+
     assert headnode_jobs_cmd is not None
     assert headnode_jobs_cmd.policy.runtime_guard == "required"
     assert headnode_jobs_cmd.policy.mutates_state is False
@@ -571,6 +619,10 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
         assert catalog_read_cmd.policy.supports_json is True
         assert catalog_read_cmd.policy.runtime_guard == "exempt"
         assert catalog_read_cmd.policy.mutates_state is False
+
+    assert catalog_config_bjuice_preval_cmd is not None
+    assert catalog_config_bjuice_preval_cmd.policy.supports_json is True
+    assert catalog_config_bjuice_preval_cmd.policy.long_running is True
 
     for catalog_launch_like_cmd in (catalog_launch_cmd, catalog_quick_launch_cmd):
         assert catalog_launch_like_cmd is not None
@@ -2151,6 +2203,11 @@ def test_pricing_spot_logs_exports_csv_via_ssm(monkeypatch, tmp_path) -> None:
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["run_shell"] = (instance_id, region, script, kwargs)
@@ -2470,6 +2527,11 @@ def test_headnode_connect_dry_run_prints_session_command(monkeypatch) -> None:
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
     monkeypatch.setattr(
         ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
+    monkeypatch.setattr(
+        ssm_module,
         "start_session",
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("unexpected session")),
     )
@@ -2516,11 +2578,17 @@ def test_headnode_connect_starts_session(monkeypatch) -> None:
         region: str,
         *,
         profile: str | None = None,
+        as_user: str = "auto",
         replace_process: bool = False,
     ) -> int:
-        calls["start_session"] = (instance_id, region, profile, replace_process)
+        calls["start_session"] = (instance_id, region, profile, as_user, replace_process)
         return 17
 
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
     monkeypatch.setattr(ssm_module, "start_session", fake_start_session)
 
     result = runner.invoke(
@@ -2538,7 +2606,7 @@ def test_headnode_connect_starts_session(monkeypatch) -> None:
     )
 
     assert result.exit_code == 17
-    assert calls["start_session"] == ("i-abc123", "us-west-2", "dev", True)
+    assert calls["start_session"] == ("i-abc123", "us-west-2", "dev", "ubuntu", True)
 
 
 def test_headnode_info_returns_describe_cluster_json(monkeypatch) -> None:
@@ -2688,6 +2756,11 @@ def test_headnode_jobs_runs_squeue_with_sq_format(monkeypatch) -> None:
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["run_shell"] = (instance_id, region, script, kwargs)
@@ -3497,6 +3570,48 @@ def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
     assert "dyec workflow launch" in payload["workflow_command"]
 
 
+def test_catalog_render_appends_dy_config_overrides(tmp_path) -> None:
+    manifest_dir = tmp_path / "manifests"
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "catalog",
+            "render",
+            "hybrid_ilmn_ont_hiomrs_kitchensink",
+            "--analysis-id",
+            "hg-run",
+            "--executing-entity",
+            "johnm",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--manifest-dir",
+            str(manifest_dir),
+            "--dy-config",
+            "use_fq_data_starting_hrs=0",
+            "--dy-config",
+            "use_fq_data_up_to_hrs=7",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.stdout)
+    assert payload["dy_config"] == [
+        "use_fq_data_starting_hrs=0",
+        "use_fq_data_up_to_hrs=7",
+    ]
+    assert "--config use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=7" in payload[
+        "dy_command"
+    ]
+    argv = payload["workflow_argv"]
+    assert argv[argv.index("--dy-command") + 1] == payload["dy_command"]
+
+
 def test_catalog_quick_launch_uses_rendered_workflow_argv(monkeypatch, tmp_path) -> None:
     calls: dict[str, object] = {}
     _activate_dayec_runtime(monkeypatch)
@@ -3987,6 +4102,11 @@ def test_workflow_status_reads_status_json_via_ssm(monkeypatch) -> None:
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["run_shell"] = (instance_id, region, script, kwargs)
@@ -4041,6 +4161,11 @@ def test_workflow_logs_tails_tmux_log_via_ssm(monkeypatch) -> None:
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["script"] = script
@@ -4089,6 +4214,11 @@ def test_workflow_collect_benchmarks_runs_remote_dayoa_collector(monkeypatch) ->
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["run_shell"] = (instance_id, region, script, kwargs)
@@ -4233,6 +4363,11 @@ def test_workflow_collect_benchmarks_surfaces_remote_failures(monkeypatch) -> No
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
     failed_result = SsmCommandResult(
         "cmd-1",
         "i-abc123",
@@ -4286,6 +4421,11 @@ def test_workflow_stop_kills_controller_via_ssm(monkeypatch) -> None:
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["run_shell"] = (instance_id, region, script, kwargs)
@@ -4363,6 +4503,11 @@ def test_workflow_stop_can_cancel_slurm_jobs_with_explicit_pattern(monkeypatch) 
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["script"] = script

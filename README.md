@@ -2,20 +2,163 @@
 
 [![Latest release](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_release_tag&label=latest%20release&cacheSeconds=300&color=teal)](https://github.com/lsmc-bio/daylily-ephemeral-cluster/releases) [![Latest tag](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_tag&label=latest%20tag&color=pink&cacheSeconds=300)](https://github.com/lsmc-bio/daylily-ephemeral-cluster/tags)
 
-Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the Daylily control plane for short-lived AWS ParallelCluster environments. It renders cluster configuration, validates AWS prerequisites, creates FSx for Lustre storage, connects to headnodes through AWS Systems Manager, stages inputs, launches workflow repositories, and exports completed analysis directories with immutable local receipts.
+Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the CLI control plane for short-lived AWS ParallelCluster bioinformatics work. It creates and configures clusters, mounts sequencing-run data into FSx, launches pinned workflow repositories on the headnode, monitors exact analysis roots, moves files between local and headnode storage, and exports finished results to S3 with receipts.
 
-The cluster is disposable. The S3 inputs, reference bucket, analysis-export bucket, command catalog, and evidence receipts are durable. Do not delete a cluster until the export receipt and expected S3 outputs are verified.
+DYEC is not an identity service and not a workflow engine. It does not call Dayhoff, Ursa, Bloom, TapDB, Dewey, or a metadata service. It consumes explicit local configuration, explicit manifests, explicit S3 paths, and explicit command-catalog entries. DayOA owns its workflow rules and `dy-r` execution. DYEC owns cluster/headnode orchestration and the launch/export envelope.
 
-## Philosophy
+## Current operator model
 
-DYEC is deliberately not a dogma-locked workflow manager. It provisions and exports the execution environment. The checked-out repository owns its workflow engine, command syntax, containers, profile, and final file layout below the analysis root. DayOA/Snakemake is the first-class Daylily workflow repository, and nf-core/Nextflow repositories such as `daylily-sarek` can also run on the same cluster when they honor the same FSx analysis-root and export contract.
+Most work follows this shape:
 
-The operating contract is strict. Missing config, credentials, references, run mounts, licenses, runtime assets, invalid sample identity, unsafe path segments, non-empty export destinations, and malformed command catalog rows should fail hard. DYEC should not guess a bucket, invent a credential, choose a replacement reference, or silently fall back to a legacy launch path.
+```bash
+cd /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster
+source ./activate
 
-### DayOA 13 six-manifest launch
+export AWS_PROFILE=lsmc
+export REGION=us-west-2
+export CLUSTER=ifx-p2-1000-120-0715
+export STAGING_S3_URI=s3://<bucket>/<temporary-dyec-payload-prefix>/
+export ANALYSIS_ID=<analysis-id>
+```
 
-New DayOA 13 sample analyses are launched from an explicit local directory
-containing exactly these six validated TSVs:
+Inspect the installed CLI before mutating anything:
+
+```bash
+dyec --json version
+dyec --help
+dyec agent guidance
+dyec --json catalog list
+```
+
+Use `--cluster` for DYEC commands. Keep `--cluster-name` for tools such as `pcluster` that require that spelling.
+
+## Safety contracts
+
+- Use `dyec`; do not launch DayOA by invoking raw `snakemake`.
+- New DayOA checkouts must be explicit-tag checkouts.
+- Headnode work uses a cluster-appropriate remote user selected by platform: Ubuntu/Intel DayOA headnodes use `ubuntu`; DRAGEN/RHEL-style headnodes use `ec2-user`.
+- DYEC-created headnode shells must be bash login/interactive contexts and source `~/.bashrc`; workflow controllers still run in persistent `tmux` panes.
+- DYEC CLI launch helpers create the supported headnode controller for you; they do not require an interactive SSM session for standard catalog launches.
+- Missing files, missing credentials, unsafe identity fields, malformed manifests, unexpected legacy input shapes, and insufficient staging permissions fail hard.
+- S3 relay prefixes for upload/download and staged workflow launch must be readable/writable by both the local operator credentials and the headnode instance role.
+- `/fsx/analysis_results/**` workflow writes, unlocks, deletes, restarts, and kills require analysis-root write-lock ownership.
+- Headnode inspection commands are supported; Slurm/node administration is not implied by inspection.
+
+## Command groups
+
+Run `dyec --help` for the live list. Current major groups are:
+
+| Group | Purpose |
+|---|---|
+| `version`, `info`, `runtime`, `env`, `resources-dir`, `state` | Local/runtime introspection. |
+| `preflight`, `create`, `drift`, `delete` | Cluster lifecycle. |
+| `cluster`, `cluster-info` | ParallelCluster inspection and tag helpers. |
+| `headnode` | SSM-backed headnode connection, command execution, file transfer, and observability. |
+| `mounts`, `mount` | FSx run-directory Data Repository Associations. |
+| `workflow` | Standard DayOA/workflow clone, launch, status, logs, benchmark collection, and stop helpers. |
+| `catalog` | Command-catalog discovery, exact command rendering, and quick launch. |
+| `samples` | Older sample staging/launch helpers for catalog contracts that still use them. |
+| `identities` | Provider-neutral local manifest validation and receipt handling; no network service calls. |
+| `analysis` | Analysis-root visit logging, status reporting, lock ownership, and guarded commands. |
+| `command` | Command-family progress views such as HIOMRS sample stats and DAG download. |
+| `export`, `exports` | FSx analysis export through explicit S3 receipts. |
+| `pricing`, `cost-centers`, `aws`, `slurm-accounting` | Cost, quota, AWS readiness, and accounting support. |
+| `tests` | Local pytest and catalog validation helpers. |
+
+Detailed examples live in [docs/cli_reference.md](docs/cli_reference.md).
+
+## CLI-first catalog launch
+
+Catalog launch is the preferred path for known DayOA commands because it renders the exact `dyec workflow launch` command before it starts anything.
+
+Render first:
+
+```bash
+dyec --json catalog render hybrid_ilmn_ont_hiomrs_kitchensink \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --analysis-id "$ANALYSIS_ID" \
+  --executing-entity "$CLUSTER" \
+  --manifest-dir ./config \
+  --payload-staging-s3-uri "$STAGING_S3_URI" \
+  --session-name "${ANALYSIS_ID}-dryrun" \
+  --project RnD \
+  --dry-run
+```
+
+Launch the rendered dry run:
+
+```bash
+dyec --json catalog launch hybrid_ilmn_ont_hiomrs_kitchensink \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --analysis-id "$ANALYSIS_ID" \
+  --executing-entity "$CLUSTER" \
+  --manifest-dir ./config \
+  --payload-staging-s3-uri "$STAGING_S3_URI" \
+  --session-name "${ANALYSIS_ID}-dryrun" \
+  --project RnD \
+  --dry-run
+```
+
+If the dry-run plan is bounded and correct, launch the same catalog command without `--dry-run` and use a new session name:
+
+```bash
+dyec --json catalog launch hybrid_ilmn_ont_hiomrs_kitchensink \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --analysis-id "$ANALYSIS_ID" \
+  --executing-entity "$CLUSTER" \
+  --manifest-dir ./config \
+  --payload-staging-s3-uri "$STAGING_S3_URI" \
+  --session-name "$ANALYSIS_ID" \
+  --project RnD
+```
+
+For DayOA runtime config, pass explicit `key=value` overrides. DYEC appends them to the `dy-r ... --config` section and does not reinterpret their workflow-specific meaning:
+
+```bash
+dyec --json catalog render hybrid_ilmn_ont_hiomrs_kitchensink \
+  --analysis-id hg003-hg004-ds025-ont0to6 \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --manifest-dir ./config \
+  --payload-staging-s3-uri "$STAGING_S3_URI" \
+  --dry-run \
+  --dy-config use_fq_data_starting_hrs=0 \
+  --dy-config use_fq_data_up_to_hrs=6 \
+  --dy-config global_sr_subsample_pct=0.25 \
+  --dy-config global_ont_subsample_pct=0.25
+```
+
+Large local payloads are staged through S3 with `--payload-staging-s3-uri`. DYEC uploads a tarball containing input manifests, a payload manifest, and the controller launch script. The headnode downloads and expands that tarball into the workflow run directory, starts the tmux controller, and then saves the exact executed script under `<analysis-root>/bin/dyec-controller-launch.sh` after `day-clone` creates the analysis root. This avoids SSM document-size limits without pre-creating the analysis root.
+
+## Workflow launch without the catalog shortcut
+
+Use `dyec workflow launch` when you already know the exact DayOA command string or are launching a non-catalog repository command:
+
+```bash
+dyec workflow launch \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --analysis-id "$ANALYSIS_ID" \
+  --executing-entity "$CLUSTER" \
+  --git-tag 13.0.19 \
+  --manifest-dir ./config \
+  --payload-staging-s3-uri "$STAGING_S3_URI" \
+  --session-name "$ANALYSIS_ID" \
+  --project RnD \
+  --dy-command "dy-r produce_hiomrs -j 100 -p -T 0 --rerun-triggers mtime --rerun-incomplete"
+```
+
+Dry-run first by using the DayOA wrapper command’s dry-run flag inside `--dy-command`, or by launching through `dyec catalog ... --dry-run` when the command is catalog-backed.
+
+## Six-manifest DayOA inputs
+
+Current DayOA sample-analysis launches use exactly six manifest files:
 
 ```text
 specimens.tsv
@@ -26,619 +169,192 @@ analysis_units.tsv
 analysis_unit_inputs.tsv
 ```
 
-`sequencing_inputs.tsv` declares `MODALITY` as exactly `sr` or `lr`, declares
-an exact layout (`paired_fastq`, `single_fastq`, `aligned_bam`, `aligned_cram`,
-or `vcf`), and populates exactly one supported DayOA source bundle. Each
-`analysis_unit_inputs.tsv` role must equal its selected input modality and its
-positive `INPUT_ORDINAL` values must be unique and contiguous. DYEC validates
-all foreign keys and copies the six files byte-for-byte; the headnode verifies
-their SHA-256 hashes before DayOA starts. Legacy `units.tsv`, partial sets, and
-topology inference fail.
+Validate them locally before launch:
 
 ```bash
-dyec identities validate --manifest-dir config/
-dyec identities status --manifest-dir config/
-dyec workflow launch \
-  --profile lsmc --region us-west-2 --cluster <cluster> \
-  --analysis-id <analysis-id> --executing-entity <owner> \
-  --manifest-dir config/ --git-tag <exact-dyoa-tag>
+dyec --json identities validate --manifest-dir ./config
+dyec --json identities status --manifest-dir ./config
 ```
 
-`dyec identities plan|apply|evidence` operate only on local files and
-hash-bound receipts. They never create or resolve identities and accept no
-service URL or token. Blank and reserved `Z-` test identifiers are valid for
-analysis but make the corresponding analysis unit ineligible for customer
-release.
+The identity commands are local and provider-neutral. They never create or resolve production identities. EUID fields may be blank for ordinary analysis. Test-only EUID-like values must use the reserved `Z-` prefix and are not valid customer-release identities.
 
-## Architecture
+## Bjuice prevalence manifest helper
 
-```mermaid
-flowchart LR
-  Operator["operator or service<br/>dyec CLI"] --> Config["explicit config<br/>AWS profile, region, buckets"]
-  Config --> Pcluster["AWS ParallelCluster"]
-  Pcluster --> Headnode["headnode<br/>ubuntu via SSM"]
-  Pcluster --> FSx["FSx for Lustre"]
-  RefBucket["reference S3 bucket"] -->|reference DRA| References["/fsx/references"]
-  RunBucket["run S3 prefix"] -->|optional run DRA| RunMount["/fsx/run_dir_mounts/<mount_id>"]
-  Headnode --> Repo["workflow repository checkout"]
-  References --> Repo
-  RunMount --> Repo
-  Repo --> Results["/fsx/analysis_results/<entity>/<analysis_id>"]
-  Results -->|temporary export DRA| AnalysisBucket["analysis S3 bucket"]
-  AnalysisBucket --> Receipt["fsx_export.yaml"]
-```
-
-## Filesystem Contract
-
-| Path | Owner | Purpose |
-|---|---|---|
-| `/fsx/references` | DYEC cluster config | Reference and runtime assets mounted from the configured reference bucket. |
-| `/fsx/control_data` | optional cluster config | Repeated-test or control assets when configured. |
-| `/fsx/run_dir_mounts/<mount_id>` | `dyec mounts` | Read-oriented S3 run-folder Data Repository Associations. |
-| `/fsx/analysis_results/<executing_entity>/<analysis_id>` | workflow repository | Repository checkout, logs, work state, outputs, reports, and benchmarks. |
-| `s3://<analysis-bucket>/<prefix>/<cluster>/<analysis_id>/` | `dyec workflow launch` auto-export | Durable export destination derived from an export root. |
-| `s3://<analysis-bucket>/<prefix>/<executing_entity>/<analysis_id>/` | `dyec export` | Durable explicit export destination for one completed analysis directory. |
-
-Run mounts and references are inputs. They are not export sources. The export source is exactly one completed analysis directory under `/fsx/analysis_results/<executing_entity>/<analysis_id>`.
-
-### Per-cluster FSx selection
-
-Interactive `dyec create` runs explicitly ask for:
-
-1. the FSx for Lustre deployment type (`SCRATCH_2` or `PERSISTENT_2`);
-2. the dedicated filesystem capacity; and
-3. for `PERSISTENT_2`, the throughput tier (`125`, `250`, `500`, or `1000` MB/s/TiB).
-
-The offered defaults are `PERSISTENT_2`, `4800` GiB, and `250` MB/s/TiB.
-They remain visible interactive choices: pressing Enter accepts them, while a
-different listed value can be selected before any AWS context or provisioning.
-
-Before AWS context and provisioning, DYEC prints the selected type, capacity,
-applicable throughput, and lifecycle. Each cluster receives its own filesystem;
-the selection is not a shared regional `/fsx`. `/fsx/analysis_results` remains
-writable cluster workspace, and result export to S3 remains an explicit DRA
-export rather than automatic writeback.
-
-Non-interactive creates must provide explicit set values. Defaults are not
-silently accepted in non-interactive mode:
-
-```yaml
-ephemeral_cluster:
-  config:
-    fsx_deployment_type: [USESETVALUE, "", "PERSISTENT_2"]
-    fsx_fs_size: [USESETVALUE, "", "4800"]
-    fsx_throughput_mbps_per_tib: [USESETVALUE, "", "250"]
-```
-
-`fsx_throughput_mbps_per_tib` is required only for `PERSISTENT_2`. Explicit
-benchmark/profile configs continue to use `USESETVALUE`; the canonical default
-template uses `PROMPTUSER` for type, size, and throughput.
-
-There is no retained-filesystem choice in the create workflow. The dedicated
-filesystem is cluster-bound: ParallelCluster-managed `SCRATCH_2` renders with
-deletion policy `Delete`, and DYEC deletes its external `PERSISTENT_2` after
-the ParallelCluster is absent. A future retained mode requires a separate,
-explicit ownership and lifecycle contract.
-
-For external `PERSISTENT_2`, the selected filesystem must exist before the
-final ParallelCluster configuration can reference its `FileSystemId`. DYEC
-therefore labels that phase **LIVE AWS STORAGE PROVISIONING**: it creates or
-resumes the cluster-specific FSx client security group, filesystem, and
-reference DRA, then runs the ParallelCluster dry-run with that exact ID.
-
-Before any create-side mutation, DYEC resolves current AWS Price List rates for
-the configured on-demand headnode, rendered gp3 root volume, selected FSx
-storage profile, and one in-use public IPv4 address. The successful-create
-summary prints those components and their total configured idle hourly
-estimate. Slurm compute nodes are excluded because cluster templates render
-their minimum count as zero; usage-driven transfer, requests, logging, and
-backup charges are also outside this idle floor.
-
-## Setup
-
-Prerequisites:
-
-- AWS credentials for a non-default profile with ParallelCluster, EC2, IAM, CloudFormation, S3, FSx, SSM, CloudWatch, AWS Price List `pricing:GetProducts`, and related read/write permissions.
-- AWS region and availability zone selected for the cluster.
-- AWS Session Manager plugin installed locally.
-- AWS ParallelCluster CLI available through this repo environment. This repo targets exactly `aws-parallelcluster==3.15.0`.
-- Configured S3 buckets for references, optional control data, staging, and analysis exports.
-- A Daylily config file, normally `~/.config/daylily/daylily_ephemeral_cluster.yaml`, with explicit bucket and cluster settings.
-
-Activate the checkout and inspect the live CLI:
+`dyec catalog config-bjuice-preval` builds a six-manifest directory from reviewed Bjuice evidence files. It is deliberately specific to that reviewed evidence contract; it is not a general identity resolver.
 
 ```bash
-cd /path/to/daylily-ephemeral-cluster
-source ./activate
-dyec --json version
-dyec --help
-dyec runtime status
-dyec --json repositories commands
-pcluster version
-```
-
-`pcluster version` must report `3.15.0`. Refresh the pinned checkout environment with `python -m pip install --upgrade pip` followed by `python -m pip install -e .`; do not install `aws-parallelcluster` unpinned or from `latest`.
-
-Current DYEC examples use the `dyec` executable and the `--cluster` flag for cluster/headnode commands. Keep `--cluster-name` for tools such as `pcluster` that require it. If a configured headnode is missing `dyec analysis`, refresh it with `dyec headnode configure --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"` from this activated checkout before DayOA workflow writes.
-
-Use placeholders in examples until your environment has real values:
-
-```bash
-export AWS_PROFILE=<non-default-profile>
-export REGION=us-west-2
-export REGION_AZ=us-west-2d
-export CLUSTER_NAME=<cluster-name>
-export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
-export REF_S3_URI=s3://<reference-bucket>
-export CONTROL_DATA_S3_URI=s3://<control-data-bucket>
-export STAGE_S3_URI=s3://<staging-bucket>/<prefix>
-export ANALYSIS_RESULTS_S3_URI=s3://<analysis-results-bucket>/<prefix>
-export EXECUTING_ENTITY=ubuntu
-export ANALYSIS_ID=<analysis-id>
-export EXPORT_S3_ROOT="$ANALYSIS_RESULTS_S3_URI/"
-export EXPORT_S3_URI="$EXPORT_S3_ROOT$CLUSTER_NAME/$ANALYSIS_ID/"
-```
-
-## Lifecycle
-
-```bash
-dyec preflight \
+dyec --json catalog config-bjuice-preval \
+  --sample HG003 \
+  --sample HG004 \
+  --output-dir ./config-hg003-hg004 \
+  --source-manifest-json /path/to/source_manifest_resolved.json \
+  --run-evidence-json /path/to/run_evidence_v2.json \
+  --library-run-matrix-tsv /path/to/bjuice_preval_library_run_matrix.tsv \
+  --sample-metadata-tsv /path/to/samples.tsv \
+  --legacy-units-tsv /path/to/units.tsv \
+  --sr-subsample-pct 0.25 \
+  --ont-subsample-pct 0.25 \
   --profile "$AWS_PROFILE" \
-  --region-az "$REGION_AZ" \
-  --config "$DAY_EX_CFG"
+  --region "$REGION"
+```
 
-dyec create \
-  --profile "$AWS_PROFILE" \
-  --region-az "$REGION_AZ" \
-  --config "$DAY_EX_CFG"
+The helper writes the six manifest TSVs plus `bjuice_preval_config_receipt.json`, validates the manifest set, and records file hashes. It fails if reviewed sample metadata, legacy unit metadata, S3 listings, or expected ILMN/ONT source groups are absent or ambiguous.
 
+## Headnode commands and transfer
+
+Open a full interactive shell when you need one:
+
+```bash
 dyec headnode connect \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
+  --cluster "$CLUSTER"
 ```
 
-Cluster AWS Budget enforcement is enabled by default on new clusters and the
-budget name is the cluster name. The staged Slurm wrapper always requires
-`sbatch --comment <cost-center>`; that value is validated against the global
-cost-center registry and usage cap. Use `--disable-budget-enforcement` only
-when the cluster AWS Budget lookup should be skipped. Cost-center validation
-and the `--comment` requirement still apply. For per-run cost-center overrides,
-pass `--project <cost-center>` to `dyec samples run` or `dyec workflow launch`.
-
-The initial ParallelCluster build always omits Slurm accounting. After the
-cluster, headnode configuration, heartbeat, and base-state receipt are
-complete, `dyec create` attaches a compatible regional accounting service by
-default with a supported stopped-fleet update. Use `--slurm-accounting off` to
-skip that follow-on stage. Accounting errors retain the usable cluster and
-exit successfully with a loud warning unless `--fail-on-sacct-error` is set.
-The standalone `dyec slurm-accounting attach` command remains available for an
-operator-managed retry while the compute fleet is explicitly stopped.
-
-After connection, the supported headnode user is `ubuntu` in an interactive bash login shell. Manual DayOA workflow work belongs in a persistent `tmux` session and uses separate commands:
+Run a bounded command non-interactively and get stdout/stderr back:
 
 ```bash
-source dyoainit
-dy-a slurm hg38_broad
-dy-r help -p -k -j 1 -n
-```
-
-For catalog-backed sample analysis, prefer `dyec samples run`:
-
-```bash
-dyec samples run ./analysis_samples.tsv \
-  --command-id illumina_snv_alignstats \
+dyec --json headnode run \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --reference-s3-uri "$REF_S3_URI" \
-  --control-data-s3-uri "$CONTROL_DATA_S3_URI" \
-  --stage-s3-uri "$STAGE_S3_URI" \
-  --analysis-id "$ANALYSIS_ID" \
-  --executing-entity "$EXECUTING_ENTITY" \
-  --export-destination-s3-uri "$EXPORT_S3_ROOT" \
-  --export-trigger on-success \
-  --dry-run
+  --cluster "$CLUSTER" \
+  'hostname; command -v aws; aws sts get-caller-identity --output json'
 ```
 
-DayOA 12 sample commands use the explicit `sample_manifest_v12` contract. The
-source manifest must supply exact `SPECIMEN_ID`, `SAMPLEID`,
-`ANALYSIS_UNIT_UID`, and persisted specimen/sample/library EUIDs. DYEC writes
-`specimens.tsv`, `samples.tsv`, and `libraries.tsv`; it never infers or rewrites
-those identities. A legacy `units.tsv` is rejected for DayOA 12. Convert an old
-two-file configuration offline with DayOA's reviewed identity-map workflow:
+Copy files through an explicit S3 relay:
 
 ```bash
-dayoa migrate-manifests \
-  --samples old-samples.tsv \
-  --units old-units.tsv \
-  --identity-map identity-map.tsv \
-  --output-dir config/
-```
-
-For run-folder analysis, attach a read-only run mount before launching a run-context command:
-
-```bash
-dyec --json mounts create "s3://<sequencing-run-bucket>/<run-prefix>/" \
+dyec --json headnode upload -r ./config \
+  /tmp/dyec-staged-config \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
+  --cluster "$CLUSTER" \
+  --staging-s3-uri "$STAGING_S3_URI"
+
+dyec --json headnode download -r \
+  /fsx/analysis_results/"$CLUSTER"/"$ANALYSIS_ID"/daylily-omics-analysis/results/day/hg38/reports \
+  ./downloaded-reports \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --staging-s3-uri "$STAGING_S3_URI"
+```
+
+The relay prefix is intentionally explicit and auditable. DYEC does not delete relay objects automatically.
+
+## Monitoring exact analyses
+
+Record visits before analysis-root reads:
+
+```bash
+dyec analysis visit \
+  --analysis-root /fsx/analysis_results/"$CLUSTER"/"$ANALYSIS_ID" \
+  --mode read \
+  --intent "status check"
+```
+
+Use the exact-root status reporter:
+
+```bash
+dyec analysis status slim \
+  --analysis-root /fsx/analysis_results/"$CLUSTER"/"$ANALYSIS_ID" \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER"
+
+dyec analysis status full \
+  --analysis-root /fsx/analysis_results/"$CLUSTER"/"$ANALYSIS_ID" \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --tail-lines 1000
+```
+
+For HIOMRS command-family progress and optional DAG PNG download:
+
+```bash
+dyec --json command sample-stats hiomrs-kitchensink \
+  --name hg003_hiomrs \
+  --analysis-root /fsx/analysis_results/"$CLUSTER"/"$ANALYSIS_ID" \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --dag-output ./tmp/hg003_hiomrs_dag.png
+```
+
+Queue emptiness is never success. Success requires controller exit code plus expected terminal artifacts for the workflow.
+
+## Run-directory QC commands
+
+Run QC catalog entries are run-context commands. Mount the run directory first, then pass a run-context TSV to `catalog render` or `catalog launch`.
+
+```bash
+dyec --json mounts create s3://<sequencing-run-bucket>/<run-prefix>/ \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
   --platform ILMN \
   --read-only \
   --wait \
   --timeout-seconds 5400
-
-dyec --json mounts verify \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --mount-id <mount_id>
 ```
 
-Export exactly one completed analysis directory:
+Example run-context file:
+
+```tsv
+RUN_ID	PLATFORM	RUN_MOUNT
+20260722_LH00000_0001_AEXAMPLE	ILMN	/fsx/run_dir_mounts/20260722_LH00000_0001_AEXAMPLE
+```
+
+Render each supported run-QC catalog command before launching it:
+
+```bash
+dyec --json catalog render illumina_run_qc \
+  --analysis-id ilmn-runqc-20260722 \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --run-context-file ./runs.tsv \
+  --dry-run
+
+dyec --json catalog render ont_run_qc \
+  --analysis-id ont-runqc-20260722 \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --run-context-file ./runs.tsv \
+  --dry-run
+
+dyec --json catalog render ultima_run_qc \
+  --analysis-id ultima-runqc-20260722 \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --run-context-file ./runs.tsv \
+  --dry-run
+```
+
+The catalog enforces each command’s required `PLATFORM` value.
+
+## Export
+
+Export one completed analysis directory:
 
 ```bash
 dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --source-path "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
-  --destination-s3-uri "$EXPORT_S3_URI" \
-  --output-dir "./tmp-export/$ANALYSIS_ID"
+  --cluster "$CLUSTER" \
+  --source-path /fsx/analysis_results/"$CLUSTER"/"$ANALYSIS_ID" \
+  --destination-s3-uri s3://<analysis-results-bucket>/<prefix>/"$CLUSTER"/"$ANALYSIS_ID"/ \
+  --output-dir ./export-receipts/"$ANALYSIS_ID"
 ```
 
-For `dyec samples run` and `dyec workflow launch`, `--export-destination-s3-uri` may be
-either a full destination or an export root. If it is a root, DYEC appends
-`<cluster>/<analysis-id>/`. Direct `dyec export` remains explicit and should be
-given the final S3 destination.
+`dyec export` records a local receipt and uses an explicit DRA/export path. Verify the receipt and expected S3 objects before deleting any cluster or filesystem.
 
-Inspect `fsx_export.yaml` before cleanup. Delete is destructive; run `dyec delete --dry-run` first and perform live deletion only after the intended effect is approved and understood.
+## Development and tests
 
-## CLI Surface
-
-Use `dyec --help` for the current root command list. Current major groups include:
-
-- `preflight`, `create`, `delete`, `drift`, `cluster-info`
-- `cluster`, `headnode`, `samples`, `workflow`
-- `repositories`, `mounts`, `mount`, `export`, `exports`
-- `slurm-accounting`, `aws`, `pricing`, `runtime`, `env`, `state`, `resources-dir`
-
-```rtf
-dyec
-
- Usage: dyec [OPTIONS] COMMAND [ARGS]...
-
- Create and manage ephemeral AWS ParallelCluster environments for bioinformatics workloads.
-
-╭─ Options ─────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ --json                        Emit machine-readable JSON.                                                 │
-│ --dry-run                     Plan the command without making persistent changes.                         │
-│ --no-color                    Disable ANSI styling.                                                       │
-│ --debug                       Enable debug diagnostics.                                                   │
-│ --install-completion          Install completion for the current shell.                                   │
-│ --show-completion             Show completion for the current shell, to copy it or customize the          │
-│                               installation.                                                               │
-│ --help                        Show this message and exit.                                                 │
-╰───────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Commands ────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ version           Show version.                                                                           │
-│ info              Show system info.                                                                       │
-│ create            Create an ephemeral AWS ParallelCluster environment.                                    │
-│ preflight         Run preflight validation only (no cluster creation).                                    │
-│ drift             Check for drift against a previous run's state.                                         │
-│ cluster-info      List ParallelCluster clusters and their status.                                         │
-│ export            Export FSx outputs through an explicit temporary DRA.                                   │
-│ delete            Delete a cluster and monitor teardown to completion.                                    │
-│ resources-dir     Print the extracted resource directory used by Daylily.                                 │
-│ env               Environment guidance.                                                                   │
-│ runtime           Runtime inspection.                                                                     │
-│ pricing           Spot pricing inspection helpers.                                                        │
-│ aws               AWS readiness validation helpers.                                                       │
-│ slurm-accounting  Slurm accounting database helpers.                                                      │
-│ cluster           ParallelCluster inspection helpers.                                                     │
-│ headnode          Headnode bootstrap and shell-context helpers.                                           │
-│ samples           Sample staging helpers.                                                                 │
-│ workflow          Headnode workflow helpers.                                                              │
-│ repositories      Repository catalog and blessed analysis command helpers.                                │
-│ tests             Local and cluster prep-test helpers.                                                    │
-│ exports           Explicit FSx output DRA export helpers.                                                 │
-│ mounts            FSx run-directory mount helpers.                                                        │
-│ mount             Run-directory mount aliases.                                                            │
-│ state             Local Daylily state inspection helpers.                                                 │
-╰───────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-```
-
-
-Important inspection commands:
+Use the repo environment:
 
 ```bash
-dyec --json version
-dyec --json cluster describe --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
-dyec --json repositories commands
-dyec repositories commands --command-id illumina_snv_alignstats
-dyec pricing spot-logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" > spot_prices.csv
-dyec pricing spot-logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --path /fsx/logs --path /fsx/scratch --name-glob "*.log" -o spot_prices.csv
-dyec workflow status --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session>
-dyec workflow logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session> --lines 100
+cd /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster
+source ./activate
+python -m pytest tests/test_cli_registry_v2.py -q
+git diff --check
 ```
 
-`dyec pricing spot-logs` scans `/fsx/logs`, `/fsx/scratch`, and `/fsx/tmp` by default. It emits one CSV row per parsed spot-price log event with `slurm_partition`, `compute_resource`, `instance_type`, `spot_price_usd_per_hour`, `source_path`, and node identity columns.
-
-Local and cluster prep-test commands:
-
-```bash
-dyec tests pytest
-dyec tests pytest --coverage
-
-dyec tests command-catalog \
-  --cluster "$CLUSTER_NAME" \
-  --profile lsmc \
-  --region us-west-2 \
-  --command-codes dyec-released-core \
-  --evidence-s3-uri "s3://<evidence-root>/" \
-  --dry-run
-```
-
-`dyec tests command-catalog` writes local command evidence under `docs/plans/<stamp>_dyec_tests_command_catalog_logs` unless `--output-dir` is set. Successful workflow phases export to `<evidence-s3-uri>/<cluster>/command_catalog_results/<dayoa-version>-<UTCSTAMP>/ubuntu/<analysis-id>/`. Missing run-directory DRAs fail hard unless `--create-missing-mounts` is supplied.
-
-Use `--command-codes dyec-released-core` for the released core validation set and `--command-codes dyec-released-all` for every released non-research catalog command. The BCL Convert commands remain `research` type and are excluded from `dyec-released-all`; launch them only by explicit command id when research validation is intended.
-
-The command-catalog runner launches in source-availability groups. Commands that use no external data, default-mounted data, or an already available run DRA launch immediately. When `--create-missing-mounts` is supplied, commands for a missing `SOURCE_S3_URI` wait only for that source's run DRA and launch as soon as that directory is available; unrelated ready commands do not wait behind it. New run-DRA creation waits up to 5400 seconds by default.
-
-By default `dyec tests command-catalog` uses `--parallel 16` for concurrent launched phases and renders DayOA commands with `--jobs 150`. Catalog command text may contain smaller `-j` values for individual live run-analysis recipes, but the command-catalog renderer normalizes the launched test phases to `-j 150` unless `--jobs` is set explicitly.
-
-The Slurm accounting helper manages external accounting infrastructure when configured. A running cluster can have the `sacct` binary installed while accounting storage is disabled; in that state `sacct` cannot provide job accounting records even though the command exists.
-
-## Repository Catalog
-
-`config/daylily_pipeline_command_catalog.yaml` is the source of truth for blessed repositories and commands. The packaged copy under `daylily_ec/resources/payload/config/` must match it. The current catalog default for DayOA is `10.0.69`; `daylily-sarek` is also present as a Nextflow/nf-core Sarek repository entry.
-
-On the headnode, `day-clone` consumes the same repository catalog:
-
-```bash
-day-clone --list
-day-clone --check-auth --repository daylily-omics-analysis --git-tag 10.0.69
-day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 10.0.69 --executing-entity "$EXECUTING_ENTITY"
-day-clone -d "$ANALYSIS_ID" -t 10.0.69
-```
-
-`-t` is the short form of `--git-tag`; `-d` is the short form of the required `--destination`. For operator-launched analyses, do not omit `--git-tag`/`-t`: resolve the intended DayOA release tag first, record it in the ledger, and pass it explicitly. When `--git-tag`/`-t` is omitted, `day-clone` falls back to the selected repository's `default_ref`; that fallback is for catalog implementation behavior, not live analysis runbooks. The checkout lands at `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`, where `relative_path` comes from the catalog row.
-
-The DayOA catalog row uses `clone_transport: ssh` with `auth_mode: aws_deploy_key`.
-Cluster config must set explicit `dayoa_deploy_key_secret_arn` and
-`dayoa_deploy_key_policy_arn` values. DYEC validates the shared read-only
-`DayECHeadnodeGitHubClone` policy for the
-`dayec/github-deploy-keys/lsmc-bio*` Secrets Manager namespace, attaches it only to
-the headnode, and writes only the configured non-secret secret ARN/region to the
-headnode. The policy deliberately omits secret listing and compute-node access;
-repository-to-secret mappings remain explicit. `day-clone` retrieves the selected
-key for one Git operation, uses strict pinned GitHub host keys, and removes the
-temporary mode-`0600` key on every exit path.
-Authentication failures do not fall back to HTTPS, ambient SSH keys, or Git bundles.
-
-The DYEC launch equivalent is also explicit: pass `--git-tag <dayoa_version>` to `dyec workflow launch` or `dyec samples run`. Do not rely on their default `--git-tag` value for new analyses.
-
-Catalog command classes:
-
-- `utility`: no sample or run inputs, usually used for smoke tests.
-- `sample_analysis`: consumes `analysis_samples.tsv` under an explicit catalog contract. DayOA 12 commands stage specimens/samples/libraries; commands pinned before DayOA 12 may explicitly retain the legacy samples/units contract.
-- `run_analysis`: consumes `runs.tsv` and requires a matching `/fsx/run_dir_mounts/<mount_id>` input mount.
-
-Each command also declares `compatible_cluster_types`, using `daywgs` for the standard DayOA/Sentieon whole-genome clusters and `dragen` for DRAGEN f2 clusters.
-
-## Reference Bucket Contract
-
-The reference bucket is mounted to `/fsx/references` at cluster creation. It should contain:
-
-- organism references and indexes for supported genome builds
-- GIAB truth resources and high-confidence BEDs where concordance targets need them
-- slim sample read fixtures used by catalog validation
-- runtime assets that must be present before workflow activation, such as pinned tool installs, container caches, and licensed commercial tool assets
-- tool-specific resource directories for annotation, STR, contamination, metagenomics, or other optional targets
-
-DYEC does not choose alternate references at runtime. If a command catalog row points to a missing path, the launch should fail during staging, profile activation, or workflow execution with a clear missing-asset error.
-
-## Workflow controller target receipt
-
-Every successful `dyec workflow launch` emits the existing launch markers plus
-one `__DYEC_CONTROLLER_TARGET__=<json>` marker. The JSON schema is
-`dyec.controller_target.v1` and records the exact tmux controller ID and PID,
-analysis root, DayOA working directory, controller log, and stable DAG path.
-The same receipt is written atomically to
-`/home/ubuntu/daylily-runs/<session>/controller_target.json`.
-
-The receipt is launch evidence, not process discovery. DYEC does not infer a
-controller from a cluster name, a later `ps` search, or a path heuristic. The
-stable DAG file is populated only from the single new `dags/dag_*.png` emitted
-by this launch. A missing or ambiguous concrete DAG remains unavailable; DYEC
-does not substitute a rulegraph or choose a latest file. See
-[the controller target contract](docs/controller_target_contract.md).
-
-## Analysis-root status
-
-Use the exact analysis-root status command for DayOA runs that were launched in
-an interactive headnode tmux pane. From the activated local DYEC checkout:
-
-```bash
-dyec analysis status slim \
-  --profile lsmc \
-  --region us-west-2 \
-  --cluster <cluster> \
-  --analysis-root /fsx/analysis_results/<cluster>/<analysis-id>
-
-dyec --json analysis status full \
-  --profile lsmc \
-  --region us-west-2 \
-  --cluster <cluster> \
-  --analysis-root /fsx/analysis_results/<cluster>/<analysis-id>
-```
-
-`slim` reports the latest Snakemake step count and percentage, controller
-evidence, exact-`WorkDir` Slurm state counts, FSx capacity, failure markers,
-and canonical final-artifact presence. `full` adds exact-root job details,
-active stdout/stderr tail markers and bounded excerpts, matching tmux-pane
-evidence, completed benchmark runtime/cost fields when present, scoped `sacct`
-attempts, Lustre client/health evidence, recent rule logs, and bounded Glances
-point samples from nodes allocated to the exact run. `--tail-lines` defaults to
-inspecting 1000 lines in full mode; the returned evidence stays bounded so SSM
-transport does not truncate the report.
-
-The command records a `monitor` visit but does not acquire the write lock or
-alter the workflow, Slurm, nodes, or results. It fails if the requested root or
-DayOA child is missing. Missing Slurm, tmux, benchmark, log, or telemetry
-evidence is reported explicitly. `SUCCESS` requires complete Snakemake progress,
-all canonical final artifacts, an observed controller return code of zero, and
-no active exact-root controller or jobs. `COMPLETE_ARTIFACTS_RC_UNKNOWN` means
-the outputs exist but terminal controller success could not be proved.
-
-When already inside the supported Ubuntu headnode login shell, omit
-`--profile`, `--region`, and `--cluster` and provide the same exact
-`--analysis-root`.
-
-## HIOMRS per-library-unit status
-
-`dyec command sample-stats` is the strict, read-only command-family report for
-one exact HIOMRS kitchensink analysis root. The report name is required and is
-the sole top-level JSON key. The full v2 evidence semantics are documented in
-[the controller detail contract](docs/controller_detail_contract.md):
-
-```bash
-dyec --json command sample-stats hiomrs-kitchensink \
-  --name bjuice10-prevalidation \
-  --profile lsmc \
-  --region us-west-2 \
-  --cluster <cluster> \
-  --analysis-root /fsx/analysis_results/<cluster>/<analysis-id> \
-  --dag-output "$HOME/Downloads/bjuice10-rulegraph.png"
-```
-
-Omit the AWS target options when running inside the supported Ubuntu headnode
-login shell. `--dag-output` is optional, but when supplied it must name a new
-local file whose parent already exists. DYEC refuses to overwrite it. Local DAG
-copies and bounded SSM transfers are verified by byte count and SHA-256; DYEC
-does not use a mutable S3 staging object for this operation.
-
-The `dyec.command_sample_stats.v2` JSON retains all v1 fields and records
-cluster/AZ identity, run start/runtime/generated timestamps,
-tmux sessions, exact DayOA and DYEC versions, catalog key/version, non-secret
-DayOA environment variables, expected `dy-a` plus `dy-r` commands, observed
-controller commands, unique retried-job evidence, cluster/project budget
-evidence, completed benchmark cost, TSV row counts, workflow job state counts,
-ONT aligned-read-length and ILMN insert-size summaries, final MultiQC state, and
-the source-backed per-library-unit table. It additionally reports strict
-terminal evidence, source-specific submitted/completed/failed/running/pending/
-still-to-run/dependency-blocked counts, exact per-milestone scheduler and log
-provenance, source-backed full wall time, nullable DAG-critical-path time, exact
-unit benchmark cost, hybrid-SV fallback provenance, and all emitted
-observed-sex evidence. The human rendering includes:
-
-- authoritative `ANALYSIS_UNIT_UID` and overall configured-milestone percent;
-- SR/LR CRAM, hybrid SNV gVCF, hybrid SV VCF, hybrid CNV VCF, SegDup target
-  count, and ExpansionHunter VCF state;
-- required/observed gender, contamination, and ILMN/ONT mean and median
-  coverage;
-- final QC disposition, package-ready/delivered state, optional GIAB-HC SNV
-  F-score, specimen type, sample use, explicit order type, and relatives.
-
-A completed artifact cell is its whole-second UTC modification time. An active
-matching rule is `running <elapsed>`, terminal exact-root failure evidence is
-`failed`, and an unstarted artifact is `pending`. Values missing from their
-authoritative TSV, metadata JSON, QC file, or report stay null with source/state
-evidence; identifiers and operational metadata are never inferred or silently
-normalized. With DayOA `12.0.0`, the Mito milestone is the native HIOMRS
-`<analysis-unit>.mito.vcf.gz` artifact and participates in the configured unit
-completion denominator. Missing, running, and failed mitochondrial calls use
-the same explicit states as the other artifact milestones.
-
-The initial selector is exactly `hiomrs-kitchensink`, mapped to catalog key
-`hybrid_ilmn_ont_hiomrs_kitchensink`. `bjuice-v1` fails clearly until its own
-artifact contract is implemented; there is no compatibility fallback.
-
-## Provider-neutral operation
-
-DYEC is a standalone cluster, workflow-staging, monitoring, and immutable S3
-export tool. It does not call an identity service or metadata service, does not
-create or resolve production identities, and does not require a service URL or
-token. Upstream systems and human operators may invoke the same CLI contract.
-Owner-issued identifiers are accepted only as local manifest or receipt data;
-blank identifiers and reserved `Z-` test identifiers remain valid for ordinary
-analysis, while customer-release eligibility requires non-test owner-issued
-identities.
-
-An immutable S3 export produces a provider-neutral local receipt. Registration,
-delivery, and downstream service ingestion are separate responsibilities and
-are not performed by DYEC.
-
-Keep the two supported live cluster families explicit in launch metadata; they
-are not interchangeable:
-
-- Standard DayOA/Sentieon cluster: command catalog rows declare
-  `compatible_cluster_types: [daywgs]`; launch through the standard Ubuntu
-  cluster path and keep DayOA workflow execution inside the supported
-  `day-clone`, `dy-a`, and `dy-r` path.
-- DRAGEN RHEL/f2 cluster: command catalog rows declare
-  `compatible_cluster_types: [dragen]`; create with
-  `dyec create --profile lsmc --region-az us-west-2c --cluster-type rhel` or a
-  verified equivalent RHEL/f2 AZ, then run native DRAGEN work on the DRAGEN
-  Slurm partition.
-
-An upstream orchestration system may persist these fields for each
-cluster-backed workset without changing DYEC's standalone contract:
-
-- AWS profile: usually `lsmc`
-- AWS region: usually `us-west-2`
-- Cluster name: for example `dragain9b`
-- Cluster family: `daywgs` or `dragen`
-- Cluster type used at creation: for example `rhel` for DRAGEN
-- DayOA/DYEC git tag or ref used for launched workflows
-- Cost-center or Slurm comment used for submitted jobs
-
-Useful inspect and supported post-create commands:
-
-```bash
-dyec cluster-info --profile lsmc --region us-west-2
-dyec headnode jobs --profile lsmc --region us-west-2 --cluster <cluster>
-dyec headnode connect --profile lsmc --region us-west-2 --cluster <cluster>
-dyec headnode configure --profile lsmc --region us-west-2 --cluster <standard-ubuntu-cluster>
-dyec headnode configure-dragen --profile lsmc --region us-west-2 --cluster <rhel-dragen-cluster>
-```
-
-Do not silently reroute a workset from one family to the other. If a requested
-command's `compatible_cluster_types` does not match the selected cluster, fail
-the launch with the mismatch and require an operator decision. Likewise, do not
-fall back from a missing RHEL DRAGEN template or AMI to another AZ, AMI, or
-cluster type without an explicit operator request.
-
-Before deleting either cluster family, verify the export receipt, expected S3
-objects, and any run-specific S3 syncs. For DRAGEN clusters created with
-`Auto delete FSx [Delete]`, `dyec delete` removes the FSx file system with the
-cluster, so deletion requires explicit approval of that data-loss boundary:
-
-```bash
-dyec delete --dry-run --profile lsmc --region us-west-2 --cluster-name <cluster>
-dyec delete --profile lsmc --region us-west-2 --cluster-name <cluster>
-```
-
-## Contributing
-
-When adding a runnable pipeline repository:
-
-- add a repository row to the command catalog with a pinned `default_ref`
-- verify `day-clone --repository <repo-key> --destination <analysis-id> --git-tag <ref>` produces the intended checkout path
-- add explicit command rows for supported launch profiles
-- declare input contract, required columns, genome build, targets, jobs, and runtime parameters
-- make the repository write all durable outputs below `/fsx/analysis_results/<executing_entity>/<analysis_id>`
-- document export-relevant reports, logs, benchmarks, and manifests
-- add tests for catalog rendering, command validation, and dry-run behavior where possible
-- avoid compatibility aliases, inferred defaults, or fallback command paths
-
-Historical plans and terminal working docs live under `docs/jem_working_docs/`. Active ledgers remain in `docs/plans/`.
-
-## Further Reading
-
-- [Quickest Start](docs/quickest_start.md)
-- [CLI Reference](docs/cli_reference.md)
-- [Pipeline Manager Launches](docs/pipeline_manager_launches.md)
-- [DRA and FSx Strategy](docs/dra_fsx_strategy.md)
-- [HG003 Benchmarking And Costs](docs/hg003_benchmarking_and_costs.md)
-- [Working Docs Archive Index](docs/jem_working_docs/INDEX.md)
+Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. For a breaking CLI/docs release after `13.x`, cut `14.0.0` on a clean release commit.
