@@ -869,9 +869,9 @@ dyec --json tests command-catalog-performance \
 Package releases use numeric annotated tags with no leading `v`:
 
 ```bash
-git tag -a 14.0.0 -m "Release 14.0.0"
-git cat-file -t 14.0.0
-git push origin 14.0.0
+git tag -a <next-version> -m "Release <next-version>"
+git cat-file -t <next-version>
+git push origin <next-version>
 ```
 
 `git cat-file -t <tag>` must return `tag`, not `commit`.

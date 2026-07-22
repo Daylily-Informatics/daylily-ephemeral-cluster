@@ -86,7 +86,7 @@ echo "DAY-EC headnode readiness validated"
 DAYLILY_HEADNODE_READINESS
 chmod 700 "$readiness_script"
 cd "$repo_dir"
-script -q -c "bash -il '$readiness_script'" /dev/null
+script -q -c "bash '$readiness_script'" /dev/null
 """
 
 

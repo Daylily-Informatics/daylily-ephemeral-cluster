@@ -357,4 +357,4 @@ python -m pytest tests/test_cli_registry_v2.py -q
 git diff --check
 ```
 
-Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. For a breaking CLI/docs release after `13.x`, cut `14.0.0` on a clean release commit.
+Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. For a breaking CLI/docs release after `13.x`, cut the next unclaimed `14.x` tag on a clean release commit.

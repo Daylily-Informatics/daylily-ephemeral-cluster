@@ -19,7 +19,8 @@ from daylily_ec.headnode_readiness import (
 def test_readiness_script_requires_day_ec_tools_and_fsx_reference_assets():
     script = build_headnode_readiness_script()
 
-    assert 'script -q -c "bash -il' in script
+    assert 'script -q -c "bash ' in script
+    assert 'script -q -c "bash -il' not in script
     assert 'test "$(id -un)" = ubuntu' in script
     assert "DAYLILY_EC_HEADNODE_BOOTSTRAPPED" in script
     assert "CONDA_DEFAULT_ENV:-}" in script

@@ -164,9 +164,11 @@ class TestRunShell:
         sent = client.send_command.call_args.kwargs
         assert sent["DocumentName"] == "AWS-RunShellScript"
         assert 'chown ubuntu "$tmp"' in sent["Parameters"]["commands"][0]
-        assert "sudo -iu ubuntu bash -ilc" in sent["Parameters"]["commands"][0]
+        assert "sudo -iu ubuntu env" in sent["Parameters"]["commands"][0]
+        assert "DAYLILY_SSM_SCRIPT=\"$tmp\"" in sent["Parameters"]["commands"][0]
+        assert "bash -ilc" in sent["Parameters"]["commands"][0]
         assert "source ~/.bashrc" in sent["Parameters"]["commands"][0]
-        assert 'source "$1"' in sent["Parameters"]["commands"][0]
+        assert 'source "$DAYLILY_SSM_SCRIPT"' in sent["Parameters"]["commands"][0]
         assert sent["Parameters"]["commands"][0].startswith("set -eu\n")
         encoded = sent["Parameters"]["commands"][0].split("DAYLILY_SSM_B64=")[1].split("\n", 1)[0]
         decoded = base64.b64decode(encoded).decode("utf-8")
@@ -197,7 +199,9 @@ class TestRunShell:
         sent = client.send_command.call_args.kwargs
         command = sent["Parameters"]["commands"][0]
         assert 'chown ec2-user "$tmp"' in command
-        assert "sudo -iu ec2-user bash -ilc" in command
+        assert "sudo -iu ec2-user env" in command
+        assert "DAYLILY_SSM_SCRIPT=\"$tmp\"" in command
+        assert "bash -ilc" in command
         assert "source ~/.bashrc" in command
         encoded = command.split("DAYLILY_SSM_B64=")[1].split("\n", 1)[0]
         decoded = base64.b64decode(encoded).decode("utf-8")
@@ -235,7 +239,9 @@ class TestRunShell:
         assert result.command_id == "cmd-1"
         client.describe_instance_information.assert_called_once()
         sent = client.send_command.call_args.kwargs
-        assert "sudo -iu ec2-user bash -ilc" in sent["Parameters"]["commands"][0]
+        assert "sudo -iu ec2-user env" in sent["Parameters"]["commands"][0]
+        assert "DAYLILY_SSM_SCRIPT=\"$tmp\"" in sent["Parameters"]["commands"][0]
+        assert "bash -ilc" in sent["Parameters"]["commands"][0]
         assert "source ~/.bashrc" in sent["Parameters"]["commands"][0]
 
     @patch("daylily_ec.aws.ssm.time.sleep", return_value=None)

@@ -231,20 +231,26 @@ def _session_shell_profile(as_user: str) -> str:
     )
 
 
-def _bash_login_interactive_source_bashrc_invocation(script_arg: str) -> str:
-    """Return a bash command that runs *script_arg* in the required headnode context."""
+def _bash_login_interactive_source_bashrc_invocation(script_value: str) -> str:
+    """Return a bash command that runs *script_value* in the required headnode context.
+
+    ``script_value`` is a shell expression, normally ``"$tmp"`` from the
+    transport wrapper.  Keep it out of bash ``-c`` positional arguments:
+    login/interactive startup files may inspect or mutate positional parameters,
+    but they should not be able to hide the script path that SSM must execute.
+    """
 
     bootstrap = (
         "if [[ -f ~/.bashrc ]]; then source ~/.bashrc; fi; "
-        'source "$1"'
+        'source "$DAYLILY_SSM_SCRIPT"'
     )
     return " ".join(
         [
+            "env",
+            f"DAYLILY_SSM_SCRIPT={script_value}",
             "bash",
             "-ilc",
             shlex.quote(bootstrap),
-            "bash",
-            script_arg,
         ]
     )
 
@@ -338,9 +344,10 @@ def _encode_script_payload(script: str, *, as_user: str) -> str:
         "path = pathlib.Path(os.environ['DAYLILY_SSM_TMP']); "
         "path.write_text(base64.b64decode(os.environ['DAYLILY_SSM_B64']).decode('utf-8'), encoding='utf-8')"
     )
+    script_env_value = '"$tmp"'
     runner = (
         f"sudo -iu {shlex.quote(user)} "
-        f"{_bash_login_interactive_source_bashrc_invocation('$tmp')}"
+        f"{_bash_login_interactive_source_bashrc_invocation(script_env_value)}"
     )
     return "\n".join(
         [
