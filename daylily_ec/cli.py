@@ -3967,7 +3967,7 @@ def headnode_upload(
             profile=resolved_profile,
             as_user=remote_user,
             timeout=timeout,
-            comment=f"DYEC headnode upload to {remote_path}",
+            comment="DYEC headnode upload",
         )
     except SsmCommandFailedError as exc:
         if exc.result.stderr.strip():
@@ -4091,7 +4091,7 @@ def headnode_download(
             profile=resolved_profile,
             as_user=remote_user,
             timeout=timeout,
-            comment=f"DYEC headnode download from {remote_path}",
+            comment="DYEC headnode download",
         )
         destination = local_path.expanduser()
         if recursive:

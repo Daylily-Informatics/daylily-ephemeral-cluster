@@ -213,7 +213,7 @@ def test_headnode_upload_uses_s3_relay_and_ssm(monkeypatch, tmp_path) -> None:
     assert region == "us-west-2"
     assert "aws s3 cp" in script
     assert "/home/ubuntu/payload.txt" in script
-    assert kwargs["comment"] == "DYEC headnode upload to /home/ubuntu/payload.txt"
+    assert kwargs["comment"] == "DYEC headnode upload"
 
 
 def test_headnode_download_recursive_uses_s3_relay_and_ssm(monkeypatch, tmp_path) -> None:
@@ -252,7 +252,7 @@ def test_headnode_download_recursive_uses_s3_relay_and_ssm(monkeypatch, tmp_path
     s3_calls = calls["s3_cp"]
     assert s3_calls[-1][0][0] == "--recursive"
     assert s3_calls[-1][0][-1] == str(destination)
-    assert kwargs["comment"] == "DYEC headnode download from /fsx/reports"
+    assert kwargs["comment"] == "DYEC headnode download"
 
 
 def test_cli_spec_uses_platform_v2_runtime() -> None:
