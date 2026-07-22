@@ -42,6 +42,7 @@ UNVALIDATED_COMMAND_IDS = {
     "ont_snv_alignstats_kitchensink",
     "hybrid_ilmn_ont_hiomrs",
     "hybrid_ilmn_ont_hiomrs_kitchensink",
+    "package_inflection_hybrid_data",
     "betelgeuser_hiomr_prod_v1",
     "inflection-bjuice-product-v0.2",
     "illumina_pangenome_snv",
@@ -670,6 +671,26 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert excluded not in hybrid_kitchensink.dy_command.lower()
     assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
         hybrid_kitchensink.input_requirements.accepted_source_column_sets
+    )
+
+    package_inflection = catalog.get_command("package_inflection_hybrid_data")
+    assert package_inflection.type == "dev"
+    assert package_inflection.validated_version == "13.0.19"
+    assert package_inflection.git_tag == "13.0.19"
+    assert package_inflection.input_contract == "six_manifest"
+    assert package_inflection.targets == ["produce_inflection_delivery_set"]
+    assert package_inflection.jobs == 400
+    assert package_inflection.keep_going is True
+    assert package_inflection.restart_times == 0
+    assert package_inflection.aligners == ["sent"]
+    assert package_inflection.dedupers == ["na"]
+    assert package_inflection.snv_callers == ["hiomrs"]
+    assert package_inflection.sv_callers == ["tiddit"]
+    assert package_inflection.dy_command.startswith("dy-r produce_inflection_delivery_set")
+    assert package_inflection.dryrun_dy_command == f"{package_inflection.dy_command} -n"
+    assert "produce_hiomrs" not in package_inflection.targets
+    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
+        package_inflection.input_requirements.accepted_source_column_sets
     )
 
     inflection_bjuice = catalog.get_command("inflection-bjuice-product-v0.2")

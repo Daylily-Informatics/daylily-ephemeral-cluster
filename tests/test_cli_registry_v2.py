@@ -48,6 +48,7 @@ EXPECTED_COMMANDS = {
     ("identities", "evidence"),
     ("delete",),
     ("resources-dir",),
+    ("agent", "guidance"),
     ("env", "status"),
     ("env", "activate"),
     ("env", "deactivate"),
@@ -79,6 +80,8 @@ EXPECTED_COMMANDS = {
     ("headnode", "connect"),
     ("headnode", "info"),
     ("headnode", "jobs"),
+    ("headnode", "upload"),
+    ("headnode", "download"),
     ("headnode", "configure"),
     ("headnode", "configure-dragen"),
     ("samples", "stage"),
@@ -134,6 +137,111 @@ def _patch_headnode_selection(
     )
 
 
+def _patch_headnode_transfer_common(monkeypatch, calls: dict[str, object]) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda cluster, region, profile=None: HeadNodeTarget(cluster, region, "i-abc123"),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+
+    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+        calls["run_shell"] = (instance_id, region, script, kwargs)
+        return SsmCommandResult("cmd-1", instance_id, "Success", 0, "ok\n", "")
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+
+    def fake_s3_cp(args, *, profile: str, region: str):
+        calls.setdefault("s3_cp", []).append((list(args), profile, region))
+
+    monkeypatch.setattr(cli_module, "_run_aws_s3_cp", fake_s3_cp)
+
+
+def test_headnode_upload_uses_s3_relay_and_ssm(monkeypatch, tmp_path) -> None:
+    calls: dict[str, object] = {}
+    _patch_headnode_transfer_common(monkeypatch, calls)
+    source = tmp_path / "payload.txt"
+    source.write_text("hello\n", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "headnode",
+            "upload",
+            str(source),
+            "/home/ubuntu/payload.txt",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--staging-s3-uri",
+            "s3://bucket/transfers",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout + result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["direction"] == "upload"
+    assert payload["staging_s3_uri"].startswith(
+        "s3://bucket/transfers/dyec-headnode-transfer/cluster-a/"
+    )
+    s3_calls = calls["s3_cp"]
+    assert s3_calls[0][0][0] == str(source)
+    assert s3_calls[0][0][1].startswith("s3://bucket/transfers/")
+    instance_id, region, script, kwargs = calls["run_shell"]
+    assert instance_id == "i-abc123"
+    assert region == "us-west-2"
+    assert "aws s3 cp" in script
+    assert "/home/ubuntu/payload.txt" in script
+    assert kwargs["comment"] == "DYEC headnode upload to /home/ubuntu/payload.txt"
+
+
+def test_headnode_download_recursive_uses_s3_relay_and_ssm(monkeypatch, tmp_path) -> None:
+    calls: dict[str, object] = {}
+    _patch_headnode_transfer_common(monkeypatch, calls)
+    destination = tmp_path / "downloaded"
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "headnode",
+            "download",
+            "-r",
+            "/fsx/reports",
+            str(destination),
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--staging-s3-uri",
+            "s3://bucket/transfers",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout + result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["direction"] == "download"
+    instance_id, region, script, kwargs = calls["run_shell"]
+    assert instance_id == "i-abc123"
+    assert region == "us-west-2"
+    assert "test -d /fsx/reports" in script
+    assert "aws s3 cp --recursive /fsx/reports" in script
+    s3_calls = calls["s3_cp"]
+    assert s3_calls[-1][0][0] == "--recursive"
+    assert s3_calls[-1][0][-1] == str(destination)
+    assert kwargs["comment"] == "DYEC headnode download from /fsx/reports"
+
+
 def test_cli_spec_uses_platform_v2_runtime() -> None:
     assert spec.policy.profile == "platform-v2"
     assert spec.runtime is not None
@@ -145,6 +253,16 @@ def test_cli_spec_uses_platform_v2_runtime() -> None:
         "day-ec-conda-active-env": "warn",
         "day-ec-conda-env-name": "warn",
     }
+
+
+def test_agent_guidance_json() -> None:
+    result = runner.invoke(app, ["--json", "agent", "guidance"])
+
+    assert result.exit_code == 0, result.stdout + result.stderr
+    payload = json.loads(result.stdout)
+    assert "raw Snakemake" in payload["summary"]
+    assert any("headnode upload" in item for item in payload["headnode_file_transfer"])
+    assert any("dy-r" in item for item in payload["dayoa_controller_contract"])
 
 
 def test_main_propagates_command_return_code(monkeypatch, tmp_path) -> None:
@@ -214,10 +332,13 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     runtime_status_cmd = registry.get_command(("runtime", "status"))
     runtime_check_cmd = registry.get_command(("runtime", "check"))
     runtime_explain_cmd = registry.get_command(("runtime", "explain"))
+    agent_guidance_cmd = registry.get_command(("agent", "guidance"))
     headnode_init_cmd = registry.get_command(("headnode", "init"))
     headnode_connect_cmd = registry.get_command(("headnode", "connect"))
     headnode_info_cmd = registry.get_command(("headnode", "info"))
     headnode_jobs_cmd = registry.get_command(("headnode", "jobs"))
+    headnode_upload_cmd = registry.get_command(("headnode", "upload"))
+    headnode_download_cmd = registry.get_command(("headnode", "download"))
     headnode_configure_cmd = registry.get_command(("headnode", "configure"))
     headnode_configure_dragen_cmd = registry.get_command(("headnode", "configure-dragen"))
     samples_stage_cmd = registry.get_command(("samples", "stage"))
@@ -335,6 +456,10 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
         assert runtime_cmd.policy.supports_json is True
         assert runtime_cmd.policy.runtime_guard == "exempt"
 
+    assert agent_guidance_cmd is not None
+    assert agent_guidance_cmd.policy.supports_json is True
+    assert agent_guidance_cmd.policy.runtime_guard == "exempt"
+
     assert headnode_init_cmd is not None
     assert headnode_init_cmd.policy.mutates_state is True
     assert headnode_init_cmd.policy.interactive is True
@@ -349,6 +474,12 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert headnode_jobs_cmd is not None
     assert headnode_jobs_cmd.policy.runtime_guard == "required"
     assert headnode_jobs_cmd.policy.mutates_state is False
+
+    for transfer_cmd in (headnode_upload_cmd, headnode_download_cmd):
+        assert transfer_cmd is not None
+        assert transfer_cmd.policy.supports_json is True
+        assert transfer_cmd.policy.long_running is True
+        assert transfer_cmd.policy.mutates_state is False
 
     assert headnode_configure_cmd is not None
     assert headnode_configure_cmd.policy.mutates_state is True

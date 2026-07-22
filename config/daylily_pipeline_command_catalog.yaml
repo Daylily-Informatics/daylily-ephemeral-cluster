@@ -304,7 +304,7 @@ repositories:
     auth_mode: aws_deploy_key
     https_url: https://github.com/lsmc-bio/daylily-omics-analysis.git
     ssh_url: git@github.com:lsmc-bio/daylily-omics-analysis.git
-    default_ref: 13.0.16
+    default_ref: 13.0.19
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: simple-test
@@ -1128,7 +1128,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.16
+        git_tag: 13.0.19
         no_containerized: false
       - command_id: hybrid_ilmn_ont_hiomrs_kitchensink
         type: dev
@@ -1184,7 +1184,49 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.16
+        git_tag: 13.0.19
+        no_containerized: false
+      - command_id: package_inflection_hybrid_data
+        type: dev
+        validated_version: 13.0.19
+        test_data_profile: hg003_hiomrs_1x_raw_fastq
+        manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
+        display_name: "Package Inflection Hybrid Data"
+        description: "Package completed Hybrid ILMN+ONT HIOMRS outputs into the Inflection/SeqOne-style delivery set, including package manifests, QC evidence, and final delivery-set materialization. This command is intended for already-computed HIOMRS analysis roots and should dry-run cleanly without scheduling alignment or core variant-calling work."
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_R1_FQ]
+        targets:
+          - produce_inflection_delivery_set
+        genome: hg38
+        jobs: 400
+        keep_going: true
+        restart_times: 0
+        aligners:
+          - sent
+        dedupers:
+          - na
+        snv_callers:
+          - hiomrs
+        sv_callers:
+          - tiddit
+        dy_command: "dy-r produce_inflection_delivery_set --config 'aligners=[\"sent\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[\"tiddit\"]' -j 400 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
+        dryrun_dy_command: "dy-r produce_inflection_delivery_set --config 'aligners=[\"sent\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[\"tiddit\"]' -j 400 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n"
+        compatible_platforms:
+          - ILMN
+          - ONT
+        compatible_cluster_types:
+          - sentieon-single
+        compatible_data_modes:
+          - hybrid_ilmn_ont
+        git_tag: 13.0.19
         no_containerized: false
       - command_id: betelgeuser_hiomr_prod_v1
         type: prod
@@ -1239,7 +1281,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.16
+        git_tag: 13.0.19
         no_containerized: false
       - command_id: inflection-bjuice-product-v0.2
         type: dev
@@ -1287,7 +1329,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.16
+        git_tag: 13.0.19
         no_containerized: false
       - command_id: complete_genomics_mgi_snv_concordance
         type: dev
