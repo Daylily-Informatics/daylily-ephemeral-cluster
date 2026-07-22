@@ -1248,7 +1248,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     run_context_projection_python = shlex.quote(BCL_RUN_CONTEXT_PROJECTION_SCRIPT)
     bclconvert_profile_patch_python = shlex.quote(BCLCONVERT_PROFILE_PATCH_SCRIPT)
     pipeline_script = f"""
-set -euo pipefail
+set +e +u
+set +o pipefail 2>/dev/null || true
 if [[ "$(id -un)" != "ubuntu" ]]; then
   echo "__DAYLILY_ERROR__=wrong_user"
   exit 6
@@ -2419,6 +2420,25 @@ if [[ -z "${{PUPPETEER_EXECUTABLE_PATH:-}}" && -x "$MERMAID_CHROME" ]]; then
   export PUPPETEER_EXECUTABLE_PATH="$MERMAID_CHROME"
 fi
 
+ensure_dayoa_shortcuts() {{
+  if [[ -f "bin/day_activate" ]]; then
+    day-activate() {{
+      source bin/day_activate "$@"
+    }}
+    dy-a() {{
+      source bin/day_activate "$@"
+    }}
+  fi
+  if [[ -x "bin/day_run" || -f "bin/day_run" ]]; then
+    day-run() {{
+      bin/day_run "$@"
+    }}
+    dy-r() {{
+      bin/day_run "$@"
+    }}
+  fi
+}}
+
 run_dy_command() {{
   local command="$1"
   local dyoainit_source_needed=false
@@ -2435,15 +2455,16 @@ run_dy_command() {{
     set --
     source dyoainit
     local source_status=$?
-    set -u
+    set +u
     if [[ "$source_status" != "0" ]]; then
       return "$source_status"
     fi
+    ensure_dayoa_shortcuts
   fi
   set +u
   eval "$command"
   local command_status=$?
-  set -u
+  set +u
   return "$command_status"
 }}
 
@@ -2462,18 +2483,17 @@ if [[ "$DEFAULT_ACTIVATION" == "true" ]]; then
   set +u
   source dyoainit "${{dyoa_args[@]}}"
   init_status=$?
-  set -u
-  set -e
+  set +u
   if [[ "$init_status" != "0" ]]; then
     echo "[ERROR] dyoainit failed with status $init_status"
     exit "$init_status"
   fi
+  ensure_dayoa_shortcuts
   set +e
   set +u
   dy-a slurm {shlex.quote(args.genome)}
   activate_status=$?
-  set -u
-  set -e
+  set +u
   if [[ "$activate_status" != "0" ]]; then
     echo "[ERROR] dy-a failed with status $activate_status"
     exit "$activate_status"
@@ -2560,16 +2580,14 @@ fi
 	monitor_controller_dag &
 	controller_dag_monitor_pid=$!
 	set +e
-	run_dy_command "$DY_COMMAND"
+run_dy_command "$DY_COMMAND"
 workflow_status=$?
-set -e
 	touch "$controller_dag_stop"
 	set +e
 	wait "$controller_dag_monitor_pid"
 	controller_dag_monitor_status=$?
 	sync_controller_dag
 	controller_dag_sync_status=$?
-	set -e
 	if [[ "$controller_dag_monitor_status" -eq 2 || "$controller_dag_sync_status" -eq 2 ]]; then
 	  echo "[ERROR] Controller DAG evidence was ambiguous or could not be copied"
 	  [[ "$workflow_status" -ne 0 ]] || workflow_status=24
@@ -2602,7 +2620,6 @@ if [[ "$should_export" == "true" ]]; then
         --destination-s3-uri "$EXPORT_DESTINATION_S3_URI" \
         --output-dir "$DAYLILY_RUN_DIR/export"
       export_status=$?
-      set -e
       if [[ "$export_status" -ne 0 ]]; then
         echo "[ERROR] Export failed with status $export_status"
         workflow_status="$export_status"
@@ -2665,7 +2682,7 @@ chmod 0700 "$work_script"
 """
 
     tmux_script = f"""
-set -euo pipefail
+set +e +u
 SESSION_NAME={shlex.quote(args.session_name)}
 ANALYSIS_ID={shlex.quote(analysis_id)}
 EXECUTING_ENTITY={shlex.quote(executing_entity)}
@@ -2749,16 +2766,65 @@ if [[ -e "$clone_root" ]]; then
   echo "__DAYLILY_REPLACED_ANALYSIS_DIR__=$clone_root"
 fi
 {work_script_materialization}
-printf '%s\n' \
-  '#!/usr/bin/env bash' \
-  'if [[ -f ~/.bashrc ]]; then' \
-  '  source ~/.bashrc' \
-  'fi' \
-  'source "$DAYLILY_WORK_SCRIPT" >>"$DAYLILY_TMUX_LOG" 2>&1' \
-  >"$tmux_entrypoint"
+{{
+  printf '%s\n' '#!/usr/bin/env bash' 'set +e +u'
+  printf 'export DAYLILY_RUN_DIR=%q\n' "$run_dir"
+  printf 'export DAYLILY_REPO_PATH=%q\n' "$repo_path"
+  printf 'export DAYLILY_TMUX_LOG=%q\n' "$tmux_log"
+  printf 'export DAYLILY_TMUX_SESSION=%q\n' "$tmux_session_name"
+  printf 'export DAYLILY_CONTROLLER_TARGET_FILE=%q\n' "$controller_target_file"
+  printf 'export DAYLILY_CONTROLLER_LOG_PATH=%q\n' "$controller_log_path"
+  printf 'export DAYLILY_CONTROLLER_DAG_PATH=%q\n' "$controller_dag_path"
+  printf 'export DAYLILY_WORK_SCRIPT=%q\n' "$work_script"
+  printf '%s\n' \
+    'export DAYLILY_TMUX_LOGIN_INTERACTIVE_FLAGS="$-"' \
+    'for f in ~/.bash_profile ~/.bash_login ~/.profile; do' \
+    '  if [[ -f "$f" ]]; then' \
+    '    source "$f" || true' \
+    '    break' \
+    '  fi' \
+    'done' \
+    'if [[ -f ~/.bashrc ]]; then' \
+    '  source ~/.bashrc || true' \
+    'fi' \
+    'set +e +u' \
+    'set +e' \
+    'bash "$DAYLILY_WORK_SCRIPT" >>"$DAYLILY_TMUX_LOG" 2>&1' \
+    'DAYLILY_WORK_SCRIPT_RC=$?' \
+    'echo "[DYEC] controller script exited rc=$DAYLILY_WORK_SCRIPT_RC; preserving tmux shell for inspection" | tee -a "$DAYLILY_TMUX_LOG"' \
+    'export DAYLILY_LAST_CONTROLLER_RC="$DAYLILY_WORK_SCRIPT_RC"' \
+    'exec bash --login --interactive'
+}} >"$tmux_entrypoint"
 chmod 0700 "$tmux_entrypoint"
-nohup tmux new-session -d -s "$tmux_session_name" \
-  "env DAYLILY_RUN_DIR=\"$run_dir\" DAYLILY_REPO_PATH=\"$repo_path\" DAYLILY_TMUX_LOG=\"$tmux_log\" DAYLILY_TMUX_SESSION=\"$tmux_session_name\" DAYLILY_CONTROLLER_TARGET_FILE=\"$controller_target_file\" DAYLILY_CONTROLLER_LOG_PATH=\"$controller_log_path\" DAYLILY_CONTROLLER_DAG_PATH=\"$controller_dag_path\" DAYLILY_WORK_SCRIPT=\"$work_script\" bash -il \"$tmux_entrypoint\"" >"$bootstrap_log" 2>&1 &
+tmux new-session -d -s "$tmux_session_name" >"$bootstrap_log" 2>&1
+tmux_start_rc=$?
+if [[ "$tmux_start_rc" != "0" ]]; then
+  echo "__DAYLILY_ERROR__=tmux_start_failed"
+  sed -n '1,200p' "$bootstrap_log" || true
+  exit "$tmux_start_rc"
+fi
+tmux_pane_target="$tmux_session_name:0.0"
+tmux_pane_ready=false
+for _dyec_tmux_wait in $(seq 1 60); do
+  if tmux list-panes -t "$tmux_session_name:0" >/dev/null 2>>"$bootstrap_log"; then
+    tmux_pane_ready=true
+    break
+  fi
+  sleep 1
+done
+if [[ "$tmux_pane_ready" != "true" ]]; then
+  echo "__DAYLILY_ERROR__=tmux_pane_start_timeout"
+  sed -n '1,200p' "$bootstrap_log" || true
+  exit 9
+fi
+tmux_command="source $(printf '%q' "$tmux_entrypoint")"
+tmux send-keys -t "$tmux_pane_target" "$tmux_command" C-m >>"$bootstrap_log" 2>&1
+tmux_send_rc=$?
+if [[ "$tmux_send_rc" != "0" ]]; then
+  echo "__DAYLILY_ERROR__=tmux_send_failed"
+  sed -n '1,200p' "$bootstrap_log" || true
+  exit "$tmux_send_rc"
+fi
 
 emit_controller_target() {{
   if [[ ! -s "$controller_target_file" ]]; then

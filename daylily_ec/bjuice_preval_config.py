@@ -136,6 +136,7 @@ MANIFEST_COLUMNS: Mapping[str, tuple[str, ...]] = {
 }
 
 SAFE_LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9-]*$")
+DAYOA_READ_GROUP_LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9-]*$")
 S3_FASTQ_SUFFIX = ".fastq.gz"
 DEFAULT_FSX_RUN_MOUNT_ROOT = "/fsx/run_dir_mounts"
 DEFAULT_ONT_FSX_ROOT = "/fsx/run_dir_mounts/pca100-2026"
@@ -258,6 +259,25 @@ def _safe_label(value: str, *, field_name: str) -> str:
             f"{field_name} must match {SAFE_LABEL_RE.pattern}; found {value!r}"
         )
     return text
+
+
+def _dayoa_read_group_label(value: str, *, field_name: str) -> str:
+    """Return a DayOA-safe SQ/RU/EX/LANE label without changing source identity.
+
+    DayOA currently rejects dots and underscores in read-group-like fields. Bjuice
+    source run IDs legitimately contain those characters, so the launch helper
+    emits deterministic workflow-safe labels while preserving the raw run IDs in
+    source paths, comments, and the generation receipt.
+    """
+
+    text = str(value or "").strip()
+    normalized = re.sub(r"[^A-Za-z0-9-]+", "-", text).strip("-")
+    normalized = re.sub(r"-+", "-", normalized)
+    if not DAYOA_READ_GROUP_LABEL_RE.fullmatch(normalized):
+        raise BjuiceConfigError(
+            f"{field_name} cannot be converted to a DayOA-safe label from {value!r}"
+        )
+    return normalized
 
 
 def _index_one(rows: Sequence[Mapping[str, str]], field: str) -> dict[str, Mapping[str, str]]:
@@ -435,6 +455,7 @@ def generate_bjuice_preval_manifests(
         raise BjuiceConfigError(f"expected exactly one ILMN run; found {len(ilmn_runs)}")
     ilmn_run = ilmn_runs[0]
     ilmn_run_id = str(ilmn_run["run_id"])
+    ilmn_run_label = _dayoa_read_group_label(ilmn_run_id, field_name="ILMN run_id")
     ilmn_prefix = source_uri_by_id[str(ilmn_run["prefix_source_id"])]
 
     session_kwargs: dict[str, str] = {}
@@ -563,7 +584,7 @@ def generate_bjuice_preval_manifests(
                 "LIBRARY_ID": ilmn_library_id,
                 "MODALITY": "sr",
                 "LAYOUT": "paired_fastq",
-                "RUNID": ilmn_run_id,
+                "RUNID": ilmn_run_label,
                 "EXPERIMENTID": analysis_label,
                 "LANEID": "L001-L008",
                 "BARCODEID": sample_id,
@@ -588,6 +609,7 @@ def generate_bjuice_preval_manifests(
         ont_receipts: list[dict[str, Any]] = []
         for mapping in mappings_by_sample.get(sample_id, []):
             run_id = str(mapping.get("run_id") or "").strip()
+            run_label = _dayoa_read_group_label(run_id, field_name=f"{sample_id} ONT run_id")
             barcode = str(mapping.get("barcode") or "").strip()
             run = runs_by_id.get(run_id)
             if not run or str(run.get("platform") or "").upper() != "ONT":
@@ -610,7 +632,7 @@ def generate_bjuice_preval_manifests(
             run_euid_by_name = dict(zip(run_names, run_euids))
             sequencing_run_euid = run_euid_by_name.get(run_id, "")
             input_ordinal += 1
-            input_uid = f"{sample_id}-ONT-{ont_library_euid}-{sequencing_run_euid or run_id}"
+            input_uid = f"{sample_id}-ONT-{ont_library_euid}-{sequencing_run_euid or run_label}"
             sequencing_inputs.append(
                 {
                     "SEQUENCING_INPUT_UID": input_uid,
@@ -620,7 +642,7 @@ def generate_bjuice_preval_manifests(
                     "LIBRARY_ID": ont_library_id,
                     "MODALITY": "lr",
                     "LAYOUT": "single_fastq",
-                    "RUNID": run_id,
+                    "RUNID": run_label,
                     "EXPERIMENTID": analysis_label,
                     "LANEID": str(run.get("position_id") or ""),
                     "BARCODEID": barcode,
@@ -628,8 +650,8 @@ def generate_bjuice_preval_manifests(
                     "SEQ_VENDOR": "ONT",
                     "ONT_R1_PATH": ",".join(ont_paths),
                     "SEQUENCING_INPUT_COMMENT": (
-                        f"{sample_id} ONT input generated from reviewed S3 prefix "
-                        f"{prefix_uri} and barcode {barcode}"
+                    f"{sample_id} ONT input generated from reviewed S3 prefix "
+                    f"{prefix_uri}, raw run ID {run_id}, and barcode {barcode}"
                     ),
                 }
             )
@@ -644,6 +666,7 @@ def generate_bjuice_preval_manifests(
             ont_receipts.append(
                 {
                     "run_id": run_id,
+                    "dayoa_run_label": run_label,
                     "barcode": barcode,
                     "sequencing_input_uid": input_uid,
                     "fastq_count": len(ont_paths),
@@ -688,6 +711,8 @@ def generate_bjuice_preval_manifests(
                 "sample_id": sample_id,
                 "analysis_unit_uid": analysis_unit_uid,
                 "ilmn_input_uid": ilmn_input_uid,
+                "ilmn_run_id": ilmn_run_id,
+                "ilmn_dayoa_run_label": ilmn_run_label,
                 "ilmn_fastq_r1_count": len(r1_paths),
                 "ilmn_fastq_r2_count": len(r2_paths),
                 "ont_inputs": ont_receipts,

@@ -430,6 +430,7 @@ def test_cli_remote_status_uses_supported_ssm_headnode_path(
     monkeypatch.setattr("daylily_ec.analysis_status.shutil.which", lambda _name: None)
     payload = collect_analysis_status(root, mode="slim", runner=_fake_runner)
     captured: dict[str, object] = {}
+    scripts: list[str] = []
     monkeypatch.setattr(
         cli_module,
         "_resolve_headnode_cli_target",
@@ -441,8 +442,16 @@ def test_cli_remote_status_uses_supported_ssm_headnode_path(
         ),
     )
     monkeypatch.setattr("daylily_ec.aws.ssm.wait_for_ssm_online", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("daylily_ec.aws.ssm.resolve_remote_user", lambda *_args, **_kwargs: "ubuntu")
+
+    manifest = {
+        "path": "/tmp/dyec-slim-analysis-status-test.json",
+        "size": 123,
+        "sha256": "b" * 64,
+    }
 
     def fake_run_shell(instance_id, region, script, **kwargs):
+        scripts.append(script)
         captured.update(
             {
                 "instance_id": instance_id,
@@ -451,9 +460,16 @@ def test_cli_remote_status_uses_supported_ssm_headnode_path(
                 "kwargs": kwargs,
             }
         )
-        return SimpleNamespace(stdout=json.dumps(payload), stderr="")
+        return SimpleNamespace(
+            stdout="DAY-EC activated.\n"
+            "__DYEC_REMOTE_JSON_MANIFEST__="
+            + json.dumps(manifest, sort_keys=True)
+            + "\n",
+            stderr="",
+        )
 
     monkeypatch.setattr("daylily_ec.aws.ssm.run_shell", fake_run_shell)
+    monkeypatch.setattr(cli_module, "_download_remote_json_payload", lambda **_kwargs: payload)
 
     result = runner.invoke(
         app,
@@ -477,5 +493,5 @@ def test_cli_remote_status_uses_supported_ssm_headnode_path(
     remote = json.loads(result.stdout)
     assert remote["cluster"]["headnode_instance_id"] == "i-123"
     assert captured["instance_id"] == "i-123"
-    assert "dyec --json analysis status slim" in str(captured["script"])
+    assert "dyec --json analysis status slim" in scripts[0]
     assert captured["kwargs"]["as_user"] == "ubuntu"

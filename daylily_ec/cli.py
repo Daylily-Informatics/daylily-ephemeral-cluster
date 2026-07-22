@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import base64
+import binascii
 import csv
 import functools
 import hashlib
@@ -5558,8 +5559,26 @@ def _append_dy_config_overrides(workflow_argv: list[str], values: Optional[list[
 
         raise CommandError("workflow argv does not contain --dy-command") from exc
     dy_command = str(workflow_argv[dy_command_index]).strip()
-    dy_command = dy_command + " --config " + " ".join(shlex.quote(value) for value in overrides)
-    workflow_argv[dy_command_index] = dy_command
+    tokens = shlex.split(dy_command)
+    rewritten: list[str] = []
+    config_values: list[str] = []
+    first_config_index: int | None = None
+    token_index = 0
+    while token_index < len(tokens):
+        token = tokens[token_index]
+        if token == "--config":
+            if first_config_index is None:
+                first_config_index = len(rewritten)
+            token_index += 1
+            while token_index < len(tokens) and not tokens[token_index].startswith("-"):
+                config_values.append(tokens[token_index])
+                token_index += 1
+            continue
+        rewritten.append(token)
+        token_index += 1
+    insert_at = first_config_index if first_config_index is not None else len(rewritten)
+    rewritten[insert_at:insert_at] = ["--config", *config_values, *overrides]
+    workflow_argv[dy_command_index] = shlex.join(rewritten)
     return overrides
 
 
@@ -6455,7 +6474,8 @@ def _read_workflow_file(
         else:
             read_command = f'tail -n {max(tail_lines, 1)} "$FILE_PATH"'
         script = f"""
-set -euo pipefail
+set +e +u
+set +o pipefail 2>/dev/null || true
 if [[ "$(id -un)" != {shlex.quote(resolved_remote_user)} ]]; then
   echo "__DAYLILY_ERROR__=wrong_user"
   exit 5
@@ -6496,11 +6516,223 @@ def _parse_workflow_status_payload(stdout: str) -> dict[str, Any]:
     return payload
 
 
+def _parse_marked_json_payload(stdout: str, *, marker: str, context: str) -> dict[str, Any]:
+    from daylily_ec.scripts.common import CommandError
+
+    marked = [
+        line[len(marker) :]
+        for line in stdout.splitlines()
+        if line.startswith(marker)
+    ]
+    if len(marked) != 1:
+        raise CommandError(f"{context} output did not contain exactly one marker")
+    try:
+        payload = json.loads(marked[0].strip())
+    except json.JSONDecodeError as exc:
+        raise CommandError(f"{context} marker payload was not valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise CommandError(f"{context} marker payload was not an object")
+    return payload
+
+
+def _download_remote_json_payload(
+    *,
+    instance_id: str,
+    region: str,
+    profile: str,
+    remote_user: str,
+    remote_path: str,
+    expected_size: int,
+    expected_sha256: str,
+    comment: str,
+    max_size_bytes: int = 20 * 1024 * 1024,
+) -> dict[str, Any]:
+    from daylily_ec.aws.ssm import run_shell
+    from daylily_ec.scripts.common import CommandError
+
+    if expected_size < 0:
+        raise CommandError("remote JSON manifest reported a negative size")
+    if expected_size > max_size_bytes:
+        raise CommandError(
+            f"remote JSON payload is {expected_size} bytes, above the "
+            f"{max_size_bytes} byte transfer limit"
+        )
+    chunk_bytes = 15000
+    chunk_marker = "__DYEC_REMOTE_JSON_CHUNK__="
+    digest = hashlib.sha256()
+    chunks: list[bytes] = []
+    for offset in range(0, expected_size, chunk_bytes):
+        count = min(chunk_bytes, expected_size - offset)
+        script = (
+            "set -euo pipefail\n"
+            f"test -f {shlex.quote(remote_path)}\n"
+            f"printf '%s' {shlex.quote(chunk_marker)}\n"
+            f"dd if={shlex.quote(remote_path)} bs=1 skip={offset} count={count} status=none | base64 -w0\n"
+            "printf '\\n'"
+        )
+        result = run_shell(
+            instance_id,
+            region,
+            script,
+            profile=profile,
+            as_user=remote_user,
+            timeout=120,
+            comment=comment,
+        )
+        marked = [
+            line[len(chunk_marker) :]
+            for line in result.stdout.splitlines()
+            if line.startswith(chunk_marker)
+        ]
+        if len(marked) != 1:
+            raise CommandError("remote JSON chunk output did not contain exactly one marker")
+        try:
+            chunk = base64.b64decode(marked[0].strip(), validate=True)
+        except (ValueError, binascii.Error) as exc:
+            raise CommandError("remote JSON chunk was not valid base64") from exc
+        digest.update(chunk)
+        chunks.append(chunk)
+    payload_bytes = b"".join(chunks)
+    if len(payload_bytes) != expected_size:
+        raise CommandError("remote JSON transfer failed size verification")
+    actual_sha256 = digest.hexdigest()
+    if actual_sha256 != expected_sha256:
+        raise CommandError("remote JSON transfer failed SHA-256 verification")
+    try:
+        payload = json.loads(payload_bytes.decode("utf-8"))
+    except json.JSONDecodeError as exc:
+        raise CommandError("remote JSON payload contained malformed JSON after transfer") from exc
+    if not isinstance(payload, dict):
+        raise CommandError("remote JSON payload was not an object")
+    return payload
+
+
+def _collect_remote_json_payload(
+    *,
+    instance_id: str,
+    region: str,
+    profile: str,
+    remote_user: str,
+    remote_argv: list[str],
+    operation: str,
+    timeout: int,
+) -> dict[str, Any]:
+    from daylily_ec.aws.ssm import run_shell
+    from daylily_ec.scripts.common import CommandError
+
+    remote_json = f"/tmp/dyec-{operation.replace('_', '-')}-{uuid.uuid4().hex}.json"
+    remote_raw = f"{remote_json}.raw"
+    remote_manifest = f"{remote_json}.manifest"
+    manifest_marker = "__DYEC_REMOTE_JSON_MANIFEST__="
+    script = "\n".join(
+        [
+            "set -euo pipefail",
+            "command -v dyec >/dev/null",
+            f"remote_json={shlex.quote(remote_json)}",
+            f"remote_raw={shlex.quote(remote_raw)}",
+            f"remote_manifest={shlex.quote(remote_manifest)}",
+            f"manifest_marker={shlex.quote(manifest_marker)}",
+            f"{shlex.join(remote_argv)} > \"$remote_raw\"",
+            "python3 - \"$remote_raw\" \"$remote_json\" \"$remote_manifest\" \"$manifest_marker\" <<'PY'",
+            "import hashlib, json, pathlib, sys",
+            "raw_path = pathlib.Path(sys.argv[1])",
+            "path = pathlib.Path(sys.argv[2])",
+            "manifest_path = pathlib.Path(sys.argv[3])",
+            "manifest_marker = sys.argv[4]",
+            "raw_text = raw_path.read_text(encoding='utf-8')",
+            "decoder = json.JSONDecoder()",
+            "candidates = []",
+            "try:",
+            "    parsed = json.loads(raw_text)",
+            "    if isinstance(parsed, dict):",
+            "        candidates.append(parsed)",
+            "except json.JSONDecodeError:",
+            "    for index, char in enumerate(raw_text):",
+            "        if char != '{':",
+            "            continue",
+            "        try:",
+            "            parsed, end = decoder.raw_decode(raw_text, index)",
+            "        except json.JSONDecodeError:",
+            "            continue",
+            "        if isinstance(parsed, dict) and not raw_text[end:].strip():",
+            "            candidates.append(parsed)",
+            "if len(candidates) != 1:",
+            "    raise SystemExit('ERROR: remote command did not emit exactly one JSON object')",
+            "data = (json.dumps(candidates[0], sort_keys=True) + '\\n').encode('utf-8')",
+            "path.write_bytes(data)",
+            "payload = {",
+            "    'path': str(path),",
+            "    'size': len(data),",
+            "    'sha256': hashlib.sha256(data).hexdigest(),",
+            "}",
+            "manifest_path.write_text(json.dumps(payload, sort_keys=True) + '\\n', encoding='utf-8')",
+            "print(manifest_marker + json.dumps(payload, sort_keys=True))",
+            "PY",
+        ]
+    )
+    result = run_shell(
+        instance_id,
+        region,
+        script,
+        profile=profile,
+        as_user=remote_user,
+        timeout=timeout,
+        comment=f"Collect {operation} JSON",
+    )
+    manifest = _parse_marked_json_payload(
+        result.stdout,
+        marker=manifest_marker,
+        context="remote JSON manifest",
+    )
+    remote_path = manifest.get("path")
+    size = manifest.get("size")
+    sha256 = manifest.get("sha256")
+    if not isinstance(remote_path, str) or not remote_path.startswith("/tmp/"):
+        raise CommandError("remote JSON manifest did not include a /tmp path")
+    if not isinstance(size, int):
+        raise CommandError("remote JSON manifest did not include an integer size")
+    if not isinstance(sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", sha256):
+        raise CommandError("remote JSON manifest did not include a SHA-256 digest")
+    try:
+        return _download_remote_json_payload(
+            instance_id=instance_id,
+            region=region,
+            profile=profile,
+            remote_user=remote_user,
+            remote_path=remote_path,
+            expected_size=size,
+            expected_sha256=sha256,
+            comment=f"Read {operation} JSON chunk",
+        )
+    finally:
+        cleanup_script = (
+            "set +e\n"
+            f"rm -f {shlex.quote(remote_path)} "
+            f"{shlex.quote(str(remote_path) + '.raw')} "
+            f"{shlex.quote(str(remote_path) + '.manifest')}"
+        )
+        with contextlib.suppress(Exception):
+            run_shell(
+                instance_id,
+                region,
+                cleanup_script,
+                profile=profile,
+                as_user=remote_user,
+                timeout=60,
+                comment=f"Clean {operation} JSON",
+            )
+
+
 def workflow_status(
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
     cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
-    session: Optional[str] = typer.Option(None, "--session", help="Tmux session/run name."),
+    session: Optional[str] = typer.Option(
+        None,
+        "--session",
+        "--session-name",
+        help="Tmux session/run name.",
+    ),
     run_dir: Optional[str] = typer.Option(None, "--run-dir", help="Explicit run directory."),
     remote_user: str = typer.Option(
         "auto",
@@ -6537,7 +6769,12 @@ def workflow_logs(
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
     cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
-    session: Optional[str] = typer.Option(None, "--session", help="Tmux session/run name."),
+    session: Optional[str] = typer.Option(
+        None,
+        "--session",
+        "--session-name",
+        help="Tmux session/run name.",
+    ),
     run_dir: Optional[str] = typer.Option(None, "--run-dir", help="Explicit run directory."),
     remote_user: str = typer.Option(
         "auto",
@@ -6993,6 +7230,7 @@ import pathlib
 import re
 import subprocess
 import sys
+import time
 
 
 def run(command):
@@ -7011,6 +7249,13 @@ def tmux_session_name(session_name):
 
 def tmux_present(name):
     return run(["tmux", "has-session", "-t", f"={{name}}"]).returncode == 0
+
+
+def tmux_pane_command(name):
+    result = run(["tmux", "display-message", "-p", "-t", f"={{name}}", "#{{pane_current_command}}"])
+    if result.returncode != 0:
+        return ""
+    return result.stdout.strip()
 
 
 def slurm_jobs_matching(pattern_text):
@@ -7042,11 +7287,32 @@ before_tmux = tmux_present(session_tmux)
 jobs_before = slurm_jobs_matching(job_name_pattern) if cancel_slurm else []
 
 killed_tmux = False
+interrupted_tmux = False
+interrupt_completed = False
+interrupt_wait_seconds = 90
 if before_tmux:
-    kill = run(["tmux", "kill-session", "-t", f"={{session_tmux}}"])
-    if kill.returncode != 0:
-        raise SystemExit(kill.stderr.strip() or kill.stdout.strip() or "tmux kill-session failed")
-    killed_tmux = True
+    interrupt = run(["tmux", "send-keys", "-t", f"={{session_tmux}}", "C-c"])
+    if interrupt.returncode != 0:
+        raise SystemExit(
+            interrupt.stderr.strip() or interrupt.stdout.strip() or "tmux send-keys C-c failed"
+        )
+    interrupted_tmux = True
+    deadline = time.time() + interrupt_wait_seconds
+    while time.time() < deadline:
+        if not tmux_present(session_tmux):
+            interrupt_completed = True
+            break
+        if tmux_pane_command(session_tmux) in {{"bash", "sh", "zsh"}}:
+            interrupt_completed = True
+            break
+        time.sleep(2)
+    if not interrupt_completed:
+        kill = run(["tmux", "kill-session", "-t", f"={{session_tmux}}"])
+        if kill.returncode != 0:
+            raise SystemExit(
+                kill.stderr.strip() or kill.stdout.strip() or "tmux kill-session failed"
+            )
+        killed_tmux = True
 
 scancelled_job_ids = []
 if cancel_slurm and jobs_before:
@@ -7060,7 +7326,7 @@ after_tmux = tmux_present(session_tmux)
 jobs_after = slurm_jobs_matching(job_name_pattern) if cancel_slurm else []
 status_path = run_dir / "status.json"
 status_updated = False
-if killed_tmux or scancelled_job_ids:
+if interrupted_tmux or killed_tmux or scancelled_job_ids:
     now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     status = {{}}
     if status_path.is_file():
@@ -7086,6 +7352,9 @@ payload = {{
     "tmux_session_name": session_tmux,
     "tmux_session_before": before_tmux,
     "tmux_session_after": after_tmux,
+    "interrupted_tmux_session": interrupted_tmux,
+    "tmux_interrupt_completed": interrupt_completed,
+    "tmux_interrupt_wait_seconds": interrupt_wait_seconds,
     "killed_tmux_session": killed_tmux,
     "cancel_slurm_jobs": cancel_slurm,
     "job_name_pattern": job_name_pattern,
@@ -7306,7 +7575,7 @@ def analysis_status(
         from daylily_ec.analysis_status import collect_analysis_status, render_analysis_status
 
         if cluster:
-            from daylily_ec.aws.ssm import run_shell, wait_for_ssm_online
+            from daylily_ec.aws.ssm import resolve_remote_user, wait_for_ssm_online
 
             _warn_if_dayec_env_inactive()
             resolved_profile, resolved_region, resolved_cluster, target = (
@@ -7322,6 +7591,12 @@ def analysis_status(
                 profile=resolved_profile,
                 timeout=120,
             )
+            resolved_remote_user = resolve_remote_user(
+                target.instance_id,
+                resolved_region,
+                profile=resolved_profile,
+                as_user=remote_user,
+            )
             remote_argv = [
                 "dyec",
                 "--json",
@@ -7333,17 +7608,15 @@ def analysis_status(
                 "--tail-lines",
                 str(tail_lines),
             ]
-            script = "set -euo pipefail\ncommand -v dyec >/dev/null\n" + shlex.join(remote_argv)
-            result = run_shell(
-                target.instance_id,
-                resolved_region,
-                script,
+            payload = _collect_remote_json_payload(
+                instance_id=target.instance_id,
+                region=resolved_region,
                 profile=resolved_profile,
-                as_user=remote_user,
+                remote_user=resolved_remote_user,
+                remote_argv=remote_argv,
+                operation=f"{mode}_analysis_status",
                 timeout=300,
-                comment=f"Daylily {mode} analysis status",
             )
-            payload = _parse_workflow_status_payload(result.stdout)
             payload["cluster"] = {
                 "name": resolved_cluster,
                 "region": resolved_region,
@@ -7450,7 +7723,7 @@ def command_sample_stats(
         )
 
         if cluster:
-            from daylily_ec.aws.ssm import run_shell, wait_for_ssm_online
+            from daylily_ec.aws.ssm import wait_for_ssm_online
 
             _warn_if_dayec_env_inactive()
             resolved_profile, resolved_region, resolved_cluster, target = (
@@ -7476,16 +7749,15 @@ def command_sample_stats(
                 "--tail-lines",
                 str(tail_lines),
             ]
-            result = run_shell(
-                target.instance_id,
-                resolved_region,
-                "set -euo pipefail\ncommand -v dyec >/dev/null\n" + shlex.join(remote_argv),
+            payload = _collect_remote_json_payload(
+                instance_id=target.instance_id,
+                region=resolved_region,
                 profile=resolved_profile,
-                as_user=remote_user,
+                remote_user=remote_user,
+                remote_argv=remote_argv,
+                operation="command_sample_stats",
                 timeout=300,
-                comment="Daylily command sample stats",
             )
-            payload = _parse_workflow_status_payload(result.stdout)
             enrich_aws_context(
                 payload,
                 profile=resolved_profile,

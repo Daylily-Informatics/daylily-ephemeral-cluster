@@ -67,6 +67,8 @@ def test_build_controller_inventory_is_bounded_and_secret_safe() -> None:
     )
 
     assert '"$(id -un)" != "ubuntu"' in script
+    assert script.startswith("set +e +u\nset +o pipefail 2>/dev/null || true\n")
+    assert "set -euo pipefail" not in script
     assert "controller_target.json" in script
     assert '"tmux",\n    "list-panes"' in script
     assert '"/opt/slurm/bin/squeue"' in script

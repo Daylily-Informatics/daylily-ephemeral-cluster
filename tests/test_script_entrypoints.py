@@ -140,6 +140,10 @@ class TestSshIntoHeadnodeScript:
 
 
 class TestRunOmicsAnalysisHeadnodeScript:
+    @pytest.fixture(autouse=True)
+    def _default_remote_user(self, monkeypatch):
+        monkeypatch.setattr(run_omics_module, "resolve_remote_user", lambda *args, **kwargs: "ubuntu")
+
     def test_bclconvert_profile_patch_inserts_yaml_keys_at_existing_child_indent(
         self, tmp_path, monkeypatch
     ):
@@ -402,6 +406,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             "i-abc123",
             "dev",
             "us-west-2",
+            "ubuntu",
             "~/stage/run-1",
             "/ignored",
         )
@@ -445,6 +450,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             "i-abc123",
             "dev",
             "us-west-2",
+            "ubuntu",
             None,
             "/fsx/stage",
         )
@@ -555,6 +561,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             profile="dev",
             timeout=120,
             comment="Validate DAY-EC headnode readiness before workflow launch",
+            remote_user="ubuntu",
         )
         script = mock_run_shell.call_args.args[2]
         outer_syntax = subprocess.run(
@@ -568,8 +575,9 @@ class TestRunOmicsAnalysisHeadnodeScript:
             ["bash", "-n"], input=pipeline, text=True, capture_output=True, check=False
         )
         assert pipeline_syntax.returncode == 0, pipeline_syntax.stderr
-        assert 'run_dir="/home/ubuntu/daylily-runs/$SESSION_NAME"' in script
-        assert 'work_script="$run_dir/dayoa-controller-launch.sh"' in script
+        assert "REMOTE_USER=ubuntu" in script
+        assert 'run_dir="/home/$REMOTE_USER/daylily-runs/$SESSION_NAME"' in script
+        assert 'work_script="$run_dir/dyec-controller-launch.sh"' in script
         assert 'tmux_log="$run_dir/tmux.log"' in script
         assert 'controller_target_file="$run_dir/controller_target.json"' in script
         assert 'controller_log_path="$repo_path/.dyec/controller.log"' in script
@@ -578,12 +586,17 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'export DAYLILY_CONTROLLER_PID="$BASHPID"' in script
         assert "dyec.controller_target.v1" in script
         assert "python3 -c " in script
-        assert "nohup tmux new-session" in script
-        assert 'env DAYLILY_RUN_DIR="$run_dir"' in script
-        assert 'DAYLILY_REPO_PATH="$repo_path"' in script
-        assert 'DAYLILY_TMUX_LOG="$tmux_log"' in script
-        assert 'DAYLILY_TMUX_SESSION="$tmux_session_name"' in script
-        assert 'DAYLILY_CONTROLLER_TARGET_FILE="$controller_target_file"' in script
+        assert "DAYLILY_RUN_DIR=%q" in script
+        assert "DAYLILY_REPO_PATH=%q" in script
+        assert "DAYLILY_TMUX_LOG=%q" in script
+        assert "DAYLILY_TMUX_SESSION=%q" in script
+        assert "DAYLILY_CONTROLLER_TARGET_FILE=%q" in script
+        assert "bash \"$DAYLILY_WORK_SCRIPT\"" in script
+        assert 'tmux new-session -d -s "$tmux_session_name"' in script
+        assert 'tmux_pane_target="$tmux_session_name:0.0"' in script
+        assert 'tmux send-keys -t "$tmux_pane_target" "$tmux_command" C-m' in script
+        assert 'exec bash --login --interactive' in script
+        assert 'preserving tmux shell for inspection' in script
         assert 'tmux_session_name="${SESSION_NAME//[^A-Za-z0-9_-]/_}"' in script
         assert 'tmux has-session -t "=$tmux_session_name"' in script
         assert 'exec > >(tee -a "$CONTROLLER_LOG_PATH") 2>&1' in script
@@ -1557,7 +1570,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "SESSION_START_DEADLINE=$((SECONDS + 60))" in script
         assert "session_ready=false" in script
         assert 'tmux_session_name="${SESSION_NAME//[^A-Za-z0-9_-]/_}"' in script
-        assert 'nohup tmux new-session -d -s "$tmux_session_name"' in script
+        assert 'tmux new-session -d -s "$tmux_session_name"' in script
+        assert 'tmux_pane_target="$tmux_session_name:0.0"' in script
+        assert 'tmux send-keys -t "$tmux_pane_target" "$tmux_command" C-m' in script
+        assert 'preserving tmux shell for inspection' in script
         assert 'if tmux has-session -t "=$tmux_session_name"' in script
         assert "__DAYLILY_COMPLETED_QUICKLY__=$quick_status" in script
         assert "__DAYLILY_TMUX_SESSION__=$tmux_session_name" in script

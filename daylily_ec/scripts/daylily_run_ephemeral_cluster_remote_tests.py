@@ -67,14 +67,14 @@ def main(argv: list[str] | None = None) -> int:
     repo_key, repo_tag = _load_default_repo()
     session_name = "cluster_test_$(date +%s)"
     launch_script = f"""
-set -euo pipefail
+set +e +u
 if [[ ! -d /fsx/analysis_results/ubuntu/daylily_remote_test/daylily-omics-analysis/.git ]]; then
   day-clone --repository {repo_key} --destination daylily_remote_test \
     --git-tag {repo_tag} --executing-entity ubuntu
 fi
 session_name={session_name}
 tmux new-session -d -s "$session_name" \
-  "bash -lc 'source ~/.bashrc && source ~/projects/daylily-ephemeral-cluster/activate && eval \"$(daylily-ec headnode init --emit-shell --non-interactive)\" && cd /fsx/analysis_results/ubuntu/daylily_remote_test/daylily-omics-analysis && source bin/day_activate slurm hg38 remote && DAY_CONTAINERIZED=true ./bin/day_run produce_bwa2a_align produce_strobe_align produce_dmd_dedup_cram produce_deep19_snv_vcf produce_snv_concordances -p -k -j 2 --config genome_build=\\\"hg38\\\"; bash'"
+  "bash --login --interactive -c 'set +e +u; for f in ~/.bash_profile ~/.bash_login ~/.profile; do if [[ -f \"\$f\" ]]; then source \"\$f\" || true; break; fi; done; if [[ -f ~/.bashrc ]]; then source ~/.bashrc || true; fi; set +e +u; source ~/projects/daylily-ephemeral-cluster/activate && eval \"$(daylily-ec headnode init --emit-shell --non-interactive)\" && cd /fsx/analysis_results/ubuntu/daylily_remote_test/daylily-omics-analysis && source bin/day_activate slurm hg38 remote && DAY_CONTAINERIZED=true ./bin/day_run produce_bwa2a_align produce_strobe_align produce_dmd_dedup_cram produce_deep19_snv_vcf produce_snv_concordances -p -k -j 2 --config genome_build=\\\"hg38\\\"; export DAYLILY_LAST_CONTROLLER_RC=\$?; exec bash --login --interactive'"
 echo "__DAYLILY_SESSION__=$session_name"
 """
 

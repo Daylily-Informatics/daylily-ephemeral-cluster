@@ -28,10 +28,17 @@ AUTO_REMOTE_USER = "auto"
 SUPPORTED_REMOTE_USERS = (DEFAULT_REMOTE_USER, EC2_REMOTE_USER)
 SUPPORTED_REMOTE_USER = DEFAULT_REMOTE_USER
 SUPPORTED_SESSION_HOME = f"/home/{DEFAULT_REMOTE_USER}"
+SOURCE_HEADNODE_STARTUP_FILES = (
+    "set +e +u; "
+    "for f in ~/.bash_profile ~/.bash_login ~/.profile; do "
+    'if [[ -f "$f" ]]; then source "$f" || true; break; fi; done; '
+    "if [[ -f ~/.bashrc ]]; then source ~/.bashrc || true; fi; "
+    "set +e +u"
+)
 SUPPORTED_SESSION_SHELL_PROFILE = (
     f"cd {SUPPORTED_SESSION_HOME} && "
     "{ stty -ixon -ixoff 2>/dev/null || true; "
-    "exec bash -ilc 'if [[ -f ~/.bashrc ]]; then source ~/.bashrc; fi; exec bash -i'; }"
+    f"exec bash --login --interactive -c {shlex.quote(SOURCE_HEADNODE_STARTUP_FILES + '; exec bash --interactive')}; }}"
 )
 
 
@@ -227,7 +234,7 @@ def _session_shell_profile(as_user: str) -> str:
     return (
         f"cd {_remote_user_home(as_user)} && "
         "{ stty -ixon -ixoff 2>/dev/null || true; "
-        "exec bash -ilc 'if [[ -f ~/.bashrc ]]; then source ~/.bashrc; fi; exec bash -i'; }"
+        f"exec bash --login --interactive -c {shlex.quote(SOURCE_HEADNODE_STARTUP_FILES + '; exec bash --interactive')}; }}"
     )
 
 
@@ -235,22 +242,19 @@ def _bash_login_interactive_source_bashrc_invocation(script_value: str) -> str:
     """Return a bash command that runs *script_value* in the required headnode context.
 
     ``script_value`` is a shell expression, normally ``"$tmp"`` from the
-    transport wrapper.  Keep it out of bash ``-c`` positional arguments:
-    login/interactive startup files may inspect or mutate positional parameters,
-    but they should not be able to hide the script path that SSM must execute.
+    transport wrapper.  Keep it out of environment variables and bash ``-c``
+    positional arguments because ``sudo -i`` starts a login context that may
+    reset environment or argument state before the final interactive bash sees
+    it.  Instead, let the outer transport shell expand the already-created temp
+    path directly into the inner command string.
     """
 
-    bootstrap = (
-        "if [[ -f ~/.bashrc ]]; then source ~/.bashrc; fi; "
-        'source "$DAYLILY_SSM_SCRIPT"'
-    )
+    bootstrap = f"{SOURCE_HEADNODE_STARTUP_FILES}; source "
     return " ".join(
         [
-            "env",
-            f"DAYLILY_SSM_SCRIPT={script_value}",
             "bash",
             "-ilc",
-            shlex.quote(bootstrap),
+            f"{shlex.quote(bootstrap)}{script_value}",
         ]
     )
 
@@ -355,17 +359,23 @@ def _encode_script_payload(script: str, *, as_user: str) -> str:
             # Keep the wrapper POSIX-safe and run the real payload under the
             # supported headnode shell contract: target user + bash login/
             # interactive semantics + explicit ~/.bashrc sourcing.
-            "set -eu",
+            "set +e +u",
             "tmp=$(mktemp /tmp/daylily-ssm-XXXXXX.sh)",
+            'mktemp_rc="$?"',
+            'if [ "$mktemp_rc" -ne 0 ]; then exit "$mktemp_rc"; fi',
             f"export DAYLILY_SSM_B64={shlex.quote(encoded)}",
             'export DAYLILY_SSM_TMP="$tmp"',
             f"python3 -c {shlex.quote(writer)}",
+            'write_rc="$?"',
+            'if [ "$write_rc" -ne 0 ]; then rm -f "$tmp"; exit "$write_rc"; fi',
             f'chown {shlex.quote(user)} "$tmp"',
+            'chown_rc="$?"',
+            'if [ "$chown_rc" -ne 0 ]; then rm -f "$tmp"; exit "$chown_rc"; fi',
             'chmod 700 "$tmp"',
-            "set +e",
+            'chmod_rc="$?"',
+            'if [ "$chmod_rc" -ne 0 ]; then rm -f "$tmp"; exit "$chmod_rc"; fi',
             runner,
             "rc=$?",
-            "set -e",
             'rm -f "$tmp"',
             "exit $rc",
         ]

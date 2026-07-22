@@ -140,7 +140,8 @@ def _output_limit(value: object) -> int:
 def _remote_python_script(source: str) -> str:
     body = textwrap.dedent(source).strip()
     return (
-        "set -euo pipefail\n"
+        "set +e +u\n"
+        "set +o pipefail 2>/dev/null || true\n"
         f'if [[ "$(id -un)" != "{REMOTE_USER}" ]]; then\n'
         '  printf "DYEC headnode control requires ubuntu\\n" >&2\n'
         "  exit 91\n"

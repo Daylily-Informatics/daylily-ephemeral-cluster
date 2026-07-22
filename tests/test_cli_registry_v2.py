@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 import logging
 from pathlib import Path
+import shlex
 from subprocess import CompletedProcess
 import sys
 from types import SimpleNamespace
@@ -3605,9 +3608,18 @@ def test_catalog_render_appends_dy_config_overrides(tmp_path) -> None:
         "use_fq_data_starting_hrs=0",
         "use_fq_data_up_to_hrs=7",
     ]
-    assert "--config use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=7" in payload[
-        "dy_command"
-    ]
+    dy_tokens = shlex.split(payload["dy_command"])
+    assert dy_tokens.count("--config") == 1
+    config_index = dy_tokens.index("--config")
+    config_values = []
+    for token in dy_tokens[config_index + 1 :]:
+        if token.startswith("-"):
+            break
+        config_values.append(token)
+    assert 'aligners=["sent"]' in config_values
+    assert 'htd_callers=["smn12"]' in config_values
+    assert "use_fq_data_starting_hrs=0" in config_values
+    assert "use_fq_data_up_to_hrs=7" in config_values
     argv = payload["workflow_argv"]
     assert argv[argv.index("--dy-command") + 1] == payload["dy_command"]
 
@@ -4142,7 +4154,126 @@ def test_workflow_status_reads_status_json_via_ssm(monkeypatch) -> None:
     assert json.loads(result.stdout)["session_name"] == "sess-1"
     _instance_id, _region, script, kwargs = calls["run_shell"]
     assert "/home/ubuntu/daylily-runs/sess-1/status.json" in script
+    assert script.startswith("\nset +e +u\nset +o pipefail 2>/dev/null || true\n")
+    assert "set -euo pipefail" not in script
     assert kwargs["profile"] == "dev"
+
+    result_alias = runner.invoke(
+        app,
+        [
+            "--json",
+            "workflow",
+            "status",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--session-name",
+            "sess-1",
+        ],
+    )
+
+    assert result_alias.exit_code == 0
+    assert json.loads(result_alias.stdout)["session_name"] == "sess-1"
+
+
+def test_remote_json_payload_download_uses_marked_chunks(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    payload_bytes = json.dumps(
+        {"ok": True, "tail": "log line with } that would break brace slicing"},
+        sort_keys=True,
+    ).encode("utf-8")
+
+    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+        assert instance_id == "i-abc123"
+        assert region == "us-west-2"
+        assert kwargs["as_user"] == "ubuntu"
+        encoded = base64.b64encode(payload_bytes).decode("ascii")
+        return SsmCommandResult(
+            "cmd-1",
+            instance_id,
+            "Success",
+            0,
+            "DAY-EC activated.\n__DYEC_REMOTE_JSON_CHUNK__=" + encoded + "\n",
+            "",
+        )
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+
+    payload = cli_module._download_remote_json_payload(
+        instance_id="i-abc123",
+        region="us-west-2",
+        profile="dev",
+        remote_user="ubuntu",
+        remote_path="/tmp/status.json",
+        expected_size=len(payload_bytes),
+        expected_sha256=hashlib.sha256(payload_bytes).hexdigest(),
+        comment="read status",
+    )
+
+    assert payload == {
+        "ok": True,
+        "tail": "log line with } that would break brace slicing",
+    }
+
+
+def test_collect_remote_json_payload_uses_marked_manifest_and_raw_cleanup(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    downloaded_payload = {"ok": True, "state": "RUNNING"}
+    manifest = {
+        "path": "/tmp/dyec-full-analysis-status-test.json",
+        "size": 27,
+        "sha256": "a" * 64,
+    }
+    scripts: list[str] = []
+
+    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+        scripts.append(script)
+        assert instance_id == "i-abc123"
+        assert region == "us-west-2"
+        assert kwargs["as_user"] == "ubuntu"
+        if kwargs["comment"] == "Collect full_analysis_status JSON":
+            return SsmCommandResult(
+                "cmd-collect",
+                instance_id,
+                "Success",
+                0,
+                "DAY-EC activated.\n"
+                "__DYEC_REMOTE_JSON_MANIFEST__="
+                + json.dumps(manifest, sort_keys=True)
+                + "\n",
+                "",
+            )
+        return SsmCommandResult("cmd-cleanup", instance_id, "Success", 0, "", "")
+
+    def fake_download(**kwargs):
+        assert kwargs["remote_path"] == manifest["path"]
+        assert kwargs["expected_size"] == manifest["size"]
+        assert kwargs["expected_sha256"] == manifest["sha256"]
+        return downloaded_payload
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+    monkeypatch.setattr(cli_module, "_download_remote_json_payload", fake_download)
+
+    payload = cli_module._collect_remote_json_payload(
+        instance_id="i-abc123",
+        region="us-west-2",
+        profile="dev",
+        remote_user="ubuntu",
+        remote_argv=["dyec", "--json", "analysis", "status", "full"],
+        operation="full_analysis_status",
+        timeout=300,
+    )
+
+    assert payload == downloaded_payload
+    assert "__DYEC_REMOTE_JSON_MANIFEST__=" in scripts[0]
+    assert "remote_raw=" in scripts[0]
+    assert "json.JSONDecoder()" in scripts[0]
+    assert ".raw" in scripts[-1]
 
 
 def test_workflow_logs_tails_tmux_log_via_ssm(monkeypatch) -> None:
@@ -4184,8 +4315,8 @@ def test_workflow_logs_tails_tmux_log_via_ssm(monkeypatch) -> None:
             "us-west-2",
             "--cluster",
             "cluster-a",
-            "--run-dir",
-            "/home/ubuntu/daylily-runs/sess-1",
+            "--session-name",
+            "sess-1",
             "--lines",
             "50",
         ],
@@ -4193,8 +4324,10 @@ def test_workflow_logs_tails_tmux_log_via_ssm(monkeypatch) -> None:
 
     assert result.exit_code == 0
     assert "line 1" in result.stdout
+    assert "/home/ubuntu/daylily-runs/sess-1/tmux.log" in calls["script"]
     assert "tmux.log" in calls["script"]
     assert "tail -n 50" in calls["script"]
+    assert "set -euo pipefail" not in calls["script"]
 
 
 def test_workflow_collect_benchmarks_runs_remote_dayoa_collector(monkeypatch) -> None:
@@ -4405,7 +4538,7 @@ def test_workflow_collect_benchmarks_surfaces_remote_failures(monkeypatch) -> No
     assert "SSM command 'cmd-1' failed" in result.stderr
 
 
-def test_workflow_stop_kills_controller_via_ssm(monkeypatch) -> None:
+def test_workflow_stop_interrupts_controller_via_ssm(monkeypatch) -> None:
     import daylily_ec.aws.ssm as ssm_module
 
     calls: dict[str, object] = {}
@@ -4434,8 +4567,11 @@ def test_workflow_stop_kills_controller_via_ssm(monkeypatch) -> None:
             "run_dir": "/home/ubuntu/daylily-runs/sess-1",
             "tmux_session_name": "sess-1",
             "tmux_session_before": True,
-            "tmux_session_after": False,
-            "killed_tmux_session": True,
+            "tmux_session_after": True,
+            "interrupted_tmux_session": True,
+            "tmux_interrupt_completed": True,
+            "tmux_interrupt_wait_seconds": 90,
+            "killed_tmux_session": False,
             "cancel_slurm_jobs": False,
             "job_name_pattern": "",
             "slurm_jobs_before": [],
@@ -4476,11 +4612,14 @@ def test_workflow_stop_kills_controller_via_ssm(monkeypatch) -> None:
 
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
-    assert payload["killed_tmux_session"] is True
+    assert payload["interrupted_tmux_session"] is True
+    assert payload["killed_tmux_session"] is False
     assert payload["cancel_slurm_jobs"] is False
     _instance_id, _region, script, kwargs = calls["run_shell"]
     assert "DAYLILY_WORKFLOW_SESSION=sess-1" in script
     assert "DAYLILY_CANCEL_SLURM_JOBS=false" in script
+    assert 'run(["tmux", "send-keys"' in script
+    assert '"C-c"' in script
     assert 'run(["tmux", "kill-session"' in script
     assert 'status["exit_code"] = 130' in script
     assert "scancel" in script
