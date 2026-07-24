@@ -292,13 +292,14 @@ def build_controller_inventory_script(
         receipt_paths = []
         receipt_scan_truncated = False
         try:
-            for index, entry in enumerate(sorted(run_root.iterdir(), key=lambda item: item.name)):
-                if index >= MAX_RECEIPT_SCAN_ENTRIES:
-                    receipt_scan_truncated = True
-                    break
-                candidate = entry / "controller_target.json"
-                if entry.is_dir() and candidate.is_file():
-                    receipt_paths.append(candidate)
+            if run_root.is_dir():
+                for index, entry in enumerate(sorted(run_root.iterdir(), key=lambda item: item.name)):
+                    if index >= MAX_RECEIPT_SCAN_ENTRIES:
+                        receipt_scan_truncated = True
+                        break
+                    candidate = entry / "controller_target.json"
+                    if entry.is_dir() and candidate.is_file():
+                        receipt_paths.append(candidate)
         except OSError:
             errors.append("controller_receipt_inventory_failed")
 

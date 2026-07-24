@@ -40,8 +40,8 @@ UNVALIDATED_COMMAND_IDS = {
     "all_metagenomic_pipelines",
     "ultima_snv_alignstats_kitchensink",
     "ont_snv_alignstats_kitchensink",
-    "hybrid_ilmn_ont_hiomrs",
-    "hybrid_ilmn_ont_hiomrs_kitchensink",
+    "hybrid_ilmn_ont_hiomr",
+    "hybrid_ilmn_ont_hiomr_kitchensink",
     "package_inflection_hybrid_data",
     "betelgeuser_hiomr_prod_v1",
     "inflection-bjuice-product-v0.2",
@@ -331,8 +331,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "ont_snv_alignstats_kitchensink",
         "pacbio_snv_alignstats",
         "roche_snv_alignstats",
-        "hybrid_ilmn_ont_hiomrs",
-        "hybrid_ilmn_ont_hiomrs_kitchensink",
+        "hybrid_ilmn_ont_hiomr",
+        "hybrid_ilmn_ont_hiomr_kitchensink",
         "illumina_pangenome_snv",
         "illumina_dragen_pangenome_snv_concordance",
         "ultima_pangenome_snv",
@@ -473,19 +473,24 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert ultima_pangenome.compatible_cluster_types == ["daywgs"]
     assert ultima_pangenome.compatible_data_modes == ["ultima_solo"]
 
-    hybrid_ilmn_ont = catalog.get_command("hybrid_ilmn_ont_hiomrs")
+    hybrid_ilmn_ont = catalog.get_command("hybrid_ilmn_ont_hiomr")
     assert hybrid_ilmn_ont.sample_manifest_template == ""
     assert (
         hybrid_ilmn_ont.manifest_dir_template
         == "examples/staging/hg003_hiomrs_1x_raw_fastq"
     )
     assert hybrid_ilmn_ont.test_data_profile == "hg003_hiomrs_1x_raw_fastq"
-    assert hybrid_ilmn_ont.aligners == ["ont"]
+    assert hybrid_ilmn_ont.aligners == ["sentmm2ont"]
     assert hybrid_ilmn_ont.dedupers == ["na"]
-    assert hybrid_ilmn_ont.snv_callers == ["hiomrs"]
+    assert hybrid_ilmn_ont.snv_callers == ["sentdhiomr"]
     assert hybrid_ilmn_ont.sv_callers == []
-    assert hybrid_ilmn_ont.targets == ["produce_hiomrs", "produce_snv_concordances"]
-    assert hybrid_ilmn_ont.dy_command.startswith("dy-r produce_hiomrs ")
+    assert hybrid_ilmn_ont.targets == [
+        "produce_sentdhiomr_snv_vcf",
+        "produce_sentdhiomr_sv",
+        "produce_sentdhiomr_cnv",
+        "produce_snv_concordances",
+    ]
+    assert hybrid_ilmn_ont.dy_command.startswith("dy-r produce_sentdhiomr_snv_vcf ")
     assert 'dedupers=["na"]' in hybrid_ilmn_ont.dy_command
     assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
         hybrid_ilmn_ont.input_requirements.accepted_source_column_sets
@@ -632,7 +637,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_metagenomics" in ont_kitchensink.dy_command
     assert 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' in (ont_kitchensink.dy_command)
 
-    hybrid_kitchensink = catalog.get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
+    hybrid_kitchensink = catalog.get_command("hybrid_ilmn_ont_hiomr_kitchensink")
     assert hybrid_kitchensink.sample_manifest_template == ""
     assert (
         hybrid_kitchensink.manifest_dir_template
@@ -640,34 +645,40 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     )
     assert hybrid_kitchensink.test_data_profile == "hg003_hiomrs_1x_raw_fastq"
     assert hybrid_kitchensink.validation_runs == []
-    assert hybrid_kitchensink.targets[0] == "produce_hiomrs"
+    assert hybrid_kitchensink.targets[:5] == [
+        "produce_sentdhiomr_snv_vcf",
+        "produce_sentdhiomr_sv",
+        "produce_sentdhiomr_cnv",
+        "produce_sentdhiomr_mito",
+        "produce_sentdhiomr_segdup",
+    ]
     assert "produce_tiddit_sv_vcf" in hybrid_kitchensink.targets
     assert "produce_smn12_orthogonal_calls" in hybrid_kitchensink.targets
     assert "produce_multiqc_all" in hybrid_kitchensink.targets
-    assert hybrid_kitchensink.aligners == ["sent"]
+    assert hybrid_kitchensink.aligners == ["sentmm2ont"]
     assert hybrid_kitchensink.dedupers == ["na"]
-    assert hybrid_kitchensink.snv_callers == ["hiomrs"]
+    assert hybrid_kitchensink.snv_callers == ["sentdhiomr"]
     assert hybrid_kitchensink.sv_callers == ["tiddit"]
-    assert hybrid_kitchensink.jobs == 250
-    assert hybrid_kitchensink.keep_going is False
+    assert hybrid_kitchensink.jobs == 500
+    assert hybrid_kitchensink.keep_going is True
     assert hybrid_kitchensink.restart_times == 0
-    assert hybrid_kitchensink.dy_command.startswith("dy-r produce_hiomrs ")
+    assert hybrid_kitchensink.dy_command.startswith("dy-r produce_sentdhiomr_snv_vcf ")
     assert "produce_tiddit_sv_vcf" in hybrid_kitchensink.dy_command
     assert "produce_smn12_orthogonal_calls" in hybrid_kitchensink.dy_command
     assert "produce_multiqc_all" in hybrid_kitchensink.dy_command
     assert "produce_gatk_contam_estimate" in hybrid_kitchensink.dy_command
     assert "produce_site_mix_contam_estimate" in hybrid_kitchensink.dy_command
     assert 'dedupers=["na"]' in hybrid_kitchensink.dy_command
-    assert 'aligners=["sent"]' in hybrid_kitchensink.dy_command
-    assert 'snv_callers=["hiomrs"]' in hybrid_kitchensink.dy_command
+    assert 'aligners=["sentmm2ont"]' in hybrid_kitchensink.dy_command
+    assert 'snv_callers=["sentdhiomr"]' in hybrid_kitchensink.dy_command
     assert 'sv_callers=["tiddit"]' in hybrid_kitchensink.dy_command
     assert 'htd_callers=["smn12"]' in hybrid_kitchensink.dy_command
     assert "multiqc_qc=" in hybrid_kitchensink.dy_command
     assert "produce_metagenomics" in hybrid_kitchensink.dy_command
-    expected_flags = "-j 250 -p -T 0 --rerun-triggers mtime --rerun-incomplete"
+    expected_flags = "-j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
     assert hybrid_kitchensink.dy_command.endswith(expected_flags)
     assert hybrid_kitchensink.dryrun_dy_command.endswith(f"{expected_flags} -n")
-    for excluded in ("sentdhiomr", "manta", "truvari", "dmd", "kraken", "sourmash"):
+    for excluded in ("produce_hiomrs", "manta", "truvari", "dmd", "kraken", "sourmash"):
         assert excluded not in hybrid_kitchensink.dy_command.lower()
     assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
         hybrid_kitchensink.input_requirements.accepted_source_column_sets
@@ -675,16 +686,16 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     package_inflection = catalog.get_command("package_inflection_hybrid_data")
     assert package_inflection.type == "dev"
-    assert package_inflection.validated_version == "13.0.23"
-    assert package_inflection.git_tag == "13.0.23"
+    assert package_inflection.validated_version == "13.0.37"
+    assert package_inflection.git_tag == "13.0.37"
     assert package_inflection.input_contract == "six_manifest"
     assert package_inflection.targets == ["produce_inflection_delivery_set"]
     assert package_inflection.jobs == 400
     assert package_inflection.keep_going is True
     assert package_inflection.restart_times == 0
-    assert package_inflection.aligners == ["sent"]
+    assert package_inflection.aligners == ["sentmm2ont"]
     assert package_inflection.dedupers == ["na"]
-    assert package_inflection.snv_callers == ["hiomrs"]
+    assert package_inflection.snv_callers == ["sentdhiomr"]
     assert package_inflection.sv_callers == ["tiddit"]
     assert package_inflection.dy_command.startswith("dy-r produce_inflection_delivery_set")
     assert package_inflection.dryrun_dy_command == f"{package_inflection.dy_command} -n"
@@ -697,24 +708,26 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert inflection_bjuice.sample_manifest_template == ""
     assert inflection_bjuice.validation_runs == []
     assert inflection_bjuice.targets == [
-        "produce_hiomrs",
+        "produce_sentdhiomr_snv_vcf",
+        "produce_sentdhiomr_sv",
+        "produce_sentdhiomr_cnv",
         "produce_tiddit_sv_vcf",
         "produce_smn12_orthogonal_calls",
         "produce_inflection_delivery_set",
     ]
     assert inflection_bjuice.jobs == 250
-    assert inflection_bjuice.aligners == ["sent"]
+    assert inflection_bjuice.aligners == ["sentmm2ont"]
     assert inflection_bjuice.dedupers == ["na"]
-    assert inflection_bjuice.snv_callers == ["hiomrs"]
+    assert inflection_bjuice.snv_callers == ["sentdhiomr"]
     assert inflection_bjuice.sv_callers == ["tiddit"]
     assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_CRAM", "ONT_CRAM_ALIGNER", "ONT_CRAM_SNV_CALLER"] in (
         inflection_bjuice.input_requirements.accepted_source_column_sets
     )
     assert "produce_inflection_delivery_set" in inflection_bjuice.dy_command
     assert "INFLECTION_DELIVERY_BATCH_ID:?" in inflection_bjuice.dy_command
-    assert 'aligners=["sent"]' in inflection_bjuice.dy_command
+    assert 'aligners=["sentmm2ont"]' in inflection_bjuice.dy_command
     assert 'dedupers=["na"]' in inflection_bjuice.dy_command
-    assert 'snv_callers=["hiomrs"]' in inflection_bjuice.dy_command
+    assert 'snv_callers=["sentdhiomr"]' in inflection_bjuice.dy_command
     assert 'sv_callers=["tiddit"]' in inflection_bjuice.dy_command
     assert (
         " -j 250 -p -T 1 --rerun-triggers mtime --rerun-incomplete" in inflection_bjuice.dy_command

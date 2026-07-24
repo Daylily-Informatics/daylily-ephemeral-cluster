@@ -1763,6 +1763,12 @@ FSX_PROMPT_OPTIONS = [
 FSX_SIZE_RULE_TEXT = "1200 GiB, 2400 GiB, or any value >= 4800 GiB divisible by 2400 GiB"
 FSX_DEPLOYMENT_TYPES = ("SCRATCH_2", "PERSISTENT_2")
 FSX_PERSISTENT2_THROUGHPUT_TIERS = ("125", "250", "500", "1000")
+DEFAULT_FSX_DEPLOYMENT_TYPE = "PERSISTENT_2"
+DEFAULT_FSX_PERSISTENT2_THROUGHPUT_MBPS_PER_TIB = "1000"
+FSX_CHOICE_DEFAULTS = {
+    "fsx_deployment_type": DEFAULT_FSX_DEPLOYMENT_TYPE,
+    "fsx_throughput_mbps_per_tib": DEFAULT_FSX_PERSISTENT2_THROUGHPUT_MBPS_PER_TIB,
+}
 APPROVED_HEADNODE_INSTANCE_TYPES = (
     "r7i.2xlarge",
     "r7i.4xlarge",
@@ -1854,7 +1860,11 @@ def _resolve_fsx_choice(
     if non_interactive:
         raise ValueError(f"Non-interactive cluster creation requires an explicit {key} set value.")
 
-    default_value = get_effective_default(cfg, key, "").strip().upper()
+    default_value = (
+        get_effective_default(cfg, key, FSX_CHOICE_DEFAULTS.get(key, ""))
+        .strip()
+        .upper()
+    )
     if default_value and default_value not in choices:
         raise ValueError(
             f"Invalid default {key} {default_value!r}; expected one of {', '.join(choices)}."

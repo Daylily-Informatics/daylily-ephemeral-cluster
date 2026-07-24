@@ -26,7 +26,7 @@ class CommandSampleStatsError(RuntimeError):
 
 
 Runner = Callable[..., subprocess.CompletedProcess[str]]
-PIPELINES = {"hiomrs-kitchensink": "hybrid_ilmn_ont_hiomrs_kitchensink"}
+PIPELINES = {"hiomr-kitchensink": "hybrid_ilmn_ont_hiomr_kitchensink"}
 FAILED_STATES = {
     "FAILED",
     "BOOT_FAIL",

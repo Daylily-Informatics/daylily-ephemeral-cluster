@@ -304,7 +304,7 @@ repositories:
     auth_mode: aws_deploy_key
     https_url: https://github.com/lsmc-bio/daylily-omics-analysis.git
     ssh_url: git@github.com:lsmc-bio/daylily-omics-analysis.git
-    default_ref: 13.0.23
+    default_ref: 13.0.37
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: simple-test
@@ -1088,13 +1088,13 @@ repositories:
             dryrun_analysis_id: tvb_roche_snv_alignstats_5x_1021_dryrun
             stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T073504Z
             failure_cause: "Dry-run failed while preparing Roche/GATK containers: missing Singularity image /fsx/resources/environments/containers/ubuntu/ip-10-0-0-103/7a424a40c6fd659f4d052893dd3554fa.simg."
-      - command_id: hybrid_ilmn_ont_hiomrs
+      - command_id: hybrid_ilmn_ont_hiomr
         type: dev
-        validated_version: 12.0.3
+        validated_version: 13.0.37
         test_data_profile: hg003_hiomrs_1x_raw_fastq
         manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
-        display_name: "Hybrid ILMN+ONT Single-Node HIOMRS"
-        description: "Single-node Sentieon dnascope-hybrid, segdup-caller, ExpansionHunter, and GIAB concordance profile using local NVMe scratch."
+        display_name: "Hybrid ILMN+ONT HIOMR"
+        description: "Granular Sentieon HIOMR hybrid caller path with native SNV, native LongReadSV, CNV, and concordance targets."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
@@ -1106,21 +1106,23 @@ repositories:
           accepted_source_column_sets:
             - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_R1_FQ]
         targets:
-          - produce_hiomrs
+          - produce_sentdhiomr_snv_vcf
+          - produce_sentdhiomr_sv
+          - produce_sentdhiomr_cnv
           - produce_snv_concordances
         genome: hg38
-        jobs: 1
-        keep_going: false
+        jobs: 500
+        keep_going: true
         restart_times: 0
         aligners:
-          - ont
+          - sentmm2ont
         dedupers:
           - na
         snv_callers:
-          - hiomrs
+          - sentdhiomr
         sv_callers: []
-        dy_command: "dy-r produce_hiomrs produce_snv_concordances --config 'aligners=[\"ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[]' -j 1"
-        dryrun_dy_command: "dy-r produce_hiomrs produce_snv_concordances --config 'aligners=[\"ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[]' -j 1 -n"
+        dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_snv_concordances --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[]' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime"
+        dryrun_dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_snv_concordances --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[]' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime -n"
         compatible_platforms:
           - ILMN
           - ONT
@@ -1128,15 +1130,15 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.23
+        git_tag: 13.0.37
         no_containerized: false
-      - command_id: hybrid_ilmn_ont_hiomrs_kitchensink
+      - command_id: hybrid_ilmn_ont_hiomr_kitchensink
         type: dev
-        validated_version: 12.0.3
+        validated_version: 13.0.37
         test_data_profile: hg003_hiomrs_1x_raw_fastq
         manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
-        display_name: "Hybrid ILMN+ONT Single-Node HIOMRS Kitchen Sink"
-        description: "Single-node Sentieon DNAscope Hybrid SNV, SV, CNV, segdup, and ExpansionHunter outputs plus TIDDIT SV, alignstats, relatedness, Peddy, GATK and site-mix contamination, VEP, SMNCopyNumberCaller SMN12 evidence, Ganon2 metagenomics, GIAB concordance, final MultiQC, and evidence manifest."
+        display_name: "Hybrid ILMN+ONT HIOMR Kitchen Sink"
+        description: "Granular HIOMR hybrid caller path plus native LongReadSV, CNV, SegDup, mitochondrial calling, generic QC, relatedness, Peddy, SMN12 orthogonal evidence, metagenomics, MultiQC, DAG, rulegraph, filegraph, and artifact manifest outputs."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
@@ -1148,7 +1150,11 @@ repositories:
           accepted_source_column_sets:
             - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_R1_FQ]
         targets:
-          - produce_hiomrs
+          - produce_sentdhiomr_snv_vcf
+          - produce_sentdhiomr_sv
+          - produce_sentdhiomr_cnv
+          - produce_sentdhiomr_mito
+          - produce_sentdhiomr_segdup
           - produce_snv_concordances
           - produce_tiddit_sv_vcf
           - produce_alignstats
@@ -1164,19 +1170,19 @@ repositories:
           - results/day/hg38/reports/DAY_final_multiqc.html
           - results/day/hg38/reports/dayoa_evidence_manifest.json
         genome: hg38
-        jobs: 250
-        keep_going: false
+        jobs: 500
+        keep_going: true
         restart_times: 0
         aligners:
-          - sent
+          - sentmm2ont
         dedupers:
           - na
         snv_callers:
-          - hiomrs
+          - sentdhiomr
         sv_callers:
           - tiddit
-        dy_command: "dy-r produce_hiomrs produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=[\"sent\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' -j 250 -p -T 0 --rerun-triggers mtime --rerun-incomplete"
-        dryrun_dy_command: "dy-r produce_hiomrs produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=[\"sent\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' -j 250 -p -T 0 --rerun-triggers mtime --rerun-incomplete -n"
+        dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
+        dryrun_dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n"
         compatible_platforms:
           - ILMN
           - ONT
@@ -1184,15 +1190,15 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.23
+        git_tag: 13.0.37
         no_containerized: false
       - command_id: package_inflection_hybrid_data
         type: dev
-        validated_version: 13.0.23
+        validated_version: 13.0.37
         test_data_profile: hg003_hiomrs_1x_raw_fastq
         manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
         display_name: "Package Inflection Hybrid Data"
-        description: "Package completed Hybrid ILMN+ONT HIOMRS outputs into the Inflection/SeqOne-style delivery set, including package manifests, QC evidence, and final delivery-set materialization. This command is intended for already-computed HIOMRS analysis roots and should dry-run cleanly without scheduling alignment or core variant-calling work."
+        description: "Package completed Hybrid ILMN+ONT HIOMR outputs into the Inflection/SeqOne-style delivery set, including package manifests, QC evidence, and final delivery-set materialization. This command is intended for already-computed HIOMR analysis roots and should dry-run cleanly without scheduling alignment or core variant-calling work."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
@@ -1210,15 +1216,15 @@ repositories:
         keep_going: true
         restart_times: 0
         aligners:
-          - sent
+          - sentmm2ont
         dedupers:
           - na
         snv_callers:
-          - hiomrs
+          - sentdhiomr
         sv_callers:
           - tiddit
-        dy_command: "dy-r produce_inflection_delivery_set --config 'aligners=[\"sent\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[\"tiddit\"]' -j 400 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
-        dryrun_dy_command: "dy-r produce_inflection_delivery_set --config 'aligners=[\"sent\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[\"tiddit\"]' -j 400 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n"
+        dy_command: "dy-r produce_inflection_delivery_set --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' -j 400 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
+        dryrun_dy_command: "dy-r produce_inflection_delivery_set --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' -j 400 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n"
         compatible_platforms:
           - ILMN
           - ONT
@@ -1226,14 +1232,14 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.23
+        git_tag: 13.0.37
         no_containerized: false
       - command_id: betelgeuser_hiomr_prod_v1
         type: prod
-        validated_version: 12.0.3
+        validated_version: 13.0.37
         test_data_profile: default_reads_slim
         display_name: "Betelgeuser HIOMR Prod v1"
-        description: "Production catalog copy of the strict three-manifest HIOMRS kitchen-sink contract for Betelgeuser."
+        description: "Production catalog copy of the strict six-manifest HIOMR kitchen-sink contract for Betelgeuser."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
@@ -1245,7 +1251,11 @@ repositories:
           accepted_source_column_sets:
             - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_CRAM, ONT_CRAM_ALIGNER, ONT_CRAM_SNV_CALLER]
         targets:
-          - produce_hiomrs
+          - produce_sentdhiomr_snv_vcf
+          - produce_sentdhiomr_sv
+          - produce_sentdhiomr_cnv
+          - produce_sentdhiomr_mito
+          - produce_sentdhiomr_segdup
           - produce_snv_concordances
           - produce_tiddit_sv_vcf
           - produce_alignstats
@@ -1261,19 +1271,19 @@ repositories:
           - results/day/hg38/reports/DAY_final_multiqc.html
           - results/day/hg38/reports/dayoa_evidence_manifest.json
         genome: hg38
-        jobs: 250
-        keep_going: false
+        jobs: 500
+        keep_going: true
         restart_times: 0
         aligners:
-          - sent
+          - sentmm2ont
         dedupers:
           - na
         snv_callers:
-          - hiomrs
+          - sentdhiomr
         sv_callers:
           - tiddit
-        dy_command: "dy-r produce_hiomrs produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=[\"sent\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' -j 250 -p -T 0 --rerun-triggers mtime --rerun-incomplete"
-        dryrun_dy_command: "dy-r produce_hiomrs produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=[\"sent\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' -j 250 -p -T 0 --rerun-triggers mtime --rerun-incomplete -n"
+        dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
+        dryrun_dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n"
         compatible_platforms:
           - ILMN
           - ONT
@@ -1281,14 +1291,14 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.23
+        git_tag: 13.0.37
         no_containerized: false
       - command_id: inflection-bjuice-product-v0.2
         type: dev
-        validated_version: 12.0.3
+        validated_version: 13.0.37
         test_data_profile: default_reads_slim
         display_name: "Inflection BJuice Product v0.2"
-        description: "Current HIOMRS analysis plus strict first-class Inflection delivery packaging, delivery-only MultiQC, evidence manifests, hashes, and the complete configured 14-gene SegDup panel. Requires persisted specimen/sample/library EUIDs, explicit per-library INFLECTION_DELIVERY_ID, and INFLECTION_DELIVERY_BATCH_ID in the controller environment."
+        description: "Current HIOMR analysis plus strict first-class Inflection delivery packaging, delivery-only MultiQC, evidence manifests, hashes, and the complete configured 14-gene SegDup panel. Requires persisted specimen/sample/library EUIDs, explicit per-library INFLECTION_DELIVERY_ID, and INFLECTION_DELIVERY_BATCH_ID in the controller environment."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
@@ -1306,22 +1316,24 @@ repositories:
           accepted_source_column_sets:
             - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_CRAM, ONT_CRAM_ALIGNER, ONT_CRAM_SNV_CALLER]
         targets:
-          - produce_hiomrs
+          - produce_sentdhiomr_snv_vcf
+          - produce_sentdhiomr_sv
+          - produce_sentdhiomr_cnv
           - produce_tiddit_sv_vcf
           - produce_smn12_orthogonal_calls
           - produce_inflection_delivery_set
         genome: hg38
         jobs: 250
         aligners:
-          - sent
+          - sentmm2ont
         dedupers:
           - na
         snv_callers:
-          - hiomrs
+          - sentdhiomr
         sv_callers:
           - tiddit
-        dy_command: "dy-r produce_hiomrs produce_tiddit_sv_vcf produce_smn12_orthogonal_calls produce_inflection_delivery_set --config 'aligners=[\"sent\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' \"inflection_delivery_batch_id=${INFLECTION_DELIVERY_BATCH_ID:?Set persisted Inflection delivery batch ID}\" -j 250 -p -T 1 --rerun-triggers mtime --rerun-incomplete"
-        dryrun_dy_command: "dy-r produce_hiomrs produce_tiddit_sv_vcf produce_smn12_orthogonal_calls produce_inflection_delivery_set --config 'aligners=[\"sent\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"hiomrs\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' \"inflection_delivery_batch_id=${INFLECTION_DELIVERY_BATCH_ID:?Set persisted Inflection delivery batch ID}\" -j 250 -p -T 1 --rerun-triggers mtime --rerun-incomplete -n"
+        dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_tiddit_sv_vcf produce_smn12_orthogonal_calls produce_inflection_delivery_set --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' \"inflection_delivery_batch_id=${INFLECTION_DELIVERY_BATCH_ID:?Set persisted Inflection delivery batch ID}\" -j 250 -p -T 1 --rerun-triggers mtime --rerun-incomplete"
+        dryrun_dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_tiddit_sv_vcf produce_smn12_orthogonal_calls produce_inflection_delivery_set --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' \"inflection_delivery_batch_id=${INFLECTION_DELIVERY_BATCH_ID:?Set persisted Inflection delivery batch ID}\" -j 250 -p -T 1 --rerun-triggers mtime --rerun-incomplete -n"
         compatible_platforms:
           - ILMN
           - ONT
@@ -1329,7 +1341,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.23
+        git_tag: 13.0.37
         no_containerized: false
       - command_id: complete_genomics_mgi_snv_concordance
         type: dev

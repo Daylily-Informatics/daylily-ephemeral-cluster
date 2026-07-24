@@ -2169,6 +2169,14 @@ def export(
     ),
     wait: bool = typer.Option(True, "--wait/--no-wait", help="Wait for DRA/task/detach."),
     timeout_seconds: int = typer.Option(3600, "--timeout-seconds", help="Wait timeout."),
+    delete_data_in_file_system: bool = typer.Option(
+        False,
+        "--delete-data-in-file-system",
+        help=(
+            "Delete the exported source data from FSx when detaching the temporary "
+            "export DRA after a successful export task."
+        ),
+    ),
 ) -> None:
     """Export FSx outputs through an explicit DRA and immutable S3 receipt."""
 
@@ -2190,6 +2198,7 @@ def export(
             output_dir=output_dir.expanduser().resolve(),
             wait=wait,
             timeout_seconds=timeout_seconds,
+            delete_data_in_file_system=delete_data_in_file_system,
         )
     )
     raise typer.Exit(rc)
@@ -2292,8 +2301,13 @@ def exports_detach(
     profile: Optional[str] = typer.Option(None, "--profile"),
     wait: bool = typer.Option(True, "--wait/--no-wait"),
     timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
+    delete_data_in_file_system: bool = typer.Option(
+        False,
+        "--delete-data-in-file-system",
+        help="Delete FSx data in the exported DRA path while detaching.",
+    ),
 ) -> None:
-    """Detach an output DRA without deleting cached FSx data."""
+    """Detach an output DRA, optionally deleting cached FSx data."""
 
     from daylily_ec.workflow.export_data import detach_export_dra
 
@@ -2304,13 +2318,14 @@ def exports_detach(
             profile=profile,
             wait=wait,
             timeout_seconds=timeout_seconds,
+            delete_data_in_file_system=delete_data_in_file_system,
         )
         _emit_export_payload(
             payload,
             text=(
                 f"Export DRA detached: {association_id}\n"
                 f"Lifecycle: {payload['detach_lifecycle']}\n"
-                "DeleteDataInFileSystem: false"
+                f"DeleteDataInFileSystem: {str(delete_data_in_file_system).lower()}"
             ),
         )
     except Exception as exc:  # noqa: BLE001
@@ -7688,7 +7703,7 @@ def _download_sample_stats_dag(
 
 
 def command_sample_stats(
-    pipeline: str = typer.Argument(..., help="Pipeline contract; currently hiomrs-kitchensink."),
+    pipeline: str = typer.Argument(..., help="Pipeline contract; currently hiomr-kitchensink."),
     name: str = typer.Option(..., "--name", help="Required sole top-level JSON report key."),
     analysis_root: str = typer.Option(..., "--analysis-root", help="Exact analysis root path."),
     profile: Optional[str] = typer.Option(

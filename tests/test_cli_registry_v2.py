@@ -3582,7 +3582,7 @@ def test_catalog_render_appends_dy_config_overrides(tmp_path) -> None:
             "--json",
             "catalog",
             "render",
-            "hybrid_ilmn_ont_hiomrs_kitchensink",
+            "hybrid_ilmn_ont_hiomr_kitchensink",
             "--analysis-id",
             "hg-run",
             "--executing-entity",
@@ -3616,7 +3616,8 @@ def test_catalog_render_appends_dy_config_overrides(tmp_path) -> None:
         if token.startswith("-"):
             break
         config_values.append(token)
-    assert 'aligners=["sent"]' in config_values
+    assert 'aligners=["sentmm2ont"]' in config_values
+    assert 'snv_callers=["sentdhiomr"]' in config_values
     assert 'htd_callers=["smn12"]' in config_values
     assert "use_fq_data_starting_hrs=0" in config_values
     assert "use_fq_data_up_to_hrs=7" in config_values

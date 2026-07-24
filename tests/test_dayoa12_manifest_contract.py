@@ -228,7 +228,7 @@ def test_dayoa12_preserves_blank_analysis_unit_for_dayoa_construction(
 
 
 def test_dayoa13_catalog_commands_reject_legacy_manifest_paths() -> None:
-    command = load_repository_catalog(CATALOG).get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
+    command = load_repository_catalog(CATALOG).get_command("hybrid_ilmn_ont_hiomr_kitchensink")
     assert command.input_contract == "six_manifest"
     with pytest.raises(ValueError, match="require manifest_dir"):
         command.launch_argv(
@@ -240,7 +240,7 @@ def test_dayoa13_catalog_commands_reject_legacy_manifest_paths() -> None:
 
 
 def test_dayoa13_launch_transports_exact_six_manifest_directory() -> None:
-    command = load_repository_catalog(CATALOG).get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
+    command = load_repository_catalog(CATALOG).get_command("hybrid_ilmn_ont_hiomr_kitchensink")
     argv = command.launch_argv(
         analysis_id="analysis-001",
         executing_entity="cluster-001",
@@ -288,7 +288,7 @@ def test_headnode_remote_config_requires_exact_dayoa12_triple() -> None:
 
 def test_inflection_v02_requires_explicit_lineage_and_delivery_contract() -> None:
     command = load_repository_catalog(CATALOG).get_command("inflection-bjuice-product-v0.2")
-    assert command.git_tag == "13.0.23"
+    assert command.git_tag == "13.0.37"
     assert command.input_contract == "six_manifest"
     assert command.input_requirements.required_source_columns == [
         "SPECIMEN_EUID",
@@ -296,7 +296,7 @@ def test_inflection_v02_requires_explicit_lineage_and_delivery_contract() -> Non
         "LIBRARY_EUID",
         "INFLECTION_DELIVERY_ID",
     ]
-    assert "produce_hiomrs" in command.targets
+    assert "produce_sentdhiomr_snv_vcf" in command.targets
     assert "produce_inflection_delivery_set" in command.targets
     assert "INFLECTION_DELIVERY_BATCH_ID:?" in command.dy_command
     with pytest.raises(KeyError):

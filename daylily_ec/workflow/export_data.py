@@ -54,6 +54,7 @@ class ExportOptions:
     output_dir: Path
     wait: bool = True
     timeout_seconds: int = 3600
+    delete_data_in_file_system: bool = False
 
 
 @dataclasses.dataclass(frozen=True)
@@ -469,12 +470,13 @@ def detach_export_dra(
     timeout_seconds: int,
     fsx_client: Optional[Any] = None,
     allow_absent: bool = False,
+    delete_data_in_file_system: bool = False,
 ) -> Dict[str, Any]:
     client = fsx_client or _create_session(region, profile).client("fsx")
     try:
         response = client.delete_data_repository_association(
             AssociationId=association_id,
-            DeleteDataInFileSystem=False,
+            DeleteDataInFileSystem=delete_data_in_file_system,
         )
     except ClientError as exc:
         if allow_absent and _is_association_not_found(exc):
@@ -482,7 +484,7 @@ def detach_export_dra(
                 "association_id": association_id,
                 "detach_lifecycle": "NOT_FOUND",
                 "detach_absent": True,
-                "delete_data_in_file_system": False,
+                "delete_data_in_file_system": delete_data_in_file_system,
             }
         raise ExportError(f"Unable to detach export data repository association: {exc}") from exc
     except BotoCoreError as exc:
@@ -498,7 +500,7 @@ def detach_export_dra(
     return {
         "association_id": association_id,
         "detach_lifecycle": str(association.get("Lifecycle") or "UNKNOWN"),
-        "delete_data_in_file_system": False,
+        "delete_data_in_file_system": delete_data_in_file_system,
     }
 
 
@@ -538,7 +540,7 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
             "dayoa_analysis_root": f"{headnode_path}daylily-omics-analysis/",
             "dayoa_s3_root": f"{destination_s3_uri}daylily-omics-analysis/",
             "detached": False,
-            "delete_data_in_file_system": False,
+            "delete_data_in_file_system": options.delete_data_in_file_system,
             "failure_details": {},
         }
     }
@@ -562,7 +564,7 @@ def run_export_workflow(options: ExportOptions) -> int:
                 "source_path": options.source_path,
                 "destination_s3_uri": options.destination_s3_uri,
                 "detached": False,
-                "delete_data_in_file_system": False,
+                "delete_data_in_file_system": options.delete_data_in_file_system,
                 "failure_details": {"message": str(exc)},
             }
         }
@@ -637,6 +639,7 @@ def run_export_workflow(options: ExportOptions) -> int:
                     timeout_seconds=options.timeout_seconds,
                     fsx_client=client,
                     allow_absent=True,
+                    delete_data_in_file_system=options.delete_data_in_file_system,
                 )
                 receipt["fsx_export"].update(detach_payload)
                 receipt["fsx_export"]["detached"] = True

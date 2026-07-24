@@ -19,7 +19,7 @@ ephemeral_cluster:
     headnode_instance_type: [PROMPTUSER, "r7i.2xlarge", ""]
     fsx_fs_size: [PROMPTUSER, "4800", ""]
     fsx_deployment_type: [PROMPTUSER, "PERSISTENT_2", ""]
-    fsx_throughput_mbps_per_tib: [PROMPTUSER, "250", ""]
+    fsx_throughput_mbps_per_tib: [PROMPTUSER, "1000", ""]
     fsx_lustre_version: [USESETVALUE, "", "2.15"]
     fsx_metadata_mode: [USESETVALUE, "", "AUTOMATIC"]
     fsx_encryption_mode: [USESETVALUE, "", "AWS_MANAGED_FSX"]

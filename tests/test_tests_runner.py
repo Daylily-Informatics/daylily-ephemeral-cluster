@@ -275,20 +275,18 @@ def test_render_dy_command_normalizes_flags_and_warmup() -> None:
 
 
 def test_render_hybrid_kitchensink_uses_fail_fast_catalog_policy() -> None:
-    command = load_repository_catalog().get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
+    command = load_repository_catalog().get_command("hybrid_ilmn_ont_hiomr_kitchensink")
 
     live = render_catalog_dy_command(command, jobs=None, dry_run=False)
     dry = render_catalog_dy_command(command, jobs=None, dry_run=True)
-    expected_flags = "-j 250 -p -T 0 --rerun-triggers mtime --rerun-incomplete"
+    expected_flags = "-j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
 
     assert expected_flags in live
-    assert " -k " not in f" {live} "
     assert " -n " not in f" {live} "
     assert dry.endswith(
         f"{expected_flags} -n --produce-analysis-artifact-manifest true --produce-rulegraph true "
-        "--produce-filegraph false --produce-dag false"
+        "--produce-filegraph true --produce-dag true"
     )
-    assert " -k " not in f" {dry} "
 
 
 def test_ont_kitchensink_slim_fixture_does_not_require_fastq_alignment() -> None:
@@ -350,7 +348,7 @@ def test_write_legacy_sample_manifest_uses_command_specific_templates(tmp_path: 
 
 @pytest.mark.parametrize(
     "command_id",
-    ["hybrid_ilmn_ont_hiomrs_kitchensink", "inflection-bjuice-product-v0.2"],
+    ["hybrid_ilmn_ont_hiomr_kitchensink", "inflection-bjuice-product-v0.2"],
 )
 def test_dayoa12_test_runner_never_synthesizes_lineage_euids(
     tmp_path: Path,
@@ -362,7 +360,7 @@ def test_dayoa12_test_runner_never_synthesizes_lineage_euids(
         write_sample_manifest(command, tmp_path)
 
 
-def test_hiomrs_six_manifest_fixture_is_copied_exactly_and_rendered(
+def test_hiomr_six_manifest_fixture_is_copied_exactly_and_rendered(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     repo_root = Path(__file__).resolve().parents[1]
@@ -373,7 +371,7 @@ def test_hiomrs_six_manifest_fixture_is_copied_exactly_and_rendered(
     catalog = load_repository_catalog(
         repo_root / "config" / "daylily_pipeline_command_catalog.yaml"
     )
-    command = catalog.get_command("hybrid_ilmn_ont_hiomrs_kitchensink")
+    command = catalog.get_command("hybrid_ilmn_ont_hiomr_kitchensink")
     prepared = prepare_command_inputs(
         [command],
         catalog=catalog,

@@ -8,8 +8,8 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_DEFAULT_TAG = "13.0.23"
-DAYOA_VALIDATED_TAG = "12.0.3"
+DAYOA_DEFAULT_TAG = "13.0.37"
+DAYOA_VALIDATED_TAG = "13.0.37"
 DYEC_BLESSED_TAG = "14.0.5"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
@@ -81,8 +81,8 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
         assert repo["default_ref"] == DAYOA_DEFAULT_TAG
         commands = {command["command_id"]: command for command in repo["analysis_commands"]}
         for command_id in (
-            "hybrid_ilmn_ont_hiomrs",
-            "hybrid_ilmn_ont_hiomrs_kitchensink",
+            "hybrid_ilmn_ont_hiomr",
+            "hybrid_ilmn_ont_hiomr_kitchensink",
             "betelgeuser_hiomr_prod_v1",
             "inflection-bjuice-product-v0.2",
         ):

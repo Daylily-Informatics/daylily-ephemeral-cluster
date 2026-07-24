@@ -26,6 +26,8 @@ CONTROLLER_RC_RE = re.compile(
     r"(?:__DAYOA_CONTROLLER_RC__|DAYOA_CONTROLLER_RC|controller[_ ]rc)\s*[=:]\s*(?P<rc>-?\d+)",
     re.IGNORECASE,
 )
+WORKFLOW_SUCCESS_RE = re.compile(r"\bWORKFLOW SUCCESS\b", re.IGNORECASE)
+WORKFLOW_RETURN_CODE_RE = re.compile(r"\bRETURN CODE:\s*(?P<rc>-?\d+)\b", re.IGNORECASE)
 FAILURE_PATTERNS = (
     "Error in rule",
     "Error in group",
@@ -243,6 +245,12 @@ def _workflow_evidence(dayoa_root: Path, *, tail_lines: int, full: bool) -> dict
             "completed_count": None,
             "source": str(master_log) if master_log else None,
         },
+        "terminal": {
+            "return_code": None,
+            "return_code_source": None,
+            "success_marker": False,
+            "success_marker_source": None,
+        },
         "failure_count": 0,
         "first_failure_line": None,
         "failure_lines": [],
@@ -260,6 +268,13 @@ def _workflow_evidence(dayoa_root: Path, *, tail_lines: int, full: bool) -> dict
             "total": int(latest.group("total")),
             "percent": int(latest.group("pct")),
         }
+    rc_matches = list(WORKFLOW_RETURN_CODE_RE.finditer(text))
+    if rc_matches:
+        evidence["terminal"]["return_code"] = int(rc_matches[-1].group("rc"))
+        evidence["terminal"]["return_code_source"] = str(master_log)
+    if WORKFLOW_SUCCESS_RE.search(text):
+        evidence["terminal"]["success_marker"] = True
+        evidence["terminal"]["success_marker_source"] = str(master_log)
     evidence["scheduled_rules"] = sorted(set(RULE_RE.findall(text)))
     evidence["job_events"] = {
         "submitted_count": len(set(SUBMITTED_JOB_RE.findall(text))),
@@ -881,20 +896,39 @@ def _terminal_evidence(
     progress_complete = (
         progress["completed"] is not None and progress["completed"] == progress["total"]
     )
+    workflow_terminal = workflow.get("terminal", {})
+    workflow_return_code = workflow_terminal.get("return_code")
+    effective_return_code = (
+        controller["return_code"] if controller["return_code"] is not None else workflow_return_code
+    )
+    terminal_success = (
+        bool(workflow_terminal.get("success_marker")) and effective_return_code == 0
+    )
     requirements = {
-        "controller_exit_zero": controller["return_code"] == 0,
+        "controller_exit_zero": effective_return_code == 0,
         "controller_inactive": controller["available"] and not controller["active"],
         "scheduler_idle": slurm["available"] and not slurm["jobs"],
         "workflow_progress_complete": progress_complete,
+        "workflow_terminal_success": terminal_success,
         "strict_artifacts_present": artifacts["all_present"],
     }
+    workflow_complete = progress_complete or terminal_success
+    success_requirements = {
+        "controller_exit_zero": requirements["controller_exit_zero"],
+        "controller_inactive": requirements["controller_inactive"],
+        "scheduler_idle": requirements["scheduler_idle"],
+        "workflow_complete": workflow_complete,
+        "strict_artifacts_present": requirements["strict_artifacts_present"],
+    }
     return {
-        "return_code": controller["return_code"],
+        "return_code": effective_return_code,
         "return_code_source": (
-            "matching tmux controller marker" if controller["return_code"] is not None else None
+            "matching tmux controller marker"
+            if controller["return_code"] is not None
+            else workflow_terminal.get("return_code_source")
         ),
         "requirements": requirements,
-        "success_verified": all(requirements.values()),
+        "success_verified": all(success_requirements.values()),
         "artifact_files": artifacts["files"],
     }
 
@@ -946,15 +980,20 @@ def collect_analysis_status(
         slurm=slurm,
         artifacts=artifacts,
     )
+    effective_return_code = terminal_evidence["return_code"]
+    workflow_terminal_complete = (
+        terminal_evidence["requirements"]["workflow_progress_complete"]
+        or terminal_evidence["requirements"]["workflow_terminal_success"]
+    )
     complete = (
-        terminal_evidence["requirements"]["workflow_progress_complete"] and artifacts["all_present"]
+        workflow_terminal_complete and artifacts["all_present"]
     )
     active = controller["active"] or bool(slurm["jobs"])
-    if controller["return_code"] not in (None, 0) and not active:
+    if effective_return_code not in (None, 0) and not active:
         state = "FAILED"
     elif terminal_evidence["success_verified"]:
         state = "SUCCESS"
-    elif complete and controller["return_code"] == 0 and not active and not slurm["available"]:
+    elif complete and effective_return_code == 0 and not active and not slurm["available"]:
         state = "COMPLETE_ARTIFACTS_RC_ZERO_SCHEDULER_UNKNOWN"
     elif complete and not active:
         state = "COMPLETE_ARTIFACTS_RC_UNKNOWN"
@@ -988,15 +1027,19 @@ def collect_analysis_status(
         payload["warnings"].append(f"Slurm evidence unavailable: {slurm['error']}")
     if not accounting["available"]:
         payload["warnings"].append(f"Slurm accounting evidence unavailable: {accounting['error']}")
-    if workflow["progress"]["total"] is None:
+    if workflow["progress"]["total"] is None and not workflow["terminal"]["success_marker"]:
         payload["warnings"].append(
             "No Snakemake progress line was found in the current master log."
         )
-    if complete and controller["return_code"] is None:
+    if workflow["progress"]["total"] is None and workflow["terminal"]["success_marker"]:
         payload["warnings"].append(
-            "Canonical outputs and progress are complete, but controller rc 0 was not found; success is unverified."
+            "No Snakemake progress line was found in the current master log; terminal workflow success evidence was used."
         )
-    if complete and controller["return_code"] == 0 and not slurm["available"]:
+    if complete and effective_return_code is None:
+        payload["warnings"].append(
+            "Canonical outputs and terminal workflow evidence are complete, but rc 0 was not found; success is unverified."
+        )
+    if complete and effective_return_code == 0 and not slurm["available"]:
         payload["warnings"].append(
             "Canonical outputs and controller rc 0 are present, but scheduler-idle state is unavailable; success is unverified."
         )

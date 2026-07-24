@@ -1311,7 +1311,7 @@ HeadNode:
         cfg = ConfigFile.model_validate(
             {
                 "ephemeral_cluster": {
-                    "config": {"fsx_throughput_mbps_per_tib": ["PROMPTUSER", "250", ""]}
+                    "config": {"fsx_throughput_mbps_per_tib": ["PROMPTUSER", "1000", ""]}
                 }
             }
         )
@@ -1330,7 +1330,7 @@ HeadNode:
                 == "1000"
             )
 
-        assert mock_prompt.call_args.kwargs["default"] == "2"
+        assert mock_prompt.call_args.kwargs["default"] == "4"
 
     def test_resolve_persistent2_throughput_non_interactive_rejects_missing_value(
         self,
@@ -1338,7 +1338,7 @@ HeadNode:
         cfg = ConfigFile.model_validate(
             {
                 "ephemeral_cluster": {
-                    "config": {"fsx_throughput_mbps_per_tib": ["PROMPTUSER", "250", ""]}
+                    "config": {"fsx_throughput_mbps_per_tib": ["PROMPTUSER", "1000", ""]}
                 }
             }
         )

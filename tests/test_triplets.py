@@ -338,7 +338,7 @@ class TestLoadConfig:
         assert ec.config["fsx_fs_size"].default_value == "4800"
         assert ec.config["fsx_fs_size"].set_value == ""
         assert ec.config["fsx_throughput_mbps_per_tib"].action == "PROMPTUSER"
-        assert ec.config["fsx_throughput_mbps_per_tib"].default_value == "250"
+        assert ec.config["fsx_throughput_mbps_per_tib"].default_value == "1000"
         assert ec.config["fsx_throughput_mbps_per_tib"].set_value == ""
         assert ec.config["fsx_lustre_version"].set_value == "2.15"
         assert ec.config["fsx_metadata_mode"].set_value == "AUTOMATIC"

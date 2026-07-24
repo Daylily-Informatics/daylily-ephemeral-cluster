@@ -218,7 +218,7 @@ def test_analysis_command_model_and_launch_error_branches() -> None:
         with pytest.raises(ValidationError):
             repos.AnalysisCommand.model_validate({**deepcopy(base), **mutation})
 
-    six_manifest = catalog.get_command("hybrid_ilmn_ont_hiomrs")
+    six_manifest = catalog.get_command("hybrid_ilmn_ont_hiomr")
     with pytest.raises(ValidationError, match="must use manifest_dir_template"):
         repos.AnalysisCommand.model_validate(
             {**six_manifest.model_dump(), "sample_manifest_template": "examples/legacy.tsv"}

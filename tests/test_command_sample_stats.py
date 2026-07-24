@@ -44,7 +44,10 @@ def _status(root: Path) -> dict:
             "tmux_panes": [
                 {
                     "session": "hiomrs-test",
-                    "observed_commands": ["dy-a slurm hg38", "dy-r produce_hiomrs"],
+                    "observed_commands": [
+                        "dy-a slurm hg38",
+                        "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv",
+                    ],
                 }
             ],
         },
@@ -226,15 +229,15 @@ def test_collect_sample_stats_contract(analysis_root: Path) -> None:
     payload = module.collect_command_sample_stats(
         analysis_root,
         name="bjuice10",
-        pipeline="hiomrs-kitchensink",
+        pipeline="hiomr-kitchensink",
     )
 
     assert list(payload) == ["bjuice10"]
     report = payload["bjuice10"]
     assert report["schema_version"] == "dyec.command_sample_stats.v2"
     assert report["compatible_schema_versions"] == ["dyec.command_sample_stats.v1"]
-    assert report["command_details"]["command_catalog_key"] == "hybrid_ilmn_ont_hiomrs_kitchensink"
-    assert report["command_details"]["git_tag"] == "13.0.23"
+    assert report["command_details"]["command_catalog_key"] == "hybrid_ilmn_ont_hiomr_kitchensink"
+    assert report["command_details"]["git_tag"] == "13.0.37"
     assert report["command_details"]["retried_jobs"]["count"] == 1
     assert report["analysis"]["started_at_source"] == "controller process elapsed time"
     assert 599 <= report["analysis"]["runtime_seconds"] <= 601
@@ -293,7 +296,7 @@ def test_v2_preserves_the_public_v1_field_surface(analysis_root: Path) -> None:
     report = module.collect_command_sample_stats(
         analysis_root,
         name="compatibility",
-        pipeline="hiomrs-kitchensink",
+        pipeline="hiomr-kitchensink",
     )["compatibility"]
 
     assert {
@@ -370,7 +373,7 @@ def test_authoritative_analysis_unit_uid_is_unique_when_supplied(analysis_root: 
         encoding="utf-8",
     )
     with pytest.raises(module.CommandSampleStatsError, match="duplicate key"):
-        module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomrs-kitchensink")
+        module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomr-kitchensink")
 
 
 def test_dayoa13_sample_stats_rejects_blank_analysis_unit_without_rewriting(
@@ -382,7 +385,7 @@ def test_dayoa13_sample_stats_rejects_blank_analysis_unit_without_rewriting(
         encoding="utf-8",
     )
     with pytest.raises(module.CommandSampleStatsError, match="blank or whitespace"):
-        module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomrs-kitchensink")
+        module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomr-kitchensink")
 
 
 def test_dayoa13_sample_stats_rejects_legacy_units_even_with_six_manifests(
@@ -393,7 +396,7 @@ def test_dayoa13_sample_stats_rejects_legacy_units_even_with_six_manifests(
         "ANALYSIS_UNIT_UID\tSAMPLEID\nHG003_unit\tHG003\n",
     )
     with pytest.raises(module.CommandSampleStatsError, match="legacy manifest files are prohibited"):
-        module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomrs-kitchensink")
+        module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomr-kitchensink")
 
 
 def test_dayoa13_sample_stats_validates_specimen_foreign_key(analysis_root: Path) -> None:
@@ -404,7 +407,7 @@ def test_dayoa13_sample_stats_validates_specimen_foreign_key(analysis_root: Path
         encoding="utf-8",
     )
     with pytest.raises(module.CommandSampleStatsError, match="orphan SPECIMEN_ID"):
-        module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomrs-kitchensink")
+        module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomr-kitchensink")
 
 
 def test_unsupported_pipeline_fails(analysis_root: Path) -> None:
@@ -443,7 +446,7 @@ def test_running_state_is_scoped_to_the_matching_rule_family(
     payload = module.collect_command_sample_stats(
         analysis_root,
         name="x",
-        pipeline="hiomrs-kitchensink",
+        pipeline="hiomr-kitchensink",
     )
 
     milestones = payload["x"]["library_units"][0]["milestones"]
@@ -499,7 +502,7 @@ def test_failed_milestone_reports_exact_accounting_and_first_log_error(
     payload = module.collect_command_sample_stats(
         analysis_root,
         name="x",
-        pipeline="hiomrs-kitchensink",
+        pipeline="hiomr-kitchensink",
     )
 
     milestone = payload["x"]["library_units"][0]["milestones"]["hybrid_sv"]
@@ -544,7 +547,7 @@ def test_strict_success_requires_all_controller_requirements(
     report = module.collect_command_sample_stats(
         analysis_root,
         name="x",
-        pipeline="hiomrs-kitchensink",
+        pipeline="hiomr-kitchensink",
     )["x"]
 
     assert report["analysis"]["terminal_state"] == "SUCCESS"
@@ -574,7 +577,7 @@ def test_unit_cost_is_withheld_when_any_matching_benchmark_row_is_unpriced(
     unit = module.collect_command_sample_stats(
         analysis_root,
         name="x",
-        pipeline="hiomrs-kitchensink",
+        pipeline="hiomr-kitchensink",
     )["x"]["library_units"][0]
 
     assert unit["benchmark_task_cost"]["value_usd"] is None
@@ -596,7 +599,7 @@ def test_missing_scheduler_and_retry_sources_remain_null(
     pipeline = module.collect_command_sample_stats(
         analysis_root,
         name="x",
-        pipeline="hiomrs-kitchensink",
+        pipeline="hiomr-kitchensink",
     )["x"]["pipeline"]
 
     assert pipeline["jobs_running"] is None
@@ -608,7 +611,7 @@ def test_missing_scheduler_and_retry_sources_remain_null(
 
 def test_dag_copy_is_verified_and_refuses_overwrite(analysis_root: Path, tmp_path: Path) -> None:
     payload = module.collect_command_sample_stats(
-        analysis_root, name="x", pipeline="hiomrs-kitchensink"
+        analysis_root, name="x", pipeline="hiomr-kitchensink"
     )
     destination = tmp_path / "named-rulegraph.png"
     copied = module.copy_dag(payload, destination)
@@ -620,7 +623,7 @@ def test_dag_copy_is_verified_and_refuses_overwrite(analysis_root: Path, tmp_pat
 
 def test_human_table_contains_requested_fields(analysis_root: Path) -> None:
     payload = module.collect_command_sample_stats(
-        analysis_root, name="x", pipeline="hiomrs-kitchensink"
+        analysis_root, name="x", pipeline="hiomr-kitchensink"
     )
     text = module.render_command_sample_stats(payload)
     assert "Sample\t%\tSR Aln\tLR Aln\tHybrid SNV\tHybrid SV\tMito" in text
@@ -635,7 +638,7 @@ def test_cli_emits_required_single_top_level_key(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    payload = {"named-run": {"pipeline": {"name": "hiomrs-kitchensink"}}}
+    payload = {"named-run": {"pipeline": {"name": "hiomr-kitchensink"}}}
     monkeypatch.setenv("CONDA_DEFAULT_ENV", "DAY-EC")
     monkeypatch.setenv("CONDA_PREFIX", "/tmp/dayec")
     monkeypatch.setattr(module, "collect_command_sample_stats", lambda *_args, **_kwargs: payload)
@@ -647,7 +650,7 @@ def test_cli_emits_required_single_top_level_key(
             "--json",
             "command",
             "sample-stats",
-            "hiomrs-kitchensink",
+            "hiomr-kitchensink",
             "--name",
             "named-run",
             "--analysis-root",

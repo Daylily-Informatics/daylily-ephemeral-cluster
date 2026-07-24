@@ -18,19 +18,25 @@ from daylily_ec.cli import app
 runner = CliRunner()
 
 
-def _root(tmp_path: Path, *, complete: bool = False) -> Path:
+def _root(
+    tmp_path: Path,
+    *,
+    complete: bool = False,
+    terminal_success_without_progress: bool = False,
+) -> Path:
     root = tmp_path / "fsx" / "analysis_results" / "cluster" / "analysis-1"
     dayoa = root / "daylily-omics-analysis"
     log_dir = dayoa / ".snakemake" / "log"
     log_dir.mkdir(parents=True)
-    progress = "10 of 20 steps (50%) done"
-    if complete:
-        progress = "20 of 20 steps (100%) done"
-    (log_dir / "20260716.snakemake.log").write_text(
-        "rule align:\n" + progress + "\n",
-        encoding="utf-8",
-    )
-    if complete:
+    if terminal_success_without_progress:
+        log_text = "rule final_report:\nWORKFLOW SUCCESS\nRETURN CODE: 0\n"
+    else:
+        progress = "10 of 20 steps (50%) done"
+        if complete:
+            progress = "20 of 20 steps (100%) done"
+        log_text = "rule align:\n" + progress + "\n"
+    (log_dir / "20260716.snakemake.log").write_text(log_text, encoding="utf-8")
+    if complete or terminal_success_without_progress:
         report = dayoa / "results" / "day" / "hg38" / "reports"
         (report / "DAY_final_multiqc_data").mkdir(parents=True)
         (report / "DAY_final_multiqc.html").write_text("html", encoding="utf-8")
@@ -202,14 +208,14 @@ def test_success_is_verified_only_with_controller_rc_zero(
             return subprocess.CompletedProcess(
                 argv,
                 0,
-                f"controller|0|0|999|{root}|0|0\n",
+                f"controller|0|0|999|{root.resolve()}|0|0\n",
                 "",
             )
         if argv[:2] == ["tmux", "capture-pane"]:
             return subprocess.CompletedProcess(
                 argv,
                 0,
-                f"run complete in {root}\nDAYOA_CONTROLLER_RC=0\n",
+                f"run complete in {root.resolve()}\nDAYOA_CONTROLLER_RC=0\n",
                 "",
             )
         raise AssertionError(argv)
@@ -219,6 +225,36 @@ def test_success_is_verified_only_with_controller_rc_zero(
     assert payload["state"] == "SUCCESS"
     assert payload["controller"]["return_code"] == 0
     assert payload["terminal_evidence"]["success_verified"] is True
+
+
+def test_success_can_use_master_log_terminal_rc_when_progress_line_is_missing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _root(tmp_path, terminal_success_without_progress=True)
+    _activate(monkeypatch)
+    monkeypatch.setattr(
+        "daylily_ec.analysis_status.shutil.which",
+        lambda name: "/bin/tool" if name in {"squeue", "scontrol"} else None,
+    )
+
+    def fake(argv, **_kwargs):
+        if argv[0] == "ps":
+            return subprocess.CompletedProcess(argv, 0, "", "")
+        if argv[0] == "df":
+            return _fake_runner(argv)
+        if argv[0] == "squeue":
+            return subprocess.CompletedProcess(argv, 0, "", "")
+        raise AssertionError(argv)
+
+    payload = collect_analysis_status(root, mode="slim", runner=fake)
+
+    assert payload["state"] == "SUCCESS"
+    assert payload["terminal_evidence"]["return_code"] == 0
+    assert payload["terminal_evidence"]["return_code_source"].endswith("20260716.snakemake.log")
+    assert payload["terminal_evidence"]["requirements"]["workflow_progress_complete"] is False
+    assert payload["terminal_evidence"]["requirements"]["workflow_terminal_success"] is True
+    assert payload["terminal_evidence"]["success_verified"] is True
+    assert "INCOMPLETE_OR_UNKNOWN" not in render_analysis_status(payload)
 
 
 def test_controller_rc_zero_does_not_claim_success_without_scheduler_evidence(
@@ -240,7 +276,7 @@ def test_controller_rc_zero_does_not_claim_success_without_scheduler_evidence(
             return subprocess.CompletedProcess(
                 argv,
                 0,
-                f"controller|0|0|999|{root}|0|0\n",
+                f"controller|0|0|999|{root.resolve()}|0|0\n",
                 "",
             )
         if argv[:2] == ["tmux", "capture-pane"]:

@@ -74,7 +74,7 @@ Catalog launch is the preferred path for known DayOA commands because it renders
 Render first:
 
 ```bash
-dyec --json catalog render hybrid_ilmn_ont_hiomrs_kitchensink \
+dyec --json catalog render hybrid_ilmn_ont_hiomr_kitchensink \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER" \
@@ -90,7 +90,7 @@ dyec --json catalog render hybrid_ilmn_ont_hiomrs_kitchensink \
 Launch the rendered dry run:
 
 ```bash
-dyec --json catalog launch hybrid_ilmn_ont_hiomrs_kitchensink \
+dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER" \
@@ -106,7 +106,7 @@ dyec --json catalog launch hybrid_ilmn_ont_hiomrs_kitchensink \
 If the dry-run plan is bounded and correct, launch the same catalog command without `--dry-run` and use a new session name:
 
 ```bash
-dyec --json catalog launch hybrid_ilmn_ont_hiomrs_kitchensink \
+dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER" \
@@ -121,7 +121,7 @@ dyec --json catalog launch hybrid_ilmn_ont_hiomrs_kitchensink \
 For DayOA runtime config, pass explicit `key=value` overrides. DYEC appends them to the `dy-r ... --config` section and does not reinterpret their workflow-specific meaning:
 
 ```bash
-dyec --json catalog render hybrid_ilmn_ont_hiomrs_kitchensink \
+dyec --json catalog render hybrid_ilmn_ont_hiomr_kitchensink \
   --analysis-id hg003-hg004-ds025-ont0to6 \
   --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
   --manifest-dir ./config \
@@ -151,7 +151,7 @@ dyec workflow launch \
   --payload-staging-s3-uri "$STAGING_S3_URI" \
   --session-name "$ANALYSIS_ID" \
   --project RnD \
-  --dy-command "dy-r produce_hiomrs -j 100 -p -T 0 --rerun-triggers mtime --rerun-incomplete"
+  --dy-command "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv -j 100 -p -T 0 --rerun-triggers mtime --rerun-incomplete"
 ```
 
 Dry-run first by using the DayOA wrapper command’s dry-run flag inside `--dy-command`, or by launching through `dyec catalog ... --dry-run` when the command is catalog-backed.
@@ -270,10 +270,10 @@ dyec analysis status full \
   --tail-lines 1000
 ```
 
-For HIOMRS command-family progress and optional DAG PNG download:
+For HIOMR command-family progress and optional DAG PNG download:
 
 ```bash
-dyec --json command sample-stats hiomrs-kitchensink \
+dyec --json command sample-stats hiomr-kitchensink \
   --name hg003_hiomrs \
   --analysis-root /fsx/analysis_results/"$CLUSTER"/"$ANALYSIS_ID" \
   --profile "$AWS_PROFILE" \

@@ -123,6 +123,13 @@ def test_receipts_only_enrich_matching_live_controller_roots() -> None:
     assert "receipt_total - len(matched_receipt_keys)" in script
 
 
+def test_missing_controller_receipt_root_is_empty_inventory_not_failure() -> None:
+    script = build_controller_inventory_script()
+
+    assert "if run_root.is_dir():" in script
+    assert "errors.append(\"controller_receipt_inventory_failed\")" in script
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [
