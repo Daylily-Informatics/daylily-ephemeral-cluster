@@ -157,6 +157,83 @@ def test_overlap_detection_rejects_active_fsx_and_s3_prefixes() -> None:
         )
 
 
+def test_create_run_mount_reuses_existing_parent_dra_for_child_s3_prefix(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    fake = FakeFsxClient(
+        [
+            _association(
+                association_id="dra-existing",
+                file_system_path="/run_dir_mounts/RUN124/",
+                s3_uri="s3://bucket/RUN124/",
+            )
+        ]
+    )
+
+    record = run_mounts.create_run_mount(
+        run_mounts.CreateRunMountRequest(
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            region="us-west-2",
+            profile="lsmc",
+            source_s3_uri="s3://bucket/RUN124/subdir/",
+            mount_id="RUN124-subdir",
+            run_id="RUN124-subdir",
+            platform="ILMN",
+            wait=False,
+            tags={"Name": "RUN124-subdir"},
+        ),
+        fsx_client=fake,
+    )
+
+    assert fake.created_params is None
+    assert record.reused_existing_mount is True
+    assert record.association_id == "dra-existing"
+    assert record.file_system_path == "/run_dir_mounts/RUN124/subdir/"
+    assert record.headnode_path == "/fsx/run_dir_mounts/RUN124/subdir/"
+    payload = record.to_output_payload()
+    assert payload["reused_existing_mount"] is True
+    assert payload["usable_headnode_path"] == "/fsx/run_dir_mounts/RUN124/subdir/"
+    assert payload["association_headnode_path"] == "/fsx/run_dir_mounts/RUN124/"
+    assert "Requested mount overlaps an existing active FSx data repository association" in (
+        payload["message"]
+    )
+
+
+def test_create_run_mount_rejects_path_overlap_when_existing_s3_does_not_cover_request(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    fake = FakeFsxClient(
+        [
+            _association(
+                association_id="dra-existing",
+                file_system_path="/run_dir_mounts/RUN124/",
+                s3_uri="s3://bucket/RUN124/",
+            )
+        ]
+    )
+
+    with pytest.raises(run_mounts.RunMountError, match="does not contain requested S3 prefix"):
+        run_mounts.create_run_mount(
+            run_mounts.CreateRunMountRequest(
+                cluster_name="cluster-a",
+                fsx_file_system_id="fs-123",
+                region="us-west-2",
+                profile="lsmc",
+                source_s3_uri="s3://other-bucket/RUN124/subdir/",
+                mount_id="RUN124-subdir",
+                run_id="RUN124-subdir",
+                platform="ILMN",
+                file_system_path="/run_dir_mounts/RUN124/subdir/",
+                wait=False,
+                tags={"Name": "RUN124-subdir"},
+            ),
+            fsx_client=fake,
+        )
+
+
 def test_auto_export_rejected_without_admin_override() -> None:
     with pytest.raises(run_mounts.RunMountError, match="forbidden"):
         run_mounts.parse_auto_export_events(
