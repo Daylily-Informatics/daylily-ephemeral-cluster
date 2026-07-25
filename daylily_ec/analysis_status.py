@@ -1118,6 +1118,7 @@ def _terminal_evidence(
     controller: dict[str, Any],
     slurm: dict[str, Any],
     artifacts: dict[str, Any],
+    run_receipt: dict[str, Any],
 ) -> dict[str, Any]:
     progress = workflow["progress"]
     progress_complete = (
@@ -1131,10 +1132,16 @@ def _terminal_evidence(
     terminal_success = (
         bool(workflow_terminal.get("success_marker")) and effective_return_code == 0
     )
+    exact_run_receipt_success = (
+        run_receipt["available"]
+        and run_receipt["return_code"] == 0
+        and bool(run_receipt["completed_at"])
+    )
     requirements = {
         "controller_exit_zero": effective_return_code == 0,
         "controller_inactive": controller["available"] and not controller["active"],
         "scheduler_idle": slurm["available"] and not slurm["jobs"],
+        "exact_run_receipt_success": exact_run_receipt_success,
         "workflow_progress_complete": progress_complete,
         "workflow_terminal_success": terminal_success,
         "strict_artifacts_present": artifacts["all_present"],
@@ -1147,12 +1154,19 @@ def _terminal_evidence(
         "workflow_complete": workflow_complete,
         "strict_artifacts_present": requirements["strict_artifacts_present"],
     }
+    exact_receipt_success_verified = (
+        exact_run_receipt_success
+        and not controller["active"]
+        and requirements["scheduler_idle"]
+    )
     return {
         "return_code": effective_return_code,
         "return_code_source": controller.get("return_code_source")
         or workflow_terminal.get("return_code_source"),
         "requirements": requirements,
-        "success_verified": all(success_requirements.values()),
+        "success_verified": (
+            exact_receipt_success_verified or all(success_requirements.values())
+        ),
         "artifact_files": artifacts["files"],
     }
 
@@ -1221,6 +1235,7 @@ def collect_analysis_status(
         controller=controller,
         slurm=slurm,
         artifacts=artifacts,
+        run_receipt=run_receipt,
     )
     effective_return_code = terminal_evidence["return_code"]
     workflow_terminal_complete = (
@@ -1272,6 +1287,15 @@ def collect_analysis_status(
     if workflow["progress"]["total"] is None and not workflow["terminal"]["success_marker"]:
         payload["warnings"].append(
             "No Snakemake progress line was found in the current master log."
+        )
+    if (
+        terminal_evidence["success_verified"]
+        and terminal_evidence["requirements"]["exact_run_receipt_success"]
+        and not artifacts["all_present"]
+    ):
+        payload["warnings"].append(
+            "Success was verified by the exact completed run-control receipt; "
+            "the optional canonical artifact set is incomplete."
         )
     if workflow["progress"]["total"] is None and workflow["terminal"]["success_marker"]:
         payload["warnings"].append(

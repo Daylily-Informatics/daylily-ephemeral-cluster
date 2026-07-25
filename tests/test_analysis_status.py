@@ -392,6 +392,37 @@ def test_exact_run_control_receipt_terminalizes_failed_workflow(
     assert payload["controller"]["run_receipt"]["completed_at"] == "2026-07-25T16:45:14Z"
 
 
+def test_exact_run_control_receipt_terminalizes_success_without_optional_artifacts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _root(tmp_path)
+    run_state_root = _write_run_receipts(tmp_path, root, exit_code=0)
+    _activate(monkeypatch)
+    monkeypatch.setattr(
+        "daylily_ec.analysis_status.shutil.which",
+        lambda name: "/bin/tool" if name in {"squeue", "scontrol"} else None,
+    )
+
+    def fake(argv, **_kwargs):
+        if argv[0] == "squeue":
+            return subprocess.CompletedProcess(argv, 0, "", "")
+        return _fake_runner(argv)
+
+    payload = collect_analysis_status(
+        root,
+        mode="slim",
+        runner=fake,
+        run_state_root=run_state_root,
+    )
+
+    assert payload["state"] == "SUCCESS"
+    assert payload["terminal_evidence"]["return_code"] == 0
+    assert payload["terminal_evidence"]["requirements"]["exact_run_receipt_success"] is True
+    assert payload["terminal_evidence"]["success_verified"] is True
+    assert payload["canonical_artifacts"]["all_present"] is False
+    assert "exact completed run-control receipt" in payload["warnings"][-1]
+
+
 def test_run_control_receipt_requires_exact_analysis_root(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
