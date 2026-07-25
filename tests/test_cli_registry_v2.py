@@ -43,6 +43,7 @@ EXPECTED_COMMANDS = {
     ("export",),
     ("exports", "attach"),
     ("exports", "run"),
+    ("exports", "transfer"),
     ("exports", "detach"),
     ("identities", "validate"),
     ("identities", "plan"),
@@ -376,6 +377,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     export_cmd = registry.get_command(("export",))
     exports_attach_cmd = registry.get_command(("exports", "attach"))
     exports_run_cmd = registry.get_command(("exports", "run"))
+    exports_transfer_cmd = registry.get_command(("exports", "transfer"))
     exports_detach_cmd = registry.get_command(("exports", "detach"))
     resources_dir_cmd = registry.get_command(("resources-dir",))
     cluster_info_cmd = registry.get_command(("cluster-info",))
@@ -486,7 +488,12 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert export_cmd is not None
     assert export_cmd.policy.mutates_state is True
 
-    for exports_cmd in (exports_attach_cmd, exports_run_cmd, exports_detach_cmd):
+    for exports_cmd in (
+        exports_attach_cmd,
+        exports_run_cmd,
+        exports_transfer_cmd,
+        exports_detach_cmd,
+    ):
         assert exports_cmd is not None
         assert exports_cmd.policy.supports_json is True
         assert exports_cmd.policy.mutates_state is True

@@ -652,6 +652,133 @@ def _controller_processes(
     }
 
 
+def _controller_run_receipt(
+    analysis_root: Path,
+    *,
+    run_state_root: Path | None = None,
+) -> dict[str, Any]:
+    """Read the one run-control status receipt that owns this exact analysis root."""
+
+    from daylily_ec.scripts.daylily_run_omics_analysis_headnode import (
+        CommandError,
+        parse_controller_target,
+    )
+
+    root = analysis_root.resolve()
+    state_root = (
+        run_state_root.expanduser().resolve()
+        if run_state_root is not None
+        else (Path.home() / "daylily-runs").resolve()
+    )
+    result: dict[str, Any] = {
+        "available": False,
+        "controller_target_path": None,
+        "status_path": None,
+        "controller_id": None,
+        "started_at": None,
+        "completed_at": None,
+        "return_code": None,
+        "error": None,
+    }
+    if not state_root.is_dir():
+        result["error"] = f"run-control state directory does not exist: {state_root}"
+        return result
+
+    matches: list[tuple[Path, Any]] = []
+    for target_path in sorted(state_root.glob("*/controller_target.json")):
+        if (
+            target_path.is_symlink()
+            or target_path.parent.is_symlink()
+            or not target_path.is_file()
+        ):
+            continue
+        try:
+            target = parse_controller_target(target_path.read_text(encoding="utf-8"))
+        except (OSError, CommandError):
+            continue
+        if Path(target.analysis_root) == root:
+            matches.append((target_path, target))
+
+    if len(matches) > 1:
+        paths = ", ".join(str(path) for path, _target in matches)
+        raise AnalysisStatusError(
+            f"multiple run-control receipts claim analysis root {root}: {paths}"
+        )
+    if not matches:
+        result["error"] = f"no exact run-control receipt claims analysis root {root}"
+        return result
+
+    target_path, target = matches[0]
+    status_path = target_path.with_name("status.json")
+    result.update(
+        {
+            "controller_target_path": str(target_path),
+            "status_path": str(status_path),
+            "controller_id": target.controller_id,
+        }
+    )
+    if status_path.is_symlink() or not status_path.is_file():
+        result["error"] = f"matched run-control status receipt does not exist: {status_path}"
+        return result
+    try:
+        payload = json.loads(status_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise AnalysisStatusError(
+            f"matched run-control status receipt is invalid: {status_path}: {exc}"
+        ) from exc
+    required = {
+        "session_name",
+        "repo_path",
+        "started_at",
+        "completed_at",
+        "exit_code",
+        "command",
+    }
+    if not isinstance(payload, dict) or set(payload) != required:
+        raise AnalysisStatusError(
+            f"matched run-control status receipt fields are invalid: {status_path}"
+        )
+    if payload["session_name"] != target.controller_id:
+        raise AnalysisStatusError(
+            f"matched run-control status session differs from controller target: {status_path}"
+        )
+    if payload["repo_path"] != target.cwd:
+        raise AnalysisStatusError(
+            f"matched run-control status repo path differs from controller target: {status_path}"
+        )
+    if not isinstance(payload["command"], str) or not payload["command"].strip():
+        raise AnalysisStatusError(
+            f"matched run-control status command is invalid: {status_path}"
+        )
+    for field in ("started_at", "completed_at"):
+        value = payload[field]
+        if value is not None and (not isinstance(value, str) or not value.strip()):
+            raise AnalysisStatusError(
+                f"matched run-control status {field} is invalid: {status_path}"
+            )
+    return_code = payload["exit_code"]
+    if return_code is not None and (
+        isinstance(return_code, bool) or not isinstance(return_code, int)
+    ):
+        raise AnalysisStatusError(
+            f"matched run-control status exit_code is invalid: {status_path}"
+        )
+    if return_code is not None and payload["completed_at"] is None:
+        raise AnalysisStatusError(
+            f"matched terminal run-control status has no completed_at: {status_path}"
+        )
+    result.update(
+        {
+            "available": True,
+            "started_at": payload["started_at"],
+            "completed_at": payload["completed_at"],
+            "return_code": return_code,
+            "error": None,
+        }
+    )
+    return result
+
+
 def _filesystem(analysis_root: Path, *, runner: Runner) -> dict[str, Any]:
     fsx = Path("/fsx") if str(analysis_root).startswith("/fsx/") else analysis_root
     result = _run(["df", "-Pk", str(fsx)], runner=runner)
@@ -1036,6 +1163,7 @@ def collect_analysis_status(
     mode: str,
     tail_lines: int = 1000,
     runner: Runner = subprocess.run,
+    run_state_root: str | Path | None = None,
 ) -> dict[str, Any]:
     """Collect slim or full read-only status for one exact analysis root."""
 
@@ -1068,6 +1196,23 @@ def collect_analysis_status(
         full=full,
         tail_lines=tail_lines,
     )
+    run_receipt = _controller_run_receipt(
+        root,
+        run_state_root=Path(run_state_root) if run_state_root is not None else None,
+    )
+    receipt_return_code = run_receipt["return_code"]
+    if (
+        receipt_return_code is not None
+        and controller["return_code"] is not None
+        and receipt_return_code != controller["return_code"]
+    ):
+        raise AnalysisStatusError(
+            "matching tmux controller marker disagrees with the exact run-control receipt"
+        )
+    if receipt_return_code is not None:
+        controller["return_code"] = receipt_return_code
+        controller["return_code_source"] = run_receipt["status_path"]
+    controller["run_receipt"] = run_receipt
     manifests = _analysis_manifests(dayoa_root)
     artifacts = _canonical_artifacts(dayoa_root, controller=controller)
     progress = workflow["progress"]

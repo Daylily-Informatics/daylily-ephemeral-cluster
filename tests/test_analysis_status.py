@@ -333,6 +333,123 @@ def test_success_can_use_master_log_terminal_rc_when_progress_line_is_missing(
     assert "INCOMPLETE_OR_UNKNOWN" not in render_analysis_status(payload)
 
 
+def _write_run_receipts(
+    tmp_path: Path,
+    root: Path,
+    *,
+    session: str = "session-1",
+    exit_code: int | None = 1,
+    completed_at: str | None = "2026-07-25T16:45:14Z",
+) -> Path:
+    run_state_root = tmp_path / "home" / "ubuntu" / "daylily-runs"
+    run_dir = run_state_root / session
+    run_dir.mkdir(parents=True)
+    dayoa = root / "daylily-omics-analysis"
+    target = {
+        "schema_version": "dyec.controller_target.v1",
+        "controller_id": session,
+        "pid": 4242,
+        "cwd": str(dayoa.resolve()),
+        "log_path": str((dayoa / ".dyec" / "controller.log").resolve()),
+        "dag_path": str((dayoa / ".dyec" / "controller-dag.png").resolve()),
+        "analysis_root": str(root.resolve()),
+    }
+    (run_dir / "controller_target.json").write_text(
+        json.dumps(target),
+        encoding="utf-8",
+    )
+    status = {
+        "session_name": session,
+        "repo_path": str(dayoa.resolve()),
+        "started_at": "2026-07-25T16:37:41Z",
+        "completed_at": completed_at,
+        "exit_code": exit_code,
+        "command": "bin/day_run produce_illumina_run_qc",
+    }
+    (run_dir / "status.json").write_text(json.dumps(status), encoding="utf-8")
+    return run_state_root
+
+
+def test_exact_run_control_receipt_terminalizes_failed_workflow(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _root(tmp_path)
+    run_state_root = _write_run_receipts(tmp_path, root)
+    _activate(monkeypatch)
+    monkeypatch.setattr("daylily_ec.analysis_status.shutil.which", lambda _name: None)
+
+    payload = collect_analysis_status(
+        root,
+        mode="slim",
+        runner=_fake_runner,
+        run_state_root=run_state_root,
+    )
+
+    assert payload["state"] == "FAILED"
+    assert payload["terminal_evidence"]["return_code"] == 1
+    assert payload["terminal_evidence"]["return_code_source"].endswith("/status.json")
+    assert payload["controller"]["run_receipt"]["controller_id"] == "session-1"
+    assert payload["controller"]["run_receipt"]["completed_at"] == "2026-07-25T16:45:14Z"
+
+
+def test_run_control_receipt_requires_exact_analysis_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _root(tmp_path)
+    other = tmp_path / "other-analysis"
+    other.mkdir()
+    run_state_root = _write_run_receipts(tmp_path, other)
+    _activate(monkeypatch)
+    monkeypatch.setattr("daylily_ec.analysis_status.shutil.which", lambda _name: None)
+
+    payload = collect_analysis_status(
+        root,
+        mode="slim",
+        runner=_fake_runner,
+        run_state_root=run_state_root,
+    )
+
+    assert payload["state"] == "INCOMPLETE_OR_UNKNOWN"
+    assert payload["controller"]["run_receipt"]["available"] is False
+    assert payload["controller"]["run_receipt"]["return_code"] is None
+
+
+def test_duplicate_exact_run_control_receipts_fail_loudly(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _root(tmp_path)
+    run_state_root = _write_run_receipts(tmp_path, root, session="session-1")
+    _write_run_receipts(tmp_path, root, session="session-2")
+    _activate(monkeypatch)
+    monkeypatch.setattr("daylily_ec.analysis_status.shutil.which", lambda _name: None)
+
+    with pytest.raises(AnalysisStatusError, match="multiple run-control receipts"):
+        collect_analysis_status(
+            root,
+            mode="slim",
+            runner=_fake_runner,
+            run_state_root=run_state_root,
+        )
+
+
+def test_malformed_status_for_exact_run_control_receipt_fails_loudly(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _root(tmp_path)
+    run_state_root = _write_run_receipts(tmp_path, root)
+    (run_state_root / "session-1" / "status.json").write_text("{}", encoding="utf-8")
+    _activate(monkeypatch)
+    monkeypatch.setattr("daylily_ec.analysis_status.shutil.which", lambda _name: None)
+
+    with pytest.raises(AnalysisStatusError, match="status receipt fields are invalid"):
+        collect_analysis_status(
+            root,
+            mode="slim",
+            runner=_fake_runner,
+            run_state_root=run_state_root,
+        )
+
+
 def test_controller_rc_zero_does_not_claim_success_without_scheduler_evidence(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

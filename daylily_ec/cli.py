@@ -17,6 +17,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import tempfile
 import traceback
 import time
 import uuid
@@ -26,6 +27,7 @@ from typing import Any, List, Optional
 
 import click
 import typer
+import yaml
 from cli_core_yo import output
 from cli_core_yo import app as cli_core_app
 from cli_core_yo.app import create_app
@@ -2307,6 +2309,79 @@ def exports_run(
                 f"Report path: {payload['report_path']}"
             ),
         )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def exports_transfer(
+    cluster_name: str = typer.Option(..., "--cluster-name", "--cluster"),
+    fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
+    source_path: str = typer.Option(..., "--source-path"),
+    destination_s3_uri: str = typer.Option(..., "--destination-s3-uri"),
+    destination_analysis_id: str = typer.Option(..., "--destination-analysis-id"),
+    region: str = typer.Option(..., "--region"),
+    profile: Optional[str] = typer.Option(None, "--profile"),
+    timeout_seconds: int = typer.Option(5400, "--timeout-seconds"),
+) -> None:
+    """Attach, export, and detach one exact analysis directory without deletion."""
+
+    from daylily_ec.workflow.export_data import (
+        ExportOptions,
+        STATUS_FILENAME,
+        run_export_workflow,
+    )
+
+    captured_stdout = io.StringIO()
+    captured_stderr = io.StringIO()
+    try:
+        with tempfile.TemporaryDirectory(prefix="dyec-export-transfer-") as output_dir:
+            options = ExportOptions(
+                cluster_name=cluster_name,
+                fsx_file_system_id=fsx_file_system_id,
+                source_path=source_path,
+                destination_s3_uri=destination_s3_uri,
+                destination_analysis_id=destination_analysis_id,
+                region=region,
+                profile=profile,
+                output_dir=Path(output_dir),
+                wait=True,
+                timeout_seconds=timeout_seconds,
+                delete_data_in_file_system=False,
+            )
+            with (
+                contextlib.redirect_stdout(captured_stdout),
+                contextlib.redirect_stderr(captured_stderr),
+            ):
+                rc = run_export_workflow(options)
+            status_path = options.output_dir / STATUS_FILENAME
+            if not status_path.is_file():
+                raise RuntimeError("DYEC export transfer did not write its status receipt")
+            receipt = yaml.safe_load(status_path.read_text(encoding="utf-8"))
+            if not isinstance(receipt, dict) or not isinstance(
+                receipt.get("fsx_export"), dict
+            ):
+                raise RuntimeError("DYEC export transfer status receipt is invalid")
+            payload = dict(receipt["fsx_export"])
+            if rc != 0 or payload.get("status") != "success":
+                detail = (
+                    payload.get("failure_details")
+                    or captured_stderr.getvalue()
+                    or captured_stdout.getvalue()
+                )
+                raise RuntimeError(f"DYEC export transfer failed: {detail}")
+            if payload.get("delete_data_in_file_system") is not False:
+                raise RuntimeError("DYEC export transfer must preserve FSx data")
+            if payload.get("detached") is not True:
+                raise RuntimeError(
+                    "DYEC export transfer did not detach its temporary DRA"
+                )
+            _emit_export_payload(
+                payload,
+                text=(
+                    f"Export transfer complete: {payload['task_id']}\n"
+                    f"S3 destination: {payload['destination_s3_uri']}"
+                ),
+            )
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
 
@@ -8940,6 +9015,11 @@ def register(registry, cli_spec) -> None:
             (
                 "run",
                 exports_run,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "transfer",
+                exports_transfer,
                 required_policy(supports_json=True, mutates_state=True, long_running=True),
             ),
             (

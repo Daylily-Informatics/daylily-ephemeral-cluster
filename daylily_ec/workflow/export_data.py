@@ -52,6 +52,7 @@ class ExportOptions:
     region: str
     profile: Optional[str]
     output_dir: Path
+    destination_analysis_id: Optional[str] = None
     wait: bool = True
     timeout_seconds: int = 3600
     delete_data_in_file_system: bool = False
@@ -159,6 +160,7 @@ def _allowed_export_destination_suffixes(
     *,
     source_path: str,
     cluster_name: Optional[str] = None,
+    destination_analysis_id: Optional[str] = None,
 ) -> list[str]:
     analysis_dir = analysis_dir_from_source_path(source_path)
     suffixes = [f"{analysis_dir}/"]
@@ -168,6 +170,20 @@ def _allowed_export_destination_suffixes(
         cluster_suffix = f"{cluster_segment}/{analysis_id}/"
         if cluster_suffix not in suffixes:
             suffixes.append(cluster_suffix)
+        if destination_analysis_id:
+            destination_segment = validate_analysis_segment(
+                destination_analysis_id,
+                field_name="destination_analysis_id",
+            )
+            destination_suffix = (
+                f"{cluster_segment}/analysis_results/{destination_segment}/"
+            )
+            if destination_suffix not in suffixes:
+                suffixes.append(destination_suffix)
+    elif destination_analysis_id:
+        raise ExportError(
+            "cluster_name is required when destination_analysis_id is provided"
+        )
     return suffixes
 
 
@@ -176,6 +192,7 @@ def validate_export_destination_s3_uri(
     *,
     source_path: str,
     cluster_name: Optional[str] = None,
+    destination_analysis_id: Optional[str] = None,
 ) -> str:
     destination = normalize_s3_uri(destination_s3_uri)
     parsed = urlparse(destination)
@@ -183,6 +200,7 @@ def validate_export_destination_s3_uri(
     expected_keys = _allowed_export_destination_suffixes(
         source_path=source_path,
         cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
     )
     if not any(key.endswith(expected_key) for expected_key in expected_keys):
         raise ExportError(
@@ -197,6 +215,7 @@ def resolve_launch_export_destination_s3_uri(
     *,
     source_path: str,
     cluster_name: Optional[str] = None,
+    destination_analysis_id: Optional[str] = None,
 ) -> str:
     """Resolve a workflow launch auto-export destination.
 
@@ -211,12 +230,14 @@ def resolve_launch_export_destination_s3_uri(
     expected_keys = _allowed_export_destination_suffixes(
         source_path=source_path,
         cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
     )
     if any(key.endswith(expected_key) for expected_key in expected_keys):
         return validate_export_destination_s3_uri(
             destination,
             source_path=source_path,
             cluster_name=cluster_name,
+            destination_analysis_id=destination_analysis_id,
         )
     if not cluster_name:
         raise ExportError(
@@ -229,6 +250,7 @@ def resolve_launch_export_destination_s3_uri(
         f"{destination}{cluster_segment}/{analysis_id}/",
         source_path=source_path,
         cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
     )
 
 
@@ -238,12 +260,14 @@ def validate_s3_destination_prefix_empty(
     *,
     source_path: str,
     cluster_name: Optional[str] = None,
+    destination_analysis_id: Optional[str] = None,
 ) -> str:
     """Validate the destination suffix and fail if the S3 prefix already has objects."""
     destination = validate_export_destination_s3_uri(
         destination_s3_uri,
         source_path=source_path,
         cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
     )
     parsed = urlparse(destination)
     bucket = parsed.netloc
@@ -306,6 +330,7 @@ def attach_export_dra(
     profile: Optional[str],
     wait: bool,
     timeout_seconds: int,
+    destination_analysis_id: Optional[str] = None,
     fsx_client: Optional[Any] = None,
     on_created: Optional[Callable[[ExportDraRecord], None]] = None,
 ) -> ExportDraRecord:
@@ -323,6 +348,7 @@ def attach_export_dra(
         destination_s3_uri,
         source_path=file_system_path,
         cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
     )
     validate_no_overlapping_export_dra(
         client,
@@ -388,12 +414,14 @@ def run_export_task(
     wait: bool,
     timeout_seconds: int,
     fsx_client: Any,
+    destination_analysis_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     normalized_source = normalize_export_source_path(source_path)
     destination = validate_export_destination_s3_uri(
         destination_s3_uri,
         source_path=normalized_source,
         cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
     )
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     report_path = (
@@ -522,6 +550,7 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
         options.destination_s3_uri,
         source_path=normalized_source,
         cluster_name=options.cluster_name,
+        destination_analysis_id=options.destination_analysis_id,
     )
     headnode_path = analysis_headnode_path(normalized_source)
     return {
@@ -595,6 +624,7 @@ def run_export_workflow(options: ExportOptions) -> int:
             profile=options.profile,
             wait=options.wait,
             timeout_seconds=options.timeout_seconds,
+            destination_analysis_id=options.destination_analysis_id,
             fsx_client=client,
             on_created=_capture_created_dra,
         )
@@ -610,6 +640,7 @@ def run_export_workflow(options: ExportOptions) -> int:
             wait=options.wait,
             timeout_seconds=options.timeout_seconds,
             fsx_client=client,
+            destination_analysis_id=options.destination_analysis_id,
         )
         receipt["fsx_export"].update(task_payload)
         if task_payload["task_lifecycle"] != "SUCCEEDED":
