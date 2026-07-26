@@ -43,13 +43,13 @@ evidence is recorded.
 | KS-003 | DayOA | Add focused contract tests for the target’s exact product set and no legacy target dependency | SUCCESS | contract_test | Gate 1 | Focused test rejects legacy `sentdhiomr`, `HIOMRS`, and legacy Inflection delivery dependencies. |
 | KS-004 | DYEC | Provide a supported continuation command for an existing analysis root, preserving its data and using a persistent DayOA controller | SUCCESS | feature_implementation | Gate 1 | `dyec workflow launch --reuse-existing-analysis-dir` retains the root, records lock/visit, verifies a clean checkout, fetches the exact requested source ref, and fails closed. |
 | KS-005 | DYEC | Add a catalog entry pinned to the released DayOA version after live validation | OPEN | feature_implementation | Gate 1 | No catalog command may point at a stale DayOA ref. |
-| KS-006 | live | Record terminal evidence for the active five-chromosome HG003 gate | IN_PROGRESS | contract_test | Gate 5 | Heartbeat monitor `monitor-hg003-hiomr2-five-shard-workflow` is active. |
+| KS-006 | live | Record terminal evidence for the active five-chromosome HG003 gate | IN_PROGRESS | contract_test | Gate 5 | `live3` terminal `rc=1` is preserved; corrected fresh `live4` is active under the same exact five-shard configuration and heartbeat monitor. |
 | KS-007 | live | Launch the literal kitchen-sink continuation through DYEC after KS-006 succeeds | OPEN | feature_implementation | Gate 5 | Fresh controller/session; existing root only; no raw headnode/Slurm action. |
 | IFX-001 | DayOA | Define a strict HIOMR2 Inflection source contract that does not bind legacy HIOMRS artifacts | SUCCESS | feature_implementation | Gate 1 | The separate analytical target copies only declared HIOMR2 gVCF, CNVscope, LongReadSV, CRAM, comparator, and provenance products. |
 | IFX-002 | DayOA | Add focused tests proving package provenance and hard failure on unsupported/unproduced artifact roles | SUCCESS | contract_test | Gate 1 | Unit tests prove materialization, fixed roles, source checks, and hard failure on a symlink source or non-analytical mode. |
 | IFX-003 | delivery inputs | Supply owner-issued persisted `seqone_delivery_batch_id` and customer-release identity fields if a customer-release package is intended | BLOCKED | active_product_contract | Gate 3 | Current manifest lacks required delivery identity values. Analytical packaging may preserve blanks, but still needs a supplied persisted batch ID. |
 | IFX-004 | live | Dry-run and launch the strict HIOMR2 package only after KS-007 terminal success and IFX-003 inputs are explicit | OPEN | contract_test | Gate 5 | Must run through DYEC continuation, in the same analysis root. |
-| REL-001 | both repos | Commit/push/tag only the verified source and ledger changes at the correct release gate | OPEN | feature_implementation | Gate 5 | Annotated, non-`v` tag; do not tag unproven package behavior. |
+| REL-001 | both repos | Commit/push/tag only the verified source and ledger changes at the correct release gate | IN_PROGRESS | feature_implementation | Gate 5 | Verified DayOA correction is published as annotated non-`v` tag `13.0.43`; DYEC recovery/ledger release work remains pending the current live evidence. |
 
 ## Current sequencing rule
 
@@ -109,3 +109,23 @@ service or queue intervention is authorized by this ledger.
   pre-existing active-rule check that reports raw Sentieon calls already present
   in `sent_hybrid_ilmn_ont_modular2.smk`; this package change does not add such
   a call.
+
+## Gate 5 — Five-shard recovery update
+
+- The original `live3` first gate terminated at `2026-07-26T12:08:41Z` with
+  `rc=1`. Its DYEC log showed that Sentieon DNAscope rejected `--gvcf`; no
+  kitchen-sink or Inflection continuation was launched from that failed root.
+- DayOA commit `e4f8f642` corrects the raw DNAscope call to `--emit_mode gvcf`.
+  The focused core/runtime/Inflection suite passed (`23 passed`), and the
+  source is published at annotated tag `13.0.43` on
+  `codex/hiomr2-five-chrom-shards`.
+- A fresh, non-replacing `live4` first gate began at `2026-07-26T12:49:28Z` in
+  `/fsx/analysis_results/preval-hiomr2/hg003-hiomr2-five-chrom-shards-20260726-live4`.
+  It uses the hash-validated original six-manifest input contract, literal
+  `sentdhiomr2` caller/configuration, cost center `bjuice`, and the same
+  five-shard target. At `2026-07-26T12:51Z`, DYEC reported it `RUNNING`, with
+  active controller, preflight job `14` configuring, zero current failure
+  markers, and 11.2 TiB FSx available.
+- The heartbeat now monitors `live4` and prints plus speaks a concise exact
+  two-sentence status every cycle. KS-007 remains strictly gated on terminal
+  `rc=0` and verified artifacts from this corrected first gate.

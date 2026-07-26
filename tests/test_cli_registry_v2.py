@@ -123,6 +123,7 @@ EXPECTED_COMMANDS = {
     ("state", "show"),
     ("analysis", "visit"),
     ("analysis", "status"),
+    ("analysis", "snapshot-manifests"),
     ("analysis", "guard"),
     ("command", "sample-stats"),
     ("analysis", "lock", "status"),
@@ -437,6 +438,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     state_show_cmd = registry.get_command(("state", "show"))
     analysis_visit_cmd = registry.get_command(("analysis", "visit"))
     analysis_status_cmd = registry.get_command(("analysis", "status"))
+    analysis_snapshot_manifests_cmd = registry.get_command(("analysis", "snapshot-manifests"))
     analysis_guard_cmd = registry.get_command(("analysis", "guard"))
     command_sample_stats_cmd = registry.get_command(("command", "sample-stats"))
     analysis_lock_status_cmd = registry.get_command(("analysis", "lock", "status"))
@@ -688,6 +690,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert analysis_status_cmd.policy.supports_json is True
     assert analysis_status_cmd.policy.mutates_state is True
     assert analysis_status_cmd.policy.long_running is True
+
+    assert analysis_snapshot_manifests_cmd is not None
+    assert analysis_snapshot_manifests_cmd.policy.supports_json is True
+    assert analysis_snapshot_manifests_cmd.policy.mutates_state is True
+    assert analysis_snapshot_manifests_cmd.policy.long_running is True
 
     assert analysis_guard_cmd is not None
     assert analysis_guard_cmd.policy.mutates_state is True

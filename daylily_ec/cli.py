@@ -14,6 +14,7 @@ import logging
 import os
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 import traceback
@@ -73,6 +74,8 @@ EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 BENCHMARK_GENOME_BUILDS = {"hg38", "hg38_broad", "b37"}
 DEFAULT_CREATE_REGION_AZ = "us-west-2d"
 DEFAULT_CREATE_CLUSTER_TYPE = "intel"
+ANALYSIS_MANIFEST_SNAPSHOT_SCHEMA = "dyec.analysis_manifest_snapshot.v1"
+MAX_ANALYSIS_MANIFEST_SNAPSHOT_BYTES = 4 * 1024 * 1024
 
 logger = logging.getLogger(__name__)
 
@@ -6832,6 +6835,127 @@ def _collect_remote_json_payload(
             )
 
 
+def _analysis_manifest_snapshot_remote_argv(analysis_root: str) -> list[str]:
+    """Build the bounded, read-only remote projection for one six-manifest set."""
+
+    script = "\n".join(
+        [
+            "import base64, hashlib, json, sys",
+            "from pathlib import Path",
+            "from daylily_ec.analysis_lock import normalize_analysis_root, write_visit",
+            "root = normalize_analysis_root(sys.argv[1])",
+            "write_visit(root, mode='export', intent='snapshot exact six-manifest inputs for DYEC relaunch')",
+            "config = root / 'daylily-omics-analysis' / 'config'",
+            "names = ('specimens.tsv', 'samples.tsv', 'libraries.tsv', 'sequencing_inputs.tsv', 'analysis_units.tsv', 'analysis_unit_inputs.tsv')",
+            f"limit = {MAX_ANALYSIS_MANIFEST_SNAPSHOT_BYTES}",
+            "total = 0",
+            "files = {}",
+            "for name in names:",
+            "    path = config / name",
+            "    if path.is_symlink() or not path.is_file():",
+            "        raise SystemExit('required regular manifest is missing: ' + str(path))",
+            "    data = path.read_bytes()",
+            "    total += len(data)",
+            "    if total > limit:",
+            "        raise SystemExit('six-manifest snapshot exceeds bounded transfer limit')",
+            "    files[name] = {'size_bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest(), 'content_base64': base64.b64encode(data).decode('ascii')}",
+            "payload = {'schema_version': 'dyec.analysis_manifest_snapshot.v1', 'analysis_root': str(root), 'source_config_dir': str(config), 'total_size_bytes': total, 'files': files}",
+            "print(json.dumps(payload, sort_keys=True))",
+        ]
+    )
+    return ["python3", "-c", script, analysis_root]
+
+
+def _materialize_analysis_manifest_snapshot(
+    payload: dict[str, Any],
+    *,
+    output_dir: Path,
+) -> dict[str, Any]:
+    """Validate and atomically materialize a remote exact six-manifest snapshot."""
+
+    from daylily_ec.manifest_set import MANIFEST_NAMES, ManifestSetError, load_manifest_set
+    from daylily_ec.scripts.common import CommandError
+
+    if payload.get("schema_version") != ANALYSIS_MANIFEST_SNAPSHOT_SCHEMA:
+        raise CommandError("analysis manifest snapshot has an unsupported schema version")
+    analysis_root = payload.get("analysis_root")
+    source_config_dir = payload.get("source_config_dir")
+    file_payloads = payload.get("files")
+    total_size = payload.get("total_size_bytes")
+    if not isinstance(analysis_root, str) or not analysis_root.startswith("/fsx/"):
+        raise CommandError("analysis manifest snapshot did not include a valid analysis root")
+    if not isinstance(source_config_dir, str) or not source_config_dir.startswith(analysis_root + "/"):
+        raise CommandError("analysis manifest snapshot did not include a valid config directory")
+    if not isinstance(file_payloads, dict) or set(file_payloads) != set(MANIFEST_NAMES):
+        raise CommandError("analysis manifest snapshot did not contain exactly the six manifests")
+    if isinstance(total_size, bool) or not isinstance(total_size, int) or total_size < 0:
+        raise CommandError("analysis manifest snapshot did not include a valid total byte count")
+    if total_size > MAX_ANALYSIS_MANIFEST_SNAPSHOT_BYTES:
+        raise CommandError("analysis manifest snapshot exceeds the bounded transfer limit")
+
+    decoded: dict[str, bytes] = {}
+    expected_hashes: dict[str, str] = {}
+    for name in MANIFEST_NAMES:
+        record = file_payloads[name]
+        if not isinstance(record, dict):
+            raise CommandError(f"analysis manifest snapshot entry is invalid: {name}")
+        encoded = record.get("content_base64")
+        expected_size = record.get("size_bytes")
+        expected_hash = record.get("sha256")
+        if not isinstance(encoded, str):
+            raise CommandError(f"analysis manifest snapshot entry has no content: {name}")
+        if isinstance(expected_size, bool) or not isinstance(expected_size, int) or expected_size < 0:
+            raise CommandError(f"analysis manifest snapshot entry has an invalid size: {name}")
+        if not isinstance(expected_hash, str) or re.fullmatch(r"[0-9a-f]{64}", expected_hash) is None:
+            raise CommandError(f"analysis manifest snapshot entry has an invalid digest: {name}")
+        try:
+            content = base64.b64decode(encoded, validate=True)
+        except (ValueError, binascii.Error) as exc:
+            raise CommandError(f"analysis manifest snapshot entry is not valid base64: {name}") from exc
+        if len(content) != expected_size:
+            raise CommandError(f"analysis manifest snapshot entry size mismatch: {name}")
+        if hashlib.sha256(content).hexdigest() != expected_hash:
+            raise CommandError(f"analysis manifest snapshot entry digest mismatch: {name}")
+        decoded[name] = content
+        expected_hashes[name] = expected_hash
+    if sum(len(content) for content in decoded.values()) != total_size:
+        raise CommandError("analysis manifest snapshot total size mismatch")
+
+    destination = output_dir.expanduser().resolve()
+    if destination.exists():
+        raise CommandError(f"refusing to overwrite manifest snapshot destination: {destination}")
+    if not destination.parent.is_dir():
+        raise CommandError(f"manifest snapshot destination parent does not exist: {destination.parent}")
+    temporary = destination.with_name(f".{destination.name}.partial-{uuid.uuid4().hex}")
+    try:
+        temporary.mkdir(mode=0o700)
+        for name in MANIFEST_NAMES:
+            (temporary / name).write_bytes(decoded[name])
+        manifests = load_manifest_set(temporary)
+        if dict(manifests.hashes) != expected_hashes:
+            raise CommandError("materialized analysis manifest snapshot hashes do not match source")
+        receipt = {
+            "schema_version": ANALYSIS_MANIFEST_SNAPSHOT_SCHEMA,
+            "analysis_root": analysis_root,
+            "source_config_dir": source_config_dir,
+            "output_dir": str(destination),
+            "manifest_hashes": expected_hashes,
+            "total_size_bytes": total_size,
+            "lineage_validated": True,
+        }
+        (temporary / "dyec_analysis_manifest_snapshot.json").write_text(
+            json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        temporary.replace(destination)
+        return receipt
+    except ManifestSetError as exc:
+        raise CommandError(str(exc)) from exc
+    finally:
+        if temporary.exists():
+            shutil.rmtree(temporary, ignore_errors=True)
+
+
 def workflow_status(
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
@@ -7740,6 +7864,84 @@ def analysis_status(
                 tail_lines=tail_lines,
             )
         _emit_analysis_payload(payload, text=render_analysis_status(payload))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def analysis_snapshot_manifests(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Exact source analysis root."),
+    output_dir: Path = typer.Option(
+        ...,
+        "--output-dir",
+        help="New local directory for the validated six-manifest snapshot.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS profile for the source analysis root.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region for the source analysis root.",
+    ),
+    cluster: str = typer.Option(
+        ...,
+        "--cluster",
+        "--cluster-name",
+        help="Cluster whose headnode contains the source analysis root.",
+    ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote SSM login user: auto, ubuntu, or ec2-user.",
+    ),
+) -> None:
+    """Copy an exact six-manifest input set through DYEC without rewriting it."""
+
+    try:
+        from daylily_ec.aws.ssm import resolve_remote_user, wait_for_ssm_online
+
+        _warn_if_dayec_env_inactive()
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        resolved_remote_user = resolve_remote_user(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            as_user=remote_user,
+        )
+        payload = _collect_remote_json_payload(
+            instance_id=target.instance_id,
+            region=resolved_region,
+            profile=resolved_profile,
+            remote_user=resolved_remote_user,
+            remote_argv=_analysis_manifest_snapshot_remote_argv(analysis_root),
+            operation="analysis_manifest_snapshot",
+            timeout=300,
+        )
+        result = _materialize_analysis_manifest_snapshot(payload, output_dir=output_dir)
+        result["cluster"] = {
+            "name": resolved_cluster,
+            "region": resolved_region,
+            "headnode_instance_id": target.instance_id,
+        }
+        _emit_analysis_payload(
+            result,
+            text=(
+                "materialized validated six-manifest snapshot at "
+                f"{result['output_dir']}"
+            ),
+        )
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
 
@@ -8796,6 +8998,11 @@ def register(registry, cli_spec) -> None:
             (
                 "status",
                 analysis_status,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "snapshot-manifests",
+                analysis_snapshot_manifests,
                 required_policy(supports_json=True, mutates_state=True, long_running=True),
             ),
             ("visit", analysis_visit, required_policy(supports_json=True, mutates_state=True)),
