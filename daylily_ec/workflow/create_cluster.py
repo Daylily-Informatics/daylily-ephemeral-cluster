@@ -4138,7 +4138,9 @@ def configure_headnode(
                 "python -m pip install --upgrade pygraphviz && "
                 "python -c 'import pygraphviz; print(\"pygraphviz DAY-EC import OK\", pygraphviz.__version__)' && "
                 f"source ~/projects/{repo_name}/activate && "
-                f"./bin/install-daylily-headnode-tools"
+                f"./bin/install-daylily-headnode-tools && "
+                f"sudo install -m 0755 ~/projects/{repo_name}/config/day_cluster/sbatch /opt/slurm/bin/sbatch && "
+                "sudo bash -n /opt/slurm/bin/sbatch"
             ),
             None,
         ),
