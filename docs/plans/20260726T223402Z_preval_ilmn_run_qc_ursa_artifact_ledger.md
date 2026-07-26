@@ -103,3 +103,8 @@ Ledger path:
   its latest processed hour is still `2026-07-19T10:00:00Z`, more than 48 hours
   old. A current authoritative usage refresh remains required before the
   no-BCL Illumina QC can be launched successfully.
+- The supported `dyec cost-centers refresh-usage` path intentionally refuses
+  this refresh because it is dedicated-cluster-only and requires the
+  cost-center name to equal the cluster name. `RnD` on `preval-hiomr2` instead
+  requires the owning shared-cluster Slurm job-time allocator to publish the
+  current authoritative usage snapshot.
