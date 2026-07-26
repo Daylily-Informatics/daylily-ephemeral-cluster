@@ -45,8 +45,8 @@ evidence is recorded.
 | KS-005 | DYEC | Add a catalog entry pinned to the released DayOA version after live validation | OPEN | feature_implementation | Gate 1 | No catalog command may point at a stale DayOA ref. |
 | KS-006 | live | Record terminal evidence for the active five-chromosome HG003 gate | IN_PROGRESS | contract_test | Gate 5 | Heartbeat monitor `monitor-hg003-hiomr2-five-shard-workflow` is active. |
 | KS-007 | live | Launch the literal kitchen-sink continuation through DYEC after KS-006 succeeds | OPEN | feature_implementation | Gate 5 | Fresh controller/session; existing root only; no raw headnode/Slurm action. |
-| IFX-001 | DayOA | Define a strict HIOMR2 Inflection source contract that does not bind legacy HIOMRS artifacts | IN_PROGRESS | feature_implementation | Gate 1 | Package must truthfully declare HIOMR2 gVCF, CNVscope, LongReadSV, and any separately produced ancillary lanes. |
-| IFX-002 | DayOA | Add focused tests proving package provenance and hard failure on unsupported/unproduced artifact roles | OPEN | contract_test | Gate 1 | No synthetic caller output or identity inference. |
+| IFX-001 | DayOA | Define a strict HIOMR2 Inflection source contract that does not bind legacy HIOMRS artifacts | SUCCESS | feature_implementation | Gate 1 | The separate analytical target copies only declared HIOMR2 gVCF, CNVscope, LongReadSV, CRAM, comparator, and provenance products. |
+| IFX-002 | DayOA | Add focused tests proving package provenance and hard failure on unsupported/unproduced artifact roles | SUCCESS | contract_test | Gate 1 | Unit tests prove materialization, fixed roles, source checks, and hard failure on a symlink source or non-analytical mode. |
 | IFX-003 | delivery inputs | Supply owner-issued persisted `seqone_delivery_batch_id` and customer-release identity fields if a customer-release package is intended | BLOCKED | active_product_contract | Gate 3 | Current manifest lacks required delivery identity values. Analytical packaging may preserve blanks, but still needs a supplied persisted batch ID. |
 | IFX-004 | live | Dry-run and launch the strict HIOMR2 package only after KS-007 terminal success and IFX-003 inputs are explicit | OPEN | contract_test | Gate 5 | Must run through DYEC continuation, in the same analysis root. |
 | REL-001 | both repos | Commit/push/tag only the verified source and ledger changes at the correct release gate | OPEN | feature_implementation | Gate 5 | Annotated, non-`v` tag; do not tag unproven package behavior. |
@@ -87,3 +87,25 @@ service or queue intervention is authorized by this ledger.
 - The live kitchen-sink continuation remains gated on KS-006. At the latest
   read-only DYEC check, the first gate is still `RUNNING` at `2/10`, with one
   `sentdhiomr2_sr_prepare` job active and no controller failure marker.
+
+## Gate 1 — Analytical Inflection package evidence
+
+- DayOA now has the separately named
+  `produce_sentdhiomr2_inflection_analytical_package` target. It consumes only
+  the declared native/reference/five-chromosome HIOMR2 gVCFs and indexes,
+  CNVscope post-model VCF/index, native LongReadSV VCF/index, HIOMR2 SR
+  CRAM/CRAI, semantic comparator, and command manifest. Its materializer writes
+  copied regular files plus checksums beneath
+  `deliveries/inflection_hiomr2/<batch>/<analysis-unit>` and refuses
+  replacement or symlink sources.
+- The target is intentionally analytical-only: its manifest states
+  `customer_release_eligible: false`. It requires both a real owner-issued
+  persisted `seqone_delivery_batch_id` and
+  `hiomr2_inflection_package_mode=analytical`. There is no inferred batch,
+  customer identity, or legacy HIOMRS artifact fallback.
+- Focused DayOA validation passed: **33 passed, 1 deselected** across the
+  HIOMR2 package/core/contract/catalog tests and the unaffected parser tests;
+  focused Ruff correctness checks passed. The one deselected parser test is a
+  pre-existing active-rule check that reports raw Sentieon calls already present
+  in `sent_hybrid_ilmn_ont_modular2.smk`; this package change does not add such
+  a call.
