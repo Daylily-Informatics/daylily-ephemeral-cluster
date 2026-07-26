@@ -304,7 +304,7 @@ repositories:
     auth_mode: aws_deploy_key
     https_url: https://github.com/lsmc-bio/daylily-omics-analysis.git
     ssh_url: git@github.com:lsmc-bio/daylily-omics-analysis.git
-    default_ref: 13.0.37
+    default_ref: 13.0.40
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: simple-test
@@ -1090,7 +1090,7 @@ repositories:
             failure_cause: "Dry-run failed while preparing Roche/GATK containers: missing Singularity image /fsx/resources/environments/containers/ubuntu/ip-10-0-0-103/7a424a40c6fd659f4d052893dd3554fa.simg."
       - command_id: hybrid_ilmn_ont_hiomr
         type: dev
-        validated_version: 13.0.37
+        validated_version: 13.0.40
         test_data_profile: hg003_hiomrs_1x_raw_fastq
         manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
         display_name: "Hybrid ILMN+ONT HIOMR"
@@ -1130,11 +1130,11 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.37
+        git_tag: 13.0.40
         no_containerized: false
       - command_id: hybrid_ilmn_ont_hiomr_kitchensink
         type: dev
-        validated_version: 13.0.37
+        validated_version: 13.0.40
         test_data_profile: hg003_hiomrs_1x_raw_fastq
         manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
         display_name: "Hybrid ILMN+ONT HIOMR Kitchen Sink"
@@ -1190,11 +1190,11 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.37
+        git_tag: 13.0.40
         no_containerized: false
       - command_id: package_inflection_hybrid_data
         type: dev
-        validated_version: 13.0.37
+        validated_version: 13.0.40
         test_data_profile: hg003_hiomrs_1x_raw_fastq
         manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
         display_name: "Package Inflection Hybrid Data"
@@ -1232,11 +1232,11 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.37
+        git_tag: 13.0.40
         no_containerized: false
       - command_id: betelgeuser_hiomr_prod_v1
         type: prod
-        validated_version: 13.0.37
+        validated_version: 13.0.40
         test_data_profile: default_reads_slim
         display_name: "Betelgeuser HIOMR Prod v1"
         description: "Production catalog copy of the strict six-manifest HIOMR kitchen-sink contract for Betelgeuser."
@@ -1291,11 +1291,11 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.37
+        git_tag: 13.0.40
         no_containerized: false
       - command_id: inflection-bjuice-product-v0.2
         type: dev
-        validated_version: 13.0.37
+        validated_version: 13.0.40
         test_data_profile: default_reads_slim
         display_name: "Inflection BJuice Product v0.2"
         description: "Current HIOMR analysis plus strict first-class Inflection delivery packaging, delivery-only MultiQC, evidence manifests, hashes, and the complete configured 14-gene SegDup panel. Requires persisted specimen/sample/library EUIDs, explicit per-library INFLECTION_DELIVERY_ID, and INFLECTION_DELIVERY_BATCH_ID in the controller environment."
@@ -1341,7 +1341,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.37
+        git_tag: 13.0.40
         no_containerized: false
       - command_id: complete_genomics_mgi_snv_concordance
         type: dev
