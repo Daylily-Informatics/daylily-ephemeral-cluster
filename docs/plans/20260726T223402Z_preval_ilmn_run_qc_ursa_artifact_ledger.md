@@ -108,3 +108,24 @@ Ledger path:
   cost-center name to equal the cluster name. `RnD` on `preval-hiomr2` instead
   requires the owning shared-cluster Slurm job-time allocator to publish the
   current authoritative usage snapshot.
+
+## Continuation audit — 2026-07-26T23:34:40Z
+
+- A fresh read of the active `RnD` registry and July usage snapshot remains
+  unchanged: `status=active`, monthly cap `$500`, latest processed hour
+  `2026-07-19T10:00:00Z`, and recorded monthly spend `$0`. It is therefore
+  stale by more than both the active 36-hour and published 48-hour limits.
+- The local DYEC surface exposes a dedicated-cluster CUR refresh only; source
+  inspection found no callable shared-cluster Slurm job-time allocator.
+  Read-only AWS checks found no matching DayEC/cost Lambda or EventBridge
+  schedule. On `preval-hiomr2`, the standard cron directories, matching system
+  timers, and the `ubuntu` crontab contain no matching allocator process.
+- `dyec cost-centers put-usage` is a generic direct replacement surface, not
+  the required shared-cluster allocator. It was not used to manufacture a
+  freshness record. The rejected controller was not rerun, no new analysis
+  root was created, and no BCL-to-FASTQ work was started.
+- The only safe path to launch is for the cost-center owner to publish an
+  authoritative RnD job-time allocation snapshot, or for the user to
+  explicitly expand scope to implement and deploy that allocator. Until then
+  RUN-004 and QA-005 remain blocked and the requested live report cannot be
+  verified.
