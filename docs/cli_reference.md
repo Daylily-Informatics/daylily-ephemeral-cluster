@@ -533,6 +533,38 @@ dyec workflow launch \
 
 For large local input payloads, use `--payload-staging-s3-uri`. The launch helper uploads a tarball locally, then the headnode downloads it with `aws s3 cp`, expands it in the workflow run directory, and starts the controller from a staged script. The exact controller script is copied to `<analysis-root>/bin/dyec-controller-launch.sh` after `day-clone` succeeds.
 
+### Continue an existing analysis root
+
+Use `--reuse-existing-analysis-dir` only for a new controller that must consume
+products already present in one exact analysis root. It is deliberately not a
+replacement mode: it requires `--input-contract none` and `--no-input-staging`,
+cannot accept manifests or bootstrap configuration, and cannot be combined with
+`--replace-existing-analysis-dir`.
+
+```bash
+dyec workflow launch \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --analysis-id "$ANALYSIS_ID" \
+  --executing-entity "$CLUSTER" \
+  --git-tag "$DAYOA_REF" \
+  --input-contract none \
+  --no-input-staging \
+  --session-name "$CONTINUATION_SESSION" \
+  --project "$PROJECT" \
+  --cost-center "$COST_CENTER" \
+  --reuse-existing-analysis-dir \
+  --dy-command "dy-r <exact-target> -p -k -j 6"
+```
+
+Before creating the controller, DYEC records the analysis visit/lock, verifies
+that the existing checkout is a clean Git work tree, fetches the explicit
+`--git-tag` reference from `origin`, and checks out its exact fetched commit in
+detached mode. It leaves the analysis root and its untracked runtime inputs
+intact; a missing root, dirty tracked checkout, absent source ref, or checkout
+mismatch fails closed.
+
 Read status and logs:
 
 ```bash

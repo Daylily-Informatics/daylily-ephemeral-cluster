@@ -945,6 +945,14 @@ def build_parser() -> argparse.ArgumentParser:
             "launching. Without this flag, existing analysis directories fail hard."
         ),
     )
+    parser.add_argument(
+        "--reuse-existing-analysis-dir",
+        action="store_true",
+        help=(
+            "Continue an existing analysis directory without replacing it. Requires "
+            "--input-contract none and --no-input-staging."
+        ),
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.set_defaults(
         skip_project_check=True,
@@ -970,6 +978,38 @@ def main(argv: Optional[List[str]] = None) -> int:
     if not args.profile:
         raise CommandError("AWS profile is required. Set AWS_PROFILE or use --profile.")
     validate_export_args(args)
+    if args.reuse_existing_analysis_dir:
+        if args.replace_existing_analysis_dir:
+            raise CommandError(
+                "--reuse-existing-analysis-dir cannot be combined with "
+                "--replace-existing-analysis-dir."
+            )
+        if args.input_contract != "none":
+            raise CommandError(
+                "--reuse-existing-analysis-dir requires --input-contract none."
+            )
+        if args.input_staging:
+            raise CommandError(
+                "--reuse-existing-analysis-dir requires --no-input-staging."
+            )
+        if any(
+            (
+                args.stage_dir,
+                args.manifest_dir,
+                args.run_context_file,
+                args.specimens_file,
+                args.samples_file,
+                args.libraries_file,
+                args.units_file,
+            )
+        ):
+            raise CommandError(
+                "--reuse-existing-analysis-dir cannot stage or rewrite manifest inputs."
+            )
+        if args.bootstrap_test_config:
+            raise CommandError(
+                "--reuse-existing-analysis-dir cannot bootstrap test configuration."
+            )
     if args.cost_center is not None:
         try:
             from daylily_ec.aws.cost_centers import CostCenterError, validate_cost_center_name
@@ -1215,6 +1255,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     export_destination_literal = shlex.quote(args.export_destination_s3_uri or "")
     delete_on_export_success = "true" if args.delete_on_export_success else "false"
     replace_existing_analysis_dir = "true" if args.replace_existing_analysis_dir else "false"
+    reuse_existing_analysis_dir = "true" if args.reuse_existing_analysis_dir else "false"
     if stage_config is None:
         stage_specimens_path = ""
         stage_samples_path = ""
@@ -1311,6 +1352,8 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	EXPORT_TRIGGER={shlex.quote(args.export_trigger)}
 	DELETE_ON_EXPORT_SUCCESS={delete_on_export_success}
 	REPLACE_EXISTING_ANALYSIS_DIR={replace_existing_analysis_dir}
+	REUSE_EXISTING_ANALYSIS_DIR={reuse_existing_analysis_dir}
+	DAYOA_GIT_REF={shlex.quote(args.git_tag)}
 STATUS_FILE="${{DAYLILY_RUN_DIR}}/status.json"
 TMUX_LOG="${{DAYLILY_TMUX_LOG}}"
 CONTROLLER_TARGET_FILE="${{DAYLILY_CONTROLLER_TARGET_FILE}}"
@@ -1375,12 +1418,19 @@ trap 'status=$?; release_analysis_lock_on_exit "$status"; if [[ "${{DAYLILY_STAT
 clone_root="$(dirname "${{DAYLILY_REPO_PATH}}")"
 repo_path="${{DAYLILY_REPO_PATH}}"
 mkdir -p "$(dirname "$clone_root")"
+if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
+  if [[ ! -d "$clone_root" || ! -d "$repo_path" ]]; then
+    echo "__DAYLILY_ERROR__=existing_analysis_dir_missing"
+    exit 8
+  fi
+else
+  mkdir -p "$clone_root"
+fi
 if [[ "$ANALYSIS_LOCK_MODE" == "true" ]]; then
   if ! command -v dyec >/dev/null 2>&1; then
     echo "[ERROR] dyec CLI is required on the headnode for analysis-root locking. Run dyec headnode configure, then retry."
     exit 66
   fi
-  mkdir -p "$clone_root"
   dyec analysis visit \
     --analysis-root "$clone_root" \
     --mode write \
@@ -1422,11 +1472,38 @@ remove_run_dir_projection_links() {{
   rmdir "$links_dir"
 }}
 
-day-clone \
-  --destination "$ANALYSIS_ID" \
-  --executing-entity "$EXECUTING_ENTITY" \
-  --repository {shlex.quote(args.repository)} \
-  --git-tag {shlex.quote(args.git_tag)}
+if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
+  if ! git -C "$repo_path" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "__DAYLILY_ERROR__=existing_analysis_repo_invalid"
+    exit 8
+  fi
+  if [[ -n "$(git -C "$repo_path" status --porcelain --untracked-files=no)" ]]; then
+    echo "__DAYLILY_ERROR__=existing_analysis_repo_dirty"
+    exit 8
+  fi
+  if ! git -C "$repo_path" fetch --quiet --tags origin "$DAYOA_GIT_REF"; then
+    echo "__DAYLILY_ERROR__=existing_analysis_ref_fetch_failed"
+    exit 8
+  fi
+  expected_commit="$(git -C "$repo_path" rev-parse --verify "FETCH_HEAD^{{commit}}" 2>/dev/null)" || {{
+    echo "__DAYLILY_ERROR__=existing_analysis_ref_missing"
+    exit 8
+  }}
+  git -C "$repo_path" checkout --detach "$expected_commit"
+  actual_commit="$(git -C "$repo_path" rev-parse HEAD)"
+  if [[ "$actual_commit" != "$expected_commit" ]]; then
+    echo "__DAYLILY_ERROR__=existing_analysis_ref_checkout_mismatch"
+    exit 8
+  fi
+  echo "__DAYLILY_REUSED_ANALYSIS_DIR__=$clone_root"
+  echo "__DAYLILY_GIT_COMMIT__=$actual_commit"
+else
+  day-clone \
+    --destination "$ANALYSIS_ID" \
+    --executing-entity "$EXECUTING_ENTITY" \
+    --repository {shlex.quote(args.repository)} \
+    --git-tag {shlex.quote(args.git_tag)}
+fi
 mkdir -p "$clone_root/bin"
 if [[ -n "${{BASH_SOURCE[0]:-}}" && -f "${{BASH_SOURCE[0]}}" ]]; then
   cp "${{BASH_SOURCE[0]}}" "$clone_root/bin/dyec-controller-launch.sh"
@@ -2711,6 +2788,7 @@ ANALYSIS_ID={shlex.quote(analysis_id)}
 EXECUTING_ENTITY={shlex.quote(executing_entity)}
 REPO_KEY={shlex.quote(args.repository)}
 REPLACE_EXISTING_ANALYSIS_DIR={replace_existing_analysis_dir}
+REUSE_EXISTING_ANALYSIS_DIR={reuse_existing_analysis_dir}
 COST_CENTER_VALUE={cost_center_arg if cost_center_arg else ""}
 analysis_root=$(python3 - <<'PYCONFIG'
 from pathlib import Path
@@ -2773,21 +2851,27 @@ if tmux has-session -t "=$tmux_session_name" 2>/dev/null; then
   exit 8
 fi
 if [[ -e "$clone_root" ]]; then
-  if [[ "$REPLACE_EXISTING_ANALYSIS_DIR" != "true" ]]; then
+  if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
+    if [[ ! -d "$clone_root" || ! -d "$repo_path" ]]; then
+      echo "__DAYLILY_ERROR__=existing_analysis_dir_invalid"
+      exit 8
+    fi
+  elif [[ "$REPLACE_EXISTING_ANALYSIS_DIR" != "true" ]]; then
     echo "__DAYLILY_ERROR__=analysis_dir_exists"
     exit 8
-  fi
-  if [[ -z "$analysis_root" || -z "$EXECUTING_ENTITY" || -z "$ANALYSIS_ID" ]]; then
+  elif [[ -z "$analysis_root" || -z "$EXECUTING_ENTITY" || -z "$ANALYSIS_ID" ]]; then
     echo "__DAYLILY_ERROR__=unsafe_replace_existing_analysis_dir"
     exit 8
-  fi
-  expected_clone_root="$analysis_root/$EXECUTING_ENTITY/$ANALYSIS_ID"
-  if [[ "$clone_root" != "$expected_clone_root" || "$clone_root" == "/" ]]; then
+  elif [[ "$clone_root" != "$analysis_root/$EXECUTING_ENTITY/$ANALYSIS_ID" || "$clone_root" == "/" ]]; then
     echo "__DAYLILY_ERROR__=unsafe_replace_existing_analysis_dir"
     exit 8
+  else
+    rm -rf -- "$clone_root"
+    echo "__DAYLILY_REPLACED_ANALYSIS_DIR__=$clone_root"
   fi
-  rm -rf -- "$clone_root"
-  echo "__DAYLILY_REPLACED_ANALYSIS_DIR__=$clone_root"
+elif [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
+  echo "__DAYLILY_ERROR__=existing_analysis_dir_missing"
+  exit 8
 fi
 {work_script_materialization}
 {{

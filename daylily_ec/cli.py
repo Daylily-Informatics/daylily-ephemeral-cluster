@@ -5293,6 +5293,15 @@ def workflow_launch(
             "Existing analysis directories fail hard unless this flag is set."
         ),
     ),
+    reuse_existing_analysis_dir: bool = typer.Option(
+        False,
+        "--reuse-existing-analysis-dir",
+        help=(
+            "Continue an existing exact analysis root without replacing it. Requires "
+            "--input-contract none and --no-input-staging; DYEC verifies and checks out "
+            "the explicit --git-tag before starting the new controller."
+        ),
+    ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Launch a dry-run workflow command."),
 ) -> None:
     """Launch daylily-omics-analysis inside tmux on the headnode."""
@@ -5309,6 +5318,44 @@ def workflow_launch(
             "--git-tag is required; DYEC never discovers or defaults a DayOA revision",
             param_hint="--git-tag",
         )
+    if reuse_existing_analysis_dir:
+        if replace_existing_analysis_dir:
+            raise typer.BadParameter(
+                "--reuse-existing-analysis-dir cannot be combined with "
+                "--replace-existing-analysis-dir",
+                param_hint="--reuse-existing-analysis-dir",
+            )
+        if input_contract != "none":
+            raise typer.BadParameter(
+                "--reuse-existing-analysis-dir requires --input-contract none",
+                param_hint="--input-contract",
+            )
+        if input_staging:
+            raise typer.BadParameter(
+                "--reuse-existing-analysis-dir requires --no-input-staging",
+                param_hint="--input-staging",
+            )
+        if any(
+            (
+                stage_dir,
+                manifest_dir,
+                run_context_file,
+                specimens_file,
+                samples_file,
+                libraries_file,
+                units_file,
+            )
+        ):
+            raise typer.BadParameter(
+                "--reuse-existing-analysis-dir cannot rewrite staging or manifest inputs; "
+                "continue the exact existing analysis root",
+                param_hint="--reuse-existing-analysis-dir",
+            )
+        if bootstrap_test_config:
+            raise typer.BadParameter(
+                "--reuse-existing-analysis-dir cannot bootstrap test configuration",
+                param_hint="--bootstrap-test-config",
+            )
     if manifest_dir is not None:
         if input_contract != "six_manifest":
             raise typer.BadParameter(
@@ -5414,6 +5461,8 @@ def workflow_launch(
         argv.append("--delete-on-export-success")
     if replace_existing_analysis_dir:
         argv.append("--replace-existing-analysis-dir")
+    if reuse_existing_analysis_dir:
+        argv.append("--reuse-existing-analysis-dir")
     if dry_run:
         argv.append("--dry-run")
 

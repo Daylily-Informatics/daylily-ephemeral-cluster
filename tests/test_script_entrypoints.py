@@ -738,6 +738,100 @@ class TestRunOmicsAnalysisHeadnodeScript:
             'if [[ -e "$clone_root" ]]; then'
         )
 
+        mock_run_shell.reset_mock()
+        mock_discover.reset_mock()
+        rc = run_omics_module.main(
+            [
+                "--profile",
+                "dev",
+                "--git-tag",
+                "13.0.42",
+                "--input-contract",
+                "none",
+                "--no-input-staging",
+                "--analysis-id",
+                "analysis",
+                "--executing-entity",
+                "johnm",
+                "--session-name",
+                "analysis-hiomr2-kitchensink",
+                "--reuse-existing-analysis-dir",
+                "--dy-command",
+                "dy-r produce_sentdhiomr2_kitchensink -p -k -j 6",
+            ]
+        )
+        assert rc == 0
+        mock_discover.assert_not_called()
+        continuation_script = mock_run_shell.call_args.args[2]
+        continuation_outer_syntax = subprocess.run(
+            ["bash", "-n"],
+            input=continuation_script,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        assert continuation_outer_syntax.returncode == 0, continuation_outer_syntax.stderr
+        continuation_pipeline = continuation_script.split(
+            "cat <<'PAYLOAD' > \"$work_script\"\n", 1
+        )[1].split("\nPAYLOAD\n", 1)[0]
+        continuation_pipeline_syntax = subprocess.run(
+            ["bash", "-n"],
+            input=continuation_pipeline,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        assert (
+            continuation_pipeline_syntax.returncode == 0
+        ), continuation_pipeline_syntax.stderr
+        assert "REUSE_EXISTING_ANALYSIS_DIR=true" in continuation_script
+        assert "REPLACE_EXISTING_ANALYSIS_DIR=false" in continuation_script
+        assert "__DAYLILY_REUSED_ANALYSIS_DIR__=$clone_root" in continuation_script
+        assert "__DAYLILY_ERROR__=existing_analysis_ref_fetch_failed" in continuation_script
+        assert 'git -C "$repo_path" fetch --quiet --tags origin "$DAYOA_GIT_REF"' in continuation_script
+        assert 'git -C "$repo_path" rev-parse --verify "FETCH_HEAD^{commit}"' in continuation_script
+        assert 'git -C "$repo_path" checkout --detach "$expected_commit"' in continuation_script
+        assert continuation_script.index(
+            'if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then'
+        ) < continuation_script.index(
+            'elif [[ "$REPLACE_EXISTING_ANALYSIS_DIR" != "true" ]]; then'
+        )
+
+    def test_main_rejects_unsafe_existing_analysis_continuation(self):
+        with pytest.raises(
+            run_omics_module.CommandError,
+            match="requires --input-contract none",
+        ):
+            run_omics_module.main(
+                [
+                    "--profile",
+                    "dev",
+                    "--git-tag",
+                    "13.0.42",
+                    "--analysis-id",
+                    "analysis",
+                    "--reuse-existing-analysis-dir",
+                ]
+            )
+
+        with pytest.raises(
+            run_omics_module.CommandError,
+            match="requires --no-input-staging",
+        ):
+            run_omics_module.main(
+                [
+                    "--profile",
+                    "dev",
+                    "--git-tag",
+                    "13.0.42",
+                    "--analysis-id",
+                    "analysis",
+                    "--input-contract",
+                    "none",
+                    "--reuse-existing-analysis-dir",
+                ]
+            )
+
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
         return_value=SimpleNamespace(
