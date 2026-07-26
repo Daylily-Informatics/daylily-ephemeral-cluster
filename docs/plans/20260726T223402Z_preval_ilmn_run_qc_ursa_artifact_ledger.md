@@ -93,6 +93,12 @@ Ledger path:
 - The source wrapper, packaged wrapper, and AWS readiness validator now use
   the same 48-hour limit. `bash -n` passed for both wrappers; their contents
   are byte-identical; the focused wrapper/validator test suite passed 37 tests.
+  This change is committed and published as DYEC commit `76b8c6dc`.
+- Read-only verification confirms the currently running `preval-hiomr2`
+  boot-installed `/opt/slurm/bin/sbatch` remains at its prior 36-hour value
+  (headnode DAY-EC checkout `daylily-managed` at `b54b4f84`). Updating that
+  active Slurm submission wrapper requires a separately approved supported
+  deployment; this work did not modify it directly.
 - This policy change cannot admit the existing `RnD` usage record by itself:
   its latest processed hour is still `2026-07-19T10:00:00Z`, more than 48 hours
   old. A current authoritative usage refresh remains required before the
