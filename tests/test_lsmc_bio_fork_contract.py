@@ -1,16 +1,15 @@
 from pathlib import Path
 
 import tomllib
-
 import yaml
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
 DAYOA_DEFAULT_TAG = "13.0.40"
 DAYOA_VALIDATED_TAG = "13.0.40"
-DYEC_BLESSED_TAG = "14.0.10"
+ONT_RUN_QC_TAG = "13.0.39"
+DYEC_BLESSED_TAG = "14.0.13"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
     f"{_OLD_ORG}/daylily-omics-analysis",
@@ -90,3 +89,28 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
             assert commands[command_id]["validated_version"] == DAYOA_VALIDATED_TAG
         assert commands["package_inflection_hybrid_data"]["git_tag"] == DAYOA_DEFAULT_TAG
         assert commands["package_inflection_hybrid_data"]["validated_version"] == DAYOA_DEFAULT_TAG
+
+
+def test_ont_run_qc_uses_only_the_network_license_compatible_dayoa_release() -> None:
+    for relative_path in (
+        "config/daylily_pipeline_command_catalog.yaml",
+        "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml",
+    ):
+        data = yaml.safe_load((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
+        commands = data["repositories"]["daylily-omics-analysis"]["analysis_commands"]
+        ont_run_qc = next(
+            command for command in commands if command["command_id"] == "ont_run_qc"
+        )
+
+        assert ont_run_qc["git_tag"] == ONT_RUN_QC_TAG
+        assert ont_run_qc["validated_version"] == ONT_RUN_QC_TAG
+        assert [
+            command["command_id"]
+            for command in commands
+            if command.get("git_tag") == ONT_RUN_QC_TAG
+        ] == ["ont_run_qc"]
+        assert [
+            command["command_id"]
+            for command in commands
+            if command.get("validated_version") == ONT_RUN_QC_TAG
+        ] == ["ont_run_qc"]

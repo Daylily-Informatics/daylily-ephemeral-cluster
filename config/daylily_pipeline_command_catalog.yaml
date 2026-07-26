@@ -1617,7 +1617,7 @@ repositories:
         validation_runs: []
       - command_id: ont_run_qc
         type: prod
-        validated_version: 10.0.97
+        validated_version: 13.0.39
         test_data_profile: ont_run_directory
         display_name: "ONT Run QC"
         description: "ONT mounted run-folder QC in one run-analysis output tree."
@@ -1650,7 +1650,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 10.0.97
+        git_tag: 13.0.39
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
