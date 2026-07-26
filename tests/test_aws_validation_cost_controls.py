@@ -95,6 +95,10 @@ def test_permission_catalog_covers_recent_cost_control_surfaces() -> None:
     )
 
 
+def test_cost_center_freshness_limit_is_48_hours() -> None:
+    assert validation_module.COST_CENTER_MAX_USAGE_AGE_HOURS == 48
+
+
 def test_permission_catalog_scopes_sns_to_configured_cluster_topic() -> None:
     groups = _permission_groups(
         _context(),

@@ -8,7 +8,7 @@ set -euo pipefail
 slurm_command="$(basename "$0")"
 cluster_config="/opt/parallelcluster/shared/cluster-config.yaml"
 reserved_idle_cost_center="idle"
-max_usage_age_hours="36"
+max_usage_age_hours="48"
 
 cost_center=""
 cluster_name=""

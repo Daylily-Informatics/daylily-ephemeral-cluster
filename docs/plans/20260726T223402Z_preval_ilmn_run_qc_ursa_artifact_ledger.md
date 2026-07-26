@@ -82,3 +82,18 @@ Ledger path:
 | RUN-004 | DayOA execution | Run the supported no-BCL-to-FASTQ `illumina_run_qc` path from an `ubuntu` interactive bash-login `tmux` session on `preval-hiomr2`. | BLOCKED | external_control_plane | Gate 1 | DYEC cost-center refresh owner | Live root `preval_ilmn_run_qc_20260726T231133Z`; `sbatch` rejection: latest RnD cost-center hour `2026-07-19T10:00:00Z`, age 181.28h, maximum 36h; controller exit 1; no QC job submitted. | Current cost-center usage data is stale. | Do not bypass the enforcement gate. Refresh the cost-center data under its owning process, then launch a fresh root using the verified command. |
 | QA-005 | MultiQC acceptance | Compare generated report and `multiqc_data` section identities against the reference report; diagnose and make the smallest explicit scan-path correction if required. | BLOCKED | external_dependency | Gate 5 | DYEC cost-center refresh owner | Reference expectation and rendered MultiQC command verified in the successful dry-run. | Live `multiqc_report.html` could not be generated because no job was allowed to start. | On a successful fresh run, compare HTML anchors and `multiqc_data.json` section/data keys to the recorded reference set. |
 | EVD-006 | Durable evidence | Record the executed command, output paths, Ursa-artifact entry, report-section comparison, and final terminal status in this ledger. | COMPLETE | feature_implementation | Gate 5 | Codex | This ledger records dry-run, live-controller, artifact-manifest, lock, and block evidence. |  | All ledger rows are terminal; the execution objective remains blocked, not complete. |
+
+## Approved cost-control amendment — 2026-07-26T23:27:23Z
+
+- The user explicitly confirmed the second approval to relax the global
+  cost-center-usage freshness threshold from 36 to 48 hours.
+- `RnD` has no per-cost-center freshness setting. Its active registry record
+  remains unchanged: monthly cap `$500`, no expiry attribute, and no new
+  three-month override.
+- The source wrapper, packaged wrapper, and AWS readiness validator now use
+  the same 48-hour limit. `bash -n` passed for both wrappers; their contents
+  are byte-identical; the focused wrapper/validator test suite passed 37 tests.
+- This policy change cannot admit the existing `RnD` usage record by itself:
+  its latest processed hour is still `2026-07-19T10:00:00Z`, more than 48 hours
+  old. A current authoritative usage refresh remains required before the
+  no-BCL Illumina QC can be launched successfully.

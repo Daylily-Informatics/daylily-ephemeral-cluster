@@ -7,6 +7,20 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SBATCH_SOURCE = REPO_ROOT / "config" / "day_cluster" / "sbatch"
+PACKAGED_SBATCH = (
+    REPO_ROOT
+    / "daylily_ec"
+    / "resources"
+    / "payload"
+    / "config"
+    / "day_cluster"
+    / "sbatch"
+)
+
+
+def test_sbatch_wrappers_share_the_global_48_hour_freshness_limit() -> None:
+    assert 'max_usage_age_hours="48"' in SBATCH_SOURCE.read_text(encoding="utf-8")
+    assert 'max_usage_age_hours="48"' in PACKAGED_SBATCH.read_text(encoding="utf-8")
 
 
 def _write(path: Path, text: str, *, mode: int = 0o644) -> Path:
