@@ -4,10 +4,10 @@ import base64
 import hashlib
 import json
 import logging
-from pathlib import Path
 import shlex
-from subprocess import CompletedProcess
 import sys
+from pathlib import Path
+from subprocess import CompletedProcess
 from types import SimpleNamespace
 
 import pytest
@@ -27,7 +27,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.0.46"
+DAYOA_BLESSED_TAG = "13.0.47"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -44,6 +44,7 @@ EXPECTED_COMMANDS = {
     ("exports", "attach"),
     ("exports", "run"),
     ("exports", "transfer"),
+    ("exports", "cleanup"),
     ("exports", "detach"),
     ("identities", "validate"),
     ("identities", "plan"),
@@ -378,6 +379,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     exports_attach_cmd = registry.get_command(("exports", "attach"))
     exports_run_cmd = registry.get_command(("exports", "run"))
     exports_transfer_cmd = registry.get_command(("exports", "transfer"))
+    exports_cleanup_cmd = registry.get_command(("exports", "cleanup"))
     exports_detach_cmd = registry.get_command(("exports", "detach"))
     resources_dir_cmd = registry.get_command(("resources-dir",))
     cluster_info_cmd = registry.get_command(("cluster-info",))
@@ -492,6 +494,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
         exports_attach_cmd,
         exports_run_cmd,
         exports_transfer_cmd,
+        exports_cleanup_cmd,
         exports_detach_cmd,
     ):
         assert exports_cmd is not None
