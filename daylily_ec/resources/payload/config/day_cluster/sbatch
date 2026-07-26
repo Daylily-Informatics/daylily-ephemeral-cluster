@@ -14,14 +14,47 @@ cost_center=""
 cluster_name=""
 declare -a passthrough_args=()
 
+urlencode() {
+    python3 -c 'from urllib.parse import quote; import sys; print(quote(sys.argv[1], safe=""))' "$1"
+}
+
+aws_console_base_url() {
+    local console_region="$1"
+    if [ -n "${console_region}" ]; then
+        printf "https://%s.console.aws.amazon.com" "${console_region}"
+    else
+        printf "https://console.aws.amazon.com"
+    fi
+}
+
+budget_monitor_url() {
+    local console_base
+    console_base="$(aws_console_base_url "${region:-}")"
+    printf "%s/billing/home#/budgets/details?name=%s" \
+        "${console_base}" "$(urlencode "$1")"
+}
+
+cost_center_monitor_url() {
+    local console_region="${cost_center_region:-${region:-}}"
+    local console_base
+    console_base="$(aws_console_base_url "${console_region}")"
+    printf "%s/dynamodbv2/home?region=%s#item-explorer?table=%s&cost_center=%s" \
+        "${console_base}" \
+        "$(urlencode "${console_region}")" \
+        "$(urlencode "${cost_center_table:-}")" \
+        "$(urlencode "$1")"
+}
+
 fail() {
     local message="$1"
     echo "ERROR: ${message}" >&2
     if [ -n "${cluster_name:-}" ]; then
         echo "Cluster budget: ${cluster_name}" >&2
+        echo "Cluster budget monitor: $(budget_monitor_url "${cluster_name}")" >&2
     fi
     if [ -n "${cost_center:-}" ]; then
         echo "Cost center: ${cost_center}" >&2
+        echo "Cost-center report: $(cost_center_monitor_url "${cost_center}")" >&2
     fi
     exit 1
 }

@@ -680,6 +680,7 @@ class AnalysisCommand(BaseModel):
         manifest_dir: Optional[str] = None,
         session_name: Optional[str] = None,
         project: Optional[str] = None,
+        cost_center: Optional[str] = None,
         run_context_file: Optional[str] = None,
         specimens_file: Optional[str] = None,
         samples_file: Optional[str] = None,
@@ -700,6 +701,11 @@ class AnalysisCommand(BaseModel):
             executing_entity, field_name="executing_entity"
         )
         resolved_git_tag = git_tag or self.git_tag
+        resolved_cost_center = None
+        if cost_center is not None:
+            from daylily_ec.aws.cost_centers import validate_cost_center_name
+
+            resolved_cost_center = validate_cost_center_name(cost_center)
         if export_trigger not in EXPORT_TRIGGERS:
             raise ValueError("export_trigger must be one of: " + ", ".join(sorted(EXPORT_TRIGGERS)))
         if export_destination_s3_uri and export_trigger == "none":
@@ -786,6 +792,7 @@ class AnalysisCommand(BaseModel):
             ("--units-file", units_file),
             ("--session-name", session_name),
             ("--project", project),
+            ("--cost-center", resolved_cost_center),
             ("--remote-user", remote_user),
         ):
             if value:

@@ -173,6 +173,19 @@ def _resolve_executing_entity_option(
         raise typer.BadParameter(str(exc)) from exc
 
 
+def _resolve_cost_center_option(cost_center: Optional[str]) -> Optional[str]:
+    """Validate an explicit Slurm cost-center value without inferring one."""
+
+    if cost_center is None:
+        return None
+    try:
+        from daylily_ec.aws.cost_centers import CostCenterError, validate_cost_center_name
+
+        return validate_cost_center_name(cost_center)
+    except CostCenterError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--cost-center") from exc
+
+
 def _dayec_info_hook() -> list[tuple[str, str]]:
     return [("Project Root", str(Path(__file__).resolve().parents[1]))]
 
@@ -4520,6 +4533,8 @@ def _parse_workflow_launch_metadata(launch_stdout: str) -> dict[str, str]:
             parsed["repo_path"] = line.split("=", 1)[1].strip()
         elif line.startswith("__DAYLILY_DY_COMMAND__="):
             parsed["dy_command"] = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_COST_CENTER__="):
+            parsed["cost_center"] = line.split("=", 1)[1].strip()
     return parsed
 
 
@@ -4753,6 +4768,11 @@ def samples_run(
         help="Tmux session name. Defaults to --analysis-id.",
     ),
     project: Optional[str] = typer.Option(None, "--project", help="Project/budget for dyoainit."),
+    cost_center: Optional[str] = typer.Option(
+        None,
+        "--cost-center",
+        help="Explicit active Slurm cost center; exported as DAY_PROJECT only for job submission.",
+    ),
     skip_project_check: bool = typer.Option(
         True,
         "--skip-project-check/--strict-project-check",
@@ -4816,6 +4836,7 @@ def samples_run(
             executing_entity=executing_entity,
             cluster=cluster,
         )
+        resolved_cost_center = _resolve_cost_center_option(cost_center)
         resolved_export_destination_s3_uri = _validate_analysis_launch_options(
             analysis_id=analysis_id,
             executing_entity=resolved_executing_entity,
@@ -4893,6 +4914,7 @@ def samples_run(
             stage_dir=remote_stage_dir,
             session_name=resolved_session_name,
             project=project,
+            cost_center=resolved_cost_center,
             dry_run=dry_run,
             skip_project_check=skip_project_check,
             export_destination_s3_uri=resolved_export_destination_s3_uri,
@@ -5174,6 +5196,11 @@ def workflow_launch(
         help="Required explicit DayOA branch or tag passed to day-clone.",
     ),
     project: Optional[str] = typer.Option(None, "--project", help="Project/budget for dyoainit."),
+    cost_center: Optional[str] = typer.Option(
+        None,
+        "--cost-center",
+        help="Explicit active Slurm cost center; exported as DAY_PROJECT only for job submission.",
+    ),
     skip_project_check: bool = typer.Option(
         True,
         "--skip-project-check/--strict-project-check",
@@ -5322,6 +5349,7 @@ def workflow_launch(
         executing_entity=executing_entity,
         cluster=cluster,
     )
+    resolved_cost_center = _resolve_cost_center_option(cost_center)
     resolved_export_destination_s3_uri = _validate_analysis_launch_options(
         analysis_id=analysis_id,
         executing_entity=resolved_executing_entity,
@@ -5353,6 +5381,7 @@ def workflow_launch(
         ("--repository", repository),
         ("--git-tag", git_tag),
         ("--project", project),
+        ("--cost-center", resolved_cost_center),
         ("--genome", genome),
         ("--jobs", str(jobs)),
         ("--aligners", aligners),
@@ -5618,6 +5647,7 @@ def _catalog_render_payload(
     units_file: Optional[Path],
     session_name: Optional[str],
     project: Optional[str],
+    cost_center: Optional[str],
     dry_run: bool,
     skip_project_check: bool,
     allow_stage_discovery: bool,
@@ -5641,6 +5671,7 @@ def _catalog_render_payload(
         export_trigger=export_trigger,
         delete_on_export_success=delete_on_export_success,
     )
+    resolved_cost_center = _resolve_cost_center_option(cost_center)
     manifest_dir_text = str(manifest_dir.expanduser()) if manifest_dir else None
     run_context_file_text = str(run_context_file.expanduser()) if run_context_file else None
     specimens_file_text = str(specimens_file.expanduser()) if specimens_file else None
@@ -5675,6 +5706,7 @@ def _catalog_render_payload(
         units_file=units_file_text,
         session_name=session_name,
         project=project,
+        cost_center=resolved_cost_center,
         dry_run=dry_run,
         skip_project_check=skip_project_check,
         export_destination_s3_uri=resolved_export_destination_s3_uri,
@@ -5695,6 +5727,7 @@ def _catalog_render_payload(
         "executing_entity": resolved_executing_entity,
         "git_tag": resolved_git_tag,
         "dry_run": dry_run,
+        "cost_center": resolved_cost_center,
         "dy_command": dy_command,
         "dy_config": normalized_dy_config,
         "workflow_argv": workflow_argv,
@@ -5928,6 +5961,11 @@ def catalog_render(
     units_file: Optional[Path] = typer.Option(None, "--units-file"),
     session_name: Optional[str] = typer.Option(None, "--session-name"),
     project: Optional[str] = typer.Option(None, "--project", help="Project/budget for dyoainit."),
+    cost_center: Optional[str] = typer.Option(
+        None,
+        "--cost-center",
+        help="Explicit active Slurm cost center for the rendered workflow launch.",
+    ),
     dry_run: bool = typer.Option(False, "--dry-run", "-n", help="Render dry-run dy-r command."),
     skip_project_check: bool = typer.Option(
         True,
@@ -5977,6 +6015,7 @@ def catalog_render(
             units_file=units_file,
             session_name=session_name,
             project=project,
+            cost_center=cost_center,
             dry_run=dry_run,
             skip_project_check=skip_project_check,
             allow_stage_discovery=allow_stage_discovery,
@@ -6028,6 +6067,11 @@ def catalog_launch(
     units_file: Optional[Path] = typer.Option(None, "--units-file"),
     session_name: Optional[str] = typer.Option(None, "--session-name"),
     project: Optional[str] = typer.Option(None, "--project", help="Project/budget for dyoainit."),
+    cost_center: Optional[str] = typer.Option(
+        None,
+        "--cost-center",
+        help="Explicit active Slurm cost center for the launched workflow.",
+    ),
     dry_run: bool = typer.Option(False, "--dry-run", "-n", help="Launch dry-run dy-r command."),
     skip_project_check: bool = typer.Option(
         True,
@@ -6078,6 +6122,7 @@ def catalog_launch(
             units_file=units_file,
             session_name=session_name,
             project=project,
+            cost_center=cost_center,
             dry_run=dry_run,
             skip_project_check=skip_project_check,
             allow_stage_discovery=allow_stage_discovery,

@@ -69,7 +69,7 @@ Detailed examples live in [docs/cli_reference.md](docs/cli_reference.md).
 
 ## CLI-first catalog launch
 
-Catalog launch is the preferred path for known DayOA commands because it renders the exact `dyec workflow launch` command before it starts anything.
+Catalog launch is the preferred path for known DayOA commands because it renders the exact `dyec workflow launch` command before it starts anything. Use `--project` for DayOA initialization and `--cost-center` for the explicit Slurm submission account; DYEC validates the latter without inferring one.
 
 Render first:
 
@@ -84,6 +84,7 @@ dyec --json catalog render hybrid_ilmn_ont_hiomr_kitchensink \
   --payload-staging-s3-uri "$STAGING_S3_URI" \
   --session-name "${ANALYSIS_ID}-dryrun" \
   --project RnD \
+  --cost-center "$COST_CENTER" \
   --dry-run
 ```
 
@@ -115,7 +116,8 @@ dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
   --manifest-dir ./config \
   --payload-staging-s3-uri "$STAGING_S3_URI" \
   --session-name "$ANALYSIS_ID" \
-  --project RnD
+  --project RnD \
+  --cost-center "$COST_CENTER"
 ```
 
 For DayOA runtime config, pass explicit `key=value` overrides. DYEC appends them to the `dy-r ... --config` section and does not reinterpret their workflow-specific meaning:
@@ -151,6 +153,7 @@ dyec workflow launch \
   --payload-staging-s3-uri "$STAGING_S3_URI" \
   --session-name "$ANALYSIS_ID" \
   --project RnD \
+  --cost-center "$COST_CENTER" \
   --dy-command "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv -j 100 -p -T 0 --rerun-triggers mtime --rerun-incomplete"
 ```
 

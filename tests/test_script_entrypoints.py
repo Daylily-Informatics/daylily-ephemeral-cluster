@@ -549,6 +549,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "johnm",
                 "--project",
                 "project-alpha",
+                "--cost-center",
+                "bjuice",
                 "--dry-run",
             ]
         )
@@ -665,8 +667,13 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then' in script
         assert '. "$HOME/miniconda3/etc/profile.d/conda.sh"' in script
         assert "PROJECT_VALUE=project-alpha" in script
+        assert "COST_CENTER_VALUE=bjuice" in script
         assert "dyoa_args+=(--project project-alpha)" in script
         assert 'export PROJECT="$PROJECT_VALUE"' in script
+        assert "apply_cost_center()" in script
+        assert 'export DAY_PROJECT="$COST_CENTER_VALUE"' in script
+        assert 'export DAYLILY_COST_CENTER="$COST_CENTER_VALUE"' in script
+        assert script.index("apply_cost_center") < script.index('run_dy_command "$DY_COMMAND"')
         assert "dyoa_args+=(--skip-project-check)" in script
         assert "set +u" in script
         assert "set -u" in script
@@ -704,6 +711,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             "daylily-ssh-into-headnode --profile dev --region us-west-2 --cluster cluster-a" in out
         )
         assert "Then run: tmux attach -t sess-1" in out
+        assert "Slurm cost center: bjuice" in out
 
         mock_run_shell.reset_mock()
         rc = run_omics_module.main(

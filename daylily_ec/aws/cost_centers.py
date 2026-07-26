@@ -178,6 +178,8 @@ def create_cost_center(
 ) -> CostCenter:
     resolved_name = validate_cost_center_name(name)
     cap = _validate_decimal(monthly_cap_usd, field="monthly_cap_usd")
+    if cap <= 0:
+        raise CostCenterError("monthly_cap_usd must be greater than zero for an active cost center.")
     users = _normalize_list(allowed_users, field="allowed_users")
     groups = _normalize_list(allowed_groups, field="allowed_groups")
     if not users and not groups:
@@ -207,6 +209,93 @@ def create_cost_center(
     )
     _put_cost_center(dynamodb_client, table_name, item, condition="attribute_not_exists(cost_center)")
     return item
+
+
+def ensure_active_cost_center(
+    dynamodb_client: Any,
+    name: str,
+    *,
+    monthly_cap_usd: str | Decimal,
+    allowed_users: Sequence[str] = (),
+    allowed_groups: Sequence[str] = (),
+    owner_emails: Sequence[str] = (),
+    notes: str = "",
+    actor_arn: str = "",
+    table_name: str = DEFAULT_COST_CENTER_TABLE,
+    usage_table_name: str = DEFAULT_COST_CENTER_USAGE_TABLE,
+    now: str | None = None,
+) -> tuple[CostCenter, bool]:
+    """Ensure one explicit active cost center is ready for immediate Slurm use.
+
+    Existing rows are accepted only when their active authorization and cap
+    exactly match the requested operational contract.  This prevents a retry
+    from silently changing ownership or a spending cap.
+    """
+
+    resolved_name = validate_cost_center_name(name)
+    cap = _validate_decimal(monthly_cap_usd, field="monthly_cap_usd")
+    if cap <= 0:
+        raise CostCenterError("monthly_cap_usd must be greater than zero for an active cost center.")
+    users = _normalize_list(allowed_users, field="allowed_users")
+    groups = _normalize_list(allowed_groups, field="allowed_groups")
+    if not users and not groups:
+        raise CostCenterError("At least one allowed user or allowed group is required.")
+
+    ensure_cost_center_registry(
+        dynamodb_client,
+        table_name=table_name,
+        usage_table_name=usage_table_name,
+        actor_arn=actor_arn,
+        now=now,
+    )
+    existing = get_cost_center(
+        dynamodb_client,
+        resolved_name,
+        table_name=table_name,
+        allow_missing=True,
+    )
+    if existing is None:
+        return (
+            create_cost_center(
+                dynamodb_client,
+                resolved_name,
+                monthly_cap_usd=cap,
+                allowed_users=users,
+                allowed_groups=groups,
+                owner_emails=owner_emails,
+                notes=notes,
+                actor_arn=actor_arn,
+                table_name=table_name,
+                usage_table_name=usage_table_name,
+                now=now,
+            ),
+            True,
+        )
+
+    mismatch: list[str] = []
+    if existing.status != "active":
+        mismatch.append(f"status={existing.status!r}")
+    if existing.monthly_cap_usd != cap:
+        mismatch.append(f"monthly_cap_usd={existing.monthly_cap_usd}")
+    if existing.allowed_users != users:
+        mismatch.append(f"allowed_users={list(existing.allowed_users)!r}")
+    if existing.allowed_groups != groups:
+        mismatch.append(f"allowed_groups={list(existing.allowed_groups)!r}")
+    if mismatch:
+        raise CostCenterError(
+            f"Cost center '{resolved_name}' already exists but does not match the explicit "
+            "DYEC create inputs: "
+            + ", ".join(mismatch)
+            + ". Edit it explicitly with `dyec cost-centers edit` or choose another name."
+        )
+
+    initialize_cost_center_usage(
+        dynamodb_client,
+        resolved_name,
+        usage_table_name=usage_table_name,
+        now=now,
+    )
+    return existing, False
 
 
 def edit_cost_center(

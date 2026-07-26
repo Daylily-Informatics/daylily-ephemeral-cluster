@@ -876,6 +876,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--project", help="Project/budget to supply to dyoainit")
     parser.add_argument(
+        "--cost-center",
+        help="Explicit active Slurm cost center exported as DAY_PROJECT before dy-r",
+    )
+    parser.add_argument(
         "--skip-project-check",
         dest="skip_project_check",
         action="store_true",
@@ -966,6 +970,13 @@ def main(argv: Optional[List[str]] = None) -> int:
     if not args.profile:
         raise CommandError("AWS profile is required. Set AWS_PROFILE or use --profile.")
     validate_export_args(args)
+    if args.cost_center is not None:
+        try:
+            from daylily_ec.aws.cost_centers import CostCenterError, validate_cost_center_name
+
+            args.cost_center = validate_cost_center_name(args.cost_center)
+        except CostCenterError as exc:
+            raise CommandError(str(exc)) from exc
     try:
         validate_job_max_runtime_minutes(args.max_runtime_minutes)
     except ValueError as exc:
@@ -1159,6 +1170,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
 
     project_arg = shlex.quote(args.project) if args.project else ""
+    cost_center_arg = shlex.quote(args.cost_center) if args.cost_center else ""
     repository_literal = json.dumps(args.repository)
     dy_command_literal = shlex.quote(dy_command)
     skip_check = "true" if args.skip_project_check else "false"
@@ -1292,6 +1304,7 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	STAGE_LIBRARIES={shlex.quote(stage_libraries_path)}
 	STAGE_UNITS={shlex.quote(stage_units_path)}
 	PROJECT_VALUE={project_arg if project_arg else ""}
+	COST_CENTER_VALUE={cost_center_arg if cost_center_arg else ""}
 	SKIP_PROJECT_CHECK={skip_check}
 	DY_COMMAND={dy_command_literal}
 	EXPORT_DESTINATION_S3_URI={export_destination_literal}
@@ -2439,6 +2452,14 @@ ensure_dayoa_shortcuts() {{
   fi
 }}
 
+apply_cost_center() {{
+  if [[ -z "$COST_CENTER_VALUE" ]]; then
+    return 0
+  fi
+  export DAY_PROJECT="$COST_CENTER_VALUE"
+  export DAYLILY_COST_CENTER="$COST_CENTER_VALUE"
+}}
+
 run_dy_command() {{
   local command="$1"
   local dyoainit_source_needed=false
@@ -2460,6 +2481,7 @@ run_dy_command() {{
       return "$source_status"
     fi
     ensure_dayoa_shortcuts
+    apply_cost_center
   fi
   set +u
   eval "$command"
@@ -2489,6 +2511,7 @@ if [[ "$DEFAULT_ACTIVATION" == "true" ]]; then
     exit "$init_status"
   fi
   ensure_dayoa_shortcuts
+  apply_cost_center
   set +e
   set +u
   dy-a slurm {shlex.quote(args.genome)}
@@ -2688,6 +2711,7 @@ ANALYSIS_ID={shlex.quote(analysis_id)}
 EXECUTING_ENTITY={shlex.quote(executing_entity)}
 REPO_KEY={shlex.quote(args.repository)}
 REPLACE_EXISTING_ANALYSIS_DIR={replace_existing_analysis_dir}
+COST_CENTER_VALUE={cost_center_arg if cost_center_arg else ""}
 analysis_root=$(python3 - <<'PYCONFIG'
 from pathlib import Path
 analysis_root = '/fsx/analysis_results'
@@ -2878,6 +2902,9 @@ if [[ "$session_ready" != "true" ]]; then
     echo "__DAYLILY_RUN_DIR__=$run_dir"
     echo "__DAYLILY_REPO_PATH__=$repo_path"
     printf '%s\n' {shlex.quote(f"__DAYLILY_DY_COMMAND__={dy_command}")}
+    if [[ -n "$COST_CENTER_VALUE" ]]; then
+      echo "__DAYLILY_COST_CENTER__=$COST_CENTER_VALUE"
+    fi
     emit_controller_target
     exit 0
   fi
@@ -2895,6 +2922,9 @@ echo "__DAYLILY_TMUX_SESSION__=$tmux_session_name"
 echo "__DAYLILY_RUN_DIR__=$run_dir"
 echo "__DAYLILY_REPO_PATH__=$repo_path"
 printf '%s\n' {shlex.quote(f"__DAYLILY_DY_COMMAND__={dy_command}")}
+if [[ -n "$COST_CENTER_VALUE" ]]; then
+  echo "__DAYLILY_COST_CENTER__=$COST_CENTER_VALUE"
+fi
 emit_controller_target
 """
 
@@ -2917,6 +2947,8 @@ emit_controller_target
     print(f"Run state directory: {launch_info.run_dir}")
     print(f"Workflow repo path: {launch_info.repo_path}")
     print(f"Effective dy-r command: {launch_info.dy_command}")
+    if args.cost_center:
+        print(f"Slurm cost center: {args.cost_center}")
     print(
         "Controller target: " + json.dumps(launch_info.controller_target.to_dict(), sort_keys=True)
     )
