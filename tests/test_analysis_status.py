@@ -187,6 +187,82 @@ def test_success_requires_complete_progress_and_all_canonical_artifacts(
     assert "success is unverified" in payload["warnings"][-1]
 
 
+def test_status_ignores_post_run_unlock_log(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _root(tmp_path, complete=True)
+    dayoa = root / "daylily-omics-analysis"
+    unlock = dayoa / ".snakemake" / "log" / "20260716T120000.snakemake.log"
+    unlock.write_text("Unlocking working directory.\n", encoding="utf-8")
+    _activate(monkeypatch)
+    monkeypatch.setattr("daylily_ec.analysis_status.shutil.which", lambda _name: None)
+
+    payload = collect_analysis_status(root, mode="slim", runner=_fake_runner)
+
+    assert payload["workflow"]["progress"]["percent"] == 100
+    assert payload["workflow"]["master_log"].endswith("20260716.snakemake.log")
+
+
+def test_run_qc_success_uses_exact_controller_receipt_and_run_qc_artifacts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _root(tmp_path)
+    dayoa = root / "daylily-omics-analysis"
+    master = next((dayoa / ".snakemake" / "log").glob("*.snakemake.log"))
+    master.write_text(
+        "rule produce_illumina_run_qc:\n6 of 6 steps (100%) done\n",
+        encoding="utf-8",
+    )
+    run_qc = dayoa / "results" / "runs" / "run-1" / "run_qc" / "illumina"
+    (run_qc / "multiqc_report_data").mkdir(parents=True)
+    for relative, content in (
+        ("summary.html", "summary"),
+        ("summary.tsv", "metric\tvalue\n"),
+        ("multiqc_report.html", "multiqc"),
+        ("multiqc_report_data/multiqc_data.json", "{}"),
+    ):
+        (run_qc / relative).write_text(content, encoding="utf-8")
+    home = tmp_path / "home"
+    receipt_dir = home / "daylily-runs" / root.name
+    receipt_dir.mkdir(parents=True)
+    (receipt_dir / "status.json").write_text(
+        json.dumps(
+            {
+                "command": "bin/day_run produce_illumina_run_qc -p -j 5 -k",
+                "completed_at": "2026-07-26T08:11:39Z",
+                "exit_code": 0,
+                "repo_path": str(dayoa),
+                "session_name": root.name,
+                "started_at": "2026-07-26T07:56:58Z",
+            }
+        ),
+        encoding="utf-8",
+    )
+    _activate(monkeypatch)
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setattr(
+        "daylily_ec.analysis_status.shutil.which",
+        lambda name: "/bin/tool" if name in {"squeue", "scontrol"} else None,
+    )
+
+    def fake(argv, **_kwargs):
+        if argv[0] == "ps":
+            return subprocess.CompletedProcess(argv, 0, "", "")
+        if argv[0] == "df":
+            return _fake_runner(argv)
+        if argv[0] == "squeue":
+            return subprocess.CompletedProcess(argv, 0, "", "")
+        raise AssertionError(argv)
+
+    payload = collect_analysis_status(root, mode="slim", runner=fake)
+
+    assert payload["state"] == "SUCCESS"
+    assert payload["controller"]["return_code"] == 0
+    assert payload["controller"]["return_code_source"].endswith("status.json")
+    assert payload["canonical_artifacts"]["contract"] == "run_qc_illumina"
+    assert payload["canonical_artifacts"]["all_present"] is True
+
+
 def test_success_is_verified_only_with_controller_rc_zero(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

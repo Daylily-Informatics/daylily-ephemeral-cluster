@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import re
 import shlex
 import shutil
@@ -39,6 +40,11 @@ CANONICAL_ARTIFACT_NAMES = (
     "multiqc_data.json",
     "dayoa_evidence_manifest.json",
 )
+RUN_QC_TARGET_PLATFORMS = {
+    "produce_illumina_run_qc": "illumina",
+    "produce_ont_run_qc": "ont",
+    "produce_ultima_run_qc": "ultima",
+}
 PROGRESS_MARKER_RE = re.compile(
     r"(?:\b\d+(?:\.\d+)?%|\b(?:records?|reads?|loci|contigs?|variants?|steps?)\b|"
     r"\b(?:error|failed|warning|complete|finished|writing|merging|sorting|indexing)\b)",
@@ -231,7 +237,14 @@ def _latest_master_log(dayoa_root: Path) -> Path | None:
     candidates = [path for path in log_dir.glob("*.snakemake.log") if path.is_file()]
     if not candidates:
         candidates = [path for path in log_dir.glob("*.log") if path.is_file()]
-    return max(candidates, key=lambda path: path.stat().st_mtime) if candidates else None
+    workflow_candidates = [
+        path
+        for path in candidates
+        if path.read_text(encoding="utf-8", errors="replace").strip()
+        != "Unlocking working directory."
+    ]
+    selected = workflow_candidates or candidates
+    return max(selected, key=lambda path: path.stat().st_mtime) if selected else None
 
 
 def _workflow_evidence(dayoa_root: Path, *, tail_lines: int, full: bool) -> dict[str, Any]:
@@ -518,6 +531,7 @@ def _controller_processes(
 
     panes: list[dict[str, Any]] = []
     controller_rc: int | None = None
+    controller_rc_source: str | None = None
     if shutil.which("tmux"):
         pane_result = _run(
             [
@@ -552,6 +566,7 @@ def _controller_processes(
                 pane_rc = int(rc_matches[-1].group("rc")) if rc_matches else None
                 if pane_rc is not None:
                     controller_rc = pane_rc
+                    controller_rc_source = f"tmux pane {target}"
                 pane_payload: dict[str, Any] = {
                     "session": session,
                     "window": int(window),
@@ -582,13 +597,58 @@ def _controller_processes(
                         "bounded": len(capture_lines) > MAX_TMUX_EXCERPT_LINES,
                     }
                 panes.append(pane_payload)
+    receipt_path = (
+        Path.home() / "daylily-runs" / analysis_root.name / "status.json"
+    )
+    receipt: dict[str, Any] = {
+        "available": False,
+        "path": str(receipt_path),
+        "error": None,
+    }
+    if receipt_path.is_file():
+        try:
+            raw_receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            if not isinstance(raw_receipt, dict):
+                raise ValueError("status receipt must be a JSON object")
+            repo_path = Path(str(raw_receipt.get("repo_path") or "")).resolve()
+            session_name = str(raw_receipt.get("session_name") or "").strip()
+            exit_code = raw_receipt.get("exit_code")
+            completed_at = str(raw_receipt.get("completed_at") or "").strip()
+            command = str(raw_receipt.get("command") or "").strip()
+            if repo_path != (analysis_root / "daylily-omics-analysis").resolve():
+                raise ValueError("status receipt repo_path does not match analysis root")
+            if session_name != analysis_root.name:
+                raise ValueError("status receipt session_name does not match analysis root")
+            if isinstance(exit_code, bool) or not isinstance(exit_code, int):
+                raise ValueError("status receipt exit_code must be an integer")
+            if not completed_at:
+                raise ValueError("status receipt completed_at is required")
+            if not command:
+                raise ValueError("status receipt command is required")
+            receipt = {
+                "available": True,
+                "path": str(receipt_path),
+                "error": None,
+                "repo_path": str(repo_path),
+                "session_name": session_name,
+                "exit_code": exit_code,
+                "completed_at": completed_at,
+                "started_at": str(raw_receipt.get("started_at") or "").strip() or None,
+                "command": command,
+            }
+            controller_rc = exit_code
+            controller_rc_source = str(receipt_path)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            receipt["error"] = str(exc)
     return {
         "available": True,
         "error": None,
         "active": bool(processes),
         "return_code": controller_rc,
+        "return_code_source": controller_rc_source,
         "processes": processes,
         "tmux_panes": panes,
+        "status_receipt": receipt,
     }
 
 
@@ -655,16 +715,56 @@ def _filesystem_io(*, runner: Runner) -> dict[str, Any]:
     return payload
 
 
-def _canonical_artifacts(dayoa_root: Path) -> dict[str, Any]:
+def _canonical_artifacts(
+    dayoa_root: Path,
+    *,
+    controller: dict[str, Any],
+) -> dict[str, Any]:
     reports = dayoa_root / "results" / "day"
     matches: dict[str, list[str]] = {}
     for name in CANONICAL_ARTIFACT_NAMES:
         matches[name] = sorted(
             str(path) for path in reports.glob(f"*/reports/**/{name}") if path.is_file()
         )
+    generic_complete = all(matches[name] for name in CANONICAL_ARTIFACT_NAMES)
+    receipt = controller.get("status_receipt") or {}
+    command = str(receipt.get("command") or "")
+    platform = next(
+        (
+            candidate_platform
+            for target, candidate_platform in RUN_QC_TARGET_PLATFORMS.items()
+            if re.search(rf"(?:^|\s){re.escape(target)}(?:\s|$)", command)
+        ),
+        None,
+    )
+    run_qc_bundles: list[dict[str, Any]] = []
+    if platform:
+        for report in sorted(
+            dayoa_root.glob(f"results/runs/**/run_qc/{platform}/multiqc_report.html")
+        ):
+            run_qc_root = report.parent
+            required = (
+                run_qc_root / "summary.html",
+                run_qc_root / "summary.tsv",
+                report,
+                run_qc_root / "multiqc_report_data" / "multiqc_data.json",
+            )
+            run_qc_bundles.append(
+                {
+                    "root": str(run_qc_root),
+                    "all_present": all(path.is_file() for path in required),
+                    "files": [str(path) for path in required if path.is_file()],
+                    "missing": [str(path) for path in required if not path.is_file()],
+                }
+            )
+    run_qc_complete = bool(run_qc_bundles) and all(
+        bundle["all_present"] for bundle in run_qc_bundles
+    )
     return {
-        "all_present": all(matches[name] for name in CANONICAL_ARTIFACT_NAMES),
+        "all_present": run_qc_complete if platform else generic_complete,
+        "contract": f"run_qc_{platform}" if platform else "dayoa_canonical",
         "files": matches,
+        "run_qc_bundles": run_qc_bundles,
     }
 
 
@@ -922,11 +1022,8 @@ def _terminal_evidence(
     }
     return {
         "return_code": effective_return_code,
-        "return_code_source": (
-            "matching tmux controller marker"
-            if controller["return_code"] is not None
-            else workflow_terminal.get("return_code_source")
-        ),
+        "return_code_source": controller.get("return_code_source")
+        or workflow_terminal.get("return_code_source"),
         "requirements": requirements,
         "success_verified": all(success_requirements.values()),
         "artifact_files": artifacts["files"],
@@ -972,7 +1069,7 @@ def collect_analysis_status(
         tail_lines=tail_lines,
     )
     manifests = _analysis_manifests(dayoa_root)
-    artifacts = _canonical_artifacts(dayoa_root)
+    artifacts = _canonical_artifacts(dayoa_root, controller=controller)
     progress = workflow["progress"]
     terminal_evidence = _terminal_evidence(
         workflow=workflow,
