@@ -24,9 +24,9 @@ two-version self-pin contract.
 |---|---|---|---|---|---|---|---|---|---|
 | G0 | Inventory | Freeze clean candidate source and explicit source/payload pin surfaces | SUCCESS | feature_implementation | Gate 0 | Codex | Gate 0 inventory above; clean worktree status |  | No source-checkout operational artifacts can enter the release. |
 | P1 | DayOA pin | Set source and payload HIOMR-related catalog refs plus contract tests to DayOA `13.0.40` | SUCCESS | feature_implementation | Gate 1 | Codex | Source/payload catalog parity check; `pytest -q tests/test_lsmc_bio_fork_contract.py tests/test_repository_catalog.py tests/test_packaged_defaults.py` passed |  | `default_ref` and all five HIOMR-related command `git_tag`/`validated_version` fields now use `13.0.40`. |
-| T1 | DYEC release | Commit, validate, annotated-tag, and push the DayOA-pin milestone as `14.0.10` | IN_PROGRESS | contract_test | Gate 5 | Codex | Clean scoped commit/tag pending |  |  |
-| P2 | DYEC self pin | Point source and payload self/release configuration and contract test to prior `14.0.10` | OPEN | config_or_startup_contract | Gate 2 | Codex | Pending |  |  |
-| T2 | DYEC release | Commit, validate, annotated-tag, and push the self-pin milestone as `14.0.11` | OPEN | contract_test | Gate 5 | Codex | Pending |  |  |
+| T1 | DYEC release | Commit, validate, annotated-tag, and push the DayOA-pin milestone as `14.0.10` | SUCCESS | contract_test | Gate 5 | Codex | `cd1d65282f5ca71e9aa17ebccb9485f984d5a75d`; annotated `14.0.10` pushed |  | DayOA `13.0.40` pin milestone is immutable and remote. |
+| P2 | DYEC self pin | Point source and payload self/release configuration and contract test to prior `14.0.10` | SUCCESS | config_or_startup_contract | Gate 2 | Codex | Source/payload config parity; `conda run -n DAY-EC python -m pytest -q tests/test_lsmc_bio_fork_contract.py tests/test_repository_catalog.py tests/test_packaged_defaults.py` (45 passed) |  | Both self/release fields and the blessed-tag contract use `14.0.10`; DayOA remains `13.0.40`. |
+| T2 | DYEC release | Commit, validate, annotated-tag, and push the self-pin milestone as `14.0.11` | IN_PROGRESS | contract_test | Gate 5 | Codex | Scoped files staged next |  |  |
 | V1 | Cross-repo | Verify branches, source/payload pins, remote refs, tag type, and exact tag targets | OPEN | contract_test | Gate 5 | Codex | Pending |  |  |
 
 ## Final report
