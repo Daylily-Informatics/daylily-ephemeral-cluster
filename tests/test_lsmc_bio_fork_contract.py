@@ -9,7 +9,7 @@ _OLD_ORG = "Daylily-" + "Informatics"
 DAYOA_DEFAULT_TAG = "13.0.59"
 DAYOA_VALIDATED_TAG = "13.0.59"
 DAYOA_HIGHEST_RELEASE_COMMIT = "c148f3c7b9fdea0cb813b8c08b5d9bfeb623eaab"
-DYEC_BLESSED_TAG = "15.0.7"
+DYEC_BLESSED_TAG = "15.0.11"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
     f"{_OLD_ORG}/daylily-omics-analysis",
