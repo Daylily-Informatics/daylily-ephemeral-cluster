@@ -7,6 +7,20 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SBATCH_SOURCE = REPO_ROOT / "config" / "day_cluster" / "sbatch"
+PACKAGED_SBATCH = (
+    REPO_ROOT
+    / "daylily_ec"
+    / "resources"
+    / "payload"
+    / "config"
+    / "day_cluster"
+    / "sbatch"
+)
+
+
+def test_sbatch_wrappers_share_the_global_64_hour_freshness_limit() -> None:
+    assert 'max_usage_age_hours="64"' in SBATCH_SOURCE.read_text(encoding="utf-8")
+    assert 'max_usage_age_hours="64"' in PACKAGED_SBATCH.read_text(encoding="utf-8")
 
 
 def _write(path: Path, text: str, *, mode: int = 0o644) -> Path:
@@ -22,6 +36,7 @@ def _prepared_wrapper(
     budget_mode: str = "ok",
     registry_mode: str = "ok",
     usage_mode: str = "ok",
+    registry_max_usage_age_hours: str = "",
 ) -> Path:
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
@@ -29,6 +44,11 @@ def _prepared_wrapper(
         bin_dir / "real-slurm",
         "#!/bin/bash\nprintf 'REAL_SLURM'\nprintf ' [%s]' \"$@\"\nprintf '\\n'\n",
         mode=0o755,
+    )
+    registry_max_age_attribute = (
+        f',"max_usage_age_hours":{{"N":"{registry_max_usage_age_hours}"}}'
+        if registry_max_usage_age_hours
+        else ""
     )
     _write(
         bin_dir / "aws",
@@ -71,7 +91,7 @@ if [ "$1" = "dynamodb" ] && [ "$2" = "get-item" ]; then
   done
   if [ "$table" = "dayec-cost-centers" ]; then
     case "{registry_mode}" in
-      ok) printf '{{"Item":{{"cost_center":{{"S":"project-a"}},"status":{{"S":"active"}},"monthly_cap_usd":{{"N":"200"}},"allowed_users":{{"SS":["ubuntu"]}}}}}}\\n' ;;
+      ok) printf '{{"Item":{{"cost_center":{{"S":"project-a"}},"status":{{"S":"active"}},"monthly_cap_usd":{{"N":"200"}},"allowed_users":{{"SS":["ubuntu"]}}%s}}}}\\n' '{registry_max_age_attribute}' ;;
       unknown) printf '{{}}\\n' ;;
       unauthorized) printf '{{"Item":{{"cost_center":{{"S":"project-a"}},"status":{{"S":"active"}},"monthly_cap_usd":{{"N":"200"}},"allowed_users":{{"SS":["alice"]}}}}}}\\n' ;;
       disabled) printf '{{"Item":{{"cost_center":{{"S":"project-a"}},"status":{{"S":"disabled"}},"monthly_cap_usd":{{"N":"200"}},"allowed_users":{{"SS":["ubuntu"]}}}}}}\\n' ;;
@@ -89,6 +109,7 @@ if [ "$1" = "dynamodb" ] && [ "$2" = "get-item" ]; then
       ok) printf '{{"Item":{{"cost_center":{{"S":"project-a"}},"month":{{"S":"2026-07"}},"monthly_spend_usd":{{"N":"50"}},"latest_processed_hour":{{"S":"%s"}}}}}}\\n' "$latest" ;;
       exceeded) printf '{{"Item":{{"cost_center":{{"S":"project-a"}},"month":{{"S":"2026-07"}},"monthly_spend_usd":{{"N":"200"}},"latest_processed_hour":{{"S":"%s"}}}}}}\\n' "$latest" ;;
       stale) printf '{{"Item":{{"cost_center":{{"S":"project-a"}},"month":{{"S":"2026-07"}},"monthly_spend_usd":{{"N":"50"}},"latest_processed_hour":{{"S":"%s"}}}}}}\\n' "$stale" ;;
+      within_override) latest="$(python3 -c 'from datetime import datetime, timedelta, timezone; print((datetime.now(timezone.utc) - timedelta(days=7)).replace(minute=0, second=0, microsecond=0).isoformat().replace("+00:00", "Z"))')"; printf '{{"Item":{{"cost_center":{{"S":"project-a"}},"month":{{"S":"2026-07"}},"monthly_spend_usd":{{"N":"50"}},"latest_processed_hour":{{"S":"%s"}}}}}}\\n' "$latest" ;;
       missing) printf '{{}}\\n' ;;
       empty_json) : ;;
       invalid_json) printf '{{"Item":' ;;
@@ -262,6 +283,17 @@ def test_sbatch_wrapper_rejects_stale_cost_center_usage(tmp_path: Path) -> None:
     result = _run(wrapper, "--comment", "project-a", "job.sh")
     assert result.returncode == 1
     assert "cost-center usage is stale" in result.stderr
+
+
+def test_sbatch_wrapper_honors_explicit_cost_center_freshness_override(tmp_path: Path) -> None:
+    wrapper = _prepared_wrapper(
+        tmp_path,
+        usage_mode="within_override",
+        registry_max_usage_age_hours="2160",
+    )
+    result = _run(wrapper, "--comment", "project-a", "job.sh")
+    assert result.returncode == 0
+    assert "max_hours=2160.00" in result.stderr
 
 
 def test_sbatch_wrapper_allows_under_budget_project(tmp_path: Path) -> None:

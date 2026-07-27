@@ -27,7 +27,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.0.50"
+DAYOA_BLESSED_TAG = "13.0.52"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -2907,6 +2907,8 @@ def test_headnode_configure_uses_workflow_configure(monkeypatch, tmp_path) -> No
         "dyec_repo_url": "",
         "dayoa_deploy_key_region": "",
         "dayoa_deploy_key_secret_arn": "",
+        "github_token_region": "",
+        "github_token_secret_arn": "",
         "head_node_instance_id": "i-abc123",
         "region": "us-west-2",
         "profile": "dev",
@@ -2966,6 +2968,8 @@ def test_headnode_configure_dragen_uses_ec2_user(monkeypatch, tmp_path) -> None:
         "dyec_repo_url": "",
         "dayoa_deploy_key_region": "",
         "dayoa_deploy_key_secret_arn": "",
+        "github_token_region": "",
+        "github_token_secret_arn": "",
         "head_node_instance_id": "i-drg123",
         "region": "us-west-2",
         "profile": "dev",

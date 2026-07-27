@@ -595,6 +595,41 @@ def _build_headnode_repo_sync_command(
     )
 
 
+def _build_headnode_github_token_setup_command() -> str:
+    """Install the no-persist GitHub credential helper for the two LSMC repos."""
+
+    helper_stage = "$HOME/.config/daylily/daylily-github-credential.py"
+    helper_path = "$HOME/.local/bin/daylily-github-credential"
+    token_config = "$HOME/.config/daylily/github_token.json"
+    url_key = 'url.https://github.com/lsmc-bio/.insteadOf'
+    ssh_aliases = (
+        "git@github.com:lsmc-bio/",
+        "ssh://git@github.com/lsmc-bio/",
+    )
+    ensure_aliases = " && ".join(
+        (
+            "if ! git config --global --get-all "
+            f"{shlex.quote(url_key)} | grep -Fxq {shlex.quote(alias)}; then "
+            f"git config --global --add {shlex.quote(url_key)} {shlex.quote(alias)}; fi"
+        )
+        for alias in ssh_aliases
+    )
+    return " && ".join(
+        (
+            "install -d -m 0700 ~/.config/daylily ~/.local/bin",
+            f"install -m 0755 \"{helper_stage}\" \"{helper_path}\"",
+            f"chmod 0600 \"{token_config}\"",
+            "git config --global credential.useHttpPath true",
+            "git config --global credential.interactive false",
+            "git config --global "
+            + shlex.quote("credential.https://github.com.helper")
+            + " "
+            + shlex.quote(f"!{helper_path}"),
+            ensure_aliases,
+        )
+    )
+
+
 # ---------------------------------------------------------------------------
 # Preflight runner
 # ---------------------------------------------------------------------------
@@ -4010,6 +4045,8 @@ def configure_headnode(
     dyec_repo_ref: str = "",
     dayoa_deploy_key_secret_arn: str = "",
     dayoa_deploy_key_region: str = "",
+    github_token_secret_arn: str = "",
+    github_token_region: str = "",
     repo_overrides: Optional[Dict[str, str]] = None,
     remote_user: str = "ubuntu",
 ) -> bool:
@@ -4025,6 +4062,9 @@ def configure_headnode(
         return False
     if dayoa_deploy_key_secret_arn and not dayoa_deploy_key_region:
         logger.error("  ✗ DayOA deploy-key region is required with the secret ARN")
+        return False
+    if bool(github_token_secret_arn) != bool(github_token_region):
+        logger.error("  ✗ GitHub token secret ARN and region must be provided together")
         return False
     if dyec_deploy_key_secret_arn:
         if not dyec_repo_url or not dyec_repo_ref:
@@ -4096,6 +4136,44 @@ def configure_headnode(
             logger.error("  ✗ Repository deploy-key reference deployment failed: %s", exc)
             return False
 
+    if github_token_secret_arn:
+        github_token_helper = resource_path("bin/headnode_utils/daylily-github-credential")
+        github_token_config = {
+            "config_version": 1,
+            "region": github_token_region,
+            "secret_arn": github_token_secret_arn,
+        }
+        logger.info("  ▸ Deploying managed GitHub token credential helper ...")
+        try:
+            write_remote_text(
+                head_node_instance_id,
+                region,
+                "~/.config/daylily/daylily-github-credential.py",
+                github_token_helper.read_text(encoding="utf-8"),
+                profile=profile,
+                as_user=remote_user,
+            )
+            write_remote_text(
+                head_node_instance_id,
+                region,
+                "~/.config/daylily/github_token.json",
+                json.dumps(github_token_config, sort_keys=True) + "\n",
+                profile=profile,
+                as_user=remote_user,
+            )
+            run_shell(
+                head_node_instance_id,
+                region,
+                _build_headnode_github_token_setup_command(),
+                profile=profile,
+                as_user=remote_user,
+                comment="Configure managed GitHub token credential helper",
+            )
+            logger.info("  ✓ Managed GitHub token credential helper deployed")
+        except Exception as exc:
+            logger.error("  ✗ Managed GitHub token credential helper deployment failed: %s", exc)
+            return False
+
     steps = [
         (
             "Clone repository to headnode",
@@ -4118,11 +4196,11 @@ def configure_headnode(
             None,
         ),
         (
-            "Accept Conda Terms of Service",
+            "Configure Ubuntu Conda Terms of Service",
             (
-                "~/miniconda3/bin/conda tos accept --override-channels "
-                "--channel https://repo.anaconda.com/pkgs/main && "
-                "~/miniconda3/bin/conda tos accept --override-channels "
+                "~/miniconda3/bin/conda config --set plugins.auto_accept_tos true && "
+                "~/miniconda3/bin/conda tos accept --user "
+                "--override-channels --channel https://repo.anaconda.com/pkgs/main "
                 "--channel https://repo.anaconda.com/pkgs/r"
             ),
             None,
@@ -4138,7 +4216,11 @@ def configure_headnode(
                 "python -m pip install --upgrade pygraphviz && "
                 "python -c 'import pygraphviz; print(\"pygraphviz DAY-EC import OK\", pygraphviz.__version__)' && "
                 f"source ~/projects/{repo_name}/activate && "
-                f"./bin/install-daylily-headnode-tools"
+                "./bin/install-daylily-headnode-tools && "
+                f"test -f ~/projects/{repo_name}/config/day_cluster/sbatch && "
+                f"sudo install -o root -g root -m 0755 ~/projects/{repo_name}/config/day_cluster/sbatch "
+                "/opt/slurm/bin/sbatch && "
+                f"cmp --silent ~/projects/{repo_name}/config/day_cluster/sbatch /opt/slurm/bin/sbatch"
             ),
             None,
         ),

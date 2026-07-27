@@ -6,10 +6,10 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_DEFAULT_TAG = "13.0.50"
-DAYOA_VALIDATED_TAG = "13.0.50"
-DAYOA_HIGHEST_RELEASE_COMMIT = "4e7526697d9d622c9bdb120f2b53e13412792797"
-DYEC_BLESSED_TAG = "14.0.21"
+DAYOA_DEFAULT_TAG = "13.0.52"
+DAYOA_VALIDATED_TAG = "13.0.52"
+DAYOA_HIGHEST_RELEASE_COMMIT = "e2da479310132d0c831c7c3329993a8db4eff3a6"
+DYEC_BLESSED_TAG = "14.0.25"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
     f"{_OLD_ORG}/daylily-omics-analysis",
@@ -82,6 +82,7 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
         for command_id in (
             "hybrid_ilmn_ont_hiomr",
             "hybrid_ilmn_ont_hiomr_kitchensink",
+            "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical",
             "betelgeuser_hiomr_prod_v1",
             "inflection-bjuice-product-v0.2",
         ):

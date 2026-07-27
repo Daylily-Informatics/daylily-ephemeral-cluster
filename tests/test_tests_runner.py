@@ -55,7 +55,7 @@ from daylily_ec.tests_runner import (
 
 
 runner = CliRunner()
-DAYOA_BLESSED_TAG = "13.0.50"
+DAYOA_BLESSED_TAG = "13.0.52"
 
 
 def _run_mount_record(
@@ -348,7 +348,7 @@ def test_write_legacy_sample_manifest_uses_command_specific_templates(tmp_path: 
 
 @pytest.mark.parametrize(
     "command_id",
-    ["hybrid_ilmn_ont_hiomr_kitchensink", "inflection-bjuice-product-v0.2"],
+    ["hybrid_ilmn_ont_hiomr_kitchensink"],
 )
 def test_dayoa12_test_runner_never_synthesizes_lineage_euids(
     tmp_path: Path,

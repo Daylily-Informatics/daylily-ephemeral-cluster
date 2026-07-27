@@ -788,7 +788,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "REPLACE_EXISTING_ANALYSIS_DIR=false" in continuation_script
         assert "__DAYLILY_REUSED_ANALYSIS_DIR__=$clone_root" in continuation_script
         assert "__DAYLILY_ERROR__=existing_analysis_ref_fetch_failed" in continuation_script
-        assert 'git -C "$repo_path" fetch --quiet --tags origin "$DAYOA_GIT_REF"' in continuation_script
+        assert (
+            'day-clone --repository "$REPO_KEY" --git-tag "$DAYOA_GIT_REF" '
+            '--fetch-existing "$repo_path"'
+        ) in continuation_script
+        assert "REPO_KEY=daylily-omics-analysis" in continuation_script
         assert 'git -C "$repo_path" rev-parse --verify "FETCH_HEAD^{commit}"' in continuation_script
         assert 'git -C "$repo_path" checkout --detach "$expected_commit"' in continuation_script
         assert continuation_script.index(
@@ -796,6 +800,49 @@ class TestRunOmicsAnalysisHeadnodeScript:
         ) < continuation_script.index(
             'elif [[ "$REPLACE_EXISTING_ANALYSIS_DIR" != "true" ]]; then'
         )
+
+        mock_run_shell.reset_mock()
+        rc = run_omics_module.main(
+            [
+                "--profile",
+                "dev",
+                "--git-tag",
+                "13.0.42",
+                "--input-contract",
+                "none",
+                "--no-input-staging",
+                "--analysis-id",
+                "analysis",
+                "--executing-entity",
+                "johnm",
+                "--session-name",
+                "analysis-hiomr2-kitchensink-local-ref",
+                "--reuse-existing-analysis-dir",
+                "--reuse-local-git-ref",
+                "--reuse-local-git-commit",
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "--dy-command",
+                "dy-r produce_sentdhiomr2_kitchensink -p -k -j 6",
+            ]
+        )
+        assert rc == 0
+        local_ref_script = mock_run_shell.call_args.args[2]
+        assert "REUSE_LOCAL_GIT_REF=true" in local_ref_script
+        assert (
+            "REUSE_LOCAL_GIT_COMMIT=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            in local_ref_script
+        )
+        assert '__DAYLILY_ERROR__=existing_analysis_local_commit_missing' in local_ref_script
+        local_ref_branch = local_ref_script.split(
+            'if [[ "$REUSE_LOCAL_GIT_REF" == "true" ]]; then',
+            1,
+        )[1].split("  else\n", 1)[0]
+        assert (
+            'git -C "$repo_path" rev-parse --verify '
+            '"$REUSE_LOCAL_GIT_COMMIT^{commit}"'
+        ) in local_ref_branch
+        assert 'if [[ "$expected_commit" != "$REUSE_LOCAL_GIT_COMMIT" ]]; then' in local_ref_branch
+        assert 'git -C "$repo_path" fetch --quiet --tags origin "$DAYOA_GIT_REF"' not in local_ref_branch
 
     def test_main_rejects_unsafe_existing_analysis_continuation(self):
         with pytest.raises(

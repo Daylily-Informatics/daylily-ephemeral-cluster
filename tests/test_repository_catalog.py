@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.0.50"
+DAYOA_BLESSED_TAG = "13.0.52"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -42,6 +42,7 @@ UNVALIDATED_COMMAND_IDS = {
     "ont_snv_alignstats_kitchensink",
     "hybrid_ilmn_ont_hiomr",
     "hybrid_ilmn_ont_hiomr_kitchensink",
+    "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical",
     "package_inflection_hybrid_data",
     "betelgeuser_hiomr_prod_v1",
     "inflection-bjuice-product-v0.2",
@@ -686,8 +687,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     package_inflection = catalog.get_command("package_inflection_hybrid_data")
     assert package_inflection.type == "dev"
-    assert package_inflection.validated_version == "13.0.50"
-    assert package_inflection.git_tag == "13.0.50"
+    assert package_inflection.validated_version == "13.0.52"
+    assert package_inflection.git_tag == "13.0.52"
     assert package_inflection.input_contract == "six_manifest"
     assert package_inflection.targets == ["produce_inflection_delivery_set"]
     assert package_inflection.jobs == 400
@@ -705,33 +706,38 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     )
 
     inflection_bjuice = catalog.get_command("inflection-bjuice-product-v0.2")
+    hiomr2_analytical = catalog.get_command(
+        "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical"
+    )
     assert inflection_bjuice.sample_manifest_template == ""
     assert inflection_bjuice.validation_runs == []
+    assert inflection_bjuice.test_data_profile == "none"
     assert inflection_bjuice.targets == [
-        "produce_sentdhiomr_snv_vcf",
-        "produce_sentdhiomr_sv",
-        "produce_sentdhiomr_cnv",
-        "produce_tiddit_sv_vcf",
-        "produce_smn12_orthogonal_calls",
-        "produce_inflection_delivery_set",
+        "produce_sentdhiomr2_kitchensink",
+        "produce_sentdhiomr2_inflection_analytical_package",
     ]
-    assert inflection_bjuice.jobs == 250
+    assert inflection_bjuice.targets == hiomr2_analytical.targets
+    assert inflection_bjuice.jobs == 200
     assert inflection_bjuice.aligners == ["sentmm2ont"]
     assert inflection_bjuice.dedupers == ["na"]
-    assert inflection_bjuice.snv_callers == ["sentdhiomr"]
-    assert inflection_bjuice.sv_callers == ["tiddit"]
-    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_CRAM", "ONT_CRAM_ALIGNER", "ONT_CRAM_SNV_CALLER"] in (
+    assert inflection_bjuice.snv_callers == ["sentdhiomr2"]
+    assert inflection_bjuice.sv_callers == []
+    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
         inflection_bjuice.input_requirements.accepted_source_column_sets
     )
-    assert "produce_inflection_delivery_set" in inflection_bjuice.dy_command
-    assert "INFLECTION_DELIVERY_BATCH_ID:?" in inflection_bjuice.dy_command
+    assert inflection_bjuice.dy_command != hiomr2_analytical.dy_command
+    assert "produce_sentdhiomr2_kitchensink" in inflection_bjuice.dy_command
+    assert "produce_sentdhiomr2_inflection_analytical_package" in inflection_bjuice.dy_command
+    assert "SEQONE_DELIVERY_BATCH_ID:?" in inflection_bjuice.dy_command
+    assert "hiomr2_inflection_package_mode=analytical" in inflection_bjuice.dy_command
+    assert "use_fq_data_starting_hrs=0" in inflection_bjuice.dy_command
+    assert "use_fq_data_up_to_hrs=25" in inflection_bjuice.dy_command
+    assert "produce_inflection_delivery_set" not in inflection_bjuice.dy_command
     assert 'aligners=["sentmm2ont"]' in inflection_bjuice.dy_command
     assert 'dedupers=["na"]' in inflection_bjuice.dy_command
-    assert 'snv_callers=["sentdhiomr"]' in inflection_bjuice.dy_command
-    assert 'sv_callers=["tiddit"]' in inflection_bjuice.dy_command
-    assert (
-        " -j 250 -p -T 1 --rerun-triggers mtime --rerun-incomplete" in inflection_bjuice.dy_command
-    )
+    assert 'snv_callers=["sentdhiomr2"]' in inflection_bjuice.dy_command
+    assert " -p -T 0 -k -j 200 " in inflection_bjuice.dy_command
+    assert inflection_bjuice.genome == "hg38_broad"
     assert inflection_bjuice.dryrun_dy_command.endswith(" -n")
 
     simple_test = catalog.get_command("simple-test")

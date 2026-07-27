@@ -189,6 +189,8 @@ main() {
         echo "Initializing Conda..."
         "$conda_bin" init bash
         "$conda_bin" init zsh
+        echo "Configuring Conda automatic Terms of Service acceptance..."
+        "$conda_bin" config --set plugins.auto_accept_tos true
 
         bashrc="$HOME/.bashrc"
         bash_profile="$HOME/.bash_profile"

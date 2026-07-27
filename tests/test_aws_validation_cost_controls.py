@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -93,6 +93,10 @@ def test_permission_catalog_covers_recent_cost_control_surfaces() -> None:
         and group.context == (("iam:AWSServiceName", ("budgets.amazonaws.com",)),)
         for group in groups
     )
+
+
+def test_cost_center_freshness_limit_is_64_hours() -> None:
+    assert validation_module.COST_CENTER_MAX_USAGE_AGE_HOURS == 64
 
 
 def test_permission_catalog_scopes_sns_to_configured_cluster_topic() -> None:
@@ -302,6 +306,7 @@ def test_cost_center_registry_checks_schema_idle_and_fresh_usage(monkeypatch) ->
                 name="team-a",
                 status="active",
                 monthly_cap_usd=Decimal("100"),
+                max_usage_age_hours=None,
             ),
         ],
     )
@@ -348,6 +353,37 @@ def test_cost_center_registry_checks_schema_idle_and_fresh_usage(monkeypatch) ->
     result = _check_cost_center_registry_readiness(_context())
     assert result.status == CheckStatus.FAIL
     assert result.details["exhausted_usage"][0]["cost_center"] == "team-a"
+
+    monkeypatch.setattr(
+        validation_module,
+        "list_cost_centers",
+        lambda *_args, **_kwargs: [
+            SimpleNamespace(name="idle", status="system", monthly_cap_usd=Decimal("0")),
+            SimpleNamespace(
+                name="team-a",
+                status="active",
+                monthly_cap_usd=Decimal("100"),
+                max_usage_age_hours=2160,
+            ),
+        ],
+    )
+    monkeypatch.setattr(
+        validation_module,
+        "list_cost_center_usage",
+        lambda *_args, **_kwargs: [
+            SimpleNamespace(
+                name="team-a",
+                monthly_spend_usd=Decimal("25"),
+                latest_processed_hour=(datetime.now(timezone.utc) - timedelta(days=7))
+                .replace(microsecond=0)
+                .isoformat()
+                .replace("+00:00", "Z"),
+            )
+        ],
+    )
+    result = _check_cost_center_registry_readiness(_context())
+    assert result.status == CheckStatus.PASS
+    assert result.details["usage_snapshots"]["team-a"]["max_usage_age_hours"] == 2160
 
 
 def test_cur_readiness_uses_only_read_apis(monkeypatch) -> None:
