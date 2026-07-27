@@ -359,6 +359,41 @@ def check_repository_access(
         ) from exc
 
 
+def fetch_existing_repository_ref(
+    repository_path: str,
+    git_url: str,
+    ref: Optional[str],
+    *,
+    git_env: Optional[Dict[str, str]] = None,
+) -> None:
+    """Fetch an explicit ref into an existing repository using configured transport auth."""
+    if not ref:
+        raise ConfigError("--git-tag is required with --fetch-existing.")
+
+    target = os.path.abspath(os.path.expanduser(repository_path))
+    if not os.path.isdir(target):
+        raise ConfigError(f"Existing repository directory does not exist: {target}")
+
+    kwargs: Dict[str, Any] = {"check": True}
+    if git_env is not None:
+        kwargs["env"] = git_env
+    try:
+        subprocess.run(
+            ["git", "-C", target, "rev-parse", "--is-inside-work-tree"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            **kwargs,
+        )
+        subprocess.run(
+            ["git", "-C", target, "fetch", "--quiet", "--tags", git_url, ref],
+            **kwargs,
+        )
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError(
+            f"Git fetch of configured repository ref failed with exit code {exc.returncode}."
+        ) from exc
+
+
 @contextmanager
 def repository_git_environment(repo_key: str, auth_mode: str):
     if auth_mode == "none":
@@ -456,6 +491,14 @@ def main(argv: List[str]) -> int:
         action="store_true",
         help="Verify repository authentication and the selected ref without cloning.",
     )
+    parser.add_argument(
+        "--fetch-existing",
+        metavar="REPOSITORY_PATH",
+        help=(
+            "Fetch the selected repository ref into an existing Git worktree using the "
+            "configured repository transport and authentication."
+        ),
+    )
 
     args = parser.parse_args(argv)
 
@@ -522,6 +565,10 @@ def main(argv: List[str]) -> int:
 
     git_ref = args.git_tag or default_ref
 
+    if args.check_auth and args.fetch_existing:
+        print("Error: --check-auth and --fetch-existing cannot be used together.", file=sys.stderr)
+        return 1
+
     if args.check_auth:
         try:
             with repository_git_environment(repo_key, auth_mode) as git_env:
@@ -530,6 +577,28 @@ def main(argv: List[str]) -> int:
             print(f"Error: {err}", file=sys.stderr)
             return 1
         print(f"Repository authentication validated: {repo_key} @ {git_ref or 'HEAD'}")
+        return 0
+
+    if args.fetch_existing:
+        if args.git_repo:
+            print(
+                "Error: --fetch-existing requires a repository configured in "
+                "daylily_pipeline_command_catalog.yaml.",
+                file=sys.stderr,
+            )
+            return 1
+        try:
+            with repository_git_environment(repo_key, auth_mode) as git_env:
+                fetch_existing_repository_ref(
+                    args.fetch_existing,
+                    git_url,
+                    git_ref,
+                    git_env=git_env,
+                )
+        except (ConfigError, RuntimeError) as err:
+            print(f"Error: {err}", file=sys.stderr)
+            return 1
+        print(f"Fetched repository reference: {repo_key} @ {git_ref}")
         return 0
 
     if not args.destination:

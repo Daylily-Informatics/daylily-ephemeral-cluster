@@ -8,6 +8,7 @@ import gzip
 import json
 import os
 import posixpath
+import re
 import shlex
 import sys
 import tarfile
@@ -953,6 +954,22 @@ def build_parser() -> argparse.ArgumentParser:
             "--input-contract none and --no-input-staging."
         ),
     )
+    parser.add_argument(
+        "--reuse-local-git-ref",
+        action="store_true",
+        help=(
+            "For an existing-analysis continuation, resolve the explicit --git-tag "
+            "only from the existing local checkout; do not fetch from origin."
+        ),
+    )
+    parser.add_argument(
+        "--reuse-local-git-commit",
+        default=None,
+        help=(
+            "Full immutable commit required to exist in the existing checkout. Requires "
+            "--reuse-existing-analysis-dir and --reuse-local-git-ref."
+        ),
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.set_defaults(
         skip_project_check=True,
@@ -1009,6 +1026,20 @@ def main(argv: Optional[List[str]] = None) -> int:
         if args.bootstrap_test_config:
             raise CommandError(
                 "--reuse-existing-analysis-dir cannot bootstrap test configuration."
+            )
+    else:
+        if args.reuse_local_git_ref:
+            raise CommandError("--reuse-local-git-ref requires --reuse-existing-analysis-dir.")
+        if args.reuse_local_git_commit is not None:
+            raise CommandError(
+                "--reuse-local-git-commit requires --reuse-existing-analysis-dir."
+            )
+    if args.reuse_local_git_commit is not None:
+        if not args.reuse_local_git_ref:
+            raise CommandError("--reuse-local-git-commit requires --reuse-local-git-ref.")
+        if re.fullmatch(r"[0-9a-f]{40}", args.reuse_local_git_commit) is None:
+            raise CommandError(
+                "--reuse-local-git-commit must be a lowercase 40-character commit SHA."
             )
     if args.cost_center is not None:
         try:
@@ -1256,6 +1287,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     delete_on_export_success = "true" if args.delete_on_export_success else "false"
     replace_existing_analysis_dir = "true" if args.replace_existing_analysis_dir else "false"
     reuse_existing_analysis_dir = "true" if args.reuse_existing_analysis_dir else "false"
+    reuse_local_git_ref = "true" if args.reuse_local_git_ref else "false"
+    reuse_local_git_commit = args.reuse_local_git_commit or ""
     if stage_config is None:
         stage_specimens_path = ""
         stage_samples_path = ""
@@ -1353,7 +1386,10 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	DELETE_ON_EXPORT_SUCCESS={delete_on_export_success}
 	REPLACE_EXISTING_ANALYSIS_DIR={replace_existing_analysis_dir}
 	REUSE_EXISTING_ANALYSIS_DIR={reuse_existing_analysis_dir}
+	REUSE_LOCAL_GIT_REF={reuse_local_git_ref}
+	REUSE_LOCAL_GIT_COMMIT={shlex.quote(reuse_local_git_commit)}
 	DAYOA_GIT_REF={shlex.quote(args.git_tag)}
+	REPO_KEY={shlex.quote(args.repository)}
 STATUS_FILE="${{DAYLILY_RUN_DIR}}/status.json"
 TMUX_LOG="${{DAYLILY_TMUX_LOG}}"
 CONTROLLER_TARGET_FILE="${{DAYLILY_CONTROLLER_TARGET_FILE}}"
@@ -1481,14 +1517,32 @@ if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
     echo "__DAYLILY_ERROR__=existing_analysis_repo_dirty"
     exit 8
   fi
-  if ! git -C "$repo_path" fetch --quiet --tags origin "$DAYOA_GIT_REF"; then
-    echo "__DAYLILY_ERROR__=existing_analysis_ref_fetch_failed"
-    exit 8
+  if [[ "$REUSE_LOCAL_GIT_REF" == "true" ]]; then
+    if [[ -n "$REUSE_LOCAL_GIT_COMMIT" ]]; then
+      expected_commit="$(git -C "$repo_path" rev-parse --verify "$REUSE_LOCAL_GIT_COMMIT^{{commit}}" 2>/dev/null)" || {{
+        echo "__DAYLILY_ERROR__=existing_analysis_local_commit_missing"
+        exit 8
+      }}
+      if [[ "$expected_commit" != "$REUSE_LOCAL_GIT_COMMIT" ]]; then
+        echo "__DAYLILY_ERROR__=existing_analysis_local_commit_mismatch"
+        exit 8
+      fi
+    else
+      expected_commit="$(git -C "$repo_path" rev-parse --verify "$DAYOA_GIT_REF^{{commit}}" 2>/dev/null)" || {{
+        echo "__DAYLILY_ERROR__=existing_analysis_local_ref_missing"
+        exit 8
+      }}
+    fi
+  else
+    if ! day-clone --repository "$REPO_KEY" --git-tag "$DAYOA_GIT_REF" --fetch-existing "$repo_path"; then
+      echo "__DAYLILY_ERROR__=existing_analysis_ref_fetch_failed"
+      exit 8
+    fi
+    expected_commit="$(git -C "$repo_path" rev-parse --verify "FETCH_HEAD^{{commit}}" 2>/dev/null)" || {{
+      echo "__DAYLILY_ERROR__=existing_analysis_ref_missing"
+      exit 8
+    }}
   fi
-  expected_commit="$(git -C "$repo_path" rev-parse --verify "FETCH_HEAD^{{commit}}" 2>/dev/null)" || {{
-    echo "__DAYLILY_ERROR__=existing_analysis_ref_missing"
-    exit 8
-  }}
   git -C "$repo_path" checkout --detach "$expected_commit"
   actual_commit="$(git -C "$repo_path" rev-parse HEAD)"
   if [[ "$actual_commit" != "$expected_commit" ]]; then
@@ -1496,6 +1550,7 @@ if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
     exit 8
   fi
   echo "__DAYLILY_REUSED_ANALYSIS_DIR__=$clone_root"
+  echo "__DAYLILY_GIT_REF__=$DAYOA_GIT_REF"
   echo "__DAYLILY_GIT_COMMIT__=$actual_commit"
 else
   day-clone \

@@ -487,6 +487,65 @@ def test_day_clone_check_auth_uses_deploy_key_without_destination(monkeypatch, t
     assert "env" in calls[0][1]
 
 
+def test_day_clone_fetch_existing_uses_configured_deploy_key_transport(monkeypatch, tmp_path):
+    module = _load_day_clone()
+    global_config, available_repos, _clone_root = _write_configs(
+        tmp_path,
+        clone_transport="ssh",
+        auth_mode="aws_deploy_key",
+    )
+    _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
+    _patch_deploy_key_files(module, monkeypatch, tmp_path)
+    monkeypatch.setattr(
+        module,
+        "fetch_deploy_key",
+        lambda *_args: (
+            "-----BEGIN OPENSSH PRIVATE KEY-----\nprivate-test-material\n"
+            "-----END OPENSSH PRIVATE KEY-----\n"
+        ),
+    )
+    existing_repo = tmp_path / "existing-repo"
+    existing_repo.mkdir()
+    calls: list[tuple[list[str], dict]] = []
+
+    def fake_run(cmd, **kwargs):
+        calls.append((cmd, kwargs))
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+
+    rc = module.main(
+        [
+            "--fetch-existing",
+            str(existing_repo),
+            "--repository",
+            "test-repo",
+            "--git-tag",
+            "codex/continuation-fix",
+        ]
+    )
+
+    assert rc == 0
+    assert calls[0][0] == [
+        "git",
+        "-C",
+        str(existing_repo),
+        "rev-parse",
+        "--is-inside-work-tree",
+    ]
+    assert calls[1][0] == [
+        "git",
+        "-C",
+        str(existing_repo),
+        "fetch",
+        "--quiet",
+        "--tags",
+        "git@github.com:Daylily-Informatics/test-repo.git",
+        "codex/continuation-fix",
+    ]
+    assert all("env" in kwargs for _, kwargs in calls)
+
+
 def test_day_clone_check_auth_validates_full_sha_with_bounded_fetch(monkeypatch, tmp_path):
     module = _load_day_clone()
     commit_sha = "9f442ed1f32ecb19cf0163c41d196974f8198364"
