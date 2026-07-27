@@ -308,8 +308,8 @@ def test_inflection_v02_runtime_preflight_does_not_require_legacy_delivery_ident
     command = load_repository_catalog(CATALOG).get_command("inflection-bjuice-product-v0.2")
     source = tmp_path / "analysis_samples.tsv"
     source.write_text(
-        "ILMN_R1_FQ\tILMN_R2_FQ\tONT_CRAM\tONT_CRAM_ALIGNER\tONT_CRAM_SNV_CALLER\n"
-        "/fsx/r1.fastq.gz\t/fsx/r2.fastq.gz\t/fsx/lr.cram\tont\tsentdhiomr2\n",
+        "ILMN_R1_FQ\tILMN_R2_FQ\tONT_R1_FQ\n"
+        "/fsx/r1.fastq.gz\t/fsx/r2.fastq.gz\t/fsx/lr.fastq.gz\n",
         encoding="utf-8",
     )
     _validate_sample_command_input_requirements(source, command)

@@ -711,6 +711,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     )
     assert inflection_bjuice.sample_manifest_template == ""
     assert inflection_bjuice.validation_runs == []
+    assert inflection_bjuice.test_data_profile == "none"
     assert inflection_bjuice.targets == [
         "produce_sentdhiomr2_kitchensink",
         "produce_sentdhiomr2_inflection_analytical_package",
@@ -721,14 +722,16 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert inflection_bjuice.dedupers == ["na"]
     assert inflection_bjuice.snv_callers == ["sentdhiomr2"]
     assert inflection_bjuice.sv_callers == []
-    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_CRAM", "ONT_CRAM_ALIGNER", "ONT_CRAM_SNV_CALLER"] in (
+    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
         inflection_bjuice.input_requirements.accepted_source_column_sets
     )
-    assert inflection_bjuice.dy_command == hiomr2_analytical.dy_command
+    assert inflection_bjuice.dy_command != hiomr2_analytical.dy_command
     assert "produce_sentdhiomr2_kitchensink" in inflection_bjuice.dy_command
     assert "produce_sentdhiomr2_inflection_analytical_package" in inflection_bjuice.dy_command
     assert "SEQONE_DELIVERY_BATCH_ID:?" in inflection_bjuice.dy_command
     assert "hiomr2_inflection_package_mode=analytical" in inflection_bjuice.dy_command
+    assert "use_fq_data_starting_hrs=0" in inflection_bjuice.dy_command
+    assert "use_fq_data_up_to_hrs=25" in inflection_bjuice.dy_command
     assert "produce_inflection_delivery_set" not in inflection_bjuice.dy_command
     assert 'aligners=["sentmm2ont"]' in inflection_bjuice.dy_command
     assert 'dedupers=["na"]' in inflection_bjuice.dy_command

@@ -1339,9 +1339,9 @@ repositories:
       - command_id: inflection-bjuice-product-v0.2
         type: dev
         validated_version: 13.0.52
-        test_data_profile: default_reads_slim
+        test_data_profile: none
         display_name: "Inflection BJuice Product v0.2"
-        description: "BJuice catalog clone of the literal scoped HIOMR2 kitchen sink plus analytical-only Inflection package. It retains both scoped concat gVCF and separately materialized hard-call VCF products, never invokes legacy HIOMR or HIOMRS targets, and requires an owner-issued persisted analytical batch in SEQONE_DELIVERY_BATCH_ID."
+        description: "BJuice full-coverage catalog clone of the literal scoped HIOMR2 kitchen sink plus analytical-only Inflection package. It consumes full ILMN FASTQ plus the ONT raw FASTQ interval [0,25), retains both scoped concat gVCF and separately materialized hard-call VCF products, never invokes legacy HIOMR or HIOMRS targets, and requires an owner-issued persisted analytical batch in SEQONE_DELIVERY_BATCH_ID."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
@@ -1352,7 +1352,7 @@ repositories:
           seqone_delivery_batch_id_env: SEQONE_DELIVERY_BATCH_ID
         input_requirements:
           accepted_source_column_sets:
-            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_CRAM, ONT_CRAM_ALIGNER, ONT_CRAM_SNV_CALLER]
+            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_R1_FQ]
         targets:
           - produce_sentdhiomr2_kitchensink
           - produce_sentdhiomr2_inflection_analytical_package
@@ -1367,8 +1367,8 @@ repositories:
         snv_callers:
           - sentdhiomr2
         sv_callers: []
-        dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_inflection_analytical_package -p -T 0 -k -j 200 --config 'genome_build=hg38_broad' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set owner-issued persisted analytical batch ID}\" --rerun-triggers mtime"
-        dryrun_dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_inflection_analytical_package -p -T 0 -k -j 200 --config 'genome_build=hg38_broad' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set owner-issued persisted analytical batch ID}\" --rerun-triggers mtime -n"
+        dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_inflection_analytical_package -p -T 0 -k -j 200 --config 'genome_build=hg38_broad' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'hiomr2_inflection_package_mode=analytical' 'use_fq_data_starting_hrs=0' 'use_fq_data_up_to_hrs=25' \"seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set owner-issued persisted analytical batch ID}\" --rerun-triggers mtime"
+        dryrun_dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_inflection_analytical_package -p -T 0 -k -j 200 --config 'genome_build=hg38_broad' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'hiomr2_inflection_package_mode=analytical' 'use_fq_data_starting_hrs=0' 'use_fq_data_up_to_hrs=25' \"seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set owner-issued persisted analytical batch ID}\" --rerun-triggers mtime -n"
         compatible_platforms:
           - ILMN
           - ONT
