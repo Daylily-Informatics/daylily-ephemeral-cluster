@@ -186,8 +186,9 @@ selected config:
   filters, expected thresholds, and configured subscriber are consistent
 - `cost_centers.registry_readiness`: both DynamoDB tables are active with the
   exact key schemas, the reserved `idle` row exists, and every active cost
-  center has a current-month usage snapshot no more than 36 hours old and
-  monthly spend remains below its registered cap
+  center has a current-month usage snapshot no more than 64 hours old by
+  default (or its explicit `max_usage_age_hours` override) and monthly spend
+  remains below its registered cap
 - `cost_control.cur_export_readiness`: the dedicated bucket region and required
   Data Exports policy statement, exact named CUR 2.0 definition and delivery
   destination, `HEALTHY` state, latest `DELIVERY_SUCCESS`, and required schema

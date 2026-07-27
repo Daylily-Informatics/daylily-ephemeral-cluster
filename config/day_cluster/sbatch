@@ -8,7 +8,7 @@ set -euo pipefail
 slurm_command="$(basename "$0")"
 cluster_config="/opt/parallelcluster/shared/cluster-config.yaml"
 reserved_idle_cost_center="idle"
-max_usage_age_hours="48"
+max_usage_age_hours="64"
 
 cost_center=""
 cluster_name=""
@@ -220,6 +220,7 @@ registry_validation="$(
     COST_CENTER="${cost_center}" \
     CURRENT_USER="${current_user}" \
     CURRENT_GROUPS="${current_groups}" \
+    GLOBAL_MAX_USAGE_AGE_HOURS="${max_usage_age_hours}" \
     python3 <<'PY'
 import json
 import os
@@ -251,6 +252,29 @@ try:
 except (InvalidOperation, ValueError):
     print("cost center monthly_cap_usd is missing or invalid")
     sys.exit(12)
+try:
+    global_max_age = int(os.environ["GLOBAL_MAX_USAGE_AGE_HOURS"])
+except ValueError:
+    print("global cost-center usage freshness limit is invalid")
+    sys.exit(12)
+if global_max_age <= 0:
+    print("global cost-center usage freshness limit must be positive")
+    sys.exit(12)
+override_value = item.get("max_usage_age_hours", {}).get("N", "")
+max_age = global_max_age
+if override_value:
+    try:
+        override = Decimal(override_value)
+    except (InvalidOperation, ValueError):
+        print("cost center max_usage_age_hours is invalid")
+        sys.exit(12)
+    if not override.is_finite() or override != override.to_integral_value():
+        print("cost center max_usage_age_hours must be a positive integer")
+        sys.exit(12)
+    max_age = int(override)
+    if not 0 < max_age <= 2160:
+        print("cost center max_usage_age_hours must be between 1 and 2160")
+        sys.exit(12)
 allowed_users = set(item.get("allowed_users", {}).get("SS", []))
 allowed_groups = set(item.get("allowed_groups", {}).get("SS", []))
 current_user = os.environ["CURRENT_USER"]
@@ -258,9 +282,14 @@ current_groups = {g for g in os.environ.get("CURRENT_GROUPS", "").split(",") if 
 if "*" not in allowed_users and current_user not in allowed_users and not (allowed_groups & current_groups):
     print(f"user '{current_user}' is not authorized for this cost center")
     sys.exit(13)
-print(str(cap))
+print(f"{cap}\t{max_age}")
 PY
 )" || fail "${registry_validation}"
+
+read -r monthly_cap effective_max_usage_age_hours _extra <<< "${registry_validation}"
+if [ -z "${monthly_cap:-}" ] || [ -z "${effective_max_usage_age_hours:-}" ]; then
+    fail "cost-center registry validation did not return cap and freshness limit"
+fi
 
 current_month="$(date -u +%Y-%m)"
 usage_json="$(
@@ -274,8 +303,8 @@ usage_json="$(
 
 usage_validation="$(
     USAGE_JSON="${usage_json}" \
-    MONTHLY_CAP_USD="${registry_validation}" \
-    MAX_USAGE_AGE_HOURS="${max_usage_age_hours}" \
+    MONTHLY_CAP_USD="${monthly_cap}" \
+    MAX_USAGE_AGE_HOURS="${effective_max_usage_age_hours}" \
     python3 <<'PY'
 import json
 import os
@@ -324,7 +353,7 @@ if age_hours > max_age:
 if spend >= cap:
     print(f"cost-center monthly cap exceeded: spend={spend}, cap={cap}, latest_processed_hour={latest}")
     sys.exit(25)
-print(f"spend={spend}, cap={cap}, latest_processed_hour={latest}, age_hours={age_hours:.2f}")
+print(f"spend={spend}, cap={cap}, latest_processed_hour={latest}, age_hours={age_hours:.2f}, max_hours={max_age:.2f}")
 PY
 )" || fail "${usage_validation}"
 

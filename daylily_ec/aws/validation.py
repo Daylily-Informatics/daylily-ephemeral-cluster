@@ -91,7 +91,7 @@ ValidationMode = Literal["permissions", "quotas", "all"]
 SUPPORTED_MODES: tuple[str, ...] = ("permissions", "quotas", "all")
 DEFAULT_CONFIG_PATH = "config/daylily_ephemeral_cluster_template.yaml"
 SSM_SESSION_DOCUMENT = "SSM-SessionManagerRunShell"
-COST_CENTER_MAX_USAGE_AGE_HOURS = 48
+COST_CENTER_MAX_USAGE_AGE_HOURS = 64
 BUDGET_COUNT_QUOTA = 20_000
 CUR_EXPORT_COUNT_QUOTA = 5
 DYNAMODB_TABLE_QUOTA_CODE = "L-F98FE922"
@@ -1032,6 +1032,8 @@ def _check_cost_center_registry_readiness(aws_ctx: AWSContext) -> CheckResult:
             "latest_processed_hour": usage.latest_processed_hour,
             "spend_below_cap": spend < cap,
         }
+        max_age_hours = center.max_usage_age_hours or COST_CENTER_MAX_USAGE_AGE_HOURS
+        snapshot["max_usage_age_hours"] = max_age_hours
         details["usage_snapshots"][name] = snapshot
         if spend >= cap:
             details["exhausted_usage"].append(
@@ -1052,12 +1054,13 @@ def _check_cost_center_registry_readiness(aws_ctx: AWSContext) -> CheckResult:
             continue
         age_hours = (now - latest).total_seconds() / 3600.0
         snapshot["age_hours"] = round(age_hours, 2)
-        if age_hours > COST_CENTER_MAX_USAGE_AGE_HOURS:
+        if age_hours > max_age_hours:
             details["stale_usage"].append(
                 {
                     "cost_center": name,
                     "latest_processed_hour": usage.latest_processed_hour,
                     "age_hours": round(age_hours, 2),
+                    "max_usage_age_hours": max_age_hours,
                 }
             )
 

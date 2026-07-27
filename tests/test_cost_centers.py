@@ -18,6 +18,7 @@ from daylily_ec.aws.cost_centers import (
     put_cost_center_usage,
     validate_cost_center_name,
     validate_latest_processed_hour,
+    validate_max_usage_age_hours,
     CostCenterUsage,
 )
 
@@ -158,6 +159,16 @@ def test_create_edit_disable_cost_center():
     assert str(edited.monthly_cap_usd) == "300"
     assert edited.allowed_groups == ("research",)
 
+    overridden = edit_cost_center(
+        dynamo,
+        "project-a",
+        max_usage_age_hours=2160,
+        table_name="cc",
+        now="2026-07-05T01:30:00Z",
+    )
+    assert overridden.max_usage_age_hours == 2160
+    assert get_cost_center(dynamo, "project-a", table_name="cc").max_usage_age_hours == 2160
+
     disabled = disable_cost_center(
         dynamo,
         "project-a",
@@ -167,6 +178,16 @@ def test_create_edit_disable_cost_center():
     )
     assert disabled.status == "disabled"
     assert disabled.disabled_reason == "closed"
+    assert disabled.max_usage_age_hours == 2160
+
+
+def test_cost_center_usage_age_override_is_bounded_to_90_days():
+    assert validate_max_usage_age_hours("2160") == 2160
+    assert validate_max_usage_age_hours(None) is None
+    with pytest.raises(CostCenterError, match="positive integer"):
+        validate_max_usage_age_hours("24.5")
+    with pytest.raises(CostCenterError, match="must not exceed"):
+        validate_max_usage_age_hours("2161")
 
 
 def test_ensure_active_cost_center_creates_once_and_rejects_contract_drift():

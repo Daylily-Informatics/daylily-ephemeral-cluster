@@ -220,8 +220,10 @@ checks an AWS Budget whose name is the cluster name, renders
 
 The staged Slurm wrapper always requires `sbatch --comment <cost-center>`.
 That cost center must be active in the global DynamoDB registry, allowed for
-the submitting user or group, have a usage snapshot newer than 36 hours, and be
-below its monthly cap. When a job is blocked, the wrapper prints the Ursa
+the submitting user or group, have a usage snapshot newer than 64 hours by
+default, and be below its monthly cap. A cost center may carry an explicit
+`max_usage_age_hours` override of up to 2,160 hours (90 days). When a job is
+blocked, the wrapper prints the Ursa
 cluster budget monitor URL and the cost-center report URL.
 
 Disabling budget enforcement skips only the cluster AWS Budget lookup. It does

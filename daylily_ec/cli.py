@@ -1188,6 +1188,11 @@ def cost_centers_ensure_registry(
 def cost_centers_create(
     name: str = typer.Argument(..., help="Cost-center name."),
     monthly_cap_usd: str = typer.Option(..., "--monthly-cap-usd", help="Monthly cap in USD."),
+    max_usage_age_hours: Optional[int] = typer.Option(
+        None,
+        "--max-usage-age-hours",
+        help="Optional maximum usage-snapshot age in hours (1-2160); omit for the global gate.",
+    ),
     allowed_user: Optional[List[str]] = typer.Option(None, "--allowed-user", help="Allowed user."),
     allowed_group: Optional[List[str]] = typer.Option(
         None, "--allowed-group", help="Allowed group."
@@ -1219,6 +1224,7 @@ def cost_centers_create(
             allowed_groups=allowed_group or (),
             owner_emails=owner_email or (),
             notes=notes,
+            max_usage_age_hours=max_usage_age_hours,
             actor_arn=aws_ctx.caller_arn,
             table_name=table_name,
             usage_table_name=usage_table_name,
@@ -1232,6 +1238,11 @@ def cost_centers_edit(
     name: str = typer.Argument(..., help="Cost-center name."),
     monthly_cap_usd: Optional[str] = typer.Option(
         None, "--monthly-cap-usd", help="Monthly cap in USD."
+    ),
+    max_usage_age_hours: Optional[int] = typer.Option(
+        None,
+        "--max-usage-age-hours",
+        help="Replacement maximum usage-snapshot age in hours (1-2160).",
     ),
     allowed_user: Optional[List[str]] = typer.Option(
         None, "--allowed-user", help="Replacement allowed user list."
@@ -1262,6 +1273,7 @@ def cost_centers_edit(
             dynamodb,
             name,
             monthly_cap_usd=monthly_cap_usd,
+            max_usage_age_hours=max_usage_age_hours,
             allowed_users=allowed_user,
             allowed_groups=allowed_group,
             owner_emails=owner_email,

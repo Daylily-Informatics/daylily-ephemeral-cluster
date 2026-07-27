@@ -13,6 +13,7 @@ DEFAULT_COST_CENTER_HOME_REGION = "us-west-2"
 DEFAULT_COST_CENTER_TABLE = "dayec-cost-centers"
 DEFAULT_COST_CENTER_USAGE_TABLE = "dayec-cost-center-usage"
 RESERVED_IDLE_COST_CENTER = "idle"
+MAX_COST_CENTER_USAGE_AGE_HOURS = 24 * 90
 
 VALID_STATUSES = {"active", "disabled", "system"}
 COST_CENTER_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,127}$")
@@ -38,9 +39,10 @@ class CostCenter:
     updated_by_arn: str
     disabled_at: str = ""
     disabled_reason: str = ""
+    max_usage_age_hours: int | None = None
 
     def to_dict(self) -> dict[str, object]:
-        return {
+        payload: dict[str, object] = {
             "cost_center": self.name,
             "status": self.status,
             "monthly_cap_usd": str(self.monthly_cap_usd),
@@ -55,6 +57,9 @@ class CostCenter:
             "disabled_at": self.disabled_at,
             "disabled_reason": self.disabled_reason,
         }
+        if self.max_usage_age_hours is not None:
+            payload["max_usage_age_hours"] = self.max_usage_age_hours
+        return payload
 
 
 @dataclass(frozen=True)
@@ -118,6 +123,25 @@ def validate_latest_processed_hour(value: str) -> str:
     return utc.isoformat().replace("+00:00", "Z")
 
 
+def validate_max_usage_age_hours(value: int | str | None) -> int | None:
+    """Validate an optional per-cost-center freshness limit in hours."""
+
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    if not re.fullmatch(r"[1-9][0-9]*", text):
+        raise CostCenterError("max_usage_age_hours must be a positive integer number of hours.")
+    hours = int(text)
+    if hours > MAX_COST_CENTER_USAGE_AGE_HOURS:
+        raise CostCenterError(
+            "max_usage_age_hours must not exceed "
+            f"{MAX_COST_CENTER_USAGE_AGE_HOURS} hours (90 days)."
+        )
+    return hours
+
+
 def ensure_cost_center_registry(
     dynamodb_client: Any,
     *,
@@ -171,6 +195,7 @@ def create_cost_center(
     allowed_groups: Sequence[str] = (),
     owner_emails: Sequence[str] = (),
     notes: str = "",
+    max_usage_age_hours: int | str | None = None,
     actor_arn: str = "",
     table_name: str = DEFAULT_COST_CENTER_TABLE,
     usage_table_name: str = DEFAULT_COST_CENTER_USAGE_TABLE,
@@ -184,6 +209,7 @@ def create_cost_center(
     groups = _normalize_list(allowed_groups, field="allowed_groups")
     if not users and not groups:
         raise CostCenterError("At least one allowed user or allowed group is required.")
+    max_age_hours = validate_max_usage_age_hours(max_usage_age_hours)
     timestamp = now or utc_now_iso()
     item = CostCenter(
         name=resolved_name,
@@ -197,6 +223,7 @@ def create_cost_center(
         created_by_arn=actor_arn,
         updated_at=timestamp,
         updated_by_arn=actor_arn,
+        max_usage_age_hours=max_age_hours,
     )
     # Seed usage before publishing an active registry row. A failed registry write
     # may leave an inert usage row, but a failed usage write cannot leave a cost
@@ -308,6 +335,7 @@ def edit_cost_center(
     owner_emails: Sequence[str] | None = None,
     notes: str | None = None,
     status: str | None = None,
+    max_usage_age_hours: int | str | None = None,
     actor_arn: str = "",
     table_name: str = DEFAULT_COST_CENTER_TABLE,
     now: str | None = None,
@@ -321,6 +349,7 @@ def edit_cost_center(
         owner_emails is not None,
         notes is not None,
         status is not None,
+        max_usage_age_hours is not None,
     ]
     if not any(changes):
         raise CostCenterError("No edit fields were provided.")
@@ -349,6 +378,9 @@ def edit_cost_center(
         updated_by_arn=actor_arn,
         disabled_at=current.disabled_at,
         disabled_reason=current.disabled_reason,
+        max_usage_age_hours=current.max_usage_age_hours
+        if max_usage_age_hours is None
+        else validate_max_usage_age_hours(max_usage_age_hours),
     )
     _put_cost_center(dynamodb_client, table_name, updated, condition="attribute_exists(cost_center)")
     return updated
@@ -382,6 +414,7 @@ def disable_cost_center(
         updated_by_arn=actor_arn,
         disabled_at=timestamp,
         disabled_reason=str(reason).strip(),
+        max_usage_age_hours=current.max_usage_age_hours,
     )
     _put_cost_center(dynamodb_client, table_name, updated, condition="attribute_exists(cost_center)")
     return updated
@@ -697,6 +730,8 @@ def _cost_center_to_item(item: CostCenter) -> dict[str, Any]:
         raw["disabled_at"] = {"S": item.disabled_at}
     if item.disabled_reason:
         raw["disabled_reason"] = {"S": item.disabled_reason}
+    if item.max_usage_age_hours is not None:
+        raw["max_usage_age_hours"] = {"N": str(item.max_usage_age_hours)}
     return raw
 
 
@@ -718,6 +753,9 @@ def _cost_center_from_item(raw: dict[str, Any]) -> CostCenter:
         updated_by_arn=_s(raw, "updated_by_arn", ""),
         disabled_at=_s(raw, "disabled_at", ""),
         disabled_reason=_s(raw, "disabled_reason", ""),
+        max_usage_age_hours=validate_max_usage_age_hours(
+            (raw.get("max_usage_age_hours") or {}).get("N")
+        ),
     )
 
 
