@@ -97,6 +97,13 @@ class RunMountRecord:
     tags: Dict[str, str] = dataclasses.field(default_factory=dict)
     warnings: Sequence[str] = dataclasses.field(default_factory=tuple)
     local_projection_status: str = LOCAL_PROJECTION_UNKNOWN
+    reused_existing_mount: bool = False
+    overlap_message: str = ""
+    requested_source_s3_uri: str = ""
+    requested_file_system_path: str = ""
+    requested_headnode_path: str = ""
+    association_file_system_path: str = ""
+    association_headnode_path: str = ""
 
     @property
     def data_repository_path(self) -> str:
@@ -134,6 +141,21 @@ class RunMountRecord:
         if self.warnings:
             payload["warnings"] = list(self.warnings)
         payload["local_projection_status"] = self.local_projection_status
+        payload["reused_existing_mount"] = self.reused_existing_mount
+        if self.overlap_message:
+            payload["message"] = self.overlap_message
+            payload["overlap_message"] = self.overlap_message
+        if self.requested_source_s3_uri:
+            payload["requested_source_s3_uri"] = self.requested_source_s3_uri
+        if self.requested_file_system_path:
+            payload["requested_file_system_path"] = self.requested_file_system_path
+        if self.requested_headnode_path:
+            payload["requested_headnode_path"] = self.requested_headnode_path
+            payload["usable_headnode_path"] = self.requested_headnode_path
+        if self.association_file_system_path:
+            payload["association_file_system_path"] = self.association_file_system_path
+        if self.association_headnode_path:
+            payload["association_headnode_path"] = self.association_headnode_path
         return payload
 
     def to_state_payload(self) -> Dict[str, Any]:
@@ -325,6 +347,75 @@ def validate_no_overlaps(
             raise RunMountError(f"S3 source prefix overlaps active DRA {assoc_id}: {existing_s3}")
 
 
+def _s3_prefix_suffix(parent_uri: str, child_uri: str) -> Optional[str]:
+    """Return child suffix when parent_uri contains child_uri, else None."""
+    parent = normalize_s3_uri(parent_uri)
+    child = normalize_s3_uri(child_uri)
+    if child == parent:
+        return ""
+    if not child.startswith(parent):
+        return None
+    return child[len(parent) :].strip("/")
+
+
+def _append_file_system_suffix(file_system_path: str, suffix: str) -> str:
+    base = _normalize_absolute_fsx_api_path(file_system_path)
+    cleaned = str(suffix or "").strip("/")
+    if not cleaned:
+        return base
+    parts = PurePosixPath(cleaned).parts
+    if any(part in {"", ".", "..", "/"} for part in parts):
+        raise RunMountError(f"Unsafe S3 suffix cannot be mapped to FSx path: {suffix!r}.")
+    return f"{base}{cleaned}/"
+
+
+def reusable_existing_mount_for_request(
+    associations: Iterable[Dict[str, Any]],
+    *,
+    file_system_path: str,
+    source_s3_uri: str,
+) -> Optional[tuple[Dict[str, Any], str, str]]:
+    """Return an active association that already exposes the requested S3 prefix.
+
+    The reusable case is intentionally narrow: an existing active DRA must contain
+    the requested S3 prefix. If the requested prefix is broader than an existing
+    DRA, or only the FSx paths overlap, the request still fails later with the
+    existing strict overlap error instead of silently pointing at partial or
+    unrelated data.
+    """
+    requested_source = normalize_s3_uri(source_s3_uri)
+    requested_fsx = _normalize_absolute_fsx_api_path(file_system_path)
+    for association in associations:
+        if not association_is_active(association):
+            continue
+        existing_s3 = str(association.get("DataRepositoryPath") or "")
+        existing_fsx = str(association.get("FileSystemPath") or "")
+        if not existing_s3 or not existing_fsx:
+            continue
+        suffix = _s3_prefix_suffix(existing_s3, requested_source)
+        if suffix is None:
+            continue
+        usable_fsx = _append_file_system_suffix(existing_fsx, suffix)
+        requested_headnode = headnode_path_from_file_system_path(usable_fsx)
+        message = (
+            "Requested mount overlaps an existing active FSx data repository "
+            f"association; use {requested_headnode} instead of creating a new DRA."
+        )
+        return association, usable_fsx, message
+    for association in associations:
+        if not association_is_active(association):
+            continue
+        existing_fsx = str(association.get("FileSystemPath") or "")
+        if existing_fsx and paths_overlap(existing_fsx, requested_fsx):
+            assoc_id = str(association.get("AssociationId") or "unknown")
+            raise RunMountError(
+                "Requested FSx path overlaps active DRA "
+                f"{assoc_id}: {existing_fsx}; the existing DRA does not contain "
+                f"requested S3 prefix {requested_source}."
+            )
+    return None
+
+
 def parse_auto_import_events(raw: Optional[str]) -> List[str]:
     """Parse the CLI auto-import value."""
     if raw is None or raw.strip() == "":
@@ -510,6 +601,58 @@ def create_run_mount(
     validate_dra_compatible_file_system(filesystem)
     associations = list_data_repository_associations(client, fsx_file_system_id)
     active_count = sum(1 for association in associations if association_is_active(association))
+    reused = reusable_existing_mount_for_request(
+        associations,
+        file_system_path=file_system_path,
+        source_s3_uri=source_s3_uri,
+    )
+    if reused:
+        association, usable_file_system_path, message = reused
+        association_file_system_path = _normalize_absolute_fsx_api_path(
+            str(association.get("FileSystemPath") or "")
+        )
+        association_headnode_path = headnode_path_from_file_system_path(
+            association_file_system_path
+        )
+        usable_headnode_path = headnode_path_from_file_system_path(usable_file_system_path)
+        warnings = [message]
+        if active_count >= 6:
+            warnings.append(
+                f"FSx file system {fsx_file_system_id} already has {active_count} active DRAs."
+            )
+        s3_config = association.get("S3") or {}
+        return RunMountRecord(
+            mount_id=mount_id,
+            purpose=purpose,
+            run_id=run_id,
+            platform=platform,
+            cluster_name=request.cluster_name,
+            region=request.region,
+            source_s3_uri=source_s3_uri,
+            fsx_file_system_id=fsx_file_system_id,
+            file_system_path=usable_file_system_path,
+            headnode_path=usable_headnode_path,
+            association_id=str(association.get("AssociationId") or ""),
+            lifecycle=str(association.get("Lifecycle") or "UNKNOWN"),
+            read_only=_association_is_read_only(association),
+            profile_hint=request.profile,
+            auto_import_events=tuple((s3_config.get("AutoImportPolicy") or {}).get("Events") or ()),
+            auto_export_events=tuple((s3_config.get("AutoExportPolicy") or {}).get("Events") or ()),
+            batch_import_metadata_on_create=request.batch_import_metadata_on_create,
+            created_at=_format_timestamp(association.get("CreationTime")) or _utc_now(),
+            updated_at=_utc_now(),
+            created_by=getpass.getuser(),
+            tags=dict(request.tags),
+            warnings=tuple(warnings),
+            local_projection_status=LOCAL_PROJECTION_PRESENT,
+            reused_existing_mount=True,
+            overlap_message=message,
+            requested_source_s3_uri=source_s3_uri,
+            requested_file_system_path=file_system_path,
+            requested_headnode_path=usable_headnode_path,
+            association_file_system_path=association_file_system_path,
+            association_headnode_path=association_headnode_path,
+        )
     if active_count >= 8:
         raise RunMountError(
             f"FSx file system {fsx_file_system_id} already has {active_count} active DRAs."
@@ -1137,9 +1280,10 @@ def extract_mount_id(file_system_path: str) -> str:
 
 
 def format_mount_created(record: RunMountRecord) -> str:
+    action = "Mount reused" if record.reused_existing_mount else "Mount created"
     return "\n".join(
         [
-            f"Mount created: {record.mount_id}",
+            f"{action}: {record.mount_id}",
             f"Purpose: {record.purpose}",
             f"Association ID: {record.association_id}",
             f"FSx file system: {record.fsx_file_system_id}",
@@ -1147,6 +1291,7 @@ def format_mount_created(record: RunMountRecord) -> str:
             f"Headnode path: {record.headnode_path}",
             f"Source S3 URI: {record.source_s3_uri}",
             f"Lifecycle: {record.lifecycle}",
+            *([record.overlap_message] if record.overlap_message else []),
         ]
     )
 

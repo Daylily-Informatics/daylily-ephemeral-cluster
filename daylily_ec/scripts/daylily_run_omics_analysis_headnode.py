@@ -10,18 +10,29 @@ import os
 import posixpath
 import shlex
 import sys
+import tarfile
+import tempfile
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Mapping, Optional
 
 from daylily_ec.aws.ssm import (
+    resolve_remote_user,
     resolve_headnode_instance_id,
     run_shell,
     wait_for_ssm_online,
 )
 from daylily_ec.analysis_identity import analysis_source_path, validate_analysis_segment
 from daylily_ec.headnode_readiness import validate_headnode_readiness
-from daylily_ec.scripts.common import CommandError, need_cmd, resolve_cluster, resolve_region
+from daylily_ec.scripts.common import (
+    CommandError,
+    aws_env,
+    need_cmd,
+    resolve_cluster,
+    resolve_region,
+    run_command,
+)
 from daylily_ec.workflow.snakemake_resources import (
     DEFAULT_JOB_MAX_RUNTIME_MINUTES,
     append_default_job_runtime,
@@ -310,11 +321,11 @@ class WorkflowLaunchInfo:
     controller_target: ControllerTargetReceipt
 
 
-def normalize_remote_path(path: str) -> str:
+def normalize_remote_path(path: str, *, remote_user: str = "ubuntu") -> str:
     if path.startswith("~/"):
-        return path.replace("~/", "/home/ubuntu/", 1)
+        return path.replace("~/", f"/home/{remote_user}/", 1)
     if path == "~":
-        return "/home/ubuntu"
+        return f"/home/{remote_user}"
     return path
 
 
@@ -477,6 +488,7 @@ def discover_stage_config(
     instance_id: str,
     profile: str,
     region: str,
+    remote_user: str,
     stage_dir: Optional[str],
     stage_base: str,
     input_contract: str = "sample_manifest",
@@ -485,10 +497,11 @@ def discover_stage_config(
     if input_contract not in {"sample_manifest", "sample_manifest_v12"}:
         raise CommandError(f"Unsupported staged input contract: {input_contract}")
     if stage_dir:
-        target_dir = normalize_remote_path(stage_dir.rstrip("/"))
+        target_dir = normalize_remote_path(stage_dir.rstrip("/"), remote_user=remote_user)
         script = f"""
 set -euo pipefail
-if [[ "$(id -un)" != "ubuntu" ]]; then
+REMOTE_USER={shlex.quote(remote_user)}
+if [[ "$(id -un)" != "$REMOTE_USER" ]]; then
   echo "__DAYLILY_ERROR__=wrong_user"
   exit 5
 fi
@@ -535,10 +548,11 @@ if [[ "$found_config" == "true" ]]; then
 fi
 """
     else:
-        stage_base_norm = normalize_remote_path(stage_base.rstrip("/"))
+        stage_base_norm = normalize_remote_path(stage_base.rstrip("/"), remote_user=remote_user)
         script = f"""
 set -euo pipefail
-if [[ "$(id -un)" != "ubuntu" ]]; then
+REMOTE_USER={shlex.quote(remote_user)}
+if [[ "$(id -un)" != "$REMOTE_USER" ]]; then
   echo "__DAYLILY_ERROR__=wrong_user"
   exit 5
 fi
@@ -595,6 +609,7 @@ fi
         region,
         script,
         profile=profile,
+        as_user=remote_user,
         timeout=STAGE_CONFIG_DISCOVERY_TIMEOUT_SECONDS,
         comment="Discover staged config",
     )
@@ -633,7 +648,7 @@ def build_default_command(
         config_args.append(f"sv_callers={format_list(sv_callers)}")
     command = [
         "DAY_CONTAINERIZED=true" if containerized else "DAY_CONTAINERIZED=false",
-        "bin/day_run",
+        "dy-r",
         target,
         "-p",
         "-k",
@@ -654,6 +669,94 @@ def build_default_command(
         raise CommandError(str(exc)) from exc
 
 
+def _normalize_payload_staging_s3_uri(value: str) -> str:
+    cleaned = str(value or "").strip().rstrip("/")
+    if not cleaned.startswith("s3://"):
+        raise CommandError("--payload-staging-s3-uri must be an s3:// URI.")
+    bucket_and_key = cleaned[len("s3://") :]
+    if not bucket_and_key or "/" not in bucket_and_key:
+        raise CommandError("--payload-staging-s3-uri must include a bucket and prefix.")
+    return cleaned
+
+
+def _write_text_payload(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def stage_workflow_launch_payload(
+    *,
+    pipeline_script: str,
+    args: argparse.Namespace,
+    cluster_name: str,
+    analysis_id: str,
+    run_context_content: Optional[str],
+    specimens_content: Optional[str],
+    samples_content: Optional[str],
+    libraries_content: Optional[str],
+    units_content: Optional[str],
+    six_manifest_contents: Mapping[str, str],
+    six_manifest_receipt: Optional[Mapping[str, object]],
+) -> str:
+    """Upload a workflow launch payload tarball and return its S3 URI."""
+
+    if not args.payload_staging_s3_uri:
+        raise CommandError("payload staging requires --payload-staging-s3-uri")
+    staging_root = _normalize_payload_staging_s3_uri(args.payload_staging_s3_uri)
+    destination = (
+        f"{staging_root}/dyec-workflow-launch-payload/{cluster_name}/"
+        f"{analysis_id}/{uuid.uuid4().hex}/payload.tgz"
+    )
+    with tempfile.TemporaryDirectory(prefix="dyec-workflow-payload-") as tmpdir_text:
+        tmpdir = Path(tmpdir_text)
+        payload_root = tmpdir / "payload"
+        _write_text_payload(payload_root / "dyec-controller-launch.sh", pipeline_script)
+        if run_context_content is not None:
+            _write_text_payload(payload_root / "inputs" / "runs.tsv", run_context_content)
+        if specimens_content is not None:
+            _write_text_payload(payload_root / "inputs" / "specimens.tsv", specimens_content)
+        if samples_content is not None:
+            _write_text_payload(payload_root / "inputs" / "samples.tsv", samples_content)
+        if libraries_content is not None:
+            _write_text_payload(payload_root / "inputs" / "libraries.tsv", libraries_content)
+        if units_content is not None:
+            _write_text_payload(payload_root / "inputs" / "units.tsv", units_content)
+        for name, content in six_manifest_contents.items():
+            _write_text_payload(payload_root / "inputs" / name, content)
+        if six_manifest_receipt is not None:
+            _write_text_payload(
+                payload_root / "inputs" / "dyec_manifest_stage_receipt.json",
+                json.dumps(six_manifest_receipt, indent=2, sort_keys=True) + "\n",
+            )
+        manifest = {
+            "schema": "dyec.workflow_launch_payload.v1",
+            "analysis_id": analysis_id,
+            "cluster": cluster_name,
+            "repository": args.repository,
+            "git_tag": args.git_tag,
+            "input_contract": args.input_contract,
+            "dy_command": args.dy_command,
+            "files": sorted(
+                str(path.relative_to(payload_root))
+                for path in payload_root.rglob("*")
+                if path.is_file()
+            ),
+        }
+        _write_text_payload(
+            payload_root / "payload_manifest.json",
+            json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        )
+        tar_path = tmpdir / "payload.tgz"
+        with tarfile.open(tar_path, "w:gz") as archive:
+            archive.add(payload_root, arcname=".")
+        run_command(
+            ["aws", "s3", "cp", str(tar_path), destination],
+            capture_output=True,
+            env=aws_env(profile=args.profile, region=args.region),
+        )
+    return destination
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Clone daylily-omics-analysis and launch a workflow inside tmux.",
@@ -668,6 +771,23 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--manifest-dir",
         help="Local directory containing exactly the six DayOA 13 manifests",
+    )
+    parser.add_argument(
+        "--payload-staging-s3-uri",
+        help=(
+            "Explicit s3://bucket/prefix relay for large launch payloads. When set, DYEC "
+            "uploads controller scripts and local inputs there, then the headnode downloads "
+            "them into <analysis-root>/bin before starting tmux."
+        ),
+    )
+    parser.add_argument(
+        "--remote-user",
+        default="auto",
+        choices=("auto", "ubuntu", "ec2-user"),
+        help=(
+            "Headnode login user. auto selects from the cluster/platform class: "
+            "Ubuntu/intel DayOA headnodes use ubuntu; DRAGEN/RHEL-style headnodes use ec2-user."
+        ),
     )
     parser.add_argument(
         "--input-contract",
@@ -710,7 +830,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-default-activation",
         dest="default_activation",
         action="store_false",
-        help="Do not run the standard dyoainit plus Slurm activation before --dy-command",
+        help="Do not run the standard dyoainit plus dy-a Slurm activation before --dy-command",
+    )
+    parser.add_argument(
+        "--analysis-lock",
+        dest="analysis_lock",
+        action="store_true",
+        help="Acquire an analysis-root write lock for the controller before running dy-r.",
+    )
+    parser.add_argument(
+        "--no-analysis-lock",
+        dest="analysis_lock",
+        action="store_false",
+        help="Do not acquire an analysis-root write lock for this controller.",
     )
     parser.add_argument(
         "--bootstrap-test-config",
@@ -743,6 +875,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Git branch or tag to pass to day-clone",
     )
     parser.add_argument("--project", help="Project/budget to supply to dyoainit")
+    parser.add_argument(
+        "--cost-center",
+        help="Explicit active Slurm cost center exported as DAY_PROJECT before dy-r",
+    )
     parser.add_argument(
         "--skip-project-check",
         dest="skip_project_check",
@@ -809,8 +945,21 @@ def build_parser() -> argparse.ArgumentParser:
             "launching. Without this flag, existing analysis directories fail hard."
         ),
     )
+    parser.add_argument(
+        "--reuse-existing-analysis-dir",
+        action="store_true",
+        help=(
+            "Continue an existing analysis directory without replacing it. Requires "
+            "--input-contract none and --no-input-staging."
+        ),
+    )
     parser.add_argument("--dry-run", action="store_true")
-    parser.set_defaults(skip_project_check=True, input_staging=True, default_activation=True)
+    parser.set_defaults(
+        skip_project_check=True,
+        input_staging=True,
+        default_activation=True,
+        analysis_lock=True,
+    )
     return parser
 
 
@@ -829,6 +978,45 @@ def main(argv: Optional[List[str]] = None) -> int:
     if not args.profile:
         raise CommandError("AWS profile is required. Set AWS_PROFILE or use --profile.")
     validate_export_args(args)
+    if args.reuse_existing_analysis_dir:
+        if args.replace_existing_analysis_dir:
+            raise CommandError(
+                "--reuse-existing-analysis-dir cannot be combined with "
+                "--replace-existing-analysis-dir."
+            )
+        if args.input_contract != "none":
+            raise CommandError(
+                "--reuse-existing-analysis-dir requires --input-contract none."
+            )
+        if args.input_staging:
+            raise CommandError(
+                "--reuse-existing-analysis-dir requires --no-input-staging."
+            )
+        if any(
+            (
+                args.stage_dir,
+                args.manifest_dir,
+                args.run_context_file,
+                args.specimens_file,
+                args.samples_file,
+                args.libraries_file,
+                args.units_file,
+            )
+        ):
+            raise CommandError(
+                "--reuse-existing-analysis-dir cannot stage or rewrite manifest inputs."
+            )
+        if args.bootstrap_test_config:
+            raise CommandError(
+                "--reuse-existing-analysis-dir cannot bootstrap test configuration."
+            )
+    if args.cost_center is not None:
+        try:
+            from daylily_ec.aws.cost_centers import CostCenterError, validate_cost_center_name
+
+            args.cost_center = validate_cost_center_name(args.cost_center)
+        except CostCenterError as exc:
+            raise CommandError(str(exc)) from exc
     try:
         validate_job_max_runtime_minutes(args.max_runtime_minutes)
     except ValueError as exc:
@@ -838,6 +1026,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     need_cmd("pcluster")
 
     region = resolve_region(args.profile, args.region)
+    args.region = region
     cluster_name = resolve_cluster(args.profile, region, args.cluster)
     analysis_id = validate_analysis_segment(args.analysis_id, field_name="analysis_id")
     executing_entity = validate_analysis_segment(
@@ -863,12 +1052,19 @@ def main(argv: Optional[List[str]] = None) -> int:
         )
     target = resolve_headnode_instance_id(cluster_name, region, profile=args.profile)
     wait_for_ssm_online(target.instance_id, region, profile=args.profile, timeout=120)
+    remote_user = resolve_remote_user(
+        target.instance_id,
+        region,
+        profile=args.profile,
+        as_user=args.remote_user,
+    )
     validate_headnode_readiness(
         target.instance_id,
         region,
         profile=args.profile,
         timeout=120,
         comment="Validate DAY-EC headnode readiness before workflow launch",
+        remote_user=remote_user,
     )
 
     run_context_content: Optional[str] = None
@@ -970,6 +1166,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             target.instance_id,
             args.profile,
             region,
+            remote_user,
             args.stage_dir,
             args.stage_base,
             input_contract=args.input_contract,
@@ -1013,6 +1210,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
 
     project_arg = shlex.quote(args.project) if args.project else ""
+    cost_center_arg = shlex.quote(args.cost_center) if args.cost_center else ""
     repository_literal = json.dumps(args.repository)
     dy_command_literal = shlex.quote(dy_command)
     skip_check = "true" if args.skip_project_check else "false"
@@ -1025,6 +1223,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     sample_config_mode_literal = "true" if sample_config_mode else "false"
     input_staging_mode_literal = "true" if args.input_staging else "false"
     default_activation_literal = "true" if args.default_activation else "false"
+    analysis_lock_literal = "true" if args.analysis_lock else "false"
     bootstrap_test_config_literal = "true" if args.bootstrap_test_config else "false"
     run_context_payload = shlex.quote(run_context_content or "")
     specimens_payload = shlex.quote(
@@ -1056,6 +1255,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     export_destination_literal = shlex.quote(args.export_destination_s3_uri or "")
     delete_on_export_success = "true" if args.delete_on_export_success else "false"
     replace_existing_analysis_dir = "true" if args.replace_existing_analysis_dir else "false"
+    reuse_existing_analysis_dir = "true" if args.reuse_existing_analysis_dir else "false"
     if stage_config is None:
         stage_specimens_path = ""
         stage_samples_path = ""
@@ -1101,7 +1301,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     run_context_projection_python = shlex.quote(BCL_RUN_CONTEXT_PROJECTION_SCRIPT)
     bclconvert_profile_patch_python = shlex.quote(BCLCONVERT_PROFILE_PATCH_SCRIPT)
     pipeline_script = f"""
-set -euo pipefail
+set +e +u
+set +o pipefail 2>/dev/null || true
 if [[ "$(id -un)" != "ubuntu" ]]; then
   echo "__DAYLILY_ERROR__=wrong_user"
   exit 6
@@ -1126,9 +1327,10 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	RUN_CONTEXT_MODE={run_context_mode_literal}
 	SAMPLE_CONFIG_MODE={sample_config_mode_literal}
 	INPUT_CONTRACT={shlex.quote(args.input_contract)}
-	INPUT_STAGING_MODE={input_staging_mode_literal}
-	DEFAULT_ACTIVATION={default_activation_literal}
-	BOOTSTRAP_TEST_CONFIG={bootstrap_test_config_literal}
+		INPUT_STAGING_MODE={input_staging_mode_literal}
+		DEFAULT_ACTIVATION={default_activation_literal}
+		ANALYSIS_LOCK_MODE={analysis_lock_literal}
+		BOOTSTRAP_TEST_CONFIG={bootstrap_test_config_literal}
 	RUN_CONTEXT_PAYLOAD={run_context_payload}
 	SPECIMENS_PAYLOAD={specimens_payload}
 	SAMPLES_PAYLOAD={samples_payload}
@@ -1143,12 +1345,15 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	STAGE_LIBRARIES={shlex.quote(stage_libraries_path)}
 	STAGE_UNITS={shlex.quote(stage_units_path)}
 	PROJECT_VALUE={project_arg if project_arg else ""}
+	COST_CENTER_VALUE={cost_center_arg if cost_center_arg else ""}
 	SKIP_PROJECT_CHECK={skip_check}
 	DY_COMMAND={dy_command_literal}
 	EXPORT_DESTINATION_S3_URI={export_destination_literal}
 	EXPORT_TRIGGER={shlex.quote(args.export_trigger)}
 	DELETE_ON_EXPORT_SUCCESS={delete_on_export_success}
 	REPLACE_EXISTING_ANALYSIS_DIR={replace_existing_analysis_dir}
+	REUSE_EXISTING_ANALYSIS_DIR={reuse_existing_analysis_dir}
+	DAYOA_GIT_REF={shlex.quote(args.git_tag)}
 STATUS_FILE="${{DAYLILY_RUN_DIR}}/status.json"
 TMUX_LOG="${{DAYLILY_TMUX_LOG}}"
 CONTROLLER_TARGET_FILE="${{DAYLILY_CONTROLLER_TARGET_FILE}}"
@@ -1181,16 +1386,66 @@ export TEMP="$DAYOA_RUNTIME_TMPDIR"
 export PIP_CACHE_DIR="${{PIP_CACHE_DIR:-$DAYOA_RUNTIME_TMPDIR/pip-cache}}"
 export XDG_CACHE_HOME="${{XDG_CACHE_HOME:-$DAYOA_RUNTIME_TMPDIR/xdg-cache}}"
 export PIP_BUILD_TRACKER="${{PIP_BUILD_TRACKER:-$DAYOA_RUNTIME_TMPDIR/pip-build-tracker}}"
+export DAYOA_AGENT_ID="${{DAYOA_AGENT_ID:-dyec-workflow-$runtime_tmp_name}}"
+export DAYOA_AGENT_KIND="${{DAYOA_AGENT_KIND:-dyec-cli}}"
+export DAYOA_HUMAN_REQUESTOR="${{DAYOA_HUMAN_REQUESTOR:-${{USER:-ubuntu}}}}"
+export DAYOA_TMUX_SESSION="${{DAYLILY_TMUX_SESSION}}"
+export DAYOA_LEDGER_PATH="${{DAYOA_LEDGER_PATH:-${{DAYLILY_RUN_DIR}}/workflow-launch-ledger.md}}"
 export DAYLILY_STATUS_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export DAYLILY_STATUS_COMPLETED_AT=""
 export DAYLILY_STATUS_EXIT_CODE="__PENDING__"
 write_status
 
-trap 'status=$?; if [[ "${{DAYLILY_STATUS_FINALIZED:-0}}" != "1" ]]; then export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; export DAYLILY_STATUS_EXIT_CODE="$status"; write_status; fi' EXIT
+analysis_lock_acquired=0
+release_analysis_lock_on_exit() {{
+  local status="$1"
+  if [[ "$analysis_lock_acquired" == "1" ]]; then
+    set +e
+    dyec analysis lock release \
+      --analysis-root "$clone_root" \
+      --human-requestor "$DAYOA_HUMAN_REQUESTOR" \
+      --note "dyec workflow launch finished rc=${{status}}" >/dev/null
+    local release_status=$?
+    set -e
+    if [[ "$release_status" != "0" ]]; then
+      echo "[WARN] Failed to release analysis lock for $clone_root after rc=${{status}}"
+    fi
+  fi
+}}
+
+trap 'status=$?; release_analysis_lock_on_exit "$status"; if [[ "${{DAYLILY_STATUS_FINALIZED:-0}}" != "1" ]]; then export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; export DAYLILY_STATUS_EXIT_CODE="$status"; write_status; fi' EXIT
 
 clone_root="$(dirname "${{DAYLILY_REPO_PATH}}")"
 repo_path="${{DAYLILY_REPO_PATH}}"
 mkdir -p "$(dirname "$clone_root")"
+if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
+  if [[ ! -d "$clone_root" || ! -d "$repo_path" ]]; then
+    echo "__DAYLILY_ERROR__=existing_analysis_dir_missing"
+    exit 8
+  fi
+else
+  mkdir -p "$clone_root"
+fi
+if [[ "$ANALYSIS_LOCK_MODE" == "true" ]]; then
+  if ! command -v dyec >/dev/null 2>&1; then
+    echo "[ERROR] dyec CLI is required on the headnode for analysis-root locking. Run dyec headnode configure, then retry."
+    exit 66
+  fi
+  dyec analysis visit \
+    --analysis-root "$clone_root" \
+    --mode write \
+    --intent "dyec workflow launch $SESSION_NAME" \
+    --human-requestor "$DAYOA_HUMAN_REQUESTOR" \
+    --note "controller tmux $DAYLILY_TMUX_SESSION" >/dev/null
+  dyec analysis lock acquire \
+    --analysis-root "$clone_root" \
+    --operation write \
+    --intent "dyec workflow launch $SESSION_NAME" \
+    --human-requestor "$DAYOA_HUMAN_REQUESTOR" \
+    --command-summary "$DY_COMMAND" \
+    --operation-scope "workflow-launch:$SESSION_NAME" >/dev/null
+  analysis_lock_acquired=1
+fi
 
 remove_run_dir_projection_links() {{
   local links_dir="$repo_path/config/run_dir_links"
@@ -1217,11 +1472,43 @@ remove_run_dir_projection_links() {{
   rmdir "$links_dir"
 }}
 
-day-clone \
-  --destination "$ANALYSIS_ID" \
-  --executing-entity "$EXECUTING_ENTITY" \
-  --repository {shlex.quote(args.repository)} \
-  --git-tag {shlex.quote(args.git_tag)}
+if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
+  if ! git -C "$repo_path" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "__DAYLILY_ERROR__=existing_analysis_repo_invalid"
+    exit 8
+  fi
+  if [[ -n "$(git -C "$repo_path" status --porcelain --untracked-files=no)" ]]; then
+    echo "__DAYLILY_ERROR__=existing_analysis_repo_dirty"
+    exit 8
+  fi
+  if ! git -C "$repo_path" fetch --quiet --tags origin "$DAYOA_GIT_REF"; then
+    echo "__DAYLILY_ERROR__=existing_analysis_ref_fetch_failed"
+    exit 8
+  fi
+  expected_commit="$(git -C "$repo_path" rev-parse --verify "FETCH_HEAD^{{commit}}" 2>/dev/null)" || {{
+    echo "__DAYLILY_ERROR__=existing_analysis_ref_missing"
+    exit 8
+  }}
+  git -C "$repo_path" checkout --detach "$expected_commit"
+  actual_commit="$(git -C "$repo_path" rev-parse HEAD)"
+  if [[ "$actual_commit" != "$expected_commit" ]]; then
+    echo "__DAYLILY_ERROR__=existing_analysis_ref_checkout_mismatch"
+    exit 8
+  fi
+  echo "__DAYLILY_REUSED_ANALYSIS_DIR__=$clone_root"
+  echo "__DAYLILY_GIT_COMMIT__=$actual_commit"
+else
+  day-clone \
+    --destination "$ANALYSIS_ID" \
+    --executing-entity "$EXECUTING_ENTITY" \
+    --repository {shlex.quote(args.repository)} \
+    --git-tag {shlex.quote(args.git_tag)}
+fi
+mkdir -p "$clone_root/bin"
+if [[ -n "${{BASH_SOURCE[0]:-}}" && -f "${{BASH_SOURCE[0]}}" ]]; then
+  cp "${{BASH_SOURCE[0]}}" "$clone_root/bin/dyec-controller-launch.sh"
+  chmod 0700 "$clone_root/bin/dyec-controller-launch.sh"
+fi
 cd "$repo_path"
 mkdir -p "$(dirname "$CONTROLLER_LOG_PATH")" "$(dirname "$CONTROLLER_DAG_PATH")"
 exec > >(tee -a "$CONTROLLER_LOG_PATH") 2>&1
@@ -2223,6 +2510,33 @@ if [[ -z "${{PUPPETEER_EXECUTABLE_PATH:-}}" && -x "$MERMAID_CHROME" ]]; then
   export PUPPETEER_EXECUTABLE_PATH="$MERMAID_CHROME"
 fi
 
+ensure_dayoa_shortcuts() {{
+  if [[ -f "bin/day_activate" ]]; then
+    day-activate() {{
+      source bin/day_activate "$@"
+    }}
+    dy-a() {{
+      source bin/day_activate "$@"
+    }}
+  fi
+  if [[ -x "bin/day_run" || -f "bin/day_run" ]]; then
+    day-run() {{
+      bin/day_run "$@"
+    }}
+    dy-r() {{
+      bin/day_run "$@"
+    }}
+  fi
+}}
+
+apply_cost_center() {{
+  if [[ -z "$COST_CENTER_VALUE" ]]; then
+    return 0
+  fi
+  export DAY_PROJECT="$COST_CENTER_VALUE"
+  export DAYLILY_COST_CENTER="$COST_CENTER_VALUE"
+}}
+
 run_dy_command() {{
   local command="$1"
   local dyoainit_source_needed=false
@@ -2239,15 +2553,17 @@ run_dy_command() {{
     set --
     source dyoainit
     local source_status=$?
-    set -u
+    set +u
     if [[ "$source_status" != "0" ]]; then
       return "$source_status"
     fi
+    ensure_dayoa_shortcuts
+    apply_cost_center
   fi
   set +u
   eval "$command"
   local command_status=$?
-  set -u
+  set +u
   return "$command_status"
 }}
 
@@ -2262,17 +2578,24 @@ if [[ "$SKIP_PROJECT_CHECK" == "true" ]]; then
   dyoa_args+=(--skip-project-check)
 fi
 if [[ "$DEFAULT_ACTIVATION" == "true" ]]; then
-  set +u
-  . dyoainit "${{dyoa_args[@]}}"
-  set -u
   set +e
   set +u
-  . bin/day_activate slurm {shlex.quote(args.genome)} remote
+  source dyoainit "${{dyoa_args[@]}}"
+  init_status=$?
+  set +u
+  if [[ "$init_status" != "0" ]]; then
+    echo "[ERROR] dyoainit failed with status $init_status"
+    exit "$init_status"
+  fi
+  ensure_dayoa_shortcuts
+  apply_cost_center
+  set +e
+  set +u
+  dy-a slurm {shlex.quote(args.genome)}
   activate_status=$?
-  set -u
-  set -e
+  set +u
   if [[ "$activate_status" != "0" ]]; then
-    echo "[ERROR] day_activate failed with status $activate_status"
+    echo "[ERROR] dy-a failed with status $activate_status"
     exit "$activate_status"
   fi
 fi
@@ -2357,16 +2680,14 @@ fi
 	monitor_controller_dag &
 	controller_dag_monitor_pid=$!
 	set +e
-	run_dy_command "$DY_COMMAND"
+run_dy_command "$DY_COMMAND"
 workflow_status=$?
-set -e
 	touch "$controller_dag_stop"
 	set +e
 	wait "$controller_dag_monitor_pid"
 	controller_dag_monitor_status=$?
 	sync_controller_dag
 	controller_dag_sync_status=$?
-	set -e
 	if [[ "$controller_dag_monitor_status" -eq 2 || "$controller_dag_sync_status" -eq 2 ]]; then
 	  echo "[ERROR] Controller DAG evidence was ambiguous or could not be copied"
 	  [[ "$workflow_status" -ne 0 ]] || workflow_status=24
@@ -2399,7 +2720,6 @@ if [[ "$should_export" == "true" ]]; then
         --destination-s3-uri "$EXPORT_DESTINATION_S3_URI" \
         --output-dir "$DAYLILY_RUN_DIR/export"
       export_status=$?
-      set -e
       if [[ "$export_status" -ne 0 ]]; then
         echo "[ERROR] Export failed with status $export_status"
         workflow_status="$export_status"
@@ -2421,13 +2741,55 @@ fi
 exec bash -il
 """
 
+    payload_s3_uri = ""
+    if args.payload_staging_s3_uri:
+        payload_s3_uri = stage_workflow_launch_payload(
+            pipeline_script=pipeline_script,
+            args=args,
+            cluster_name=cluster_name,
+            analysis_id=analysis_id,
+            run_context_content=run_context_content,
+            specimens_content=specimens_content,
+            samples_content=samples_content,
+            libraries_content=libraries_content,
+            units_content=units_content,
+            six_manifest_contents=six_manifest_contents,
+            six_manifest_receipt=six_manifest_receipt,
+        )
+
+    if payload_s3_uri:
+        work_script_materialization = f"""
+payload_archive="$run_dir/workflow-launch-payload.tgz"
+payload_dir="$run_dir/payload"
+mkdir -p "$payload_dir"
+aws s3 cp {shlex.quote(payload_s3_uri)} "$payload_archive" --region {shlex.quote(region)}
+tar -xzf "$payload_archive" -C "$payload_dir"
+work_script="$payload_dir/dyec-controller-launch.sh"
+if [[ ! -s "$work_script" ]]; then
+  echo "__DAYLILY_ERROR__=missing_payload_work_script"
+  exit 8
+fi
+chmod 0700 "$work_script"
+echo "__DAYLILY_PAYLOAD_S3_URI__={payload_s3_uri}"
+"""
+    else:
+        work_script_materialization = f"""
+work_script="$run_dir/dyec-controller-launch.sh"
+cat <<'PAYLOAD' > "$work_script"
+{pipeline_script}
+PAYLOAD
+chmod 0700 "$work_script"
+"""
+
     tmux_script = f"""
-set -euo pipefail
+set +e +u
 SESSION_NAME={shlex.quote(args.session_name)}
 ANALYSIS_ID={shlex.quote(analysis_id)}
 EXECUTING_ENTITY={shlex.quote(executing_entity)}
 REPO_KEY={shlex.quote(args.repository)}
 REPLACE_EXISTING_ANALYSIS_DIR={replace_existing_analysis_dir}
+REUSE_EXISTING_ANALYSIS_DIR={reuse_existing_analysis_dir}
+COST_CENTER_VALUE={cost_center_arg if cost_center_arg else ""}
 analysis_root=$(python3 - <<'PYCONFIG'
 from pathlib import Path
 analysis_root = '/fsx/analysis_results'
@@ -2462,10 +2824,12 @@ print(relative.strip())
 PYREPOS
 )
 analysis_root=${{analysis_root%/}}
-run_dir="/home/ubuntu/daylily-runs/$SESSION_NAME"
+REMOTE_USER={shlex.quote(remote_user)}
+run_dir="/home/$REMOTE_USER/daylily-runs/$SESSION_NAME"
 clone_root="$analysis_root/$EXECUTING_ENTITY/$ANALYSIS_ID"
 repo_path="$clone_root/$repo_relative"
-work_script="$run_dir/dayoa-controller-launch.sh"
+work_script="$run_dir/dyec-controller-launch.sh"
+tmux_entrypoint="$run_dir/dyec-controller-entrypoint.sh"
 tmux_log="$run_dir/tmux.log"
 bootstrap_log="$run_dir/tmux-bootstrap.log"
 status_file="$run_dir/status.json"
@@ -2487,28 +2851,88 @@ if tmux has-session -t "=$tmux_session_name" 2>/dev/null; then
   exit 8
 fi
 if [[ -e "$clone_root" ]]; then
-  if [[ "$REPLACE_EXISTING_ANALYSIS_DIR" != "true" ]]; then
+  if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
+    if [[ ! -d "$clone_root" || ! -d "$repo_path" ]]; then
+      echo "__DAYLILY_ERROR__=existing_analysis_dir_invalid"
+      exit 8
+    fi
+  elif [[ "$REPLACE_EXISTING_ANALYSIS_DIR" != "true" ]]; then
     echo "__DAYLILY_ERROR__=analysis_dir_exists"
     exit 8
-  fi
-  if [[ -z "$analysis_root" || -z "$EXECUTING_ENTITY" || -z "$ANALYSIS_ID" ]]; then
+  elif [[ -z "$analysis_root" || -z "$EXECUTING_ENTITY" || -z "$ANALYSIS_ID" ]]; then
     echo "__DAYLILY_ERROR__=unsafe_replace_existing_analysis_dir"
     exit 8
-  fi
-  expected_clone_root="$analysis_root/$EXECUTING_ENTITY/$ANALYSIS_ID"
-  if [[ "$clone_root" != "$expected_clone_root" || "$clone_root" == "/" ]]; then
+  elif [[ "$clone_root" != "$analysis_root/$EXECUTING_ENTITY/$ANALYSIS_ID" || "$clone_root" == "/" ]]; then
     echo "__DAYLILY_ERROR__=unsafe_replace_existing_analysis_dir"
     exit 8
+  else
+    rm -rf -- "$clone_root"
+    echo "__DAYLILY_REPLACED_ANALYSIS_DIR__=$clone_root"
   fi
-  rm -rf -- "$clone_root"
-  echo "__DAYLILY_REPLACED_ANALYSIS_DIR__=$clone_root"
+elif [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
+  echo "__DAYLILY_ERROR__=existing_analysis_dir_missing"
+  exit 8
 fi
-cat <<'PAYLOAD' > "$work_script"
-{pipeline_script}
-PAYLOAD
-chmod 0700 "$work_script"
-nohup tmux new-session -d -s "$tmux_session_name" \
-  "env DAYLILY_RUN_DIR=\"$run_dir\" DAYLILY_REPO_PATH=\"$repo_path\" DAYLILY_TMUX_LOG=\"$tmux_log\" DAYLILY_TMUX_SESSION=\"$tmux_session_name\" DAYLILY_CONTROLLER_TARGET_FILE=\"$controller_target_file\" DAYLILY_CONTROLLER_LOG_PATH=\"$controller_log_path\" DAYLILY_CONTROLLER_DAG_PATH=\"$controller_dag_path\" bash -lc 'source \"$work_script\" >>\"$tmux_log\" 2>&1'" >"$bootstrap_log" 2>&1 &
+{work_script_materialization}
+{{
+  printf '%s\n' '#!/usr/bin/env bash' 'set +e +u'
+  printf 'export DAYLILY_RUN_DIR=%q\n' "$run_dir"
+  printf 'export DAYLILY_REPO_PATH=%q\n' "$repo_path"
+  printf 'export DAYLILY_TMUX_LOG=%q\n' "$tmux_log"
+  printf 'export DAYLILY_TMUX_SESSION=%q\n' "$tmux_session_name"
+  printf 'export DAYLILY_CONTROLLER_TARGET_FILE=%q\n' "$controller_target_file"
+  printf 'export DAYLILY_CONTROLLER_LOG_PATH=%q\n' "$controller_log_path"
+  printf 'export DAYLILY_CONTROLLER_DAG_PATH=%q\n' "$controller_dag_path"
+  printf 'export DAYLILY_WORK_SCRIPT=%q\n' "$work_script"
+  printf '%s\n' \
+    'export DAYLILY_TMUX_LOGIN_INTERACTIVE_FLAGS="$-"' \
+    'for f in ~/.bash_profile ~/.bash_login ~/.profile; do' \
+    '  if [[ -f "$f" ]]; then' \
+    '    source "$f" || true' \
+    '    break' \
+    '  fi' \
+    'done' \
+    'if [[ -f ~/.bashrc ]]; then' \
+    '  source ~/.bashrc || true' \
+    'fi' \
+    'set +e +u' \
+    'set +e' \
+    'bash "$DAYLILY_WORK_SCRIPT" >>"$DAYLILY_TMUX_LOG" 2>&1' \
+    'DAYLILY_WORK_SCRIPT_RC=$?' \
+    'echo "[DYEC] controller script exited rc=$DAYLILY_WORK_SCRIPT_RC; preserving tmux shell for inspection" | tee -a "$DAYLILY_TMUX_LOG"' \
+    'export DAYLILY_LAST_CONTROLLER_RC="$DAYLILY_WORK_SCRIPT_RC"' \
+    'exec bash --login --interactive'
+}} >"$tmux_entrypoint"
+chmod 0700 "$tmux_entrypoint"
+tmux new-session -d -s "$tmux_session_name" >"$bootstrap_log" 2>&1
+tmux_start_rc=$?
+if [[ "$tmux_start_rc" != "0" ]]; then
+  echo "__DAYLILY_ERROR__=tmux_start_failed"
+  sed -n '1,200p' "$bootstrap_log" || true
+  exit "$tmux_start_rc"
+fi
+tmux_pane_target="$tmux_session_name:0.0"
+tmux_pane_ready=false
+for _dyec_tmux_wait in $(seq 1 60); do
+  if tmux list-panes -t "$tmux_session_name:0" >/dev/null 2>>"$bootstrap_log"; then
+    tmux_pane_ready=true
+    break
+  fi
+  sleep 1
+done
+if [[ "$tmux_pane_ready" != "true" ]]; then
+  echo "__DAYLILY_ERROR__=tmux_pane_start_timeout"
+  sed -n '1,200p' "$bootstrap_log" || true
+  exit 9
+fi
+tmux_command="source $(printf '%q' "$tmux_entrypoint")"
+tmux send-keys -t "$tmux_pane_target" "$tmux_command" C-m >>"$bootstrap_log" 2>&1
+tmux_send_rc=$?
+if [[ "$tmux_send_rc" != "0" ]]; then
+  echo "__DAYLILY_ERROR__=tmux_send_failed"
+  sed -n '1,200p' "$bootstrap_log" || true
+  exit "$tmux_send_rc"
+fi
 
 emit_controller_target() {{
   if [[ ! -s "$controller_target_file" ]]; then
@@ -2562,6 +2986,9 @@ if [[ "$session_ready" != "true" ]]; then
     echo "__DAYLILY_RUN_DIR__=$run_dir"
     echo "__DAYLILY_REPO_PATH__=$repo_path"
     printf '%s\n' {shlex.quote(f"__DAYLILY_DY_COMMAND__={dy_command}")}
+    if [[ -n "$COST_CENTER_VALUE" ]]; then
+      echo "__DAYLILY_COST_CENTER__=$COST_CENTER_VALUE"
+    fi
     emit_controller_target
     exit 0
   fi
@@ -2579,6 +3006,9 @@ echo "__DAYLILY_TMUX_SESSION__=$tmux_session_name"
 echo "__DAYLILY_RUN_DIR__=$run_dir"
 echo "__DAYLILY_REPO_PATH__=$repo_path"
 printf '%s\n' {shlex.quote(f"__DAYLILY_DY_COMMAND__={dy_command}")}
+if [[ -n "$COST_CENTER_VALUE" ]]; then
+  echo "__DAYLILY_COST_CENTER__=$COST_CENTER_VALUE"
+fi
 emit_controller_target
 """
 
@@ -2587,6 +3017,7 @@ emit_controller_target
         region,
         tmux_script,
         profile=args.profile,
+        as_user=remote_user,
         timeout=120,
         comment="Launch daylily workflow tmux session",
     )
@@ -2600,6 +3031,8 @@ emit_controller_target
     print(f"Run state directory: {launch_info.run_dir}")
     print(f"Workflow repo path: {launch_info.repo_path}")
     print(f"Effective dy-r command: {launch_info.dy_command}")
+    if args.cost_center:
+        print(f"Slurm cost center: {args.cost_center}")
     print(
         "Controller target: " + json.dumps(launch_info.controller_target.to_dict(), sort_keys=True)
     )

@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 import logging
+import shlex
+import sys
 from pathlib import Path
 from subprocess import CompletedProcess
-import sys
 from types import SimpleNamespace
 
 import pytest
@@ -24,7 +27,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.97"
+DAYOA_BLESSED_TAG = "13.0.50"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -40,6 +43,8 @@ EXPECTED_COMMANDS = {
     ("export",),
     ("exports", "attach"),
     ("exports", "run"),
+    ("exports", "transfer"),
+    ("exports", "cleanup"),
     ("exports", "detach"),
     ("identities", "validate"),
     ("identities", "plan"),
@@ -79,7 +84,15 @@ EXPECTED_COMMANDS = {
     ("headnode", "init"),
     ("headnode", "connect"),
     ("headnode", "info"),
+    ("headnode", "run"),
     ("headnode", "jobs"),
+    ("headnode", "system-info"),
+    ("headnode", "fsx-usage"),
+    ("headnode", "analysis-roots"),
+    ("headnode", "dayoa-controllers"),
+    ("headnode", "dayoa-controller-action"),
+    ("headnode", "slurm-job-action"),
+    ("headnode", "slurm-drain"),
     ("headnode", "upload"),
     ("headnode", "download"),
     ("headnode", "configure"),
@@ -90,8 +103,15 @@ EXPECTED_COMMANDS = {
     ("workflow", "status"),
     ("workflow", "logs"),
     ("workflow", "collect-benchmarks"),
+    ("workflow", "benchmark-report"),
     ("workflow", "stop"),
     ("repositories", "commands"),
+    ("catalog", "list"),
+    ("catalog", "show"),
+    ("catalog", "config-bjuice-preval"),
+    ("catalog", "render"),
+    ("catalog", "launch"),
+    ("catalog", "quick-launch"),
     ("tests", "pytest"),
     ("tests", "command-catalog"),
     ("tests", "command-catalog-performance"),
@@ -105,6 +125,7 @@ EXPECTED_COMMANDS = {
     ("state", "show"),
     ("analysis", "visit"),
     ("analysis", "status"),
+    ("analysis", "snapshot-manifests"),
     ("analysis", "guard"),
     ("command", "sample-stats"),
     ("analysis", "lock", "status"),
@@ -148,6 +169,11 @@ def _patch_headnode_transfer_common(monkeypatch, calls: dict[str, object]) -> No
         lambda cluster, region, profile=None: HeadNodeTarget(cluster, region, "i-abc123"),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["run_shell"] = (instance_id, region, script, kwargs)
@@ -200,7 +226,7 @@ def test_headnode_upload_uses_s3_relay_and_ssm(monkeypatch, tmp_path) -> None:
     assert region == "us-west-2"
     assert "aws s3 cp" in script
     assert "/home/ubuntu/payload.txt" in script
-    assert kwargs["comment"] == "DYEC headnode upload to /home/ubuntu/payload.txt"
+    assert kwargs["comment"] == "DYEC headnode upload"
 
 
 def test_headnode_download_recursive_uses_s3_relay_and_ssm(monkeypatch, tmp_path) -> None:
@@ -239,7 +265,41 @@ def test_headnode_download_recursive_uses_s3_relay_and_ssm(monkeypatch, tmp_path
     s3_calls = calls["s3_cp"]
     assert s3_calls[-1][0][0] == "--recursive"
     assert s3_calls[-1][0][-1] == str(destination)
-    assert kwargs["comment"] == "DYEC headnode download from /fsx/reports"
+    assert kwargs["comment"] == "DYEC headnode download"
+
+
+def test_headnode_run_returns_remote_stdout(monkeypatch) -> None:
+    calls: dict[str, object] = {}
+    _patch_headnode_transfer_common(monkeypatch, calls)
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "headnode",
+            "run",
+            "echo hello",
+            "--cwd",
+            "/fsx/work",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout + result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["stdout"] == "ok\n"
+    instance_id, region, script, kwargs = calls["run_shell"]
+    assert instance_id == "i-abc123"
+    assert region == "us-west-2"
+    assert "cd /fsx/work" in script
+    assert "echo hello" in script
+    assert "bash -lc" not in script
+    assert kwargs["comment"] == "DYEC headnode run"
 
 
 def test_cli_spec_uses_platform_v2_runtime() -> None:
@@ -318,6 +378,8 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     export_cmd = registry.get_command(("export",))
     exports_attach_cmd = registry.get_command(("exports", "attach"))
     exports_run_cmd = registry.get_command(("exports", "run"))
+    exports_transfer_cmd = registry.get_command(("exports", "transfer"))
+    exports_cleanup_cmd = registry.get_command(("exports", "cleanup"))
     exports_detach_cmd = registry.get_command(("exports", "detach"))
     resources_dir_cmd = registry.get_command(("resources-dir",))
     cluster_info_cmd = registry.get_command(("cluster-info",))
@@ -336,7 +398,17 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     headnode_init_cmd = registry.get_command(("headnode", "init"))
     headnode_connect_cmd = registry.get_command(("headnode", "connect"))
     headnode_info_cmd = registry.get_command(("headnode", "info"))
+    headnode_run_cmd = registry.get_command(("headnode", "run"))
     headnode_jobs_cmd = registry.get_command(("headnode", "jobs"))
+    headnode_system_info_cmd = registry.get_command(("headnode", "system-info"))
+    headnode_fsx_usage_cmd = registry.get_command(("headnode", "fsx-usage"))
+    headnode_analysis_roots_cmd = registry.get_command(("headnode", "analysis-roots"))
+    headnode_dayoa_controllers_cmd = registry.get_command(("headnode", "dayoa-controllers"))
+    headnode_dayoa_controller_action_cmd = registry.get_command(
+        ("headnode", "dayoa-controller-action")
+    )
+    headnode_slurm_job_action_cmd = registry.get_command(("headnode", "slurm-job-action"))
+    headnode_slurm_drain_cmd = registry.get_command(("headnode", "slurm-drain"))
     headnode_upload_cmd = registry.get_command(("headnode", "upload"))
     headnode_download_cmd = registry.get_command(("headnode", "download"))
     headnode_configure_cmd = registry.get_command(("headnode", "configure"))
@@ -346,8 +418,15 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     workflow_status_cmd = registry.get_command(("workflow", "status"))
     workflow_logs_cmd = registry.get_command(("workflow", "logs"))
     workflow_collect_benchmarks_cmd = registry.get_command(("workflow", "collect-benchmarks"))
+    workflow_benchmark_report_cmd = registry.get_command(("workflow", "benchmark-report"))
     workflow_stop_cmd = registry.get_command(("workflow", "stop"))
     repositories_commands_cmd = registry.get_command(("repositories", "commands"))
+    catalog_list_cmd = registry.get_command(("catalog", "list"))
+    catalog_show_cmd = registry.get_command(("catalog", "show"))
+    catalog_config_bjuice_preval_cmd = registry.get_command(("catalog", "config-bjuice-preval"))
+    catalog_render_cmd = registry.get_command(("catalog", "render"))
+    catalog_launch_cmd = registry.get_command(("catalog", "launch"))
+    catalog_quick_launch_cmd = registry.get_command(("catalog", "quick-launch"))
     tests_pytest_cmd = registry.get_command(("tests", "pytest"))
     tests_command_catalog_cmd = registry.get_command(("tests", "command-catalog"))
     tests_command_catalog_performance_cmd = registry.get_command(
@@ -363,6 +442,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     state_show_cmd = registry.get_command(("state", "show"))
     analysis_visit_cmd = registry.get_command(("analysis", "visit"))
     analysis_status_cmd = registry.get_command(("analysis", "status"))
+    analysis_snapshot_manifests_cmd = registry.get_command(("analysis", "snapshot-manifests"))
     analysis_guard_cmd = registry.get_command(("analysis", "guard"))
     command_sample_stats_cmd = registry.get_command(("command", "sample-stats"))
     analysis_lock_status_cmd = registry.get_command(("analysis", "lock", "status"))
@@ -410,7 +490,13 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert export_cmd is not None
     assert export_cmd.policy.mutates_state is True
 
-    for exports_cmd in (exports_attach_cmd, exports_run_cmd, exports_detach_cmd):
+    for exports_cmd in (
+        exports_attach_cmd,
+        exports_run_cmd,
+        exports_transfer_cmd,
+        exports_cleanup_cmd,
+        exports_detach_cmd,
+    ):
         assert exports_cmd is not None
         assert exports_cmd.policy.supports_json is True
         assert exports_cmd.policy.mutates_state is True
@@ -471,9 +557,33 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert headnode_info_cmd is not None
     assert headnode_info_cmd.policy.supports_json is True
 
+    assert headnode_run_cmd is not None
+    assert headnode_run_cmd.policy.supports_json is True
+    assert headnode_run_cmd.policy.mutates_state is True
+    assert headnode_run_cmd.policy.long_running is True
+
     assert headnode_jobs_cmd is not None
     assert headnode_jobs_cmd.policy.runtime_guard == "required"
     assert headnode_jobs_cmd.policy.mutates_state is False
+
+    for semantic_read_cmd in (
+        headnode_system_info_cmd,
+        headnode_fsx_usage_cmd,
+        headnode_analysis_roots_cmd,
+        headnode_dayoa_controllers_cmd,
+    ):
+        assert semantic_read_cmd is not None
+        assert semantic_read_cmd.policy.supports_json is True
+        assert semantic_read_cmd.policy.mutates_state is False
+
+    for semantic_action_cmd in (
+        headnode_dayoa_controller_action_cmd,
+        headnode_slurm_job_action_cmd,
+        headnode_slurm_drain_cmd,
+    ):
+        assert semantic_action_cmd is not None
+        assert semantic_action_cmd.policy.supports_json is True
+        assert semantic_action_cmd.policy.mutates_state is True
 
     for transfer_cmd in (headnode_upload_cmd, headnode_download_cmd):
         assert transfer_cmd is not None
@@ -507,6 +617,10 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert workflow_collect_benchmarks_cmd.policy.mutates_state is True
     assert workflow_collect_benchmarks_cmd.policy.long_running is True
 
+    assert workflow_benchmark_report_cmd is not None
+    assert workflow_benchmark_report_cmd.policy.supports_json is True
+    assert workflow_benchmark_report_cmd.policy.mutates_state is False
+
     assert workflow_stop_cmd is not None
     assert workflow_stop_cmd.policy.supports_json is True
     assert workflow_stop_cmd.policy.mutates_state is True
@@ -514,6 +628,22 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert repositories_commands_cmd is not None
     assert repositories_commands_cmd.policy.supports_json is True
     assert repositories_commands_cmd.policy.runtime_guard == "exempt"
+
+    for catalog_read_cmd in (catalog_list_cmd, catalog_show_cmd, catalog_render_cmd):
+        assert catalog_read_cmd is not None
+        assert catalog_read_cmd.policy.supports_json is True
+        assert catalog_read_cmd.policy.runtime_guard == "exempt"
+        assert catalog_read_cmd.policy.mutates_state is False
+
+    assert catalog_config_bjuice_preval_cmd is not None
+    assert catalog_config_bjuice_preval_cmd.policy.supports_json is True
+    assert catalog_config_bjuice_preval_cmd.policy.long_running is True
+
+    for catalog_launch_like_cmd in (catalog_launch_cmd, catalog_quick_launch_cmd):
+        assert catalog_launch_like_cmd is not None
+        assert catalog_launch_like_cmd.policy.supports_json is True
+        assert catalog_launch_like_cmd.policy.mutates_state is True
+        assert catalog_launch_like_cmd.policy.long_running is True
 
     assert tests_pytest_cmd is not None
     assert tests_pytest_cmd.policy.long_running is True
@@ -570,6 +700,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert analysis_status_cmd.policy.supports_json is True
     assert analysis_status_cmd.policy.mutates_state is True
     assert analysis_status_cmd.policy.long_running is True
+
+    assert analysis_snapshot_manifests_cmd is not None
+    assert analysis_snapshot_manifests_cmd.policy.supports_json is True
+    assert analysis_snapshot_manifests_cmd.policy.mutates_state is True
+    assert analysis_snapshot_manifests_cmd.policy.long_running is True
 
     assert analysis_guard_cmd is not None
     assert analysis_guard_cmd.policy.mutates_state is True
@@ -2088,6 +2223,11 @@ def test_pricing_spot_logs_exports_csv_via_ssm(monkeypatch, tmp_path) -> None:
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["run_shell"] = (instance_id, region, script, kwargs)
@@ -2407,6 +2547,11 @@ def test_headnode_connect_dry_run_prints_session_command(monkeypatch) -> None:
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
     monkeypatch.setattr(
         ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
+    monkeypatch.setattr(
+        ssm_module,
         "start_session",
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("unexpected session")),
     )
@@ -2453,11 +2598,17 @@ def test_headnode_connect_starts_session(monkeypatch) -> None:
         region: str,
         *,
         profile: str | None = None,
+        as_user: str = "auto",
         replace_process: bool = False,
     ) -> int:
-        calls["start_session"] = (instance_id, region, profile, replace_process)
+        calls["start_session"] = (instance_id, region, profile, as_user, replace_process)
         return 17
 
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
     monkeypatch.setattr(ssm_module, "start_session", fake_start_session)
 
     result = runner.invoke(
@@ -2475,7 +2626,7 @@ def test_headnode_connect_starts_session(monkeypatch) -> None:
     )
 
     assert result.exit_code == 17
-    assert calls["start_session"] == ("i-abc123", "us-west-2", "dev", True)
+    assert calls["start_session"] == ("i-abc123", "us-west-2", "dev", "ubuntu", True)
 
 
 def test_headnode_info_returns_describe_cluster_json(monkeypatch) -> None:
@@ -2625,6 +2776,11 @@ def test_headnode_jobs_runs_squeue_with_sq_format(monkeypatch) -> None:
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["run_shell"] = (instance_id, region, script, kwargs)
@@ -2998,6 +3154,8 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
             "CGT7P:CG:/tmp/cgt7p.fofn",
             "--project",
             "project-alpha",
+            "--cost-center",
+            "bjuice",
             "--session-name",
             "cg-session",
             "--max-runtime-minutes",
@@ -3039,6 +3197,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert DAYOA_BLESSED_TAG in launch_argv
     assert "--project" in launch_argv
     assert "project-alpha" in launch_argv
+    assert launch_argv[launch_argv.index("--cost-center") + 1] == "bjuice"
     assert "--max-runtime-minutes" in launch_argv
     assert launch_argv[launch_argv.index("--max-runtime-minutes") + 1] == "240"
     assert "--dy-command" in launch_argv
@@ -3357,6 +3516,206 @@ def test_samples_run_rejects_incompatible_catalog_command(monkeypatch, tmp_path)
     assert "stage_argv" not in calls
 
 
+def test_catalog_list_and_show_expose_command_catalog_entries() -> None:
+    list_result = runner.invoke(
+        app,
+        [
+            "--json",
+            "catalog",
+            "list",
+            "--command-class",
+            "sample_analysis",
+            "--type",
+            "dev",
+        ],
+    )
+
+    assert list_result.exit_code == 0, list_result.output
+    list_payload = json.loads(list_result.stdout)
+    command_ids = {item["command_id"] for item in list_payload["commands"]}
+    assert "package_inflection_hybrid_data" in command_ids
+
+    show_result = runner.invoke(
+        app,
+        ["--json", "catalog", "show", "package_inflection_hybrid_data"],
+    )
+
+    assert show_result.exit_code == 0, show_result.output
+    show_payload = json.loads(show_result.stdout)
+    assert show_payload["command"]["command_id"] == "package_inflection_hybrid_data"
+    assert show_payload["command"]["input_contract"] == "six_manifest"
+    assert show_payload["command"]["dy_command"].startswith("dy-r produce_inflection_delivery_set")
+
+
+def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
+    manifest_dir = tmp_path / "manifests"
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "catalog",
+            "render",
+            "package_inflection_hybrid_data",
+            "--analysis-id",
+            "pkg-run",
+            "--executing-entity",
+            "johnm",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--manifest-dir",
+            str(manifest_dir),
+            "--session-name",
+            "pkg-session",
+            "--project",
+            "project-alpha",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.stdout)
+    assert payload["command"]["command_id"] == "package_inflection_hybrid_data"
+    assert payload["git_tag"] == payload["command"]["git_tag"]
+    assert payload["dry_run"] is True
+    assert payload["dy_command"].startswith("dy-r produce_inflection_delivery_set")
+    assert " -n" in payload["dy_command"]
+    argv = payload["workflow_argv"]
+    assert argv[:2] == ["workflow", "launch"]
+    assert argv[argv.index("--manifest-dir") + 1] == str(manifest_dir)
+    assert argv[argv.index("--session-name") + 1] == "pkg-session"
+    assert argv[argv.index("--project") + 1] == "project-alpha"
+    assert argv[argv.index("--dy-command") + 1] == payload["dy_command"]
+    assert "dyec workflow launch" in payload["workflow_command"]
+
+
+def test_catalog_render_appends_dy_config_overrides(tmp_path) -> None:
+    manifest_dir = tmp_path / "manifests"
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "catalog",
+            "render",
+            "hybrid_ilmn_ont_hiomr_kitchensink",
+            "--analysis-id",
+            "hg-run",
+            "--executing-entity",
+            "johnm",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--manifest-dir",
+            str(manifest_dir),
+            "--dy-config",
+            "use_fq_data_starting_hrs=0",
+            "--dy-config",
+            "use_fq_data_up_to_hrs=7",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.stdout)
+    assert payload["dy_config"] == [
+        "use_fq_data_starting_hrs=0",
+        "use_fq_data_up_to_hrs=7",
+    ]
+    dy_tokens = shlex.split(payload["dy_command"])
+    assert dy_tokens.count("--config") == 1
+    config_index = dy_tokens.index("--config")
+    config_values = []
+    for token in dy_tokens[config_index + 1 :]:
+        if token.startswith("-"):
+            break
+        config_values.append(token)
+    assert 'aligners=["sentmm2ont"]' in config_values
+    assert 'snv_callers=["sentdhiomr"]' in config_values
+    assert 'htd_callers=["smn12"]' in config_values
+    assert "use_fq_data_starting_hrs=0" in config_values
+    assert "use_fq_data_up_to_hrs=7" in config_values
+    argv = payload["workflow_argv"]
+    assert argv[argv.index("--dy-command") + 1] == payload["dy_command"]
+
+
+def test_catalog_quick_launch_uses_rendered_workflow_argv(monkeypatch, tmp_path) -> None:
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    manifest_dir = tmp_path / "manifests"
+
+    def fake_launch(argv: list[str]) -> int:
+        calls["launch_argv"] = argv
+        print("__DAYLILY_SESSION__=pkg-session")
+        print("__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/pkg-session")
+        print(
+            "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/pkg-run/"
+            "daylily-omics-analysis"
+        )
+        print(f"__DAYLILY_DY_COMMAND__={argv[argv.index('--dy-command') + 1]}")
+        return 0
+
+    monkeypatch.setattr(cli_module, "_invoke_workflow_launch", fake_launch)
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "catalog",
+            "quick-launch",
+            "package_inflection_hybrid_data",
+            "--analysis-id",
+            "pkg-run",
+            "--executing-entity",
+            "johnm",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--manifest-dir",
+            str(manifest_dir),
+            "--session-name",
+            "pkg-session",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.stdout)
+    launch_argv = calls["launch_argv"]
+    assert launch_argv[launch_argv.index("--manifest-dir") + 1] == str(manifest_dir)
+    assert launch_argv[launch_argv.index("--analysis-id") + 1] == "pkg-run"
+    assert payload["workflow_launch"]["session_name"] == "pkg-session"
+    assert payload["workflow_launch"]["dy_command"] == payload["dy_command"]
+
+
+def test_catalog_render_requires_explicit_staged_inputs_for_sample_commands() -> None:
+    result = runner.invoke(
+        app,
+        [
+            "catalog",
+            "render",
+            "complete_genomics_mgi_snv_concordance",
+            "--analysis-id",
+            "cg-run",
+            "--executing-entity",
+            "johnm",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "requires --stage-dir" in result.output
+    assert "dyec samples run" in result.output
+
+
 def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     import daylily_ec.scripts.daylily_run_omics_analysis_headnode as launch_module
 
@@ -3392,6 +3751,8 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
             "sample_manifest",
             "--project",
             "project-alpha",
+            "--cost-center",
+            "bjuice",
             "--session-name",
             "sess-1",
             "--export-destination-s3-uri",
@@ -3431,6 +3792,8 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "release-1" in argv
     assert "--project" in argv
     assert "project-alpha" in argv
+    assert "--cost-center" in argv
+    assert argv[argv.index("--cost-center") + 1] == "bjuice"
     assert "--session-name" in argv
     assert "sess-1" in argv
     assert "--export-destination-s3-uri" in argv
@@ -3776,6 +4139,11 @@ def test_workflow_status_reads_status_json_via_ssm(monkeypatch) -> None:
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["run_shell"] = (instance_id, region, script, kwargs)
@@ -3811,7 +4179,126 @@ def test_workflow_status_reads_status_json_via_ssm(monkeypatch) -> None:
     assert json.loads(result.stdout)["session_name"] == "sess-1"
     _instance_id, _region, script, kwargs = calls["run_shell"]
     assert "/home/ubuntu/daylily-runs/sess-1/status.json" in script
+    assert script.startswith("\nset +e +u\nset +o pipefail 2>/dev/null || true\n")
+    assert "set -euo pipefail" not in script
     assert kwargs["profile"] == "dev"
+
+    result_alias = runner.invoke(
+        app,
+        [
+            "--json",
+            "workflow",
+            "status",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--session-name",
+            "sess-1",
+        ],
+    )
+
+    assert result_alias.exit_code == 0
+    assert json.loads(result_alias.stdout)["session_name"] == "sess-1"
+
+
+def test_remote_json_payload_download_uses_marked_chunks(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    payload_bytes = json.dumps(
+        {"ok": True, "tail": "log line with } that would break brace slicing"},
+        sort_keys=True,
+    ).encode("utf-8")
+
+    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+        assert instance_id == "i-abc123"
+        assert region == "us-west-2"
+        assert kwargs["as_user"] == "ubuntu"
+        encoded = base64.b64encode(payload_bytes).decode("ascii")
+        return SsmCommandResult(
+            "cmd-1",
+            instance_id,
+            "Success",
+            0,
+            "DAY-EC activated.\n__DYEC_REMOTE_JSON_CHUNK__=" + encoded + "\n",
+            "",
+        )
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+
+    payload = cli_module._download_remote_json_payload(
+        instance_id="i-abc123",
+        region="us-west-2",
+        profile="dev",
+        remote_user="ubuntu",
+        remote_path="/tmp/status.json",
+        expected_size=len(payload_bytes),
+        expected_sha256=hashlib.sha256(payload_bytes).hexdigest(),
+        comment="read status",
+    )
+
+    assert payload == {
+        "ok": True,
+        "tail": "log line with } that would break brace slicing",
+    }
+
+
+def test_collect_remote_json_payload_uses_marked_manifest_and_raw_cleanup(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    downloaded_payload = {"ok": True, "state": "RUNNING"}
+    manifest = {
+        "path": "/tmp/dyec-full-analysis-status-test.json",
+        "size": 27,
+        "sha256": "a" * 64,
+    }
+    scripts: list[str] = []
+
+    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+        scripts.append(script)
+        assert instance_id == "i-abc123"
+        assert region == "us-west-2"
+        assert kwargs["as_user"] == "ubuntu"
+        if kwargs["comment"] == "Collect full_analysis_status JSON":
+            return SsmCommandResult(
+                "cmd-collect",
+                instance_id,
+                "Success",
+                0,
+                "DAY-EC activated.\n"
+                "__DYEC_REMOTE_JSON_MANIFEST__="
+                + json.dumps(manifest, sort_keys=True)
+                + "\n",
+                "",
+            )
+        return SsmCommandResult("cmd-cleanup", instance_id, "Success", 0, "", "")
+
+    def fake_download(**kwargs):
+        assert kwargs["remote_path"] == manifest["path"]
+        assert kwargs["expected_size"] == manifest["size"]
+        assert kwargs["expected_sha256"] == manifest["sha256"]
+        return downloaded_payload
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+    monkeypatch.setattr(cli_module, "_download_remote_json_payload", fake_download)
+
+    payload = cli_module._collect_remote_json_payload(
+        instance_id="i-abc123",
+        region="us-west-2",
+        profile="dev",
+        remote_user="ubuntu",
+        remote_argv=["dyec", "--json", "analysis", "status", "full"],
+        operation="full_analysis_status",
+        timeout=300,
+    )
+
+    assert payload == downloaded_payload
+    assert "__DYEC_REMOTE_JSON_MANIFEST__=" in scripts[0]
+    assert "remote_raw=" in scripts[0]
+    assert "json.JSONDecoder()" in scripts[0]
+    assert ".raw" in scripts[-1]
 
 
 def test_workflow_logs_tails_tmux_log_via_ssm(monkeypatch) -> None:
@@ -3830,6 +4317,11 @@ def test_workflow_logs_tails_tmux_log_via_ssm(monkeypatch) -> None:
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["script"] = script
@@ -3848,8 +4340,8 @@ def test_workflow_logs_tails_tmux_log_via_ssm(monkeypatch) -> None:
             "us-west-2",
             "--cluster",
             "cluster-a",
-            "--run-dir",
-            "/home/ubuntu/daylily-runs/sess-1",
+            "--session-name",
+            "sess-1",
             "--lines",
             "50",
         ],
@@ -3857,8 +4349,10 @@ def test_workflow_logs_tails_tmux_log_via_ssm(monkeypatch) -> None:
 
     assert result.exit_code == 0
     assert "line 1" in result.stdout
+    assert "/home/ubuntu/daylily-runs/sess-1/tmux.log" in calls["script"]
     assert "tmux.log" in calls["script"]
     assert "tail -n 50" in calls["script"]
+    assert "set -euo pipefail" not in calls["script"]
 
 
 def test_workflow_collect_benchmarks_runs_remote_dayoa_collector(monkeypatch) -> None:
@@ -3878,6 +4372,11 @@ def test_workflow_collect_benchmarks_runs_remote_dayoa_collector(monkeypatch) ->
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["run_shell"] = (instance_id, region, script, kwargs)
@@ -4022,6 +4521,11 @@ def test_workflow_collect_benchmarks_surfaces_remote_failures(monkeypatch) -> No
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
     failed_result = SsmCommandResult(
         "cmd-1",
         "i-abc123",
@@ -4059,7 +4563,7 @@ def test_workflow_collect_benchmarks_surfaces_remote_failures(monkeypatch) -> No
     assert "SSM command 'cmd-1' failed" in result.stderr
 
 
-def test_workflow_stop_kills_controller_via_ssm(monkeypatch) -> None:
+def test_workflow_stop_interrupts_controller_via_ssm(monkeypatch) -> None:
     import daylily_ec.aws.ssm as ssm_module
 
     calls: dict[str, object] = {}
@@ -4075,6 +4579,11 @@ def test_workflow_stop_kills_controller_via_ssm(monkeypatch) -> None:
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["run_shell"] = (instance_id, region, script, kwargs)
@@ -4083,8 +4592,11 @@ def test_workflow_stop_kills_controller_via_ssm(monkeypatch) -> None:
             "run_dir": "/home/ubuntu/daylily-runs/sess-1",
             "tmux_session_name": "sess-1",
             "tmux_session_before": True,
-            "tmux_session_after": False,
-            "killed_tmux_session": True,
+            "tmux_session_after": True,
+            "interrupted_tmux_session": True,
+            "tmux_interrupt_completed": True,
+            "tmux_interrupt_wait_seconds": 90,
+            "killed_tmux_session": False,
             "cancel_slurm_jobs": False,
             "job_name_pattern": "",
             "slurm_jobs_before": [],
@@ -4125,11 +4637,14 @@ def test_workflow_stop_kills_controller_via_ssm(monkeypatch) -> None:
 
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
-    assert payload["killed_tmux_session"] is True
+    assert payload["interrupted_tmux_session"] is True
+    assert payload["killed_tmux_session"] is False
     assert payload["cancel_slurm_jobs"] is False
     _instance_id, _region, script, kwargs = calls["run_shell"]
     assert "DAYLILY_WORKFLOW_SESSION=sess-1" in script
     assert "DAYLILY_CANCEL_SLURM_JOBS=false" in script
+    assert 'run(["tmux", "send-keys"' in script
+    assert '"C-c"' in script
     assert 'run(["tmux", "kill-session"' in script
     assert 'status["exit_code"] = 130' in script
     assert "scancel" in script
@@ -4152,6 +4667,11 @@ def test_workflow_stop_can_cancel_slurm_jobs_with_explicit_pattern(monkeypatch) 
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
 
     def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
         calls["script"] = script

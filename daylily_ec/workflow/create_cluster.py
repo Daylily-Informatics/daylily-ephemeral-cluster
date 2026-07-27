@@ -31,6 +31,7 @@ import shlex
 import subprocess
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Literal, Optional, cast
 from urllib.parse import urlparse
@@ -1763,6 +1764,12 @@ FSX_PROMPT_OPTIONS = [
 FSX_SIZE_RULE_TEXT = "1200 GiB, 2400 GiB, or any value >= 4800 GiB divisible by 2400 GiB"
 FSX_DEPLOYMENT_TYPES = ("SCRATCH_2", "PERSISTENT_2")
 FSX_PERSISTENT2_THROUGHPUT_TIERS = ("125", "250", "500", "1000")
+DEFAULT_FSX_DEPLOYMENT_TYPE = "PERSISTENT_2"
+DEFAULT_FSX_PERSISTENT2_THROUGHPUT_MBPS_PER_TIB = "1000"
+FSX_CHOICE_DEFAULTS = {
+    "fsx_deployment_type": DEFAULT_FSX_DEPLOYMENT_TYPE,
+    "fsx_throughput_mbps_per_tib": DEFAULT_FSX_PERSISTENT2_THROUGHPUT_MBPS_PER_TIB,
+}
 APPROVED_HEADNODE_INSTANCE_TYPES = (
     "r7i.2xlarge",
     "r7i.4xlarge",
@@ -1854,7 +1861,11 @@ def _resolve_fsx_choice(
     if non_interactive:
         raise ValueError(f"Non-interactive cluster creation requires an explicit {key} set value.")
 
-    default_value = get_effective_default(cfg, key, "").strip().upper()
+    default_value = (
+        get_effective_default(cfg, key, FSX_CHOICE_DEFAULTS.get(key, ""))
+        .strip()
+        .upper()
+    )
     if default_value and default_value not in choices:
         raise ValueError(
             f"Invalid default {key} {default_value!r}; expected one of {', '.join(choices)}."
@@ -2359,6 +2370,9 @@ class _PostCreateInputs:
     budget_amount: str
     global_budget_amount: str
     allowed_budget_users: str
+    cost_center_name: str
+    cost_center_monthly_cap_usd: str
+    cost_center_allowed_users: str
     heartbeat_email: str
     heartbeat_schedule: str
     heartbeat_scheduler_role_arn: str
@@ -2372,6 +2386,7 @@ def _resolve_post_create_inputs(
     allowed_budget_users_default: str,
     cluster_name: str,
     disable_budget_enforcement: bool,
+    slurm_accounting: str,
 ) -> _PostCreateInputs:
     """Resolve budget and heartbeat inputs once before the create phase."""
     if disable_budget_enforcement:
@@ -2427,6 +2442,45 @@ def _resolve_post_create_inputs(
         )
         or allowed_budget_users_default
     )
+    cost_center_name = ""
+    cost_center_monthly_cap_usd = ""
+    cost_center_allowed_users = ""
+    if slurm_accounting == "on":
+        cost_center_name = _resolve_config_value(
+            cfg,
+            "cost_center_name",
+            "Cost center name",
+            non_interactive=non_interactive,
+        )
+        cost_center_monthly_cap_usd = _resolve_config_value(
+            cfg,
+            "cost_center_monthly_cap_usd",
+            "Cost center monthly cap (USD)",
+            non_interactive=non_interactive,
+        )
+        cost_center_allowed_users = _resolve_config_value(
+            cfg,
+            "cost_center_allowed_users",
+            "Cost center allowed users (comma-separated)",
+            non_interactive=non_interactive,
+            default_fallback=allowed_budget_users_default,
+        )
+        try:
+            from daylily_ec.aws.cost_centers import CostCenterError, validate_cost_center_name
+
+            validate_cost_center_name(cost_center_name)
+            cap = Decimal(cost_center_monthly_cap_usd)
+            if cap <= 0:
+                raise ValueError("cost_center_monthly_cap_usd must be greater than zero.")
+            allowed_users = tuple(
+                value.strip() for value in cost_center_allowed_users.split(",") if value.strip()
+            )
+            if not allowed_users:
+                raise ValueError("cost_center_allowed_users must name at least one user.")
+            if any(any(character.isspace() for character in value) for value in allowed_users):
+                raise ValueError("cost_center_allowed_users entries must not contain whitespace.")
+        except (CostCenterError, InvalidOperation, ValueError) as exc:
+            raise ValueError(f"Invalid cost-center input: {exc}") from exc
     heartbeat_email = (
         _resolve_config_value(
             cfg,
@@ -2468,6 +2522,9 @@ def _resolve_post_create_inputs(
         budget_amount=budget_amount,
         global_budget_amount=global_budget_amount,
         allowed_budget_users=allowed_budget_users,
+        cost_center_name=cost_center_name,
+        cost_center_monthly_cap_usd=cost_center_monthly_cap_usd,
+        cost_center_allowed_users=cost_center_allowed_users,
         heartbeat_email=heartbeat_email,
         heartbeat_schedule=heartbeat_schedule,
         heartbeat_scheduler_role_arn=heartbeat_scheduler_role_arn,
@@ -2544,6 +2601,12 @@ def run_create_workflow(
     Returns one of the ``EXIT_*`` constants.
     """
     from daylily_ec.aws.budgets import ensure_cluster_budget, ensure_global_budget
+    from daylily_ec.aws.cost_centers import (
+        DEFAULT_COST_CENTER_HOME_REGION,
+        DEFAULT_COST_CENTER_TABLE,
+        DEFAULT_COST_CENTER_USAGE_TABLE,
+        ensure_active_cost_center,
+    )
     from daylily_ec.aws.cloudformation import (
         StackOutputs,
         derive_stack_name,
@@ -2674,6 +2737,22 @@ def run_create_workflow(
         cluster_name = _resolve_cluster_name(cfg, non_interactive=non_interactive)
     except ValueError as exc:
         logger.error("Cluster name validation failed: %s", exc)
+        ui.fail(str(exc))
+        return EXIT_VALIDATION_FAILURE
+
+    ui.phase("CREATE INPUTS: BUDGETS, COST CENTER & HEARTBEAT")
+    try:
+        post_create_inputs = _resolve_post_create_inputs(
+            cfg,
+            non_interactive=non_interactive,
+            budget_email_default=_os.environ.get("DAY_CONTACT_EMAIL", ""),
+            allowed_budget_users_default="ubuntu",
+            cluster_name=cluster_name,
+            disable_budget_enforcement=disable_budget_enforcement,
+            slurm_accounting=slurm_accounting,
+        )
+    except ValueError as exc:
+        logger.error("Create input validation failed: %s", exc)
         ui.fail(str(exc))
         return EXIT_VALIDATION_FAILURE
 
@@ -3259,20 +3338,9 @@ def run_create_workflow(
     for uploaded_uri in uploaded_boot_config:
         ui.detail("Boot config", uploaded_uri)
 
-    # -- 4. PRE-CREATE: Prompt-only operational inputs -----------------------
-    ui.phase("PRE-CREATE: BUDGETS & HEARTBEAT")
-    post_create_inputs = _resolve_post_create_inputs(
-        cfg,
-        non_interactive=non_interactive,
-        budget_email_default=_os.environ.get("DAY_CONTACT_EMAIL", ""),
-        allowed_budget_users_default="ubuntu",
-        cluster_name=cluster_name,
-        disable_budget_enforcement=disable_budget_enforcement,
-    )
-
-    # Budget resources and the project allow-list live in the reference bucket
-    # that FSx imports during cluster startup. They must exist before launch.
-    ui.phase("PRE-CREATE: BUDGETS")
+    # Budget resources and the cost-center registry must exist before Slurm can
+    # accept a workflow submission on the new cluster.
+    ui.phase("PRE-CREATE: BUDGETS & COST CENTER")
     budgets_client = aws_ctx.client("budgets")
     s3_client = aws_ctx.client("s3")
     global_budget = ""
@@ -3309,6 +3377,30 @@ def run_create_workflow(
         logger.error("Budget setup failed: %s", exc)
         ui.fail(f"Budget setup failed: {exc}")
         return EXIT_AWS_FAILURE
+
+    if slurm_accounting == "on":
+        ui.step("Ensuring active Slurm cost center ...")
+        try:
+            cost_center, was_created = ensure_active_cost_center(
+                aws_ctx.client("dynamodb", region_name=DEFAULT_COST_CENTER_HOME_REGION),
+                post_create_inputs.cost_center_name,
+                monthly_cap_usd=post_create_inputs.cost_center_monthly_cap_usd,
+                allowed_users=tuple(
+                    value.strip()
+                    for value in post_create_inputs.cost_center_allowed_users.split(",")
+                    if value.strip()
+                ),
+                notes=f"Provisioned by dyec create for cluster {cluster_name}.",
+                actor_arn=aws_ctx.caller_arn,
+                table_name=DEFAULT_COST_CENTER_TABLE,
+                usage_table_name=DEFAULT_COST_CENTER_USAGE_TABLE,
+            )
+            cost_center_state = "created" if was_created else "verified"
+            ui.ok(f"Cost center {cost_center_state}: {cost_center.name}")
+        except Exception as exc:
+            logger.error("Cost-center setup failed: %s", exc)
+            ui.fail(f"Cost-center setup failed: {exc}")
+            return EXIT_AWS_FAILURE
 
     # -- 5. RENDER YAML (Phase 2a) -------------------------------------------
     ui.phase("RENDER CLUSTER YAML")
@@ -3366,9 +3458,9 @@ def run_create_workflow(
         "REGSUB_SAVE_FSX": "Delete",
         # Tag values must be quoted strings, not bare YAML booleans.
         "REGSUB_ENFORCE_BUDGET": '"' + post_create_inputs.enforce_budget + '"',
-        "REGSUB_COST_CENTER_REGION": "us-west-2",
-        "REGSUB_COST_CENTER_TABLE": "dayec-cost-centers",
-        "REGSUB_COST_CENTER_USAGE_TABLE": "dayec-cost-center-usage",
+        "REGSUB_COST_CENTER_REGION": DEFAULT_COST_CENTER_HOME_REGION,
+        "REGSUB_COST_CENTER_TABLE": DEFAULT_COST_CENTER_TABLE,
+        "REGSUB_COST_CENTER_USAGE_TABLE": DEFAULT_COST_CENTER_USAGE_TABLE,
         "REGSUB_AWS_ACCOUNT_ID": f"aws_profile-{aws_ctx.profile}",
         "REGSUB_ALLOCATION_STRATEGY": _resolve_config_value(
             cfg,
@@ -3488,9 +3580,9 @@ def run_create_workflow(
             username_tag=f"{_os.environ.get('USER', 'unknown')}-{aws_ctx.iam_username}",
             account_profile_tag=f"aws_profile-{aws_ctx.profile}",
             enforce_budget_tag=post_create_inputs.enforce_budget,
-            cost_center_region="us-west-2",
-            cost_center_table="dayec-cost-centers",
-            cost_center_usage_table="dayec-cost-center-usage",
+            cost_center_region=DEFAULT_COST_CENTER_HOME_REGION,
+            cost_center_table=DEFAULT_COST_CENTER_TABLE,
+            cost_center_usage_table=DEFAULT_COST_CENTER_USAGE_TABLE,
             lustre_version=persistent2_config["fsx_lustre_version"],
             metadata_mode=persistent2_config["fsx_metadata_mode"],
             encryption_mode=persistent2_config["fsx_encryption_mode"],
@@ -3741,6 +3833,9 @@ def run_create_workflow(
         "budget_amount": post_create_inputs.budget_amount,
         "global_budget_amount": post_create_inputs.global_budget_amount,
         "allowed_budget_users": post_create_inputs.allowed_budget_users,
+        "cost_center_name": post_create_inputs.cost_center_name,
+        "cost_center_monthly_cap_usd": post_create_inputs.cost_center_monthly_cap_usd,
+        "cost_center_allowed_users": post_create_inputs.cost_center_allowed_users,
         "heartbeat_email": post_create_inputs.heartbeat_email,
         "heartbeat_schedule": post_create_inputs.heartbeat_schedule,
         "heartbeat_scheduler_role_arn": (post_create_inputs.heartbeat_scheduler_role_arn),

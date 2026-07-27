@@ -182,7 +182,11 @@ def test_sbatch_wrapper_rejects_unknown_cost_center(tmp_path: Path) -> None:
     assert result.returncode == 1
     assert "does not exist" in result.stderr
     assert "cost center 'project-a' does not exist" in result.stderr
-    assert "http" not in result.stderr
+    assert (
+        "https://us-west-2.console.aws.amazon.com/billing/home#/budgets/details?name=cluster-a"
+        in result.stderr
+    )
+    assert "dynamodbv2/home?region=us-west-2#item-explorer?table=dayec-cost-centers" in result.stderr
 
 
 def test_sbatch_wrapper_rejects_empty_cost_center_registry_json(tmp_path: Path) -> None:
@@ -265,7 +269,12 @@ def test_sbatch_wrapper_allows_under_budget_project(tmp_path: Path) -> None:
     result = _run(wrapper, "--comment", "project-a", "--partition", "i8", "job.sh")
     assert result.returncode == 0
     assert "cluster 'cluster-a' budget" in result.stderr
+    assert (
+        "cluster budget monitor: https://us-west-2.console.aws.amazon.com/"
+        "billing/home#/budgets/details?name=cluster-a"
+    ) in result.stderr
     assert "cost center 'project-a' usage ok" in result.stderr
+    assert "cost-center report: https://us-west-2.console.aws.amazon.com/dynamodbv2/home" in result.stderr
     assert (
         "REAL_SLURM [--comment=project-a] [--export=ALL] [--partition] [i8] [job.sh]"
         in result.stdout

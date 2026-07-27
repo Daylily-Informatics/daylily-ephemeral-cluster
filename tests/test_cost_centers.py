@@ -9,6 +9,7 @@ from daylily_ec.aws.cost_centers import (
     create_cost_center,
     disable_cost_center,
     edit_cost_center,
+    ensure_active_cost_center,
     ensure_cost_center_registry,
     get_cost_center,
     get_cost_center_usage,
@@ -166,6 +167,59 @@ def test_create_edit_disable_cost_center():
     )
     assert disabled.status == "disabled"
     assert disabled.disabled_reason == "closed"
+
+
+def test_ensure_active_cost_center_creates_once_and_rejects_contract_drift():
+    dynamo = FakeDynamo()
+
+    created, was_created = ensure_active_cost_center(
+        dynamo,
+        "project-a",
+        monthly_cap_usd="200",
+        allowed_users=["ubuntu"],
+        table_name="cc",
+        usage_table_name="usage",
+        now="2026-07-05T00:37:42Z",
+    )
+    assert was_created is True
+    assert created.name == "project-a"
+
+    verified, was_created = ensure_active_cost_center(
+        dynamo,
+        "project-a",
+        monthly_cap_usd="200",
+        allowed_users=["ubuntu"],
+        table_name="cc",
+        usage_table_name="usage",
+        now="2026-07-05T01:37:42Z",
+    )
+    assert was_created is False
+    assert verified == created
+
+    with pytest.raises(CostCenterError, match="does not match the explicit DYEC create inputs"):
+        ensure_active_cost_center(
+            dynamo,
+            "project-a",
+            monthly_cap_usd="300",
+            allowed_users=["ubuntu"],
+            table_name="cc",
+            usage_table_name="usage",
+        )
+
+
+def test_active_cost_center_rejects_zero_monthly_cap():
+    dynamo = FakeDynamo()
+    ensure_cost_center_registry(dynamo, table_name="cc", usage_table_name="usage")
+
+    with pytest.raises(CostCenterError, match="greater than zero"):
+        create_cost_center(
+            dynamo,
+            "project-a",
+            monthly_cap_usd="0",
+            allowed_users=["ubuntu"],
+            table_name="cc",
+            usage_table_name="usage",
+        )
 
 
 def test_create_does_not_publish_registry_row_when_usage_seed_fails():

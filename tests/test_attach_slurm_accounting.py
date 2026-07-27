@@ -148,7 +148,7 @@ def test_default_templates_prompt_for_fsx_storage_selection() -> None:
     expected = {
         "fsx_fs_size": ["PROMPTUSER", "4800", ""],
         "fsx_deployment_type": ["PROMPTUSER", "PERSISTENT_2", ""],
-        "fsx_throughput_mbps_per_tib": ["PROMPTUSER", "250", ""],
+        "fsx_throughput_mbps_per_tib": ["PROMPTUSER", "1000", ""],
         "fsx_lustre_version": ["USESETVALUE", "", "2.15"],
         "fsx_metadata_mode": ["USESETVALUE", "", "AUTOMATIC"],
         "fsx_encryption_mode": ["USESETVALUE", "", "AWS_MANAGED_FSX"],

@@ -1,0 +1,16 @@
+{
+  "analysis_root": "/fsx/analysis_results/preval-hiomr2/hg003-hiomr2-five-chrom-shards-20260726-live3",
+  "lineage_validated": true,
+  "manifest_hashes": {
+    "analysis_unit_inputs.tsv": "bbaa1f830e24d875d68a574c1bc92c61d2890450bf71351f3c74502b8a6613bd",
+    "analysis_units.tsv": "3842e4525862786ec5d8768fd8afbc101efe1a21fa5426d0dee94dc879ed37a5",
+    "libraries.tsv": "83ef26ce3841558393e33b1ba0ed1f30652b19ef023941cd0510bdeac449e0c3",
+    "samples.tsv": "cc603b562f524dca1158b4f6cbbf4830b984c7eb18ae3fa94515216412315317",
+    "sequencing_inputs.tsv": "a0581f680098dd1c1a242b2cf342b9dd2436a60b29dc77ad4665d03f7c15cdd3",
+    "specimens.tsv": "96202add81bf4a817f213c63476d3242aa0f0458d055e8f92cbff68c05c3d94e"
+  },
+  "output_dir": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260726T123800Z_hg003_hiomr2_live4_source_manifests",
+  "schema_version": "dyec.analysis_manifest_snapshot.v1",
+  "source_config_dir": "/fsx/analysis_results/preval-hiomr2/hg003-hiomr2-five-chrom-shards-20260726-live3/daylily-omics-analysis/config",
+  "total_size_bytes": 86735
+}

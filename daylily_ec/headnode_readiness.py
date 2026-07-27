@@ -20,15 +20,15 @@ REQUIRED_ROLE_DIRECTORIES = (
 )
 REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES = (
     "/fsx/resources/environments/apptainer/cache/net",
-    "/fsx/resources/environments/conda/ubuntu/{hostname}",
-    "/fsx/resources/environments/containers/ubuntu/{hostname}",
+    "/fsx/resources/environments/conda/{remote_user}/{hostname}",
+    "/fsx/resources/environments/containers/{remote_user}/{hostname}",
     "/fsx/resources/environments/nextflow",
 )
-REQUIRED_HEADNODE_WORK_DIRECTORIES = (
-    "/fsx/work/ubuntu",
-    "/fsx/work/ubuntu/containers",
-    "/fsx/work/ubuntu/nextflow",
-    "/fsx/work/ubuntu/sarek",
+REQUIRED_HEADNODE_WORK_DIRECTORY_TEMPLATES = (
+    "/fsx/work/{remote_user}",
+    "/fsx/work/{remote_user}/containers",
+    "/fsx/work/{remote_user}/nextflow",
+    "/fsx/work/{remote_user}/sarek",
     "/fsx/run_dir_mounts",
 )
 
@@ -46,11 +46,12 @@ def build_headnode_readiness_script(
     file_checks = "\n".join(f"test -s {path}" for path in REQUIRED_ROLE_FILES)
     dir_checks = "\n".join(f"test -d {path}" for path in REQUIRED_ROLE_DIRECTORIES)
     writable_cache_checks = "\n".join(
-        f"test -d {template.format(hostname='$(hostname)')}"
+        f"test -d {template.format(hostname='$(hostname)', remote_user=remote_user)}"
         for template in REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES
     )
     headnode_work_checks = "\n".join(
-        f"test -d {path}" for path in REQUIRED_HEADNODE_WORK_DIRECTORIES
+        f"test -d {template.format(remote_user=remote_user)}"
+        for template in REQUIRED_HEADNODE_WORK_DIRECTORY_TEMPLATES
     )
     return f"""
 set -euo pipefail
@@ -85,7 +86,7 @@ echo "DAY-EC headnode readiness validated"
 DAYLILY_HEADNODE_READINESS
 chmod 700 "$readiness_script"
 cd "$repo_dir"
-script -q -c "bash -lc '$readiness_script'" /dev/null
+script -q -c "bash '$readiness_script'" /dev/null
 """
 
 

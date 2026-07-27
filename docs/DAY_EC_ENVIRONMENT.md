@@ -74,7 +74,7 @@ Use `dyec info` to confirm the project root.
 
 ## Headnode Environment
 
-Headnode setup installs DayEC user-scoped tools for `ubuntu` and validates a login shell. The supported interactive path is:
+Headnode setup installs DayEC user-scoped tools for the cluster-appropriate remote user and validates a bash login/interactive shell. Ubuntu/Intel DayOA headnodes use `ubuntu`; DRAGEN/RHEL-style headnodes use `ec2-user`. The supported interactive path is:
 
 ```bash
 dyec headnode connect \
@@ -93,7 +93,7 @@ day-clone --list
 day-clone --check-auth --repository daylily-omics-analysis --git-tag <dayoa_version>
 ```
 
-The supported user is `ubuntu`. `day-clone --list` prints the clone syntax and repository rows from `/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml`; the authentication check must also succeed for the pinned private DayOA ref. If either command fails, repair headnode configuration instead of guessing repository URLs, tags, or credentials.
+The supported user is selected by `dyec --remote-user auto`. `day-clone --list` prints the clone syntax and repository rows from `$HOME/.config/daylily/daylily_pipeline_command_catalog.yaml`; the authentication check must also succeed for the pinned private DayOA ref. If either command fails, repair headnode configuration instead of guessing repository URLs, tags, or credentials.
 
 ## Local Validation
 

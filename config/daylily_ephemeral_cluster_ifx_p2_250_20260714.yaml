@@ -18,7 +18,7 @@ ephemeral_cluster:
     headnode_instance_type: [USESETVALUE, "", "r7i.2xlarge"]
     fsx_fs_size: [USESETVALUE, "", "4800"]
     fsx_deployment_type: [USESETVALUE, "", "PERSISTENT_2"]
-    fsx_throughput_mbps_per_tib: [USESETVALUE, "", "250"]
+    fsx_throughput_mbps_per_tib: [USESETVALUE, "", "1000"]
     fsx_lustre_version: [USESETVALUE, "", "2.15"]
     fsx_metadata_mode: [USESETVALUE, "", "AUTOMATIC"]
     fsx_encryption_mode: [USESETVALUE, "", "AWS_MANAGED_FSX"]

@@ -140,6 +140,10 @@ class TestSshIntoHeadnodeScript:
 
 
 class TestRunOmicsAnalysisHeadnodeScript:
+    @pytest.fixture(autouse=True)
+    def _default_remote_user(self, monkeypatch):
+        monkeypatch.setattr(run_omics_module, "resolve_remote_user", lambda *args, **kwargs: "ubuntu")
+
     def test_bclconvert_profile_patch_inserts_yaml_keys_at_existing_child_indent(
         self, tmp_path, monkeypatch
     ):
@@ -324,7 +328,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         )
 
         assert "DAY_CONTAINERIZED=false" in command
-        assert "bin/day_run" in command
+        assert "dy-r" in command
         assert "aligners=['bwa2a','strobe']" in command
         assert "sv_callers=['tiddit']" in command
         assert "-j 8" in command
@@ -402,6 +406,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             "i-abc123",
             "dev",
             "us-west-2",
+            "ubuntu",
             "~/stage/run-1",
             "/ignored",
         )
@@ -445,6 +450,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             "i-abc123",
             "dev",
             "us-west-2",
+            "ubuntu",
             None,
             "/fsx/stage",
         )
@@ -468,7 +474,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "__DAYLILY_SESSION__=sess-1\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/analysis/daylily-omics-analysis\n"
-                "__DAYLILY_DY_COMMAND__=bin/day_run help --produce-analysis-artifact-manifest true\n"
+                "__DAYLILY_DY_COMMAND__=dy-r help --produce-analysis-artifact-manifest true\n"
                 + _controller_target_marker(
                     "sess-1",
                     "/fsx/analysis_results/johnm/analysis/daylily-omics-analysis",
@@ -543,6 +549,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 "johnm",
                 "--project",
                 "project-alpha",
+                "--cost-center",
+                "bjuice",
                 "--dry-run",
             ]
         )
@@ -555,6 +563,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             profile="dev",
             timeout=120,
             comment="Validate DAY-EC headnode readiness before workflow launch",
+            remote_user="ubuntu",
         )
         script = mock_run_shell.call_args.args[2]
         outer_syntax = subprocess.run(
@@ -568,8 +577,9 @@ class TestRunOmicsAnalysisHeadnodeScript:
             ["bash", "-n"], input=pipeline, text=True, capture_output=True, check=False
         )
         assert pipeline_syntax.returncode == 0, pipeline_syntax.stderr
-        assert 'run_dir="/home/ubuntu/daylily-runs/$SESSION_NAME"' in script
-        assert 'work_script="$run_dir/dayoa-controller-launch.sh"' in script
+        assert "REMOTE_USER=ubuntu" in script
+        assert 'run_dir="/home/$REMOTE_USER/daylily-runs/$SESSION_NAME"' in script
+        assert 'work_script="$run_dir/dyec-controller-launch.sh"' in script
         assert 'tmux_log="$run_dir/tmux.log"' in script
         assert 'controller_target_file="$run_dir/controller_target.json"' in script
         assert 'controller_log_path="$repo_path/.dyec/controller.log"' in script
@@ -578,12 +588,17 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'export DAYLILY_CONTROLLER_PID="$BASHPID"' in script
         assert "dyec.controller_target.v1" in script
         assert "python3 -c " in script
-        assert "nohup tmux new-session" in script
-        assert 'env DAYLILY_RUN_DIR="$run_dir"' in script
-        assert 'DAYLILY_REPO_PATH="$repo_path"' in script
-        assert 'DAYLILY_TMUX_LOG="$tmux_log"' in script
-        assert 'DAYLILY_TMUX_SESSION="$tmux_session_name"' in script
-        assert 'DAYLILY_CONTROLLER_TARGET_FILE="$controller_target_file"' in script
+        assert "DAYLILY_RUN_DIR=%q" in script
+        assert "DAYLILY_REPO_PATH=%q" in script
+        assert "DAYLILY_TMUX_LOG=%q" in script
+        assert "DAYLILY_TMUX_SESSION=%q" in script
+        assert "DAYLILY_CONTROLLER_TARGET_FILE=%q" in script
+        assert "bash \"$DAYLILY_WORK_SCRIPT\"" in script
+        assert 'tmux new-session -d -s "$tmux_session_name"' in script
+        assert 'tmux_pane_target="$tmux_session_name:0.0"' in script
+        assert 'tmux send-keys -t "$tmux_pane_target" "$tmux_command" C-m' in script
+        assert 'exec bash --login --interactive' in script
+        assert 'preserving tmux shell for inspection' in script
         assert 'tmux_session_name="${SESSION_NAME//[^A-Za-z0-9_-]/_}"' in script
         assert 'tmux has-session -t "=$tmux_session_name"' in script
         assert 'exec > >(tee -a "$CONTROLLER_LOG_PATH") 2>&1' in script
@@ -613,7 +628,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             '. "$HOME/miniconda3/etc/profile.d/conda.sh"'
         )
         assert script.index("patch_dayoa_runtime_tmpdir_wrappers") < script.index(
-            ". bin/day_activate slurm hg38 remote"
+            "dy-a slurm hg38"
         )
         assert 'repo_key = "daylily-omics-analysis"' in script
         assert "DAY_CONTAINERIZED=true" in script
@@ -630,7 +645,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
             'run_dy_command "$DY_COMMAND"'
         )
         assert 'mkdir -p "$(dirname "$clone_root")"' in script
-        assert 'mkdir -p "$clone_root"' not in script
+        assert 'mkdir -p "$clone_root"' in script
+        assert script.index('mkdir -p "$clone_root"') < script.index("day-clone")
         assert "REPLACE_EXISTING_ANALYSIS_DIR=false" in script
         assert script.index("REPLACE_EXISTING_ANALYSIS_DIR=false") < script.index(
             'if [[ -e "$clone_root" ]]; then'
@@ -651,17 +667,27 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then' in script
         assert '. "$HOME/miniconda3/etc/profile.d/conda.sh"' in script
         assert "PROJECT_VALUE=project-alpha" in script
+        assert "COST_CENTER_VALUE=bjuice" in script
         assert "dyoa_args+=(--project project-alpha)" in script
         assert 'export PROJECT="$PROJECT_VALUE"' in script
+        assert "apply_cost_center()" in script
+        assert 'export DAY_PROJECT="$COST_CENTER_VALUE"' in script
+        assert 'export DAYLILY_COST_CENTER="$COST_CENTER_VALUE"' in script
+        assert script.index("apply_cost_center") < script.index('run_dy_command "$DY_COMMAND"')
         assert "dyoa_args+=(--skip-project-check)" in script
         assert "set +u" in script
         assert "set -u" in script
         assert "activate_status=$?" in script
         assert 'if [[ "$DEFAULT_ACTIVATION" == "true" ]]; then' in script
         assert "DEFAULT_ACTIVATION=true" in script
-        assert 'echo "[ERROR] day_activate failed with status $activate_status"' in script
-        assert ". bin/day_activate slurm hg38 remote" in script
-        assert "bin/day_run" in script
+        assert "ANALYSIS_LOCK_MODE=true" in script
+        assert "dyec analysis visit" in script
+        assert "dyec analysis lock acquire" in script
+        assert "dyec analysis lock release" in script
+        assert script.index("dyec analysis lock acquire") < script.index("day-clone")
+        assert 'echo "[ERROR] dy-a failed with status $activate_status"' in script
+        assert "dy-a slurm hg38" in script
+        assert "dy-r" in script
         assert 'local links_dir="$repo_path/config/run_dir_links"' in script
         assert "if ! remove_run_dir_projection_links; then" in script
         assert script.index("remove_run_dir_projection_links") < script.index(
@@ -685,6 +711,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             "daylily-ssh-into-headnode --profile dev --region us-west-2 --cluster cluster-a" in out
         )
         assert "Then run: tmux attach -t sess-1" in out
+        assert "Slurm cost center: bjuice" in out
 
         mock_run_shell.reset_mock()
         rc = run_omics_module.main(
@@ -710,6 +737,100 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert replace_script.index("REPLACE_EXISTING_ANALYSIS_DIR=true") < replace_script.index(
             'if [[ -e "$clone_root" ]]; then'
         )
+
+        mock_run_shell.reset_mock()
+        mock_discover.reset_mock()
+        rc = run_omics_module.main(
+            [
+                "--profile",
+                "dev",
+                "--git-tag",
+                "13.0.42",
+                "--input-contract",
+                "none",
+                "--no-input-staging",
+                "--analysis-id",
+                "analysis",
+                "--executing-entity",
+                "johnm",
+                "--session-name",
+                "analysis-hiomr2-kitchensink",
+                "--reuse-existing-analysis-dir",
+                "--dy-command",
+                "dy-r produce_sentdhiomr2_kitchensink -p -k -j 6",
+            ]
+        )
+        assert rc == 0
+        mock_discover.assert_not_called()
+        continuation_script = mock_run_shell.call_args.args[2]
+        continuation_outer_syntax = subprocess.run(
+            ["bash", "-n"],
+            input=continuation_script,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        assert continuation_outer_syntax.returncode == 0, continuation_outer_syntax.stderr
+        continuation_pipeline = continuation_script.split(
+            "cat <<'PAYLOAD' > \"$work_script\"\n", 1
+        )[1].split("\nPAYLOAD\n", 1)[0]
+        continuation_pipeline_syntax = subprocess.run(
+            ["bash", "-n"],
+            input=continuation_pipeline,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        assert (
+            continuation_pipeline_syntax.returncode == 0
+        ), continuation_pipeline_syntax.stderr
+        assert "REUSE_EXISTING_ANALYSIS_DIR=true" in continuation_script
+        assert "REPLACE_EXISTING_ANALYSIS_DIR=false" in continuation_script
+        assert "__DAYLILY_REUSED_ANALYSIS_DIR__=$clone_root" in continuation_script
+        assert "__DAYLILY_ERROR__=existing_analysis_ref_fetch_failed" in continuation_script
+        assert 'git -C "$repo_path" fetch --quiet --tags origin "$DAYOA_GIT_REF"' in continuation_script
+        assert 'git -C "$repo_path" rev-parse --verify "FETCH_HEAD^{commit}"' in continuation_script
+        assert 'git -C "$repo_path" checkout --detach "$expected_commit"' in continuation_script
+        assert continuation_script.index(
+            'if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then'
+        ) < continuation_script.index(
+            'elif [[ "$REPLACE_EXISTING_ANALYSIS_DIR" != "true" ]]; then'
+        )
+
+    def test_main_rejects_unsafe_existing_analysis_continuation(self):
+        with pytest.raises(
+            run_omics_module.CommandError,
+            match="requires --input-contract none",
+        ):
+            run_omics_module.main(
+                [
+                    "--profile",
+                    "dev",
+                    "--git-tag",
+                    "13.0.42",
+                    "--analysis-id",
+                    "analysis",
+                    "--reuse-existing-analysis-dir",
+                ]
+            )
+
+        with pytest.raises(
+            run_omics_module.CommandError,
+            match="requires --no-input-staging",
+        ):
+            run_omics_module.main(
+                [
+                    "--profile",
+                    "dev",
+                    "--git-tag",
+                    "13.0.42",
+                    "--analysis-id",
+                    "analysis",
+                    "--input-contract",
+                    "none",
+                    "--reuse-existing-analysis-dir",
+                ]
+            )
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
@@ -1551,7 +1672,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "SESSION_START_DEADLINE=$((SECONDS + 60))" in script
         assert "session_ready=false" in script
         assert 'tmux_session_name="${SESSION_NAME//[^A-Za-z0-9_-]/_}"' in script
-        assert 'nohup tmux new-session -d -s "$tmux_session_name"' in script
+        assert 'tmux new-session -d -s "$tmux_session_name"' in script
+        assert 'tmux_pane_target="$tmux_session_name:0.0"' in script
+        assert 'tmux send-keys -t "$tmux_pane_target" "$tmux_command" C-m' in script
+        assert 'preserving tmux shell for inspection' in script
         assert 'if tmux has-session -t "=$tmux_session_name"' in script
         assert "__DAYLILY_COMPLETED_QUICKLY__=$quick_status" in script
         assert "__DAYLILY_TMUX_SESSION__=$tmux_session_name" in script

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import re
 import shlex
 import shutil
@@ -26,6 +27,8 @@ CONTROLLER_RC_RE = re.compile(
     r"(?:__DAYOA_CONTROLLER_RC__|DAYOA_CONTROLLER_RC|controller[_ ]rc)\s*[=:]\s*(?P<rc>-?\d+)",
     re.IGNORECASE,
 )
+WORKFLOW_SUCCESS_RE = re.compile(r"\bWORKFLOW SUCCESS\b", re.IGNORECASE)
+WORKFLOW_RETURN_CODE_RE = re.compile(r"\bRETURN CODE:\s*(?P<rc>-?\d+)\b", re.IGNORECASE)
 FAILURE_PATTERNS = (
     "Error in rule",
     "Error in group",
@@ -37,6 +40,11 @@ CANONICAL_ARTIFACT_NAMES = (
     "multiqc_data.json",
     "dayoa_evidence_manifest.json",
 )
+RUN_QC_TARGET_PLATFORMS = {
+    "produce_illumina_run_qc": "illumina",
+    "produce_ont_run_qc": "ont",
+    "produce_ultima_run_qc": "ultima",
+}
 PROGRESS_MARKER_RE = re.compile(
     r"(?:\b\d+(?:\.\d+)?%|\b(?:records?|reads?|loci|contigs?|variants?|steps?)\b|"
     r"\b(?:error|failed|warning|complete|finished|writing|merging|sorting|indexing)\b)",
@@ -229,7 +237,14 @@ def _latest_master_log(dayoa_root: Path) -> Path | None:
     candidates = [path for path in log_dir.glob("*.snakemake.log") if path.is_file()]
     if not candidates:
         candidates = [path for path in log_dir.glob("*.log") if path.is_file()]
-    return max(candidates, key=lambda path: path.stat().st_mtime) if candidates else None
+    workflow_candidates = [
+        path
+        for path in candidates
+        if path.read_text(encoding="utf-8", errors="replace").strip()
+        != "Unlocking working directory."
+    ]
+    selected = workflow_candidates or candidates
+    return max(selected, key=lambda path: path.stat().st_mtime) if selected else None
 
 
 def _workflow_evidence(dayoa_root: Path, *, tail_lines: int, full: bool) -> dict[str, Any]:
@@ -242,6 +257,12 @@ def _workflow_evidence(dayoa_root: Path, *, tail_lines: int, full: bool) -> dict
             "submitted_count": None,
             "completed_count": None,
             "source": str(master_log) if master_log else None,
+        },
+        "terminal": {
+            "return_code": None,
+            "return_code_source": None,
+            "success_marker": False,
+            "success_marker_source": None,
         },
         "failure_count": 0,
         "first_failure_line": None,
@@ -260,6 +281,13 @@ def _workflow_evidence(dayoa_root: Path, *, tail_lines: int, full: bool) -> dict
             "total": int(latest.group("total")),
             "percent": int(latest.group("pct")),
         }
+    rc_matches = list(WORKFLOW_RETURN_CODE_RE.finditer(text))
+    if rc_matches:
+        evidence["terminal"]["return_code"] = int(rc_matches[-1].group("rc"))
+        evidence["terminal"]["return_code_source"] = str(master_log)
+    if WORKFLOW_SUCCESS_RE.search(text):
+        evidence["terminal"]["success_marker"] = True
+        evidence["terminal"]["success_marker_source"] = str(master_log)
     evidence["scheduled_rules"] = sorted(set(RULE_RE.findall(text)))
     evidence["job_events"] = {
         "submitted_count": len(set(SUBMITTED_JOB_RE.findall(text))),
@@ -503,6 +531,7 @@ def _controller_processes(
 
     panes: list[dict[str, Any]] = []
     controller_rc: int | None = None
+    controller_rc_source: str | None = None
     if shutil.which("tmux"):
         pane_result = _run(
             [
@@ -537,6 +566,7 @@ def _controller_processes(
                 pane_rc = int(rc_matches[-1].group("rc")) if rc_matches else None
                 if pane_rc is not None:
                     controller_rc = pane_rc
+                    controller_rc_source = f"tmux pane {target}"
                 pane_payload: dict[str, Any] = {
                     "session": session,
                     "window": int(window),
@@ -567,14 +597,186 @@ def _controller_processes(
                         "bounded": len(capture_lines) > MAX_TMUX_EXCERPT_LINES,
                     }
                 panes.append(pane_payload)
+    receipt_path = (
+        Path.home() / "daylily-runs" / analysis_root.name / "status.json"
+    )
+    receipt: dict[str, Any] = {
+        "available": False,
+        "path": str(receipt_path),
+        "error": None,
+    }
+    if receipt_path.is_file():
+        try:
+            raw_receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            if not isinstance(raw_receipt, dict):
+                raise ValueError("status receipt must be a JSON object")
+            repo_path = Path(str(raw_receipt.get("repo_path") or "")).resolve()
+            session_name = str(raw_receipt.get("session_name") or "").strip()
+            exit_code = raw_receipt.get("exit_code")
+            completed_at = str(raw_receipt.get("completed_at") or "").strip()
+            command = str(raw_receipt.get("command") or "").strip()
+            if repo_path != (analysis_root / "daylily-omics-analysis").resolve():
+                raise ValueError("status receipt repo_path does not match analysis root")
+            if session_name != analysis_root.name:
+                raise ValueError("status receipt session_name does not match analysis root")
+            if isinstance(exit_code, bool) or not isinstance(exit_code, int):
+                raise ValueError("status receipt exit_code must be an integer")
+            if not completed_at:
+                raise ValueError("status receipt completed_at is required")
+            if not command:
+                raise ValueError("status receipt command is required")
+            receipt = {
+                "available": True,
+                "path": str(receipt_path),
+                "error": None,
+                "repo_path": str(repo_path),
+                "session_name": session_name,
+                "exit_code": exit_code,
+                "completed_at": completed_at,
+                "started_at": str(raw_receipt.get("started_at") or "").strip() or None,
+                "command": command,
+            }
+            controller_rc = exit_code
+            controller_rc_source = str(receipt_path)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            receipt["error"] = str(exc)
     return {
         "available": True,
         "error": None,
         "active": bool(processes),
         "return_code": controller_rc,
+        "return_code_source": controller_rc_source,
         "processes": processes,
         "tmux_panes": panes,
+        "status_receipt": receipt,
     }
+
+
+def _controller_run_receipt(
+    analysis_root: Path,
+    *,
+    run_state_root: Path | None = None,
+) -> dict[str, Any]:
+    """Read the one run-control status receipt that owns this exact analysis root."""
+
+    from daylily_ec.scripts.daylily_run_omics_analysis_headnode import (
+        CommandError,
+        parse_controller_target,
+    )
+
+    root = analysis_root.resolve()
+    state_root = (
+        run_state_root.expanduser().resolve()
+        if run_state_root is not None
+        else (Path.home() / "daylily-runs").resolve()
+    )
+    result: dict[str, Any] = {
+        "available": False,
+        "controller_target_path": None,
+        "status_path": None,
+        "controller_id": None,
+        "started_at": None,
+        "completed_at": None,
+        "return_code": None,
+        "error": None,
+    }
+    if not state_root.is_dir():
+        result["error"] = f"run-control state directory does not exist: {state_root}"
+        return result
+
+    matches: list[tuple[Path, Any]] = []
+    for target_path in sorted(state_root.glob("*/controller_target.json")):
+        if (
+            target_path.is_symlink()
+            or target_path.parent.is_symlink()
+            or not target_path.is_file()
+        ):
+            continue
+        try:
+            target = parse_controller_target(target_path.read_text(encoding="utf-8"))
+        except (OSError, CommandError):
+            continue
+        if Path(target.analysis_root) == root:
+            matches.append((target_path, target))
+
+    if len(matches) > 1:
+        paths = ", ".join(str(path) for path, _target in matches)
+        raise AnalysisStatusError(
+            f"multiple run-control receipts claim analysis root {root}: {paths}"
+        )
+    if not matches:
+        result["error"] = f"no exact run-control receipt claims analysis root {root}"
+        return result
+
+    target_path, target = matches[0]
+    status_path = target_path.with_name("status.json")
+    result.update(
+        {
+            "controller_target_path": str(target_path),
+            "status_path": str(status_path),
+            "controller_id": target.controller_id,
+        }
+    )
+    if status_path.is_symlink() or not status_path.is_file():
+        result["error"] = f"matched run-control status receipt does not exist: {status_path}"
+        return result
+    try:
+        payload = json.loads(status_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise AnalysisStatusError(
+            f"matched run-control status receipt is invalid: {status_path}: {exc}"
+        ) from exc
+    required = {
+        "session_name",
+        "repo_path",
+        "started_at",
+        "completed_at",
+        "exit_code",
+        "command",
+    }
+    if not isinstance(payload, dict) or set(payload) != required:
+        raise AnalysisStatusError(
+            f"matched run-control status receipt fields are invalid: {status_path}"
+        )
+    if payload["session_name"] != target.controller_id:
+        raise AnalysisStatusError(
+            f"matched run-control status session differs from controller target: {status_path}"
+        )
+    if payload["repo_path"] != target.cwd:
+        raise AnalysisStatusError(
+            f"matched run-control status repo path differs from controller target: {status_path}"
+        )
+    if not isinstance(payload["command"], str) or not payload["command"].strip():
+        raise AnalysisStatusError(
+            f"matched run-control status command is invalid: {status_path}"
+        )
+    for field in ("started_at", "completed_at"):
+        value = payload[field]
+        if value is not None and (not isinstance(value, str) or not value.strip()):
+            raise AnalysisStatusError(
+                f"matched run-control status {field} is invalid: {status_path}"
+            )
+    return_code = payload["exit_code"]
+    if return_code is not None and (
+        isinstance(return_code, bool) or not isinstance(return_code, int)
+    ):
+        raise AnalysisStatusError(
+            f"matched run-control status exit_code is invalid: {status_path}"
+        )
+    if return_code is not None and payload["completed_at"] is None:
+        raise AnalysisStatusError(
+            f"matched terminal run-control status has no completed_at: {status_path}"
+        )
+    result.update(
+        {
+            "available": True,
+            "started_at": payload["started_at"],
+            "completed_at": payload["completed_at"],
+            "return_code": return_code,
+            "error": None,
+        }
+    )
+    return result
 
 
 def _filesystem(analysis_root: Path, *, runner: Runner) -> dict[str, Any]:
@@ -640,16 +842,56 @@ def _filesystem_io(*, runner: Runner) -> dict[str, Any]:
     return payload
 
 
-def _canonical_artifacts(dayoa_root: Path) -> dict[str, Any]:
+def _canonical_artifacts(
+    dayoa_root: Path,
+    *,
+    controller: dict[str, Any],
+) -> dict[str, Any]:
     reports = dayoa_root / "results" / "day"
     matches: dict[str, list[str]] = {}
     for name in CANONICAL_ARTIFACT_NAMES:
         matches[name] = sorted(
             str(path) for path in reports.glob(f"*/reports/**/{name}") if path.is_file()
         )
+    generic_complete = all(matches[name] for name in CANONICAL_ARTIFACT_NAMES)
+    receipt = controller.get("status_receipt") or {}
+    command = str(receipt.get("command") or "")
+    platform = next(
+        (
+            candidate_platform
+            for target, candidate_platform in RUN_QC_TARGET_PLATFORMS.items()
+            if re.search(rf"(?:^|\s){re.escape(target)}(?:\s|$)", command)
+        ),
+        None,
+    )
+    run_qc_bundles: list[dict[str, Any]] = []
+    if platform:
+        for report in sorted(
+            dayoa_root.glob(f"results/runs/**/run_qc/{platform}/multiqc_report.html")
+        ):
+            run_qc_root = report.parent
+            required = (
+                run_qc_root / "summary.html",
+                run_qc_root / "summary.tsv",
+                report,
+                run_qc_root / "multiqc_report_data" / "multiqc_data.json",
+            )
+            run_qc_bundles.append(
+                {
+                    "root": str(run_qc_root),
+                    "all_present": all(path.is_file() for path in required),
+                    "files": [str(path) for path in required if path.is_file()],
+                    "missing": [str(path) for path in required if not path.is_file()],
+                }
+            )
+    run_qc_complete = bool(run_qc_bundles) and all(
+        bundle["all_present"] for bundle in run_qc_bundles
+    )
     return {
-        "all_present": all(matches[name] for name in CANONICAL_ARTIFACT_NAMES),
+        "all_present": run_qc_complete if platform else generic_complete,
+        "contract": f"run_qc_{platform}" if platform else "dayoa_canonical",
         "files": matches,
+        "run_qc_bundles": run_qc_bundles,
     }
 
 
@@ -876,25 +1118,55 @@ def _terminal_evidence(
     controller: dict[str, Any],
     slurm: dict[str, Any],
     artifacts: dict[str, Any],
+    run_receipt: dict[str, Any],
 ) -> dict[str, Any]:
     progress = workflow["progress"]
     progress_complete = (
         progress["completed"] is not None and progress["completed"] == progress["total"]
     )
+    workflow_terminal = workflow.get("terminal", {})
+    workflow_return_code = workflow_terminal.get("return_code")
+    effective_return_code = (
+        controller["return_code"] if controller["return_code"] is not None else workflow_return_code
+    )
+    terminal_success = (
+        bool(workflow_terminal.get("success_marker")) and effective_return_code == 0
+    )
+    exact_run_receipt_success = (
+        run_receipt["available"]
+        and run_receipt["return_code"] == 0
+        and bool(run_receipt["completed_at"])
+    )
     requirements = {
-        "controller_exit_zero": controller["return_code"] == 0,
+        "controller_exit_zero": effective_return_code == 0,
         "controller_inactive": controller["available"] and not controller["active"],
         "scheduler_idle": slurm["available"] and not slurm["jobs"],
+        "exact_run_receipt_success": exact_run_receipt_success,
         "workflow_progress_complete": progress_complete,
+        "workflow_terminal_success": terminal_success,
         "strict_artifacts_present": artifacts["all_present"],
     }
+    workflow_complete = progress_complete or terminal_success
+    success_requirements = {
+        "controller_exit_zero": requirements["controller_exit_zero"],
+        "controller_inactive": requirements["controller_inactive"],
+        "scheduler_idle": requirements["scheduler_idle"],
+        "workflow_complete": workflow_complete,
+        "strict_artifacts_present": requirements["strict_artifacts_present"],
+    }
+    exact_receipt_success_verified = (
+        exact_run_receipt_success
+        and not controller["active"]
+        and requirements["scheduler_idle"]
+    )
     return {
-        "return_code": controller["return_code"],
-        "return_code_source": (
-            "matching tmux controller marker" if controller["return_code"] is not None else None
-        ),
+        "return_code": effective_return_code,
+        "return_code_source": controller.get("return_code_source")
+        or workflow_terminal.get("return_code_source"),
         "requirements": requirements,
-        "success_verified": all(requirements.values()),
+        "success_verified": (
+            exact_receipt_success_verified or all(success_requirements.values())
+        ),
         "artifact_files": artifacts["files"],
     }
 
@@ -905,6 +1177,7 @@ def collect_analysis_status(
     mode: str,
     tail_lines: int = 1000,
     runner: Runner = subprocess.run,
+    run_state_root: str | Path | None = None,
 ) -> dict[str, Any]:
     """Collect slim or full read-only status for one exact analysis root."""
 
@@ -937,24 +1210,47 @@ def collect_analysis_status(
         full=full,
         tail_lines=tail_lines,
     )
+    run_receipt = _controller_run_receipt(
+        root,
+        run_state_root=Path(run_state_root) if run_state_root is not None else None,
+    )
+    receipt_return_code = run_receipt["return_code"]
+    if (
+        receipt_return_code is not None
+        and controller["return_code"] is not None
+        and receipt_return_code != controller["return_code"]
+    ):
+        raise AnalysisStatusError(
+            "matching tmux controller marker disagrees with the exact run-control receipt"
+        )
+    if receipt_return_code is not None:
+        controller["return_code"] = receipt_return_code
+        controller["return_code_source"] = run_receipt["status_path"]
+    controller["run_receipt"] = run_receipt
     manifests = _analysis_manifests(dayoa_root)
-    artifacts = _canonical_artifacts(dayoa_root)
+    artifacts = _canonical_artifacts(dayoa_root, controller=controller)
     progress = workflow["progress"]
     terminal_evidence = _terminal_evidence(
         workflow=workflow,
         controller=controller,
         slurm=slurm,
         artifacts=artifacts,
+        run_receipt=run_receipt,
+    )
+    effective_return_code = terminal_evidence["return_code"]
+    workflow_terminal_complete = (
+        terminal_evidence["requirements"]["workflow_progress_complete"]
+        or terminal_evidence["requirements"]["workflow_terminal_success"]
     )
     complete = (
-        terminal_evidence["requirements"]["workflow_progress_complete"] and artifacts["all_present"]
+        workflow_terminal_complete and artifacts["all_present"]
     )
     active = controller["active"] or bool(slurm["jobs"])
-    if controller["return_code"] not in (None, 0) and not active:
+    if effective_return_code not in (None, 0) and not active:
         state = "FAILED"
     elif terminal_evidence["success_verified"]:
         state = "SUCCESS"
-    elif complete and controller["return_code"] == 0 and not active and not slurm["available"]:
+    elif complete and effective_return_code == 0 and not active and not slurm["available"]:
         state = "COMPLETE_ARTIFACTS_RC_ZERO_SCHEDULER_UNKNOWN"
     elif complete and not active:
         state = "COMPLETE_ARTIFACTS_RC_UNKNOWN"
@@ -988,15 +1284,28 @@ def collect_analysis_status(
         payload["warnings"].append(f"Slurm evidence unavailable: {slurm['error']}")
     if not accounting["available"]:
         payload["warnings"].append(f"Slurm accounting evidence unavailable: {accounting['error']}")
-    if workflow["progress"]["total"] is None:
+    if workflow["progress"]["total"] is None and not workflow["terminal"]["success_marker"]:
         payload["warnings"].append(
             "No Snakemake progress line was found in the current master log."
         )
-    if complete and controller["return_code"] is None:
+    if (
+        terminal_evidence["success_verified"]
+        and terminal_evidence["requirements"]["exact_run_receipt_success"]
+        and not artifacts["all_present"]
+    ):
         payload["warnings"].append(
-            "Canonical outputs and progress are complete, but controller rc 0 was not found; success is unverified."
+            "Success was verified by the exact completed run-control receipt; "
+            "the optional canonical artifact set is incomplete."
         )
-    if complete and controller["return_code"] == 0 and not slurm["available"]:
+    if workflow["progress"]["total"] is None and workflow["terminal"]["success_marker"]:
+        payload["warnings"].append(
+            "No Snakemake progress line was found in the current master log; terminal workflow success evidence was used."
+        )
+    if complete and effective_return_code is None:
+        payload["warnings"].append(
+            "Canonical outputs and terminal workflow evidence are complete, but rc 0 was not found; success is unverified."
+        )
+    if complete and effective_return_code == 0 and not slurm["available"]:
         payload["warnings"].append(
             "Canonical outputs and controller rc 0 are present, but scheduler-idle state is unavailable; success is unverified."
         )

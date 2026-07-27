@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import json
 import subprocess
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -20,6 +21,12 @@ from daylily_ec.aws.ssm import (
     start_session,
     wait_for_ssm_online,
     write_remote_text,
+)
+
+
+SESSION_PROFILE_UBUNTU = (
+    "cd /home/ubuntu && { stty -ixon -ixoff 2>/dev/null || true; "
+    "exec bash -ilc 'if [[ -f ~/.bashrc ]]; then source ~/.bashrc; fi; exec bash -i'; }"
 )
 
 
@@ -157,8 +164,11 @@ class TestRunShell:
         sent = client.send_command.call_args.kwargs
         assert sent["DocumentName"] == "AWS-RunShellScript"
         assert 'chown ubuntu "$tmp"' in sent["Parameters"]["commands"][0]
-        assert 'sudo -iu ubuntu bash -l "$tmp"' in sent["Parameters"]["commands"][0]
-        assert sent["Parameters"]["commands"][0].startswith("set -eu\n")
+        assert "sudo -iu ubuntu bash -ilc" in sent["Parameters"]["commands"][0]
+        assert "source ~/.bashrc" in sent["Parameters"]["commands"][0]
+        assert "source ~/.bashrc || true" in sent["Parameters"]["commands"][0]
+        assert "source '\"$tmp\"" in sent["Parameters"]["commands"][0]
+        assert sent["Parameters"]["commands"][0].startswith("set +e +u\n")
         encoded = sent["Parameters"]["commands"][0].split("DAYLILY_SSM_B64=")[1].split("\n", 1)[0]
         decoded = base64.b64decode(encoded).decode("utf-8")
         assert "Daylily SSM payload must run as ubuntu" in decoded
@@ -188,7 +198,10 @@ class TestRunShell:
         sent = client.send_command.call_args.kwargs
         command = sent["Parameters"]["commands"][0]
         assert 'chown ec2-user "$tmp"' in command
-        assert 'sudo -iu ec2-user bash -l "$tmp"' in command
+        assert "sudo -iu ec2-user bash -ilc" in command
+        assert "source '\"$tmp\"" in command
+        assert "source ~/.bashrc" in command
+        assert "source ~/.bashrc || true" in command
         encoded = command.split("DAYLILY_SSM_B64=")[1].split("\n", 1)[0]
         decoded = base64.b64decode(encoded).decode("utf-8")
         assert "Daylily SSM payload must run as ec2-user" in decoded
@@ -225,7 +238,10 @@ class TestRunShell:
         assert result.command_id == "cmd-1"
         client.describe_instance_information.assert_called_once()
         sent = client.send_command.call_args.kwargs
-        assert 'sudo -iu ec2-user bash -l "$tmp"' in sent["Parameters"]["commands"][0]
+        assert "sudo -iu ec2-user bash -ilc" in sent["Parameters"]["commands"][0]
+        assert "source '\"$tmp\"" in sent["Parameters"]["commands"][0]
+        assert "source ~/.bashrc" in sent["Parameters"]["commands"][0]
+        assert "source ~/.bashrc || true" in sent["Parameters"]["commands"][0]
 
     @patch("daylily_ec.aws.ssm.time.sleep", return_value=None)
     @patch("daylily_ec.aws.ssm.boto3.Session")
@@ -432,13 +448,21 @@ class TestStartSession:
             subprocess.CompletedProcess(
                 args=[],
                 returncode=0,
-                stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"cd /home/ubuntu && { stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }"}}}',
+                stdout=json.dumps(
+                    {
+                        "inputs": {
+                            "runAsEnabled": True,
+                            "runAsDefaultUser": "ubuntu",
+                            "shellProfile": {"linux": SESSION_PROFILE_UBUNTU},
+                        }
+                    }
+                ),
                 stderr="",
             ),
             subprocess.CompletedProcess(args=[], returncode=0, stdout="", stderr=""),
         ]
 
-        rc = start_session("i-abc123", "us-west-2", profile="dev")
+        rc = start_session("i-abc123", "us-west-2", profile="dev", as_user="ubuntu")
 
         assert rc == 0
         assert mock_run.call_count == 2
@@ -478,7 +502,15 @@ class TestStartSession:
         mock_run.return_value = subprocess.CompletedProcess(
             args=[],
             returncode=0,
-            stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"cd /home/ubuntu && { stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }"}}}',
+            stdout=json.dumps(
+                {
+                    "inputs": {
+                        "runAsEnabled": True,
+                        "runAsDefaultUser": "ubuntu",
+                        "shellProfile": {"linux": SESSION_PROFILE_UBUNTU},
+                    }
+                }
+            ),
             stderr="",
         )
         mock_execvpe.side_effect = ExecCalled()
@@ -488,6 +520,7 @@ class TestStartSession:
                 "i-abc123",
                 "us-west-2",
                 profile="dev",
+                as_user="ubuntu",
                 replace_process=True,
             )
 
@@ -525,14 +558,22 @@ class TestStartSession:
             subprocess.CompletedProcess(
                 args=[],
                 returncode=0,
-                stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"cd /home/ubuntu && { stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }"}}}',
+                stdout=json.dumps(
+                    {
+                        "inputs": {
+                            "runAsEnabled": True,
+                            "runAsDefaultUser": "ubuntu",
+                            "shellProfile": {"linux": SESSION_PROFILE_UBUNTU},
+                        }
+                    }
+                ),
                 stderr="",
             ),
             subprocess.CompletedProcess(args=["stty"], returncode=0, stdout="", stderr=""),
             subprocess.CompletedProcess(args=[], returncode=0, stdout="", stderr=""),
         ]
 
-        rc = start_session("i-abc123", "us-west-2", profile="dev")
+        rc = start_session("i-abc123", "us-west-2", profile="dev", as_user="ubuntu")
 
         assert rc == 0
         assert mock_run.call_args_list[1].args[0] == ["stty", "-ixon", "-ixoff"]
@@ -574,7 +615,15 @@ class TestStartSession:
             subprocess.CompletedProcess(
                 args=[],
                 returncode=0,
-                stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"cd /home/ubuntu && { stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }"}}}',
+                stdout=json.dumps(
+                    {
+                        "inputs": {
+                            "runAsEnabled": True,
+                            "runAsDefaultUser": "ubuntu",
+                            "shellProfile": {"linux": SESSION_PROFILE_UBUNTU},
+                        }
+                    }
+                ),
                 stderr="",
             ),
             subprocess.CompletedProcess(args=["stty"], returncode=0, stdout="", stderr=""),
@@ -585,6 +634,7 @@ class TestStartSession:
                 "i-abc123",
                 "us-west-2",
                 profile="dev",
+                as_user="ubuntu",
                 replace_process=True,
             )
 
@@ -604,12 +654,20 @@ class TestStartSession:
         mock_run.return_value = subprocess.CompletedProcess(
             args=[],
             returncode=0,
-            stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"exec bash -l"}}}',
+            stdout=json.dumps(
+                {
+                    "inputs": {
+                        "runAsEnabled": True,
+                        "runAsDefaultUser": "ubuntu",
+                        "shellProfile": {"linux": "exec bash -ilc 'source ~/.bashrc'"},
+                    }
+                }
+            ),
             stderr="",
         )
 
         with pytest.raises(SsmError, match="cd to /home/ubuntu"):
-            start_session("i-abc123", "us-west-2", profile="dev")
+            start_session("i-abc123", "us-west-2", profile="dev", as_user="ubuntu")
 
     @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
     @patch("daylily_ec.aws.ssm.subprocess.run")
@@ -626,7 +684,7 @@ class TestStartSession:
         )
 
         with pytest.raises(SsmError, match="run shell sessions as ubuntu"):
-            start_session("i-abc123", "us-west-2", profile="dev")
+            start_session("i-abc123", "us-west-2", profile="dev", as_user="ubuntu")
 
     @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
     @patch("daylily_ec.aws.ssm.subprocess.run")
@@ -642,5 +700,5 @@ class TestStartSession:
             stderr="",
         )
 
-        with pytest.raises(SsmError, match="source the ubuntu login shell"):
-            start_session("i-abc123", "us-west-2", profile="dev")
+        with pytest.raises(SsmError, match="source the ubuntu login/interactive bash shell"):
+            start_session("i-abc123", "us-west-2", profile="dev", as_user="ubuntu")

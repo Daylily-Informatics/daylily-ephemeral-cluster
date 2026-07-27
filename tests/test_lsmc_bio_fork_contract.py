@@ -1,16 +1,15 @@
 from pathlib import Path
 
 import tomllib
-
 import yaml
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_DEFAULT_TAG = "13.0.19"
-DAYOA_VALIDATED_TAG = "12.0.3"
-DYEC_BLESSED_TAG = "13.0.8"
+DAYOA_DEFAULT_TAG = "13.0.50"
+DAYOA_VALIDATED_TAG = "13.0.50"
+DAYOA_HIGHEST_RELEASE_COMMIT = "4e7526697d9d622c9bdb120f2b53e13412792797"
+DYEC_BLESSED_TAG = "14.0.21"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
     f"{_OLD_ORG}/daylily-omics-analysis",
@@ -81,8 +80,8 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
         assert repo["default_ref"] == DAYOA_DEFAULT_TAG
         commands = {command["command_id"]: command for command in repo["analysis_commands"]}
         for command_id in (
-            "hybrid_ilmn_ont_hiomrs",
-            "hybrid_ilmn_ont_hiomrs_kitchensink",
+            "hybrid_ilmn_ont_hiomr",
+            "hybrid_ilmn_ont_hiomr_kitchensink",
             "betelgeuser_hiomr_prod_v1",
             "inflection-bjuice-product-v0.2",
         ):
@@ -90,3 +89,23 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
             assert commands[command_id]["validated_version"] == DAYOA_VALIDATED_TAG
         assert commands["package_inflection_hybrid_data"]["git_tag"] == DAYOA_DEFAULT_TAG
         assert commands["package_inflection_hybrid_data"]["validated_version"] == DAYOA_DEFAULT_TAG
+
+
+def test_all_dayoa_commands_use_the_uniform_highest_release_pin() -> None:
+    assert len(DAYOA_HIGHEST_RELEASE_COMMIT) == 40
+    assert set(DAYOA_HIGHEST_RELEASE_COMMIT) <= set("0123456789abcdef")
+
+    for relative_path in (
+        "config/daylily_pipeline_command_catalog.yaml",
+        "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml",
+    ):
+        data = yaml.safe_load((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
+        commands = data["repositories"]["daylily-omics-analysis"]["analysis_commands"]
+
+        assert commands
+        assert {command["git_tag"] for command in commands} == {
+            DAYOA_DEFAULT_TAG
+        }
+        assert {command["validated_version"] for command in commands} == {
+            DAYOA_VALIDATED_TAG
+        }

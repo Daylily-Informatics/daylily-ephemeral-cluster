@@ -1114,6 +1114,7 @@ class TestWorkflowResolutionHelpers:
             disable_budget_enforcement=False,
             budget_email_default="ops@example.com",
             allowed_budget_users_default="ubuntu",
+            slurm_accounting="off",
         )
 
         assert values.allowed_budget_users == "ubuntu"
@@ -1311,7 +1312,7 @@ HeadNode:
         cfg = ConfigFile.model_validate(
             {
                 "ephemeral_cluster": {
-                    "config": {"fsx_throughput_mbps_per_tib": ["PROMPTUSER", "250", ""]}
+                    "config": {"fsx_throughput_mbps_per_tib": ["PROMPTUSER", "1000", ""]}
                 }
             }
         )
@@ -1330,7 +1331,7 @@ HeadNode:
                 == "1000"
             )
 
-        assert mock_prompt.call_args.kwargs["default"] == "2"
+        assert mock_prompt.call_args.kwargs["default"] == "4"
 
     def test_resolve_persistent2_throughput_non_interactive_rejects_missing_value(
         self,
@@ -1338,7 +1339,7 @@ HeadNode:
         cfg = ConfigFile.model_validate(
             {
                 "ephemeral_cluster": {
-                    "config": {"fsx_throughput_mbps_per_tib": ["PROMPTUSER", "250", ""]}
+                    "config": {"fsx_throughput_mbps_per_tib": ["PROMPTUSER", "1000", ""]}
                 }
             }
         )
@@ -1809,6 +1810,7 @@ class TestRunCreateWorkflow:
             profile="test",
             config_path=str(config_path),
             non_interactive=True,
+            slurm_accounting="off",
         )
         assert rc == EXIT_AWS_FAILURE
 
@@ -1951,6 +1953,11 @@ class TestRunCreateWorkflow:
             interactive=True,
             head_node_ip="54.1.2.3",
             say_available=False,
+            config_overrides={
+                "cost_center_name": ["PROMPTUSER", "project-a", ""],
+                "cost_center_monthly_cap_usd": ["PROMPTUSER", "200", ""],
+                "cost_center_allowed_users": ["PROMPTUSER", "ubuntu", ""],
+            },
         )
 
         assert records["rc"] == EXIT_SUCCESS
@@ -1959,6 +1966,9 @@ class TestRunCreateWorkflow:
             "Budget amount",
             "Global budget amount",
             "Allowed budget users",
+            "Cost center name",
+            "Cost center monthly cap (USD)",
+            "Cost center allowed users (comma-separated)",
             "Heartbeat email",
             "Heartbeat schedule",
             "Heartbeat scheduler role ARN (leave blank to skip)",
@@ -1967,6 +1977,7 @@ class TestRunCreateWorkflow:
         dry_run_phase_index = records["events"].index(("phase", "DRY-RUN VALIDATION"))
         create_phase_index = records["events"].index(("phase", "CREATE CLUSTER"))
         budget_index = records["events"].index(("ensure_cluster_budget", None))
+        cost_center_index = records["events"].index(("ensure_active_cost_center", "bjuice"))
         resolve_role_index = records["events"].index(("resolve_scheduler_role", None))
         prompt_indices = [
             idx for idx, event in enumerate(records["events"]) if event[0] == "prompt"
@@ -1975,12 +1986,16 @@ class TestRunCreateWorkflow:
         assert prompt_indices
         assert max(prompt_indices) < dry_run_phase_index
         assert budget_index < dry_run_phase_index
+        assert cost_center_index < dry_run_phase_index
         assert create_phase_index < resolve_role_index
         assert records["global_budget_kwargs"]["email"] == "johnm@lsmc.com"
         assert records["global_budget_kwargs"]["amount"] == "200"
         assert records["global_budget_kwargs"]["allowed_users"] == "root"
         assert records["cluster_budget_kwargs"]["email"] == "johnm@lsmc.com"
         assert records["cluster_budget_kwargs"]["cluster_name"] == "majors-cluster"
+        assert records["cost_center_kwargs"]["name"] == "bjuice"
+        assert records["cost_center_kwargs"]["monthly_cap_usd"] == "200"
+        assert records["cost_center_kwargs"]["allowed_users"] == ("ubuntu",)
         assert records["heartbeat_kwargs"]["email"] == "johnm@lsmc.com"
         assert records["heartbeat_kwargs"]["schedule_expression"] == "rate(60 minutes)"
         assert "budget_project" not in records["next_run_values"]
@@ -3389,6 +3404,9 @@ def _build_workflow_config(
         "budget_amount": ["PROMPTUSER", "200", ""],
         "global_budget_amount": ["PROMPTUSER", "200", ""],
         "allowed_budget_users": ["PROMPTUSER", "root", ""],
+        "cost_center_name": ["USESETVALUE", "", "project-a"],
+        "cost_center_monthly_cap_usd": ["USESETVALUE", "", "200"],
+        "cost_center_allowed_users": ["USESETVALUE", "", "ubuntu"],
         "heartbeat_email": ["PROMPTUSER", "johnm@lsmc.com", ""],
         "heartbeat_schedule": ["PROMPTUSER", "rate(60 minutes)", ""],
         "heartbeat_scheduler_role_arn": ["PROMPTUSER", "", ""],
@@ -3517,6 +3535,7 @@ HeadNode:
                 "ec2": shared_client,
                 "iam": shared_client,
                 "budgets": shared_client,
+                "dynamodb": shared_client,
                 "s3": shared_client,
                 "secretsmanager": shared_client,
                 "sns": shared_client,
@@ -3548,6 +3567,9 @@ HeadNode:
             "Budget amount": "200",
             "Global budget amount": "200",
             "Allowed budget users": "root",
+            "Cost center name": "bjuice",
+            "Cost center monthly cap (USD)": "200",
+            "Cost center allowed users (comma-separated)": "ubuntu",
             "DRAGEN PCluster AMI (leave blank to skip)": "",
             "Heartbeat email": "johnm@lsmc.com",
             "Heartbeat schedule": "rate(60 minutes)",
@@ -3905,9 +3927,21 @@ SharedStorage:
     )
 
     import daylily_ec.aws.budgets as budgets
+    import daylily_ec.aws.cost_centers as cost_centers
 
     monkeypatch.setattr(budgets, "ensure_global_budget", fake_ensure_global_budget)
     monkeypatch.setattr(budgets, "ensure_cluster_budget", fake_ensure_cluster_budget)
+
+    def fake_ensure_active_cost_center(_dynamodb_client, name, **kwargs):
+        records["cost_center_kwargs"] = {"name": name, **kwargs}
+        records["events"].append(("ensure_active_cost_center", name))
+        return SimpleNamespace(name=name), True
+
+    monkeypatch.setattr(
+        cost_centers,
+        "ensure_active_cost_center",
+        fake_ensure_active_cost_center,
+    )
 
     if postcreate_result is not None:
         import daylily_ec.workflow.postcreate_slurm_accounting as postcreate_module

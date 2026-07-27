@@ -180,7 +180,12 @@ def test_ssm_session_document_detects_wrong_run_as_user() -> None:
                 "inputs": {
                     "runAsEnabled": True,
                     "runAsDefaultUser": "root",
-                    "shellProfile": {"linux": "bash -l"},
+                    "shellProfile": {
+                        "linux": (
+                            "cd /home/root && exec bash -ilc "
+                            "'if [[ -f ~/.bashrc ]]; then source ~/.bashrc; fi; exec bash -i'"
+                        )
+                    },
                 }
             }
         )
@@ -191,6 +196,7 @@ def test_ssm_session_document_detects_wrong_run_as_user() -> None:
     assert result.status == CheckStatus.FAIL
     assert result.details["runAsDefaultUser"] == "root"
     assert "ubuntu" in result.remediation
+    assert "ec2-user" in result.remediation
 
 
 def test_ssm_session_document_accepts_supported_login_shell() -> None:
@@ -199,8 +205,13 @@ def test_ssm_session_document_accepts_supported_login_shell() -> None:
         "Content": {
             "inputs": {
                 "runAsEnabled": True,
-                "runAsDefaultUser": "ubuntu",
-                "shellProfile": {"linux": "cd ~ && exec bash -l"},
+                "runAsDefaultUser": "ec2-user",
+                "shellProfile": {
+                    "linux": (
+                        "cd ~ && exec bash -ilc "
+                        "'if [[ -f ~/.bashrc ]]; then source ~/.bashrc; fi; exec bash -i'"
+                    )
+                },
             }
         }
     }
@@ -208,7 +219,7 @@ def test_ssm_session_document_accepts_supported_login_shell() -> None:
     result = check_ssm_session_document(ssm)
 
     assert result.status == CheckStatus.PASS
-    assert result.details["runAsDefaultUser"] == "ubuntu"
+    assert result.details["runAsDefaultUser"] == "ec2-user"
 
 
 def test_ssm_session_document_reports_read_and_decode_errors() -> None:
