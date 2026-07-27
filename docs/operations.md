@@ -33,6 +33,30 @@ dyec headnode configure \
 
 Use this after a cluster exists but the DayEC headnode tools, catalog, analysis guard surface, or login shell need repair. In particular, if a DayOA run reports `No such command 'analysis'`, rerun this command from an activated local checkout and then verify `dyec analysis --help` on the headnode before workflow writes.
 
+### Managed LSMC Bio GitHub Access
+
+For ordinary `git clone`, `fetch`, `pull`, and `push` from the headnode, use a
+dedicated GitHub fine-grained token stored as a Secrets Manager `SecretString`.
+Limit it to `lsmc-bio/daylily-ephemeral-cluster` and
+`lsmc-bio/daylily-omics-analysis`, with repository contents read/write access:
+
+```bash
+dyec headnode configure \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --github-token-secret-arn "$GITHUB_TOKEN_SECRET_ARN"
+```
+
+The headnode IAM role—not an IAM group, which cannot contain an EC2 role—must
+have `secretsmanager:DescribeSecret` and `secretsmanager:GetSecretValue` for
+that exact secret. Configure this only on the headnode role; compute queues do
+not receive GitHub credential permissions. DayEC stores only the secret ARN and
+region in a mode-`0600` file and retrieves the token only when Git requests a
+credential. Existing SSH GitHub origins for the two allowlisted repositories
+are rewritten to HTTPS, so the token supports any permitted branch or tag.
+GitHub repository rules and branch protections remain authoritative.
+
 ## Inspect Cluster And Jobs
 
 ```bash

@@ -12,6 +12,7 @@ Tests cover:
 
 from __future__ import annotations
 
+import json
 import subprocess
 from decimal import Decimal
 from pathlib import Path
@@ -2570,6 +2571,9 @@ class TestConfigureHeadnode:
         rebuild_cmd = mock_run_shell.call_args_list[3].args[2]
         assert "python -m pip install --upgrade pygraphviz" in rebuild_cmd
         assert "pygraphviz DAY-EC import OK" in rebuild_cmd
+        assert "sudo install -o root -g root -m 0755" in rebuild_cmd
+        assert "/config/day_cluster/sbatch /opt/slurm/bin/sbatch" in rebuild_cmd
+        assert "cmp --silent" in rebuild_cmd
         mock_validate_headnode_readiness.assert_called_once_with(
             "i-abc123",
             "us-west-2",
@@ -2625,6 +2629,56 @@ class TestConfigureHeadnode:
             },
         }
         assert "PRIVATE KEY" not in args[3]
+
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
+    def test_github_token_installs_branch_agnostic_helper_without_persisting_token(
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
+        mock_run_shell.return_value = SimpleNamespace(stdout="", stderr="")
+        mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
+        secret_arn = (
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/github-token"
+        )
+
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+            github_token_secret_arn=secret_arn,
+            github_token_region="us-west-2",
+        )
+
+        assert ok is True
+        assert [call.args[2] for call in mock_write_remote_text.call_args_list] == [
+            "~/.config/daylily/daylily-github-credential.py",
+            "~/.config/daylily/github_token.json",
+        ]
+        token_reference = json.loads(mock_write_remote_text.call_args_list[1].args[3])
+        assert token_reference == {
+            "config_version": 1,
+            "region": "us-west-2",
+            "secret_arn": secret_arn,
+        }
+        assert "token-value" not in mock_write_remote_text.call_args_list[1].args[3]
+        helper_setup = mock_run_shell.call_args_list[0].args[2]
+        assert "credential.useHttpPath true" in helper_setup
+        assert "credential.interactive false" in helper_setup
+        assert "daylily-github-credential" in helper_setup
+        assert "git@github.com:lsmc-bio/" in helper_setup
+        assert "ssh://git@github.com/lsmc-bio/" in helper_setup
+        clone_command = mock_run_shell.call_args_list[1].args[2]
+        assert "git clone https://github.com/" in clone_command
 
     @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")

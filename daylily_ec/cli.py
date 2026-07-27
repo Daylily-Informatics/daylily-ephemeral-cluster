@@ -4318,6 +4318,7 @@ def _configure_headnode_command(
     repo_overrides: Optional[Path],
     dyec_deploy_key_secret_arn: str,
     dayoa_deploy_key_secret_arn: str,
+    github_token_secret_arn: str,
     remote_user: str,
 ) -> None:
     from daylily_ec.aws.ssm import SsmError, wait_for_ssm_online
@@ -4362,6 +4363,8 @@ def _configure_headnode_command(
             dyec_repo_ref=dyec_repo_spec.ref if dyec_repo_spec else "",
             dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn.strip(),
             dayoa_deploy_key_region=resolved_region if dayoa_deploy_key_secret_arn.strip() else "",
+            github_token_secret_arn=github_token_secret_arn.strip(),
+            github_token_region=resolved_region if github_token_secret_arn.strip() else "",
             repo_overrides=overrides or None,
             remote_user=remote_user,
         )
@@ -4411,6 +4414,15 @@ def headnode_configure(
             "configuring a legacy headnode that does not already have the reference."
         ),
     ),
+    github_token_secret_arn: str = typer.Option(
+        "",
+        "--github-token-secret-arn",
+        help=(
+            "Exact Secrets Manager ARN for the LSMC Bio GitHub token. The token must allow "
+            "read/write access to the DayOA and DYEC repositories; the headnode role must "
+            "already allow access to this secret."
+        ),
+    ),
 ) -> None:
     """Configure a cluster headnode through the supported Ubuntu SSM bootstrap."""
 
@@ -4421,6 +4433,7 @@ def headnode_configure(
         repo_overrides=repo_overrides,
         dyec_deploy_key_secret_arn=dyec_deploy_key_secret_arn,
         dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
+        github_token_secret_arn=github_token_secret_arn,
         remote_user="ubuntu",
     )
 
@@ -4463,6 +4476,15 @@ def headnode_configure_dragen(
             "configuring a legacy headnode that does not already have the reference."
         ),
     ),
+    github_token_secret_arn: str = typer.Option(
+        "",
+        "--github-token-secret-arn",
+        help=(
+            "Exact Secrets Manager ARN for the LSMC Bio GitHub token. The token must allow "
+            "read/write access to the DayOA and DYEC repositories; the headnode role must "
+            "already allow access to this secret."
+        ),
+    ),
 ) -> None:
     """Configure a RHEL/DRAGEN cluster headnode through SSM as ec2-user."""
 
@@ -4473,6 +4495,7 @@ def headnode_configure_dragen(
         repo_overrides=repo_overrides,
         dyec_deploy_key_secret_arn=dyec_deploy_key_secret_arn,
         dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
+        github_token_secret_arn=github_token_secret_arn,
         remote_user="ec2-user",
     )
 

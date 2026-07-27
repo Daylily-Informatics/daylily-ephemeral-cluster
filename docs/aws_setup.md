@@ -79,11 +79,12 @@ cost and accounting coverage includes:
   plus validation that the configured runtime policy grants exactly
   `secretsmanager:DescribeSecret` and `secretsmanager:GetSecretValue` on the
   configured secret ARN
-- private DayOA checkout: operator metadata reads for the explicit deploy-key secret
-  and managed policy; the managed policy must contain exactly
-  `secretsmanager:DescribeSecret` and `secretsmanager:GetSecretValue` on that secret.
-  DYEC attaches this policy only to the headnode. Compute queues receive no GitHub
-  credential permissions, and preflight never reads the private key value.
+- private LSMC Bio repositories: operator metadata reads for the explicit
+  deploy-key or managed GitHub-token secret and its managed policy; the policy
+  must contain exactly `secretsmanager:DescribeSecret` and
+  `secretsmanager:GetSecretValue` on the relevant secret ARN. DYEC attaches the
+  policy only to the headnode. Compute queues receive no GitHub credential
+  permissions, and preflight never reads a private-key or token value.
 
 The operator simulation is separate from `iam.runtime_cost_policy`. That check
 reads the exact managed policy selected by `iam_policy_arn` for the headnode and
