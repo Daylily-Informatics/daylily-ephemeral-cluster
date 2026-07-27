@@ -55,7 +55,7 @@ from daylily_ec.tests_runner import (
 
 
 runner = CliRunner()
-DAYOA_BLESSED_TAG = "13.0.41"
+DAYOA_BLESSED_TAG = "13.0.52"
 
 
 def _run_mount_record(
@@ -348,7 +348,7 @@ def test_write_legacy_sample_manifest_uses_command_specific_templates(tmp_path: 
 
 @pytest.mark.parametrize(
     "command_id",
-    ["hybrid_ilmn_ont_hiomr_kitchensink", "inflection-bjuice-product-v0.2"],
+    ["hybrid_ilmn_ont_hiomr_kitchensink"],
 )
 def test_dayoa12_test_runner_never_synthesizes_lineage_euids(
     tmp_path: Path,
@@ -556,8 +556,9 @@ def test_run_command_catalog_dry_run_only_renders_and_exports(tmp_path: Path) ->
     )
     ont_command = ont_call[ont_call.index("--dy-command") + 1]
     assert "run_context_file=config/runs.tsv" in ont_command
-    assert "samples_table=.test_data/data/samples.tsv" in ont_command
-    assert "units_table=.test_data/data/units.tsv" in ont_command
+    assert "run_context_only=true" in ont_command
+    assert "samples_table=" not in ont_command
+    assert "units_table=" not in ont_command
     with (tmp_path / "ultima_run_qc" / "runs.tsv").open(newline="", encoding="utf-8") as handle:
         ultima_rows = list(csv.DictReader(handle, delimiter="\t"))
     assert ultima_rows[0]["METRICS_PATH"] == (

@@ -26,7 +26,7 @@ Ledger path: `docs/plans/20260726T095455Z_dyec_cost_center_create_and_launch_led
 | CC-004 | DYEC tests/docs | Add focused contract tests for create, launch propagation, and wrapper behavior; document the explicit no-default cost-center contract. | SUCCESS | contract_test | Gate 5 | Codex | README plus focused suite: `tests/test_workflow.py`, `test_sbatch_wrapper.py`, `test_cli_registry_v2.py`, `test_script_entrypoints.py`, `test_cost_centers.py`, and `test_repository_catalog.py`: `441 passed` |  | Published with the cost-center implementation. |
 | CC-005 | Live `preval-hiomr2` | Create active `bjuice` registry and current-month usage entries using the approved cap and permitted submitters. | SUCCESS | config_or_startup_contract | Gate 2 | User + Codex | `aws budgets describe-budget` confirms `$700`; `dyec cost-centers show bjuice` confirms active `$700`, allowed user `ubuntu`, created `2026-07-26T10:15:38Z` |  | Registry and initial usage record were created. |
 | CC-006 | Live `preval-hiomr2` | Do not make any further direct `/opt/slurm/bin/sbatch` changes; submit only through the DYEC workflow CLI. | SUCCESS | config_or_startup_contract | Gate 2 | User + Codex | User explicitly directed “you should not be hackinh sbatch”; cancellation was requested after the already-completed managed refresh. | The source-level direct-install attempt was removed immediately. | No further wrapper or Slurm-service action will be taken. |
-| CC-007 | Live HIOMR2 workflow | Relaunch the existing five-shard HG003 HIOMR2 request through `dyec workflow launch --cost-center bjuice`; monitor only. | RUNNING | active_product_contract | Gate 3 | User + Codex | `live3` ended `rc=1` at `2026-07-26T12:08:41Z`; corrected fresh session `hiomr2_hg003_fivechrom_live4_20260726` started `2026-07-26T12:49:28Z` in root `/fsx/analysis_results/preval-hiomr2/hg003-hiomr2-five-chrom-shards-20260726-live4`; DYEC reported active controller and Slurm job `14` `CONFIGURING` at `2026-07-26T12:51Z` | `live2` ended before submission because `daylily-omics-analysis` lacked a configured deploy-key reference; `live3` used invalid DNAscope `--gvcf`. | `live4` uses the exact six-manifest contract, DayOA commit `e4f8f642`, `--emit_mode gvcf`, and cost center `bjuice`; monitoring only. |
+| CC-007 | Live HIOMR2 workflow | Relaunch the existing five-shard HG003 HIOMR2 request through `dyec workflow launch --cost-center bjuice`; monitor only. | SUCCESS | active_product_contract | Gate 3 | User + Codex | Canonical fresh session `hiomr2_hg003_fivechrom_live7_20260726` completed with DYEC workflow `exit_code=0` at `2026-07-26T21:15:34Z`; it retained the six-manifest contract, `bjuice`, and DayOA commit `e2885d27` / tag `13.0.48`. | `live2` ended before submission; `live3` used invalid DNAscope `--gvcf`; `live5` had validator SIGPIPE; `live6` omitted concat provenance inputs. | All failed roots remain preserved. The generic DYEC canonical-artifact check is not satisfied for this scoped gVCF gate because it does not emit the standard MultiQC/evidence-manifest set; this caveat is recorded below. |
 
 ## Execution updates
 
@@ -42,3 +42,33 @@ Ledger path: `docs/plans/20260726T095455Z_dyec_cost_center_create_and_launch_led
 - DayOA commit `e4f8f642` replaces that unsupported raw-driver option with `--emit_mode gvcf`. The focused HIOMR2 core/runtime/Inflection tests passed (`23 passed`), and the clean, verified commit is published on `codex/hiomr2-five-chrom-shards` with annotated tag `13.0.43`.
 - The fresh `live4` launch used a hash-validated snapshot of the exact six source manifests from `live3` rather than copying or replacing its analysis root. Its manifest payload used the configured DYEC S3 relay after the normal SSM document exceeded its 97 KiB limit; this is a supported `dyec workflow launch` transport path.
 - At `2026-07-26T12:51Z`, `live4` was `RUNNING`: the DYEC controller was active, `sentdhiomr2_preflight` job `14` was `CONFIGURING`, zero failure markers were present, and the analysis filesystem reported 11.2 TiB free. The recurring monitor now follows `live4`, prints its exact state, and emits one two-sentence local `say` notification per cycle.
+
+## Live7 terminal evidence — 2026-07-26T21:27Z
+
+- `dyec --json workflow status` reports that
+  `hiomr2_hg003_fivechrom_live7_20260726` completed at
+  `2026-07-26T21:15:34Z` with `exit_code=0`. Its master log records all
+  `10/10` steps complete, five successful shard gVCFs, successful concat, and
+  no failure lines.
+- `dyec analysis status full` reports controller inactive, no scoped Slurm
+  jobs, no master-log failure markers, and all 17 parsed benchmark rows. It
+  also correctly reports that `DAY_final_multiqc.html`,
+  `dayoa_evidence_manifest.json`, and `multiqc_data.json` are absent. Those
+  generic canonical artifacts are not produced by this scoped HIOMR2 gVCF
+  first gate, so the analysis-status aggregate remains
+  `INCOMPLETE_OR_UNKNOWN`; this is an explicit verification caveat, not an
+  inferred success claim.
+- The first gate used `--cost-center bjuice` throughout. No raw headnode,
+  Slurm, or analysis-root action was taken. The later combined kitchen-sink /
+  Inflection continuation is blocked until the owner supplies a persisted
+  `seqone_delivery_batch_id`; no identifier was invented.
+
+## Literal kitchen-sink and analytical package terminal evidence — 2026-07-27T02:10Z
+
+- The owner supplied `seqone_delivery_batch_id=20260726-hiomr2-ks-ip`; DYEC
+  then completed the literal kitchen-sink plus analytical-only Inflection
+  continuation with `rc=0` under `bjuice`.
+- The produced package manifest declares eleven materialized products,
+  including both the scoped concat gVCF/TBI and a distinct hard-call VCF/TBI.
+  It is analytical-only (`customer_release_eligible: false`); no customer
+  identity was inferred or fabricated.

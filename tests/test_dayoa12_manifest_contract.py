@@ -286,44 +286,30 @@ def test_headnode_remote_config_requires_exact_dayoa12_triple() -> None:
         )
 
 
-def test_inflection_v02_requires_explicit_lineage_and_delivery_contract() -> None:
+def test_inflection_v02_is_a_literal_hiomr2_analytical_contract() -> None:
     command = load_repository_catalog(CATALOG).get_command("inflection-bjuice-product-v0.2")
-    assert command.git_tag == "13.0.41"
+    assert command.git_tag == "13.0.52"
     assert command.input_contract == "six_manifest"
-    assert command.input_requirements.required_source_columns == [
-        "SPECIMEN_EUID",
-        "SAMPLE_EUID",
-        "LIBRARY_EUID",
-        "INFLECTION_DELIVERY_ID",
+    assert command.input_requirements.required_source_columns == []
+    assert command.targets == [
+        "produce_sentdhiomr2_kitchensink",
+        "produce_sentdhiomr2_inflection_analytical_package",
     ]
-    assert "produce_sentdhiomr_snv_vcf" in command.targets
-    assert "produce_inflection_delivery_set" in command.targets
-    assert "INFLECTION_DELIVERY_BATCH_ID:?" in command.dy_command
+    assert "SEQONE_DELIVERY_BATCH_ID:?" in command.dy_command
+    assert "hiomr2_inflection_package_mode=analytical" in command.dy_command
+    assert "produce_inflection_delivery_set" not in command.dy_command
     with pytest.raises(KeyError):
         load_repository_catalog(CATALOG).get_command("inflection-bjuice-product-v0.1")
 
 
-def test_inflection_v02_runtime_preflight_requires_nonblank_delivery_identity(
+def test_inflection_v02_runtime_preflight_does_not_require_legacy_delivery_identity(
     tmp_path: Path,
 ) -> None:
     command = load_repository_catalog(CATALOG).get_command("inflection-bjuice-product-v0.2")
     source = tmp_path / "analysis_samples.tsv"
     source.write_text(
-        "SPECIMEN_EUID\tSAMPLE_EUID\tLIBRARY_EUID\tINFLECTION_DELIVERY_ID\t"
         "ILMN_R1_FQ\tILMN_R2_FQ\tONT_CRAM\tONT_CRAM_ALIGNER\tONT_CRAM_SNV_CALLER\n"
-        "fixture-specimen-owned-1\tfixture-sample-owned-1\tfixture-library-owned-1\t\t"
-        "/fsx/r1.fastq.gz\t/fsx/r2.fastq.gz\t/fsx/lr.cram\tont\thiomrs\n",
-        encoding="utf-8",
-    )
-
-    with pytest.raises(CommandError, match="INFLECTION_DELIVERY_ID"):
-        _validate_sample_command_input_requirements(source, command)
-
-    source.write_text(
-        source.read_text(encoding="utf-8").replace(
-            "fixture-library-owned-1\t\t",
-            "fixture-library-owned-1\tdelivery-owned-1\t",
-        ),
+        "/fsx/r1.fastq.gz\t/fsx/r2.fastq.gz\t/fsx/lr.cram\tont\tsentdhiomr2\n",
         encoding="utf-8",
     )
     _validate_sample_command_input_requirements(source, command)

@@ -6,9 +6,9 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_DEFAULT_TAG = "13.0.41"
-DAYOA_VALIDATED_TAG = "13.0.41"
-DAYOA_HIGHEST_RELEASE_COMMIT = "0a88452e2734bd7c3a49c03eaa9ac660f3c115d4"
+DAYOA_DEFAULT_TAG = "13.0.52"
+DAYOA_VALIDATED_TAG = "13.0.52"
+DAYOA_HIGHEST_RELEASE_COMMIT = "e2da479310132d0c831c7c3329993a8db4eff3a6"
 DYEC_BLESSED_TAG = "14.0.15"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
@@ -82,6 +82,7 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
         for command_id in (
             "hybrid_ilmn_ont_hiomr",
             "hybrid_ilmn_ont_hiomr_kitchensink",
+            "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical",
             "betelgeuser_hiomr_prod_v1",
             "inflection-bjuice-product-v0.2",
         ):

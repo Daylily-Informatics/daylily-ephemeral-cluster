@@ -5340,6 +5340,23 @@ def workflow_launch(
             "the explicit --git-tag before starting the new controller."
         ),
     ),
+    reuse_local_git_ref: bool = typer.Option(
+        False,
+        "--reuse-local-git-ref",
+        help=(
+            "For an existing-analysis continuation, resolve the explicit --git-tag only "
+            "from the existing checkout; do not fetch from origin."
+        ),
+    ),
+    reuse_local_git_commit: Optional[str] = typer.Option(
+        None,
+        "--reuse-local-git-commit",
+        help=(
+            "Full immutable commit required to exist in the existing checkout. Requires "
+            "--reuse-existing-analysis-dir and --reuse-local-git-ref; DYEC never fetches "
+            "or substitutes a revision."
+        ),
+    ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Launch a dry-run workflow command."),
 ) -> None:
     """Launch daylily-omics-analysis inside tmux on the headnode."""
@@ -5393,6 +5410,28 @@ def workflow_launch(
             raise typer.BadParameter(
                 "--reuse-existing-analysis-dir cannot bootstrap test configuration",
                 param_hint="--bootstrap-test-config",
+            )
+    else:
+        if reuse_local_git_ref:
+            raise typer.BadParameter(
+                "--reuse-local-git-ref requires --reuse-existing-analysis-dir",
+                param_hint="--reuse-local-git-ref",
+            )
+        if reuse_local_git_commit is not None:
+            raise typer.BadParameter(
+                "--reuse-local-git-commit requires --reuse-existing-analysis-dir",
+                param_hint="--reuse-local-git-commit",
+            )
+    if reuse_local_git_commit is not None:
+        if not reuse_local_git_ref:
+            raise typer.BadParameter(
+                "--reuse-local-git-commit requires --reuse-local-git-ref",
+                param_hint="--reuse-local-git-commit",
+            )
+        if re.fullmatch(r"[0-9a-f]{40}", reuse_local_git_commit) is None:
+            raise typer.BadParameter(
+                "--reuse-local-git-commit must be a lowercase 40-character commit SHA",
+                param_hint="--reuse-local-git-commit",
             )
     if manifest_dir is not None:
         if input_contract != "six_manifest":
@@ -5465,6 +5504,7 @@ def workflow_launch(
         ("--executing-entity", resolved_executing_entity),
         ("--repository", repository),
         ("--git-tag", git_tag),
+        ("--reuse-local-git-commit", reuse_local_git_commit),
         ("--project", project),
         ("--cost-center", resolved_cost_center),
         ("--genome", genome),
@@ -5501,6 +5541,8 @@ def workflow_launch(
         argv.append("--replace-existing-analysis-dir")
     if reuse_existing_analysis_dir:
         argv.append("--reuse-existing-analysis-dir")
+    if reuse_local_git_ref:
+        argv.append("--reuse-local-git-ref")
     if dry_run:
         argv.append("--dry-run")
 
@@ -6647,6 +6689,90 @@ fi
         _exit_headnode_error(exc)
 
 
+def _read_workflow_controller_log(
+    *,
+    profile: Optional[str],
+    region: Optional[str],
+    cluster: Optional[str],
+    session: Optional[str],
+    run_dir: Optional[str],
+    remote_user: str,
+    tail_lines: int,
+):
+    """Read the controller-owned log recorded by a workflow status receipt."""
+
+    from daylily_ec.aws.ssm import SsmError, resolve_remote_user, run_shell, wait_for_ssm_online
+    from daylily_ec.scripts.common import CommandError
+
+    status_result = _read_workflow_file(
+        profile=profile,
+        region=region,
+        cluster=cluster,
+        session=session,
+        run_dir=run_dir,
+        filename="status.json",
+        remote_user=remote_user,
+    )
+    status_payload = _parse_workflow_status_payload(status_result.stdout)
+    repo_text = str(status_payload.get("repo_path") or "").strip()
+    repo_path = PurePosixPath(repo_text)
+    if (
+        not repo_path.is_absolute()
+        or repo_path.name != "daylily-omics-analysis"
+        or "analysis_results" not in repo_path.parts
+    ):
+        raise CommandError("Workflow status receipt has an invalid DayOA repository path.")
+    log_path = repo_path / ".dyec" / "controller.log"
+
+    try:
+        resolved_profile, resolved_region, _resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        resolved_remote_user = resolve_remote_user(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            as_user=remote_user,
+        )
+        script = f"""
+set +e +u
+set +o pipefail 2>/dev/null || true
+if [[ "$(id -un)" != {shlex.quote(resolved_remote_user)} ]]; then
+  echo "__DAYLILY_ERROR__=wrong_user"
+  exit 5
+fi
+FILE_PATH={shlex.quote(str(log_path))}
+case "$FILE_PATH" in
+  /fsx/analysis_results/*/daylily-omics-analysis/.dyec/controller.log) ;;
+  *) echo "__DAYLILY_ERROR__=invalid_controller_log_path"; exit 5 ;;
+esac
+if [[ ! -f "$FILE_PATH" ]]; then
+  echo "__DAYLILY_ERROR__=missing_file:$FILE_PATH"
+  exit 2
+fi
+tail -n {max(tail_lines, 1)} "$FILE_PATH"
+"""
+        return run_shell(
+            target.instance_id,
+            resolved_region,
+            script,
+            profile=resolved_profile,
+            as_user=resolved_remote_user,
+            timeout=120,
+            comment="Read Daylily workflow controller log",
+        )
+    except (CommandError, SsmError, TimeoutError) as exc:
+        _exit_headnode_error(exc)
+
+
 def _parse_workflow_status_payload(stdout: str) -> dict[str, Any]:
     from daylily_ec.scripts.common import CommandError
 
@@ -7049,21 +7175,40 @@ def workflow_logs(
         "--remote-user",
         help="Remote login user for default run-dir resolution: auto, ubuntu, or ec2-user.",
     ),
-    lines: int = typer.Option(200, "--lines", help="Number of tmux log lines to print."),
+    lines: int = typer.Option(200, "--lines", help="Number of log lines to print."),
+    stream: str = typer.Option(
+        "tmux",
+        "--stream",
+        help="Log stream: tmux or controller.",
+    ),
 ) -> None:
-    """Tail a workflow tmux.log file from the headnode."""
+    """Tail a workflow tmux or controller log from the headnode."""
 
     _warn_if_dayec_env_inactive()
-    result = _read_workflow_file(
-        profile=profile,
-        region=region,
-        cluster=cluster,
-        session=session,
-        run_dir=run_dir,
-        filename="tmux.log",
-        remote_user=remote_user,
-        tail_lines=lines,
-    )
+    normalized_stream = stream.strip().lower()
+    if normalized_stream == "tmux":
+        result = _read_workflow_file(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            session=session,
+            run_dir=run_dir,
+            filename="tmux.log",
+            remote_user=remote_user,
+            tail_lines=lines,
+        )
+    elif normalized_stream == "controller":
+        result = _read_workflow_controller_log(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            session=session,
+            run_dir=run_dir,
+            remote_user=remote_user,
+            tail_lines=lines,
+        )
+    else:
+        raise typer.BadParameter("--stream must be exactly 'tmux' or 'controller'")
     if result.stdout:
         typer.echo(result.stdout.rstrip())
     if result.stderr:
@@ -7448,10 +7593,31 @@ def workflow_stop(
         "--timeout",
         help="Maximum seconds for the remote stop command.",
     ),
+    force_kill_session: bool = typer.Option(
+        False,
+        "--force-kill-session",
+        help="Kill the named tmux session instead of sending Ctrl-C and waiting.",
+    ),
+    analysis_root: Optional[str] = typer.Option(
+        None,
+        "--analysis-root",
+        help="Exact analysis root whose controller-owned lock may be released after stop.",
+    ),
+    release_analysis_lock: bool = typer.Option(
+        False,
+        "--release-analysis-lock",
+        help="Release the stopped controller's DYEC analysis lock; requires --analysis-root.",
+    ),
 ) -> None:
     """Stop a headnode workflow tmux controller, with explicit optional Slurm cancellation."""
 
-    from daylily_ec.aws.ssm import SsmError, resolve_remote_user, run_shell, wait_for_ssm_online
+    from daylily_ec.aws.ssm import (
+        SsmCommandFailedError,
+        SsmError,
+        resolve_remote_user,
+        run_shell,
+        wait_for_ssm_online,
+    )
     from daylily_ec.scripts.common import CommandError
 
     _warn_if_dayec_env_inactive()
@@ -7459,6 +7625,10 @@ def workflow_stop(
         raise typer.BadParameter("--job-name-pattern is required with --cancel-slurm-jobs")
     if job_name_pattern and not cancel_slurm_jobs:
         raise typer.BadParameter("--job-name-pattern requires --cancel-slurm-jobs")
+    if release_analysis_lock and not str(analysis_root or "").strip():
+        raise typer.BadParameter("--analysis-root is required with --release-analysis-lock")
+    if analysis_root and not release_analysis_lock:
+        raise typer.BadParameter("--analysis-root requires --release-analysis-lock")
 
     try:
         resolved_profile, resolved_region, _resolved_cluster, target = _resolve_headnode_cli_target(
@@ -7490,6 +7660,9 @@ export DAYLILY_WORKFLOW_SESSION={shlex.quote(resolved_session)}
 export DAYLILY_WORKFLOW_RUN_DIR={shlex.quote(resolved_run_dir)}
 export DAYLILY_CANCEL_SLURM_JOBS={shlex.quote("true" if cancel_slurm_jobs else "false")}
 export DAYLILY_JOB_NAME_PATTERN={shlex.quote(job_name_pattern or "")}
+export DAYLILY_FORCE_KILL_SESSION={shlex.quote("true" if force_kill_session else "false")}
+export DAYLILY_RELEASE_ANALYSIS_LOCK={shlex.quote("true" if release_analysis_lock else "false")}
+export DAYLILY_ANALYSIS_ROOT={shlex.quote(analysis_root or "")}
 python3 - <<'PY'
 import datetime
 import json
@@ -7501,8 +7674,8 @@ import sys
 import time
 
 
-def run(command):
-    return subprocess.run(command, capture_output=True, text=True)
+def run(command, *, env=None):
+    return subprocess.run(command, capture_output=True, text=True, env=env)
 
 
 def require_command(name):
@@ -7516,11 +7689,11 @@ def tmux_session_name(session_name):
 
 
 def tmux_present(name):
-    return run(["tmux", "has-session", "-t", f"={{name}}"]).returncode == 0
+    return run(["tmux", "has-session", "-t", name]).returncode == 0
 
 
 def tmux_pane_command(name):
-    result = run(["tmux", "display-message", "-p", "-t", f"={{name}}", "#{{pane_current_command}}"])
+    result = run(["tmux", "display-message", "-p", "-t", name, "#{{pane_current_command}}"])
     if result.returncode != 0:
         return ""
     return result.stdout.strip()
@@ -7549,6 +7722,9 @@ session = os.environ["DAYLILY_WORKFLOW_SESSION"]
 run_dir = pathlib.Path(os.environ["DAYLILY_WORKFLOW_RUN_DIR"])
 cancel_slurm = os.environ["DAYLILY_CANCEL_SLURM_JOBS"] == "true"
 job_name_pattern = os.environ.get("DAYLILY_JOB_NAME_PATTERN", "")
+force_kill_session = os.environ["DAYLILY_FORCE_KILL_SESSION"] == "true"
+release_analysis_lock = os.environ["DAYLILY_RELEASE_ANALYSIS_LOCK"] == "true"
+analysis_root = os.environ.get("DAYLILY_ANALYSIS_ROOT", "").strip()
 session_tmux = tmux_session_name(session)
 require_command("tmux")
 before_tmux = tmux_present(session_tmux)
@@ -7559,28 +7735,36 @@ interrupted_tmux = False
 interrupt_completed = False
 interrupt_wait_seconds = 90
 if before_tmux:
-    interrupt = run(["tmux", "send-keys", "-t", f"={{session_tmux}}", "C-c"])
-    if interrupt.returncode != 0:
-        raise SystemExit(
-            interrupt.stderr.strip() or interrupt.stdout.strip() or "tmux send-keys C-c failed"
-        )
-    interrupted_tmux = True
-    deadline = time.time() + interrupt_wait_seconds
-    while time.time() < deadline:
-        if not tmux_present(session_tmux):
-            interrupt_completed = True
-            break
-        if tmux_pane_command(session_tmux) in {{"bash", "sh", "zsh"}}:
-            interrupt_completed = True
-            break
-        time.sleep(2)
-    if not interrupt_completed:
-        kill = run(["tmux", "kill-session", "-t", f"={{session_tmux}}"])
+    if force_kill_session:
+        kill = run(["tmux", "kill-session", "-t", session_tmux])
         if kill.returncode != 0:
             raise SystemExit(
                 kill.stderr.strip() or kill.stdout.strip() or "tmux kill-session failed"
             )
         killed_tmux = True
+    else:
+        interrupt = run(["tmux", "send-keys", "-t", session_tmux, "C-c"])
+        if interrupt.returncode != 0:
+            raise SystemExit(
+                interrupt.stderr.strip() or interrupt.stdout.strip() or "tmux send-keys C-c failed"
+            )
+        interrupted_tmux = True
+        deadline = time.time() + interrupt_wait_seconds
+        while time.time() < deadline:
+            if not tmux_present(session_tmux):
+                interrupt_completed = True
+                break
+            if tmux_pane_command(session_tmux) in {{"bash", "sh", "zsh"}}:
+                interrupt_completed = True
+                break
+            time.sleep(2)
+        if not interrupt_completed:
+            kill = run(["tmux", "kill-session", "-t", session_tmux])
+            if kill.returncode != 0:
+                raise SystemExit(
+                    kill.stderr.strip() or kill.stdout.strip() or "tmux kill-session failed"
+                )
+            killed_tmux = True
 
 scancelled_job_ids = []
 if cancel_slurm and jobs_before:
@@ -7594,25 +7778,75 @@ after_tmux = tmux_present(session_tmux)
 jobs_after = slurm_jobs_matching(job_name_pattern) if cancel_slurm else []
 status_path = run_dir / "status.json"
 status_updated = False
+status_write_error = ""
+
+lock_agent_id = f"dyec-workflow-{{session_tmux}}"
+lock_release = {{
+    "requested": release_analysis_lock,
+    "analysis_root": analysis_root or None,
+    "agent_id": lock_agent_id,
+    "released": False,
+    "already_unlocked": False,
+    "error": "",
+}}
+if release_analysis_lock:
+    if after_tmux:
+        lock_release["error"] = "refusing to release analysis lock while tmux session still exists"
+    else:
+        require_command("dyec")
+        release_env = os.environ.copy()
+        release_env["DAYOA_AGENT_ID"] = lock_agent_id
+        release_env["DAYOA_AGENT_KIND"] = "dyec-cli"
+        release_env["DAYOA_HUMAN_REQUESTOR"] = os.environ.get("USER", "ubuntu")
+        release_env["DAYOA_TMUX_SESSION"] = session_tmux
+        release = run(
+            [
+                "dyec",
+                "analysis",
+                "lock",
+                "release",
+                "--analysis-root",
+                analysis_root,
+                "--human-requestor",
+                release_env["DAYOA_HUMAN_REQUESTOR"],
+                "--note",
+                "controller stopped by dyec workflow stop",
+            ],
+            env=release_env,
+        )
+        if release.returncode != 0:
+            release_detail = (
+                release.stderr.strip() or release.stdout.strip() or "analysis lock release failed"
+            )
+            if "No active write lock to release:" in release_detail:
+                lock_release["already_unlocked"] = True
+            else:
+                lock_release["error"] = release_detail
+        else:
+            lock_release["released"] = True
+
 if interrupted_tmux or killed_tmux or scancelled_job_ids:
-    now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
-    status = {{}}
-    if status_path.is_file():
-        try:
-            status = json.loads(status_path.read_text(encoding="utf-8") or "{{}}")
-        except json.JSONDecodeError:
-            status = {{}}
-    if not isinstance(status, dict):
+    try:
+        now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
         status = {{}}
-    status.setdefault("session_name", session)
-    status["completed_at"] = now
-    status["exit_code"] = 130
-    status["stopped"] = True
-    status["stop_reason"] = "dyec workflow stop"
-    status["stop_cancelled_slurm_job_ids"] = scancelled_job_ids
-    status_path.parent.mkdir(parents=True, exist_ok=True)
-    status_path.write_text(json.dumps(status, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
-    status_updated = True
+        if status_path.is_file():
+            try:
+                status = json.loads(status_path.read_text(encoding="utf-8") or "{{}}")
+            except json.JSONDecodeError:
+                status = {{}}
+        if not isinstance(status, dict):
+            status = {{}}
+        status.setdefault("session_name", session)
+        status["completed_at"] = now
+        status["exit_code"] = 130
+        status["stopped"] = True
+        status["stop_reason"] = "dyec workflow stop"
+        status["stop_cancelled_slurm_job_ids"] = scancelled_job_ids
+        status_path.parent.mkdir(parents=True, exist_ok=True)
+        status_path.write_text(json.dumps(status, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+        status_updated = True
+    except OSError as exc:
+        status_write_error = str(exc)
 
 payload = {{
     "session_name": session,
@@ -7631,8 +7865,13 @@ payload = {{
     "slurm_jobs_after": jobs_after,
     "status_path": str(status_path),
     "status_updated": status_updated,
+    "status_write_error": status_write_error,
+    "force_kill_session": force_kill_session,
+    "analysis_lock_release": lock_release,
 }}
 print("__DAYLILY_WORKFLOW_STOP__=" + json.dumps(payload, sort_keys=True))
+if status_write_error or lock_release["error"]:
+    raise SystemExit(status_write_error or lock_release["error"])
 PY
 """
         result = run_shell(
@@ -7645,6 +7884,12 @@ PY
             comment=f"Stop Daylily workflow {resolved_session}",
         )
         payload = _parse_workflow_stop_payload(result.stdout)
+    except SsmCommandFailedError as exc:
+        if exc.result.stdout.strip():
+            typer.echo(exc.result.stdout.rstrip())
+        if exc.result.stderr.strip():
+            typer.echo(exc.result.stderr.rstrip(), err=True)
+        _exit_headnode_error(exc)
     except (CommandError, SsmError, TimeoutError, json.JSONDecodeError) as exc:
         _exit_headnode_error(exc)
 
