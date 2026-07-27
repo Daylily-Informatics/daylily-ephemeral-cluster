@@ -1417,8 +1417,7 @@ repositories:
         requires_run_mount: true
         runtime_parameters:
           run_context_file: config/runs.tsv
-          samples_table: .test_data/data/samples.tsv
-          units_table: .test_data/data/units.tsv
+          run_context_only: "true"
         input_requirements:
           required_run_context_values:
             PLATFORM: ILMN
@@ -1430,8 +1429,8 @@ repositories:
         dedupers: []
         snv_callers: []
         sv_callers: []
-        dy_command: "bin/day_run produce_illumina_run_qc -p -j 5 -k"
-        dryrun_dy_command: "bin/day_run produce_illumina_run_qc -p -j 5 -k -n"
+        dy_command: "bin/day_run produce_illumina_run_qc -p -j 5 -k --no-auto-stage-test-data"
+        dryrun_dy_command: "bin/day_run produce_illumina_run_qc -p -j 5 -k --no-auto-stage-test-data -n"
         compatible_platforms:
           - ILMN
         compatible_cluster_types:
@@ -1515,8 +1514,8 @@ repositories:
         dedupers: []
         snv_callers: []
         sv_callers: []
-        dy_command: "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k"
-        dryrun_dy_command: "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k -n"
+        dy_command: "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --no-auto-stage-test-data"
+        dryrun_dy_command: "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --no-auto-stage-test-data -n"
         compatible_platforms:
           - ILMN
         compatible_cluster_types:
@@ -1570,8 +1569,8 @@ repositories:
         dedupers: []
         snv_callers: []
         sv_callers: []
-        dy_command: "bin/day_run produce_illumina_run_qc_and_bclconvert -p -j 20 -k"
-        dryrun_dy_command: "bin/day_run produce_illumina_run_qc_and_bclconvert -p -j 20 -k -n"
+        dy_command: "bin/day_run produce_illumina_run_qc_and_bclconvert -p -j 20 -k --no-auto-stage-test-data"
+        dryrun_dy_command: "bin/day_run produce_illumina_run_qc_and_bclconvert -p -j 20 -k --no-auto-stage-test-data -n"
         compatible_platforms:
           - ILMN
         compatible_cluster_types:
@@ -1629,8 +1628,7 @@ repositories:
         requires_run_mount: true
         runtime_parameters:
           run_context_file: config/runs.tsv
-          samples_table: .test_data/data/samples.tsv
-          units_table: .test_data/data/units.tsv
+          run_context_only: "true"
         input_requirements:
           required_run_context_values:
             PLATFORM: ONT
@@ -1642,8 +1640,8 @@ repositories:
         dedupers: []
         snv_callers: []
         sv_callers: []
-        dy_command: "bin/day_run produce_ont_run_qc -p -j 5 -k"
-        dryrun_dy_command: "bin/day_run produce_ont_run_qc -p -j 5 -k -n"
+        dy_command: "bin/day_run produce_ont_run_qc -p -j 5 -k --no-auto-stage-test-data"
+        dryrun_dy_command: "bin/day_run produce_ont_run_qc -p -j 5 -k --no-auto-stage-test-data -n"
         compatible_platforms:
           - ONT
         compatible_cluster_types:
@@ -1685,8 +1683,7 @@ repositories:
         requires_run_mount: true
         runtime_parameters:
           run_context_file: config/runs.tsv
-          samples_table: .test_data/data/samples.tsv
-          units_table: .test_data/data/units.tsv
+          run_context_only: "true"
         input_requirements:
           required_run_context_values:
             PLATFORM: ULTIMA
@@ -1698,8 +1695,8 @@ repositories:
         dedupers: []
         snv_callers: []
         sv_callers: []
-        dy_command: "bin/day_run produce_ultima_run_qc -p -j 5 -k"
-        dryrun_dy_command: "bin/day_run produce_ultima_run_qc -p -j 5 -k -n"
+        dy_command: "bin/day_run produce_ultima_run_qc -p -j 5 -k --no-auto-stage-test-data"
+        dryrun_dy_command: "bin/day_run produce_ultima_run_qc -p -j 5 -k --no-auto-stage-test-data -n"
         compatible_platforms:
           - ULTIMA
         compatible_cluster_types:

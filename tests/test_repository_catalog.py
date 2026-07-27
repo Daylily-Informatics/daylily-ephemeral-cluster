@@ -799,8 +799,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert run_profile.run_context_mount_id_column == "MOUNT_ID"
     assert command.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
-        "samples_table": ".test_data/data/samples.tsv",
-        "units_table": ".test_data/data/units.tsv",
+        "run_context_only": "true",
     }
     assert command.input_requirements.required_run_context_values == {"PLATFORM": "ILMN"}
     assert command.targets == ["produce_illumina_run_qc"]
@@ -822,14 +821,11 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "--dy-command" in launch_argv
     dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
     assert "produce_illumina_run_qc" in dy_command
+    assert "--no-auto-stage-test-data" in dy_command
     assert "run_context_file=config/runs.tsv" in dy_command
-    assert "samples_table=.test_data/data/samples.tsv" in dy_command
-    assert "units_table=.test_data/data/units.tsv" in dy_command
-    assert (
-        "--config run_context_file=config/runs.tsv "
-        "samples_table=.test_data/data/samples.tsv "
-        "units_table=.test_data/data/units.tsv"
-    ) in dy_command
+    assert "run_context_only=true" in dy_command
+    assert "samples_table=" not in dy_command
+    assert "units_table=" not in dy_command
     assert "--produce-analysis-artifact-manifest true" in dy_command
     assert "--produce-rulegraph true" in dy_command
 
@@ -848,6 +844,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     )
     combined_dy_command = combined_argv[combined_argv.index("--dy-command") + 1]
     assert "produce_illumina_run_qc_and_bclconvert" in combined_dy_command
+    assert "--no-auto-stage-test-data" in combined_dy_command
     assert "bootstrap_bclconvert=true" in combined_dy_command
     assert "bclconvert/samples.tsv" not in combined_dy_command
     assert "bclconvert/units.tsv" not in combined_dy_command
@@ -863,7 +860,31 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     ont_dy_command = ont_argv[ont_argv.index("--dy-command") + 1]
     assert "produce_ont_run_qc" in ont_dy_command
     assert "produce_ont_run_qc_and_demux_multiqc" not in ont_dy_command
+    assert "--no-auto-stage-test-data" in ont_dy_command
     assert "run_context_file=config/runs.tsv" in ont_dy_command
+    assert "run_context_only=true" in ont_dy_command
+    assert "samples_table=" not in ont_dy_command
+    assert "units_table=" not in ont_dy_command
+
+    ultima = catalog.get_command("ultima_run_qc")
+    assert ultima.runtime_parameters == {
+        "run_context_file": "config/runs.tsv",
+        "run_context_only": "true",
+    }
+    ultima_argv = ultima.launch_argv(
+        analysis_id="ultima-run-qc",
+        executing_entity="johnm",
+        run_context_file="config/runs.tsv",
+        dry_run=True,
+    )
+    ultima_dy_command = ultima_argv[ultima_argv.index("--dy-command") + 1]
+    assert "produce_ultima_run_qc" in ultima_dy_command
+    assert "--no-auto-stage-test-data" in ultima_dy_command
+    assert "run_context_only=true" in ultima_dy_command
+
+    bclconvert = catalog.get_command("illumina_bclconvert")
+    assert "--no-auto-stage-test-data" in bclconvert.dy_command
+    assert "--no-auto-stage-test-data" in bclconvert.dryrun_dy_command
 
     ultima_profile = catalog.test_data_profiles["ultima_run_directory"]
     assert ultima_profile.run_context_values == {
