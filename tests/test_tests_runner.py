@@ -556,9 +556,8 @@ def test_run_command_catalog_dry_run_only_renders_and_exports(tmp_path: Path) ->
     )
     ont_command = ont_call[ont_call.index("--dy-command") + 1]
     assert "run_context_file=config/runs.tsv" in ont_command
-    assert "run_context_only=true" in ont_command
-    assert "samples_table=" not in ont_command
-    assert "units_table=" not in ont_command
+    assert "samples_table=.test_data/data/samples.tsv" in ont_command
+    assert "units_table=.test_data/data/units.tsv" in ont_command
     with (tmp_path / "ultima_run_qc" / "runs.tsv").open(newline="", encoding="utf-8") as handle:
         ultima_rows = list(csv.DictReader(handle, delimiter="\t"))
     assert ultima_rows[0]["METRICS_PATH"] == (

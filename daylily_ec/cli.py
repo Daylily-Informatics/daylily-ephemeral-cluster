@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import contextlib
 import base64
 import binascii
+import contextlib
 import csv
 import functools
 import hashlib
@@ -17,21 +17,23 @@ import shlex
 import shutil
 import subprocess
 import sys
-import traceback
+import tempfile
 import time
+import traceback
 import uuid
-from time import monotonic as _monotonic
 from pathlib import Path, PurePosixPath
+from time import monotonic as _monotonic
 from typing import Any, List, Optional
 
 import click
 import typer
-from cli_core_yo import output
+import yaml
 from cli_core_yo import app as cli_core_app
+from cli_core_yo import output
 from cli_core_yo.app import create_app
 from cli_core_yo.errors import CliCoreYoError
-from cli_core_yo.runtime import get_context
 from cli_core_yo.runtime import _reset as _reset_cli_core_runtime
+from cli_core_yo.runtime import get_context
 from cli_core_yo.spec import (
     BackendDetectSpec,
     BackendValidationSpec,
@@ -45,6 +47,7 @@ from cli_core_yo.spec import (
     XdgSpec,
 )
 
+from daylily_ec import versioning
 from daylily_ec._registry_v2 import (
     DAYLILY_EC_RUNTIME_TAG,
     EXEMPT,
@@ -57,7 +60,6 @@ from daylily_ec._registry_v2 import (
     register_root_command,
     required_policy,
 )
-from daylily_ec import versioning
 from daylily_ec.aws.spot_pricing import (
     DEFAULT_GLOBAL_SPOT_MAX_COST,
     DEFAULT_SPOT_COST_LIMIT_PCT,
@@ -2323,6 +2325,129 @@ def exports_run(
         _exit_headnode_error(exc)
 
 
+def exports_transfer(
+    cluster_name: str = typer.Option(..., "--cluster-name", "--cluster"),
+    fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
+    source_path: str = typer.Option(..., "--source-path"),
+    destination_s3_uri: str = typer.Option(..., "--destination-s3-uri"),
+    destination_analysis_id: str = typer.Option(..., "--destination-analysis-id"),
+    region: str = typer.Option(..., "--region"),
+    profile: Optional[str] = typer.Option(None, "--profile"),
+    timeout_seconds: int = typer.Option(5400, "--timeout-seconds"),
+) -> None:
+    """Attach, export, and detach one exact analysis directory without deletion."""
+
+    from daylily_ec.workflow.export_data import (
+        STATUS_FILENAME,
+        ExportOptions,
+        run_export_workflow,
+    )
+
+    captured_stdout = io.StringIO()
+    captured_stderr = io.StringIO()
+    try:
+        with tempfile.TemporaryDirectory(prefix="dyec-export-transfer-") as output_dir:
+            options = ExportOptions(
+                cluster_name=cluster_name,
+                fsx_file_system_id=fsx_file_system_id,
+                source_path=source_path,
+                destination_s3_uri=destination_s3_uri,
+                destination_analysis_id=destination_analysis_id,
+                region=region,
+                profile=profile,
+                output_dir=Path(output_dir),
+                wait=True,
+                timeout_seconds=timeout_seconds,
+                delete_data_in_file_system=False,
+            )
+            with (
+                contextlib.redirect_stdout(captured_stdout),
+                contextlib.redirect_stderr(captured_stderr),
+            ):
+                rc = run_export_workflow(options)
+            status_path = options.output_dir / STATUS_FILENAME
+            if not status_path.is_file():
+                raise RuntimeError("DYEC export transfer did not write its status receipt")
+            receipt = yaml.safe_load(status_path.read_text(encoding="utf-8"))
+            if not isinstance(receipt, dict) or not isinstance(
+                receipt.get("fsx_export"), dict
+            ):
+                raise RuntimeError("DYEC export transfer status receipt is invalid")
+            payload = dict(receipt["fsx_export"])
+            if rc != 0 or payload.get("status") != "success":
+                detail = (
+                    payload.get("failure_details")
+                    or captured_stderr.getvalue()
+                    or captured_stdout.getvalue()
+                )
+                raise RuntimeError(f"DYEC export transfer failed: {detail}")
+            if payload.get("delete_data_in_file_system") is not False:
+                raise RuntimeError("DYEC export transfer must preserve FSx data")
+            if payload.get("detached") is not True:
+                raise RuntimeError(
+                    "DYEC export transfer did not detach its temporary DRA"
+                )
+            _emit_export_payload(
+                payload,
+                text=(
+                    f"Export transfer complete: {payload['task_id']}\n"
+                    f"S3 destination: {payload['destination_s3_uri']}"
+                ),
+            )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def exports_cleanup(
+    cluster_name: str = typer.Option(..., "--cluster-name", "--cluster"),
+    fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
+    source_path: str = typer.Option(..., "--source-path"),
+    destination_s3_uri: str = typer.Option(..., "--destination-s3-uri"),
+    destination_analysis_id: str = typer.Option(..., "--destination-analysis-id"),
+    region: str = typer.Option(..., "--region"),
+    profile: Optional[str] = typer.Option(None, "--profile"),
+    timeout_seconds: int = typer.Option(5400, "--timeout-seconds"),
+    confirm_fsx_delete: bool = typer.Option(
+        False,
+        "--confirm-fsx-delete",
+        help=(
+            "Confirm deletion of the exact /fsx/analysis_results/<owner>/<execution>/ "
+            "directory after durable export and registration receipts."
+        ),
+    ),
+) -> None:
+    """Delete one exact exported analysis directory from FSx, never from S3."""
+
+    from daylily_ec.workflow.export_data import cleanup_exported_analysis
+
+    if not confirm_fsx_delete:
+        raise typer.BadParameter(
+            "--confirm-fsx-delete is required for exact post-receipt FSx cleanup",
+            param_hint="--confirm-fsx-delete",
+        )
+    try:
+        payload = cleanup_exported_analysis(
+            cluster_name=cluster_name,
+            fsx_file_system_id=fsx_file_system_id,
+            source_path=source_path,
+            destination_s3_uri=destination_s3_uri,
+            destination_analysis_id=destination_analysis_id,
+            region=region,
+            profile=profile,
+            timeout_seconds=timeout_seconds,
+        )
+        _emit_export_payload(
+            payload,
+            text=(
+                f"FSx analysis cleanup complete: {payload['headnode_path']}\n"
+                f"Association: {payload['association_id']}\n"
+                "S3 objects preserved"
+            ),
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
 def exports_detach(
     association_id: str = typer.Option(..., "--association-id"),
     region: str = typer.Option(..., "--region"),
@@ -2915,8 +3040,8 @@ def pricing_spot_logs(
     from daylily_ec.spot_price_logs import (
         DEFAULT_SPOT_LOG_NAME_GLOBS,
         DEFAULT_SPOT_LOG_PATHS,
-        build_spot_cost_intervals,
         build_remote_spot_price_log_script,
+        build_spot_cost_intervals,
         extract_remote_spot_price_payload,
         normalize_spot_price_rows,
         spot_cost_intervals_to_csv,
@@ -9220,6 +9345,16 @@ def register(registry, cli_spec) -> None:
             (
                 "run",
                 exports_run,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "transfer",
+                exports_transfer,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "cleanup",
+                exports_cleanup,
                 required_policy(supports_json=True, mutates_state=True, long_running=True),
             ),
             (

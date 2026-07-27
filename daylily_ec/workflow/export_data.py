@@ -11,16 +11,16 @@ from typing import Any, Callable, Dict, Optional
 from urllib.parse import urlparse
 
 import boto3
-from botocore.exceptions import BotoCoreError, ClientError
 import yaml
+from botocore.exceptions import BotoCoreError, ClientError
 
-from daylily_ec.analysis_identity import validate_analysis_segment
 from daylily_ec import ui
+from daylily_ec.analysis_identity import validate_analysis_segment
 from daylily_ec.run_mounts import (
     RunMountError,
     association_is_active,
-    describe_fsx_file_system,
     describe_data_repository_associations,
+    describe_fsx_file_system,
     normalize_s3_uri,
     paths_overlap,
     resolve_fsx_file_system_id,
@@ -52,6 +52,7 @@ class ExportOptions:
     region: str
     profile: Optional[str]
     output_dir: Path
+    destination_analysis_id: Optional[str] = None
     wait: bool = True
     timeout_seconds: int = 3600
     delete_data_in_file_system: bool = False
@@ -159,6 +160,7 @@ def _allowed_export_destination_suffixes(
     *,
     source_path: str,
     cluster_name: Optional[str] = None,
+    destination_analysis_id: Optional[str] = None,
 ) -> list[str]:
     analysis_dir = analysis_dir_from_source_path(source_path)
     suffixes = [f"{analysis_dir}/"]
@@ -168,6 +170,20 @@ def _allowed_export_destination_suffixes(
         cluster_suffix = f"{cluster_segment}/{analysis_id}/"
         if cluster_suffix not in suffixes:
             suffixes.append(cluster_suffix)
+        if destination_analysis_id:
+            destination_segment = validate_analysis_segment(
+                destination_analysis_id,
+                field_name="destination_analysis_id",
+            )
+            destination_suffix = (
+                f"{cluster_segment}/analysis_results/{destination_segment}/"
+            )
+            if destination_suffix not in suffixes:
+                suffixes.append(destination_suffix)
+    elif destination_analysis_id:
+        raise ExportError(
+            "cluster_name is required when destination_analysis_id is provided"
+        )
     return suffixes
 
 
@@ -176,6 +192,7 @@ def validate_export_destination_s3_uri(
     *,
     source_path: str,
     cluster_name: Optional[str] = None,
+    destination_analysis_id: Optional[str] = None,
 ) -> str:
     destination = normalize_s3_uri(destination_s3_uri)
     parsed = urlparse(destination)
@@ -183,6 +200,7 @@ def validate_export_destination_s3_uri(
     expected_keys = _allowed_export_destination_suffixes(
         source_path=source_path,
         cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
     )
     if not any(key.endswith(expected_key) for expected_key in expected_keys):
         raise ExportError(
@@ -197,6 +215,7 @@ def resolve_launch_export_destination_s3_uri(
     *,
     source_path: str,
     cluster_name: Optional[str] = None,
+    destination_analysis_id: Optional[str] = None,
 ) -> str:
     """Resolve a workflow launch auto-export destination.
 
@@ -211,12 +230,14 @@ def resolve_launch_export_destination_s3_uri(
     expected_keys = _allowed_export_destination_suffixes(
         source_path=source_path,
         cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
     )
     if any(key.endswith(expected_key) for expected_key in expected_keys):
         return validate_export_destination_s3_uri(
             destination,
             source_path=source_path,
             cluster_name=cluster_name,
+            destination_analysis_id=destination_analysis_id,
         )
     if not cluster_name:
         raise ExportError(
@@ -229,6 +250,7 @@ def resolve_launch_export_destination_s3_uri(
         f"{destination}{cluster_segment}/{analysis_id}/",
         source_path=source_path,
         cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
     )
 
 
@@ -238,12 +260,14 @@ def validate_s3_destination_prefix_empty(
     *,
     source_path: str,
     cluster_name: Optional[str] = None,
+    destination_analysis_id: Optional[str] = None,
 ) -> str:
     """Validate the destination suffix and fail if the S3 prefix already has objects."""
     destination = validate_export_destination_s3_uri(
         destination_s3_uri,
         source_path=source_path,
         cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
     )
     parsed = urlparse(destination)
     bucket = parsed.netloc
@@ -306,6 +330,7 @@ def attach_export_dra(
     profile: Optional[str],
     wait: bool,
     timeout_seconds: int,
+    destination_analysis_id: Optional[str] = None,
     fsx_client: Optional[Any] = None,
     on_created: Optional[Callable[[ExportDraRecord], None]] = None,
 ) -> ExportDraRecord:
@@ -323,6 +348,7 @@ def attach_export_dra(
         destination_s3_uri,
         source_path=file_system_path,
         cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
     )
     validate_no_overlapping_export_dra(
         client,
@@ -388,12 +414,14 @@ def run_export_task(
     wait: bool,
     timeout_seconds: int,
     fsx_client: Any,
+    destination_analysis_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     normalized_source = normalize_export_source_path(source_path)
     destination = validate_export_destination_s3_uri(
         destination_s3_uri,
         source_path=normalized_source,
         cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
     )
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     report_path = (
@@ -504,6 +532,146 @@ def detach_export_dra(
     }
 
 
+def cleanup_exported_analysis(
+    *,
+    cluster_name: str,
+    fsx_file_system_id: Optional[str],
+    source_path: str,
+    destination_s3_uri: str,
+    destination_analysis_id: str,
+    region: str,
+    profile: Optional[str],
+    timeout_seconds: int,
+    fsx_client: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Delete one exact exported analysis directory from FSx, never from S3.
+
+    The caller must invoke this only after its owner-side export and registration
+    receipts are durable. The temporary DRA has no auto-export policy, and the
+    only destructive request is ``DeleteDataInFileSystem=True`` for the exact
+    validated ``/analysis_results/<owner>/<execution>/`` mapping.
+    """
+
+    client = fsx_client or _create_session(region, profile).client("fsx")
+    normalized_source = normalize_export_source_path(source_path)
+    destination = validate_export_destination_s3_uri(
+        destination_s3_uri,
+        source_path=normalized_source,
+        cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
+    )
+    created: Optional[ExportDraRecord] = None
+
+    def _capture_created(record: ExportDraRecord) -> None:
+        nonlocal created
+        created = record
+
+    try:
+        record = attach_export_dra(
+            cluster_name=cluster_name,
+            fsx_file_system_id=fsx_file_system_id,
+            source_path=normalized_source,
+            destination_s3_uri=destination,
+            destination_analysis_id=destination_analysis_id,
+            region=region,
+            profile=profile,
+            wait=True,
+            timeout_seconds=timeout_seconds,
+            fsx_client=client,
+            on_created=_capture_created,
+        )
+    except (BotoCoreError, ClientError, RunMountError, ExportError) as exc:
+        rollback = ""
+        if created is not None:
+            try:
+                rollback_payload = detach_export_dra(
+                    association_id=created.association_id,
+                    region=region,
+                    profile=profile,
+                    wait=True,
+                    timeout_seconds=timeout_seconds,
+                    fsx_client=client,
+                    allow_absent=True,
+                    delete_data_in_file_system=False,
+                )
+                rollback = (
+                    "; temporary DRA was detached without deleting FSx data "
+                    f"({rollback_payload['detach_lifecycle']})"
+                )
+            except (BotoCoreError, ClientError, RunMountError, ExportError) as rollback_exc:
+                rollback = (
+                    "; temporary DRA safe-detach also failed and requires inspection: "
+                    f"{rollback_exc}"
+                )
+        raise ExportError(f"Unable to attach exact FSx cleanup DRA: {exc}{rollback}") from exc
+
+    if record.file_system_path != normalized_source:
+        raise ExportError(
+            "FSx cleanup DRA path mismatch: "
+            f"expected {normalized_source}, got {record.file_system_path}"
+        )
+    if record.destination_s3_uri != destination:
+        raise ExportError(
+            "FSx cleanup DRA destination mismatch: "
+            f"expected {destination}, got {record.destination_s3_uri}"
+        )
+
+    try:
+        response = client.delete_data_repository_association(
+            AssociationId=record.association_id,
+            DeleteDataInFileSystem=True,
+        )
+    except (BotoCoreError, ClientError) as exc:
+        raise ExportError(
+            "Unable to delete exact exported analysis data from FSx: "
+            f"{record.file_system_path}: {exc}"
+        ) from exc
+
+    response_association_id = str(response.get("AssociationId") or "")
+    if response_association_id != record.association_id:
+        raise ExportError(
+            "FSx cleanup response association mismatch: "
+            f"expected {record.association_id}, got {response_association_id or 'missing'}"
+        )
+    if response.get("DeleteDataInFileSystem") is not True:
+        raise ExportError(
+            "FSx cleanup response did not confirm DeleteDataInFileSystem=true"
+        )
+    fallback_association = {
+        "AssociationId": response_association_id,
+        "Lifecycle": str(response.get("Lifecycle") or "DELETING"),
+        "FileSystemId": record.fsx_file_system_id,
+        "FileSystemPath": record.file_system_path,
+        "DataRepositoryPath": record.destination_s3_uri,
+    }
+    deleted = wait_for_deleted_association(
+        client,
+        record.association_id,
+        fallback_association=fallback_association,
+        timeout_seconds=timeout_seconds,
+    )
+    lifecycle = str(deleted.get("Lifecycle") or "")
+    if lifecycle != "DELETED":
+        raise ExportError(
+            "FSx cleanup DRA did not reach DELETED: "
+            f"{record.association_id} lifecycle={lifecycle or 'UNKNOWN'}"
+        )
+    return {
+        "schema_version": 1,
+        "status": "success",
+        "cluster_name": cluster_name,
+        "region": region,
+        "fsx_file_system_id": record.fsx_file_system_id,
+        "association_id": record.association_id,
+        "source_path": record.file_system_path,
+        "headnode_path": record.headnode_path,
+        "destination_s3_uri": record.destination_s3_uri,
+        "detach_lifecycle": lifecycle,
+        "delete_data_in_file_system": True,
+        "s3_delete_requested": False,
+    }
+
+
 def _is_association_not_found(exc: ClientError) -> bool:
     code = str((exc.response.get("Error") or {}).get("Code") or "")
     return code == "DataRepositoryAssociationNotFound"
@@ -522,6 +690,7 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
         options.destination_s3_uri,
         source_path=normalized_source,
         cluster_name=options.cluster_name,
+        destination_analysis_id=options.destination_analysis_id,
     )
     headnode_path = analysis_headnode_path(normalized_source)
     return {
@@ -595,6 +764,7 @@ def run_export_workflow(options: ExportOptions) -> int:
             profile=options.profile,
             wait=options.wait,
             timeout_seconds=options.timeout_seconds,
+            destination_analysis_id=options.destination_analysis_id,
             fsx_client=client,
             on_created=_capture_created_dra,
         )
@@ -610,6 +780,7 @@ def run_export_workflow(options: ExportOptions) -> int:
             wait=options.wait,
             timeout_seconds=options.timeout_seconds,
             fsx_client=client,
+            destination_analysis_id=options.destination_analysis_id,
         )
         receipt["fsx_export"].update(task_payload)
         if task_payload["task_lifecycle"] != "SUCCEEDED":

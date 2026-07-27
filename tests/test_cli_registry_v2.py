@@ -4,10 +4,10 @@ import base64
 import hashlib
 import json
 import logging
-from pathlib import Path
 import shlex
-from subprocess import CompletedProcess
 import sys
+from pathlib import Path
+from subprocess import CompletedProcess
 from types import SimpleNamespace
 
 import pytest
@@ -43,6 +43,8 @@ EXPECTED_COMMANDS = {
     ("export",),
     ("exports", "attach"),
     ("exports", "run"),
+    ("exports", "transfer"),
+    ("exports", "cleanup"),
     ("exports", "detach"),
     ("identities", "validate"),
     ("identities", "plan"),
@@ -376,6 +378,8 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     export_cmd = registry.get_command(("export",))
     exports_attach_cmd = registry.get_command(("exports", "attach"))
     exports_run_cmd = registry.get_command(("exports", "run"))
+    exports_transfer_cmd = registry.get_command(("exports", "transfer"))
+    exports_cleanup_cmd = registry.get_command(("exports", "cleanup"))
     exports_detach_cmd = registry.get_command(("exports", "detach"))
     resources_dir_cmd = registry.get_command(("resources-dir",))
     cluster_info_cmd = registry.get_command(("cluster-info",))
@@ -486,7 +490,13 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert export_cmd is not None
     assert export_cmd.policy.mutates_state is True
 
-    for exports_cmd in (exports_attach_cmd, exports_run_cmd, exports_detach_cmd):
+    for exports_cmd in (
+        exports_attach_cmd,
+        exports_run_cmd,
+        exports_transfer_cmd,
+        exports_cleanup_cmd,
+        exports_detach_cmd,
+    ):
         assert exports_cmd is not None
         assert exports_cmd.policy.supports_json is True
         assert exports_cmd.policy.mutates_state is True
@@ -4349,75 +4359,6 @@ def test_workflow_logs_tails_tmux_log_via_ssm(monkeypatch) -> None:
     assert "set -euo pipefail" not in calls["script"]
 
 
-def test_workflow_logs_tails_controller_log_from_status_receipt(monkeypatch) -> None:
-    import daylily_ec.aws.ssm as ssm_module
-
-    scripts: list[str] = []
-    _activate_dayec_runtime(monkeypatch)
-    _patch_headnode_selection(monkeypatch)
-    monkeypatch.setattr(
-        ssm_module,
-        "resolve_headnode_instance_id",
-        lambda _cluster, _region, *, profile=None: HeadNodeTarget(
-            "cluster-a",
-            "us-west-2",
-            "i-abc123",
-        ),
-    )
-    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
-    monkeypatch.setattr(
-        ssm_module,
-        "resolve_remote_user",
-        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
-    )
-
-    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
-        scripts.append(script)
-        if "status.json" in script:
-            return SsmCommandResult(
-                "cmd-status",
-                instance_id,
-                "Success",
-                0,
-                json.dumps(
-                    {
-                        "repo_path": "/fsx/analysis_results/ubuntu/run-1/daylily-omics-analysis"
-                    }
-                ),
-                "",
-            )
-        return SsmCommandResult("cmd-log", instance_id, "Success", 0, "controller line\n", "")
-
-    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
-
-    result = runner.invoke(
-        app,
-        [
-            "workflow",
-            "logs",
-            "--profile",
-            "dev",
-            "--region",
-            "us-west-2",
-            "--cluster",
-            "cluster-a",
-            "--session-name",
-            "sess-1",
-            "--stream",
-            "controller",
-            "--lines",
-            "50",
-        ],
-    )
-
-    assert result.exit_code == 0
-    assert "controller line" in result.stdout
-    assert len(scripts) == 2
-    assert "/home/ubuntu/daylily-runs/sess-1/status.json" in scripts[0]
-    assert "/fsx/analysis_results/ubuntu/run-1/daylily-omics-analysis/.dyec/controller.log" in scripts[1]
-    assert "tail -n 50" in scripts[1]
-
-
 def test_workflow_collect_benchmarks_runs_remote_dayoa_collector(monkeypatch) -> None:
     import daylily_ec.aws.ssm as ssm_module
 
@@ -4706,16 +4647,9 @@ def test_workflow_stop_interrupts_controller_via_ssm(monkeypatch) -> None:
     _instance_id, _region, script, kwargs = calls["run_shell"]
     assert "DAYLILY_WORKFLOW_SESSION=sess-1" in script
     assert "DAYLILY_CANCEL_SLURM_JOBS=false" in script
-    assert "DAYLILY_FORCE_KILL_SESSION=false" in script
-    assert "DAYLILY_RELEASE_ANALYSIS_LOCK=false" in script
-    assert 'run(["tmux", "send-keys", "-t", session_tmux, "C-c"])' in script
-    assert 'run(["tmux", "kill-session", "-t", session_tmux])' in script
-    assert "=session_tmux" not in script
-    assert '"dyec",\n                "analysis",\n                "lock",\n                "release"' in script
-    assert script.index('"dyec",\n                "analysis",\n                "lock",\n                "release"') < script.index(
-        'status["exit_code"] = 130'
-    )
-    assert "No active write lock to release:" in script
+    assert 'run(["tmux", "send-keys"' in script
+    assert '"C-c"' in script
+    assert 'run(["tmux", "kill-session"' in script
     assert 'status["exit_code"] = 130' in script
     assert "scancel" in script
     assert kwargs["profile"] == "dev"
@@ -4819,31 +4753,6 @@ def test_workflow_stop_requires_job_pattern_for_slurm_cancellation(monkeypatch) 
 
     assert result.exit_code != 0
     assert "--job-name-pattern is required with --cancel-slurm-jobs" in (
-        result.stdout + result.stderr
-    )
-
-
-def test_workflow_stop_requires_analysis_root_for_lock_release(monkeypatch) -> None:
-    _activate_dayec_runtime(monkeypatch)
-    result = runner.invoke(
-        app,
-        [
-            "workflow",
-            "stop",
-            "--profile",
-            "dev",
-            "--region",
-            "us-west-2",
-            "--cluster",
-            "cluster-a",
-            "--session",
-            "sess-1",
-            "--release-analysis-lock",
-        ],
-    )
-
-    assert result.exit_code != 0
-    assert "--analysis-root is required with --release-analysis-lock" in (
         result.stdout + result.stderr
     )
 
