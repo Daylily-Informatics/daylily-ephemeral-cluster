@@ -1,0 +1,19 @@
+fsx_export:
+  schema_version: 4
+  status: error
+  phase: preflight
+  cluster_name: ursa-m-rgx-fssq
+  region: us-west-2
+  analysis_dir: ursa-m-rgx-fssq/ultima_604395_20260717_2011_scratch4x_20260727T004812Z
+  source_path: /analysis_results/ursa-m-rgx-fssq/ultima_604395_20260717_2011_scratch4x_20260727T004812Z/
+  headnode_path: /fsx/analysis_results/ursa-m-rgx-fssq/ultima_604395_20260717_2011_scratch4x_20260727T004812Z/
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/ursa-m-rgx-fssq/ultima_604395_20260717_2011_scratch4x_20260727T004812Z/
+  fsx_root: /fsx/analysis_results/ursa-m-rgx-fssq/ultima_604395_20260717_2011_scratch4x_20260727T004812Z/
+  s3_root: s3://lsmc-ssf-sequencing-data/derived/ursa-m-rgx-fssq/ultima_604395_20260717_2011_scratch4x_20260727T004812Z/
+  dayoa_analysis_root: /fsx/analysis_results/ursa-m-rgx-fssq/ultima_604395_20260717_2011_scratch4x_20260727T004812Z/daylily-omics-analysis/
+  dayoa_s3_root: s3://lsmc-ssf-sequencing-data/derived/ursa-m-rgx-fssq/ultima_604395_20260717_2011_scratch4x_20260727T004812Z/daylily-omics-analysis/
+  detached: false
+  delete_data_in_file_system: false
+  failure_details:
+    message: source_path overlaps existing FSx data repository association dra-0625904b712d7748a
+      at /analysis_results/ursa-m-rgx-fssq/ultima_604395_20260717_2011_scratch4x_20260727T004812Z/.

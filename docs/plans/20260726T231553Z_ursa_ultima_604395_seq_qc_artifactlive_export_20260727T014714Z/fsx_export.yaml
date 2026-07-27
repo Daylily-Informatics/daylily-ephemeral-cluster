@@ -1,0 +1,13 @@
+fsx_export:
+  schema_version: 4
+  status: error
+  phase: validate
+  cluster_name: ursa-m-rgx-fssq
+  region: us-west-2
+  source_path: /fsx/analysis_results/ursa-m-rgx-fssq/ultima_604395_20260717_2011_artifactlive_20260727T012253Z
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/ursa-m-rgx-fssq/analysis_results/ultima_604395_20260717_2011_artifactlive_20260727T012253Z/
+  detached: false
+  delete_data_in_file_system: false
+  failure_details:
+    message: destination_s3_uri must end with one of ['ursa-m-rgx-fssq/ultima_604395_20260717_2011_artifactlive_20260727T012253Z/'];
+      got s3://lsmc-ssf-sequencing-data/derived/ursa-m-rgx-fssq/analysis_results/ultima_604395_20260717_2011_artifactlive_20260727T012253Z/
