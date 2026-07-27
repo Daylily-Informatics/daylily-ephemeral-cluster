@@ -1946,27 +1946,23 @@ ont_run_qc_runtime_repair_requested() {{
   esac
 }}
 
-patch_run_qc_reports_numpy_dependency() {{
+validate_run_qc_reports_numpy_dependency() {{
   python3 - <<'PYRUNQCENV'
 from pathlib import Path
 
-env_path = Path("workflow/envs/run_qc_reports_v0.1.yaml")
+env_path = Path("workflow/envs/run_qc_reports_v0.2.yaml")
 if not env_path.is_file():
-    raise SystemExit(f"[ERROR] ONT runQC env repair target missing: {{env_path}}")
+    raise SystemExit(f"[ERROR] ONT runQC immutable env missing: {{env_path}}")
 
 text = env_path.read_text(encoding="utf-8")
 if "\\n  - numpy\\n" in text or "\\n  - numpy=" in text or "\\n  - numpy<" in text or "\\n  - numpy>" in text:
-    print(f"[INFO] ONT runQC env already includes numpy: {{env_path}}")
+    print(f"[INFO] ONT runQC immutable env validates numpy dependency: {{env_path}}")
     raise SystemExit(0)
 
-anchor = "\\n  - pandas\\n"
-if anchor not in text:
-    raise SystemExit(
-        f"[ERROR] ONT runQC env repair anchor not found in {{env_path}}: {{anchor.strip()}}"
-    )
-
-env_path.write_text(text.replace(anchor, anchor + "  - numpy\\n", 1), encoding="utf-8")
-print(f"[INFO] Patched ONT runQC env numpy dependency: {{env_path}}")
+raise SystemExit(
+    f"[ERROR] ONT runQC immutable env is missing numpy: {{env_path}}. "
+    "Create a new versioned environment YAML; do not edit this version in place."
+)
 PYRUNQCENV
 }}
 
@@ -2659,7 +2655,7 @@ if [[ "$BCLCONVERT_PROFILE_PATCH_REQUESTED" == "true" ]]; then
   patch_bclconvert_lane_split
 fi
 	if ont_run_qc_runtime_repair_requested; then
-	  patch_run_qc_reports_numpy_dependency
+	  validate_run_qc_reports_numpy_dependency
 	  patch_run_qc_reports_pycoqc_python
 	  patch_pycoqc_readonly_sort
 	fi

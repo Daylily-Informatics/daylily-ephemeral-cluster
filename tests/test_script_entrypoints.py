@@ -1341,11 +1341,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
         mock_discover.assert_not_called()
         script = mock_run_shell.call_args.args[2]
         assert "ont_run_qc_runtime_repair_requested" in script
-        assert "patch_run_qc_reports_numpy_dependency" in script
-        assert "workflow/envs/run_qc_reports_v0.1.yaml" in script
-        assert 'anchor = "' in script
-        assert "  - pandas" in script
-        assert 'anchor + "  - numpy' in script
+        assert "validate_run_qc_reports_numpy_dependency" in script
+        assert "workflow/envs/run_qc_reports_v0.2.yaml" in script
+        assert "immutable env validates numpy dependency" in script
+        assert "immutable env is missing numpy" in script
+        assert "Patched ONT runQC env numpy dependency" not in script
         assert "patch_run_qc_reports_pycoqc_python" in script
         assert "workflow/rules/run_qc_reports.smk" in script
         assert '$(dirname "$(command -v pycoQC)")/python' in script
