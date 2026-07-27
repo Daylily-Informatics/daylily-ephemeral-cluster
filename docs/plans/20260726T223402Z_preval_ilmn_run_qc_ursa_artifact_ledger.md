@@ -129,3 +129,27 @@ Ledger path:
   explicitly expand scope to implement and deploy that allocator. Until then
   RUN-004 and QA-005 remain blocked and the requested live report cannot be
   verified.
+
+## Scratch/NVMe RunQC continuation — 2026-07-27T01:13:07Z
+
+- DayOA commit `65015d37` changes the mounted Illumina no-BCL RunQC rules so
+  their rule-owned report work validates `/scratch`, uses the named NVMe
+  partitions `i96nvme,i128nvme,i192nvme,i192hugenvme,i384nvme`, and stages
+  final files to `/fsx`. Mounted run metrics are linked into scratch and read
+  in place; no BCL/FASTQ copy is introduced.
+- The final no-job controller
+  `preval_ilmn_run_qc_scratch_nvme_dryrun_20260727T013000Z` completed with
+  exit code 0 from that exact commit. It planned only
+  `illumina_run_qc_fetch_metric_subset`, `illumina_run_qc_interop_summary`,
+  `illumina_run_qc_json`, `illumina_run_qc_report`,
+  `illumina_run_qc_multiqc`, and `produce_illumina_run_qc`. The five compute
+  rules rendered the NVMe partition list; the target is input-only and creates
+  no direct FSx log or benchmark sidecar.
+- The generated dry-run `analysis_artifacts.tsv` explicitly records
+  `multiqc_report.html`, `multiqc_report_data/multiqc_data.json`, and
+  `summary.html` as terminal/importable artifacts; `artifact_lineage.tsv`
+  remains header-only as expected for this run-context-only workflow.
+- No Slurm job was submitted, no report was generated, and the live RnD stale
+  usage gate remains unchanged. The requested three-month RnD freshness
+  relaxation still requires its separate explicit confirmation and a supported
+  deployment; it has not been applied or bypassed.
