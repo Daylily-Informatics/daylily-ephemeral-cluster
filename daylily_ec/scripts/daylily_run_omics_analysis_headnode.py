@@ -1946,11 +1946,11 @@ ont_run_qc_runtime_repair_requested() {{
   esac
 }}
 
-validate_run_qc_reports_numpy_dependency() {{
+validate_ont_run_qc_reports_numpy_dependency() {{
   python3 - <<'PYRUNQCENV'
 from pathlib import Path
 
-env_path = Path("workflow/envs/run_qc_reports_v0.2.yaml")
+env_path = Path("workflow/envs/ont_run_qc_reports_v0.1.yaml")
 if not env_path.is_file():
     raise SystemExit(f"[ERROR] ONT runQC immutable env missing: {{env_path}}")
 
@@ -2655,7 +2655,7 @@ if [[ "$BCLCONVERT_PROFILE_PATCH_REQUESTED" == "true" ]]; then
   patch_bclconvert_lane_split
 fi
 	if ont_run_qc_runtime_repair_requested; then
-	  validate_run_qc_reports_numpy_dependency
+	  validate_ont_run_qc_reports_numpy_dependency
 	  patch_run_qc_reports_pycoqc_python
 	  patch_pycoqc_readonly_sort
 	fi
