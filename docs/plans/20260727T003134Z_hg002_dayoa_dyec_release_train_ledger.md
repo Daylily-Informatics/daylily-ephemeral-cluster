@@ -50,8 +50,8 @@ release.
 | REL-004 | DYEC | Advance all active and packaged DayOA catalog/test pins to exact tag `13.0.50`. | SUCCESS | config_or_startup_contract | Gate 4 | Both catalog copies and nine active contract-test files use exact `13.0.50`; both catalog copies are byte-identical; highest-release commit is `4e7526697d9d622c9bdb120f2b53e13412792797`. |  | No range, maximum, or fallback pin was introduced. |
 | REL-005 | DYEC | Test, commit, push, and create annotated intermediate tag `14.0.21`. | SUCCESS | contract_test | Gate 5 | `source ./activate`; focused DYEC suite: `366 passed`; commit `2c154773`; annotated tag `14.0.21` is a tag object, peels to `2c154773817f089787b5dc82f90f6debbfc4a728`, and is visible on origin; branch divergence `0 0`. |  | Intermediate DayOA-pin release complete. |
 | REL-006 | DYEC | Advance both active and packaged DYEC self-pins plus tests to `14.0.21`. | SUCCESS | config_or_startup_contract | Gate 4 | Both `daylily_cli_global.yaml` copies and `DYEC_BLESSED_TAG` now use exact `14.0.21`; config copies are byte-identical. |  | The final `14.0.22` release will intentionally self-pin to the immediately preceding `14.0.21` release. |
-| REL-007 | DYEC | Retest, commit, push, and create annotated final tag `14.0.22`. | IN_PROGRESS | contract_test | Gate 5 | Repeated focused suite: `366 passed`; critical Ruff selectors passed; compileall and `git diff --check` passed. Commit, push, and tag pending. |  |  |
-| REL-008 | Remote acceptance | Verify all three tags are annotated, peel to the intended commits, exist on origin, and leave release branches clean and synchronized. | OPEN | contract_test | Gate 5 | Pending. |  |  |
+| REL-007 | DYEC | Retest, commit, push, and create annotated final tag `14.0.22`. | SUCCESS | contract_test | Gate 5 | Repeated focused suite: `366 passed`; critical Ruff selectors passed; compileall and `git diff --check` passed. Commit `3874501c`; annotated tag `14.0.22` is a tag object, peels to `3874501c8f4c54cc8ef13e2596a4c29acab3f2c4`, and is visible on origin. |  | Final self-pin release complete. |
+| REL-008 | Remote acceptance | Verify all three tags are annotated, peel to the intended commits, exist on origin, and leave release branches clean and synchronized. | SUCCESS | contract_test | Gate 5 | `13.0.50`, `14.0.21`, and `14.0.22` each return `tag` from `git cat-file -t`; origin advertises each tag object and peeled commit. Both release branches reported divergence `0 0` after their release pushes. |  | All requested release tags are published and immutable. |
 
 ## Acceptance
 
@@ -64,3 +64,17 @@ release.
 - Live and packaged config copies match.
 - All three remote tags are immutable annotated tag objects.
 - Unrelated changes in the primary DYEC checkout remain untouched.
+
+## Terminal report
+
+- Status counts: `SUCCESS=8`.
+- All rows are terminal and the objective is complete.
+- DayOA release: `13.0.50` -> `4e7526697d9d622c9bdb120f2b53e13412792797`.
+- DYEC DayOA-pin release: `14.0.21` ->
+  `2c154773817f089787b5dc82f90f6debbfc4a728`.
+- DYEC self-pin release: `14.0.22` ->
+  `3874501c8f4c54cc8ef13e2596a4c29acab3f2c4`.
+- DYEC `14.0.22` contains exact DayOA pin `13.0.50` and exact DYEC self-pin
+  `14.0.21`.
+- The primary dirty DYEC checkout was not edited, staged, committed, or
+  cleaned by this release train.
