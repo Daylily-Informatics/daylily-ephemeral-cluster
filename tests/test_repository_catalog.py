@@ -242,6 +242,12 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert multiqc_command.artifact_registration.identity.analysis_euid == "{analysis_id}"
 
     plain_run_qc_command = catalog.get_command("illumina_run_qc")
+    assert plain_run_qc_command.jobs == 20
+    assert plain_run_qc_command.runtime_parameters == {
+        "run_context_file": "config/runs.tsv",
+        "run_context_only": "true",
+    }
+    assert "bclconvert" not in plain_run_qc_command.dy_command.lower()
     assert plain_run_qc_command.artifact_registration is not None
     assert plain_run_qc_command.artifact_registration.manifest_source == "s3_inventory"
     assert plain_run_qc_command.artifact_registration.allow_s3_body_sha256 is True
@@ -369,6 +375,19 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
                 command.input_requirements.required_source_columns
                 or command.input_requirements.accepted_source_column_sets
             )
+            continue
+        if validation_run.run_id == "preval_ilmn_run_qc_rnd_final_20260727T053100Z":
+            assert command.command_id == "illumina_run_qc"
+            assert validation_run.cluster == "preval-hiomr2"
+            assert validation_run.region == "us-west-2"
+            assert validation_run.dayec_tag == "15.0.0"
+            assert validation_run.dayoa_tag == "13.0.53"
+            assert validation_run.status == "success"
+            assert validation_run.dryrun_status == "success"
+            assert validation_run.live_status == "success"
+            assert validation_run.live_analysis_id == validation_run.run_id
+            assert "run_context_only=true" in validation_run.tested_command
+            assert "bclconvert" not in validation_run.tested_command.lower()
             continue
         assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
         assert validation_run.report_path == "docs/tstver411b_command_catalog_test_results.md"
@@ -805,8 +824,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert run_profile.run_context_mount_id_column == "MOUNT_ID"
     assert command.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
-        "samples_table": ".test_data/data/samples.tsv",
-        "units_table": ".test_data/data/units.tsv",
+        "run_context_only": "true",
     }
     assert command.input_requirements.required_run_context_values == {"PLATFORM": "ILMN"}
     assert command.targets == ["produce_illumina_run_qc"]
@@ -829,13 +847,10 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
     assert "produce_illumina_run_qc" in dy_command
     assert "run_context_file=config/runs.tsv" in dy_command
-    assert "samples_table=.test_data/data/samples.tsv" in dy_command
-    assert "units_table=.test_data/data/units.tsv" in dy_command
-    assert (
-        "--config run_context_file=config/runs.tsv "
-        "samples_table=.test_data/data/samples.tsv "
-        "units_table=.test_data/data/units.tsv"
-    ) in dy_command
+    assert "run_context_only=true" in dy_command
+    assert "samples_table=" not in dy_command
+    assert "units_table=" not in dy_command
+    assert "--config run_context_file=config/runs.tsv run_context_only=true" in dy_command
     assert "--produce-analysis-artifact-manifest true" in dy_command
     assert "--produce-rulegraph true" in dy_command
 

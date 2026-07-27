@@ -83,6 +83,14 @@ Ledger path:
 | QA-005 | MultiQC acceptance | Compare generated report and `multiqc_data` section identities against the reference report; diagnose and make the smallest explicit scan-path correction if required. | BLOCKED | external_dependency | Gate 5 | DYEC cost-center refresh owner | Reference expectation and rendered MultiQC command verified in the successful dry-run. | Live `multiqc_report.html` could not be generated because no job was allowed to start. | On a successful fresh run, compare HTML anchors and `multiqc_data.json` section/data keys to the recorded reference set. |
 | EVD-006 | Durable evidence | Record the executed command, output paths, Ursa-artifact entry, report-section comparison, and final terminal status in this ledger. | COMPLETE | feature_implementation | Gate 5 | Codex | This ledger records dry-run, live-controller, artifact-manifest, lock, and block evidence. |  | All ledger rows are terminal; the execution objective remains blocked, not complete. |
 
+## Successful no-BCLConvert execution — 2026-07-27T06:12:16Z
+
+- Fresh analysis root `preval_ilmn_run_qc_rnd_final_20260727T053100Z` completed with `RC=0` on `preval-hiomr2` after the earlier cost-center block was resolved.
+- The exact workflow target was `produce_illumina_run_qc` with `run_context_only=true`; it did not select a BCL-to-FASTQ or BCLConvert workflow target. The archived controller log records Slurm job `122` for the four-thread `illumina_run_qc_multiqc` rule and `2 of 2 steps (100%) done` for the final retry.
+- MultiQC read existing BCLConvert metrics under the mounted run's `Analysis/` directory to populate its BCLConvert module section; it did not execute the BCLConvert pipeline. The final report includes BCLConvert, InterOp, and software-version sections as required by the reference report.
+- Durable report: `s3://lsmc-ssf-sequencing-data/preval-hiomr2/preval_ilmn_run_qc_rnd_final_20260727T053100Z/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/multiqc_report.html`.
+- The result was exported successfully (`task-0c4cf21c16dcfcd83`, 2,499 objects, zero failures). The S3 URI and export receipt are recorded in `/Users/jmajor/Downloads/execution_artifacts.md`.
+
 ## Approved cost-control amendment — 2026-07-26T23:27:23Z
 
 - The user explicitly confirmed the second approval to relax the global
