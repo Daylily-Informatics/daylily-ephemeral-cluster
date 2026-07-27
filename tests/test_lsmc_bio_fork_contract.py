@@ -6,10 +6,10 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_DEFAULT_TAG = "13.0.52"
-DAYOA_VALIDATED_TAG = "13.0.52"
+DAYOA_DEFAULT_TAG = "13.0.55"
+DAYOA_VALIDATED_TAG = "13.0.55"
 DAYOA_HIGHEST_RELEASE_COMMIT = "e2da479310132d0c831c7c3329993a8db4eff3a6"
-DYEC_BLESSED_TAG = "14.0.25"
+DYEC_BLESSED_TAG = "15.0.5"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
     f"{_OLD_ORG}/daylily-omics-analysis",

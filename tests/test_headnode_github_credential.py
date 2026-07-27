@@ -47,9 +47,10 @@ def test_helper_returns_token_only_for_allowlisted_lsmc_repository(monkeypatch, 
         module.sys,
         "stdin",
         io.StringIO(
-            "protocol=https\nhost=github.com\npath=lsmc-bio/daylily-omics-analysis.git\noperation=get\n\n"
+            "protocol=https\nhost=github.com\npath=lsmc-bio/daylily-omics-analysis.git\n\n"
         ),
     )
+    monkeypatch.setattr(module.sys, "argv", ["daylily-github-credential", "get"])
 
     assert module.main() == 0
     assert capsys.readouterr().out == "username=x-access-token\npassword=github-token-value\n"
@@ -84,8 +85,9 @@ def test_helper_does_not_disclose_token_for_any_other_repository(monkeypatch, tm
     monkeypatch.setattr(
         module.sys,
         "stdin",
-        io.StringIO("protocol=https\nhost=github.com\npath=lsmc-bio/other-repo.git\noperation=get\n\n"),
+        io.StringIO("protocol=https\nhost=github.com\npath=lsmc-bio/other-repo.git\n\n"),
     )
+    monkeypatch.setattr(module.sys, "argv", ["daylily-github-credential", "get"])
 
     assert module.main() == 0
     captured = capsys.readouterr()
