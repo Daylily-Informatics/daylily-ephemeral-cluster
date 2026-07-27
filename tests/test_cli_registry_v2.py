@@ -27,7 +27,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.0.52"
+DAYOA_BLESSED_TAG = "13.0.53"
 
 EXPECTED_COMMANDS = {
     ("version",),
