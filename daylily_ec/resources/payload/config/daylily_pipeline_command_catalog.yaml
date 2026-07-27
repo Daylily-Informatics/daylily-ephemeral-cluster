@@ -1708,7 +1708,7 @@ repositories:
             failure_cause: "Dry-run failed: WorkflowError reported config/units.tsv was not found and requested config/units.tsv or --config units_table=/path/to/units.tsv."
       - command_id: ultima_run_qc
         type: prod
-        validated_version: 13.0.56
+        validated_version: 13.0.58
         test_data_profile: ultima_run_directory
         display_name: "Ultima Run QC"
         description: "Ultima run-folder QC from a mounted run context."
@@ -1720,8 +1720,6 @@ repositories:
         requires_run_mount: true
         runtime_parameters:
           run_context_file: config/runs.tsv
-          samples_table: .test_data/data/samples.tsv
-          units_table: .test_data/data/units.tsv
         input_requirements:
           required_run_context_values:
             PLATFORM: ULTIMA
@@ -1741,7 +1739,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 13.0.56
+        git_tag: 13.0.58
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1762,6 +1760,24 @@ repositories:
             dryrun_analysis_id: tvb_ultima_run_qc_1021_dryrun
             stage_or_context: /fsx/run_dir_mounts/602221-20260417_2346/
             failure_cause: "Dry-run failed: WorkflowError reported config/units.tsv was not found and requested config/units.tsv or --config units_table=/path/to/units.tsv."
+          - run_id: 604395-20260717_2011
+            generated_at: "2026-07-27T01:31:42Z"
+            report_path: docs/plans/20260726T231553Z_ursa_ultima_604395_seq_qc_ledger.md
+            ledger_path: docs/plans/20260726T231553Z_ursa_ultima_604395_seq_qc_ledger.md
+            cluster: ursa-m-rgx-fssq
+            region: us-west-2
+            region_az: unrecorded
+            dayec_tag: unrecorded
+            dayec_commit: unrecorded
+            dayoa_tag: codex/ultima-run-qc-standalone
+            dayoa_commit: 44d326f9f4efe95be20d1027ff008b85e9bbadb1
+            tested_command: "dy-r produce_ultima_run_qc -p -j 5 -k --config run_context_only=true"
+            status: success
+            dryrun_status: not_run
+            live_status: success
+            live_analysis_id: dyec_ultima_604395_20260717_2011_artifactlive_20260727T012253Z
+            stage_or_context: /fsx/run_dir_mounts/604395-20260717_2011/
+            notes: "Live direct-DYEC controller reached rc=0; catalog 13.0.58 is the subsequent merged release pin."
   rna-seq-star-deseq2:
     display_name: "RNA-seq STAR + DESeq2"
     description: "RNA sequencing alignment and differential expression analysis workflows."

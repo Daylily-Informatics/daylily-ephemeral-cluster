@@ -350,7 +350,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         if not command.validation_runs:
             assert command.command_id in UNVALIDATED_COMMAND_IDS
             continue
-        assert len(command.validation_runs) == 1
+        expected_validation_runs = 2 if command.command_id == "ultima_run_qc" else 1
+        assert len(command.validation_runs) == expected_validation_runs
         validation_run = command.validation_runs[0]
         if validation_run.run_id == "dayoa_2017_hg002_kitchensink_j200_readhapsfix2_151101":
             assert command.command_id == "illumina_hg002_kitchensink_multiqc"
@@ -888,6 +889,24 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert ont.genome == "hg38"
     assert ont.jobs == 6
     assert "run_context_file=config/runs.tsv" in ont_dy_command
+
+    ultima = catalog.get_command("ultima_run_qc")
+    assert ultima.validated_version == "13.0.58"
+    assert ultima.git_tag == "13.0.58"
+    assert ultima.runtime_parameters == {"run_context_file": "config/runs.tsv"}
+    ultima_argv = ultima.launch_argv(
+        analysis_id="ultima-run-qc",
+        executing_entity="johnm",
+        run_context_file="config/runs.tsv",
+        dry_run=True,
+    )
+    ultima_dy_command = ultima_argv[ultima_argv.index("--dy-command") + 1]
+    assert "produce_ultima_run_qc" in ultima_dy_command
+    assert "run_context_file=config/runs.tsv" in ultima_dy_command
+    assert "samples_table=" not in ultima_dy_command
+    assert "units_table=" not in ultima_dy_command
+    assert ultima.validation_runs[-1].status == "success"
+    assert ultima.validation_runs[-1].live_status == "success"
 
     ultima_profile = catalog.test_data_profiles["ultima_run_directory"]
     assert ultima_profile.run_context_values == {
