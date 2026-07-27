@@ -1192,6 +1192,66 @@ repositories:
           - hybrid_ilmn_ont
         git_tag: 13.0.59
         no_containerized: false
+      - command_id: hiomr2
+        type: dev
+        validated_version: 13.0.59
+        test_data_profile: hg003_hiomrs_1x_raw_fastq
+        manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
+        display_name: "Hybrid ILMN+ONT HIOMR2 Kitchen Sink"
+        description: "HIOMR kitchen-sink port that retains its targets and flags while using the independent HIOMR2 gVCF and HIOMR2-native mito, SegDup, and TIDDIT outputs. SNV consumers read the native gVCF, not the Inflection VCF-name compatibility link."
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_R1_FQ]
+        targets:
+          - produce_sentdhiomr2_gvcf
+          - produce_sentdhiomr2_longreadsv
+          - produce_sentdhiomr2_cnv
+          - produce_sentdhiomr2_mito
+          - produce_sentdhiomr2_segdup
+          - produce_snv_concordances
+          - produce_sentdhiomr2_tiddit_sv_vcf
+          - produce_alignstats
+          - produce_relatedness
+          - produce_peddy
+          - produce_gatk_contam_estimate
+          - produce_site_mix_contam_estimate
+          - produce_vep
+          - produce_htd_calls
+          - produce_smn12_orthogonal_calls
+          - produce_metagenomics
+          - produce_multiqc_all
+          - results/day/hg38/reports/DAY_final_multiqc.html
+          - results/day/hg38/reports/dayoa_evidence_manifest.json
+        genome: hg38
+        jobs: 500
+        keep_going: true
+        restart_times: 0
+        aligners:
+          - sentmm2ont
+        dedupers:
+          - na
+        snv_callers:
+          - sentdhiomr2
+        sv_callers: []
+        dy_command: "dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv produce_sentdhiomr2_cnv produce_sentdhiomr2_mito produce_sentdhiomr2_segdup produce_snv_concordances produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
+        dryrun_dy_command: "dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv produce_sentdhiomr2_cnv produce_sentdhiomr2_mito produce_sentdhiomr2_segdup produce_snv_concordances produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n"
+        compatible_platforms:
+          - ILMN
+          - ONT
+        compatible_cluster_types:
+          - sentieon-single
+        compatible_data_modes:
+          - hybrid_ilmn_ont
+        git_tag: 13.0.59
+        no_containerized: false
+
       - command_id: package_inflection_hybrid_data
         type: dev
         validated_version: 13.0.59
