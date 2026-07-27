@@ -859,7 +859,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "bclconvert/units.tsv" not in combined_dy_command
 
     ont = catalog.get_command("ont_run_qc")
-    assert ont.targets == ["produce_ont_run_qc"]
+    assert ont.targets == ["produce_ont_run_qc_and_demux_multiqc"]
     ont_argv = ont.launch_argv(
         analysis_id="ont-run-qc",
         executing_entity="johnm",
@@ -867,8 +867,11 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
         dry_run=True,
     )
     ont_dy_command = ont_argv[ont_argv.index("--dy-command") + 1]
-    assert "produce_ont_run_qc" in ont_dy_command
-    assert "produce_ont_run_qc_and_demux_multiqc" not in ont_dy_command
+    assert "produce_ont_run_qc_and_demux_multiqc" in ont_dy_command
+    assert "--produce-analysis-artifact-manifest true" in ont_dy_command
+    assert "--produce-rulegraph true" in ont_dy_command
+    assert ont.genome == "hg38"
+    assert ont.jobs == 6
     assert "run_context_file=config/runs.tsv" in ont_dy_command
 
     ultima_profile = catalog.test_data_profiles["ultima_run_directory"]

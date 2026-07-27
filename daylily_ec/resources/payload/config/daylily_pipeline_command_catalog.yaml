@@ -1655,7 +1655,7 @@ repositories:
         validated_version: 13.0.56
         test_data_profile: ont_run_directory
         display_name: "ONT Run QC"
-        description: "ONT mounted run-folder QC in one run-analysis output tree."
+        description: "ONT mounted run-folder QC plus demultiplexed FASTQ QC and focused MultiQC reports in one run-analysis output tree."
         datasource: ONT
         launcher: workflow_launch
         command_class: run_analysis
@@ -1670,15 +1670,15 @@ repositories:
           required_run_context_values:
             PLATFORM: ONT
         targets:
-          - produce_ont_run_qc
+          - produce_ont_run_qc_and_demux_multiqc
         genome: hg38
-        jobs: 5
+        jobs: 6
         aligners: []
         dedupers: []
         snv_callers: []
         sv_callers: []
-        dy_command: "bin/day_run produce_ont_run_qc -p -j 5 -k"
-        dryrun_dy_command: "bin/day_run produce_ont_run_qc -p -j 5 -k -n"
+        dy_command: "bin/day_run produce_ont_run_qc_and_demux_multiqc -p -j 6 -k --produce-analysis-artifact-manifest true --produce-rulegraph true --produce-filegraph false --produce-dag false"
+        dryrun_dy_command: "bin/day_run produce_ont_run_qc_and_demux_multiqc -p -j 6 -k --produce-analysis-artifact-manifest true --produce-rulegraph true --produce-filegraph false --produce-dag false -n"
         compatible_platforms:
           - ONT
         compatible_cluster_types:
