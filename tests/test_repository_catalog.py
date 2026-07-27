@@ -757,7 +757,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert 'dedupers=["na"]' in inflection_bjuice.dy_command
     assert 'snv_callers=["sentdhiomr2"]' in inflection_bjuice.dy_command
     assert " -p -T 0 -k -j 200 " in inflection_bjuice.dy_command
-    assert inflection_bjuice.genome == "hg38_broad"
+    assert inflection_bjuice.genome == "hg38"
     assert inflection_bjuice.dryrun_dy_command.endswith(" -n")
 
     simple_test = catalog.get_command("simple-test")
