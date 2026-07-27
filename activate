@@ -108,6 +108,13 @@ __daylily_activate_refresh_command_cache() {
   rehash 2>/dev/null || true
 }
 
+__daylily_activate_enable_conda_tos_auto_accept() {
+  if ! conda config --set plugins.auto_accept_tos true; then
+    echo "Error: failed to configure Conda automatic Terms of Service acceptance." >&2
+    return 1
+  fi
+}
+
 __daylily_activate_ensure_env_bin_first() {
   if [ -z "${CONDA_PREFIX:-}" ] || [ ! -d "${CONDA_PREFIX}/bin" ]; then
     echo "Error: conda did not expose a usable DAY-EC bin directory." >&2
@@ -143,6 +150,7 @@ __daylily_activate_load_conda || {
   echo "Error: conda is not available in this shell." >&2
   return 1
 }
+__daylily_activate_enable_conda_tos_auto_accept || return 1
 
 __daylily_activate_created_dayec=0
 if ! __daylily_activate_dayec_exists; then
@@ -184,6 +192,7 @@ unset -f __daylily_activate_conda_is_function
 unset -f __daylily_activate_conda_exe
 unset -f __daylily_activate_load_conda
 unset -f __daylily_activate_refresh_command_cache
+unset -f __daylily_activate_enable_conda_tos_auto_accept
 unset -f __daylily_activate_ensure_env_bin_first
 unset -f __daylily_activate_ensure_repo_pythonpath_first
 unset -f __daylily_activate_dayec_exists

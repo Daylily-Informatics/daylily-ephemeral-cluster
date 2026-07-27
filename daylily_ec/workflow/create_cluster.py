@@ -4196,11 +4196,11 @@ def configure_headnode(
             None,
         ),
         (
-            "Accept Conda Terms of Service",
+            "Configure Ubuntu Conda Terms of Service",
             (
-                "~/miniconda3/bin/conda tos accept --override-channels "
-                "--channel https://repo.anaconda.com/pkgs/main && "
-                "~/miniconda3/bin/conda tos accept --override-channels "
+                "~/miniconda3/bin/conda config --set plugins.auto_accept_tos true && "
+                "~/miniconda3/bin/conda tos accept --user "
+                "--override-channels --channel https://repo.anaconda.com/pkgs/main "
                 "--channel https://repo.anaconda.com/pkgs/r"
             ),
             None,

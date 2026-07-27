@@ -2561,9 +2561,12 @@ class TestConfigureHeadnode:
             "ubuntu",
         ]
         tos_cmd = mock_run_shell.call_args_list[2].args[2]
-        assert "conda tos accept --override-channels" in tos_cmd
+        assert "conda config --set plugins.auto_accept_tos true" in tos_cmd
+        assert "conda tos accept --user --override-channels" in tos_cmd
         assert "https://repo.anaconda.com/pkgs/main" in tos_cmd
         assert "https://repo.anaconda.com/pkgs/r" in tos_cmd
+        assert "sudo" not in tos_cmd
+        assert "--site" not in tos_cmd
         assert (
             "source ~/projects/daylily-ephemeral-cluster/activate"
             in mock_run_shell.call_args_list[3].args[2]

@@ -9,6 +9,7 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = REPO_ROOT / "bin" / "install_miniconda"
+ACTIVATE_SCRIPT_PATH = REPO_ROOT / "activate"
 PAYLOAD_SCRIPT_PATH = (
     REPO_ROOT / "daylily_ec" / "resources" / "payload" / "bin" / "install_miniconda"
 )
@@ -112,6 +113,7 @@ if [[ "${1:-}" == "config" ]]; then
   if [[ "${INSTALLER_FAIL_ON_CONDA_CONFIG:-0}" == "1" ]]; then
     exit 42
   fi
+  printf '%s\\n' "$*" > "${INSTALLER_CONDA_CONFIG_MARKER:?}"
   exit 0
 fi
 
@@ -159,6 +161,7 @@ if [[ "${1:-}" == "config" ]]; then
   if [[ "${INSTALLER_FAIL_ON_CONDA_CONFIG:-0}" == "1" ]]; then
     exit 42
   fi
+  printf '%s\\n' "$*" > "${INSTALLER_CONDA_CONFIG_MARKER:?}"
   exit 0
 fi
 
@@ -183,6 +186,7 @@ def _base_env(tmp_path: Path) -> tuple[dict[str, str], Path, Path]:
         {
             "HOME": str(home_dir),
             "INSTALLER_TEST_LOG": str(log_path),
+            "INSTALLER_CONDA_CONFIG_MARKER": str(tmp_path / "conda-config.marker"),
             "PATH": f"{fake_bin}:/usr/bin:/bin",
         }
     )
@@ -232,6 +236,9 @@ def test_install_miniconda_selects_expected_installer_url(
 
     assert result.returncode == 0, result.stderr
     assert f"curl:-fsSL {expected_url}" in log_path.read_text(encoding="utf-8")
+    assert Path(env["INSTALLER_CONDA_CONFIG_MARKER"]).read_text(encoding="utf-8") == (
+        "config --set plugins.auto_accept_tos true\n"
+    )
 
 
 def test_install_miniconda_rejects_sourcing(tmp_path: Path) -> None:
@@ -287,7 +294,7 @@ def test_install_miniconda_falls_back_to_wget_when_curl_fails(tmp_path: Path) ->
     assert "latest" not in log_text
 
 
-def test_install_miniconda_does_not_require_conda_config_accept_channel_terms(tmp_path: Path) -> None:
+def test_install_miniconda_fails_when_auto_tos_config_fails(tmp_path: Path) -> None:
     env, fake_bin, _log_path = _base_env(tmp_path)
     env["DAY_TEST_UNAME_S"] = "Linux"
     env["DAY_TEST_UNAME_M"] = "x86_64"
@@ -297,7 +304,15 @@ def test_install_miniconda_does_not_require_conda_config_accept_channel_terms(tm
 
     result = _run_bash(f'"{SCRIPT_PATH}"', env)
 
-    assert result.returncode == 0, result.stderr
+    assert result.returncode == 42
+
+
+def test_activate_configures_user_scoped_conda_tos_auto_acceptance() -> None:
+    activate = ACTIVATE_SCRIPT_PATH.read_text(encoding="utf-8")
+
+    assert "conda config --set plugins.auto_accept_tos true" in activate
+    assert "conda config --system --set plugins.auto_accept_tos true" not in activate
+    assert "sudo" not in activate
 
 
 def test_install_miniconda_repairs_shell_init_when_home_miniconda_exists(tmp_path: Path) -> None:
