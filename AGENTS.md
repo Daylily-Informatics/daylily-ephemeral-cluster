@@ -108,6 +108,12 @@ For cost/performance reports, aggregate directly from those rows: `sum(s)` for t
 
 - Use the repo activation flow before running Daylily commands: `cd /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster && source ./activate`. If the `DAY-EC` Conda environment is not present or dependencies are missing, run `source ./activate` from the repo root to create/activate it, then use the `DAY-EC` environment for tests and CLI commands.
 
+# Workflow Environment YAML Versioning
+
+- Treat checked-in DayOA `workflow/envs/*.yaml` files as immutable versioned contracts. Never modify an existing versioned environment YAML in place.
+- For any environment change, create a new incremented YAML filename, update the explicit DayOA rule/configuration reference and tests, then commit and push that new version.
+- Preserve old YAML contents exactly for reproducibility of historical analysis roots and releases.
+
 # Plan Ledger Workflow
 
 - For multi-step, cross-repo, long-running, risky, or explicitly plan-driven work, use `/Users/jmajor/.codex/docs/plan-ledger-workflow.md` as the default execution SOP.
