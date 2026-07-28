@@ -8,6 +8,7 @@ import contextlib
 import csv
 import functools
 import hashlib
+import inspect
 import io
 import json
 import logging
@@ -192,7 +193,14 @@ def _resolve_cost_center_option(cost_center: Optional[str]) -> Optional[str]:
 
 
 def _dayec_info_hook() -> list[tuple[str, str]]:
-    return [("Project Root", str(Path(__file__).resolve().parents[1]))]
+    from daylily_ec.repositories import load_repository_catalog
+
+    catalog = load_repository_catalog()
+    dayoa = catalog.repositories["daylily-omics-analysis"]
+    return [
+        ("Pinned DayOA Version", dayoa.default_ref),
+        ("Project Root", str(Path(__file__).resolve().parents[1])),
+    ]
 
 
 def _install_dayec_version_provider() -> None:
@@ -207,6 +215,36 @@ def _install_dayec_version_provider() -> None:
 
 
 _install_dayec_version_provider()
+
+
+def _show_dayec_version(value: bool) -> bool:
+    if value:
+        typer.echo(f"Daylily Ephemeral Cluster {versioning.get_version()}")
+        raise typer.Exit()
+    return value
+
+
+def _install_dayec_version_option(target_app: typer.Typer) -> None:
+    root_callback = target_app.registered_callback.callback
+    if root_callback is None:
+        raise RuntimeError("DYEC root callback is not registered")
+
+    signature = inspect.signature(root_callback)
+    version_parameter = inspect.Parameter(
+        "version",
+        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        annotation=bool,
+        default=typer.Option(
+            False,
+            "--version",
+            help="Show version and exit.",
+            is_eager=True,
+            callback=_show_dayec_version,
+        ),
+    )
+    root_callback.__signature__ = signature.replace(
+        parameters=[*signature.parameters.values(), version_parameter]
+    )
 
 
 spec = CliSpec(
@@ -9467,6 +9505,7 @@ def register(registry, cli_spec) -> None:
 
 
 app = create_app(spec)
+_install_dayec_version_option(app)
 
 
 def _run_cli(argv: Optional[List[str]] = None) -> int:
@@ -9475,6 +9514,7 @@ def _run_cli(argv: Optional[List[str]] = None) -> int:
     args = list(argv if argv is not None else sys.argv[1:])
     try:
         cli_app = create_app(spec)
+        _install_dayec_version_option(cli_app)
         result = cli_app(args, standalone_mode=False)
         return result if isinstance(result, int) else 0
     except click.exceptions.NoArgsIsHelpError:

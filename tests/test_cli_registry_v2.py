@@ -826,6 +826,23 @@ def test_root_json_is_global_for_version() -> None:
     assert payload["version"] == versioning.get_version()
 
 
+def test_root_version_option_matches_version_command() -> None:
+    versioning.get_version.cache_clear()
+    result = runner.invoke(app, ["--version"])
+
+    assert result.exit_code == 0
+    assert result.stdout.strip() == f"Daylily Ephemeral Cluster {versioning.get_version()}"
+
+
+def test_run_cli_supports_root_version_option(capsys) -> None:
+    versioning.get_version.cache_clear()
+
+    assert cli_module._run_cli(["--version"]) == 0
+    assert capsys.readouterr().out.strip() == (
+        f"Daylily Ephemeral Cluster {versioning.get_version()}"
+    )
+
+
 def test_root_json_is_global_for_info(monkeypatch, tmp_path) -> None:
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))
@@ -840,6 +857,7 @@ def test_root_json_is_global_for_info(monkeypatch, tmp_path) -> None:
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert payload["Version"]
+    assert payload["Pinned DayOA Version"] == DAYOA_BLESSED_TAG
     assert payload["CLI Core"]
     assert payload["Config Dir"] == str((tmp_path / "config" / "daylily").resolve())
 
