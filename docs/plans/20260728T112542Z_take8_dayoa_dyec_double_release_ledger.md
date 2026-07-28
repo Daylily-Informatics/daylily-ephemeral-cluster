@@ -31,6 +31,6 @@ DayOA catalog to that release, then advance DYEC's own bootstrap/self-pin.
 | ID | Objective | Status | Evidence / terminal note |
 | --- | --- | --- | --- |
 | DAYOA-001 | Push and annotate the complete DayOA source release `13.0.69`. | COMPLETE | `13.0.69` is an annotated tag on `a65833bd`, pushed to `origin`. |
-| DYEC-001 | Pin source and packaged command catalogs to DayOA `13.0.69`; commit, push, annotate, and push DYEC `15.0.16`. | IN_PROGRESS | Only `default_ref` and current command `git_tag` fields will change; historical `validated_version` evidence remains intact. |
-| DYEC-002 | Advance source and packaged DYEC self-pins to `15.0.17`; commit, push, annotate, and push the final release. | OPEN | Must follow successful `15.0.16` publication. |
+| DYEC-001 | Pin source and packaged command catalogs to DayOA `13.0.69`; commit, push, annotate, and push DYEC `15.0.16`. | COMPLETE | Commit `56ee1a40066f445f4ce658539e0df14c5bb78e42` is pushed on `origin/codex/hiomr2-catalog-repair`; annotated tag object `e4bbc1f00fee98fd86ce8cce0a401e463bef5f66` is pushed as `15.0.16`. Focused catalog/CLI validation: 232 passed. |
+| DYEC-002 | Advance source and packaged DYEC self-pins to `15.0.17`; commit, push, annotate, and push the final release. | IN_PROGRESS | Source and packaged self-pins are being advanced together after successful `15.0.16` publication. |
 | TAKE8-001 | After Take8 overall RC 0, ensure analytical Inflection packaging completes. | PENDING | The active `dy-r` invocation already includes `produce_sentdhiomr2_inflection_analytical_package`; it is dependency-gated behind the kitchen-sink outputs. Launch a separate package controller only if the completed DAG did not produce it. |
