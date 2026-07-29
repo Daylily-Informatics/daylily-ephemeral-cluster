@@ -2570,10 +2570,6 @@ if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then
 fi
 . "$HOME/miniconda3/etc/profile.d/conda.sh"
 shopt -s expand_aliases
-MERMAID_CHROME="$HOME/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome"
-if [[ -z "${{PUPPETEER_EXECUTABLE_PATH:-}}" && -x "$MERMAID_CHROME" ]]; then
-  export PUPPETEER_EXECUTABLE_PATH="$MERMAID_CHROME"
-fi
 
 ensure_dayoa_shortcuts() {{
   if [[ -f "bin/day_activate" ]]; then
