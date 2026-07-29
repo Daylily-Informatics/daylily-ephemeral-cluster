@@ -79,22 +79,22 @@ Pushed tags will not be moved or overwritten.
 | REL-004 | DYEC | Repin every active DayOA default/catalog/test contract from `13.0.77` to `13.0.78` while retaining validated-version history. | SUCCESS | config_or_startup_contract | Gate 3 | orchestrator | Five active tracked files select `13.0.78`; the highest-release commit contract records `8a6afd8c996cf9913810a4de5d9e752f272c4855`; no old active pin remains. |  | All active DayOA launch defaults now select the immutable `13.0.78` release. |
 | REL-005 | DYEC | Advance source/package self-pins and their test contract from `15.0.23` to `16.0.0`. | SUCCESS | config_or_startup_contract | Gate 3 | orchestrator | Both global config copies and `tests/test_lsmc_bio_fork_contract.py` select `16.0.0`; no old active self-pin remains. |  | Source and packaged DYEC configuration agree on `16.0.0`. |
 | REL-006 | DYEC | Validate the catalog, package copies, release provenance, and generated headnode runner. | SUCCESS | contract_test | Gate 4 | orchestrator | Both source/package `cmp` checks and `git diff --check` passed; focused catalog, registry, fork-contract, and runner tests returned `277 passed in 10.83s`. |  | The scoped release diff is validated. |
-| REL-007 | DYEC | Commit and push the scoped release, create annotated tag `16.0.0`, push it, and verify the remote peeled commit. | IN_PROGRESS | release | Gate 5 | orchestrator | `16.0.0` is locally and remotely available; exact-path staging begins next. |  |  |
-| REL-008 | Cross-repo | Restore preserved local catalog edits and verify branch head, annotated tag type, remote peeled commit, and residual dirty scope. | OPEN | release | Gate 5 | orchestrator | Pending release. |  |  |
+| REL-007 | DYEC | Commit and push the scoped release, create annotated tag `16.0.0`, push it, and verify the remote peeled commit. | SUCCESS | release | Gate 5 | orchestrator | Release commit `9f59f0f3953ed3cea8ce9eec4c1d489feabe6569` pushed on `codex/hiomr2-catalog-repair`; annotated tag object `46477c8589f52322ac221c46d56635f88af0409a` was pushed and remote `16.0.0^{}` peels to the release commit. |  | DYEC `16.0.0` is published immutably. |
+| REL-008 | Cross-repo | Restore preserved local catalog edits and verify branch head, annotated tag type, remote peeled commit, and residual dirty scope. | SUCCESS | release | Gate 5 | orchestrator | The named release stash was popped without conflicts and removed; both catalog copies remain byte-identical at DayOA `13.0.78`, while only the preserved HIOMR2 TIDDIT/library-summary changes and their test are tracked-dirty. Older unrelated stashes remain untouched. |  | Release provenance is verified and user work is restored. |
 
 ## Final Report
 
-All rows terminal: no
+All rows terminal: yes
 
-Objective complete: no
+Objective complete: yes
 
 Status counts:
 
-- SUCCESS: 6
+- SUCCESS: 8
 - FAIL: 0
 - BLOCKED: 0
-- IN_PROGRESS: 1
-- OPEN: 1
+- IN_PROGRESS: 0
+- OPEN: 0
 
 Changed files:
 
@@ -114,3 +114,5 @@ Residual risks:
 
 - Take10 remains on DayOA `13.0.75`; updating it was not requested and would
   require a separate analysis-root write action.
+- The requested Take13 `hiomr2` launch remains paused; only its untracked
+  launch ledger was created before the release request superseded that work.
