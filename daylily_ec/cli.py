@@ -5133,6 +5133,10 @@ def samples_run(
             delete_on_export_success=delete_on_export_success,
             replace_existing_analysis_dir=replace_existing_analysis_dir,
         )
+        if pass_on_stale_budget:
+            workflow_cli_argv.append("--pass-on-stale-budget")
+        if pass_on_budget_exceeded:
+            workflow_cli_argv.append("--pass-on-budget-exceeded")
         workflow_cli_argv.extend(["--max-runtime-minutes", str(max_runtime_minutes)])
         launch_stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(launch_stdout_buffer):

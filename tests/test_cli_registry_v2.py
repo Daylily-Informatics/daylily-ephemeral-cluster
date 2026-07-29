@@ -3178,6 +3178,8 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
             "project-alpha",
             "--cost-center",
             "bjuice",
+            "--pass-on-stale-budget",
+            "--pass-on-budget-exceeded",
             "--session-name",
             "cg-session",
             "--max-runtime-minutes",
@@ -3220,6 +3222,8 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "--project" in launch_argv
     assert "project-alpha" in launch_argv
     assert launch_argv[launch_argv.index("--cost-center") + 1] == "bjuice"
+    assert "--pass-on-stale-budget" in launch_argv
+    assert "--pass-on-budget-exceeded" in launch_argv
     assert "--max-runtime-minutes" in launch_argv
     assert launch_argv[launch_argv.index("--max-runtime-minutes") + 1] == "240"
     assert "--dy-command" in launch_argv
@@ -3775,6 +3779,8 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
             "project-alpha",
             "--cost-center",
             "bjuice",
+            "--pass-on-stale-budget",
+            "--pass-on-budget-exceeded",
             "--session-name",
             "sess-1",
             "--export-destination-s3-uri",
@@ -3816,6 +3822,8 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "project-alpha" in argv
     assert "--cost-center" in argv
     assert argv[argv.index("--cost-center") + 1] == "bjuice"
+    assert "--pass-on-stale-budget" in argv
+    assert "--pass-on-budget-exceeded" in argv
     assert "--session-name" in argv
     assert "sess-1" in argv
     assert "--export-destination-s3-uri" in argv
