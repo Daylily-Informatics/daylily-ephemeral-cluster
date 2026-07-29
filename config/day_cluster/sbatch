@@ -63,6 +63,26 @@ info() {
     echo "DYEC sbatch enforcement: $*" >&2
 }
 
+budget_override_enabled() {
+    local variable_name="$1"
+    local value="${!variable_name-}"
+    if [ -z "${!variable_name+x}" ]; then
+        return 1
+    fi
+    value="$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
+    [ "$value" != "0" ] && [ "$value" != "false" ]
+}
+
+budget_warning_or_fail() {
+    local variable_name="$1"
+    local message="$2"
+    if budget_override_enabled "$variable_name"; then
+        echo "WARNING: ${message} Continuing because ${variable_name} is explicitly enabled." >&2
+        return 0
+    fi
+    fail "$message"
+}
+
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --comment)
@@ -202,7 +222,7 @@ if [ "${enforce_budget}" = "true" ]; then
     info "cluster budget monitor: $(budget_monitor_url "${cluster_name}")"
 
     if awk -v percent="${percent_used}" 'BEGIN { exit !(percent >= 100) }'; then
-        fail "AWS Budget '${cluster_name}' is exhausted: ${percent_used}% used (${used_budget}/${total_budget} ${budget_unit:-USD})"
+        budget_warning_or_fail "DAY_PASS_ON_BUDGET_EXCEEDED" "AWS Budget '${cluster_name}' is exhausted: ${percent_used}% used (${used_budget}/${total_budget} ${budget_unit:-USD})"
     fi
 fi
 
@@ -301,6 +321,7 @@ usage_json="$(
         --output json 2>&1
 )" || fail "unable to read cost-center usage table '${cost_center_usage_table}' in ${cost_center_region}: ${usage_json}"
 
+set +e
 usage_validation="$(
     USAGE_JSON="${usage_json}" \
     MONTHLY_CAP_USD="${monthly_cap}" \
@@ -355,7 +376,22 @@ if spend >= cap:
     sys.exit(25)
 print(f"spend={spend}, cap={cap}, latest_processed_hour={latest}, age_hours={age_hours:.2f}, max_hours={max_age:.2f}")
 PY
-)" || fail "${usage_validation}"
+)"
+usage_validation_status=$?
+set -e
+if [ "$usage_validation_status" -ne 0 ]; then
+    case "$usage_validation_status" in
+        24)
+            budget_warning_or_fail "DAY_PASS_ON_STALE_BUDGET" "${usage_validation}"
+            ;;
+        25)
+            budget_warning_or_fail "DAY_PASS_ON_BUDGET_EXCEEDED" "${usage_validation}"
+            ;;
+        *)
+            fail "${usage_validation}"
+            ;;
+    esac
+fi
 
 info "cost center '${cost_center}' usage ok: ${usage_validation}."
 info "cost-center report: $(cost_center_monitor_url "${cost_center}")"

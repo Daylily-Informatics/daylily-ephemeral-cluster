@@ -4974,6 +4974,16 @@ def samples_run(
         "--cost-center",
         help="Explicit active Slurm cost center; exported as DAY_PROJECT only for job submission.",
     ),
+    pass_on_stale_budget: bool = typer.Option(
+        False,
+        "--pass-on-stale-budget",
+        help="Request warning-only handling of stale budget data for this workflow launch.",
+    ),
+    pass_on_budget_exceeded: bool = typer.Option(
+        False,
+        "--pass-on-budget-exceeded",
+        help="Request warning-only handling of exceeded cluster and cost-center budgets for this workflow launch.",
+    ),
     skip_project_check: bool = typer.Option(
         True,
         "--skip-project-check/--strict-project-check",
@@ -5402,6 +5412,16 @@ def workflow_launch(
         "--cost-center",
         help="Explicit active Slurm cost center; exported as DAY_PROJECT only for job submission.",
     ),
+    pass_on_stale_budget: bool = typer.Option(
+        False,
+        "--pass-on-stale-budget",
+        help="Request warning-only handling of stale budget data for this workflow launch.",
+    ),
+    pass_on_budget_exceeded: bool = typer.Option(
+        False,
+        "--pass-on-budget-exceeded",
+        help="Request warning-only handling of exceeded cluster and cost-center budgets for this workflow launch.",
+    ),
     skip_project_check: bool = typer.Option(
         True,
         "--skip-project-check/--strict-project-check",
@@ -5687,6 +5707,10 @@ def workflow_launch(
             argv.extend([flag, value])
     for flag, value in producer_option_values.items():
         argv.extend([flag, value])
+    if pass_on_stale_budget:
+        argv.append("--pass-on-stale-budget")
+    if pass_on_budget_exceeded:
+        argv.append("--pass-on-budget-exceeded")
     if not input_staging:
         argv.append("--no-input-staging")
     if not default_activation:

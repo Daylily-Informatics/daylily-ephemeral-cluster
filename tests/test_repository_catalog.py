@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.0.69"
+DAYOA_BLESSED_TAG = "13.0.71"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -706,10 +706,33 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         hybrid_kitchensink.input_requirements.accepted_source_column_sets
     )
 
+    # HIOMR2 kitchen-sink variants intentionally select only SMNCopyNumber.
+    for command_id in (
+        "hiomr2",
+        "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical",
+        "inflection-bjuice-product-v0.2",
+    ):
+        hiomr2_kitchensink = catalog.get_command(command_id)
+        for command in (
+            hiomr2_kitchensink.dy_command,
+            hiomr2_kitchensink.dryrun_dy_command,
+        ):
+            assert command.count("htd_callers=") == 1
+            assert 'htd_callers=["smn12"]' in command
+            for excluded_special_caller in (
+                "gauchian",
+                "cyrius",
+                "smaca",
+                "sma_finder",
+                "hapsma",
+                "parascopy",
+            ):
+                assert excluded_special_caller not in command
+
     package_inflection = catalog.get_command("package_inflection_hybrid_data")
     assert package_inflection.type == "dev"
     assert package_inflection.validated_version == "13.0.61"
-    assert package_inflection.git_tag == "13.0.69"
+    assert package_inflection.git_tag == "13.0.71"
     assert package_inflection.input_contract == "six_manifest"
     assert package_inflection.targets == ["produce_inflection_delivery_set"]
     assert package_inflection.jobs == 400
@@ -893,7 +916,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
 
     ultima = catalog.get_command("ultima_run_qc")
     assert ultima.validated_version == "13.0.61"
-    assert ultima.git_tag == "13.0.69"
+    assert ultima.git_tag == "13.0.71"
     assert ultima.runtime_parameters == {"run_context_file": "config/runs.tsv"}
     ultima_argv = ultima.launch_argv(
         analysis_id="ultima-run-qc",

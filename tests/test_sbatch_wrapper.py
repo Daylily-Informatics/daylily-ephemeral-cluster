@@ -162,10 +162,14 @@ exit 2
     return wrapper
 
 
-def _run(wrapper: Path, *args: str) -> subprocess.CompletedProcess[str]:
+def _run(
+    wrapper: Path, *args: str, extra_env: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     env["PATH"] = f"{wrapper.parent / 'bin'}:{env['PATH']}"
     env["USER"] = "ubuntu"
+    if extra_env:
+        env.update(extra_env)
     return subprocess.run(
         [str(wrapper), *args],
         text=True,
@@ -260,6 +264,62 @@ def test_sbatch_wrapper_rejects_exceeded_cost_center_cap(tmp_path: Path) -> None
     result = _run(wrapper, "--comment", "project-a", "job.sh")
     assert result.returncode == 1
     assert "cost-center monthly cap exceeded" in result.stderr
+
+
+def test_sbatch_wrapper_budget_exceeded_override_is_opt_in_for_cluster_and_cost_center(
+    tmp_path: Path,
+) -> None:
+    for value in ("", "1", "true", "anything"):
+        cluster_dir = tmp_path / f"cluster-{value or 'empty'}"
+        cluster_dir.mkdir()
+        cluster = _prepared_wrapper(cluster_dir, budget_mode="exceeded")
+        cluster_result = _run(
+            cluster,
+            "--comment=project-a",
+            "job.sh",
+            extra_env={"DAY_PASS_ON_BUDGET_EXCEEDED": value},
+        )
+        assert cluster_result.returncode == 0
+        assert "WARNING: AWS Budget 'cluster-a' is exhausted" in cluster_result.stderr
+        assert "REAL_SLURM [--comment=project-a] [--export=ALL] [job.sh]" in cluster_result.stdout
+
+        cost_center_dir = tmp_path / f"cost-center-{value or 'empty'}"
+        cost_center_dir.mkdir()
+        cost_center = _prepared_wrapper(cost_center_dir, usage_mode="exceeded")
+        cost_center_result = _run(
+            cost_center,
+            "--comment=project-a",
+            "job.sh",
+            extra_env={"DAY_PASS_ON_BUDGET_EXCEEDED": value},
+        )
+        assert cost_center_result.returncode == 0
+        assert "WARNING: cost-center monthly cap exceeded" in cost_center_result.stderr
+
+
+def test_sbatch_wrapper_stale_budget_override_is_opt_in(tmp_path: Path) -> None:
+    for value in ("", "1", "true", "anything"):
+        wrapper_dir = tmp_path / f"stale-{value or 'empty'}"
+        wrapper_dir.mkdir()
+        wrapper = _prepared_wrapper(wrapper_dir, usage_mode="stale")
+        result = _run(
+            wrapper,
+            "--comment=project-a",
+            "job.sh",
+            extra_env={"DAY_PASS_ON_STALE_BUDGET": value},
+        )
+        assert result.returncode == 0
+        assert "WARNING: cost-center usage is stale" in result.stderr
+
+
+def test_sbatch_wrapper_budget_overrides_remain_disabled_when_unset_or_false(tmp_path: Path) -> None:
+    for ordinal, value in enumerate((None, "0", "false", "FALSE")):
+        env = {} if value is None else {"DAY_PASS_ON_BUDGET_EXCEEDED": value}
+        wrapper_dir = tmp_path / f"disabled-{ordinal}"
+        wrapper_dir.mkdir()
+        wrapper = _prepared_wrapper(wrapper_dir, budget_mode="exceeded")
+        result = _run(wrapper, "--comment=project-a", "job.sh", extra_env=env)
+        assert result.returncode == 1
+        assert "AWS Budget 'cluster-a' is exhausted" in result.stderr
 
 
 def test_sbatch_wrapper_rejects_empty_cost_center_usage_json(tmp_path: Path) -> None:
