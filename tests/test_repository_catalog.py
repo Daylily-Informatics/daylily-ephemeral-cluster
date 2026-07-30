@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shlex
 from pathlib import Path
 
 import pytest
@@ -9,11 +10,10 @@ from typer.testing import CliRunner
 from daylily_ec.cli import app
 from daylily_ec.repositories import load_repository_catalog
 
-
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.0.85"
+DAYOA_BLESSED_TAG = "13.0.90"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -321,6 +321,35 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
             executing_entity="johnm",
             delete_on_export_success=True,
         )
+
+
+def test_hiomr2_catalog_selects_native_tiddit_and_paired_library_summary() -> None:
+    catalog = load_repository_catalog(CATALOG_PATH)
+    command = catalog.get_command("hiomr2")
+
+    assert command.snv_callers == ["sentdhiomr2"]
+    assert command.sv_callers == ["tiddit"]
+    assert command.targets.count("produce_sentdhiomr2_tiddit_sv_vcf") == 1
+    assert 'sv_callers=["tiddit"]' in command.dy_command
+    assert " produce_tiddit_sv_vcf " not in command.dy_command
+    for expected in (
+        '"aligner":"sentdhiomr2_sr","deduper":"smd"',
+        '"aligner":"sentdhiomr2_lr","deduper":"na"',
+        '"contamination_method":"site_mix"',
+    ):
+        assert expected in command.dy_command
+        assert expected in command.dryrun_dy_command
+
+    argv = shlex.split(command.dy_command)
+    multiqc_arg = next(arg for arg in argv if arg.startswith("multiqc_qc="))
+    multiqc_qc = json.loads(multiqc_arg.split("=", 1)[1])
+    assert multiqc_qc["library_summary"] == {
+        "primary_alignments": {
+            "sr": {"aligner": "sentdhiomr2_sr", "deduper": "smd"},
+            "ont": {"aligner": "sentdhiomr2_lr", "deduper": "na"},
+        },
+        "contamination_method": "site_mix",
+    }
 
 
 def test_repository_catalog_commands_have_run_metadata() -> None:
@@ -732,7 +761,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     package_inflection = catalog.get_command("package_inflection_hybrid_data")
     assert package_inflection.type == "dev"
     assert package_inflection.validated_version == "13.0.61"
-    assert package_inflection.git_tag == "13.0.85"
+    assert package_inflection.git_tag == DAYOA_BLESSED_TAG
     assert package_inflection.input_contract == "six_manifest"
     assert package_inflection.targets == ["produce_inflection_delivery_set"]
     assert package_inflection.jobs == 400
@@ -916,7 +945,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
 
     ultima = catalog.get_command("ultima_run_qc")
     assert ultima.validated_version == "13.0.61"
-    assert ultima.git_tag == "13.0.85"
+    assert ultima.git_tag == DAYOA_BLESSED_TAG
     assert ultima.runtime_parameters == {"run_context_file": "config/runs.tsv"}
     ultima_argv = ultima.launch_argv(
         analysis_id="ultima-run-qc",

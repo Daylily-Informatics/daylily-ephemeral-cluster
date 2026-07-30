@@ -304,7 +304,7 @@ repositories:
     auth_mode: aws_deploy_key
     https_url: https://github.com/lsmc-bio/daylily-omics-analysis.git
     ssh_url: git@github.com:lsmc-bio/daylily-omics-analysis.git
-    default_ref: 13.0.85
+    default_ref: 13.0.90
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: simple-test
@@ -337,7 +337,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - none
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: true
         validation_runs: []
       - command_id: illumina_snv_alignstats
@@ -380,7 +380,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -445,7 +445,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         artifact_registration: &dayoa_multiqc_artifact_registration
           enabled: true
@@ -553,7 +553,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         validation_runs: []
       - command_id: illumina_hg002_kitchensink_multiqc
@@ -609,7 +609,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
         validation_runs:
@@ -667,7 +667,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
       - command_id: illumina_dragen_pangenome_snv_concordance
         type: dev
@@ -707,7 +707,7 @@ repositories:
           - dragen
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         default_activation: false
       - command_id: ultima_snv_alignstats
@@ -749,7 +749,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ultima_solo
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -814,7 +814,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ultima_solo
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: ultima_pangenome_snv
@@ -852,7 +852,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ultima_solo
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
       - command_id: ont_snv_alignstats
         type: prod
@@ -894,7 +894,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ont_solo
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -963,7 +963,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ont_solo
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: pacbio_snv_alignstats
@@ -1006,7 +1006,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - pacbio_solo
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1067,7 +1067,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - roche_solo
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1130,7 +1130,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
       - command_id: hybrid_ilmn_ont_hiomr_kitchensink
         type: dev
@@ -1190,7 +1190,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
       - command_id: hiomr2
         type: dev
@@ -1239,9 +1239,10 @@ repositories:
           - na
         snv_callers:
           - sentdhiomr2
-        sv_callers: []
-        dy_command: "dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv produce_sentdhiomr2_cnv produce_sentdhiomr2_mito produce_sentdhiomr2_segdup produce_snv_concordances produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
-        dryrun_dy_command: "dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv produce_sentdhiomr2_cnv produce_sentdhiomr2_mito produce_sentdhiomr2_segdup produce_snv_concordances produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n"
+        sv_callers:
+          - tiddit
+        dy_command: "dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv produce_sentdhiomr2_cnv produce_sentdhiomr2_mito produce_sentdhiomr2_segdup produce_snv_concordances produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"],\"library_summary\":{\"primary_alignments\":{\"sr\":{\"aligner\":\"sentdhiomr2_sr\",\"deduper\":\"smd\"},\"ont\":{\"aligner\":\"sentdhiomr2_lr\",\"deduper\":\"na\"}},\"contamination_method\":\"site_mix\"}}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
+        dryrun_dy_command: "dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv produce_sentdhiomr2_cnv produce_sentdhiomr2_mito produce_sentdhiomr2_segdup produce_snv_concordances produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"],\"library_summary\":{\"primary_alignments\":{\"sr\":{\"aligner\":\"sentdhiomr2_sr\",\"deduper\":\"smd\"},\"ont\":{\"aligner\":\"sentdhiomr2_lr\",\"deduper\":\"na\"}},\"contamination_method\":\"site_mix\"}}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n"
         compatible_platforms:
           - ILMN
           - ONT
@@ -1249,7 +1250,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
 
       - command_id: package_inflection_hybrid_data
@@ -1292,7 +1293,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
       - command_id: betelgeuser_hiomr_prod_v1
         type: prod
@@ -1351,7 +1352,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
       - command_id: hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical
         type: dev
@@ -1394,7 +1395,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
       - command_id: inflection-bjuice-product-v0.2
         type: dev
@@ -1436,7 +1437,7 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
       - command_id: complete_genomics_mgi_snv_concordance
         type: dev
@@ -1478,7 +1479,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - complete_genomics_solo
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1532,7 +1533,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         artifact_registration:
           enabled: true
@@ -1618,7 +1619,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1673,7 +1674,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         artifact_registration:
           enabled: true
@@ -1745,7 +1746,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1799,7 +1800,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 13.0.85
+        git_tag: 13.0.90
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
