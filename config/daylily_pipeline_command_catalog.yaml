@@ -1724,6 +1724,7 @@ repositories:
         requires_run_mount: true
         runtime_parameters:
           run_context_file: config/runs.tsv
+          run_context_only: "true"
           samples_table: .test_data/data/samples.tsv
           units_table: .test_data/data/units.tsv
         input_requirements:
@@ -1780,6 +1781,7 @@ repositories:
         requires_run_mount: true
         runtime_parameters:
           run_context_file: config/runs.tsv
+          run_context_only: "true"
         input_requirements:
           required_run_context_values:
             PLATFORM: ULTIMA
