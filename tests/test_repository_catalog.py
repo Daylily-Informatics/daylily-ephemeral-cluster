@@ -929,6 +929,12 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
 
     ont = catalog.get_command("ont_run_qc")
     assert ont.targets == ["produce_ont_run_qc_and_demux_multiqc"]
+    assert ont.runtime_parameters == {
+        "run_context_file": "config/runs.tsv",
+        "run_context_only": "true",
+        "samples_table": ".test_data/data/samples.tsv",
+        "units_table": ".test_data/data/units.tsv",
+    }
     ont_argv = ont.launch_argv(
         analysis_id="ont-run-qc",
         executing_entity="johnm",
@@ -942,11 +948,15 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert ont.genome == "hg38"
     assert ont.jobs == 6
     assert "run_context_file=config/runs.tsv" in ont_dy_command
+    assert "run_context_only=true" in ont_dy_command
 
     ultima = catalog.get_command("ultima_run_qc")
     assert ultima.validated_version == "13.0.61"
     assert ultima.git_tag == DAYOA_BLESSED_TAG
-    assert ultima.runtime_parameters == {"run_context_file": "config/runs.tsv"}
+    assert ultima.runtime_parameters == {
+        "run_context_file": "config/runs.tsv",
+        "run_context_only": "true",
+    }
     ultima_argv = ultima.launch_argv(
         analysis_id="ultima-run-qc",
         executing_entity="johnm",
@@ -956,6 +966,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     ultima_dy_command = ultima_argv[ultima_argv.index("--dy-command") + 1]
     assert "produce_ultima_run_qc" in ultima_dy_command
     assert "run_context_file=config/runs.tsv" in ultima_dy_command
+    assert "run_context_only=true" in ultima_dy_command
     assert "samples_table=" not in ultima_dy_command
     assert "units_table=" not in ultima_dy_command
     assert ultima.validation_runs[-1].status == "success"
