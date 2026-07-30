@@ -34,9 +34,9 @@ DYEC self-pins and publish the final release.
 | DYEC-002 | DayOA pin | Set active source and packaged DayOA catalog pins and their tests to published `13.0.90`. | SUCCESS | config_or_startup_contract | Gate 2 | All active catalog pins are `13.0.90`; contract test now records DayOA commit `35b43ce46a52ef9d86d8653edfb87909f4e75764`. Historical `13.0.61` validation evidence is unchanged. |
 | DYEC-003 | HIOMR2 catalog | Carry the in-scope native TIDDIT and paired-library-summary catalog/test changes from the dirty source checkout. | SUCCESS | feature_implementation | Gate 1 | Source/package catalogs are byte-identical; the focused suite passed 266 tests on the feature worktree. |
 | DYEC-004 | Ursa integration | Fold `ursa-changes` into the feature branch and resolve any catalog/test overlap without dropping either change. | SUCCESS | feature_implementation | Gate 1 | Merged `1d7407bbfc1cc058407639798333e5ee3e6a0921`; the sole test overlap retains `DAYOA_BLESSED_TAG` and the Ursa `run_context_only=true` runtime contract. Source/package catalogs remain byte-identical and the focused suite passed 266 tests. |
-| DYEC-005 | First release | Validate, commit/push the integrated branch, create/verify/push annotated `16.1.8`. | IN PROGRESS | release | Gate 6 | Combined branch is validated; pending merge commit, remote branch proof, and annotated-tag proof. |
-| DYEC-006 | Self pin | Advance source and packaged DYEC self-pins to `16.1.9` and update affected tests. | OPEN | config_or_startup_contract | Gate 2 | No inferred/self-discovered version values. |
-| DYEC-007 | Final release | Revalidate, commit/push, create/verify/push annotated `16.1.9`. | OPEN | release | Gate 6 | Final tag must point at the clean self-pin commit. |
+| DYEC-005 | First release | Validate, commit/push the integrated branch, create/verify/push annotated `16.1.8`. | SUCCESS | release | Gate 6 | Annotated tag object `96d833482b424bdc37764a82933c1625b79bfe87` is pushed and peels to integration commit `cd2de834dff02aeff290d3fedb15018b27a58271`. |
+| DYEC-006 | Self pin | Advance source and packaged DYEC self-pins to `16.1.9` and update affected tests. | SUCCESS | config_or_startup_contract | Gate 2 | Source/package global configs are byte-identical, contain no active `16.1.3` pin, and the focused suite passed 266 tests. |
+| DYEC-007 | Final release | Revalidate, commit/push, create/verify/push annotated `16.1.9`. | IN PROGRESS | release | Gate 6 | Final tag will point at the clean self-pin commit. |
 
 ## Intended scope boundary
 
