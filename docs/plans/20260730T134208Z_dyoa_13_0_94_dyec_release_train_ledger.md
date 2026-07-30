@@ -20,10 +20,10 @@ Advance the authoritative DYEC DayOA pin and catalog payload from DayOA 13.0.90 
 | REL-002 | Isolation | Preserve canonical dirty checkout and make a clean release worktree/branch. | SUCCESS | feature_implementation | Gate 0 | Codex | Clean worktree and canonical dirty inventory recorded above. |  | No canonical worktree files were edited. |
 | REL-003 | DayOA pin | Update all authoritative DayOA defaults, catalog payload, and test/commit assertions to 13.0.94 / 9b8b13173b9cf442158de5cdb69401efcac81651. | SUCCESS | feature_implementation | Gate 1 | Codex | 60 exact replacements: 28 source catalog pins, 28 packaged catalog pins, three active tag constants, and the highest-release commit assertion. |  | All active DayOA default/pin surfaces now use the requested remote tag and peeled commit; historical validation-run provenance was retained. |
 | REL-004 | DayOA validation | Prove catalog/source parity and focused DayOA pin behavior. | SUCCESS | contract_test | Gate 1 | Codex | Focused suite -> 20 passed in 1.24s; no 13.0.90 remains in authoritative surfaces; both catalog copies remain byte-identical; git diff --check passed. |  | Source/payload and test parity are proven before the first release commit. |
-| REL-005 | Stage 1 release | Commit, push, and create/push the next unused annotated DYEC tag for REL-003/REL-004. | IN_PROGRESS | feature_implementation | Gate 1 | Codex | Candidate is recomputed and rechecked on origin only after the clean stage-one commit exists. |  |  |
-| REL-006 | DYEC self-pin | Update every authoritative self-pin surface to the first new DYEC tag. | OPEN | feature_implementation | Gate 1 | Codex | Two global YAML copies and fork-contract test identified. |  |  |
-| REL-007 | Self-pin validation | Prove source/payload parity and focused self-pin behavior. | OPEN | contract_test | Gate 1 | Codex | Focused suite and exact-reference sweep pending after REL-006. |  |  |
-| REL-008 | Stage 2 release | Commit, push, and create/push the next unused annotated follow-up DYEC tag. | OPEN | feature_implementation | Gate 1 | Codex | Candidate 16.1.11 absent from origin at Gate 0. |  |  |
+| REL-005 | Stage 1 release | Commit, push, and create/push the next unused annotated DYEC tag for REL-003/REL-004. | SUCCESS | feature_implementation | Gate 1 | Codex | Commit f3630a69e6313cf31a682e56a6f29cdeeee1d23a pushed to origin/codex/dyec-13094-release-20260730T134208Z; annotated 16.1.10 tag object bb31e4652fdead13bce48a8617c33a3a6f8da86a, remote peeled commit f3630a69e6313cf31a682e56a6f29cdeeee1d23a. |  | Origin recheck proved 16.1.10 was unused; no occupied tag moved. |
+| REL-006 | DYEC self-pin | Update every authoritative self-pin surface to the first new DYEC tag. | SUCCESS | feature_implementation | Gate 1 | Codex | Updated two fields in each source/payload global YAML copy and DYEC_BLESSED_TAG in the fork contract test to 16.1.10. |  | All five authoritative self-pin references now use the first new release tag. |
+| REL-007 | Self-pin validation | Prove source/payload parity and focused self-pin behavior. | SUCCESS | contract_test | Gate 1 | Codex | Focused suite -> 20 passed in 1.00s; no 16.1.9 remains in authoritative self-pin surfaces; source/payload self-pin YAML is byte-identical; git diff --check passed. |  | Self-pin contract matches the first published release. |
+| REL-008 | Stage 2 release | Commit, push, and create/push the next unused annotated follow-up DYEC tag. | IN_PROGRESS | feature_implementation | Gate 1 | Codex | Candidate is recomputed and rechecked on origin only after the clean self-pin commit exists. |  |  |
 | REL-009 | Final proof | Verify branch, tag objects, peeled remote commits, clean release state, and terminal ledger report. | OPEN | contract_test | Gate 5 | Codex | Pending after both release tags are pushed. |  |  |
 
 ## Current status
@@ -34,9 +34,9 @@ Objective complete: no
 
 Status counts:
 
-- SUCCESS: 4
+- SUCCESS: 7
 - IN_PROGRESS: 1
-- OPEN: 4
+- OPEN: 1
 - DUPLICATE: 0
 - NO_LONGER_NEEDED: 0
 - FAIL: 0
