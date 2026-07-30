@@ -26,7 +26,7 @@ catalogs must remain byte-identical.
 | SELF-001 | Update source and payload self-pins to `16.1.12` | SUCCESS | Both global YAMLs and `DYEC_BLESSED_TAG` now select `16.1.12`; YAML pair is byte-identical |
 | TST-002 | Re-run focused self-pin and repository tests | SUCCESS | 237 focused tests passed in 9.72 seconds |
 | REL-002 | Commit, push, and annotate DYEC `16.1.13` | SUCCESS | Annotated tag `16.1.13` peels to commit `f51de76763cf1325d7e2bc2637b6304c95595dab` |
-| RUN-001 | Use the resulting DayOA `13.0.96` tag explicitly for Take41 | OPEN | Headnode ledger and `day-clone` evidence |
+| RUN-001 | Use the resulting DayOA `13.0.96` tag explicitly for Take41 | SUCCESS | `day-clone -t 13.0.96 -d take41` selected release commit `1cc32c5680c87b1f09fccac306e996fe72c92493`; the kitchen-sink dry run returned RC 0 and the live controller launched |
 
 ## Acceptance
 
