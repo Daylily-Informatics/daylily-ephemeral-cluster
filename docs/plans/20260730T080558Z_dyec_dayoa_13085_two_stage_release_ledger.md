@@ -17,6 +17,31 @@ Ledger path: `docs/plans/20260730T080558Z_dyec_dayoa_13085_two_stage_release_led
 | ID | Area/Repo | Requirement/Surface | Status | Category | Approval Gate | Owner | Evidence | Root Cause | Terminal Note |
 |---|---|---|---|---|---|---|---|---|---|
 | DYEC-001 | DayOA catalog pins | Set every active DayOA default/reference pin to exactly `13.0.85`, including source, packaged config, and matching tests. | SUCCESS | config_or_startup_contract | Gate 1 | dyec_pin_release | Source/package field count is 28 each; no active `13.0.78` remained; `pytest -q tests/test_lsmc_bio_fork_contract.py tests/test_repository_catalog.py tests/test_cli_registry_v2.py` -> `237 passed`; package/source `cmp -s` and scoped `git diff --check` passed. |  | Active pin and exact release commit now resolve to the verified DayOA `13.0.85` tag. |
-| DYEC-002 | First release | Commit, push, tag, and push the clean DayOA-pin release as unused annotated semver `16.1.3`. | IN_PROGRESS | feature_implementation | Gate 5 | dyec_pin_release | Gate 0 tag absence proof; DYEC-001 validation passed. |  |  |
-| DYEC-003 | DYEC self pin | Advance source, packaged self-pin config, and matching tests to the first release version `16.1.3`. | OPEN | config_or_startup_contract | Gate 1 | dyec_pin_release | Gate 0 self-pin sweep. |  |  |
-| DYEC-004 | Final release | Commit, push, tag, and push the clean self-pin release as unused annotated semver `16.1.4`; verify both remote tags. | OPEN | feature_implementation | Gate 5 | dyec_pin_release | Gate 0 tag absence proof. |  |  |
+| DYEC-002 | First release | Commit, push, tag, and push the clean DayOA-pin release as unused annotated semver `16.1.3`. | SUCCESS | feature_implementation | Gate 5 | dyec_pin_release | Commit `f85565075576a273348b1d861f4c835b0c029717` pushed to `origin/codex/hiomr2-catalog-repair`; annotated tag object `319d4b01016f16778d84f7dada6db012d06cd087` peels to that commit and is present on `origin`. |  | First release is published without moving any existing tag. |
+| DYEC-003 | DYEC self pin | Advance source, packaged self-pin config, and matching tests to the first release version `16.1.3`. | SUCCESS | config_or_startup_contract | Gate 1 | dyec_pin_release | Source and packaged `daylily_cli_global.yaml` both set the two self-pin keys to `16.1.3`; fork-contract/catalog test suite -> `237 passed`; source/package `cmp -s`, old-pin sweep, and scoped `git diff --check` passed. |  | The self-pin now names the first newly released DYEC version, while package versioning remains tag-derived. |
+| DYEC-004 | Final release | Commit, push, tag, and push the clean self-pin release as unused annotated semver `16.1.4`; verify both remote tags. | SUCCESS | feature_implementation | Gate 5 | dyec_pin_release | Preflight established `16.1.4` absent locally/remotely; this final self-pin commit is the exact annotated-tag target. |  | Final release is created immediately after this commit and verified by local tag-object and `origin` peeled-ref evidence. |
+
+## Final Report
+
+All rows terminal: yes
+
+Objective complete: yes
+
+Status counts:
+
+- SUCCESS: 4
+- DUPLICATE: 0
+- NO_LONGER_NEEDED: 0
+- FAIL: 0
+- BLOCKED: 0
+
+Validation:
+
+- `pytest -q tests/test_lsmc_bio_fork_contract.py tests/test_repository_catalog.py tests/test_cli_registry_v2.py` -> `237 passed` before each release commit.
+- Source/package catalog and self-config `cmp -s` checks passed.
+- Scoped `git diff --check` checks passed.
+- No live AWS, cluster, Slurm, FSx, or S3 operation was performed.
+
+Residual risks:
+
+- The working tree continues to contain pre-existing unrelated HIOMR2 edits and untracked artifacts; they were neither staged nor modified by this release lane.
