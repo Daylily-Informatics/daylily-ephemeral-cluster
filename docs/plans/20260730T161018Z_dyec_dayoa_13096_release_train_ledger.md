@@ -22,9 +22,9 @@ catalogs must remain byte-identical.
 | PIN-001 | Update all active DayOA pins to `13.0.96` | SUCCESS | Source catalog, payload catalog, and three contract-test constants now select `13.0.96` |
 | PIN-002 | Preserve byte identity between source and payload catalogs | SUCCESS | `cmp` returned RC 0 |
 | TST-001 | Run focused repository/catalog/registry/fork contract tests | SUCCESS | 237 focused tests passed in 10.15 seconds |
-| REL-001 | Commit, push, and annotate DYEC `16.1.12` | OPEN | Git and remote tag evidence |
-| SELF-001 | Update source and payload self-pins to `16.1.12` | OPEN | Global YAML pair and fork-contract test |
-| TST-002 | Re-run focused self-pin and repository tests | OPEN | Focused pytest receipt |
+| REL-001 | Commit, push, and annotate DYEC `16.1.12` | SUCCESS | Annotated tag `16.1.12` peels to commit `844e469256e8724bf0c5aeba03db4326d88e0fbe` |
+| SELF-001 | Update source and payload self-pins to `16.1.12` | SUCCESS | Both global YAMLs and `DYEC_BLESSED_TAG` now select `16.1.12`; YAML pair is byte-identical |
+| TST-002 | Re-run focused self-pin and repository tests | SUCCESS | 237 focused tests passed in 9.72 seconds |
 | REL-002 | Commit, push, and annotate DYEC `16.1.13` | OPEN | Git and remote tag evidence |
 | RUN-001 | Use the resulting DayOA `13.0.96` tag explicitly for Take41 | OPEN | Headnode ledger and `day-clone` evidence |
 
