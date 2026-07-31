@@ -36,8 +36,8 @@ release worktree and remain untouched.
 | DYEC-001 | Work from an isolated clean branch | SUCCESS | Clean worktree based on remote commit `a3c9a8ae` |
 | DYEC-002 | Advance source and packaged catalogs to DayOA `13.0.107` | SUCCESS | All active `default_ref` and `git_tag` values now name `13.0.107`; source/package catalogs are byte-identical |
 | DYEC-003 | Advance DayOA contract-test constants and release commit | SUCCESS | Constants name `13.0.107` and peeled commit `ab16caf9`; 237 focused tests passed |
-| DYEC-004 | Commit, push, and publish annotated `16.1.16` | OPEN | Pending |
-| DYEC-005 | Advance source and packaged DYEC self-pins to `16.1.16` | OPEN | Pending |
+| DYEC-004 | Commit, push, and publish annotated `16.1.16` | SUCCESS | Remote annotated tag peels to pin commit `353cd5832ffaf64ab2c2e78fb7474b0c19fd6940` |
+| DYEC-005 | Advance source and packaged DYEC self-pins to `16.1.16` | SUCCESS | Source/package global configs are byte-identical; four fork-contract tests passed |
 | DYEC-006 | Commit, push, and publish annotated `16.1.17` | OPEN | Pending |
 | VERIFY-001 | Verify clean branch and remote annotated tags | OPEN | Pending |
 
