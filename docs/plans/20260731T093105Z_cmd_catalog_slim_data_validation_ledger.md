@@ -7,7 +7,9 @@ AWS profile / region: `lsmc` / `us-west-2`
 Cost center: `cmd-cat-test`
 Starting DYEC release under test: `16.1.18`
 Functional fix release: `16.1.19` at `de8641b4ad294b325780d5045cb9a86fc246a198`
-Candidate self-pin/configure release: `16.1.20` (pending)
+Initial self-pin release: `16.1.20` at `35cd109916ff6bc9c06302368b63f0b01329208f`
+Bootstrap-repair functional release: `16.1.21` (pending)
+Final self-pin/configure release: `16.1.22` (pending)
 DayOA release under test: `13.0.107`
 
 ## Objective
@@ -153,6 +155,12 @@ digest mismatch stops the wave.
 - The immutable release train is amended to a functional patch `16.1.19`, then
   a `16.1.20` self-pin/configure release pointing explicitly to `16.1.19`.
   Existing tags will not be moved.
+- Live pre-configuration with the strict `16.1.20` transport proved a recovery
+  edge: normal commands now fail hard as intended, but the configure command
+  must be able to reach its repair payload after an already-broken automatic
+  login startup. The train therefore adds functional `16.1.21` with an
+  explicit configure-only startup-repair mode, followed by self-pin release
+  `16.1.22`. Ordinary commands retain strict startup failure propagation.
 - Focused validation is green (`163 passed`). A full-suite run after the first
   fixes reported `2419 passed, 11 skipped, 26 failed`; five failures were stale
   catalog Git-tag expectations now fixed. The remaining 21 failures reproduce
@@ -600,8 +608,10 @@ Status vocabulary:
 | C0.2 | Add tested suite selection that includes required frozen HIOMR2 | Selection test; no DayOA graph change | `OPEN` |
 | H0.1 | Fix `dyec headnode jobs` dependency/exit-code contract | Live reproduction captured; shared bootstrap/SSM fix and focused tests pass; requires immutable release and live recheck | `IN_PROGRESS` |
 | REL0.1 | Commit, push, and annotated-tag functional DYEC patch `16.1.19` | Commit `de8641b4ad294b325780d5045cb9a86fc246a198`; pushed branch; annotated remote tag resolves exactly | `SUCCESS` |
-| REL0.2 | Self-pin DYEC `16.1.19`, commit, push, and annotated-tag configure release `16.1.20` | Both global configs and contract test pin `16.1.19`; clean pushed tag | `OPEN` |
-| H0.2 | Configure headnode through exact `16.1.20` self-pin release | Headnode reports functional DYEC `16.1.19`, DayOA catalog pin `13.0.107`, and clean startup | `OPEN` |
+| REL0.2 | Self-pin DYEC `16.1.19`, commit, push, and annotated-tag configure release `16.1.20` | Commit `35cd109916ff6bc9c06302368b63f0b01329208f`; both configs pin `16.1.19`; annotated tag pushed | `SUCCESS` |
+| REL0.3 | Commit, push, and annotated-tag configure-repair patch `16.1.21` | Configure-only repair mode tested; ordinary SSM commands remain strict; clean remote tag | `OPEN` |
+| REL0.4 | Self-pin DYEC `16.1.21`, commit, push, and annotated-tag configure release `16.1.22` | Both global configs and contract test pin `16.1.21`; clean pushed tag | `OPEN` |
+| H0.2 | Configure headnode through exact `16.1.22` self-pin release | Headnode reports functional DYEC `16.1.21`, DayOA catalog pin `13.0.107`, and clean startup | `OPEN` |
 | H0.3 | Repeat no-active-work and capacity/cost preflight | Zero unexpected controllers/jobs; cost/freespace report | `OPEN` |
 | P1.1 | Render/dry-run bootstrap and portable core | Per-command render, graph, fixture, and exit evidence | `OPEN` |
 | P1.2 | Render/dry-run frozen HIOMR2 | Frozen graph baseline; exact input contract; no modifications | `OPEN` |
@@ -626,8 +636,8 @@ Status vocabulary:
 
 Current terminal-state summary:
 
-- Terminal rows: `8`
-- Non-terminal or blocked rows: `29`
+- Terminal rows: `9`
+- Non-terminal or blocked rows: `30`
 - Required command suite complete: **no**
 - Ursa exposure complete: **no**
 - PR/daily/weekly monitor complete: **no**
@@ -646,6 +656,9 @@ prior result.
 | 2026-07-31T10:45Z | H0.1 / C0.1 | Shared bootstrap, SSM failure propagation, and pin-test repair | candidate DYEC `16.1.19` / DayOA `13.0.107` | isolated fix worktree | `163 passed`; shell syntax and diff checks pass | `DYEC_RUNNER` | Proceed to immutable release and live headnode recheck; no HIOMR2 rule changed |
 | 2026-07-31T10:48Z | H0.1 | Full-suite/baseline comparison | candidate DYEC `16.1.19` | isolated fix and exact `16.1.18` worktrees | Full run `2419 passed, 11 skipped, 26 failed`; five catalog pin expectations fixed; remaining affected-file subset reproduces on exact tag as `21 failed, 52 passed` | `RUNTIME_ENVIRONMENT` | Treat remaining 21 and 31 Ruff findings as pre-existing baseline debt outside this release scope |
 | 2026-07-31T10:52Z | REL0.1 | Commit, push, annotated tag `16.1.19` | DYEC `16.1.19` / DayOA `13.0.107` | branch `codex/cmd-catalog-slim-execution-20260731` | Commit `de8641b4ad294b325780d5045cb9a86fc246a198`; annotated tag object `3074ca890b56debcb77be20a9bdfe6e6865d0da7`; branch and tag pushed | `DYEC_RUNNER` | Functional release complete; proceed to explicit self-pin release |
+| 2026-07-31T10:54Z | REL0.2 | Self-pin `16.1.19`; publish annotated tag `16.1.20` | DYEC configure tag `16.1.20` | branch `codex/cmd-catalog-slim-execution-20260731` | Commit `35cd109916ff6bc9c06302368b63f0b01329208f`; tag object `b322cf6b2db9c3156abc961b149fa42a08927a2e`; branch and tag pushed | `DYEC_RUNNER` | Initial self-pin complete |
+| 2026-07-31T10:55Z | H0.2 | Strict transport pre-configuration probe | local `16.1.20`, headnode `16.1.17` | `cmd-catalog-tests` | Failed before semantic payload with `observability output must contain exactly one marker`, proving old startup is now rejected | `RUNTIME_ENVIRONMENT` | Add explicit configure-only repair transport; do not weaken ordinary command failure behavior |
+| 2026-07-31T10:56Z | REL0.3 | Configure-only startup-repair implementation | candidate `16.1.21` | isolated fix worktree | `22 passed` configure/transport tests plus `98 passed` catalog/bootstrap tests; shell/diff checks pass | `DYEC_RUNNER` | Proceed to immutable `16.1.21` and `16.1.22` release pair |
 
 ## Approval log
 
