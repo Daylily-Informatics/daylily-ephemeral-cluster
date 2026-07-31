@@ -77,6 +77,8 @@ CLUSTER_NAME_RULE_TEXT = (
     "and contain only lowercase letters, digits, and hyphens"
 )
 DEFAULT_REGIONAL_CLUSTER_CAP = 5
+DEFAULT_BUDGET_EMAIL = "contact@lsmc.com"
+DEFAULT_COST_CENTER_MONTHLY_CAP_USD = "200"
 REGIONAL_CAP_INCREASE_ACK_FLAG = "--acknowledge-regional-cap-increase"
 REGIONAL_CAP_RISK_ACK_FLAG = "--acknowledge-regional-cap-risk"
 
@@ -2259,6 +2261,11 @@ def _validate_cluster_name(cluster_name: str) -> str:
     return validate_cluster_name(cluster_name)
 
 
+def _default_cluster_name() -> str:
+    user = _os.environ.get("USER", "").strip()
+    return f"{user}-clu" if user else ""
+
+
 def _resolve_cluster_name(cfg: Any, *, non_interactive: bool) -> str:
     """Resolve and validate the cluster name before any AWS work begins."""
     from daylily_ec.config.triplets import get_effective_default, resolve_value
@@ -2274,7 +2281,10 @@ def _resolve_cluster_name(cfg: Any, *, non_interactive: bool) -> str:
                     raise
                 typer.echo(str(exc))
 
-    default_value = get_effective_default(cfg, "cluster_name", "prod") or "prod"
+    environment_default = _default_cluster_name()
+    default_value = (
+        get_effective_default(cfg, "cluster_name", environment_default) or environment_default
+    )
     if non_interactive:
         return _validate_cluster_name(default_value)
 
@@ -2413,6 +2423,10 @@ class _PostCreateInputs:
     heartbeat_scheduler_role_arn: str
 
 
+def _default_budget_email() -> str:
+    return _os.environ.get("DAY_CONTACT_EMAIL") or DEFAULT_BUDGET_EMAIL
+
+
 def _resolve_post_create_inputs(
     cfg: Any,
     *,
@@ -2486,12 +2500,14 @@ def _resolve_post_create_inputs(
             "cost_center_name",
             "Cost center name",
             non_interactive=non_interactive,
+            default_fallback=f"{cluster_name}-ccenter",
         )
         cost_center_monthly_cap_usd = _resolve_config_value(
             cfg,
             "cost_center_monthly_cap_usd",
             "Cost center monthly cap (USD)",
             non_interactive=non_interactive,
+            default_fallback=DEFAULT_COST_CENTER_MONTHLY_CAP_USD,
         )
         cost_center_allowed_users = _resolve_config_value(
             cfg,
@@ -2780,7 +2796,7 @@ def run_create_workflow(
         post_create_inputs = _resolve_post_create_inputs(
             cfg,
             non_interactive=non_interactive,
-            budget_email_default=_os.environ.get("DAY_CONTACT_EMAIL", ""),
+            budget_email_default=_default_budget_email(),
             allowed_budget_users_default="ubuntu",
             cluster_name=cluster_name,
             disable_budget_enforcement=disable_budget_enforcement,
