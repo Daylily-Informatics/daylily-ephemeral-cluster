@@ -635,6 +635,8 @@ class TestAzClusterTemplateResolution:
                 "REGSUB_DELETE_LOCAL_ROOT": "true",
                 "REGSUB_SAVE_FSX": "Delete",
                 "REGSUB_MAX_COUNT_192I_M": "1",
+                "REGSUB_MAX_COUNT_128I_M": "1",
+                "REGSUB_MAX_COUNT_384I": "1",
                 "REGSUB_MAX_COUNT_192I_NVME_M": "1",
                 "REGSUB_ENFORCE_BUDGET": '"true"',
                 "REGSUB_SPOT_PRICE_WARN_THRESHOLD": '"8.00"',
@@ -662,6 +664,9 @@ class TestAzClusterTemplateResolution:
             "dragen",
             "dragen-ondemand",
             "i192",
+            "i128shm",
+            "i192shm",
+            "i384shm",
             "i192nvme",
         ]
         assert queues[0]["CustomActions"]["OnNodeConfigured"]["Args"][-1] == "dragen"
@@ -696,7 +701,7 @@ class TestAzClusterTemplateResolution:
         cluster_yaml.write_text(yaml.safe_dump(missing_cpu_queue), encoding="utf-8")
         with pytest.raises(
             ValueError,
-            match="dragen, dragen-ondemand, i192, and i192nvme",
+            match="dragen, dragen-ondemand, i192, i128shm, i192shm, i384shm, and i192nvme",
         ):
             validate_dragen_cluster_contract(cluster_yaml, inputs)
 

@@ -401,6 +401,83 @@ Scheduling:
       AdditionalIamPolicies:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i128shm
+    JobExclusiveAllocation: false
+    CapacityType: SPOT
+    AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
+    ComputeResources:
+    - Name: shm128
+      Instances:
+      - InstanceType: i4i.32xlarge
+      - InstanceType: i4i.metal
+      - InstanceType: m6a.32xlarge
+      - InstanceType: m6i.32xlarge
+      - InstanceType: m6i.metal
+      - InstanceType: m6id.32xlarge
+      - InstanceType: m6id.metal
+      - InstanceType: m6idn.32xlarge
+      - InstanceType: m6idn.metal
+      - InstanceType: m6in.32xlarge
+      - InstanceType: m6in.metal
+      - InstanceType: m7a.32xlarge
+      - InstanceType: m8i.32xlarge
+      - InstanceType: m8id.32xlarge
+      - InstanceType: r6a.32xlarge
+      - InstanceType: r6i.32xlarge
+      - InstanceType: r6i.metal
+      - InstanceType: r6id.32xlarge
+      - InstanceType: r6id.metal
+      - InstanceType: r6idn.32xlarge
+      - InstanceType: r6idn.metal
+      - InstanceType: r6in.32xlarge
+      - InstanceType: r6in.metal
+      - InstanceType: r7a.32xlarge
+      - InstanceType: r7iz.32xlarge
+      - InstanceType: r7iz.metal-32xl
+      - InstanceType: r8i.32xlarge
+      - InstanceType: r8ib.32xlarge
+      - InstanceType: r8id.32xlarge
+      - InstanceType: r8idb.32xlarge
+      - InstanceType: r8idn.32xlarge
+      - InstanceType: r8in.32xlarge
+      - InstanceType: x1.32xlarge
+      - InstanceType: x1e.32xlarge
+      - InstanceType: x2idn.32xlarge
+      - InstanceType: x2idn.metal
+      - InstanceType: x2iedn.32xlarge
+      - InstanceType: x2iedn.metal
+      - InstanceType: x8i.32xlarge
+      MinCount: 0
+      MaxCount: ${REGSUB_MAX_COUNT_128I_M}
+      SpotPrice: CALCULATE_MAX_SPOT_PRICE
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i128nvme
     JobExclusiveAllocation: false
     CapacityType: SPOT
@@ -645,6 +722,78 @@ Scheduling:
       AdditionalIamPolicies:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i192shm
+    JobExclusiveAllocation: false
+    CapacityType: SPOT
+    AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
+    ComputeResources:
+    - Name: shm192
+      Instances:
+      - InstanceType: i7i.48xlarge
+      - InstanceType: i7i.metal-48xl
+      - InstanceType: i7ie.48xlarge
+      - InstanceType: i7ie.metal-48xl
+      - InstanceType: m6a.48xlarge
+      - InstanceType: m6a.metal
+      - InstanceType: m7a.48xlarge
+      - InstanceType: m7a.metal-48xl
+      - InstanceType: m7i.48xlarge
+      - InstanceType: m7i.metal-48xl
+      - InstanceType: m8a.48xlarge
+      - InstanceType: m8a.metal-48xl
+      - InstanceType: m8i.48xlarge
+      - InstanceType: m8i.metal-48xl
+      - InstanceType: m8id.48xlarge
+      - InstanceType: m8id.metal-48xl
+      - InstanceType: r6a.48xlarge
+      - InstanceType: r6a.metal
+      - InstanceType: r7a.48xlarge
+      - InstanceType: r7a.metal-48xl
+      - InstanceType: r7i.48xlarge
+      - InstanceType: r7i.metal-48xl
+      - InstanceType: r8a.48xlarge
+      - InstanceType: r8a.metal-48xl
+      - InstanceType: r8i.48xlarge
+      - InstanceType: r8i.metal-48xl
+      - InstanceType: r8ib.48xlarge
+      - InstanceType: r8id.48xlarge
+      - InstanceType: r8id.metal-48xl
+      - InstanceType: r8idb.48xlarge
+      - InstanceType: r8idn.48xlarge
+      - InstanceType: r8in.48xlarge
+      - InstanceType: x8i.48xlarge
+      - InstanceType: x8i.metal-48xl
+      MinCount: 0
+      MaxCount: ${REGSUB_MAX_COUNT_192I_M}
+      SpotPrice: CALCULATE_MAX_SPOT_PRICE
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
   - Name: i192nvme
     JobExclusiveAllocation: false
     CapacityType: SPOT
@@ -690,6 +839,58 @@ Scheduling:
       - InstanceType: i7ie.metal-48xl
       MinCount: 0
       MaxCount: ${REGSUB_MAX_COUNT_192I_NVME_R}
+      SpotPrice: CALCULATE_MAX_SPOT_PRICE
+      Networking:
+        PlacementGroup:
+          Enabled: false
+      Efa:
+        Enabled: false
+    Networking:
+      SubnetIds:
+      - ${REGSUB_PRIVATE_SUBNET}
+    CustomActions:
+      OnNodeConfigured:
+        Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+        Args:
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
+        - ${REGSUB_SPOT_PRICE_WARN_THRESHOLD}
+    Iam:
+      S3Access:
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
+      AdditionalIamPolicies:
+      - Policy: ${REGSUB_S3_IAM_POLICY}
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  - Name: i384shm
+    JobExclusiveAllocation: false
+    CapacityType: SPOT
+    AllocationStrategy: ${REGSUB_ALLOCATION_STRATEGY}
+    ComputeResources:
+    - Name: shm384
+      Instances:
+      - InstanceType: m8i.96xlarge
+      - InstanceType: m8i.metal-96xl
+      - InstanceType: m8id.96xlarge
+      - InstanceType: m8id.metal-96xl
+      - InstanceType: r8i.96xlarge
+      - InstanceType: r8i.metal-96xl
+      - InstanceType: r8ib.96xlarge
+      - InstanceType: r8id.96xlarge
+      - InstanceType: r8id.metal-96xl
+      - InstanceType: r8idb.96xlarge
+      - InstanceType: r8idn.96xlarge
+      - InstanceType: r8in.96xlarge
+      - InstanceType: x8i.96xlarge
+      - InstanceType: x8i.metal-96xl
+      MinCount: 0
+      MaxCount: ${REGSUB_MAX_COUNT_384I}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       Networking:
         PlacementGroup:

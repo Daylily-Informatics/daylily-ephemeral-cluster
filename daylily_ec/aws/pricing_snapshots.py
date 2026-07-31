@@ -17,9 +17,12 @@ DEFAULT_MONITORED_REGIONS: tuple[str, ...] = ("us-west-2", "us-east-1", "eu-cent
 DEFAULT_PRODUCTION_PARTITIONS: tuple[str, ...] = (
     "i8",
     "i128",
+    "i128shm",
     "i128nvme",
     "i192",
+    "i192shm",
     "i192nvme",
+    "i384shm",
     "i384nvme",
     "i192hugenvme",
 )

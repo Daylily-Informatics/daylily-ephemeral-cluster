@@ -1617,10 +1617,19 @@ def validate_dragen_cluster_contract(
     if not isinstance(queues, list):
         raise ValueError("DRAGEN cluster SlurmQueues must be a list.")
     queue_names = [str(queue.get("Name") or "") for queue in queues]
-    if queue_names != ["dragen", "dragen-ondemand", "i192", "i192nvme"]:
+    expected_queue_names = [
+        "dragen",
+        "dragen-ondemand",
+        "i192",
+        "i128shm",
+        "i192shm",
+        "i384shm",
+        "i192nvme",
+    ]
+    if queue_names != expected_queue_names:
         raise ValueError(
             "DRAGEN cluster must render exactly the dragen, dragen-ondemand, "
-            "i192, and i192nvme "
+            "i192, i128shm, i192shm, i384shm, and i192nvme "
             f"queues; rendered queues were {queue_names}."
         )
     queues_by_name = {str(queue.get("Name") or ""): queue for queue in queues}
@@ -1703,6 +1712,41 @@ def validate_dragen_cluster_contract(
             raise ValueError(f"DRAGEN CPU queue {queue_name} must set MaxCount at least 1.")
         if ((cpu_resource.get("Efa") or {}).get("Enabled")) is not False:
             raise ValueError(f"DRAGEN CPU queue {queue_name} must keep EFA disabled.")
+
+    for queue_name, resource_name in (
+        ("i128shm", "shm128"),
+        ("i192shm", "shm192"),
+        ("i384shm", "shm384"),
+    ):
+        queue = queues_by_name[queue_name]
+        if queue.get("CapacityType") != "SPOT":
+            raise ValueError(f"DRAGEN SHM queue {queue_name} must use SPOT capacity.")
+        if queue.get("ComputeSettings"):
+            raise ValueError(f"DRAGEN SHM queue {queue_name} must not mount local storage.")
+        queue_ami = ((queue.get("Image") or {}).get("CustomAmi") or "").strip()
+        if queue_ami != inputs.backport.image_ami_id:
+            raise ValueError(
+                f"DRAGEN SHM queue {queue_name} AMI does not match the qualified image."
+            )
+        _validate_dragen_cpu_node(queue, inputs, label=f"{queue_name} queue")
+        resources = queue.get("ComputeResources") or []
+        if not isinstance(resources, list) or len(resources) != 1:
+            raise ValueError(
+                f"DRAGEN SHM queue {queue_name} must render exactly one compute resource."
+            )
+        resource = resources[0]
+        if resource.get("Name") != resource_name:
+            raise ValueError(
+                f"DRAGEN SHM queue {queue_name} must use compute resource {resource_name}."
+            )
+        if not resource.get("Instances"):
+            raise ValueError(f"DRAGEN SHM queue {queue_name} must contain instance types.")
+        if resource.get("MinCount") != 0:
+            raise ValueError(f"DRAGEN SHM queue {queue_name} must set MinCount 0.")
+        if not isinstance(resource.get("MaxCount"), int) or resource["MaxCount"] < 1:
+            raise ValueError(f"DRAGEN SHM queue {queue_name} must set MaxCount at least 1.")
+        if ((resource.get("Efa") or {}).get("Enabled")) is not False:
+            raise ValueError(f"DRAGEN SHM queue {queue_name} must keep EFA disabled.")
 
     cookbook_uri = (
         (((payload.get("DevSettings") or {}).get("Cookbook") or {}).get("ChefCookbook")) or ""

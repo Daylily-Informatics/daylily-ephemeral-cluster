@@ -9,9 +9,11 @@ import yaml
 from daylily_ec.aws.context import AWSContext
 from daylily_ec.render.renderer import write_init_artifacts
 from daylily_ec.resources import (
+    DRAGEN_TEMPLATE_RELPATH,
     INTEL_ONDEMAND_TEMPLATE_RELPATHS,
     INTEL_SPOT_TEMPLATE_RELPATHS,
     INTEL_TEMPLATE_REGION_AZS,
+    SHM_CLUSTER_TEMPLATE_RELPATHS,
     resource_path,
 )
 from daylily_ec.workflow import create_cluster
@@ -187,10 +189,12 @@ def test_active_cluster_template_uses_expected_partition_contract() -> None:
             "i128",
             "i128mem",
             "i128bigmem",
+            "i128shm",
             "i128nvme",
             "i192",
             "i192mem",
             "i192bigmem",
+            "i192shm",
             "i192nvme",
         ]
         region_az = Path(relative_path).parent.name
@@ -201,7 +205,9 @@ def test_active_cluster_template_uses_expected_partition_contract() -> None:
             "us-west-1a",
             "us-west-1b",
         }:
-            expected_names.append("i384nvme")
+            expected_names.extend(("i384shm", "i384nvme"))
+        else:
+            expected_names.append("i384shm")
         expected_names.append("i192hugenvme")
         assert names == expected_names
         assert payload["Scheduling"]["SlurmSettings"]["EnableMemoryBasedScheduling"] is False
@@ -248,12 +254,48 @@ def test_active_cluster_template_uses_expected_partition_contract() -> None:
                 )
             else:
                 assert "ComputeSettings" not in queue
-        assert "c8a." not in text
-        assert "r8in.48xlarge" not in text
-        assert "r8ib.48xlarge" not in text
         assert queues_by_name["i96nvme"]["ComputeResources"][0]["MaxCount"] == (
             "${REGSUB_MAX_COUNT_96I_NVME}"
         )
+
+
+def test_shm_queues_cover_active_intel_and_dragen_templates() -> None:
+    expected = {
+        "i128shm": ("shm128", "${REGSUB_MAX_COUNT_128I_M}"),
+        "i192shm": ("shm192", "${REGSUB_MAX_COUNT_192I_M}"),
+        "i384shm": ("shm384", "${REGSUB_MAX_COUNT_384I}"),
+    }
+    for relative_path in SHM_CLUSTER_TEMPLATE_RELPATHS:
+        source_path = REPO_ROOT / relative_path
+        packaged_path = REPO_ROOT / "daylily_ec/resources/payload" / relative_path
+        source_text = source_path.read_text(encoding="utf-8")
+        assert packaged_path.read_text(encoding="utf-8") == source_text
+        payload = yaml.safe_load(source_text)
+        queues = payload["Scheduling"]["SlurmQueues"]
+        queues_by_name = {queue["Name"]: queue for queue in queues}
+        assert len(queues_by_name) == len(queues), relative_path
+        for queue_name, (resource_name, max_count) in expected.items():
+            queue = queues_by_name[queue_name]
+            assert "ComputeSettings" not in queue
+            assert queue["CapacityType"] == "SPOT" or "ondemand" in relative_path
+            assert len(queue["ComputeResources"]) == 1
+            resource = queue["ComputeResources"][0]
+            assert resource["Name"] == resource_name
+            assert resource["Instances"]
+            assert resource["MaxCount"] == max_count
+        if relative_path == DRAGEN_TEMPLATE_RELPATH:
+            for queue_name in expected:
+                queue = queues_by_name[queue_name]
+                assert queue["Image"]["CustomAmi"] == "${REGSUB_DRAGEN_PCLUSTER_AMI}"
+                action = queue["CustomActions"]["OnNodeConfigured"]
+                assert action["Script"].endswith("/post_install_rhel8_dragen.sh")
+                assert action["Args"][-2:] == ["fsx", "cpu"]
+
+
+def test_sentieon_single_does_not_define_general_shm_queues() -> None:
+    payload = yaml.safe_load((REPO_ROOT / SENTIEON_SINGLE_TEMPLATE).read_text())
+    names = {queue["Name"] for queue in payload["Scheduling"]["SlurmQueues"]}
+    assert not {"i128shm", "i192shm", "i384shm"} & names
 
 
 def test_active_intel_max_counts_are_all_create_time_substitutions() -> None:
@@ -331,6 +373,16 @@ def test_intel_ondemand_templates_only_change_purchase_model() -> None:
         ondemand = yaml.safe_load(
             (REPO_ROOT / ondemand_path).read_text(encoding="utf-8")
         )
+        actual_by_name = {
+            queue["Name"]: queue for queue in ondemand["Scheduling"]["SlurmQueues"]
+        }
+        for queue in expected_ondemand["Scheduling"]["SlurmQueues"]:
+            if queue["Name"].endswith("shm"):
+                # Spot queues require a current Linux Spot price in this AZ;
+                # On-Demand queues include every EC2 offering in the AZ.
+                queue["ComputeResources"][0]["Instances"] = actual_by_name[
+                    queue["Name"]
+                ]["ComputeResources"][0]["Instances"]
         assert ondemand == expected_ondemand, (spot_path, ondemand_path)
 
 
@@ -487,6 +539,9 @@ def test_dragen_template_is_packaged_with_explicit_mixed_node_roles() -> None:
         "dragen",
         "dragen-ondemand",
         "i192",
+        "i128shm",
+        "i192shm",
+        "i384shm",
         "i192nvme",
     ]
     assert queues[0]["CapacityType"] == "SPOT"

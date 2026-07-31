@@ -58,6 +58,15 @@ SENTIEON_SINGLE_TEMPLATE_RELPATH = (
     "config/day_cluster/sentieon-single/us-west-2/us-west-2c/"
     "prod_cluster_sentieon-single_us-west-2c.yaml"
 )
+DRAGEN_TEMPLATE_RELPATH = (
+    "config/day_cluster/dragen/us-west-2/us-west-2b/"
+    "prod_cluster_dragen_us-west-2b.yaml"
+)
+SHM_CLUSTER_TEMPLATE_RELPATHS = (
+    *INTEL_SPOT_TEMPLATE_RELPATHS,
+    *INTEL_ONDEMAND_TEMPLATE_RELPATHS,
+    DRAGEN_TEMPLATE_RELPATH,
+)
 HG003_HIOMRS_1X_MANIFEST_RELPATHS = tuple(
     f"examples/staging/hg003_hiomrs_1x_raw_fastq/{name}"
     for name in (
@@ -72,6 +81,7 @@ HG003_HIOMRS_1X_MANIFEST_RELPATHS = tuple(
 REQUIRED_CLUSTER_TEMPLATE_RELPATHS = (
     *INTEL_SPOT_TEMPLATE_RELPATHS,
     *INTEL_ONDEMAND_TEMPLATE_RELPATHS,
+    DRAGEN_TEMPLATE_RELPATH,
     SENTIEON_SINGLE_TEMPLATE_RELPATH,
 )
 
