@@ -23,9 +23,9 @@ Gate 0 baseline:
 | DAYOA-001 | DayOA | Transplant only the six-file Peddy native-output fix onto current `main`, run focused tests, open a PR, and merge normally after checks pass | SUCCESS | feature_implementation | Gate 1 | orchestrator | PR `#80`; focused pytest `4 passed`; CodeQL Python and JavaScript checks passed; merge commit `364cee5f7f42d24b0c804455ec91703e9994bdca` |  | Narrow Peddy fix merged to `main` without the divergent feature-branch lineage. |
 | DAYOA-002 | DayOA | Create and push the next free annotated DayOA release tag on the merged Peddy commit | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | Remote annotated tag `13.0.108`; peeled commit `364cee5f7f42d24b0c804455ec91703e9994bdca` |  | DayOA `13.0.108` is published and immutable. |
 | DYEC-001 | DYEC | Rebase the coherent outstanding command-catalog/headnode-startup changes onto current `main`, test them, open a PR, and merge normally | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | PR `#69`; four source commits rebased onto current `main`; shell syntax and payload parity passed; affected-file pytest suite `282 passed`; merge commit `a8dad3098fd208f96309f9e2787e1a60e9a5f0ea` |  | Outstanding startup/catalog changes merged normally to `main`; the repository had no configured PR checks. |
-| DYEC-002 | DYEC | Update all authoritative DayOA pins to `13.0.108`, test, open a PR, and merge normally | IN_PROGRESS | config_or_startup_contract | Gate 2 | orchestrator | Source and packaged command catalogs plus seven active contract-test files updated; DayOA release commit constant advanced to `364cee5f7f42d24b0c804455ec91703e9994bdca`; historical ledgers retained; catalog parity and diff checks passed; focused suite `298 passed` |  | Awaiting PR checks and normal merge. |
-| DYEC-003 | DYEC | Create and push the next free annotated DYEC tag for the DayOA-pin release | OPEN | config_or_startup_contract | Gate 2 | orchestrator | Pending; expected candidate `16.1.23`, subject to remote recheck |  |  |
-| DYEC-004 | DYEC | Advance all authoritative DYEC self-pins to the DYEC tag from DYEC-003, test, open a PR, and merge normally | OPEN | config_or_startup_contract | Gate 2 | orchestrator | Pending |  |  |
+| DYEC-002 | DYEC | Update all authoritative DayOA pins to `13.0.108`, test, open a PR, and merge normally | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | PR `#70`; source and packaged command catalogs plus seven active contract-test files updated; DayOA release commit constant advanced to `364cee5f7f42d24b0c804455ec91703e9994bdca`; catalog parity and diff checks passed; focused suite `298 passed`; merge commit `51041b69b354bd37ba23c8ed02caeff8eea1bb65` |  | DayOA `13.0.108` is the active DYEC catalog pin on `main`. |
+| DYEC-003 | DYEC | Create and push the next free annotated DYEC tag for the DayOA-pin release | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | Remote annotated tag `16.1.23`; peeled commit `51041b69b354bd37ba23c8ed02caeff8eea1bb65` |  | DYEC DayOA-pin release `16.1.23` is published and immutable. |
+| DYEC-004 | DYEC | Advance all authoritative DYEC self-pins to the DYEC tag from DYEC-003, test, open a PR, and merge normally | IN_PROGRESS | config_or_startup_contract | Gate 2 | orchestrator | Source and packaged global config plus active self-pin contract constant advanced from `16.1.21` to `16.1.23`; source/package parity and diff checks passed; focused fork-contract suite `4 passed` |  | Awaiting PR checks and normal merge. |
 | DYEC-005 | DYEC | Create and push the next free annotated DYEC tag for the self-pin release | OPEN | config_or_startup_contract | Gate 2 | orchestrator | Pending; expected candidate `16.1.24`, subject to remote recheck |  |  |
 | VERIFY-001 | Both | Verify PR merge commits, clean release worktrees, annotated tag object types, remote tag objects, and peeled commits | OPEN | contract_test | Gate 5 | orchestrator | Pending |  |  |
 
@@ -37,18 +37,19 @@ Objective complete: no
 
 Status counts:
 
-- SUCCESS: 3
+- SUCCESS: 5
 - DUPLICATE: 0
 - NO_LONGER_NEEDED: 0
 - FAIL: 0
 - BLOCKED: 0
 - IN_PROGRESS: 1
-- OPEN: 4
+- OPEN: 2
 
 Validation to date:
 
 - DYEC shell syntax and checked-in/payload installer parity: passed.
 - DYEC affected-file suite: `282 passed in 7.99s`.
 - DYEC DayOA-pin source/package catalog parity and focused suite: `298 passed in 13.06s`.
+- DYEC self-pin source/package parity and focused fork-contract suite: `4 passed in 0.20s`.
 
 Exact remote release evidence will be added as each row reaches a terminal state.
