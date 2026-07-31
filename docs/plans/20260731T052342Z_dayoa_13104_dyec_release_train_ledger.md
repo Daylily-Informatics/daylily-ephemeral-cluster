@@ -34,5 +34,15 @@ the pin release.
 | DYEC-003 | Run focused DYEC pin-contract tests | SUCCESS | `237 passed in 10.50s`; catalog payload `cmp` and `git diff --check` passed |
 | DYEC-004 | Commit, push, tag, and push DYEC `16.1.14` | SUCCESS | Annotated tag `16.1.14` was pushed and peels to `60eaac1974f2815f512064163fbc9f0562a58736` |
 | DYEC-005 | Advance source and packaged DYEC self-pins to `16.1.14` | SUCCESS | Source and packaged global configs are byte-identical; `tests/test_lsmc_bio_fork_contract.py` reports `4 passed in 0.18s`; diff check passed |
-| DYEC-006 | Commit, push, tag, and push DYEC `16.1.15` | IN_PROGRESS | Self-pin release commit is ready |
-| VERIFY-001 | Verify clean branch, annotated tag objects, peeled commits, and remote refs | OPEN | |
+| DYEC-006 | Commit, push, tag, and push DYEC `16.1.15` | SUCCESS | Annotated tag `16.1.15` was pushed and peels to self-pin commit `00f63dc5330a58623a99b1ae2449784462d5acf7` |
+| VERIFY-001 | Verify clean branch, annotated tag objects, peeled commits, and remote refs | SUCCESS | DayOA tag object `47a2edb5` peels to `e21fa3f0`; DYEC tag objects `d4891bdd` and `0a48740b` peel to `60eaac19` and `00f63dc5`; both release branches match their remote heads |
+
+## Terminal state
+
+All rows are terminal and successful. The released chain is:
+
+```text
+DayOA 13.0.104 (e21fa3f0)
+  -> DYEC 16.1.14 pins DayOA 13.0.104 (60eaac19)
+  -> DYEC 16.1.15 self-pins DYEC 16.1.14 (00f63dc5)
+```
