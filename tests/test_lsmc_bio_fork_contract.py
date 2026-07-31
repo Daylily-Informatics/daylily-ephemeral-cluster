@@ -6,10 +6,10 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_DEFAULT_TAG = "13.0.61"
+DAYOA_DEFAULT_TAG = "13.0.107"
 DAYOA_VALIDATED_TAG = "13.0.61"
-DAYOA_HIGHEST_RELEASE_COMMIT = "97b764596bbf0f6d25380bc9fb79953ca64d7874"
-DYEC_BLESSED_TAG = "15.0.13"
+DAYOA_HIGHEST_RELEASE_COMMIT = "ab16caf9d8359753fb69d53c84c7662ee4855ab0"
+DYEC_BLESSED_TAG = "16.1.16"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
     f"{_OLD_ORG}/daylily-omics-analysis",
@@ -89,7 +89,7 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
             assert commands[command_id]["git_tag"] == DAYOA_DEFAULT_TAG
             assert commands[command_id]["validated_version"] == DAYOA_VALIDATED_TAG
         assert commands["package_inflection_hybrid_data"]["git_tag"] == DAYOA_DEFAULT_TAG
-        assert commands["package_inflection_hybrid_data"]["validated_version"] == DAYOA_DEFAULT_TAG
+        assert commands["package_inflection_hybrid_data"]["validated_version"] == DAYOA_VALIDATED_TAG
 
 
 def test_all_dayoa_commands_use_the_uniform_highest_release_pin() -> None:

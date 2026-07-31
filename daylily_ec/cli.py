@@ -4974,6 +4974,16 @@ def samples_run(
         "--cost-center",
         help="Explicit active Slurm cost center; exported as DAY_PROJECT only for job submission.",
     ),
+    pass_on_stale_budget: bool = typer.Option(
+        False,
+        "--pass-on-stale-budget",
+        help="Request warning-only handling of stale budget data for this workflow launch.",
+    ),
+    pass_on_budget_exceeded: bool = typer.Option(
+        False,
+        "--pass-on-budget-exceeded",
+        help="Request warning-only handling of exceeded cluster and cost-center budgets for this workflow launch.",
+    ),
     skip_project_check: bool = typer.Option(
         True,
         "--skip-project-check/--strict-project-check",
@@ -5123,6 +5133,10 @@ def samples_run(
             delete_on_export_success=delete_on_export_success,
             replace_existing_analysis_dir=replace_existing_analysis_dir,
         )
+        if pass_on_stale_budget:
+            workflow_cli_argv.append("--pass-on-stale-budget")
+        if pass_on_budget_exceeded:
+            workflow_cli_argv.append("--pass-on-budget-exceeded")
         workflow_cli_argv.extend(["--max-runtime-minutes", str(max_runtime_minutes)])
         launch_stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(launch_stdout_buffer):
@@ -5401,6 +5415,16 @@ def workflow_launch(
         None,
         "--cost-center",
         help="Explicit active Slurm cost center; exported as DAY_PROJECT only for job submission.",
+    ),
+    pass_on_stale_budget: bool = typer.Option(
+        False,
+        "--pass-on-stale-budget",
+        help="Request warning-only handling of stale budget data for this workflow launch.",
+    ),
+    pass_on_budget_exceeded: bool = typer.Option(
+        False,
+        "--pass-on-budget-exceeded",
+        help="Request warning-only handling of exceeded cluster and cost-center budgets for this workflow launch.",
     ),
     skip_project_check: bool = typer.Option(
         True,
@@ -5687,6 +5711,10 @@ def workflow_launch(
             argv.extend([flag, value])
     for flag, value in producer_option_values.items():
         argv.extend([flag, value])
+    if pass_on_stale_budget:
+        argv.append("--pass-on-stale-budget")
+    if pass_on_budget_exceeded:
+        argv.append("--pass-on-budget-exceeded")
     if not input_staging:
         argv.append("--no-input-staging")
     if not default_activation:

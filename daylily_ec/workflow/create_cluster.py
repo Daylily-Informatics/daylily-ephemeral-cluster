@@ -77,6 +77,8 @@ CLUSTER_NAME_RULE_TEXT = (
     "and contain only lowercase letters, digits, and hyphens"
 )
 DEFAULT_REGIONAL_CLUSTER_CAP = 5
+DEFAULT_BUDGET_EMAIL = "contact@lsmc.com"
+DEFAULT_COST_CENTER_MONTHLY_CAP_USD = "200"
 REGIONAL_CAP_INCREASE_ACK_FLAG = "--acknowledge-regional-cap-increase"
 REGIONAL_CAP_RISK_ACK_FLAG = "--acknowledge-regional-cap-risk"
 
@@ -1615,10 +1617,19 @@ def validate_dragen_cluster_contract(
     if not isinstance(queues, list):
         raise ValueError("DRAGEN cluster SlurmQueues must be a list.")
     queue_names = [str(queue.get("Name") or "") for queue in queues]
-    if queue_names != ["dragen", "dragen-ondemand", "i192", "i192nvme"]:
+    expected_queue_names = [
+        "dragen",
+        "dragen-ondemand",
+        "i192",
+        "i128shm",
+        "i192shm",
+        "i384shm",
+        "i192nvme",
+    ]
+    if queue_names != expected_queue_names:
         raise ValueError(
             "DRAGEN cluster must render exactly the dragen, dragen-ondemand, "
-            "i192, and i192nvme "
+            "i192, i128shm, i192shm, i384shm, and i192nvme "
             f"queues; rendered queues were {queue_names}."
         )
     queues_by_name = {str(queue.get("Name") or ""): queue for queue in queues}
@@ -1701,6 +1712,41 @@ def validate_dragen_cluster_contract(
             raise ValueError(f"DRAGEN CPU queue {queue_name} must set MaxCount at least 1.")
         if ((cpu_resource.get("Efa") or {}).get("Enabled")) is not False:
             raise ValueError(f"DRAGEN CPU queue {queue_name} must keep EFA disabled.")
+
+    for queue_name, resource_name in (
+        ("i128shm", "shm128"),
+        ("i192shm", "shm192"),
+        ("i384shm", "shm384"),
+    ):
+        queue = queues_by_name[queue_name]
+        if queue.get("CapacityType") != "SPOT":
+            raise ValueError(f"DRAGEN SHM queue {queue_name} must use SPOT capacity.")
+        if queue.get("ComputeSettings"):
+            raise ValueError(f"DRAGEN SHM queue {queue_name} must not mount local storage.")
+        queue_ami = ((queue.get("Image") or {}).get("CustomAmi") or "").strip()
+        if queue_ami != inputs.backport.image_ami_id:
+            raise ValueError(
+                f"DRAGEN SHM queue {queue_name} AMI does not match the qualified image."
+            )
+        _validate_dragen_cpu_node(queue, inputs, label=f"{queue_name} queue")
+        resources = queue.get("ComputeResources") or []
+        if not isinstance(resources, list) or len(resources) != 1:
+            raise ValueError(
+                f"DRAGEN SHM queue {queue_name} must render exactly one compute resource."
+            )
+        resource = resources[0]
+        if resource.get("Name") != resource_name:
+            raise ValueError(
+                f"DRAGEN SHM queue {queue_name} must use compute resource {resource_name}."
+            )
+        if not resource.get("Instances"):
+            raise ValueError(f"DRAGEN SHM queue {queue_name} must contain instance types.")
+        if resource.get("MinCount") != 0:
+            raise ValueError(f"DRAGEN SHM queue {queue_name} must set MinCount 0.")
+        if not isinstance(resource.get("MaxCount"), int) or resource["MaxCount"] < 1:
+            raise ValueError(f"DRAGEN SHM queue {queue_name} must set MaxCount at least 1.")
+        if ((resource.get("Efa") or {}).get("Enabled")) is not False:
+            raise ValueError(f"DRAGEN SHM queue {queue_name} must keep EFA disabled.")
 
     cookbook_uri = (
         (((payload.get("DevSettings") or {}).get("Cookbook") or {}).get("ChefCookbook")) or ""
@@ -2259,6 +2305,11 @@ def _validate_cluster_name(cluster_name: str) -> str:
     return validate_cluster_name(cluster_name)
 
 
+def _default_cluster_name() -> str:
+    user = _os.environ.get("USER", "").strip()
+    return f"{user}-clu" if user else ""
+
+
 def _resolve_cluster_name(cfg: Any, *, non_interactive: bool) -> str:
     """Resolve and validate the cluster name before any AWS work begins."""
     from daylily_ec.config.triplets import get_effective_default, resolve_value
@@ -2274,7 +2325,10 @@ def _resolve_cluster_name(cfg: Any, *, non_interactive: bool) -> str:
                     raise
                 typer.echo(str(exc))
 
-    default_value = get_effective_default(cfg, "cluster_name", "prod") or "prod"
+    environment_default = _default_cluster_name()
+    default_value = (
+        get_effective_default(cfg, "cluster_name", environment_default) or environment_default
+    )
     if non_interactive:
         return _validate_cluster_name(default_value)
 
@@ -2413,6 +2467,10 @@ class _PostCreateInputs:
     heartbeat_scheduler_role_arn: str
 
 
+def _default_budget_email() -> str:
+    return _os.environ.get("DAY_CONTACT_EMAIL") or DEFAULT_BUDGET_EMAIL
+
+
 def _resolve_post_create_inputs(
     cfg: Any,
     *,
@@ -2486,12 +2544,14 @@ def _resolve_post_create_inputs(
             "cost_center_name",
             "Cost center name",
             non_interactive=non_interactive,
+            default_fallback=f"{cluster_name}-ccenter",
         )
         cost_center_monthly_cap_usd = _resolve_config_value(
             cfg,
             "cost_center_monthly_cap_usd",
             "Cost center monthly cap (USD)",
             non_interactive=non_interactive,
+            default_fallback=DEFAULT_COST_CENTER_MONTHLY_CAP_USD,
         )
         cost_center_allowed_users = _resolve_config_value(
             cfg,
@@ -2780,7 +2840,7 @@ def run_create_workflow(
         post_create_inputs = _resolve_post_create_inputs(
             cfg,
             non_interactive=non_interactive,
-            budget_email_default=_os.environ.get("DAY_CONTACT_EMAIL", ""),
+            budget_email_default=_default_budget_email(),
             allowed_budget_users_default="ubuntu",
             cluster_name=cluster_name,
             disable_budget_enforcement=disable_budget_enforcement,

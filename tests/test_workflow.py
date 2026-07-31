@@ -40,6 +40,8 @@ from daylily_ec.state import store as state_store
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
 import daylily_ec.workflow.create_cluster as create_cluster_module
 from daylily_ec.workflow.create_cluster import (
+    DEFAULT_BUDGET_EMAIL,
+    DEFAULT_COST_CENTER_MONTHLY_CAP_USD,
     DEFAULT_REGIONAL_CLUSTER_CAP,
     EXIT_AWS_FAILURE,
     EXIT_DRIFT,
@@ -49,6 +51,8 @@ from daylily_ec.workflow.create_cluster import (
     az_cluster_template_relative_path,
     attach_headnode_managed_policy,
     _build_connection_command,
+    _default_budget_email,
+    _default_cluster_name,
     _is_valid_fsx_size,
     _is_valid_headnode_instance_type,
     _extract_selected,
@@ -100,6 +104,44 @@ class TestExitCodes:
 
     def test_exit_toolchain(self):
         assert EXIT_TOOLCHAIN == 4
+
+
+class TestBudgetEmailDefault:
+    def test_defaults_to_lsmc_contact_email(self, monkeypatch):
+        monkeypatch.delenv("DAY_CONTACT_EMAIL", raising=False)
+
+        assert DEFAULT_BUDGET_EMAIL == "contact@lsmc.com"
+        assert _default_budget_email() == "contact@lsmc.com"
+
+    def test_environment_override_remains_authoritative(self, monkeypatch):
+        monkeypatch.setenv("DAY_CONTACT_EMAIL", "operator@example.com")
+
+        assert _default_budget_email() == "operator@example.com"
+
+    def test_source_and_packaged_templates_use_lsmc_contact_email(self):
+        root = Path(__file__).resolve().parent.parent
+        template_paths = (
+            root / "config" / "daylily_ephemeral_cluster_template.yaml",
+            root
+            / "daylily_ec"
+            / "resources"
+            / "payload"
+            / "config"
+            / "daylily_ephemeral_cluster_template.yaml",
+        )
+
+        for path in template_paths:
+            config = yaml.safe_load(path.read_text(encoding="utf-8"))
+            assert config["ephemeral_cluster"]["config"]["budget_email"] == [
+                "PROMPTUSER",
+                "contact@lsmc.com",
+                "",
+            ]
+            assert config["ephemeral_cluster"]["config"]["cost_center_monthly_cap_usd"] == [
+                "PROMPTUSER",
+                "200",
+                "",
+            ]
 
 
 class TestClusterBootConfigPublish:
@@ -593,6 +635,8 @@ class TestAzClusterTemplateResolution:
                 "REGSUB_DELETE_LOCAL_ROOT": "true",
                 "REGSUB_SAVE_FSX": "Delete",
                 "REGSUB_MAX_COUNT_192I_M": "1",
+                "REGSUB_MAX_COUNT_128I_M": "1",
+                "REGSUB_MAX_COUNT_384I": "1",
                 "REGSUB_MAX_COUNT_192I_NVME_M": "1",
                 "REGSUB_ENFORCE_BUDGET": '"true"',
                 "REGSUB_SPOT_PRICE_WARN_THRESHOLD": '"8.00"',
@@ -620,6 +664,9 @@ class TestAzClusterTemplateResolution:
             "dragen",
             "dragen-ondemand",
             "i192",
+            "i128shm",
+            "i192shm",
+            "i384shm",
             "i192nvme",
         ]
         assert queues[0]["CustomActions"]["OnNodeConfigured"]["Args"][-1] == "dragen"
@@ -654,7 +701,7 @@ class TestAzClusterTemplateResolution:
         cluster_yaml.write_text(yaml.safe_dump(missing_cpu_queue), encoding="utf-8")
         with pytest.raises(
             ValueError,
-            match="dragen, dragen-ondemand, i192, and i192nvme",
+            match="dragen, dragen-ondemand, i192, i128shm, i192shm, i384shm, and i192nvme",
         ):
             validate_dragen_cluster_contract(cluster_yaml, inputs)
 
@@ -1121,6 +1168,77 @@ class TestWorkflowResolutionHelpers:
         assert values.allowed_budget_users == "ubuntu"
         assert values.enforce_budget == "true"
 
+    def test_post_create_inputs_default_cost_center_values(self):
+        cfg = ConfigFile.model_validate(
+            {"ephemeral_cluster": {"config": {}, "template_defaults": {}}}
+        )
+
+        values = _resolve_post_create_inputs(
+            cfg,
+            cluster_name="cluster-a",
+            non_interactive=True,
+            disable_budget_enforcement=False,
+            budget_email_default="ops@example.com",
+            allowed_budget_users_default="ubuntu",
+            slurm_accounting="on",
+        )
+
+        assert values.cost_center_name == "cluster-a-ccenter"
+        assert values.cost_center_monthly_cap_usd == DEFAULT_COST_CENTER_MONTHLY_CAP_USD
+        assert values.cost_center_monthly_cap_usd == "200"
+
+    def test_post_create_inputs_prompts_with_cost_center_defaults(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {
+                        "enforce_budget": ["USESETVALUE", "", "true"],
+                        "budget_email": ["USESETVALUE", "", "ops@example.com"],
+                        "budget_amount": ["USESETVALUE", "", "200"],
+                        "global_budget_amount": ["USESETVALUE", "", "1000"],
+                        "allowed_budget_users": ["USESETVALUE", "", "ubuntu"],
+                        "cost_center_name": ["PROMPTUSER", "", ""],
+                        "cost_center_monthly_cap_usd": ["PROMPTUSER", "", ""],
+                        "cost_center_allowed_users": ["USESETVALUE", "", "ubuntu"],
+                        "heartbeat_email": ["USESETVALUE", "", "ops@example.com"],
+                        "heartbeat_schedule": ["USESETVALUE", "", "rate(6 hours)"],
+                        "heartbeat_scheduler_role_arn": [
+                            "USESETVALUE",
+                            "",
+                            "arn:aws:iam::123456789012:role/heartbeat",
+                        ],
+                    },
+                    "template_defaults": {},
+                }
+            }
+        )
+        prompts = []
+
+        def accept_default(label, *, default=None):
+            prompts.append((label, default))
+            return default
+
+        with patch(
+            "daylily_ec.workflow.create_cluster.typer.prompt",
+            side_effect=accept_default,
+        ):
+            values = _resolve_post_create_inputs(
+                cfg,
+                cluster_name="majors-cluster",
+                non_interactive=False,
+                disable_budget_enforcement=False,
+                budget_email_default="contact@lsmc.com",
+                allowed_budget_users_default="ubuntu",
+                slurm_accounting="on",
+            )
+
+        assert prompts == [
+            ("Cost center name", "majors-cluster-ccenter"),
+            ("Cost center monthly cap (USD)", "200"),
+        ]
+        assert values.cost_center_name == "majors-cluster-ccenter"
+        assert values.cost_center_monthly_cap_usd == "200"
+
     def test_build_connection_command_uses_ssm_helper(self):
         cmd = _build_connection_command(
             "majors-cluster",
@@ -1470,6 +1588,48 @@ HeadNode:
 
 
 class TestClusterNameValidation:
+    def test_default_cluster_name_uses_user_environment(self, monkeypatch):
+        monkeypatch.setenv("USER", "jmajor")
+
+        assert _default_cluster_name() == "jmajor-clu"
+
+    def test_resolve_cluster_name_prompts_with_user_default(self, monkeypatch):
+        monkeypatch.setenv("USER", "jmajor")
+        cfg = ConfigFile.model_validate(
+            {"ephemeral_cluster": {"config": {}, "template_defaults": {}}}
+        )
+
+        def accept_default(_label, *, default=None):
+            return default
+
+        with patch(
+            "daylily_ec.workflow.create_cluster.typer.prompt",
+            side_effect=accept_default,
+        ) as mock_prompt:
+            assert _resolve_cluster_name(cfg, non_interactive=False) == "jmajor-clu"
+
+        mock_prompt.assert_called_once_with("Cluster name", default="jmajor-clu")
+
+    def test_source_and_packaged_templates_defer_cluster_name_to_user_environment(self):
+        root = Path(__file__).resolve().parent.parent
+        template_paths = (
+            root / "config" / "daylily_ephemeral_cluster_template.yaml",
+            root
+            / "daylily_ec"
+            / "resources"
+            / "payload"
+            / "config"
+            / "daylily_ephemeral_cluster_template.yaml",
+        )
+
+        for path in template_paths:
+            config = yaml.safe_load(path.read_text(encoding="utf-8"))
+            assert config["ephemeral_cluster"]["config"]["cluster_name"] == [
+                "PROMPTUSER",
+                "",
+                "",
+            ]
+
     @pytest.mark.parametrize(
         "cluster_name",
         [

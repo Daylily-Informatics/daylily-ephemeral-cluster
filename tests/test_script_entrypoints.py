@@ -635,11 +635,9 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "DY_COMMAND='DAY_CONTAINERIZED=true" in script
         assert "--default-resources" not in script
         assert "shopt -s expand_aliases" in script
-        assert (
-            'MERMAID_CHROME="$HOME/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome"'
-            in script
-        )
-        assert 'export PUPPETEER_EXECUTABLE_PATH="$MERMAID_CHROME"' in script
+        assert "MERMAID_CHROME=" not in script
+        assert "/.cache/puppeteer/chrome/" not in script
+        assert 'export PUPPETEER_EXECUTABLE_PATH="$MERMAID_CHROME"' not in script
         assert 'run_dy_command "$DY_COMMAND"' in script
         assert script.index("shopt -s expand_aliases") < script.index(
             'run_dy_command "$DY_COMMAND"'
