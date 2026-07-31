@@ -31,8 +31,8 @@ SUPPORTED_SESSION_HOME = f"/home/{DEFAULT_REMOTE_USER}"
 SOURCE_HEADNODE_STARTUP_FILES = (
     "set +e +u; "
     "for f in ~/.bash_profile ~/.bash_login ~/.profile; do "
-    'if [[ -f "$f" ]]; then source "$f" || true; break; fi; done; '
-    "if [[ -f ~/.bashrc ]]; then source ~/.bashrc || true; fi; "
+    'if [[ -f "$f" ]]; then source "$f" || exit $?; break; fi; done; '
+    "if [[ -f ~/.bashrc ]]; then source ~/.bashrc || exit $?; fi; "
     "set +e +u"
 )
 SUPPORTED_SESSION_SHELL_PROFILE = (

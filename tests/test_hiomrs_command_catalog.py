@@ -11,6 +11,8 @@ SOURCE_CATALOG = REPO_ROOT / "config/daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG = (
     REPO_ROOT / "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml"
 )
+DAYOA_GIT_TAG = "13.0.107"
+DAYOA_VALIDATED_VERSION = "13.0.61"
 
 
 def test_hiomr_catalog_entry_is_native_dyr_and_mirrored() -> None:
@@ -52,8 +54,8 @@ def test_hiomr_catalog_entry_is_native_dyr_and_mirrored() -> None:
     assert command.compatible_platforms == ["ILMN", "ONT"]
     assert command.compatible_cluster_types == ["sentieon-single"]
     assert command.compatible_data_modes == ["hybrid_ilmn_ont"]
-    assert command.git_tag == "13.0.61"
-    assert command.validated_version == "13.0.61"
+    assert command.git_tag == DAYOA_GIT_TAG
+    assert command.validated_version == DAYOA_VALIDATED_VERSION
     assert command.input_contract == "six_manifest"
     assert command.input_requirements.accepted_source_column_sets == [
         ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"]
@@ -104,8 +106,8 @@ def test_hiomr_kitchensink_has_explicit_native_targets_and_retires_hiomrs() -> N
     assert command.snv_callers == ["sentdhiomr"]
     assert command.sv_callers == ["tiddit"]
     assert command.compatible_cluster_types == ["sentieon-single"]
-    assert command.git_tag == "13.0.61"
-    assert command.validated_version == "13.0.61"
+    assert command.git_tag == DAYOA_GIT_TAG
+    assert command.validated_version == DAYOA_VALIDATED_VERSION
     assert command.input_contract == "six_manifest"
     assert command.dy_command.startswith("dy-r produce_sentdhiomr_snv_vcf ")
     assert command.dryrun_dy_command == f"{command.dy_command} -n"
@@ -138,8 +140,8 @@ def test_betelgeuser_prod_preserves_current_main_entry_on_six_manifest_contract(
     kitchen_sink = catalog.get_command("hybrid_ilmn_ont_hiomr_kitchensink")
 
     assert command.type == "prod"
-    assert command.git_tag == "13.0.61"
-    assert command.validated_version == "13.0.61"
+    assert command.git_tag == DAYOA_GIT_TAG
+    assert command.validated_version == DAYOA_VALIDATED_VERSION
     assert command.input_contract == "six_manifest"
     assert command.sample_manifest_template == ""
     assert command.dy_command.startswith("dy-r produce_sentdhiomr_snv_vcf ")

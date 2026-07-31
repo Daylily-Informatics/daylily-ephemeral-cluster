@@ -165,8 +165,9 @@ class TestRunShell:
         assert sent["DocumentName"] == "AWS-RunShellScript"
         assert 'chown ubuntu "$tmp"' in sent["Parameters"]["commands"][0]
         assert "sudo -iu ubuntu bash -ilc" in sent["Parameters"]["commands"][0]
+        assert 'source "$f" || exit $?' in sent["Parameters"]["commands"][0]
         assert "source ~/.bashrc" in sent["Parameters"]["commands"][0]
-        assert "source ~/.bashrc || true" in sent["Parameters"]["commands"][0]
+        assert "source ~/.bashrc || exit $?" in sent["Parameters"]["commands"][0]
         assert "source '\"$tmp\"" in sent["Parameters"]["commands"][0]
         assert sent["Parameters"]["commands"][0].startswith("set +e +u\n")
         encoded = sent["Parameters"]["commands"][0].split("DAYLILY_SSM_B64=")[1].split("\n", 1)[0]
@@ -201,7 +202,7 @@ class TestRunShell:
         assert "sudo -iu ec2-user bash -ilc" in command
         assert "source '\"$tmp\"" in command
         assert "source ~/.bashrc" in command
-        assert "source ~/.bashrc || true" in command
+        assert "source ~/.bashrc || exit $?" in command
         encoded = command.split("DAYLILY_SSM_B64=")[1].split("\n", 1)[0]
         decoded = base64.b64decode(encoded).decode("utf-8")
         assert "Daylily SSM payload must run as ec2-user" in decoded
@@ -241,7 +242,7 @@ class TestRunShell:
         assert "sudo -iu ec2-user bash -ilc" in sent["Parameters"]["commands"][0]
         assert "source '\"$tmp\"" in sent["Parameters"]["commands"][0]
         assert "source ~/.bashrc" in sent["Parameters"]["commands"][0]
-        assert "source ~/.bashrc || true" in sent["Parameters"]["commands"][0]
+        assert "source ~/.bashrc || exit $?" in sent["Parameters"]["commands"][0]
 
     @patch("daylily_ec.aws.ssm.time.sleep", return_value=None)
     @patch("daylily_ec.aws.ssm.boto3.Session")

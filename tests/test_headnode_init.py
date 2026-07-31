@@ -533,6 +533,11 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
     assert 'case ":$PATH:" in' in bootstrap_text
     assert "stty -ixon -ixoff 2>/dev/null || true" in bootstrap_text
     assert "DAYLILY_EC_HEADNODE_BOOTSTRAPPED" in bootstrap_text
+    assert (
+        '"${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" != "1" '
+        '|| "${CONDA_DEFAULT_ENV:-}" != "DAY-EC"'
+        in bootstrap_text
+    )
     assert 'source "$activate_script"' in bootstrap_text
     assert "conda activate DAY-EC" in bootstrap_text
     assert (
