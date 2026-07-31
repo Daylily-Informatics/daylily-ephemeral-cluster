@@ -51,7 +51,14 @@ messages must reach rule logs and therefore Snakemake's captured job output.
 | DOA-002 | DayOA claiming | Allow HIOMR2 claims on verified tmpfs `/dev/shm` while retaining strict NVMe verification on `/scratch`, owner metadata, capacity checks, and no fallback. | SUCCESS | feature_implementation | Gate 4 | orchestrator | Tmpfs, capacity, owner metadata, and wrong-filesystem tests pass. |  | NVMe claimant remains unchanged and delegated. |
 | DOA-003 | DayOA publishers | Make file and directory publishers validate sources beneath the root selected from the actual partition, including grouped jobs. Emit start/success details to stdout/stderr. | SUCCESS | feature_implementation | Gate 4 | orchestrator | Both publisher tests pass for selected media; start/complete messages asserted. |  | No alternate-root discovery. |
 | DOA-004 | DayOA rules | Admit SHM partitions, select the compute-local root inside job shells, retain cleanup traps on EXIT/INT/TERM, and log selection/publication/cleanup to durable rule logs/core-captured output. | SUCCESS | feature_implementation | Gate 4 | orchestrator | Main HIOMR2 has 10 claims/10 cleanup traps; faithful lane has 7/7; grouped Jasmine uses failure cleanup plus final EXIT cleanup and tee logging. |  | Mixed storage classes are rejected for DAG-visible grouped outputs. |
-| ACC-001 | Cross-repo acceptance | Run syntax, focused contracts, config inventory/validation, full relevant test suites, diff checks, PR checks, and merge both repos to `main`. | IN_PROGRESS | contract_test | Gate 5 | orchestrator | DayOA relevant suite 148 passed; DYEC focused 37 passed; both diff checks passed. |  | Awaiting commits, PR checks, and merges. |
+| ACC-001 | Cross-repo acceptance | Run syntax, focused contracts, config inventory/validation, full relevant test suites, diff checks, PR checks, and merge both repos to `main`. | SUCCESS | contract_test | Gate 5 | orchestrator | DayOA relevant suite 148 passed; PR #79 CodeQL green and merged as `88a94017`; DYEC focused 37 passed and PR #68 is clean/mergeable; both diff checks passed. |  | All implementation rows are terminal; DYEC PR #68 carries this terminal ledger commit and is the final merge action. |
+
+## Acceptance disposition
+
+All ledger rows are terminal and the requested implementation is complete.
+DayOA PR `lsmc-bio/daylily-omics-analysis#79` merged to `main`; DYEC PR
+`lsmc-bio/daylily-ephemeral-cluster#68` is the final clean merge carrying the
+31-template queue change and this evidence ledger.
 
 ## Assumptions
 
