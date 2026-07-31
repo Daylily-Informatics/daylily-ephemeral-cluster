@@ -165,8 +165,9 @@ class TestRunShell:
         assert sent["DocumentName"] == "AWS-RunShellScript"
         assert 'chown ubuntu "$tmp"' in sent["Parameters"]["commands"][0]
         assert "sudo -iu ubuntu bash -ilc" in sent["Parameters"]["commands"][0]
+        assert 'source "$f" || exit $?' in sent["Parameters"]["commands"][0]
         assert "source ~/.bashrc" in sent["Parameters"]["commands"][0]
-        assert "source ~/.bashrc || true" in sent["Parameters"]["commands"][0]
+        assert "source ~/.bashrc || exit $?" in sent["Parameters"]["commands"][0]
         assert "source '\"$tmp\"" in sent["Parameters"]["commands"][0]
         assert sent["Parameters"]["commands"][0].startswith("set +e +u\n")
         encoded = sent["Parameters"]["commands"][0].split("DAYLILY_SSM_B64=")[1].split("\n", 1)[0]
@@ -201,11 +202,40 @@ class TestRunShell:
         assert "sudo -iu ec2-user bash -ilc" in command
         assert "source '\"$tmp\"" in command
         assert "source ~/.bashrc" in command
-        assert "source ~/.bashrc || true" in command
+        assert "source ~/.bashrc || exit $?" in command
         encoded = command.split("DAYLILY_SSM_B64=")[1].split("\n", 1)[0]
         decoded = base64.b64decode(encoded).decode("utf-8")
         assert "Daylily SSM payload must run as ec2-user" in decoded
         assert 'if [ "$actual_user" != "ec2-user" ]; then' in decoded
+
+    @patch("daylily_ec.aws.ssm.boto3.Session")
+    def test_explicit_startup_repair_mode_skips_strict_resourcing(self, mock_session_cls):
+        client = MagicMock()
+        client.send_command.return_value = {"Command": {"CommandId": "cmd-1"}}
+        client.get_command_invocation.return_value = {
+            "Status": "Success",
+            "ResponseCode": 0,
+            "StandardOutputContent": "ok\n",
+            "StandardErrorContent": "",
+        }
+        mock_session_cls.return_value.client.return_value = client
+
+        result = run_shell(
+            "i-abc123",
+            "us-west-2",
+            "echo repair",
+            profile="dev",
+            require_startup_success=False,
+        )
+
+        assert result.command_id == "cmd-1"
+        command = client.send_command.call_args.kwargs["Parameters"]["commands"][0]
+        assert "sudo -iu ubuntu bash -ilc" in command
+        assert "source ~/.bashrc" not in command
+        assert "source ~/.bash_profile" not in command
+        encoded = command.split("DAYLILY_SSM_B64=")[1].split("\n", 1)[0]
+        decoded = base64.b64decode(encoded).decode("utf-8")
+        assert "echo repair" in decoded
 
     @patch("daylily_ec.aws.ssm.boto3.Session")
     def test_auto_user_uses_rhel_platform_ec2_user(self, mock_session_cls):
@@ -241,7 +271,7 @@ class TestRunShell:
         assert "sudo -iu ec2-user bash -ilc" in sent["Parameters"]["commands"][0]
         assert "source '\"$tmp\"" in sent["Parameters"]["commands"][0]
         assert "source ~/.bashrc" in sent["Parameters"]["commands"][0]
-        assert "source ~/.bashrc || true" in sent["Parameters"]["commands"][0]
+        assert "source ~/.bashrc || exit $?" in sent["Parameters"]["commands"][0]
 
     @patch("daylily_ec.aws.ssm.time.sleep", return_value=None)
     @patch("daylily_ec.aws.ssm.boto3.Session")

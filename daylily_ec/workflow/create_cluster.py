@@ -4166,6 +4166,7 @@ def configure_headnode(
                 known_hosts_path.read_text(encoding="utf-8"),
                 profile=profile,
                 as_user=remote_user,
+                require_startup_success=False,
             )
             logger.info("  ✓ Pinned GitHub host keys deployed")
         except Exception as exc:
@@ -4190,6 +4191,7 @@ def configure_headnode(
                 yaml.safe_dump(deploy_key_config, default_flow_style=False, sort_keys=False),
                 profile=profile,
                 as_user=remote_user,
+                require_startup_success=False,
             )
             logger.info("  ✓ Repository deploy-key references deployed")
         except Exception as exc:
@@ -4212,6 +4214,7 @@ def configure_headnode(
                 github_token_helper.read_text(encoding="utf-8"),
                 profile=profile,
                 as_user=remote_user,
+                require_startup_success=False,
             )
             write_remote_text(
                 head_node_instance_id,
@@ -4220,6 +4223,7 @@ def configure_headnode(
                 json.dumps(github_token_config, sort_keys=True) + "\n",
                 profile=profile,
                 as_user=remote_user,
+                require_startup_success=False,
             )
             run_shell(
                 head_node_instance_id,
@@ -4227,6 +4231,7 @@ def configure_headnode(
                 _build_headnode_github_token_setup_command(),
                 profile=profile,
                 as_user=remote_user,
+                require_startup_success=False,
                 comment="Configure managed GitHub token credential helper",
             )
             logger.info("  ✓ Managed GitHub token credential helper deployed")
@@ -4296,6 +4301,7 @@ def configure_headnode(
                 profile=profile,
                 as_user=remote_user,
                 timeout=timeout,
+                require_startup_success=False,
                 comment=label,
             )
             logger.info("  ✓ %s", label)

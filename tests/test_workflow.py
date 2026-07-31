@@ -2720,6 +2720,9 @@ class TestConfigureHeadnode:
             "ubuntu",
             "ubuntu",
         ]
+        assert [
+            call.kwargs["require_startup_success"] for call in mock_run_shell.call_args_list
+        ] == [False, False, False, False]
         tos_cmd = mock_run_shell.call_args_list[2].args[2]
         assert "conda config --set plugins.auto_accept_tos true" in tos_cmd
         assert "conda tos accept --user --override-channels" in tos_cmd

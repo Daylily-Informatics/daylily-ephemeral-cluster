@@ -57,7 +57,7 @@ case ":$PATH:" in
     *) export PATH="${user_bin_dir}:$PATH" ;;
 esac
 
-if [[ "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" != "1" ]]; then
+if [[ "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" != "1" || "${CONDA_DEFAULT_ENV:-}" != "DAY-EC" ]]; then
     if [[ ! -f "$activate_script" ]]; then
         echo "Error: missing Daylily activate script at $activate_script" >&2
         return 1

@@ -31,8 +31,8 @@ SUPPORTED_SESSION_HOME = f"/home/{DEFAULT_REMOTE_USER}"
 SOURCE_HEADNODE_STARTUP_FILES = (
     "set +e +u; "
     "for f in ~/.bash_profile ~/.bash_login ~/.profile; do "
-    'if [[ -f "$f" ]]; then source "$f" || true; break; fi; done; '
-    "if [[ -f ~/.bashrc ]]; then source ~/.bashrc || true; fi; "
+    'if [[ -f "$f" ]]; then source "$f" || exit $?; break; fi; done; '
+    "if [[ -f ~/.bashrc ]]; then source ~/.bashrc || exit $?; fi; "
     "set +e +u"
 )
 SUPPORTED_SESSION_SHELL_PROFILE = (
@@ -238,7 +238,11 @@ def _session_shell_profile(as_user: str) -> str:
     )
 
 
-def _bash_login_interactive_source_bashrc_invocation(script_value: str) -> str:
+def _bash_login_interactive_source_bashrc_invocation(
+    script_value: str,
+    *,
+    require_startup_success: bool = True,
+) -> str:
     """Return a bash command that runs *script_value* in the required headnode context.
 
     ``script_value`` is a shell expression, normally ``"$tmp"`` from the
@@ -249,7 +253,8 @@ def _bash_login_interactive_source_bashrc_invocation(script_value: str) -> str:
     path directly into the inner command string.
     """
 
-    bootstrap = f"{SOURCE_HEADNODE_STARTUP_FILES}; source "
+    startup = SOURCE_HEADNODE_STARTUP_FILES if require_startup_success else "set +e +u"
+    bootstrap = f"{startup}; source "
     return " ".join(
         [
             "bash",
@@ -340,7 +345,12 @@ def _payload_guard(as_user: str) -> str:
     )
 
 
-def _encode_script_payload(script: str, *, as_user: str) -> str:
+def _encode_script_payload(
+    script: str,
+    *,
+    as_user: str,
+    require_startup_success: bool = True,
+) -> str:
     user = _require_supported_remote_user(as_user)
     encoded = base64.b64encode(script.encode("utf-8")).decode("ascii")
     writer = (
@@ -351,14 +361,16 @@ def _encode_script_payload(script: str, *, as_user: str) -> str:
     script_env_value = '"$tmp"'
     runner = (
         f"sudo -iu {shlex.quote(user)} "
-        f"{_bash_login_interactive_source_bashrc_invocation(script_env_value)}"
+        f"{_bash_login_interactive_source_bashrc_invocation(script_env_value, require_startup_success=require_startup_success)}"
     )
     return "\n".join(
         [
             # AWS-RunShellScript uses /bin/sh for the transport wrapper on Ubuntu.
             # Keep the wrapper POSIX-safe and run the real payload under the
             # supported headnode shell contract: target user + bash login/
-            # interactive semantics + explicit ~/.bashrc sourcing.
+            # interactive semantics. Normal calls require explicit startup
+            # success; the configure repair path reaches its payload after a
+            # broken automatic login bootstrap so it can reinstall that bootstrap.
             "set +e +u",
             "tmp=$(mktemp /tmp/daylily-ssm-XXXXXX.sh)",
             'mktemp_rc="$?"',
@@ -392,8 +404,13 @@ def run_shell(
     timeout: Optional[int] = 300,
     poll_interval: int = 3,
     comment: str = "Daylily remote command",
+    require_startup_success: bool = True,
 ) -> SsmCommandResult:
-    """Run *script* on an instance via SSM Run Command and return its result."""
+    """Run *script* on an instance via SSM Run Command and return its result.
+
+    ``require_startup_success=False`` is reserved for the explicit headnode
+    configure repair path. Ordinary commands fail when managed startup fails.
+    """
     resolved_user = resolve_remote_user(
         instance_id,
         region,
@@ -405,6 +422,7 @@ def run_shell(
     payload = _encode_script_payload(
         "\n".join([_payload_guard(resolved_user), script]),
         as_user=resolved_user,
+        require_startup_success=require_startup_success,
     )
 
     try:
@@ -471,6 +489,7 @@ def write_remote_text(
     *,
     profile: Optional[str] = None,
     as_user: str = DEFAULT_REMOTE_USER,
+    require_startup_success: bool = True,
 ) -> SsmCommandResult:
     """Write small text content to *remote_path* via SSM Run Command."""
     resolved_user = resolve_remote_user(
@@ -501,6 +520,7 @@ def write_remote_text(
         script,
         profile=profile,
         as_user=resolved_user,
+        require_startup_success=require_startup_success,
         comment=f"Write {target_path}",
     )
 
