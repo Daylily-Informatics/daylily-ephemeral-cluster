@@ -244,11 +244,27 @@ checks an AWS Budget whose name is the cluster name, renders
 
 The staged Slurm wrapper always requires `sbatch --comment <cost-center>`.
 That cost center must be active in the global DynamoDB registry, allowed for
-the submitting user or group, have a usage snapshot newer than 64 hours by
-default, and be below its monthly cap. A cost center may carry an explicit
-`max_usage_age_hours` override of up to 2,160 hours (90 days). When a job is
-blocked, the wrapper prints the Ursa
-cluster budget monitor URL and the cost-center report URL.
+the submitting user or group, and not have reached its optional `active_until`.
+`active_until` is an exclusive UTC boundary stored exactly as
+`YYYY-MM-DDTHH:MM:SSZ`; omitting it keeps the cost center active until it is
+explicitly disabled. Reaching the boundary automatically ends eligibility for
+that cost center without requiring its registry row to be disabled and without
+blocking unrelated cost centers. Global readiness retains expired rows as
+nonblocking lifecycle details on a passing check. Month rollover does not affect admission.
+Monthly cap, spend, freshness, and usage rows remain available as reporting
+telemetry, but missing, stale, or at-cap monthly data does not block a
+submission. When a job is blocked, the wrapper prints the cluster budget
+monitor URL and the cost-center report URL.
+
+Create a time-bounded cost center or remove an existing time boundary with:
+
+```bash
+dyec cost-centers create RnD \
+  --monthly-cap-usd 200 \
+  --allowed-user ubuntu \
+  --active-until 2026-12-31T23:59:59Z
+dyec cost-centers edit RnD --clear-active-until
+```
 
 Disabling budget enforcement skips only the cluster AWS Budget lookup. It does
 not remove the `--comment <cost-center>` requirement or cost-center validation.

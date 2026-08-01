@@ -1231,7 +1231,12 @@ def cost_centers_create(
     max_usage_age_hours: Optional[int] = typer.Option(
         None,
         "--max-usage-age-hours",
-        help="Optional maximum usage-snapshot age in hours (1-2160); omit for the global gate.",
+        help="Optional telemetry freshness threshold in hours (1-2160).",
+    ),
+    active_until: Optional[str] = typer.Option(
+        None,
+        "--active-until",
+        help="Optional exclusive UTC end datetime, exactly YYYY-MM-DDTHH:MM:SSZ.",
     ),
     allowed_user: Optional[List[str]] = typer.Option(None, "--allowed-user", help="Allowed user."),
     allowed_group: Optional[List[str]] = typer.Option(
@@ -1244,13 +1249,8 @@ def cost_centers_create(
     table_name: str = typer.Option(
         "dayec-cost-centers", "--table-name", help="Registry table name."
     ),
-    usage_table_name: str = typer.Option(
-        "dayec-cost-center-usage",
-        "--usage-table-name",
-        help="Usage summary table initialized for immediate Slurm submission.",
-    ),
 ) -> None:
-    """Create an active cost center and its current-month zero usage snapshot."""
+    """Create an active cost center without synthesizing a monthly usage row."""
     from daylily_ec.aws.cost_centers import create_cost_center
 
     _warn_if_dayec_env_inactive()
@@ -1265,9 +1265,9 @@ def cost_centers_create(
             owner_emails=owner_email or (),
             notes=notes,
             max_usage_age_hours=max_usage_age_hours,
+            active_until=active_until,
             actor_arn=aws_ctx.caller_arn,
             table_name=table_name,
-            usage_table_name=usage_table_name,
         )
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
@@ -1282,7 +1282,17 @@ def cost_centers_edit(
     max_usage_age_hours: Optional[int] = typer.Option(
         None,
         "--max-usage-age-hours",
-        help="Replacement maximum usage-snapshot age in hours (1-2160).",
+        help="Replacement telemetry freshness threshold in hours (1-2160).",
+    ),
+    active_until: Optional[str] = typer.Option(
+        None,
+        "--active-until",
+        help="Replacement exclusive UTC end datetime, exactly YYYY-MM-DDTHH:MM:SSZ.",
+    ),
+    clear_active_until: bool = typer.Option(
+        False,
+        "--clear-active-until",
+        help="Remove the end datetime so the active cost center has no time limit.",
     ),
     allowed_user: Optional[List[str]] = typer.Option(
         None, "--allowed-user", help="Replacement allowed user list."
@@ -1314,6 +1324,8 @@ def cost_centers_edit(
             name,
             monthly_cap_usd=monthly_cap_usd,
             max_usage_age_hours=max_usage_age_hours,
+            active_until=active_until,
+            clear_active_until=clear_active_until,
             allowed_users=allowed_user,
             allowed_groups=allowed_group,
             owner_emails=owner_email,
@@ -4974,15 +4986,10 @@ def samples_run(
         "--cost-center",
         help="Explicit active Slurm cost center; exported as DAY_PROJECT only for job submission.",
     ),
-    pass_on_stale_budget: bool = typer.Option(
-        False,
-        "--pass-on-stale-budget",
-        help="Request warning-only handling of stale budget data for this workflow launch.",
-    ),
     pass_on_budget_exceeded: bool = typer.Option(
         False,
         "--pass-on-budget-exceeded",
-        help="Request warning-only handling of exceeded cluster and cost-center budgets for this workflow launch.",
+        help="Request warning-only handling of an exceeded cluster AWS Budget.",
     ),
     skip_project_check: bool = typer.Option(
         True,
@@ -5133,8 +5140,6 @@ def samples_run(
             delete_on_export_success=delete_on_export_success,
             replace_existing_analysis_dir=replace_existing_analysis_dir,
         )
-        if pass_on_stale_budget:
-            workflow_cli_argv.append("--pass-on-stale-budget")
         if pass_on_budget_exceeded:
             workflow_cli_argv.append("--pass-on-budget-exceeded")
         workflow_cli_argv.extend(["--max-runtime-minutes", str(max_runtime_minutes)])
@@ -5416,15 +5421,10 @@ def workflow_launch(
         "--cost-center",
         help="Explicit active Slurm cost center; exported as DAY_PROJECT only for job submission.",
     ),
-    pass_on_stale_budget: bool = typer.Option(
-        False,
-        "--pass-on-stale-budget",
-        help="Request warning-only handling of stale budget data for this workflow launch.",
-    ),
     pass_on_budget_exceeded: bool = typer.Option(
         False,
         "--pass-on-budget-exceeded",
-        help="Request warning-only handling of exceeded cluster and cost-center budgets for this workflow launch.",
+        help="Request warning-only handling of an exceeded cluster AWS Budget.",
     ),
     skip_project_check: bool = typer.Option(
         True,
@@ -5711,8 +5711,6 @@ def workflow_launch(
             argv.extend([flag, value])
     for flag, value in producer_option_values.items():
         argv.extend([flag, value])
-    if pass_on_stale_budget:
-        argv.append("--pass-on-stale-budget")
     if pass_on_budget_exceeded:
         argv.append("--pass-on-budget-exceeded")
     if not input_staging:

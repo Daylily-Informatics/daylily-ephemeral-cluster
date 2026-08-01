@@ -8,7 +8,6 @@ set -euo pipefail
 slurm_command="$(basename "$0")"
 cluster_config="/opt/parallelcluster/shared/cluster-config.yaml"
 reserved_idle_cost_center="idle"
-max_usage_age_hours="64"
 
 cost_center=""
 cluster_name=""
@@ -151,16 +150,12 @@ enforce_budget="$(
 )"
 cost_center_region="$(cluster_tag_value "aws-parallelcluster-cost-center-region")"
 cost_center_table="$(cluster_tag_value "aws-parallelcluster-cost-center-table")"
-cost_center_usage_table="$(cluster_tag_value "aws-parallelcluster-cost-center-usage-table")"
 
 if [ -z "${cost_center_region}" ]; then
     fail "aws-parallelcluster-cost-center-region tag is missing from ${cluster_config}"
 fi
 if [ -z "${cost_center_table}" ]; then
     fail "aws-parallelcluster-cost-center-table tag is missing from ${cluster_config}"
-fi
-if [ -z "${cost_center_usage_table}" ]; then
-    fail "aws-parallelcluster-cost-center-usage-table tag is missing from ${cluster_config}"
 fi
 
 case "${enforce_budget}" in
@@ -240,12 +235,12 @@ registry_validation="$(
     COST_CENTER="${cost_center}" \
     CURRENT_USER="${current_user}" \
     CURRENT_GROUPS="${current_groups}" \
-    GLOBAL_MAX_USAGE_AGE_HOURS="${max_usage_age_hours}" \
     python3 <<'PY'
 import json
 import os
+import re
 import sys
-from decimal import Decimal, InvalidOperation
+from datetime import datetime, timezone
 
 raw_payload = os.environ["COST_CENTER_JSON"]
 if not raw_payload.strip():
@@ -267,34 +262,21 @@ status = item.get("status", {}).get("S", "")
 if status != "active":
     print(f"cost center is not active: status={status or '<missing>'}")
     sys.exit(11)
-try:
-    cap = Decimal(item.get("monthly_cap_usd", {}).get("N", ""))
-except (InvalidOperation, ValueError):
-    print("cost center monthly_cap_usd is missing or invalid")
-    sys.exit(12)
-try:
-    global_max_age = int(os.environ["GLOBAL_MAX_USAGE_AGE_HOURS"])
-except ValueError:
-    print("global cost-center usage freshness limit is invalid")
-    sys.exit(12)
-if global_max_age <= 0:
-    print("global cost-center usage freshness limit must be positive")
-    sys.exit(12)
-override_value = item.get("max_usage_age_hours", {}).get("N", "")
-max_age = global_max_age
-if override_value:
+active_until = item.get("active_until", {}).get("S", "")
+if active_until:
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", active_until):
+        print("cost center active_until must be exactly YYYY-MM-DDTHH:MM:SSZ in UTC")
+        sys.exit(12)
     try:
-        override = Decimal(override_value)
-    except (InvalidOperation, ValueError):
-        print("cost center max_usage_age_hours is invalid")
+        expires = datetime.strptime(active_until, "%Y-%m-%dT%H:%M:%SZ").replace(
+            tzinfo=timezone.utc
+        )
+    except ValueError:
+        print(f"cost center active_until is not a valid UTC datetime: {active_until}")
         sys.exit(12)
-    if not override.is_finite() or override != override.to_integral_value():
-        print("cost center max_usage_age_hours must be a positive integer")
-        sys.exit(12)
-    max_age = int(override)
-    if not 0 < max_age <= 2160:
-        print("cost center max_usage_age_hours must be between 1 and 2160")
-        sys.exit(12)
+    if datetime.now(timezone.utc) >= expires:
+        print(f"cost center expired at active_until={active_until}")
+        sys.exit(15)
 allowed_users = set(item.get("allowed_users", {}).get("SS", []))
 allowed_groups = set(item.get("allowed_groups", {}).get("SS", []))
 current_user = os.environ["CURRENT_USER"]
@@ -302,98 +284,11 @@ current_groups = {g for g in os.environ.get("CURRENT_GROUPS", "").split(",") if 
 if "*" not in allowed_users and current_user not in allowed_users and not (allowed_groups & current_groups):
     print(f"user '{current_user}' is not authorized for this cost center")
     sys.exit(13)
-print(f"{cap}\t{max_age}")
+print(f"active_until={active_until or '<none>'}")
 PY
 )" || fail "${registry_validation}"
 
-read -r monthly_cap effective_max_usage_age_hours _extra <<< "${registry_validation}"
-if [ -z "${monthly_cap:-}" ] || [ -z "${effective_max_usage_age_hours:-}" ]; then
-    fail "cost-center registry validation did not return cap and freshness limit"
-fi
-
-current_month="$(date -u +%Y-%m)"
-usage_json="$(
-    aws dynamodb get-item \
-        --table-name "${cost_center_usage_table}" \
-        --region "${cost_center_region}" \
-        --key "{\"cost_center\":{\"S\":\"${cost_center}\"},\"month\":{\"S\":\"${current_month}\"}}" \
-        --consistent-read \
-        --output json 2>&1
-)" || fail "unable to read cost-center usage table '${cost_center_usage_table}' in ${cost_center_region}: ${usage_json}"
-
-set +e
-usage_validation="$(
-    USAGE_JSON="${usage_json}" \
-    MONTHLY_CAP_USD="${monthly_cap}" \
-    MAX_USAGE_AGE_HOURS="${effective_max_usage_age_hours}" \
-    python3 <<'PY'
-import json
-import os
-import sys
-from datetime import datetime, timezone
-from decimal import Decimal, InvalidOperation
-
-raw_payload = os.environ["USAGE_JSON"]
-if not raw_payload.strip():
-    print("cost-center usage lookup returned empty JSON")
-    sys.exit(26)
-try:
-    payload = json.loads(raw_payload)
-except json.JSONDecodeError as exc:
-    print(f"cost-center usage lookup returned invalid JSON: {exc.msg}")
-    sys.exit(26)
-if not isinstance(payload, dict):
-    print("cost-center usage lookup returned JSON that is not an object")
-    sys.exit(26)
-item = payload.get("Item") or {}
-if not item:
-    print("no monthly usage snapshot exists for this cost center")
-    sys.exit(20)
-try:
-    cap = Decimal(os.environ["MONTHLY_CAP_USD"])
-    spend = Decimal(item.get("monthly_spend_usd", {}).get("N", ""))
-except (InvalidOperation, ValueError):
-    print("cost-center cap or monthly spend is not numeric")
-    sys.exit(21)
-latest = item.get("latest_processed_hour", {}).get("S", "")
-if not latest:
-    print("cost-center usage snapshot is missing latest_processed_hour")
-    sys.exit(22)
-try:
-    latest_dt = datetime.fromisoformat(latest.replace("Z", "+00:00"))
-except ValueError:
-    print(f"latest_processed_hour is invalid: {latest}")
-    sys.exit(23)
-if latest_dt.tzinfo is None:
-    latest_dt = latest_dt.replace(tzinfo=timezone.utc)
-age_hours = (datetime.now(timezone.utc) - latest_dt.astimezone(timezone.utc)).total_seconds() / 3600.0
-max_age = float(os.environ["MAX_USAGE_AGE_HOURS"])
-if age_hours > max_age:
-    print(f"cost-center usage is stale: latest_processed_hour={latest}, age_hours={age_hours:.2f}, max_hours={max_age:.2f}")
-    sys.exit(24)
-if spend >= cap:
-    print(f"cost-center monthly cap exceeded: spend={spend}, cap={cap}, latest_processed_hour={latest}")
-    sys.exit(25)
-print(f"spend={spend}, cap={cap}, latest_processed_hour={latest}, age_hours={age_hours:.2f}, max_hours={max_age:.2f}")
-PY
-)"
-usage_validation_status=$?
-set -e
-if [ "$usage_validation_status" -ne 0 ]; then
-    case "$usage_validation_status" in
-        24)
-            budget_warning_or_fail "DAY_PASS_ON_STALE_BUDGET" "${usage_validation}"
-            ;;
-        25)
-            budget_warning_or_fail "DAY_PASS_ON_BUDGET_EXCEEDED" "${usage_validation}"
-            ;;
-        *)
-            fail "${usage_validation}"
-            ;;
-    esac
-fi
-
-info "cost center '${cost_center}' usage ok: ${usage_validation}."
+info "cost center '${cost_center}' admission ok: ${registry_validation}."
 info "cost-center report: $(cost_center_monitor_url "${cost_center}")"
 
 exec "/opt/slurm/sbin/${slurm_command}" --comment="${cost_center}" --export=ALL "${passthrough_args[@]}"

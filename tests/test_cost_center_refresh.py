@@ -84,12 +84,16 @@ def test_refresh_reproduces_authoritative_cluster_total(monkeypatch) -> None:
 
 def test_refresh_dry_run_does_not_write(monkeypatch) -> None:
     dynamo = _dynamo()
-    before = get_cost_center_usage(dynamo, "sent-hg003-5x-0712", month="2026-07")
+    before = get_cost_center_usage(
+        dynamo,
+        "sent-hg003-5x-0712",
+        month="2026-07",
+        allow_missing=True,
+    )
+    assert before is None
     monkeypatch.setattr(
         "daylily_ec.cost_center_refresh.query_hourly_ec2_instance_costs",
-        lambda *_args, **_kwargs: [
-            _cost("2026-07-11T00:00:00Z", "2026-07-11T01:00:00Z", "1.25")
-        ],
+        lambda *_args, **_kwargs: [_cost("2026-07-11T00:00:00Z", "2026-07-11T01:00:00Z", "1.25")],
     )
 
     result = refresh_dedicated_cluster_usage(
@@ -104,9 +108,15 @@ def test_refresh_dry_run_does_not_write(monkeypatch) -> None:
     )
 
     assert result.dry_run is True
-    assert get_cost_center_usage(
-        dynamo, "sent-hg003-5x-0712", month="2026-07"
-    ) == before
+    assert (
+        get_cost_center_usage(
+            dynamo,
+            "sent-hg003-5x-0712",
+            month="2026-07",
+            allow_missing=True,
+        )
+        == before
+    )
 
 
 def test_refresh_rejects_shared_cluster_assignment() -> None:
@@ -153,9 +163,7 @@ def test_refresh_rejects_processed_hour_regression(monkeypatch) -> None:
     )
     monkeypatch.setattr(
         "daylily_ec.cost_center_refresh.query_hourly_ec2_instance_costs",
-        lambda *_args, **_kwargs: [
-            _cost("2026-07-11T00:00:00Z", "2026-07-11T01:00:00Z", "9")
-        ],
+        lambda *_args, **_kwargs: [_cost("2026-07-11T00:00:00Z", "2026-07-11T01:00:00Z", "9")],
     )
 
     with pytest.raises(CostCenterError, match="regress"):

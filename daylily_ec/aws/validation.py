@@ -33,6 +33,7 @@ from daylily_ec.aws.cost_centers import (
     DEFAULT_COST_CENTER_TABLE,
     DEFAULT_COST_CENTER_USAGE_TABLE,
     RESERVED_IDLE_COST_CENTER,
+    cost_center_is_expired,
     list_cost_center_usage,
     list_cost_centers,
 )
@@ -544,16 +545,14 @@ def check_runtime_cost_policy(
         )
 
     budget_resource = f"arn:{partition}:budgets::{aws_ctx.account_id}:budget/*"
-    table_arns = (
+    registry_table_arn = (
         f"arn:{partition}:dynamodb:{DEFAULT_COST_CENTER_HOME_REGION}:"
-        f"{aws_ctx.account_id}:table/{DEFAULT_COST_CENTER_TABLE}",
-        f"arn:{partition}:dynamodb:{DEFAULT_COST_CENTER_HOME_REGION}:"
-        f"{aws_ctx.account_id}:table/{DEFAULT_COST_CENTER_USAGE_TABLE}",
+        f"{aws_ctx.account_id}:table/{DEFAULT_COST_CENTER_TABLE}"
     )
     requirements = [
         ("budgets:ViewBudget", budget_resource),
         ("billing:GetBillingViewData", "*"),
-        *(("dynamodb:GetItem", table_arn) for table_arn in table_arns),
+        ("dynamodb:GetItem", registry_table_arn),
     ]
     missing = [
         {"action": action, "resource": resource}
@@ -576,7 +575,8 @@ def check_runtime_cost_policy(
             details=details,
             remediation=(
                 "Update the selected headnode managed policy with the missing budget "
-                "and cost-center reads. An older same-name policy is not sufficient."
+                "and cost-center registry read. Monthly usage is reporting telemetry "
+                "and is not part of Slurm admission."
             ),
         )
     return CheckResult(
@@ -926,33 +926,35 @@ def _check_cost_center_registry_readiness(aws_ctx: AWSContext) -> CheckResult:
     tables: dict[str, Any] = {}
     missing_tables: list[str] = []
     invalid_tables: dict[str, Any] = {}
-    try:
-        for table_name, expected_schema in expected_schemas.items():
-            try:
-                table = dynamodb.describe_table(TableName=table_name).get("Table") or {}
-            except Exception as exc:
-                if _is_not_found_error(exc):
-                    missing_tables.append(table_name)
-                    continue
-                raise
-            actual_schema = table.get("KeySchema") or []
-            tables[table_name] = {
-                "status": table.get("TableStatus", ""),
-                "key_schema": actual_schema,
-                "item_count": table.get("ItemCount"),
-            }
-            if table.get("TableStatus") != "ACTIVE" or actual_schema != expected_schema:
-                invalid_tables[table_name] = tables[table_name]
-    except Exception as exc:
+    table_errors: dict[str, str] = {}
+    for table_name, expected_schema in expected_schemas.items():
+        try:
+            table = dynamodb.describe_table(TableName=table_name).get("Table") or {}
+        except Exception as exc:
+            if _is_not_found_error(exc):
+                missing_tables.append(table_name)
+            else:
+                table_errors[table_name] = str(exc)
+            continue
+        actual_schema = table.get("KeySchema") or []
+        tables[table_name] = {
+            "status": table.get("TableStatus", ""),
+            "key_schema": actual_schema,
+            "item_count": table.get("ItemCount"),
+        }
+        if table.get("TableStatus") != "ACTIVE" or actual_schema != expected_schema:
+            invalid_tables[table_name] = tables[table_name]
+
+    if DEFAULT_COST_CENTER_TABLE in table_errors:
         return CheckResult(
             id="cost_centers.registry_readiness",
             status=CheckStatus.FAIL,
             details={
                 "home_region": DEFAULT_COST_CENTER_HOME_REGION,
                 "tables": tables,
-                "error": str(exc),
+                "table_errors": table_errors,
             },
-            remediation=("Grant DynamoDB DescribeTable access to both DayEC cost-center tables."),
+            remediation=("Grant DynamoDB DescribeTable access to the cost-center registry."),
         )
 
     details: dict[str, Any] = {
@@ -960,8 +962,11 @@ def _check_cost_center_registry_readiness(aws_ctx: AWSContext) -> CheckResult:
         "tables": tables,
         "missing_tables": missing_tables,
         "invalid_tables": invalid_tables,
+        "table_errors": table_errors,
         "reserved_idle_present": False,
         "active_cost_centers": [],
+        "eligible_active_cost_centers": [],
+        "expired_active_cost_centers": [],
         "current_month": datetime.now(timezone.utc).strftime("%Y-%m"),
         "missing_usage": [],
         "stale_usage": [],
@@ -969,23 +974,23 @@ def _check_cost_center_registry_readiness(aws_ctx: AWSContext) -> CheckResult:
         "usage_snapshots": {},
         "max_usage_age_hours": COST_CENTER_MAX_USAGE_AGE_HOURS,
     }
-    if missing_tables:
+    if DEFAULT_COST_CENTER_TABLE in missing_tables:
         return CheckResult(
             id="cost_centers.registry_readiness",
             status=CheckStatus.FAIL,
             details=details,
             remediation=(
-                "Create the missing global registry resources with "
+                "Create the missing global registry table with "
                 "dyec cost-centers ensure-registry using an approved admin profile."
             ),
         )
-    if invalid_tables:
+    if DEFAULT_COST_CENTER_TABLE in invalid_tables:
         return CheckResult(
             id="cost_centers.registry_readiness",
             status=CheckStatus.FAIL,
             details=details,
             remediation=(
-                "Repair the DayEC cost-center table status or key schema; do not "
+                "Repair the DayEC cost-center registry status or key schema; do not "
                 "substitute alternate tables."
             ),
         )
@@ -996,17 +1001,12 @@ def _check_cost_center_registry_readiness(aws_ctx: AWSContext) -> CheckResult:
             table_name=DEFAULT_COST_CENTER_TABLE,
             status="all",
         )
-        usage_rows = list_cost_center_usage(
-            dynamodb,
-            month=details["current_month"],
-            usage_table_name=DEFAULT_COST_CENTER_USAGE_TABLE,
-        )
     except Exception as exc:
         return CheckResult(
             id="cost_centers.registry_readiness",
             status=CheckStatus.FAIL,
             details={**details, "error": str(exc)},
-            remediation=("Grant DynamoDB Scan access to both DayEC cost-center tables."),
+            remediation=("Grant DynamoDB Scan access to the DayEC cost-center registry."),
         )
 
     center_by_name = {center.name: center for center in centers}
@@ -1016,9 +1016,66 @@ def _check_cost_center_registry_readiness(aws_ctx: AWSContext) -> CheckResult:
     )
     active_names = sorted(center.name for center in centers if center.status == "active")
     details["active_cost_centers"] = active_names
-    usage_by_name = {row.name: row for row in usage_rows}
     now = datetime.now(timezone.utc)
+    eligible_active_names: list[str] = []
     for name in active_names:
+        center = center_by_name[name]
+        if cost_center_is_expired(center, now=now):
+            details["expired_active_cost_centers"].append(
+                {"cost_center": name, "active_until": center.active_until}
+            )
+        else:
+            eligible_active_names.append(name)
+    details["eligible_active_cost_centers"] = eligible_active_names
+
+    if not details["reserved_idle_present"]:
+        return CheckResult(
+            id="cost_centers.registry_readiness",
+            status=CheckStatus.FAIL,
+            details=details,
+            remediation=("Repair the reserved idle registry row so it exists with status system."),
+        )
+    telemetry_table_issue = ""
+    if DEFAULT_COST_CENTER_USAGE_TABLE in missing_tables:
+        telemetry_table_issue = "monthly usage telemetry table is missing"
+    elif DEFAULT_COST_CENTER_USAGE_TABLE in invalid_tables:
+        telemetry_table_issue = (
+            "monthly usage telemetry table is not active or has an invalid schema"
+        )
+    elif DEFAULT_COST_CENTER_USAGE_TABLE in table_errors:
+        telemetry_table_issue = table_errors[DEFAULT_COST_CENTER_USAGE_TABLE]
+    if telemetry_table_issue:
+        details["telemetry_error"] = telemetry_table_issue
+        details["missing_usage"] = eligible_active_names
+        return CheckResult(
+            id="cost_centers.registry_readiness",
+            status=CheckStatus.WARN,
+            details=details,
+            remediation=(
+                "Restore the monthly usage telemetry table. This does not block Slurm admission."
+            ),
+        )
+
+    try:
+        usage_rows = list_cost_center_usage(
+            dynamodb,
+            month=details["current_month"],
+            usage_table_name=DEFAULT_COST_CENTER_USAGE_TABLE,
+        )
+    except Exception as exc:
+        details["telemetry_error"] = str(exc)
+        return CheckResult(
+            id="cost_centers.registry_readiness",
+            status=CheckStatus.WARN,
+            details=details,
+            remediation=(
+                "Restore DynamoDB Scan access to monthly cost-center usage telemetry. "
+                "This does not block Slurm admission."
+            ),
+        )
+
+    usage_by_name = {row.name: row for row in usage_rows}
+    for name in eligible_active_names:
         usage = usage_by_name.get(name)
         if usage is None:
             details["missing_usage"].append(name)
@@ -1064,23 +1121,26 @@ def _check_cost_center_registry_readiness(aws_ctx: AWSContext) -> CheckResult:
                 }
             )
 
-    if not details["reserved_idle_present"]:
-        return CheckResult(
-            id="cost_centers.registry_readiness",
-            status=CheckStatus.FAIL,
-            details=details,
-            remediation=("Repair the reserved idle registry row so it exists with status system."),
-        )
     if details["missing_usage"] or details["stale_usage"] or details["exhausted_usage"]:
         return CheckResult(
             id="cost_centers.registry_readiness",
-            status=CheckStatus.FAIL,
+            status=CheckStatus.WARN,
             details=details,
             remediation=(
-                "Refresh current-month usage snapshots and reconcile exhausted caps for "
-                "every active cost center; the Slurm wrapper rejects missing, stale, or "
-                "at-cap snapshots."
+                "Refresh current-month usage telemetry or reconcile reported cap status. "
+                "These telemetry conditions do not block Slurm admission."
             ),
+        )
+    if details["expired_active_cost_centers"]:
+        details["lifecycle_notice"] = (
+            "Expired active_until rows are normal lifecycle telemetry and do not block "
+            "other cost centers. Extend active_until only when that cost center should "
+            "accept submissions again."
+        )
+        return CheckResult(
+            id="cost_centers.registry_readiness",
+            status=CheckStatus.PASS,
+            details=details,
         )
     return CheckResult(
         id="cost_centers.registry_readiness",

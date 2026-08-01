@@ -17,16 +17,16 @@ from daylily_ec.aws.cur_export import (
 )
 from daylily_ec.aws.validation import (
     AwsValidationReport,
-    _check_budget_count_quota,
     _check_athena_active_dml_quota,
+    _check_budget_count_quota,
     _check_cost_center_registry_readiness,
     _check_cur_catalog_readiness,
     _check_cur_export_count_quota,
     _check_cur_export_readiness,
     _check_dynamodb_table_count_quota,
     _check_slurm_accounting_resource_quotas,
-    _enrich_network_quota_headroom,
     _enrich_budget_readiness,
+    _enrich_network_quota_headroom,
     _permission_groups,
     _policy_allows,
     check_runtime_cost_policy,
@@ -34,7 +34,6 @@ from daylily_ec.aws.validation import (
 )
 from daylily_ec.config.models import ConfigFile, Triplet
 from daylily_ec.state.models import CheckResult, CheckStatus
-
 
 ACCOUNT_ID = "123456789012"
 
@@ -120,7 +119,7 @@ def test_permission_catalog_scopes_sns_to_configured_cluster_topic() -> None:
     )
 
 
-def test_runtime_cost_policy_inspects_default_version_and_exact_tables() -> None:
+def test_runtime_cost_policy_requires_only_registry_for_cost_center_admission() -> None:
     policy_arn = f"arn:aws:iam::{ACCOUNT_ID}:policy/pclusterTagsAndBudget"
     iam = MagicMock()
     iam.get_policy.return_value = {"Policy": {"Arn": policy_arn, "DefaultVersionId": "v7"}}
@@ -137,10 +136,9 @@ def test_runtime_cost_policy_inspects_default_version_and_exact_tables() -> None
                     {
                         "Effect": "Allow",
                         "Action": "dynamodb:GetItem",
-                        "Resource": [
-                            f"arn:aws:dynamodb:us-west-2:{ACCOUNT_ID}:table/dayec-cost-centers",
-                            f"arn:aws:dynamodb:us-west-2:{ACCOUNT_ID}:table/dayec-cost-center-usage",
-                        ],
+                        "Resource": (
+                            f"arn:aws:dynamodb:us-west-2:{ACCOUNT_ID}:table/dayec-cost-centers"
+                        ),
                     },
                 ],
             }
@@ -152,6 +150,10 @@ def test_runtime_cost_policy_inspects_default_version_and_exact_tables() -> None
     assert result.status == CheckStatus.PASS
     assert result.details["default_version_id"] == "v7"
     assert result.details["missing_permissions"] == []
+    assert not any(
+        "dayec-cost-center-usage" in item["resource"]
+        for item in result.details["required_permissions"]
+    )
     iam.get_policy.assert_called_once_with(PolicyArn=policy_arn)
     iam.get_policy_version.assert_called_once_with(
         PolicyArn=policy_arn,
@@ -276,7 +278,7 @@ def test_budget_readiness_warns_on_live_limit_or_spend_mismatch() -> None:
     assert "live limit differs from configured limit" in reasons
 
 
-def test_cost_center_registry_checks_schema_idle_and_fresh_usage(monkeypatch) -> None:
+def test_cost_center_registry_checks_lifecycle_and_reports_usage_as_telemetry(monkeypatch) -> None:
     dynamodb = MagicMock()
 
     def describe_table(*, TableName):
@@ -301,12 +303,15 @@ def test_cost_center_registry_checks_schema_idle_and_fresh_usage(monkeypatch) ->
         validation_module,
         "list_cost_centers",
         lambda *_args, **_kwargs: [
-            SimpleNamespace(name="idle", status="system", monthly_cap_usd=Decimal("0")),
+            SimpleNamespace(
+                name="idle", status="system", monthly_cap_usd=Decimal("0"), active_until=""
+            ),
             SimpleNamespace(
                 name="team-a",
                 status="active",
                 monthly_cap_usd=Decimal("100"),
                 max_usage_age_hours=None,
+                active_until="",
             ),
         ],
     )
@@ -351,19 +356,23 @@ def test_cost_center_registry_checks_schema_idle_and_fresh_usage(monkeypatch) ->
         ],
     )
     result = _check_cost_center_registry_readiness(_context())
-    assert result.status == CheckStatus.FAIL
+    assert result.status == CheckStatus.WARN
     assert result.details["exhausted_usage"][0]["cost_center"] == "team-a"
+    assert "do not block Slurm admission" in result.remediation
 
     monkeypatch.setattr(
         validation_module,
         "list_cost_centers",
         lambda *_args, **_kwargs: [
-            SimpleNamespace(name="idle", status="system", monthly_cap_usd=Decimal("0")),
+            SimpleNamespace(
+                name="idle", status="system", monthly_cap_usd=Decimal("0"), active_until=""
+            ),
             SimpleNamespace(
                 name="team-a",
                 status="active",
                 monthly_cap_usd=Decimal("100"),
                 max_usage_age_hours=2160,
+                active_until="",
             ),
         ],
     )
@@ -384,6 +393,72 @@ def test_cost_center_registry_checks_schema_idle_and_fresh_usage(monkeypatch) ->
     result = _check_cost_center_registry_readiness(_context())
     assert result.status == CheckStatus.PASS
     assert result.details["usage_snapshots"]["team-a"]["max_usage_age_hours"] == 2160
+
+    monkeypatch.setattr(
+        validation_module,
+        "list_cost_center_usage",
+        lambda *_args, **_kwargs: [],
+    )
+    result = _check_cost_center_registry_readiness(_context())
+    assert result.status == CheckStatus.WARN
+    assert result.details["missing_usage"] == ["team-a"]
+    assert "do not block Slurm admission" in result.remediation
+
+    expired = (
+        (datetime.now(timezone.utc) - timedelta(seconds=1))
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
+    monkeypatch.setattr(
+        validation_module,
+        "list_cost_centers",
+        lambda *_args, **_kwargs: [
+            SimpleNamespace(
+                name="idle", status="system", monthly_cap_usd=Decimal("0"), active_until=""
+            ),
+            SimpleNamespace(
+                name="team-a",
+                status="active",
+                monthly_cap_usd=Decimal("100"),
+                max_usage_age_hours=None,
+                active_until=expired,
+            ),
+            SimpleNamespace(
+                name="team-b",
+                status="active",
+                monthly_cap_usd=Decimal("100"),
+                max_usage_age_hours=None,
+                active_until="",
+            ),
+        ],
+    )
+    monkeypatch.setattr(
+        validation_module,
+        "list_cost_center_usage",
+        lambda *_args, **_kwargs: [
+            SimpleNamespace(
+                name="team-b",
+                monthly_spend_usd=Decimal("25"),
+                latest_processed_hour=datetime.now(timezone.utc)
+                .replace(microsecond=0)
+                .isoformat()
+                .replace("+00:00", "Z"),
+            )
+        ],
+    )
+    result = _check_cost_center_registry_readiness(_context())
+    assert result.status == CheckStatus.PASS
+    assert result.details["active_cost_centers"] == ["team-a", "team-b"]
+    assert result.details["eligible_active_cost_centers"] == ["team-b"]
+    assert result.details["expired_active_cost_centers"] == [
+        {"cost_center": "team-a", "active_until": expired}
+    ]
+    assert result.details["missing_usage"] == []
+    assert set(result.details["usage_snapshots"]) == {"team-b"}
+    assert "normal lifecycle telemetry" in result.details["lifecycle_notice"]
+    assert "do not block other cost centers" in result.details["lifecycle_notice"]
+    assert result.remediation == ""
 
 
 def test_cur_readiness_uses_only_read_apis(monkeypatch) -> None:

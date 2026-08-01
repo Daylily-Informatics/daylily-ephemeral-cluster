@@ -185,11 +185,15 @@ selected config:
 - `budget.readiness`: the account-wide and selected cluster budgets exist and
   their configured limits, current spend, type, monthly/USD shape, cluster-tag
   filters, expected thresholds, and configured subscriber are consistent
-- `cost_centers.registry_readiness`: both DynamoDB tables are active with the
-  exact key schemas, the reserved `idle` row exists, and every active cost
-  center has a current-month usage snapshot no more than 64 hours old by
-  default (or its explicit `max_usage_age_hours` override) and monthly spend
-  remains below its registered cap
+- `cost_centers.registry_readiness`: the registry table is active with its exact
+  key schema and the reserved `idle` row exists. Status-active rows are separated
+  into currently eligible and expired `active_until` lifecycle rows. Expired rows
+  remain visible as lifecycle details on a passing check; they do not make unrelated
+  cost centers unready and need not be manually disabled. Monthly usage checks apply
+  only to currently eligible rows. The usage table, freshness, and registered cap
+  comparisons are non-admission telemetry; a missing/invalid telemetry table or
+  missing, stale, or at-cap row produces a warning rather than a Slurm admission
+  failure
 - `cost_control.cur_export_readiness`: the dedicated bucket region and required
   Data Exports policy statement, exact named CUR 2.0 definition and delivery
   destination, `HEALTHY` state, latest `DELIVERY_SUCCESS`, and required schema

@@ -881,14 +881,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="Explicit active Slurm cost center exported as DAY_PROJECT before dy-r",
     )
     parser.add_argument(
-        "--pass-on-stale-budget",
-        action="store_true",
-        help="Export DAY_PASS_ON_STALE_BUDGET before dyoainit and dy-a.",
-    )
-    parser.add_argument(
         "--pass-on-budget-exceeded",
         action="store_true",
-        help="Export DAY_PASS_ON_BUDGET_EXCEEDED before dyoainit and dy-a.",
+        help="Export DAY_PASS_ON_BUDGET_EXCEEDED for the cluster AWS Budget gate.",
     )
     parser.add_argument(
         "--skip-project-check",
@@ -1252,7 +1247,6 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     project_arg = shlex.quote(args.project) if args.project else ""
     cost_center_arg = shlex.quote(args.cost_center) if args.cost_center else ""
-    pass_on_stale_budget_arg = "true" if args.pass_on_stale_budget else ""
     pass_on_budget_exceeded_arg = "true" if args.pass_on_budget_exceeded else ""
     repository_literal = json.dumps(args.repository)
     dy_command_literal = shlex.quote(dy_command)
@@ -1391,7 +1385,6 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	STAGE_UNITS={shlex.quote(stage_units_path)}
 	PROJECT_VALUE={project_arg if project_arg else ""}
 	COST_CENTER_VALUE={cost_center_arg if cost_center_arg else ""}
-	DAY_PASS_ON_STALE_BUDGET_VALUE={pass_on_stale_budget_arg}
 	DAY_PASS_ON_BUDGET_EXCEEDED_VALUE={pass_on_budget_exceeded_arg}
 	SKIP_PROJECT_CHECK={skip_check}
 	DY_COMMAND={dy_command_literal}
@@ -2599,9 +2592,6 @@ apply_cost_center() {{
 }}
 
 apply_budget_overrides() {{
-  if [[ -n "$DAY_PASS_ON_STALE_BUDGET_VALUE" ]]; then
-    export DAY_PASS_ON_STALE_BUDGET="$DAY_PASS_ON_STALE_BUDGET_VALUE"
-  fi
   if [[ -n "$DAY_PASS_ON_BUDGET_EXCEEDED_VALUE" ]]; then
     export DAY_PASS_ON_BUDGET_EXCEEDED="$DAY_PASS_ON_BUDGET_EXCEEDED_VALUE"
   fi

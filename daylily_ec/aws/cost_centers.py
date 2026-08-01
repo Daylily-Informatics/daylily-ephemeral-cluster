@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
-from typing import Any, Iterable, Sequence
-
+from typing import Any
 
 DEFAULT_COST_CENTER_HOME_REGION = "us-west-2"
 DEFAULT_COST_CENTER_TABLE = "dayec-cost-centers"
@@ -18,6 +18,7 @@ MAX_COST_CENTER_USAGE_AGE_HOURS = 24 * 90
 VALID_STATUSES = {"active", "disabled", "system"}
 COST_CENTER_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,127}$")
 MONTH_RE = re.compile(r"^\d{4}-\d{2}$")
+ACTIVE_UNTIL_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 
 
 class CostCenterError(RuntimeError):
@@ -40,6 +41,7 @@ class CostCenter:
     disabled_at: str = ""
     disabled_reason: str = ""
     max_usage_age_hours: int | None = None
+    active_until: str = ""
 
     def to_dict(self) -> dict[str, object]:
         payload: dict[str, object] = {
@@ -56,6 +58,7 @@ class CostCenter:
             "updated_by_arn": self.updated_by_arn,
             "disabled_at": self.disabled_at,
             "disabled_reason": self.disabled_reason,
+            "active_until": self.active_until,
         }
         if self.max_usage_age_hours is not None:
             payload["max_usage_age_hours"] = self.max_usage_age_hours
@@ -121,6 +124,47 @@ def validate_latest_processed_hour(value: str) -> str:
     if utc.minute != 0 or utc.second != 0:
         raise CostCenterError("latest_processed_hour must be rounded to the UTC hour.")
     return utc.isoformat().replace("+00:00", "Z")
+
+
+def validate_active_until(value: str | None) -> str:
+    """Validate the optional exclusive UTC end of a cost center's active lifetime."""
+
+    text = "" if value is None else str(value)
+    if not text:
+        return ""
+    if not ACTIVE_UNTIL_RE.fullmatch(text):
+        raise CostCenterError("active_until must be exactly YYYY-MM-DDTHH:MM:SSZ in UTC.")
+    try:
+        datetime.strptime(text, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    except ValueError as exc:
+        raise CostCenterError("active_until must be a valid UTC datetime.") from exc
+    return text
+
+
+def cost_center_is_expired(
+    item: CostCenter,
+    *,
+    now: datetime | str | None = None,
+) -> bool:
+    """Return whether an active-until boundary has been reached."""
+
+    active_until = validate_active_until(item.active_until)
+    if not active_until:
+        return False
+    current: datetime
+    if isinstance(now, str):
+        try:
+            current = datetime.fromisoformat(now.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise CostCenterError(
+                "Cost-center lifecycle comparison time must be an ISO-8601 timestamp."
+            ) from exc
+    else:
+        current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        raise CostCenterError("Cost-center lifecycle comparison time must include a timezone.")
+    expires = datetime.strptime(active_until, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    return current.astimezone(timezone.utc) >= expires
 
 
 def validate_max_usage_age_hours(value: int | str | None) -> int | None:
@@ -196,15 +240,17 @@ def create_cost_center(
     owner_emails: Sequence[str] = (),
     notes: str = "",
     max_usage_age_hours: int | str | None = None,
+    active_until: str | None = None,
     actor_arn: str = "",
     table_name: str = DEFAULT_COST_CENTER_TABLE,
-    usage_table_name: str = DEFAULT_COST_CENTER_USAGE_TABLE,
     now: str | None = None,
 ) -> CostCenter:
     resolved_name = validate_cost_center_name(name)
     cap = _validate_decimal(monthly_cap_usd, field="monthly_cap_usd")
     if cap <= 0:
-        raise CostCenterError("monthly_cap_usd must be greater than zero for an active cost center.")
+        raise CostCenterError(
+            "monthly_cap_usd must be greater than zero for an active cost center."
+        )
     users = _normalize_list(allowed_users, field="allowed_users")
     groups = _normalize_list(allowed_groups, field="allowed_groups")
     if not users and not groups:
@@ -224,17 +270,11 @@ def create_cost_center(
         updated_at=timestamp,
         updated_by_arn=actor_arn,
         max_usage_age_hours=max_age_hours,
+        active_until=validate_active_until(active_until),
     )
-    # Seed usage before publishing an active registry row. A failed registry write
-    # may leave an inert usage row, but a failed usage write cannot leave a cost
-    # center that is authorized yet impossible to submit against.
-    initialize_cost_center_usage(
-        dynamodb_client,
-        resolved_name,
-        usage_table_name=usage_table_name,
-        now=timestamp,
+    _put_cost_center(
+        dynamodb_client, table_name, item, condition="attribute_not_exists(cost_center)"
     )
-    _put_cost_center(dynamodb_client, table_name, item, condition="attribute_not_exists(cost_center)")
     return item
 
 
@@ -262,7 +302,9 @@ def ensure_active_cost_center(
     resolved_name = validate_cost_center_name(name)
     cap = _validate_decimal(monthly_cap_usd, field="monthly_cap_usd")
     if cap <= 0:
-        raise CostCenterError("monthly_cap_usd must be greater than zero for an active cost center.")
+        raise CostCenterError(
+            "monthly_cap_usd must be greater than zero for an active cost center."
+        )
     users = _normalize_list(allowed_users, field="allowed_users")
     groups = _normalize_list(allowed_groups, field="allowed_groups")
     if not users and not groups:
@@ -293,7 +335,6 @@ def ensure_active_cost_center(
                 notes=notes,
                 actor_arn=actor_arn,
                 table_name=table_name,
-                usage_table_name=usage_table_name,
                 now=now,
             ),
             True,
@@ -308,6 +349,8 @@ def ensure_active_cost_center(
         mismatch.append(f"allowed_users={list(existing.allowed_users)!r}")
     if existing.allowed_groups != groups:
         mismatch.append(f"allowed_groups={list(existing.allowed_groups)!r}")
+    if cost_center_is_expired(existing, now=now):
+        mismatch.append(f"active_until={existing.active_until!r} (expired)")
     if mismatch:
         raise CostCenterError(
             f"Cost center '{resolved_name}' already exists but does not match the explicit "
@@ -316,12 +359,6 @@ def ensure_active_cost_center(
             + ". Edit it explicitly with `dyec cost-centers edit` or choose another name."
         )
 
-    initialize_cost_center_usage(
-        dynamodb_client,
-        resolved_name,
-        usage_table_name=usage_table_name,
-        now=now,
-    )
     return existing, False
 
 
@@ -336,6 +373,8 @@ def edit_cost_center(
     notes: str | None = None,
     status: str | None = None,
     max_usage_age_hours: int | str | None = None,
+    active_until: str | None = None,
+    clear_active_until: bool = False,
     actor_arn: str = "",
     table_name: str = DEFAULT_COST_CENTER_TABLE,
     now: str | None = None,
@@ -350,15 +389,33 @@ def edit_cost_center(
         notes is not None,
         status is not None,
         max_usage_age_hours is not None,
+        active_until is not None,
+        clear_active_until,
     ]
     if not any(changes):
         raise CostCenterError("No edit fields were provided.")
     if status is not None and status not in {"active", "disabled"}:
         raise CostCenterError("Cost-center status must be active or disabled.")
-    users = current.allowed_users if allowed_users is None else _normalize_list(allowed_users, field="allowed_users")
-    groups = current.allowed_groups if allowed_groups is None else _normalize_list(allowed_groups, field="allowed_groups")
+    if active_until is not None and clear_active_until:
+        raise CostCenterError("active_until and clear_active_until are mutually exclusive.")
+    users = (
+        current.allowed_users
+        if allowed_users is None
+        else _normalize_list(allowed_users, field="allowed_users")
+    )
+    groups = (
+        current.allowed_groups
+        if allowed_groups is None
+        else _normalize_list(allowed_groups, field="allowed_groups")
+    )
     if not users and not groups:
         raise CostCenterError("At least one allowed user or allowed group is required.")
+    if clear_active_until:
+        resolved_active_until = ""
+    elif active_until is None:
+        resolved_active_until = current.active_until
+    else:
+        resolved_active_until = validate_active_until(active_until)
     timestamp = now or utc_now_iso()
     updated = CostCenter(
         name=current.name,
@@ -381,8 +438,11 @@ def edit_cost_center(
         max_usage_age_hours=current.max_usage_age_hours
         if max_usage_age_hours is None
         else validate_max_usage_age_hours(max_usage_age_hours),
+        active_until=resolved_active_until,
     )
-    _put_cost_center(dynamodb_client, table_name, updated, condition="attribute_exists(cost_center)")
+    _put_cost_center(
+        dynamodb_client, table_name, updated, condition="attribute_exists(cost_center)"
+    )
     return updated
 
 
@@ -415,8 +475,11 @@ def disable_cost_center(
         disabled_at=timestamp,
         disabled_reason=str(reason).strip(),
         max_usage_age_hours=current.max_usage_age_hours,
+        active_until=current.active_until,
     )
-    _put_cost_center(dynamodb_client, table_name, updated, condition="attribute_exists(cost_center)")
+    _put_cost_center(
+        dynamodb_client, table_name, updated, condition="attribute_exists(cost_center)"
+    )
     return updated
 
 
@@ -540,7 +603,7 @@ def initialize_cost_center_usage(
     usage_table_name: str = DEFAULT_COST_CENTER_USAGE_TABLE,
     now: str | None = None,
 ) -> CostCenterUsage:
-    """Create the current-month zero snapshot without replacing allocator data."""
+    """Explicitly create a current-month zero snapshot without replacing allocator data."""
     timestamp = now or utc_now_iso()
     parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00")).astimezone(timezone.utc)
     processed_hour = parsed.replace(minute=0, second=0, microsecond=0)
@@ -589,11 +652,16 @@ def authorize_cost_center(
     *,
     user: str,
     groups: Iterable[str] = (),
+    now: datetime | None = None,
 ) -> None:
     if item.name == RESERVED_IDLE_COST_CENTER:
         raise CostCenterError("'idle' cannot be used for Slurm submissions.")
     if item.status != "active":
         raise CostCenterError(f"Cost center '{item.name}' is not active.")
+    if cost_center_is_expired(item, now=now):
+        raise CostCenterError(
+            f"Cost center '{item.name}' expired at active_until={item.active_until}."
+        )
     current_user = str(user or "").strip()
     current_groups = {str(group).strip() for group in groups if str(group).strip()}
     if current_user in item.allowed_users or "*" in item.allowed_users:
@@ -704,8 +772,13 @@ def _put_cost_center(
             ConditionExpression=condition,
         )
     except Exception as exc:
-        if exc.__class__.__name__ == "ConditionalCheckFailedException" or "ConditionalCheckFailed" in str(exc):
-            raise CostCenterError(f"Cost center '{item.name}' already exists or is missing.") from exc
+        if (
+            exc.__class__.__name__ == "ConditionalCheckFailedException"
+            or "ConditionalCheckFailed" in str(exc)
+        ):
+            raise CostCenterError(
+                f"Cost center '{item.name}' already exists or is missing."
+            ) from exc
         raise
 
 
@@ -732,6 +805,8 @@ def _cost_center_to_item(item: CostCenter) -> dict[str, Any]:
         raw["disabled_reason"] = {"S": item.disabled_reason}
     if item.max_usage_age_hours is not None:
         raw["max_usage_age_hours"] = {"N": str(item.max_usage_age_hours)}
+    if item.active_until:
+        raw["active_until"] = {"S": validate_active_until(item.active_until)}
     return raw
 
 
@@ -756,6 +831,7 @@ def _cost_center_from_item(raw: dict[str, Any]) -> CostCenter:
         max_usage_age_hours=validate_max_usage_age_hours(
             (raw.get("max_usage_age_hours") or {}).get("N")
         ),
+        active_until=validate_active_until((raw.get("active_until") or {}).get("S")),
     )
 
 
