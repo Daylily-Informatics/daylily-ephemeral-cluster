@@ -31,30 +31,42 @@ Gate 0 baseline:
 | DYEC-006 | DYEC | Publish the next free annotated DYEC self-pin release and verify remote tag object / peeled commit | SUCCESS | config_or_startup_contract | Gate 3 | orchestrator | PR `#75`; merge commit `75a324c6573db16b4352b9466ba3e1e7947a47b1`; remote annotated tag `16.1.26` peels to that exact commit |  | Initial DayOA/IAM release chain is immutable and complete. |
 | DYEC-007 | DYEC | Advance all active source/package catalogs and tests from DayOA `13.0.114` to fixed release `13.0.115` | SUCCESS | config_or_startup_contract | Gate 5 | orchestrator | Source/package catalogs are byte-identical with 28 active `13.0.115` refs each; seven active contract surfaces updated; `298 passed`; full suite `2426 passed, 20 failed, 11 skipped`, exactly matching the previously captured current-main failure set |  | Historical validation provenance remains unchanged; release commit `f16eab6fef81e85287c53665563185aa49ba68fb` is recorded. |
 | DYEC-008 | DYEC | Publish the next free annotated DYEC release containing the fixed DayOA pin | SUCCESS | config_or_startup_contract | Gate 5 | orchestrator | PR `#76`; merge commit `c61a1f8a052903df97efe68cbeb2a77eae81c065`; remote annotated tag `16.1.27` peels to that exact commit |  | Fixed DayOA catalog release is published and immutable. |
-| DYEC-009 | DYEC | Advance the DYEC self-pin to DYEC-008 and publish the next free annotated release | IN_PROGRESS | config_or_startup_contract | Gate 5 | orchestrator | Source/package global config and active self-pin contract advanced to `16.1.27`; exact parity and focused self-pin suite `36 passed`; candidate release `16.1.28` remains subject to final remote recheck |  | Pending PR merge and annotated tag. |
+| DYEC-009 | DYEC | Advance the DYEC self-pin to DYEC-008 and publish the next free annotated release | SUCCESS | config_or_startup_contract | Gate 5 | orchestrator | Source/package global config and active self-pin contract advanced to `16.1.27`; exact parity and focused self-pin suite `36 passed`; PR `#77`; merge `bb09eb981a67d0220f5b8915cb825a9c570fb476`; remote annotated tag `16.1.28` peels to that exact commit |  | Final DYEC release in this train is published and immutable. |
 | AWS-001 | AWS | Establish exact authenticated account/profile/region, active target clusters, managed policy ownership, attachment scope, and current missing permissions | SUCCESS | config_or_startup_contract | Gate 3 | orchestrator | Account `108782052779`, profile `lsmc`, region `us-west-2`; active cluster `preval-hiomr2`; headnode role `preval-hiomr2-RoleHeadNode-67zzWsgKXTJj`; CloudFormation-owned policy `pclusterTagsAndBudget` attached to the headnode and 12 compute roles |  | Pre-change IAM simulation denied both requested actions. |
 | AWS-002 | AWS | Deploy only the two requested read-only EC2 permissions through the owning DYEC/CloudFormation IAM surface and verify effective headnode-role permission | SUCCESS_WITH_CAVEATS | feature_implementation | Gate 4 | orchestrator | Change set `dyec-16125-spot-market-20260801t0632z` modified only `pclusterManageTags`; stack `pcluster-vpc-stack-2d` reached `UPDATE_COMPLETE`; default policy `v6`; IAM simulation allows both actions and `DescribeSpotPriceHistory` |  | CloudFormation rotated the managed policy to sole version `v6` and removed prior IAM version objects `v1`-`v5`; the captured pre-change `v5` document permits reconstruction if needed. |
 | LIVE-001 | DayOA/headnode | Create a private exact-`13.0.114` validation checkout on an exact target headnode without touching an analysis root or Slurm | SUCCESS_WITH_CAVEATS | config_or_startup_contract | Gate 4 | orchestrator | Private mode-`0700` root `/home/ubuntu/.private-dayoa-market-validation-20260801T0634Z`; exact commit `83216f9e...`; persistent tmux `dayoa_market_validate_20260801t0634z`; setup commands run separately as `ubuntu` |  | No `dy-r`, `sbatch`, job, analysis-root, or Slurm action occurred; first chooser call exposed the parser defect fixed in `13.0.115`. |
-| LIVE-002 | DayOA/headnode | Prove one cold market lookup makes the required AWS calls and records price plus placement evidence | OPEN | contract_test | Gate 5 | orchestrator | Pending |  |  |
-| LIVE-003 | DayOA/headnode | Prove a second lookup inside 30 minutes consumes both caches and makes zero AWS calls | OPEN | contract_test | Gate 5 | orchestrator | Pending |  |  |
-| LIVE-004 | DayOA/headnode | Prove attempt 1 returns up to two availability-weighted cheap partitions and attempt greater than 1 returns all requested partitions in median price order | OPEN | contract_test | Gate 5 | orchestrator | Pending |  |  |
+| LIVE-002 | DayOA/headnode | Prove one cold market lookup makes the required AWS calls and records price plus placement evidence | SUCCESS | contract_test | Gate 5 | orchestrator | Exact DayOA `13.0.115`; evidence `/home/ubuntu/.private-dayoa-market-validation-20260801T0634Z/evidence-13.0.115-20260801T065958Z`; 74 calls: one `DescribeInstanceTypes`, 68 `DescribeSpotPriceHistory`, one `DescribeAvailabilityZones`, four `GetSpotPlacementScores`; four price and four placement cache entries |  | Calls were read-only and ran under the deployed headnode role. |
+| LIVE-003 | DayOA/headnode | Prove a second lookup inside 30 minutes consumes both caches and makes zero AWS calls | SUCCESS | contract_test | Gate 5 | orchestrator | Second attempt-1 lookup at cache age 60 seconds used a fail-on-any-call runner and completed with zero AWS calls; all four price and placement ages were exactly 60 seconds; TTL `1800` |  | Cache reuse is proven for both market evidence classes. |
+| LIVE-004 | DayOA/headnode | Prove attempt 1 returns up to two availability-weighted cheap partitions and attempt greater than 1 returns all requested partitions in median price order | SUCCESS | contract_test | Gate 5 | orchestrator | Cost order `i192nvme,i128nvme,i384nvme,i96nvme`; weighted order `i192nvme,i128nvme,i96nvme,i384nvme`; attempt 1 submitted `i192nvme,i128nvme`; attempt 2 at price-cache age 120 seconds made zero AWS calls and submitted all four in cost order |  | `i384nvme` placement score `1` raised its adjusted cost to `0.1358776042` USD/vCPU-hour despite a `0.0135877604` launchable median; the other three scored `9`. |
 | DAYOA-001 | DayOA | Cut a further DayOA patch release only if live evidence identifies and validates a real DayOA source defect | SUCCESS | feature_implementation | Gate 5 | orchestrator | PR `#86`; `51 passed`; all CodeQL checks passed; annotated `13.0.115` peels to merge commit `f16eab6fef81e85287c53665563185aa49ba68fb` |  | Empty optional dotenv values are accepted; missing/empty/invalid required region or AZ still fails hard. |
-| VERIFY-001 | All | Verify merged commits, clean release workspaces, tag immutability/type, deployment evidence, and every ledger row terminal | OPEN | contract_test | Gate 5 | orchestrator | Pending |  |  |
+| VERIFY-001 | All | Verify merged commits, clean release workspaces, tag immutability/type, deployment evidence, and every ledger row terminal | SUCCESS | contract_test | Gate 5 | orchestrator | DayOA `13.0.115` and DYEC `16.1.25`-`16.1.28` are remote annotated tags peeling to recorded merge commits; final AWS read-back: stack `UPDATE_COMPLETE`, policy default `v6` with 13 attachments, all three required EC2 reads `allowed`, headnode running in `us-west-2c` |  | Release-source workspaces were clean at commit/tag points; live profile activation only created an untracked profile checksum in the separate headnode validation clone. |
 
 ## Final Report
 
-All rows terminal: no
+All rows terminal: yes
 
-Objective complete: no
+Objective complete: yes
 
 Status counts:
 
-- SUCCESS: 6
+- SUCCESS: 16
+- SUCCESS_WITH_CAVEATS: 2
 - DUPLICATE: 0
 - NO_LONGER_NEEDED: 0
 - FAIL: 0
 - BLOCKED: 0
 - IN_PROGRESS: 0
-- OPEN: 9
+- OPEN: 0
 
-No release tag or AWS change has been made at Gate 0.
+Release chain:
+
+- DayOA `13.0.115`: parser fix, PR `#86`, merge `f16eab6fef81e85287c53665563185aa49ba68fb`.
+- DYEC `16.1.25`: IAM and initial DayOA catalog release; DYEC `16.1.26`: its self-pin.
+- DYEC `16.1.27`: fixed DayOA `13.0.115` catalog release; DYEC `16.1.28`: its self-pin.
+
+Deployment and validation:
+
+- CloudFormation deployed the two required read-only EC2 permissions through `pcluster-vpc-stack-2d`; final IAM simulation and the real cold chooser calls both prove effective permission on `preval-hiomr2`.
+- CloudFormation's managed-policy update rotated `pclusterTagsAndBudget` to sole version `v6` and automatically removed version objects `v1`-`v5`. The exact pre-change `v5` document was captured and can be reconstructed, but those version objects are not directly recoverable.
+- Exact DayOA `13.0.115` live validation proves the requested 1,800-second cache, zero-call cache reuse, availability-weighted top two on attempt 1, and all requested partitions in median-cost order on attempt 2.
+- Slurm partition priority, scheduler configuration, services, nodes, and jobs were not changed. No workflow, `dy-r`, `sbatch`, analysis-root write, cancel, requeue, drain, or resume action was performed.
