@@ -51,9 +51,11 @@ Resources:
               - 'ec2:DeleteTags'
               - 'ec2:DescribeTags'
               - 'ec2:CreateTags'
+              - 'ec2:DescribeAvailabilityZones'
               - 'ec2:DescribeInstanceTypes'
               - 'ec2:DescribeInstanceTypeOfferings'
               - 'ec2:DescribeSpotPriceHistory'
+              - 'ec2:GetSpotPlacementScores'
             Resource: '*'
           - Effect: Allow
             Action:
