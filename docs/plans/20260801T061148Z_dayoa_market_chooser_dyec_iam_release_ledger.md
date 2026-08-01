@@ -25,8 +25,8 @@ Gate 0 baseline:
 | DYEC-001 | DYEC | Port `ec2:DescribeAvailabilityZones` and `ec2:GetSpotPlacementScores` across every active source and packaged ParallelCluster IAM surface plus validation contracts | SUCCESS | feature_implementation | Gate 1 | orchestrator | Both actions added to four active source templates and their four packaged copies; `ec2:GetSpotPlacementScores` added to the EC2 validation permission group; runtime policy contract covers both actions |  | Source/payload IAM parity is exact; no Slurm policy or scheduler priority was changed. |
 | DYEC-002 | DYEC | Advance every active source and packaged DayOA catalog pin from `13.0.108` to `13.0.114` without rewriting historical validation provenance | SUCCESS | config_or_startup_contract | Gate 1 | orchestrator | Source and packaged catalogs each contain 27 active `13.0.114` command pins plus the repository default; seven active contract-test surfaces updated; DayOA release commit `83216f9e0fd4cc1d090042de1ff48a8eb2527211` recorded |  | Historical `validation_runs` tags and commits are unchanged. |
 | DYEC-003 | DYEC | Prove source/package parity and run focused plus proportionate broader tests | SUCCESS | contract_test | Gate 2 | orchestrator | Source/package catalog and four IAM-template pairs match byte-for-byte; rebased focused suite `330 passed`; rebased full suite `2426 passed, 20 failed, 11 skipped`; pristine current-`main` baseline reproduces the identical 20 failures (`20 failed, 33 passed` in the failure files) |  | All full-suite failures are inherited from current `main` and outside this patch. |
-| DYEC-004 | DYEC | Commit, push, normally merge, and publish the next free annotated DayOA/IAM DYEC release | OPEN | config_or_startup_contract | Gate 3 | orchestrator | Candidate `16.1.25`, subject to final remote recheck |  |  |
-| DYEC-005 | DYEC | Advance every authoritative DYEC self-pin to the release from DYEC-004, then test, commit, push, and normally merge | OPEN | config_or_startup_contract | Gate 3 | orchestrator | Pending |  |  |
+| DYEC-004 | DYEC | Commit, push, normally merge, and publish the next free annotated DayOA/IAM DYEC release | SUCCESS | config_or_startup_contract | Gate 3 | orchestrator | PR `#74`; merge commit `551ae3d4e1bccd85ba54d72de7deef96054ebdb5`; remote annotated tag `16.1.25` peeled to that exact commit |  | DayOA/IAM release is published and immutable. |
+| DYEC-005 | DYEC | Advance every authoritative DYEC self-pin to the release from DYEC-004, then test, commit, push, and normally merge | SUCCESS | config_or_startup_contract | Gate 3 | orchestrator | Source and packaged global configuration plus active self-pin contract advanced to `16.1.25`; global-config parity passed; focused self-pin/IAM suite `36 passed` |  | Ready for normal PR merge. |
 | DYEC-006 | DYEC | Publish the next free annotated DYEC self-pin release and verify remote tag object / peeled commit | OPEN | config_or_startup_contract | Gate 3 | orchestrator | Candidate `16.1.26`, subject to final remote recheck |  |  |
 | AWS-001 | AWS | Establish exact authenticated account/profile/region, active target clusters, managed policy ownership, attachment scope, and current missing permissions | OPEN | config_or_startup_contract | Gate 3 | orchestrator | Pending read-only inventory |  |  |
 | AWS-002 | AWS | Deploy only the two requested read-only EC2 permissions through the owning DYEC/CloudFormation IAM surface and verify effective headnode-role permission | OPEN | feature_implementation | Gate 4 | orchestrator | Pending |  |  |
@@ -45,12 +45,12 @@ Objective complete: no
 
 Status counts:
 
-- SUCCESS: 4
+- SUCCESS: 6
 - DUPLICATE: 0
 - NO_LONGER_NEEDED: 0
 - FAIL: 0
 - BLOCKED: 0
 - IN_PROGRESS: 0
-- OPEN: 11
+- OPEN: 9
 
 No release tag or AWS change has been made at Gate 0.
