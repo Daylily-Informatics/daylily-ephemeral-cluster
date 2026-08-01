@@ -709,6 +709,15 @@ def test_dayoa_headnode_generators_do_not_emit_exclusive_rules() -> None:
     assert 'exclusive=""' in script
 
 
+def test_dayoa_headnode_generator_has_no_monthly_usage_staleness_override() -> None:
+    script = (REPO_ROOT / "daylily_ec/scripts/daylily_run_omics_analysis_headnode.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "--pass-on-stale-budget" not in script
+    assert "DAY_PASS_ON_STALE_BUDGET" not in script
+
+
 def test_packaged_cfn_templates_match_source_templates() -> None:
     for relative_path in ACTIVE_CFN_TEMPLATES:
         source = (REPO_ROOT / relative_path).read_text(encoding="utf-8")

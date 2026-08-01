@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import datetime, timezone
 
 import pytest
 
 from daylily_ec.aws.cost_centers import (
     CostCenterError,
+    CostCenterUsage,
+    authorize_cost_center,
+    cost_center_is_expired,
     create_cost_center,
     disable_cost_center,
     edit_cost_center,
@@ -16,10 +20,10 @@ from daylily_ec.aws.cost_centers import (
     initialize_cost_center_usage,
     list_cost_centers,
     put_cost_center_usage,
+    validate_active_until,
     validate_cost_center_name,
     validate_latest_processed_hour,
     validate_max_usage_age_hours,
-    CostCenterUsage,
 )
 
 
@@ -79,13 +83,6 @@ class FakeDynamo:
         return (item["cost_center"]["S"],)
 
 
-class UsageWriteFailureDynamo(FakeDynamo):
-    def put_item(self, TableName, Item, ConditionExpression=None):
-        if TableName == "usage":
-            raise RuntimeError("usage write failed")
-        super().put_item(TableName, Item, ConditionExpression)
-
-
 def test_ensure_registry_creates_tables_and_idle():
     dynamo = FakeDynamo()
 
@@ -113,19 +110,26 @@ def test_create_edit_disable_cost_center():
         monthly_cap_usd="200",
         allowed_users=["ubuntu"],
         table_name="cc",
-        usage_table_name="usage",
         now="2026-07-05T00:37:42Z",
+        active_until="2026-12-31T23:59:59Z",
     )
     assert created.status == "active"
     assert created.allowed_users == ("ubuntu",)
-    initial_usage = get_cost_center_usage(
-        dynamo,
-        "project-a",
-        month="2026-07",
-        usage_table_name="usage",
+    assert created.active_until == "2026-12-31T23:59:59Z"
+    assert created.to_dict()["active_until"] == "2026-12-31T23:59:59Z"
+    assert (
+        get_cost_center(dynamo, "project-a", table_name="cc").active_until == "2026-12-31T23:59:59Z"
     )
-    assert str(initial_usage.monthly_spend_usd) == "0"
-    assert initial_usage.latest_processed_hour == "2026-07-05T00:00:00Z"
+    assert (
+        get_cost_center_usage(
+            dynamo,
+            "project-a",
+            month="2026-07",
+            usage_table_name="usage",
+            allow_missing=True,
+        )
+        is None
+    )
     allocator_usage = put_cost_center_usage(
         dynamo,
         CostCenterUsage(
@@ -169,6 +173,15 @@ def test_create_edit_disable_cost_center():
     assert overridden.max_usage_age_hours == 2160
     assert get_cost_center(dynamo, "project-a", table_name="cc").max_usage_age_hours == 2160
 
+    cleared = edit_cost_center(
+        dynamo,
+        "project-a",
+        clear_active_until=True,
+        table_name="cc",
+        now="2026-07-05T01:45:00Z",
+    )
+    assert cleared.active_until == ""
+
     disabled = disable_cost_center(
         dynamo,
         "project-a",
@@ -179,6 +192,7 @@ def test_create_edit_disable_cost_center():
     assert disabled.status == "disabled"
     assert disabled.disabled_reason == "closed"
     assert disabled.max_usage_age_hours == 2160
+    assert disabled.active_until == ""
 
 
 def test_cost_center_usage_age_override_is_bounded_to_90_days():
@@ -188,6 +202,37 @@ def test_cost_center_usage_age_override_is_bounded_to_90_days():
         validate_max_usage_age_hours("24.5")
     with pytest.raises(CostCenterError, match="must not exceed"):
         validate_max_usage_age_hours("2161")
+
+
+def test_active_until_is_exact_utc_and_authorization_enforces_exclusive_boundary():
+    assert validate_active_until(None) == ""
+    assert validate_active_until("2026-08-31T12:30:45Z") == "2026-08-31T12:30:45Z"
+    for invalid in (
+        "2026-08-31T12:30Z",
+        "2026-08-31T12:30:45+00:00",
+        "2026-02-30T12:30:45Z",
+        " 2026-08-31T12:30:45Z",
+    ):
+        with pytest.raises(CostCenterError, match="active_until"):
+            validate_active_until(invalid)
+
+    dynamo = FakeDynamo()
+    ensure_cost_center_registry(dynamo, table_name="cc", usage_table_name="usage")
+    item = create_cost_center(
+        dynamo,
+        "project-a",
+        monthly_cap_usd="200",
+        allowed_users=["ubuntu"],
+        active_until="2026-08-31T12:30:45Z",
+        table_name="cc",
+    )
+    before = datetime(2026, 8, 31, 12, 30, 44, tzinfo=timezone.utc)
+    boundary = datetime(2026, 8, 31, 12, 30, 45, tzinfo=timezone.utc)
+    assert cost_center_is_expired(item, now=before) is False
+    authorize_cost_center(item, user="ubuntu", now=before)
+    assert cost_center_is_expired(item, now=boundary) is True
+    with pytest.raises(CostCenterError, match="expired at active_until"):
+        authorize_cost_center(item, user="ubuntu", now=boundary)
 
 
 def test_ensure_active_cost_center_creates_once_and_rejects_contract_drift():
@@ -204,6 +249,7 @@ def test_ensure_active_cost_center_creates_once_and_rejects_contract_drift():
     )
     assert was_created is True
     assert created.name == "project-a"
+    assert dynamo.items["usage"] == {}
 
     verified, was_created = ensure_active_cost_center(
         dynamo,
@@ -239,34 +285,24 @@ def test_active_cost_center_rejects_zero_monthly_cap():
             monthly_cap_usd="0",
             allowed_users=["ubuntu"],
             table_name="cc",
-            usage_table_name="usage",
         )
 
 
-def test_create_does_not_publish_registry_row_when_usage_seed_fails():
-    dynamo = UsageWriteFailureDynamo()
+def test_create_publishes_registry_without_synthesizing_usage():
+    dynamo = FakeDynamo()
     ensure_cost_center_registry(dynamo, table_name="cc", usage_table_name="usage")
 
-    with pytest.raises(RuntimeError, match="usage write failed"):
-        create_cost_center(
-            dynamo,
-            "project-a",
-            monthly_cap_usd="200",
-            allowed_users=["ubuntu"],
-            table_name="cc",
-            usage_table_name="usage",
-            now="2026-07-05T00:37:42Z",
-        )
-
-    assert (
-        get_cost_center(
-            dynamo,
-            "project-a",
-            table_name="cc",
-            allow_missing=True,
-        )
-        is None
+    create_cost_center(
+        dynamo,
+        "project-a",
+        monthly_cap_usd="200",
+        allowed_users=["ubuntu"],
+        table_name="cc",
+        now="2026-07-05T00:37:42Z",
     )
+
+    assert get_cost_center(dynamo, "project-a", table_name="cc") is not None
+    assert dynamo.items["usage"] == {}
 
 
 def test_idle_is_reserved_for_users():
@@ -283,7 +319,6 @@ def test_list_and_usage():
         monthly_cap_usd="10",
         allowed_users=["ubuntu"],
         table_name="cc",
-        usage_table_name="usage",
     )
     create_cost_center(
         dynamo,
@@ -291,7 +326,6 @@ def test_list_and_usage():
         monthly_cap_usd="10",
         allowed_users=["ubuntu"],
         table_name="cc",
-        usage_table_name="usage",
     )
 
     assert [item.name for item in list_cost_centers(dynamo, table_name="cc", status="active")] == [
@@ -314,9 +348,7 @@ def test_list_and_usage():
     usage = get_cost_center_usage(dynamo, "a-project", month="2026-07", usage_table_name="usage")
     assert str(usage.monthly_spend_usd) == "5"
 
-    assert validate_latest_processed_hour("2026-07-05T01:00:00+00:00") == (
-        "2026-07-05T01:00:00Z"
-    )
+    assert validate_latest_processed_hour("2026-07-05T01:00:00+00:00") == ("2026-07-05T01:00:00Z")
     with pytest.raises(CostCenterError, match="rounded to the UTC hour"):
         validate_latest_processed_hour("2026-07-05T01:30:00Z")
     with pytest.raises(CostCenterError, match="monthly_spend_usd"):

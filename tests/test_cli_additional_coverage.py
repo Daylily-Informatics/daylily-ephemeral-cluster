@@ -278,31 +278,65 @@ def test_cost_centers_create_edit_disable_show_list(monkeypatch: pytest.MonkeyPa
     monkeypatch.setattr(
         module,
         "create_cost_center",
-        lambda client, name, **kwargs: calls.setdefault("create", (client, name, kwargs))
-        and _Item(name, status="active"),
+        lambda client, name, **kwargs: (
+            calls.setdefault("create", (client, name, kwargs)) and _Item(name, status="active")
+        ),
     )
     monkeypatch.setattr(
         module,
         "edit_cost_center",
-        lambda client, name, **kwargs: calls.setdefault("edit", (client, name, kwargs))
-        and _Item(name, status="disabled"),
+        lambda client, name, **kwargs: (
+            calls.setdefault("edit", (client, name, kwargs)) and _Item(name, status="disabled")
+        ),
     )
     monkeypatch.setattr(
         module,
         "disable_cost_center",
-        lambda client, name, **kwargs: calls.setdefault("disable", (client, name, kwargs))
-        and _Item(name, status="disabled"),
+        lambda client, name, **kwargs: (
+            calls.setdefault("disable", (client, name, kwargs)) and _Item(name, status="disabled")
+        ),
     )
-    monkeypatch.setattr(module, "get_cost_center", lambda *args, **kwargs: _Item("alpha"))
     monkeypatch.setattr(
-        module, "list_cost_centers", lambda *args, **kwargs: [_Item("alpha"), _Item("beta")]
+        module,
+        "get_cost_center",
+        lambda *args, **kwargs: _Item("alpha", active_until="2026-12-31T23:59:59Z"),
+    )
+    monkeypatch.setattr(
+        module,
+        "list_cost_centers",
+        lambda *args, **kwargs: [
+            _Item("alpha", active_until="2026-12-31T23:59:59Z"),
+            _Item("beta", active_until=""),
+        ],
     )
 
     cli.cost_centers_create(
-        "alpha", "100", ["alice"], ["group"], ["owner@example.com"], "notes", "p", "r", "t", "u"
+        name="alpha",
+        monthly_cap_usd="100",
+        max_usage_age_hours=None,
+        active_until="2026-12-31T23:59:59Z",
+        allowed_user=["alice"],
+        allowed_group=["group"],
+        owner_email=["owner@example.com"],
+        notes="notes",
+        profile="p",
+        home_region="r",
+        table_name="t",
     )
     cli.cost_centers_edit(
-        "alpha", "200", ["bob"], ["new"], ["new@example.com"], "edited", "disabled", "p", "r", "t"
+        name="alpha",
+        monthly_cap_usd="200",
+        max_usage_age_hours=None,
+        active_until=None,
+        clear_active_until=True,
+        allowed_user=["bob"],
+        allowed_group=["new"],
+        owner_email=["new@example.com"],
+        notes="edited",
+        status="disabled",
+        profile="p",
+        home_region="r",
+        table_name="t",
     )
     cli.cost_centers_disable("alpha", "done", "p", "r", "t")
     cli.cost_centers_show("alpha", "p", "r", "t")
@@ -310,9 +344,15 @@ def test_cost_centers_create_edit_disable_show_list(monkeypatch: pytest.MonkeyPa
 
     assert calls["create"][2]["actor_arn"] == context.caller_arn
     assert calls["create"][2]["allowed_users"] == ["alice"]
+    assert calls["create"][2]["active_until"] == "2026-12-31T23:59:59Z"
     assert calls["edit"][2]["status"] == "disabled"
+    assert calls["edit"][2]["clear_active_until"] is True
     assert calls["disable"][2]["reason"] == "done"
-    assert captured[-1][0]["cost_centers"] == [{"name": "alpha"}, {"name": "beta"}]
+    assert captured[-2][0]["active_until"] == "2026-12-31T23:59:59Z"
+    assert captured[-1][0]["cost_centers"] == [
+        {"name": "alpha", "active_until": "2026-12-31T23:59:59Z"},
+        {"name": "beta", "active_until": ""},
+    ]
     assert all(call[0] is dynamodb for call in calls.values())
 
 
