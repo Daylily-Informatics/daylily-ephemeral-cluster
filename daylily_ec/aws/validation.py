@@ -2212,6 +2212,7 @@ def _permission_groups(
                 "ec2:DescribeInstanceTypes",
                 "ec2:DescribeInstanceTypeOfferings",
                 "ec2:DescribeSpotPriceHistory",
+                "ec2:GetSpotPlacementScores",
                 "ec2:DescribeSpotInstanceRequests",
                 "ec2:DescribeSubnets",
                 "ec2:DescribeVpcs",

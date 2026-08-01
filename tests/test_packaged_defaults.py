@@ -35,9 +35,11 @@ ACTIVE_IAM_POLICY_TEMPLATES = (
     "config/day_cluster/ap-south-1-stack.yml",
 )
 DAYOA_RUNTIME_SPOT_ACTIONS = (
+    "ec2:DescribeAvailabilityZones",
     "ec2:DescribeInstanceTypes",
     "ec2:DescribeInstanceTypeOfferings",
     "ec2:DescribeSpotPriceHistory",
+    "ec2:GetSpotPlacementScores",
 )
 BOOT_CONFIG_FILES = (
     "config/day_cluster/install_slurm_job_submit_policy.sh",
