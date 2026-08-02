@@ -1,0 +1,14 @@
+query	publication_status	projected	compared	published_f1	raw_f1	raw_precision	raw_recall	gap
+cnvscope	SUCCESS	544	544	0.011432953396772283	0.011432953396772283	0.3014705882352941	0.005826967489785042	Accepted PASS-only DEL/INS >=50 metrics
+hard_snv	SUCCESS	4254	4254	0.23901972283095155	0.23901972283095155	0.9102021626704279	0.13757328122224197	SV projection from hard-VCF file; not RTG SNV F-score
+jasmine_companion	SUCCESS	1314	1314	0.0433823279812621	0.0433823279812621	0.4863013698630137	0.022703855036418547	Accepted PASS-only DEL/INS >=50 metrics
+jasmine_final	DIAGNOSTIC_FAILED	16712	16707		0.6135289396236511	0.8235470162207458	0.4888612542192219	Five-record reconciliation mismatch; raw summary is non-authoritative
+jasmine_full	DIAGNOSTIC_FAILED	16733	16728		0.6137320883381989	0.823170731707317	0.48925208740451237	Five-record reconciliation mismatch; raw summary is non-authoritative
+longreadsv	DIAGNOSTIC_FAILED	15451	15446		0.5941134637883968	0.8383400233070051	0.4600817196660153	Five-record reconciliation mismatch; raw summary is non-authoritative
+sniffles1_iris	SUCCESS	13841	13841	0.6033916067260515	0.6033916067260515	0.9151795390506466	0.45006217800675075	Accepted PASS-only DEL/INS >=50 metrics
+sniffles1_iris_sentieon	SUCCESS receipt; no aggregate row	13841	13841		0.6033916067260515	0.9151795390506466	0.45006217800675075	Exact query SHA duplicate of sniffles1_iris; raw terminal evidence exists but aggregate does not receipt the alias
+sniffles2	DIAGNOSTIC_FAILED	9864	9860		0.4835679515853177	0.931947261663286	0.3264878308758216	Four-record reconciliation mismatch; raw summary is non-authoritative
+tiddit	SUCCESS	827	827	0.048253486124534034	0.048253486124534034	0.845223700120919	0.024835672410730147	Accepted PASS-only DEL/INS >=50 metrics
+cnvscope_copy_state_pass	DIAGNOSTIC_FAILED							Truth projection empty; no metrics
+cnvscope_copy_state_all	DIAGNOSTIC_FAILED							Truth projection empty; no metrics
+nicu_jasmine	WARNING; receipt DIAGNOSTIC_FAILED	19025	19019		0.5819692986175896	0.7215941952784058	0.4876176940842068	Six-record reconciliation mismatch; empty published metric map; raw archived summary is non-authoritative

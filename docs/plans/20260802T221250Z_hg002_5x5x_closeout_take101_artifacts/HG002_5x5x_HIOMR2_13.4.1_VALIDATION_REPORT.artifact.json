@@ -1,0 +1,760 @@
+{
+  "surface": "report",
+  "manifest": {
+    "version": 1,
+    "surface": "report",
+    "title": "HG002 5x/5x HIOMR2 validation — DayOA 13.4.1",
+    "generatedAt": "2026-08-02T22:40:00Z",
+    "cards": [],
+    "charts": [
+      {
+        "id": "truvari_status_chart",
+        "title": "Published Truvari terminal outcomes",
+        "subtitle": "Five of 11 aggregate rows have accepted metrics; six are terminal diagnostic gaps.",
+        "type": "bar",
+        "dataset": "truvari_status_counts",
+        "sourceId": "truvari_aggregate",
+        "encodings": {
+          "x": {
+            "field": "status",
+            "type": "nominal"
+          },
+          "y": {
+            "field": "query_count",
+            "type": "quantitative"
+          },
+          "tooltip": [
+            {
+              "field": "status",
+              "type": "nominal"
+            },
+            {
+              "field": "query_count",
+              "type": "quantitative"
+            },
+            {
+              "field": "share_pct",
+              "type": "quantitative"
+            }
+          ]
+        }
+      }
+    ],
+    "tables": [
+      {
+        "id": "giab_hard_vcf_table",
+        "title": "Hard-VCF RTG vcfeval rows for ROI = giabHC",
+        "dataset": "giab_hard_vcf",
+        "sourceId": "giab_concordance",
+        "defaultSort": {
+          "field": "variant_class",
+          "direction": "asc"
+        },
+        "columns": [
+          {
+            "field": "variant_class",
+            "label": "Variant class"
+          },
+          {
+            "field": "fscore",
+            "label": "F-score"
+          },
+          {
+            "field": "sensitivity_recall",
+            "label": "Sensitivity / recall"
+          },
+          {
+            "field": "precision",
+            "label": "Precision"
+          },
+          {
+            "field": "tp",
+            "label": "TP"
+          },
+          {
+            "field": "fp",
+            "label": "FP"
+          },
+          {
+            "field": "fn",
+            "label": "FN"
+          }
+        ]
+      },
+      {
+        "id": "smn12_callers_table",
+        "title": "SMN12 orthogonal caller outputs",
+        "dataset": "smn12_callers",
+        "sourceId": "smn12_orthogonal",
+        "defaultSort": {
+          "field": "caller",
+          "direction": "asc"
+        },
+        "columns": [
+          {
+            "field": "caller",
+            "label": "Caller"
+          },
+          {
+            "field": "status",
+            "label": "Status"
+          },
+          {
+            "field": "smn1_cn",
+            "label": "SMN1 CN"
+          },
+          {
+            "field": "smn2_cn",
+            "label": "SMN2 CN"
+          },
+          {
+            "field": "raw_evidence",
+            "label": "Observed evidence"
+          },
+          {
+            "field": "interpretation",
+            "label": "Interpretation"
+          }
+        ]
+      },
+      {
+        "id": "truvari_audit_table",
+        "title": "All terminal Truvari and copy-state evidence",
+        "dataset": "truvari_audit",
+        "sourceId": "truvari_audit",
+        "defaultSort": {
+          "field": "query",
+          "direction": "asc"
+        },
+        "columns": [
+          {
+            "field": "query",
+            "label": "Query"
+          },
+          {
+            "field": "publication_status",
+            "label": "Published status"
+          },
+          {
+            "field": "projected",
+            "label": "Projected"
+          },
+          {
+            "field": "compared",
+            "label": "Compared"
+          },
+          {
+            "field": "published_f1",
+            "label": "Published F1"
+          },
+          {
+            "field": "raw_f1",
+            "label": "Raw F1"
+          },
+          {
+            "field": "raw_precision",
+            "label": "Raw precision"
+          },
+          {
+            "field": "raw_recall",
+            "label": "Raw recall"
+          },
+          {
+            "field": "gap",
+            "label": "Gap / interpretation"
+          }
+        ]
+      },
+      {
+        "id": "artifact_table",
+        "title": "Primary completion artifacts",
+        "dataset": "completion_artifacts",
+        "sourceId": "run_evidence",
+        "defaultSort": {
+          "field": "artifact",
+          "direction": "asc"
+        },
+        "columns": [
+          {
+            "field": "artifact",
+            "label": "Artifact"
+          },
+          {
+            "field": "relative_path",
+            "label": "Export-relative path"
+          },
+          {
+            "field": "bytes",
+            "label": "Bytes"
+          },
+          {
+            "field": "sha256",
+            "label": "SHA-256"
+          }
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "technical_summary",
+        "type": "markdown",
+        "sourceId": "run_evidence",
+        "body": "# HG002 5x/5x HIOMR2 validation\n\n## Technical summary\n\nThe literal HIOMR2 kitchen-sink, mega-adjacent validation, Inflection analytical-package, and final MultiQC target closure is terminal at controller **RC=0**. The live-proven repair tree was committed and released as annotated DayOA tag **13.4.1** at commit `9d8d1a52ae84bb38c1e9fca8c037ee4d2b4c18ec`. This was one HG002 analysis unit using 5.8627x Illumina and approximately 5x ONT; it is a low-coverage integration proof, not a production-sensitivity claim."
+      },
+      {
+        "id": "truvari_status_chart_block",
+        "type": "chart",
+        "chartId": "truvari_status_chart"
+      },
+      {
+        "id": "giab_summary",
+        "type": "markdown",
+        "sourceId": "giab_concordance",
+        "body": "## SNV hard-VCF accuracy in `ROI == giabHC`\n\nThe authoritative hard-VCF caller row set is `SNVCaller=sentdhiomr2`, not the parallel CLI-gVCF-derived duplicate. F-scores are **0.9837246** for transitions, **0.9825725** for transversions, and **0.9790058** for the combined `All` row. The 1–50 bp insertion and deletion rows are **0.9481919** and **0.9528992**. The very small `>50 bp` strata have only 3 insertion TPs and 4 deletion TPs, so their F-scores (0.3000 and 0.3810) are not stable low-coverage summaries."
+      },
+      {
+        "id": "giab_hard_vcf_table_block",
+        "type": "table",
+        "tableId": "giab_hard_vcf_table"
+      },
+      {
+        "id": "smn12_summary",
+        "type": "markdown",
+        "sourceId": "smn12_orthogonal",
+        "body": "## SMN12 caller findings\n\nBoth configured orthogonal outputs completed, but neither produced a reportable final SMN1/SMN2 copy-number pair for this 5x HG002 run. The Sentieon SMN1 regional product contains 44 small-variant records and no copy-number declaration. SMNCopyNumberCaller reported `isSMA=false`, `isCarrier=false`, raw total copy number 3.993 and raw full-length copy number 4.303, but its final `SMN1` and `SMN2` fields are null with `Info=Ambiguous`. No expected SMN1/SMN2 copy numbers were configured, so `overall_concordance=no_discordance_detected` is not an accuracy assertion."
+      },
+      {
+        "id": "smn12_callers_table_block",
+        "type": "table",
+        "tableId": "smn12_callers_table"
+      },
+      {
+        "id": "truvari_summary",
+        "type": "markdown",
+        "sourceId": "truvari_aggregate",
+        "body": "## Truvari results and explicit gaps\n\nThe published aggregate is terminal and successful as an orchestration receipt: all 11 published rows reached a terminal state. Only five rows publish accepted metrics. Four standard Truvari rows (`jasmine_full`, `jasmine_final`, `longreadsv`, and `sniffles2`) retain raw Truvari summaries but deliberately publish blank metrics because projected-versus-compared record counts differ by 4–5. Two CNVscope copy-state rows publish blank metrics because the configured truth projection is empty. `sniffles1_iris_sentieon` has a successful terminal receipt and exactly the same query SHA-256 and metrics as `sniffles1_iris`, but is not a separate aggregate row; it is shown below as duplicate-alias evidence rather than counted twice. Raw diagnostic numbers are audit evidence only and must not be promoted to accepted benchmark metrics."
+      },
+      {
+        "id": "nicu_truvari_summary",
+        "type": "markdown",
+        "sourceId": "nicu_truvari",
+        "body": "### NICU Jasmine Truvari warning\n\nThe separate NICU Jasmine lane preserves a raw summary of precision **0.7215942**, recall **0.4876177**, and F1 **0.5819693**, but publishes `WARNING` with an empty metric map. Its terminal receipt records 19,025 projected versus 19,019 compared records, a six-record reconciliation gap. This warning was explicitly accepted for packaging; the raw numbers remain non-authoritative diagnostic evidence."
+      },
+      {
+        "id": "truvari_audit_table_block",
+        "type": "table",
+        "tableId": "truvari_audit_table"
+      },
+      {
+        "id": "package_summary",
+        "type": "markdown",
+        "sourceId": "package_manifest",
+        "body": "## Inflection analytical package\n\nThe package manifest uses schema `dayoa.hiomr2_inflection_analytical_package/1.3`, declares 37 artifacts, and includes the NICU research outputs. It is an analytical package and is correctly not customer-release-eligible because no owner-issued delivery identity is asserted."
+      },
+      {
+        "id": "workflow_caveats",
+        "type": "markdown",
+        "sourceId": "run_evidence",
+        "body": "## Limitations and robustness\n\n- This is one HG002 analysis unit at 5x/5x; low sensitivity is expected in sparse strata and cannot forecast full-coverage production performance.\n- The `hard_snv` Truvari row is a DEL/INS >=50 projection from the hard-VCF file against GIAB SV truth. It is not the RTG SNV `giabHC` result and must not be described as genome-wide SNV F-score.\n- SURVIVOR output is readable and indexed but is not strictly VCF-clean: 1,169 records have `INFO/END < POS`.\n- The final MultiQC banner retains initialized base metadata `TAG:13.4.0` / `HASH:3bf5b417`; the exact live-proven repair delta was committed afterward as DayOA `13.4.1` / `9d8d1a52...`.\n- No expected SMN1/SMN2 copy numbers were configured for HG002 in this run.\n- Diagnostic raw Truvari summaries are reported separately from published accepted metrics."
+      },
+      {
+        "id": "artifact_table_block",
+        "type": "table",
+        "tableId": "artifact_table"
+      },
+      {
+        "id": "delivery_and_next_steps",
+        "type": "markdown",
+        "sourceId": "run_evidence",
+        "body": "## Delivery and next step\n\nExport prefix: `s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/13-4-0/`\n\nObjects: [validation report](https://s3.console.aws.amazon.com/s3/object/lsmc-ssf-sequencing-data?region=us-west-2&prefix=derived/preval-hiomr2/13-4-0/HG002_5x5x_HIOMR2_13.4.1_VALIDATION_REPORT.html) and [final MultiQC](https://s3.console.aws.amazon.com/s3/object/lsmc-ssf-sequencing-data?region=us-west-2&prefix=derived/preval-hiomr2/13-4-0/daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc.html).\n\nThe next validation is Take101 from exact DayOA 13.4.1 with two full-coverage production-snapshot samples: HG002 and one proven SMN12 positive control, each using full-coverage Illumina plus Bjuice ONT `[0,25)` inputs."
+      },
+      {
+        "id": "further_questions",
+        "type": "markdown",
+        "sourceId": "truvari_aggregate",
+        "body": "## Further questions\n\n1. Which exact five records are removed between each published Jasmine/LongReadSV projection and Truvari's compared set, and which exact four are removed for Sniffles2?\n2. Should the copy-state benchmark truth projection be updated to a truth artifact whose PASS semantics actually produce nonempty LOSS/GAIN events?\n3. Should `sniffles1_iris_sentieon` be explicitly receipted as an alias in the aggregate rather than disappearing through identical-query consolidation?\n4. At full coverage, do SMNCopyNumberCaller final SMN1/SMN2 fields resolve from `Ambiguous`, and should the Sentieon regional variant lane remain labeled separately from copy-number calling?"
+      }
+    ],
+    "sources": [
+      {
+        "id": "run_evidence",
+        "label": "Verified completion artifact receipt",
+        "path": "HG002_5x5x_HIOMR2_13.4.1_COMPLETION_ARTIFACTS.tsv",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT artifact, relative_path, bytes, sha256 FROM read_csv_auto('HG002_5x5x_HIOMR2_13.4.1_COMPLETION_ARTIFACTS.tsv', delim='\\t', header=true)",
+          "description": "Reads the stat and SHA-256 receipt created from the terminal DayOA outputs.",
+          "tables_used": [
+            "HG002_5x5x_HIOMR2_13.4.1_COMPLETION_ARTIFACTS.tsv"
+          ],
+          "executed_at": "2026-08-02T22:40:00Z"
+        }
+      },
+      {
+        "id": "giab_concordance",
+        "label": "RTG GIAB concordance matrix",
+        "path": "daylily-omics-analysis/results/day/hg38/other_reports/giab_concordance_mqc.tsv",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT VariantClass AS variant_class, Fscore AS fscore, \"Sensitivity-Recall\" AS sensitivity_recall, Precision AS precision, TP AS tp, FP AS fp, FN AS fn FROM read_csv_auto('daylily-omics-analysis/results/day/hg38/other_reports/giab_concordance_mqc.tsv', delim='\\t', header=true) WHERE ROI = 'giabHC' AND SNVCaller = 'sentdhiomr2'",
+          "description": "Filters the final GIAB matrix to the Sentieon HIOMR2 hard VCF and GIAB high-confidence region.",
+          "tables_used": [
+            "daylily-omics-analysis/results/day/hg38/other_reports/giab_concordance_mqc.tsv"
+          ],
+          "filters": [
+            "ROI = giabHC",
+            "SNVCaller = sentdhiomr2"
+          ],
+          "executed_at": "2026-08-02T22:40:00Z"
+        }
+      },
+      {
+        "id": "smn12_orthogonal",
+        "label": "SMN12 caller audit receipt",
+        "path": "HG002_5x5x_HIOMR2_13.4.1_SMN12_AUDIT.tsv",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT caller, status, smn1_cn, smn2_cn, raw_evidence, interpretation FROM read_csv_auto('HG002_5x5x_HIOMR2_13.4.1_SMN12_AUDIT.tsv', delim='\\t', header=true)",
+          "description": "Reads the two-caller audit receipt compiled from the Sentieon SMN1 VCF, the orthogonal SMN12 matrix, and the SMNCopyNumberCaller summary JSON.",
+          "tables_used": [
+            "HG002_5x5x_HIOMR2_13.4.1_SMN12_AUDIT.tsv",
+            "daylily-omics-analysis/results/day/hg38/other_reports/smn12_orthogonal_calls_mqc.tsv",
+            "daylily-omics-analysis/results/day/hg38/HG002-gy7skbxt0rc9h2/align/sentdhiomr2sr/smd/htd/smn12/HG002-gy7skbxt0rc9h2.sentdhiomr2sr.smd.smn12.summary.json"
+          ],
+          "executed_at": "2026-08-02T22:40:00Z"
+        }
+      },
+      {
+        "id": "truvari_aggregate",
+        "label": "HIOMR2 Truvari aggregate",
+        "path": "daylily-omics-analysis/results/day/hg38/benchmarks/truvari/hiomr2_hg002/aggregate/aggregate.json",
+        "query": {
+          "engine": "filesystem_sql",
+          "language": "sql",
+          "sql": "SELECT status, COUNT(*) AS query_count, COUNT(*) * 100.0 / SUM(COUNT(*)) OVER () AS share_pct FROM truvari_aggregate_rows GROUP BY status",
+          "description": "Counts the 11 terminal published aggregate rows by status for the completeness chart.",
+          "tables_used": [
+            "truvari_aggregate_rows"
+          ],
+          "executed_at": "2026-08-02T22:40:00Z"
+        }
+      },
+      {
+        "id": "truvari_audit",
+        "label": "All terminal Truvari and copy-state evidence receipt",
+        "path": "HG002_5x5x_HIOMR2_13.4.1_TRUVARI_AUDIT.tsv",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT query, publication_status, projected, compared, published_f1, raw_f1, raw_precision, raw_recall, gap FROM read_csv_auto('HG002_5x5x_HIOMR2_13.4.1_TRUVARI_AUDIT.tsv', delim='\\t', header=true)",
+          "description": "Reads the exhaustive terminal receipt compiled from the 11-row aggregate, raw terminal alias evidence, and NICU archived warning evidence.",
+          "tables_used": [
+            "HG002_5x5x_HIOMR2_13.4.1_TRUVARI_AUDIT.tsv",
+            "daylily-omics-analysis/results/day/hg38/benchmarks/truvari/hiomr2_hg002/aggregate/aggregate.json",
+            "daylily-omics-analysis/results/day/hg38/HG002-gy7skbxt0rc9h2/align/sentmm2ont/na/snv/sentdhiomr2/nicu-research/benchmarks"
+          ],
+          "executed_at": "2026-08-02T22:40:00Z"
+        }
+      },
+      {
+        "id": "nicu_truvari",
+        "label": "NICU Jasmine Truvari receipt and archive",
+        "path": "daylily-omics-analysis/results/day/hg38/HG002-gy7skbxt0rc9h2/align/sentmm2ont/na/snv/sentdhiomr2/nicu-research/benchmarks/"
+      },
+      {
+        "id": "package_manifest",
+        "label": "Inflection analytical package manifest",
+        "path": "daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/hg002-bjuice-5x5x-1340-20260802/HG002-gy7skbxt0rc9h2/package_manifest.json"
+      }
+    ]
+  },
+  "snapshot": {
+    "version": 1,
+    "generatedAt": "2026-08-02T22:40:00Z",
+    "status": "ready",
+    "datasets": {
+      "truvari_status_counts": [
+        {
+          "status": "SUCCESS",
+          "query_count": 5,
+          "share_pct": 45.4545
+        },
+        {
+          "status": "DIAGNOSTIC_FAILED",
+          "query_count": 6,
+          "share_pct": 54.5455
+        }
+      ],
+      "giab_hard_vcf": [
+        {
+          "variant_class": "SNPts",
+          "fscore": "0.9837246017190715",
+          "sensitivity_recall": "0.9705412821699543",
+          "precision": "0.997271003670216",
+          "tp": 2212344,
+          "fp": 6054,
+          "fn": 67151
+        },
+        {
+          "variant_class": "SNPtv",
+          "fscore": "0.9825724559312747",
+          "sensitivity_recall": "0.9686623227572587",
+          "precision": "0.9968879127212611",
+          "tp": 1051636,
+          "fp": 3283,
+          "fn": 34022
+        },
+        {
+          "variant_class": "INS_50",
+          "fscore": "0.948191933240612",
+          "sensitivity_recall": "0.9153442827875968",
+          "precision": "0.9834848466005894",
+          "tp": 237249,
+          "fp": 3984,
+          "fn": 21942
+        },
+        {
+          "variant_class": "INS_gt50",
+          "fscore": "0.3",
+          "sensitivity_recall": "0.2",
+          "precision": "0.6",
+          "tp": 3,
+          "fp": 2,
+          "fn": 12
+        },
+        {
+          "variant_class": "DEL_50",
+          "fscore": "0.9528992277030393",
+          "sensitivity_recall": "0.9209400664381835",
+          "precision": "0.9871562740693843",
+          "tp": 244796,
+          "fp": 3185,
+          "fn": 21015
+        },
+        {
+          "variant_class": "DEL_gt50",
+          "fscore": "0.38095238095238093",
+          "sensitivity_recall": "1.0",
+          "precision": "0.23529411764705882",
+          "tp": 4,
+          "fp": 13,
+          "fn": 0
+        },
+        {
+          "variant_class": "Indel_50",
+          "fscore": "0.9786476868327402",
+          "sensitivity_recall": "0.9683098591549296",
+          "precision": "0.9892086330935251",
+          "tp": 275,
+          "fp": 3,
+          "fn": 9
+        },
+        {
+          "variant_class": "Indel_gt50",
+          "fscore": "",
+          "sensitivity_recall": "",
+          "precision": "",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        {
+          "variant_class": "All",
+          "fscore": "0.9790057581779547",
+          "sensitivity_recall": "0.9629475501342002",
+          "precision": "0.9956086255268972",
+          "tp": 3746307,
+          "fp": 16524,
+          "fn": 144151
+        }
+      ],
+      "smn12_callers": [
+        {
+          "caller": "Sentieon SMN1 regional variant caller",
+          "status": "complete",
+          "smn1_cn": "NA",
+          "smn2_cn": "NA",
+          "raw_evidence": "44 small-variant VCF records; zero CN declarations",
+          "interpretation": "Regional variant output, not a reportable copy-number call"
+        },
+        {
+          "caller": "SMNCopyNumberCaller (smn12)",
+          "status": "complete; Ambiguous",
+          "smn1_cn": "null",
+          "smn2_cn": "null",
+          "raw_evidence": "Total_CN_raw=3.993; Full_length_CN_raw=4.303; median depth=6.34",
+          "interpretation": "isSMA=false and isCarrier=false, but no final SMN1/SMN2 CN; expected CN not configured"
+        }
+      ],
+      "truvari_audit": [
+        {
+          "query": "cnvscope",
+          "publication_status": "SUCCESS",
+          "projected": 544,
+          "compared": 544,
+          "published_f1": "0.011432953396772283",
+          "raw_f1": "0.011432953396772283",
+          "raw_precision": "0.3014705882352941",
+          "raw_recall": "0.005826967489785042",
+          "gap": "Accepted PASS-only DEL/INS >=50 metrics"
+        },
+        {
+          "query": "hard_snv",
+          "publication_status": "SUCCESS",
+          "projected": 4254,
+          "compared": 4254,
+          "published_f1": "0.23901972283095155",
+          "raw_f1": "0.23901972283095155",
+          "raw_precision": "0.9102021626704279",
+          "raw_recall": "0.13757328122224197",
+          "gap": "SV projection from hard-VCF file; not RTG SNV F-score"
+        },
+        {
+          "query": "jasmine_companion",
+          "publication_status": "SUCCESS",
+          "projected": 1314,
+          "compared": 1314,
+          "published_f1": "0.0433823279812621",
+          "raw_f1": "0.0433823279812621",
+          "raw_precision": "0.4863013698630137",
+          "raw_recall": "0.022703855036418547",
+          "gap": "Accepted PASS-only DEL/INS >=50 metrics"
+        },
+        {
+          "query": "jasmine_final",
+          "publication_status": "DIAGNOSTIC_FAILED",
+          "projected": 16712,
+          "compared": 16707,
+          "published_f1": "",
+          "raw_f1": "0.6135289396236511",
+          "raw_precision": "0.8235470162207458",
+          "raw_recall": "0.4888612542192219",
+          "gap": "Five-record reconciliation mismatch; raw summary is non-authoritative"
+        },
+        {
+          "query": "jasmine_full",
+          "publication_status": "DIAGNOSTIC_FAILED",
+          "projected": 16733,
+          "compared": 16728,
+          "published_f1": "",
+          "raw_f1": "0.6137320883381989",
+          "raw_precision": "0.823170731707317",
+          "raw_recall": "0.48925208740451237",
+          "gap": "Five-record reconciliation mismatch; raw summary is non-authoritative"
+        },
+        {
+          "query": "longreadsv",
+          "publication_status": "DIAGNOSTIC_FAILED",
+          "projected": 15451,
+          "compared": 15446,
+          "published_f1": "",
+          "raw_f1": "0.5941134637883968",
+          "raw_precision": "0.8383400233070051",
+          "raw_recall": "0.4600817196660153",
+          "gap": "Five-record reconciliation mismatch; raw summary is non-authoritative"
+        },
+        {
+          "query": "sniffles1_iris",
+          "publication_status": "SUCCESS",
+          "projected": 13841,
+          "compared": 13841,
+          "published_f1": "0.6033916067260515",
+          "raw_f1": "0.6033916067260515",
+          "raw_precision": "0.9151795390506466",
+          "raw_recall": "0.45006217800675075",
+          "gap": "Accepted PASS-only DEL/INS >=50 metrics"
+        },
+        {
+          "query": "sniffles1_iris_sentieon",
+          "publication_status": "SUCCESS receipt; no aggregate row",
+          "projected": 13841,
+          "compared": 13841,
+          "published_f1": "",
+          "raw_f1": "0.6033916067260515",
+          "raw_precision": "0.9151795390506466",
+          "raw_recall": "0.45006217800675075",
+          "gap": "Exact query SHA duplicate of sniffles1_iris; raw terminal evidence exists but aggregate does not receipt the alias"
+        },
+        {
+          "query": "sniffles2",
+          "publication_status": "DIAGNOSTIC_FAILED",
+          "projected": 9864,
+          "compared": 9860,
+          "published_f1": "",
+          "raw_f1": "0.4835679515853177",
+          "raw_precision": "0.931947261663286",
+          "raw_recall": "0.3264878308758216",
+          "gap": "Four-record reconciliation mismatch; raw summary is non-authoritative"
+        },
+        {
+          "query": "tiddit",
+          "publication_status": "SUCCESS",
+          "projected": 827,
+          "compared": 827,
+          "published_f1": "0.048253486124534034",
+          "raw_f1": "0.048253486124534034",
+          "raw_precision": "0.845223700120919",
+          "raw_recall": "0.024835672410730147",
+          "gap": "Accepted PASS-only DEL/INS >=50 metrics"
+        },
+        {
+          "query": "cnvscope_copy_state_pass",
+          "publication_status": "DIAGNOSTIC_FAILED",
+          "projected": "",
+          "compared": "",
+          "published_f1": "",
+          "raw_f1": "",
+          "raw_precision": "",
+          "raw_recall": "",
+          "gap": "Truth projection empty; no metrics"
+        },
+        {
+          "query": "cnvscope_copy_state_all",
+          "publication_status": "DIAGNOSTIC_FAILED",
+          "projected": "",
+          "compared": "",
+          "published_f1": "",
+          "raw_f1": "",
+          "raw_precision": "",
+          "raw_recall": "",
+          "gap": "Truth projection empty; no metrics"
+        },
+        {
+          "query": "nicu_jasmine",
+          "publication_status": "WARNING; receipt DIAGNOSTIC_FAILED",
+          "projected": 19025,
+          "compared": 19019,
+          "published_f1": "",
+          "raw_f1": "0.5819692986175896",
+          "raw_precision": "0.7215941952784058",
+          "raw_recall": "0.4876176940842068",
+          "gap": "Six-record reconciliation mismatch; empty published metric map; raw archived summary is non-authoritative"
+        }
+      ],
+      "completion_artifacts": [
+        {
+          "artifact": "Final MultiQC HTML",
+          "relative_path": "daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc.html",
+          "bytes": 10341154,
+          "sha256": "a5ba27d9d2207b30b759389fd23b51fc9c269781f1e486abef9240cb94e5af05"
+        },
+        {
+          "artifact": "Final MultiQC data JSON",
+          "relative_path": "daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json",
+          "bytes": 14296219,
+          "sha256": "80c29469a71a2826a103f84cced2227500080e59589d5e314969d1a77a29a818"
+        },
+        {
+          "artifact": "DayOA evidence manifest",
+          "relative_path": "daylily-omics-analysis/results/day/hg38/reports/dayoa_evidence_manifest.json",
+          "bytes": 323836,
+          "sha256": "2e49a88de2b4d854c3d10634cbf9bb1ed5ce2913cdcc7237536c59f126a32b3d"
+        },
+        {
+          "artifact": "Final benchmark summary",
+          "relative_path": "daylily-omics-analysis/results/day/hg38/reports/benchmarks_summary.tsv",
+          "bytes": 81455,
+          "sha256": "65176c21073cea7150ef27a210ac9779f6e3df375f0e3553a65993282d99939b"
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "id": "run_evidence",
+      "label": "Verified completion artifact receipt",
+      "path": "HG002_5x5x_HIOMR2_13.4.1_COMPLETION_ARTIFACTS.tsv",
+      "query": {
+        "engine": "duckdb",
+        "language": "sql",
+        "sql": "SELECT artifact, relative_path, bytes, sha256 FROM read_csv_auto('HG002_5x5x_HIOMR2_13.4.1_COMPLETION_ARTIFACTS.tsv', delim='\\t', header=true)",
+        "description": "Reads the stat and SHA-256 receipt created from the terminal DayOA outputs.",
+        "tables_used": [
+          "HG002_5x5x_HIOMR2_13.4.1_COMPLETION_ARTIFACTS.tsv"
+        ],
+        "executed_at": "2026-08-02T22:40:00Z"
+      }
+    },
+    {
+      "id": "giab_concordance",
+      "label": "RTG GIAB concordance matrix",
+      "path": "daylily-omics-analysis/results/day/hg38/other_reports/giab_concordance_mqc.tsv",
+      "query": {
+        "engine": "duckdb",
+        "language": "sql",
+        "sql": "SELECT VariantClass AS variant_class, Fscore AS fscore, \"Sensitivity-Recall\" AS sensitivity_recall, Precision AS precision, TP AS tp, FP AS fp, FN AS fn FROM read_csv_auto('daylily-omics-analysis/results/day/hg38/other_reports/giab_concordance_mqc.tsv', delim='\\t', header=true) WHERE ROI = 'giabHC' AND SNVCaller = 'sentdhiomr2'",
+        "description": "Filters the final GIAB matrix to the Sentieon HIOMR2 hard VCF and GIAB high-confidence region.",
+        "tables_used": [
+          "daylily-omics-analysis/results/day/hg38/other_reports/giab_concordance_mqc.tsv"
+        ],
+        "filters": [
+          "ROI = giabHC",
+          "SNVCaller = sentdhiomr2"
+        ],
+        "executed_at": "2026-08-02T22:40:00Z"
+      }
+    },
+    {
+      "id": "smn12_orthogonal",
+      "label": "SMN12 caller audit receipt",
+      "path": "HG002_5x5x_HIOMR2_13.4.1_SMN12_AUDIT.tsv",
+      "query": {
+        "engine": "duckdb",
+        "language": "sql",
+        "sql": "SELECT caller, status, smn1_cn, smn2_cn, raw_evidence, interpretation FROM read_csv_auto('HG002_5x5x_HIOMR2_13.4.1_SMN12_AUDIT.tsv', delim='\\t', header=true)",
+        "description": "Reads the two-caller audit receipt compiled from the Sentieon SMN1 VCF, the orthogonal SMN12 matrix, and the SMNCopyNumberCaller summary JSON.",
+        "tables_used": [
+          "HG002_5x5x_HIOMR2_13.4.1_SMN12_AUDIT.tsv",
+          "daylily-omics-analysis/results/day/hg38/other_reports/smn12_orthogonal_calls_mqc.tsv",
+          "daylily-omics-analysis/results/day/hg38/HG002-gy7skbxt0rc9h2/align/sentdhiomr2sr/smd/htd/smn12/HG002-gy7skbxt0rc9h2.sentdhiomr2sr.smd.smn12.summary.json"
+        ],
+        "executed_at": "2026-08-02T22:40:00Z"
+      }
+    },
+    {
+      "id": "truvari_aggregate",
+      "label": "HIOMR2 Truvari aggregate",
+      "path": "daylily-omics-analysis/results/day/hg38/benchmarks/truvari/hiomr2_hg002/aggregate/aggregate.json",
+      "query": {
+        "engine": "filesystem_sql",
+        "language": "sql",
+        "sql": "SELECT status, COUNT(*) AS query_count, COUNT(*) * 100.0 / SUM(COUNT(*)) OVER () AS share_pct FROM truvari_aggregate_rows GROUP BY status",
+        "description": "Counts the 11 terminal published aggregate rows by status for the completeness chart.",
+        "tables_used": [
+          "truvari_aggregate_rows"
+        ],
+        "executed_at": "2026-08-02T22:40:00Z"
+      }
+    },
+    {
+      "id": "truvari_audit",
+      "label": "All terminal Truvari and copy-state evidence receipt",
+      "path": "HG002_5x5x_HIOMR2_13.4.1_TRUVARI_AUDIT.tsv",
+      "query": {
+        "engine": "duckdb",
+        "language": "sql",
+        "sql": "SELECT query, publication_status, projected, compared, published_f1, raw_f1, raw_precision, raw_recall, gap FROM read_csv_auto('HG002_5x5x_HIOMR2_13.4.1_TRUVARI_AUDIT.tsv', delim='\\t', header=true)",
+        "description": "Reads the exhaustive terminal receipt compiled from the 11-row aggregate, raw terminal alias evidence, and NICU archived warning evidence.",
+        "tables_used": [
+          "HG002_5x5x_HIOMR2_13.4.1_TRUVARI_AUDIT.tsv",
+          "daylily-omics-analysis/results/day/hg38/benchmarks/truvari/hiomr2_hg002/aggregate/aggregate.json",
+          "daylily-omics-analysis/results/day/hg38/HG002-gy7skbxt0rc9h2/align/sentmm2ont/na/snv/sentdhiomr2/nicu-research/benchmarks"
+        ],
+        "executed_at": "2026-08-02T22:40:00Z"
+      }
+    },
+    {
+      "id": "nicu_truvari",
+      "label": "NICU Jasmine Truvari receipt and archive",
+      "path": "daylily-omics-analysis/results/day/hg38/HG002-gy7skbxt0rc9h2/align/sentmm2ont/na/snv/sentdhiomr2/nicu-research/benchmarks/"
+    },
+    {
+      "id": "package_manifest",
+      "label": "Inflection analytical package manifest",
+      "path": "daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/hg002-bjuice-5x5x-1340-20260802/HG002-gy7skbxt0rc9h2/package_manifest.json"
+    }
+  ]
+}
