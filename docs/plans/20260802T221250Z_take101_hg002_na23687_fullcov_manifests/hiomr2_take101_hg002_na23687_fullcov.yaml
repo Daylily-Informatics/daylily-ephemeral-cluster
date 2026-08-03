@@ -1,0 +1,40 @@
+seqone_delivery_batch_id: take101
+hiomr2_inflection_package_mode: analytical
+
+sentdhiomr2:
+  lr_input_mode_by_sample:
+    HG002: fastq
+    NA23687: fastq
+  sex_by_sample:
+    HG002: male
+    NA23687: female
+  provenance_run_id: hiomr2_take101_hg002_na23687_fullcov
+  retain_stage_artifacts: true
+  scoped_gvcf_shards:
+    shard01: "1,2,3"
+    shard02: "4,5,6,7,8"
+    shard03: "9,10,11,12,13,14,15"
+    shard04: "16,17,18,19,20"
+    shard05: "21,22,23,24,25"
+
+sentdhiomr2_nicu_research:
+  enabled: true
+
+truvari_sv_benchmark:
+  enabled: true
+  env_yaml: ../envs/truvari_v0.2.yaml
+  threads: 32
+  mem_mb: 64000
+  partition: i128nvme,i192nvme,i192hugenvme,i384nvme
+  extra_args: >-
+    --passonly --sizemin 50 --sizefilt 50 --sizemax -1
+    --refdist 500 --pctsize 0.7 --pctseq 0.7 --pctovl 0
+    --pick single
+  truthsets:
+    HG002:
+      alt_id: HG002
+      regions:
+        giab_sv_v5_0q_hc:
+          truth_vcf: /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/sv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_stvar.vcf.gz
+          truth_tbi: /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/sv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_stvar.vcf.gz.tbi
+          truth_bed: /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/sv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_stvar.benchmark.bed

@@ -1,0 +1,274 @@
+diff --git a/daylily_omics_analysis/hiomr2_nicu_sv.py b/daylily_omics_analysis/hiomr2_nicu_sv.py
+index 6371f6aa..89ab30c8 100644
+--- a/daylily_omics_analysis/hiomr2_nicu_sv.py
++++ b/daylily_omics_analysis/hiomr2_nicu_sv.py
+@@ -36,6 +36,9 @@ JASMINE_MERGED_RECONCILIATION_SCHEMA = (
+     "dayoa.hiomr2_nicu_jasmine_merged_reconciliation/1.1"
+ )
+ TRUVARI_METRICS_SCHEMA = "dayoa.hiomr2_nicu_truvari_metrics/1.1"
++TRUVARI_NOT_APPLICABLE_RECEIPT_SCHEMA = (
++    "dayoa.hiomr2_nicu_truvari_not_applicable/1.0"
++)
+ JASMINE_ORIGINAL_PS_FORMAT = "DAYOA_JASMINE_ORIGINAL_PS"
+ BND_ALT_RE = re.compile(r"[\[\]]([^:\[\]]+):(\d+)[\[\]]")
+ SAFE_SAMPLE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+@@ -1246,6 +1249,57 @@ def write_cnv_sv_concordance(args: argparse.Namespace) -> None:
+                 )
+ 
+ 
++def write_truvari_not_applicable(args: argparse.Namespace) -> dict[str, Any]:
++    """Publish a truthful terminal receipt when HG002 truth is inapplicable."""
++
++    query_name = str(args.query_name)
++    query_sample = str(args.query_sample)
++    truth_sample = str(args.truth_sample)
++    expected_analysis_unit = str(args.expected_analysis_unit)
++    for description, value in (
++        ("query name", query_name),
++        ("query sample", query_sample),
++        ("truth sample", truth_sample),
++        ("expected analysis unit", expected_analysis_unit),
++    ):
++        if SAFE_SAMPLE_RE.fullmatch(value) is None:
++            raise Hiomr2NicuSvError(f"invalid {description}: {value!r}")
++    if query_sample == expected_analysis_unit:
++        raise Hiomr2NicuSvError(
++            "the HG002 truth-matched analysis unit cannot be marked not applicable"
++        )
++    query_vcf = _regular(Path(args.query_vcf), "NICU Truvari query VCF")
++    truth_vcf = _regular(Path(args.truth_vcf), "GIAB SV v5.0q truth VCF")
++    error = (
++        "NOT_APPLICABLE: GIAB SV v5.0q NICU truth is valid only for analysis "
++        f"unit {expected_analysis_unit}; query analysis unit {query_sample} was "
++        "not benchmarked. No Truvari comparison was attempted and no benchmark "
++        "metrics were emitted."
++    )
++    payload = {
++        "schema": TRUVARI_NOT_APPLICABLE_RECEIPT_SCHEMA,
++        "query_name": query_name,
++        "query_sample": query_sample,
++        "truth_sample": truth_sample,
++        "status": "DIAGNOSTIC_FAILED",
++        "error": error,
++        "exit_code": None,
++        "attempted_command": [],
++        "metrics": {},
++        "projection": None,
++        "query_vcf_sha256": _sha256(query_vcf),
++        "truth_vcf_sha256": _sha256(truth_vcf),
++        "applicability": {
++            "applicable": False,
++            "reason_code": "GIAB_SV_V5Q_HG002_ONLY",
++            "eligible_analysis_unit": expected_analysis_unit,
++            "query_analysis_unit": query_sample,
++        },
++    }
++    _atomic_json(Path(args.receipt), payload)
++    return payload
++
++
+ def extract_truvari(args: argparse.Namespace) -> str:
+     receipt_path = _regular(Path(args.receipt), "Truvari terminal receipt")
+     payload = json.loads(receipt_path.read_text(encoding="utf-8"))
+@@ -1360,6 +1414,14 @@ def build_parser() -> argparse.ArgumentParser:
+     cnv.add_argument("--sv-vcf", required=True)
+     cnv.add_argument("--sample", required=True)
+     cnv.add_argument("--output", required=True)
++    not_applicable = subparsers.add_parser("truvari-not-applicable")
++    not_applicable.add_argument("--receipt", required=True)
++    not_applicable.add_argument("--query-name", required=True)
++    not_applicable.add_argument("--query-sample", required=True)
++    not_applicable.add_argument("--truth-sample", required=True)
++    not_applicable.add_argument("--expected-analysis-unit", required=True)
++    not_applicable.add_argument("--query-vcf", required=True)
++    not_applicable.add_argument("--truth-vcf", required=True)
+     truvari = subparsers.add_parser("extract-truvari")
+     truvari.add_argument("--receipt", required=True)
+     truvari.add_argument("--summary-tsv", required=True)
+@@ -1387,6 +1449,10 @@ def main(argv: Sequence[str] | None = None) -> int:
+             validate_bnd_topology(args)
+         elif args.command == "cnv-sv-concordance":
+             write_cnv_sv_concordance(args)
++        elif args.command == "truvari-not-applicable":
++            print(
++                json.dumps(write_truvari_not_applicable(args), sort_keys=True)
++            )
+         elif args.command == "extract-truvari":
+             print(extract_truvari(args))
+         else:  # pragma: no cover
+diff --git a/workflow/rules/hiomr2_nicu_research.smk b/workflow/rules/hiomr2_nicu_research.smk
+index 5b774817..771c2fcc 100644
+--- a/workflow/rules/hiomr2_nicu_research.smk
++++ b/workflow/rules/hiomr2_nicu_research.smk
+@@ -1410,17 +1410,15 @@ rule sentdhiomr2_nicu_longtr:
+ 
+ 
+-def _hiomr2_nicu_truth_sample(wildcards):
+-    expected = _hiomr2_truvari_hg002_analysis_unit()
+-    if str(wildcards.sample) != expected:
+-        raise WorkflowError(
+-            "the required GIAB SV v5.0q NICU benchmark is HG002-only: "
+-            f"target={wildcards.sample!r} expected={expected!r}"
+-        )
++def _hiomr2_nicu_truth_sample(wildcards=None):
+     return str(_hiomr2_truvari_truth_entry()["alt_id"])
+ 
+ 
++def _hiomr2_nicu_truth_analysis_unit(wildcards=None):
++    return _hiomr2_truvari_hg002_analysis_unit()
++
++
+ rule sentdhiomr2_nicu_truvari:
+-    """Benchmark the primary Jasmine research callset against GIAB SV v5.0q."""
++    """Benchmark HG002 Jasmine; warn explicitly when HG002 truth is inapplicable."""
+     input:
+         query=HIOMR2_NICU_JASMINE_VCF,
+         query_tbi=HIOMR2_NICU_JASMINE_TBI,
+@@ -1447,6 +1445,7 @@ rule sentdhiomr2_nicu_truvari:
+         partition=_hiomr2_partition_resource("core_partition"),
+     params:
+         truth_sample=_hiomr2_nicu_truth_sample,
++        truth_analysis_unit=_hiomr2_nicu_truth_analysis_unit,
+         cluster_sample=ret_sample,
+     conda:
+         _hiomr2_nicu_env("merge")
+@@ -1459,22 +1458,34 @@ rule sentdhiomr2_nicu_truvari:
+         source workflow/scripts/dayoa_spool_publish.bash
+         dayoa_spool_init "{wildcards.sample}.nicu-truvari"
+         run_root="$DAYOA_SPOOL_DIR/truari"
+-        bin/data_packaging/hiomr2_truvari.py run-query \
+-          --query-name nicu_jasmine \
+-          --query-vcf {input.query:q} \
+-          --query-tbi {input.query_tbi:q} \
+-          --query-sample {wildcards.sample:q} \
+-          --truth-vcf {input.truth_vcf:q} \
+-          --truth-tbi {input.truth_tbi:q} \
+-          --truth-bed {input.truth_bed:q} \
+-          --truth-sample {params.truth_sample:q} \
+-          --reference-fasta {input.reference:q} \
+-          --output-root "$run_root"
+         receipt="$run_root/terminal_receipt.json"
+         summary="$DAYOA_SPOOL_DIR/truari-summary.tsv"
+         metrics="$DAYOA_SPOOL_DIR/truari-metrics.json"
+         archive="$DAYOA_SPOOL_DIR/truari-output.tar.gz"
+         done="$DAYOA_SPOOL_DIR/truari.done"
++        mkdir -p "$run_root"
++        if [[ {wildcards.sample:q} == {params.truth_analysis_unit:q} ]]; then
++          bin/data_packaging/hiomr2_truvari.py run-query \
++            --query-name nicu_jasmine \
++            --query-vcf {input.query:q} \
++            --query-tbi {input.query_tbi:q} \
++            --query-sample {wildcards.sample:q} \
++            --truth-vcf {input.truth_vcf:q} \
++            --truth-tbi {input.truth_tbi:q} \
++            --truth-bed {input.truth_bed:q} \
++            --truth-sample {params.truth_sample:q} \
++            --reference-fasta {input.reference:q} \
++            --output-root "$run_root"
++        else
++          bin/data_packaging/hiomr2_nicu_sv.py truvari-not-applicable \
++            --receipt "$receipt" \
++            --query-name nicu_jasmine \
++            --query-sample {wildcards.sample:q} \
++            --truth-sample {params.truth_sample:q} \
++            --expected-analysis-unit {params.truth_analysis_unit:q} \
++            --query-vcf {input.query:q} \
++            --truth-vcf {input.truth_vcf:q}
++        fi
+         truvari_status=$(bin/data_packaging/hiomr2_nicu_sv.py extract-truvari \
+           --receipt "$receipt" --summary-tsv "$summary" \
+           --metrics-json "$metrics" --allow-diagnostic-warning)
+diff --git a/tests/test_hiomr2_nicu_sv.py b/tests/test_hiomr2_nicu_sv.py
+index db8bdf4c..fe410acf 100644
+--- a/tests/test_hiomr2_nicu_sv.py
++++ b/tests/test_hiomr2_nicu_sv.py
+@@ -833,5 +833,71 @@ def test_extract_truvari_requires_success_and_writes_both_formats(
+         "receipt_status": "DIAGNOSTIC_FAILED",
+     }
+     assert "\tWARNING\tTruvari comparison record count does not reconcile\n" in (
+         summary.read_text(encoding="utf-8")
+     )
++
++
++def test_truvari_not_applicable_is_a_warning_without_metrics(tmp_path: Path) -> None:
++    query = _vcf(tmp_path / "na23687.vcf.gz", sample="NA23687")
++    truth = _vcf(tmp_path / "hg002-truth.vcf.gz", sample="HG002")
++    receipt = tmp_path / "terminal_receipt.json"
++    payload = nicu.write_truvari_not_applicable(
++        Namespace(
++            receipt=str(receipt),
++            query_name="nicu_jasmine",
++            query_sample="NA23687",
++            truth_sample="HG002",
++            expected_analysis_unit="HG002-analysis-unit",
++            query_vcf=str(query),
++            truth_vcf=str(truth),
++        )
++    )
++    assert payload == json.loads(receipt.read_text(encoding="utf-8"))
++    assert payload["schema"] == nicu.TRUVARI_NOT_APPLICABLE_RECEIPT_SCHEMA
++    assert payload["status"] == "DIAGNOSTIC_FAILED"
++    assert payload["metrics"] == {}
++    assert payload["attempted_command"] == []
++    assert payload["applicability"] == {
++        "applicable": False,
++        "reason_code": "GIAB_SV_V5Q_HG002_ONLY",
++        "eligible_analysis_unit": "HG002-analysis-unit",
++        "query_analysis_unit": "NA23687",
++    }
++    assert payload["query_vcf_sha256"] == nicu._sha256(query)
++    assert payload["truth_vcf_sha256"] == nicu._sha256(truth)
++    assert "No Truvari comparison was attempted" in payload["error"]
++
++    summary = tmp_path / "summary.tsv"
++    metrics = tmp_path / "metrics.json"
++    assert (
++        nicu.extract_truvari(
++            Namespace(
++                receipt=str(receipt),
++                summary_tsv=str(summary),
++                metrics_json=str(metrics),
++                allow_diagnostic_warning=True,
++            )
++        )
++        == "WARNING"
++    )
++    warning_metrics = json.loads(metrics.read_text(encoding="utf-8"))
++    assert warning_metrics["status"] == "WARNING"
++    assert warning_metrics["metrics"] == {}
++    assert warning_metrics["warning"]["receipt_status"] == "DIAGNOSTIC_FAILED"
++    assert warning_metrics["warning"]["attempted_command"] == []
++    assert "\t\t\t\t\t\t\tWARNING\tNOT_APPLICABLE:" in (
++        summary.read_text(encoding="utf-8")
++    )
++
++    with pytest.raises(nicu.Hiomr2NicuSvError, match="cannot be marked"):
++        nicu.write_truvari_not_applicable(
++            Namespace(
++                receipt=str(tmp_path / "invalid.json"),
++                query_name="nicu_jasmine",
++                query_sample="HG002-analysis-unit",
++                truth_sample="HG002",
++                expected_analysis_unit="HG002-analysis-unit",
++                query_vcf=str(query),
++                truth_vcf=str(truth),
++            )
++        )
+diff --git a/tests/test_hiomr2_nicu_rules.py b/tests/test_hiomr2_nicu_rules.py
+index c3222702..c66169f4 100644
+--- a/tests/test_hiomr2_nicu_rules.py
++++ b/tests/test_hiomr2_nicu_rules.py
+@@ -346,7 +346,13 @@ def test_nicu_truvari_diagnostic_failure_is_an_explicit_warning() -> None:
+     assert "extract-truvari" in block
+     assert "--allow-diagnostic-warning" in block
+     assert "nicu-truari-warning" in block
+     assert "unexpected Truvari publication status" in block
++    assert "truvari-not-applicable" in block
++    assert "--expected-analysis-unit" in block
++    assert "No Truvari comparison was attempted" not in block
++    assert (
++        "if [[ {wildcards.sample:q} == {params.truth_analysis_unit:q} ]]" in block
++    )
+ 
+ 
+ def test_research_package_declares_manifest_and_every_artifact_input() -> None:
