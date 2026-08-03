@@ -1,0 +1,1888 @@
+{
+  "surface": "report",
+  "manifest": {
+    "version": 1,
+    "surface": "report",
+    "title": "Take101 full-coverage HIOMR2 validation \u2014 DayOA 13.4.2",
+    "generatedAt": "2026-08-03T09:06:39Z",
+    "blocks": [
+      {
+        "id": "technical_summary",
+        "type": "markdown",
+        "sourceId": "release_provenance",
+        "body": "# Take101 full-coverage HIOMR2 validation \u2014 DayOA 13.4.2\n\n## Technical summary\n\nThe literal eight-target HIOMR2 kitchen-sink, mega-adjacent validation, Inflection analytical-packaging, and final MultiQC closure completed at **RC=0** for full-coverage HG002 and NA23687. The original controller completed 441 of 466 logical steps; the bounded repair controller completed the remaining 25 of 25. All live-proven source changes are pushed on `codex/13.4.2-take101-multisample-nicu-warning` and released by annotated non-v tag **13.4.2** at commit `53b43186f0b840a756c9151df1ff1b830033c139`. Local and headnode release trees match exactly. These are analytical/research outputs, not clinical or customer-release packages."
+      },
+      {
+        "id": "coverage_summary",
+        "type": "markdown",
+        "sourceId": "coverage_fragment",
+        "body": "## Coverage and fragment findings\n\nDuplicate-marked Illumina coverage is **45.23x** for HG002 and **44.24x** for NA23687; both have **92%** of measured bases at or above 30x. The retained ONT `[0,25)` windows are **12.19x** and **16.38x**, respectively. Illumina mapping is 99.80\u201399.83%, aligned duplicate rates are 12.97% and 11.73%, median inserts are 428 bp and 427 bp, and mean inserts are 459.6 bp and 458.3 bp. ONT contributes 4.97M and 5.27M aligned records with mean read lengths 7.7 kb and 9.8 kb. The observed coverage, rather than filenames, is the basis for describing this as a full-coverage two-sample proof."
+      },
+      {
+        "id": "coverage_chart_block",
+        "type": "chart",
+        "chartId": "coverage_mean_chart"
+      },
+      {
+        "id": "coverage_table_block",
+        "type": "table",
+        "tableId": "coverage_table"
+      },
+      {
+        "id": "variant_treatment_summary",
+        "type": "markdown",
+        "sourceId": "variant_treatments",
+        "body": "## Variant treatments in the analytical packages\n\nHG002 has **5,149,139** scoped records and NA23687 has **5,281,521**. Confirmed records comprise **79.59%** and **80.21%**. The largest review categories are Unconfirmed (**10.35%**, **10.09%**), AlleleBalance (**4.84%**, **4.92%**), and LowCoverage (**3.88%**, **3.41%**). These labels are deterministic analytical review treatments applied to the scoped VCFs; they are not pathogenicity assertions, truth labels, or clinical classifications."
+      },
+      {
+        "id": "variant_treatment_chart_block",
+        "type": "chart",
+        "chartId": "variant_treatment_chart"
+      },
+      {
+        "id": "variant_treatment_table_block",
+        "type": "table",
+        "tableId": "variant_treatment_table"
+      },
+      {
+        "id": "repair_summary",
+        "type": "markdown",
+        "sourceId": "workflow_repairs",
+        "body": "## Live-proven normalization and workflow repairs\n\nDayOA 13.4.2 adds only three bounded behaviors needed by this multisample proof: explicit non-HG002 NICU Truvari non-applicability, deterministic Somalier header-only group output when there are no groups, and provenance-recorded Manta IUPAC reference-anchor normalization. The actual NA23687 Manta fixture preserved all **155,191** records and changed exactly two source `GN` anchors to canonical `GR`. No alternate caller, guessed truth, or silent fallback was introduced."
+      },
+      {
+        "id": "workflow_repairs_table_block",
+        "type": "table",
+        "tableId": "workflow_repairs_table"
+      },
+      {
+        "id": "giab_summary",
+        "type": "markdown",
+        "sourceId": "giab_concordance",
+        "body": "## HG002 SNV hard-VCF accuracy in `ROI == giabHC`\n\nThe hard-VCF RTG vcfeval `All` F-score is **0.9992765**; transition and transversion F-scores are **0.9993632** and **0.9992946**. The 1\u201350 bp insertion and deletion rows are **0.9986882** and **0.9990539**. The `>50 bp` insertion stratum has only six TPs and ten FNs, while the deletion stratum has four TPs and no errors, so those tiny strata should not be generalized. The parallel CLI-gVCF rows have identical metrics. This GIAB truth analysis applies to HG002 only."
+      },
+      {
+        "id": "giab_table_block",
+        "type": "table",
+        "tableId": "giab_table"
+      },
+      {
+        "id": "smn12_summary",
+        "type": "markdown",
+        "sourceId": "smn12_orthogonal",
+        "body": "## SMN1 / SMN2 findings\n\nSMNCopyNumberCaller reports HG002 as **SMN1=2, SMN2=2**, `isSMA=false`, `isCarrier=false`, with median depth 53.15. NA23687 reports **SMN1=1, SMN2=2**, `isSMA=false`, `isCarrier=true`, with median depth 51.72. All 16 locus-level estimates agree with each final SMN1 integer. The Sentieon SMN1 lane completed and produced 65 and 67 regional variant records, but it is not a copy-number caller and declares no SMN1/SMN2 CN. Expected CN fields were not configured in this run, so no formal expected-versus-observed concordance claim is made."
+      },
+      {
+        "id": "smn12_table_block",
+        "type": "table",
+        "tableId": "smn12_table"
+      },
+      {
+        "id": "truvari_summary",
+        "type": "markdown",
+        "sourceId": "truvari_audit",
+        "body": "## Truvari results and explicit gaps\n\nAll **15** audited benchmark or applicability lanes are terminal. Six publish accepted metrics, one is a successful duplicate-alias receipt, seven retain diagnostic gaps with no published metric, and one is correctly not applicable. Among the GIAB SV PASS-only DEL/INS >=50 results, Sniffles1/Iris has F1 **0.73537**, the hard-VCF SV projection **0.29644**, Jasmine companion **0.19249**, TIDDIT **0.17660**, and CNVscope **0.01432**. The separate alignment-branch comparison has directional F1 **0.85068**; it compares Winnowmap with Sentieon-minimap2 and is not truth accuracy. Jasmine final/full, LongReadSV, Sniffles2, and NICU Jasmine are accepted operationally as warning-only completion, but their projection-versus-comparison gaps mean their raw summaries remain non-authoritative. NA23687 NICU Truvari is correctly not applicable because the configured truth is HG002-only."
+      },
+      {
+        "id": "truvari_status_chart_block",
+        "type": "chart",
+        "chartId": "truvari_status_chart"
+      },
+      {
+        "id": "truvari_table_block",
+        "type": "table",
+        "tableId": "truvari_table"
+      },
+      {
+        "id": "package_summary",
+        "type": "markdown",
+        "sourceId": "package_summary",
+        "body": "## Inflection analytical-package closure\n\nEach package uses schema `dayoa.hiomr2_inflection_analytical_package/1.3`, declares **37 artifacts**, includes NICU research outputs, and passed an all-files-present and declared-size verification. Declared artifact bytes are **22.45 GB** for HG002 and **22.11 GB** for NA23687. Both are correctly marked analytical and not customer-release eligible because no owner-issued customer delivery identity is asserted."
+      },
+      {
+        "id": "package_table_block",
+        "type": "table",
+        "tableId": "package_table"
+      },
+      {
+        "id": "limitations",
+        "type": "markdown",
+        "sourceId": "truvari_audit",
+        "body": "## Limitations and robustness\n\n- HG002 is the only sample with configured GIAB SNV/SV truth; NA23687 provides the SMN12-positive-control boundary, not a genome-wide truth benchmark.\n- `hard_snv` in the Truvari table is a DEL/INS >=50 projection from the hard-VCF file. It is distinct from the RTG SNV hard-VCF F-scores.\n- Raw metrics from record-count reconciliation failures are retained for diagnosis but deliberately not published as accepted benchmark values.\n- The Jasmine work is accepted as good enough for this workflow proof, but warning-only Truvari lanes are explicit coverage gaps rather than evidence of accuracy.\n- The package review treatments and SMN copy-number outputs are analytical evidence, not clinical interpretations.\n- A 7-day presigned MultiQC URL is an ephemeral credential-bearing URL, so it is delivered in a separate post-export share receipt rather than embedded in this durable artifact."
+      },
+      {
+        "id": "artifact_summary",
+        "type": "markdown",
+        "sourceId": "completion_artifacts",
+        "body": "## Primary completion artifacts\n\nThe final MultiQC, machine-readable MultiQC data, benchmark summary, evidence manifest, and both package manifests have exact pre-export sizes and SHA-256 values. The export reconciliation should match these values before the FSx source is accepted as deleted."
+      },
+      {
+        "id": "artifact_table_block",
+        "type": "table",
+        "tableId": "artifact_table"
+      },
+      {
+        "id": "delivery_summary",
+        "type": "markdown",
+        "sourceId": "s3_objects",
+        "body": "## S3 delivery map\n\nThe full-root destination is `s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/`. Stable S3 URIs for the report, final MultiQC, benchmark summary, evidence manifest, and both Inflection packages are listed below. The exact export uses delete-on-success semantics: FSx deletion is permitted only after the export task succeeds. S3 object/byte/hash reconciliation and the verified 7-day MultiQC share URL are recorded separately after upload."
+      },
+      {
+        "id": "s3_table_block",
+        "type": "table",
+        "tableId": "s3_table"
+      },
+      {
+        "id": "methodology",
+        "type": "markdown",
+        "sourceId": "coverage_fragment",
+        "body": "## Methodology\n\nCoverage and fragment values were extracted from the final MultiQC JSON using the AlignStats, Mosdepth, FastQC, and Samtools namespaces. Variant-treatment counts and package eligibility come directly from the two package manifests. GIAB hard-VCF scores are filtered to `ROI=giabHC` and `SNVCaller=sentdhiomr2`. The Truvari audit enumerates every terminal receipt plus the two copy-state rows, preserving published metrics separately from raw diagnostic summaries. Artifact sizes and hashes were recomputed on the headnode before report installation."
+      },
+      {
+        "id": "next_steps",
+        "type": "markdown",
+        "sourceId": "release_provenance",
+        "body": "## Next steps\n\nAfter verified export and delete-on-success completion, Take222 will clone exact DayOA **13.4.2** and test HG003, HG004, NA19235, and NA20775 with full-coverage Illumina plus Bjuice ONT `[0,25)`. The exact literal eight-target closure will first run with `-j 444 -p -T 1 -k --rerun-triggers mtime -n`; only a clean preflight permits the identical live command with `-n` removed."
+      },
+      {
+        "id": "further_questions",
+        "type": "markdown",
+        "sourceId": "truvari_audit",
+        "body": "## Further questions\n\n1. Which exact records account for the seven- and eight-record projection reconciliation gaps, and should those exclusions become explicit receipts?\n2. Should the CNVscope copy-state truth contract be replaced with a source whose PASS semantics project nonempty LOSS/GAIN events?\n3. Should the Sniffles1/Iris Sentieon alias be explicitly represented in the aggregate schema rather than only in its terminal receipt?\n4. At four-sample full coverage, do the variant-treatment shares and SMN12 copy-number confidence remain stable across HG003, HG004, NA19235, and NA20775?"
+      }
+    ],
+    "cards": [],
+    "charts": [
+      {
+        "id": "coverage_mean_chart",
+        "title": "Mean coverage by sample and modality",
+        "subtitle": "Final Mosdepth means: duplicate-marked Illumina versus retained ONT elapsed-hour window [0,25).",
+        "type": "bar",
+        "dataset": "coverage_chart",
+        "sourceId": "coverage_fragment",
+        "encodings": {
+          "x": {
+            "field": "sample_modality",
+            "type": "nominal"
+          },
+          "y": {
+            "field": "mean_coverage_x",
+            "type": "quantitative"
+          },
+          "tooltip": [
+            {
+              "field": "sample",
+              "type": "nominal"
+            },
+            {
+              "field": "modality",
+              "type": "nominal"
+            },
+            {
+              "field": "mean_coverage_x",
+              "type": "quantitative"
+            },
+            {
+              "field": "median_coverage_x",
+              "type": "quantitative"
+            },
+            {
+              "field": "bases_30x_pct",
+              "type": "quantitative"
+            }
+          ]
+        }
+      },
+      {
+        "id": "variant_treatment_chart",
+        "title": "Combined scoped-VCF treatment-tag share",
+        "subtitle": "Across 10.43M scoped records from both analytical packages; labels are review treatments, not clinical classifications.",
+        "type": "bar",
+        "dataset": "variant_treatment_combined",
+        "sourceId": "variant_treatments",
+        "encodings": {
+          "x": {
+            "field": "treatment",
+            "type": "nominal"
+          },
+          "y": {
+            "field": "share_pct",
+            "type": "quantitative"
+          },
+          "tooltip": [
+            {
+              "field": "treatment",
+              "type": "nominal"
+            },
+            {
+              "field": "count",
+              "type": "quantitative"
+            },
+            {
+              "field": "share_pct",
+              "type": "quantitative"
+            }
+          ]
+        }
+      },
+      {
+        "id": "truvari_status_chart",
+        "title": "Terminal benchmark evidence disposition",
+        "subtitle": "All 15 audited result lanes are terminal; missing metrics remain explicit gaps rather than invented values.",
+        "type": "bar",
+        "dataset": "truvari_status_counts",
+        "sourceId": "truvari_audit",
+        "encodings": {
+          "x": {
+            "field": "status",
+            "type": "nominal"
+          },
+          "y": {
+            "field": "query_count",
+            "type": "quantitative"
+          },
+          "tooltip": [
+            {
+              "field": "status",
+              "type": "nominal"
+            },
+            {
+              "field": "query_count",
+              "type": "quantitative"
+            },
+            {
+              "field": "share_pct",
+              "type": "quantitative"
+            }
+          ]
+        }
+      }
+    ],
+    "tables": [
+      {
+        "id": "coverage_table",
+        "title": "Coverage, mapping, read-length, and fragment statistics",
+        "dataset": "coverage_fragment",
+        "sourceId": "coverage_fragment",
+        "defaultSort": {
+          "field": "sample",
+          "direction": "asc"
+        },
+        "columns": [
+          {
+            "field": "sample",
+            "label": "Sample"
+          },
+          {
+            "field": "modality",
+            "label": "Modality"
+          },
+          {
+            "field": "mean_coverage_x",
+            "label": "Mean coverage"
+          },
+          {
+            "field": "median_coverage_x",
+            "label": "Median coverage"
+          },
+          {
+            "field": "bases_30x_pct",
+            "label": "Bases >=30x, %"
+          },
+          {
+            "field": "mapped_reads_pct",
+            "label": "Mapped, %"
+          },
+          {
+            "field": "duplicate_reads_pct",
+            "label": "Duplicates, %"
+          },
+          {
+            "field": "aligned_records",
+            "label": "Aligned records"
+          },
+          {
+            "field": "average_read_length_bp",
+            "label": "Mean read length, bp"
+          },
+          {
+            "field": "insert_median_bp",
+            "label": "Insert median, bp"
+          },
+          {
+            "field": "mean_insert_bp",
+            "label": "Insert mean, bp"
+          }
+        ]
+      },
+      {
+        "id": "variant_treatment_table",
+        "title": "Per-sample scoped-VCF review treatments",
+        "dataset": "variant_treatments",
+        "sourceId": "variant_treatments",
+        "defaultSort": {
+          "field": "count",
+          "direction": "desc"
+        },
+        "columns": [
+          {
+            "field": "sample",
+            "label": "Sample"
+          },
+          {
+            "field": "treatment",
+            "label": "Treatment"
+          },
+          {
+            "field": "count",
+            "label": "Records"
+          },
+          {
+            "field": "share_pct",
+            "label": "Within-sample share, %"
+          },
+          {
+            "field": "total_scoped_records",
+            "label": "Scoped total"
+          }
+        ]
+      },
+      {
+        "id": "workflow_repairs_table",
+        "title": "Live-proven DayOA 13.4.2 repairs",
+        "dataset": "workflow_repairs",
+        "sourceId": "workflow_repairs",
+        "defaultSort": {
+          "field": "repair",
+          "direction": "asc"
+        },
+        "columns": [
+          {
+            "field": "repair",
+            "label": "Repair"
+          },
+          {
+            "field": "live_evidence",
+            "label": "Actual Take101 evidence"
+          },
+          {
+            "field": "behavior",
+            "label": "Fail-closed behavior"
+          }
+        ]
+      },
+      {
+        "id": "giab_table",
+        "title": "HG002 hard-VCF RTG vcfeval rows for ROI = giabHC",
+        "dataset": "giab_hard_vcf",
+        "sourceId": "giab_concordance",
+        "defaultSort": {
+          "field": "variant_class",
+          "direction": "asc"
+        },
+        "columns": [
+          {
+            "field": "variant_class",
+            "label": "Variant class"
+          },
+          {
+            "field": "fscore",
+            "label": "F-score"
+          },
+          {
+            "field": "sensitivity_recall",
+            "label": "Sensitivity / recall"
+          },
+          {
+            "field": "precision",
+            "label": "Precision"
+          },
+          {
+            "field": "tp",
+            "label": "TP"
+          },
+          {
+            "field": "fp",
+            "label": "FP"
+          },
+          {
+            "field": "fn",
+            "label": "FN"
+          }
+        ]
+      },
+      {
+        "id": "smn12_table",
+        "title": "Sentieon regional and SMNCopyNumberCaller evidence",
+        "dataset": "smn12_callers",
+        "sourceId": "smn12_orthogonal",
+        "defaultSort": {
+          "field": "sample",
+          "direction": "asc"
+        },
+        "columns": [
+          {
+            "field": "sample",
+            "label": "Sample"
+          },
+          {
+            "field": "caller",
+            "label": "Caller"
+          },
+          {
+            "field": "status",
+            "label": "Status"
+          },
+          {
+            "field": "smn1_cn",
+            "label": "SMN1 CN"
+          },
+          {
+            "field": "smn2_cn",
+            "label": "SMN2 CN"
+          },
+          {
+            "field": "is_sma",
+            "label": "SMA"
+          },
+          {
+            "field": "is_carrier",
+            "label": "Carrier"
+          },
+          {
+            "field": "median_depth",
+            "label": "Median depth"
+          },
+          {
+            "field": "raw_evidence",
+            "label": "Observed evidence"
+          },
+          {
+            "field": "interpretation",
+            "label": "Interpretation"
+          }
+        ]
+      },
+      {
+        "id": "truvari_table",
+        "title": "All terminal Truvari, alias, copy-state, and applicability evidence",
+        "dataset": "truvari_audit",
+        "sourceId": "truvari_audit",
+        "defaultSort": {
+          "field": "query",
+          "direction": "asc"
+        },
+        "columns": [
+          {
+            "field": "sample",
+            "label": "Sample"
+          },
+          {
+            "field": "query",
+            "label": "Query"
+          },
+          {
+            "field": "publication_status",
+            "label": "Published status"
+          },
+          {
+            "field": "projected",
+            "label": "Projected"
+          },
+          {
+            "field": "compared",
+            "label": "Compared"
+          },
+          {
+            "field": "published_f1",
+            "label": "Published F1"
+          },
+          {
+            "field": "raw_f1",
+            "label": "Raw F1"
+          },
+          {
+            "field": "raw_precision",
+            "label": "Raw precision"
+          },
+          {
+            "field": "raw_recall",
+            "label": "Raw recall"
+          },
+          {
+            "field": "gap_or_interpretation",
+            "label": "Gap / interpretation"
+          }
+        ]
+      },
+      {
+        "id": "package_table",
+        "title": "Inflection analytical-package closure",
+        "dataset": "package_summary",
+        "sourceId": "package_summary",
+        "defaultSort": {
+          "field": "sample",
+          "direction": "asc"
+        },
+        "columns": [
+          {
+            "field": "sample",
+            "label": "Sample"
+          },
+          {
+            "field": "schema",
+            "label": "Schema"
+          },
+          {
+            "field": "artifact_count",
+            "label": "Artifacts"
+          },
+          {
+            "field": "declared_bytes",
+            "label": "Declared bytes"
+          },
+          {
+            "field": "nicu_research_included",
+            "label": "NICU included"
+          },
+          {
+            "field": "package_mode",
+            "label": "Mode"
+          },
+          {
+            "field": "customer_release_eligible",
+            "label": "Customer-release eligible"
+          },
+          {
+            "field": "customer_release_reason",
+            "label": "Reason"
+          }
+        ]
+      },
+      {
+        "id": "artifact_table",
+        "title": "Primary terminal artifacts and stable S3 URIs",
+        "dataset": "completion_artifacts",
+        "sourceId": "completion_artifacts",
+        "defaultSort": {
+          "field": "artifact",
+          "direction": "asc"
+        },
+        "columns": [
+          {
+            "field": "artifact",
+            "label": "Artifact"
+          },
+          {
+            "field": "relative_path",
+            "label": "Export-relative path"
+          },
+          {
+            "field": "bytes",
+            "label": "Bytes"
+          },
+          {
+            "field": "sha256",
+            "label": "SHA-256"
+          },
+          {
+            "field": "s3_uri",
+            "label": "S3 URI"
+          }
+        ]
+      },
+      {
+        "id": "s3_table",
+        "title": "Important Take101 S3 locations",
+        "dataset": "s3_uris",
+        "sourceId": "s3_objects",
+        "defaultSort": {
+          "field": "label",
+          "direction": "asc"
+        },
+        "columns": [
+          {
+            "field": "label",
+            "label": "Object / prefix"
+          },
+          {
+            "field": "s3_uri",
+            "label": "S3 URI"
+          },
+          {
+            "field": "description",
+            "label": "Purpose"
+          }
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "release_provenance",
+        "label": "DayOA 13.4.2 local/headnode release reconciliation",
+        "path": "TAKE101_DAYOA_RELEASE_PROVENANCE.tsv",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT * FROM read_csv_auto('TAKE101_DAYOA_RELEASE_PROVENANCE.tsv', delim='\\t', header=true)",
+          "description": "Reads the exact pushed branch, annotated tag, commit, tree-equivalence, diff, and focused-test receipt.",
+          "tables_used": [
+            "TAKE101_DAYOA_RELEASE_PROVENANCE.tsv"
+          ],
+          "executed_at": "2026-08-03T09:06:39Z"
+        }
+      },
+      {
+        "id": "coverage_fragment",
+        "label": "Final MultiQC coverage and fragment audit",
+        "path": "TAKE101_COVERAGE_FRAGMENT_STATS.tsv",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT * FROM read_csv_auto('TAKE101_COVERAGE_FRAGMENT_STATS.tsv', delim='\\t', header=true)",
+          "description": "Reads reviewed AlignStats, Mosdepth, FastQC, and Samtools values for the final two-sample MultiQC snapshot.",
+          "tables_used": [
+            "TAKE101_COVERAGE_FRAGMENT_STATS.tsv",
+            "daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json"
+          ],
+          "executed_at": "2026-08-03T09:06:39Z"
+        }
+      },
+      {
+        "id": "variant_treatments",
+        "label": "Inflection scoped-VCF review-tag counts",
+        "path": "TAKE101_VARIANT_TREATMENT_COUNTS.tsv",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT * FROM read_csv_auto('TAKE101_VARIANT_TREATMENT_COUNTS.tsv', delim='\\t', header=true)",
+          "description": "Reads every scoped review-treatment count and its within-sample share from both package manifests.",
+          "tables_used": [
+            "TAKE101_VARIANT_TREATMENT_COUNTS.tsv",
+            "daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/take101/HG002-ck2ky6p4wk6exh/package_manifest.json",
+            "daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/take101/NA23687-zsvw0fa30jhz3n/package_manifest.json"
+          ],
+          "executed_at": "2026-08-03T09:06:39Z"
+        }
+      },
+      {
+        "id": "workflow_repairs",
+        "label": "Live-proven Take101 workflow repairs",
+        "path": "TAKE101_WORKFLOW_REPAIRS.tsv",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT * FROM read_csv_auto('TAKE101_WORKFLOW_REPAIRS.tsv', delim='\\t', header=true)",
+          "description": "Reads the three bounded DayOA 13.4.2 repairs and their actual Take101 live evidence.",
+          "tables_used": [
+            "TAKE101_WORKFLOW_REPAIRS.tsv"
+          ],
+          "executed_at": "2026-08-03T09:06:39Z"
+        }
+      },
+      {
+        "id": "giab_concordance",
+        "label": "RTG GIAB hard-VCF concordance",
+        "path": "TAKE101_GIAB_HARD_VCF_F_SCORES.tsv",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT * FROM read_csv_auto('TAKE101_GIAB_HARD_VCF_F_SCORES.tsv', delim='\\t', header=true) WHERE roi = 'giabHC' AND caller = 'sentdhiomr2'",
+          "description": "Reads the HG002 hard-VCF RTG vcfeval rows in GIAB high-confidence regions.",
+          "tables_used": [
+            "TAKE101_GIAB_HARD_VCF_F_SCORES.tsv",
+            "daylily-omics-analysis/results/day/hg38/other_reports/giab_concordance_mqc.tsv"
+          ],
+          "executed_at": "2026-08-03T09:06:39Z",
+          "filters": [
+            "ROI = giabHC",
+            "SNVCaller = sentdhiomr2",
+            "hard VCF rows only"
+          ]
+        }
+      },
+      {
+        "id": "smn12_orthogonal",
+        "label": "Sentieon SMN1 and SMNCopyNumberCaller audit",
+        "path": "TAKE101_SMN12_AUDIT.tsv",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT * FROM read_csv_auto('TAKE101_SMN12_AUDIT.tsv', delim='\\t', header=true)",
+          "description": "Reads both samples' orthogonal regional-variant and copy-number evidence without conflating the caller roles.",
+          "tables_used": [
+            "TAKE101_SMN12_AUDIT.tsv",
+            "daylily-omics-analysis/results/day/hg38/other_reports/smn12_orthogonal_calls_mqc.tsv"
+          ],
+          "executed_at": "2026-08-03T09:06:39Z"
+        }
+      },
+      {
+        "id": "truvari_audit",
+        "label": "Exhaustive Truvari and copy-state terminal audit",
+        "path": "TAKE101_TRUVARI_AUDIT.tsv",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT * FROM read_csv_auto('TAKE101_TRUVARI_AUDIT.tsv', delim='\\t', header=true)",
+          "description": "Reads every standard query receipt, the alignment comparison, the alias receipt, copy-state gaps, and both sample-specific NICU receipts.",
+          "tables_used": [
+            "TAKE101_TRUVARI_AUDIT.tsv",
+            "daylily-omics-analysis/results/day/hg38/benchmarks/truvari/hiomr2_hg002/aggregate/aggregate.json",
+            "daylily-omics-analysis/results/day/hg38/benchmarks/truari/hiomr2_hg002/jasmine_alignment_compare/terminal_receipt.json"
+          ],
+          "executed_at": "2026-08-03T09:06:39Z",
+          "filters": [
+            "PASS-only for GIAB DEL/INS >=50 standard queries",
+            "raw diagnostic metrics are not published metrics"
+          ]
+        }
+      },
+      {
+        "id": "package_summary",
+        "label": "Inflection analytical-package manifests",
+        "path": "TAKE101_PACKAGE_SUMMARY.tsv",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT * FROM read_csv_auto('TAKE101_PACKAGE_SUMMARY.tsv', delim='\\t', header=true)",
+          "description": "Reads package schema, artifact count, declared bytes, NICU inclusion, mode, and customer-release eligibility.",
+          "tables_used": [
+            "TAKE101_PACKAGE_SUMMARY.tsv"
+          ],
+          "executed_at": "2026-08-03T09:06:39Z"
+        }
+      },
+      {
+        "id": "completion_artifacts",
+        "label": "Verified completion artifact receipt",
+        "path": "TAKE101_COMPLETION_ARTIFACTS.tsv",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT * FROM read_csv_auto('TAKE101_COMPLETION_ARTIFACTS.tsv', delim='\\t', header=true)",
+          "description": "Reads exact export-relative paths, sizes, hashes, and planned stable S3 URIs for primary terminal artifacts.",
+          "tables_used": [
+            "TAKE101_COMPLETION_ARTIFACTS.tsv"
+          ],
+          "executed_at": "2026-08-03T09:06:39Z"
+        }
+      },
+      {
+        "id": "s3_objects",
+        "label": "Important stable S3 object URIs",
+        "path": "TAKE101_IMPORTANT_S3_URIS.tsv",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "sql": "SELECT * FROM read_csv_auto('TAKE101_IMPORTANT_S3_URIS.tsv', delim='\\t', header=true)",
+          "description": "Reads the stable export prefix and important report, MultiQC, benchmark, evidence, and package URIs.",
+          "tables_used": [
+            "TAKE101_IMPORTANT_S3_URIS.tsv"
+          ],
+          "executed_at": "2026-08-03T09:06:39Z"
+        }
+      }
+    ]
+  },
+  "snapshot": {
+    "version": 1,
+    "status": "ready",
+    "generatedAt": "2026-08-03T09:06:39Z",
+    "datasets": {
+      "coverage_chart": [
+        {
+          "sample_modality": "HG002 ILMN",
+          "sample": "HG002",
+          "modality": "ILMN",
+          "mean_coverage_x": 45.23,
+          "median_coverage_x": 45,
+          "bases_30x_pct": 92
+        },
+        {
+          "sample_modality": "HG002 ONT",
+          "sample": "HG002",
+          "modality": "ONT",
+          "mean_coverage_x": 12.19,
+          "median_coverage_x": 12,
+          "bases_30x_pct": 0
+        },
+        {
+          "sample_modality": "NA23687 ILMN",
+          "sample": "NA23687",
+          "modality": "ILMN",
+          "mean_coverage_x": 44.24,
+          "median_coverage_x": 44,
+          "bases_30x_pct": 92
+        },
+        {
+          "sample_modality": "NA23687 ONT",
+          "sample": "NA23687",
+          "modality": "ONT",
+          "mean_coverage_x": 16.38,
+          "median_coverage_x": 16,
+          "bases_30x_pct": 1
+        }
+      ],
+      "coverage_fragment": [
+        {
+          "sample": "HG002",
+          "analysis_unit_uid": "HG002-ck2ky6p4wk6exh",
+          "modality": "Illumina duplicate-marked",
+          "mean_coverage_x": 45.23,
+          "median_coverage_x": 45,
+          "bases_1x_pct": 95,
+          "bases_5x_pct": 95,
+          "bases_10x_pct": 95,
+          "bases_30x_pct": 92,
+          "bases_50x_pct": 28,
+          "mapped_reads_pct": 99.799872,
+          "duplicate_reads_pct": 12.969743,
+          "q30_bases_pct": 95.264949,
+          "insert_median_bp": 428,
+          "aligned_records": 1044268000,
+          "average_read_length_bp": 151,
+          "mean_insert_bp": 459.6,
+          "insert_sd_bp": 176.3,
+          "source_fastq_reads_per_mate": 73924603
+        },
+        {
+          "sample": "HG002",
+          "analysis_unit_uid": "HG002-ck2ky6p4wk6exh",
+          "modality": "ONT [0,25)",
+          "mean_coverage_x": 12.19,
+          "median_coverage_x": 12,
+          "bases_1x_pct": 94,
+          "bases_5x_pct": 93,
+          "bases_10x_pct": 72,
+          "bases_30x_pct": 0,
+          "bases_50x_pct": 0,
+          "mapped_reads_pct": 95.024513,
+          "duplicate_reads_pct": 0,
+          "q30_bases_pct": 77.900955,
+          "insert_median_bp": 0,
+          "aligned_records": 4968928,
+          "average_read_length_bp": 7704,
+          "mean_insert_bp": 0,
+          "insert_sd_bp": 0,
+          "source_fastq_reads_per_mate": "NA"
+        },
+        {
+          "sample": "NA23687",
+          "analysis_unit_uid": "NA23687-zsvw0fa30jhz3n",
+          "modality": "Illumina duplicate-marked",
+          "mean_coverage_x": 44.24,
+          "median_coverage_x": 44,
+          "bases_1x_pct": 95,
+          "bases_5x_pct": 95,
+          "bases_10x_pct": 95,
+          "bases_30x_pct": 92,
+          "bases_50x_pct": 24,
+          "mapped_reads_pct": 99.832552,
+          "duplicate_reads_pct": 11.733199,
+          "q30_bases_pct": 95.204353,
+          "insert_median_bp": 427,
+          "aligned_records": 1023458366,
+          "average_read_length_bp": 151,
+          "mean_insert_bp": 458.3,
+          "insert_sd_bp": 175.8,
+          "source_fastq_reads_per_mate": 72528928
+        },
+        {
+          "sample": "NA23687",
+          "analysis_unit_uid": "NA23687-zsvw0fa30jhz3n",
+          "modality": "ONT [0,25)",
+          "mean_coverage_x": 16.38,
+          "median_coverage_x": 16,
+          "bases_1x_pct": 94,
+          "bases_5x_pct": 94,
+          "bases_10x_pct": 89,
+          "bases_30x_pct": 1,
+          "bases_50x_pct": 0,
+          "mapped_reads_pct": 94.959291,
+          "duplicate_reads_pct": 0,
+          "q30_bases_pct": 76.146689,
+          "insert_median_bp": 0,
+          "aligned_records": 5272099,
+          "average_read_length_bp": 9795,
+          "mean_insert_bp": 0,
+          "insert_sd_bp": 0,
+          "source_fastq_reads_per_mate": "NA"
+        }
+      ],
+      "variant_treatment_combined": [
+        {
+          "treatment": "Confirmed",
+          "count": 8334223,
+          "share_pct": 79.9012
+        },
+        {
+          "treatment": "NeedsReview-Unconfirmed",
+          "count": 1065614,
+          "share_pct": 10.2162
+        },
+        {
+          "treatment": "NeedsReview-AlleleBalance",
+          "count": 508854,
+          "share_pct": 4.8784
+        },
+        {
+          "treatment": "NeedsReview-LowCoverage",
+          "count": 379619,
+          "share_pct": 3.6395
+        },
+        {
+          "treatment": "NeedsReview-LongReadOnly",
+          "count": 59498,
+          "share_pct": 0.5704
+        },
+        {
+          "treatment": "NeedsReview-HighSB",
+          "count": 42558,
+          "share_pct": 0.408
+        },
+        {
+          "treatment": "NeedsReview-VariantCluster",
+          "count": 36738,
+          "share_pct": 0.3522
+        },
+        {
+          "treatment": "NeedsReview-Other",
+          "count": 3556,
+          "share_pct": 0.0341
+        }
+      ],
+      "variant_treatments": [
+        {
+          "sample": "HG002",
+          "analysis_unit_uid": "HG002-ck2ky6p4wk6exh",
+          "treatment": "Confirmed",
+          "count": 4098087,
+          "share_pct": 79.5878107,
+          "total_scoped_records": 5149139
+        },
+        {
+          "sample": "HG002",
+          "analysis_unit_uid": "HG002-ck2ky6p4wk6exh",
+          "treatment": "NeedsReview-AlleleBalance",
+          "count": 249040,
+          "share_pct": 4.83653675,
+          "total_scoped_records": 5149139
+        },
+        {
+          "sample": "HG002",
+          "analysis_unit_uid": "HG002-ck2ky6p4wk6exh",
+          "treatment": "NeedsReview-HighSB",
+          "count": 22654,
+          "share_pct": 0.43995705,
+          "total_scoped_records": 5149139
+        },
+        {
+          "sample": "HG002",
+          "analysis_unit_uid": "HG002-ck2ky6p4wk6exh",
+          "treatment": "NeedsReview-LongReadOnly",
+          "count": 26582,
+          "share_pct": 0.51624165,
+          "total_scoped_records": 5149139
+        },
+        {
+          "sample": "HG002",
+          "analysis_unit_uid": "HG002-ck2ky6p4wk6exh",
+          "treatment": "NeedsReview-LowCoverage",
+          "count": 199593,
+          "share_pct": 3.87624028,
+          "total_scoped_records": 5149139
+        },
+        {
+          "sample": "HG002",
+          "analysis_unit_uid": "HG002-ck2ky6p4wk6exh",
+          "treatment": "NeedsReview-Other",
+          "count": 1706,
+          "share_pct": 0.03313175,
+          "total_scoped_records": 5149139
+        },
+        {
+          "sample": "HG002",
+          "analysis_unit_uid": "HG002-ck2ky6p4wk6exh",
+          "treatment": "NeedsReview-Unconfirmed",
+          "count": 532871,
+          "share_pct": 10.34873986,
+          "total_scoped_records": 5149139
+        },
+        {
+          "sample": "HG002",
+          "analysis_unit_uid": "HG002-ck2ky6p4wk6exh",
+          "treatment": "NeedsReview-VariantCluster",
+          "count": 18606,
+          "share_pct": 0.36134196,
+          "total_scoped_records": 5149139
+        },
+        {
+          "sample": "NA23687",
+          "analysis_unit_uid": "NA23687-zsvw0fa30jhz3n",
+          "treatment": "Confirmed",
+          "count": 4236136,
+          "share_pct": 80.20674347,
+          "total_scoped_records": 5281521
+        },
+        {
+          "sample": "NA23687",
+          "analysis_unit_uid": "NA23687-zsvw0fa30jhz3n",
+          "treatment": "NeedsReview-AlleleBalance",
+          "count": 259814,
+          "share_pct": 4.9193026,
+          "total_scoped_records": 5281521
+        },
+        {
+          "sample": "NA23687",
+          "analysis_unit_uid": "NA23687-zsvw0fa30jhz3n",
+          "treatment": "NeedsReview-HighSB",
+          "count": 19904,
+          "share_pct": 0.37686114,
+          "total_scoped_records": 5281521
+        },
+        {
+          "sample": "NA23687",
+          "analysis_unit_uid": "NA23687-zsvw0fa30jhz3n",
+          "treatment": "NeedsReview-LongReadOnly",
+          "count": 32916,
+          "share_pct": 0.62322956,
+          "total_scoped_records": 5281521
+        },
+        {
+          "sample": "NA23687",
+          "analysis_unit_uid": "NA23687-zsvw0fa30jhz3n",
+          "treatment": "NeedsReview-LowCoverage",
+          "count": 180026,
+          "share_pct": 3.40860142,
+          "total_scoped_records": 5281521
+        },
+        {
+          "sample": "NA23687",
+          "analysis_unit_uid": "NA23687-zsvw0fa30jhz3n",
+          "treatment": "NeedsReview-Other",
+          "count": 1850,
+          "share_pct": 0.03502779,
+          "total_scoped_records": 5281521
+        },
+        {
+          "sample": "NA23687",
+          "analysis_unit_uid": "NA23687-zsvw0fa30jhz3n",
+          "treatment": "NeedsReview-Unconfirmed",
+          "count": 532743,
+          "share_pct": 10.08692382,
+          "total_scoped_records": 5281521
+        },
+        {
+          "sample": "NA23687",
+          "analysis_unit_uid": "NA23687-zsvw0fa30jhz3n",
+          "treatment": "NeedsReview-VariantCluster",
+          "count": 18132,
+          "share_pct": 0.34331019,
+          "total_scoped_records": 5281521
+        }
+      ],
+      "workflow_repairs": [
+        {
+          "repair": "Non-HG002 NICU Truvari applicability",
+          "live_evidence": "NA23687 emitted schema dayoa.hiomr2_nicu_truvari_not_applicable/1.0 with no command and no metrics",
+          "behavior": "Preserve HG002-only GIAB truth scope; publish explicit NOT_APPLICABLE evidence instead of fabricated metrics",
+          "tracked_files": "daylily_omics_analysis/hiomr2_nicu_sv.py; workflow/rules/hiomr2_nicu_research.smk; tests/test_hiomr2_nicu_rules.py; tests/test_hiomr2_nicu_sv.py"
+        },
+        {
+          "repair": "Somalier no-group output materialization",
+          "live_evidence": "Three relatedness contexts completed after deterministic 16-byte header-only cohort.groups.tsv publication",
+          "behavior": "Materialize the declared empty group table only after Somalier exits successfully and its other native outputs validate",
+          "tracked_files": "workflow/rules/relatedness_batch.smk; tests/test_qc_eligibility_contracts.py"
+        },
+        {
+          "repair": "Manta reference-anchor normalization",
+          "live_evidence": "NA23687 preserved all 155191 source records and repaired exactly two source GN anchors to canonical GR",
+          "behavior": "Record explicit source IDs and normalize only reference-ambiguous IUPAC bases proven against the reference; receipt schema 1.2",
+          "tracked_files": "daylily_omics_analysis/hiomr2_nicu_normalize.py; workflow/rules/hiomr2_nicu_research.smk; tests/test_hiomr2_nicu_rules.py; tests/test_hiomr2_nicu_sv.py"
+        }
+      ],
+      "giab_hard_vcf": [
+        {
+          "variant_class": "SNPts",
+          "fscore": 0.9993631646721857,
+          "sensitivity_recall": 0.9989742649300829,
+          "precision": 0.9997523673288207,
+          "tp": 2277003,
+          "fp": 564,
+          "fn": 2338,
+          "roi": "giabHC",
+          "caller": "sentdhiomr2",
+          "cli_gvcf_metric_parity": "true"
+        },
+        {
+          "variant_class": "SNPtv",
+          "fscore": 0.9992946361478934,
+          "sensitivity_recall": 0.998946237866537,
+          "precision": 0.9996432775328448,
+          "tp": 1084490,
+          "fp": 387,
+          "fn": 1144,
+          "roi": "giabHC",
+          "caller": "sentdhiomr2",
+          "cli_gvcf_metric_parity": "true"
+        },
+        {
+          "variant_class": "INS_50",
+          "fscore": 0.9986882127089941,
+          "sensitivity_recall": 0.9982708513852359,
+          "precision": 0.9991059231631134,
+          "tp": 260371,
+          "fp": 233,
+          "fn": 451,
+          "roi": "giabHC",
+          "caller": "sentdhiomr2",
+          "cli_gvcf_metric_parity": "true"
+        },
+        {
+          "variant_class": "INS_gt50",
+          "fscore": 0.5454545454545454,
+          "sensitivity_recall": 0.375,
+          "precision": 1.0,
+          "tp": 6,
+          "fp": 0,
+          "fn": 10,
+          "roi": "giabHC",
+          "caller": "sentdhiomr2",
+          "cli_gvcf_metric_parity": "true"
+        },
+        {
+          "variant_class": "DEL_50",
+          "fscore": 0.9990538760804735,
+          "sensitivity_recall": 0.9986721495666516,
+          "precision": 0.9994358945236338,
+          "tp": 263986,
+          "fp": 149,
+          "fn": 351,
+          "roi": "giabHC",
+          "caller": "sentdhiomr2",
+          "cli_gvcf_metric_parity": "true"
+        },
+        {
+          "variant_class": "DEL_gt50",
+          "fscore": 1.0,
+          "sensitivity_recall": 1.0,
+          "precision": 1.0,
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "roi": "giabHC",
+          "caller": "sentdhiomr2",
+          "cli_gvcf_metric_parity": "true"
+        },
+        {
+          "variant_class": "Indel_50",
+          "fscore": 1.0,
+          "sensitivity_recall": 1.0,
+          "precision": 1.0,
+          "tp": 310,
+          "fp": 0,
+          "fn": 0,
+          "roi": "giabHC",
+          "caller": "sentdhiomr2",
+          "cli_gvcf_metric_parity": "true"
+        },
+        {
+          "variant_class": "Indel_gt50",
+          "fscore": "",
+          "sensitivity_recall": "",
+          "precision": "",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "roi": "giabHC",
+          "caller": "sentdhiomr2",
+          "cli_gvcf_metric_parity": "true"
+        },
+        {
+          "variant_class": "All",
+          "fscore": 0.9992765461720268,
+          "sensitivity_recall": 0.998896275611341,
+          "precision": 0.9996571063739372,
+          "tp": 3886170,
+          "fp": 1333,
+          "fn": 4294,
+          "roi": "giabHC",
+          "caller": "sentdhiomr2",
+          "cli_gvcf_metric_parity": "true"
+        }
+      ],
+      "smn12_callers": [
+        {
+          "sample": "HG002",
+          "analysis_unit_uid": "HG002-ck2ky6p4wk6exh",
+          "caller": "Sentieon SMN1 regional variant caller",
+          "status": "complete",
+          "smn1_cn": "",
+          "smn2_cn": "",
+          "smn2delta78_cn": "",
+          "is_sma": "",
+          "is_carrier": "",
+          "median_depth": "",
+          "total_cn_raw": "",
+          "full_length_cn_raw": "",
+          "raw_evidence": "65 regional small-variant VCF records",
+          "interpretation": "Regional variant product; it does not declare SMN1 or SMN2 copy number"
+        },
+        {
+          "sample": "HG002",
+          "analysis_unit_uid": "HG002-ck2ky6p4wk6exh",
+          "caller": "SMNCopyNumberCaller (smn12)",
+          "status": "complete; PASS:Majority",
+          "smn1_cn": 2,
+          "smn2_cn": 2,
+          "smn2delta78_cn": 0,
+          "is_sma": "false",
+          "is_carrier": "false",
+          "median_depth": 53.15,
+          "total_cn_raw": 3.867,
+          "full_length_cn_raw": 3.861,
+          "raw_evidence": "All 16 SMN1 locus estimates vote CN=2",
+          "interpretation": "No SMA or carrier flag; expected CN was not configured for formal concordance"
+        },
+        {
+          "sample": "NA23687",
+          "analysis_unit_uid": "NA23687-zsvw0fa30jhz3n",
+          "caller": "Sentieon SMN1 regional variant caller",
+          "status": "complete",
+          "smn1_cn": "",
+          "smn2_cn": "",
+          "smn2delta78_cn": "",
+          "is_sma": "",
+          "is_carrier": "",
+          "median_depth": "",
+          "total_cn_raw": "",
+          "full_length_cn_raw": "",
+          "raw_evidence": "67 regional small-variant VCF records",
+          "interpretation": "Regional variant product; it does not declare SMN1 or SMN2 copy number"
+        },
+        {
+          "sample": "NA23687",
+          "analysis_unit_uid": "NA23687-zsvw0fa30jhz3n",
+          "caller": "SMNCopyNumberCaller (smn12)",
+          "status": "complete; PASS:Majority",
+          "smn1_cn": 1,
+          "smn2_cn": 2,
+          "smn2delta78_cn": 0,
+          "is_sma": "false",
+          "is_carrier": "true",
+          "median_depth": 51.72,
+          "total_cn_raw": 2.931,
+          "full_length_cn_raw": 2.926,
+          "raw_evidence": "All 16 SMN1 locus estimates vote CN=1",
+          "interpretation": "Carrier-positive analytical result; expected CN was not configured in the run matrix"
+        }
+      ],
+      "truvari_status_counts": [
+        {
+          "status": "Published / accepted metrics",
+          "query_count": 6,
+          "share_pct": 40.0
+        },
+        {
+          "status": "Successful alias evidence",
+          "query_count": 1,
+          "share_pct": 6.6667
+        },
+        {
+          "status": "Diagnostic gap / no published metric",
+          "query_count": 7,
+          "share_pct": 46.6667
+        },
+        {
+          "status": "Not applicable",
+          "query_count": 1,
+          "share_pct": 6.6667
+        }
+      ],
+      "truvari_audit": [
+        {
+          "sample": "HG002",
+          "query": "jasmine_alignment_compare",
+          "benchmark_kind": "alignment-branch DEL/INS >=20",
+          "publication_status": "SUCCESS",
+          "projected": "base=55782;query=53497",
+          "compared": "46481 matched",
+          "tp_base": 46481,
+          "tp_comp": 46481,
+          "fp": 7016,
+          "fn": 9301,
+          "published_precision": 0.8688524590163934,
+          "published_recall": 0.8332616256139973,
+          "published_f1": 0.8506849440423138,
+          "raw_precision": 0.8688524590163934,
+          "raw_recall": 0.8332616256139973,
+          "raw_f1": 0.8506849440423138,
+          "gap_or_interpretation": "Directional Winnowmap-base versus Sentieon-minimap2 query comparison; not GIAB truth accuracy"
+        },
+        {
+          "sample": "HG002",
+          "query": "cnvscope",
+          "benchmark_kind": "GIAB SV DEL/INS >=50",
+          "publication_status": "SUCCESS",
+          "projected": 625,
+          "compared": 625,
+          "tp_base": 206,
+          "tp_comp": 206,
+          "fp": 419,
+          "fn": 27939,
+          "published_precision": 0.3296,
+          "published_recall": 0.007319239651803163,
+          "published_f1": 0.0143204727146333,
+          "raw_precision": 0.3296,
+          "raw_recall": 0.007319239651803163,
+          "raw_f1": 0.0143204727146333,
+          "gap_or_interpretation": "Accepted PASS-only metrics; CNV records normalized to DEL projection"
+        },
+        {
+          "sample": "HG002",
+          "query": "hard_snv",
+          "benchmark_kind": "GIAB SV DEL/INS >=50",
+          "publication_status": "SUCCESS",
+          "projected": 5393,
+          "compared": 5393,
+          "tp_base": 4971,
+          "tp_comp": 4971,
+          "fp": 422,
+          "fn": 23174,
+          "published_precision": 0.9217504172074912,
+          "published_recall": 0.1766210694617161,
+          "published_f1": 0.2964398592641183,
+          "raw_precision": 0.9217504172074912,
+          "raw_recall": 0.1766210694617161,
+          "raw_f1": 0.2964398592641183,
+          "gap_or_interpretation": "SV projection from the hard-VCF file; not the RTG SNV giabHC F-score"
+        },
+        {
+          "sample": "HG002",
+          "query": "jasmine_companion",
+          "benchmark_kind": "GIAB SV DEL/INS >=50",
+          "publication_status": "SUCCESS",
+          "projected": 4313,
+          "compared": 4313,
+          "tp_base": 3124,
+          "tp_comp": 3124,
+          "fp": 1189,
+          "fn": 25021,
+          "published_precision": 0.7243218177602597,
+          "published_recall": 0.11099662462249067,
+          "published_f1": 0.19249491650748657,
+          "raw_precision": 0.7243218177602597,
+          "raw_recall": 0.11099662462249067,
+          "raw_f1": 0.19249491650748657,
+          "gap_or_interpretation": "Accepted PASS-only metrics"
+        },
+        {
+          "sample": "HG002",
+          "query": "jasmine_final",
+          "benchmark_kind": "GIAB SV DEL/INS >=50",
+          "publication_status": "DIAGNOSTIC_FAILED",
+          "projected": 21936,
+          "compared": 21928,
+          "tp_base": "",
+          "tp_comp": "",
+          "fp": "",
+          "fn": "",
+          "published_precision": "",
+          "published_recall": "",
+          "published_f1": "",
+          "raw_precision": 0.7970631156512222,
+          "raw_recall": 0.6209984011369692,
+          "raw_f1": 0.6981007728716074,
+          "gap_or_interpretation": "Eight-record reconciliation mismatch; raw summary is non-authoritative"
+        },
+        {
+          "sample": "HG002",
+          "query": "jasmine_full",
+          "benchmark_kind": "GIAB SV DEL/INS >=50",
+          "publication_status": "DIAGNOSTIC_FAILED",
+          "projected": 31949,
+          "compared": 31941,
+          "tp_base": "",
+          "tp_comp": "",
+          "fp": "",
+          "fn": "",
+          "published_precision": "",
+          "published_recall": "",
+          "published_f1": "",
+          "raw_precision": 0.5823236592467361,
+          "raw_recall": 0.6608633860365962,
+          "raw_f1": 0.6191126052657856,
+          "gap_or_interpretation": "Eight-record reconciliation mismatch; raw summary is non-authoritative"
+        },
+        {
+          "sample": "HG002",
+          "query": "longreadsv",
+          "benchmark_kind": "GIAB SV DEL/INS >=50",
+          "publication_status": "DIAGNOSTIC_FAILED",
+          "projected": 19849,
+          "compared": 19841,
+          "tp_base": "",
+          "tp_comp": "",
+          "fp": "",
+          "fn": "",
+          "published_precision": "",
+          "published_recall": "",
+          "published_f1": "",
+          "raw_precision": 0.8537876115115166,
+          "raw_recall": 0.6018831053473086,
+          "raw_f1": 0.7060392614512567,
+          "gap_or_interpretation": "Eight-record reconciliation mismatch; raw summary is non-authoritative"
+        },
+        {
+          "sample": "HG002",
+          "query": "sniffles1_iris",
+          "benchmark_kind": "GIAB SV DEL/INS >=50",
+          "publication_status": "SUCCESS",
+          "projected": 20383,
+          "compared": 20383,
+          "tp_base": 17843,
+          "tp_comp": 17843,
+          "fp": 2540,
+          "fn": 10302,
+          "published_precision": 0.8753863513712408,
+          "published_recall": 0.6339669568306981,
+          "published_f1": 0.7353692713484997,
+          "raw_precision": 0.8753863513712408,
+          "raw_recall": 0.6339669568306981,
+          "raw_f1": 0.7353692713484997,
+          "gap_or_interpretation": "Accepted PASS-only metrics"
+        },
+        {
+          "sample": "HG002",
+          "query": "sniffles1_iris_sentieon",
+          "benchmark_kind": "GIAB SV DEL/INS >=50",
+          "publication_status": "SUCCESS receipt; alias not aggregated",
+          "projected": 20383,
+          "compared": 20383,
+          "tp_base": 17843,
+          "tp_comp": 17843,
+          "fp": 2540,
+          "fn": 10302,
+          "published_precision": "",
+          "published_recall": "",
+          "published_f1": "",
+          "raw_precision": 0.8753863513712408,
+          "raw_recall": 0.6339669568306981,
+          "raw_f1": 0.7353692713484997,
+          "gap_or_interpretation": "Exact query duplicate of sniffles1_iris; terminal evidence retained without double-counting aggregate metrics"
+        },
+        {
+          "sample": "HG002",
+          "query": "sniffles2",
+          "benchmark_kind": "GIAB SV DEL/INS >=50",
+          "publication_status": "DIAGNOSTIC_FAILED",
+          "projected": 18269,
+          "compared": 18262,
+          "tp_base": "",
+          "tp_comp": "",
+          "fp": "",
+          "fn": "",
+          "published_precision": "",
+          "published_recall": "",
+          "published_f1": "",
+          "raw_precision": 0.9202168437191983,
+          "raw_recall": 0.5970865162551074,
+          "raw_f1": 0.7242441872993298,
+          "gap_or_interpretation": "Seven-record reconciliation mismatch; raw summary is non-authoritative"
+        },
+        {
+          "sample": "HG002",
+          "query": "tiddit",
+          "benchmark_kind": "GIAB SV DEL/INS >=50",
+          "publication_status": "SUCCESS",
+          "projected": 4912,
+          "compared": 4912,
+          "tp_base": 2919,
+          "tp_comp": 2919,
+          "fp": 1993,
+          "fn": 25226,
+          "published_precision": 0.5942589576547231,
+          "published_recall": 0.10371291526025937,
+          "published_f1": 0.1766040475542245,
+          "raw_precision": 0.5942589576547231,
+          "raw_recall": 0.10371291526025937,
+          "raw_f1": 0.1766040475542245,
+          "gap_or_interpretation": "Accepted PASS-only metrics"
+        },
+        {
+          "sample": "HG002",
+          "query": "cnvscope_copy_state_pass",
+          "benchmark_kind": "GIAB/Q100 directional copy-state proxy",
+          "publication_status": "DIAGNOSTIC_FAILED",
+          "projected": "",
+          "compared": "",
+          "tp_base": "",
+          "tp_comp": "",
+          "fp": "",
+          "fn": "",
+          "published_precision": "",
+          "published_recall": "",
+          "published_f1": "",
+          "raw_precision": "",
+          "raw_recall": "",
+          "raw_f1": "",
+          "gap_or_interpretation": "PASS truth projection was empty; no metric exists"
+        },
+        {
+          "sample": "HG002",
+          "query": "cnvscope_copy_state_all",
+          "benchmark_kind": "GIAB/Q100 directional copy-state proxy",
+          "publication_status": "DIAGNOSTIC_FAILED",
+          "projected": "",
+          "compared": "",
+          "tp_base": "",
+          "tp_comp": "",
+          "fp": "",
+          "fn": "",
+          "published_precision": "",
+          "published_recall": "",
+          "published_f1": "",
+          "raw_precision": "",
+          "raw_recall": "",
+          "raw_f1": "",
+          "gap_or_interpretation": "All-filter truth projection was empty; no metric exists"
+        },
+        {
+          "sample": "HG002",
+          "query": "nicu_jasmine",
+          "benchmark_kind": "GIAB SV DEL/INS >=50",
+          "publication_status": "WARNING; DIAGNOSTIC_FAILED receipt",
+          "projected": 30395,
+          "compared": 30388,
+          "tp_base": "",
+          "tp_comp": "",
+          "fp": "",
+          "fn": "",
+          "published_precision": "",
+          "published_recall": "",
+          "published_f1": "",
+          "raw_precision": "",
+          "raw_recall": "",
+          "raw_f1": "",
+          "gap_or_interpretation": "Seven-record reconciliation mismatch; user accepted warning-only completion and no benchmark metric was published"
+        },
+        {
+          "sample": "NA23687",
+          "query": "nicu_jasmine",
+          "benchmark_kind": "GIAB SV DEL/INS >=50",
+          "publication_status": "NOT_APPLICABLE",
+          "projected": "",
+          "compared": "",
+          "tp_base": "",
+          "tp_comp": "",
+          "fp": "",
+          "fn": "",
+          "published_precision": "",
+          "published_recall": "",
+          "published_f1": "",
+          "raw_precision": "",
+          "raw_recall": "",
+          "raw_f1": "",
+          "gap_or_interpretation": "GIAB SV v5.0q NICU truth is HG002-only; no comparison was attempted and no metrics were emitted"
+        }
+      ],
+      "package_summary": [
+        {
+          "sample": "HG002",
+          "analysis_unit_uid": "HG002-ck2ky6p4wk6exh",
+          "schema": "dayoa.hiomr2_inflection_analytical_package/1.3",
+          "artifact_count": 37,
+          "declared_bytes": 22450744512,
+          "nicu_research_included": "true",
+          "package_mode": "analytical",
+          "customer_release_eligible": "false",
+          "customer_release_reason": "analytical HIOMR2 package; no owner-issued customer delivery identity is asserted"
+        },
+        {
+          "sample": "NA23687",
+          "analysis_unit_uid": "NA23687-zsvw0fa30jhz3n",
+          "schema": "dayoa.hiomr2_inflection_analytical_package/1.3",
+          "artifact_count": 37,
+          "declared_bytes": 22106910338,
+          "nicu_research_included": "true",
+          "package_mode": "analytical",
+          "customer_release_eligible": "false",
+          "customer_release_reason": "analytical HIOMR2 package; no owner-issued customer delivery identity is asserted"
+        }
+      ],
+      "completion_artifacts": [
+        {
+          "artifact": "Final MultiQC HTML",
+          "relative_path": "daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc.html",
+          "bytes": 12196815,
+          "sha256": "a61c9dca9e3a1d81b6c60bf656204e5461f94489752deaefede5c97d8666f55c",
+          "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc.html"
+        },
+        {
+          "artifact": "Final MultiQC data JSON",
+          "relative_path": "daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json",
+          "bytes": 18523045,
+          "sha256": "e95634427983612827a99bdf78999fc8abf5c3ece0f7a02e21968b318f0233ce",
+          "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json"
+        },
+        {
+          "artifact": "Final benchmark summary",
+          "relative_path": "daylily-omics-analysis/results/day/hg38/reports/benchmarks_summary.tsv",
+          "bytes": 132798,
+          "sha256": "2372228b27453861b128575b40fa4ba78a72bfcbfd8d2a19d92444d4cbc650fd",
+          "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/reports/benchmarks_summary.tsv"
+        },
+        {
+          "artifact": "DayOA evidence manifest",
+          "relative_path": "daylily-omics-analysis/results/day/hg38/reports/dayoa_evidence_manifest.json",
+          "bytes": 584931,
+          "sha256": "29802174d7134db6e00651756d913a1407b2f353c5ca8e3181f32bf377246d21",
+          "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/reports/dayoa_evidence_manifest.json"
+        },
+        {
+          "artifact": "HG002 Inflection package manifest",
+          "relative_path": "daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/take101/HG002-ck2ky6p4wk6exh/package_manifest.json",
+          "bytes": 26292,
+          "sha256": "4987c454b568352b6d2c0d5e76fb163f4f2f509f87b42fbfe4d26d3c7daf7e9a",
+          "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/take101/HG002-ck2ky6p4wk6exh/package_manifest.json"
+        },
+        {
+          "artifact": "NA23687 Inflection package manifest",
+          "relative_path": "daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/take101/NA23687-zsvw0fa30jhz3n/package_manifest.json",
+          "bytes": 26517,
+          "sha256": "a5dcbffd3be753fcc9d5b88446634d6538fbbb98873a88735eecf02e1108bd57",
+          "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/take101/NA23687-zsvw0fa30jhz3n/package_manifest.json"
+        }
+      ],
+      "s3_uris": [
+        {
+          "label": "Take101 full export prefix",
+          "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/",
+          "description": "Entire two-sample analysis root after successful export reconciliation"
+        },
+        {
+          "label": "Technical validation report",
+          "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/TAKE101_HG002_NA23687_FULLCOV_HIOMR2_13.4.2_VALIDATION_REPORT.html",
+          "description": "Self-contained technical report"
+        },
+        {
+          "label": "Canonical report artifact",
+          "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/TAKE101_HG002_NA23687_FULLCOV_HIOMR2_13.4.2_VALIDATION_REPORT.artifact.json",
+          "description": "Canonical source artifact packaged into the HTML report"
+        },
+        {
+          "label": "Final MultiQC",
+          "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc.html",
+          "description": "Final two-sample MultiQC HTML; seven-day signed share generated after export"
+        },
+        {
+          "label": "Final MultiQC data",
+          "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json",
+          "description": "Machine-readable MultiQC evidence"
+        },
+        {
+          "label": "Benchmark summary",
+          "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/reports/benchmarks_summary.tsv",
+          "description": "Combined task-level benchmark data"
+        },
+        {
+          "label": "Evidence manifest",
+          "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/reports/dayoa_evidence_manifest.json",
+          "description": "DayOA final evidence manifest"
+        },
+        {
+          "label": "HG002 Inflection package",
+          "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/take101/HG002-ck2ky6p4wk6exh/",
+          "description": "HG002 37-artifact analytical package"
+        },
+        {
+          "label": "NA23687 Inflection package",
+          "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/take101/NA23687-zsvw0fa30jhz3n/",
+          "description": "NA23687 37-artifact analytical package"
+        }
+      ],
+      "release_provenance": [
+        {
+          "tag": "13.4.2",
+          "commit": "53b43186f0b840a756c9151df1ff1b830033c139",
+          "branch": "codex/13.4.2-take101-multisample-nicu-warning",
+          "tree_sha256_equivalence": "local and headnode Git tree 307b10472eb25b65e040a75371cf2429e5ae9429",
+          "changed_files": 7,
+          "insertions": 369,
+          "deletions": 34,
+          "focused_tests": "49 passed",
+          "validation": "annotated tag pushed; local/headnode SHA-256 values match for every changed file; git diff --check and functional Ruff pass"
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "id": "release_provenance",
+      "label": "DayOA 13.4.2 local/headnode release reconciliation",
+      "path": "TAKE101_DAYOA_RELEASE_PROVENANCE.tsv",
+      "query": {
+        "engine": "duckdb",
+        "language": "sql",
+        "sql": "SELECT * FROM read_csv_auto('TAKE101_DAYOA_RELEASE_PROVENANCE.tsv', delim='\\t', header=true)",
+        "description": "Reads the exact pushed branch, annotated tag, commit, tree-equivalence, diff, and focused-test receipt.",
+        "tables_used": [
+          "TAKE101_DAYOA_RELEASE_PROVENANCE.tsv"
+        ],
+        "executed_at": "2026-08-03T09:06:39Z"
+      }
+    },
+    {
+      "id": "coverage_fragment",
+      "label": "Final MultiQC coverage and fragment audit",
+      "path": "TAKE101_COVERAGE_FRAGMENT_STATS.tsv",
+      "query": {
+        "engine": "duckdb",
+        "language": "sql",
+        "sql": "SELECT * FROM read_csv_auto('TAKE101_COVERAGE_FRAGMENT_STATS.tsv', delim='\\t', header=true)",
+        "description": "Reads reviewed AlignStats, Mosdepth, FastQC, and Samtools values for the final two-sample MultiQC snapshot.",
+        "tables_used": [
+          "TAKE101_COVERAGE_FRAGMENT_STATS.tsv",
+          "daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json"
+        ],
+        "executed_at": "2026-08-03T09:06:39Z"
+      }
+    },
+    {
+      "id": "variant_treatments",
+      "label": "Inflection scoped-VCF review-tag counts",
+      "path": "TAKE101_VARIANT_TREATMENT_COUNTS.tsv",
+      "query": {
+        "engine": "duckdb",
+        "language": "sql",
+        "sql": "SELECT * FROM read_csv_auto('TAKE101_VARIANT_TREATMENT_COUNTS.tsv', delim='\\t', header=true)",
+        "description": "Reads every scoped review-treatment count and its within-sample share from both package manifests.",
+        "tables_used": [
+          "TAKE101_VARIANT_TREATMENT_COUNTS.tsv",
+          "daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/take101/HG002-ck2ky6p4wk6exh/package_manifest.json",
+          "daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/take101/NA23687-zsvw0fa30jhz3n/package_manifest.json"
+        ],
+        "executed_at": "2026-08-03T09:06:39Z"
+      }
+    },
+    {
+      "id": "workflow_repairs",
+      "label": "Live-proven Take101 workflow repairs",
+      "path": "TAKE101_WORKFLOW_REPAIRS.tsv",
+      "query": {
+        "engine": "duckdb",
+        "language": "sql",
+        "sql": "SELECT * FROM read_csv_auto('TAKE101_WORKFLOW_REPAIRS.tsv', delim='\\t', header=true)",
+        "description": "Reads the three bounded DayOA 13.4.2 repairs and their actual Take101 live evidence.",
+        "tables_used": [
+          "TAKE101_WORKFLOW_REPAIRS.tsv"
+        ],
+        "executed_at": "2026-08-03T09:06:39Z"
+      }
+    },
+    {
+      "id": "giab_concordance",
+      "label": "RTG GIAB hard-VCF concordance",
+      "path": "TAKE101_GIAB_HARD_VCF_F_SCORES.tsv",
+      "query": {
+        "engine": "duckdb",
+        "language": "sql",
+        "sql": "SELECT * FROM read_csv_auto('TAKE101_GIAB_HARD_VCF_F_SCORES.tsv', delim='\\t', header=true) WHERE roi = 'giabHC' AND caller = 'sentdhiomr2'",
+        "description": "Reads the HG002 hard-VCF RTG vcfeval rows in GIAB high-confidence regions.",
+        "tables_used": [
+          "TAKE101_GIAB_HARD_VCF_F_SCORES.tsv",
+          "daylily-omics-analysis/results/day/hg38/other_reports/giab_concordance_mqc.tsv"
+        ],
+        "executed_at": "2026-08-03T09:06:39Z",
+        "filters": [
+          "ROI = giabHC",
+          "SNVCaller = sentdhiomr2",
+          "hard VCF rows only"
+        ]
+      }
+    },
+    {
+      "id": "smn12_orthogonal",
+      "label": "Sentieon SMN1 and SMNCopyNumberCaller audit",
+      "path": "TAKE101_SMN12_AUDIT.tsv",
+      "query": {
+        "engine": "duckdb",
+        "language": "sql",
+        "sql": "SELECT * FROM read_csv_auto('TAKE101_SMN12_AUDIT.tsv', delim='\\t', header=true)",
+        "description": "Reads both samples' orthogonal regional-variant and copy-number evidence without conflating the caller roles.",
+        "tables_used": [
+          "TAKE101_SMN12_AUDIT.tsv",
+          "daylily-omics-analysis/results/day/hg38/other_reports/smn12_orthogonal_calls_mqc.tsv"
+        ],
+        "executed_at": "2026-08-03T09:06:39Z"
+      }
+    },
+    {
+      "id": "truvari_audit",
+      "label": "Exhaustive Truvari and copy-state terminal audit",
+      "path": "TAKE101_TRUVARI_AUDIT.tsv",
+      "query": {
+        "engine": "duckdb",
+        "language": "sql",
+        "sql": "SELECT * FROM read_csv_auto('TAKE101_TRUVARI_AUDIT.tsv', delim='\\t', header=true)",
+        "description": "Reads every standard query receipt, the alignment comparison, the alias receipt, copy-state gaps, and both sample-specific NICU receipts.",
+        "tables_used": [
+          "TAKE101_TRUVARI_AUDIT.tsv",
+          "daylily-omics-analysis/results/day/hg38/benchmarks/truvari/hiomr2_hg002/aggregate/aggregate.json",
+          "daylily-omics-analysis/results/day/hg38/benchmarks/truari/hiomr2_hg002/jasmine_alignment_compare/terminal_receipt.json"
+        ],
+        "executed_at": "2026-08-03T09:06:39Z",
+        "filters": [
+          "PASS-only for GIAB DEL/INS >=50 standard queries",
+          "raw diagnostic metrics are not published metrics"
+        ]
+      }
+    },
+    {
+      "id": "package_summary",
+      "label": "Inflection analytical-package manifests",
+      "path": "TAKE101_PACKAGE_SUMMARY.tsv",
+      "query": {
+        "engine": "duckdb",
+        "language": "sql",
+        "sql": "SELECT * FROM read_csv_auto('TAKE101_PACKAGE_SUMMARY.tsv', delim='\\t', header=true)",
+        "description": "Reads package schema, artifact count, declared bytes, NICU inclusion, mode, and customer-release eligibility.",
+        "tables_used": [
+          "TAKE101_PACKAGE_SUMMARY.tsv"
+        ],
+        "executed_at": "2026-08-03T09:06:39Z"
+      }
+    },
+    {
+      "id": "completion_artifacts",
+      "label": "Verified completion artifact receipt",
+      "path": "TAKE101_COMPLETION_ARTIFACTS.tsv",
+      "query": {
+        "engine": "duckdb",
+        "language": "sql",
+        "sql": "SELECT * FROM read_csv_auto('TAKE101_COMPLETION_ARTIFACTS.tsv', delim='\\t', header=true)",
+        "description": "Reads exact export-relative paths, sizes, hashes, and planned stable S3 URIs for primary terminal artifacts.",
+        "tables_used": [
+          "TAKE101_COMPLETION_ARTIFACTS.tsv"
+        ],
+        "executed_at": "2026-08-03T09:06:39Z"
+      }
+    },
+    {
+      "id": "s3_objects",
+      "label": "Important stable S3 object URIs",
+      "path": "TAKE101_IMPORTANT_S3_URIS.tsv",
+      "query": {
+        "engine": "duckdb",
+        "language": "sql",
+        "sql": "SELECT * FROM read_csv_auto('TAKE101_IMPORTANT_S3_URIS.tsv', delim='\\t', header=true)",
+        "description": "Reads the stable export prefix and important report, MultiQC, benchmark, evidence, and package URIs.",
+        "tables_used": [
+          "TAKE101_IMPORTANT_S3_URIS.tsv"
+        ],
+        "executed_at": "2026-08-03T09:06:39Z"
+      }
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+tag	commit	branch	tree_sha256_equivalence	changed_files	insertions	deletions	focused_tests	validation
+13.4.2	53b43186f0b840a756c9151df1ff1b830033c139	codex/13.4.2-take101-multisample-nicu-warning	local and headnode Git tree 307b10472eb25b65e040a75371cf2429e5ae9429	7	369	34	49 passed	annotated tag pushed; local/headnode SHA-256 values match for every changed file; git diff --check and functional Ruff pass

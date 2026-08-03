@@ -1,0 +1,5 @@
+sample	analysis_unit_uid	modality	mean_coverage_x	median_coverage_x	bases_1x_pct	bases_5x_pct	bases_10x_pct	bases_30x_pct	bases_50x_pct	mapped_reads_pct	duplicate_reads_pct	q30_bases_pct	insert_median_bp	aligned_records	average_read_length_bp	mean_insert_bp	insert_sd_bp	source_fastq_reads_per_mate
+HG002	HG002-ck2ky6p4wk6exh	Illumina duplicate-marked	45.23	45	95	95	95	92	28	99.799872	12.969743	95.264949	428	1044268000	151	459.6	176.3	73924603
+HG002	HG002-ck2ky6p4wk6exh	ONT [0,25)	12.19	12	94	93	72	0	0	95.024513	0	77.900955	0	4968928	7704	0	0	NA
+NA23687	NA23687-zsvw0fa30jhz3n	Illumina duplicate-marked	44.24	44	95	95	95	92	24	99.832552	11.733199	95.204353	427	1023458366	151	458.3	175.8	72528928
+NA23687	NA23687-zsvw0fa30jhz3n	ONT [0,25)	16.38	16	94	94	89	1	0	94.959291	0	76.146689	0	5272099	9795	0	0	NA

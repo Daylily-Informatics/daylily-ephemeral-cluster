@@ -1,0 +1,28 @@
+{
+  "schema": "lsmc.take101_validation_report_delivery/1.0",
+  "generated_at": "2026-08-03T09:06:39Z",
+  "dayoa_tag": "13.4.2",
+  "dayoa_commit": "53b43186f0b840a756c9151df1ff1b830033c139",
+  "artifact_json": {
+    "path": "TAKE101_HG002_NA23687_FULLCOV_HIOMR2_13.4.2_VALIDATION_REPORT.artifact.json",
+    "bytes": 72814,
+    "sha256": "bb36f5ad8dea5f95b765e71800223f621b7c011cd2c003da4b84eab79e796354"
+  },
+  "portable_html": {
+    "path": "TAKE101_HG002_NA23687_FULLCOV_HIOMR2_13.4.2_VALIDATION_REPORT.html",
+    "bytes": 800405,
+    "sha256": "7786f95b81dfd51d35cef7cd2a0426b575bfcdafeb83e5fdd6a458a93cd16eb3"
+  },
+  "delivery": {
+    "ok": true,
+    "validation": "passed",
+    "package": "passed",
+    "verification": "passed",
+    "blocks": 26,
+    "charts": 3,
+    "tables": 9,
+    "source_dialog": "passed",
+    "source_interaction": "keyboard_menu_semantic_click",
+    "viewports": [1440, 390]
+  }
+}

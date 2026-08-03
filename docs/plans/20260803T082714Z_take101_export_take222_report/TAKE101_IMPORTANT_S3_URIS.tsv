@@ -1,0 +1,10 @@
+label	s3_uri	description
+Take101 full export prefix	s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/	Entire two-sample analysis root after successful export reconciliation
+Technical validation report	s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/TAKE101_HG002_NA23687_FULLCOV_HIOMR2_13.4.2_VALIDATION_REPORT.html	Self-contained technical report
+Canonical report artifact	s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/TAKE101_HG002_NA23687_FULLCOV_HIOMR2_13.4.2_VALIDATION_REPORT.artifact.json	Canonical source artifact packaged into the HTML report
+Final MultiQC	s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc.html	Final two-sample MultiQC HTML; seven-day signed share generated after export
+Final MultiQC data	s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json	Machine-readable MultiQC evidence
+Benchmark summary	s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/reports/benchmarks_summary.tsv	Combined task-level benchmark data
+Evidence manifest	s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/reports/dayoa_evidence_manifest.json	DayOA final evidence manifest
+HG002 Inflection package	s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/take101/HG002-ck2ky6p4wk6exh/	HG002 37-artifact analytical package
+NA23687 Inflection package	s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/take101/NA23687-zsvw0fa30jhz3n/	NA23687 37-artifact analytical package
