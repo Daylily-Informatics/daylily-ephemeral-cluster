@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.4.3"
+DAYOA_BLESSED_TAG = "13.4.5"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -760,7 +760,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     package_inflection = catalog.get_command("package_inflection_hybrid_data")
     assert package_inflection.type == "dev"
-    assert package_inflection.validated_version == "13.4.3"
+    assert package_inflection.validated_version == "13.4.5"
     assert package_inflection.git_tag == DAYOA_BLESSED_TAG
     assert package_inflection.input_contract == "six_manifest"
     assert package_inflection.targets == ["produce_inflection_delivery_set"]
@@ -790,11 +790,12 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "produce_sentdhiomr2_nicu_research",
         "produce_sentdhiomr2_jasmine_sharded_per_sample",
         "produce_sentdhiomr2_inflection_analytical_package",
+        "produce_sentdhiomr2_segdup_smn12_multiqc",
         "results/day/hg38/reports/DAY_final_multiqc.html",
     ]
     assert inflection_bjuice.targets != hiomr2_analytical.targets
-    assert inflection_bjuice.jobs == 333
-    assert inflection_bjuice.restart_times == 0
+    assert inflection_bjuice.jobs == 444
+    assert inflection_bjuice.restart_times == 1
     assert inflection_bjuice.aligners == ["sentmm2ont"]
     assert inflection_bjuice.dedupers == ["na"]
     assert inflection_bjuice.snv_callers == ["sentdhiomr2"]
@@ -805,6 +806,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert inflection_bjuice.dy_command != hiomr2_analytical.dy_command
     assert "produce_sentdhiomr2_kitchensink" in inflection_bjuice.dy_command
     assert "produce_sentdhiomr2_inflection_analytical_package" in inflection_bjuice.dy_command
+    assert "produce_sentdhiomr2_segdup_smn12_multiqc" in inflection_bjuice.dy_command
     assert "SEQONE_DELIVERY_BATCH_ID:?" in inflection_bjuice.dy_command
     assert "hiomr2_inflection_package_mode=analytical" in inflection_bjuice.dy_command
     assert "use_fq_data_starting_hrs=0" in inflection_bjuice.dy_command
@@ -813,7 +815,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert 'aligners=["sentmm2ont"]' in inflection_bjuice.dy_command
     assert 'dedupers=["na"]' in inflection_bjuice.dy_command
     assert 'snv_callers=["sentdhiomr2"]' in inflection_bjuice.dy_command
-    assert " -j 333 -T 0 -p -k " in inflection_bjuice.dy_command
+    assert " -j 444 -T 1 -p -k " in inflection_bjuice.dy_command
     assert inflection_bjuice.genome == "hg38"
     assert inflection_bjuice.dryrun_dy_command == f"{inflection_bjuice.dy_command} -n"
 
@@ -955,7 +957,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "run_context_only=true" in ont_dy_command
 
     ultima = catalog.get_command("ultima_run_qc")
-    assert ultima.validated_version == "13.4.3"
+    assert ultima.validated_version == "13.4.5"
     assert ultima.git_tag == DAYOA_BLESSED_TAG
     assert ultima.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
