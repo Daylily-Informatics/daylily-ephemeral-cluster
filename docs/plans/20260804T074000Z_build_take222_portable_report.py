@@ -60,6 +60,42 @@ for row in giab:
     row["precision_exact"] = f"P={float(row['precision']):.9f}"
     row["recall_exact"] = f"R={float(row['recall']):.9f}"
 smn = read_tsv("take222_smn12_results.tsv")
+smn_callers = read_tsv("take222_smn12_calls_by_caller.tsv")
+smn_callers_display = [
+    {
+        **row,
+        "caller_short": "SMNCNC" if row["caller"] == "SMNCopyNumberCaller" else "Sentieon SMN1",
+        "smn1_display": "not emitted" if row["smn1_cn"] == "NA_NOT_EMITTED" else row["smn1_cn"],
+        "smn2_display": "not emitted" if row["smn2_cn"] == "NA_NOT_EMITTED" else row["smn2_cn"],
+        "delta78_display": "not emitted" if row["smn2delta78_cn"] == "NA_NOT_EMITTED" else row["smn2delta78_cn"],
+    }
+    for row in smn_callers
+]
+truvari_long = read_tsv("take222_truvari_results_by_caller.tsv")
+truvari_source_raw = read_tsv("take222_truvari_source_caller_matrix.tsv")
+truvari_merger_raw = read_tsv("take222_truvari_merger_query_matrix.tsv")
+truvari_source = [
+    {
+        "sample": row["sample"],
+        "manta": row["Manta"],
+        "dysgu": row["Dysgu"],
+        "tiddit": row["TIDDIT"],
+        "longreadsv": row["LongReadSV"],
+        "sniffles2": row["Sniffles2"],
+        "severus": row["Severus"],
+    }
+    for row in truvari_source_raw
+]
+truvari_merger = [
+    {
+        "sample": row["sample"],
+        "jasmine": row["Jasmine"],
+        "survivor": row["SURVIVOR"],
+        "octopusv": row["OctopuSV"],
+        "public_gate": row["HIOMR2 public HG002 gate"],
+    }
+    for row in truvari_merger_raw
+]
 runtime = read_tsv("take222_runtime_per_sample.tsv")
 runtime_samples = [row for row in runtime if row["sample"] != "shared_or_global"]
 runtime_rules = read_tsv("take222_runtime_by_rule.tsv")[:20]
@@ -124,9 +160,13 @@ sources = [
     source("coverage", "Final Take222 MultiQC coverage and fragment metrics", "take222_sample_coverage_fragment_stats.tsv", "Reviewed AlignStats and Samtools metrics for duplicate-marked Illumina and retained ONT [0,25) alignments."),
     source("giab", "RTG vcfeval GIAB high-confidence results", "take222_giabhc_snv_results.tsv", "All final hard-VCF and CLI-gVCF RTG rows for ROI=giabHC.", ["ROI = giabHC", "HG003 and HG004 configured truth only"]),
     source("smn", "Orthogonal SMN1/2 caller rollup", "take222_smn12_results.tsv", "Sentieon regional SMN1 and SMNCopyNumberCaller copy-number results without conflating caller roles."),
+    source("smn_callers", "Per-sample SMN12 calls by caller", "take222_smn12_calls_by_caller.tsv", "Eight explicit sample/caller rows: numeric SMNCopyNumberCaller calls and Sentieon regional SMN1 VCF completion without inferred copy numbers."),
     source("runtime", "Per-sample benchmark aggregation", "take222_runtime_per_sample.tsv", "Sample-scoped task-wall sums, benchmark spans, allocated vCPU-hours, task cost, and longest rules.", ["Benchmark rows only", "Controller/queue/startup time excluded"]),
     source("runtime_rules", "Runtime aggregation by rule", "take222_runtime_by_rule.tsv", "Aggregate rule-level task wall time, allocated vCPU-hours, observed CPU, and task cost."),
     source("nicu", "NICU research summary", "take222_nicu_summary.tsv", "Merged-call support, topology, CNV-SV comparison, recoverability, and explicit Truvari applicability status."),
+    source("truvari_long", "Truvari results and gaps by sample and caller", "take222_truvari_results_by_caller.tsv", "Forty explicit sample/query rows that distinguish warning/not-applicable receipts from callers for which no per-caller Truvari artifact was produced."),
+    source("truvari_source", "Truvari source-caller matrix", "take222_truvari_source_caller_matrix.tsv", "Compact per-sample matrix for Manta, Dysgu, TIDDIT, LongReadSV, Sniffles2, and Severus."),
+    source("truvari_merger", "Truvari merger and public-gate matrix", "take222_truvari_merger_query_matrix.tsv", "Compact per-sample matrix for Jasmine, SURVIVOR, OctopuSV, and the public HIOMR2 HG002 gate."),
     source("direct_sv", "Direct TIDDIT and Sniffles2 output counts", "take222_direct_sv_counts.tsv", "Per-sample SV type and record counts surfaced in final MultiQC."),
     source("packages", "Inflection analytical package summary", "take222_inflection_package_summary.tsv", "One schema-1.3 analytical package per sample with tier counts, bytes, and release eligibility."),
     source("package_roles", "Inflection artifact-role catalog", "take222_inflection_artifact_roles.tsv", "Deduplicated established and experimental artifact roles across four package manifests."),
@@ -215,10 +255,13 @@ tables = [
     {"id": "coverage_table", "title": "Coverage and fragment metrics", "dataset": "coverage", "sourceId": "coverage", "defaultSort": {"field": "sample", "direction": "asc"}, "columns": columns(("sample", "Sample"), ("modality", "Modality"), ("mean_coverage_x", "Mean coverage"), ("median_coverage_x", "Median coverage"), ("bases_30x_pct", "Bases >=30x, %"), ("mapped_reads_pct", "Mapped, %"), ("duplicate_reads_pct", "Duplicates, %"), ("insert_size_median_bp", "Insert median, bp"), ("insert_size_mean_bp", "Insert mean, bp"))},
     {"id": "giab_table", "title": "GIAB HC hard-VCF concordance", "dataset": "giab", "sourceId": "giab", "defaultSort": {"field": "sample", "direction": "asc"}, "columns": columns(("sample", "Sample"), ("variant_class", "Class"), ("f_score_exact", "F-score"), ("precision_exact", "Precision"), ("recall_exact", "Recall"), ("tp", "TP"), ("fp", "FP"), ("fn", "FN"))},
     {"id": "smn_table", "title": "SMN1/2 orthogonal caller results", "dataset": "smn", "sourceId": "smn", "defaultSort": {"field": "sample", "direction": "asc"}, "columns": columns(("sample", "Sample"), ("smn_copynumbercaller_smn1_cn", "SMNCNC SMN1 CN"), ("smn_copynumbercaller_smn2_cn", "SMNCNC SMN2 CN"), ("sentieon_status", "Sentieon regional status"), ("sentieon_smn1_cn", "Sentieon SMN1 CN"), ("overall_concordance", "Truth concordance"), ("discordance_flag", "Rollup flag"))},
+    {"id": "smn_callers_table", "title": "SMN12 calls by sample and caller", "dataset": "smn_callers_display", "sourceId": "smn_callers", "defaultSort": {"field": "sample", "direction": "asc"}, "columns": columns(("sample", "Sample"), ("caller_short", "Caller"), ("smn1_display", "SMN1 CN"), ("smn2_display", "SMN2 CN"), ("delta78_display", "SMN2 delta78"), ("full_length_cn_raw", "Raw full-length CN"), ("total_cn_raw", "Raw total CN"))},
     {"id": "runtime_table", "title": "Per-sample benchmark runtime and cost", "dataset": "runtime_samples", "sourceId": "runtime", "defaultSort": {"field": "task_wall_hours_sum", "direction": "asc"}, "columns": columns(("sample", "Sample"), ("benchmark_span_hours", "Benchmark span, h"), ("task_wall_hours_sum", "Task-wall sum, h"), ("allocated_vcpu_hours", "Allocated vCPU-h"), ("task_cost_usd", "Task cost, USD"), ("longest_task_rule", "Longest rule"), ("longest_task_hours", "Longest task, h"))},
     {"id": "runtime_rules_table", "title": "Largest aggregate runtime contributors", "dataset": "runtime_rules", "sourceId": "runtime_rules", "defaultSort": {"field": "task_wall_hours_sum", "direction": "desc"}, "columns": columns(("rule", "Rule"), ("rows", "Rows"), ("task_wall_hours_sum", "Task-wall sum, h"), ("allocated_vcpu_hours", "Allocated vCPU-h"), ("observed_cpu_hours", "Observed CPU-h"), ("task_cost_usd", "Task cost, USD"))},
     {"id": "nicu_table", "title": "NICU merger, topology, and applicability summary", "dataset": "nicu", "sourceId": "nicu", "defaultSort": {"field": "sample", "direction": "asc"}, "columns": columns(("sample", "Sample"), ("jasmine_records", "Jasmine records"), ("jasmine_dysgu_supported", "Dysgu-supported"), ("jasmine_manta_supported", "Manta-supported"), ("cnv_50pct_reciprocal_matches", "CNV-SV matches"), ("bnd_topology_valid", "BND topology"), ("truvari_status", "Truvari"))},
     {"id": "direct_sv_table", "title": "Direct Sniffles2 and TIDDIT output counts", "dataset": "direct_sv", "sourceId": "direct_sv", "defaultSort": {"field": "sample", "direction": "asc"}, "columns": columns(("sample", "Sample"), ("caller", "Caller"), ("total_records", "Records"), ("DEL", "DEL"), ("INS", "INS"), ("INV", "INV"), ("BND", "BND"), ("other", "Other"))},
+    {"id": "truvari_source_table", "title": "Truvari coverage: source callers by sample", "dataset": "truvari_source", "sourceId": "truvari_source", "defaultSort": {"field": "sample", "direction": "asc"}, "columns": columns(("sample", "Sample"), ("manta", "Manta"), ("dysgu", "Dysgu"), ("tiddit", "TIDDIT"), ("longreadsv", "LongReadSV"), ("sniffles2", "Sniffles2"), ("severus", "Severus"))},
+    {"id": "truvari_merger_table", "title": "Truvari coverage: mergers and public gate by sample", "dataset": "truvari_merger", "sourceId": "truvari_merger", "defaultSort": {"field": "sample", "direction": "asc"}, "columns": columns(("sample", "Sample"), ("jasmine", "Jasmine"), ("survivor", "SURVIVOR"), ("octopusv", "OctopuSV"), ("public_gate", "Public HG002 gate"))},
     {"id": "packages_table", "title": "Inflection analytical packages", "dataset": "packages", "sourceId": "packages", "defaultSort": {"field": "sample", "direction": "asc"}, "columns": columns(("sample", "Sample"), ("artifact_count", "Artifacts"), ("established_artifacts", "Established"), ("experimental_artifacts", "Experimental"), ("declared_bytes", "Declared bytes"), ("package_mode", "Mode"), ("customer_release_eligible", "Release eligible"))},
     {"id": "package_roles_table", "title": "Inflection artifact-role catalog", "dataset": "package_roles", "sourceId": "package_roles", "defaultSort": {"field": "package_tier", "direction": "asc"}, "columns": columns(("package_tier", "Tier"), ("role", "Role"), ("semantic_type", "Type"), ("sample_occurrences", "Sample occurrences"))},
     {"id": "inventory_table", "title": "Complete output inventory by conservative file family", "dataset": "inventory", "sourceId": "inventory", "defaultSort": {"field": "bytes", "direction": "desc"}, "columns": columns(("category", "Family"), ("file_count", "Files"), ("gigabytes", "GB"), ("bytes", "Bytes"))},
@@ -235,9 +278,14 @@ blocks = [
     {"id": "giab_table_block", "type": "table", "tableId": "giab_table"},
     {"id": "smn_intro", "type": "markdown", "sourceId": "smn", "body": "## SMN1/2 positive-control evidence\n\nSMNCopyNumberCaller reports HG003 2/2, HG004 2/2, NA19235 4/0, and NA20775 3/1. Sentieon's regional SMN1 output completed, but the rollup does not expose numeric copy-number fields. Expected truth CNs are not configured, so no formal concordance result is asserted."},
     {"id": "smn_table_block", "type": "table", "tableId": "smn_table"},
+    {"id": "smn_callers_detail", "type": "markdown", "sourceId": "smn_callers", "body": "### Per-sample, per-caller SMN12 detail\n\nSMNCopyNumberCaller emits numeric SMN1/SMN2 copy numbers and supporting depth/raw-CN fields. Sentieon SegDup completed a regional SMN1 VCF for each sample, but numeric CN fields are not emitted in the captured rollup and are shown as `NA_NOT_EMITTED`, not inferred. Expected truth CN is `NOT_CONFIGURED` for both caller roles."},
+    {"id": "smn_callers_table_block", "type": "table", "tableId": "smn_callers_table"},
     {"id": "sv_intro", "type": "markdown", "sourceId": "nicu", "body": "## Mega/NICU structural-variant lane\n\nThe research stack includes Manta, Dysgu, Severus, TIDDIT, Sniffles2, LongReadSV, Jasmine, SURVIVOR, and OctopuSV plus exact provenance/comparison artifacts. All four BND topology checks pass. Jasmine produces 234.5k–251.1k union/merge records per sample; these counts are not validated germline event counts. All four Truvari lanes are explicit WARNING receipts with no fabricated metrics because GIAB SV truth is HG002-only."},
     {"id": "nicu_table_block", "type": "table", "tableId": "nicu_table"},
     {"id": "direct_sv_table_block", "type": "table", "tableId": "direct_sv_table"},
+    {"id": "truvari_detail", "type": "markdown", "sourceId": "truvari_long", "body": "### Truvari results by sample and caller\n\nJasmine is the only NICU merger with a sample-specific Truvari receipt. Every HG003, HG004, NA19235, and NA20775 receipt is warning/not-applicable because the configured GIAB SV truth is HG002-only: no command was attempted and precision, recall, F1, TP, FP, and FN are all `NA`. The public aggregate gate records the same limitation. The six source callers plus SURVIVOR and OctopuSV produced analytical callsets but no per-caller Truvari artifact; `No per-caller artifact` is not a zero score or failed benchmark. The long-form 40-row audit preserves each receipt and gap."},
+    {"id": "truvari_source_table_block", "type": "table", "tableId": "truvari_source_table"},
+    {"id": "truvari_merger_table_block", "type": "table", "tableId": "truvari_merger_table"},
     {"id": "review_intro", "type": "markdown", "sourceId": "review_tags", "body": "## Scoped-VCF review treatments\n\nConfirmed records are 79.66–79.76% per sample. The largest review queues are Unconfirmed, AlleleBalance, and LowCoverage. These labels guide evidence review and are not clinical classifications."},
     {"id": "review_chart_block", "type": "chart", "chartId": "review_chart"},
     {"id": "package_intro", "type": "markdown", "sourceId": "packages", "body": "## Inflection analytical dataset\n\nEach schema-1.3 package has 37 artifacts: 9 established and 28 experimental. The four packages total 86.10 GB. Established outputs are the scoped VCF/index, CNVscope VCF/index, LongReadSV VCF/index, short-read CRAM/CRAI, and command manifest. Experimental outputs add the realigned CRAM, normalized callers, three mergers, BEDPE, support/concordance tables, topology/CNV-SV evidence, warning-only Truvari artifacts, and research provenance. All packages are nonclinical and not customer-release eligible."},
@@ -277,10 +325,15 @@ snapshot = {
         "giab": giab,
         "giab_chart": giab_chart,
         "smn": smn,
+        "smn_callers": smn_callers,
+        "smn_callers_display": smn_callers_display,
         "runtime_samples": runtime_samples,
         "runtime_chart": runtime_chart,
         "runtime_rules": runtime_rules,
         "nicu": nicu,
+        "truvari_long": truvari_long,
+        "truvari_source": truvari_source,
+        "truvari_merger": truvari_merger,
         "direct_sv": direct_sv,
         "packages": packages,
         "package_roles": package_roles,

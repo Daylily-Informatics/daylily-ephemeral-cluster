@@ -14,6 +14,7 @@ OUTPUT = Path("/Users/jmajor/Downloads/dyec-dayao-pipe-runtime-artifacts")
 SOURCE = OUTPUT / "source-data"
 MQC = SOURCE / "take222_multiqc_extract.json"
 PACKAGES = SOURCE / "take222_inflection_package_manifests.json"
+SELECTED = SOURCE / "selected_artifacts"
 
 
 def write_tsv(path: Path, rows: list[dict[str, object]], fields: list[str]) -> None:
@@ -136,6 +137,286 @@ write_tsv(
         "overall_concordance",
         "discordance_flag",
     ],
+)
+
+# Per-sample, per-caller SMN1/2 call detail. SMNCopyNumberCaller emits numeric
+# SMN1/SMN2 copy numbers. Sentieon SegDup emits a regional SMN1 VCF but the
+# captured rollup does not expose a numeric copy-number call; preserve that
+# distinction explicitly instead of coercing the completed VCF into a CN.
+smn_by_sample = {
+    str(row.get("SampleID", "")): row
+    for row in raw["multiqc_smn12_orthogonal_calls"].values()
+}
+smn_caller_rows: list[dict[str, object]] = []
+smn_json_paths = sorted(
+    SELECTED.glob("*/align/sentdhiomr2sr/smd/htd/smn12/*.summary.json")
+)
+for path in smn_json_paths:
+    analysis_unit_uid = path.relative_to(SELECTED).parts[0]
+    sample = base_sample(analysis_unit_uid)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if len(payload) != 1:
+        raise ValueError(f"expected one SMN12 record in {path}, found {len(payload)}")
+    call = next(iter(payload.values()))
+    rollup = smn_by_sample[sample]
+    smn_caller_rows.append(
+        {
+            "sample": sample,
+            "caller": "SMNCopyNumberCaller",
+            "caller_scope": "SMN1/SMN2 copy number",
+            "status": rollup.get("smncopynumbercaller_status", ""),
+            "smn1_cn": call.get("SMN1", ""),
+            "smn2_cn": call.get("SMN2", ""),
+            "smn2delta78_cn": call.get("SMN2delta78", ""),
+            "full_length_cn_raw": call.get("Full_length_CN_raw", ""),
+            "total_cn_raw": call.get("Total_CN_raw", ""),
+            "median_depth": call.get("Median_depth", ""),
+            "coverage_mad": call.get("Coverage_MAD", ""),
+            "carrier": call.get("isCarrier", ""),
+            "sma_affected": call.get("isSMA", ""),
+            "call_info": call.get("Info", ""),
+            "g27134tg_cn": call.get("g27134TG_CN", ""),
+            "expected_concordance": rollup.get(
+                "smncopynumbercaller_expected_concordance", ""
+            ),
+            "primary_result": rollup.get(
+                "smncopynumbercaller_primary_path", ""
+            ),
+            "interpretation": "numeric SMN1/SMN2 copy-number call",
+        }
+    )
+    smn_caller_rows.append(
+        {
+            "sample": sample,
+            "caller": "Sentieon SegDup SMN1",
+            "caller_scope": "SMN1 regional variant VCF",
+            "status": rollup.get("sentieon_status", ""),
+            "smn1_cn": "NA_NOT_EMITTED",
+            "smn2_cn": "NA_NOT_EMITTED",
+            "smn2delta78_cn": "NA_NOT_EMITTED",
+            "full_length_cn_raw": "",
+            "total_cn_raw": "",
+            "median_depth": "",
+            "coverage_mad": "",
+            "carrier": "",
+            "sma_affected": "",
+            "call_info": "regional VCF complete",
+            "g27134tg_cn": "",
+            "expected_concordance": rollup.get(
+                "sentieon_expected_concordance", ""
+            ),
+            "primary_result": rollup.get("sentieon_primary_path", ""),
+            "interpretation": "variant-level SMN1 output; no numeric CN in rollup",
+        }
+    )
+smn_caller_rows.sort(key=lambda row: (str(row["sample"]), str(row["caller"])))
+write_tsv(
+    OUTPUT / "take222_smn12_calls_by_caller.tsv",
+    smn_caller_rows,
+    [
+        "sample",
+        "caller",
+        "caller_scope",
+        "status",
+        "smn1_cn",
+        "smn2_cn",
+        "smn2delta78_cn",
+        "full_length_cn_raw",
+        "total_cn_raw",
+        "median_depth",
+        "coverage_mad",
+        "carrier",
+        "sma_affected",
+        "call_info",
+        "g27134tg_cn",
+        "expected_concordance",
+        "primary_result",
+        "interpretation",
+    ],
+)
+
+# Per-sample coverage matrix for every NICU source caller and merger. Take222
+# emits an explicit Truvari receipt only for the NICU Jasmine merged callset.
+# The remaining callers/mergers are recorded as not produced, not as zero-score
+# benchmarks. The separate public HIOMR2 HG002 validation gate is also carried
+# as a query row because it is present in the completed output tree.
+truvari_entities = (
+    ("Manta", "source caller"),
+    ("Dysgu", "source caller"),
+    ("TIDDIT", "source caller"),
+    ("LongReadSV", "source caller"),
+    ("Sniffles2", "source caller"),
+    ("Severus", "source caller"),
+    ("Jasmine", "merger"),
+    ("SURVIVOR", "merger"),
+    ("OctopuSV", "merger"),
+)
+truvari_rows: list[dict[str, object]] = []
+for sample in sorted({row["sample"] for row in smn_rows}):
+    receipt_paths = list(
+        SELECTED.glob(
+            f"{sample}-*/align/sentmm2ont/na/snv/sentdhiomr2/"
+            "nicu-research/benchmarks/*.truvari.terminal_receipt.json"
+        )
+    )
+    if len(receipt_paths) != 1:
+        raise ValueError(
+            f"expected one NICU Truvari receipt for {sample}, found {len(receipt_paths)}"
+        )
+    receipt = json.loads(receipt_paths[0].read_text(encoding="utf-8"))
+    for caller, role in truvari_entities:
+        if caller == "Jasmine":
+            status = "WARNING_NOT_APPLICABLE"
+            artifact_present = True
+            applicable = receipt.get("applicability", {}).get("applicable", "")
+            reason_code = receipt.get("applicability", {}).get("reason_code", "")
+            query_name = receipt.get("query_name", "")
+            query_vcf_sha256 = receipt.get("query_vcf_sha256", "")
+            note = "No HG002 analysis unit; no command attempted and no metrics emitted"
+        else:
+            status = "NO_PER_CALLER_TRUVARI_ARTIFACT"
+            artifact_present = False
+            applicable = "NOT_EVALUATED"
+            reason_code = "TAKE222_NO_PER_CALLER_TRUVARI"
+            query_name = ""
+            query_vcf_sha256 = ""
+            note = "Analytical callset exists, but Take222 produced no caller-specific Truvari result"
+        truvari_rows.append(
+            {
+                "sample": sample,
+                "caller_or_query": caller,
+                "callset_role": role,
+                "artifact_present": artifact_present,
+                "benchmark_status": status,
+                "applicable": applicable,
+                "truth_scope": "HG002 only",
+                "query_name": query_name,
+                "tp_base": "NA",
+                "tp_comp": "NA",
+                "fp": "NA",
+                "fn": "NA",
+                "precision": "NA",
+                "recall": "NA",
+                "f1": "NA",
+                "reason_code": reason_code,
+                "attempted_command": False,
+                "query_vcf_sha256": query_vcf_sha256,
+                "note": note,
+            }
+        )
+
+aggregate_receipt = json.loads(
+    (
+        SELECTED
+        / "benchmarks"
+        / "truvari"
+        / "hiomr2_hg002"
+        / "aggregate"
+        / "terminal_receipt.json"
+    ).read_text(encoding="utf-8")
+)
+for row in aggregate_receipt.get("rows", []):
+    truvari_rows.append(
+        {
+            "sample": row.get("SampleID", ""),
+            "caller_or_query": "HIOMR2 public HG002 gate",
+            "callset_role": "aggregate validation query",
+            "artifact_present": True,
+            "benchmark_status": "WARNING_NOT_APPLICABLE",
+            "applicable": False,
+            "truth_scope": row.get("truth_scope", "HG002_only"),
+            "query_name": row.get("query", ""),
+            "tp_base": "NA",
+            "tp_comp": "NA",
+            "fp": "NA",
+            "fn": "NA",
+            "precision": "NA",
+            "recall": "NA",
+            "f1": "NA",
+            "reason_code": aggregate_receipt.get("warning", {}).get("code", ""),
+            "attempted_command": False,
+            "query_vcf_sha256": "",
+            "note": aggregate_receipt.get("warning", {}).get("message", ""),
+        }
+    )
+truvari_rows.sort(
+    key=lambda row: (str(row["sample"]), str(row["callset_role"]), str(row["caller_or_query"]))
+)
+write_tsv(
+    OUTPUT / "take222_truvari_results_by_caller.tsv",
+    truvari_rows,
+    [
+        "sample",
+        "caller_or_query",
+        "callset_role",
+        "artifact_present",
+        "benchmark_status",
+        "applicable",
+        "truth_scope",
+        "query_name",
+        "tp_base",
+        "tp_comp",
+        "fp",
+        "fn",
+        "precision",
+        "recall",
+        "f1",
+        "reason_code",
+        "attempted_command",
+        "query_vcf_sha256",
+        "note",
+    ],
+)
+
+# Two compact matrices keep the per-sample/per-caller audit readable in the
+# portable HTML/PDF while the long-form TSV above preserves every receipt
+# field. "No artifact" is deliberately distinct from an evaluated zero.
+truvari_by_sample = {
+    sample: {
+        str(row["caller_or_query"]): row
+        for row in truvari_rows
+        if row["sample"] == sample
+    }
+    for sample in sorted({str(row["sample"]) for row in truvari_rows})
+}
+
+
+def compact_truvari_status(row: dict[str, object]) -> str:
+    if row["benchmark_status"] == "WARNING_NOT_APPLICABLE":
+        return "Warning: no HG002"
+    return "No artifact"
+
+
+source_matrix_rows = []
+merger_matrix_rows = []
+for sample, sample_rows in truvari_by_sample.items():
+    source_matrix_rows.append(
+        {
+            "sample": sample,
+            **{
+                caller: compact_truvari_status(sample_rows[caller])
+                for caller in ("Manta", "Dysgu", "TIDDIT", "LongReadSV", "Sniffles2", "Severus")
+            },
+        }
+    )
+    merger_matrix_rows.append(
+        {
+            "sample": sample,
+            **{
+                caller: compact_truvari_status(sample_rows[caller])
+                for caller in ("Jasmine", "SURVIVOR", "OctopuSV", "HIOMR2 public HG002 gate")
+            },
+        }
+    )
+write_tsv(
+    OUTPUT / "take222_truvari_source_caller_matrix.tsv",
+    source_matrix_rows,
+    ["sample", "Manta", "Dysgu", "TIDDIT", "LongReadSV", "Sniffles2", "Severus"],
+)
+write_tsv(
+    OUTPUT / "take222_truvari_merger_query_matrix.tsv",
+    merger_matrix_rows,
+    ["sample", "Jasmine", "SURVIVOR", "OctopuSV", "HIOMR2 public HG002 gate"],
 )
 
 # Sample-scoped benchmark totals and top rules. The totals are task-walltime
