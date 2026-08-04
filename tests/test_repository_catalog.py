@@ -787,10 +787,14 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert inflection_bjuice.test_data_profile == "none"
     assert inflection_bjuice.targets == [
         "produce_sentdhiomr2_kitchensink",
+        "produce_sentdhiomr2_nicu_research",
+        "produce_sentdhiomr2_jasmine_sharded_per_sample",
         "produce_sentdhiomr2_inflection_analytical_package",
+        "results/day/hg38/reports/DAY_final_multiqc.html",
     ]
-    assert inflection_bjuice.targets == hiomr2_analytical.targets
-    assert inflection_bjuice.jobs == 200
+    assert inflection_bjuice.targets != hiomr2_analytical.targets
+    assert inflection_bjuice.jobs == 333
+    assert inflection_bjuice.restart_times == 0
     assert inflection_bjuice.aligners == ["sentmm2ont"]
     assert inflection_bjuice.dedupers == ["na"]
     assert inflection_bjuice.snv_callers == ["sentdhiomr2"]
@@ -809,9 +813,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert 'aligners=["sentmm2ont"]' in inflection_bjuice.dy_command
     assert 'dedupers=["na"]' in inflection_bjuice.dy_command
     assert 'snv_callers=["sentdhiomr2"]' in inflection_bjuice.dy_command
-    assert " -p -T 0 -k -j 200 " in inflection_bjuice.dy_command
+    assert " -j 333 -T 0 -p -k " in inflection_bjuice.dy_command
     assert inflection_bjuice.genome == "hg38"
-    assert inflection_bjuice.dryrun_dy_command.endswith(" -n")
+    assert inflection_bjuice.dryrun_dy_command == f"{inflection_bjuice.dy_command} -n"
 
     simple_test = catalog.get_command("simple-test")
     assert simple_test.command_class == "utility"

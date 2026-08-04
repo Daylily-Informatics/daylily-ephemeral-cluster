@@ -293,10 +293,17 @@ def test_inflection_v02_is_a_literal_hiomr2_analytical_contract() -> None:
     assert command.input_requirements.required_source_columns == []
     assert command.targets == [
         "produce_sentdhiomr2_kitchensink",
+        "produce_sentdhiomr2_nicu_research",
+        "produce_sentdhiomr2_jasmine_sharded_per_sample",
         "produce_sentdhiomr2_inflection_analytical_package",
+        "results/day/hg38/reports/DAY_final_multiqc.html",
     ]
     assert "SEQONE_DELIVERY_BATCH_ID:?" in command.dy_command
     assert "hiomr2_inflection_package_mode=analytical" in command.dy_command
+    assert " -j 333 -T 0 -p -k " in command.dy_command
+    assert command.jobs == 333
+    assert command.restart_times == 0
+    assert command.dryrun_dy_command == f"{command.dy_command} -n"
     assert "produce_inflection_delivery_set" not in command.dy_command
     with pytest.raises(KeyError):
         load_repository_catalog(CATALOG).get_command("inflection-bjuice-product-v0.1")
