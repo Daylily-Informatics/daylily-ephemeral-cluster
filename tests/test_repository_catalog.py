@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.4.5"
+DAYOA_BLESSED_TAG = "13.4.6"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -760,7 +760,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     package_inflection = catalog.get_command("package_inflection_hybrid_data")
     assert package_inflection.type == "dev"
-    assert package_inflection.validated_version == "13.4.5"
+    assert package_inflection.validated_version == "13.4.6"
     assert package_inflection.git_tag == DAYOA_BLESSED_TAG
     assert package_inflection.input_contract == "six_manifest"
     assert package_inflection.targets == ["produce_inflection_delivery_set"]
@@ -957,7 +957,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "run_context_only=true" in ont_dy_command
 
     ultima = catalog.get_command("ultima_run_qc")
-    assert ultima.validated_version == "13.4.5"
+    assert ultima.validated_version == "13.4.6"
     assert ultima.git_tag == DAYOA_BLESSED_TAG
     assert ultima.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
