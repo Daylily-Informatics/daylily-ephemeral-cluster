@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.4.6"
+DAYOA_BLESSED_TAG = "13.4.7"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -760,18 +760,23 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     package_inflection = catalog.get_command("package_inflection_hybrid_data")
     assert package_inflection.type == "dev"
-    assert package_inflection.validated_version == "13.4.6"
+    assert package_inflection.validated_version == "13.4.7"
     assert package_inflection.git_tag == DAYOA_BLESSED_TAG
     assert package_inflection.input_contract == "six_manifest"
-    assert package_inflection.targets == ["produce_inflection_delivery_set"]
+    assert package_inflection.targets == ["produce_sentdhiomr2_inflection_seqone_v2"]
     assert package_inflection.jobs == 400
     assert package_inflection.keep_going is True
     assert package_inflection.restart_times == 0
     assert package_inflection.aligners == ["sentmm2ont"]
     assert package_inflection.dedupers == ["na"]
-    assert package_inflection.snv_callers == ["sentdhiomr"]
-    assert package_inflection.sv_callers == ["tiddit"]
-    assert package_inflection.dy_command.startswith("dy-r produce_inflection_delivery_set")
+    assert package_inflection.snv_callers == ["sentdhiomr2"]
+    assert package_inflection.sv_callers == []
+    assert package_inflection.return_results is False
+    assert package_inflection.dy_command.startswith(
+        "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_inflection_seqone_v2"
+    )
+    assert "HIOMR2_SEQONE_V2_CONFIG_FILE:?" in package_inflection.dy_command
+    assert "hiomr2_inflection_package_mode=seqone_v2" in package_inflection.dy_command
     assert package_inflection.dryrun_dy_command == f"{package_inflection.dy_command} -n"
     assert "produce_hiomrs" not in package_inflection.targets
     assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
@@ -789,7 +794,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "produce_sentdhiomr2_kitchensink",
         "produce_sentdhiomr2_nicu_research",
         "produce_sentdhiomr2_jasmine_sharded_per_sample",
-        "produce_sentdhiomr2_inflection_analytical_package",
+        "produce_sentdhiomr2_inflection_seqone_v2",
         "produce_sentdhiomr2_segdup_smn12_multiqc",
         "results/day/hg38/reports/DAY_final_multiqc.html",
     ]
@@ -805,10 +810,13 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     )
     assert inflection_bjuice.dy_command != hiomr2_analytical.dy_command
     assert "produce_sentdhiomr2_kitchensink" in inflection_bjuice.dy_command
-    assert "produce_sentdhiomr2_inflection_analytical_package" in inflection_bjuice.dy_command
+    assert "produce_sentdhiomr2_inflection_seqone_v2" in inflection_bjuice.dy_command
     assert "produce_sentdhiomr2_segdup_smn12_multiqc" in inflection_bjuice.dy_command
     assert "SEQONE_DELIVERY_BATCH_ID:?" in inflection_bjuice.dy_command
-    assert "hiomr2_inflection_package_mode=analytical" in inflection_bjuice.dy_command
+    assert "hiomr2_inflection_package_mode=seqone_v2" in inflection_bjuice.dy_command
+    assert "HIOMR2_SEQONE_V2_CONFIG_FILE:?" in inflection_bjuice.dy_command
+    assert inflection_bjuice.return_results is False
+    assert hiomr2_analytical.return_results is False
     assert "use_fq_data_starting_hrs=0" in inflection_bjuice.dy_command
     assert "use_fq_data_up_to_hrs=25" in inflection_bjuice.dy_command
     assert "produce_inflection_delivery_set" not in inflection_bjuice.dy_command
@@ -957,7 +965,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "run_context_only=true" in ont_dy_command
 
     ultima = catalog.get_command("ultima_run_qc")
-    assert ultima.validated_version == "13.4.6"
+    assert ultima.validated_version == "13.4.7"
     assert ultima.git_tag == DAYOA_BLESSED_TAG
     assert ultima.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
