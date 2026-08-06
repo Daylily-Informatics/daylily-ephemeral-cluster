@@ -1,0 +1,28 @@
+fsx_export:
+  schema_version: 4
+  status: error
+  phase: detach
+  cluster_name: preval-hiomr2
+  region: us-west-2
+  analysis_dir: preval-hiomr2/remaining-bjuice-1345
+  source_path: /analysis_results/preval-hiomr2/remaining-bjuice-1345/
+  headnode_path: /fsx/analysis_results/preval-hiomr2/remaining-bjuice-1345/
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/remaining-bjuice-1345-final-delete-20260806T143854Z/preval-hiomr2/remaining-bjuice-1345/
+  fsx_root: /fsx/analysis_results/preval-hiomr2/remaining-bjuice-1345/
+  s3_root: s3://lsmc-ssf-sequencing-data/derived/remaining-bjuice-1345-final-delete-20260806T143854Z/preval-hiomr2/remaining-bjuice-1345/
+  dayoa_analysis_root: /fsx/analysis_results/preval-hiomr2/remaining-bjuice-1345/daylily-omics-analysis/
+  dayoa_s3_root: s3://lsmc-ssf-sequencing-data/derived/remaining-bjuice-1345-final-delete-20260806T143854Z/preval-hiomr2/remaining-bjuice-1345/daylily-omics-analysis/
+  detached: true
+  delete_data_in_file_system: true
+  failure_details:
+    message: "FSx export task ended with lifecycle FAILED: {'Message': 'One or more files failed to be exported to the data repository. See FailedCount in Status.'}"
+    task_failure_details:
+      Message: One or more files failed to be exported to the data repository. See FailedCount in Status.
+  fsx_file_system_id: fs-0ce0851156199113a
+  file_system_path: /analysis_results/preval-hiomr2/remaining-bjuice-1345/
+  association_id: dra-094192bdac9b58697
+  lifecycle: AVAILABLE
+  task_id: task-087f0a4c3e4b5f010
+  task_lifecycle: FAILED
+  report_path: s3://lsmc-ssf-sequencing-data/derived/remaining-bjuice-1345-final-delete-20260806T143854Z/preval-hiomr2/remaining-bjuice-1345/_daylily_monitor/fsx-export/20260806T144358Z/export-report/
+  detach_lifecycle: DELETED

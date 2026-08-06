@@ -802,6 +802,11 @@ def run_export_workflow(options: ExportOptions) -> int:
         if record is not None:
             receipt["fsx_export"]["phase"] = "detach"
             try:
+                delete_after_success = bool(
+                    options.delete_data_in_file_system
+                    and rc == 0
+                    and task_payload.get("task_lifecycle") == "SUCCEEDED"
+                )
                 detach_payload = detach_export_dra(
                     association_id=record.association_id,
                     region=options.region,
@@ -810,7 +815,7 @@ def run_export_workflow(options: ExportOptions) -> int:
                     timeout_seconds=options.timeout_seconds,
                     fsx_client=client,
                     allow_absent=True,
-                    delete_data_in_file_system=options.delete_data_in_file_system,
+                    delete_data_in_file_system=delete_after_success,
                 )
                 receipt["fsx_export"].update(detach_payload)
                 receipt["fsx_export"]["detached"] = True

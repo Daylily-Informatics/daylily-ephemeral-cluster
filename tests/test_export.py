@@ -221,6 +221,43 @@ def test_run_export_workflow_writes_provider_neutral_receipt(tmp_path, monkeypat
         assert forbidden not in text
 
 
+def test_run_export_workflow_never_deletes_fsx_after_failed_task(
+    tmp_path, monkeypatch
+) -> None:
+    client = FakeFsxClient(task_lifecycle="FAILED")
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(client),
+    )
+
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/user/run",
+            destination_s3_uri="s3://bucket/root/user/run/",
+            region="us-west-2",
+            profile="profile",
+            output_dir=tmp_path,
+            wait=False,
+            delete_data_in_file_system=True,
+        )
+    )
+
+    assert rc == 1
+    assert client.deleted_association == {
+        "AssociationId": "dra-export",
+        "DeleteDataInFileSystem": False,
+    }
+    receipt = yaml.safe_load(
+        (tmp_path / "fsx_export.yaml").read_text(encoding="utf-8")
+    )["fsx_export"]
+    assert receipt["status"] == "error"
+    assert receipt["task_lifecycle"] == "FAILED"
+    assert receipt["detached"] is True
+    assert receipt["delete_data_in_file_system"] is False
+
+
 def test_exports_transfer_emits_json_receipt_and_preserves_fsx(monkeypatch) -> None:
     from daylily_ec.cli import app
 
