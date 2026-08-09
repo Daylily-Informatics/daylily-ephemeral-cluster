@@ -1,0 +1,3 @@
+SAMPLEID	SAMPLE_EUID	SPECIMEN_ID	SAMPLECLASS	SAMPLE_TYPE	SAMPLEUSE	ORDER_TYPE	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	IDDNA_UID	TRUTH_DATA_DIR	SAMPLE_COMMENT
+HG002	M-BNG-81	HG002	research	gdna	posControl	RESEARCH	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/	true	false	na	HG002		/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/	Bjuice prevalence generated config for HG002; source sample EUID M-BNG-81
+NA23687	M-BNG-TW	NA23687	research	gdna	sample	RESEARCH	na	false	false	na	NA23687		na	Bjuice prevalence generated config for NA23687; source sample EUID M-BNG-TW

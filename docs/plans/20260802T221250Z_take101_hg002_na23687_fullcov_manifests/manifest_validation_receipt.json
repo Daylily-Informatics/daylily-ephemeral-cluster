@@ -1,0 +1,120 @@
+{
+  "dyec_version": "16.1.18.dev2+gbd26bb4c9.d20260802",
+  "generated_at": "2026-08-02T23:04:00.278062+00:00",
+  "identity_status": {
+    "analysis_units": [
+      {
+        "analysis_unit_uid": "TAKE101-HG002-HIOMRS",
+        "customer_release_eligible": false,
+        "missing_identity_fields": [
+          "ANALYSIS_UNIT_EUID",
+          "DELIVERY_EUID"
+        ],
+        "test_identity_fields": []
+      },
+      {
+        "analysis_unit_uid": "TAKE101-NA23687-HIOMRS",
+        "customer_release_eligible": false,
+        "missing_identity_fields": [
+          "ANALYSIS_UNIT_EUID",
+          "DELIVERY_EUID"
+        ],
+        "test_identity_fields": []
+      }
+    ],
+    "analysis_units_total": 2,
+    "customer_release_eligible_units": 0,
+    "fields": {
+      "analysis_units.tsv:ANALYSIS_UNIT_EUID": {
+        "blank": 2,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "analysis_units.tsv:DELIVERY_EUID": {
+        "blank": 2,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "libraries.tsv:LIBRARY_EUID": {
+        "blank": 0,
+        "owner_issued": 4,
+        "test": 0
+      },
+      "samples.tsv:SAMPLE_EUID": {
+        "blank": 0,
+        "owner_issued": 2,
+        "test": 0
+      },
+      "sequencing_inputs.tsv:POOL_TUBE_EUID": {
+        "blank": 8,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "sequencing_inputs.tsv:SEQUENCING_RUN_EUID": {
+        "blank": 0,
+        "owner_issued": 8,
+        "test": 0
+      },
+      "sequencing_inputs.tsv:SOURCE_ARTIFACT_EUID": {
+        "blank": 8,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "specimens.tsv:SPECIMEN_EUID": {
+        "blank": 0,
+        "owner_issued": 2,
+        "test": 0
+      }
+    }
+  },
+  "inputs": {
+    "analysis_unit_inputs.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260802T221250Z_take101_hg002_na23687_fullcov_manifests/analysis_unit_inputs.tsv",
+      "rows": 8,
+      "sha256": "2ffd5038920b40d05b5766518b6a069985de85d53ad1287cef7a3ab57949b1eb"
+    },
+    "analysis_units.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260802T221250Z_take101_hg002_na23687_fullcov_manifests/analysis_units.tsv",
+      "rows": 2,
+      "sha256": "a709bca2cd36252d4df3f12bc921196c52de0dd368d92547c0a68204e7941620"
+    },
+    "libraries.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260802T221250Z_take101_hg002_na23687_fullcov_manifests/libraries.tsv",
+      "rows": 4,
+      "sha256": "4e835d2f80eb69a54f82cc8c4cefe1dbd97639116038295514ac728e7830768a"
+    },
+    "samples.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260802T221250Z_take101_hg002_na23687_fullcov_manifests/samples.tsv",
+      "rows": 2,
+      "sha256": "b673dba16ec9d28723a99ef492c3307f1ad55c5e20b644e7d7772361b8322f76"
+    },
+    "sequencing_inputs.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260802T221250Z_take101_hg002_na23687_fullcov_manifests/sequencing_inputs.tsv",
+      "rows": 8,
+      "sha256": "b128e3576635c9bc6a545c416ef9cc806fe3228e08aaaecc3269ff34560431ec"
+    },
+    "specimens.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260802T221250Z_take101_hg002_na23687_fullcov_manifests/specimens.tsv",
+      "rows": 2,
+      "sha256": "da22e23cff11bd55f2885a8850993324a1efc927607f3bea7153b7da7db5f6de"
+    }
+  },
+  "invariants": {
+    "foreign_keys_valid": true,
+    "identifiers_created": false,
+    "identifiers_rewritten": false,
+    "network_accessed": false,
+    "ordered_inputs_valid": true,
+    "provider_neutral": true
+  },
+  "manifest_dir": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260802T221250Z_take101_hg002_na23687_fullcov_manifests",
+  "manifest_order": [
+    "specimens.tsv",
+    "samples.tsv",
+    "libraries.tsv",
+    "sequencing_inputs.tsv",
+    "analysis_units.tsv",
+    "analysis_unit_inputs.tsv"
+  ],
+  "schema_version": "dyec.six_manifest.validation.v1"
+}

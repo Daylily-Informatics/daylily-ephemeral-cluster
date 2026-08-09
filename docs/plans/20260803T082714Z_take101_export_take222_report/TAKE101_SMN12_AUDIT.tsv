@@ -1,0 +1,5 @@
+sample	analysis_unit_uid	caller	status	smn1_cn	smn2_cn	smn2delta78_cn	is_sma	is_carrier	median_depth	total_cn_raw	full_length_cn_raw	raw_evidence	interpretation
+HG002	HG002-ck2ky6p4wk6exh	Sentieon SMN1 regional variant caller	complete									65 regional small-variant VCF records	Regional variant product; it does not declare SMN1 or SMN2 copy number
+HG002	HG002-ck2ky6p4wk6exh	SMNCopyNumberCaller (smn12)	complete; PASS:Majority	2	2	0	false	false	53.15	3.867	3.861	All 16 SMN1 locus estimates vote CN=2	No SMA or carrier flag; expected CN was not configured for formal concordance
+NA23687	NA23687-zsvw0fa30jhz3n	Sentieon SMN1 regional variant caller	complete									67 regional small-variant VCF records	Regional variant product; it does not declare SMN1 or SMN2 copy number
+NA23687	NA23687-zsvw0fa30jhz3n	SMNCopyNumberCaller (smn12)	complete; PASS:Majority	1	2	0	false	true	51.72	2.931	2.926	All 16 SMN1 locus estimates vote CN=1	Carrier-positive analytical result; expected CN was not configured in the run matrix

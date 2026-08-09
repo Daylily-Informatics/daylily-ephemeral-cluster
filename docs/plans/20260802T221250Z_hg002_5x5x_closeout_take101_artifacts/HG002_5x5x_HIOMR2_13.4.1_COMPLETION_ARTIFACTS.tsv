@@ -1,0 +1,5 @@
+artifact	relative_path	bytes	sha256
+Final MultiQC HTML	daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc.html	10341154	a5ba27d9d2207b30b759389fd23b51fc9c269781f1e486abef9240cb94e5af05
+Final MultiQC data JSON	daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json	14296219	80c29469a71a2826a103f84cced2227500080e59589d5e314969d1a77a29a818
+DayOA evidence manifest	daylily-omics-analysis/results/day/hg38/reports/dayoa_evidence_manifest.json	323836	2e49a88de2b4d854c3d10634cbf9bb1ed5ce2913cdcc7237536c59f126a32b3d
+Final benchmark summary	daylily-omics-analysis/results/day/hg38/reports/benchmarks_summary.tsv	81455	65176c21073cea7150ef27a210ac9779f6e3df375f0e3553a65993282d99939b

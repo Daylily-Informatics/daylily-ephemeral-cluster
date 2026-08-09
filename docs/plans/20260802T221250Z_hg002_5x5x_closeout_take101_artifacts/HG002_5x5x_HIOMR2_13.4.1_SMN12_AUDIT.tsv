@@ -1,0 +1,3 @@
+caller	status	smn1_cn	smn2_cn	raw_evidence	interpretation
+Sentieon SMN1 regional variant caller	complete	NA	NA	44 small-variant VCF records; zero CN declarations	Regional variant output, not a reportable copy-number call
+SMNCopyNumberCaller (smn12)	complete; Ambiguous	null	null	Total_CN_raw=3.993; Full_length_CN_raw=4.303; median depth=6.34	isSMA=false and isCarrier=false, but no final SMN1/SMN2 CN; expected CN not configured
