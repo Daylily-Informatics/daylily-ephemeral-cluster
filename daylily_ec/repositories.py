@@ -501,6 +501,7 @@ class AnalysisCommand(BaseModel):
     compatible_data_modes: List[str]
     git_tag: str = "main"
     no_containerized: bool = False
+    return_results: bool = True
     default_activation: bool = True
     optional_features: Dict[str, AnalysisCommandFeature] = Field(default_factory=dict)
     validation_runs: List[CommandValidationRun] = Field(default_factory=list)

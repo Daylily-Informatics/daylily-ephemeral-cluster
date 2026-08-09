@@ -27,7 +27,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.4.3"
+DAYOA_BLESSED_TAG = "13.4.7"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -3569,7 +3569,10 @@ def test_catalog_list_and_show_expose_command_catalog_entries() -> None:
     show_payload = json.loads(show_result.stdout)
     assert show_payload["command"]["command_id"] == "package_inflection_hybrid_data"
     assert show_payload["command"]["input_contract"] == "six_manifest"
-    assert show_payload["command"]["dy_command"].startswith("dy-r produce_inflection_delivery_set")
+    assert show_payload["command"]["dy_command"].startswith(
+        "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_inflection_seqone_v2"
+    )
+    assert show_payload["command"]["return_results"] is False
 
 
 def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
@@ -3607,7 +3610,9 @@ def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
     assert payload["command"]["command_id"] == "package_inflection_hybrid_data"
     assert payload["git_tag"] == payload["command"]["git_tag"]
     assert payload["dry_run"] is True
-    assert payload["dy_command"].startswith("dy-r produce_inflection_delivery_set")
+    assert payload["dy_command"].startswith(
+        "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_inflection_seqone_v2"
+    )
     assert " -n" in payload["dy_command"]
     argv = payload["workflow_argv"]
     assert argv[:2] == ["workflow", "launch"]
