@@ -83,6 +83,14 @@ dyec analysis lock acquire \
   --command-summary "dy-r produce_multiqc_all -p -k -j 100"
 ```
 
+For a new analysis ID, a `write` visit or `write` lock acquisition initializes
+only the exact
+`/fsx/analysis_results/<owner>/<analysis_id>` directory when the enclosing
+`analysis_results` mount already exists. Read-only visits never create missing
+analysis roots; neither do `unlock`, `delete`, or `kill` operations. DYEC also
+refuses to create a missing `analysis_results` mount.
+This lets the lock be acquired before `day-clone` without a separate `mkdir`.
+
 Check the current owner:
 
 ```bash

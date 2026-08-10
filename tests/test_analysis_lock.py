@@ -63,6 +63,112 @@ def test_visit_writes_root_and_central_jsonl(tmp_path: Path, monkeypatch: pytest
     assert central_event["analysis_root"] == payload["analysis_root"]
 
 
+def test_write_visit_initializes_fresh_analysis_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    results_root = tmp_path / "fsx" / "analysis_results"
+    results_root.mkdir(parents=True)
+    root = results_root / "ubuntu" / "fresh-analysis"
+    _set_agent(monkeypatch, "agent-bootstrap")
+
+    payload = write_visit(
+        root,
+        mode="write",
+        intent="initialize a fresh root before day-clone",
+    )
+
+    assert root.is_dir()
+    assert payload["analysis_root"] == str(root)
+    root_log, central_log = visit_log_paths(root)
+    assert root_log.is_file()
+    assert central_log.is_file()
+
+
+def test_read_visit_does_not_create_missing_analysis_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    results_root = tmp_path / "fsx" / "analysis_results"
+    results_root.mkdir(parents=True)
+    root = results_root / "ubuntu" / "missing-analysis"
+    _set_agent(monkeypatch, "agent-read")
+
+    with pytest.raises(AnalysisLockError, match="Analysis root does not exist"):
+        write_visit(root, mode="read", intent="inspect a missing analysis")
+
+    assert not root.exists()
+
+
+def test_destructive_visit_does_not_create_missing_analysis_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    results_root = tmp_path / "fsx" / "analysis_results"
+    results_root.mkdir(parents=True)
+    root = results_root / "ubuntu" / "missing-analysis"
+    _set_agent(monkeypatch, "agent-delete")
+
+    with pytest.raises(AnalysisLockError, match="Analysis root does not exist"):
+        write_visit(root, mode="delete", intent="delete a missing analysis")
+
+    assert not root.exists()
+
+
+def test_lock_acquire_initializes_fresh_analysis_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    results_root = tmp_path / "fsx" / "analysis_results"
+    results_root.mkdir(parents=True)
+    root = results_root / "ubuntu" / "fresh-analysis"
+    _set_agent(monkeypatch, "agent-bootstrap")
+
+    owner = acquire_lock(root, operation="write", intent="run day-clone")
+
+    assert root.is_dir()
+    assert owner["analysis_root"] == str(root)
+    assert (root / ".dayoa_agent" / "write.lock" / "owner.json").is_file()
+    release_lock(root)
+
+
+def test_lock_acquire_refuses_to_create_missing_analysis_results_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = tmp_path / "fsx" / "analysis_results" / "ubuntu" / "fresh-analysis"
+    _set_agent(monkeypatch, "agent-bootstrap")
+
+    with pytest.raises(AnalysisLockError, match="Analysis results root does not exist"):
+        acquire_lock(root, operation="write", intent="run day-clone")
+
+    assert not root.exists()
+
+
+def test_analysis_cli_write_visit_initializes_fresh_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    results_root = tmp_path / "fsx" / "analysis_results"
+    results_root.mkdir(parents=True)
+    root = results_root / "ubuntu" / "fresh-analysis"
+    _activate_dayec(monkeypatch)
+    _set_agent(monkeypatch, "agent-cli-bootstrap")
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "analysis",
+            "visit",
+            "--analysis-root",
+            str(root),
+            "--mode",
+            "write",
+            "--intent",
+            "initialize before day-clone",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout + result.stderr
+    assert root.is_dir()
+    assert json.loads(result.stdout)["analysis_root"] == str(root)
+
+
 def test_foreign_writer_blocks_write_but_not_export_visit(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

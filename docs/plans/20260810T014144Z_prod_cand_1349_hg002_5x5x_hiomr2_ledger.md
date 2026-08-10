@@ -272,7 +272,40 @@ remain only under the honest timestamped quarantine prefix.
 | DATA-001 | S3 inventory | Prove which correct 5x objects exist and which canonical names contain full coverage | SUCCESS | Data Gate 0 | Exact keys, byte sizes, hashes, read/base counts, and depth evidence recorded above; bucket versioning is not enabled |
 | DATA-002 | ONT rebuild | Produce a validated ONT input within the explicitly accepted `2.5x`-`7.5x` band and emit a machine-readable receipt | SUCCESS | Data Gate 1 | Prefix job `4` completed in `18:00`; measured `4.794169766x` and all receipt gates passed; exact/random job `1` completed independently in `50:38` and was not selected |
 | DATA-003 | Replacement staging | Stage and independently validate the correct Illumina pair plus rebuilt ONT file | SUCCESS | Data Gate 2 | Final FSx tree and three-file SHA receipt pass; no-delete DYEC DRA `dra-02bf97a24798ac8b0` task `task-0ca854916eeec75cc` succeeded to `s3://lsmc-dayoa-staging-usw2/codex/hg002-5x5x-repair/20260810T035206Z/tmp_slinm_fq/hg002_5x5x/`; all three S3 object sizes match |
-| DATA-004 | Recoverability | Back up the three existing full-coverage objects to one exact timestamped archive prefix | SUCCESS | Data Gate 3 | Three server-side copies completed under the timestamped `full_coverage_mislabeled` quarantine prefix and were HEAD-verified against original sizes and metadata hashes; canonical keys remain unchanged |
+| DATA-004 | Recoverability | Back up the three existing full-coverage objects to one exact timestamped archive prefix | SUCCESS | Data Gate 3 | Three server-side copies completed under the timestamped `full_coverage_mislabeled` quarantine prefix and were HEAD-verified against original sizes and metadata hashes; quarantine remained intact after the separately approved canonical replacement |
 | DATA-005 | Canonical repair | Replace exactly the three mislabeled canonical keys and prove their final identities | SUCCESS | Data Gate 4, explicit second approval | Second approval received; exactly three canonical objects were server-side replaced; HEAD size, content type, encryption, profile, read/base/depth, compressed SHA256, and ONT raw-stream SHA256 metadata match the verified fixture; quarantine remains intact |
-| DATA-006 | Workflow proof | Make `init-test` consume the corrected canonical 5x-by-5x surface, dry-run, then remove only `-n` if the plan is valid | PENDING | Repair Gate 5 | Blocked on DATA-002 through DATA-005 |
-| DATA-007 | DYEC catalog | Bind the BJuice command and packaged six-manifest fixture to the corrected three-file identities and requested `-j 333 -p -T 1 -k` contract | IN_PROGRESS | Data Gate 2 | Source and payload catalogs are byte-identical; packaged fixture carries the measured 5.862704556x ILMN / 4.794169766x ONT identities; focused catalog/resource/manifest suite passes 28/28; commit/release waits for canonical S3 repair proof |
+| DATA-006 | Workflow proof | Make `init-test-x2` consume the corrected canonical 5x-by-5x surface, dry-run, then remove only `-n` if the plan is valid | IN_PROGRESS | Repair Gate 5 | User superseded the destination with exact fresh analysis ID `init-test-x2` and required the latest created DayOA release `13.4.10` |
+| DATA-007 | DYEC catalog | Bind the BJuice command and packaged six-manifest fixture to the corrected three-file identities and requested `-j 333 -p -T 1 -k` contract | SUCCESS | Data Gate 2 | Source and payload catalogs are byte-identical; packaged fixture carries the measured 5.862704556x ILMN / 4.794169766x ONT identities; focused catalog/resource/manifest suite passes 28/28; pushed catalog commit `ea0ef45f...` / annotated tag `16.1.47` and self-pin commit `268b06f7...` / annotated tag `16.1.48` |
+
+## 2026-08-10 `init-test-x2` clean-cluster acceptance amendment
+
+The human requestor superseded the earlier destination and release selections:
+the controlling clone is now exactly `day-clone -t 13.4.10 -d init-test-x2` in
+tmux `dayoa_init_test_x2_hg002_5x5x_13410_20260810`. The acceptance criterion
+also requires any encountered prerequisite failure to be repaired in checked-in
+DYEC or DayOA code so a headnode created de novo by `dyec create` can execute the
+catalog command without a cluster-local workaround.
+
+At `2026-08-10T04:20Z`, the proposed root and tmux name were both absent and the
+obsolete `init-test` lock had been released. The required pre-clone command
+`dyec analysis visit --mode write` then failed closed because the fresh analysis
+root did not yet exist. This exposed a long-recorded bootstrap contradiction:
+the safety contract requires visit/lock ownership before `day-clone` writes,
+but the public analysis-lock CLI required a prior manual `mkdir`. No directory,
+clone, manifest, controller, or Slurm job was created after that failure.
+
+The durable DYEC correction makes only an explicit `write` visit or `write`
+lock acquisition initialize the exact requested
+`/.../analysis_results/<owner>/<analysis_id>` directory. It first requires the
+enclosing `analysis_results` mount to exist. Read-only visits and
+`unlock`/`delete`/`kill` operations continue to fail on a missing analysis root,
+so the change does not add path discovery, destructive fallback, or mount-tree
+creation.
+
+| ID | Area | Requirement | Status | Approval Gate | Evidence / terminal note |
+|---|---|---|---|---|---|
+| BOOT-001 | Fresh-root contract | Reproduce the pre-clone failure without manually creating `init-test-x2` | SUCCESS | Clean-cluster Gate 0 | Headnode DYEC `16.1.48` returned `Analysis root does not exist`; exact root remained absent |
+| BOOT-002 | Durable DYEC fix | Initialize only a missing exact analysis directory for explicit write visit/lock operations | SUCCESS | Clean-cluster Gate 1 | `daylily_ec/analysis_lock.py` now requires the enclosing `analysis_results` directory and preserves fail-closed behavior for read/destructive modes |
+| BOOT-003 | Regression proof | Prove analysis CLI, workflow controller, DayOA clone, resource packaging, and corrected catalog contracts | SUCCESS | Clean-cluster Gate 2 | Analysis/CLI/controller suite passed 270/270; clone/workflow/create-resource/catalog suite passed 262/262; focused Ruff fatal-error and diff checks passed |
+| BOOT-004 | Immutable release | Commit, push, annotate, self-pin, and refresh the candidate headnode | IN_PROGRESS | Clean-cluster Gate 3 | Release pending after local green proof |
+| BOOT-005 | Exact clone and catalog run | Retry from absent `init-test-x2`, prove exact tag/input identities, dry-run, and remove only `-n` if valid | PENDING | Clean-cluster Gate 4 | Must use the newly released DYEC build; no manual root initialization is permitted |
