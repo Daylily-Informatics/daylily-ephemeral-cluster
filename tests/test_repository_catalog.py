@@ -828,13 +828,17 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert inflection_bjuice.runtime_parameters == {}
     assert "SEQONE_DELIVERY_BATCH_ID" not in inflection_bjuice.dy_command
     assert "HIOMR2_SEQONE_V2_CONFIG_FILE" not in inflection_bjuice.dy_command
-    assert "--configfile" not in inflection_bjuice.dy_command
+    assert (
+        "--configfile config/hg002_bjuice_5x5x_hiomr2.yaml"
+        in inflection_bjuice.dy_command
+    )
     assert "hiomr2_inflection_package_mode=analytical" in inflection_bjuice.dy_command
     assert "seqone_delivery_batch_id=$ANALYSIS_ID" in inflection_bjuice.dy_command
     assert inflection_bjuice.return_results is False
     assert hiomr2_analytical.return_results is False
     assert "use_fq_data_starting_hrs" not in inflection_bjuice.dy_command
     assert "use_fq_data_up_to_hrs" not in inflection_bjuice.dy_command
+    assert "all supplied FASTQs are used" in inflection_bjuice.description
     assert "produce_inflection_delivery_set" not in inflection_bjuice.dy_command
     assert 'aligners=["sentmm2ont"]' in inflection_bjuice.dy_command
     assert 'dedupers=["na"]' in inflection_bjuice.dy_command

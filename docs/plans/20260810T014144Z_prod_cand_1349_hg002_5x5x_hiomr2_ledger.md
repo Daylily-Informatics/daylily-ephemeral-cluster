@@ -274,7 +274,7 @@ remain only under the honest timestamped quarantine prefix.
 | DATA-003 | Replacement staging | Stage and independently validate the correct Illumina pair plus rebuilt ONT file | SUCCESS | Data Gate 2 | Final FSx tree and three-file SHA receipt pass; no-delete DYEC DRA `dra-02bf97a24798ac8b0` task `task-0ca854916eeec75cc` succeeded to `s3://lsmc-dayoa-staging-usw2/codex/hg002-5x5x-repair/20260810T035206Z/tmp_slinm_fq/hg002_5x5x/`; all three S3 object sizes match |
 | DATA-004 | Recoverability | Back up the three existing full-coverage objects to one exact timestamped archive prefix | SUCCESS | Data Gate 3 | Three server-side copies completed under the timestamped `full_coverage_mislabeled` quarantine prefix and were HEAD-verified against original sizes and metadata hashes; quarantine remained intact after the separately approved canonical replacement |
 | DATA-005 | Canonical repair | Replace exactly the three mislabeled canonical keys and prove their final identities | SUCCESS | Data Gate 4, explicit second approval | Second approval received; exactly three canonical objects were server-side replaced; HEAD size, content type, encryption, profile, read/base/depth, compressed SHA256, and ONT raw-stream SHA256 metadata match the verified fixture; quarantine remains intact |
-| DATA-006 | Workflow proof | Make `init-test-x2` consume the corrected canonical 5x-by-5x surface, dry-run, then remove only `-n` if the plan is valid | IN_PROGRESS | Repair Gate 5 | User superseded the destination with exact fresh analysis ID `init-test-x2` and required the latest created DayOA release `13.4.10` |
+| DATA-006 | Workflow proof | Make `init-test-x2` consume the corrected canonical 5x-by-5x surface, dry-run, then remove only `-n` if the plan is valid | IN_PROGRESS | Repair Gate 5 | Corrected dry controller `dayoa_init_test_x2_hg002_5x5x_13410_dry3_20260810` returned `0` with 288 planned jobs; live controller `dayoa_init_test_x2_hg002_5x5x_13410_live_20260810` started at `2026-08-10T05:09:42Z` and is building fresh-cluster conda environments before Slurm submission |
 | DATA-007 | DYEC catalog | Bind the BJuice command and packaged six-manifest fixture to the corrected three-file identities and requested `-j 333 -p -T 1 -k` contract | SUCCESS | Data Gate 2 | Source and payload catalogs are byte-identical; packaged fixture carries the measured 5.862704556x ILMN / 4.794169766x ONT identities; focused catalog/resource/manifest suite passes 28/28; pushed catalog commit `ea0ef45f...` / annotated tag `16.1.47` and self-pin commit `268b06f7...` / annotated tag `16.1.48` |
 
 ## 2026-08-10 `init-test-x2` clean-cluster acceptance amendment
@@ -308,7 +308,7 @@ creation.
 | BOOT-002 | Durable DYEC fix | Initialize only a missing exact analysis directory for explicit write visit/lock operations | SUCCESS | Clean-cluster Gate 1 | `daylily_ec/analysis_lock.py` now requires the enclosing `analysis_results` directory and preserves fail-closed behavior for read/destructive modes |
 | BOOT-003 | Regression proof | Prove analysis CLI, workflow controller, DayOA clone, resource packaging, and corrected catalog contracts | SUCCESS | Clean-cluster Gate 2 | Analysis/CLI/controller suite passed 270/270; clone/workflow/create-resource/catalog suite passed 262/262; focused Ruff fatal-error and diff checks passed |
 | BOOT-004 | Immutable release | Commit, push, annotate, self-pin, and refresh the candidate headnode | SUCCESS | Clean-cluster Gate 3 | Repair commit `970a9e3c...` / annotated tag `16.1.49` and self-pin commit `4a4fac9b...` / annotated tag `16.1.50` are pushed; source and packaged create defaults pin exactly `16.1.49`; supported `dyec headnode configure` completed and `dyec headnode run 'dyec --version'` returned `16.1.50` |
-| BOOT-005 | Exact clone and catalog run | Retry from absent `init-test-x2`, prove exact tag/input identities, dry-run, and remove only `-n` if valid | IN_PROGRESS | Clean-cluster Gate 4 | Supported `dyec catalog launch` created the exact `init-test-x2` root, DayOA `13.4.10` clone, staged six-manifest input, and persistent tmux; its first workflow dry-run failed before planning on the single-file ONT hour-window mismatch recorded below; no Slurm job was submitted |
+| BOOT-005 | Exact clone and catalog run | Retry from absent `init-test-x2`, prove exact tag/input identities, dry-run, and remove only `-n` if valid | SUCCESS | Clean-cluster Gate 4 | Supported DYEC launch created the exact `init-test-x2` root, DayOA `13.4.10` clone, staged six-manifest input, and persistent tmux; after the durable catalog corrections below, dry-run returned `0` and the live DYEC controller was launched with only `-n` removed |
 
 ## 2026-08-10 analytical Inflection catalog amendment
 
@@ -332,7 +332,9 @@ The corrected row follows the checked-in DayOA operator contract: it targets
 `produce_sentdhiomr2_inflection_analytical_package`, sets
 `hiomr2_inflection_package_mode=analytical`, and binds
 `seqone_delivery_batch_id` to the explicit controller `ANALYSIS_ID`. It contains
-no `--configfile`, SeqOne-v2 target, or unresolved release environment variable.
+no SeqOne-v2 target, customer-release config path, or unresolved release
+environment variable. The later runtime proof below adds only DayOA's existing
+checked-in HG002 analytical overlay, not a customer release snapshot.
 
 | ID | Area | Requirement | Status | Approval Gate | Evidence / terminal note |
 |---|---|---|---|---|---|
@@ -369,5 +371,41 @@ setting.
 | TIME-001 | Dry-run diagnosis | Prove whether the dry failure is a workflow plan defect or an incompatible catalog input filter | SUCCESS | Recovery Gate 0 | Controller exited `2` at analysis-artifact preflight on `unable to identify ONT FASTQ chunk hour`; all manifests and environment setup completed; no Slurm jobs were submitted |
 | TIME-002 | Catalog correction | Disable time chunking only for the single-file HG002 verified 5x-by-5x command | SUCCESS | Recovery Gate 1, explicit user direction | Source and packaged `inflection-bjuice-product-v0.2` commands omit both `use_fq_data_starting_hrs` and `use_fq_data_up_to_hrs`; unrelated chunked-data rows are unchanged |
 | TIME-003 | Regression proof | Prove catalog parity, fixture identity, DayOA manifest, renderer, and CLI entrypoint contracts | SUCCESS | Recovery Gate 2 | Focused expanded suite passed `295/295`; catalog copies are byte-identical and `git diff --check` passed |
-| TIME-004 | Immutable release and headnode refresh | Publish, self-pin, and deploy the time-chunk-free catalog | IN_PROGRESS | Recovery Gate 3 | Repair commit `be7532c0...` and annotated tag `16.1.53` are pushed; source and packaged de novo create defaults now pin exactly `16.1.53`; self-pin release and supported headnode refresh remain |
-| TIME-005 | Supported recovery and plan gate | Use DYEC to clear any stale workflow lock, rerun the exact dry plan, inspect it, and remove only `-n` after terminal success | IN_PROGRESS | Recovery Gate 4 | Existing root is preserved; recovery and retry must use DYEC workflow controllers and `dy-r`, never raw Snakemake |
+| TIME-004 | Immutable release and headnode refresh | Publish, self-pin, and deploy the time-chunk-free catalog | SUCCESS | Recovery Gate 3 | Repair commit `be7532c0...` / annotated tag `16.1.53` and self-pin commit `9b5c9788...` / annotated tag `16.1.54` are pushed; source and packaged de novo create defaults pin exactly `16.1.53`; supported `dyec headnode configure` completed and headnode DYEC reported `16.1.54` |
+| TIME-005 | Supported recovery and plan gate | Use DYEC to clear any stale workflow lock, rerun the exact dry plan, inspect it, and remove only `-n` after terminal success | SUCCESS | Recovery Gate 4 | DYEC reported the root unlocked and zero controllers/jobs; corrected dry3 returned `0` with 288 jobs and maximum 192 threads; the live command was mechanically verified to differ by only terminal `-n`, which was removed before DYEC launched the live tmux/controller |
+
+## 2026-08-10 explicit HG002 HIOMR2 overlay and headnode-first proof
+
+The time-chunk-free retry passed manifest resolution but exited `2` before
+formal Snakemake because the generic profile intentionally leaves
+`sentdhiomr2.lr_input_mode_by_sample` empty. DayOA already ships the exact
+fixture-owned configuration file `config/hg002_bjuice_5x5x_hiomr2.yaml`. It
+explicitly maps `HG002: fastq`, enables the NICU research lane, and supplies the
+HG002 Truvari benchmark truthset. Omitting that overlay made the catalog command
+incomplete for its own declared targets on every fresh clone.
+
+Per the human requestor's execution-order direction, the candidate fix was not
+committed or deployed before runtime proof. The uncommitted local catalog
+command added only
+`--configfile config/hg002_bjuice_5x5x_hiomr2.yaml`, then a supported
+`dyec workflow launch --reuse-existing-analysis-dir` ran it directly against
+the existing exact DayOA `13.4.10` clone. Dry3 completed at
+`2026-08-10T05:07:46Z` with return code `0`, 288 planned jobs, maximum 192
+threads, all five requested targets, and no Slurm submission. DYEC then launched
+the mechanically identical live command with only terminal `-n` removed at
+`2026-08-10T05:09:42Z`. The live controller passed the same DAG/config gates and
+began building pinned fresh-cluster conda environments before Slurm submission.
+
+Only after that headnode proof was the candidate formalized in both catalog
+copies and tested locally. The regression suite passed `295/295`; catalog
+copies are byte-identical and `git diff --check` passes.
+
+| ID | Area | Requirement | Status | Approval Gate | Evidence / terminal note |
+|---|---|---|---|---|---|
+| OVERLAY-001 | Runtime diagnosis | Prove why the no-chunk command still fails before planning | SUCCESS | Headnode-first Gate 0 | Dry2 exited `2` on missing `sentdhiomr2.lr_input_mode_by_sample`; no formal Snakemake or Slurm job started |
+| OVERLAY-002 | Existing DayOA contract | Identify an exact checked-in, non-customer-release configuration for this fixture and target closure | SUCCESS | Headnode-first Gate 1 | DayOA `13.4.10` contains `config/hg002_bjuice_5x5x_hiomr2.yaml` with explicit `HG002: fastq`, NICU enablement, and HG002 Truvari truthset |
+| OVERLAY-003 | Headnode proof | Run the candidate command before committing or deploying it | SUCCESS | Headnode-first Gate 2 | Dry3 returned `0`, planned 288 jobs at max 192 threads, and live controller advanced through formal DAG construction into pinned environment creation |
+| OVERLAY-004 | Durable catalog contract | Add only the proven checked-in HG002 analytical overlay while retaining all-FASTQ default behavior | SUCCESS | Headnode-first Gate 3 | Source/payload commands contain the exact overlay path and no hour bounds; description documents opt-in time chunking and all-input default behavior |
+| OVERLAY-005 | Post-proof regression | Test the formalized source, payload, fixture, renderer, and CLI surfaces | SUCCESS | Headnode-first Gate 4 | Expanded focused suite passed `295/295`; catalog parity and whitespace checks passed |
+| OVERLAY-006 | Immutable de novo release | Commit, tag, push, and self-pin the proven overlay command for newly created clusters | IN_PROGRESS | Headnode-first Gate 5 | Held until live execution evidence is captured, per the requested headnode-first order |
+| LIVE-001 | Live workflow | Preserve and monitor the live `init-test-x2` execution without scheduler intervention | IN_PROGRESS | Live Gate 6 | Session `dayoa_init_test_x2_hg002_5x5x_13410_live_20260810`; controller active in environment creation; no Slurm job visible yet |

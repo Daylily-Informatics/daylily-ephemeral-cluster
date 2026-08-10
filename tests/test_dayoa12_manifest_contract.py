@@ -303,6 +303,7 @@ def test_inflection_v02_is_a_literal_hiomr2_analytical_contract() -> None:
     assert "hiomr2_inflection_package_mode=analytical" in command.dy_command
     assert "HIOMR2_SEQONE_V2_CONFIG_FILE" not in command.dy_command
     assert "SEQONE_DELIVERY_BATCH_ID" not in command.dy_command
+    assert "--configfile config/hg002_bjuice_5x5x_hiomr2.yaml" in command.dy_command
     assert command.return_results is False
     assert "use_fq_data_starting_hrs" not in command.dy_command
     assert "use_fq_data_up_to_hrs" not in command.dy_command
