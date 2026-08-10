@@ -3507,6 +3507,30 @@ def _exit_headnode_error(exc: BaseException) -> None:
     raise typer.Exit(1)
 
 
+def _exit_workflow_ssm_failure(exc) -> None:
+    """Surface the remote workflow probe's diagnostics, not only the SSM wrapper RC."""
+
+    payload = {
+        "ok": False,
+        "instance_id": exc.result.instance_id,
+        "ssm_command_id": exc.result.command_id,
+        "status": exc.result.status,
+        "response_code": exc.result.response_code,
+        "stdout": exc.result.stdout,
+        "stderr": exc.result.stderr,
+        "error": str(exc),
+    }
+    if _json_mode():
+        output.emit_json(payload)
+    else:
+        if exc.result.stdout.strip():
+            typer.echo(exc.result.stdout.rstrip())
+        if exc.result.stderr.strip():
+            typer.echo(exc.result.stderr.rstrip(), err=True)
+        output.error(str(exc))
+    raise typer.Exit(exc.result.response_code or 1) from exc
+
+
 def headnode_connect(
     profile: Optional[str] = typer.Option(
         None,
@@ -6978,6 +7002,108 @@ def _parse_workflow_status_payload(stdout: str) -> dict[str, Any]:
     return payload
 
 
+def _collect_workflow_observability(
+    *,
+    profile: Optional[str],
+    region: Optional[str],
+    cluster: Optional[str],
+    session: Optional[str],
+    run_dir: Optional[str],
+    repo_path: Optional[str],
+    controller_pid: Optional[int],
+    snakemake_log: Optional[str],
+    remote_user: str,
+    tail_lines: Optional[int] = None,
+) -> dict[str, Any]:
+    """Collect invocation-attributed controller, log, progress, and Slurm evidence."""
+
+    from daylily_ec.aws.ssm import resolve_remote_user, run_shell, wait_for_ssm_online
+    from daylily_ec.scripts.common import CommandError
+    from daylily_ec.workflow_observability import (
+        build_remote_probe_command,
+        normalize_repo_path,
+        normalize_snakemake_log,
+    )
+
+    manual_requested = any(
+        value is not None for value in (repo_path, controller_pid, snakemake_log)
+    )
+    if manual_requested:
+        if repo_path is None or controller_pid is None:
+            raise CommandError(
+                "Manual/recovery inspection requires both --repo-path and --controller-pid."
+            )
+        if run_dir is not None:
+            raise CommandError("Manual/recovery inspection does not accept --run-dir.")
+        try:
+            resolved_repo_path = normalize_repo_path(repo_path)
+            resolved_snakemake_log = (
+                normalize_snakemake_log(snakemake_log, repo_path=resolved_repo_path)
+                if snakemake_log
+                else None
+            )
+        except RuntimeError as exc:
+            raise CommandError(str(exc)) from exc
+        if controller_pid < 1:
+            raise CommandError("--controller-pid must be a positive integer.")
+        mode = "manual"
+        resolved_run_dir = None
+    else:
+        mode = "launched"
+        resolved_repo_path = None
+        resolved_snakemake_log = None
+
+    resolved_profile, resolved_region, _resolved_cluster, target = _resolve_headnode_cli_target(
+        profile=profile,
+        region=region,
+        cluster=cluster,
+    )
+    wait_for_ssm_online(
+        target.instance_id,
+        resolved_region,
+        profile=resolved_profile,
+        timeout=120,
+    )
+    resolved_remote_user = resolve_remote_user(
+        target.instance_id,
+        resolved_region,
+        profile=resolved_profile,
+        as_user=remote_user,
+    )
+    if mode == "launched":
+        resolved_run_dir = _workflow_run_dir(
+            session,
+            run_dir,
+            remote_user=resolved_remote_user,
+        )
+
+    probe_arguments = ["--mode", mode]
+    if session:
+        probe_arguments.extend(["--session", session])
+    if resolved_run_dir:
+        probe_arguments.extend(["--run-dir", resolved_run_dir])
+    if resolved_repo_path:
+        probe_arguments.extend(["--repo-path", resolved_repo_path])
+    if controller_pid is not None:
+        probe_arguments.extend(["--controller-pid", str(controller_pid)])
+    if resolved_snakemake_log:
+        probe_arguments.extend(["--snakemake-log", resolved_snakemake_log])
+    if tail_lines is not None:
+        if isinstance(tail_lines, bool) or tail_lines < 1:
+            raise CommandError("--lines must be a positive integer.")
+        probe_arguments.extend(["--tail-lines", str(tail_lines)])
+    result = run_shell(
+        target.instance_id,
+        resolved_region,
+        build_remote_probe_command(probe_arguments),
+        profile=resolved_profile,
+        as_user=resolved_remote_user,
+        timeout=120,
+        comment="Inspect exact Daylily workflow invocation",
+    )
+    return _parse_workflow_status_payload(result.stdout)
+
+
 def _parse_marked_json_payload(stdout: str, *, marker: str, context: str) -> dict[str, Any]:
     from daylily_ec.scripts.common import CommandError
 
@@ -7317,29 +7443,48 @@ def workflow_status(
         help="Tmux session/run name.",
     ),
     run_dir: Optional[str] = typer.Option(None, "--run-dir", help="Explicit run directory."),
+    repo_path: Optional[str] = typer.Option(
+        None,
+        "--repo-path",
+        help="Exact DayOA checkout for a manual/recovery controller.",
+    ),
+    controller_pid: Optional[int] = typer.Option(
+        None,
+        "--controller-pid",
+        help="Exact live or terminal manual/recovery controller PID.",
+    ),
+    snakemake_log: Optional[str] = typer.Option(
+        None,
+        "--snakemake-log",
+        help="Exact manual/recovery .snakemake log when FD correlation is unavailable.",
+    ),
     remote_user: str = typer.Option(
         "auto",
         "--remote-user",
         help="Remote login user for default run-dir resolution: auto, ubuntu, or ec2-user.",
     ),
 ) -> None:
-    """Read a workflow status.json file from the headnode."""
+    """Report exact controller, Snakemake, progress, Slurm, and terminal state."""
 
+    from daylily_ec.aws.ssm import SsmCommandFailedError, SsmError
     from daylily_ec.scripts.common import CommandError
 
     _warn_if_dayec_env_inactive()
     try:
-        result = _read_workflow_file(
+        payload = _collect_workflow_observability(
             profile=profile,
             region=region,
             cluster=cluster,
             session=session,
             run_dir=run_dir,
-            filename="status.json",
+            repo_path=repo_path,
+            controller_pid=controller_pid,
+            snakemake_log=snakemake_log,
             remote_user=remote_user,
         )
-        payload = _parse_workflow_status_payload(result.stdout)
-    except (CommandError, json.JSONDecodeError) as exc:
+    except SsmCommandFailedError as exc:
+        _exit_workflow_ssm_failure(exc)
+    except (CommandError, SsmError, TimeoutError, json.JSONDecodeError) as exc:
         _exit_headnode_error(exc)
 
     if _json_mode():
@@ -7359,45 +7504,104 @@ def workflow_logs(
         help="Tmux session/run name.",
     ),
     run_dir: Optional[str] = typer.Option(None, "--run-dir", help="Explicit run directory."),
+    repo_path: Optional[str] = typer.Option(
+        None,
+        "--repo-path",
+        help="Exact DayOA checkout for a manual/recovery controller.",
+    ),
+    controller_pid: Optional[int] = typer.Option(
+        None,
+        "--controller-pid",
+        help="Exact live or terminal manual/recovery controller PID.",
+    ),
+    snakemake_log: Optional[str] = typer.Option(
+        None,
+        "--snakemake-log",
+        help="Exact manual/recovery .snakemake log when FD correlation is unavailable.",
+    ),
     remote_user: str = typer.Option(
         "auto",
         "--remote-user",
         help="Remote login user for default run-dir resolution: auto, ubuntu, or ec2-user.",
     ),
-    lines: int = typer.Option(200, "--lines", help="Number of log lines to print."),
+    lines: int = typer.Option(200, "--lines", min=1, help="Number of log lines to print."),
     stream: str = typer.Option(
         "tmux",
         "--stream",
-        help="Log stream: tmux or controller.",
+        help="Log stream: tmux, controller, or snakemake.",
     ),
 ) -> None:
-    """Tail a workflow tmux or controller log from the headnode."""
+    """Tail a workflow tmux, controller, or exact active Snakemake log."""
+
+    from daylily_ec.aws.ssm import SsmCommandFailedError, SsmError
+    from daylily_ec.scripts.common import CommandError
 
     _warn_if_dayec_env_inactive()
     normalized_stream = stream.strip().lower()
-    if normalized_stream == "tmux":
-        result = _read_workflow_file(
-            profile=profile,
-            region=region,
-            cluster=cluster,
-            session=session,
-            run_dir=run_dir,
-            filename="tmux.log",
-            remote_user=remote_user,
-            tail_lines=lines,
-        )
-    elif normalized_stream == "controller":
-        result = _read_workflow_controller_log(
-            profile=profile,
-            region=region,
-            cluster=cluster,
-            session=session,
-            run_dir=run_dir,
-            remote_user=remote_user,
-            tail_lines=lines,
-        )
-    else:
-        raise typer.BadParameter("--stream must be exactly 'tmux' or 'controller'")
+    try:
+        if normalized_stream in {"tmux", "controller"} and any(
+            value is not None for value in (repo_path, controller_pid, snakemake_log)
+        ):
+            raise CommandError(
+                "--repo-path, --controller-pid, and --snakemake-log apply only to "
+                "--stream snakemake."
+            )
+        if normalized_stream == "tmux":
+            result = _read_workflow_file(
+                profile=profile,
+                region=region,
+                cluster=cluster,
+                session=session,
+                run_dir=run_dir,
+                filename="tmux.log",
+                remote_user=remote_user,
+                tail_lines=lines,
+            )
+        elif normalized_stream == "controller":
+            result = _read_workflow_controller_log(
+                profile=profile,
+                region=region,
+                cluster=cluster,
+                session=session,
+                run_dir=run_dir,
+                remote_user=remote_user,
+                tail_lines=lines,
+            )
+        elif normalized_stream == "snakemake":
+            payload = _collect_workflow_observability(
+                profile=profile,
+                region=region,
+                cluster=cluster,
+                session=session,
+                run_dir=run_dir,
+                repo_path=repo_path,
+                controller_pid=controller_pid,
+                snakemake_log=snakemake_log,
+                remote_user=remote_user,
+                tail_lines=lines,
+            )
+            log = payload.get("snakemake_log")
+            attributed_repo = payload.get("repo_path")
+            if not isinstance(log, dict) or not isinstance(attributed_repo, str):
+                raise CommandError("Workflow status did not contain exact Snakemake attribution.")
+            attributed_log = log.get("path")
+            if not isinstance(attributed_log, str) or not attributed_log:
+                problem = str(log.get("problem") or "exact attribution is unavailable")
+                raise CommandError(f"Cannot read Snakemake log: {problem}.")
+            from daylily_ec.workflow_observability import decode_snakemake_tail
+
+            tail = decode_snakemake_tail(log.get("tail"))
+            if tail:
+                typer.echo(tail, nl=False)
+            return
+        else:
+            raise typer.BadParameter(
+                "--stream must be exactly 'tmux', 'controller', or 'snakemake'"
+            )
+    except SsmCommandFailedError as exc:
+        _exit_workflow_ssm_failure(exc)
+    except (CommandError, SsmError, TimeoutError, RuntimeError) as exc:
+        _exit_headnode_error(exc)
     if result.stdout:
         typer.echo(result.stdout.rstrip())
     if result.stderr:

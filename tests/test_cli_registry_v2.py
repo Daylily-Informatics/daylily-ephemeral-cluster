@@ -6,6 +6,7 @@ import json
 import logging
 import shlex
 import sys
+import zlib
 from pathlib import Path
 from subprocess import CompletedProcess
 from types import SimpleNamespace
@@ -27,7 +28,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.4.10"
+DAYOA_BLESSED_TAG = "13.4.11"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -3684,10 +3685,7 @@ def test_catalog_quick_launch_uses_rendered_workflow_argv(monkeypatch, tmp_path)
         calls["launch_argv"] = argv
         print("__DAYLILY_SESSION__=pkg-session")
         print("__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/pkg-session")
-        print(
-            "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/pkg-run/"
-            "daylily-omics-analysis"
-        )
+        print("__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/pkg-run/daylily-omics-analysis")
         print(f"__DAYLILY_DY_COMMAND__={argv[argv.index('--dy-command') + 1]}")
         return 0
 
@@ -4156,7 +4154,7 @@ def test_workflow_launch_rejects_unsafe_analysis_id_before_entrypoint(monkeypatc
     assert "argv" not in calls
 
 
-def test_workflow_status_reads_status_json_via_ssm(monkeypatch) -> None:
+def test_workflow_status_collects_exact_observability_via_ssm(monkeypatch) -> None:
     import daylily_ec.aws.ssm as ssm_module
 
     calls: dict[str, object] = {}
@@ -4185,7 +4183,7 @@ def test_workflow_status_reads_status_json_via_ssm(monkeypatch) -> None:
             instance_id,
             "Success",
             0,
-            'DAY-EC activated.\n{"session_name":"sess-1","exit_code":0}\n',
+            'DAY-EC activated.\n{"session_name":"sess-1","state":"SUCCEEDED"}\n',
             "",
         )
 
@@ -4209,11 +4207,19 @@ def test_workflow_status_reads_status_json_via_ssm(monkeypatch) -> None:
     )
 
     assert result.exit_code == 0
-    assert json.loads(result.stdout)["session_name"] == "sess-1"
+    assert json.loads(result.stdout) == {"session_name": "sess-1", "state": "SUCCEEDED"}
     _instance_id, _region, script, kwargs = calls["run_shell"]
-    assert "/home/ubuntu/daylily-runs/sess-1/status.json" in script
-    assert script.startswith("\nset +e +u\nset +o pipefail 2>/dev/null || true\n")
-    assert "set -euo pipefail" not in script
+    remote_argv = shlex.split(script)
+    assert remote_argv[:2] == ["python3", "-c"]
+    assert "daylily_ec.workflow_observability" not in script
+    assert remote_argv[3:] == [
+        "--mode",
+        "launched",
+        "--session",
+        "sess-1",
+        "--run-dir",
+        "/home/ubuntu/daylily-runs/sess-1",
+    ]
     assert kwargs["profile"] == "dev"
 
     result_alias = runner.invoke(
@@ -4235,6 +4241,320 @@ def test_workflow_status_reads_status_json_via_ssm(monkeypatch) -> None:
 
     assert result_alias.exit_code == 0
     assert json.loads(result_alias.stdout)["session_name"] == "sess-1"
+
+
+def test_workflow_status_manual_mode_requires_explicit_repo_and_controller_pid(
+    monkeypatch,
+) -> None:
+    _activate_dayec_runtime(monkeypatch)
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "status",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--repo-path",
+            "/fsx/analysis_results/cluster-a/run-1/daylily-omics-analysis",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "requires both --repo-path and --controller-pid" in result.output
+
+
+def test_workflow_status_manual_mode_sends_only_explicit_attribution(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda _cluster, _region, *, profile=None: HeadNodeTarget(
+            "cluster-a", "us-west-2", "i-abc123"
+        ),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
+    calls: dict[str, object] = {}
+
+    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+        calls["script"] = script
+        return SsmCommandResult(
+            "cmd-1",
+            instance_id,
+            "Success",
+            0,
+            '{"state":"RUNNING","mode":"manual"}\n',
+            "",
+        )
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+    repo_path = "/fsx/analysis_results/cluster-a/run-1/daylily-omics-analysis"
+    log_path = f"{repo_path}/.snakemake/log/2026-08-10T072121.snakemake.log"
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "workflow",
+            "status",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--repo-path",
+            repo_path,
+            "--controller-pid",
+            "564368",
+            "--session",
+            "recovery-session",
+            "--snakemake-log",
+            log_path,
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert json.loads(result.stdout)["state"] == "RUNNING"
+    remote_argv = shlex.split(calls["script"])
+    assert remote_argv[:2] == ["python3", "-c"]
+    assert "daylily_ec.workflow_observability" not in calls["script"]
+    assert remote_argv[3:] == [
+        "--mode",
+        "manual",
+        "--session",
+        "recovery-session",
+        "--repo-path",
+        repo_path,
+        "--controller-pid",
+        "564368",
+        "--snakemake-log",
+        log_path,
+    ]
+    assert "daylily-runs" not in calls["script"]
+
+
+def test_workflow_status_and_logs_help_document_manual_and_snakemake_options(
+    monkeypatch,
+) -> None:
+    _activate_dayec_runtime(monkeypatch)
+
+    status_help = runner.invoke(app, ["workflow", "status", "--help"])
+    logs_help = runner.invoke(app, ["workflow", "logs", "--help"])
+
+    assert status_help.exit_code == 0
+    assert "--repo-path" in status_help.output
+    assert "--controller-pid" in status_help.output
+    assert "--snakemake-log" in status_help.output
+    assert logs_help.exit_code == 0
+    assert "snakemake" in logs_help.output
+
+
+def test_workflow_log_tail_crosses_remote_result_and_json_parser(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+    from daylily_ec.workflow_observability import decode_snakemake_tail
+
+    _patch_headnode_selection(monkeypatch)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda _cluster, _region, *, profile=None: HeadNodeTarget(
+            "cluster-a", "us-west-2", "i-abc123"
+        ),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
+    repo_path = "/fsx/analysis_results/cluster-a/run-1/daylily-omics-analysis"
+    log_path = f"{repo_path}/.snakemake/log/current.snakemake.log"
+    raw_tail = b"Finished job 275.\n12 of 195 steps (6%) done\n"
+    tail_payload = {
+        "encoding": "zlib+base64",
+        "data": base64.b64encode(zlib.compress(raw_tail, 9)).decode("ascii"),
+        "byte_count": len(raw_tail),
+        "sha256": hashlib.sha256(raw_tail).hexdigest(),
+        "line_count_requested": 120,
+    }
+    calls: dict[str, str] = {}
+
+    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+        calls["script"] = script
+        remote_payload = {
+            "schema_version": "dyec.workflow_observability.v1",
+            "repo_path": repo_path,
+            "snakemake_log": {
+                "path": log_path,
+                "problem": None,
+                "tail": tail_payload,
+            },
+        }
+        return SsmCommandResult(
+            "cmd-tail",
+            instance_id,
+            "Success",
+            0,
+            "DAY-EC activated.\n" + json.dumps(remote_payload) + "\n",
+            "",
+        )
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+
+    payload = cli_module._collect_workflow_observability(
+        profile="dev",
+        region="us-west-2",
+        cluster="cluster-a",
+        session="recovery-session",
+        run_dir=None,
+        repo_path=repo_path,
+        controller_pid=564368,
+        snakemake_log=None,
+        remote_user="ubuntu",
+        tail_lines=120,
+    )
+
+    assert decode_snakemake_tail(payload["snakemake_log"]["tail"]) == raw_tail.decode()
+    assert shlex.split(calls["script"])[-2:] == ["--tail-lines", "120"]
+
+
+def test_workflow_logs_snakemake_tails_only_attributed_path(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    calls: dict[str, object] = {}
+    repo_path = "/fsx/analysis_results/cluster-a/run-1/daylily-omics-analysis"
+    log_path = f"{repo_path}/.snakemake/log/2026-08-10T072121.snakemake.log"
+
+    tail_text = "Submitted job 21 with external jobid '82'.\n12 of 195 steps (6%) done\n"
+    raw_tail = tail_text.encode("utf-8")
+    monkeypatch.setattr(
+        cli_module,
+        "_collect_workflow_observability",
+        lambda **kwargs: (
+            calls.update(kwargs)
+            or {
+                "state": "RUNNING",
+                "repo_path": repo_path,
+                "snakemake_log": {
+                    "path": log_path,
+                    "problem": None,
+                    "tail": {
+                        "encoding": "zlib+base64",
+                        "data": base64.b64encode(zlib.compress(raw_tail, 9)).decode("ascii"),
+                        "byte_count": len(raw_tail),
+                        "sha256": hashlib.sha256(raw_tail).hexdigest(),
+                        "line_count_requested": 200,
+                    },
+                },
+            }
+        ),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "logs",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--session",
+            "session-1",
+            "--stream",
+            "snakemake",
+            "--lines",
+            "200",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Submitted job 21" in result.output
+    assert "12 of 195 steps (6%) done" in result.output
+    assert calls["repo_path"] is None
+    assert calls["tail_lines"] == 200
+
+
+def test_workflow_logs_snakemake_fails_when_exact_log_is_ambiguous(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    monkeypatch.setattr(
+        cli_module,
+        "_collect_workflow_observability",
+        lambda **kwargs: {
+            "state": "RUNNING",
+            "repo_path": "/fsx/analysis_results/cluster-a/run-1/daylily-omics-analysis",
+            "snakemake_log": {
+                "path": None,
+                "problem": "multiple Snakemake logs are open by the controller",
+            },
+        },
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "logs",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--session",
+            "session-1",
+            "--stream",
+            "snakemake",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "multiple Snakemake logs" in result.output
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        ["workflow", "status", "--session", "session-1"],
+        ["workflow", "logs", "--session", "session-1", "--stream", "snakemake"],
+    ],
+)
+def test_workflow_observability_surfaces_remote_ssm_diagnostics(monkeypatch, command) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    failed_result = SsmCommandResult(
+        "cmd-probe",
+        "i-abc123",
+        "Failed",
+        2,
+        "remote probe stdout",
+        "ModuleNotFoundError: no module named workflow_observability",
+    )
+
+    def fail_probe(**kwargs):
+        raise SsmCommandFailedError("SSM command 'cmd-probe' failed", failed_result)
+
+    monkeypatch.setattr(cli_module, "_collect_workflow_observability", fail_probe)
+
+    result = runner.invoke(app, command)
+
+    assert result.exit_code == 2
+    assert "remote probe stdout" in result.stdout
+    assert "ModuleNotFoundError" in result.stderr
+    assert "cmd-probe" in result.stderr
 
 
 def test_remote_json_payload_download_uses_marked_chunks(monkeypatch) -> None:
@@ -4301,9 +4621,7 @@ def test_collect_remote_json_payload_uses_marked_manifest_and_raw_cleanup(monkey
                 "Success",
                 0,
                 "DAY-EC activated.\n"
-                "__DYEC_REMOTE_JSON_MANIFEST__="
-                + json.dumps(manifest, sort_keys=True)
-                + "\n",
+                "__DYEC_REMOTE_JSON_MANIFEST__=" + json.dumps(manifest, sort_keys=True) + "\n",
                 "",
             )
         return SsmCommandResult("cmd-cleanup", instance_id, "Success", 0, "", "")

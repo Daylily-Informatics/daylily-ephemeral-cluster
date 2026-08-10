@@ -1317,6 +1317,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         "started_at=os.environ.get('DAYLILY_STATUS_STARTED_AT') or None, "
         "completed_at=os.environ.get('DAYLILY_STATUS_COMPLETED_AT') or None, "
         "exit_code=exit_code, "
+        "snakemake_log_path=os.environ.get('DAYLILY_STATUS_SNAKEMAKE_LOG_PATH') or None, "
+        "snakemake_log_attribution=os.environ.get('DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION') or None, "
         "command=os.environ['DAYLILY_STATUS_COMMAND']); "
         "path.parent.mkdir(parents=True, exist_ok=True); "
         "path.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\\n', encoding='utf-8')"
@@ -1437,6 +1439,8 @@ export DAYOA_LEDGER_PATH="${{DAYOA_LEDGER_PATH:-${{DAYLILY_RUN_DIR}}/workflow-la
 export DAYLILY_STATUS_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export DAYLILY_STATUS_COMPLETED_AT=""
 export DAYLILY_STATUS_EXIT_CODE="__PENDING__"
+export DAYLILY_STATUS_SNAKEMAKE_LOG_PATH=""
+export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION=""
 write_status
 
 analysis_lock_acquired=0
@@ -2741,9 +2745,35 @@ fi
 
 	monitor_controller_dag &
 	controller_dag_monitor_pid=$!
+	snakemake_log_baseline="$DAYLILY_RUN_DIR/snakemake-log-baseline.txt"
+	snakemake_log_current="$DAYLILY_RUN_DIR/snakemake-log-current.txt"
+	if [[ -d "$repo_path/.snakemake/log" ]]; then
+	  find "$repo_path/.snakemake/log" -maxdepth 1 -type f -name '*.snakemake.log' -print \
+	    | sort > "$snakemake_log_baseline"
+	else
+	  : > "$snakemake_log_baseline"
+	fi
 	set +e
 run_dy_command "$DY_COMMAND"
 workflow_status=$?
+	if [[ -d "$repo_path/.snakemake/log" ]]; then
+	  find "$repo_path/.snakemake/log" -maxdepth 1 -type f -name '*.snakemake.log' -print \
+	    | sort > "$snakemake_log_current"
+	else
+	  : > "$snakemake_log_current"
+	fi
+	mapfile -t invocation_snakemake_logs < <(
+	  comm -13 "$snakemake_log_baseline" "$snakemake_log_current"
+	)
+	rm -f -- "$snakemake_log_baseline" "$snakemake_log_current"
+	if [[ "${{#invocation_snakemake_logs[@]}}" -eq 1 ]]; then
+	  export DAYLILY_STATUS_SNAKEMAKE_LOG_PATH="${{invocation_snakemake_logs[0]}}"
+	  export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION="exact invocation file-set difference"
+	elif [[ "${{#invocation_snakemake_logs[@]}}" -gt 1 ]]; then
+	  export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION="ambiguous: multiple invocation logs"
+	else
+	  export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION="unavailable: no invocation log"
+	fi
 	touch "$controller_dag_stop"
 	set +e
 	wait "$controller_dag_monitor_pid"

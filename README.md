@@ -247,6 +247,57 @@ The relay prefix is intentionally explicit and auditable. DYEC does not delete r
 
 ## Monitoring exact analyses
 
+For a workflow launched by DYEC, inspect the exact run-state receipt, controller
+target, active Snakemake log, progress, submitted/finished jobs, and current
+Slurm states together:
+
+```bash
+dyec --json workflow status \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --session "$ANALYSIS_ID"
+
+dyec workflow logs \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --session "$ANALYSIS_ID" \
+  --stream snakemake \
+  --lines 200
+```
+
+`workflow status` emits exactly one derived `state`: `RUNNING`, `SUCCEEDED`,
+`FAILED`, or `UNKNOWN`. `SUCCEEDED` and a terminal exit code require the
+matching DYEC `status.json`; a successful status-inspection command is never
+the workflow exit code. `CONFIGURING` and `RUNNING` Slurm jobs are ongoing
+work, and an empty queue is never success. Failure detection uses anchored
+Snakemake terminal markers and deliberately ignores generic `ERROR` text and
+printed shell bodies.
+
+The Snakemake stream attributes and reads the log in one remote probe. Its
+requested tail is compressed, integrity-checked, and decoded locally, avoiding
+a second SSM round trip. If a requested tail cannot fit the bounded SSM
+transport, DYEC fails clearly and asks for fewer `--lines`.
+
+For a controller started manually during recovery, provide its identity
+explicitly; DYEC does not discover a checkout or guess the newest log:
+
+```bash
+dyec --json workflow status \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --repo-path /fsx/analysis_results/<owner>/<analysis-id>/daylily-omics-analysis \
+  --controller-pid <pid> \
+  --session <exact-tmux-session>
+```
+
+If the controller is no longer live or descriptor correlation is unavailable,
+add the exact
+`--snakemake-log <repo-path>/.snakemake/log/<timestamp>.snakemake.log`.
+Manual inspection can prove `RUNNING` or a high-signal `FAILED` state, but it
+cannot prove `SUCCEEDED` or invent a terminal RC without a matching DYEC launch
+receipt.
+
 Record visits before analysis-root reads:
 
 ```bash

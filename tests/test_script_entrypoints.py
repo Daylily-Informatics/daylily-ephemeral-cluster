@@ -586,6 +586,13 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'controller_dag_path="$repo_path/.dyec/controller-dag.png"' in script
         assert 'STATUS_FILE="${DAYLILY_RUN_DIR}/status.json"' in script
         assert 'export DAYLILY_CONTROLLER_PID="$BASHPID"' in script
+        assert 'export DAYLILY_STATUS_SNAKEMAKE_LOG_PATH=""' in script
+        assert 'export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION=""' in script
+        assert 'snakemake_log_baseline="$DAYLILY_RUN_DIR/snakemake-log-baseline.txt"' in script
+        assert "-name '*.snakemake.log'" in script
+        assert 'comm -13 "$snakemake_log_baseline" "$snakemake_log_current"' in script
+        assert 'DAYLILY_STATUS_SNAKEMAKE_LOG_PATH="${invocation_snakemake_logs[0]}"' in script
+        assert 'DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION="exact invocation file-set difference"' in script
         assert "dyec.controller_target.v1" in script
         assert "python3 -c " in script
         assert "DAYLILY_RUN_DIR=%q" in script

@@ -355,8 +355,33 @@ dyec workflow logs \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --session <session> \
+  --stream snakemake \
   --lines 100
 ```
+
+The status response derives `RUNNING`, `SUCCEEDED`, `FAILED`, or `UNKNOWN`
+from the exact controller target, matching run receipt, controller/descendant
+open file descriptors, Snakemake progress, and current Slurm evidence.
+`CONFIGURING` and `RUNNING` allocations are healthy ongoing states; an empty
+queue is not success. Only the current matching DYEC receipt supplies a
+terminal RC, and generic `ERROR` text or an old pane RC marker is not terminal
+evidence.
+
+For a manually restarted recovery controller, replace the run-state selector
+with explicit attribution:
+
+```bash
+dyec --json workflow status \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" \
+  --repo-path /fsx/analysis_results/<owner>/<analysis-id>/daylily-omics-analysis \
+  --controller-pid <pid> \
+  --session <exact-tmux-session>
+```
+
+Add `--snakemake-log <exact-path>` only when the live PID cannot expose exactly
+one log through `/proc`. DYEC refuses missing or ambiguous attribution and does
+not guess the newest file. A manual run without a DYEC receipt cannot be called
+successful and has no attributable terminal RC.
 
 Inside the headnode shell:
 
