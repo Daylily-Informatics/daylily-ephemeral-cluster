@@ -35,7 +35,15 @@ parallel, monitor every ten minutes, and report bugs that cause failures.
 | QC-002 | ONT | Render/dry-run/launch `ont_run_qc` for Set4-FC1. | BLOCKED | feature_implementation | Gate 1 | Codex | Exact `13.4.13` rendering selected `produce_ont_run_qc_and_demux_multiqc`; the dry launch failed before controller creation. | DYEC SSM Run Command payload exceeded AWS's 97 KB document limit on headnode `i-0ee0f65150b39b976`. | No DayOA, lock, tmux, or Slurm execution exists. Repair the bootstrap payload contract, then rerender and dry-run from a fresh analysis ID. |
 | QC-003 | ULTIMA | Render/dry-run/launch `ultima_run_qc`. | BLOCKED | feature_implementation | Gate 1 | Codex | Exact `13.4.13` rendering selected `produce_ultima_run_qc` with `run_context_only=true`; the dry launch failed before controller creation. | DYEC SSM Run Command payload exceeded AWS's 97 KB document limit on headnode `i-0ee0f65150b39b976`. | No DayOA, lock, tmux, or Slurm execution exists. Repair the bootstrap payload contract, then rerender and dry-run from a fresh analysis ID. |
 | QC-004 | Monitoring | Create the user-authorized 10-minute heartbeat and report terminal failures/bugs. | SUCCESS | legitimate_safety_handling | Gate 1 | Codex | User authorized monitoring; no heartbeat was created because every launch failed before a controller existed. The pre-controller failure was reported immediately. |  | No scheduled task is active in this thread. |
-| QC-005 | DYEC SSM transport | Prevent all DYEC Run Command call sites from submitting an oversized request. | SUCCESS | defect_repair | Gate 1 | Codex | `run_shell` now stages oversized shell payloads in SHA-256-verified bounded chunks; all direct Run Command submissions route through `start_bounded_command`. Focused SSM and Sentieon suites: 54 passed. A live ILMN catalog dry run reached terminal `SUCCEEDED` (controller PID `1966826`, exit 0, no Slurm jobs). | AWS rejected DYEC's generated inline Run Command document at its 97 KB limit (`MaxDocumentSizeExceeded`). | The former failure mode is prevented locally for shell and non-shell Run Command requests; no release has been published. |
+| QC-005 | DYEC SSM transport | Prevent all DYEC Run Command call sites from submitting an oversized request. | SUCCESS | defect_repair | Gate 1 | Codex | `run_shell` stages oversized shell payloads in SHA-256-verified bounded chunks; all direct Run Command submissions route through `start_bounded_command`. Focused SSM and Sentieon suites: 54 passed. A live ILMN catalog dry run reached terminal `SUCCEEDED` (controller PID `1966826`, exit 0, no Slurm jobs). | AWS rejected DYEC's generated inline Run Command document at its 97 KB limit (`MaxDocumentSizeExceeded`). | The repair is published in DYEC `16.1.66`. |
+| QC-006 | Seq-QC retry | Launch all three catalog workflows from fresh analysis IDs with released DYEC `16.1.66` and explicit DayOA `13.4.14`. | SUCCESS | feature_implementation | Gate 1 | Codex | All three launched from fresh IDs and cloned DayOA commit `b70e57fbb6b4bed10b929beb2f0c51c12739b7f0` for tag `13.4.14`. Each controller subsequently reached a terminal failure that is recorded in QC-009. |  | The released DYEC transport repair allowed all requested controllers to launch. |
+| QC-007 | Monitoring | Restore the previously user-authorized ten-minute launch monitor after controllers are created. | SUCCESS | legitimate_safety_handling | Gate 1 | Codex | Heartbeat `monitor-released-mounted-sequencing-qc-retries` was created at 10-minute cadence with terminal stop and six-hour runaway flag, then paused when all three controllers were terminal. |  | No scheduled task remains active. |
+| QC-008 | Local DYEC resource cache | Diagnose and report the concurrent versioned-resource cache promotion race that initially blocked ONT. | BLOCKED | config_or_startup_contract | Gate 2 | Codex | Concurrent launch hit `[Errno 66] Directory not empty` while promoting `~/.config/daylily/resources/16.1.67.dev0+g926c309a4.d20260810`; serial ONT retry then launched successfully before creating a prior controller. | DYEC local resource-cache installation is not concurrency-safe. | The immediate run request is satisfied; a code fix and a further DYEC release require a new explicit request. |
+| QC-009 | Workflow monitoring | Track the three live controllers through bootstrap and terminal workflow state. | ATTEMPTING_BUGFIX | config_or_startup_contract | Gate 1 | Codex | The three terminal failures are now being repaired under the user's explicit instruction. All controllers had entered `dy-a slurm hg38`; only ILMN reached Slurm. | ILMN used unsupported Lustre `RENAME_EXCHANGE`; ONT mixed incompatible run-context and manifest overrides; Ultima received an obsolete DYEC bootstrap that disrupted its native run-context mode. | Fresh analysis IDs and released code are required for the next execution attempt. |
+| QC-010 | DayOA FSx publisher | Replace unsupported Lustre directory exchange while preserving rollback safety. | SUCCESS | defect_repair | Gate 1 | Codex | DayOA `13.4.16`, commit `b896ea7a093be83f2d46da876704375c09f468c8`, uses same-filesystem staged renames with rollback instead of `renameat2(RENAME_EXCHANGE)`; focused publisher/RunQC tests: 27 passed. Annotated tag and branch are pushed. | FSx Lustre returned `EINVAL` for `renameat2(RENAME_EXCHANGE)`. | The publisher will retain the old tree until the new staged tree reaches the canonical path, then remove the private previous sibling. |
+| QC-011 | DYEC mounted RunQC contracts | Remove ONT manifest overrides and Ultima's obsolete metrics bootstrap; pin command catalog to DayOA `13.4.16`. | SUCCESS | defect_repair | Gate 1 | Codex | ONT now passes only `run_context_file` plus `run_context_only`; Ultima uses DayOA's native mounted-run JSON collection and no longer injects `run_qc`/metrics configuration. Source and packaged catalogs uniformly pin `13.4.16`; focused DYEC tests: 101 passed. | The catalog contradicted DayOA's explicit run-context contract and DYEC added an obsolete secondary Ultima contract. | DYEC release and fresh workflow proof remain in QC-012/QC-013. |
+| QC-012 | Release activation | Publish a DYEC release containing QC-011 and activate the exact released CLI. | IN_PROGRESS | feature_implementation | Gate 1 | Codex | DayOA `13.4.16` is published; DYEC source and focused tests are ready. |  |  |
+| QC-013 | Fresh live verification | Launch fresh ILMN, ONT, and Ultima catalog analyses and verify final report trees on FSx. | IN_PROGRESS | feature_implementation | Gate 1 | Codex | User explicitly authorized debug/fix/retry until final FSx reports succeed. The three input mounts remain read-only and available. |  |  |
 
 ## Amendment: 2026-08-10 SSM transport repair
 
@@ -46,14 +54,34 @@ needed; non-shell document callers fail locally before an AWS 97 KB rejection.
 The previously blocked launch rows remain historical evidence until their live
 catalog launches are separately retried.
 
+## Amendment: released retry
+
+The earlier defect repair is now released as DYEC `16.1.66`. The user directed
+a live retry, so the new launch row pins DayOA `13.4.14` explicitly and uses
+fresh analysis IDs rather than reusing the failed pre-controller attempts.
+
+## Amendment: 2026-08-10 released retry terminal outcomes and repair
+
+The DayOA controllers explicitly requested the `slurm` profile and set genome
+build `hg38`; their controller logs show the resulting Slurm rule-profile file
+in every analysis root. This is direct evidence of the requested execution
+environment, not merely catalog metadata. Only Illumina reached a Slurm rule.
+
+No workflow data were deleted, exported, retried, or cancelled during the
+failed attempt. The previously authorized ten-minute heartbeat remains paused;
+any subsequent monitor will be created only for fresh live controllers and will
+stop at their terminal states.
+
 ## Final report
 
-All rows terminal: yes
+All rows terminal: no
 Objective complete: no
 
 Status counts:
-- SUCCESS: 2
+- SUCCESS: 6
 - DUPLICATE: 0
 - NO_LONGER_NEEDED: 0
 - FAIL: 0
-- BLOCKED: 3
+- BLOCKED: 4
+- ATTEMPTING_BUGFIX: 1
+- IN_PROGRESS: 2

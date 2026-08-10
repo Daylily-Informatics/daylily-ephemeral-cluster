@@ -1821,77 +1821,6 @@ print("[INFO] DayOA native BCL Convert lane-split rules detected; no DYEC runtim
 PYNATIVEBCL
 }}
 
-ultima_run_qc_config_requested() {{
-  case "$DY_COMMAND" in
-    *produce_ultima_run_qc*)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}}
-
-append_ultima_run_qc_config() {{
-  local extra_config
-  extra_config="$(python3 - <<'PYULTIMACFG'
-import csv
-import json
-import shlex
-import subprocess
-import sys
-from pathlib import Path
-
-runs_path = Path("config/runs.tsv")
-if not runs_path.is_file():
-    raise SystemExit("[ERROR] Ultima run QC requires config/runs.tsv")
-
-with runs_path.open(newline="", encoding="utf-8-sig") as handle:
-    runs = list(csv.DictReader(handle, delimiter="\t"))
-
-run_row = next((row for row in runs if str(row.get("PLATFORM", "")).upper() == "ULTIMA"), None)
-if run_row is None:
-    raise SystemExit("[ERROR] Ultima run QC requires a ULTIMA run row in config/runs.tsv")
-
-source_s3_uri = str(run_row.get("SOURCE_S3_URI", "")).strip()
-if not source_s3_uri.startswith("s3://"):
-    raise SystemExit("[ERROR] Ultima run QC requires SOURCE_S3_URI in config/runs.tsv")
-metrics_path = str(run_row.get("METRICS_PATH", "")).strip()
-metrics_s3_uri = str(run_row.get("METRICS_S3_URI", "")).strip()
-if metrics_s3_uri:
-    if not metrics_s3_uri.startswith("s3://"):
-        raise SystemExit("[ERROR] Ultima run QC METRICS_S3_URI must be an s3:// URI")
-    metrics_path = "config/ultima_run_qc_metrics.csv"
-    try:
-        subprocess.run(
-            ["aws", "s3", "cp", metrics_s3_uri, metrics_path],
-            check=True,
-            stdout=sys.stderr,
-            stderr=sys.stderr,
-        )
-    except subprocess.CalledProcessError as exc:
-        raise SystemExit(
-            f"[ERROR] Failed to copy Ultima run QC METRICS_S3_URI: {{exc.returncode}}"
-        ) from exc
-if not metrics_path:
-    raise SystemExit(
-        "[ERROR] Ultima run QC requires METRICS_PATH or METRICS_S3_URI in config/runs.tsv"
-    )
-if not Path(metrics_path).is_file():
-    raise SystemExit(f"[ERROR] Ultima run QC metrics file not found: {{metrics_path}}")
-if Path(metrics_path).stat().st_size == 0:
-    raise SystemExit(f"[ERROR] Ultima run QC metrics file is empty: {{metrics_path}}")
-
-payload = "run_qc=" + json.dumps(
-    {{"ultima": {{"run_s3_uri": source_s3_uri, "metrics_path": metrics_path}}}},
-    separators=(",", ":"),
-)
-print(shlex.quote(payload))
-PYULTIMACFG
-)"
-	DY_COMMAND="$DY_COMMAND --config $extra_config"
-}}
-
 patch_dayoa_runtime_tmpdir_wrappers() {{
   python3 - <<'PYRUNTMP'
 from pathlib import Path
@@ -2510,9 +2439,6 @@ PYCONTAMZERO
 	  if bclconvert_runtime_tables_requested; then
 	    generate_bclconvert_runtime_tables
 	    BCLCONVERT_PROFILE_PATCH_REQUESTED=true
-	  fi
-	  if ultima_run_qc_config_requested; then
-	    append_ultima_run_qc_config
 	  fi
 	elif [[ "$SAMPLE_CONFIG_MODE" == "true" ]]; then
 	  if [[ "$INPUT_CONTRACT" == "six_manifest" ]]; then

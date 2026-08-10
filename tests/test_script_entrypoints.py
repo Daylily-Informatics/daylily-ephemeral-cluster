@@ -1249,7 +1249,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         return_value="us-west-2",
     )
     @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.need_cmd")
-    def test_main_injects_ultima_run_qc_s3_config(
+    def test_main_does_not_inject_ultima_run_qc_s3_config(
         self,
         _mock_need_cmd,
         _mock_region,
@@ -1290,15 +1290,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert rc == 0
         mock_discover.assert_not_called()
         script = mock_run_shell.call_args.args[2]
-        assert "ultima_run_qc_config_requested" in script
-        assert "append_ultima_run_qc_config" in script
-        assert "SOURCE_S3_URI" in script
-        assert "METRICS_PATH" in script
-        assert "METRICS_S3_URI" in script
-        assert "config/ultima_run_qc_metrics.csv" in script
-        assert '"run_s3_uri": source_s3_uri' in script
-        assert '"metrics_path": metrics_path' in script
-        assert 'DY_COMMAND="$DY_COMMAND --config $extra_config"' in script
+        assert "ultima_run_qc_config_requested" not in script
+        assert "append_ultima_run_qc_config" not in script
+        assert "Ultima run QC METRICS_S3_URI must" not in script
+        assert "config/ultima_run_qc_metrics.csv" not in script
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
