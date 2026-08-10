@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.4.11"
+DAYOA_BLESSED_TAG = "13.4.12"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -758,9 +758,23 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             ):
                 assert excluded_special_caller not in command
 
+    # The two catalogued HIOMR2 + Inflection workflow tests intentionally
+    # demonstrate a quick multi-chromosome range.  DayOA's numeric scope maps
+    # 23=X, 24=Y, and 25=M/MT, so full production coverage is 1-25.
+    hiomr2_test_scope = 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}'
+    for command_id in (
+        "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical",
+        "inflection-bjuice-product-v0.2",
+    ):
+        hiomr2_kitchensink = catalog.get_command(command_id)
+        assert hiomr2_kitchensink.dy_command.count(hiomr2_test_scope) == 1
+        assert hiomr2_kitchensink.dryrun_dy_command.count(hiomr2_test_scope) == 1
+        assert "replace 19-20 with 1-25" in hiomr2_kitchensink.description
+        assert "23=X, 24=Y, and 25=M/MT" in hiomr2_kitchensink.description
+
     package_inflection = catalog.get_command("package_inflection_hybrid_data")
     assert package_inflection.type == "dev"
-    assert package_inflection.validated_version == "13.4.11"
+    assert package_inflection.validated_version == "13.4.12"
     assert package_inflection.git_tag == DAYOA_BLESSED_TAG
     assert package_inflection.input_contract == "six_manifest"
     assert package_inflection.targets == ["produce_sentdhiomr2_inflection_seqone_v2"]
@@ -985,7 +999,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "run_context_only=true" in ont_dy_command
 
     ultima = catalog.get_command("ultima_run_qc")
-    assert ultima.validated_version == "13.4.11"
+    assert ultima.validated_version == "13.4.12"
     assert ultima.git_tag == DAYOA_BLESSED_TAG
     assert ultima.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
