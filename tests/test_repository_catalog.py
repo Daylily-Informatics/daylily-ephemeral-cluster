@@ -860,6 +860,19 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert " -j 333 -T 1 -p -k " in inflection_bjuice.dy_command
     assert inflection_bjuice.genome == "hg38"
     assert inflection_bjuice.dryrun_dy_command == f"{inflection_bjuice.dy_command} -n"
+    inflection_launch_argv = inflection_bjuice.launch_argv(
+        analysis_id="test-chr19and20",
+        executing_entity="prod-cand-260809",
+        manifest_dir="/tmp/hg002-bjuice-six-manifest",
+        dry_run=True,
+    )
+    rendered_inflection_command = inflection_launch_argv[
+        inflection_launch_argv.index("--dy-command") + 1
+    ]
+    assert "$ANALYSIS_ID" not in rendered_inflection_command
+    assert (
+        "seqone_delivery_batch_id=test-chr19and20" in rendered_inflection_command
+    )
 
     simple_test = catalog.get_command("simple-test")
     assert simple_test.command_class == "utility"

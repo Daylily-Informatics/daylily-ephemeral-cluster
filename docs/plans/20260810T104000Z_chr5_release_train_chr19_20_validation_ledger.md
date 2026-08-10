@@ -60,9 +60,9 @@ ledger's mutation scope.
 | REL-006 | DYEC catalog | Validate source/payload catalog parity and both chr19-20 live/dry commands, including exact nested scope override and numeric full-scope guidance | SUCCESS | Source and payload catalogs are byte-identical. Both named entries carry the exact nested `19-20` override in live and dry commands and document full numeric `1-25`; the combined catalog, pin, payload, CLI-registry, manifest, sample-stats, and test-runner suite passed `338/338`. |
 | REL-007 | DYEC intermediate release | Commit/push the DayOA-pin and catalog release, create/push the next annotated DYEC tag, and verify remote provenance | SUCCESS | Commit `a50b263f569170b01333b18f2e8c8aff9cfa70bb` pushed; annotated `16.1.59` pushed. Remote tag object `cd019ee3f0402375984e7df323e2862bd8c0c432` peels to that exact commit. |
 | REL-008 | DYEC self-pin | Advance every live and packaged DYEC self-pin to REL-007's tag; rerun focused tests | SUCCESS | Source and packaged `daylily_cli_global.yaml` are byte-identical and both self-pin fields use intermediate release `16.1.59`; packaged-default, LSMC fork-contract, clone, and repository-catalog tests passed `77/77`. |
-| REL-009 | DYEC final release | Commit/push the self-pin, create/push the following annotated DYEC tag, and verify clean remote state | OPEN | Pending |
-| REL-010 | Fresh test boundary | Prove `/fsx/analysis_results/prod-cand-260809/test-chr19and20` and the planned tmux names are absent; preserve all other controllers/jobs | OPEN | Pending |
-| REL-011 | Exact-tag clone/dry run | With final DYEC, use supported DYEC CLI launch to clone the new DayOA tag into `test-chr19and20`, stage the catalog's exact six-manifest fixture, and run its exact dry command to RC `0`; prove the rendered scope BED contains only chr19 and chr20 | OPEN | Pending |
+| REL-009 | DYEC final release | Commit/push the self-pin, create/push the following annotated DYEC tag, and verify clean remote state | SUCCESS | Self-pin commit `e6299dc2a3a44096ec1d805468d239d4b106c37d` pushed; annotated `16.1.60` pushed. Remote tag object `3fded020ae1184753d742bc02f85a6d0a1de497f` peels to that exact commit. |
+| REL-010 | Fresh test boundary | Prove `/fsx/analysis_results/prod-cand-260809/test-chr19and20` and the planned tmux names are absent; preserve all other controllers/jobs | SUCCESS | Supported DYEC headnode inspection proved the exact root and both planned dry/live tmux names absent immediately before launch; no other controller or job was touched. |
+| REL-011 | Exact-tag clone/dry run | With final DYEC, use supported DYEC CLI launch to clone the new DayOA tag into `test-chr19and20`, stage the catalog's exact six-manifest fixture, and run its exact dry command to RC `0`; prove the rendered scope BED contains only chr19 and chr20 | IN_PROGRESS | First exact `16.1.60` catalog dry controller terminated with attributed RC `2`, zero submitted jobs: the rendered analytical batch remained literal `$ANALYSIS_ID`. Minimal renderer fix now substitutes the already-validated analysis ID before launch; `340/340` focused tests pass and rendered output contains `seqone_delivery_batch_id=test-chr19and20` with no unresolved placeholder. A new immutable DYEC pin/self-pin release pair is required before the successor dry run. |
 | REL-012 | Live chr19-20 run | Remove only `-n`, run the identical catalog command in a new persistent tmux controller, and monitor only that controller to attributed RC `0` | OPEN | Pending |
 | REL-013 | Final report | Report exact DayOA/DYEC commits and annotated tags, remote verification, catalog command, analysis root, tmux/controller, scope evidence, RC, outputs, and any remaining caveats | OPEN | Pending |
 
@@ -183,3 +183,20 @@ verify both the tag object and the exact remote ref after push.
   intermediate release `16.1.59`; the config copies are byte-identical and the
   focused packaged-default, fork-contract, clone, and catalog suite passed
   `77/77`. REL-008 is terminal `SUCCESS`.
+- `2026-08-10T12:42Z`: pushed self-pin commit
+  `e6299dc2a3a44096ec1d805468d239d4b106c37d`, recomputed the remote tag set,
+  and created/pushed annotated final DYEC `16.1.60`. Remote tag object
+  `3fded020ae1184753d742bc02f85a6d0a1de497f` peels to that exact commit.
+- `2026-08-10T12:45Z`: exact final-release preflight proved the fresh
+  `test-chr19and20` root and planned dry/live tmux names absent. Catalog render
+  selected DayOA `13.4.12`, the packaged HG002 six-manifest fixture, cost center
+  `prod-cand-260809`, `-j 333 -T 1 -p -k -n`, and scope `19-20`.
+- `2026-08-10T12:50Z`: first exact catalog dry controller
+  `dayoa_test_chr19and20_hg002_5x5x_13412_dry_20260810` terminated with
+  attributed RC `2` and zero submitted jobs because the analytical delivery
+  batch reached DayOA as literal `$ANALYSIS_ID`. The catalog launcher had
+  validated the analysis ID but deferred expansion across the remote shell
+  boundary. A minimal renderer fix now resolves that placeholder locally;
+  rendered output contains `seqone_delivery_batch_id=test-chr19and20`, and the
+  focused catalog/payload/registry/fixture suite passed `340/340`. Per the
+  immutable-release contract, the successor will use a newly tagged DYEC pair.
