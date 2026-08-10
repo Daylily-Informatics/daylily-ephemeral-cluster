@@ -51,8 +51,8 @@ parallel, monitor every ten minutes, and report bugs that cause failures.
 | QC-018 | DYEC ONT Conda-solve repair release | Pin source and packaged catalog defaults to DayOA `13.4.20`, advance DYEC self pin, and publish the release. | SUCCESS | feature_implementation | Gate 1 | Codex | Annotated DYEC `16.1.70`, commit `e7823915`, is pushed; source/payload catalog and global configuration are byte-identical, focused DYEC suite passed 144, and the activated CLI/package/exact tag each report `16.1.70`. |  | Released catalog is the only source used for QC-019. |
 | QC-019 | ONT final fresh live verification | Launch one fresh ONT catalog analysis at the repaired DayOA/DYEC tags and verify the complete final FSx report tree. | ATTEMPTING_BUGFIX | feature_implementation | Gate 1 | Codex | Fresh root `prod-cand-ont-seqqc-16170-r1` rendered with exact DayOA `13.4.20`, `hg38`, mounted run-context-only input, and no export/BCLConvert, then failed in the ONT report-generator runtime contract. | DayOA `13.4.20` routed pycoQC to a historical Conda environment that still contained unavailable InterOp and did not restore the previously successful report containers; the shared spool initializer also required host utilities unavailable in those minimal images. | Preserve this failure root and repair only the ONT catalog/runtime path. |
 | QC-020 | ONT container contract repair | Restore the known-good pycoQC and ToulligQC containers while retaining canonical atomic FSx publication and a clean generic ONT environment. | SUCCESS | defect_repair | Gate 1 | Codex | DayOA `13.4.21`, commit `aa718a95dd5963655a60d2c929ff02814827c179`, is pushed. It adds only ONT rule/helper/environment/test/ledger changes; focused suite: 107 passed. | DayOA `13.4.18` and `13.4.20` regressed a previously successful isolated-container contract. | Pin only DYEC's `ont_run_qc` entry to this tag. |
-| QC-021 | Scoped DYEC ONT release | Pin only `ont_run_qc` to DayOA `13.4.21`, publish DYEC `16.1.71`, and activate the exact release. | IN_PROGRESS | feature_implementation | Gate 1 | Codex | Source and packaged catalogs are byte-identical; only `ont_run_qc` advances to `13.4.21`, all other DayOA command pins remain `13.4.20`, and the focused DYEC suite passed 144 tests. |  | Publish the annotated tag and prove exact activation. |
-| QC-022 | ONT final fresh rerun | Launch a new ONT-only analysis from the released scoped catalog and verify the complete final FSx report tree. | OPEN | feature_implementation | Gate 1 | Codex | Fresh analysis/session IDs will be used; no prior roots will be overwritten. |  | Wait for QC-021, then launch and monitor without Slurm intervention. |
+| QC-021 | Scoped DYEC ONT release | Pin only `ont_run_qc` to DayOA `13.4.21`, publish DYEC `16.1.71`, and activate the exact release. | SUCCESS | feature_implementation | Gate 1 | Codex | Annotated DYEC `16.1.71`, commit `f0d0a1135e27b0f86d18cb9e116f358dccb0ab0e`, is pushed. Source/package catalogs are byte-identical; only `ont_run_qc` advances to `13.4.21`, all other DayOA command pins remain `13.4.20`; 144 focused tests passed; CLI, package, and exact tag each report `16.1.71`. |  | Released catalog is the only source used for QC-022. |
+| QC-022 | ONT final fresh rerun | Launch a new ONT-only analysis from the released scoped catalog and verify the complete final FSx report tree. | IN_PROGRESS | feature_implementation | Gate 1 | Codex | Fresh root `prod-cand-ont-seqqc-16171-r1`, session `prodcand_ont_seqqc_16171_r1`, is live with attributed controller PID `2360568`, exact DayOA `13.4.21`, `slurm`/`hg38`, and no export trigger. The previous InterOp failure is cleared: Snakemake is now solving the clean immutable `ont_run_qc_reports_v0.4.yaml`. |  | The authorized 10-minute monitor is active; wait for Slurm jobs, controller success, and complete non-empty FSx ONT report proof. |
 
 ## Amendment: 2026-08-10 SSM transport repair
 
@@ -87,10 +87,10 @@ All rows terminal: no
 Objective complete: no
 
 Status counts:
-- SUCCESS: 6
+- SUCCESS: 13
 - DUPLICATE: 0
 - NO_LONGER_NEEDED: 0
 - FAIL: 0
 - BLOCKED: 4
-- ATTEMPTING_BUGFIX: 1
-- IN_PROGRESS: 2
+- ATTEMPTING_BUGFIX: 4
+- IN_PROGRESS: 1
