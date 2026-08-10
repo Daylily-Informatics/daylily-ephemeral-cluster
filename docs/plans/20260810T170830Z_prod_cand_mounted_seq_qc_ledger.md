@@ -53,6 +53,7 @@ parallel, monitor every ten minutes, and report bugs that cause failures.
 | QC-020 | ONT container contract repair | Restore the known-good pycoQC and ToulligQC containers while retaining canonical atomic FSx publication and a clean generic ONT environment. | SUCCESS | defect_repair | Gate 1 | Codex | DayOA `13.4.21`, commit `aa718a95dd5963655a60d2c929ff02814827c179`, is pushed. It adds only ONT rule/helper/environment/test/ledger changes; focused suite: 107 passed. | DayOA `13.4.18` and `13.4.20` regressed a previously successful isolated-container contract. | Pin only DYEC's `ont_run_qc` entry to this tag. |
 | QC-021 | Scoped DYEC ONT release | Pin only `ont_run_qc` to DayOA `13.4.21`, publish DYEC `16.1.71`, and activate the exact release. | SUCCESS | feature_implementation | Gate 1 | Codex | Annotated DYEC `16.1.71`, commit `f0d0a1135e27b0f86d18cb9e116f358dccb0ab0e`, is pushed. Source/package catalogs are byte-identical; only `ont_run_qc` advances to `13.4.21`, all other DayOA command pins remain `13.4.20`; 144 focused tests passed; CLI, package, and exact tag each report `16.1.71`. |  | Released catalog is the only source used for QC-022. |
 | QC-022 | ONT final fresh rerun | Launch a new ONT-only analysis from the released scoped catalog and verify the complete final FSx report tree. | IN_PROGRESS | feature_implementation | Gate 1 | Codex | Fresh root `prod-cand-ont-seqqc-16171-r1`, session `prodcand_ont_seqqc_16171_r1`, is live with attributed controller PID `2360568`, exact DayOA `13.4.21`, `slurm`/`hg38`, and no export trigger. The previous InterOp failure is cleared: Snakemake is now solving the clean immutable `ont_run_qc_reports_v0.4.yaml`. |  | The authorized 10-minute monitor is active; wait for Slurm jobs, controller success, and complete non-empty FSx ONT report proof. |
+| QC-023 | ILMN and Ultima final export | Verify the successful ILMN and Ultima RunQC trees, export both FSx analysis roots to S3 without deleting FSx data, and retain their working code unchanged. | SUCCESS | feature_implementation | Gate 1 | Codex | Controllers `prodcand_ilmn_seqqc_16168_r1` and `prodcand_ultima_seqqc_16168_r1` exited `0`; the ILMN MultiQC HTML/data are 4,039,469/2,510,404 bytes and the Ultima MultiQC HTML/data are 3,645,445/492,369 bytes on both FSx and S3. Export tasks `task-0eae60cba004d6fce` and `task-057ec4bbc2373296e` are `SUCCEEDED`; receipts report `status: success`, `detached: true`, and `delete_data_in_file_system: false`. |  | Exported to `s3://lsmc-dayoa-analysis-results-usw2/validation/prod-cand-260809/ubuntu/prod-cand-{ilmn,ultima}-seqqc-16168-r1/`; both FSx roots remain present. No ILMN or Ultima branch/code change is needed. |
 
 ## Amendment: 2026-08-10 SSM transport repair
 
@@ -81,13 +82,25 @@ failed attempt. The previously authorized ten-minute heartbeat remains paused;
 any subsequent monitor will be created only for fresh live controllers and will
 stop at their terminal states.
 
+## Amendment: 2026-08-10 ILMN and Ultima terminal export closure
+
+The later instruction to finish the final FSx exports authorized no-delete S3
+exports for the already successful ILMN and Ultima `16.1.68` analyses. Their
+controllers exited `0`, their complete non-empty native and MultiQC report trees
+were verified on FSx, and DYEC exported each complete analysis root to the
+validation bucket. Both export tasks succeeded, both temporary export DRAs were
+detached, and both FSx analysis roots were retained. Exact S3 `head-object`
+checks matched the FSx byte sizes for each MultiQC HTML and `multiqc_data.json`.
+Because both workflows and exports are terminal-successful, no ILMN or Ultima
+change was taken from the ONT repair branch.
+
 ## Final report
 
 All rows terminal: no
 Objective complete: no
 
 Status counts:
-- SUCCESS: 13
+- SUCCESS: 14
 - DUPLICATE: 0
 - NO_LONGER_NEEDED: 0
 - FAIL: 0
