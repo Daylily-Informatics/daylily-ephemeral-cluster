@@ -7,6 +7,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+import daylily_ec.aws.ssm as ssm_module
 
 from daylily_ec.aws.ssm import (
     HeadNodeTarget,
@@ -145,6 +146,71 @@ class TestWaitForSsmOnline:
 
 
 class TestRunShell:
+    def test_start_bounded_command_rejects_oversized_non_shell_request(self):
+        client = MagicMock()
+
+        with pytest.raises(SsmError, match="Refusing oversized SSM Run Command request"):
+            ssm_module.start_bounded_command(
+                client,
+                instance_id="i-abc123",
+                document_name="AWS-ConfigureAWSPackage",
+                parameters={"input": ["x" * ssm_module.MAX_RUN_COMMAND_PAYLOAD_BYTES]},
+                comment="test oversized request",
+            )
+
+        client.send_command.assert_not_called()
+
+    @patch("daylily_ec.aws.ssm.boto3.Session")
+    def test_large_script_is_staged_in_bounded_verified_chunks(self, mock_session_cls, monkeypatch):
+        client = MagicMock()
+        mock_session_cls.return_value.client.return_value = client
+        payloads: list[str] = []
+
+        def fake_run_payload(_instance_id, _client, payload, **_kwargs):
+            payloads.append(payload)
+            encoded = payload.split("DAYLILY_SSM_B64=", 1)[1].split("\n", 1)[0]
+            decoded = base64.b64decode(encoded).decode("utf-8")
+            marker = "__DAYLILY_SSM_PAYLOAD_SHA256__="
+            if marker in decoded:
+                expected = decoded.split('test "$actual" = ', 1)[1].split("\n", 1)[0]
+                return ssm_module.SsmCommandResult(
+                    command_id="cmd-verify",
+                    instance_id="i-abc123",
+                    status="Success",
+                    response_code=0,
+                    stdout=f"{marker}{expected}\n",
+                    stderr="",
+                )
+            return ssm_module.SsmCommandResult(
+                command_id="cmd-stage",
+                instance_id="i-abc123",
+                status="Success",
+                response_code=0,
+                stdout="",
+                stderr="",
+            )
+
+        monkeypatch.setattr(ssm_module, "_run_command_payload", fake_run_payload)
+        monkeypatch.setattr(ssm_module.uuid, "uuid4", lambda: SimpleNamespace(hex="fixed"))
+
+        result = run_shell(
+            "i-abc123",
+            "us-west-2",
+            "echo payload\n" * 12_000,
+            profile="dev",
+        )
+
+        assert result.command_id == "cmd-stage"
+        assert len(payloads) > 4
+        assert all(len(payload.encode("utf-8")) <= ssm_module.MAX_RUN_COMMAND_PAYLOAD_BYTES for payload in payloads)
+        decoded_payloads = [
+            base64.b64decode(payload.split("DAYLILY_SSM_B64=", 1)[1].split("\n", 1)[0]).decode("utf-8")
+            for payload in payloads
+        ]
+        assert any("/tmp/daylily-ssm-fixed/payload.sh" in payload for payload in decoded_payloads)
+        assert any("sha256sum /tmp/daylily-ssm-fixed/payload.sh" in payload for payload in decoded_payloads)
+        assert any("trap 'rm -rf /tmp/daylily-ssm-fixed' EXIT" in payload for payload in decoded_payloads)
+
     @patch("daylily_ec.aws.ssm.boto3.Session")
     def test_success(self, mock_session_cls):
         client = MagicMock()

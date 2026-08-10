@@ -99,8 +99,54 @@ dyec workflow logs \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --session <session> \
+  --stream snakemake \
   --lines 100
 ```
+
+Interpret the combined status as follows:
+
+- `RUNNING`: the exact controller PID is live and attributed to the expected
+  checkout/tmux tree. Slurm `CONFIGURING` and `RUNNING` records are ongoing
+  work.
+- `SUCCEEDED`: the exact DYEC launch receipt is complete with exit code `0`.
+- `FAILED`: the exact receipt has a nonzero exit code, or a dead attributed
+  manual invocation has an anchored high-signal Snakemake terminal marker.
+- `UNKNOWN`: no terminal receipt and no live attributed controller or
+  high-signal terminal failure. Queue emptiness does not change this state.
+
+The current master log is selected only when exactly one matching file is open
+by the controller/descendant process tree, or when an exact invocation log was
+persisted in the DYEC receipt. Multiple candidates are reported as ambiguous.
+Generic `ERROR` strings, printed shell command bodies, stale tmux-pane RC text,
+and the status inspection command's RC are never treated as workflow RCs.
+
+Manual recovery syntax is explicit and provider-neutral:
+
+```bash
+dyec --json workflow status \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" \
+  --repo-path /fsx/analysis_results/<owner>/<analysis-id>/daylily-omics-analysis \
+  --controller-pid <pid> \
+  --session <exact-tmux-session>
+```
+
+If exact open-file correlation is unavailable, add
+`--snakemake-log <repo-path>/.snakemake/log/<exact-name>.snakemake.log` to status
+or `workflow logs --stream snakemake`. DYEC fails clearly on a missing,
+out-of-root, or ambiguous log and never guesses the newest one. Manual runs
+without a matching DYEC status receipt cannot prove success or a terminal RC.
+The Snakemake stream attributes and reads the exact tail in one SSM probe and
+validates its byte count and SHA-256 after local decompression. If the tail is
+too large for bounded SSM output, retry with fewer `--lines`; DYEC does not
+silently truncate or issue an unattributed second read.
+
+For recovery shells, never capture the controller as `dy-r ... | tee ...` when
+an immediate RC receipt matters. Slurm polling or lock helpers can inherit the
+pipe, leaving `tee` alive after Snakemake prints its return code. Redirect
+`dy-r` directly to a regular file, capture `$?` immediately, and follow the log
+from a separate process. DYEC's generated launcher applies this contract and
+atomically stores `workflow_exit_code`; generic or printed `RETURN CODE` text is
+still not terminal evidence.
 
 On the headnode:
 

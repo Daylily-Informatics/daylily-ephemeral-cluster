@@ -1,0 +1,52 @@
+{
+  "schema": "lsmc.dyec.hg002_bjuice_verified_5x5x_fastq/1.0",
+  "reference_denominator": {
+    "bases": 3088269832,
+    "contig_policy": "24 primary GRCh38 no-alt contigs; exclude names containing underscore, chrM, and chrEBV"
+  },
+  "inputs": [
+    {
+      "role": "illumina_r1",
+      "s3_uri": "s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/bjuice_preval_2026/HG002/illumina/HG002_BJUICEPREVAL_ILMN_5x_R1.fastq.gz",
+      "fsx_path": "/fsx/references/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/bjuice_preval_2026/HG002/illumina/HG002_BJUICEPREVAL_ILMN_5x_R1.fastq.gz",
+      "bytes": 3899321181,
+      "sha256": "0a3282844bc53ac600566899b9a02d1dd556befe63269b9b09f2c8be17780eb3",
+      "read_count": 60277137,
+      "sequenced_bases": 9052461224
+    },
+    {
+      "role": "illumina_r2",
+      "s3_uri": "s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/bjuice_preval_2026/HG002/illumina/HG002_BJUICEPREVAL_ILMN_5x_R2.fastq.gz",
+      "fsx_path": "/fsx/references/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/bjuice_preval_2026/HG002/illumina/HG002_BJUICEPREVAL_ILMN_5x_R2.fastq.gz",
+      "bytes": 4000405121,
+      "sha256": "6b365ebb3ef333783cc4f85bedd881ebcd8356d66f5a040dfdbe666ec624e4d7",
+      "read_count": 60277137,
+      "sequenced_bases": 9053152391
+    },
+    {
+      "role": "ont",
+      "s3_uri": "s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/bjuice_preval_2026/HG002/ont/HG002_BJUICEPREVAL_ONT_5x.fastq.gz",
+      "fsx_path": "/fsx/references/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/bjuice_preval_2026/HG002/ont/HG002_BJUICEPREVAL_ONT_5x.fastq.gz",
+      "bytes": 15086588357,
+      "sha256": "f35e79a5601271f6503455a952cc04892f452b078ad45941cbf27ae77f4ed45b",
+      "uncompressed_fastq_sha256": "7441b3018d02fe6c0c318bf2904ae7d7bb5c08093ddaa3bbd7e876b3e4ec8be0",
+      "read_count": 1963980,
+      "sequenced_bases": 14805689859,
+      "measured_depth": 4.794169766,
+      "sampling": {
+        "method": "deterministic_source_prefix_by_estimated_read_count",
+        "source_read_count": 7759331,
+        "source_measured_depth": 19.7617,
+        "target_read_count": 1963980,
+        "tool": "seqkit",
+        "version": "2.13.0",
+        "package_sha256": "538ff4ab33819598e45939fe36ea7f4505afba62e90a7cbd95c6f63493aee6d4",
+        "compression_tool": "pigz 2.6",
+        "compression_level": 1,
+        "rebuild_receipt_schema": "lsmc.hg002_bjuice_ont_5x_prefix96/1.0"
+      }
+    }
+  ],
+  "combined_illumina_depth": 5.862704556,
+  "policy": "Full-coverage objects must fail identity validation and must not be substituted for this fixture."
+}

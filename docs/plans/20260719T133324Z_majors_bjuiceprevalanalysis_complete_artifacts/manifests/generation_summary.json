@@ -1,0 +1,258 @@
+{
+  "biological_names": [
+    "HG001",
+    "HG002",
+    "HG003",
+    "HG004",
+    "HG005",
+    "HG006",
+    "HG007",
+    "NA05067",
+    "NA10798",
+    "NA13189",
+    "NA14732",
+    "NA14733",
+    "NA15603",
+    "NA15848",
+    "NA15849",
+    "NA19235",
+    "NA20027",
+    "NA20230",
+    "NA20775",
+    "NA23687"
+  ],
+  "counts": {
+    "analysis_unit_inputs": 80,
+    "analysis_units": 20,
+    "libraries": 40,
+    "samples": 20,
+    "sequencing_inputs": 80,
+    "specimens": 20
+  },
+  "dayoa_ref": "13.0.10",
+  "excluded_external_names": [
+    "NTC"
+  ],
+  "input_paths_sha256": "f138db70489e1183b4d548a10d397605fb9d422d36e6ccaf419d2604c0a0c72c",
+  "matrix_sha256": "3da41aca4f567a560981b2029e873cf5dfc7624ebf8bcf6a1378d5514107d92f",
+  "output_sha256": {
+    "analysis_unit_inputs.tsv": "9b06068f2513aa1498b972e8b1de9dad67465272f0407c500bb6b50a5f976174",
+    "analysis_units.tsv": "b194c4326f80d4385e1f5d1fb0ab1ef7e771509b4ca36a81b8983a9dff3f184e",
+    "libraries.tsv": "09946c263980cc26c11c3df2ee9531b6aa8d5f0f8188d1c2742489af78d1efe6",
+    "samples.tsv": "7b6a1b0c0a75c4e4052b293e5d7cc82f3d453ce9bab6ff28663dd11538bf9ae9",
+    "sequencing_inputs.tsv": "6f0f30582da02aa4914a6804f666b74b2b7439b446e3a1ae93d992fc4a18c9c8",
+    "specimens.tsv": "3fe6ce3c3ef90bdfa28f4b975d4e4392a1c8acec7db4336dba9ad528504ba3fc"
+  },
+  "path_counts": {
+    "HG001": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0040_3B_PBK89197_822a87b5": 146,
+        "20260616_0041_3C_PBK89101_bd86eaac": 146,
+        "20260616_0048_3A_PBM08268_14b096e3": 146
+      },
+      "ont_total": 438
+    },
+    "HG002": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0040_3B_PBK89197_822a87b5": 146,
+        "20260616_0041_3C_PBK89101_bd86eaac": 146,
+        "20260616_0048_3A_PBM08268_14b096e3": 146
+      },
+      "ont_total": 438
+    },
+    "HG003": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0040_3B_PBK89197_822a87b5": 146,
+        "20260616_0041_3C_PBK89101_bd86eaac": 146,
+        "20260616_0048_3A_PBM08268_14b096e3": 146
+      },
+      "ont_total": 438
+    },
+    "HG004": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0043_3E_PBK85486_42685790": 146,
+        "20260616_0044_3F_PBM08238_7d8f645f": 146,
+        "20260616_0045_3G_PBK89110_3fa4c57c": 146
+      },
+      "ont_total": 438
+    },
+    "HG005": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0043_3E_PBK85486_42685790": 146,
+        "20260616_0044_3F_PBM08238_7d8f645f": 146,
+        "20260616_0045_3G_PBK89110_3fa4c57c": 146
+      },
+      "ont_total": 438
+    },
+    "HG006": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0043_3E_PBK85486_42685790": 146,
+        "20260616_0044_3F_PBM08238_7d8f645f": 146,
+        "20260616_0045_3G_PBK89110_3fa4c57c": 146
+      },
+      "ont_total": 438
+    },
+    "HG007": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0043_3E_PBK85486_42685790": 146,
+        "20260616_0044_3F_PBM08238_7d8f645f": 146,
+        "20260616_0045_3G_PBK89110_3fa4c57c": 146
+      },
+      "ont_total": 438
+    },
+    "NA05067": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0016_1A_PBM08640_c98c880d": 146,
+        "20260616_0018_1B_PBK91434_3c965fc8": 146,
+        "20260616_0019_1C_PBK89738_04cc99c1": 146
+      },
+      "ont_total": 438
+    },
+    "NA10798": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0016_1A_PBM08640_c98c880d": 146,
+        "20260616_0018_1B_PBK91434_3c965fc8": 146,
+        "20260616_0019_1C_PBK89738_04cc99c1": 146
+      },
+      "ont_total": 438
+    },
+    "NA13189": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0016_1A_PBM08640_c98c880d": 146,
+        "20260616_0018_1B_PBK91434_3c965fc8": 146,
+        "20260616_0019_1C_PBK89738_04cc99c1": 146
+      },
+      "ont_total": 438
+    },
+    "NA14732": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0016_1A_PBM08640_c98c880d": 146,
+        "20260616_0018_1B_PBK91434_3c965fc8": 146,
+        "20260616_0019_1C_PBK89738_04cc99c1": 146
+      },
+      "ont_total": 438
+    },
+    "NA14733": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0032_1F_PBM08548_4022a2fa": 146,
+        "20260616_0033_1G_PBK86064_6bbfaf6d": 146,
+        "20260616_0034_1H_PBK91577_541f879a": 146
+      },
+      "ont_total": 438
+    },
+    "NA15603": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0032_1F_PBM08548_4022a2fa": 146,
+        "20260616_0033_1G_PBK86064_6bbfaf6d": 146,
+        "20260616_0034_1H_PBK91577_541f879a": 146
+      },
+      "ont_total": 438
+    },
+    "NA15848": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0032_1F_PBM08548_4022a2fa": 146,
+        "20260616_0033_1G_PBK86064_6bbfaf6d": 146,
+        "20260616_0034_1H_PBK91577_541f879a": 146
+      },
+      "ont_total": 438
+    },
+    "NA15849": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0032_1F_PBM08548_4022a2fa": 146,
+        "20260616_0033_1G_PBK86064_6bbfaf6d": 146,
+        "20260616_0034_1H_PBK91577_541f879a": 146
+      },
+      "ont_total": 438
+    },
+    "NA19235": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0037_2F_PBK89511_2f15e0c8": 146,
+        "20260616_0038_2G_PBK88331_00f9772a": 146,
+        "20260616_0038_2H_PBK90179_52fb7cf6": 146
+      },
+      "ont_total": 438
+    },
+    "NA20027": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0037_2F_PBK89511_2f15e0c8": 146,
+        "20260616_0038_2G_PBK88331_00f9772a": 146,
+        "20260616_0038_2H_PBK90179_52fb7cf6": 146
+      },
+      "ont_total": 438
+    },
+    "NA20230": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0037_2F_PBK89511_2f15e0c8": 146,
+        "20260616_0038_2G_PBK88331_00f9772a": 146,
+        "20260616_0038_2H_PBK90179_52fb7cf6": 146
+      },
+      "ont_total": 438
+    },
+    "NA20775": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0037_2F_PBK89511_2f15e0c8": 145,
+        "20260616_0038_2G_PBK88331_00f9772a": 146,
+        "20260616_0038_2H_PBK90179_52fb7cf6": 145
+      },
+      "ont_total": 436
+    },
+    "NA23687": {
+      "ilmn_r1": 8,
+      "ilmn_r2": 8,
+      "ont_by_run": {
+        "20260616_0040_3B_PBK89197_822a87b5": 146,
+        "20260616_0041_3C_PBK89101_bd86eaac": 146,
+        "20260616_0048_3A_PBM08268_14b096e3": 146
+      },
+      "ont_total": 438
+    }
+  },
+  "schema": "dayoa.bjuiceprevalanalysis_complete.generation.v1",
+  "source_sha256": {
+    "/Users/jmajor/projects/lsmc/remaining/samples.tsv": "0a662e6abbd200a8636f7c2bb4dec73f55bdacaf9e1995977e77108ffc3a5824",
+    "/Users/jmajor/projects/lsmc/remaining/units.tsv": "0a070b8f9219e7e4dd443175470134f1379c83e629320234ae7500df6392e0c9",
+    "/Users/jmajor/projects/mega_dayhoff/repos_work/daylily-ursa-10.0.1-owy-seqrunqc/docs/evidence/betelgeuse_multiplatform_global_dag/manifest_assembly/review_bundle_v1/reviewed_planner_bundle.json": "c5f132e4094293e060fb76426e31d25620d6afca6ace0743d47cf8f910dcd210",
+    "/Users/jmajor/projects/mega_dayhoff/repos_work/daylily-ursa-10.0.1-owy-seqrunqc/docs/evidence/betelgeuse_multiplatform_global_dag/manifest_assembly/source_inputs/dayhoff/20260718T075902Z/source/snapshots/samples.tsv": "4ce4f1eedf937d721dd827e69c664273f45b95cafa7ec73f28a859a8f33dee57",
+    "/Users/jmajor/projects/mega_dayhoff/repos_work/daylily-ursa-10.0.1-owy-seqrunqc/docs/evidence/betelgeuse_multiplatform_global_dag/manifest_assembly/source_inputs/dayhoff/20260718T075902Z/source/snapshots/units.tsv": "c0af9f3104b3a583bd064610ccc2c617c15185efbff3260a02834137b97e39eb",
+    "/Users/jmajor/projects/mega_dayhoff/repos_work/daylily-ursa-10.0.1-owy-seqrunqc/docs/evidence/betelgeuse_multiplatform_global_dag/manifest_assembly/source_inputs/dayhoff/20260718T075902Z/source/source_manifest_resolved.json": "f03b5f39e2124c490ac947bbcd8745bb53be03b42c885acb113194d5dae6c0c5"
+  },
+  "total_unique_input_paths": 9078
+}

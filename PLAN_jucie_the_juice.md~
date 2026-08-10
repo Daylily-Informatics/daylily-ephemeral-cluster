@@ -1,0 +1,129 @@
+# DayOA 13.0.110 NICU Caller and Inflection Packaging Plan
+
+## Summary
+
+> For all testing, use the hg002 5x ILMN 5xONT fastq data now avail
+
+> use dayoa==13.0.112 as the starting point for a workbracnh new localhost clone PWD so you don't conflicy with in agents in the current dirs
+
+Implement the NICU research portfolio in isolated DayOA and DYEC clones. Add complementary SR/LR callers, tandem-repeat calling, three SV-merging lanes, benchmarking, and a market-comparison report.
+
+Extend the existing HIOMR2 Inflection analytical package so these results are delivered under explicitly experimental folders. Raw Manta and Dysgu VCFs will not be packaged; their evidence will be represented through the Jasmine ensemble and its source-provenance/support artifacts.
+
+Methylation remains deferred because no POD5 or modBAM data are archived.
+
+## Caller and Merger Integration
+
+- SR callers on the canonical SR alignment:
+  - Manta 1.6.0.
+  - Dysgu 1.8.0 in paired-end mode.
+  - Existing TIDDIT.
+- LR callers on the canonical ONT alignment:
+  - Sentieon LongReadSV.
+  - Sniffles2.
+  - Severus germline calling, including its final VCF and complex-SV cluster tables. [Severus outputs](https://github.com/KolmogorovLab/Severus#output-files)
+- Repeat callers:
+  - Existing LongTR genome-wide and disease-focused catalogs.
+  - Existing ExpansionHunter retained independently.
+- GBA1 remains covered by Sentieon SegDup; do not add Gauchian.
+- Feed the same normalized caller set into:
+  - Jasmine as the primary ensemble.
+  - SURVIVOR as a comparison baseline.
+  - OctopuSV as an experimental challenger.
+- Preserve raw calls in the analysis root even where they are intentionally excluded from the Inflection package.
+
+## Inflection Package Contract
+
+Update `produce_sentdhiomr2_inflection_analytical_package` and bump its schema from `dayoa.hiomr2_inflection_analytical_package/1.2` to `/1.3`.
+
+Keep all existing `results/`, `provenance/`, and realigned-CRAM paths unchanged. Add:
+
+```text
+experimental/
+├── sv/
+│   ├── callers/
+│   │   ├── <sample>.tiddit.vcf.gz[.tbi]
+│   │   ├── <sample>.sniffles2.vcf.gz[.tbi]
+│   │   ├── <sample>.severus.germline.vcf.gz[.tbi]
+│   │   ├── <sample>.severus.breakpoint_clusters.tsv
+│   │   ├── <sample>.severus.breakpoint_clusters_list.tsv
+│   │   └── <sample>.severus.breakpoint_double.csv
+│   ├── merged/
+│   │   ├── jasmine/<sample>.jasmine.vcf.gz[.tbi]
+│   │   ├── survivor/<sample>.survivor.vcf.gz[.tbi]
+│   │   └── octopusv/<sample>.octopusv.{svcf,vcf.gz,vcf.gz.tbi,bedpe}
+│   └── comparison/
+│       ├── <sample>.source-support.tsv
+│       ├── <sample>.merger-concordance.tsv
+│       └── <sample>.bnd-topology-validation.json
+├── repeats/
+│   └── longtr/
+│       ├── <sample>.longtr.all.vcf.gz[.tbi]
+│       └── <sample>.longtr.disease.vcf.gz[.tbi]
+├── cnv_sv/
+│   └── <sample>.cnv-sv-concordance.tsv
+├── benchmarks/
+│   ├── <sample>.truvari-summary.tsv
+│   └── <sample>.truvari-metrics.json
+└── provenance/
+    ├── <sample>.caller-inputs.tsv
+    ├── <sample>.jasmine-inputs.tsv
+    └── <sample>.experimental-artifacts.json
+```
+
+Manta and Dysgu packaging rules:
+
+- Do not copy their raw VCFs into the Inflection package.
+- Include both as mandatory Jasmine inputs after normalization.
+- Require `jasmine-inputs.tsv` to record each caller’s original path, version, SHA-256, record count, normalization actions, modality, and support-vector position.
+- Require the Jasmine support table to expose which merged records contain Manta or Dysgu support.
+- Keep Manta and Dysgu in the identical input set used for the SURVIVOR and OctopuSV comparison lanes, while exposing their package provenance principally through Jasmine.
+- Absence or invalidity of either required input fails the research/package target; do not silently create a reduced ensemble.
+
+## Packaging Interface and Validation
+
+- Generate a strict `dayoa.hiomr2_nicu_research_artifacts/1.0` manifest from the research aggregate.
+- Add `--experimental-manifest` to the packaging CLI and declare the manifest plus every referenced artifact as Snakemake inputs.
+- Use a fixed role-to-destination allowlist; never accept destination paths supplied by the manifest.
+- Validate sample identity, GRCh38 reference identity, source location beneath the analysis root, expected byte size and SHA-256, VCF/index pairing, caller versions, unique roles, and the complete required-role set.
+- Copy experimental caller outputs byte-for-byte. Any package-ready VCF normalization, compression, indexing, or sample-name handling occurs upstream and is documented in provenance.
+- Mark every new manifest row with `package_tier: experimental` and `clinical_interpretation_allowed: false`.
+- Retain `customer_release_eligible: false`; these additions do not promote an experimental callset into the accepted Inflection result surface.
+- Reject symlinks, path escapes, undeclared roles, raw Manta/Dysgu package roles, missing files, hash mismatches, malformed nonempty VCFs, and incomplete indexes.
+
+## CNV and Reporting
+
+- Keep CNVscope as the independent copy-state result under `results/`.
+- Do not merge CNVscope segments into any SV VCF.
+- Package a 50% reciprocal-overlap CNV/SV concordance table retaining CN state, coordinates, overlap fractions, and caller/merged-record identifiers.
+- Create the timestamped Markdown report covering algorithms, NICU capability gaps, merger performance, comparison with rapid and ultrarapid WGS products, and the methylation eligibility conclusion:
+  - Native PCR-free SQK-LSK114 and SQK-NBD114.24 data would be compatible if POD5 existed.
+  - PCR/WGA-derived libraries are not suitable for recovering the native methylome.
+  - Current FASTQ-only archives remain ineligible for retrospective methylation calling.
+  - No modkit, Dorado-modbase, or POD5 workflow is implemented now.
+
+## DYEC and Testing
+
+- Add research command `hybrid_ilmn_ont_hiomr2_nicu_research`.
+- Have it request the research aggregate and schema-1.3 Inflection analytical package.
+- Leave established customer-delivery commands unchanged.
+- Add tests for:
+  - Exact package tree and deterministic manifest hashes.
+  - Presence of all requested experimental outputs.
+  - Absence of raw Manta and Dysgu VCFs.
+  - Mandatory Manta/Dysgu rows and support-vector positions in Jasmine provenance.
+  - VCF/index, sample, build, BND topology, malformed-input, symlink, path-escape, and hash failures.
+  - CNV/SV concordance without CNV-to-SV substitution.
+  - `customer_release_eligible: false` and experimental classification.
+- Run local tests and supported `dy-r` dry-runs.
+- Require one fresh exact-release hybrid HG002 validation with GIAB SV v5.0q assets.
+- Preserve all live logs, manifests, package inventories, benchmarks, and checksums in the controlling ledgers before releasing DayOA and updating the DYEC pin.
+
+# Multiqc fork updates
+- Be sure to include all of these new tools outputs in the multiqc final report, which might mean hacking the final multiqc lsmc-bio fork to include them. 
+
+# Finally, cp all created cache and container pulls to the s3 location so they are pulled in and available for all future built clusters, saving rebuild of the same cache situatioon. Also, please review env yamls and tighten up pinned version of python where they are free floating (and query the created cached conda env for the actual python ver to pin the correct one please. Do this before ther final test runs so they rebuild correctly.
+
+# regression testsing
+
+- I wantt o be able to delete the raw fastq for both ONT and ilmn, but this depends on the crams created being able to reverse generate the input fastqs completely. Which, if i understand correctluy, depends on certain minimap2 and bwa args being in place. I want a test to run that confirms we can in fact reverse getnerate the complete input fastq set for ilmn and ont (including failed or unmapped reads!  all fastqs should be reproducible end to end.  Is this possible for both ilmn and ont?  can you add a test for this?

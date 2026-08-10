@@ -1,0 +1,9 @@
+flowchart LR
+    Expected["13 NA expected positives"] --> Package["Inflection package snapshot"]
+    Package --> Raw["Raw pre-package result tree"]
+    Raw --> Direct["Direct support: HBA, HTT, CYP21A2/RCCX1, SMN, FMR1"]
+    Raw --> Qual["Qualitative support: FXN pathogenic-range expansion, size discordant"]
+    Raw --> Partial["Partial support: chr9 goleft/TIDDIT, no trisomy CNV"]
+    Raw --> Turner["Turner support: sex-complement X call"]
+    Raw --> Gap["No direct support: UPD8"]
+    Raw --> Supplemental["Supplemental pre-export SMN12 supports NA23687; not delivered"]

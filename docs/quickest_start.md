@@ -198,8 +198,16 @@ dyec workflow logs \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --session <session> \
+  --stream snakemake \
   --lines 50
 ```
+
+The status `state` is `RUNNING`, `SUCCEEDED`, `FAILED`, or `UNKNOWN`. Check
+`controller`, `snakemake_log`, `last_progress_at`, `jobs`, `slurm`, and
+`terminal` together. Queue emptiness and the status command's own RC are never
+workflow success. For a manual recovery run, use explicit `--repo-path` plus
+`--controller-pid`; add the exact `--snakemake-log` only when PID/open-file
+correlation is unavailable. DYEC never guesses the newest master log.
 
 Read-only headnode checks are acceptable:
 

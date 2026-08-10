@@ -1,0 +1,25 @@
+fsx_export:
+  schema_version: 4
+  status: error
+  phase: detach
+  cluster_name: ifx-p2-1000-120-0715
+  region: us-west-2
+  analysis_dir: ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete
+  source_path: /analysis_results/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/
+  headnode_path: /fsx/analysis_results/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/
+  destination_s3_uri: s3://lsmc-dayoa-analysis-results-usw2/validation/inflight_pr53_recovery_20260720T011608Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/
+  fsx_root: /fsx/analysis_results/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/
+  s3_root: s3://lsmc-dayoa-analysis-results-usw2/validation/inflight_pr53_recovery_20260720T011608Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/
+  dayoa_analysis_root: /fsx/analysis_results/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/
+  dayoa_s3_root: s3://lsmc-dayoa-analysis-results-usw2/validation/inflight_pr53_recovery_20260720T011608Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/
+  detached: true
+  delete_data_in_file_system: false
+  failure_details:
+    message: 'Unable to start FSx export task: An error occurred (BadRequest) when
+      calling the CreateDataRepositoryTask operation: Data repository task is not
+      supported for data repository dra-078e685041fb7a8ef with a CREATING lifecycle.'
+  fsx_file_system_id: fs-0cc0657362d4140c2
+  file_system_path: /analysis_results/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/
+  association_id: dra-078e685041fb7a8ef
+  lifecycle: CREATING
+  detach_lifecycle: UNKNOWN

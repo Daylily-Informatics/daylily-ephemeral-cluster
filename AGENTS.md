@@ -84,6 +84,12 @@ For cost/performance reports, aggregate directly from those rows: `sum(s)` for t
 
 # Safety Preferences
 
+## Scheduled tasks and automations
+
+- Scheduled tasks, recurring automations, monitors, reminders, and thread heartbeats are not implicitly authorized by filesystem, AWS, browser, or “Full Access” permissions. Ask for the user's explicit permission before creating one.
+- Do not schedule a task more frequently than every five minutes unless the user gives explicit double approval: first approve the exact task, cadence, and expected duration; then separately confirm that the sub-five-minute cadence is intended.
+- Track each scheduled task's start time and expected stop condition. When any scheduled task has run for more than six hours, flag it as potentially runaway and ask the user whether it should continue, be paused, stopped, or deleted. Do not silently extend, recreate, or intensify it.
+
 - Do not execute destructive AWS resource changes unless the user gives a second explicit approval after being told the action is destructive.
 - Do not answer interactive confirmation prompts for destructive AWS changes unless that second explicit approval has already been given in the current thread.
 - Treat an initial request to "teardown", "destroy", "delete", or similar as permission to inspect, prepare, or dry-run only. Before any live destructive action, restate the exact effect and wait for a separate explicit confirmation.

@@ -579,8 +579,94 @@ dyec workflow logs \
   --region "$REGION" \
   --cluster "$CLUSTER" \
   --session "$ANALYSIS_ID" \
+  --stream snakemake \
   --lines 200
 ```
+
+`workflow status` combines the exact controller target and matching
+`status.json` with live process evidence, the active Snakemake master log,
+Snakemake progress, submitted/finished job details, and current `squeue`
+states. Its top-level `state` is one of `RUNNING`, `SUCCEEDED`, `FAILED`, or
+`UNKNOWN`. Important fields include:
+
+- `controller.pid`, raw `controller.pid_exists`, attributed
+  `controller.live`, observed and expected cwd/command, and optional exact tmux
+  correlation;
+- `snakemake_log.path`, `source`, `problem`, and all open candidates when
+  attribution is ambiguous;
+- `last_progress_at`, `last_progress_line`, submitted/finished job counts and
+  details;
+- `slurm.available`, current job records, and `state_counts`, including
+  `CONFIGURING` and `RUNNING`;
+- `terminal.exit_code`, `exit_code_attributed`, `exit_code_source`, and
+  high-signal failure markers.
+
+The status command never treats its own RC, tmux existence, queue emptiness,
+generic `ERROR` text, a printed shell body, or a stale pane RC marker as the
+workflow result. A launched workflow is terminal only when its exact matching
+receipt is terminal, or when a dead attributed invocation has a high-signal
+Snakemake failure marker. `--stream tmux` and `--stream controller` remain
+available for bootstrap and stable controller logs.
+
+The read-only observability probe is compressed and transported by the invoking
+CLI. It does not import the new probe module from the headnode's installed DYEC
+package, so a local CLI may inspect a cluster built with an earlier DYEC package
+without silently changing that cluster. Remote failures preserve SSM command
+ID, response code, stdout, and stderr in the CLI error response.
+`workflow logs --stream snakemake` performs attribution and the exact tail read
+inside that same probe, then transports a compressed tail with byte-count and
+SHA-256 integrity metadata. This avoids a second SSM round trip. If the bounded
+SSM result cannot carry the compressed tail, the command fails explicitly and
+the operator must request fewer `--lines`.
+
+Manual/recovery controllers have no DYEC run-state receipt. Identify one
+explicitly with both options below; no repository or newest-log discovery is
+performed:
+
+```bash
+dyec --json workflow status \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --repo-path /fsx/analysis_results/<owner>/<analysis-id>/daylily-omics-analysis \
+  --controller-pid <pid> \
+  --session <exact-tmux-session>
+
+dyec workflow logs \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --repo-path /fsx/analysis_results/<owner>/<analysis-id>/daylily-omics-analysis \
+  --controller-pid <pid> \
+  --session <exact-tmux-session> \
+  --stream snakemake --lines 200
+```
+
+`--session` is optional in manual mode, but when present it must correlate the
+PID to that exact tmux process tree. When the process is dead or its open file
+descriptors cannot identify exactly one log, supply the exact
+`--snakemake-log <repo-path>/.snakemake/log/<name>.snakemake.log`. Multiple
+open logs fail as ambiguous instead of selecting the newest. Without a matching
+DYEC terminal receipt, manual success and terminal RC remain `UNKNOWN`/`null`.
+
+The generated DYEC controller never pipes `dy-r` through `tee`. It redirects
+stdout/stderr directly to the regular `.dyec/controller.log`, captures the
+foreground `dy-r` status, and atomically writes `workflow_completed_at` plus
+`workflow_exit_code` to the exact matching `status.json` before controller DAG,
+export, or other post-processing. Once the whole controller finishes, its
+`completed_at`/`exit_code` pair is authoritative and may override the earlier
+workflow pair if post-processing failed.
+
+For a manual recovery controller, use direct regular-file redirection and a
+separate log follower:
+
+```bash
+dy-r <targets-and-flags> >>/absolute/path/recovery.snakemake.log 2>&1
+rc=$?
+# Persist rc immediately in the recovery lane's own exact invocation receipt.
+```
+
+Do not use `dy-r ... | tee ...`. A background helper can inherit the pipe,
+keeping `tee` alive after `dy-r` has returned and delaying the following RC
+write. Manual receipts are not inferred or discovered by `workflow status`; a
+standard `dyec workflow launch` receipt is required for `SUCCEEDED` and an
+authoritative terminal RC.
 
 Collect benchmark summaries from a completed or partially completed DayOA root:
 

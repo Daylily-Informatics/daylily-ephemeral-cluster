@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import logging
 import os
@@ -11,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import time
+import uuid
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 from typing import Dict, Optional
@@ -28,6 +30,11 @@ AUTO_REMOTE_USER = "auto"
 SUPPORTED_REMOTE_USERS = (DEFAULT_REMOTE_USER, EC2_REMOTE_USER)
 SUPPORTED_REMOTE_USER = DEFAULT_REMOTE_USER
 SUPPORTED_SESSION_HOME = f"/home/{DEFAULT_REMOTE_USER}"
+# AWS limits a Run Command document plus parameters to 97 KB.  The encoded
+# transport wrapper adds substantial overhead, so retain room for its shell and
+# document framing rather than attempting a request that AWS must reject.
+MAX_RUN_COMMAND_PAYLOAD_BYTES = 80 * 1024
+LARGE_PAYLOAD_CHUNK_BYTES = 24 * 1024
 SOURCE_HEADNODE_STARTUP_FILES = (
     "set +e +u; "
     "for f in ~/.bash_profile ~/.bash_login ~/.profile; do "
@@ -394,6 +401,201 @@ def _encode_script_payload(
     )
 
 
+def _run_command_payload(
+    instance_id: str,
+    client: object,
+    payload: str,
+    *,
+    timeout: Optional[int],
+    poll_interval: int,
+    comment: str,
+) -> SsmCommandResult:
+    """Send one already-encoded AWS-RunShellScript payload and await it."""
+
+    response = start_bounded_command(
+        client,
+        instance_id=instance_id,
+        document_name="AWS-RunShellScript",
+        parameters={"commands": [payload]},
+        timeout=timeout,
+        comment=comment,
+    )
+
+    command_id = str(response["Command"]["CommandId"])
+    deadline = None if timeout is None else time.time() + timeout
+    while True:
+        try:
+            invocation = client.get_command_invocation(
+                CommandId=command_id,
+                InstanceId=instance_id,
+            )
+        except client.exceptions.InvocationDoesNotExist:
+            if deadline is not None and time.time() >= deadline:
+                raise TimeoutError(f"SSM command '{command_id}' did not start within {timeout}s.")
+            time.sleep(poll_interval)
+            continue
+        except (BotoCoreError, ClientError) as exc:
+            raise SsmError(f"Unable to fetch SSM command invocation '{command_id}': {exc}") from exc
+
+        status = str(invocation.get("Status") or "")
+        if status in PENDING_STATUSES:
+            if deadline is not None and time.time() >= deadline:
+                raise TimeoutError(f"SSM command '{command_id}' did not complete within {timeout}s.")
+            time.sleep(poll_interval)
+            continue
+
+        result = SsmCommandResult(
+            command_id=command_id,
+            instance_id=instance_id,
+            status=status,
+            response_code=int(invocation.get("ResponseCode") or 0),
+            stdout=str(invocation.get("StandardOutputContent") or ""),
+            stderr=str(invocation.get("StandardErrorContent") or ""),
+        )
+        if status != SUCCESS_STATUS or result.response_code != 0:
+            raise SsmCommandFailedError(
+                f"SSM command '{command_id}' failed with status={status} rc={result.response_code}",
+                result,
+            )
+        return result
+
+
+def start_bounded_command(
+    client: object,
+    *,
+    instance_id: str,
+    document_name: str,
+    parameters: dict[str, list[str]],
+    timeout: Optional[int] = None,
+    comment: str,
+) -> dict[str, object]:
+    """Start one SSM Run Command after enforcing DYEC's transport limit.
+
+    All DYEC SSM Run Command requests must use this gateway.  Shell payloads
+    are automatically staged by :func:`run_shell`; other SSM documents fail
+    locally if their complete request would exceed the safe limit, rather than
+    reaching AWS and failing with ``MaxDocumentSizeExceeded``.
+    """
+
+    send_kwargs: dict[str, object] = {
+        "InstanceIds": [instance_id],
+        "DocumentName": document_name,
+        "Comment": comment,
+        "Parameters": parameters,
+    }
+    if timeout is not None:
+        send_kwargs["TimeoutSeconds"] = max(timeout, 30)
+    request_bytes = len(
+        json.dumps(send_kwargs, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    )
+    if request_bytes > MAX_RUN_COMMAND_PAYLOAD_BYTES:
+        guidance = (
+            "use run_shell so DYEC stages the content in verified bounded chunks"
+            if document_name == "AWS-RunShellScript"
+            else "reduce the document parameters or use a document-specific staged input"
+        )
+        raise SsmError(
+            "Refusing oversized SSM Run Command request "
+            f"({request_bytes} bytes; DYEC safety limit {MAX_RUN_COMMAND_PAYLOAD_BYTES}): {guidance}."
+        )
+    try:
+        return client.send_command(**send_kwargs)
+    except (BotoCoreError, ClientError) as exc:
+        raise SsmError(f"Unable to start SSM Run Command on '{instance_id}': {exc}") from exc
+
+
+def _run_large_script(
+    instance_id: str,
+    client: object,
+    script: str,
+    *,
+    as_user: str,
+    timeout: Optional[int],
+    poll_interval: int,
+    comment: str,
+    require_startup_success: bool,
+) -> SsmCommandResult:
+    """Stage an oversized script in bounded SSM chunks, verify it, then run it.
+
+    This is a transport change only: the final script still executes under the
+    same supported interactive login shell as a normal ``run_shell`` request.
+    """
+
+    token = uuid.uuid4().hex
+    remote_dir = f"/tmp/daylily-ssm-{token}"
+    remote_script = f"{remote_dir}/payload.sh"
+    expected_sha256 = hashlib.sha256(script.encode("utf-8")).hexdigest()
+
+    def send_small(stage_script: str, stage_comment: str) -> SsmCommandResult:
+        payload = _encode_script_payload(
+            stage_script,
+            as_user=as_user,
+            require_startup_success=require_startup_success,
+        )
+        if len(payload.encode("utf-8")) > MAX_RUN_COMMAND_PAYLOAD_BYTES:
+            raise SsmError("Internal error: large-payload staging command exceeds the SSM safety limit.")
+        return _run_command_payload(
+            instance_id,
+            client,
+            payload,
+            timeout=timeout,
+            poll_interval=poll_interval,
+            comment=stage_comment,
+        )
+
+    try:
+        send_small(
+            "\n".join(
+                [
+                    "set -euo pipefail",
+                    "umask 077",
+                    f"mkdir -p {shlex.quote(remote_dir)}",
+                    f": > {shlex.quote(remote_script)}",
+                ]
+            ),
+            "Stage Daylily large payload",
+        )
+        raw = script.encode("utf-8")
+        for offset in range(0, len(raw), LARGE_PAYLOAD_CHUNK_BYTES):
+            chunk = base64.b64encode(raw[offset : offset + LARGE_PAYLOAD_CHUNK_BYTES]).decode("ascii")
+            send_small(
+                "\n".join(
+                    [
+                        "set -euo pipefail",
+                        f"printf '%s' {shlex.quote(chunk)} | base64 --decode >> {shlex.quote(remote_script)}",
+                    ]
+                ),
+                "Stage Daylily large payload chunk",
+            )
+        verify = send_small(
+            "\n".join(
+                [
+                    "set -euo pipefail",
+                    f"actual=$(sha256sum {shlex.quote(remote_script)} | awk '{{print $1}}')",
+                    f"test \"$actual\" = {shlex.quote(expected_sha256)}",
+                    'printf "__DAYLILY_SSM_PAYLOAD_SHA256__=%s\\n" "$actual"',
+                ]
+            ),
+            "Verify Daylily large payload",
+        )
+        if f"__DAYLILY_SSM_PAYLOAD_SHA256__={expected_sha256}" not in verify.stdout:
+            raise SsmError("Remote Daylily large-payload SHA-256 verification marker was not returned.")
+        return send_small(
+            "\n".join(
+                [
+                    "set -euo pipefail",
+                    f"trap 'rm -rf {shlex.quote(remote_dir)}' EXIT",
+                    f"bash {shlex.quote(remote_script)}",
+                ]
+            ),
+            comment,
+        )
+    except Exception:
+        try:
+            send_small(f"rm -rf {shlex.quote(remote_dir)}", "Clean Daylily large payload")
+        except Exception:
+            logger.warning("Unable to clean failed large SSM payload staging at %s", remote_dir)
+        raise
 def run_shell(
     instance_id: str,
     region: str,
@@ -419,66 +621,31 @@ def run_shell(
     )
     session = _build_boto_session(profile=profile, region=region)
     client = session.client("ssm")
+    protected_script = "\n".join([_payload_guard(resolved_user), script])
     payload = _encode_script_payload(
-        "\n".join([_payload_guard(resolved_user), script]),
+        protected_script,
         as_user=resolved_user,
         require_startup_success=require_startup_success,
     )
-
-    try:
-        send_kwargs = {
-            "InstanceIds": [instance_id],
-            "DocumentName": "AWS-RunShellScript",
-            "Comment": comment,
-            "Parameters": {"commands": [payload]},
-        }
-        if timeout is not None:
-            send_kwargs["TimeoutSeconds"] = max(timeout, 30)
-
-        response = client.send_command(**send_kwargs)
-    except (BotoCoreError, ClientError) as exc:
-        raise SsmError(f"Unable to start SSM Run Command on '{instance_id}': {exc}") from exc
-
-    command_id = str(response["Command"]["CommandId"])
-    deadline = None if timeout is None else time.time() + timeout
-
-    while True:
-        try:
-            invocation = client.get_command_invocation(
-                CommandId=command_id,
-                InstanceId=instance_id,
-            )
-        except client.exceptions.InvocationDoesNotExist:
-            if deadline is not None and time.time() >= deadline:
-                raise TimeoutError(f"SSM command '{command_id}' did not start within {timeout}s.")
-            time.sleep(poll_interval)
-            continue
-        except (BotoCoreError, ClientError) as exc:
-            raise SsmError(f"Unable to fetch SSM command invocation '{command_id}': {exc}") from exc
-
-        status = str(invocation.get("Status") or "")
-        if status in PENDING_STATUSES:
-            if deadline is not None and time.time() >= deadline:
-                raise TimeoutError(
-                    f"SSM command '{command_id}' did not complete within {timeout}s."
-                )
-            time.sleep(poll_interval)
-            continue
-
-        result = SsmCommandResult(
-            command_id=command_id,
-            instance_id=instance_id,
-            status=status,
-            response_code=int(invocation.get("ResponseCode") or 0),
-            stdout=str(invocation.get("StandardOutputContent") or ""),
-            stderr=str(invocation.get("StandardErrorContent") or ""),
+    if len(payload.encode("utf-8")) > MAX_RUN_COMMAND_PAYLOAD_BYTES:
+        return _run_large_script(
+            instance_id,
+            client,
+            protected_script,
+            as_user=resolved_user,
+            timeout=timeout,
+            poll_interval=poll_interval,
+            comment=comment,
+            require_startup_success=require_startup_success,
         )
-        if status != SUCCESS_STATUS or result.response_code != 0:
-            raise SsmCommandFailedError(
-                f"SSM command '{command_id}' failed with status={status} rc={result.response_code}",
-                result,
-            )
-        return result
+    return _run_command_payload(
+        instance_id,
+        client,
+        payload,
+        timeout=timeout,
+        poll_interval=poll_interval,
+        comment=comment,
+    )
 
 
 def write_remote_text(

@@ -1,0 +1,3 @@
+SPECIMEN_ID	SPECIMEN_EUID	SAMPLESOURCE	SPECIMEN_TYPE	EXTERNAL_SPECIMEN_ID	BIOLOGICAL_SEX	N_X	N_Y	SPECIMEN_COMMENT
+HG003	M-BN-3V	blood	gdna	HG003	male	1	1	Bjuice prevalence generated config for HG003; source specimen EUID M-BN-3V
+HG004	M-BN-4S	blood	gdna	HG004	female	2	0	Bjuice prevalence generated config for HG004; source specimen EUID M-BN-4S

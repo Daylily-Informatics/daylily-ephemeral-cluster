@@ -78,6 +78,18 @@ HG003_HIOMRS_1X_MANIFEST_RELPATHS = tuple(
         "analysis_unit_inputs.tsv",
     )
 )
+HG002_BJUICE_VERIFIED_5X5X_RESOURCE_RELPATHS = tuple(
+    f"examples/staging/hg002_bjuice_verified_5x5x_fastq/{name}"
+    for name in (
+        "specimens.tsv",
+        "samples.tsv",
+        "libraries.tsv",
+        "sequencing_inputs.tsv",
+        "analysis_units.tsv",
+        "analysis_unit_inputs.tsv",
+        "input_identity.json",
+    )
+)
 REQUIRED_CLUSTER_TEMPLATE_RELPATHS = (
     *INTEL_SPOT_TEMPLATE_RELPATHS,
     *INTEL_ONDEMAND_TEMPLATE_RELPATHS,
@@ -108,6 +120,8 @@ def _expected_subpaths(root: Path) -> Iterable[Path]:
     yield root / "bin"
     for relative_path in HG003_HIOMRS_1X_MANIFEST_RELPATHS:
         yield root / relative_path
+    for relative_path in HG002_BJUICE_VERIFIED_5X5X_RESOURCE_RELPATHS:
+        yield root / relative_path
 
 
 def _validate_resources_dir(root: Path) -> None:
@@ -126,6 +140,7 @@ def _resources_need_refresh(dest: Path, src: Path) -> bool:
     refresh_rels = (
         "config/daylily_pipeline_command_catalog.yaml",
         *HG003_HIOMRS_1X_MANIFEST_RELPATHS,
+        *HG002_BJUICE_VERIFIED_5X5X_RESOURCE_RELPATHS,
         *REQUIRED_CLUSTER_TEMPLATE_RELPATHS,
         "config/day_cluster/pcluster_env.yml",
         "config/day_cluster/slurm_accounting_mysql_ec2.yml",

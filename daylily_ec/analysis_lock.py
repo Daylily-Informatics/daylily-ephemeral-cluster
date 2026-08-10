@@ -70,10 +70,10 @@ def _append_jsonl(path: Path, payload: Mapping[str, object]) -> None:
 AnalysisRootArg = Union[str, Path]
 
 
-def normalize_analysis_root(analysis_root: AnalysisRootArg) -> Path:
+def normalize_analysis_root(
+    analysis_root: AnalysisRootArg, *, initialize: bool = False
+) -> Path:
     root = Path(analysis_root).expanduser()
-    if not root.exists():
-        raise AnalysisLockError(f"Analysis root does not exist: {root}")
     resolved = root.resolve()
     parts = resolved.parts
     if "analysis_results" not in parts:
@@ -86,6 +86,23 @@ def normalize_analysis_root(analysis_root: AnalysisRootArg) -> Path:
             "Analysis root must be /.../analysis_results/<owner>/<analysis_id>: "
             + str(resolved)
         )
+    if initialize and not resolved.exists():
+        results_root = Path(*parts[: idx + 1])
+        if not results_root.is_dir():
+            raise AnalysisLockError(
+                "Analysis results root does not exist; refusing to create it: "
+                + str(results_root)
+            )
+        try:
+            resolved.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            raise AnalysisLockError(
+                f"Could not initialize analysis root {resolved}: {exc}"
+            ) from exc
+    if not resolved.exists():
+        raise AnalysisLockError(f"Analysis root does not exist: {resolved}")
+    if not resolved.is_dir():
+        raise AnalysisLockError(f"Analysis root is not a directory: {resolved}")
     return resolved
 
 
@@ -270,7 +287,10 @@ def write_visit(
 ) -> dict[str, object]:
     if mode not in VISIT_MODES:
         raise AnalysisLockError(f"Unsupported visit mode: {mode}")
-    root = normalize_analysis_root(analysis_root)
+    root = normalize_analysis_root(
+        analysis_root,
+        initialize=mode == "write",
+    )
     ensure_owner_metadata(root)
     timestamp = utc_now()
     agent = current_agent_metadata(
@@ -314,7 +334,7 @@ def acquire_lock(
 ) -> dict[str, object]:
     if operation not in PROTECTED_OPERATIONS:
         raise AnalysisLockError(f"Lock acquisition is only for protected operations: {operation}")
-    root = normalize_analysis_root(analysis_root)
+    root = normalize_analysis_root(analysis_root, initialize=operation == "write")
     ensure_owner_metadata(root)
     current = current_agent_metadata(
         human_requestor=human_requestor,

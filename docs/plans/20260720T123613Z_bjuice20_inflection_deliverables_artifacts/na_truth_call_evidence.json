@@ -1,0 +1,991 @@
+{
+  "aws_profile": "lsmc",
+  "generated_at": "2026-07-20T13:45:30.400406+00:00",
+  "row_count": 13,
+  "s3_inflight_raw_base": "s3://lsmc-dayoa-analysis-results-usw2/validation/inflight_pr53_recovery_20260720T011608Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/results/day/hg38",
+  "s3_package_base": "s3://lsmc-dayoa-analysis-results-usw2/validation/inflight_pr53_recovery_20260720T011608Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/results/day/hg38/deliveries/inflection/bjuiceprevalanalysis-complete",
+  "s3_supplemental_pre_raw_base": "s3://lsmc-dayoa-analysis-results-usw2/validation/pre_13.0.11_8_g1d44044_20260719T214703Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/results/day/hg38",
+  "samples": {
+    "NA05067": {
+      "cnv_record_count": 0,
+      "cnv_source": "successful_pre_export_raw",
+      "goleft_chr9": {
+        "fraction_gt_1_2": 0.3845,
+        "fraction_gt_1_3": 0.3288,
+        "fraction_lt_0_8": 0.1246,
+        "mean": 1.1281,
+        "median": 1.07,
+        "window_count": 8442
+      },
+      "goleft_uri": "s3://lsmc-dayoa-analysis-results-usw2/validation/pre_13.0.11_8_g1d44044_20260719T214703Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/results/day/hg38/NA05067-NA05067-NA05067-ILMN-LIB-NA05067-ONT-LIB-BJUICE-PREVAL-NA05067-HIOMRS-A1/align/hiomrs_sr/na/alignqc/goleft/goleft-indexcov.bed.gz",
+      "large_sv_scan": {
+        "longreadsv": {
+          "by_filter": {},
+          "by_svtype": {},
+          "examples": [],
+          "hit_count": 0,
+          "source": "successful_pre_export_raw",
+          "uri": "s3://lsmc-dayoa-analysis-results-usw2/validation/pre_13.0.11_8_g1d44044_20260719T214703Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/results/day/hg38/NA05067-NA05067-NA05067-ILMN-LIB-NA05067-ONT-LIB-BJUICE-PREVAL-NA05067-HIOMRS-A1/align/hiomrs_sr/na/sv/hiomrs/NA05067-NA05067-NA05067-ILMN-LIB-NA05067-ONT-LIB-BJUICE-PREVAL-NA05067-HIOMRS-A1.hiomrs_sr.na.hiomrs.sv.callsets/native/NA05067-NA05067-NA05067-ILMN-LIB-NA05067-ONT-LIB-BJUICE-PREVAL-NA05067-HIOMRS-A1.sentieon_longreadsv.vcf.gz"
+        },
+        "tiddit": {
+          "by_filter": {
+            "BelowExpectedLinks": 47,
+            "FewLinks": 4,
+            "PASS": 27,
+            "RegionalQ": 2
+          },
+          "by_svtype": {
+            "DEL": 33,
+            "DUP:INV": 4,
+            "DUP:TANDEM": 2,
+            "INV": 41
+          },
+          "examples": [
+            {
+              "alt": "<INV>",
+              "chrom": "chr9",
+              "end": "65673763",
+              "filter": "BelowExpectedLinks",
+              "pos": "182185",
+              "svlen": 65491578,
+              "svtype": "INV"
+            },
+            {
+              "alt": "<INV>",
+              "chrom": "chr9",
+              "end": "132142623",
+              "filter": "BelowExpectedLinks",
+              "pos": "808734",
+              "svlen": 131333889,
+              "svtype": "INV"
+            },
+            {
+              "alt": "<DUP:INV>",
+              "chrom": "chr9",
+              "end": "3813748",
+              "filter": "PASS",
+              "pos": "2279156",
+              "svlen": 1534592,
+              "svtype": "DUP:INV"
+            },
+            {
+              "alt": "<DUP:INV>",
+              "chrom": "chr9",
+              "end": "3813154",
+              "filter": "PASS",
+              "pos": "2279397",
+              "svlen": 1533757,
+              "svtype": "DUP:INV"
+            },
+            {
+              "alt": "<DUP:TANDEM>",
+              "chrom": "chr9",
+              "end": "4190742",
+              "filter": "PASS",
+              "pos": "3107756",
+              "svlen": 1082986,
+              "svtype": "DUP:TANDEM"
+            }
+          ],
+          "hit_count": 80,
+          "source": "successful_pre_export_raw",
+          "uri": "s3://lsmc-dayoa-analysis-results-usw2/validation/pre_13.0.11_8_g1d44044_20260719T214703Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/results/day/hg38/NA05067-NA05067-NA05067-ILMN-LIB-NA05067-ONT-LIB-BJUICE-PREVAL-NA05067-HIOMRS-A1/align/hiomrs_sr/na/sv/tiddit/NA05067-NA05067-NA05067-ILMN-LIB-NA05067-ONT-LIB-BJUICE-PREVAL-NA05067-HIOMRS-A1.hiomrs_sr.tiddit.sv.sort.vcf.gz"
+        }
+      },
+      "metrics_cnv_record_count": 0,
+      "package_id": "NA05067-NA05067-NA05067-ILMN-LIB-NA05067-ONT-LIB-BJUICE-PREVAL-NA05067-HIOMRS-A1"
+    },
+    "NA10798": {
+      "hba": {
+        "Copy numbers": {
+          "a3.7": 2,
+          "a4.2": 2,
+          "non-duplication": 1
+        },
+        "cn_interpretation": "non-duplication: Heterozygous deletion (CN=1, Non-duplicationregion)\n-\u03b13.7: Normal copy number (CN=2)\n-\u03b14.2: Normal copy number(CN=2)\nClinical interpretation: Abnormal non-duplication CN=1 with unusualpattern - Requires manual review"
+      },
+      "package_id": "NA10798-NA10798-NA10798-ILMN-LIB-NA10798-ONT-LIB-BJUICE-PREVAL-NA10798-HIOMRS-A1",
+      "segdup_yaml_source": "repaired_inflight_raw"
+    },
+    "NA13189": {
+      "expansionhunter_row": {
+        "AnalysisUnitUID": "NA13189-NA13189-NA13189-ILMN-LIB-NA13189-ONT-LIB-BJUICE-PREVAL-NA13189-HIOMRS-A1",
+        "Sample": "NA13189-NA13189-NA13189-ILMN-LIB-NA13189-ONT-LIB-BJUICE-PREVAL-NA13189-HIOMRS-A1.hiomrs_sr.na.HD_HTT.HD_HTT.eh",
+        "SampleID": "NA13189",
+        "aligner": "hiomrs_sr",
+        "allele_count": "2",
+        "catalog_reference_region": "chr4:3074876-3074927",
+        "coverage": "42.302866414277986",
+        "declared_grain": "analysis_unit_alignment_locus_variant",
+        "deduper": "na",
+        "disease": "HD",
+        "display_repeat_unit": "CAG",
+        "entity_scope": "analysis_unit_locus_variant",
+        "gene": "HTT",
+        "genotype": "40/52",
+        "genotype_confidence_interval": "40-40/50-63",
+        "hgnc_id": "",
+        "inheritance_mode": "AD",
+        "locus_id": "HD_HTT",
+        "locus_structure": "(CAG)*CAACAG(CCG)*",
+        "max_allele": "52",
+        "normal_max": "26",
+        "pathologic_min": "36",
+        "pathologic_region": "chr4:3074876-3074927",
+        "repeat_unit": "CAG",
+        "sample": "NA13189-NA13189-NA13189-ILMN-LIB-NA13189-ONT-LIB-BJUICE-PREVAL-NA13189-HIOMRS-A1",
+        "status": "pathogenic_range",
+        "tool": "ExpansionHunter",
+        "tool_code": "eh",
+        "variant_id": "HD_HTT",
+        "variant_reference_region": "chr4:3074876-3074927",
+        "variant_subtype": "Repeat",
+        "variant_type": "Repeat"
+      },
+      "expansionhunter_source": "repaired_inflight_raw",
+      "package_id": "NA13189-NA13189-NA13189-ILMN-LIB-NA13189-ONT-LIB-BJUICE-PREVAL-NA13189-HIOMRS-A1"
+    },
+    "NA14732": {
+      "package_id": "NA14732-NA14732-NA14732-ILMN-LIB-NA14732-ONT-LIB-BJUICE-PREVAL-NA14732-HIOMRS-A1",
+      "rccx1": {
+        "Copy numbers": {
+          "C4A": 2,
+          "C4B": 1,
+          "C4_HERV-K": -1,
+          "CYP21A1P": 2,
+          "CYP21A2": 1,
+          "TNXA": 1,
+          "TNXB": 2
+        },
+        "cn_interpretation": "RCCX Module Analysis:\n  Total Modules: 3\n  Haplotype: Bimodular/Monomodular\nnC4 (Complement Component 4):\n  Total C4 Copies: 3\n  Isotypes: 2 C4A, 1 C4B\nSizes: 2 Long (with HERV-K), 1 Short (HERV-K deleted)\n\nCYP21 (Steroid 21-Hydroxylase):\nTotal CYP21 Copies: 3\n  Functional (CYP21A2): 1\n  Pseudogene (CYP21A1P):2\n  Chimera Classification: None\n  Conversion Events: None\n\nTNX (TenascinX):\n  Functional TNXB: 2\n  CAH-X Classification: None\n  Conversion Events:None",
+        "cyp21_analysis": {
+          "chimera_class": null,
+          "chimera_detected": false,
+          "conversion_events": [],
+          "detail": "1 Functional, 2 Pseudo",
+          "functional_count": 1,
+          "pseudo_count": 2,
+          "total_cyp21": 3
+        },
+        "module_count": 3
+      },
+      "segdup_yaml_source": "repaired_inflight_raw"
+    },
+    "NA14733": {
+      "package_id": "NA14733-NA14733-NA14733-ILMN-LIB-NA14733-ONT-LIB-BJUICE-PREVAL-NA14733-HIOMRS-A1",
+      "rccx1": {
+        "Copy numbers": {
+          "C4A": 2,
+          "C4B": 1,
+          "CYP21A1P": 2,
+          "CYP21A2": 1,
+          "TNXA": 1,
+          "TNXB": 2
+        },
+        "cn_interpretation": "RCCX Module Analysis:\n  Total Modules: 3\n  Haplotype: Bimodular/Monomodular\nnC4 (Complement Component 4):\n  Total C4 Copies: 3\n  Isotypes: 2 C4A, 1 C4B\nSizes: 3 Long (with HERV-K), 0 Short (HERV-K deleted)\n\nCYP21 (Steroid 21-Hydroxylase):\nTotal CYP21 Copies: 3\n  Functional (CYP21A2): 1\n  Pseudogene (CYP21A1P):2\n  Chimera Classification: None\n  Conversion Events: None\n\nTNX (TenascinX):\n  Functional TNXB: 2\n  CAH-X Classification: None\n  Conversion Events:None",
+        "cyp21_analysis": {
+          "chimera_class": null,
+          "chimera_detected": false,
+          "conversion_events": [],
+          "detail": "1 Functional, 2 Pseudo",
+          "functional_count": 1,
+          "pseudo_count": 2,
+          "total_cyp21": 3
+        },
+        "module_count": 3
+      },
+      "segdup_yaml_source": "repaired_inflight_raw"
+    },
+    "NA15603": {
+      "cnv_record_count": 0,
+      "cnv_source": "successful_pre_export_raw",
+      "package_id": "NA15603-NA15603-NA15603-ILMN-LIB-NA15603-ONT-LIB-BJUICE-PREVAL-NA15603-HIOMRS-A1",
+      "package_metric_roles": [
+        "cnv_vcf",
+        "expansionhunter_vcf",
+        "mito_vcf",
+        "segdup_gene_CFH",
+        "segdup_gene_CYP11B1",
+        "segdup_gene_CYP2B6",
+        "segdup_gene_CYP2D6",
+        "segdup_gene_GBA1",
+        "segdup_gene_HBA",
+        "segdup_gene_NCF1",
+        "segdup_gene_PMS2",
+        "segdup_gene_RCCX1",
+        "segdup_gene_RHD",
+        "segdup_gene_SBDS",
+        "segdup_gene_SMN1",
+        "segdup_gene_STRC",
+        "segdup_merged_vcf",
+        "selected_sv_vcf",
+        "snv_vcf",
+        "tiddit_sv_vcf"
+      ],
+      "raw_roh_upd_baf_hits": []
+    },
+    "NA15848": {
+      "expansionhunter_row": {
+        "AnalysisUnitUID": "NA15848-NA15848-NA15848-ILMN-LIB-NA15848-ONT-LIB-BJUICE-PREVAL-NA15848-HIOMRS-A1",
+        "Sample": "NA15848-NA15848-NA15848-ILMN-LIB-NA15848-ONT-LIB-BJUICE-PREVAL-NA15848-HIOMRS-A1.hiomrs_sr.na.FRDA_FXN.FRDA_FXN.eh",
+        "SampleID": "NA15848",
+        "aligner": "hiomrs_sr",
+        "allele_count": "2",
+        "catalog_reference_region": "chr9:69037286-69037304",
+        "coverage": "41.15954570037859",
+        "declared_grain": "analysis_unit_alignment_locus_variant",
+        "deduper": "na",
+        "disease": "FRDA",
+        "display_repeat_unit": "GAA",
+        "entity_scope": "analysis_unit_locus_variant",
+        "gene": "FXN",
+        "genotype": "8/89",
+        "genotype_confidence_interval": "8-8/74-149",
+        "hgnc_id": "",
+        "inheritance_mode": "AR",
+        "locus_id": "FRDA_FXN",
+        "locus_structure": "(A)*(GAA)*",
+        "max_allele": "89",
+        "normal_max": "33",
+        "pathologic_min": "56",
+        "pathologic_region": "chr9:69037286-69037304",
+        "repeat_unit": "GAA",
+        "sample": "NA15848-NA15848-NA15848-ILMN-LIB-NA15848-ONT-LIB-BJUICE-PREVAL-NA15848-HIOMRS-A1",
+        "status": "pathogenic_range",
+        "tool": "ExpansionHunter",
+        "tool_code": "eh",
+        "variant_id": "FRDA_FXN",
+        "variant_reference_region": "chr9:69037286-69037304",
+        "variant_subtype": "Repeat",
+        "variant_type": "Repeat"
+      },
+      "expansionhunter_source": "repaired_inflight_raw",
+      "package_id": "NA15848-NA15848-NA15848-ILMN-LIB-NA15848-ONT-LIB-BJUICE-PREVAL-NA15848-HIOMRS-A1"
+    },
+    "NA15849": {
+      "expansionhunter_row": {
+        "AnalysisUnitUID": "NA15849-NA15849-NA15849-ILMN-LIB-NA15849-ONT-LIB-BJUICE-PREVAL-NA15849-HIOMRS-A1",
+        "Sample": "NA15849-NA15849-NA15849-ILMN-LIB-NA15849-ONT-LIB-BJUICE-PREVAL-NA15849-HIOMRS-A1.hiomrs_sr.na.FRDA_FXN.FRDA_FXN.eh",
+        "SampleID": "NA15849",
+        "aligner": "hiomrs_sr",
+        "allele_count": "2",
+        "catalog_reference_region": "chr9:69037286-69037304",
+        "coverage": "48.18280151433207",
+        "declared_grain": "analysis_unit_alignment_locus_variant",
+        "deduper": "na",
+        "disease": "FRDA",
+        "display_repeat_unit": "GAA",
+        "entity_scope": "analysis_unit_locus_variant",
+        "gene": "FXN",
+        "genotype": "8/81",
+        "genotype_confidence_interval": "8-8/72-141",
+        "hgnc_id": "",
+        "inheritance_mode": "AR",
+        "locus_id": "FRDA_FXN",
+        "locus_structure": "(A)*(GAA)*",
+        "max_allele": "81",
+        "normal_max": "33",
+        "pathologic_min": "56",
+        "pathologic_region": "chr9:69037286-69037304",
+        "repeat_unit": "GAA",
+        "sample": "NA15849-NA15849-NA15849-ILMN-LIB-NA15849-ONT-LIB-BJUICE-PREVAL-NA15849-HIOMRS-A1",
+        "status": "pathogenic_range",
+        "tool": "ExpansionHunter",
+        "tool_code": "eh",
+        "variant_id": "FRDA_FXN",
+        "variant_reference_region": "chr9:69037286-69037304",
+        "variant_subtype": "Repeat",
+        "variant_type": "Repeat"
+      },
+      "expansionhunter_source": "repaired_inflight_raw",
+      "package_id": "NA15849-NA15849-NA15849-ILMN-LIB-NA15849-ONT-LIB-BJUICE-PREVAL-NA15849-HIOMRS-A1"
+    },
+    "NA19235": {
+      "package_id": "NA19235-NA19235-NA19235-ILMN-LIB-NA19235-ONT-LIB-BJUICE-PREVAL-NA19235-HIOMRS-A1",
+      "raw_smn12_source": "successful_pre_export_raw",
+      "raw_smn12_summary": {
+        "Confidence": [
+          [
+            3
+          ],
+          [
+            2,
+            0.71,
+            3,
+            0.283
+          ],
+          [
+            4
+          ],
+          [
+            4
+          ],
+          [
+            4
+          ],
+          [
+            4
+          ],
+          [
+            4
+          ],
+          [
+            4
+          ],
+          [
+            4
+          ],
+          [
+            4
+          ],
+          [
+            4
+          ],
+          [
+            4
+          ],
+          [
+            4
+          ],
+          [
+            4
+          ],
+          [
+            4
+          ],
+          [
+            4
+          ]
+        ],
+        "Coverage_MAD": 0.071,
+        "Full_length_CN_raw": 3.771,
+        "Info": "PASS:Majority",
+        "Median_depth": 44.92,
+        "SMN1": 4,
+        "SMN1_CN_raw": [
+          2.82,
+          2.45,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0
+        ],
+        "SMN1_fraction": [
+          0.71,
+          0.61,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "SMN1_read_support": [
+          55,
+          30,
+          77,
+          76,
+          67,
+          72,
+          52,
+          72,
+          70,
+          85,
+          76,
+          90,
+          91,
+          63,
+          82,
+          73
+        ],
+        "SMN2": 0,
+        "SMN2_read_support": [
+          23,
+          19,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "SMN2delta78": 0,
+        "Total_CN_raw": 3.783,
+        "g27134TG_ALT_count": [
+          42
+        ],
+        "g27134TG_CN": 3,
+        "g27134TG_REF_count": [
+          20
+        ],
+        "g27134TG_raw": 2.71,
+        "isCarrier": false,
+        "isSMA": false
+      },
+      "raw_smn12_uri": "s3://lsmc-dayoa-analysis-results-usw2/validation/pre_13.0.11_8_g1d44044_20260719T214703Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/results/day/hg38/NA19235-NA19235-NA19235-ILMN-LIB-NA19235-ONT-LIB-BJUICE-PREVAL-NA19235-HIOMRS-A1/align/hiomrs_sr/na/htd/smn12/NA19235-NA19235-NA19235-ILMN-LIB-NA19235-ONT-LIB-BJUICE-PREVAL-NA19235-HIOMRS-A1.hiomrs_sr.na.smn12.summary.json",
+      "smn_concordance": {
+        "authority_selected": false,
+        "caller_info": [],
+        "overall_concordance": "CONCORDANT",
+        "reason_code": "",
+        "schema": "dayoa.inflection_smn_concordance/1.0",
+        "sentieon": {
+          "smn1_copy_number": "4",
+          "smn2_copy_number": "0"
+        },
+        "smn1_concordant": true,
+        "smn2_concordant": true,
+        "smncopynumbercaller": {
+          "smn1_copy_number": "4",
+          "smn2_copy_number": "0"
+        },
+        "status": "CALLED"
+      }
+    },
+    "NA20027": {
+      "cnv_record_count": 0,
+      "cnv_source": "successful_pre_export_raw",
+      "large_sv_scan": {
+        "longreadsv": {
+          "by_filter": {},
+          "by_svtype": {},
+          "examples": [],
+          "hit_count": 0,
+          "source": "successful_pre_export_raw",
+          "uri": "s3://lsmc-dayoa-analysis-results-usw2/validation/pre_13.0.11_8_g1d44044_20260719T214703Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/results/day/hg38/NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1/align/hiomrs_sr/na/sv/hiomrs/NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1.hiomrs_sr.na.hiomrs.sv.callsets/native/NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1.sentieon_longreadsv.vcf.gz"
+        },
+        "tiddit": {
+          "by_filter": {
+            "FewLinks": 1,
+            "PASS": 3
+          },
+          "by_svtype": {
+            "INV": 4
+          },
+          "examples": [
+            {
+              "alt": "<INV>",
+              "chrom": "chrX",
+              "end": "148486345",
+              "filter": "FewLinks",
+              "pos": "30644285",
+              "svlen": 117842060,
+              "svtype": "INV"
+            },
+            {
+              "alt": "<INV>",
+              "chrom": "chrX",
+              "end": "72615013",
+              "filter": "PASS",
+              "pos": "35657830",
+              "svlen": 36957183,
+              "svtype": "INV"
+            },
+            {
+              "alt": "<INV>",
+              "chrom": "chrX",
+              "end": "84754886",
+              "filter": "PASS",
+              "pos": "46909784",
+              "svlen": 37845102,
+              "svtype": "INV"
+            },
+            {
+              "alt": "<INV>",
+              "chrom": "chrX",
+              "end": "131103200",
+              "filter": "PASS",
+              "pos": "54256019",
+              "svlen": 76847181,
+              "svtype": "INV"
+            }
+          ],
+          "hit_count": 4,
+          "source": "successful_pre_export_raw",
+          "uri": "s3://lsmc-dayoa-analysis-results-usw2/validation/pre_13.0.11_8_g1d44044_20260719T214703Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/results/day/hg38/NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1/align/hiomrs_sr/na/sv/tiddit/NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1.hiomrs_sr.tiddit.sv.sort.vcf.gz"
+        }
+      },
+      "metrics_cnv_record_count": 0,
+      "package_id": "NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1",
+      "peddy_sex_check": {
+        "error": "True",
+        "het_count": "0",
+        "het_ratio": "0",
+        "hom_alt_count": "1",
+        "hom_ref_count": "0",
+        "ped_sex": "unknown",
+        "predicted_sex": "male",
+        "sample_id": "NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1"
+      },
+      "peddy_uri": "s3://lsmc-dayoa-analysis-results-usw2/validation/inflight_pr53_recovery_20260720T011608Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/results/day/hg38/NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1/align/hiomrs_sr/na/snv/hiomrs/peddy/NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1.hiomrs_sr.na.hiomrs.peddy.sex_check.csv",
+      "sex_complement": {
+        "aligner": "hiomrs_sr",
+        "alignment_component": "primary",
+        "analysis_unit_uid": "NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1",
+        "benchmark_seconds": 0.004023061000225425,
+        "deduper": "na",
+        "generated_at_utc": "2026-07-19T15:03:44Z",
+        "genome_build": "hg38",
+        "hybrid_caller": null,
+        "inference_status": "callable",
+        "inferred_sex_chromosome_complement": "X",
+        "method": "goleft-indexcov-0.2.4+somalier-0.3.2",
+        "observed_metrics": {
+          "indexcov_cn_x": 0.94,
+          "indexcov_cn_y": 0.03,
+          "indexcov_sample_id": "NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1-hiomrs_sr-na-cram",
+          "indexcov_x_column": "CNchrX",
+          "indexcov_y_column": "CNchrY",
+          "somalier_gt_depth_mean": 42.7,
+          "somalier_sample_id": "NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1",
+          "somalier_x_depth_mean": 20.36,
+          "somalier_x_het": 0,
+          "somalier_x_het_ratio": 0.0,
+          "somalier_x_hom_alt": 185,
+          "somalier_x_hom_ref": 167,
+          "somalier_x_n": 352,
+          "somalier_y_depth_mean": 0.0,
+          "somalier_y_depth_ratio": 0.0,
+          "somalier_y_n": 0,
+          "x_copy_state": 1,
+          "y_copy_state": 0
+        },
+        "profile_id": "dayoa-wgs-sex-complement-v1",
+        "profile_version": "1.2.0",
+        "reason_codes": [
+          "CONCORDANT_INDEXCOV_AND_SOMALIER_EVIDENCE"
+        ],
+        "reference_fasta": "/fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta",
+        "reported_sex_normalized": null,
+        "reported_sex_raw": "na",
+        "reported_sex_status": "missing",
+        "sample_id": "NA20027",
+        "somalier_sites_index": "resources/somalier/sites.hg38.vcf.gz.tbi",
+        "somalier_sites_index_sha256": "48fb34f96c77c87f9aaa926278f257e4bd75b81c015fbf20662c1e5a35fb8ab9",
+        "somalier_sites_sha256": "d1a853b8bb2e5f1a520bc67c8303be699543d225d785bce51e8335a2420489b5",
+        "somalier_sites_vcf": "resources/somalier/sites.hg38.vcf.gz",
+        "source_alignment": "results/day/hg38/NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1/align/hiomrs_sr/na/NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1.hiomrs_sr.na.cram",
+        "source_alignment_format": "cram",
+        "source_index": "results/day/hg38/NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1/align/hiomrs_sr/na/NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1.hiomrs_sr.na.cram.crai",
+        "thresholds": {
+          "indexcov_copy_number_tolerance": 0.35,
+          "indexcov_x_copy_state_range": [
+            1,
+            3
+          ],
+          "indexcov_y_copy_state_range": [
+            0,
+            2
+          ],
+          "low_depth_indexcov_only_complements": [
+            "XX",
+            "XY"
+          ],
+          "soft_fail_default_complement": "XY",
+          "somalier_gt_depth_min": 10.0,
+          "somalier_x_n_min_exclusive": 10,
+          "x_het_ratio_multiple_x_min_exclusive": 0.4,
+          "x_het_ratio_one_x_max_exclusive": 0.05,
+          "y_depth_ratio_present_min": 0.4
+        },
+        "tool_versions": {
+          "goleft_indexcov": "0.2.4",
+          "somalier": "0.3.2"
+        },
+        "x_contig": "chrX",
+        "y_contig": "chrY"
+      },
+      "sex_complement_uri": "s3://lsmc-dayoa-analysis-results-usw2/validation/pre_13.0.11_8_g1d44044_20260719T214703Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/results/day/hg38/NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1/align/hiomrs_sr/na/alignqc/sex_complement/NA20027-NA20027-NA20027-ILMN-LIB-NA20027-ONT-LIB-BJUICE-PREVAL-NA20027-HIOMRS-A1.hiomrs_sr.na.sex_complement.json"
+    },
+    "NA20230": {
+      "expansionhunter_row": {
+        "AnalysisUnitUID": "NA20230-NA20230-NA20230-ILMN-LIB-NA20230-ONT-LIB-BJUICE-PREVAL-NA20230-HIOMRS-A1",
+        "Sample": "NA20230-NA20230-NA20230-ILMN-LIB-NA20230-ONT-LIB-BJUICE-PREVAL-NA20230-HIOMRS-A1.hiomrs_sr.na.FXS_FMR1.FXS_FMR1.eh",
+        "SampleID": "NA20230",
+        "aligner": "hiomrs_sr",
+        "allele_count": "1",
+        "catalog_reference_region": "chrX:147912049-147912111",
+        "coverage": "19.436452136289887",
+        "declared_grain": "analysis_unit_alignment_locus_variant",
+        "deduper": "na",
+        "disease": "FXS, FXTAS, POF1",
+        "display_repeat_unit": "CGG",
+        "entity_scope": "analysis_unit_locus_variant",
+        "gene": "FMR1",
+        "genotype": "55",
+        "genotype_confidence_interval": "50-73",
+        "hgnc_id": "",
+        "inheritance_mode": "XD",
+        "locus_id": "FXS_FMR1",
+        "locus_structure": "(CGG)*",
+        "max_allele": "55",
+        "normal_max": "44",
+        "pathologic_min": "201",
+        "pathologic_region": "",
+        "repeat_unit": "CGG",
+        "sample": "NA20230-NA20230-NA20230-ILMN-LIB-NA20230-ONT-LIB-BJUICE-PREVAL-NA20230-HIOMRS-A1",
+        "status": "intermediate_or_uncertain",
+        "tool": "ExpansionHunter",
+        "tool_code": "eh",
+        "variant_id": "FXS_FMR1",
+        "variant_reference_region": "chrX:147912049-147912111",
+        "variant_subtype": "Repeat",
+        "variant_type": "Repeat"
+      },
+      "expansionhunter_source": "repaired_inflight_raw",
+      "package_id": "NA20230-NA20230-NA20230-ILMN-LIB-NA20230-ONT-LIB-BJUICE-PREVAL-NA20230-HIOMRS-A1"
+    },
+    "NA20775": {
+      "package_id": "NA20775-NA20775-NA20775-ILMN-LIB-NA20775-ONT-LIB-BJUICE-PREVAL-NA20775-HIOMRS-A1",
+      "raw_smn12_source": "successful_pre_export_raw",
+      "raw_smn12_summary": {
+        "Confidence": [
+          [
+            3
+          ],
+          [
+            3
+          ],
+          [
+            3
+          ],
+          [
+            3
+          ],
+          [
+            3
+          ],
+          [
+            3
+          ],
+          [
+            3,
+            0.519,
+            2,
+            0.479
+          ],
+          [
+            3
+          ],
+          [
+            3
+          ],
+          [
+            3
+          ],
+          [
+            3
+          ],
+          [
+            3
+          ],
+          [
+            3
+          ],
+          [
+            3
+          ],
+          [
+            3
+          ],
+          [
+            3
+          ]
+        ],
+        "Coverage_MAD": 0.064,
+        "Full_length_CN_raw": 3.68,
+        "Info": "PASS:Majority",
+        "Median_depth": 54.13,
+        "SMN1": 3,
+        "SMN1_CN_raw": [
+          3.13,
+          2.97,
+          2.93,
+          2.91,
+          3.1,
+          2.98,
+          2.57,
+          2.77,
+          2.85,
+          2.98,
+          3.08,
+          3.13,
+          3.08,
+          3.04,
+          2.97,
+          2.98
+        ],
+        "SMN1_fraction": [
+          0.78,
+          0.74,
+          0.73,
+          0.73,
+          0.77,
+          0.75,
+          0.64,
+          0.69,
+          0.71,
+          0.74,
+          0.77,
+          0.78,
+          0.77,
+          0.76,
+          0.74,
+          0.74
+        ],
+        "SMN1_read_support": [
+          76,
+          58,
+          71,
+          72,
+          48,
+          44,
+          34,
+          56,
+          69,
+          61,
+          67,
+          93,
+          80,
+          70,
+          75,
+          70
+        ],
+        "SMN2": 1,
+        "SMN2_read_support": [
+          21,
+          20,
+          26,
+          27,
+          14,
+          15,
+          19,
+          25,
+          28,
+          21,
+          20,
+          26,
+          24,
+          22,
+          26,
+          24
+        ],
+        "SMN2delta78": 1,
+        "Total_CN_raw": 4.768,
+        "g27134TG_ALT_count": [
+          0
+        ],
+        "g27134TG_CN": 0,
+        "g27134TG_REF_count": [
+          86
+        ],
+        "g27134TG_raw": 0.0,
+        "isCarrier": false,
+        "isSMA": false
+      },
+      "raw_smn12_uri": "s3://lsmc-dayoa-analysis-results-usw2/validation/pre_13.0.11_8_g1d44044_20260719T214703Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/results/day/hg38/NA20775-NA20775-NA20775-ILMN-LIB-NA20775-ONT-LIB-BJUICE-PREVAL-NA20775-HIOMRS-A1/align/hiomrs_sr/na/htd/smn12/NA20775-NA20775-NA20775-ILMN-LIB-NA20775-ONT-LIB-BJUICE-PREVAL-NA20775-HIOMRS-A1.hiomrs_sr.na.smn12.summary.json",
+      "smn_concordance": {
+        "authority_selected": false,
+        "caller_info": [],
+        "overall_concordance": "DISCORDANT",
+        "reason_code": "",
+        "schema": "dayoa.inflection_smn_concordance/1.0",
+        "sentieon": {
+          "smn1_copy_number": "3",
+          "smn2_copy_number": "2"
+        },
+        "smn1_concordant": true,
+        "smn2_concordant": false,
+        "smncopynumbercaller": {
+          "smn1_copy_number": "3",
+          "smn2_copy_number": "1"
+        },
+        "status": "CALLED"
+      }
+    },
+    "NA23687": {
+      "package_id": "NA23687-NA23687-NA23687-ILMN-LIB-NA23687-ONT-LIB-BJUICE-PREVAL-NA23687-HIOMRS-A1",
+      "raw_segdup_object_count": 0,
+      "raw_segdup_prefix": "s3://lsmc-dayoa-analysis-results-usw2/validation/inflight_pr53_recovery_20260720T011608Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/results/day/hg38/NA23687-NA23687-NA23687-ILMN-LIB-NA23687-ONT-LIB-BJUICE-PREVAL-NA23687-HIOMRS-A1/align/hiomrs_sr/na/hiomrs/segdup/",
+      "raw_smn12_source": "successful_pre_export_raw",
+      "raw_smn12_summary": {
+        "Confidence": [
+          [
+            1
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ]
+        ],
+        "Coverage_MAD": 0.062,
+        "Full_length_CN_raw": 2.927,
+        "Info": "PASS:Majority",
+        "Median_depth": 51.72,
+        "SMN1": 1,
+        "SMN1_CN_raw": [
+          1.12,
+          0.62,
+          1.19,
+          1.17,
+          0.97,
+          0.88,
+          0.86,
+          1.12,
+          0.76,
+          0.63,
+          1.11,
+          0.96,
+          0.98,
+          1.07,
+          0.92,
+          0.56
+        ],
+        "SMN1_fraction": [
+          0.37,
+          0.21,
+          0.4,
+          0.39,
+          0.32,
+          0.29,
+          0.29,
+          0.38,
+          0.25,
+          0.21,
+          0.37,
+          0.32,
+          0.33,
+          0.36,
+          0.31,
+          0.19
+        ],
+        "SMN1_read_support": [
+          28,
+          11,
+          21,
+          21,
+          20,
+          20,
+          12,
+          21,
+          16,
+          14,
+          28,
+          22,
+          21,
+          21,
+          23,
+          14
+        ],
+        "SMN2": 2,
+        "SMN2_read_support": [
+          47,
+          42,
+          32,
+          33,
+          42,
+          48,
+          30,
+          35,
+          47,
+          53,
+          48,
+          47,
+          43,
+          38,
+          52,
+          61
+        ],
+        "SMN2delta78": 0,
+        "Total_CN_raw": 2.928,
+        "g27134TG_ALT_count": [
+          0
+        ],
+        "g27134TG_CN": 0,
+        "g27134TG_REF_count": [
+          59
+        ],
+        "g27134TG_raw": 0.0,
+        "isCarrier": true,
+        "isSMA": false
+      },
+      "raw_smn12_uri": "s3://lsmc-dayoa-analysis-results-usw2/validation/pre_13.0.11_8_g1d44044_20260719T214703Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/results/day/hg38/NA23687-NA23687-NA23687-ILMN-LIB-NA23687-ONT-LIB-BJUICE-PREVAL-NA23687-HIOMRS-A1/align/hiomrs_sr/na/htd/smn12/NA23687-NA23687-NA23687-ILMN-LIB-NA23687-ONT-LIB-BJUICE-PREVAL-NA23687-HIOMRS-A1.hiomrs_sr.na.smn12.summary.json"
+    }
+  },
+  "support_status_counts": {
+    "called": 6,
+    "called_primary_smn_discordant": 1,
+    "called_raw_qc_support": 1,
+    "called_supplemental_prepackage_not_delivered": 1,
+    "outside_pipeline_scope_no_supporting_call": 1,
+    "partial_support": 1,
+    "qualitative_support_size_discordant": 2
+  }
+}

@@ -1,0 +1,25 @@
+fsx_export:
+  schema_version: 4
+  status: success
+  phase: complete
+  cluster_name: preval-hiomr2
+  region: us-west-2
+  analysis_dir: preval-hiomr2/take222
+  source_path: /analysis_results/preval-hiomr2/take222/
+  headnode_path: /fsx/analysis_results/preval-hiomr2/take222/
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take222/
+  fsx_root: /fsx/analysis_results/preval-hiomr2/take222/
+  s3_root: s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take222/
+  dayoa_analysis_root: /fsx/analysis_results/preval-hiomr2/take222/daylily-omics-analysis/
+  dayoa_s3_root: s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take222/daylily-omics-analysis/
+  detached: true
+  delete_data_in_file_system: true
+  failure_details: {}
+  fsx_file_system_id: fs-0ce0851156199113a
+  file_system_path: /analysis_results/preval-hiomr2/take222/
+  association_id: dra-0e753fe9c7382cdf0
+  lifecycle: AVAILABLE
+  task_id: task-0160c29212caaa7ea
+  task_lifecycle: SUCCEEDED
+  report_path: s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take222/_daylily_monitor/fsx-export/20260805T024340Z/export-report/
+  detach_lifecycle: DELETED

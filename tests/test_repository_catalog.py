@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.4.8"
+DAYOA_BLESSED_TAG = "13.4.14"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -758,9 +758,23 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             ):
                 assert excluded_special_caller not in command
 
+    # The two catalogued HIOMR2 + Inflection workflow tests intentionally
+    # demonstrate a quick multi-chromosome range.  DayOA's numeric scope maps
+    # 23=X, 24=Y, and 25=M/MT, so full production coverage is 1-25.
+    hiomr2_test_scope = 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}'
+    for command_id in (
+        "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical",
+        "inflection-bjuice-product-v0.2",
+    ):
+        hiomr2_kitchensink = catalog.get_command(command_id)
+        assert hiomr2_kitchensink.dy_command.count(hiomr2_test_scope) == 1
+        assert hiomr2_kitchensink.dryrun_dy_command.count(hiomr2_test_scope) == 1
+        assert "replace 19-20 with 1-25" in hiomr2_kitchensink.description
+        assert "23=X, 24=Y, and 25=M/MT" in hiomr2_kitchensink.description
+
     package_inflection = catalog.get_command("package_inflection_hybrid_data")
     assert package_inflection.type == "dev"
-    assert package_inflection.validated_version == "13.4.8"
+    assert package_inflection.validated_version == "13.4.14"
     assert package_inflection.git_tag == DAYOA_BLESSED_TAG
     assert package_inflection.input_contract == "six_manifest"
     assert package_inflection.targets == ["produce_sentdhiomr2_inflection_seqone_v2"]
@@ -789,17 +803,26 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     )
     assert inflection_bjuice.sample_manifest_template == ""
     assert inflection_bjuice.validation_runs == []
-    assert inflection_bjuice.test_data_profile == "none"
+    assert inflection_bjuice.test_data_profile == "hg002_bjuice_verified_5x5x_fastq"
+    assert (
+        inflection_bjuice.manifest_dir_template
+        == "examples/staging/hg002_bjuice_verified_5x5x_fastq"
+    )
+    bjuice_profile = catalog.test_data_profiles[inflection_bjuice.test_data_profile]
+    assert bjuice_profile.source_s3_uri_template.endswith(
+        "/bjuice_preval_2026/HG002/"
+    )
+    assert any("f35e79a5601271f6" in note for note in bjuice_profile.source_notes)
+    assert "full-coverage inputs must not be substituted" in inflection_bjuice.description
     assert inflection_bjuice.targets == [
         "produce_sentdhiomr2_kitchensink",
         "produce_sentdhiomr2_nicu_research",
         "produce_sentdhiomr2_jasmine_sharded_per_sample",
-        "produce_sentdhiomr2_inflection_seqone_v2",
-        "produce_sentdhiomr2_segdup_smn12_multiqc",
+        "produce_sentdhiomr2_inflection_analytical_package",
         "results/day/hg38/reports/DAY_final_multiqc.html",
     ]
     assert inflection_bjuice.targets != hiomr2_analytical.targets
-    assert inflection_bjuice.jobs == 444
+    assert inflection_bjuice.jobs == 333
     assert inflection_bjuice.restart_times == 1
     assert inflection_bjuice.aligners == ["sentmm2ont"]
     assert inflection_bjuice.dedupers == ["na"]
@@ -810,22 +833,46 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     )
     assert inflection_bjuice.dy_command != hiomr2_analytical.dy_command
     assert "produce_sentdhiomr2_kitchensink" in inflection_bjuice.dy_command
-    assert "produce_sentdhiomr2_inflection_seqone_v2" in inflection_bjuice.dy_command
-    assert "produce_sentdhiomr2_segdup_smn12_multiqc" in inflection_bjuice.dy_command
-    assert "SEQONE_DELIVERY_BATCH_ID:?" in inflection_bjuice.dy_command
-    assert "hiomr2_inflection_package_mode=seqone_v2" in inflection_bjuice.dy_command
-    assert "HIOMR2_SEQONE_V2_CONFIG_FILE:?" in inflection_bjuice.dy_command
+    assert "produce_sentdhiomr2_inflection_analytical_package" in (
+        inflection_bjuice.dy_command
+    )
+    assert "produce_sentdhiomr2_inflection_seqone_v2" not in inflection_bjuice.dy_command
+    assert "produce_sentdhiomr2_segdup_smn12_multiqc" not in inflection_bjuice.dy_command
+    assert "-j 333 -T 1 -p -k" in inflection_bjuice.dy_command
+    assert inflection_bjuice.runtime_parameters == {}
+    assert "SEQONE_DELIVERY_BATCH_ID" not in inflection_bjuice.dy_command
+    assert "HIOMR2_SEQONE_V2_CONFIG_FILE" not in inflection_bjuice.dy_command
+    assert (
+        "--configfile config/hg002_bjuice_5x5x_hiomr2.yaml"
+        in inflection_bjuice.dy_command
+    )
+    assert "hiomr2_inflection_package_mode=analytical" in inflection_bjuice.dy_command
+    assert "seqone_delivery_batch_id=$ANALYSIS_ID" in inflection_bjuice.dy_command
     assert inflection_bjuice.return_results is False
     assert hiomr2_analytical.return_results is False
-    assert "use_fq_data_starting_hrs=0" in inflection_bjuice.dy_command
-    assert "use_fq_data_up_to_hrs=25" in inflection_bjuice.dy_command
+    assert "use_fq_data_starting_hrs" not in inflection_bjuice.dy_command
+    assert "use_fq_data_up_to_hrs" not in inflection_bjuice.dy_command
+    assert "all supplied FASTQs are used" in inflection_bjuice.description
     assert "produce_inflection_delivery_set" not in inflection_bjuice.dy_command
     assert 'aligners=["sentmm2ont"]' in inflection_bjuice.dy_command
     assert 'dedupers=["na"]' in inflection_bjuice.dy_command
     assert 'snv_callers=["sentdhiomr2"]' in inflection_bjuice.dy_command
-    assert " -j 444 -T 1 -p -k " in inflection_bjuice.dy_command
+    assert " -j 333 -T 1 -p -k " in inflection_bjuice.dy_command
     assert inflection_bjuice.genome == "hg38"
     assert inflection_bjuice.dryrun_dy_command == f"{inflection_bjuice.dy_command} -n"
+    inflection_launch_argv = inflection_bjuice.launch_argv(
+        analysis_id="test-chr19and20",
+        executing_entity="prod-cand-260809",
+        manifest_dir="/tmp/hg002-bjuice-six-manifest",
+        dry_run=True,
+    )
+    rendered_inflection_command = inflection_launch_argv[
+        inflection_launch_argv.index("--dy-command") + 1
+    ]
+    assert "$ANALYSIS_ID" not in rendered_inflection_command
+    assert (
+        "seqone_delivery_batch_id=test-chr19and20" in rendered_inflection_command
+    )
 
     simple_test = catalog.get_command("simple-test")
     assert simple_test.command_class == "utility"
@@ -965,7 +1012,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "run_context_only=true" in ont_dy_command
 
     ultima = catalog.get_command("ultima_run_qc")
-    assert ultima.validated_version == "13.4.8"
+    assert ultima.validated_version == "13.4.14"
     assert ultima.git_tag == DAYOA_BLESSED_TAG
     assert ultima.runtime_parameters == {
         "run_context_file": "config/runs.tsv",

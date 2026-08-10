@@ -1,0 +1,2 @@
+RUNID	PLATFORM	RUN_DIR	SOURCE_S3_URI	MOUNT_ID	SAMPLE_SHEET	BASECALLING_STATE	RUN_STATUS	OUTPUT_ROOT	REGION	PROFILE
+20260615_ONT_Set4-FC1	ONT	/fsx/run_dir_mounts/bjuicepreval-20260615-ont-set4-fc1/	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC1/	bjuicepreval-20260615-ont-set4-fc1	na	COMPLETE	COMPLETE	results/runs/20260615_ONT_Set4-FC1	us-west-2	lsmc

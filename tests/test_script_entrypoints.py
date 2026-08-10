@@ -42,6 +42,26 @@ def _controller_target_marker(
     )
 
 
+def test_regular_file_controller_log_does_not_delay_receipt_for_inherited_descriptor(
+    tmp_path,
+) -> None:
+    controller_log = tmp_path / "controller.log"
+    receipt = tmp_path / "status.rc"
+    script = (
+        'exec >>"$1" 2>&1\n'
+        "sleep 2 &\n"
+        'printf \'0\\n\' >"$2"\n'
+    )
+
+    subprocess.run(
+        ["bash", "-c", script, "dyec-controller-test", str(controller_log), str(receipt)],
+        check=True,
+        timeout=1,
+    )
+
+    assert receipt.read_text(encoding="utf-8") == "0\n"
+
+
 class TestSshIntoHeadnodeScript:
     @patch("daylily_ec.scripts.daylily_ssh_into_headnode.start_session")
     @patch("daylily_ec.scripts.daylily_ssh_into_headnode.wait_for_ssm_online")
@@ -586,6 +606,20 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'controller_dag_path="$repo_path/.dyec/controller-dag.png"' in script
         assert 'STATUS_FILE="${DAYLILY_RUN_DIR}/status.json"' in script
         assert 'export DAYLILY_CONTROLLER_PID="$BASHPID"' in script
+        assert 'export DAYLILY_STATUS_SNAKEMAKE_LOG_PATH=""' in script
+        assert 'export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION=""' in script
+        assert 'export DAYLILY_STATUS_WORKFLOW_COMPLETED_AT=""' in script
+        assert 'export DAYLILY_STATUS_WORKFLOW_EXIT_CODE="__PENDING__"' in script
+        assert 'export DAYLILY_STATUS_WORKFLOW_EXIT_CODE="$workflow_status"' in script
+        assert script.index(
+            'export DAYLILY_STATUS_WORKFLOW_EXIT_CODE="$workflow_status"'
+        ) < script.index('wait "$controller_dag_monitor_pid"')
+        assert "os.replace(temporary, path)" in script
+        assert 'snakemake_log_baseline="$DAYLILY_RUN_DIR/snakemake-log-baseline.txt"' in script
+        assert "-name '*.snakemake.log'" in script
+        assert 'comm -13 "$snakemake_log_baseline" "$snakemake_log_current"' in script
+        assert 'DAYLILY_STATUS_SNAKEMAKE_LOG_PATH="${invocation_snakemake_logs[0]}"' in script
+        assert 'DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION="exact invocation file-set difference"' in script
         assert "dyec.controller_target.v1" in script
         assert "python3 -c " in script
         assert "DAYLILY_RUN_DIR=%q" in script
@@ -601,7 +635,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'preserving tmux shell for inspection' in script
         assert 'tmux_session_name="${SESSION_NAME//[^A-Za-z0-9_-]/_}"' in script
         assert 'tmux has-session -t "=$tmux_session_name"' in script
-        assert 'exec > >(tee -a "$CONTROLLER_LOG_PATH") 2>&1' in script
+        assert 'exec >> "$CONTROLLER_LOG_PATH" 2>&1' in script
+        assert 'exec > >(tee -a "$CONTROLLER_LOG_PATH") 2>&1' not in script
         assert "-name 'dag_*.png'" in script
         assert 'comm -13 "$controller_dag_baseline" "$current"' in script
         assert "rulegraph" not in script[script.index("sync_controller_dag"):script.index("should_export=false")]

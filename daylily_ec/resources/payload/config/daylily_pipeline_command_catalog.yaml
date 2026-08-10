@@ -244,6 +244,18 @@ test_data_profiles:
     source_notes:
       - "Use only the explicit packaged six-manifest fixture; do not project or infer topology from a consolidated legacy manifest."
       - "The ONT FASTQ is the receipt-bound primary-only conversion of HG003_1x.cleaned.cram."
+  hg002_bjuice_verified_5x5x_fastq:
+    description: "Verified HG002 approximately-5x paired Illumina plus receipt-bound 4.794169766x ONT FASTQ inputs for the BJuice HIOMR2 kitchen-sink and Inflection command."
+    source_mount_mode: default_mounted
+    source_s3_uri_template: s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/bjuice_preval_2026/HG002/
+    source_fsx_prefix: /fsx/references/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/bjuice_preval_2026/HG002/
+    locations:
+      - default_reference_reads_slim
+    source_notes:
+      - "Use only examples/staging/hg002_bjuice_verified_5x5x_fastq; the three canonical FASTQ paths are identity-bound in sequencing_inputs.tsv."
+      - "Illumina R1: 3899321181 bytes, 60277137 reads, 9052461224 bases, SHA256 0a3282844bc53ac600566899b9a02d1dd556befe63269b9b09f2c8be17780eb3."
+      - "Illumina R2: 4000405121 bytes, 60277137 reads, 9053152391 bases, SHA256 6b365ebb3ef333783cc4f85bedd881ebcd8356d66f5a040dfdbe666ec624e4d7."
+      - "ONT: deterministic 1963980-record source prefix estimated from 7759331 reads at 19.7617x; 15086588357 bytes, 14805689859 bases, 4.794169766x, SHA256 f35e79a5601271f6503455a952cc04892f452b078ad45941cbf27ae77f4ed45b, uncompressed FASTQ SHA256 7441b3018d02fe6c0c318bf2904ae7d7bb5c08093ddaa3bbd7e876b3e4ec8be0."
   illumina_run_directory:
     description: "Illumina run-directory validation profile for run QC and BCL Convert rows."
     source_mount_mode: run_dra_required
@@ -304,12 +316,12 @@ repositories:
     auth_mode: aws_deploy_key
     https_url: https://github.com/lsmc-bio/daylily-omics-analysis.git
     ssh_url: git@github.com:lsmc-bio/daylily-omics-analysis.git
-    default_ref: 13.4.8
+    default_ref: 13.4.14
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: simple-test
         type: test
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: none
         display_name: "Simple Test"
         description: "Smoke-test DayOA shell initialization and local help target without staged sample inputs."
@@ -337,12 +349,12 @@ repositories:
           - daywgs
         compatible_data_modes:
           - none
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: true
         validation_runs: []
       - command_id: illumina_snv_alignstats
         type: prod
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: default_reads_slim
         display_name: "Illumina SNV + Alignstats"
         description: "Illumina WGS Sentieon DNAscope and alignment-statistics launch profile."
@@ -380,7 +392,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -404,7 +416,7 @@ repositories:
             notes: "Live run completed with CRAM, VCF, alignstats, and concordance outputs."
       - command_id: illumina_snv_alignstats_relatedness_vep_multiqc
         type: prod
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: default_reads_slim
         display_name: "Illumina SNV + Alignstats + Relatedness + VEP MultiQC"
         description: "Illumina WGS Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, and final MultiQC launch profile."
@@ -445,7 +457,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         artifact_registration: &dayoa_multiqc_artifact_registration
           enabled: true
@@ -517,7 +529,7 @@ repositories:
             notes: "Live run completed with CRAM, VCF, alignstats, concordance, MultiQC, and relatedness outputs."
       - command_id: all_metagenomic_pipelines
         type: dev
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: default_reads_slim
         sample_manifest_template: examples/staging/ilmn_hg003_5x_solo/analysis_samples_manifest.tsv
         display_name: "All Metagenomic Pipelines"
@@ -553,12 +565,12 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         validation_runs: []
       - command_id: illumina_hg002_kitchensink_multiqc
         type: prod
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: default_reads_slim
         sample_manifest_template: examples/staging/ilmn_hg002_solo/analysis_samples_manifest.tsv
         display_name: "Illumina HG002 Kitchen Sink MultiQC"
@@ -609,7 +621,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
         validation_runs:
@@ -634,7 +646,7 @@ repositories:
             notes: "Headnode run used the dy-r alias with the same targets/config on the 2.0.17 clone plus local stabilization patches that were mirrored into DayOA release 2.0.19; final report was results/day/hg38/reports/DAY_final_multiqc.html."
       - command_id: illumina_pangenome_snv
         type: dev
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: default_reads_slim
         display_name: "Illumina Pangenome SNV"
         description: "Illumina HG003 Sentieon pangenome SNV validation profile using the current DayOA pangenome branch."
@@ -667,11 +679,11 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
       - command_id: illumina_dragen_pangenome_snv_concordance
         type: dev
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: default_reads_slim
         display_name: "Illumina DRAGEN Pangenome SNV Concordance"
         description: "DRAGEN pangenome HG003 slim-read SNV concordance profile using pre-mounted /fsx/references reads, reference assets, and GIAB truth resources."
@@ -707,12 +719,12 @@ repositories:
           - dragen
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         default_activation: false
       - command_id: ultima_snv_alignstats
         type: prod
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: default_reads_slim
         display_name: "Ultima SNV + Alignstats"
         description: "Ultima CRAM/FASTQ Sentieon DNAscope and alignment-statistics launch profile."
@@ -749,7 +761,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ultima_solo
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -773,7 +785,7 @@ repositories:
             notes: "Live run completed with VCF, alignstats, and concordance outputs."
       - command_id: ultima_snv_alignstats_kitchensink
         type: prod
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: default_reads_slim
         display_name: "Ultima SNV + Alignstats Kitchen Sink"
         description: "Ultima CRAM/FASTQ Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, Kraken2/Ganon2/sourmash metagenomics, and final MultiQC launch profile."
@@ -814,12 +826,12 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ultima_solo
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: ultima_pangenome_snv
         type: dev
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: default_reads_slim
         display_name: "Ultima Pangenome SNV"
         description: "Ultima HG003 Sentieon pangenome SNV validation profile using the current DayOA pangenome branch."
@@ -852,11 +864,11 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ultima_solo
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
       - command_id: ont_snv_alignstats
         type: prod
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: default_reads_slim
         display_name: "ONT SNV + Alignstats"
         description: "ONT alignment, Sentieon DNAscope, and alignment-statistics launch profile."
@@ -894,7 +906,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ont_solo
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -918,7 +930,7 @@ repositories:
             notes: "Live run completed with VCF, alignstats, and concordance outputs."
       - command_id: ont_snv_alignstats_kitchensink
         type: prod
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: default_reads_slim
         display_name: "ONT SNV + Alignstats Kitchen Sink"
         description: "ONT alignment, Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, Kraken2/Ganon2/sourmash metagenomics, and final MultiQC launch profile."
@@ -963,12 +975,12 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ont_solo
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: pacbio_snv_alignstats
         type: prod
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: default_reads_slim
         display_name: "PacBio SNV + Alignstats"
         description: "PacBio HiFi Sentieon DeepVariant and alignment-statistics launch profile."
@@ -1006,7 +1018,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - pacbio_solo
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1030,7 +1042,7 @@ repositories:
             notes: "Live run completed with CRAM, VCF, alignstats, and concordance outputs."
       - command_id: roche_snv_alignstats
         type: prod
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: default_reads_slim
         display_name: "Roche SNV + Alignstats"
         description: "Roche aligned BAM Sentieon DNAscope and alignment-statistics launch profile."
@@ -1067,7 +1079,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - roche_solo
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1090,7 +1102,7 @@ repositories:
             failure_cause: "Dry-run failed while preparing Roche/GATK containers: missing Singularity image /fsx/resources/environments/containers/ubuntu/ip-10-0-0-103/7a424a40c6fd659f4d052893dd3554fa.simg."
       - command_id: hybrid_ilmn_ont_hiomr
         type: dev
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: hg003_hiomrs_1x_raw_fastq
         manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
         display_name: "Hybrid ILMN+ONT HIOMR"
@@ -1130,11 +1142,11 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
       - command_id: hybrid_ilmn_ont_hiomr_kitchensink
         type: dev
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: hg003_hiomrs_1x_raw_fastq
         manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
         display_name: "Hybrid ILMN+ONT HIOMR Kitchen Sink"
@@ -1190,11 +1202,11 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
       - command_id: hiomr2
         type: dev
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: hg003_hiomrs_1x_raw_fastq
         manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
         display_name: "Hybrid ILMN+ONT HIOMR2 Kitchen Sink"
@@ -1250,12 +1262,12 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
 
       - command_id: package_inflection_hybrid_data
         type: dev
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: hg003_hiomrs_1x_raw_fastq
         manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
         display_name: "Package Inflection Hybrid Data"
@@ -1294,12 +1306,12 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         return_results: false
       - command_id: betelgeuser_hiomr_prod_v1
         type: prod
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: default_reads_slim
         display_name: "Betelgeuser HIOMR Prod v1"
         description: "Production catalog copy of the strict six-manifest HIOMR kitchen-sink contract for Betelgeuser."
@@ -1354,15 +1366,15 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
       - command_id: hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical
         type: dev
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: hg003_hiomrs_1x_raw_fastq
         manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
         display_name: "Hybrid ILMN+ONT HIOMR2 Kitchen Sink + SeqOne v2 Inflection"
-        description: "Literal scoped HIOMR2 kitchen sink followed by strict Inflection SeqOne v2 packaging. SMNCopyNumber is the sole selected special caller. It never invokes legacy HIOMR or HIOMRS targets and requires an explicit config-scoped SeqOne v2 release config."
+        description: "Literal scoped HIOMR2 kitchen sink followed by strict Inflection SeqOne v2 packaging. The catalog command defaults the HIOMR2 caller to the quick two-contig test scope 19-20 and demonstrates the numeric range syntax; for a full production call replace 19-20 with 1-25 (23=X, 24=Y, and 25=M/MT as resolved from the reference FAI). Symbolic X,Y,MT tokens are not accepted by this setting. SMNCopyNumber is the sole selected special caller. It never invokes legacy HIOMR or HIOMRS targets and requires an explicit config-scoped SeqOne v2 release config."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
@@ -1390,8 +1402,8 @@ repositories:
         snv_callers:
           - sentdhiomr2
         sv_callers: []
-        dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_inflection_seqone_v2 produce_sentdhiomr2_segdup_smn12_multiqc --configfile \"${HIOMR2_SEQONE_V2_CONFIG_FILE:?Set explicit SeqOne v2 release config file}\" -p -T 0 -k -j 200 --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=seqone_v2' \"seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set explicit SeqOne v2 delivery batch ID}\" --rerun-triggers mtime"
-        dryrun_dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_inflection_seqone_v2 produce_sentdhiomr2_segdup_smn12_multiqc --configfile \"${HIOMR2_SEQONE_V2_CONFIG_FILE:?Set explicit SeqOne v2 release config file}\" -p -T 0 -k -j 200 --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=seqone_v2' \"seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set explicit SeqOne v2 delivery batch ID}\" --rerun-triggers mtime -n"
+        dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_inflection_seqone_v2 produce_sentdhiomr2_segdup_smn12_multiqc --configfile \"${HIOMR2_SEQONE_V2_CONFIG_FILE:?Set explicit SeqOne v2 release config file}\" -p -T 0 -k -j 200 --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"19-20\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=seqone_v2' \"seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set explicit SeqOne v2 delivery batch ID}\" --rerun-triggers mtime"
+        dryrun_dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_inflection_seqone_v2 produce_sentdhiomr2_segdup_smn12_multiqc --configfile \"${HIOMR2_SEQONE_V2_CONFIG_FILE:?Set explicit SeqOne v2 release config file}\" -p -T 0 -k -j 200 --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"19-20\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=seqone_v2' \"seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set explicit SeqOne v2 delivery batch ID}\" --rerun-triggers mtime -n"
         compatible_platforms:
           - ILMN
           - ONT
@@ -1399,24 +1411,23 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         return_results: false
       - command_id: inflection-bjuice-product-v0.2
         type: dev
-        validated_version: 13.4.8
-        test_data_profile: none
-        display_name: "Inflection BJuice Product v0.2"
-        description: "BJuice full-coverage HIOMR2 kitchen-sink mega run: core kitchen sink, NICU research, authoritative per-sample Jasmine sharding, strict Inflection SeqOne v2 packaging, and final MultiQC. Non-HG002 NICU Truvari evidence is warning-only. SMNCopyNumber is the sole selected special caller. It consumes full ILMN FASTQ plus ONT [0,25), never invokes legacy HIOMR or HIOMRS targets, and requires an explicit config-scoped SeqOne v2 release config."
+        validated_version: 13.4.14
+        test_data_profile: hg002_bjuice_verified_5x5x_fastq
+        manifest_dir_template: examples/staging/hg002_bjuice_verified_5x5x_fastq
+        display_name: "Inflection BJuice HG002 Verified 5x+5x Analytical Product v0.2"
+        description: "Verified HG002 5.862704556x Illumina plus receipt-bound 4.794169766x ONT HIOMR2 kitchen-sink mega run: core kitchen sink, NICU research, authoritative per-sample Jasmine sharding, analytical Inflection packaging, and final MultiQC. The catalog command defaults the HIOMR2 caller to the quick two-contig test scope 19-20 and demonstrates the numeric range syntax; for a full production call replace 19-20 with 1-25 (23=X, 24=Y, and 25=M/MT as resolved from the reference FAI). Symbolic X,Y,MT tokens are not accepted by this setting. The packaged six-manifest fixture binds the three canonical slim-data FASTQs to exact byte sizes, read/base counts, and SHA256 identities; full-coverage inputs must not be substituted. The checked-in HG002 analytical overlay explicitly selects FASTQ input and enables NICU/Truvari; ONT time chunking remains opt-in and all supplied FASTQs are used when no start/end hours are provided. Non-HG002 NICU Truvari evidence is warning-only. SMNCopyNumber is the sole selected special caller. It never invokes legacy HIOMR or HIOMRS targets, does not create a customer SeqOne-v2 release, and binds the analytical package batch to the explicit DYEC analysis ID."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
         input_contract: six_manifest
         requires_staging: true
         requires_run_mount: false
-        runtime_parameters:
-          seqone_delivery_batch_id_env: SEQONE_DELIVERY_BATCH_ID
-          hiomr2_seqone_v2_config_file_env: HIOMR2_SEQONE_V2_CONFIG_FILE
+        runtime_parameters: {}
         input_requirements:
           accepted_source_column_sets:
             - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_R1_FQ]
@@ -1424,11 +1435,10 @@ repositories:
           - produce_sentdhiomr2_kitchensink
           - produce_sentdhiomr2_nicu_research
           - produce_sentdhiomr2_jasmine_sharded_per_sample
-          - produce_sentdhiomr2_inflection_seqone_v2
-          - produce_sentdhiomr2_segdup_smn12_multiqc
+          - produce_sentdhiomr2_inflection_analytical_package
           - results/day/hg38/reports/DAY_final_multiqc.html
         genome: hg38
-        jobs: 444
+        jobs: 333
         keep_going: true
         restart_times: 1
         aligners:
@@ -1438,8 +1448,8 @@ repositories:
         snv_callers:
           - sentdhiomr2
         sv_callers: []
-        dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_nicu_research produce_sentdhiomr2_jasmine_sharded_per_sample produce_sentdhiomr2_inflection_seqone_v2 produce_sentdhiomr2_segdup_smn12_multiqc results/day/hg38/reports/DAY_final_multiqc.html --configfile \"${HIOMR2_SEQONE_V2_CONFIG_FILE:?Set explicit SeqOne v2 release config file}\" -j 444 -T 1 -p -k --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=seqone_v2' 'use_fq_data_starting_hrs=0' 'use_fq_data_up_to_hrs=25' \"seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set explicit SeqOne v2 delivery batch ID}\" --rerun-triggers mtime"
-        dryrun_dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_nicu_research produce_sentdhiomr2_jasmine_sharded_per_sample produce_sentdhiomr2_inflection_seqone_v2 produce_sentdhiomr2_segdup_smn12_multiqc results/day/hg38/reports/DAY_final_multiqc.html --configfile \"${HIOMR2_SEQONE_V2_CONFIG_FILE:?Set explicit SeqOne v2 release config file}\" -j 444 -T 1 -p -k --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=seqone_v2' 'use_fq_data_starting_hrs=0' 'use_fq_data_up_to_hrs=25' \"seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set explicit SeqOne v2 delivery batch ID}\" --rerun-triggers mtime -n"
+        dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_nicu_research produce_sentdhiomr2_jasmine_sharded_per_sample produce_sentdhiomr2_inflection_analytical_package results/day/hg38/reports/DAY_final_multiqc.html --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"19-20\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 1 -p -k --rerun-triggers mtime"
+        dryrun_dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_nicu_research produce_sentdhiomr2_jasmine_sharded_per_sample produce_sentdhiomr2_inflection_analytical_package results/day/hg38/reports/DAY_final_multiqc.html --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"19-20\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 1 -p -k --rerun-triggers mtime -n"
         compatible_platforms:
           - ILMN
           - ONT
@@ -1447,12 +1457,12 @@ repositories:
           - sentieon-single
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         return_results: false
       - command_id: complete_genomics_mgi_snv_concordance
         type: dev
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: default_reads_slim
         display_name: "Complete Genomics/MGI SNV + Concordance"
         description: "Complete Genomics/MGI Sentieon sentcg/dmd/cgt7p launch profile."
@@ -1490,7 +1500,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - complete_genomics_solo
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1512,7 +1522,7 @@ repositories:
             failure_cause: "Blocked before dry-run because the candidate mate pair was not verified: _386_1 was 90,600,002,744 bytes, _386_2 was 10,794,018,984 bytes, and nearby _388_2 was 97,844,317,264 bytes."
       - command_id: illumina_run_qc
         type: prod
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: illumina_run_directory
         display_name: "Illumina Run QC"
         description: "Illumina run-folder QC without BCLConvert execution from a mounted or explicit S3 run context."
@@ -1544,7 +1554,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         artifact_registration:
           enabled: true
@@ -1598,7 +1608,7 @@ repositories:
             notes: "The validated run used -j 5; catalog concurrency was raised to -j 20 afterward per explicit operator instruction. The MultiQC rule used four threads and read existing BCLConvert metric files without running BCLConvert."
       - command_id: illumina_bclconvert
         type: research
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: bclconvert_0_mm
         display_name: "Illumina nf-core BCL Convert"
         description: "Illumina demultiplexing through the pinned nf-core/bclconvert 4.0.3 container from a mounted run directory, with generated units table, demux metric TSVs, and focused BCL Convert MultiQC. This command does not run FastQC."
@@ -1630,7 +1640,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1653,7 +1663,7 @@ repositories:
             failure_cause: "Dry-run failed: WorkflowError reported no read pairs specified for analysis unit 20260514_LH01106_0009_B23TVLGLT4."
       - command_id: illumina_run_qc_bclconvert
         type: research
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: bclconvert_0_mm
         display_name: "Illumina Run QC + nf-core BCL Convert"
         description: "Mounted Illumina run-folder QC plus demultiplexing through the pinned nf-core/bclconvert 4.0.3 container, generated units, demux metric TSVs, and focused BCL Convert MultiQC in one run-analysis output tree. This command does not run FastQC."
@@ -1685,7 +1695,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         artifact_registration:
           enabled: true
@@ -1724,7 +1734,7 @@ repositories:
         validation_runs: []
       - command_id: ont_run_qc
         type: prod
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: ont_run_directory
         display_name: "ONT Run QC"
         description: "ONT mounted run-folder QC plus demultiplexed FASTQ QC and focused MultiQC reports in one run-analysis output tree."
@@ -1758,7 +1768,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1781,7 +1791,7 @@ repositories:
             failure_cause: "Dry-run failed: WorkflowError reported config/units.tsv was not found and requested config/units.tsv or --config units_table=/path/to/units.tsv."
       - command_id: ultima_run_qc
         type: prod
-        validated_version: 13.4.8
+        validated_version: 13.4.14
         test_data_profile: ultima_run_directory
         display_name: "Ultima Run QC"
         description: "Ultima run-folder QC from a mounted run context."
@@ -1813,7 +1823,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 13.4.8
+        git_tag: 13.4.14
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation

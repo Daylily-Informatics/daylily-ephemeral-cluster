@@ -716,6 +716,7 @@ class AnalysisCommand(BaseModel):
         if delete_on_export_success and not export_destination_s3_uri:
             raise ValueError("delete_on_export_success requires export_destination_s3_uri")
         dy_command = self.dryrun_dy_command if dry_run else self.dy_command
+        dy_command = dy_command.replace("$ANALYSIS_ID", shlex.quote(resolved_analysis_id))
         if self.input_contract == "run_context":
             if not run_context_file:
                 raise ValueError("run_context_file is required for run_analysis commands")

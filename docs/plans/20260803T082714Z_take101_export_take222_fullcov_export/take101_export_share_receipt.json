@@ -1,0 +1,41 @@
+{
+  "schema_version": "dyec.take101_export_share_receipt.v1",
+  "generated_at": "2026-08-03T17:30:14Z",
+  "source_analysis_root": "/fsx/analysis_results/preval-hiomr2/take101",
+  "destination_s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/",
+  "export": {
+    "status": "success",
+    "task_id": "task-063662f6a39cd16e7",
+    "task_total_count": 9530,
+    "task_succeeded_count": 9530,
+    "task_failed_count": 0,
+    "association_id": "dra-02a18ec23f5f9f66a",
+    "association_deleted": true,
+    "delete_data_in_file_system": true,
+    "source_root_absent_after_success": true,
+    "s3_object_count": 9534,
+    "s3_total_bytes": 586365121798
+  },
+  "verified_objects": {
+    "technical_report": {
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/TAKE101_HG002_NA23687_FULLCOV_HIOMR2_13.4.2_VALIDATION_REPORT.html",
+      "bytes": 800405,
+      "sha256": "7786f95b81dfd51d35cef7cd2a0426b575bfcdafeb83e5fdd6a458a93cd16eb3"
+    },
+    "final_multiqc": {
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/derived/preval-hiomr2/take101/daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc.html",
+      "bytes": 12196815,
+      "sha256": "a61c9dca9e3a1d81b6c60bf656204e5461f94489752deaefede5c97d8666f55c"
+    },
+    "hg002_package_manifest_sha256": "4987c454b568352b6d2c0d5e76fb163f4f2f509f87b42fbfe4d26d3c7daf7e9a",
+    "na23687_package_manifest_sha256": "a5dcbffd3be753fcc9d5b88446634d6538fbbb98873a88735eecf02e1108bd57"
+  },
+  "share": {
+    "presigned_url_persisted": false,
+    "expires_at": "2026-08-10T17:28:58Z",
+    "verification_http_status": 206,
+    "verification_content_type": "text/html; charset=utf-8",
+    "slack_conversation_id": "D0AQK8RB3D5",
+    "slack_message_url": "https://lsmchq.slack.com/archives/D0AQK8RB3D5/p1785778214226479"
+  }
+}

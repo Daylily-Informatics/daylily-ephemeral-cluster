@@ -1,0 +1,21 @@
+SPECIMEN_ID	SPECIMEN_EUID	SAMPLESOURCE	SPECIMEN_TYPE	EXTERNAL_SPECIMEN_ID	BIOLOGICAL_SEX	N_X	N_Y	SPECIMEN_COMMENT
+HG001	M-BN-1Z	blood	gdna	HG001	female	2	0	Bjuice prevalidation biological specimen HG001; persisted specimen EUID M-BN-1Z
+HG002	M-BN-2X	blood	gdna	HG002	male	1	1	Bjuice prevalidation biological specimen HG002; persisted specimen EUID M-BN-2X
+HG003	M-BN-3V	blood	gdna	HG003	male	1	1	Bjuice prevalidation biological specimen HG003; persisted specimen EUID M-BN-3V
+HG004	M-BN-4S	blood	gdna	HG004	female	2	0	Bjuice prevalidation biological specimen HG004; persisted specimen EUID M-BN-4S
+HG005	M-BN-5Q	blood	gdna	HG005	male	1	1	Bjuice prevalidation biological specimen HG005; persisted specimen EUID M-BN-5Q
+HG006	M-BN-6N	blood	gdna	HG006	male	1	1	Bjuice prevalidation biological specimen HG006; persisted specimen EUID M-BN-6N
+HG007	M-BN-7K	blood	gdna	HG007	female	2	0	Bjuice prevalidation biological specimen HG007; persisted specimen EUID M-BN-7K
+NA05067	M-BN-8H	unknown	gdna	NA05067	na	na	na	Bjuice prevalidation biological specimen NA05067; persisted specimen EUID M-BN-8H
+NA10798	M-BN-9F	unknown	gdna	NA10798	na	na	na	Bjuice prevalidation biological specimen NA10798; persisted specimen EUID M-BN-9F
+NA13189	M-BN-AD	unknown	gdna	NA13189	na	na	na	Bjuice prevalidation biological specimen NA13189; persisted specimen EUID M-BN-AD
+NA14732	M-BN-BB	unknown	gdna	NA14732	na	na	na	Bjuice prevalidation biological specimen NA14732; persisted specimen EUID M-BN-BB
+NA14733	M-BN-C9	unknown	gdna	NA14733	na	na	na	Bjuice prevalidation biological specimen NA14733; persisted specimen EUID M-BN-C9
+NA15603	M-BN-D7	unknown	gdna	NA15603	na	na	na	Bjuice prevalidation biological specimen NA15603; persisted specimen EUID M-BN-D7
+NA15848	M-BN-E5	unknown	gdna	NA15848	na	na	na	Bjuice prevalidation biological specimen NA15848; persisted specimen EUID M-BN-E5
+NA15849	M-BN-F3	unknown	gdna	NA15849	na	na	na	Bjuice prevalidation biological specimen NA15849; persisted specimen EUID M-BN-F3
+NA19235	M-BN-G0	unknown	gdna	NA19235	na	na	na	Bjuice prevalidation biological specimen NA19235; persisted specimen EUID M-BN-G0
+NA20027	M-BN-HY	unknown	gdna	NA20027	na	na	na	Bjuice prevalidation biological specimen NA20027; persisted specimen EUID M-BN-HY
+NA20230	M-BN-JW	unknown	gdna	NA20230	na	na	na	Bjuice prevalidation biological specimen NA20230; persisted specimen EUID M-BN-JW
+NA20775	M-BN-KT	unknown	gdna	NA20775	na	na	na	Bjuice prevalidation biological specimen NA20775; persisted specimen EUID M-BN-KT
+NA23687	M-BN-MR	unknown	gdna	NA23687	na	na	na	Bjuice prevalidation biological specimen NA23687; persisted specimen EUID M-BN-MR

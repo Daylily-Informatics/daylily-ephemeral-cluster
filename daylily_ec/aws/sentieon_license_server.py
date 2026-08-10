@@ -14,7 +14,7 @@ from typing import Sequence
 import boto3
 from botocore.exceptions import ClientError
 
-from daylily_ec.aws.ssm import run_shell
+from daylily_ec.aws.ssm import run_shell, start_bounded_command
 
 RUNTIME_VERSION = "202503.03"
 RUNTIME_ROOT = f"/opt/sentieon/{RUNTIME_VERSION}"
@@ -223,17 +223,18 @@ def install_cloudwatch_agent(
         else boto3.Session(region_name=region)
     )
     client = session.client("ssm")
-    response = client.send_command(
-        InstanceIds=[instance_id],
-        DocumentName="AWS-ConfigureAWSPackage",
-        Parameters={
+    response = start_bounded_command(
+        client,
+        instance_id=instance_id,
+        document_name="AWS-ConfigureAWSPackage",
+        parameters={
             "action": ["Install"],
             "installationType": ["Uninstall and reinstall"],
             "name": [CLOUDWATCH_PACKAGE_NAME],
             "version": [CLOUDWATCH_AGENT_VERSION],
         },
-        TimeoutSeconds=timeout,
-        Comment="Install pinned CloudWatch Agent for Sentieon license server",
+        timeout=timeout,
+        comment="Install pinned CloudWatch Agent for Sentieon license server",
     )
     command_id = str(response["Command"]["CommandId"])
     deadline = time.monotonic() + timeout
