@@ -1,0 +1,5 @@
+{
+    "BucketArn": "arn:aws:s3:::lsmc-dayoa-control-data-use1",
+    "BucketRegion": "us-east-1",
+    "AccessPointAlias": false
+}

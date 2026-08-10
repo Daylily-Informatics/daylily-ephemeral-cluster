@@ -1,0 +1,7 @@
+stateDiagram-v2
+    [*] --> Expected20
+    Expected20 --> Ready18: package_manifest present / READY / zero failures
+    Expected20 --> MissingHG002: invalid fallback ALT at chr1:10621
+    Expected20 --> MissingNA23687: core HIOMRS job 6712 still running
+    Ready18 --> PackageOnly: delivery_profile local
+    PackageOnly --> NotCustomerDelivery: terminal delivery set absent

@@ -1,0 +1,28 @@
+{
+  "core_expected_artifact_roles": 9,
+  "expected_analysis_units": 20,
+  "expected_libraries": 40,
+  "expected_samples": 20,
+  "expected_sequencing_inputs": 80,
+  "live_s3_refresh": "explicit --profile lsmc refresh performed for bounded NA raw pre-package and package call-support artifacts",
+  "missing_packages": [
+    "HG002",
+    "NA23687"
+  ],
+  "na_call_support_rows": 13,
+  "na_call_support_status_counts": {
+    "called": 6,
+    "called_primary_smn_discordant": 1,
+    "called_raw_qc_support": 1,
+    "called_supplemental_prepackage_not_delivered": 1,
+    "outside_pipeline_scope_no_supporting_call": 1,
+    "partial_support": 1,
+    "qualitative_support_size_discordant": 2
+  },
+  "na_prepackage_inventory_rows": 13,
+  "na_supplemental_pre_export_boundary": "s3://lsmc-dayoa-analysis-results-usw2/validation/pre_13.0.11_8_g1d44044_20260719T214703Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/daylily-omics-analysis/results/day/hg38",
+  "package_roles_per_ready_package": 57,
+  "present_packages": 18,
+  "primary_s3_prefix": "s3://lsmc-dayoa-analysis-results-usw2/validation/inflight_pr53_recovery_20260720T011608Z/ifx-p2-1000-120-0715/bjuiceprevalanalysis-complete/",
+  "timestamp": "20260720T123613Z"
+}

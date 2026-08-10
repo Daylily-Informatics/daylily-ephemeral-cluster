@@ -1,0 +1,138 @@
+{
+  "dyec_version": "16.1.18.dev5+g68ccc8853.d20260803",
+  "generated_at": "2026-08-03T17:32:42.622906+00:00",
+  "identity_status": {
+    "analysis_units": [
+      {
+        "analysis_unit_uid": "TAKE222-HG003-HIOMRS",
+        "customer_release_eligible": false,
+        "missing_identity_fields": [
+          "ANALYSIS_UNIT_EUID",
+          "DELIVERY_EUID"
+        ],
+        "test_identity_fields": []
+      },
+      {
+        "analysis_unit_uid": "TAKE222-HG004-HIOMRS",
+        "customer_release_eligible": false,
+        "missing_identity_fields": [
+          "ANALYSIS_UNIT_EUID",
+          "DELIVERY_EUID"
+        ],
+        "test_identity_fields": []
+      },
+      {
+        "analysis_unit_uid": "TAKE222-NA19235-HIOMRS",
+        "customer_release_eligible": false,
+        "missing_identity_fields": [
+          "ANALYSIS_UNIT_EUID",
+          "DELIVERY_EUID"
+        ],
+        "test_identity_fields": []
+      },
+      {
+        "analysis_unit_uid": "TAKE222-NA20775-HIOMRS",
+        "customer_release_eligible": false,
+        "missing_identity_fields": [
+          "ANALYSIS_UNIT_EUID",
+          "DELIVERY_EUID"
+        ],
+        "test_identity_fields": []
+      }
+    ],
+    "analysis_units_total": 4,
+    "customer_release_eligible_units": 0,
+    "fields": {
+      "analysis_units.tsv:ANALYSIS_UNIT_EUID": {
+        "blank": 4,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "analysis_units.tsv:DELIVERY_EUID": {
+        "blank": 4,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "libraries.tsv:LIBRARY_EUID": {
+        "blank": 0,
+        "owner_issued": 8,
+        "test": 0
+      },
+      "samples.tsv:SAMPLE_EUID": {
+        "blank": 0,
+        "owner_issued": 4,
+        "test": 0
+      },
+      "sequencing_inputs.tsv:POOL_TUBE_EUID": {
+        "blank": 16,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "sequencing_inputs.tsv:SEQUENCING_RUN_EUID": {
+        "blank": 0,
+        "owner_issued": 16,
+        "test": 0
+      },
+      "sequencing_inputs.tsv:SOURCE_ARTIFACT_EUID": {
+        "blank": 16,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "specimens.tsv:SPECIMEN_EUID": {
+        "blank": 0,
+        "owner_issued": 4,
+        "test": 0
+      }
+    }
+  },
+  "inputs": {
+    "analysis_unit_inputs.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260803T173159Z_take222_hg003_hg004_na19235_na20775_fullcov_manifests/analysis_unit_inputs.tsv",
+      "rows": 16,
+      "sha256": "d4bbac9a4cbafa59de0d06b6d3a688bbff7c67ddbbdafabb5c6f963e2015e924"
+    },
+    "analysis_units.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260803T173159Z_take222_hg003_hg004_na19235_na20775_fullcov_manifests/analysis_units.tsv",
+      "rows": 4,
+      "sha256": "a021e4b3c727c942b44e662bd6189de9b98a37b72a91e98e7866b1e8058d1129"
+    },
+    "libraries.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260803T173159Z_take222_hg003_hg004_na19235_na20775_fullcov_manifests/libraries.tsv",
+      "rows": 8,
+      "sha256": "6745bd38be00db837bccda151de767a03f545305794d17139b0cc99f4bcb33e0"
+    },
+    "samples.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260803T173159Z_take222_hg003_hg004_na19235_na20775_fullcov_manifests/samples.tsv",
+      "rows": 4,
+      "sha256": "361f7ed2250e6d575cbe534ad5d6a5c382fbb0bc647e1be50cd25b4dc3db5ec1"
+    },
+    "sequencing_inputs.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260803T173159Z_take222_hg003_hg004_na19235_na20775_fullcov_manifests/sequencing_inputs.tsv",
+      "rows": 16,
+      "sha256": "bb85afec7f2ce0c0ef93b179150d475ecebf36c8162e3cc7a4e3721d4ebb26b0"
+    },
+    "specimens.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260803T173159Z_take222_hg003_hg004_na19235_na20775_fullcov_manifests/specimens.tsv",
+      "rows": 4,
+      "sha256": "238c053e34c327ddafed3df8cf5c45561b33161cbfc9c83ad5c7810d0092547c"
+    }
+  },
+  "invariants": {
+    "foreign_keys_valid": true,
+    "identifiers_created": false,
+    "identifiers_rewritten": false,
+    "network_accessed": false,
+    "ordered_inputs_valid": true,
+    "provider_neutral": true
+  },
+  "manifest_dir": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260803T173159Z_take222_hg003_hg004_na19235_na20775_fullcov_manifests",
+  "manifest_order": [
+    "specimens.tsv",
+    "samples.tsv",
+    "libraries.tsv",
+    "sequencing_inputs.tsv",
+    "analysis_units.tsv",
+    "analysis_unit_inputs.tsv"
+  ],
+  "schema_version": "dyec.six_manifest.validation.v1"
+}

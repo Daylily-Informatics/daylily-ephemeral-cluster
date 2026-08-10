@@ -1,0 +1,21 @@
+ANALYSIS_UNIT_UID	ANALYSIS_UNIT_EUID	SAMPLEID	DELIVERY_EUID	DELIVERY_PROFILE	CUSTOMER_DELIVERY_ID	SUBSAMPLE_PCT	ONT_SUBSAMPLE_PCT	ALIGNED_REF_UID	BWA_KMER	DEEP_MODEL	MERGE_SINGLE	ANALYSIS_UNIT_COMMENT
+BJUICEPREVAL-COMPLETE-HG001-HIOMRS		HG001							19	WGS	single	Complete full-input HIOMRS analysis for HG001; specimen M-BN-1Z; sample M-BNG-73; libraries M-BNQ-AP and M-BNQ-ZB
+BJUICEPREVAL-COMPLETE-HG002-HIOMRS		HG002							19	WGS	single	Complete full-input HIOMRS analysis for HG002; specimen M-BN-2X; sample M-BNG-81; libraries M-BNQ-BM and M-BNQ-10H
+BJUICEPREVAL-COMPLETE-HG003-HIOMRS		HG003							19	WGS	single	Complete full-input HIOMRS analysis for HG003; specimen M-BN-3V; sample M-BNG-9Z; libraries M-BNQ-CJ and M-BNQ-11F
+BJUICEPREVAL-COMPLETE-HG004-HIOMRS		HG004							19	WGS	single	Complete full-input HIOMRS analysis for HG004; specimen M-BN-4S; sample M-BNG-AX; libraries M-BNQ-DG and M-BNQ-12D
+BJUICEPREVAL-COMPLETE-HG005-HIOMRS		HG005							19	WGS	single	Complete full-input HIOMRS analysis for HG005; specimen M-BN-5Q; sample M-BNG-BV; libraries M-BNQ-EE and M-BNQ-13B
+BJUICEPREVAL-COMPLETE-HG006-HIOMRS		HG006							19	WGS	single	Complete full-input HIOMRS analysis for HG006; specimen M-BN-6N; sample M-BNG-CS; libraries M-BNQ-FC and M-BNQ-149
+BJUICEPREVAL-COMPLETE-HG007-HIOMRS		HG007							19	WGS	single	Complete full-input HIOMRS analysis for HG007; specimen M-BN-7K; sample M-BNG-DQ; libraries M-BNQ-G9 and M-BNQ-157
+BJUICEPREVAL-COMPLETE-NA05067-HIOMRS		NA05067							19	WGS	single	Complete full-input HIOMRS analysis for NA05067; specimen M-BN-8H; sample M-BNG-EN; libraries M-BNQ-H7 and M-BNQ-165
+BJUICEPREVAL-COMPLETE-NA10798-HIOMRS		NA10798							19	WGS	single	Complete full-input HIOMRS analysis for NA10798; specimen M-BN-9F; sample M-BNG-FK; libraries M-BNQ-J5 and M-BNQ-173
+BJUICEPREVAL-COMPLETE-NA13189-HIOMRS		NA13189							19	WGS	single	Complete full-input HIOMRS analysis for NA13189; specimen M-BN-AD; sample M-BNG-GG; libraries M-BNQ-K3 and M-BNQ-181
+BJUICEPREVAL-COMPLETE-NA14732-HIOMRS		NA14732							19	WGS	single	Complete full-input HIOMRS analysis for NA14732; specimen M-BN-BB; sample M-BNG-HE; libraries M-BNQ-M1 and M-BNQ-19Z
+BJUICEPREVAL-COMPLETE-NA14733-HIOMRS		NA14733							19	WGS	single	Complete full-input HIOMRS analysis for NA14733; specimen M-BN-C9; sample M-BNG-JC; libraries M-BNQ-NZ and M-BNQ-1AX
+BJUICEPREVAL-COMPLETE-NA15603-HIOMRS		NA15603							19	WGS	single	Complete full-input HIOMRS analysis for NA15603; specimen M-BN-D7; sample M-BNG-KA; libraries M-BNQ-PX and M-BNQ-1BV
+BJUICEPREVAL-COMPLETE-NA15848-HIOMRS		NA15848							19	WGS	single	Complete full-input HIOMRS analysis for NA15848; specimen M-BN-E5; sample M-BNG-M8; libraries M-BNQ-QV and M-BNQ-1CS
+BJUICEPREVAL-COMPLETE-NA15849-HIOMRS		NA15849							19	WGS	single	Complete full-input HIOMRS analysis for NA15849; specimen M-BN-F3; sample M-BNG-N6; libraries M-BNQ-RS and M-BNQ-1DQ
+BJUICEPREVAL-COMPLETE-NA19235-HIOMRS		NA19235							19	WGS	single	Complete full-input HIOMRS analysis for NA19235; specimen M-BN-G0; sample M-BNG-P4; libraries M-BNQ-SQ and M-BNQ-1EN
+BJUICEPREVAL-COMPLETE-NA20027-HIOMRS		NA20027							19	WGS	single	Complete full-input HIOMRS analysis for NA20027; specimen M-BN-HY; sample M-BNG-Q2; libraries M-BNQ-TN and M-BNQ-1FK
+BJUICEPREVAL-COMPLETE-NA20230-HIOMRS		NA20230							19	WGS	single	Complete full-input HIOMRS analysis for NA20230; specimen M-BN-JW; sample M-BNG-R0; libraries M-BNQ-VK and M-BNQ-1GG
+BJUICEPREVAL-COMPLETE-NA20775-HIOMRS		NA20775							19	WGS	single	Complete full-input HIOMRS analysis for NA20775; specimen M-BN-KT; sample M-BNG-SY; libraries M-BNQ-WH and M-BNQ-1HE
+BJUICEPREVAL-COMPLETE-NA23687-HIOMRS		NA23687							19	WGS	single	Complete full-input HIOMRS analysis for NA23687; specimen M-BN-MR; sample M-BNG-TW; libraries M-BNQ-XF and M-BNQ-1JC

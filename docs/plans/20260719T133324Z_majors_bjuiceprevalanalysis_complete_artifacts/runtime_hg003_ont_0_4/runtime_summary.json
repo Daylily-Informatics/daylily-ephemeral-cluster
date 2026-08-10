@@ -1,0 +1,67 @@
+{
+  "analysis_downsampling": {
+    "ONT_SUBSAMPLE_PCT": "",
+    "SUBSAMPLE_PCT": "0.50"
+  },
+  "counts": {
+    "analysis_unit_inputs": 4,
+    "analysis_units": 1,
+    "libraries": 2,
+    "samples": 1,
+    "sequencing_inputs": 4,
+    "specimens": 1
+  },
+  "effective_input_paths_sha256": "8523fc8d8a2d6275d7d6319786bbcb6f82b6b50ef5fad1880283f8d79d9f73c0",
+  "input_paths_sha256": "4e92ad8e953bb6d4786dd019fa73df5cd4b7b8a0d4d4f14e3d8e1e968a30972b",
+  "ont_hour_window": {
+    "end": 4,
+    "interval": "half-open",
+    "start": 0,
+    "timestamp_source": "chunk-hour"
+  },
+  "output_sha256": {
+    "analysis_unit_inputs.tsv": "bbaa1f830e24d875d68a574c1bc92c61d2890450bf71351f3c74502b8a6613bd",
+    "analysis_units.tsv": "07c97d4d2b4318981e9d0028dea000644c5d4488222d32249bbe1e9ed671f0d6",
+    "libraries.tsv": "83ef26ce3841558393e33b1ba0ed1f30652b19ef023941cd0510bdeac449e0c3",
+    "samples.tsv": "cc603b562f524dca1158b4f6cbbf4830b984c7eb18ae3fa94515216412315317",
+    "sequencing_inputs.tsv": "581309af323bf4803fc1f16c07b613353f65ffd295aebba5e429b7dbbb25f59b",
+    "specimens.tsv": "96202add81bf4a817f213c63476d3242aa0f0458d055e8f92cbff68c05c3d94e"
+  },
+  "path_counts": {
+    "effective_total": 40,
+    "full_total": 454,
+    "ilmn": 16,
+    "ont_full": 438,
+    "ont_selected": 24,
+    "ont_selected_by_run_euid": {
+      "M-BGS-174": 8,
+      "M-BGS-182": 8,
+      "M-BGS-1CT": 8
+    }
+  },
+  "run_aliases": [
+    {
+      "runtime_runid": "20260616-0040-3B-PBK89197-822a87b5",
+      "sequencing_run_euid": "M-BGS-174",
+      "source_runid": "20260616_0040_3B_PBK89197_822a87b5"
+    },
+    {
+      "runtime_runid": "20260616-0041-3C-PBK89101-bd86eaac",
+      "sequencing_run_euid": "M-BGS-182",
+      "source_runid": "20260616_0041_3C_PBK89101_bd86eaac"
+    },
+    {
+      "runtime_runid": "20260616-0048-3A-PBM08268-14b096e3",
+      "sequencing_run_euid": "M-BGS-1CT",
+      "source_runid": "20260616_0048_3A_PBM08268_14b096e3"
+    },
+    {
+      "runtime_runid": "20260618-LH01106-0011-A23MFMCLT3",
+      "sequencing_run_euid": "M-BGS-XQ",
+      "source_runid": "20260618_LH01106_0011_A23MFMCLT3"
+    }
+  ],
+  "sample": "HG003",
+  "schema": "dayoa.bjuiceprevalanalysis.runtime_subset.v1",
+  "source_generation_summary_sha256": "0a714e2310365cd9d9266ecbc27f2fd1f0c0ab4753f776403be1682f5a4b8b5c"
+}

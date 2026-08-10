@@ -1,0 +1,9 @@
+flowchart LR
+    M[Six checked-in manifests] --> AU[20 analysis units]
+    AU --> E[build_inflection_expected_artifacts\n9 required roles]
+    E --> P[package_inflection_library\n57 package roles]
+    P --> R[18 READY package manifests]
+    P --> G[2 missing packages]
+    R --> X[FSx export]
+    X --> H[36 CRAM/CRAI hardlink objects repaired]
+    R --> T[Terminal delivery set absent]

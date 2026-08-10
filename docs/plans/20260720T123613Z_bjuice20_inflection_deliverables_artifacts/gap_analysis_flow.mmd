@@ -1,0 +1,7 @@
+flowchart TB
+    Proto[Prototype check_compliance.py\n38 executable assertions] --> Crosswalk[Compatibility crosswalk]
+    Crosswalk --> Source[inflection.delivery.v1 source]
+    Source --> Package[Package role catalog]
+    Package --> Produced[18 READY packages]
+    Produced --> Gaps[Execution and terminal-delivery gaps]
+    Source --> Verified[Identity, lineage, validation, no-discovery contracts]

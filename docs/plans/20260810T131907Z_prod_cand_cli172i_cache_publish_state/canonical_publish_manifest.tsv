@@ -1,0 +1,2 @@
+kind	name	source	destination	completed_utc
+conda	0233798f12c3ebe5938ba5446a32e9ef_	s3://lsmc-ssf-sequencing-data/derived/validation/prod-cand-260809-init-test-x2-20260810/cache-promotion/20260810T131907Z/cached_envs/conda/0233798f12c3ebe5938ba5446a32e9ef_/	s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs/conda/0233798f12c3ebe5938ba5446a32e9ef_/	2026-08-10T14:03:47Z
