@@ -97,6 +97,8 @@ def _launched_receipts(
     *,
     exit_code: int | None = None,
     completed_at: str | None = None,
+    workflow_exit_code: int | None = None,
+    workflow_completed_at: str | None = None,
 ) -> Path:
     run_dir = tmp_path / "daylily-runs" / "session-1"
     run_dir.mkdir(parents=True)
@@ -122,6 +124,8 @@ def _launched_receipts(
                 "started_at": "2026-08-10T07:21:21Z",
                 "completed_at": completed_at,
                 "exit_code": exit_code,
+                "workflow_completed_at": workflow_completed_at,
+                "workflow_exit_code": workflow_exit_code,
                 "command": "dy-r target -j 333 -p -k",
             }
         ),
@@ -245,7 +249,52 @@ def test_launched_terminal_state_uses_only_matching_status_receipt(
     assert payload["state"] == expected_state
     assert payload["terminal"]["exit_code"] == exit_code
     assert payload["terminal"]["exit_code_attributed"] is True
-    assert payload["terminal"]["exit_code_source"].endswith("/status.json")
+    assert payload["terminal"]["exit_code_source"].endswith("/status.json#exit_code")
+
+
+def test_launched_workflow_rc_is_terminal_before_controller_postprocessing_finishes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    run_dir = _launched_receipts(
+        tmp_path,
+        workflow_exit_code=0,
+        workflow_completed_at="2026-08-10T07:40:00Z",
+    )
+    _patch_runtime(monkeypatch, live=True, open_logs=[LOG])
+
+    payload = collect_workflow_observability(
+        mode="launched", session="session-1", run_dir=str(run_dir)
+    )
+
+    assert payload["state"] == "SUCCEEDED"
+    assert payload["controller"]["live"] is True
+    assert payload["terminal"] == {
+        "exit_code": 0,
+        "exit_code_attributed": True,
+        "exit_code_source": f"{run_dir}/status.json#workflow_exit_code",
+        "failure_markers": [],
+    }
+
+
+def test_launched_final_controller_rc_overrides_earlier_workflow_rc(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    run_dir = _launched_receipts(
+        tmp_path,
+        exit_code=24,
+        completed_at="2026-08-10T07:41:00Z",
+        workflow_exit_code=0,
+        workflow_completed_at="2026-08-10T07:40:00Z",
+    )
+    _patch_runtime(monkeypatch, live=False, open_logs=[])
+
+    payload = collect_workflow_observability(
+        mode="launched", session="session-1", run_dir=str(run_dir)
+    )
+
+    assert payload["state"] == "FAILED"
+    assert payload["terminal"]["exit_code"] == 24
+    assert payload["terminal"]["exit_code_source"].endswith("#exit_code")
 
 
 def test_launched_terminal_receipt_preserves_exact_invocation_log_and_job_counts(

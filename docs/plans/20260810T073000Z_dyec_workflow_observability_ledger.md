@@ -40,11 +40,12 @@ Ledger path: `docs/plans/20260810T073000Z_dyec_workflow_observability_ledger.md`
 | OBS-004 | progress/jobs | Report last progress, submitted/finished details, and current Slurm states without treating queue emptiness as success | SUCCESS | feature_implementation | Gate 1 | workflow_observability | Parser and Slurm tests cover two submissions, one completion, CONFIGURING and RUNNING |  | Empty/unavailable scheduler evidence does not terminalize the workflow. |
 | OBS-005 | failures/RC | Detect only high-signal terminal failures and attribute terminal RC only to the current launched receipt | SUCCESS | legitimate_safety_handling | Gate 4 | workflow_observability | Generic ERROR/stale RC negative tests; anchored rule/workflow failure tests; matching receipt validation |  | Manual status never invents a terminal RC or success. |
 | OBS-006 | logs CLI | Add `--stream snakemake` with launched and manual explicit syntax | SUCCESS | feature_implementation | Gate 1 | workflow_observability | `daylily_ec/cli.py`; attributed-tail and ambiguity CLI tests; live `--help` checks |  | Existing tmux/controller streams remain supported. |
-| OBS-007 | tests | Cover launched/manual modes, states, active exact log, stale markers, Slurm CF/R, failure markers, ERROR false positives, ambiguity, and CLI help | SUCCESS | contract_test | Gate 5 | workflow_observability | `283 passed` across CLI registry, script entrypoints, and observability tests |  | Requested contracts have focused positive and negative coverage. |
+| OBS-007 | tests | Cover launched/manual modes, states, active exact log, stale markers, Slurm CF/R, failure markers, ERROR false positives, ambiguity, and CLI help | SUCCESS | contract_test | Gate 5 | workflow_observability | `286 passed` across CLI registry, script entrypoints, and observability tests |  | Requested contracts have focused positive and negative coverage. |
 | OBS-008 | docs | Update README, CLI reference, operations, quick start, and monitoring guide | SUCCESS | feature_implementation | Gate 5 | workflow_observability | README plus four requested operator/CLI documents updated |  | Commands, fields, semantics, and manual limitations documented. |
-| OBS-009 | acceptance | Run focused tests and diff checks; terminalize every row | SUCCESS | contract_test | Gate 5 | workflow_observability | After both live-discovered bugfixes: `283 passed`; Ruff, mypy, py_compile, CLI help, and `git diff --check` pass |  | All rows terminal after local and live read-only proof. |
+| OBS-009 | acceptance | Run focused tests and diff checks; terminalize every row | SUCCESS | contract_test | Gate 5 | workflow_observability | After live-discovered amendments: `286 passed`; Ruff, mypy, py_compile, CLI help, and `git diff --check` pass |  | All rows terminal after local and live read-only proof. |
 | OBS-010 | live-proof amendment | Correct the local-CLI/new-headnode-version boundary exposed by read-only prod-cand validation | SUCCESS | plan_amendment | Gate 5 | workflow_observability | Failed SSM IDs `81ec9fd6-3465-4941-a0ab-0f485effc88f` and `4778d271-66df-460d-9ef1-5978938982c7`; `find_spec(...) -> None`; exact rerun then reported RUNNING PID 564368, exact log `2026-08-10T072121.547201.snakemake.log`, Slurm job 82 RUNNING, and log tail succeeded |  | Replaced remote module import with compressed self-contained probe; added transport regression and structured SSM diagnostics. |
 | OBS-011 | live-tail amendment | Return exact Snakemake tail content within the attributed observability probe | SUCCESS | plan_amendment | Gate 5 | workflow_observability | Isolated exact tail read returned content, while the former two-SSM command repeatedly reached the caller's roughly 30-second process boundary before emitting; the repaired exact `--lines 120` command returned content through `12 of 195 steps (6%) done` in one SSM call | Attribution and log reading were separate serial remote calls, so no bytes were emitted until the second call completed. | Tail is zlib/base64 transported with byte-count and SHA-256 verification; oversized tails fail clearly rather than truncate. |
+| OBS-012 | terminal-RC amendment | Persist the exact foreground workflow RC without waiting for inherited logging descriptors | SUCCESS | plan_amendment | Gate 5 | workflow_observability | Generated launcher now uses regular-file controller logging, atomically writes `workflow_completed_at`/`workflow_exit_code` immediately after `run_dy_command`, and has an inherited-descriptor regression plus workflow-vs-final-RC precedence tests | `dy-r ... | tee ...` allowed an orphaned helper holding the pipe to keep `tee` alive after Snakemake returned, delaying the following sidecar write. | Final `completed_at`/`exit_code` overrides the earlier workflow pair if controller post-processing fails; manual printed RC text remains non-authoritative. |
 
 ## Decisions
 
@@ -67,6 +68,10 @@ Ledger path: `docs/plans/20260810T073000Z_dyec_workflow_observability_ledger.md`
 - Snakemake log streaming attributes and reads the exact tail in that same
   probe. The tail is compressed for bounded SSM output and validated by byte
   count and SHA-256 locally; the CLI does not perform a second remote read.
+- The generated launcher does not pipeline `dy-r` through `tee`. Controller
+  output goes to a regular file, and the exact foreground workflow RC is
+  atomically persisted before DAG synchronization/export. A later final
+  controller RC takes precedence when present.
 
 ## Final report
 
@@ -76,7 +81,7 @@ Objective complete: **yes, including live read-only manual-recovery proof**
 
 Status counts:
 
-- SUCCESS: 11
+- SUCCESS: 12
 - DUPLICATE: 0
 - NO_LONGER_NEEDED: 0
 - FAIL: 0
@@ -84,7 +89,7 @@ Status counts:
 
 Validation:
 
-- `python -m pytest tests/test_cli_registry_v2.py tests/test_script_entrypoints.py tests/test_workflow_observability.py -q` -> `283 passed`.
+- `python -m pytest tests/test_cli_registry_v2.py tests/test_script_entrypoints.py tests/test_workflow_observability.py -q` -> `286 passed`.
 - `ruff check daylily_ec/workflow_observability.py tests/test_workflow_observability.py --ignore UP045` -> pass.
 - `ruff check daylily_ec/cli.py daylily_ec/scripts/daylily_run_omics_analysis_headnode.py tests/test_cli_registry_v2.py tests/test_script_entrypoints.py --select E9,F` -> pass.
 - `mypy daylily_ec/workflow_observability.py --ignore-missing-imports` -> success; mypy also warns that its current runtime no longer supports the repo's configured Python 3.9 target.
@@ -99,6 +104,9 @@ exact Snakemake tail command then returned the requested log lines.
 The second live acceptance reran the exact manual/recovery command with
 `--lines 120`; it returned the attributed log body and final progress line
 `12 of 195 steps (6%) done` through the single-probe transport.
+The inherited-`tee` terminal-RC finding was repaired and validated locally
+only, per the explicit acceptance boundary; no controller or analysis-root
+files on the live cluster were changed.
 
 Residual risk: launched-mode terminal persistence is covered by generated
 launcher syntax/contract tests; this live recovery run proves manual-mode

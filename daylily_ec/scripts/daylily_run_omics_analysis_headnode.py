@@ -1311,17 +1311,27 @@ def main(argv: Optional[List[str]] = None) -> int:
         "exit_code_raw = os.environ.get('DAYLILY_STATUS_EXIT_CODE', ''); "
         "exit_code = None if exit_code_raw in ('', '__PENDING__') else "
         "(int(exit_code_raw) if exit_code_raw.lstrip('-').isdigit() else exit_code_raw); "
+        "workflow_exit_code_raw = os.environ.get('DAYLILY_STATUS_WORKFLOW_EXIT_CODE', ''); "
+        "workflow_exit_code = None if workflow_exit_code_raw in ('', '__PENDING__') else "
+        "(int(workflow_exit_code_raw) if workflow_exit_code_raw.lstrip('-').isdigit() "
+        "else workflow_exit_code_raw); "
         "payload = dict("
         "session_name=os.environ['DAYLILY_STATUS_SESSION'], "
         "repo_path=os.environ['DAYLILY_STATUS_REPO_PATH'], "
         "started_at=os.environ.get('DAYLILY_STATUS_STARTED_AT') or None, "
+        "workflow_completed_at=os.environ.get('DAYLILY_STATUS_WORKFLOW_COMPLETED_AT') "
+        "or None, "
+        "workflow_exit_code=workflow_exit_code, "
         "completed_at=os.environ.get('DAYLILY_STATUS_COMPLETED_AT') or None, "
         "exit_code=exit_code, "
         "snakemake_log_path=os.environ.get('DAYLILY_STATUS_SNAKEMAKE_LOG_PATH') or None, "
         "snakemake_log_attribution=os.environ.get('DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION') or None, "
         "command=os.environ['DAYLILY_STATUS_COMMAND']); "
         "path.parent.mkdir(parents=True, exist_ok=True); "
-        "path.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\\n', encoding='utf-8')"
+        "temporary = path.with_name(path.name + '.tmp'); "
+        "temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\\n', "
+        "encoding='utf-8'); "
+        "os.replace(temporary, path)"
     )
     write_controller_target_python = shlex.quote(
         "import json, os, pathlib; "
@@ -1437,6 +1447,8 @@ export DAYOA_HUMAN_REQUESTOR="${{DAYOA_HUMAN_REQUESTOR:-${{USER:-ubuntu}}}}"
 export DAYOA_TMUX_SESSION="${{DAYLILY_TMUX_SESSION}}"
 export DAYOA_LEDGER_PATH="${{DAYOA_LEDGER_PATH:-${{DAYLILY_RUN_DIR}}/workflow-launch-ledger.md}}"
 export DAYLILY_STATUS_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+export DAYLILY_STATUS_WORKFLOW_COMPLETED_AT=""
+export DAYLILY_STATUS_WORKFLOW_EXIT_CODE="__PENDING__"
 export DAYLILY_STATUS_COMPLETED_AT=""
 export DAYLILY_STATUS_EXIT_CODE="__PENDING__"
 export DAYLILY_STATUS_SNAKEMAKE_LOG_PATH=""
@@ -1577,7 +1589,10 @@ if [[ -n "${{BASH_SOURCE[0]:-}}" && -f "${{BASH_SOURCE[0]}}" ]]; then
 fi
 cd "$repo_path"
 mkdir -p "$(dirname "$CONTROLLER_LOG_PATH")" "$(dirname "$CONTROLLER_DAG_PATH")"
-exec > >(tee -a "$CONTROLLER_LOG_PATH") 2>&1
+# Keep controller output on a regular file. A tee/process-substitution pipe can
+# remain open when workflow descendants inherit it, delaying foreground shell
+# completion and terminal receipt persistence until those descendants exit.
+exec >> "$CONTROLLER_LOG_PATH" 2>&1
 mkdir -p config
 
 extract_runtime_config_path() {{
@@ -2756,6 +2771,9 @@ fi
 	set +e
 run_dy_command "$DY_COMMAND"
 workflow_status=$?
+	export DAYLILY_STATUS_WORKFLOW_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+	export DAYLILY_STATUS_WORKFLOW_EXIT_CODE="$workflow_status"
+	write_status
 	if [[ -d "$repo_path/.snakemake/log" ]]; then
 	  find "$repo_path/.snakemake/log" -maxdepth 1 -type f -name '*.snakemake.log' -print \
 	    | sort > "$snakemake_log_current"
@@ -2774,6 +2792,7 @@ workflow_status=$?
 	else
 	  export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION="unavailable: no invocation log"
 	fi
+	write_status
 	touch "$controller_dag_stop"
 	set +e
 	wait "$controller_dag_monitor_pid"

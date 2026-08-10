@@ -298,6 +298,19 @@ Manual inspection can prove `RUNNING` or a high-signal `FAILED` state, but it
 cannot prove `SUCCEEDED` or invent a terminal RC without a matching DYEC launch
 receipt.
 
+DYEC-launched controllers redirect output directly to the regular
+`.dyec/controller.log` file; they never put `dy-r` behind `tee`. Immediately
+after `dy-r` returns, the launcher atomically records `workflow_completed_at`
+and `workflow_exit_code` in the matching `status.json`, before DAG evidence,
+export, or other post-processing. Final controller `completed_at`/`exit_code`
+fields take precedence if later post-processing changes the launch outcome.
+For an exceptional manual recovery, likewise redirect `dy-r` directly to a
+regular file and follow it from a separate `tail -f` process. Do not use
+`dy-r ... | tee ...`: orphaned workflow helpers can inherit the pipe and delay
+the shell from persisting its RC. A manual printed `RETURN CODE` remains
+non-authoritative to `workflow status`; use the standard DYEC launcher when a
+terminal success receipt is required.
+
 Record visits before analysis-root reads:
 
 ```bash

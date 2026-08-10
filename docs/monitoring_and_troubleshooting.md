@@ -140,6 +140,14 @@ validates its byte count and SHA-256 after local decompression. If the tail is
 too large for bounded SSM output, retry with fewer `--lines`; DYEC does not
 silently truncate or issue an unattributed second read.
 
+For recovery shells, never capture the controller as `dy-r ... | tee ...` when
+an immediate RC receipt matters. Slurm polling or lock helpers can inherit the
+pipe, leaving `tee` alive after Snakemake prints its return code. Redirect
+`dy-r` directly to a regular file, capture `$?` immediately, and follow the log
+from a separate process. DYEC's generated launcher applies this contract and
+atomically stores `workflow_exit_code`; generic or printed `RETURN CODE` text is
+still not terminal evidence.
+
 On the headnode:
 
 ```bash

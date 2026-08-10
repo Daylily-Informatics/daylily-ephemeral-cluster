@@ -393,24 +393,30 @@ def _slurm_states(external_job_ids: Sequence[str]) -> dict[str, Any]:
 
 def _validate_status_receipt(
     payload: dict[str, Any], *, session: str, repo_path: str, path: Path
-) -> tuple[Optional[int], bool]:
+) -> tuple[Optional[int], bool, Optional[str]]:
     if payload.get("session_name") != session or payload.get("repo_path") != repo_path:
         raise WorkflowObservabilityError(
             f"workflow status receipt does not match controller target: {path}"
         )
-    completed_at = payload.get("completed_at")
-    exit_code = payload.get("exit_code")
-    if completed_at is None and exit_code is None:
-        return None, False
-    if not isinstance(completed_at, str) or not completed_at.strip():
-        raise WorkflowObservabilityError(
-            f"workflow status receipt has an unattributable terminal result: {path}"
-        )
-    if isinstance(exit_code, bool) or not isinstance(exit_code, int):
-        raise WorkflowObservabilityError(
-            f"workflow status receipt has a non-integer terminal exit_code: {path}"
-        )
-    return exit_code, True
+    result_pairs = (
+        ("completed_at", "exit_code"),
+        ("workflow_completed_at", "workflow_exit_code"),
+    )
+    for completed_field, exit_code_field in result_pairs:
+        completed_at = payload.get(completed_field)
+        exit_code = payload.get(exit_code_field)
+        if completed_at is None and exit_code is None:
+            continue
+        if not isinstance(completed_at, str) or not completed_at.strip():
+            raise WorkflowObservabilityError(
+                f"workflow status receipt has an unattributable {exit_code_field}: {path}"
+            )
+        if isinstance(exit_code, bool) or not isinstance(exit_code, int):
+            raise WorkflowObservabilityError(
+                f"workflow status receipt has a non-integer {exit_code_field}: {path}"
+            )
+        return exit_code, True, exit_code_field
+    return None, False, None
 
 
 def collect_workflow_observability(
@@ -555,14 +561,14 @@ def collect_workflow_observability(
     terminal_rc_attributed = False
     terminal_rc_source: Optional[str] = None
     if status_payload is not None and status_path is not None and session is not None:
-        terminal_rc, terminal_rc_attributed = _validate_status_receipt(
+        terminal_rc, terminal_rc_attributed, terminal_rc_field = _validate_status_receipt(
             status_payload,
             session=session,
             repo_path=repo_path,
             path=status_path,
         )
-        if terminal_rc_attributed:
-            terminal_rc_source = status_path.as_posix()
+        if terminal_rc_attributed and terminal_rc_field is not None:
+            terminal_rc_source = f"{status_path.as_posix()}#{terminal_rc_field}"
     state = derive_state(
         controller_live=pid_exists,
         controller_attributed=attributed,

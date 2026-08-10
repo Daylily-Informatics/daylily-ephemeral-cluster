@@ -233,6 +233,13 @@ dyec workflow launch \
 ```
 
 The launcher creates `/home/<resolved-remote-user>/daylily-runs/<session>/` with the controller launch script, `tmux.log`, `status.json`, and controller receipt files.
+Controller output is written directly to the regular
+`<analysis-repo>/.dyec/controller.log`; the launcher does not put `dy-r` behind
+`tee` or another pipeline. It atomically writes `workflow_completed_at` and
+`workflow_exit_code` immediately after the foreground workflow command returns,
+before DAG synchronization and export. This prevents inherited background file
+descriptors from delaying the terminal workflow receipt. The later
+`completed_at`/`exit_code` pair remains the final controller result.
 
 ## Budget Enforcement
 

@@ -645,6 +645,29 @@ descriptors cannot identify exactly one log, supply the exact
 open logs fail as ambiguous instead of selecting the newest. Without a matching
 DYEC terminal receipt, manual success and terminal RC remain `UNKNOWN`/`null`.
 
+The generated DYEC controller never pipes `dy-r` through `tee`. It redirects
+stdout/stderr directly to the regular `.dyec/controller.log`, captures the
+foreground `dy-r` status, and atomically writes `workflow_completed_at` plus
+`workflow_exit_code` to the exact matching `status.json` before controller DAG,
+export, or other post-processing. Once the whole controller finishes, its
+`completed_at`/`exit_code` pair is authoritative and may override the earlier
+workflow pair if post-processing failed.
+
+For a manual recovery controller, use direct regular-file redirection and a
+separate log follower:
+
+```bash
+dy-r <targets-and-flags> >>/absolute/path/recovery.snakemake.log 2>&1
+rc=$?
+# Persist rc immediately in the recovery lane's own exact invocation receipt.
+```
+
+Do not use `dy-r ... | tee ...`. A background helper can inherit the pipe,
+keeping `tee` alive after `dy-r` has returned and delaying the following RC
+write. Manual receipts are not inferred or discovered by `workflow status`; a
+standard `dyec workflow launch` receipt is required for `SUCCEEDED` and an
+authoritative terminal RC.
+
 Collect benchmark summaries from a completed or partially completed DayOA root:
 
 ```bash
