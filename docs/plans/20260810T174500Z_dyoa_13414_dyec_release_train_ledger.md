@@ -27,17 +27,16 @@ DYEC self-pin and publish a second annotated DYEC tag.
 | REL-001 | Catalog pin | Set every current DYEC DayOA reference and matching test contract to `13.4.14`, in source and packaged catalog. | SUCCESS | config_or_startup_contract | Gate 2 | Codex | Source and packaged catalogs are byte-identical after the literal replacement; `13.4.14` resolves to DayOA commit `b70e57fbb6b4bed10b929beb2f0c51c12739b7f0`; focused validation passed `360`. |  | Every active DYEC DayOA command/catalog pin now uses the requested release. |
 | REL-002 | DYEC release | Commit the dirty scoped DYEC work, push branch/PR/merge, then create and push annotated `16.1.65`. | SUCCESS | feature_implementation | Gate 5 | Codex | Commit `63ae01a5` was pushed, PR `#90` merged to `origin/main` commit `d4d9c02591cbffbd2f7307aadca9641019eb8583`, and remote annotated tag `16.1.65` peels to that commit. |  | First DYEC release is published. |
 | REL-003 | Self pin | Update source and packaged DYEC self-pins to the released `16.1.65`, test, then publish annotated `16.1.66`. | SUCCESS | config_or_startup_contract | Gate 2 | Codex | Source and packaged configs are byte-identical at `16.1.65`; `471` focused packaging, clone, init, workflow, CLI, and fork-contract tests passed. |  | The self-pin content is complete; final publication verification is tracked by REL-004. |
-| REL-004 | Release proof | Verify remote branch, both annotated tag objects, peeled commits, and clean final tree. | OPEN | contract_test | Gate 5 | Codex | Pending release actions. |  |  |
+| REL-004 | Release proof | Verify remote branch, both annotated tag objects, peeled commits, and clean final tree. | SUCCESS | contract_test | Gate 5 | Codex | Remote `16.1.65` tag object `e39e9ccbbc46eb424ad65e56b3cd1c161714c77b` peels to merged PR #90 commit `d4d9c02591cbffbd2f7307aadca9641019eb8583`; remote `16.1.66` tag object `3c59f8ac0889dbe60886d45ddc3fba3c63ebf861` peels to merged PR #91 commit `926c309a4e9ecddc10009288527209ab12ceb6d1`. |  | Both required annotated tags are published and the final self-pin tag is immutable. |
 
 ## Final report
 
-All rows terminal: no
-Objective complete: no
+All rows terminal: yes
+Objective complete: yes
 
 Status counts:
-- SUCCESS: 3
+- SUCCESS: 4
 - DUPLICATE: 0
 - NO_LONGER_NEEDED: 0
 - FAIL: 0
 - BLOCKED: 0
-- OPEN: 1
