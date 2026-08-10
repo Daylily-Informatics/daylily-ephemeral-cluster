@@ -147,10 +147,132 @@ Frozen upstream identity:
 | FIX-002 | DayOA source | Replace the gitlink with the byte-identical vendored upstream tree plus a provenance receipt | SUCCESS | feature_implementation | Repair Gate 1 | Staged vendored path has 28 files and Git tree `a61c4dd...`, exactly matching upstream; `.gitmodules` removed |
 | FIX-003 | DayOA contract | Verify the enclosing checkout's vendored tree object in the HIOMR2 rule and add focused regressions | SUCCESS | contract_test | Repair Gate 1 | Rule checks committed tree plus working-path cleanliness; focused NICU, Inflection, and SeqOne v2 suite passed 81/81 |
 | FIX-004 | DayOA release | Test, commit, push, and publish a new immutable annotated patch tag | SUCCESS | release | Repair Gate 2 | Annotated `13.4.10` tag object `d7b1a14b...` peels to pushed commit `118f70f4...`; `13.4.9` was not moved |
-| FIX-005 | DYEC release | Pin source and packaged catalogs to the replacement DayOA tag, test parity, self-pin, and publish a new immutable DYEC tag | IN_PROGRESS | release | Repair Gate 3 | Source/payload catalogs are being pinned to `13.4.10`; new clusters must receive the corrected catalog and bootstrap payload |
-| FIX-006 | Candidate proof | Refresh `prod-cand-260809` through DYEC and prove the corrected exact-tag clone as `ubuntu` | PENDING | config_or_startup_contract | Repair Gate 4 | No manual URL rewrite or credential injection is allowed |
-| FIX-007 | Resumed launch | Re-enter the locked `init-test` root, initialize separately, prove exact inputs/targets, dry-run with the requested flags, then remove only `-n` if valid | PENDING | feature_implementation | Repair Gate 5 | No controller is running at amendment time |
+| FIX-005 | DYEC release | Pin source and packaged catalogs to the replacement DayOA tag, test parity, self-pin, and publish a new immutable DYEC tag | SUCCESS | release | Repair Gate 3 | Pushed commit `f61d83de...` and annotated tag `16.1.45` pin DayOA `13.4.10`; pushed self-pin commit `9c41e266...` and annotated tag `16.1.46` make that corrected bootstrap contract the new-cluster DYEC payload |
+| FIX-006 | Candidate proof | Refresh `prod-cand-260809` through DYEC and prove the corrected exact-tag clone as `ubuntu` | SUCCESS | config_or_startup_contract | Repair Gate 4 | Refreshed headnode reports DYEC `16.1.46` and catalog DayOA `13.4.10`; fresh proof clone `/fsx/analysis_results/prod-cand-260809/init-test-13410-bootstrap-proof` completed with no URL rewrite or credential injection; actual `init-test` checkout was then moved cleanly to exact tag `13.4.10` |
+| FIX-007 | Resumed launch | Re-enter the locked `init-test` root, initialize separately, prove exact inputs/targets, dry-run with the requested flags, then remove only `-n` if valid | IN_PROGRESS | feature_implementation | Repair Gate 5 | The root is locked and the workflow remains stopped while the canonical slim-data input defect is repaired and validated |
 
 The earlier `All rows terminal: yes` and `Objective complete: no` statements
 apply only to the stopped `13.4.9` attempt and are superseded for current work
 by this amendment.
+
+## 2026-08-10 HG002 5x-by-5x slim-data correction amendment
+
+Input validation proved that three canonical BJuice objects whose names claim
+`5x` actually contain full-coverage data. This is a source-fixture defect, not
+a workflow-selection defect, so the run remains stopped until the canonical S3
+objects are durably corrected for this and future clusters.
+
+Authoritative correct Illumina objects already present on S3:
+
+- `NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG002_5x_R1.fastq.gz`:
+  `3,899,321,181` bytes, SHA256
+  `0a3282844bc53ac600566899b9a02d1dd556befe63269b9b09f2c8be17780eb3`,
+  `60,277,137` reads and `9,052,461,224` bases.
+- `NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG002_5x_R2.fastq.gz`:
+  `4,000,405,121` bytes, SHA256
+  `6b365ebb3ef333783cc4f85bedd881ebcd8356d66f5a040dfdbe666ec624e4d7`,
+  `60,277,137` reads and `9,053,152,391` bases.
+- Combined observed depth is `5.862704556x` against the frozen primary-contig
+  denominator of `3,088,269,832` bases.
+
+Mislabeled canonical replacement targets under
+`s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/bjuice_preval_2026/HG002/`:
+
+- `illumina/HG002_BJUICEPREVAL_ILMN_5x_R1.fastq.gz`: `37,003,624,993`
+  bytes, metadata SHA256 `897f3d126efed5da49641534c7c903167105db407eeef0569011f2ca5e22cbe7`.
+- `illumina/HG002_BJUICEPREVAL_ILMN_5x_R2.fastq.gz`: `37,335,094,934`
+  bytes, metadata SHA256 `617f6e52ea4251b1b544c5153863482f8a3ce780c3cc93b738ecae556886c476`.
+- `ont/HG002_BJUICEPREVAL_ONT_5x.fastq.gz`: `62,270,705,691` bytes,
+  metadata SHA256
+  `9bd2303e9a7c63e78b8e76cd8110ebad3b34828794336fd10b29393f320b6e21`;
+  its `61,029,539,852` sequenced bases measure `19.7617x`.
+
+The earlier deterministic ONT 5x recipe is preserved in
+`docs/plans/20260810T024728Z_rebuild_hg002_5x5x_slim_fixture.sbatch`: SeqKit
+`2.13.0` exact package SHA256 `538ff4ab...e6d4`, seed `1340`, proportion
+`0.253014346781`, compression level `1`, and strict expected output identity of
+`16,810,459,174` bytes, `1,963,980` reads, `15,447,946,531` bases,
+`5.002136268x`, SHA256
+`8758ef77c51ac473c145cbd777108373960f0d82c3f62d159e5d87d440f6cad1`.
+
+At `2026-08-10T03:27Z`, the human requestor explicitly accepted an approximate
+ONT input in the range `2.5x` through `7.5x`.  The fast repair lane therefore
+uses the known source coverage and read count: the full source has `7,759,331`
+reads at `19.7617x`, so the first `1,963,980` complete FASTQ records estimate
+approximately `5x`.  The protected `i96nvme` job must stop decompression after
+that prefix, validate the exact read count and complete gzip/FASTQ structure,
+measure sequenced bases and depth, and emit compressed plus uncompressed-stream
+SHA256 receipts.  No estimated artifact is accepted merely from the arithmetic.
+
+Protected job `4` completed successfully in `18:00`, with `1,074` measured
+seconds from download start through FSx publication.  Its selected prefix has
+`1,963,980` reads, `14,805,689,859` bases, measured depth `4.794169766x`,
+`15,086,588,357` compressed bytes, SHA256
+`f35e79a5601271f6503455a952cc04892f452b078ad45941cbf27ae77f4ed45b`,
+and uncompressed FASTQ stream SHA256
+`7441b3018d02fe6c0c318bf2904ae7d7bb5c08093ddaa3bbd7e876b3e4ec8be0`.
+The receipt reports passing gzip-to-EOF, FASTQ-to-EOF, exact-read-count, and
+accepted-depth-range checks.  Re-reading the published FSx file independently
+reproduced the compressed SHA256.  The exact/random lane also completed, but
+took `50:38`; it is preserved as comparison evidence and is not the selected
+under-20-minute repair.
+
+The selected ONT file and the already-existing verified Illumina pair now form
+the complete tree at `/fsx/analysis_results/tmp_slinm_fq/hg002_5x5x`.  A second
+three-file SHA256 pass from that final tree matched all expected values.  The
+three old full-coverage objects were copied, without changing canonical keys,
+to the honest quarantine prefix
+`s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/_quarantine/full_coverage_mislabeled/20260810T034514Z/`;
+HEAD validation matched all three original sizes and metadata SHA256 values.
+
+The independently implemented rapidgzip lane, protected job `5`, completed in
+`14:57` (`891` measured seconds) and reproduced the same `1,963,980` records,
+`14,805,689,859` bases, `4.794169766x` depth, `15,086,588,357` byte count, and
+uncompressed FASTQ SHA256
+`7441b3018d02fe6c0c318bf2904ae7d7bb5c08093ddaa3bbd7e876b3e4ec8be0`.
+Its compressed SHA256 is
+`c096d055e15d323357349008683cb579178c2f459f1495a0b9adcba81ad69b20`,
+while job `4` produced
+`f35e79a5601271f6503455a952cc04892f452b078ad45941cbf27ae77f4ed45b`;
+the first ten
+gzip bytes prove that only the four-byte gzip mtime header differs before the
+identical deflate stream prefix.  The durable follow-on script
+`docs/plans/20260810T040500Z_extract_hg002_ont5x_repro96.sbatch` therefore uses
+`pigz -n` for a no-name, zero-mtime gzip header; the selected replacement
+object remains bound to its exact compressed and uncompressed identities.
+
+During that header inspection, a two-positional-argument `xxd` invocation
+mistakenly treated the redundant rapid-lane FSx staging path as its output and
+replaced only that copy with a 124-byte hex dump.  The selected final tree, DRA
+export, canonical S3 keys, quarantine copies, and all receipts were unaffected.
+The intact rapid-lane NVMe file was copied to an FSx partial path, verified at
+`15,086,588,357` bytes and SHA256
+`c096d055e15d323357349008683cb579178c2f459f1495a0b9adcba81ad69b20`,
+then atomically restored
+over the 124-byte staging file under the owned analysis-root guard.
+
+After the human requestor supplied the required second explicit destructive
+approval, exactly the three canonical BJuice keys were replaced.  Destination
+HEAD proof now reports R1 `3,899,321,181` bytes with metadata SHA256
+`0a3282844bc53ac600566899b9a02d1dd556befe63269b9b09f2c8be17780eb3`,
+R2 `4,000,405,121` bytes with metadata SHA256
+`6b365ebb3ef333783cc4f85bedd881ebcd8356d66f5a040dfdbe666ec624e4d7`,
+and ONT `15,086,588,357` bytes with metadata SHA256
+`f35e79a5601271f6503455a952cc04892f452b078ad45941cbf27ae77f4ed45b`,
+uncompressed FASTQ SHA256
+`7441b3018d02fe6c0c318bf2904ae7d7bb5c08093ddaa3bbd7e876b3e4ec8be0`,
+and measured
+depth `4.794169766x`.  All three objects carry fixture profile
+`hg002_bjuice_verified_5x5x_fastq`, `application/x-gzip`, and AES256 server-side
+encryption.  No other canonical key was changed; the prior full-coverage bytes
+remain only under the honest timestamped quarantine prefix.
+
+| ID | Area | Requirement | Status | Approval Gate | Evidence / terminal note |
+|---|---|---|---|---|---|
+| DATA-001 | S3 inventory | Prove which correct 5x objects exist and which canonical names contain full coverage | SUCCESS | Data Gate 0 | Exact keys, byte sizes, hashes, read/base counts, and depth evidence recorded above; bucket versioning is not enabled |
+| DATA-002 | ONT rebuild | Produce a validated ONT input within the explicitly accepted `2.5x`-`7.5x` band and emit a machine-readable receipt | SUCCESS | Data Gate 1 | Prefix job `4` completed in `18:00`; measured `4.794169766x` and all receipt gates passed; exact/random job `1` completed independently in `50:38` and was not selected |
+| DATA-003 | Replacement staging | Stage and independently validate the correct Illumina pair plus rebuilt ONT file | SUCCESS | Data Gate 2 | Final FSx tree and three-file SHA receipt pass; no-delete DYEC DRA `dra-02bf97a24798ac8b0` task `task-0ca854916eeec75cc` succeeded to `s3://lsmc-dayoa-staging-usw2/codex/hg002-5x5x-repair/20260810T035206Z/tmp_slinm_fq/hg002_5x5x/`; all three S3 object sizes match |
+| DATA-004 | Recoverability | Back up the three existing full-coverage objects to one exact timestamped archive prefix | SUCCESS | Data Gate 3 | Three server-side copies completed under the timestamped `full_coverage_mislabeled` quarantine prefix and were HEAD-verified against original sizes and metadata hashes; canonical keys remain unchanged |
+| DATA-005 | Canonical repair | Replace exactly the three mislabeled canonical keys and prove their final identities | SUCCESS | Data Gate 4, explicit second approval | Second approval received; exactly three canonical objects were server-side replaced; HEAD size, content type, encryption, profile, read/base/depth, compressed SHA256, and ONT raw-stream SHA256 metadata match the verified fixture; quarantine remains intact |
+| DATA-006 | Workflow proof | Make `init-test` consume the corrected canonical 5x-by-5x surface, dry-run, then remove only `-n` if the plan is valid | PENDING | Repair Gate 5 | Blocked on DATA-002 through DATA-005 |
+| DATA-007 | DYEC catalog | Bind the BJuice command and packaged six-manifest fixture to the corrected three-file identities and requested `-j 333 -p -T 1 -k` contract | IN_PROGRESS | Data Gate 2 | Source and payload catalogs are byte-identical; packaged fixture carries the measured 5.862704556x ILMN / 4.794169766x ONT identities; focused catalog/resource/manifest suite passes 28/28; commit/release waits for canonical S3 repair proof |

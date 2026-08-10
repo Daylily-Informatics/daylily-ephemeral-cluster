@@ -789,7 +789,17 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     )
     assert inflection_bjuice.sample_manifest_template == ""
     assert inflection_bjuice.validation_runs == []
-    assert inflection_bjuice.test_data_profile == "none"
+    assert inflection_bjuice.test_data_profile == "hg002_bjuice_verified_5x5x_fastq"
+    assert (
+        inflection_bjuice.manifest_dir_template
+        == "examples/staging/hg002_bjuice_verified_5x5x_fastq"
+    )
+    bjuice_profile = catalog.test_data_profiles[inflection_bjuice.test_data_profile]
+    assert bjuice_profile.source_s3_uri_template.endswith(
+        "/bjuice_preval_2026/HG002/"
+    )
+    assert any("f35e79a5601271f6" in note for note in bjuice_profile.source_notes)
+    assert "full-coverage inputs must not be substituted" in inflection_bjuice.description
     assert inflection_bjuice.targets == [
         "produce_sentdhiomr2_kitchensink",
         "produce_sentdhiomr2_nicu_research",
@@ -799,7 +809,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "results/day/hg38/reports/DAY_final_multiqc.html",
     ]
     assert inflection_bjuice.targets != hiomr2_analytical.targets
-    assert inflection_bjuice.jobs == 444
+    assert inflection_bjuice.jobs == 333
     assert inflection_bjuice.restart_times == 1
     assert inflection_bjuice.aligners == ["sentmm2ont"]
     assert inflection_bjuice.dedupers == ["na"]
@@ -812,6 +822,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_sentdhiomr2_kitchensink" in inflection_bjuice.dy_command
     assert "produce_sentdhiomr2_inflection_seqone_v2" in inflection_bjuice.dy_command
     assert "produce_sentdhiomr2_segdup_smn12_multiqc" in inflection_bjuice.dy_command
+    assert "-j 333 -T 1 -p -k" in inflection_bjuice.dy_command
     assert "SEQONE_DELIVERY_BATCH_ID:?" in inflection_bjuice.dy_command
     assert "hiomr2_inflection_package_mode=seqone_v2" in inflection_bjuice.dy_command
     assert "HIOMR2_SEQONE_V2_CONFIG_FILE:?" in inflection_bjuice.dy_command
@@ -823,7 +834,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert 'aligners=["sentmm2ont"]' in inflection_bjuice.dy_command
     assert 'dedupers=["na"]' in inflection_bjuice.dy_command
     assert 'snv_callers=["sentdhiomr2"]' in inflection_bjuice.dy_command
-    assert " -j 444 -T 1 -p -k " in inflection_bjuice.dy_command
+    assert " -j 333 -T 1 -p -k " in inflection_bjuice.dy_command
     assert inflection_bjuice.genome == "hg38"
     assert inflection_bjuice.dryrun_dy_command == f"{inflection_bjuice.dy_command} -n"
 

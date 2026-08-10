@@ -244,6 +244,18 @@ test_data_profiles:
     source_notes:
       - "Use only the explicit packaged six-manifest fixture; do not project or infer topology from a consolidated legacy manifest."
       - "The ONT FASTQ is the receipt-bound primary-only conversion of HG003_1x.cleaned.cram."
+  hg002_bjuice_verified_5x5x_fastq:
+    description: "Verified HG002 approximately-5x paired Illumina plus receipt-bound 4.794169766x ONT FASTQ inputs for the BJuice HIOMR2 kitchen-sink and Inflection command."
+    source_mount_mode: default_mounted
+    source_s3_uri_template: s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/bjuice_preval_2026/HG002/
+    source_fsx_prefix: /fsx/references/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/bjuice_preval_2026/HG002/
+    locations:
+      - default_reference_reads_slim
+    source_notes:
+      - "Use only examples/staging/hg002_bjuice_verified_5x5x_fastq; the three canonical FASTQ paths are identity-bound in sequencing_inputs.tsv."
+      - "Illumina R1: 3899321181 bytes, 60277137 reads, 9052461224 bases, SHA256 0a3282844bc53ac600566899b9a02d1dd556befe63269b9b09f2c8be17780eb3."
+      - "Illumina R2: 4000405121 bytes, 60277137 reads, 9053152391 bases, SHA256 6b365ebb3ef333783cc4f85bedd881ebcd8356d66f5a040dfdbe666ec624e4d7."
+      - "ONT: deterministic 1963980-record source prefix estimated from 7759331 reads at 19.7617x; 15086588357 bytes, 14805689859 bases, 4.794169766x, SHA256 f35e79a5601271f6503455a952cc04892f452b078ad45941cbf27ae77f4ed45b, uncompressed FASTQ SHA256 7441b3018d02fe6c0c318bf2904ae7d7bb5c08093ddaa3bbd7e876b3e4ec8be0."
   illumina_run_directory:
     description: "Illumina run-directory validation profile for run QC and BCL Convert rows."
     source_mount_mode: run_dra_required
@@ -1405,9 +1417,10 @@ repositories:
       - command_id: inflection-bjuice-product-v0.2
         type: dev
         validated_version: 13.4.10
-        test_data_profile: none
-        display_name: "Inflection BJuice Product v0.2"
-        description: "BJuice full-coverage HIOMR2 kitchen-sink mega run: core kitchen sink, NICU research, authoritative per-sample Jasmine sharding, strict Inflection SeqOne v2 packaging, and final MultiQC. Non-HG002 NICU Truvari evidence is warning-only. SMNCopyNumber is the sole selected special caller. It consumes full ILMN FASTQ plus ONT [0,25), never invokes legacy HIOMR or HIOMRS targets, and requires an explicit config-scoped SeqOne v2 release config."
+        test_data_profile: hg002_bjuice_verified_5x5x_fastq
+        manifest_dir_template: examples/staging/hg002_bjuice_verified_5x5x_fastq
+        display_name: "Inflection BJuice HG002 Verified 5x+5x Product v0.2"
+        description: "Verified HG002 5.862704556x Illumina plus receipt-bound 4.794169766x ONT HIOMR2 kitchen-sink mega run: core kitchen sink, NICU research, authoritative per-sample Jasmine sharding, strict Inflection SeqOne v2 packaging, and final MultiQC. The packaged six-manifest fixture binds the three canonical slim-data FASTQs to exact byte sizes, read/base counts, and SHA256 identities; full-coverage inputs must not be substituted. Non-HG002 NICU Truvari evidence is warning-only. SMNCopyNumber is the sole selected special caller. It never invokes legacy HIOMR or HIOMRS targets and requires an explicit config-scoped SeqOne v2 release config."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
@@ -1428,7 +1441,7 @@ repositories:
           - produce_sentdhiomr2_segdup_smn12_multiqc
           - results/day/hg38/reports/DAY_final_multiqc.html
         genome: hg38
-        jobs: 444
+        jobs: 333
         keep_going: true
         restart_times: 1
         aligners:
@@ -1438,8 +1451,8 @@ repositories:
         snv_callers:
           - sentdhiomr2
         sv_callers: []
-        dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_nicu_research produce_sentdhiomr2_jasmine_sharded_per_sample produce_sentdhiomr2_inflection_seqone_v2 produce_sentdhiomr2_segdup_smn12_multiqc results/day/hg38/reports/DAY_final_multiqc.html --configfile \"${HIOMR2_SEQONE_V2_CONFIG_FILE:?Set explicit SeqOne v2 release config file}\" -j 444 -T 1 -p -k --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=seqone_v2' 'use_fq_data_starting_hrs=0' 'use_fq_data_up_to_hrs=25' \"seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set explicit SeqOne v2 delivery batch ID}\" --rerun-triggers mtime"
-        dryrun_dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_nicu_research produce_sentdhiomr2_jasmine_sharded_per_sample produce_sentdhiomr2_inflection_seqone_v2 produce_sentdhiomr2_segdup_smn12_multiqc results/day/hg38/reports/DAY_final_multiqc.html --configfile \"${HIOMR2_SEQONE_V2_CONFIG_FILE:?Set explicit SeqOne v2 release config file}\" -j 444 -T 1 -p -k --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=seqone_v2' 'use_fq_data_starting_hrs=0' 'use_fq_data_up_to_hrs=25' \"seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set explicit SeqOne v2 delivery batch ID}\" --rerun-triggers mtime -n"
+        dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_nicu_research produce_sentdhiomr2_jasmine_sharded_per_sample produce_sentdhiomr2_inflection_seqone_v2 produce_sentdhiomr2_segdup_smn12_multiqc results/day/hg38/reports/DAY_final_multiqc.html --configfile \"${HIOMR2_SEQONE_V2_CONFIG_FILE:?Set explicit SeqOne v2 release config file}\" -j 333 -T 1 -p -k --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=seqone_v2' 'use_fq_data_starting_hrs=0' 'use_fq_data_up_to_hrs=25' \"seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set explicit SeqOne v2 delivery batch ID}\" --rerun-triggers mtime"
+        dryrun_dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_nicu_research produce_sentdhiomr2_jasmine_sharded_per_sample produce_sentdhiomr2_inflection_seqone_v2 produce_sentdhiomr2_segdup_smn12_multiqc results/day/hg38/reports/DAY_final_multiqc.html --configfile \"${HIOMR2_SEQONE_V2_CONFIG_FILE:?Set explicit SeqOne v2 release config file}\" -j 333 -T 1 -p -k --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=seqone_v2' 'use_fq_data_starting_hrs=0' 'use_fq_data_up_to_hrs=25' \"seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set explicit SeqOne v2 delivery batch ID}\" --rerun-triggers mtime -n"
         compatible_platforms:
           - ILMN
           - ONT
