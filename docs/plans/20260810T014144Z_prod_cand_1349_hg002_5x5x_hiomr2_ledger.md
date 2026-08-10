@@ -307,5 +307,37 @@ creation.
 | BOOT-001 | Fresh-root contract | Reproduce the pre-clone failure without manually creating `init-test-x2` | SUCCESS | Clean-cluster Gate 0 | Headnode DYEC `16.1.48` returned `Analysis root does not exist`; exact root remained absent |
 | BOOT-002 | Durable DYEC fix | Initialize only a missing exact analysis directory for explicit write visit/lock operations | SUCCESS | Clean-cluster Gate 1 | `daylily_ec/analysis_lock.py` now requires the enclosing `analysis_results` directory and preserves fail-closed behavior for read/destructive modes |
 | BOOT-003 | Regression proof | Prove analysis CLI, workflow controller, DayOA clone, resource packaging, and corrected catalog contracts | SUCCESS | Clean-cluster Gate 2 | Analysis/CLI/controller suite passed 270/270; clone/workflow/create-resource/catalog suite passed 262/262; focused Ruff fatal-error and diff checks passed |
-| BOOT-004 | Immutable release | Commit, push, annotate, self-pin, and refresh the candidate headnode | IN_PROGRESS | Clean-cluster Gate 3 | Repair commit `970a9e3c...` and annotated tag `16.1.49` are pushed; source and packaged create defaults now pin exactly `16.1.49`; self-pin release and candidate refresh remain |
-| BOOT-005 | Exact clone and catalog run | Retry from absent `init-test-x2`, prove exact tag/input identities, dry-run, and remove only `-n` if valid | PENDING | Clean-cluster Gate 4 | Must use the newly released DYEC build; no manual root initialization is permitted |
+| BOOT-004 | Immutable release | Commit, push, annotate, self-pin, and refresh the candidate headnode | SUCCESS | Clean-cluster Gate 3 | Repair commit `970a9e3c...` / annotated tag `16.1.49` and self-pin commit `4a4fac9b...` / annotated tag `16.1.50` are pushed; source and packaged create defaults pin exactly `16.1.49`; supported `dyec headnode configure` completed and `dyec headnode run 'dyec --version'` returned `16.1.50` |
+| BOOT-005 | Exact clone and catalog run | Retry from absent `init-test-x2`, prove exact tag/input identities, dry-run, and remove only `-n` if valid | IN_PROGRESS | Clean-cluster Gate 4 | CLI-only proof confirmed the root remains absent and exposed the catalog target mismatch recorded below; no manual root initialization is permitted |
+
+## 2026-08-10 analytical Inflection catalog amendment
+
+The documented six-manifest gate is intentional: `catalog render` and
+`catalog launch` require an explicit `--manifest-dir` rather than silently
+selecting test inputs. DYEC `resources-dir` returned the immutable packaged
+`16.1.50` payload, and naming its exact
+`hg002_bjuice_verified_5x5x_fastq` directory produced a valid render. No source
+change is required for that explicit-input safety contract.
+
+That render exposed a separate product defect in the newly added command row.
+The requested and DayOA-documented operation is analytical Inflection packaging,
+but `inflection-bjuice-product-v0.2` was wired to the customer SeqOne-v2 release
+target and unresolved `HIOMR2_SEQONE_V2_CONFIG_FILE` plus
+`SEQONE_DELIVERY_BATCH_ID` environment prerequisites. The public catalog CLI
+does not inject those shell-only values, and this request supplied no
+owner-reviewed SeqOne-v2 release snapshot or delivery identity. Launching that
+row would therefore fail on every de novo cluster or invent a release contract.
+
+The corrected row follows the checked-in DayOA operator contract: it targets
+`produce_sentdhiomr2_inflection_analytical_package`, sets
+`hiomr2_inflection_package_mode=analytical`, and binds
+`seqone_delivery_batch_id` to the explicit controller `ANALYSIS_ID`. It contains
+no `--configfile`, SeqOne-v2 target, or unresolved release environment variable.
+
+| ID | Area | Requirement | Status | Approval Gate | Evidence / terminal note |
+|---|---|---|---|---|---|
+| CATBOOT-001 | CLI routing | Use public DYEC catalog/headnode commands rather than an interactive SSM workaround | SUCCESS | Catalog Gate 0 | `headnode configure`, `headnode run`, `resources-dir`, `catalog show`, and `catalog render` were used; no new interactive SSM command was issued |
+| CATBOOT-002 | Explicit inputs | Name the exact versioned packaged HG002 six-manifest fixture | SUCCESS | Catalog Gate 0 | `/Users/jmajor/.config/daylily/resources/16.1.50/examples/staging/hg002_bjuice_verified_5x5x_fastq`; render preserved DayOA `13.4.10`, `-j 333 -T 1 -p -k -n`, Ubuntu, RnD, and `init-test-x2` |
+| CATBOOT-003 | Analytical package | Remove customer-release-only prerequisites from the requested analytical catalog command | SUCCESS | Catalog Gate 1 | Source/payload catalogs are byte-identical; exact target and `$ANALYSIS_ID` binding render with no SeqOne-v2 config or delivery environment dependency |
+| CATBOOT-004 | Regression proof | Prove parser, fixture identity, DayOA 12 manifest, resource, CLI renderer, and controller contracts | SUCCESS | Catalog Gate 2 | Focused catalog suite passed 35/35 after assertion correction; expanded catalog/CLI/controller suite passed 295/295; diff parity and whitespace checks passed |
+| CATBOOT-005 | Immutable release and candidate refresh | Publish and deploy the corrected catalog before any clone/controller launch | IN_PROGRESS | Catalog Gate 3 | Release pending; `init-test-x2` remains absent |

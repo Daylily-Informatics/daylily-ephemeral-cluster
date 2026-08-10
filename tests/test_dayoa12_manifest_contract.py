@@ -295,13 +295,14 @@ def test_inflection_v02_is_a_literal_hiomr2_analytical_contract() -> None:
         "produce_sentdhiomr2_kitchensink",
         "produce_sentdhiomr2_nicu_research",
         "produce_sentdhiomr2_jasmine_sharded_per_sample",
-        "produce_sentdhiomr2_inflection_seqone_v2",
-        "produce_sentdhiomr2_segdup_smn12_multiqc",
+        "produce_sentdhiomr2_inflection_analytical_package",
         "results/day/hg38/reports/DAY_final_multiqc.html",
     ]
-    assert "SEQONE_DELIVERY_BATCH_ID:?" in command.dy_command
-    assert "hiomr2_inflection_package_mode=seqone_v2" in command.dy_command
-    assert "HIOMR2_SEQONE_V2_CONFIG_FILE:?" in command.dy_command
+    assert command.runtime_parameters == {}
+    assert "seqone_delivery_batch_id=$ANALYSIS_ID" in command.dy_command
+    assert "hiomr2_inflection_package_mode=analytical" in command.dy_command
+    assert "HIOMR2_SEQONE_V2_CONFIG_FILE" not in command.dy_command
+    assert "SEQONE_DELIVERY_BATCH_ID" not in command.dy_command
     assert command.return_results is False
     assert " -j 333 -T 1 -p -k " in command.dy_command
     assert command.jobs == 333

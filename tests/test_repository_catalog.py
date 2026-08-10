@@ -804,8 +804,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "produce_sentdhiomr2_kitchensink",
         "produce_sentdhiomr2_nicu_research",
         "produce_sentdhiomr2_jasmine_sharded_per_sample",
-        "produce_sentdhiomr2_inflection_seqone_v2",
-        "produce_sentdhiomr2_segdup_smn12_multiqc",
+        "produce_sentdhiomr2_inflection_analytical_package",
         "results/day/hg38/reports/DAY_final_multiqc.html",
     ]
     assert inflection_bjuice.targets != hiomr2_analytical.targets
@@ -820,12 +819,18 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     )
     assert inflection_bjuice.dy_command != hiomr2_analytical.dy_command
     assert "produce_sentdhiomr2_kitchensink" in inflection_bjuice.dy_command
-    assert "produce_sentdhiomr2_inflection_seqone_v2" in inflection_bjuice.dy_command
-    assert "produce_sentdhiomr2_segdup_smn12_multiqc" in inflection_bjuice.dy_command
+    assert "produce_sentdhiomr2_inflection_analytical_package" in (
+        inflection_bjuice.dy_command
+    )
+    assert "produce_sentdhiomr2_inflection_seqone_v2" not in inflection_bjuice.dy_command
+    assert "produce_sentdhiomr2_segdup_smn12_multiqc" not in inflection_bjuice.dy_command
     assert "-j 333 -T 1 -p -k" in inflection_bjuice.dy_command
-    assert "SEQONE_DELIVERY_BATCH_ID:?" in inflection_bjuice.dy_command
-    assert "hiomr2_inflection_package_mode=seqone_v2" in inflection_bjuice.dy_command
-    assert "HIOMR2_SEQONE_V2_CONFIG_FILE:?" in inflection_bjuice.dy_command
+    assert inflection_bjuice.runtime_parameters == {}
+    assert "SEQONE_DELIVERY_BATCH_ID" not in inflection_bjuice.dy_command
+    assert "HIOMR2_SEQONE_V2_CONFIG_FILE" not in inflection_bjuice.dy_command
+    assert "--configfile" not in inflection_bjuice.dy_command
+    assert "hiomr2_inflection_package_mode=analytical" in inflection_bjuice.dy_command
+    assert "seqone_delivery_batch_id=$ANALYSIS_ID" in inflection_bjuice.dy_command
     assert inflection_bjuice.return_results is False
     assert hiomr2_analytical.return_results is False
     assert "use_fq_data_starting_hrs=0" in inflection_bjuice.dy_command

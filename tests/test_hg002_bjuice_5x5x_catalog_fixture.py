@@ -32,6 +32,13 @@ def test_hg002_bjuice_catalog_uses_verified_5x5x_fixture() -> None:
     assert command.jobs == 333
     assert "-j 333 -T 1 -p -k" in command.dy_command
     assert command.dryrun_dy_command == f"{command.dy_command} -n"
+    assert command.runtime_parameters == {}
+    assert "produce_sentdhiomr2_inflection_analytical_package" in command.dy_command
+    assert "hiomr2_inflection_package_mode=analytical" in command.dy_command
+    assert "seqone_delivery_batch_id=$ANALYSIS_ID" in command.dy_command
+    assert "HIOMR2_SEQONE_V2_CONFIG_FILE" not in command.dy_command
+    assert "SEQONE_DELIVERY_BATCH_ID" not in command.dy_command
+    assert "--configfile" not in command.dy_command
     assert "full-coverage inputs must not be substituted" in command.description
     assert profile.source_s3_uri_template.endswith("/bjuice_preval_2026/HG002/")
     assert any("f35e79a5601271f6" in note for note in profile.source_notes)
