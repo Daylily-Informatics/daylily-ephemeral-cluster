@@ -288,7 +288,7 @@ def test_headnode_remote_config_requires_exact_dayoa12_triple() -> None:
 
 def test_inflection_v02_is_a_literal_hiomr2_analytical_contract() -> None:
     command = load_repository_catalog(CATALOG).get_command("inflection-bjuice-product-v0.2")
-    assert command.git_tag == "13.4.16"
+    assert command.git_tag == "13.4.18"
     assert command.input_contract == "six_manifest"
     assert command.input_requirements.required_source_columns == []
     assert command.targets == [
