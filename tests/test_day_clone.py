@@ -117,6 +117,7 @@ def test_day_clone_defaults_to_headnode_cluster_name_and_https_transport(monkeyp
         [
             "git",
             "clone",
+            "--recurse-submodules",
             "--branch",
             "main",
             "https://github.com/Daylily-Informatics/test-repo.git",
@@ -146,6 +147,7 @@ def test_day_clone_short_destination_and_tag_clone_default_repository(monkeypatc
         [
             "git",
             "clone",
+            "--recurse-submodules",
             "--branch",
             "2.0.44",
             "https://github.com/Daylily-Informatics/test-repo.git",
@@ -218,6 +220,7 @@ def test_day_clone_full_sha_clones_then_detaches(monkeypatch, tmp_path):
         [
             "git",
             "clone",
+            "--recurse-submodules",
             "--no-checkout",
             "https://github.com/Daylily-Informatics/test-repo.git",
             target,
@@ -225,6 +228,7 @@ def test_day_clone_full_sha_clones_then_detaches(monkeypatch, tmp_path):
         ["git", "-C", target, "fetch", "--depth=1", "origin", commit_sha],
         ["git", "-C", target, "rev-parse", "FETCH_HEAD"],
         ["git", "-C", target, "checkout", "--detach", "FETCH_HEAD"],
+        ["git", "-C", target, "submodule", "update", "--init", "--recursive"],
     ]
 
 
@@ -248,6 +252,7 @@ def test_day_clone_explicit_branch_ref_is_normalized(monkeypatch, tmp_path):
         [
             "git",
             "clone",
+            "--recurse-submodules",
             "--branch",
             "jem-dev",
             "git@github.com:Daylily-Informatics/test-repo.git",
@@ -375,6 +380,7 @@ def test_day_clone_ssh_transport_uses_ssh_url(monkeypatch, tmp_path):
         [
             "git",
             "clone",
+            "--recurse-submodules",
             "--branch",
             "main",
             "git@github.com:Daylily-Informatics/test-repo.git",
@@ -441,7 +447,13 @@ def test_day_clone_aws_deploy_key_uses_strict_temporary_ssh_identity(
     rc = module.main(["--destination", "analysis", "--repository", "test-repo"])
 
     assert rc == 0
-    assert clone_calls[0][0:4] == ["git", "clone", "--branch", "main"]
+    assert clone_calls[0][0:5] == [
+        "git",
+        "clone",
+        "--recurse-submodules",
+        "--branch",
+        "main",
+    ]
     assert clone_calls[0][-2] == "git@github.com:Daylily-Informatics/test-repo.git"
     assert clone_calls[0][-1] == str(clone_root / "dyec-515" / "analysis" / "test-repo")
     assert key_paths

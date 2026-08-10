@@ -177,7 +177,7 @@ def clone_repository(
     git_env: Optional[Dict[str, str]] = None,
 ) -> None:
     detached_commit = ref if ref and FULL_COMMIT_SHA_RE.fullmatch(ref) else None
-    cmd = ["git", "clone"]
+    cmd = ["git", "clone", "--recurse-submodules"]
     if detached_commit:
         cmd.append("--no-checkout")
     elif ref:
@@ -225,6 +225,18 @@ def clone_repository(
                 )
             subprocess.run(
                 ["git", "-C", destination, "checkout", "--detach", "FETCH_HEAD"],
+                **checkout_kwargs,
+            )
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    destination,
+                    "submodule",
+                    "update",
+                    "--init",
+                    "--recursive",
+                ],
                 **checkout_kwargs,
             )
         except subprocess.CalledProcessError as exc:
