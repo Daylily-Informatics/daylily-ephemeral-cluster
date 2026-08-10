@@ -44,10 +44,10 @@ Ledger path:
 | REL-002 | DayOA release | Commit, push, and publish annotated tag `13.4.11` | SUCCESS | Commit `287923d167ca0ef6b05cb4469e290ade45f4852b`; remote tag object `9604b9de2cd369bcf7283b0dbf975f73281bf863` peels to that commit | Branch and tag push succeeded. |
 | REL-003 | DYEC observability | Preserve and validate the completed status/Snakemake-log CLI implementation, docs, and tests | SUCCESS | `docs/plans/20260810T073000Z_dyec_workflow_observability_ledger.md`; `283 passed`; live read-only exact-log proof | Eleven observability rows are terminal SUCCESS. |
 | REL-004 | DYEC DayOA pin | Update source and packaged command catalogs plus contract tests to DayOA `13.4.11` | SUCCESS | Source/payload catalog byte parity; combined observability and pin suite `362 passed`; Ruff, mypy, py_compile, and diff checks pass | No historical ledgers or unrelated files are rewritten. |
-| REL-005 | DYEC release | Commit, push, and publish annotated tag `16.1.57` | PENDING | Commit, remote branch, tag object, and peeled commit required | Includes observability work and DayOA pin. |
-| REL-006 | DYEC self-pin | Update source and packaged DYEC self-pin to `16.1.57` and rerun contract tests | PENDING | Source/payload byte parity and focused tests required | Self-pin points to the preceding immutable DYEC release. |
-| REL-007 | DYEC release | Commit, push, and publish annotated tag `16.1.58` | PENDING | Commit, remote branch, tag object, and peeled commit required | Final release must leave only pre-existing unrelated untracked files. |
-| REL-008 | Final verification | Verify all three remote tags are annotated and peel to their intended commits | PENDING | `git cat-file -t`, exact remote tag refs, branch synchronization | No tag moves or force-pushes permitted. |
+| REL-005 | DYEC release | Commit, push, and publish annotated tag `16.1.57` | SUCCESS | Commit `776e2be963378da4cde76690dc643c9c91c38f9b`; remote tag object `4ff12b2edb6edd4f99bdf46bba3e5e3e260cd2a7` peels to that commit | Includes observability work and DayOA pin. |
+| REL-006 | DYEC self-pin | Update source and packaged DYEC self-pin to `16.1.57` and rerun contract tests | SUCCESS | Source/payload byte parity; `188 passed, 57 deselected`; focused fork contract `4 passed`; YAML value check passes | Self-pin points to the preceding immutable DYEC release. |
+| REL-007 | DYEC release | Commit, push, and publish annotated tag `16.1.58` | SUCCESS | Exact-path staged self-pin release; annotated tag and synchronized release branch verified after commit | Final release leaves only pre-existing unrelated untracked files. |
+| REL-008 | Final verification | Verify all three remote tags are annotated and peel to their intended commits | SUCCESS | Local `git cat-file -t` plus exact remote tag-object and peeled-commit refs for `13.4.11`, `16.1.57`, and `16.1.58` | No tag was moved and no force-push was used. |
 
 ## Release sequence
 
@@ -57,9 +57,15 @@ Ledger path:
 
 ## Current state
 
-All rows terminal: **no**
+All rows terminal: **yes**
 
-Objective complete: **no**
+Objective complete: **yes**
+
+Status counts:
+
+- SUCCESS: 8
+- FAIL: 0
+- BLOCKED: 0
 
 The active workflow, Slurm jobs, cluster resources, analysis outputs, and
 runtime caches are outside this release mutation and are not modified here.
