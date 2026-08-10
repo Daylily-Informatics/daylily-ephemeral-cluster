@@ -25,8 +25,8 @@ DYEC self-pin and publish a second annotated DYEC tag.
 | ID | Area | Requirement | Status | Category | Approval Gate | Owner | Evidence | Root Cause | Terminal Note |
 |---|---|---|---|---|---|---|---|---|---|
 | REL-001 | Catalog pin | Set every current DYEC DayOA reference and matching test contract to `13.4.14`, in source and packaged catalog. | SUCCESS | config_or_startup_contract | Gate 2 | Codex | Source and packaged catalogs are byte-identical after the literal replacement; `13.4.14` resolves to DayOA commit `b70e57fbb6b4bed10b929beb2f0c51c12739b7f0`; focused validation passed `360`. |  | Every active DYEC DayOA command/catalog pin now uses the requested release. |
-| REL-002 | DYEC release | Commit the dirty scoped DYEC work, push branch/PR/merge, then create and push annotated `16.1.65`. | IN_PROGRESS | feature_implementation | Gate 5 | Codex | Latest remote tag is `16.1.64`; user explicitly authorized commit, push, and tag. |  |  |
-| REL-003 | Self pin | Update source and packaged DYEC self-pins to the released `16.1.65`, test, then publish annotated `16.1.66`. | OPEN | config_or_startup_contract | Gate 2 | Codex | Current source/package self-pins both read `16.1.63`. |  |  |
+| REL-002 | DYEC release | Commit the dirty scoped DYEC work, push branch/PR/merge, then create and push annotated `16.1.65`. | SUCCESS | feature_implementation | Gate 5 | Codex | Commit `63ae01a5` was pushed, PR `#90` merged to `origin/main` commit `d4d9c02591cbffbd2f7307aadca9641019eb8583`, and remote annotated tag `16.1.65` peels to that commit. |  | First DYEC release is published. |
+| REL-003 | Self pin | Update source and packaged DYEC self-pins to the released `16.1.65`, test, then publish annotated `16.1.66`. | SUCCESS | config_or_startup_contract | Gate 2 | Codex | Source and packaged configs are byte-identical at `16.1.65`; `471` focused packaging, clone, init, workflow, CLI, and fork-contract tests passed. |  | The self-pin content is complete; final publication verification is tracked by REL-004. |
 | REL-004 | Release proof | Verify remote branch, both annotated tag objects, peeled commits, and clean final tree. | OPEN | contract_test | Gate 5 | Codex | Pending release actions. |  |  |
 
 ## Final report
@@ -35,10 +35,9 @@ All rows terminal: no
 Objective complete: no
 
 Status counts:
-- SUCCESS: 1
+- SUCCESS: 3
 - DUPLICATE: 0
 - NO_LONGER_NEEDED: 0
 - FAIL: 0
 - BLOCKED: 0
-- IN_PROGRESS: 1
-- OPEN: 2
+- OPEN: 1
