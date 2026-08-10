@@ -200,3 +200,9 @@ verify both the tag object and the exact remote ref after push.
   rendered output contains `seqone_delivery_batch_id=test-chr19and20`, and the
   focused catalog/payload/registry/fixture suite passed `340/340`. Per the
   immutable-release contract, the successor will use a newly tagged DYEC pair.
+- `2026-08-10T12:54Z`: committed/pushed the local analysis-ID renderer fix as
+  `bd47e1d61eb61053ae537c7d4c2a1bbc61073909`, recomputed remote tags, and
+  created/pushed annotated repair release `16.1.61`. Remote tag object
+  `efa19c30ab51739d1ec4f4d711edc798a13c6006` peels to the exact repair
+  commit. Live and packaged self-pins are now being advanced to `16.1.61`
+  before the final repair tag.
