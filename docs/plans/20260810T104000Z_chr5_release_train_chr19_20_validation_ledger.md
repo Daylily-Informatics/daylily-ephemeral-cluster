@@ -58,8 +58,8 @@ ledger's mutation scope.
 | REL-004 | DayOA release | Commit and push the intended DayOA change set, then create/push the next annotated non-v semver tag and verify remote tag object/peeled commit | SUCCESS | Feature branch pushed through `e97960cf55d2cb5dfa76738515349c9d79b87c08`; annotated `13.4.12` pushed. Remote tag object `2bc53f36f53c5ca46f3348cd266032ad4731500d`, peeled commit `e97960cf55d2cb5dfa76738515349c9d79b87c08`. |
 | REL-005 | DYEC DayOA pin | Update every live and packaged DayOA pin plus contract tests to the new DayOA tag | SUCCESS | Every source/payload catalog `default_ref`, `validated_version`, and command `git_tag` plus all active contract-test expectations now use DayOA `13.4.12`; no active `13.4.11` pin remains. |
 | REL-006 | DYEC catalog | Validate source/payload catalog parity and both chr19-20 live/dry commands, including exact nested scope override and numeric full-scope guidance | SUCCESS | Source and payload catalogs are byte-identical. Both named entries carry the exact nested `19-20` override in live and dry commands and document full numeric `1-25`; the combined catalog, pin, payload, CLI-registry, manifest, sample-stats, and test-runner suite passed `338/338`. |
-| REL-007 | DYEC intermediate release | Commit/push the DayOA-pin and catalog release, create/push the next annotated DYEC tag, and verify remote provenance | OPEN | Pending |
-| REL-008 | DYEC self-pin | Advance every live and packaged DYEC self-pin to REL-007's tag; rerun focused tests | OPEN | Pending |
+| REL-007 | DYEC intermediate release | Commit/push the DayOA-pin and catalog release, create/push the next annotated DYEC tag, and verify remote provenance | SUCCESS | Commit `a50b263f569170b01333b18f2e8c8aff9cfa70bb` pushed; annotated `16.1.59` pushed. Remote tag object `cd019ee3f0402375984e7df323e2862bd8c0c432` peels to that exact commit. |
+| REL-008 | DYEC self-pin | Advance every live and packaged DYEC self-pin to REL-007's tag; rerun focused tests | SUCCESS | Source and packaged `daylily_cli_global.yaml` are byte-identical and both self-pin fields use intermediate release `16.1.59`; packaged-default, LSMC fork-contract, clone, and repository-catalog tests passed `77/77`. |
 | REL-009 | DYEC final release | Commit/push the self-pin, create/push the following annotated DYEC tag, and verify clean remote state | OPEN | Pending |
 | REL-010 | Fresh test boundary | Prove `/fsx/analysis_results/prod-cand-260809/test-chr19and20` and the planned tmux names are absent; preserve all other controllers/jobs | OPEN | Pending |
 | REL-011 | Exact-tag clone/dry run | With final DYEC, use supported DYEC CLI launch to clone the new DayOA tag into `test-chr19and20`, stage the catalog's exact six-manifest fixture, and run its exact dry command to RC `0`; prove the rendered scope BED contains only chr19 and chr20 | OPEN | Pending |
@@ -174,3 +174,12 @@ verify both the tag object and the exact remote ref after push.
   exact `19-20` nested scope override plus numeric `1-25` production guidance.
   The combined focused DYEC suite passed `338/338`; REL-005 and REL-006 are
   terminal `SUCCESS`.
+- `2026-08-10T12:37Z`: committed/pushed the DayOA-pin and catalog release as
+  `a50b263f569170b01333b18f2e8c8aff9cfa70bb`, recomputed the remote tag set,
+  and created/pushed annotated intermediate DYEC `16.1.59`. Remote tag object
+  `cd019ee3f0402375984e7df323e2862bd8c0c432` peels to the exact release
+  commit. REL-007 is terminal `SUCCESS`; self-pin validation is active.
+- `2026-08-10T12:39Z`: advanced both live and packaged DYEC self-pin fields to
+  intermediate release `16.1.59`; the config copies are byte-identical and the
+  focused packaged-default, fork-contract, clone, and catalog suite passed
+  `77/77`. REL-008 is terminal `SUCCESS`.
