@@ -833,8 +833,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "seqone_delivery_batch_id=$ANALYSIS_ID" in inflection_bjuice.dy_command
     assert inflection_bjuice.return_results is False
     assert hiomr2_analytical.return_results is False
-    assert "use_fq_data_starting_hrs=0" in inflection_bjuice.dy_command
-    assert "use_fq_data_up_to_hrs=25" in inflection_bjuice.dy_command
+    assert "use_fq_data_starting_hrs" not in inflection_bjuice.dy_command
+    assert "use_fq_data_up_to_hrs" not in inflection_bjuice.dy_command
     assert "produce_inflection_delivery_set" not in inflection_bjuice.dy_command
     assert 'aligners=["sentmm2ont"]' in inflection_bjuice.dy_command
     assert 'dedupers=["na"]' in inflection_bjuice.dy_command

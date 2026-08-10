@@ -304,6 +304,8 @@ def test_inflection_v02_is_a_literal_hiomr2_analytical_contract() -> None:
     assert "HIOMR2_SEQONE_V2_CONFIG_FILE" not in command.dy_command
     assert "SEQONE_DELIVERY_BATCH_ID" not in command.dy_command
     assert command.return_results is False
+    assert "use_fq_data_starting_hrs" not in command.dy_command
+    assert "use_fq_data_up_to_hrs" not in command.dy_command
     assert " -j 333 -T 1 -p -k " in command.dy_command
     assert command.jobs == 333
     assert command.restart_times == 1

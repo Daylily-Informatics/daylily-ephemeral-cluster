@@ -308,7 +308,7 @@ creation.
 | BOOT-002 | Durable DYEC fix | Initialize only a missing exact analysis directory for explicit write visit/lock operations | SUCCESS | Clean-cluster Gate 1 | `daylily_ec/analysis_lock.py` now requires the enclosing `analysis_results` directory and preserves fail-closed behavior for read/destructive modes |
 | BOOT-003 | Regression proof | Prove analysis CLI, workflow controller, DayOA clone, resource packaging, and corrected catalog contracts | SUCCESS | Clean-cluster Gate 2 | Analysis/CLI/controller suite passed 270/270; clone/workflow/create-resource/catalog suite passed 262/262; focused Ruff fatal-error and diff checks passed |
 | BOOT-004 | Immutable release | Commit, push, annotate, self-pin, and refresh the candidate headnode | SUCCESS | Clean-cluster Gate 3 | Repair commit `970a9e3c...` / annotated tag `16.1.49` and self-pin commit `4a4fac9b...` / annotated tag `16.1.50` are pushed; source and packaged create defaults pin exactly `16.1.49`; supported `dyec headnode configure` completed and `dyec headnode run 'dyec --version'` returned `16.1.50` |
-| BOOT-005 | Exact clone and catalog run | Retry from absent `init-test-x2`, prove exact tag/input identities, dry-run, and remove only `-n` if valid | IN_PROGRESS | Clean-cluster Gate 4 | CLI-only proof confirmed the root remains absent and exposed the catalog target mismatch recorded below; no manual root initialization is permitted |
+| BOOT-005 | Exact clone and catalog run | Retry from absent `init-test-x2`, prove exact tag/input identities, dry-run, and remove only `-n` if valid | IN_PROGRESS | Clean-cluster Gate 4 | Supported `dyec catalog launch` created the exact `init-test-x2` root, DayOA `13.4.10` clone, staged six-manifest input, and persistent tmux; its first workflow dry-run failed before planning on the single-file ONT hour-window mismatch recorded below; no Slurm job was submitted |
 
 ## 2026-08-10 analytical Inflection catalog amendment
 
@@ -340,4 +340,34 @@ no `--configfile`, SeqOne-v2 target, or unresolved release environment variable.
 | CATBOOT-002 | Explicit inputs | Name the exact versioned packaged HG002 six-manifest fixture | SUCCESS | Catalog Gate 0 | `/Users/jmajor/.config/daylily/resources/16.1.50/examples/staging/hg002_bjuice_verified_5x5x_fastq`; render preserved DayOA `13.4.10`, `-j 333 -T 1 -p -k -n`, Ubuntu, RnD, and `init-test-x2` |
 | CATBOOT-003 | Analytical package | Remove customer-release-only prerequisites from the requested analytical catalog command | SUCCESS | Catalog Gate 1 | Source/payload catalogs are byte-identical; exact target and `$ANALYSIS_ID` binding render with no SeqOne-v2 config or delivery environment dependency |
 | CATBOOT-004 | Regression proof | Prove parser, fixture identity, DayOA 12 manifest, resource, CLI renderer, and controller contracts | SUCCESS | Catalog Gate 2 | Focused catalog suite passed 35/35 after assertion correction; expanded catalog/CLI/controller suite passed 295/295; diff parity and whitespace checks passed |
-| CATBOOT-005 | Immutable release and candidate refresh | Publish and deploy the corrected catalog before any clone/controller launch | IN_PROGRESS | Catalog Gate 3 | Catalog repair commit `bf48ca85...` and annotated tag `16.1.51` are pushed; source and packaged create defaults now pin exactly `16.1.51`; self-pin release and candidate refresh remain; `init-test-x2` remains absent |
+| CATBOOT-005 | Immutable release and candidate refresh | Publish and deploy the corrected catalog before any clone/controller launch | SUCCESS | Catalog Gate 3 | Catalog repair commit `bf48ca85...` / annotated tag `16.1.51` and self-pin commit `7166f147...` / annotated tag `16.1.52` are pushed; source and packaged create defaults pin exactly `16.1.51`; supported `dyec headnode configure` completed and headnode DYEC reported `16.1.52` before launch |
+
+## 2026-08-10 single-file ONT time-chunking amendment
+
+The first supported catalog dry-run created the exact DayOA `13.4.10` clone,
+verified all six manifest hashes, initialized `RnD`, selected the Sentieon
+endpoint, and completed `dy-a slurm hg38`. It then exited `2` before formal
+workflow planning because the command set `use_fq_data_starting_hrs=0` and
+`use_fq_data_up_to_hrs=25` while the verified ONT input is intentionally one
+precombined slim FASTQ:
+
+`HG002_BJUICEPREVAL_ONT_5x.fastq.gz`
+
+The DayOA artifact preflight correctly rejected that non-chunk filename because
+it contains no extractable hour token. No Slurm job was submitted, no live run
+was started, and the persistent tmux remains available for supported recovery.
+
+At `2026-08-10T04:54Z`, the human requestor explicitly directed this test to
+disable time chunking. The durable correction removes only the two hour-window
+configuration values from `inflection-bjuice-product-v0.2` in both catalog
+copies. All other catalog rows retain their existing chunk behavior. Negative
+assertions prevent the HG002 verified 5x-by-5x command from reintroducing either
+setting.
+
+| ID | Area | Requirement | Status | Approval Gate | Evidence / terminal note |
+|---|---|---|---|---|---|
+| TIME-001 | Dry-run diagnosis | Prove whether the dry failure is a workflow plan defect or an incompatible catalog input filter | SUCCESS | Recovery Gate 0 | Controller exited `2` at analysis-artifact preflight on `unable to identify ONT FASTQ chunk hour`; all manifests and environment setup completed; no Slurm jobs were submitted |
+| TIME-002 | Catalog correction | Disable time chunking only for the single-file HG002 verified 5x-by-5x command | SUCCESS | Recovery Gate 1, explicit user direction | Source and packaged `inflection-bjuice-product-v0.2` commands omit both `use_fq_data_starting_hrs` and `use_fq_data_up_to_hrs`; unrelated chunked-data rows are unchanged |
+| TIME-003 | Regression proof | Prove catalog parity, fixture identity, DayOA manifest, renderer, and CLI entrypoint contracts | SUCCESS | Recovery Gate 2 | Focused expanded suite passed `295/295`; catalog copies are byte-identical and `git diff --check` passed |
+| TIME-004 | Immutable release and headnode refresh | Publish, self-pin, and deploy the time-chunk-free catalog | IN_PROGRESS | Recovery Gate 3 | Awaiting repair and self-pin commits/tags plus supported `dyec headnode configure` |
+| TIME-005 | Supported recovery and plan gate | Use DYEC to clear any stale workflow lock, rerun the exact dry plan, inspect it, and remove only `-n` after terminal success | IN_PROGRESS | Recovery Gate 4 | Existing root is preserved; recovery and retry must use DYEC workflow controllers and `dy-r`, never raw Snakemake |
