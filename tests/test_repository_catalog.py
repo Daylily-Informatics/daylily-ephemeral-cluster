@@ -989,6 +989,8 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "bclconvert/units.tsv" not in combined_dy_command
 
     ont = catalog.get_command("ont_run_qc")
+    assert ont.validated_version == "13.4.21"
+    assert ont.git_tag == "13.4.21"
     assert ont.targets == ["produce_ont_run_qc_and_demux_multiqc"]
     assert ont.runtime_parameters == {
         "run_context_file": "config/runs.tsv",

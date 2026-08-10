@@ -917,13 +917,12 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
     with pytest.raises(RunnerError, match="--command-codes is required"):
         parse_command_codes("", catalog)
 
-    with pytest.raises(RunnerError, match="multiple DayOA git tags"):
-        selected_dayoa_version(
-            [
-                SimpleNamespace(git_tag="10.0.0"),
-                SimpleNamespace(git_tag="9.0.1"),
-            ]
-        )
+    assert selected_dayoa_version(
+        [
+            SimpleNamespace(git_tag="10.0.0"),
+            SimpleNamespace(git_tag="9.0.1"),
+        ]
+    ) == "mixed-10.0.0-9.0.1"
 
     compact = render_dy_command(
         "dy-r target -j20 --jobs=30 -T1 --timestamp=2 --dry-run --printshellcmds",

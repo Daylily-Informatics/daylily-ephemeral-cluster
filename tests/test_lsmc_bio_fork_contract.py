@@ -9,7 +9,9 @@ _OLD_ORG = "Daylily-" + "Informatics"
 DAYOA_DEFAULT_TAG = "13.4.20"
 DAYOA_VALIDATED_TAG = "13.4.20"
 DAYOA_HIGHEST_RELEASE_COMMIT = "a09cf8578a9987247b47439d48b53d3b6d2c31b4"
-DYEC_BLESSED_TAG = "16.1.70"
+ONT_DAYOA_TAG = "13.4.21"
+ONT_DAYOA_RELEASE_COMMIT = "aa718a95dd5963655a60d2c929ff02814827c179"
+DYEC_BLESSED_TAG = "16.1.71"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
     f"{_OLD_ORG}/daylily-omics-analysis",
@@ -92,9 +94,11 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
         assert commands["package_inflection_hybrid_data"]["validated_version"] == DAYOA_VALIDATED_TAG
 
 
-def test_all_dayoa_commands_use_the_uniform_highest_release_pin() -> None:
+def test_dayoa_commands_use_the_scoped_release_pins() -> None:
     assert len(DAYOA_HIGHEST_RELEASE_COMMIT) == 40
     assert set(DAYOA_HIGHEST_RELEASE_COMMIT) <= set("0123456789abcdef")
+    assert len(ONT_DAYOA_RELEASE_COMMIT) == 40
+    assert set(ONT_DAYOA_RELEASE_COMMIT) <= set("0123456789abcdef")
 
     for relative_path in (
         "config/daylily_pipeline_command_catalog.yaml",
@@ -102,11 +106,17 @@ def test_all_dayoa_commands_use_the_uniform_highest_release_pin() -> None:
     ):
         data = yaml.safe_load((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
         commands = data["repositories"]["daylily-omics-analysis"]["analysis_commands"]
+        command_by_id = {command["command_id"]: command for command in commands}
+        uniform_commands = [
+            command for command in commands if command["command_id"] != "ont_run_qc"
+        ]
 
         assert commands
-        assert {command["git_tag"] for command in commands} == {
+        assert {command["git_tag"] for command in uniform_commands} == {
             DAYOA_DEFAULT_TAG
         }
-        assert {command["validated_version"] for command in commands} == {
+        assert {command["validated_version"] for command in uniform_commands} == {
             DAYOA_VALIDATED_TAG
         }
+        assert command_by_id["ont_run_qc"]["git_tag"] == ONT_DAYOA_TAG
+        assert command_by_id["ont_run_qc"]["validated_version"] == ONT_DAYOA_TAG
