@@ -33,8 +33,8 @@ immutable DYEC build snapshot; the historic `16.1.81` shape must not change.
 | SOLO-ONT | Production ONT solo | SUCCESS_WITH_SCOPE_WAIVER | The repaired native-ONT contamination path and full 63/63 workflow reached rc=0 with final MultiQC and evidence outputs. The user then narrowed VEP to chr1-22/X/Y/M and explicitly waived another live VEP run; the release carries that standard-contig-only contract with excluded-nonstandard audit and focused test proof. |
 | SOLO-CG | Production CG solo | RELEASE_WAIVER | Core targets reached rc=0. The missing final MultiQC was localized to the catalog omitting `produce_multiqc_all`; the new build adds that target. A fresh full-output live replay was not completed before the user's explicit ASAP release instruction, so this row is not represented as exact live acceptance evidence. |
 | DAYOA-REL | Consolidated DayOA release | SUCCESS | PR #103 merged after green CodeQL checks. Annotated tag `13.4.31` was pushed and peels to merge commit `a6a7cd493eecd51e9e942215414a1822510cffa9`. |
-| DYEC-CAT | Immutable catalog release | IN_PROGRESS | New `16.1.82` snapshot contains exactly nine production commands, all pinned to DayOA `13.4.31`; historic `16.1.81` is embedded independently and retains the pre-MultiQC CG shape. Focused catalog/fork tests: 31 passed. |
-| DYEC-SELF | DYEC self-pin release | PENDING | After annotated tag `16.1.82` is pushed, update both DYEC self-pin payloads to `16.1.82`, then commit and annotated-tag `16.1.83`. |
+| DYEC-CAT | Immutable catalog release | SUCCESS | PR #93 merged; annotated tag `16.1.82` was pushed and peels to merge commit `1b527cfdf5e3f6cc0b8d65e621eaa19a708bd5dd`. Its snapshot contains exactly nine production commands pinned to DayOA `13.4.31`; historic `16.1.81` remains exact. Focused release suite: 100 passed. |
+| DYEC-SELF | DYEC self-pin release | SUCCESS | Both source and packaged DYEC bootstrap pins now select `16.1.82`; the merged self-pin commit is released as final annotated tag `16.1.83`. |
 
 The already successful HIOMR2 mega-plus-Inflection validation root was revisited
 read-only with a recorded analysis visit.  It contains nonempty
