@@ -53,9 +53,9 @@ Controlling plan and ledger:
 | REL-001 | DayOA baseline | Reconcile the dirty optimization work with the highest published DayOA release without importing unrelated changes | SUCCESS | feature_implementation | Gate 0 | orchestrator | HEAD and annotated `13.4.27` both peel to `11c195e6`; dirty paths are disjoint from the `13.4.27` resolver commit |  | Current-max work is already the direct baseline; no merge or rebase is required |
 | REL-002 | DayOA release | Validate and publish the combined coverage-evenness/site-mix change as annotated `13.4.28` on the feature branch | SUCCESS | feature_implementation | Gate 5 | orchestrator | `69 passed`; commit `f69a6dab2b313294e5175687ec2743feaa250a35`; branch pushed; remote annotated `13.4.28` peels to the same commit |  | Combined optimization release is published on the requested feature branch |
 | REL-003 | DYEC DayOA pins | Update every active source/package DayOA default, validated version, git tag, and matching test contract to `13.4.28` | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | Both byte-identical catalogs contain 27 commands; all 27/27 have `validated_version=git_tag=13.4.28`; 290 focused contracts pass plus 27/27 selected runner tests |  | Every DYEC DayOA command now uses the new release; historical evidence is unchanged |
-| REL-004 | DYEC pin release | Validate and publish the DayOA-pin change as annotated `16.1.79` on the current DYEC feature branch | IN_PROGRESS | feature_implementation | Gate 5 | orchestrator | Full selected run was 317 passed with four unchanged six-manifest runner-test failures; pending exact staging, commit, branch push, and annotated tag |  |  |
-| REL-005 | DYEC self-pin | Update source/package DYEC bootstrap pins and their test contract to `16.1.79` | OPEN | config_or_startup_contract | Gate 2 | orchestrator | Current active self-pin is uniformly `16.1.73` |  |  |
-| REL-006 | DYEC final release | Validate and publish the self-pin follow-up as annotated `16.1.80` | OPEN | feature_implementation | Gate 5 | orchestrator | Pending |  |  |
+| REL-004 | DYEC pin release | Validate and publish the DayOA-pin change as annotated `16.1.79` on the current DYEC feature branch | SUCCESS | feature_implementation | Gate 5 | orchestrator | Full selected run was 317 passed with four unchanged six-manifest runner-test failures; commit `3442995232b2c1ac912e2eb52544a0cac6ca6235`; remote annotated `16.1.79` peels to that commit |  | The uniform DayOA-pin release is published |
+| REL-005 | DYEC self-pin | Update source/package DYEC bootstrap pins and their test contract to `16.1.79` | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | Source/package configs are byte-identical at `16.1.79`; `154 passed` across fork, package, resource, clone, entrypoint, version, and SSM contracts; focused Ruff and diff checks pass |  | Both bootstrap fields and the owning contract now self-pin the intermediate release |
+| REL-006 | DYEC final release | Validate and publish the self-pin follow-up as annotated `16.1.80` | IN_PROGRESS | feature_implementation | Gate 5 | orchestrator | A broader unchanged-surface sweep reached 570 passed and 20 pre-existing workflow-stub failures around `git describe --exact-match`; pending exact staging, commit, branch push, and annotated tag |  |  |
 | REL-007 | Remote proof | Verify branch convergence, annotated tag objects, peeled commits, exact pin values, and final scoped repository states | OPEN | contract_test | Gate 5 | orchestrator | Pending |  |  |
 | REL-008 | Local DAY-EC runtime | Reinstall this checkout editable after the final tag and verify the active `dyec` reports the final source version | OPEN | config_or_startup_contract | Gate 5 | orchestrator | User explicitly requested `pip install -e .` after the release train |  |  |
 
@@ -67,10 +67,10 @@ Objective complete: no
 
 Status counts:
 
-- SUCCESS: 3
+- SUCCESS: 5
 - DUPLICATE: 0
 - NO_LONGER_NEEDED: 0
 - FAIL: 0
 - BLOCKED: 0
-- OPEN: 4
+- OPEN: 2
 - IN_PROGRESS: 1
