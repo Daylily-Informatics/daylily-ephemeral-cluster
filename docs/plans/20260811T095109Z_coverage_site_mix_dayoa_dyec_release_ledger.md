@@ -55,22 +55,43 @@ Controlling plan and ledger:
 | REL-003 | DYEC DayOA pins | Update every active source/package DayOA default, validated version, git tag, and matching test contract to `13.4.28` | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | Both byte-identical catalogs contain 27 commands; all 27/27 have `validated_version=git_tag=13.4.28`; 290 focused contracts pass plus 27/27 selected runner tests |  | Every DYEC DayOA command now uses the new release; historical evidence is unchanged |
 | REL-004 | DYEC pin release | Validate and publish the DayOA-pin change as annotated `16.1.79` on the current DYEC feature branch | SUCCESS | feature_implementation | Gate 5 | orchestrator | Full selected run was 317 passed with four unchanged six-manifest runner-test failures; commit `3442995232b2c1ac912e2eb52544a0cac6ca6235`; remote annotated `16.1.79` peels to that commit |  | The uniform DayOA-pin release is published |
 | REL-005 | DYEC self-pin | Update source/package DYEC bootstrap pins and their test contract to `16.1.79` | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | Source/package configs are byte-identical at `16.1.79`; `154 passed` across fork, package, resource, clone, entrypoint, version, and SSM contracts; focused Ruff and diff checks pass |  | Both bootstrap fields and the owning contract now self-pin the intermediate release |
-| REL-006 | DYEC final release | Validate and publish the self-pin follow-up as annotated `16.1.80` | IN_PROGRESS | feature_implementation | Gate 5 | orchestrator | A broader unchanged-surface sweep reached 570 passed and 20 pre-existing workflow-stub failures around `git describe --exact-match`; pending exact staging, commit, branch push, and annotated tag |  |  |
-| REL-007 | Remote proof | Verify branch convergence, annotated tag objects, peeled commits, exact pin values, and final scoped repository states | OPEN | contract_test | Gate 5 | orchestrator | Pending |  |  |
-| REL-008 | Local DAY-EC runtime | Reinstall this checkout editable after the final tag and verify the active `dyec` reports the final source version | OPEN | config_or_startup_contract | Gate 5 | orchestrator | User explicitly requested `pip install -e .` after the release train |  |  |
+| REL-006 | DYEC final release | Validate and publish the self-pin follow-up as annotated `16.1.80` | SUCCESS | feature_implementation | Gate 5 | orchestrator | A broader unchanged-surface sweep reached 570 passed and 20 pre-existing workflow-stub failures around `git describe --exact-match`; commit `c8f158b342a9d965d6754afdf4483d39a2093e8e`; branch pushed; remote annotated `16.1.80` peels to that commit |  | The final self-pinned DYEC release is published |
+| REL-007 | Remote proof | Verify branch convergence, annotated tag objects, peeled commits, exact pin values, and final scoped repository states | SUCCESS | contract_test | Gate 5 | orchestrator | DayOA remote tag object `d8ab4737` peels to `f69a6dab`; DYEC remote tag objects `32faba56` and `e15d9c3f` peel to `34429952` and `c8f158b3`; both branches were 0/0 with origin at their release commits; all 27 source/package commands and both self-pin configs have the requested values |  | Release tags are immutable annotated objects at the exact scoped commits; the DYEC branch receives only this later docs closeout commit |
+| REL-008 | Local DAY-EC runtime | Reinstall this checkout editable after the final tag and verify the active `dyec` reports the final source version | SUCCESS | config_or_startup_contract | Gate 5 | orchestrator | `python -m pip install -e .` built the `16.1.80` editable wheel; `dyec version` and package metadata both report `16.1.80`; imported source resolves to this checkout |  | The active DAY-EC command is the exact final local source release |
+
+## Published releases
+
+- DayOA `13.4.28`: annotated tag object
+  `d8ab473797656c6dc8d34b36ed9b83b180aca79d`, peeling to feature commit
+  `f69a6dab2b313294e5175687ec2743feaa250a35`.
+- DYEC `16.1.79`: annotated tag object
+  `32faba5662248b08c07ddc3e305a6db4fca58d32`, peeling to uniform DayOA-pin
+  commit `3442995232b2c1ac912e2eb52544a0cac6ca6235`.
+- DYEC `16.1.80`: annotated tag object
+  `e15d9c3f4a232502900225e4977ac4e7d4033f9d`, peeling to self-pin commit
+  `c8f158b342a9d965d6754afdf4483d39a2093e8e`.
+
+The source and packaged command catalogs are byte-identical and every one of
+their 27 commands now resolves to DayOA `13.4.28`. The source and packaged DYEC
+bootstrap configs are byte-identical and pin the intermediate DYEC release
+`16.1.79`. Historical validation evidence was not rewritten.
+
+No DayOA workflow, cluster, Slurm, FSx, budget, or analysis-root operation was
+performed. The known failures recorded above are pre-existing tests on
+unchanged surfaces; they were not hidden or broadened into this release scope.
 
 ## Final report
 
-All rows terminal: no
+All rows terminal: yes
 
-Objective complete: no
+Objective complete: yes
 
 Status counts:
 
-- SUCCESS: 5
+- SUCCESS: 8
 - DUPLICATE: 0
 - NO_LONGER_NEEDED: 0
 - FAIL: 0
 - BLOCKED: 0
-- OPEN: 2
-- IN_PROGRESS: 1
+- OPEN: 0
+- IN_PROGRESS: 0
