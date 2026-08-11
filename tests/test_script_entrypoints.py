@@ -1865,11 +1865,20 @@ class TestCfgHeadnodeScript:
             dyec_deploy_key_region="",
             dyec_repo_url="",
             dyec_repo_ref="",
+            dyec_version="",
             dayoa_deploy_key_secret_arn="",
             dayoa_deploy_key_region="",
             repo_overrides={"daylily-omics-analysis": "release-1"},
         )
         assert "Headnode configured via SSM" in capsys.readouterr().out
+
+    def test_main_requires_deploy_key_for_requested_dyec_version(self):
+        with pytest.raises(
+            CommandError, match="--dyec-version requires --dyec-deploy-key-secret-arn"
+        ):
+            cfg_headnode_module.main(
+                ["--profile", "dev", "--dyec-version", "16.1.84"]
+            )
 
     @patch("daylily_ec.scripts.daylily_cfg_headnode.configure_headnode", return_value=False)
     @patch("daylily_ec.scripts.daylily_cfg_headnode.wait_for_ssm_online")

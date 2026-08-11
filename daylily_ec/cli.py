@@ -4503,6 +4503,7 @@ def _configure_headnode_command(
     dyec_deploy_key_secret_arn: str,
     dayoa_deploy_key_secret_arn: str,
     github_token_secret_arn: str,
+    dyec_version: str,
     remote_user: str,
 ) -> None:
     from daylily_ec.aws.ssm import SsmError, wait_for_ssm_online
@@ -4522,6 +4523,12 @@ def _configure_headnode_command(
         )
         overrides = _load_repo_overrides(str(repo_overrides) if repo_overrides else None)
         dyec_secret_arn = dyec_deploy_key_secret_arn.strip()
+        requested_dyec_version = dyec_version.strip()
+        if requested_dyec_version and not dyec_secret_arn:
+            raise CommandError(
+                "--dyec-version requires --dyec-deploy-key-secret-arn so the exact private "
+                "release tag can be cloned."
+            )
         try:
             dyec_repo_spec = (
                 resolve_configured_headnode_repo_spec(deploy_key_auth=True)
@@ -4530,6 +4537,10 @@ def _configure_headnode_command(
             )
         except RuntimeError as exc:
             raise CommandError(f"Unable to pin the active DYEC checkout: {exc}") from exc
+        if requested_dyec_version and dyec_repo_spec is not None:
+            dyec_repo_ref = requested_dyec_version
+        else:
+            dyec_repo_ref = dyec_repo_spec.ref if dyec_repo_spec else ""
         wait_for_ssm_online(
             target.instance_id,
             resolved_region,
@@ -4544,7 +4555,8 @@ def _configure_headnode_command(
             dyec_deploy_key_secret_arn=dyec_secret_arn,
             dyec_deploy_key_region=resolved_region if dyec_secret_arn else "",
             dyec_repo_url=dyec_repo_spec.url if dyec_repo_spec else "",
-            dyec_repo_ref=dyec_repo_spec.ref if dyec_repo_spec else "",
+            dyec_repo_ref=dyec_repo_ref,
+            dyec_version=requested_dyec_version,
             dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn.strip(),
             dayoa_deploy_key_region=resolved_region if dayoa_deploy_key_secret_arn.strip() else "",
             github_token_secret_arn=github_token_secret_arn.strip(),
@@ -4607,6 +4619,14 @@ def headnode_configure(
             "already allow access to this secret."
         ),
     ),
+    dyec_version: str = typer.Option(
+        "",
+        "--dyec-version",
+        help=(
+            "Exact non-v DYEC release tag to install. Configuration fails unless the "
+            "headnode's dyec --version exactly matches it after installation."
+        ),
+    ),
 ) -> None:
     """Configure a cluster headnode through the supported Ubuntu SSM bootstrap."""
 
@@ -4618,6 +4638,7 @@ def headnode_configure(
         dyec_deploy_key_secret_arn=dyec_deploy_key_secret_arn,
         dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
         github_token_secret_arn=github_token_secret_arn,
+        dyec_version=dyec_version,
         remote_user="ubuntu",
     )
 
@@ -4669,6 +4690,14 @@ def headnode_configure_dragen(
             "already allow access to this secret."
         ),
     ),
+    dyec_version: str = typer.Option(
+        "",
+        "--dyec-version",
+        help=(
+            "Exact non-v DYEC release tag to install. Configuration fails unless the "
+            "headnode's dyec --version exactly matches it after installation."
+        ),
+    ),
 ) -> None:
     """Configure a RHEL/DRAGEN cluster headnode through SSM as ec2-user."""
 
@@ -4680,6 +4709,7 @@ def headnode_configure_dragen(
         dyec_deploy_key_secret_arn=dyec_deploy_key_secret_arn,
         dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
         github_token_secret_arn=github_token_secret_arn,
+        dyec_version=dyec_version,
         remote_user="ec2-user",
     )
 

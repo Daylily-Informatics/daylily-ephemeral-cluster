@@ -71,6 +71,7 @@ EXIT_TOOLCHAIN = 4
 CLUSTER_NAME_MIN_LENGTH = 5
 CLUSTER_NAME_MAX_LENGTH = 20
 CLUSTER_NAME_PATTERN = re.compile(r"^[a-z][a-z0-9-]*$")
+DYEC_RELEASE_VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+(?:\.\d+)?$")
 CLUSTER_NAME_RULE_TEXT = (
     f"DYEC requires cluster names to be {CLUSTER_NAME_MIN_LENGTH}-"
     f"{CLUSTER_NAME_MAX_LENGTH} characters, start with a lowercase letter, "
@@ -4103,6 +4104,7 @@ def configure_headnode(
     dyec_deploy_key_region: str = "",
     dyec_repo_url: str = "",
     dyec_repo_ref: str = "",
+    dyec_version: str = "",
     dayoa_deploy_key_secret_arn: str = "",
     dayoa_deploy_key_region: str = "",
     github_token_secret_arn: str = "",
@@ -4117,6 +4119,21 @@ def configure_headnode(
     from daylily_ec.resources import resource_path
 
     repo_name = "daylily-ephemeral-cluster"
+    requested_dyec_version = dyec_version.strip()
+    if requested_dyec_version and not DYEC_RELEASE_VERSION_PATTERN.fullmatch(
+        requested_dyec_version
+    ):
+        logger.error("  ✗ DYEC version must be a non-v semver release tag: %s", dyec_version)
+        return False
+    if requested_dyec_version and not dyec_deploy_key_secret_arn:
+        logger.error("  ✗ A DYEC deploy key is required when selecting a DYEC release version")
+        return False
+    if requested_dyec_version and dyec_repo_ref != requested_dyec_version:
+        logger.error(
+            "  ✗ DYEC repository ref must exactly match requested DYEC version: %s",
+            requested_dyec_version,
+        )
+        return False
     if dyec_deploy_key_secret_arn and not dyec_deploy_key_region:
         logger.error("  ✗ DYEC deploy-key region is required with the secret ARN")
         return False
@@ -4307,6 +4324,32 @@ def configure_headnode(
             logger.info("  ✓ %s", label)
         except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
             logger.error("  ✗ %s failed: %s", label, exc)
+            return False
+
+    if requested_dyec_version:
+        expected_version_line = f"Daylily Ephemeral Cluster {requested_dyec_version}"
+        verify_version_command = (
+            f"expected={shlex.quote(expected_version_line)}; "
+            'actual="$(dyec --version)"; '
+            'if [ "$actual" != "$expected" ]; then '
+            'echo "Installed DYEC version mismatch: expected=$expected actual=$actual" >&2; '
+            "exit 1; "
+            "fi"
+        )
+        logger.info("  ▸ Verifying installed DYEC version %s ...", requested_dyec_version)
+        try:
+            run_shell(
+                head_node_instance_id,
+                region,
+                verify_version_command,
+                profile=profile,
+                as_user=remote_user,
+                require_startup_success=False,
+                comment="Verify installed DYEC version",
+            )
+            logger.info("  ✓ Installed DYEC version matches %s", requested_dyec_version)
+        except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
+            logger.error("  ✗ Installed DYEC version verification failed: %s", exc)
             return False
 
     if repo_overrides:
