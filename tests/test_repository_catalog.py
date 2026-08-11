@@ -615,10 +615,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     ]
     assert illumina_kitchensink.genome == "hg38"
     assert illumina_kitchensink.jobs == 200
-    assert (
-        illumina_kitchensink.sample_manifest_template
-        == "examples/staging/ilmn_hg002_solo/analysis_samples_manifest.tsv"
-    )
+    assert illumina_kitchensink.input_contract == "six_manifest"
+    assert illumina_kitchensink.sample_manifest_template == ""
+    assert illumina_kitchensink.manifest_dir_template == ""
     assert illumina_kitchensink.aligners == ["sent"]
     assert illumina_kitchensink.dedupers == ["dmd"]
     assert illumina_kitchensink.snv_callers == ["sentd"]
@@ -651,6 +650,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     ultima_kitchensink = catalog.get_command("ultima_snv_alignstats_kitchensink")
     assert ultima_kitchensink.validation_runs == []
+    assert ultima_kitchensink.input_contract == "six_manifest"
+    assert ultima_kitchensink.sample_manifest_template == ""
+    assert ultima_kitchensink.manifest_dir_template == ""
     assert ultima_kitchensink.targets == [
         "produce_alignstats",
         "produce_na_dedup_cram",
@@ -681,6 +683,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     ont_kitchensink = catalog.get_command("ont_snv_alignstats_kitchensink")
     assert ont_kitchensink.validation_runs == []
+    assert ont_kitchensink.input_contract == "six_manifest"
+    assert ont_kitchensink.sample_manifest_template == ""
+    assert ont_kitchensink.manifest_dir_template == ""
     assert ont_kitchensink.targets == [
         "produce_alignstats",
         "produce_na_dedup_cram",

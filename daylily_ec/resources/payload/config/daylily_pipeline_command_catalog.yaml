@@ -600,13 +600,13 @@ repositories:
         type: prod
         validated_version: "13.4.26"
         test_data_profile: default_reads_slim
-        sample_manifest_template: examples/staging/ilmn_hg002_solo/analysis_samples_manifest.tsv
+        manifest_dir_template: ""
         display_name: "Illumina HG002 Kitchen Sink MultiQC"
         description: "HG002 Illumina WGS Sentieon DNAscope, dmd CRAM, concordance, relatedness, GATK/site-mix contamination, VEP, ExpansionHunter, explicit HTD, metagenomics, and final MultiQC validation profile. Global Haplocheck/read-haps contamination identity and SMAca are not default surfaces."
         datasource: Illumina
         launcher: workflow_launch
         command_class: sample_analysis
-        input_contract: sample_manifest
+        input_contract: six_manifest
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
@@ -820,7 +820,7 @@ repositories:
         datasource: Ultima
         launcher: workflow_launch
         command_class: sample_analysis
-        input_contract: sample_manifest
+        input_contract: six_manifest
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
@@ -965,7 +965,7 @@ repositories:
         datasource: ONT
         launcher: workflow_launch
         command_class: sample_analysis
-        input_contract: sample_manifest
+        input_contract: six_manifest
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
