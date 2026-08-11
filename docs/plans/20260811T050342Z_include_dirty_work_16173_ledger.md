@@ -27,6 +27,7 @@ generated caches, backups, recordings, temporary files, or export receipts.
 | DIRTY-005 | SUCCESS | DYEC self-pin and packaged mirror advance to `16.1.73`; focused pin/mirror tests pass. |
 | DIRTY-006 | SUCCESS | Commit `a1e3932941e3068e2da0fb66e74d7008d9fc12ae` pushed to `origin/codex/seqqc-16.1.66-retry`. |
 | DIRTY-007 | SUCCESS | Annotated tag `16.1.73` pushed and verified to dereference to `a1e3932941e3068e2da0fb66e74d7008d9fc12ae`. |
+| DIRTY-008 | SUCCESS | Exact-tag headnode configure on `prod-cand-260809` succeeded after explicitly loading the configured DYEC deploy key. Ubuntu readback reported `Daylily Ephemeral Cluster 16.1.73`, catalog schema 3, ONT tag `13.4.22`, `--intent` in the manual export visit, automatic destination plus on-success options, and FSx preservation enabled. |
 
 ## Included files
 
@@ -39,3 +40,13 @@ generated caches, backups, recordings, temporary files, or export receipts.
 
 Untracked nested repositories, backups, recordings, `reports/fsx_exports/`,
 and `tmp/` are not package source and are not included in the release.
+
+## Headnode configuration note
+
+The first configure attempt failed because the headnode's existing SSH key was
+rejected by GitHub. Retrying with the exact configured DYEC deploy-key secret
+reference succeeded. A branch-head configure then correctly installed the
+published post-tag ledger commit and reported a development version. Final
+validation used a temporary detached `16.1.73` worktree as
+`DAYLILY_EC_REPO_ROOT`, causing the supported resolver to clone the immutable
+tag. The temporary worktree was removed after configure completed.
