@@ -14,7 +14,7 @@ runner = CliRunner()
 
 
 DAYOA_BLESSED_TAG = "13.4.20"
-SOLO_KITCHEN_SINK_DAYOA_TAG = "13.4.25"
+SOLO_KITCHEN_SINK_DAYOA_TAG = "13.4.26"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
