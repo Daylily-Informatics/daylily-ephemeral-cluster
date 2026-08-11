@@ -817,11 +817,9 @@ dyec export \
 ```
 
 The command catalog exposes this contract in the `result_export` object from
-`dyec catalog list`, `dyec catalog show`, and `dyec catalog render`. To have a
-catalog-launched workflow export automatically only after controller success,
-pass both `--export-destination-s3-uri "$DESTINATION_S3_URI"` and
-`--export-trigger on-success`. The generated controller records the required
-export visit with an explicit intent before invoking `dyec export`.
+`dyec catalog list`, `dyec catalog show`, and `dyec catalog render`. After the
+controller succeeds, run the displayed DYEC visit and DRA export commands from
+the analysis root. DayOA does not export results.
 
 Use export helpers for existing receipts or bulk operation surfaces:
 

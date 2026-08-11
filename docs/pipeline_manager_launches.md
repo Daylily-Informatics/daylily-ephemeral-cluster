@@ -39,8 +39,6 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --stage-s3-uri "$STAGE_S3_URI" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity ubuntu \
-  --export-destination-s3-uri "$EXPORT_S3_URI" \
-  --export-trigger on-success \
   --dry-run
 ```
 
@@ -53,6 +51,9 @@ dy-r produce_alignstats -p -j 20 -k
 ```
 
 Agent/headnode workflow instructions must not invoke `snakemake` directly for DayOA. `dy-r` passes targets and flags through after applying DayOA profile setup.
+
+After a successful controller exit, follow the command catalog's `result_export`
+DYEC visit and DRA export instructions. DayOA does not export results.
 
 ## Other Snakemake Repositories
 

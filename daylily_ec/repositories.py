@@ -71,7 +71,7 @@ class ResultExportGuidance(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     description: str
-    automatic_launch_options: List[str]
+    post_controller_protocol: List[str]
     manual_visit_command: str
     manual_export_command: str
     success_checks: List[str]
@@ -86,7 +86,7 @@ class ResultExportGuidance(BaseModel):
     def _validate_non_empty_text(cls, value: str) -> str:
         return _clean_id(value, field_name="result export guidance value")
 
-    @field_validator("automatic_launch_options", "success_checks")
+    @field_validator("post_controller_protocol", "success_checks")
     @classmethod
     def _validate_non_empty_list(cls, values: List[str]) -> List[str]:
         cleaned = [str(value).strip() for value in values]
@@ -96,15 +96,12 @@ class ResultExportGuidance(BaseModel):
 
     @model_validator(mode="after")
     def _validate_export_contract(self) -> "ResultExportGuidance":
-        required_launch_options = {
-            "--export-destination-s3-uri",
-            "--export-trigger on-success",
-        }
-        if not required_launch_options.issubset(self.automatic_launch_options):
-            raise ValueError(
-                "automatic_launch_options must include --export-destination-s3-uri and "
-                "--export-trigger on-success"
-            )
+        protocol = "\n".join(self.post_controller_protocol)
+        for token in ("DYEC", "controller", "dyec analysis visit", "dyec export"):
+            if token not in protocol:
+                raise ValueError(
+                    "post_controller_protocol must require DYEC post-controller visit and export"
+                )
         for token in ("dyec analysis visit", "--mode export", "--intent"):
             if token not in self.manual_visit_command:
                 raise ValueError(f"manual_visit_command must include {token!r}")

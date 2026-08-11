@@ -125,8 +125,7 @@ def _validate_analysis_launch_options(
     export_trigger: str,
     delete_on_export_success: bool,
 ) -> Optional[str]:
-    from daylily_ec.analysis_identity import analysis_source_path, validate_analysis_segment
-    from daylily_ec.workflow.export_data import resolve_launch_export_destination_s3_uri
+    from daylily_ec.analysis_identity import validate_analysis_segment
 
     try:
         resolved_analysis_id = validate_analysis_segment(
@@ -139,26 +138,12 @@ def _validate_analysis_launch_options(
         )
         if export_trigger not in EXPORT_TRIGGERS:
             raise ValueError("export_trigger must be one of: " + ", ".join(sorted(EXPORT_TRIGGERS)))
-        if export_destination_s3_uri and export_trigger == "none":
+        if export_destination_s3_uri or export_trigger != "none" or delete_on_export_success:
             raise ValueError(
-                "--export-trigger must not be none when --export-destination-s3-uri is set"
+                "workflow launch does not embed export in the DayOA controller; after a "
+                "successful controller exit, run the catalog DYEC export visit and DRA commands"
             )
-        if export_trigger != "none" and not export_destination_s3_uri:
-            raise ValueError("--export-destination-s3-uri is required when --export-trigger is set")
-        if delete_on_export_success and not export_destination_s3_uri:
-            raise ValueError("--delete-on-export-success requires --export-destination-s3-uri")
-        resolved_export_destination_s3_uri = None
-        if export_destination_s3_uri:
-            resolved_export_destination_s3_uri = resolve_launch_export_destination_s3_uri(
-                export_destination_s3_uri,
-                source_path=analysis_source_path(
-                    executing_entity=resolved_executing_entity,
-                    analysis_id=resolved_analysis_id,
-                    headnode=True,
-                ),
-                cluster_name=cluster,
-            )
-        return resolved_export_destination_s3_uri
+        return None
     except (RuntimeError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc
 
@@ -5729,7 +5714,6 @@ def workflow_launch(
         ("--snakemake-extra", snakemake_extra),
         ("--max-runtime-minutes", str(max_runtime_minutes)),
         ("--export-destination-s3-uri", resolved_export_destination_s3_uri),
-        ("--export-trigger", export_trigger),
     ):
         if value is not None:
             argv.extend([flag, value])

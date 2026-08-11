@@ -3387,11 +3387,11 @@ def test_samples_run_rejects_export_policy_before_staging(monkeypatch, tmp_path)
     )
 
     assert result.exit_code != 0
-    assert "export-trigger" in result.output
+    assert "does not embed export" in result.output
     assert "stage_argv" not in calls
 
 
-def test_samples_run_expands_export_root_to_cluster_analysis(monkeypatch, tmp_path) -> None:
+def test_samples_run_rejects_embedded_export_before_staging(monkeypatch, tmp_path) -> None:
     calls: dict[str, object] = {}
     _activate_dayec_runtime(monkeypatch)
     manifest = tmp_path / "analysis_samples.tsv"
@@ -3460,14 +3460,9 @@ def test_samples_run_expands_export_root_to_cluster_analysis(monkeypatch, tmp_pa
         ],
     )
 
-    assert result.exit_code == 0
-    launch_argv = calls["launch_argv"]
-    assert launch_argv[launch_argv.index("--export-destination-s3-uri") + 1] == (
-        "s3://bucket/derived/cluster-a/cg-run/"
-    )
-    receipt = config_dir / "20260425T000000Z_samples_run_receipt.json"
-    payload = json.loads(receipt.read_text(encoding="utf-8"))
-    assert payload["export_destination_s3_uri"] == "s3://bucket/derived/cluster-a/cg-run/"
+    assert result.exit_code != 0
+    assert "does not embed export" in result.output
+    assert not calls
 
 
 def test_samples_run_rejects_unknown_command(monkeypatch, tmp_path) -> None:
@@ -3614,9 +3609,10 @@ def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
     assert result.exit_code == 0, result.output
     payload = json.loads(result.stdout)
     assert "--intent" in payload["result_export"]["manual_visit_command"]
-    assert "--export-trigger on-success" in payload["result_export"][
-        "automatic_launch_options"
-    ]
+    assert any(
+        "DYEC must wait for a successful controller exit" in step
+        for step in payload["result_export"]["post_controller_protocol"]
+    )
     assert payload["command"]["command_id"] == "package_inflection_hybrid_data"
     assert payload["git_tag"] == payload["command"]["git_tag"]
     assert payload["dry_run"] is True
@@ -3793,11 +3789,6 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
             "--pass-on-budget-exceeded",
             "--session-name",
             "sess-1",
-            "--export-destination-s3-uri",
-            "s3://bucket/derived/johnm/run-1/",
-            "--export-trigger",
-            "on-success",
-            "--delete-on-export-success",
             "--replace-existing-analysis-dir",
             "--sv-callers",
             "tiddit",
@@ -3836,11 +3827,9 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "--pass-on-stale-budget" not in argv
     assert "--session-name" in argv
     assert "sess-1" in argv
-    assert "--export-destination-s3-uri" in argv
-    assert "s3://bucket/derived/johnm/run-1/" in argv
-    assert "--export-trigger" in argv
-    assert "on-success" in argv
-    assert "--delete-on-export-success" in argv
+    assert "--export-destination-s3-uri" not in argv
+    assert "--export-trigger" not in argv
+    assert "--delete-on-export-success" not in argv
     assert "--replace-existing-analysis-dir" in argv
     assert "--sv-callers" in argv
     assert "tiddit" in argv
@@ -3854,7 +3843,7 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "--dry-run" in argv
 
 
-def test_workflow_launch_expands_export_root_to_cluster_analysis(monkeypatch) -> None:
+def test_workflow_launch_rejects_embedded_export(monkeypatch) -> None:
     import daylily_ec.scripts.daylily_run_omics_analysis_headnode as launch_module
 
     calls: dict[str, object] = {}
@@ -3894,11 +3883,9 @@ def test_workflow_launch_expands_export_root_to_cluster_analysis(monkeypatch) ->
         ],
     )
 
-    assert result.exit_code == 0
-    argv = calls["argv"]
-    assert argv[argv.index("--export-destination-s3-uri") + 1] == (
-        "s3://bucket/derived/cluster-a/run-1/"
-    )
+    assert result.exit_code != 0
+    assert "does not embed export" in result.output
+    assert not calls
 
 
 def test_workflow_launch_rejects_invalid_producer_boolean(monkeypatch) -> None:

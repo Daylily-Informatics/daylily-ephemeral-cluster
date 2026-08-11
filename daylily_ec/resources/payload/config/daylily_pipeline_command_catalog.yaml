@@ -2,10 +2,11 @@
 command_catalog_version: 3
 default_repository: daylily-omics-analysis
 result_export:
-  description: "Export a completed pipeline analysis root only after the controller exits successfully. Automatic catalog launches should use the on-success export options. Manual exports must first record an export visit with an explicit intent, then run dyec export and verify both the receipt and expected S3 objects."
-  automatic_launch_options:
-    - --export-destination-s3-uri
-    - --export-trigger on-success
+  description: "DayOA runs pipeline work only. After the controller exits successfully, DYEC must separately record an export visit with explicit intent, create a no-delete DRA export from the analysis root, and verify the detached receipt and expected S3 objects."
+  post_controller_protocol:
+    - "DYEC must wait for a successful controller exit before export."
+    - "DYEC must run dyec analysis visit with --mode export and explicit --intent before dyec export."
+    - "DYEC must run dyec export from the analysis root, not the nested DayOA checkout."
   manual_visit_command: |-
     dyec analysis visit \
       --analysis-root "$ANALYSIS_ROOT" \
@@ -597,7 +598,7 @@ repositories:
         validation_runs: []
       - command_id: illumina_hg002_kitchensink_multiqc
         type: prod
-        validated_version: "13.4.20"
+        validated_version: "13.4.25"
         test_data_profile: default_reads_slim
         sample_manifest_template: examples/staging/ilmn_hg002_solo/analysis_samples_manifest.tsv
         display_name: "Illumina HG002 Kitchen Sink MultiQC"
@@ -648,7 +649,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ilmn_solo
-        git_tag: "13.4.20"
+        git_tag: "13.4.25"
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
         validation_runs:
@@ -812,7 +813,7 @@ repositories:
             notes: "Live run completed with VCF, alignstats, and concordance outputs."
       - command_id: ultima_snv_alignstats_kitchensink
         type: prod
-        validated_version: "13.4.20"
+        validated_version: "13.4.25"
         test_data_profile: default_reads_slim
         display_name: "Ultima SNV + Alignstats Kitchen Sink"
         description: "Ultima CRAM/FASTQ Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, Kraken2/Ganon2/sourmash metagenomics, and final MultiQC launch profile."
@@ -853,7 +854,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ultima_solo
-        git_tag: "13.4.20"
+        git_tag: "13.4.25"
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: ultima_pangenome_snv
@@ -957,7 +958,7 @@ repositories:
             notes: "Live run completed with VCF, alignstats, and concordance outputs."
       - command_id: ont_snv_alignstats_kitchensink
         type: prod
-        validated_version: "13.4.20"
+        validated_version: "13.4.25"
         test_data_profile: default_reads_slim
         display_name: "ONT SNV + Alignstats Kitchen Sink"
         description: "ONT alignment, Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, Kraken2/Ganon2/sourmash metagenomics, and final MultiQC launch profile."
@@ -1002,7 +1003,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ont_solo
-        git_tag: "13.4.20"
+        git_tag: "13.4.25"
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: pacbio_snv_alignstats

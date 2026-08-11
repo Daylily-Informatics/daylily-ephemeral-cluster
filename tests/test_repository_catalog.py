@@ -14,6 +14,7 @@ runner = CliRunner()
 
 
 DAYOA_BLESSED_TAG = "13.4.20"
+SOLO_KITCHEN_SINK_DAYOA_TAG = "13.4.25"
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -135,10 +136,14 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
 
     assert catalog.command_catalog_version == 3
     assert catalog.result_export is not None
-    assert "--export-trigger on-success" in catalog.result_export.automatic_launch_options
+    assert any(
+        "DYEC must wait for a successful controller exit" in step
+        for step in catalog.result_export.post_controller_protocol
+    )
     assert "--mode export" in catalog.result_export.manual_visit_command
     assert "--intent" in catalog.result_export.manual_visit_command
     assert "dyec export" in catalog.result_export.manual_export_command
+    assert '"$ANALYSIS_ROOT"' in catalog.result_export.manual_export_command
     assert "--delete-data-in-file-system" not in catalog.result_export.manual_export_command
     assert catalog.result_export.preserves_fsx_by_default is True
     manifest_contract = catalog.input_contracts["sample_manifest"]
@@ -408,7 +413,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert command.compatible_platforms
             assert command.compatible_cluster_types == ["daywgs"]
             assert command.compatible_data_modes
-            assert command.git_tag == DAYOA_BLESSED_TAG
+            assert command.git_tag == SOLO_KITCHEN_SINK_DAYOA_TAG
             assert (
                 command.input_requirements.required_source_columns
                 or command.input_requirements.accepted_source_column_sets
@@ -459,6 +464,15 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     complete_genomics = catalog.get_command("complete_genomics_mgi_snv_concordance")
     assert complete_genomics.type == "dev"
+
+    for command_id in (
+        "illumina_hg002_kitchensink_multiqc",
+        "ont_snv_alignstats_kitchensink",
+        "ultima_snv_alignstats_kitchensink",
+    ):
+        command = catalog.get_command(command_id)
+        assert command.validated_version == SOLO_KITCHEN_SINK_DAYOA_TAG
+        assert command.git_tag == SOLO_KITCHEN_SINK_DAYOA_TAG
     assert complete_genomics.compatible_platforms == ["CG/MGI"]
     assert complete_genomics.compatible_cluster_types == ["daywgs"]
     assert complete_genomics.compatible_data_modes == ["complete_genomics_solo"]

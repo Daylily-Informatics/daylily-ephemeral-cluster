@@ -418,9 +418,8 @@ dyec export \
 ```
 
 `dyec catalog list`, `show`, and `render` expose the same `result_export`
-contract. For automatic export, pass `--export-destination-s3-uri` plus
-`--export-trigger on-success` to the rendered catalog launch. The controller
-records the required export visit and intent before it invokes `dyec export`.
+contract. DayOA never exports: after the controller succeeds, run the displayed
+DYEC visit and DRA export commands from the analysis root.
 `dyec export` records a local receipt and uses an explicit DRA/export path.
 Verify `status=success`, `phase=complete`, `task_lifecycle=SUCCEEDED`,
 `detached=true`, and the expected S3 objects. FSx data is preserved unless a

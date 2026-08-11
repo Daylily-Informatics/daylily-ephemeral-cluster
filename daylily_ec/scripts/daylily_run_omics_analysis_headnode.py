@@ -2732,50 +2732,6 @@ workflow_status=$?
 	  echo "[ERROR] DY_COMMAND requested a DAG but no exact new DAG PNG was produced"
 	  [[ "$workflow_status" -ne 0 ]] || workflow_status=24
 	fi
-should_export=false
-case "$EXPORT_TRIGGER" in
-  none) should_export=false ;;
-  on-success) [[ "$workflow_status" -eq 0 ]] && should_export=true ;;
-  on-fail) [[ "$workflow_status" -ne 0 ]] && should_export=true ;;
-  all) should_export=true ;;
-  *) echo "[ERROR] Invalid EXPORT_TRIGGER=$EXPORT_TRIGGER"; workflow_status=20 ;;
-esac
-if [[ "$should_export" == "true" ]]; then
-  if [[ -z "$EXPORT_DESTINATION_S3_URI" ]]; then
-    echo "[ERROR] Export requested but EXPORT_DESTINATION_S3_URI is empty"
-    workflow_status=21
-  else
-    if ! dyec analysis visit \
-      --analysis-root "$clone_root" \
-      --mode export \
-      --intent "automatic $EXPORT_TRIGGER export for dyec workflow launch $SESSION_NAME" \
-      --s3-visit-uri "$EXPORT_DESTINATION_S3_URI" \
-      --human-requestor "$DAYOA_HUMAN_REQUESTOR" \
-      --note "controller completed rc=$workflow_status" >/dev/null; then
-      echo "[ERROR] Failed to record the required analysis export visit"
-      workflow_status=25
-    elif ! remove_run_dir_projection_links; then
-      workflow_status=22
-    else
-      mkdir -p "$DAYLILY_RUN_DIR/export"
-      set +e
-      env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export \
-        --region {shlex.quote(region)} \
-        --cluster {shlex.quote(cluster_name)} \
-        --source-path "$clone_root" \
-        --destination-s3-uri "$EXPORT_DESTINATION_S3_URI" \
-        --output-dir "$DAYLILY_RUN_DIR/export"
-      export_status=$?
-      if [[ "$export_status" -ne 0 ]]; then
-        echo "[ERROR] Export failed with status $export_status"
-        workflow_status="$export_status"
-      elif [[ "$DELETE_ON_EXPORT_SUCCESS" == "true" ]]; then
-        rm -rf -- "$clone_root"
-        echo "[INFO] Deleted FSx analysis directory after successful export: $clone_root"
-      fi
-    fi
-  fi
-fi
 export DAYLILY_STATUS_FINALIZED=1
 export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export DAYLILY_STATUS_EXIT_CODE="$workflow_status"

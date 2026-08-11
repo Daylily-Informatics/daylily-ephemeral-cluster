@@ -120,7 +120,7 @@ For any new DayOA analysis, resolve the intended DayOA release tag before launch
 
 ## 5. Sample-Manifest Analysis
 
-Use this path when inputs are represented by `analysis_samples.tsv`. `dyec samples run` is the preferred command because it stages manifests, validates the catalog command, launches the workflow, and can trigger export.
+Use this path when inputs are represented by `analysis_samples.tsv`. `dyec samples run` stages manifests, validates the catalog command, and launches the workflow. Export is a separate post-controller DYEC DRA operation.
 
 ```bash
 dyec samples run "$ANALYSIS_SAMPLES" \
@@ -134,16 +134,13 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --config-dir "$STAGE_CFG_DIR" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
-  --export-destination-s3-uri "$EXPORT_S3_ROOT" \
-  --export-trigger on-success \
   --dry-run
 ```
 
-Remove `--dry-run` only after the rendered command, staging paths, export destination, and cluster state are correct.
+Remove `--dry-run` only after the rendered command, staging paths, and cluster state are correct. After controller success, use the catalog's `result_export` DYEC visit and DRA commands with the exact analysis-root destination.
 
-For `dyec samples run` and `dyec workflow launch`, `--export-destination-s3-uri`
-can be a full destination or an export root. Export roots are expanded to
-`<root>/<cluster>/<analysis-id>/`.
+For post-controller DYEC export, the destination must be a full
+`<executing_entity>/<analysis_id>/` prefix matching the analysis root.
 
 ## 6. Run-Folder Analysis
 

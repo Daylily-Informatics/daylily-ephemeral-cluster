@@ -639,7 +639,9 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'exec > >(tee -a "$CONTROLLER_LOG_PATH") 2>&1' not in script
         assert "-name 'dag_*.png'" in script
         assert 'comm -13 "$controller_dag_baseline" "$current"' in script
-        assert "rulegraph" not in script[script.index("sync_controller_dag"):script.index("should_export=false")]
+        assert "rulegraph" not in script[
+            script.index("sync_controller_dag"):script.index("DAYLILY_STATUS_FINALIZED=1")
+        ]
         assert 'runtime_tmp_name="${SESSION_NAME//[^A-Za-z0-9_-]/_}"' in script
         assert (
             'export DAYOA_RUNTIME_TMPDIR="${DAYOA_RUNTIME_TMPDIR:-/tmp/dayoa-conda-tmp-$runtime_tmp_name}"'
@@ -722,18 +724,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "dy-a slurm hg38" in script
         assert "dy-r" in script
         assert 'local links_dir="$repo_path/config/run_dir_links"' in script
-        assert "if ! remove_run_dir_projection_links; then" in script
-        assert '--mode export' in script
-        assert '--intent "automatic $EXPORT_TRIGGER export for dyec workflow launch $SESSION_NAME"' in script
-        assert '--s3-visit-uri "$EXPORT_DESTINATION_S3_URI"' in script
-        assert "Failed to record the required analysis export visit" in script
-        assert script.index(
-            '--intent "automatic $EXPORT_TRIGGER export for dyec workflow launch $SESSION_NAME"'
-        ) < script.index("env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export")
-        assert script.index("remove_run_dir_projection_links") < script.index(
-            "env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export"
-        )
-        assert "env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export" in script
+        assert "if ! remove_run_dir_projection_links; then" not in script
+        assert '--mode export' not in script
+        assert 'automatic $EXPORT_TRIGGER export' not in script
+        assert '--s3-visit-uri "$EXPORT_DESTINATION_S3_URI"' not in script
+        assert "env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export" not in script
         assert "dyec export \\\n      --profile" not in script
         assert "DEWEY_" not in script
         assert "register-dewey" not in script
