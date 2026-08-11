@@ -14,8 +14,9 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.4.31"
-PRODUCTION_DAYOA_TAG = "13.4.31"
+DAYOA_BLESSED_TAG = "13.4.33"
+PRODUCTION_DAYOA_TAG = "13.4.33"
+PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
 SOLO_KITCHEN_SINK_DAYOA_TAG = PRODUCTION_DAYOA_TAG
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -138,7 +139,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     catalog = load_repository_catalog(CATALOG_PATH)
     command = catalog.get_command("illumina_snv_alignstats")
 
-    assert catalog.command_catalog_version == 4
+    assert catalog.command_catalog_version == 5
     released_build = catalog.commands_for_dyec_build("16.1.81")
     assert {command.command_id for command in released_build} == {
         "illumina_hg002_kitchensink_multiqc",
@@ -159,24 +160,22 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         "complete_genomics_cg_snv_concordance", "16.1.81"
     )
     assert "produce_multiqc_all" not in historical_cg.targets
-    current_build = catalog.commands_for_dyec_build("16.1.82")
-    assert {command.command_id for command in current_build} == {
-        "illumina_run_qc",
-        "ont_run_qc",
-        "ultima_run_qc",
-        "illumina_hg002_kitchensink_multiqc",
-        "ont_snv_alignstats_kitchensink",
-        "ultima_snv_alignstats_kitchensink",
-        "complete_genomics_cg_snv_concordance",
-        "hiomr2_slim_kitchensink_mega_inflection_analytical",
-        "inflection-bjuice-product-v0.2",
+    previous_build = catalog.commands_for_dyec_build("16.1.82")
+    assert {command.git_tag for command in previous_build} == {
+        PREVIOUS_PRODUCTION_DAYOA_TAG
     }
-    assert {command.type for command in current_build} == {"prod"}
+    current_build = catalog.commands_for_dyec_build()
+    assert {command.command_id for command in current_build} == {
+        command.command_id for command in catalog.commands()
+    }
+    assert len(current_build) == 29
     assert {command.git_tag for command in current_build} == {PRODUCTION_DAYOA_TAG}
     assert {command.repository for command in current_build} == {"daylily-omics-analysis"}
-    current_cg = catalog.get_command_for_dyec_build(
-        "complete_genomics_cg_snv_concordance", "16.1.82"
-    )
+    released_build = catalog.commands_for_dyec_build("16.1.85")
+    assert [command.model_dump() for command in released_build] == [
+        command.model_dump() for command in current_build
+    ]
+    current_cg = catalog.get_command_for_dyec_build("complete_genomics_cg_snv_concordance")
     assert "produce_multiqc_all" in current_cg.targets
     assert catalog.result_export is not None
     assert any(
@@ -376,6 +375,34 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
             executing_entity="johnm",
             delete_on_export_success=True,
         )
+
+
+def test_catalog_cli_uses_current_unless_numeric_snapshot_is_requested() -> None:
+    current_result = runner.invoke(
+        app,
+        ["--json", "catalog", "list", "--config", str(CATALOG_PATH)],
+    )
+    released_result = runner.invoke(
+        app,
+        [
+            "--json",
+            "catalog",
+            "list",
+            "--config",
+            str(CATALOG_PATH),
+            "--dyec-version",
+            "16.1.82",
+        ],
+    )
+
+    assert current_result.exit_code == 0, current_result.output
+    assert released_result.exit_code == 0, released_result.output
+    current_payload = json.loads(current_result.stdout)
+    released_payload = json.loads(released_result.stdout)
+    assert current_payload["dyec_version"] == "current"
+    assert {command["git_tag"] for command in current_payload["commands"]} == {"13.4.33"}
+    assert released_payload["dyec_version"] == "16.1.82"
+    assert {command["git_tag"] for command in released_payload["commands"]} == {"13.4.31"}
 
 
 def test_hiomr2_catalog_selects_native_tiddit_and_paired_library_summary() -> None:
@@ -1313,6 +1340,16 @@ def test_repository_catalog_v4_requires_dyec_builds(tmp_path: Path) -> None:
         load_repository_catalog(path)
 
 
+def test_repository_catalog_v5_requires_current_build(tmp_path: Path) -> None:
+    path = tmp_path / "v5-without-current.yaml"
+    raw = yaml.safe_load(CATALOG_PATH.read_text(encoding="utf-8"))
+    del raw["dyec_builds"]["current"]
+    path.write_text(yaml.safe_dump(raw, sort_keys=False), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="requires dyec_builds.current"):
+        load_repository_catalog(path)
+
+
 def test_repository_catalog_rejects_unknown_cluster_type(tmp_path: Path) -> None:
     path = tmp_path / "bad-cluster-type.yaml"
     path.write_text(
@@ -1443,3 +1480,24 @@ def test_catalog_build_snapshots_preserve_immutable_command_shapes(tmp_path) -> 
     ]
     with pytest.raises(KeyError, match="not eligible"):
         catalog.get_command_for_dyec_build("ont_snv_alignstats", "16.1.81")
+
+
+def test_catalog_version_five_default_accessors_use_current(tmp_path) -> None:
+    raw = yaml.safe_load(CATALOG_PATH.read_text(encoding="utf-8"))
+    top_level_command = next(
+        item
+        for item in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]
+        if item["command_id"] == "illumina_snv_alignstats"
+    )
+    top_level_command["display_name"] = "Non-current repository row"
+    catalog_path = tmp_path / "catalog.yaml"
+    catalog_path.write_text(yaml.safe_dump(raw, sort_keys=False), encoding="utf-8")
+
+    catalog = load_repository_catalog(catalog_path)
+
+    assert catalog.get_command("illumina_snv_alignstats").display_name != (
+        "Non-current repository row"
+    )
+    assert catalog.get_command("illumina_snv_alignstats").model_dump() == (
+        catalog.get_command_for_dyec_build("illumina_snv_alignstats").model_dump()
+    )

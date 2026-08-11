@@ -1,7 +1,5 @@
 # Daylily Ephemeral Cluster
 
-[![Latest release](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_release_tag&label=latest%20release&cacheSeconds=300&color=teal)](https://github.com/lsmc-bio/daylily-ephemeral-cluster/releases) [![Latest tag](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_tag&label=latest%20tag&color=pink&cacheSeconds=300)](https://github.com/lsmc-bio/daylily-ephemeral-cluster/tags)
-
 Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the CLI control plane for short-lived AWS ParallelCluster bioinformatics work. It creates and configures clusters, mounts sequencing-run data into FSx, launches pinned workflow repositories on the headnode, monitors exact analysis roots, moves files between local and headnode storage, and exports finished results to S3 with receipts.
 
 DYEC is not an identity service and not a workflow engine. It does not call Dayhoff, Ursa, Bloom, TapDB, Dewey, or a metadata service. It consumes explicit local configuration, explicit manifests, explicit S3 paths, and explicit command-catalog entries. DayOA owns its workflow rules and `dy-r` execution. DYEC owns cluster/headnode orchestration and the launch/export envelope.
@@ -137,13 +135,15 @@ dyec --json catalog render hybrid_ilmn_ont_hiomr_kitchensink \
 
 Large local payloads are staged through S3 with `--payload-staging-s3-uri`. DYEC uploads a tarball containing input manifests, a payload manifest, and the controller launch script. The headnode downloads and expands that tarball into the workflow run directory, starts the tmux controller, and then saves the exact executed script under `<analysis-root>/bin/dyec-controller-launch.sh` after `day-clone` creates the analysis root. This avoids SSM document-size limits without pre-creating the analysis root.
 
-### Released command shapes and validation evidence
+### Current and released command shapes
 
-Catalog version 4 can retain immutable command shapes under a top-level
-`dyec_builds.<DYEC_VERSION>` key. Select that released shape explicitly rather
-than allowing a current catalog row to change an older DYEC build's DayOA pin:
+Catalog version 5 uses `dyec_builds.current` for every command-catalog action
+unless `--dyec-version` explicitly selects an immutable numeric release
+snapshot. When a new DYEC release is created, copy `current` to that release's
+numeric key before changing `current`; never edit an existing numeric snapshot:
 
 ```bash
+dyec --json catalog list --type prod
 dyec --json catalog list --dyec-version 16.1.81 --type prod
 dyec --json catalog render <command-id> --dyec-version 16.1.81 ...
 ```

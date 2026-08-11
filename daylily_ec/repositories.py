@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import shlex
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Literal, Optional, Sequence
@@ -14,8 +15,10 @@ from daylily_ec.resources import resource_path
 from daylily_ec.workflow.dyr_preflight import normalize_dyr_preflight_options
 
 
-CATALOG_VERSION = 4
-SUPPORTED_CATALOG_VERSIONS = {1, 2, 3, CATALOG_VERSION}
+CATALOG_VERSION = 5
+SUPPORTED_CATALOG_VERSIONS = {1, 2, 3, 4, CATALOG_VERSION}
+CURRENT_DYEC_BUILD = "current"
+DYEC_BUILD_VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+(?:\.\d+)?$")
 COMMAND_CLASSES = {"sample_analysis", "run_analysis", "utility"}
 COMMAND_TYPES = {"prod", "test", "dev", "research"}
 CLUSTER_TYPES = {"daywgs", "dragen", "sentieon-single"}
@@ -909,11 +912,11 @@ class AnalysisCommand(BaseModel):
 
 
 class DyecBuildCommandSet(BaseModel):
-    """Immutable catalog command shapes released for one DYEC build.
+    """Catalog command shapes for the current view or one immutable DYEC build.
 
-    Commands are deliberately embedded rather than referenced by the mutable
-    current repository rows.  This makes an old DYEC build reproducible even
-    after a later catalog release changes the same command id.
+    Commands are deliberately embedded rather than referenced by repository
+    rows. Numeric keys are immutable release snapshots; ``current`` is the
+    default mutable view that is copied when a new DYEC release is created.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -1011,10 +1014,23 @@ class RepositoryCatalog(BaseModel):
             raise ValueError("command catalog version 3 requires result_export guidance")
         if self.command_catalog_version >= 4 and not self.dyec_builds:
             raise ValueError("command catalog version 4 requires dyec_builds")
+        if (
+            self.command_catalog_version >= 5
+            and CURRENT_DYEC_BUILD not in self.dyec_builds
+        ):
+            raise ValueError("command catalog version 5 requires dyec_builds.current")
         for build_version in self.dyec_builds:
             if str(build_version).startswith("v"):
                 raise ValueError("dyec_builds keys must use non-v semver release identifiers")
             _clean_id(build_version, field_name="dyec_builds key")
+            if (
+                self.command_catalog_version >= 5
+                and build_version != CURRENT_DYEC_BUILD
+                and not DYEC_BUILD_VERSION_PATTERN.fullmatch(str(build_version))
+            ):
+                raise ValueError(
+                    "dyec_builds keys must be 'current' or non-v semver release identifiers"
+                )
         unknown_contracts = set(self.input_contracts) - INPUT_CONTRACTS
         if unknown_contracts:
             raise ValueError(
@@ -1105,11 +1121,18 @@ class RepositoryCatalog(BaseModel):
                     )
         return self
 
-    def commands(self) -> List[AnalysisCommand]:
+    def _repository_commands(self) -> List[AnalysisCommand]:
         result: List[AnalysisCommand] = []
         for repo in self.repositories.values():
             result.extend(repo.analysis_commands)
         return result
+
+    def commands(self) -> List[AnalysisCommand]:
+        """Return the default command view for this catalog schema."""
+
+        if self.command_catalog_version >= 5:
+            return self.commands_for_dyec_build()
+        return self._repository_commands()
 
     def get_command(self, command_id: str) -> AnalysisCommand:
         command_key = _clean_id(command_id, field_name="command_id")
@@ -1118,10 +1141,20 @@ class RepositoryCatalog(BaseModel):
                 return command
         raise KeyError(f"Unknown analysis command: {command_key}")
 
-    def commands_for_dyec_build(self, dyec_version: str) -> List[AnalysisCommand]:
-        """Return the immutable command shapes released for one DYEC build."""
+    def resolve_dyec_build_key(self, dyec_version: Optional[str] = None) -> str:
+        """Resolve an omitted selector to the mutable current catalog view."""
 
-        build_key = _clean_id(dyec_version, field_name="dyec_version")
+        return _clean_id(
+            dyec_version if dyec_version is not None else CURRENT_DYEC_BUILD,
+            field_name="dyec_version",
+        )
+
+    def commands_for_dyec_build(
+        self, dyec_version: Optional[str] = None
+    ) -> List[AnalysisCommand]:
+        """Return current commands by default or an explicitly selected snapshot."""
+
+        build_key = self.resolve_dyec_build_key(dyec_version)
         try:
             build = self.dyec_builds[build_key]
         except KeyError as exc:
@@ -1131,16 +1164,16 @@ class RepositoryCatalog(BaseModel):
     def get_command_for_dyec_build(
         self, command_id: str, dyec_version: Optional[str] = None
     ) -> AnalysisCommand:
-        """Resolve current command rows or an immutable released-build snapshot."""
+        """Resolve ``current`` by default or an explicit released-build snapshot."""
 
-        if dyec_version is None:
-            return self.get_command(command_id)
         command_key = _clean_id(command_id, field_name="command_id")
         for command in self.commands_for_dyec_build(dyec_version):
             if command.command_id == command_key:
                 return command
         raise KeyError(
-            f"Command {command_key!r} is not eligible for DYEC build {dyec_version!r}"
+            "Command "
+            f"{command_key!r} is not eligible for DYEC build "
+            f"{self.resolve_dyec_build_key(dyec_version)!r}"
         )
 
     def to_public_payload(self) -> Dict[str, Any]:

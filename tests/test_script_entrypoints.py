@@ -1831,6 +1831,13 @@ class TestCfgHeadnodeScript:
             _load_repo_overrides("/no/such/file")
 
     @patch("daylily_ec.scripts.daylily_cfg_headnode.configure_headnode", return_value=True)
+    @patch(
+        "daylily_ec.scripts.daylily_cfg_headnode.resolve_configured_headnode_repo_spec",
+        return_value=SimpleNamespace(
+            url="https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
+            ref="16.1.85",
+        ),
+    )
     @patch("daylily_ec.scripts.daylily_cfg_headnode.wait_for_ssm_online")
     @patch(
         "daylily_ec.scripts.daylily_cfg_headnode.resolve_headnode_instance_id",
@@ -1846,6 +1853,7 @@ class TestCfgHeadnodeScript:
         _mock_cluster,
         _mock_target,
         _mock_wait,
+        _mock_repo_spec,
         mock_configure,
         tmp_path,
         capsys,
@@ -1863,24 +1871,26 @@ class TestCfgHeadnodeScript:
             profile="dev",
             dyec_deploy_key_secret_arn="",
             dyec_deploy_key_region="",
-            dyec_repo_url="",
-            dyec_repo_ref="",
-            dyec_version="",
+            dyec_repo_url="https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
+            dyec_repo_ref="16.1.85",
             dayoa_deploy_key_secret_arn="",
             dayoa_deploy_key_region="",
             repo_overrides={"daylily-omics-analysis": "release-1"},
         )
         assert "Headnode configured via SSM" in capsys.readouterr().out
 
-    def test_main_requires_deploy_key_for_requested_dyec_version(self):
-        with pytest.raises(
-            CommandError, match="--dyec-version requires --dyec-deploy-key-secret-arn"
-        ):
-            cfg_headnode_module.main(
-                ["--profile", "dev", "--dyec-version", "16.1.84"]
-            )
+    def test_parser_does_not_offer_a_dyec_version_override(self):
+        with pytest.raises(SystemExit):
+            cfg_headnode_module.build_parser().parse_args(["--dyec-version", "16.1.84"])
 
     @patch("daylily_ec.scripts.daylily_cfg_headnode.configure_headnode", return_value=False)
+    @patch(
+        "daylily_ec.scripts.daylily_cfg_headnode.resolve_configured_headnode_repo_spec",
+        return_value=SimpleNamespace(
+            url="https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
+            ref="16.1.85",
+        ),
+    )
     @patch("daylily_ec.scripts.daylily_cfg_headnode.wait_for_ssm_online")
     @patch(
         "daylily_ec.scripts.daylily_cfg_headnode.resolve_headnode_instance_id",
@@ -1896,6 +1906,7 @@ class TestCfgHeadnodeScript:
         _mock_cluster,
         _mock_target,
         _mock_wait,
+        _mock_repo_spec,
         _mock_configure,
     ):
         with pytest.raises(CommandError, match="Headnode configuration failed"):

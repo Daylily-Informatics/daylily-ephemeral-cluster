@@ -4503,7 +4503,6 @@ def _configure_headnode_command(
     dyec_deploy_key_secret_arn: str,
     dayoa_deploy_key_secret_arn: str,
     github_token_secret_arn: str,
-    dyec_version: str,
     remote_user: str,
 ) -> None:
     from daylily_ec.aws.ssm import SsmError, wait_for_ssm_online
@@ -4523,24 +4522,12 @@ def _configure_headnode_command(
         )
         overrides = _load_repo_overrides(str(repo_overrides) if repo_overrides else None)
         dyec_secret_arn = dyec_deploy_key_secret_arn.strip()
-        requested_dyec_version = dyec_version.strip()
-        if requested_dyec_version and not dyec_secret_arn:
-            raise CommandError(
-                "--dyec-version requires --dyec-deploy-key-secret-arn so the exact private "
-                "release tag can be cloned."
-            )
         try:
-            dyec_repo_spec = (
-                resolve_configured_headnode_repo_spec(deploy_key_auth=True)
-                if dyec_secret_arn
-                else None
+            dyec_repo_spec = resolve_configured_headnode_repo_spec(
+                deploy_key_auth=bool(dyec_secret_arn)
             )
         except RuntimeError as exc:
-            raise CommandError(f"Unable to pin the active DYEC checkout: {exc}") from exc
-        if requested_dyec_version and dyec_repo_spec is not None:
-            dyec_repo_ref = requested_dyec_version
-        else:
-            dyec_repo_ref = dyec_repo_spec.ref if dyec_repo_spec else ""
+            raise CommandError(f"Unable to resolve the running DYEC release: {exc}") from exc
         wait_for_ssm_online(
             target.instance_id,
             resolved_region,
@@ -4554,9 +4541,8 @@ def _configure_headnode_command(
             profile=resolved_profile,
             dyec_deploy_key_secret_arn=dyec_secret_arn,
             dyec_deploy_key_region=resolved_region if dyec_secret_arn else "",
-            dyec_repo_url=dyec_repo_spec.url if dyec_repo_spec else "",
-            dyec_repo_ref=dyec_repo_ref,
-            dyec_version=requested_dyec_version,
+            dyec_repo_url=dyec_repo_spec.url,
+            dyec_repo_ref=dyec_repo_spec.ref,
             dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn.strip(),
             dayoa_deploy_key_region=resolved_region if dayoa_deploy_key_secret_arn.strip() else "",
             github_token_secret_arn=github_token_secret_arn.strip(),
@@ -4619,16 +4605,8 @@ def headnode_configure(
             "already allow access to this secret."
         ),
     ),
-    dyec_version: str = typer.Option(
-        "",
-        "--dyec-version",
-        help=(
-            "Exact non-v DYEC release tag to install. Configuration fails unless the "
-            "headnode's dyec --version exactly matches it after installation."
-        ),
-    ),
 ) -> None:
-    """Configure a cluster headnode through the supported Ubuntu SSM bootstrap."""
+    """Configure a headnode with the same exact release as this DYEC executable."""
 
     _configure_headnode_command(
         profile=profile,
@@ -4638,7 +4616,6 @@ def headnode_configure(
         dyec_deploy_key_secret_arn=dyec_deploy_key_secret_arn,
         dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
         github_token_secret_arn=github_token_secret_arn,
-        dyec_version=dyec_version,
         remote_user="ubuntu",
     )
 
@@ -4690,16 +4667,8 @@ def headnode_configure_dragen(
             "already allow access to this secret."
         ),
     ),
-    dyec_version: str = typer.Option(
-        "",
-        "--dyec-version",
-        help=(
-            "Exact non-v DYEC release tag to install. Configuration fails unless the "
-            "headnode's dyec --version exactly matches it after installation."
-        ),
-    ),
 ) -> None:
-    """Configure a RHEL/DRAGEN cluster headnode through SSM as ec2-user."""
+    """Configure a DRAGEN headnode with the same release as this DYEC executable."""
 
     _configure_headnode_command(
         profile=profile,
@@ -4709,7 +4678,6 @@ def headnode_configure_dragen(
         dyec_deploy_key_secret_arn=dyec_deploy_key_secret_arn,
         dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
         github_token_secret_arn=github_token_secret_arn,
-        dyec_version=dyec_version,
         remote_user="ec2-user",
     )
 
@@ -6037,6 +6005,7 @@ def _catalog_render_payload(
     require_staging_receipt: bool = False,
 ) -> dict[str, Any]:
     catalog, command = _catalog_load_command(config, command_id, dyec_version=dyec_version)
+    resolved_dyec_version = catalog.resolve_dyec_build_key(dyec_version)
     resolved_executing_entity = _resolve_executing_entity_option(
         executing_entity=executing_entity,
         cluster=cluster,
@@ -6101,7 +6070,7 @@ def _catalog_render_payload(
     dy_command = workflow_argv[workflow_argv.index("--dy-command") + 1]
     return {
         "command_catalog_version": catalog.command_catalog_version,
-        "dyec_version": dyec_version,
+        "dyec_version": resolved_dyec_version,
         "result_export": (
             catalog.result_export.model_dump(mode="json")
             if catalog.result_export is not None
@@ -6146,7 +6115,7 @@ def catalog_list(
     dyec_version: Optional[str] = typer.Option(
         None,
         "--dyec-version",
-        help="Use immutable command shapes eligible for this DYEC build.",
+        help="Use an immutable numeric DYEC snapshot instead of the default current view.",
     ),
 ) -> None:
     """List command-catalog entries as launchable command summaries."""
@@ -6156,11 +6125,8 @@ def catalog_list(
 
     try:
         catalog = load_repository_catalog(config)
-        commands = (
-            catalog.commands_for_dyec_build(dyec_version)
-            if dyec_version
-            else catalog.commands()
-        )
+        resolved_dyec_version = catalog.resolve_dyec_build_key(dyec_version)
+        commands = catalog.commands_for_dyec_build(dyec_version)
         if repository:
             repo_key = repository.strip()
             if repo_key not in catalog.repositories:
@@ -6173,7 +6139,7 @@ def catalog_list(
         payload = {
             "command_catalog_version": catalog.command_catalog_version,
             "default_repository": catalog.default_repository,
-            "dyec_version": dyec_version,
+            "dyec_version": resolved_dyec_version,
             "result_export": (
                 catalog.result_export.model_dump(mode="json")
                 if catalog.result_export is not None
@@ -6199,7 +6165,7 @@ def catalog_show(
     dyec_version: Optional[str] = typer.Option(
         None,
         "--dyec-version",
-        help="Show the immutable command shape eligible for this DYEC build.",
+        help="Show an immutable numeric DYEC snapshot instead of the default current view.",
     ),
 ) -> None:
     """Show one command-catalog entry, including exact dy-r command strings."""
@@ -6208,7 +6174,7 @@ def catalog_show(
         catalog, command = _catalog_load_command(config, command_id, dyec_version=dyec_version)
         payload = {
             "command_catalog_version": catalog.command_catalog_version,
-            "dyec_version": dyec_version,
+            "dyec_version": catalog.resolve_dyec_build_key(dyec_version),
             "result_export": (
                 catalog.result_export.model_dump(mode="json")
                 if catalog.result_export is not None
@@ -6234,7 +6200,7 @@ def catalog_validation_compare(
     dyec_version: Optional[str] = typer.Option(
         None,
         "--dyec-version",
-        help="Compare the immutable command shape eligible for this DYEC build.",
+        help="Compare an immutable numeric snapshot instead of the default current view.",
     ),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
@@ -6244,13 +6210,13 @@ def catalog_validation_compare(
     try:
         from daylily_ec.catalog_validation import compare_command_validation_evidence
 
-        _, command = _catalog_load_command(config, command_id, dyec_version=dyec_version)
+        catalog, command = _catalog_load_command(config, command_id, dyec_version=dyec_version)
         payload = compare_command_validation_evidence(
             command,
             profile=profile,
             region=region,
         ).to_payload()
-        payload["dyec_version"] = dyec_version
+        payload["dyec_version"] = catalog.resolve_dyec_build_key(dyec_version)
         if _json_mode():
             output.emit_json(payload)
             return
@@ -6375,7 +6341,7 @@ def catalog_render(
     dyec_version: Optional[str] = typer.Option(
         None,
         "--dyec-version",
-        help="Render the immutable command shape eligible for this DYEC build.",
+        help="Render an immutable numeric snapshot instead of the default current view.",
     ),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
@@ -6499,7 +6465,7 @@ def catalog_launch(
     dyec_version: Optional[str] = typer.Option(
         None,
         "--dyec-version",
-        help="Launch the immutable command shape eligible for this DYEC build.",
+        help="Launch an immutable numeric snapshot instead of the default current view.",
     ),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
