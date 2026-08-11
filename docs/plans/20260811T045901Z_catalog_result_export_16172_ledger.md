@@ -30,8 +30,8 @@ S3 result verification, and the default no-delete boundary.
 | EXP-004 | SUCCESS | Recipe uses `--export-trigger on-success`, verifies receipt lifecycle plus expected S3 objects, and omits filesystem deletion. |
 | EXP-005 | SUCCESS | Source and packaged catalog/global-config mirrors are byte-identical. |
 | EXP-006 | SUCCESS | Focused release suite: 320 tests passed. Python compile and targeted Ruff fatal-error checks passed; `git diff --check` passed. Full suite: 2441 passed, 11 skipped, 45 unrelated failures from existing shared-worktree/environment drift; isolated catalog/provider tests confirm the failures are stale DayOA-pin expectations and a pre-existing provider token, not this result-export change. |
-| EXP-007 | PENDING | Commit and push DYEC release changes. |
-| EXP-008 | PENDING | Create, push, and verify annotated non-v tag `16.1.72`. |
+| EXP-007 | SUCCESS | Release commit `e101de5e2904a84e8f8e8fbde9215939fa7a8f6e` pushed to `origin/codex/seqqc-16.1.66-retry`; unrelated shared-worktree changes were excluded. |
+| EXP-008 | SUCCESS | Annotated non-v tag `16.1.72` pushed; the remote tag dereferences to `e101de5e2904a84e8f8e8fbde9215939fa7a8f6e`. |
 
 ## Headnode evidence boundary
 
