@@ -25,8 +25,8 @@ generated caches, backups, recordings, temporary files, or export receipts.
 | DIRTY-003 | SUCCESS | Include the DayOA 13.4.15 jemalloc chr19-20 execution ledger. |
 | DIRTY-004 | SUCCESS | Both shell files pass `bash -n`; the merge module compiles; credential-pattern scan is empty. |
 | DIRTY-005 | SUCCESS | DYEC self-pin and packaged mirror advance to `16.1.73`; focused pin/mirror tests pass. |
-| DIRTY-006 | PENDING | Commit and push the included dirty-work release. |
-| DIRTY-007 | PENDING | Create, push, and verify annotated tag `16.1.73`. |
+| DIRTY-006 | SUCCESS | Commit `a1e3932941e3068e2da0fb66e74d7008d9fc12ae` pushed to `origin/codex/seqqc-16.1.66-retry`. |
+| DIRTY-007 | SUCCESS | Annotated tag `16.1.73` pushed and verified to dereference to `a1e3932941e3068e2da0fb66e74d7008d9fc12ae`. |
 
 ## Included files
 
