@@ -16,3 +16,5 @@ dependencies:
   - fd-find
   - parallel
   - perl
+  - graphviz
+  - pygraphviz
