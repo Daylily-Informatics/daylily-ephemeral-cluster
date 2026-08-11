@@ -376,6 +376,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "illumina_hg002_kitchensink_multiqc",
         "ultima_snv_alignstats",
         "ultima_snv_alignstats_kitchensink",
+        "complete_genomics_mgi_snv_concordance",
         "ont_snv_alignstats",
         "ont_snv_alignstats_kitchensink",
         "pacbio_snv_alignstats",
@@ -456,7 +457,12 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.compatible_platforms
         assert command.compatible_cluster_types == ["daywgs"]
         assert command.compatible_data_modes
-        assert command.git_tag == DAYOA_BLESSED_TAG
+        expected_tag = (
+            SOLO_KITCHEN_SINK_DAYOA_TAG
+            if command.command_id == "complete_genomics_mgi_snv_concordance"
+            else DAYOA_BLESSED_TAG
+        )
+        assert command.git_tag == expected_tag
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets
@@ -464,11 +470,16 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     complete_genomics = catalog.get_command("complete_genomics_mgi_snv_concordance")
     assert complete_genomics.type == "dev"
+    assert complete_genomics.input_contract == "six_manifest"
+    assert complete_genomics.sample_manifest_template == ""
+    assert complete_genomics.manifest_dir_template == ""
+    assert complete_genomics.jobs == 333
 
     for command_id in (
         "illumina_hg002_kitchensink_multiqc",
         "ont_snv_alignstats_kitchensink",
         "ultima_snv_alignstats_kitchensink",
+        "complete_genomics_mgi_snv_concordance",
     ):
         command = catalog.get_command(command_id)
         assert command.validated_version == SOLO_KITCHEN_SINK_DAYOA_TAG
@@ -483,6 +494,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_dmd_dedup_cram" in complete_genomics.dy_command
     assert "produce_smd_dedup_cram" not in complete_genomics.dy_command
     assert "aligners=['sentcg']" not in complete_genomics.dy_command
+    assert " -j 333 -T 0 " in complete_genomics.dy_command
+    assert " -k " not in complete_genomics.dy_command
 
     illumina_pangenome = catalog.get_command("illumina_pangenome_snv")
     assert illumina_pangenome.type == "dev"
@@ -614,7 +627,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "results/day/hg38/reports/dayoa_evidence_manifest.json",
     ]
     assert illumina_kitchensink.genome == "hg38"
-    assert illumina_kitchensink.jobs == 200
+    assert illumina_kitchensink.jobs == 333
     assert illumina_kitchensink.input_contract == "six_manifest"
     assert illumina_kitchensink.sample_manifest_template == ""
     assert illumina_kitchensink.manifest_dir_template == ""
@@ -624,6 +637,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert illumina_kitchensink.sv_callers == []
     assert 'htd_callers=["cyrius"]' in illumina_kitchensink.dy_command
     assert "--rerun-triggers mtime" in illumina_kitchensink.dy_command
+    assert " -j 333 -p -T 0 " in illumina_kitchensink.dy_command
+    assert " -k " not in illumina_kitchensink.dy_command
     assert "produce_metagenomics" in illumina_kitchensink.dy_command
     assert "produce_multiqc_all" in illumina_kitchensink.dy_command
     assert "results/day/hg38/reports/DAY_final_multiqc.html" in illumina_kitchensink.dy_command
@@ -666,6 +681,10 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert ultima_kitchensink.aligners == ["ug"]
     assert ultima_kitchensink.dedupers == ["na"]
     assert ultima_kitchensink.snv_callers == ["sentdug"]
+    assert ultima_kitchensink.jobs == 333
+    assert 'aligners=["ug"]' in ultima_kitchensink.dy_command
+    assert " -j 333 -T 0 " in ultima_kitchensink.dy_command
+    assert " -k " not in ultima_kitchensink.dy_command
     assert "produce_multiqc_all" in ultima_kitchensink.dy_command
     assert "multiqc_qc=" in ultima_kitchensink.dy_command
     assert "enable_tools" in ultima_kitchensink.dy_command
@@ -698,7 +717,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "results/day/hg38/reports/DAY_final_multiqc.html",
         "results/day/hg38/reports/dayoa_evidence_manifest.json",
     ]
-    assert ont_kitchensink.jobs == 250
+    assert ont_kitchensink.jobs == 333
     assert ont_kitchensink.aligners == ["ont"]
     assert ont_kitchensink.dedupers == ["na"]
     assert ont_kitchensink.snv_callers == ["sentdont"]
@@ -706,7 +725,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_na_dedup_cram" in ont_kitchensink.dy_command
     assert "--rerun-triggers mtime" in ont_kitchensink.dy_command
     assert "--rerun-triggers mtime -n" in ont_kitchensink.dryrun_dy_command
-    assert " -j 250 " in ont_kitchensink.dy_command
+    assert " -j 333 -T 0 " in ont_kitchensink.dy_command
+    assert " -k " not in ont_kitchensink.dy_command
+    assert 'aligners=["ont"]' in ont_kitchensink.dy_command
     assert "produce_multiqc_all" in ont_kitchensink.dy_command
     assert "results/day/hg38/reports/DAY_final_multiqc.html" in ont_kitchensink.dy_command
     assert "results/day/hg38/reports/dayoa_evidence_manifest.json" in ont_kitchensink.dy_command

@@ -631,7 +631,7 @@ repositories:
           - results/day/hg38/reports/DAY_final_multiqc.html
           - results/day/hg38/reports/dayoa_evidence_manifest.json
         genome: hg38
-        jobs: 200
+        jobs: 333
         aligners:
           - sent
         dedupers:
@@ -640,9 +640,9 @@ repositories:
           - sentd
         sv_callers: []
         dy_command: >-
-          bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' -j 200 -p -k --rerun-triggers mtime
+          bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' -j 333 -p -T 0 --rerun-triggers mtime
         dryrun_dy_command: >-
-          bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' -j 200 -p -k --rerun-triggers mtime -n
+          bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' -j 333 -p -T 0 --rerun-triggers mtime -n
         compatible_platforms:
           - ILMN
         compatible_cluster_types:
@@ -838,7 +838,7 @@ repositories:
           - produce_metagenomics
           - produce_multiqc_all
         genome: hg38
-        jobs: 100
+        jobs: 333
         aligners:
           - ug
         dedupers:
@@ -846,8 +846,8 @@ repositories:
         snv_callers:
           - sentdug
         sv_callers: []
-        dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' -p -j 100 -k"
-        dryrun_dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' -p -j 100 -k -n"
+        dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all --config 'aligners=[\"ug\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' -p -j 333 -T 0 --rerun-triggers mtime"
+        dryrun_dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all --config 'aligners=[\"ug\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' -p -j 333 -T 0 --rerun-triggers mtime -n"
         compatible_platforms:
           - ULTIMA
         compatible_cluster_types:
@@ -987,7 +987,7 @@ repositories:
           - results/day/hg38/reports/DAY_final_multiqc.html
           - results/day/hg38/reports/dayoa_evidence_manifest.json
         genome: hg38
-        jobs: 250
+        jobs: 333
         aligners:
           - ont
         dedupers:
@@ -995,8 +995,8 @@ repositories:
         snv_callers:
           - sentdont
         sv_callers: []
-        dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' -p -j 250 -k --rerun-triggers mtime"
-        dryrun_dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' -p -j 250 -k --rerun-triggers mtime -n"
+        dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=[\"ont\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' -p -j 333 -T 0 --rerun-triggers mtime"
+        dryrun_dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=[\"ont\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' -p -j 333 -T 0 --rerun-triggers mtime -n"
         compatible_platforms:
           - ONT
         compatible_cluster_types:
@@ -1490,14 +1490,15 @@ repositories:
         return_results: false
       - command_id: complete_genomics_mgi_snv_concordance
         type: dev
-        validated_version: "13.4.20"
+        validated_version: "13.4.26"
         test_data_profile: default_reads_slim
+        manifest_dir_template: ""
         display_name: "Complete Genomics/MGI SNV + Concordance"
         description: "Complete Genomics/MGI Sentieon sentcg/dmd/cgt7p launch profile."
         datasource: Complete Genomics/MGI
         launcher: workflow_launch
         command_class: sample_analysis
-        input_contract: sample_manifest
+        input_contract: six_manifest
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
@@ -1512,7 +1513,7 @@ repositories:
           - produce_alignstats
           - produce_snv_concordances
         genome: hg38
-        jobs: 20
+        jobs: 333
         aligners:
           - sentcg
         dedupers:
@@ -1520,15 +1521,15 @@ repositories:
         snv_callers:
           - cgt7p
         sv_callers: []
-        dy_command: "bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete"
-        dryrun_dy_command: "bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete -n"
+        dy_command: "bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 333 -T 0 --rerun-triggers mtime"
+        dryrun_dy_command: "bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 333 -T 0 --rerun-triggers mtime -n"
         compatible_platforms:
           - CG/MGI
         compatible_cluster_types:
           - daywgs
         compatible_data_modes:
           - complete_genomics_solo
-        git_tag: "13.4.20"
+        git_tag: "13.4.26"
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation

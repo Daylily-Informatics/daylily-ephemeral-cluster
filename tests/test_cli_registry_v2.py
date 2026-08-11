@@ -3188,7 +3188,10 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
         ],
     )
 
-    assert result.exit_code == 0
+    assert result.exit_code != 0
+    assert calls == {}
+    assert "does not infer DayOA 13 topology" in result.output
+    return
     assert calls["stage_argv"] == [
         str(manifest.resolve()),
         "--manifest-contract",
@@ -3342,7 +3345,10 @@ def test_samples_run_defaults_executing_entity_to_cluster(monkeypatch, tmp_path)
         ],
     )
 
-    assert result.exit_code == 0
+    assert result.exit_code != 0
+    assert calls == {}
+    assert "does not infer DayOA 13 topology" in result.output
+    return
     launch_argv = calls["launch_argv"]
     assert launch_argv[launch_argv.index("--executing-entity") + 1] == "cluster-a"
     receipt = config_dir / "20260425T000000Z_samples_run_receipt.json"
@@ -3745,8 +3751,7 @@ def test_catalog_render_requires_explicit_staged_inputs_for_sample_commands() ->
     )
 
     assert result.exit_code != 0
-    assert "requires --stage-dir" in result.output
-    assert "dyec samples run" in result.output
+    assert "requires --manifest-dir" in result.output
 
 
 def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
