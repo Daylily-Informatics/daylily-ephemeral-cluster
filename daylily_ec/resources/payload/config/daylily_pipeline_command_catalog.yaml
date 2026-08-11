@@ -598,7 +598,7 @@ repositories:
         validation_runs: []
       - command_id: illumina_hg002_kitchensink_multiqc
         type: prod
-        validated_version: "13.4.26"
+        validated_version: "13.4.27"
         test_data_profile: default_reads_slim
         manifest_dir_template: ""
         display_name: "Illumina HG002 Kitchen Sink MultiQC"
@@ -649,7 +649,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ilmn_solo
-        git_tag: "13.4.26"
+        git_tag: "13.4.27"
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
         validation_runs:
@@ -813,7 +813,7 @@ repositories:
             notes: "Live run completed with VCF, alignstats, and concordance outputs."
       - command_id: ultima_snv_alignstats_kitchensink
         type: prod
-        validated_version: "13.4.26"
+        validated_version: "13.4.27"
         test_data_profile: default_reads_slim
         display_name: "Ultima SNV + Alignstats Kitchen Sink"
         description: "Ultima CRAM/FASTQ Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, Kraken2/Ganon2/sourmash metagenomics, and final MultiQC launch profile."
@@ -854,7 +854,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ultima_solo
-        git_tag: "13.4.26"
+        git_tag: "13.4.27"
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: ultima_pangenome_snv
@@ -958,7 +958,7 @@ repositories:
             notes: "Live run completed with VCF, alignstats, and concordance outputs."
       - command_id: ont_snv_alignstats_kitchensink
         type: prod
-        validated_version: "13.4.26"
+        validated_version: "13.4.27"
         test_data_profile: default_reads_slim
         display_name: "ONT SNV + Alignstats Kitchen Sink"
         description: "ONT alignment, Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, Kraken2/Ganon2/sourmash metagenomics, and final MultiQC launch profile."
@@ -1003,7 +1003,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - ont_solo
-        git_tag: "13.4.26"
+        git_tag: "13.4.27"
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: pacbio_snv_alignstats
@@ -1490,7 +1490,7 @@ repositories:
         return_results: false
       - command_id: complete_genomics_mgi_snv_concordance
         type: dev
-        validated_version: "13.4.26"
+        validated_version: "13.4.27"
         test_data_profile: default_reads_slim
         manifest_dir_template: ""
         display_name: "Complete Genomics/MGI SNV + Concordance"
@@ -1529,7 +1529,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - complete_genomics_solo
-        git_tag: "13.4.26"
+        git_tag: "13.4.27"
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
