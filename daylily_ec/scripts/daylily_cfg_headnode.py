@@ -56,6 +56,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         help="Exact Secrets Manager ARN for the DayOA read-only deploy key",
     )
+    parser.add_argument(
+        "--dyec-version",
+        default="",
+        help="Exact non-v DYEC release tag to install and verify on the headnode",
+    )
     return parser
 
 
@@ -63,6 +68,11 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if not args.profile:
         raise CommandError("AWS profile is required. Set AWS_PROFILE or use --profile.")
+    if args.dyec_version.strip() and not args.dyec_deploy_key_secret_arn.strip():
+        raise CommandError(
+            "--dyec-version requires --dyec-deploy-key-secret-arn so the exact private "
+            "release tag can be cloned."
+        )
 
     need_cmd("aws")
     need_cmd("pcluster")
@@ -89,7 +99,12 @@ def main(argv: list[str] | None = None) -> int:
         dyec_deploy_key_secret_arn=args.dyec_deploy_key_secret_arn,
         dyec_deploy_key_region=region if args.dyec_deploy_key_secret_arn else "",
         dyec_repo_url=dyec_repo_spec.url if dyec_repo_spec else "",
-        dyec_repo_ref=dyec_repo_spec.ref if dyec_repo_spec else "",
+        dyec_repo_ref=(
+            args.dyec_version.strip()
+            if args.dyec_version.strip()
+            else (dyec_repo_spec.ref if dyec_repo_spec else "")
+        ),
+        dyec_version=args.dyec_version,
         dayoa_deploy_key_secret_arn=args.dayoa_deploy_key_secret_arn,
         dayoa_deploy_key_region=region if args.dayoa_deploy_key_secret_arn else "",
         repo_overrides=overrides or None,

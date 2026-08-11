@@ -2680,6 +2680,55 @@ class TestConfigureHeadnode:
     @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
+    def test_requested_dyec_version_requires_matching_ref_and_verifies_install(
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
+        mock_run_shell.return_value = SimpleNamespace(stdout="", stderr="")
+        mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
+
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+            dyec_deploy_key_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec",
+            dyec_deploy_key_region="us-west-2",
+            dyec_repo_url="git@github.com:lsmc-bio/daylily-ephemeral-cluster.git",
+            dyec_repo_ref="16.1.82",
+            dyec_version="16.1.82",
+        )
+
+        assert ok is True
+        verify_call = mock_run_shell.call_args_list[-1]
+        assert verify_call.kwargs["comment"] == "Verify installed DYEC version"
+        assert "dyec --version" in verify_call.args[2]
+        assert "Daylily Ephemeral Cluster 16.1.82" in verify_call.args[2]
+        mock_write_remote_text.assert_called()
+
+    def test_requested_dyec_version_rejects_mismatched_ref(self):
+        assert not configure_headnode(
+            "test-cluster",
+            "i-abc123",
+            "us-west-2",
+            "test",
+            dyec_deploy_key_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec",
+            dyec_deploy_key_region="us-west-2",
+            dyec_repo_url="git@github.com:lsmc-bio/daylily-ephemeral-cluster.git",
+            dyec_repo_ref="16.1.81",
+            dyec_version="16.1.82",
+        )
+
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
     def test_success_path(
         self,
         mock_run_shell,
