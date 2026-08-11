@@ -288,7 +288,7 @@ def test_headnode_remote_config_requires_exact_dayoa12_triple() -> None:
 
 def test_inflection_v02_is_a_literal_hiomr2_analytical_contract() -> None:
     command = load_repository_catalog(CATALOG).get_command("inflection-bjuice-product-v0.2")
-    assert command.git_tag == "13.4.28"
+    assert command.git_tag == "13.4.30"
     assert command.input_contract == "six_manifest"
     assert command.input_requirements.required_source_columns == []
     assert command.targets == [
@@ -307,7 +307,8 @@ def test_inflection_v02_is_a_literal_hiomr2_analytical_contract() -> None:
     assert command.return_results is False
     assert "use_fq_data_starting_hrs" not in command.dy_command
     assert "use_fq_data_up_to_hrs" not in command.dy_command
-    assert " -j 333 -T 1 -p -k " in command.dy_command
+    assert " -j 333 -T 0 -p " in command.dy_command
+    assert "produce_sentdhiomr2_nicu_research" in command.dy_command
     assert command.jobs == 333
     assert command.restart_times == 1
     assert command.dryrun_dy_command == f"{command.dy_command} -n"

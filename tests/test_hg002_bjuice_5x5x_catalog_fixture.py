@@ -30,7 +30,8 @@ def test_hg002_bjuice_catalog_uses_verified_5x5x_fixture() -> None:
         "/hg002_bjuice_verified_5x5x_fastq"
     )
     assert command.jobs == 333
-    assert "-j 333 -T 1 -p -k" in command.dy_command
+    assert "-j 333 -T 0 -p" in command.dy_command
+    assert " -k " not in command.dy_command
     assert command.dryrun_dy_command == f"{command.dy_command} -n"
     assert command.runtime_parameters == {}
     assert "produce_sentdhiomr2_inflection_analytical_package" in command.dy_command

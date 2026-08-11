@@ -28,7 +28,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.4.28"
+DAYOA_BLESSED_TAG = "13.4.30"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -109,6 +109,7 @@ EXPECTED_COMMANDS = {
     ("repositories", "commands"),
     ("catalog", "list"),
     ("catalog", "show"),
+    ("catalog", "validation-compare"),
     ("catalog", "config-bjuice-preval"),
     ("catalog", "render"),
     ("catalog", "launch"),
@@ -424,6 +425,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     repositories_commands_cmd = registry.get_command(("repositories", "commands"))
     catalog_list_cmd = registry.get_command(("catalog", "list"))
     catalog_show_cmd = registry.get_command(("catalog", "show"))
+    catalog_validation_compare_cmd = registry.get_command(("catalog", "validation-compare"))
     catalog_config_bjuice_preval_cmd = registry.get_command(("catalog", "config-bjuice-preval"))
     catalog_render_cmd = registry.get_command(("catalog", "render"))
     catalog_launch_cmd = registry.get_command(("catalog", "launch"))
@@ -635,6 +637,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
         assert catalog_read_cmd.policy.supports_json is True
         assert catalog_read_cmd.policy.runtime_guard == "exempt"
         assert catalog_read_cmd.policy.mutates_state is False
+
+    assert catalog_validation_compare_cmd is not None
+    assert catalog_validation_compare_cmd.policy.supports_json is True
+    assert catalog_validation_compare_cmd.policy.runtime_guard == "required"
+    assert catalog_validation_compare_cmd.policy.mutates_state is False
 
     assert catalog_config_bjuice_preval_cmd is not None
     assert catalog_config_bjuice_preval_cmd.policy.supports_json is True
@@ -3154,7 +3161,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
             "--catalog-config",
             str(catalog),
             "--command-id",
-            "complete_genomics_mgi_snv_concordance",
+            "complete_genomics_cg_snv_concordance",
             "--analysis-id",
             "cg-run",
             "--executing-entity",
@@ -3266,7 +3273,7 @@ def test_samples_run_requires_analysis_identity(monkeypatch, tmp_path) -> None:
             "run",
             str(manifest),
             "--command-id",
-            "complete_genomics_mgi_snv_concordance",
+            "complete_genomics_cg_snv_concordance",
             "--profile",
             "dev",
             "--reference-s3-uri",
@@ -3324,7 +3331,7 @@ def test_samples_run_defaults_executing_entity_to_cluster(monkeypatch, tmp_path)
             "--catalog-config",
             str(catalog),
             "--command-id",
-            "complete_genomics_mgi_snv_concordance",
+            "complete_genomics_cg_snv_concordance",
             "--analysis-id",
             "cg-run",
             "--profile",
@@ -3374,7 +3381,7 @@ def test_samples_run_rejects_export_policy_before_staging(monkeypatch, tmp_path)
             "run",
             str(manifest),
             "--command-id",
-            "complete_genomics_mgi_snv_concordance",
+            "complete_genomics_cg_snv_concordance",
             "--analysis-id",
             "cg-run",
             "--executing-entity",
@@ -3439,7 +3446,7 @@ def test_samples_run_rejects_embedded_export_before_staging(monkeypatch, tmp_pat
             "--catalog-config",
             str(catalog),
             "--command-id",
-            "complete_genomics_mgi_snv_concordance",
+            "complete_genomics_cg_snv_concordance",
             "--analysis-id",
             "cg-run",
             "--executing-entity",
@@ -3580,6 +3587,31 @@ def test_catalog_list_and_show_expose_command_catalog_entries() -> None:
         "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_inflection_seqone_v2"
     )
     assert show_payload["command"]["return_results"] is False
+
+
+def test_catalog_validation_compare_uses_declared_command_evidence(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+
+    class _Comparison:
+        def to_payload(self) -> dict[str, object]:
+            return {"matches": True, "command_id": "illumina_run_qc"}
+
+    monkeypatch.setattr(
+        "daylily_ec.catalog_validation.compare_command_validation_evidence",
+        lambda command, *, profile, region: _Comparison(),
+    )
+
+    result = runner.invoke(
+        app,
+        ["--json", "catalog", "validation-compare", "illumina_run_qc"],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.stdout) == {
+        "command_id": "illumina_run_qc",
+        "dyec_version": None,
+        "matches": True,
+    }
 
 
 def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
@@ -3742,7 +3774,7 @@ def test_catalog_render_requires_explicit_staged_inputs_for_sample_commands() ->
         [
             "catalog",
             "render",
-            "complete_genomics_mgi_snv_concordance",
+            "complete_genomics_cg_snv_concordance",
             "--analysis-id",
             "cg-run",
             "--executing-entity",
@@ -3752,6 +3784,25 @@ def test_catalog_render_requires_explicit_staged_inputs_for_sample_commands() ->
 
     assert result.exit_code != 0
     assert "requires --manifest-dir" in result.output
+
+
+def test_catalog_launch_requires_materialized_complete_staging_receipt(tmp_path, monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    manifest_dir = tmp_path / "complete-six"
+    manifest_dir.mkdir()
+    (manifest_dir / "staging_receipt.json").write_text(
+        '{"state": "materialization_required"}\n', encoding="utf-8"
+    )
+    result = runner.invoke(
+        app,
+        [
+            "catalog", "launch", "complete_genomics_cg_snv_concordance",
+            "--analysis-id", "cg-run", "--executing-entity", "johnm",
+            "--manifest-dir", str(manifest_dir), "--dry-run",
+        ],
+    )
+    assert result.exit_code != 0
+    assert "state 'materialized'" in result.output
 
 
 def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:

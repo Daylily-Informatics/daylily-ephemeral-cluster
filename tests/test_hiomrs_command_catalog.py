@@ -11,8 +11,8 @@ SOURCE_CATALOG = REPO_ROOT / "config/daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG = (
     REPO_ROOT / "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml"
 )
-DAYOA_GIT_TAG = "13.4.14"
-DAYOA_VALIDATED_VERSION = "13.4.14"
+DAYOA_GIT_TAG = "13.4.30"
+DAYOA_VALIDATED_VERSION = "13.4.30"
 
 
 def test_hiomr_catalog_entry_is_native_dyr_and_mirrored() -> None:
@@ -134,12 +134,12 @@ def test_hiomr_kitchensink_has_explicit_native_targets_and_retires_hiomrs() -> N
     assert "hybrid_ilmn_ont_snv_kitchensink" not in command_ids
 
 
-def test_betelgeuser_prod_preserves_current_main_entry_on_six_manifest_contract() -> None:
+def test_betelgeuser_research_preserves_current_main_entry_on_six_manifest_contract() -> None:
     catalog = load_repository_catalog(SOURCE_CATALOG)
     command = catalog.get_command("betelgeuser_hiomr_prod_v1")
     kitchen_sink = catalog.get_command("hybrid_ilmn_ont_hiomr_kitchensink")
 
-    assert command.type == "prod"
+    assert command.type == "research"
     assert command.git_tag == DAYOA_GIT_TAG
     assert command.validated_version == DAYOA_VALIDATED_VERSION
     assert command.input_contract == "six_manifest"

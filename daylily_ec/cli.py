@@ -5802,13 +5802,15 @@ def repositories_commands(
         _exit_headnode_error(exc)
 
 
-def _catalog_load_command(config: Optional[Path], command_id: str):
+def _catalog_load_command(
+    config: Optional[Path], command_id: str, *, dyec_version: Optional[str] = None
+):
     from daylily_ec.repositories import load_repository_catalog
     from daylily_ec.scripts.common import CommandError
 
     catalog = load_repository_catalog(config)
     try:
-        command = catalog.get_command(command_id)
+        command = catalog.get_command_for_dyec_build(command_id, dyec_version)
     except KeyError as exc:
         raise CommandError(str(exc)) from exc
     return catalog, command
@@ -5822,6 +5824,7 @@ def _catalog_command_summary(command: Any) -> dict[str, Any]:
         "description": command.description,
         "type": command.type,
         "validated_version": command.validated_version,
+        "validation_evidence_s3_uri_prefix": command.validation_evidence_s3_uri_prefix,
         "command_class": command.command_class,
         "input_contract": command.input_contract,
         "requires_staging": command.requires_staging,
@@ -5850,6 +5853,7 @@ def _catalog_validate_explicit_inputs(
     libraries_file: Optional[str],
     units_file: Optional[str],
     allow_stage_discovery: bool,
+    require_staging_receipt: bool = False,
 ) -> None:
     from daylily_ec.scripts.common import CommandError
 
@@ -5875,6 +5879,22 @@ def _catalog_validate_explicit_inputs(
     elif command.input_contract == "six_manifest":
         if not manifest_dir:
             raise CommandError(f"Catalog command {command.command_id} requires --manifest-dir.")
+        if require_staging_receipt and command.staging_receipt_required:
+            receipt_path = Path(manifest_dir) / "staging_receipt.json"
+            if not receipt_path.is_file():
+                raise CommandError(
+                    f"Catalog command {command.command_id} requires a materialized staging receipt: "
+                    f"{receipt_path}"
+                )
+            try:
+                receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError as exc:
+                raise CommandError(f"Invalid staging receipt {receipt_path}: {exc}") from exc
+            if receipt.get("state") != "materialized":
+                raise CommandError(
+                    f"Catalog command {command.command_id} requires staging_receipt.json state "
+                    "'materialized' before workflow launch."
+                )
     elif command.input_contract == "run_context":
         if not run_context_file:
             raise CommandError(f"Catalog command {command.command_id} requires --run-context-file.")
@@ -5956,6 +5976,7 @@ def _catalog_render_payload(
     *,
     config: Optional[Path],
     command_id: str,
+    dyec_version: Optional[str],
     analysis_id: str,
     executing_entity: Optional[str],
     profile: Optional[str],
@@ -5983,8 +6004,9 @@ def _catalog_render_payload(
     delete_on_export_success: bool,
     replace_existing_analysis_dir: bool,
     dy_config: Optional[list[str]] = None,
+    require_staging_receipt: bool = False,
 ) -> dict[str, Any]:
-    catalog, command = _catalog_load_command(config, command_id)
+    catalog, command = _catalog_load_command(config, command_id, dyec_version=dyec_version)
     resolved_executing_entity = _resolve_executing_entity_option(
         executing_entity=executing_entity,
         cluster=cluster,
@@ -6014,6 +6036,7 @@ def _catalog_render_payload(
         libraries_file=libraries_file_text,
         units_file=units_file_text,
         allow_stage_discovery=allow_stage_discovery,
+        require_staging_receipt=require_staging_receipt,
     )
     resolved_git_tag = git_tag or command.git_tag
     workflow_argv = command.launch_argv(
@@ -6048,6 +6071,7 @@ def _catalog_render_payload(
     dy_command = workflow_argv[workflow_argv.index("--dy-command") + 1]
     return {
         "command_catalog_version": catalog.command_catalog_version,
+        "dyec_version": dyec_version,
         "result_export": (
             catalog.result_export.model_dump(mode="json")
             if catalog.result_export is not None
@@ -6089,6 +6113,11 @@ def catalog_list(
         "--type",
         help="Limit output to prod, test, dev, or research.",
     ),
+    dyec_version: Optional[str] = typer.Option(
+        None,
+        "--dyec-version",
+        help="Use immutable command shapes eligible for this DYEC build.",
+    ),
 ) -> None:
     """List command-catalog entries as launchable command summaries."""
 
@@ -6097,7 +6126,11 @@ def catalog_list(
 
     try:
         catalog = load_repository_catalog(config)
-        commands = catalog.commands()
+        commands = (
+            catalog.commands_for_dyec_build(dyec_version)
+            if dyec_version
+            else catalog.commands()
+        )
         if repository:
             repo_key = repository.strip()
             if repo_key not in catalog.repositories:
@@ -6110,6 +6143,7 @@ def catalog_list(
         payload = {
             "command_catalog_version": catalog.command_catalog_version,
             "default_repository": catalog.default_repository,
+            "dyec_version": dyec_version,
             "result_export": (
                 catalog.result_export.model_dump(mode="json")
                 if catalog.result_export is not None
@@ -6132,13 +6166,19 @@ def catalog_show(
         "--config",
         help="Path to daylily_pipeline_command_catalog.yaml.",
     ),
+    dyec_version: Optional[str] = typer.Option(
+        None,
+        "--dyec-version",
+        help="Show the immutable command shape eligible for this DYEC build.",
+    ),
 ) -> None:
     """Show one command-catalog entry, including exact dy-r command strings."""
 
     try:
-        catalog, command = _catalog_load_command(config, command_id)
+        catalog, command = _catalog_load_command(config, command_id, dyec_version=dyec_version)
         payload = {
             "command_catalog_version": catalog.command_catalog_version,
+            "dyec_version": dyec_version,
             "result_export": (
                 catalog.result_export.model_dump(mode="json")
                 if catalog.result_export is not None
@@ -6146,6 +6186,41 @@ def catalog_show(
             ),
             "command": command.model_dump(mode="json"),
         }
+        if _json_mode():
+            output.emit_json(payload)
+            return
+        typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def catalog_validation_compare(
+    command_id: str = typer.Argument(..., help="Repository catalog command id."),
+    config: Optional[Path] = typer.Option(
+        None,
+        "--config",
+        help="Path to daylily_pipeline_command_catalog.yaml.",
+    ),
+    dyec_version: Optional[str] = typer.Option(
+        None,
+        "--dyec-version",
+        help="Compare the immutable command shape eligible for this DYEC build.",
+    ),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+) -> None:
+    """Quickly compare a catalog command against its stored successful S3 evidence."""
+
+    try:
+        from daylily_ec.catalog_validation import compare_command_validation_evidence
+
+        _, command = _catalog_load_command(config, command_id, dyec_version=dyec_version)
+        payload = compare_command_validation_evidence(
+            command,
+            profile=profile,
+            region=region,
+        ).to_payload()
+        payload["dyec_version"] = dyec_version
         if _json_mode():
             output.emit_json(payload)
             return
@@ -6267,6 +6342,11 @@ def catalog_render(
         help="User/system identifier under /fsx/analysis_results. Defaults to --cluster.",
     ),
     config: Optional[Path] = typer.Option(None, "--config", help="Catalog YAML path."),
+    dyec_version: Optional[str] = typer.Option(
+        None,
+        "--dyec-version",
+        help="Render the immutable command shape eligible for this DYEC build.",
+    ),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
     cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
@@ -6339,6 +6419,7 @@ def catalog_render(
         payload = _catalog_render_payload(
             config=config,
             command_id=command_id,
+            dyec_version=dyec_version,
             analysis_id=analysis_id,
             executing_entity=executing_entity,
             profile=profile,
@@ -6385,6 +6466,11 @@ def catalog_launch(
         help="User/system identifier under /fsx/analysis_results. Defaults to --cluster.",
     ),
     config: Optional[Path] = typer.Option(None, "--config", help="Catalog YAML path."),
+    dyec_version: Optional[str] = typer.Option(
+        None,
+        "--dyec-version",
+        help="Launch the immutable command shape eligible for this DYEC build.",
+    ),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
     cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
@@ -6446,6 +6532,7 @@ def catalog_launch(
         payload = _catalog_render_payload(
             config=config,
             command_id=command_id,
+            dyec_version=dyec_version,
             analysis_id=analysis_id,
             executing_entity=executing_entity,
             profile=profile,
@@ -6473,6 +6560,7 @@ def catalog_launch(
             delete_on_export_success=delete_on_export_success,
             replace_existing_analysis_dir=replace_existing_analysis_dir,
             dy_config=dy_config,
+            require_staging_receipt=True,
         )
         launch_stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(launch_stdout_buffer):
@@ -9563,6 +9651,7 @@ def register(registry, cli_spec) -> None:
         [
             ("list", catalog_list, EXEMPT_JSON),
             ("show", catalog_show, EXEMPT_JSON),
+            ("validation-compare", catalog_validation_compare, REQUIRED_JSON),
             (
                 "config-bjuice-preval",
                 catalog_config_bjuice_preval,

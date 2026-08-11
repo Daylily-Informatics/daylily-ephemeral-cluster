@@ -137,6 +137,29 @@ dyec --json catalog render hybrid_ilmn_ont_hiomr_kitchensink \
 
 Large local payloads are staged through S3 with `--payload-staging-s3-uri`. DYEC uploads a tarball containing input manifests, a payload manifest, and the controller launch script. The headnode downloads and expands that tarball into the workflow run directory, starts the tmux controller, and then saves the exact executed script under `<analysis-root>/bin/dyec-controller-launch.sh` after `day-clone` creates the analysis root. This avoids SSM document-size limits without pre-creating the analysis root.
 
+### Released command shapes and validation evidence
+
+Catalog version 4 can retain immutable command shapes under a top-level
+`dyec_builds.<DYEC_VERSION>` key. Select that released shape explicitly rather
+than allowing a current catalog row to change an older DYEC build's DayOA pin:
+
+```bash
+dyec --json catalog list --dyec-version 16.1.81 --type prod
+dyec --json catalog render <command-id> --dyec-version 16.1.81 ...
+```
+
+Each command may declare an explicit `validation_evidence_s3_uri_prefix`. The
+prefix must contain `command_registry.json` and `summary.json` from a successful
+`dyec tests command-catalog` run. Compare it read-only with:
+
+```bash
+dyec --json catalog validation-compare <command-id> \
+  --dyec-version 16.1.81 --profile "$AWS_PROFILE" --region "$REGION"
+```
+
+The comparison fails hard when no prefix is declared, the receipts are missing,
+the captured DayOA pin differs, or the recorded command phase did not succeed.
+
 ## Workflow launch without the catalog shortcut
 
 Use `dyec workflow launch` when you already know the exact DayOA command string or are launching a non-catalog repository command:

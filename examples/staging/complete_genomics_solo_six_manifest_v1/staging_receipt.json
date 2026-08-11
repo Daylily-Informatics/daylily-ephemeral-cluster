@@ -1,0 +1,43 @@
+{
+  "contract_version": "complete-genomics-solo-six-manifest-v1",
+  "mappings": [
+    {
+      "source_s3_uri": "s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads/H_sapiens/complete_genomics/T7plus_WGS_PE150_HG003_PCR_Free_Read_1.fq.gz",
+      "staged_fsx_path": "/fsx/staging/staged_external_sequencing_data/complete-genomics-solo-six-manifest-v1/TVBCG5X/HG003/5x/lane-1/D0/T7plus_WGS_PE150_HG003_PCR_Free_Read_1.fq.gz",
+      "staged_s3_uri": "s3://lsmc-dayoa-control-data-usw2/staged_external_sequencing_data/complete-genomics-solo-six-manifest-v1/TVBCG5X/HG003/5x/lane-1/D0/T7plus_WGS_PE150_HG003_PCR_Free_Read_1.fq.gz"
+    },
+    {
+      "source_s3_uri": "s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads/H_sapiens/complete_genomics/T7plus_WGS_PE150_HG003_PCR_Free_Read_2.fq.gz",
+      "staged_fsx_path": "/fsx/staging/staged_external_sequencing_data/complete-genomics-solo-six-manifest-v1/TVBCG5X/HG003/5x/lane-1/D0/T7plus_WGS_PE150_HG003_PCR_Free_Read_2.fq.gz",
+      "staged_s3_uri": "s3://lsmc-dayoa-control-data-usw2/staged_external_sequencing_data/complete-genomics-solo-six-manifest-v1/TVBCG5X/HG003/5x/lane-1/D0/T7plus_WGS_PE150_HG003_PCR_Free_Read_2.fq.gz"
+    }
+  ],
+  "source_contract_provenance": {
+    "order_type": "RESEARCH",
+    "reviewed_planner_bundle": "docs/plans/20260719T133324Z_majors_bjuiceprevalanalysis_complete_artifacts/manifest_assembly/review_bundle_v1/reviewed_planner_bundle.json",
+    "reviewed_planner_ledger": "docs/plans/20260719T133324Z_majors_bjuiceprevalanalysis_complete_ledger.md"
+  },
+  "source_manifest": "examples/staging/complete_genomics_solo/analysis_samples_manifest.tsv",
+  "stage_target": "/fsx/staging/staged_external_sequencing_data",
+  "state": "materialized",
+  "materialization": {
+    "association_id": "dra-052c1ac91907a5f7c",
+    "verified_at": "2026-08-11T10:55:25Z",
+    "files_verified": [
+      {
+        "path": "/fsx/staging/staged_external_sequencing_data/complete-genomics-solo-six-manifest-v1/TVBCG5X/HG003/5x/lane-1/D0/T7plus_WGS_PE150_HG003_PCR_Free_Read_1.fq.gz",
+        "size_bytes": 125939746009
+      },
+      {
+        "path": "/fsx/staging/staged_external_sequencing_data/complete-genomics-solo-six-manifest-v1/TVBCG5X/HG003/5x/lane-1/D0/T7plus_WGS_PE150_HG003_PCR_Free_Read_2.fq.gz",
+        "size_bytes": 127737613770
+      }
+    ]
+  },
+  "test_only_identity_contract": {
+    "library_euid": "Z-CG-TVBCG5X-HG003-5X-D0-SR-LIBRARY",
+    "sample_euid": "Z-CG-TVBCG5X-HG003-5X-SAMPLE",
+    "scope": "Reserved Z- fixture identifiers only; never owner-issued, persisted, registered, or used for customer release.",
+    "specimen_euid": "Z-CG-TVBCG5X-HG003-5X-D0-SPECIMEN"
+  }
+}

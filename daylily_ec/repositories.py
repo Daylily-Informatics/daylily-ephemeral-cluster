@@ -14,8 +14,8 @@ from daylily_ec.resources import resource_path
 from daylily_ec.workflow.dyr_preflight import normalize_dyr_preflight_options
 
 
-CATALOG_VERSION = 3
-SUPPORTED_CATALOG_VERSIONS = {1, 2, CATALOG_VERSION}
+CATALOG_VERSION = 4
+SUPPORTED_CATALOG_VERSIONS = {1, 2, 3, CATALOG_VERSION}
 COMMAND_CLASSES = {"sample_analysis", "run_analysis", "utility"}
 COMMAND_TYPES = {"prod", "test", "dev", "research"}
 CLUSTER_TYPES = {"daywgs", "dragen", "sentieon-single"}
@@ -32,6 +32,21 @@ VALIDATION_STATUSES = {"success", "failed", "blocked", "not_run"}
 SOURCE_MOUNT_MODES = {"none", "default_mounted", "run_dra_required"}
 ARTIFACT_REGISTRATION_INCLUDE_MODES = {"classification", "path"}
 ARTIFACT_REGISTRATION_MANIFEST_SOURCES = {"dayoa_manifest", "s3_inventory"}
+
+
+def _validate_s3_uri_prefix(value: str, *, field_name: str) -> str:
+    """Validate an explicit, prefix-shaped S3 URI without contacting AWS."""
+
+    cleaned = str(value or "").strip()
+    if not cleaned:
+        return ""
+    if not cleaned.startswith("s3://"):
+        raise ValueError(f"{field_name} must be an s3:// URI")
+    bucket_and_key = cleaned.removeprefix("s3://")
+    bucket, separator, key = bucket_and_key.partition("/")
+    if not bucket or not separator or not key.strip("/"):
+        raise ValueError(f"{field_name} must name a non-root S3 prefix")
+    return f"s3://{bucket}/{key.strip('/')}/"
 
 
 def _clean_id(value: str, *, field_name: str) -> str:
@@ -532,6 +547,7 @@ class AnalysisCommand(BaseModel):
     input_contract: str
     requires_staging: bool
     requires_run_mount: bool
+    staging_receipt_required: bool = False
     runtime_parameters: Dict[str, Any] = Field(default_factory=dict)
     input_requirements: CommandInputRequirements = Field(default_factory=CommandInputRequirements)
     targets: List[str]
@@ -555,6 +571,7 @@ class AnalysisCommand(BaseModel):
     default_activation: bool = True
     optional_features: Dict[str, AnalysisCommandFeature] = Field(default_factory=dict)
     validation_runs: List[CommandValidationRun] = Field(default_factory=list)
+    validation_evidence_s3_uri_prefix: str = ""
     artifact_registration: Optional[ArtifactRegistrationPolicy] = None
 
     @field_validator(
@@ -623,6 +640,11 @@ class AnalysisCommand(BaseModel):
             raise ValueError("manifest template paths must be relative and must not contain '..'")
         return cleaned
 
+    @field_validator("validation_evidence_s3_uri_prefix")
+    @classmethod
+    def _validate_validation_evidence_s3_uri_prefix(cls, value: str) -> str:
+        return _validate_s3_uri_prefix(value, field_name="validation_evidence_s3_uri_prefix")
+
     @model_validator(mode="after")
     def _validate_launcher(self) -> "AnalysisCommand":
         if self.launcher != "workflow_launch":
@@ -633,6 +655,8 @@ class AnalysisCommand(BaseModel):
             raise ValueError("input_contract must be one of: " + ", ".join(sorted(INPUT_CONTRACTS)))
         if self.manifest_dir_template and self.input_contract != "six_manifest":
             raise ValueError("manifest_dir_template requires the six_manifest input contract")
+        if self.staging_receipt_required and self.input_contract != "six_manifest":
+            raise ValueError("staging_receipt_required requires the six_manifest input contract")
         if self.sample_manifest_template and self.input_contract == "six_manifest":
             raise ValueError(
                 "six_manifest commands must use manifest_dir_template, not sample_manifest_template"
@@ -884,6 +908,56 @@ class AnalysisCommand(BaseModel):
         return [mode for mode in modes if mode not in supported]
 
 
+class DyecBuildCommandSet(BaseModel):
+    """Immutable catalog command shapes released for one DYEC build.
+
+    Commands are deliberately embedded rather than referenced by the mutable
+    current repository rows.  This makes an old DYEC build reproducible even
+    after a later catalog release changes the same command id.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    repository: str
+    dayoa_git_tags: List[str]
+    commands: Dict[str, AnalysisCommand]
+
+    @field_validator("dayoa_git_tags")
+    @classmethod
+    def _validate_dayoa_git_tags(cls, values: List[str]) -> List[str]:
+        cleaned = [_clean_id(value, field_name="dayoa_git_tags value") for value in values]
+        if not cleaned:
+            raise ValueError("dayoa_git_tags must not be empty")
+        if len(set(cleaned)) != len(cleaned):
+            raise ValueError("dayoa_git_tags values must be unique")
+        return cleaned
+
+    @model_validator(mode="after")
+    def _validate_commands(self) -> "DyecBuildCommandSet":
+        repository = _clean_id(self.repository, field_name="DYEC build repository")
+        if not self.commands:
+            raise ValueError("DYEC build command set must contain at least one command")
+        for command_id, command in self.commands.items():
+            cleaned_id = _clean_id(command_id, field_name="DYEC build command id")
+            if command.command_id != cleaned_id:
+                raise ValueError(
+                    f"DYEC build command key {cleaned_id!r} must match command_id "
+                    f"{command.command_id!r}"
+                )
+            if command.repository and command.repository != repository:
+                raise ValueError(
+                    f"DYEC build command {command.command_id!r} repository "
+                    f"{command.repository!r} does not match build repository {repository!r}"
+                )
+            command.repository = repository
+            if command.git_tag not in self.dayoa_git_tags:
+                raise ValueError(
+                    f"DYEC build command {command.command_id!r} pins DayOA "
+                    f"{command.git_tag!r}, which is not declared in dayoa_git_tags"
+                )
+        return self
+
+
 class RepositoryDefinition(BaseModel):
     """A repository configured for explicit-ref day-clone launches."""
 
@@ -920,6 +994,7 @@ class RepositoryCatalog(BaseModel):
     input_contracts: Dict[str, InputContractDefinition] = Field(default_factory=dict)
     test_data_locations: List[TestDataLocation] = Field(default_factory=list)
     test_data_profiles: Dict[str, TestDataProfile] = Field(default_factory=dict)
+    dyec_builds: Dict[str, DyecBuildCommandSet] = Field(default_factory=dict)
     repositories: Dict[str, RepositoryDefinition]
 
     @model_validator(mode="after")
@@ -934,6 +1009,12 @@ class RepositoryCatalog(BaseModel):
             raise ValueError(f"default_repository {self.default_repository!r} is not configured")
         if self.command_catalog_version >= 3 and self.result_export is None:
             raise ValueError("command catalog version 3 requires result_export guidance")
+        if self.command_catalog_version >= 4 and not self.dyec_builds:
+            raise ValueError("command catalog version 4 requires dyec_builds")
+        for build_version in self.dyec_builds:
+            if str(build_version).startswith("v"):
+                raise ValueError("dyec_builds keys must use non-v semver release identifiers")
+            _clean_id(build_version, field_name="dyec_builds key")
         unknown_contracts = set(self.input_contracts) - INPUT_CONTRACTS
         if unknown_contracts:
             raise ValueError(
@@ -1005,6 +1086,23 @@ class RepositoryCatalog(BaseModel):
                             f"{command.input_contract!r} is missing required column(s): "
                             + ", ".join(sorted(missing_columns))
                         )
+        for build_version, command_set in self.dyec_builds.items():
+            for command in command_set.commands.values():
+                if command.repository not in self.repositories:
+                    raise ValueError(
+                        f"DYEC build {build_version!r} command {command.command_id!r} "
+                        f"references unknown repository {command.repository!r}"
+                    )
+                if command.input_contract != "none" and command.input_contract not in self.input_contracts:
+                    raise ValueError(
+                        f"DYEC build {build_version!r} command {command.command_id!r} "
+                        f"references unknown input contract {command.input_contract!r}"
+                    )
+                if command.test_data_profile not in self.test_data_profiles:
+                    raise ValueError(
+                        f"DYEC build {build_version!r} command {command.command_id!r} "
+                        f"references unknown test_data_profile {command.test_data_profile!r}"
+                    )
         return self
 
     def commands(self) -> List[AnalysisCommand]:
@@ -1020,6 +1118,31 @@ class RepositoryCatalog(BaseModel):
                 return command
         raise KeyError(f"Unknown analysis command: {command_key}")
 
+    def commands_for_dyec_build(self, dyec_version: str) -> List[AnalysisCommand]:
+        """Return the immutable command shapes released for one DYEC build."""
+
+        build_key = _clean_id(dyec_version, field_name="dyec_version")
+        try:
+            build = self.dyec_builds[build_key]
+        except KeyError as exc:
+            raise KeyError(f"No command eligibility set for DYEC build: {build_key}") from exc
+        return list(build.commands.values())
+
+    def get_command_for_dyec_build(
+        self, command_id: str, dyec_version: Optional[str] = None
+    ) -> AnalysisCommand:
+        """Resolve current command rows or an immutable released-build snapshot."""
+
+        if dyec_version is None:
+            return self.get_command(command_id)
+        command_key = _clean_id(command_id, field_name="command_id")
+        for command in self.commands_for_dyec_build(dyec_version):
+            if command.command_id == command_key:
+                return command
+        raise KeyError(
+            f"Command {command_key!r} is not eligible for DYEC build {dyec_version!r}"
+        )
+
     def to_public_payload(self) -> Dict[str, Any]:
         return {
             "command_catalog_version": self.command_catalog_version,
@@ -1034,6 +1157,10 @@ class RepositoryCatalog(BaseModel):
             "test_data_profiles": {
                 key: profile.model_dump(mode="json")
                 for key, profile in self.test_data_profiles.items()
+            },
+            "dyec_builds": {
+                build_version: command_set.model_dump(mode="json")
+                for build_version, command_set in self.dyec_builds.items()
             },
             "repositories": {
                 repo_key: repo.model_dump(mode="json")

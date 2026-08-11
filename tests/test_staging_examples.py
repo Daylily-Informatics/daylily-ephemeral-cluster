@@ -162,6 +162,7 @@ def test_staging_example_manifests_have_supported_schema_and_s3_sources() -> Non
     assert sorted(path.name for path in EXAMPLE_ROOT.iterdir()) == [
         "README.md",
         "complete_genomics_solo",
+        "complete_genomics_solo_six_manifest_v1",
         "hybrid_ilmn_ont",
         "hybrid_ilmn_ont_hg003_5x5x",
         "ilmn_hg002_solo",
