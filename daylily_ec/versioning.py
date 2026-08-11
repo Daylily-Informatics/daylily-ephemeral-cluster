@@ -2,20 +2,45 @@
 
 from __future__ import annotations
 
+import re
+import subprocess
 from functools import lru_cache
 from pathlib import Path
 
 DIST_NAME = "daylily-ephemeral-cluster"
+_SEMVER_TAG = re.compile(r"^\d+\.\d+\.\d+(?:\.\d+)?$")
 
 
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[1]
 
 
+def _exact_source_tag(root: Path) -> str | None:
+    """Return the exact release tag at ``HEAD``, independent of worktree dirt."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "describe", "--tags", "--exact-match", "HEAD"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return None
+
+    tag = result.stdout.strip()
+    if result.returncode == 0 and _SEMVER_TAG.fullmatch(tag):
+        return tag
+    return None
+
+
 def _source_tree_version() -> str | None:
     root = _repo_root()
     if not (root / ".git").exists():
         return None
+
+    exact_tag = _exact_source_tag(root)
+    if exact_tag is not None:
+        return exact_tag
 
     try:
         from setuptools_scm import get_version as scm_get_version

@@ -799,14 +799,27 @@ The rendered DayOA target is `produce_inflection_delivery_set`. Review the dry-r
 Export one exact analysis root:
 
 ```bash
+dyec analysis visit \
+  --analysis-root "$ANALYSIS_ROOT" \
+  --mode export \
+  --intent "export completed pipeline results to $DESTINATION_S3_URI without FSx cleanup" \
+  --s3-visit-uri "$DESTINATION_S3_URI"
+
 dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER" \
   --source-path "$ANALYSIS_ROOT" \
-  --destination-s3-uri s3://<analysis-bucket>/<prefix>/$CLUSTER/$ANALYSIS_ID/ \
-  --output-dir ./export-receipts/$ANALYSIS_ID
+  --destination-s3-uri "$DESTINATION_S3_URI" \
+  --output-dir ./export-receipts/$ANALYSIS_ID \
+  --wait \
+  --timeout-seconds 5400
 ```
+
+The command catalog exposes this contract in the `result_export` object from
+`dyec catalog list`, `dyec catalog show`, and `dyec catalog render`. After the
+controller succeeds, run the displayed DYEC visit and DRA export commands from
+the analysis root. DayOA does not export results.
 
 Use export helpers for existing receipts or bulk operation surfaces:
 
@@ -814,7 +827,10 @@ Use export helpers for existing receipts or bulk operation surfaces:
 dyec exports --help
 ```
 
-Verify `fsx_export.yaml`, object counts, and expected S3 outputs before cleanup.
+Verify `fsx_export.yaml` reports `status=success`, `phase=complete`,
+`task_lifecycle=SUCCEEDED`, and `detached=true`; then verify object counts and
+expected S3 outputs. FSx data is preserved by default. Cleanup is a separate,
+destructive operation and is not part of the catalog export recipe.
 
 ## Cost and pricing helpers
 

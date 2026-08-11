@@ -28,7 +28,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.4.14"
+DAYOA_BLESSED_TAG = "13.4.30"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -109,6 +109,7 @@ EXPECTED_COMMANDS = {
     ("repositories", "commands"),
     ("catalog", "list"),
     ("catalog", "show"),
+    ("catalog", "validation-compare"),
     ("catalog", "config-bjuice-preval"),
     ("catalog", "render"),
     ("catalog", "launch"),
@@ -424,6 +425,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     repositories_commands_cmd = registry.get_command(("repositories", "commands"))
     catalog_list_cmd = registry.get_command(("catalog", "list"))
     catalog_show_cmd = registry.get_command(("catalog", "show"))
+    catalog_validation_compare_cmd = registry.get_command(("catalog", "validation-compare"))
     catalog_config_bjuice_preval_cmd = registry.get_command(("catalog", "config-bjuice-preval"))
     catalog_render_cmd = registry.get_command(("catalog", "render"))
     catalog_launch_cmd = registry.get_command(("catalog", "launch"))
@@ -635,6 +637,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
         assert catalog_read_cmd.policy.supports_json is True
         assert catalog_read_cmd.policy.runtime_guard == "exempt"
         assert catalog_read_cmd.policy.mutates_state is False
+
+    assert catalog_validation_compare_cmd is not None
+    assert catalog_validation_compare_cmd.policy.supports_json is True
+    assert catalog_validation_compare_cmd.policy.runtime_guard == "required"
+    assert catalog_validation_compare_cmd.policy.mutates_state is False
 
     assert catalog_config_bjuice_preval_cmd is not None
     assert catalog_config_bjuice_preval_cmd.policy.supports_json is True
@@ -3154,7 +3161,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
             "--catalog-config",
             str(catalog),
             "--command-id",
-            "complete_genomics_mgi_snv_concordance",
+            "complete_genomics_cg_snv_concordance",
             "--analysis-id",
             "cg-run",
             "--executing-entity",
@@ -3188,7 +3195,10 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
         ],
     )
 
-    assert result.exit_code == 0
+    assert result.exit_code != 0
+    assert calls == {}
+    assert "does not infer DayOA 13 topology" in result.output
+    return
     assert calls["stage_argv"] == [
         str(manifest.resolve()),
         "--manifest-contract",
@@ -3263,7 +3273,7 @@ def test_samples_run_requires_analysis_identity(monkeypatch, tmp_path) -> None:
             "run",
             str(manifest),
             "--command-id",
-            "complete_genomics_mgi_snv_concordance",
+            "complete_genomics_cg_snv_concordance",
             "--profile",
             "dev",
             "--reference-s3-uri",
@@ -3321,7 +3331,7 @@ def test_samples_run_defaults_executing_entity_to_cluster(monkeypatch, tmp_path)
             "--catalog-config",
             str(catalog),
             "--command-id",
-            "complete_genomics_mgi_snv_concordance",
+            "complete_genomics_cg_snv_concordance",
             "--analysis-id",
             "cg-run",
             "--profile",
@@ -3342,7 +3352,10 @@ def test_samples_run_defaults_executing_entity_to_cluster(monkeypatch, tmp_path)
         ],
     )
 
-    assert result.exit_code == 0
+    assert result.exit_code != 0
+    assert calls == {}
+    assert "does not infer DayOA 13 topology" in result.output
+    return
     launch_argv = calls["launch_argv"]
     assert launch_argv[launch_argv.index("--executing-entity") + 1] == "cluster-a"
     receipt = config_dir / "20260425T000000Z_samples_run_receipt.json"
@@ -3368,7 +3381,7 @@ def test_samples_run_rejects_export_policy_before_staging(monkeypatch, tmp_path)
             "run",
             str(manifest),
             "--command-id",
-            "complete_genomics_mgi_snv_concordance",
+            "complete_genomics_cg_snv_concordance",
             "--analysis-id",
             "cg-run",
             "--executing-entity",
@@ -3387,11 +3400,11 @@ def test_samples_run_rejects_export_policy_before_staging(monkeypatch, tmp_path)
     )
 
     assert result.exit_code != 0
-    assert "export-trigger" in result.output
+    assert "does not embed export" in result.output
     assert "stage_argv" not in calls
 
 
-def test_samples_run_expands_export_root_to_cluster_analysis(monkeypatch, tmp_path) -> None:
+def test_samples_run_rejects_embedded_export_before_staging(monkeypatch, tmp_path) -> None:
     calls: dict[str, object] = {}
     _activate_dayec_runtime(monkeypatch)
     manifest = tmp_path / "analysis_samples.tsv"
@@ -3433,7 +3446,7 @@ def test_samples_run_expands_export_root_to_cluster_analysis(monkeypatch, tmp_pa
             "--catalog-config",
             str(catalog),
             "--command-id",
-            "complete_genomics_mgi_snv_concordance",
+            "complete_genomics_cg_snv_concordance",
             "--analysis-id",
             "cg-run",
             "--executing-entity",
@@ -3460,14 +3473,9 @@ def test_samples_run_expands_export_root_to_cluster_analysis(monkeypatch, tmp_pa
         ],
     )
 
-    assert result.exit_code == 0
-    launch_argv = calls["launch_argv"]
-    assert launch_argv[launch_argv.index("--export-destination-s3-uri") + 1] == (
-        "s3://bucket/derived/cluster-a/cg-run/"
-    )
-    receipt = config_dir / "20260425T000000Z_samples_run_receipt.json"
-    payload = json.loads(receipt.read_text(encoding="utf-8"))
-    assert payload["export_destination_s3_uri"] == "s3://bucket/derived/cluster-a/cg-run/"
+    assert result.exit_code != 0
+    assert "does not embed export" in result.output
+    assert not calls
 
 
 def test_samples_run_rejects_unknown_command(monkeypatch, tmp_path) -> None:
@@ -3558,6 +3566,8 @@ def test_catalog_list_and_show_expose_command_catalog_entries() -> None:
 
     assert list_result.exit_code == 0, list_result.output
     list_payload = json.loads(list_result.stdout)
+    assert "--intent" in list_payload["result_export"]["manual_visit_command"]
+    assert list_payload["result_export"]["preserves_fsx_by_default"] is True
     command_ids = {item["command_id"] for item in list_payload["commands"]}
     assert "package_inflection_hybrid_data" in command_ids
 
@@ -3568,12 +3578,40 @@ def test_catalog_list_and_show_expose_command_catalog_entries() -> None:
 
     assert show_result.exit_code == 0, show_result.output
     show_payload = json.loads(show_result.stdout)
+    assert "--mode export" in show_payload["result_export"]["manual_visit_command"]
+    assert "--intent" in show_payload["result_export"]["manual_visit_command"]
+    assert "dyec export" in show_payload["result_export"]["manual_export_command"]
     assert show_payload["command"]["command_id"] == "package_inflection_hybrid_data"
     assert show_payload["command"]["input_contract"] == "six_manifest"
     assert show_payload["command"]["dy_command"].startswith(
         "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_inflection_seqone_v2"
     )
     assert show_payload["command"]["return_results"] is False
+
+
+def test_catalog_validation_compare_uses_declared_command_evidence(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+
+    class _Comparison:
+        def to_payload(self) -> dict[str, object]:
+            return {"matches": True, "command_id": "illumina_run_qc"}
+
+    monkeypatch.setattr(
+        "daylily_ec.catalog_validation.compare_command_validation_evidence",
+        lambda command, *, profile, region: _Comparison(),
+    )
+
+    result = runner.invoke(
+        app,
+        ["--json", "catalog", "validation-compare", "illumina_run_qc"],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.stdout) == {
+        "command_id": "illumina_run_qc",
+        "dyec_version": None,
+        "matches": True,
+    }
 
 
 def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
@@ -3608,6 +3646,11 @@ def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
 
     assert result.exit_code == 0, result.output
     payload = json.loads(result.stdout)
+    assert "--intent" in payload["result_export"]["manual_visit_command"]
+    assert any(
+        "DYEC must wait for a successful controller exit" in step
+        for step in payload["result_export"]["post_controller_protocol"]
+    )
     assert payload["command"]["command_id"] == "package_inflection_hybrid_data"
     assert payload["git_tag"] == payload["command"]["git_tag"]
     assert payload["dry_run"] is True
@@ -3731,7 +3774,7 @@ def test_catalog_render_requires_explicit_staged_inputs_for_sample_commands() ->
         [
             "catalog",
             "render",
-            "complete_genomics_mgi_snv_concordance",
+            "complete_genomics_cg_snv_concordance",
             "--analysis-id",
             "cg-run",
             "--executing-entity",
@@ -3740,8 +3783,26 @@ def test_catalog_render_requires_explicit_staged_inputs_for_sample_commands() ->
     )
 
     assert result.exit_code != 0
-    assert "requires --stage-dir" in result.output
-    assert "dyec samples run" in result.output
+    assert "requires --manifest-dir" in result.output
+
+
+def test_catalog_launch_requires_materialized_complete_staging_receipt(tmp_path, monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    manifest_dir = tmp_path / "complete-six"
+    manifest_dir.mkdir()
+    (manifest_dir / "staging_receipt.json").write_text(
+        '{"state": "materialization_required"}\n', encoding="utf-8"
+    )
+    result = runner.invoke(
+        app,
+        [
+            "catalog", "launch", "complete_genomics_cg_snv_concordance",
+            "--analysis-id", "cg-run", "--executing-entity", "johnm",
+            "--manifest-dir", str(manifest_dir), "--dry-run",
+        ],
+    )
+    assert result.exit_code != 0
+    assert "state 'materialized'" in result.output
 
 
 def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
@@ -3784,11 +3845,6 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
             "--pass-on-budget-exceeded",
             "--session-name",
             "sess-1",
-            "--export-destination-s3-uri",
-            "s3://bucket/derived/johnm/run-1/",
-            "--export-trigger",
-            "on-success",
-            "--delete-on-export-success",
             "--replace-existing-analysis-dir",
             "--sv-callers",
             "tiddit",
@@ -3827,11 +3883,9 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "--pass-on-stale-budget" not in argv
     assert "--session-name" in argv
     assert "sess-1" in argv
-    assert "--export-destination-s3-uri" in argv
-    assert "s3://bucket/derived/johnm/run-1/" in argv
-    assert "--export-trigger" in argv
-    assert "on-success" in argv
-    assert "--delete-on-export-success" in argv
+    assert "--export-destination-s3-uri" not in argv
+    assert "--export-trigger" not in argv
+    assert "--delete-on-export-success" not in argv
     assert "--replace-existing-analysis-dir" in argv
     assert "--sv-callers" in argv
     assert "tiddit" in argv
@@ -3845,7 +3899,7 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "--dry-run" in argv
 
 
-def test_workflow_launch_expands_export_root_to_cluster_analysis(monkeypatch) -> None:
+def test_workflow_launch_rejects_embedded_export(monkeypatch) -> None:
     import daylily_ec.scripts.daylily_run_omics_analysis_headnode as launch_module
 
     calls: dict[str, object] = {}
@@ -3885,11 +3939,9 @@ def test_workflow_launch_expands_export_root_to_cluster_analysis(monkeypatch) ->
         ],
     )
 
-    assert result.exit_code == 0
-    argv = calls["argv"]
-    assert argv[argv.index("--export-destination-s3-uri") + 1] == (
-        "s3://bucket/derived/cluster-a/run-1/"
-    )
+    assert result.exit_code != 0
+    assert "does not embed export" in result.output
+    assert not calls
 
 
 def test_workflow_launch_rejects_invalid_producer_boolean(monkeypatch) -> None:

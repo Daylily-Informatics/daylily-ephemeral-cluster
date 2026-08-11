@@ -5,6 +5,7 @@ import shlex
 from pathlib import Path
 
 import pytest
+import yaml
 from typer.testing import CliRunner
 
 from daylily_ec.cli import app
@@ -13,7 +14,9 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.4.14"
+DAYOA_BLESSED_TAG = "13.4.31"
+PRODUCTION_DAYOA_TAG = "13.4.31"
+SOLO_KITCHEN_SINK_DAYOA_TAG = PRODUCTION_DAYOA_TAG
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -47,6 +50,8 @@ UNVALIDATED_COMMAND_IDS = {
     "package_inflection_hybrid_data",
     "betelgeuser_hiomr_prod_v1",
     "inflection-bjuice-product-v0.2",
+    "hiomr2_slim_kitchensink_mega_inflection_analytical",
+    "sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x",
     "illumina_pangenome_snv",
     "illumina_dragen_pangenome_snv_concordance",
     "ultima_pangenome_snv",
@@ -133,7 +138,57 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     catalog = load_repository_catalog(CATALOG_PATH)
     command = catalog.get_command("illumina_snv_alignstats")
 
-    assert catalog.command_catalog_version == 2
+    assert catalog.command_catalog_version == 4
+    released_build = catalog.commands_for_dyec_build("16.1.81")
+    assert {command.command_id for command in released_build} == {
+        "illumina_hg002_kitchensink_multiqc",
+        "ultima_snv_alignstats_kitchensink",
+        "ont_snv_alignstats_kitchensink",
+        "complete_genomics_cg_snv_concordance",
+        "illumina_run_qc",
+        "ont_run_qc",
+        "ultima_run_qc",
+        "inflection-bjuice-product-v0.2",
+        "sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x",
+    }
+    assert {command.type for command in released_build} == {"prod", "research"}
+    assert sum(command.type == "prod" for command in released_build) == 8
+    assert {command.git_tag for command in released_build} == {"13.4.30"}
+    assert {command.repository for command in released_build} == {"daylily-omics-analysis"}
+    historical_cg = catalog.get_command_for_dyec_build(
+        "complete_genomics_cg_snv_concordance", "16.1.81"
+    )
+    assert "produce_multiqc_all" not in historical_cg.targets
+    current_build = catalog.commands_for_dyec_build("16.1.82")
+    assert {command.command_id for command in current_build} == {
+        "illumina_run_qc",
+        "ont_run_qc",
+        "ultima_run_qc",
+        "illumina_hg002_kitchensink_multiqc",
+        "ont_snv_alignstats_kitchensink",
+        "ultima_snv_alignstats_kitchensink",
+        "complete_genomics_cg_snv_concordance",
+        "hiomr2_slim_kitchensink_mega_inflection_analytical",
+        "inflection-bjuice-product-v0.2",
+    }
+    assert {command.type for command in current_build} == {"prod"}
+    assert {command.git_tag for command in current_build} == {PRODUCTION_DAYOA_TAG}
+    assert {command.repository for command in current_build} == {"daylily-omics-analysis"}
+    current_cg = catalog.get_command_for_dyec_build(
+        "complete_genomics_cg_snv_concordance", "16.1.82"
+    )
+    assert "produce_multiqc_all" in current_cg.targets
+    assert catalog.result_export is not None
+    assert any(
+        "DYEC must wait for a successful controller exit" in step
+        for step in catalog.result_export.post_controller_protocol
+    )
+    assert "--mode export" in catalog.result_export.manual_visit_command
+    assert "--intent" in catalog.result_export.manual_visit_command
+    assert "dyec export" in catalog.result_export.manual_export_command
+    assert '"$ANALYSIS_ROOT"' in catalog.result_export.manual_export_command
+    assert "--delete-data-in-file-system" not in catalog.result_export.manual_export_command
+    assert catalog.result_export.preserves_fsx_by_default is True
     manifest_contract = catalog.input_contracts["sample_manifest"]
     assert [location.location_id for location in catalog.test_data_locations] == [
         "default_reference_reads_slim",
@@ -355,6 +410,38 @@ def test_hiomr2_catalog_selects_native_tiddit_and_paired_library_summary() -> No
 def test_repository_catalog_commands_have_run_metadata() -> None:
     catalog = load_repository_catalog(CATALOG_PATH)
 
+    production_ids = {
+        command.command_id for command in catalog.commands() if command.type == "prod"
+    }
+    assert production_ids == {
+        "illumina_run_qc",
+        "ont_run_qc",
+        "ultima_run_qc",
+        "illumina_hg002_kitchensink_multiqc",
+        "ont_snv_alignstats_kitchensink",
+        "ultima_snv_alignstats_kitchensink",
+        "complete_genomics_cg_snv_concordance",
+        "inflection-bjuice-product-v0.2",
+        "hiomr2_slim_kitchensink_mega_inflection_analytical",
+    }
+    recoverability = catalog.get_command(
+        "sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x"
+    )
+    assert recoverability.type == "research"
+    assert "produce_sentdhiomr2_nicu_fastq_recoverability" in recoverability.dy_command
+    for command_id in production_ids:
+        command = catalog.get_command(command_id)
+        assert "nicu_fastq_recoverability" not in command.dy_command
+    hiomr2_mega_ids = {
+        "inflection-bjuice-product-v0.2",
+        "hiomr2_slim_kitchensink_mega_inflection_analytical",
+    }
+    for command_id in hiomr2_mega_ids:
+        assert "produce_sentdhiomr2_nicu_research" in catalog.get_command(command_id).dy_command
+    for command_id in production_ids - hiomr2_mega_ids:
+        command = catalog.get_command(command_id)
+        assert "produce_sentdhiomr2_nicu_research" not in command.dy_command
+
     command_ids = {command.command_id for command in catalog.commands()}
     assert {
         "simple-test",
@@ -364,6 +451,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "illumina_hg002_kitchensink_multiqc",
         "ultima_snv_alignstats",
         "ultima_snv_alignstats_kitchensink",
+        "complete_genomics_cg_snv_concordance",
         "ont_snv_alignstats",
         "ont_snv_alignstats_kitchensink",
         "pacbio_snv_alignstats",
@@ -373,7 +461,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "illumina_pangenome_snv",
         "illumina_dragen_pangenome_snv_concordance",
         "ultima_pangenome_snv",
-        "complete_genomics_mgi_snv_concordance",
+        "complete_genomics_cg_snv_concordance",
     } <= command_ids
 
     for command in catalog.commands():
@@ -401,7 +489,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert command.compatible_platforms
             assert command.compatible_cluster_types == ["daywgs"]
             assert command.compatible_data_modes
-            assert command.git_tag == DAYOA_BLESSED_TAG
+            assert command.git_tag == SOLO_KITCHEN_SINK_DAYOA_TAG
             assert (
                 command.input_requirements.required_source_columns
                 or command.input_requirements.accepted_source_column_sets
@@ -444,15 +532,38 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.compatible_platforms
         assert command.compatible_cluster_types == ["daywgs"]
         assert command.compatible_data_modes
-        assert command.git_tag == DAYOA_BLESSED_TAG
+        expected_tag = (
+            SOLO_KITCHEN_SINK_DAYOA_TAG
+            if command.command_id == "complete_genomics_cg_snv_concordance"
+            else DAYOA_BLESSED_TAG
+        )
+        assert command.git_tag == expected_tag
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets
         )
 
-    complete_genomics = catalog.get_command("complete_genomics_mgi_snv_concordance")
-    assert complete_genomics.type == "dev"
-    assert complete_genomics.compatible_platforms == ["CG/MGI"]
+    complete_genomics = catalog.get_command("complete_genomics_cg_snv_concordance")
+    assert complete_genomics.type == "prod"
+    assert complete_genomics.input_contract == "six_manifest"
+    assert complete_genomics.sample_manifest_template == ""
+    assert (
+        complete_genomics.manifest_dir_template
+        == "examples/staging/complete_genomics_solo_six_manifest_v1"
+    )
+    assert complete_genomics.staging_receipt_required is True
+    assert complete_genomics.jobs == 333
+
+    for command_id in (
+        "illumina_hg002_kitchensink_multiqc",
+        "ont_snv_alignstats_kitchensink",
+        "ultima_snv_alignstats_kitchensink",
+        "complete_genomics_cg_snv_concordance",
+    ):
+        command = catalog.get_command(command_id)
+        assert command.validated_version == SOLO_KITCHEN_SINK_DAYOA_TAG
+        assert command.git_tag == SOLO_KITCHEN_SINK_DAYOA_TAG
+    assert complete_genomics.compatible_platforms == ["CG"]
     assert complete_genomics.compatible_cluster_types == ["daywgs"]
     assert complete_genomics.compatible_data_modes == ["complete_genomics_solo"]
     assert complete_genomics.aligners == ["sentcg"]
@@ -460,8 +571,13 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_cgt7p_snv_vcf" in complete_genomics.dy_command
     assert "produce_sentcg_align" in complete_genomics.dy_command
     assert "produce_dmd_dedup_cram" in complete_genomics.dy_command
+    assert "produce_multiqc_all" in complete_genomics.targets
+    assert "produce_multiqc_all" in complete_genomics.dy_command
+    assert "produce_multiqc_all" in complete_genomics.dryrun_dy_command
     assert "produce_smd_dedup_cram" not in complete_genomics.dy_command
     assert "aligners=['sentcg']" not in complete_genomics.dy_command
+    assert " -j 333 -T 0 " in complete_genomics.dy_command
+    assert " -k " not in complete_genomics.dy_command
 
     illumina_pangenome = catalog.get_command("illumina_pangenome_snv")
     assert illumina_pangenome.type == "dev"
@@ -593,17 +709,18 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "results/day/hg38/reports/dayoa_evidence_manifest.json",
     ]
     assert illumina_kitchensink.genome == "hg38"
-    assert illumina_kitchensink.jobs == 200
-    assert (
-        illumina_kitchensink.sample_manifest_template
-        == "examples/staging/ilmn_hg002_solo/analysis_samples_manifest.tsv"
-    )
+    assert illumina_kitchensink.jobs == 333
+    assert illumina_kitchensink.input_contract == "six_manifest"
+    assert illumina_kitchensink.sample_manifest_template == ""
+    assert illumina_kitchensink.manifest_dir_template == ""
     assert illumina_kitchensink.aligners == ["sent"]
     assert illumina_kitchensink.dedupers == ["dmd"]
     assert illumina_kitchensink.snv_callers == ["sentd"]
     assert illumina_kitchensink.sv_callers == []
     assert 'htd_callers=["cyrius"]' in illumina_kitchensink.dy_command
     assert "--rerun-triggers mtime" in illumina_kitchensink.dy_command
+    assert " -j 333 -p -T 0 " in illumina_kitchensink.dy_command
+    assert " -k " not in illumina_kitchensink.dy_command
     assert "produce_metagenomics" in illumina_kitchensink.dy_command
     assert "produce_multiqc_all" in illumina_kitchensink.dy_command
     assert "results/day/hg38/reports/DAY_final_multiqc.html" in illumina_kitchensink.dy_command
@@ -614,7 +731,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "contam_identity" not in illumina_kitchensink.dy_command
 
     metagenomics = catalog.get_command("all_metagenomic_pipelines")
-    assert metagenomics.type == "dev"
+    assert metagenomics.type == "research"
     assert metagenomics.targets == ["produce_metagenomics"]
     assert metagenomics.sample_manifest_template == (
         "examples/staging/ilmn_hg003_5x_solo/analysis_samples_manifest.tsv"
@@ -630,6 +747,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     ultima_kitchensink = catalog.get_command("ultima_snv_alignstats_kitchensink")
     assert ultima_kitchensink.validation_runs == []
+    assert ultima_kitchensink.input_contract == "six_manifest"
+    assert ultima_kitchensink.sample_manifest_template == ""
+    assert ultima_kitchensink.manifest_dir_template == ""
     assert ultima_kitchensink.targets == [
         "produce_alignstats",
         "produce_na_dedup_cram",
@@ -643,6 +763,10 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert ultima_kitchensink.aligners == ["ug"]
     assert ultima_kitchensink.dedupers == ["na"]
     assert ultima_kitchensink.snv_callers == ["sentdug"]
+    assert ultima_kitchensink.jobs == 333
+    assert 'aligners=["ug"]' in ultima_kitchensink.dy_command
+    assert " -j 333 -T 0 " in ultima_kitchensink.dy_command
+    assert " -k " not in ultima_kitchensink.dy_command
     assert "produce_multiqc_all" in ultima_kitchensink.dy_command
     assert "multiqc_qc=" in ultima_kitchensink.dy_command
     assert "enable_tools" in ultima_kitchensink.dy_command
@@ -660,6 +784,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     ont_kitchensink = catalog.get_command("ont_snv_alignstats_kitchensink")
     assert ont_kitchensink.validation_runs == []
+    assert ont_kitchensink.input_contract == "six_manifest"
+    assert ont_kitchensink.sample_manifest_template == ""
+    assert ont_kitchensink.manifest_dir_template == ""
     assert ont_kitchensink.targets == [
         "produce_alignstats",
         "produce_na_dedup_cram",
@@ -672,7 +799,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "results/day/hg38/reports/DAY_final_multiqc.html",
         "results/day/hg38/reports/dayoa_evidence_manifest.json",
     ]
-    assert ont_kitchensink.jobs == 250
+    assert ont_kitchensink.jobs == 333
     assert ont_kitchensink.aligners == ["ont"]
     assert ont_kitchensink.dedupers == ["na"]
     assert ont_kitchensink.snv_callers == ["sentdont"]
@@ -680,7 +807,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_na_dedup_cram" in ont_kitchensink.dy_command
     assert "--rerun-triggers mtime" in ont_kitchensink.dy_command
     assert "--rerun-triggers mtime -n" in ont_kitchensink.dryrun_dy_command
-    assert " -j 250 " in ont_kitchensink.dy_command
+    assert " -j 333 -T 0 " in ont_kitchensink.dy_command
+    assert " -k " not in ont_kitchensink.dy_command
+    assert 'aligners=["ont"]' in ont_kitchensink.dy_command
     assert "produce_multiqc_all" in ont_kitchensink.dy_command
     assert "results/day/hg38/reports/DAY_final_multiqc.html" in ont_kitchensink.dy_command
     assert "results/day/hg38/reports/dayoa_evidence_manifest.json" in ont_kitchensink.dy_command
@@ -740,6 +869,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "hiomr2",
         "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical",
         "inflection-bjuice-product-v0.2",
+        "hiomr2_slim_kitchensink_mega_inflection_analytical",
     ):
         hiomr2_kitchensink = catalog.get_command(command_id)
         for command in (
@@ -765,6 +895,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     for command_id in (
         "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical",
         "inflection-bjuice-product-v0.2",
+        "hiomr2_slim_kitchensink_mega_inflection_analytical",
     ):
         hiomr2_kitchensink = catalog.get_command(command_id)
         assert hiomr2_kitchensink.dy_command.count(hiomr2_test_scope) == 1
@@ -774,7 +905,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     package_inflection = catalog.get_command("package_inflection_hybrid_data")
     assert package_inflection.type == "dev"
-    assert package_inflection.validated_version == "13.4.14"
+    assert package_inflection.validated_version == DAYOA_BLESSED_TAG
     assert package_inflection.git_tag == DAYOA_BLESSED_TAG
     assert package_inflection.input_contract == "six_manifest"
     assert package_inflection.targets == ["produce_sentdhiomr2_inflection_seqone_v2"]
@@ -798,6 +929,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     )
 
     inflection_bjuice = catalog.get_command("inflection-bjuice-product-v0.2")
+    hiomr2_slim = catalog.get_command(
+        "hiomr2_slim_kitchensink_mega_inflection_analytical"
+    )
     hiomr2_analytical = catalog.get_command(
         "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical"
     )
@@ -821,6 +955,14 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "produce_sentdhiomr2_inflection_analytical_package",
         "results/day/hg38/reports/DAY_final_multiqc.html",
     ]
+    assert hiomr2_slim.targets == inflection_bjuice.targets
+    assert hiomr2_slim.dy_command == inflection_bjuice.dy_command
+    assert hiomr2_slim.dryrun_dy_command == inflection_bjuice.dryrun_dy_command
+    assert hiomr2_slim.test_data_profile == inflection_bjuice.test_data_profile
+    assert hiomr2_slim.git_tag == PRODUCTION_DAYOA_TAG
+    assert "standalone NICU FASTQ recoverability producer is deliberately excluded" in (
+        hiomr2_slim.description
+    )
     assert inflection_bjuice.targets != hiomr2_analytical.targets
     assert inflection_bjuice.jobs == 333
     assert inflection_bjuice.restart_times == 1
@@ -838,7 +980,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     )
     assert "produce_sentdhiomr2_inflection_seqone_v2" not in inflection_bjuice.dy_command
     assert "produce_sentdhiomr2_segdup_smn12_multiqc" not in inflection_bjuice.dy_command
-    assert "-j 333 -T 1 -p -k" in inflection_bjuice.dy_command
+    assert "-j 333 -T 0 -p" in inflection_bjuice.dy_command
+    assert " -k " not in inflection_bjuice.dy_command
     assert inflection_bjuice.runtime_parameters == {}
     assert "SEQONE_DELIVERY_BATCH_ID" not in inflection_bjuice.dy_command
     assert "HIOMR2_SEQONE_V2_CONFIG_FILE" not in inflection_bjuice.dy_command
@@ -857,7 +1000,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert 'aligners=["sentmm2ont"]' in inflection_bjuice.dy_command
     assert 'dedupers=["na"]' in inflection_bjuice.dy_command
     assert 'snv_callers=["sentdhiomr2"]' in inflection_bjuice.dy_command
-    assert " -j 333 -T 1 -p -k " in inflection_bjuice.dy_command
+    assert " -j 333 -T 0 -p " in inflection_bjuice.dy_command
     assert inflection_bjuice.genome == "hg38"
     assert inflection_bjuice.dryrun_dy_command == f"{inflection_bjuice.dy_command} -n"
     inflection_launch_argv = inflection_bjuice.launch_argv(
@@ -989,12 +1132,12 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "bclconvert/units.tsv" not in combined_dy_command
 
     ont = catalog.get_command("ont_run_qc")
+    assert ont.validated_version == PRODUCTION_DAYOA_TAG
+    assert ont.git_tag == PRODUCTION_DAYOA_TAG
     assert ont.targets == ["produce_ont_run_qc_and_demux_multiqc"]
     assert ont.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
         "run_context_only": "true",
-        "samples_table": ".test_data/data/samples.tsv",
-        "units_table": ".test_data/data/units.tsv",
     }
     ont_argv = ont.launch_argv(
         analysis_id="ont-run-qc",
@@ -1010,10 +1153,12 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert ont.jobs == 6
     assert "run_context_file=config/runs.tsv" in ont_dy_command
     assert "run_context_only=true" in ont_dy_command
+    assert "samples_table=" not in ont_dy_command
+    assert "units_table=" not in ont_dy_command
 
     ultima = catalog.get_command("ultima_run_qc")
-    assert ultima.validated_version == "13.4.14"
-    assert ultima.git_tag == DAYOA_BLESSED_TAG
+    assert ultima.validated_version == PRODUCTION_DAYOA_TAG
+    assert ultima.git_tag == PRODUCTION_DAYOA_TAG
     assert ultima.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
         "run_context_only": "true",
@@ -1143,6 +1288,31 @@ def test_repository_catalog_v2_requires_command_class(tmp_path: Path) -> None:
         load_repository_catalog(path)
 
 
+def test_repository_catalog_v3_requires_result_export_guidance(tmp_path: Path) -> None:
+    path = tmp_path / "v3-without-export-guidance.yaml"
+    path.write_text(
+        _minimal_run_catalog_yaml().replace(
+            "command_catalog_version: 2",
+            "command_catalog_version: 3",
+            1,
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="requires result_export guidance"):
+        load_repository_catalog(path)
+
+
+def test_repository_catalog_v4_requires_dyec_builds(tmp_path: Path) -> None:
+    path = tmp_path / "v4-without-builds.yaml"
+    raw = yaml.safe_load(CATALOG_PATH.read_text(encoding="utf-8"))
+    del raw["dyec_builds"]
+    path.write_text(yaml.safe_dump(raw, sort_keys=False), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="requires dyec_builds"):
+        load_repository_catalog(path)
+
+
 def test_repository_catalog_rejects_unknown_cluster_type(tmp_path: Path) -> None:
     path = tmp_path / "bad-cluster-type.yaml"
     path.write_text(
@@ -1238,3 +1408,38 @@ def test_repositories_commands_json_cli_lists_blessed_command() -> None:
         "ILMN_R1_FQ",
         "ILMN_R2_FQ",
     ]
+
+
+def test_catalog_build_snapshots_preserve_immutable_command_shapes(tmp_path) -> None:
+    raw = yaml.safe_load(CATALOG_PATH.read_text(encoding="utf-8"))
+    raw["command_catalog_version"] = 4
+    command = next(
+        item
+        for item in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]
+        if item["command_id"] == "illumina_snv_alignstats"
+    )
+    snapshot = dict(command)
+    snapshot["git_tag"] = "13.4.30"
+    snapshot["validated_version"] = "13.4.30"
+    snapshot["repository"] = "daylily-omics-analysis"
+    snapshot["validation_evidence_s3_uri_prefix"] = "s3://validation-bucket/illumina/"
+    raw["dyec_builds"] = {
+        "16.1.81": {
+            "repository": "daylily-omics-analysis",
+            "dayoa_git_tags": ["13.4.30"],
+            "commands": {"illumina_snv_alignstats": snapshot},
+        }
+    }
+    catalog_path = tmp_path / "catalog.yaml"
+    catalog_path.write_text(yaml.safe_dump(raw, sort_keys=False), encoding="utf-8")
+
+    catalog = load_repository_catalog(catalog_path)
+    snapshot_command = catalog.get_command_for_dyec_build("illumina_snv_alignstats", "16.1.81")
+
+    assert snapshot_command.git_tag == "13.4.30"
+    assert snapshot_command.validation_evidence_s3_uri_prefix == "s3://validation-bucket/illumina/"
+    assert [command.command_id for command in catalog.commands_for_dyec_build("16.1.81")] == [
+        "illumina_snv_alignstats"
+    ]
+    with pytest.raises(KeyError, match="not eligible"):
+        catalog.get_command_for_dyec_build("ont_snv_alignstats", "16.1.81")

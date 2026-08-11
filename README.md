@@ -137,6 +137,29 @@ dyec --json catalog render hybrid_ilmn_ont_hiomr_kitchensink \
 
 Large local payloads are staged through S3 with `--payload-staging-s3-uri`. DYEC uploads a tarball containing input manifests, a payload manifest, and the controller launch script. The headnode downloads and expands that tarball into the workflow run directory, starts the tmux controller, and then saves the exact executed script under `<analysis-root>/bin/dyec-controller-launch.sh` after `day-clone` creates the analysis root. This avoids SSM document-size limits without pre-creating the analysis root.
 
+### Released command shapes and validation evidence
+
+Catalog version 4 can retain immutable command shapes under a top-level
+`dyec_builds.<DYEC_VERSION>` key. Select that released shape explicitly rather
+than allowing a current catalog row to change an older DYEC build's DayOA pin:
+
+```bash
+dyec --json catalog list --dyec-version 16.1.81 --type prod
+dyec --json catalog render <command-id> --dyec-version 16.1.81 ...
+```
+
+Each command may declare an explicit `validation_evidence_s3_uri_prefix`. The
+prefix must contain `command_registry.json` and `summary.json` from a successful
+`dyec tests command-catalog` run. Compare it read-only with:
+
+```bash
+dyec --json catalog validation-compare <command-id> \
+  --dyec-version 16.1.81 --profile "$AWS_PROFILE" --region "$REGION"
+```
+
+The comparison fails hard when no prefix is declared, the receipts are missing,
+the captured DayOA pin differs, or the recorded command phase did not succeed.
+
 ## Workflow launch without the catalog shortcut
 
 Use `dyec workflow launch` when you already know the exact DayOA command string or are launching a non-catalog repository command:
@@ -402,16 +425,28 @@ The catalog enforces each command’s required `PLATFORM` value.
 Export one completed analysis directory:
 
 ```bash
+dyec analysis visit \
+  --analysis-root /fsx/analysis_results/"$CLUSTER"/"$ANALYSIS_ID" \
+  --mode export \
+  --intent "export completed pipeline results to $DESTINATION_S3_URI without FSx cleanup" \
+  --s3-visit-uri "$DESTINATION_S3_URI"
+
 dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER" \
   --source-path /fsx/analysis_results/"$CLUSTER"/"$ANALYSIS_ID" \
-  --destination-s3-uri s3://<analysis-results-bucket>/<prefix>/"$CLUSTER"/"$ANALYSIS_ID"/ \
+  --destination-s3-uri "$DESTINATION_S3_URI" \
   --output-dir ./export-receipts/"$ANALYSIS_ID"
 ```
 
-`dyec export` records a local receipt and uses an explicit DRA/export path. Verify the receipt and expected S3 objects before deleting any cluster or filesystem.
+`dyec catalog list`, `show`, and `render` expose the same `result_export`
+contract. DayOA never exports: after the controller succeeds, run the displayed
+DYEC visit and DRA export commands from the analysis root.
+`dyec export` records a local receipt and uses an explicit DRA/export path.
+Verify `status=success`, `phase=complete`, `task_lifecycle=SUCCEEDED`,
+`detached=true`, and the expected S3 objects. FSx data is preserved unless a
+separately approved destructive option is explicitly supplied.
 
 ## Development and tests
 

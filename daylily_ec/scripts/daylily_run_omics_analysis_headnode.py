@@ -1821,77 +1821,6 @@ print("[INFO] DayOA native BCL Convert lane-split rules detected; no DYEC runtim
 PYNATIVEBCL
 }}
 
-ultima_run_qc_config_requested() {{
-  case "$DY_COMMAND" in
-    *produce_ultima_run_qc*)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}}
-
-append_ultima_run_qc_config() {{
-  local extra_config
-  extra_config="$(python3 - <<'PYULTIMACFG'
-import csv
-import json
-import shlex
-import subprocess
-import sys
-from pathlib import Path
-
-runs_path = Path("config/runs.tsv")
-if not runs_path.is_file():
-    raise SystemExit("[ERROR] Ultima run QC requires config/runs.tsv")
-
-with runs_path.open(newline="", encoding="utf-8-sig") as handle:
-    runs = list(csv.DictReader(handle, delimiter="\t"))
-
-run_row = next((row for row in runs if str(row.get("PLATFORM", "")).upper() == "ULTIMA"), None)
-if run_row is None:
-    raise SystemExit("[ERROR] Ultima run QC requires a ULTIMA run row in config/runs.tsv")
-
-source_s3_uri = str(run_row.get("SOURCE_S3_URI", "")).strip()
-if not source_s3_uri.startswith("s3://"):
-    raise SystemExit("[ERROR] Ultima run QC requires SOURCE_S3_URI in config/runs.tsv")
-metrics_path = str(run_row.get("METRICS_PATH", "")).strip()
-metrics_s3_uri = str(run_row.get("METRICS_S3_URI", "")).strip()
-if metrics_s3_uri:
-    if not metrics_s3_uri.startswith("s3://"):
-        raise SystemExit("[ERROR] Ultima run QC METRICS_S3_URI must be an s3:// URI")
-    metrics_path = "config/ultima_run_qc_metrics.csv"
-    try:
-        subprocess.run(
-            ["aws", "s3", "cp", metrics_s3_uri, metrics_path],
-            check=True,
-            stdout=sys.stderr,
-            stderr=sys.stderr,
-        )
-    except subprocess.CalledProcessError as exc:
-        raise SystemExit(
-            f"[ERROR] Failed to copy Ultima run QC METRICS_S3_URI: {{exc.returncode}}"
-        ) from exc
-if not metrics_path:
-    raise SystemExit(
-        "[ERROR] Ultima run QC requires METRICS_PATH or METRICS_S3_URI in config/runs.tsv"
-    )
-if not Path(metrics_path).is_file():
-    raise SystemExit(f"[ERROR] Ultima run QC metrics file not found: {{metrics_path}}")
-if Path(metrics_path).stat().st_size == 0:
-    raise SystemExit(f"[ERROR] Ultima run QC metrics file is empty: {{metrics_path}}")
-
-payload = "run_qc=" + json.dumps(
-    {{"ultima": {{"run_s3_uri": source_s3_uri, "metrics_path": metrics_path}}}},
-    separators=(",", ":"),
-)
-print(shlex.quote(payload))
-PYULTIMACFG
-)"
-	DY_COMMAND="$DY_COMMAND --config $extra_config"
-}}
-
 patch_dayoa_runtime_tmpdir_wrappers() {{
   python3 - <<'PYRUNTMP'
 from pathlib import Path
@@ -2511,9 +2440,6 @@ PYCONTAMZERO
 	    generate_bclconvert_runtime_tables
 	    BCLCONVERT_PROFILE_PATCH_REQUESTED=true
 	  fi
-	  if ultima_run_qc_config_requested; then
-	    append_ultima_run_qc_config
-	  fi
 	elif [[ "$SAMPLE_CONFIG_MODE" == "true" ]]; then
 	  if [[ "$INPUT_CONTRACT" == "six_manifest" ]]; then
 	    printf '%s' "$SPECIMENS_PAYLOAD" > config/specimens.tsv
@@ -2806,41 +2732,6 @@ workflow_status=$?
 	  echo "[ERROR] DY_COMMAND requested a DAG but no exact new DAG PNG was produced"
 	  [[ "$workflow_status" -ne 0 ]] || workflow_status=24
 	fi
-should_export=false
-case "$EXPORT_TRIGGER" in
-  none) should_export=false ;;
-  on-success) [[ "$workflow_status" -eq 0 ]] && should_export=true ;;
-  on-fail) [[ "$workflow_status" -ne 0 ]] && should_export=true ;;
-  all) should_export=true ;;
-  *) echo "[ERROR] Invalid EXPORT_TRIGGER=$EXPORT_TRIGGER"; workflow_status=20 ;;
-esac
-if [[ "$should_export" == "true" ]]; then
-  if [[ -z "$EXPORT_DESTINATION_S3_URI" ]]; then
-    echo "[ERROR] Export requested but EXPORT_DESTINATION_S3_URI is empty"
-    workflow_status=21
-  else
-    if ! remove_run_dir_projection_links; then
-      workflow_status=22
-    else
-      mkdir -p "$DAYLILY_RUN_DIR/export"
-      set +e
-      env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export \
-        --region {shlex.quote(region)} \
-        --cluster {shlex.quote(cluster_name)} \
-        --source-path "$clone_root" \
-        --destination-s3-uri "$EXPORT_DESTINATION_S3_URI" \
-        --output-dir "$DAYLILY_RUN_DIR/export"
-      export_status=$?
-      if [[ "$export_status" -ne 0 ]]; then
-        echo "[ERROR] Export failed with status $export_status"
-        workflow_status="$export_status"
-      elif [[ "$DELETE_ON_EXPORT_SUCCESS" == "true" ]]; then
-        rm -rf -- "$clone_root"
-        echo "[INFO] Deleted FSx analysis directory after successful export: $clone_root"
-      fi
-    fi
-  fi
-fi
 export DAYLILY_STATUS_FINALIZED=1
 export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export DAYLILY_STATUS_EXIT_CODE="$workflow_status"

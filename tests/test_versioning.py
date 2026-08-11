@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from types import SimpleNamespace
-import sys
 
 from typer.testing import CliRunner
 
@@ -36,6 +36,8 @@ def test_get_version_falls_back_to_installed_metadata(monkeypatch):
 def test_source_tree_version_uses_repo_root_without_relative_to(monkeypatch):
     calls = {}
 
+    monkeypatch.setattr(versioning, "_exact_source_tag", lambda root: None)
+
     def fake_get_version(**kwargs):
         calls.update(kwargs)
         return "8.9.10"
@@ -51,24 +53,57 @@ def test_source_tree_version_uses_repo_root_without_relative_to(monkeypatch):
     assert "relative_to" not in calls
 
 
+def test_exact_source_tag_accepts_only_exact_semver_tags(monkeypatch):
+    root = Path("/example/repository")
+    calls = {}
+
+    def fake_run(*args, **kwargs):
+        calls["args"] = args
+        calls["kwargs"] = kwargs
+        return SimpleNamespace(returncode=0, stdout="16.1.68\n")
+
+    monkeypatch.setattr(versioning.subprocess, "run", fake_run)
+
+    assert versioning._exact_source_tag(root) == "16.1.68"
+    assert calls["args"] == (
+        ["git", "-C", str(root), "describe", "--tags", "--exact-match", "HEAD"],
+    )
+    assert calls["kwargs"] == {"check": False, "capture_output": True, "text": True}
+
+
+def test_source_tree_version_prefers_exact_tag_before_setuptools_scm(monkeypatch):
+    monkeypatch.setattr(versioning, "_exact_source_tag", lambda root: "16.1.68")
+
+    assert versioning._source_tree_version() == "16.1.68"
+
+
 def test_import_daylily_ec_is_lightweight_and_exports_create_cluster():
-    sys.modules.pop("daylily_ec", None)
-    sys.modules.pop("daylily_ec.create", None)
-    sys.modules.pop("daylily_ec.workflow", None)
-    sys.modules.pop("daylily_ec.workflow.export_data", None)
+    original_modules = {
+        name: module
+        for name, module in sys.modules.items()
+        if name == "daylily_ec" or name.startswith("daylily_ec.")
+    }
+    try:
+        for name in original_modules:
+            sys.modules.pop(name, None)
 
-    import daylily_ec as reloaded_daylily_ec
+        import daylily_ec as reloaded_daylily_ec
 
-    assert reloaded_daylily_ec.__version__
-    assert "daylily_ec.create" not in sys.modules
-    assert "daylily_ec.workflow" not in sys.modules
-    assert "daylily_ec.workflow.export_data" not in sys.modules
+        assert reloaded_daylily_ec.__version__
+        assert "daylily_ec.create" not in sys.modules
+        assert "daylily_ec.workflow" not in sys.modules
+        assert "daylily_ec.workflow.export_data" not in sys.modules
 
-    create_cluster = reloaded_daylily_ec.create_cluster
+        create_cluster = reloaded_daylily_ec.create_cluster
 
-    assert callable(create_cluster)
-    assert create_cluster.__module__ == "daylily_ec.create"
-    assert "daylily_ec.create" in sys.modules
+        assert callable(create_cluster)
+        assert create_cluster.__module__ == "daylily_ec.create"
+        assert "daylily_ec.create" in sys.modules
+    finally:
+        for name in tuple(sys.modules):
+            if name == "daylily_ec" or name.startswith("daylily_ec."):
+                sys.modules.pop(name, None)
+        sys.modules.update(original_modules)
 
 
 def test_cli_version_uses_source_aware_version():

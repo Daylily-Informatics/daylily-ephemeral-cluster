@@ -415,11 +415,11 @@ def render_catalog_dy_command(
 
 def selected_dayoa_version(commands: Sequence[AnalysisCommand]) -> str:
     tags = sorted({command.git_tag for command in commands})
-    if len(tags) != 1:
-        raise TestsRunnerError(
-            "Selected catalog commands have multiple DayOA git tags: " + ", ".join(tags)
-        )
-    return tags[0]
+    if not tags:
+        raise TestsRunnerError("At least one catalog command is required.")
+    if len(tags) == 1:
+        return tags[0]
+    return "mixed-" + "-".join(tags)
 
 
 def build_evidence_prefix(

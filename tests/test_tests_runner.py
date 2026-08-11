@@ -49,13 +49,14 @@ from daylily_ec.tests_runner import (
     run_pytest,
     selected_dayoa_version,
     wait_for_phase,
+    write_manifest_directory,
     write_sample_manifest,
     write_phase_plan,
 )
 
 
 runner = CliRunner()
-DAYOA_BLESSED_TAG = "13.4.14"
+DAYOA_BLESSED_TAG = "13.4.31"
 
 
 def _run_mount_record(
@@ -196,7 +197,7 @@ def test_command_code_parser_exact_released_sets_duplicate_and_unknown() -> None
         tuple(command for command in catalog.commands() if command.type != "research")
     )
     all_command_ids = {command.command_id for command in all_commands}
-    assert "complete_genomics_mgi_snv_concordance" in all_command_ids
+    assert "complete_genomics_cg_snv_concordance" in all_command_ids
     assert "simple-test" in all_command_ids
     assert "illumina_pangenome_snv" in all_command_ids
     assert "illumina_bclconvert" not in all_command_ids
@@ -204,8 +205,8 @@ def test_command_code_parser_exact_released_sets_duplicate_and_unknown() -> None
     with pytest.raises(RunnerError, match="Unknown analysis command"):
         parse_command_codes("all", catalog)
     assert (
-        parse_command_codes("complete_genomics_mgi_snv_concordance", catalog)[0].command_id
-        == "complete_genomics_mgi_snv_concordance"
+        parse_command_codes("complete_genomics_cg_snv_concordance", catalog)[0].command_id
+        == "complete_genomics_cg_snv_concordance"
     )
     assert (
         parse_command_codes("illumina_bclconvert", catalog)[0].command_id == "illumina_bclconvert"
@@ -304,46 +305,39 @@ def test_ont_kitchensink_slim_fixture_does_not_require_fastq_alignment() -> None
 
 
 def test_complete_genomics_slim_fixture_can_be_written(tmp_path: Path) -> None:
-    command = load_repository_catalog().get_command("complete_genomics_mgi_snv_concordance")
+    command = load_repository_catalog().get_command("complete_genomics_cg_snv_concordance")
 
-    manifest = write_sample_manifest(command, tmp_path)
+    manifest_dir = write_manifest_directory(command, tmp_path)
+    manifests = load_manifest_set(manifest_dir)
+    [row] = manifests.rows["sequencing_inputs.tsv"]
 
-    text = manifest.read_text(encoding="utf-8")
-    assert "CG_R1_FQ" in text
-    assert "CG_R2_FQ" in text
-    assert "CG/MGI" in text
-    assert "\tpass_through\t/fsx/staging/staged_external_sequencing_data\t" in text
+    assert row["SEQ_PLATFORM"] == "CG"
+    assert row["SEQ_VENDOR"] == "CG"
+    assert row["ILMN_R1_PATH"].endswith("T7plus_WGS_PE150_HG003_PCR_Free_Read_1.fq.gz")
+    assert row["ILMN_R2_PATH"].endswith("T7plus_WGS_PE150_HG003_PCR_Free_Read_2.fq.gz")
 
 
-def test_write_legacy_sample_manifest_uses_command_specific_templates(tmp_path: Path) -> None:
+def test_write_legacy_sample_manifest_uses_explicit_command_template(tmp_path: Path) -> None:
     catalog = load_repository_catalog()
-    ilmn_dir = tmp_path / "ilmn"
     metagenomics_dir = tmp_path / "metagenomics"
-    ilmn_dir.mkdir()
     metagenomics_dir.mkdir()
 
-    ilmn_manifest = write_sample_manifest(
-        catalog.get_command("illumina_hg002_kitchensink_multiqc"), ilmn_dir
-    )
     metagenomics_manifest = write_sample_manifest(
         catalog.get_command("all_metagenomic_pipelines"), metagenomics_dir
     )
-    with ilmn_manifest.open(newline="", encoding="utf-8") as handle:
-        ilmn_row = next(csv.DictReader(handle, delimiter="\t"))
     with metagenomics_manifest.open(newline="", encoding="utf-8") as handle:
         metagenomics_row = next(csv.DictReader(handle, delimiter="\t"))
-    assert ilmn_row["SAMPLE_ID"] == "HG002"
-    assert ilmn_row["EXTERNAL_SAMPLE_ID"] == "HG002"
-    assert ilmn_row["EXPERIMENTID"] == "5x"
-    assert "HG002_5x_R1.fastq.gz" in ilmn_row["ILMN_R1_FQ"]
-    assert "HG002_5x_R2.fastq.gz" in ilmn_row["ILMN_R2_FQ"]
     assert metagenomics_row["SAMPLE_ID"] == "HG003"
     assert metagenomics_row["EXPERIMENTID"] == "5x"
     assert "HG003_5x_R1.fastq.gz" in metagenomics_row["ILMN_R1_FQ"]
     assert "HG003_5x_R2.fastq.gz" in metagenomics_row["ILMN_R2_FQ"]
-    assert ilmn_row["ILMN_R1_FQ"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
-    assert ilmn_row["ILMN_R2_FQ"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
-    assert ilmn_row["STAGE_DIRECTIVE"] == "pass_through"
+    assert metagenomics_row["ILMN_R1_FQ"].startswith(
+        "/fsx/data/genomic_data/organism_reads_slim/"
+    )
+    assert metagenomics_row["ILMN_R2_FQ"].startswith(
+        "/fsx/data/genomic_data/organism_reads_slim/"
+    )
+    assert metagenomics_row["STAGE_DIRECTIVE"] == "pass_through"
 
 
 @pytest.mark.parametrize(
@@ -556,8 +550,8 @@ def test_run_command_catalog_dry_run_only_renders_and_exports(tmp_path: Path) ->
     )
     ont_command = ont_call[ont_call.index("--dy-command") + 1]
     assert "run_context_file=config/runs.tsv" in ont_command
-    assert "samples_table=.test_data/data/samples.tsv" in ont_command
-    assert "units_table=.test_data/data/units.tsv" in ont_command
+    assert "samples_table=" not in ont_command
+    assert "units_table=" not in ont_command
     with (tmp_path / "ultima_run_qc" / "runs.tsv").open(newline="", encoding="utf-8") as handle:
         ultima_rows = list(csv.DictReader(handle, delimiter="\t"))
     assert ultima_rows[0]["METRICS_PATH"] == (
@@ -624,9 +618,9 @@ def test_run_command_catalog_live_runs_all_requested_after_dryrun(tmp_path: Path
             profile="lsmc",
             region="us-west-2",
             command_codes=(
-                "illumina_snv_alignstats "
-                "illumina_hg002_kitchensink_multiqc "
-                "ont_snv_alignstats_kitchensink"
+                "all_metagenomic_pipelines "
+                "complete_genomics_cg_snv_concordance "
+                "inflection-bjuice-product-v0.2"
             ),
             evidence_s3_uri="s3://evidence-root/validation",
             dry_run_only=False,
@@ -647,9 +641,9 @@ def test_run_command_catalog_live_runs_all_requested_after_dryrun(tmp_path: Path
     assert phase_names.count("live") == 3
     live_ids = {phase.phase.command_id for phase in result.phases if phase.phase.phase == "live"}
     assert live_ids == {
-        "illumina_snv_alignstats",
-        "illumina_hg002_kitchensink_multiqc",
-        "ont_snv_alignstats_kitchensink",
+        "all_metagenomic_pipelines",
+        "complete_genomics_cg_snv_concordance",
+        "inflection-bjuice-product-v0.2",
     }
     warmup_commands = [
         call[call.index("--dy-command") + 1]
@@ -660,9 +654,11 @@ def test_run_command_catalog_live_runs_all_requested_after_dryrun(tmp_path: Path
     assert all("--conda-create-envs-only" in command for command in warmup_commands)
     assert all("--export-destination-s3-uri" not in call for call in launch_calls)
     assert json.loads(
-        (tmp_path / "illumina_snv_alignstats" / "live_rendered.json").read_text(encoding="utf-8")
+        (tmp_path / "all_metagenomic_pipelines" / "live_rendered.json").read_text(
+            encoding="utf-8"
+        )
     )["export_destination_s3_uri"].endswith(
-        "/ubuntu/ccv_live_illumina_snv_alignstats_20260607T000000Z/"
+        "/ubuntu/ccv_live_all_metagenomic_pipelines_20260607T000000Z/"
     )
 
 
@@ -756,7 +752,7 @@ def test_run_command_catalog_counts_dev_commands_for_aggregate_rc(tmp_path: Path
             cluster="dyec800",
             profile="lsmc",
             region="us-west-2",
-            command_codes="complete_genomics_mgi_snv_concordance",
+            command_codes="hybrid_ilmn_ont_hiomr_kitchensink",
             evidence_s3_uri="s3://evidence-root/validation",
             dry_run_only=True,
             output_dir=tmp_path,
@@ -917,13 +913,12 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
     with pytest.raises(RunnerError, match="--command-codes is required"):
         parse_command_codes("", catalog)
 
-    with pytest.raises(RunnerError, match="multiple DayOA git tags"):
-        selected_dayoa_version(
-            [
-                SimpleNamespace(git_tag="10.0.0"),
-                SimpleNamespace(git_tag="9.0.1"),
-            ]
-        )
+    assert selected_dayoa_version(
+        [
+            SimpleNamespace(git_tag="10.0.0"),
+            SimpleNamespace(git_tag="9.0.1"),
+        ]
+    ) == "mixed-10.0.0-9.0.1"
 
     compact = render_dy_command(
         "dy-r target -j20 --jobs=30 -T1 --timestamp=2 --dry-run --printshellcmds",

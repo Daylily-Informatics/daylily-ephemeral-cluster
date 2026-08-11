@@ -169,17 +169,10 @@ FSx export reports are written inside the requested destination under:
 _daylily_monitor/fsx-export/<timestamp>/export-report/
 ```
 
-When a workflow is launched with auto-export enabled, use:
-
-```text
---export-destination-s3-uri s3://.../<executing_entity>/<analysis_id>/ \
---export-trigger on-success \
---delete-on-export-success
-```
-
-With that mode, DayEC exports after a successful analysis and removes the
-exported `/fsx/analysis_results/<executing_entity>/<analysis_id>` directory only
-after `dyec export` succeeds.
+After a workflow controller succeeds, use the catalog's separate DYEC export
+visit and DRA command against `/fsx/analysis_results/<executing_entity>/<analysis_id>/`.
+The default export contract retains FSx data; cleanup is a separate destructive
+operation after a successful receipt and is never part of DayOA execution.
 
 ## Lifecycle By Phase
 
