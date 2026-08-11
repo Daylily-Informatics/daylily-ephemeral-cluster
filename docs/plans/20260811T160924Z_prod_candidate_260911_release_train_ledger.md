@@ -78,7 +78,7 @@ numeric key (`16.1.85` here), and existing numeric snapshots are immutable.
 | DYEC-CURRENT | DYEC | Make catalog v5 use `dyec_builds.current` by default and consult numeric snapshots only for explicit `--dyec-version`. | SUCCESS | feature_implementation | Gate 3 | orchestrator | Default CLI probe returned `dyec_version=current`, 29 commands, and DayOA `13.4.33`; explicit `--dyec-version 16.1.82` returned 9 commands at `13.4.31`. Default model accessors are covered independently from repository rows. |  | Numeric snapshots are opt-in; `current` is the default for every catalog consumer. |
 | DYEC-INSTALLED | DYEC | Remove static source/package self-pins and make every headnode configure path install and verify the running exact DYEC release. | SUCCESS | config_or_startup_contract | Gate 3 | orchestrator | Active config contains no self-pin key; public headnode help contains no `--dyec-version`; configuration derives `get_release_version()`, checks out `refs/tags/<running-version>`, and verifies the exact remote `dyec --version`. |  | A development/non-release installation now fails closed instead of selecting another DYEC version. |
 | DYEC-SELF | DYEC | Publish a second DYEC self-pin release `16.1.86`. | NO_LONGER_NEEDED | config_or_startup_contract | Gate 5 | orchestrator | Superseded by the owner's installed-version contract; no `16.1.86` commit or tag was created. | Redundant static self-pinning caused the downgrade/confusion this release removes. | One DYEC `16.1.85` release is now the complete train. |
-| FINAL-001 | Cross-repo | Verify remote branches, annotated tag objects and peeled commits, source/payload parity, clean release diffs, and terminal ledger state. | IN_PROGRESS | contract_test | Gate 5 | orchestrator | Source/payload parity, focused release validation, CLI probes, shell syntax, Python compile, targeted Ruff, and `git diff --check` passed. Commit, annotated tag, push, and remote ref verification remain. |  |  |
+| FINAL-001 | Cross-repo | Verify remote branches, annotated tag objects and peeled commits, source/payload parity, clean release diffs, and terminal ledger state. | SUCCESS | contract_test | Gate 5 | orchestrator | DYEC branch and annotated tag were pushed; remote branch and peeled `16.1.85` both resolved to `fd1b583b73ccc22e3c3589357e4d3b09c8502d6a`, while remote tag object was `61ee2018596d25d92669d6ce6c943da9d5084a7e`. DayOA branch and peeled `13.4.33` both resolved to `56208632627ccff4c1fb2b2525900e68de59ec12`. |  | This docs-only closeout advances the DYEC candidate branch after the release without moving the immutable `16.1.85` tag. |
 
 ## Validation evidence before the release commit
 
@@ -96,12 +96,36 @@ numeric key (`16.1.85` here), and existing numeric snapshots are immutable.
 - Source/package catalog, global config, and `get_git_deets.sh` copies are
   byte-identical. Parsed `dyec_builds.current` equals `dyec_builds.16.1.85`
   exactly and contains 29 commands pinned to DayOA `13.4.33`.
+- From the clean annotated tag, `dyec --version` returned `Daylily Ephemeral
+  Cluster 16.1.85` and the 681-test release gate passed again in 34.24 seconds.
+- The DAY-EC environment does not contain the optional `build` frontend, so
+  `python -m build` could not start. The equivalent isolated local wheel gate
+  succeeded through `pip wheel --no-deps`: artifact
+  `daylily_ephemeral_cluster-16.1.85-py3-none-any.whl`, SHA-256
+  `3673f99b66c3ab317968f77a8960af89bd73795f779b17da3a69b88b0e9944e8`.
+  Its metadata reports `Version: 16.1.85`, and all three embedded
+  source/package parity targets matched byte-for-byte. No package-index upload
+  was requested or performed.
+
+## Published release refs
+
+- DayOA usable release: annotated `13.4.33`; remote tag object
+  `8df9d9bbd735691483ac0173e6e9226186d41056`; peeled commit and candidate
+  branch `56208632627ccff4c1fb2b2525900e68de59ec12`.
+- DayOA superseded release retained: annotated `13.4.32`; remote tag object
+  `f5253e9dabd2c3a356abab72062204a447cfe047`; peeled commit
+  `06483d03ac32373583daf8cdb11d79c791f4b00f`.
+- DYEC release: annotated `16.1.85`; remote tag object
+  `61ee2018596d25d92669d6ce6c943da9d5084a7e`; peeled release commit
+  `fd1b583b73ccc22e3c3589357e4d3b09c8502d6a`.
+- No `16.1.86` release was created; the installed-version contract makes the
+  former second self-pin release unnecessary.
 
 ## Final report
 
-All rows terminal: no.
+All rows terminal: yes.
 
-Objective complete: no.
+Objective complete: yes.
 
-Status counts: `SUCCESS=9`, `OPEN=0`, `IN_PROGRESS=1`, `NO_LONGER_NEEDED=1`,
+Status counts: `SUCCESS=10`, `OPEN=0`, `IN_PROGRESS=0`, `NO_LONGER_NEEDED=1`,
 `BLOCKED=0`, `FAIL=0`.
