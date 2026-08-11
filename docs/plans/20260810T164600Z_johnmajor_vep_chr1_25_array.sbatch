@@ -15,8 +15,10 @@ OUT="$RUN/shards/chr${CHR}.vep114.GRCh38.vcf.gz"
 export SINGULARITY_CACHEDIR="${TMPDIR:-/tmp}/singularity-cache"
 export APPTAINER_CACHEDIR="$SINGULARITY_CACHEDIR"
 mkdir -p "$SINGULARITY_CACHEDIR"
+VEP_IMAGE="$RUN/containers/ensembl-vep_release_114.2.sif"
+test -s "$VEP_IMAGE"
 gzip -dc "$INPUT" | awk -v chr="$CHR" 'BEGIN { FS=OFS="\t" } /^#/ || $1 == chr' | \
-  singularity exec --bind /fsx:/fsx docker://ensemblorg/ensembl-vep:release_114.2 \
+  singularity exec --bind /fsx:/fsx "$VEP_IMAGE" \
   vep --offline --cache --dir_cache /fsx/references/runtime_assets/tool_specific_resources/vep \
       --species homo_sapiens --assembly GRCh38 --format vcf --vcf --input_file STDIN \
       --output_file "$OUT" --compress_output bgzip --force_overwrite --fork 1 --allow_non_variant
