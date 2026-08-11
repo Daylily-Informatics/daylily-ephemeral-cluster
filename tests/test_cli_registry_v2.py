@@ -3558,6 +3558,8 @@ def test_catalog_list_and_show_expose_command_catalog_entries() -> None:
 
     assert list_result.exit_code == 0, list_result.output
     list_payload = json.loads(list_result.stdout)
+    assert "--intent" in list_payload["result_export"]["manual_visit_command"]
+    assert list_payload["result_export"]["preserves_fsx_by_default"] is True
     command_ids = {item["command_id"] for item in list_payload["commands"]}
     assert "package_inflection_hybrid_data" in command_ids
 
@@ -3568,6 +3570,9 @@ def test_catalog_list_and_show_expose_command_catalog_entries() -> None:
 
     assert show_result.exit_code == 0, show_result.output
     show_payload = json.loads(show_result.stdout)
+    assert "--mode export" in show_payload["result_export"]["manual_visit_command"]
+    assert "--intent" in show_payload["result_export"]["manual_visit_command"]
+    assert "dyec export" in show_payload["result_export"]["manual_export_command"]
     assert show_payload["command"]["command_id"] == "package_inflection_hybrid_data"
     assert show_payload["command"]["input_contract"] == "six_manifest"
     assert show_payload["command"]["dy_command"].startswith(
@@ -3608,6 +3613,10 @@ def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
 
     assert result.exit_code == 0, result.output
     payload = json.loads(result.stdout)
+    assert "--intent" in payload["result_export"]["manual_visit_command"]
+    assert "--export-trigger on-success" in payload["result_export"][
+        "automatic_launch_options"
+    ]
     assert payload["command"]["command_id"] == "package_inflection_hybrid_data"
     assert payload["git_tag"] == payload["command"]["git_tag"]
     assert payload["dry_run"] is True

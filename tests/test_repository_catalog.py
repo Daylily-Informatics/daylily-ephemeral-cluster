@@ -133,7 +133,14 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     catalog = load_repository_catalog(CATALOG_PATH)
     command = catalog.get_command("illumina_snv_alignstats")
 
-    assert catalog.command_catalog_version == 2
+    assert catalog.command_catalog_version == 3
+    assert catalog.result_export is not None
+    assert "--export-trigger on-success" in catalog.result_export.automatic_launch_options
+    assert "--mode export" in catalog.result_export.manual_visit_command
+    assert "--intent" in catalog.result_export.manual_visit_command
+    assert "dyec export" in catalog.result_export.manual_export_command
+    assert "--delete-data-in-file-system" not in catalog.result_export.manual_export_command
+    assert catalog.result_export.preserves_fsx_by_default is True
     manifest_contract = catalog.input_contracts["sample_manifest"]
     assert [location.location_id for location in catalog.test_data_locations] == [
         "default_reference_reads_slim",
@@ -989,8 +996,8 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "bclconvert/units.tsv" not in combined_dy_command
 
     ont = catalog.get_command("ont_run_qc")
-    assert ont.validated_version == "13.4.21"
-    assert ont.git_tag == "13.4.21"
+    assert ont.validated_version == "13.4.22"
+    assert ont.git_tag == "13.4.22"
     assert ont.targets == ["produce_ont_run_qc_and_demux_multiqc"]
     assert ont.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
@@ -1142,6 +1149,21 @@ def test_repository_catalog_v2_requires_command_class(tmp_path: Path) -> None:
     )
 
     with pytest.raises(ValueError, match="command_class"):
+        load_repository_catalog(path)
+
+
+def test_repository_catalog_v3_requires_result_export_guidance(tmp_path: Path) -> None:
+    path = tmp_path / "v3-without-export-guidance.yaml"
+    path.write_text(
+        _minimal_run_catalog_yaml().replace(
+            "command_catalog_version: 2",
+            "command_catalog_version: 3",
+            1,
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="requires result_export guidance"):
         load_repository_catalog(path)
 
 

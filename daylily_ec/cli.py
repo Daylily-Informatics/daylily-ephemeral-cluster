@@ -6064,6 +6064,11 @@ def _catalog_render_payload(
     dy_command = workflow_argv[workflow_argv.index("--dy-command") + 1]
     return {
         "command_catalog_version": catalog.command_catalog_version,
+        "result_export": (
+            catalog.result_export.model_dump(mode="json")
+            if catalog.result_export is not None
+            else None
+        ),
         "command": _catalog_command_summary(command),
         "analysis_id": analysis_id,
         "executing_entity": resolved_executing_entity,
@@ -6121,6 +6126,11 @@ def catalog_list(
         payload = {
             "command_catalog_version": catalog.command_catalog_version,
             "default_repository": catalog.default_repository,
+            "result_export": (
+                catalog.result_export.model_dump(mode="json")
+                if catalog.result_export is not None
+                else None
+            ),
             "commands": [_catalog_command_summary(command) for command in commands],
         }
         if _json_mode():
@@ -6145,6 +6155,11 @@ def catalog_show(
         catalog, command = _catalog_load_command(config, command_id)
         payload = {
             "command_catalog_version": catalog.command_catalog_version,
+            "result_export": (
+                catalog.result_export.model_dump(mode="json")
+                if catalog.result_export is not None
+                else None
+            ),
             "command": command.model_dump(mode="json"),
         }
         if _json_mode():

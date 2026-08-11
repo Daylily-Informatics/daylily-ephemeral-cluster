@@ -2745,7 +2745,16 @@ if [[ "$should_export" == "true" ]]; then
     echo "[ERROR] Export requested but EXPORT_DESTINATION_S3_URI is empty"
     workflow_status=21
   else
-    if ! remove_run_dir_projection_links; then
+    if ! dyec analysis visit \
+      --analysis-root "$clone_root" \
+      --mode export \
+      --intent "automatic $EXPORT_TRIGGER export for dyec workflow launch $SESSION_NAME" \
+      --s3-visit-uri "$EXPORT_DESTINATION_S3_URI" \
+      --human-requestor "$DAYOA_HUMAN_REQUESTOR" \
+      --note "controller completed rc=$workflow_status" >/dev/null; then
+      echo "[ERROR] Failed to record the required analysis export visit"
+      workflow_status=25
+    elif ! remove_run_dir_projection_links; then
       workflow_status=22
     else
       mkdir -p "$DAYLILY_RUN_DIR/export"

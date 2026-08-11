@@ -14,8 +14,8 @@ from daylily_ec.resources import resource_path
 from daylily_ec.workflow.dyr_preflight import normalize_dyr_preflight_options
 
 
-CATALOG_VERSION = 2
-SUPPORTED_CATALOG_VERSIONS = {1, CATALOG_VERSION}
+CATALOG_VERSION = 3
+SUPPORTED_CATALOG_VERSIONS = {1, 2, CATALOG_VERSION}
 COMMAND_CLASSES = {"sample_analysis", "run_analysis", "utility"}
 COMMAND_TYPES = {"prod", "test", "dev", "research"}
 CLUSTER_TYPES = {"daywgs", "dragen", "sentieon-single"}
@@ -63,6 +63,59 @@ class AnalysisCommandFeature(BaseModel):
         if any(not value for value in cleaned):
             raise ValueError("list values must not be empty")
         return cleaned
+
+
+class ResultExportGuidance(BaseModel):
+    """Catalog-level contract for exporting completed analysis results."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    description: str
+    automatic_launch_options: List[str]
+    manual_visit_command: str
+    manual_export_command: str
+    success_checks: List[str]
+    preserves_fsx_by_default: bool
+
+    @field_validator(
+        "description",
+        "manual_visit_command",
+        "manual_export_command",
+    )
+    @classmethod
+    def _validate_non_empty_text(cls, value: str) -> str:
+        return _clean_id(value, field_name="result export guidance value")
+
+    @field_validator("automatic_launch_options", "success_checks")
+    @classmethod
+    def _validate_non_empty_list(cls, values: List[str]) -> List[str]:
+        cleaned = [str(value).strip() for value in values]
+        if not cleaned or any(not value for value in cleaned):
+            raise ValueError("result export guidance lists must not be empty")
+        return cleaned
+
+    @model_validator(mode="after")
+    def _validate_export_contract(self) -> "ResultExportGuidance":
+        required_launch_options = {
+            "--export-destination-s3-uri",
+            "--export-trigger on-success",
+        }
+        if not required_launch_options.issubset(self.automatic_launch_options):
+            raise ValueError(
+                "automatic_launch_options must include --export-destination-s3-uri and "
+                "--export-trigger on-success"
+            )
+        for token in ("dyec analysis visit", "--mode export", "--intent"):
+            if token not in self.manual_visit_command:
+                raise ValueError(f"manual_visit_command must include {token!r}")
+        for token in ("dyec export", "--source-path", "--destination-s3-uri", "--output-dir"):
+            if token not in self.manual_export_command:
+                raise ValueError(f"manual_export_command must include {token!r}")
+        if "--delete-data-in-file-system" in self.manual_export_command:
+            raise ValueError("manual_export_command must preserve FSx data by default")
+        if not self.preserves_fsx_by_default:
+            raise ValueError("result export guidance must preserve FSx data by default")
+        return self
 
 
 class TableSchema(BaseModel):
@@ -866,6 +919,7 @@ class RepositoryCatalog(BaseModel):
 
     command_catalog_version: int
     default_repository: str
+    result_export: Optional[ResultExportGuidance] = None
     input_contracts: Dict[str, InputContractDefinition] = Field(default_factory=dict)
     test_data_locations: List[TestDataLocation] = Field(default_factory=list)
     test_data_profiles: Dict[str, TestDataProfile] = Field(default_factory=dict)
@@ -881,6 +935,8 @@ class RepositoryCatalog(BaseModel):
             )
         if self.default_repository not in self.repositories:
             raise ValueError(f"default_repository {self.default_repository!r} is not configured")
+        if self.command_catalog_version >= 3 and self.result_export is None:
+            raise ValueError("command catalog version 3 requires result_export guidance")
         unknown_contracts = set(self.input_contracts) - INPUT_CONTRACTS
         if unknown_contracts:
             raise ValueError(

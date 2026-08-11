@@ -402,16 +402,29 @@ The catalog enforces each command’s required `PLATFORM` value.
 Export one completed analysis directory:
 
 ```bash
+dyec analysis visit \
+  --analysis-root /fsx/analysis_results/"$CLUSTER"/"$ANALYSIS_ID" \
+  --mode export \
+  --intent "export completed pipeline results to $DESTINATION_S3_URI without FSx cleanup" \
+  --s3-visit-uri "$DESTINATION_S3_URI"
+
 dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER" \
   --source-path /fsx/analysis_results/"$CLUSTER"/"$ANALYSIS_ID" \
-  --destination-s3-uri s3://<analysis-results-bucket>/<prefix>/"$CLUSTER"/"$ANALYSIS_ID"/ \
+  --destination-s3-uri "$DESTINATION_S3_URI" \
   --output-dir ./export-receipts/"$ANALYSIS_ID"
 ```
 
-`dyec export` records a local receipt and uses an explicit DRA/export path. Verify the receipt and expected S3 objects before deleting any cluster or filesystem.
+`dyec catalog list`, `show`, and `render` expose the same `result_export`
+contract. For automatic export, pass `--export-destination-s3-uri` plus
+`--export-trigger on-success` to the rendered catalog launch. The controller
+records the required export visit and intent before it invokes `dyec export`.
+`dyec export` records a local receipt and uses an explicit DRA/export path.
+Verify `status=success`, `phase=complete`, `task_lifecycle=SUCCEEDED`,
+`detached=true`, and the expected S3 objects. FSx data is preserved unless a
+separately approved destructive option is explicitly supplied.
 
 ## Development and tests
 

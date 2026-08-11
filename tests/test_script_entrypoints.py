@@ -723,6 +723,13 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "dy-r" in script
         assert 'local links_dir="$repo_path/config/run_dir_links"' in script
         assert "if ! remove_run_dir_projection_links; then" in script
+        assert '--mode export' in script
+        assert '--intent "automatic $EXPORT_TRIGGER export for dyec workflow launch $SESSION_NAME"' in script
+        assert '--s3-visit-uri "$EXPORT_DESTINATION_S3_URI"' in script
+        assert "Failed to record the required analysis export visit" in script
+        assert script.index(
+            '--intent "automatic $EXPORT_TRIGGER export for dyec workflow launch $SESSION_NAME"'
+        ) < script.index("env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export")
         assert script.index("remove_run_dir_projection_links") < script.index(
             "env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export"
         )

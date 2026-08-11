@@ -1,6 +1,33 @@
 ---
-command_catalog_version: 2
+command_catalog_version: 3
 default_repository: daylily-omics-analysis
+result_export:
+  description: "Export a completed pipeline analysis root only after the controller exits successfully. Automatic catalog launches should use the on-success export options. Manual exports must first record an export visit with an explicit intent, then run dyec export and verify both the receipt and expected S3 objects."
+  automatic_launch_options:
+    - --export-destination-s3-uri
+    - --export-trigger on-success
+  manual_visit_command: |-
+    dyec analysis visit \
+      --analysis-root "$ANALYSIS_ROOT" \
+      --mode export \
+      --intent "export completed pipeline results to $DESTINATION_S3_URI without FSx cleanup" \
+      --s3-visit-uri "$DESTINATION_S3_URI"
+  manual_export_command: |-
+    dyec export \
+      --profile "$AWS_PROFILE" \
+      --region "$REGION" \
+      --cluster "$CLUSTER" \
+      --source-path "$ANALYSIS_ROOT" \
+      --destination-s3-uri "$DESTINATION_S3_URI" \
+      --output-dir "$EXPORT_RECEIPT_DIR" \
+      --wait \
+      --timeout-seconds 5400
+  success_checks:
+    - "The workflow controller exited successfully before export began."
+    - "fsx_export.yaml records fsx_export.status=success and fsx_export.phase=complete."
+    - "fsx_export.yaml records fsx_export.task_lifecycle=SUCCEEDED and fsx_export.detached=true."
+    - "The expected pipeline result objects, including final reports, are present at the exact destination S3 prefix."
+  preserves_fsx_by_default: true
 # day-clone consumes the repository rows below directly:
 #   day-clone --repository <repo-key> --destination <analysis-id> --git-tag <ref>
 #   day-clone -d <analysis-id> -t <ref>
@@ -1734,7 +1761,7 @@ repositories:
         validation_runs: []
       - command_id: ont_run_qc
         type: prod
-        validated_version: "13.4.21"
+        validated_version: "13.4.22"
         test_data_profile: ont_run_directory
         display_name: "ONT Run QC"
         description: "ONT mounted run-folder QC plus demultiplexed FASTQ QC and focused MultiQC reports in one run-analysis output tree."
@@ -1766,7 +1793,7 @@ repositories:
           - daywgs
         compatible_data_modes:
           - run_directory_mount
-        git_tag: "13.4.21"
+        git_tag: "13.4.22"
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
