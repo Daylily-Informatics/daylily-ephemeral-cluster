@@ -43,7 +43,9 @@ DayOA 13.4.31 on the available cluster.
 | G0-001 | Record execution baseline | SUCCESS | Gate 0 | Inventory above; cluster, mounts, catalog tags, and pre-existing repository state captured before launch. |
 | HN-001 | Refresh headnode DYEC without downgrade | BLOCKED | Headnode toolchain | The supported deploy-key refresh followed the configured self-pin (`16.1.82`) instead of the installed local DYEC (`16.1.83`) and the headnode then reported `16.1.44`. Do not retry until the installer accepts and verifies an operator-selected release tag. |
 | HN-002 | Add explicit DYEC headnode version selection | SUCCESS | Headnode toolchain | `headnode configure`, `headnode configure-dragen`, and `daylily_cfg_headnode.py` now accept `--dyec-version`; it requires the DYEC deploy key, rejects a non-release/mismatched ref, clones the exact tag, and fails unless remote `dyec --version` exactly equals the requested version. Focused unit/CLI/script tests: 24 passed. |
-| REL-001 | Publish corrected headnode-configure double release | IN PROGRESS | Release policy | Per the operator docs, DYEC retains its explicit bootstrap self-pin and keeps the source and packaged global configs synchronized. Release `16.1.84` will carry the explicit-version installer/verification fix; `16.1.85` will then advance both self-pins to that final release tag. |
+| HN-003 | Replace explicit/static selection with the running installed release | SUCCESS | Headnode toolchain | The superseding `16.1.85` candidate removes both global YAML self-pin keys and the headnode `--dyec-version` override. Configure derives the exact release reported by the running DYEC, checks out `refs/tags/<running-version>`, and always verifies the same remote `dyec --version`; the release-specific gate passed 681 tests. |
+| REL-001 | Publish corrected headnode-configure double release | NO_LONGER_NEEDED | Release policy | The explicit-version fix merged in PR #95 and is preserved by annotated tag `16.1.84` at `cd41cd510c6ca60073006b3ed79f3251899db298`. The double-release/self-pin design was superseded by the owner's single-release installed-version contract; no pushed tag was moved. |
+| REL-002 | Publish the superseding prod-candidate release train | SUCCESS | Release policy | DayOA annotated `13.4.33` peels to `56208632627ccff4c1fb2b2525900e68de59ec12`; DYEC annotated `16.1.85` peels to `fd1b583b73ccc22e3c3589357e4d3b09c8502d6a`. Both `prod-candidate-260911` branches and tags were pushed and verified. DYEC contains the DayOA pin, catalog-v5 `current` default, exact `16.1.85` snapshot, and installed-version headnode contract. |
 | PCL-001 | ILMN SeqQC (`illumina_run_qc`) | BLOCKED | DayOA execution contract | The catalog's exact command begins `bin/day_run`, but the controlling DayOA contract permits workflow execution only through `dy-r` in a persistent ubuntu tmux session. The input run is also not specified among the available ILMN mount and the catalog's historical profile. |
 | PCL-002 | ONT SeqQC (`ont_run_qc`) | BLOCKED | DayOA execution contract | Same `bin/day_run`/`dy-r` conflict; select the exact mounted ONT run before a launch. |
 | PCL-003 | Ultima SeqQC (`ultima_run_qc`) | BLOCKED | DayOA execution contract | Same `bin/day_run`/`dy-r` conflict; select the exact mounted Ultima run before a launch. |
@@ -55,9 +57,9 @@ DayOA 13.4.31 on the available cluster.
 
 ## Terminal-state report
 
-The production catalog rows are terminal (`SUCCESS=2`, `BLOCKED=10`), but the
-overall objective is not complete: no new controller was started and the
-corrected DYEC double release is in progress. Unblock the production launch by
+The production execution rows are terminal, but the overall objective is not
+complete: no new controller was started. The superseding DayOA/DYEC release
+train is published. Unblock the production launch by
 approving the catalog `bin/day_run` command shape as an exception to the local
 `dy-r`-only execution contract, selecting one mounted run per SeqQC platform,
 and providing the cost center. For HIOMR2, the approved launch will set

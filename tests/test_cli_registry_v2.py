@@ -28,7 +28,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.4.30"
+DAYOA_BLESSED_TAG = "13.4.33"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -2882,6 +2882,14 @@ def test_headnode_jobs_surfaces_ssm_failures(monkeypatch) -> None:
     assert "SSM command 'cmd-1' failed" in result.stderr
 
 
+def test_headnode_configure_has_no_version_override() -> None:
+    for command in ("configure", "configure-dragen"):
+        result = runner.invoke(app, ["headnode", command, "--help"])
+
+        assert result.exit_code == 0, result.output
+        assert "--dyec-version" not in result.output
+
+
 def test_headnode_configure_uses_workflow_configure(monkeypatch, tmp_path) -> None:
     import daylily_ec.aws.ssm as ssm_module
     import daylily_ec.workflow.create_cluster as workflow_module
@@ -2901,6 +2909,14 @@ def test_headnode_configure_uses_workflow_configure(monkeypatch, tmp_path) -> No
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        workflow_module,
+        "resolve_configured_headnode_repo_spec",
+        lambda *, deploy_key_auth: SimpleNamespace(
+            url="https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
+            ref="16.1.85",
+        ),
+    )
 
     def fake_configure_headnode(**kwargs):
         calls["configure"] = kwargs
@@ -2929,9 +2945,8 @@ def test_headnode_configure_uses_workflow_configure(monkeypatch, tmp_path) -> No
         "cluster_name": "cluster-a",
         "dyec_deploy_key_region": "",
         "dyec_deploy_key_secret_arn": "",
-        "dyec_version": "",
-        "dyec_repo_ref": "",
-        "dyec_repo_url": "",
+        "dyec_repo_ref": "16.1.85",
+        "dyec_repo_url": "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
         "dayoa_deploy_key_region": "",
         "dayoa_deploy_key_secret_arn": "",
         "github_token_region": "",
@@ -2963,6 +2978,14 @@ def test_headnode_configure_dragen_uses_ec2_user(monkeypatch, tmp_path) -> None:
         ),
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        workflow_module,
+        "resolve_configured_headnode_repo_spec",
+        lambda *, deploy_key_auth: SimpleNamespace(
+            url="https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
+            ref="16.1.85",
+        ),
+    )
 
     def fake_configure_headnode(**kwargs):
         calls["configure"] = kwargs
@@ -2991,9 +3014,8 @@ def test_headnode_configure_dragen_uses_ec2_user(monkeypatch, tmp_path) -> None:
         "cluster_name": "dragen-cluster",
         "dyec_deploy_key_region": "",
         "dyec_deploy_key_secret_arn": "",
-        "dyec_version": "",
-        "dyec_repo_ref": "",
-        "dyec_repo_url": "",
+        "dyec_repo_ref": "16.1.85",
+        "dyec_repo_url": "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
         "dayoa_deploy_key_region": "",
         "dayoa_deploy_key_secret_arn": "",
         "github_token_region": "",
@@ -3568,6 +3590,7 @@ def test_catalog_list_and_show_expose_command_catalog_entries() -> None:
 
     assert list_result.exit_code == 0, list_result.output
     list_payload = json.loads(list_result.stdout)
+    assert list_payload["dyec_version"] == "current"
     assert "--intent" in list_payload["result_export"]["manual_visit_command"]
     assert list_payload["result_export"]["preserves_fsx_by_default"] is True
     command_ids = {item["command_id"] for item in list_payload["commands"]}
@@ -3580,6 +3603,7 @@ def test_catalog_list_and_show_expose_command_catalog_entries() -> None:
 
     assert show_result.exit_code == 0, show_result.output
     show_payload = json.loads(show_result.stdout)
+    assert show_payload["dyec_version"] == "current"
     assert "--mode export" in show_payload["result_export"]["manual_visit_command"]
     assert "--intent" in show_payload["result_export"]["manual_visit_command"]
     assert "dyec export" in show_payload["result_export"]["manual_export_command"]
@@ -3611,7 +3635,7 @@ def test_catalog_validation_compare_uses_declared_command_evidence(monkeypatch) 
     assert result.exit_code == 0, result.output
     assert json.loads(result.stdout) == {
         "command_id": "illumina_run_qc",
-        "dyec_version": None,
+        "dyec_version": "current",
         "matches": True,
     }
 

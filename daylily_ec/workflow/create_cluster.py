@@ -363,27 +363,6 @@ def clear_preflight_steps() -> None:
     _PREFLIGHT_STEPS.clear()
 
 
-def _git_stdout(repo_root: Path, *args: str) -> str:
-    proc = _git_run(repo_root, *args)
-    if proc.returncode != 0:
-        detail = _git_failure_detail(proc, f"git {' '.join(args)} failed")
-        raise RuntimeError(detail)
-    return proc.stdout.strip()
-
-
-def _git_run(repo_root: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", "-C", str(repo_root), *args],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-
-
-def _git_failure_detail(proc: subprocess.CompletedProcess[str], fallback: str) -> str:
-    return proc.stderr.strip() or proc.stdout.strip() or fallback
-
-
 def _normalize_headnode_repo_url(repo_url: str, *, deploy_key_auth: bool = False) -> str:
     """Return a headnode-safe clone URL for the Daylily control repo."""
     github_path = ""
@@ -417,43 +396,12 @@ def _normalize_headnode_repo_url(repo_url: str, *, deploy_key_auth: bool = False
     return repo_url
 
 
-def _resolve_headnode_repo_spec(
-    default_url: str,
-    default_ref: str,
-    *,
-    deploy_key_auth: bool = False,
-) -> HeadnodeRepoSpec:
-    repo_root_env = _os.environ.get("DAYLILY_EC_REPO_ROOT", "").strip()
-    if not repo_root_env:
-        if deploy_key_auth:
-            raise RuntimeError(
-                "DAYLILY_EC_REPO_ROOT is required to pin the exact published DYEC checkout."
-            )
-        return HeadnodeRepoSpec(
-            url=_normalize_headnode_repo_url(
-                default_url,
-                deploy_key_auth=deploy_key_auth,
-            ),
-            ref=default_ref,
-        )
-
-    repo_root = Path(repo_root_env).expanduser().resolve()
-    if not repo_root.exists():
-        raise RuntimeError(f"DAYLILY_EC_REPO_ROOT does not exist: {repo_root}")
-
-    repo_url = _normalize_headnode_repo_url(
-        _git_stdout(repo_root, "config", "--get", "remote.origin.url"),
-        deploy_key_auth=deploy_key_auth,
-    )
-    repo_ref = _resolve_headnode_repo_ref(repo_root)
-    return HeadnodeRepoSpec(url=repo_url, ref=repo_ref)
-
-
 def resolve_configured_headnode_repo_spec(*, deploy_key_auth: bool) -> HeadnodeRepoSpec:
-    """Resolve the exact published DYEC source selected by the active checkout."""
+    """Resolve the repository URL at the exact release reported by this DYEC."""
     import yaml
 
     from daylily_ec.resources import resource_path
+    from daylily_ec.versioning import get_release_version
 
     user_cfg_path = Path.home() / ".config" / "daylily" / "daylily_cli_global.yaml"
     cfg_path = (
@@ -468,73 +416,13 @@ def resolve_configured_headnode_repo_spec(*, deploy_key_auth: bool) -> HeadnodeR
     with open(cfg_path, encoding="utf-8") as fh:
         cli_cfg = yaml.safe_load(fh) or {}
     daylily = cli_cfg.get("daylily", {}) or {}
-    repo_ref = str(daylily.get("git_ephemeral_cluster_repo_tag") or "").strip()
     repo_url = str(daylily.get("git_ephemeral_cluster_repo") or "").strip()
-    if not repo_ref or not repo_url:
-        raise RuntimeError(f"DYEC repository URL and ref must be explicit in {cfg_path}.")
-    return _resolve_headnode_repo_spec(
-        repo_url,
-        repo_ref,
-        deploy_key_auth=deploy_key_auth,
+    if not repo_url:
+        raise RuntimeError(f"DYEC repository URL must be explicit in {cfg_path}.")
+    return HeadnodeRepoSpec(
+        url=_normalize_headnode_repo_url(repo_url, deploy_key_auth=deploy_key_auth),
+        ref=get_release_version(),
     )
-
-
-def _resolve_headnode_repo_ref(repo_root: Path) -> str:
-    branch = _git_run(repo_root, "symbolic-ref", "--short", "HEAD")
-    if branch.returncode == 0:
-        repo_ref = branch.stdout.strip()
-        if not repo_ref:
-            raise RuntimeError("Current checkout branch could not be determined")
-        return _require_published_branch(repo_root, repo_ref)
-
-    return _require_published_detached_tag(repo_root)
-
-
-def _require_published_branch(repo_root: Path, repo_ref: str) -> str:
-    published = subprocess.run(
-        ["git", "-C", str(repo_root), "ls-remote", "--exit-code", "--heads", "origin", repo_ref],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if published.returncode != 0:
-        detail = (
-            published.stderr.strip() or published.stdout.strip() or "branch not published on origin"
-        )
-        raise RuntimeError(
-            f"Current checkout branch is not available on origin: {repo_ref} ({detail})"
-        )
-    return repo_ref
-
-
-def _require_published_detached_tag(repo_root: Path) -> str:
-    head = _git_stdout(repo_root, "rev-parse", "--short=12", "HEAD")
-    tag_output = _git_stdout(repo_root, "tag", "--points-at", "HEAD")
-    tags = [line.strip() for line in tag_output.splitlines() if line.strip()]
-    if not tags:
-        raise RuntimeError(
-            f"Current checkout is detached at {head} and no exact tag points at HEAD; "
-            "checkout a published branch or release tag before configuring the headnode"
-        )
-    if len(tags) > 1:
-        raise RuntimeError(
-            "Current detached checkout has multiple exact tags; checkout a branch or leave "
-            f"only one intended release tag at HEAD before configuring the headnode: {', '.join(tags)}"
-        )
-
-    tag = tags[0]
-    tag_ref = f"refs/tags/{tag}"
-    published = subprocess.run(
-        ["git", "-C", str(repo_root), "ls-remote", "--exit-code", "--tags", "origin", tag_ref],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if published.returncode != 0:
-        detail = _git_failure_detail(published, "tag not published on origin")
-        raise RuntimeError(f"Current checkout tag is not available on origin: {tag} ({detail})")
-
-    return tag_ref
 
 
 def _build_headnode_repo_sync_command(
@@ -556,6 +444,9 @@ def _build_headnode_repo_sync_command(
     repo_error_q = shlex.quote(f"Expected ~/projects/{repo_name} to be a git checkout")
     if repo_ref.startswith("refs/tags/"):
         checkout_cmd = f"git checkout --detach {repo_ref_q}"
+    elif DYEC_RELEASE_VERSION_PATTERN.fullmatch(repo_ref):
+        release_ref_q = shlex.quote(f"refs/tags/{repo_ref}")
+        checkout_cmd = f"git checkout --detach {release_ref_q}"
     else:
         checkout_cmd = (
             f"if git show-ref --verify --quiet {origin_ref_q}; then "
@@ -4100,11 +3991,10 @@ def configure_headnode(
     region: str,
     profile: str,
     *,
-    dyec_deploy_key_secret_arn: str = "",
-    dyec_deploy_key_region: str = "",
     dyec_repo_url: str = "",
     dyec_repo_ref: str = "",
-    dyec_version: str = "",
+    dyec_deploy_key_secret_arn: str = "",
+    dyec_deploy_key_region: str = "",
     dayoa_deploy_key_secret_arn: str = "",
     dayoa_deploy_key_region: str = "",
     github_token_secret_arn: str = "",
@@ -4117,21 +4007,34 @@ def configure_headnode(
 
     from daylily_ec.aws.ssm import SsmCommandFailedError, run_shell, write_remote_text
     from daylily_ec.resources import resource_path
+    from daylily_ec.versioning import get_release_version
 
     repo_name = "daylily-ephemeral-cluster"
-    requested_dyec_version = dyec_version.strip()
-    if requested_dyec_version and not DYEC_RELEASE_VERSION_PATTERN.fullmatch(
-        requested_dyec_version
-    ):
-        logger.error("  ✗ DYEC version must be a non-v semver release tag: %s", dyec_version)
+    try:
+        expected_dyec_version = get_release_version()
+    except RuntimeError as exc:
+        logger.error("  ✗ Cannot configure a headnode from this DYEC installation: %s", exc)
         return False
-    if requested_dyec_version and not dyec_deploy_key_secret_arn:
-        logger.error("  ✗ A DYEC deploy key is required when selecting a DYEC release version")
+    repo_url_input = dyec_repo_url.strip()
+    repo_ref = dyec_repo_ref.strip()
+    if bool(repo_url_input) != bool(repo_ref):
+        logger.error("  ✗ DYEC repository URL and release ref must be provided together")
         return False
-    if requested_dyec_version and dyec_repo_ref != requested_dyec_version:
+    if not repo_url_input:
+        try:
+            repo_spec = resolve_configured_headnode_repo_spec(
+                deploy_key_auth=bool(dyec_deploy_key_secret_arn)
+            )
+        except RuntimeError as exc:
+            logger.error("  ✗ Could not resolve the running DYEC release: %s", exc)
+            return False
+        repo_url_input = repo_spec.url
+        repo_ref = repo_spec.ref
+    if repo_ref != expected_dyec_version:
         logger.error(
-            "  ✗ DYEC repository ref must exactly match requested DYEC version: %s",
-            requested_dyec_version,
+            "  ✗ DYEC repository ref must match the running DYEC version: expected=%s actual=%s",
+            expected_dyec_version,
+            repo_ref,
         )
         return False
     if dyec_deploy_key_secret_arn and not dyec_deploy_key_region:
@@ -4143,24 +4046,14 @@ def configure_headnode(
     if bool(github_token_secret_arn) != bool(github_token_region):
         logger.error("  ✗ GitHub token secret ARN and region must be provided together")
         return False
-    if dyec_deploy_key_secret_arn:
-        if not dyec_repo_url or not dyec_repo_ref:
-            logger.error("  ✗ DYEC repository URL and ref are required with deploy-key auth")
-            return False
-        try:
-            repo_url = _normalize_headnode_repo_url(dyec_repo_url, deploy_key_auth=True)
-        except RuntimeError as exc:
-            logger.error("  ✗ Invalid DYEC repository URL: %s", exc)
-            return False
-        repo_ref = dyec_repo_ref
-    else:
-        try:
-            repo_spec = resolve_configured_headnode_repo_spec(deploy_key_auth=False)
-        except RuntimeError as exc:
-            logger.error("  ✗ Could not resolve legacy public headnode repository source: %s", exc)
-            return False
-        repo_url = repo_spec.url
-        repo_ref = repo_spec.ref
+    try:
+        repo_url = _normalize_headnode_repo_url(
+            repo_url_input,
+            deploy_key_auth=bool(dyec_deploy_key_secret_arn),
+        )
+    except RuntimeError as exc:
+        logger.error("  ✗ Invalid DYEC repository URL: %s", exc)
+        return False
     logger.info(
         "  ▸ Headnode repository source: %s @ %s",
         repo_url,
@@ -4326,31 +4219,30 @@ def configure_headnode(
             logger.error("  ✗ %s failed: %s", label, exc)
             return False
 
-    if requested_dyec_version:
-        expected_version_line = f"Daylily Ephemeral Cluster {requested_dyec_version}"
-        verify_version_command = (
-            f"expected={shlex.quote(expected_version_line)}; "
-            'actual="$(dyec --version)"; '
-            'if [ "$actual" != "$expected" ]; then '
-            'echo "Installed DYEC version mismatch: expected=$expected actual=$actual" >&2; '
-            "exit 1; "
-            "fi"
+    expected_version_line = f"Daylily Ephemeral Cluster {expected_dyec_version}"
+    verify_version_command = (
+        f"expected={shlex.quote(expected_version_line)}; "
+        'actual="$(dyec --version)"; '
+        'if [ "$actual" != "$expected" ]; then '
+        'echo "Installed DYEC version mismatch: expected=$expected actual=$actual" >&2; '
+        "exit 1; "
+        "fi"
+    )
+    logger.info("  ▸ Verifying installed DYEC version %s ...", expected_dyec_version)
+    try:
+        run_shell(
+            head_node_instance_id,
+            region,
+            verify_version_command,
+            profile=profile,
+            as_user=remote_user,
+            require_startup_success=False,
+            comment="Verify installed DYEC version",
         )
-        logger.info("  ▸ Verifying installed DYEC version %s ...", requested_dyec_version)
-        try:
-            run_shell(
-                head_node_instance_id,
-                region,
-                verify_version_command,
-                profile=profile,
-                as_user=remote_user,
-                require_startup_success=False,
-                comment="Verify installed DYEC version",
-            )
-            logger.info("  ✓ Installed DYEC version matches %s", requested_dyec_version)
-        except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
-            logger.error("  ✗ Installed DYEC version verification failed: %s", exc)
-            return False
+        logger.info("  ✓ Installed DYEC version matches %s", expected_dyec_version)
+    except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
+        logger.error("  ✗ Installed DYEC version verification failed: %s", exc)
+        return False
 
     if repo_overrides:
         logger.info("  ▸ Deploying repository overrides ...")

@@ -775,14 +775,28 @@ def test_create_validation_and_repo_source_edge_contracts(tmp_path, monkeypatch)
             "https://example.com/repo", deploy_key_auth=True
         )
 
-    monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
-    with pytest.raises(RuntimeError, match="REPO_ROOT"):
-        create_cluster._resolve_headnode_repo_spec(
-            "https://github.com/o/r.git", "main", deploy_key_auth=True
-        )
-    monkeypatch.setenv("DAYLILY_EC_REPO_ROOT", str(tmp_path / "missing"))
-    with pytest.raises(RuntimeError, match="does not exist"):
-        create_cluster._resolve_headnode_repo_spec("url", "main")
+    config_dir = tmp_path / ".config" / "daylily"
+    config_dir.mkdir(parents=True)
+    (config_dir / "daylily_cli_global.yaml").write_text(
+        "daylily:\n"
+        "  git_ephemeral_cluster_repo: "
+        "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setattr(
+        "daylily_ec.versioning.get_release_version",
+        lambda: "16.1.85",
+    )
+    public_spec = create_cluster.resolve_configured_headnode_repo_spec(
+        deploy_key_auth=False
+    )
+    deploy_key_spec = create_cluster.resolve_configured_headnode_repo_spec(
+        deploy_key_auth=True
+    )
+    assert public_spec.ref == deploy_key_spec.ref == "16.1.85"
+    assert public_spec.url.startswith("https://github.com/")
+    assert deploy_key_spec.url.startswith("git@github.com:")
 
     with pytest.raises(ValueError, match="provided together"):
         create_cluster._build_headnode_repo_sync_command(
@@ -790,6 +804,10 @@ def test_create_validation_and_repo_source_edge_contracts(tmp_path, monkeypatch)
         )
     tagged = create_cluster._build_headnode_repo_sync_command("repo", "url", "refs/tags/1.0.0")
     assert "checkout --detach" in tagged
+    numeric_release = create_cluster._build_headnode_repo_sync_command(
+        "repo", "url", "16.1.85"
+    )
+    assert "git checkout --detach refs/tags/16.1.85" in numeric_release
     keyed = create_cluster._build_headnode_repo_sync_command(
         "repo",
         "git@github.com:o/r.git",
@@ -798,27 +816,6 @@ def test_create_validation_and_repo_source_edge_contracts(tmp_path, monkeypatch)
         deploy_key_region="us-west-2",
     )
     assert "GIT_SSH_COMMAND" in keyed
-
-
-def test_git_ref_failure_branches(tmp_path, monkeypatch):
-    monkeypatch.setattr(
-        create_cluster,
-        "_git_run",
-        lambda *_a, **_k: SimpleNamespace(returncode=1, stderr="git failed", stdout=""),
-    )
-    with pytest.raises(RuntimeError, match="git failed"):
-        create_cluster._git_stdout(tmp_path, "status")
-    with pytest.raises(RuntimeError, match="not available"):
-        create_cluster._require_published_branch(tmp_path, "main")
-
-    calls = iter(["deadbeef", "", "deadbeef", "one\ntwo", "deadbeef", "1.0.0"])
-    monkeypatch.setattr(create_cluster, "_git_stdout", lambda *_a, **_k: next(calls))
-    with pytest.raises(RuntimeError, match="no exact tag"):
-        create_cluster._require_published_detached_tag(tmp_path)
-    with pytest.raises(RuntimeError, match="multiple exact tags"):
-        create_cluster._require_published_detached_tag(tmp_path)
-    with pytest.raises(RuntimeError, match="not available"):
-        create_cluster._require_published_detached_tag(tmp_path)
 
 
 def test_render_policy_and_misc_helper_errors(tmp_path, monkeypatch):
@@ -869,7 +866,9 @@ def test_render_policy_and_misc_helper_errors(tmp_path, monkeypatch):
     [
         {"dyec_deploy_key_secret_arn": "arn"},
         {"dayoa_deploy_key_secret_arn": "arn"},
-        {"dyec_deploy_key_secret_arn": "arn", "dyec_deploy_key_region": "us-west-2"},
+        {
+            "dyec_repo_url": "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git"
+        },
         {
             "dyec_deploy_key_secret_arn": "arn",
             "dyec_deploy_key_region": "us-west-2",

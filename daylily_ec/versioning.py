@@ -79,3 +79,16 @@ def get_version() -> str:
         return version
 
     return "0.0.0.dev0"
+
+
+def get_release_version() -> str:
+    """Return the exact non-v release reported by the running DYEC executable."""
+
+    version = get_version().strip()
+    if not _SEMVER_TAG.fullmatch(version):
+        raise RuntimeError(
+            "The running DYEC version is not an exact non-v release tag: "
+            f"{version!r}. Install or activate a published DYEC release before "
+            "configuring a headnode."
+        )
+    return version

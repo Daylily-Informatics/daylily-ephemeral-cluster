@@ -6,12 +6,11 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_DEFAULT_TAG = "13.4.31"
-DAYOA_VALIDATED_TAG = "13.4.31"
-DAYOA_HIGHEST_RELEASE_COMMIT = "a6a7cd493eecd51e9e942215414a1822510cffa9"
-ONT_DAYOA_TAG = "13.4.31"
-ONT_DAYOA_RELEASE_COMMIT = "a6a7cd493eecd51e9e942215414a1822510cffa9"
-DYEC_BLESSED_TAG = "16.1.82"
+DAYOA_DEFAULT_TAG = "13.4.33"
+DAYOA_VALIDATED_TAG = "13.4.33"
+DAYOA_HIGHEST_RELEASE_COMMIT = "56208632627ccff4c1fb2b2525900e68de59ec12"
+ONT_DAYOA_TAG = "13.4.33"
+ONT_DAYOA_RELEASE_COMMIT = "56208632627ccff4c1fb2b2525900e68de59ec12"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
     f"{_OLD_ORG}/daylily-omics-analysis",
@@ -55,15 +54,15 @@ def test_pyproject_does_not_install_dayoa_as_a_python_dependency() -> None:
     assert not any("daylily-omics-analysis" in dependency for dependency in dependencies)
 
 
-def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
+def test_catalogs_and_dyec_repository_config_are_lsmc_bio_pinned() -> None:
     for relative_path in (
         "config/daylily_cli_global.yaml",
         "daylily_ec/resources/payload/config/daylily_cli_global.yaml",
     ):
         data = yaml.safe_load((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
         daylily = data["daylily"]
-        assert daylily["git_ephemeral_cluster_repo_tag"] == DYEC_BLESSED_TAG
-        assert daylily["git_ephemeral_cluster_repo_release_tag"] == DYEC_BLESSED_TAG
+        assert "git_ephemeral_cluster_repo_tag" not in daylily
+        assert "git_ephemeral_cluster_repo_release_tag" not in daylily
         assert (
             daylily["git_ephemeral_cluster_repo"]
             == "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git"
@@ -92,6 +91,11 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
             assert commands[command_id]["validated_version"] == DAYOA_VALIDATED_TAG
         assert commands["package_inflection_hybrid_data"]["git_tag"] == DAYOA_DEFAULT_TAG
         assert commands["package_inflection_hybrid_data"]["validated_version"] == DAYOA_VALIDATED_TAG
+        assert data["dyec_builds"]["16.1.82"]["dayoa_git_tags"] == ["13.4.31"]
+        assert data["dyec_builds"]["current"]["dayoa_git_tags"] == [DAYOA_DEFAULT_TAG]
+        assert data["dyec_builds"]["16.1.85"]["dayoa_git_tags"] == [DAYOA_DEFAULT_TAG]
+        assert data["dyec_builds"]["current"] == data["dyec_builds"]["16.1.85"]
+        assert set(data["dyec_builds"]["current"]["commands"]) == set(commands)
 
 
 def test_dayoa_commands_use_the_scoped_release_pins() -> None:

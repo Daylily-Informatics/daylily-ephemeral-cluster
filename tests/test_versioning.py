@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
 from typer.testing import CliRunner
 
 from daylily_ec import versioning
@@ -31,6 +32,19 @@ def test_get_version_falls_back_to_installed_metadata(monkeypatch):
     )
 
     assert versioning.get_version() == "2.3.4"
+
+
+def test_get_release_version_accepts_running_exact_release(monkeypatch):
+    monkeypatch.setattr(versioning, "get_version", lambda: "16.1.85")
+
+    assert versioning.get_release_version() == "16.1.85"
+
+
+def test_get_release_version_rejects_development_version(monkeypatch):
+    monkeypatch.setattr(versioning, "get_version", lambda: "16.1.85.dev1+gabc123")
+
+    with pytest.raises(RuntimeError, match="not an exact non-v release tag"):
+        versioning.get_release_version()
 
 
 def test_source_tree_version_uses_repo_root_without_relative_to(monkeypatch):
