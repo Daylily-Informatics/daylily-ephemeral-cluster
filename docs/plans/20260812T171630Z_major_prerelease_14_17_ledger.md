@@ -49,11 +49,11 @@ Controlling plan and ledger:
 | ID | Area/repo | Requirement | Status | Category | Approval gate | Owner | Evidence | Root cause | Terminal note |
 |---|---|---|---|---|---|---|---|---|---|
 | G0-001 | Cross-repo | Freeze branches, commits, version derivation, tags, releases, catalog state, validation baseline, and scope. | SUCCESS | contract_test | Gate 0 | orchestrator | Gate 0 inventory above; fetch, clean/sync status, tag, release, package-config, and catalog-structure checks completed. |  | Baseline recorded before release writes. |
-| DAYOA-TAG | DayOA | Create and push annotated tag `14.0.0` on the clean candidate commit and verify its derived package version. | OPEN | feature_implementation | Gate 5 | orchestrator | Pending final availability recheck. |  |  |
-| DAYOA-PRERELEASE | DayOA | Create and verify a GitHub prerelease page for `14.0.0`. | OPEN | feature_implementation | Gate 5 | orchestrator | Pending tag publication. |  |  |
-| DYEC-PIN | DYEC | Move active/current DayOA pins to `14.0.0`, preserve existing snapshots, and add exact `current` snapshot `17.0.0`. | OPEN | config_or_startup_contract | Gate 2 | orchestrator | Pending. |  |  |
-| DYEC-VALIDATE | DYEC | Prove catalog parity, historical-snapshot preservation, selector behavior, and the release-focused test gate. | OPEN | contract_test | Gate 5 | orchestrator | Pending. |  |  |
-| DYEC-TAG | DYEC | Commit, push, create annotated tag `17.0.0`, and verify the exact tagged version. | OPEN | feature_implementation | Gate 5 | orchestrator | Pending final availability recheck. |  |  |
+| DAYOA-TAG | DayOA | Create and push annotated tag `14.0.0` on the clean candidate commit and verify its derived package version. | SUCCESS | feature_implementation | Gate 5 | orchestrator | Annotated remote tag object `118d018924ececa937e4153e279795384978e61d` peels to `f799ba3d5a7bc67bbed112ef4c3f77ca2f9da41a`; isolated `pip wheel --no-deps --no-cache-dir` built `daylily_omics_analysis-14.0.0-py3-none-any.whl`. |  | The missing direct helper was resolved through isolated build validation; immutable tag remained unchanged. |
+| DAYOA-PRERELEASE | DayOA | Create and verify a GitHub prerelease page for `14.0.0`. | SUCCESS | feature_implementation | Gate 5 | orchestrator | [DayOA 14.0.0 prerelease](https://github.com/lsmc-bio/daylily-omics-analysis/releases/tag/14.0.0), verified `isDraft=false` and `isPrerelease=true`, published `2026-08-12T17:18:58Z`. |  | Published from the existing remote annotated tag. |
+| DYEC-PIN | DYEC | Move active/current DayOA pins to `14.0.0`, preserve existing snapshots, and add exact `current` snapshot `17.0.0`. | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | Active repository rows and `current` contain 29 commands pinned to DayOA `14.0.0`; numeric `17.0.0` is an exact copy of updated `current`; structural comparison proves `16.1.81`, `16.1.82`, `16.1.85`, and `16.1.86` are unchanged. |  | New major snapshot added without altering historical releases. |
+| DYEC-VALIDATE | DYEC | Prove catalog parity, historical-snapshot preservation, selector behavior, and the release-focused test gate. | SUCCESS | contract_test | Gate 5 | orchestrator | Source/payload catalogs compare byte-identical; release-focused suite passed 681 tests; targeted Ruff, byte-compilation, and diff checks passed; CLI probes returned 29 commands on DayOA `14.0.0` for `current`/`17.0.0`, 29 on `13.4.34` for `16.1.86`, 29 on `13.4.33` for `16.1.85`, and 9 on `13.4.31` for `16.1.82`. |  | All pre-tag release gates passed. |
+| DYEC-TAG | DYEC | Commit, push, create annotated tag `17.0.0`, and verify the exact tagged version. | IN_PROGRESS | feature_implementation | Gate 5 | orchestrator | Release inputs validated; commit, availability recheck, annotated tag, push, and exact-tag rerun remain. |  |  |
 | DYEC-PRERELEASE | DYEC | Create and verify a GitHub prerelease page for `17.0.0`. | OPEN | feature_implementation | Gate 5 | orchestrator | Pending tag publication. |  |  |
 | FINAL-001 | Cross-repo | Verify synchronized candidate branches, immutable annotated tag objects and peeled commits, both prerelease pages, and terminal ledger state. | OPEN | contract_test | Gate 5 | orchestrator | Pending. |  |  |
 
@@ -63,5 +63,5 @@ All rows terminal: no.
 
 Objective complete: no.
 
-Status counts: `SUCCESS=1`, `OPEN=7`, `IN_PROGRESS=0`, `BLOCKED=0`,
+Status counts: `SUCCESS=5`, `OPEN=2`, `IN_PROGRESS=1`, `BLOCKED=0`,
 `FAIL=0`, `NO_LONGER_NEEDED=0`.

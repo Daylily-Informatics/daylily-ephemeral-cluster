@@ -14,8 +14,8 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.4.34"
-PRODUCTION_DAYOA_TAG = "13.4.34"
+DAYOA_BLESSED_TAG = "14.0.0"
+PRODUCTION_DAYOA_TAG = "14.0.0"
 PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
 SOLO_KITCHEN_SINK_DAYOA_TAG = PRODUCTION_DAYOA_TAG
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
@@ -171,9 +171,11 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert len(current_build) == 29
     assert {command.git_tag for command in current_build} == {PRODUCTION_DAYOA_TAG}
     assert {command.repository for command in current_build} == {"daylily-omics-analysis"}
-    previous_release = catalog.commands_for_dyec_build("16.1.85")
-    assert {command.git_tag for command in previous_release} == {"13.4.33"}
-    released_build = catalog.commands_for_dyec_build("16.1.86")
+    older_release = catalog.commands_for_dyec_build("16.1.85")
+    assert {command.git_tag for command in older_release} == {"13.4.33"}
+    previous_release = catalog.commands_for_dyec_build("16.1.86")
+    assert {command.git_tag for command in previous_release} == {"13.4.34"}
+    released_build = catalog.commands_for_dyec_build("17.0.0")
     assert [command.model_dump() for command in released_build] == [
         command.model_dump() for command in current_build
     ]
@@ -402,7 +404,7 @@ def test_catalog_cli_uses_current_unless_numeric_snapshot_is_requested() -> None
     current_payload = json.loads(current_result.stdout)
     released_payload = json.loads(released_result.stdout)
     assert current_payload["dyec_version"] == "current"
-    assert {command["git_tag"] for command in current_payload["commands"]} == {"13.4.34"}
+    assert {command["git_tag"] for command in current_payload["commands"]} == {"14.0.0"}
     assert released_payload["dyec_version"] == "16.1.82"
     assert {command["git_tag"] for command in released_payload["commands"]} == {"13.4.31"}
 
