@@ -237,7 +237,7 @@ def test_collect_sample_stats_contract(analysis_root: Path) -> None:
     assert report["schema_version"] == "dyec.command_sample_stats.v2"
     assert report["compatible_schema_versions"] == ["dyec.command_sample_stats.v1"]
     assert report["command_details"]["command_catalog_key"] == "hybrid_ilmn_ont_hiomr_kitchensink"
-    assert report["command_details"]["git_tag"] == "13.4.33"
+    assert report["command_details"]["git_tag"] == "13.4.34"
     assert report["command_details"]["retried_jobs"]["count"] == 1
     assert report["analysis"]["started_at_source"] == "controller process elapsed time"
     assert 599 <= report["analysis"]["runtime_seconds"] <= 601

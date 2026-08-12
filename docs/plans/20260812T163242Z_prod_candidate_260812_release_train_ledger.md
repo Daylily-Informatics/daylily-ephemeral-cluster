@@ -48,15 +48,15 @@ Controlling plan and ledger:
 | ID | Area/repo | Requirement | Status | Category | Approval gate | Owner | Evidence | Root cause | Terminal note |
 |---|---|---|---|---|---|---|---|---|---|
 | G0-001 | Cross-repo | Freeze branches, commits, tags, next versions, PR state, dirty state, and scope. | SUCCESS | contract_test | Gate 0 | orchestrator | Gate 0 inventory above; fetch, status, ancestry, diff-check, tag, branch, and PR queries completed. |  | Baseline recorded before GitHub writes. |
-| MERGE-DAYOA | DayOA | Open, validate, and normally merge `prod-candidate-260911` to `main`. | OPEN | feature_implementation | Gate 5 | orchestrator | Pending. |  |  |
-| MERGE-DYEC | DYEC | Open, validate, and normally merge `prod-candidate-260911` to `main`. | OPEN | feature_implementation | Gate 5 | orchestrator | Pending. |  |  |
-| PRERELEASE-DAYOA | DayOA | Create a GitHub prerelease page for annotated tag `13.4.33`. | OPEN | feature_implementation | Gate 5 | orchestrator | Pending. |  |  |
-| PRERELEASE-DYEC | DYEC | Create a GitHub prerelease page for annotated tag `16.1.85`. | OPEN | feature_implementation | Gate 5 | orchestrator | Pending. |  |  |
-| BRANCH-DAYOA | DayOA | Create and push `prod-candidate-260812` from exact updated `origin/main`. | OPEN | feature_implementation | Gate 1 | orchestrator | Pending. |  |  |
-| BRANCH-DYEC | DYEC | Create and push `prod-candidate-260812` from exact updated `origin/main`. | OPEN | feature_implementation | Gate 1 | orchestrator | Pending. |  |  |
-| RELEASE-DAYOA | DayOA | Create and push annotated tag `13.4.34` from the clean new candidate. | OPEN | feature_implementation | Gate 5 | orchestrator | Pending final availability recheck. |  |  |
-| PIN-DYEC | DYEC | Move active/current DayOA pins to `13.4.34`, preserve prior snapshots, and copy updated `current` exactly to numeric snapshot `16.1.86`. | OPEN | config_or_startup_contract | Gate 2 | orchestrator | Pending. |  |  |
-| RELEASE-DYEC | DYEC | Validate, commit, push, and create annotated tag `16.1.86`. | OPEN | feature_implementation | Gate 5 | orchestrator | Pending final availability recheck. |  |  |
+| MERGE-DAYOA | DayOA | Open, validate, and normally merge `prod-candidate-260911` to `main`. | SUCCESS | feature_implementation | Gate 5 | orchestrator | PR [#105](https://github.com/lsmc-bio/daylily-omics-analysis/pull/105); all three CodeQL checks passed; normal merge commit `f799ba3d5a7bc67bbed112ef4c3f77ca2f9da41a`. |  | Merged without admin override. |
+| MERGE-DYEC | DYEC | Open, validate, and normally merge `prod-candidate-260911` to `main`. | SUCCESS | feature_implementation | Gate 5 | orchestrator | PR [#96](https://github.com/lsmc-bio/daylily-ephemeral-cluster/pull/96); GitHub reported no checks and a clean merge; normal merge commit `b7c1b056feb3ee1b24c0daa338d5f11ec015944d`. |  | Merged without admin override. |
+| PRERELEASE-DAYOA | DayOA | Create a GitHub prerelease page for annotated tag `13.4.33`. | SUCCESS | feature_implementation | Gate 5 | orchestrator | [DayOA 13.4.33 prerelease](https://github.com/lsmc-bio/daylily-omics-analysis/releases/tag/13.4.33), verified `isPrerelease=true`. |  | Published from the existing immutable tag. |
+| PRERELEASE-DYEC | DYEC | Create a GitHub prerelease page for annotated tag `16.1.85`. | SUCCESS | feature_implementation | Gate 5 | orchestrator | [DYEC 16.1.85 prerelease](https://github.com/lsmc-bio/daylily-ephemeral-cluster/releases/tag/16.1.85), verified `isPrerelease=true`. |  | Published from the existing immutable tag. |
+| BRANCH-DAYOA | DayOA | Create and push `prod-candidate-260812` from exact updated `origin/main`. | SUCCESS | feature_implementation | Gate 1 | orchestrator | Branch and `origin/prod-candidate-260812` created at `f799ba3d5a7bc67bbed112ef4c3f77ca2f9da41a`; worktree `/Users/jmajor/projects/lsmc/.codex-worktrees/dayoa-prod-candidate-260812`. |  | Exact updated main branch point. |
+| BRANCH-DYEC | DYEC | Create and push `prod-candidate-260812` from exact updated `origin/main`. | SUCCESS | feature_implementation | Gate 1 | orchestrator | Branch and `origin/prod-candidate-260812` created at `b7c1b056feb3ee1b24c0daa338d5f11ec015944d`; worktree `/Users/jmajor/projects/lsmc/.codex-worktrees/dyec-prod-candidate-260812`. |  | Exact updated main branch point. |
+| RELEASE-DAYOA | DayOA | Create and push annotated tag `13.4.34` from the clean new candidate. | SUCCESS | feature_implementation | Gate 5 | orchestrator | Remote tag object `9b1084ed3cd5b74fdf1b3ca3d8f26e91c823bda1` peels to candidate commit `f799ba3d5a7bc67bbed112ef4c3f77ca2f9da41a`; local type is `tag`. |  | Availability was rechecked immediately before creation and push. |
+| PIN-DYEC | DYEC | Move active/current DayOA pins to `13.4.34`, preserve prior snapshots, and copy updated `current` exactly to numeric snapshot `16.1.86`. | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | Source and packaged catalogs are byte-identical; structural comparison preserved `16.1.81`, `16.1.82`, and `16.1.85`; `current == 16.1.86`; CLI probes returned 29 commands on DayOA `13.4.34` for `current`/`16.1.86`, 29 on `13.4.33` for `16.1.85`, and 9 on `13.4.31` for `16.1.82`; release-focused suite passed 681 tests; targeted Ruff, byte-compilation, and diff checks passed. |  | Active default and new release snapshot updated without changing historical pins. |
+| RELEASE-DYEC | DYEC | Validate, commit, push, and create annotated tag `16.1.86`. | IN_PROGRESS | feature_implementation | Gate 5 | orchestrator | Release inputs validated; commit, final tag-availability recheck, annotated tag, push, and remote verification remain. |  |  |
 | FINAL-001 | Cross-repo | Verify merged mains, clean synchronized candidates, prerelease pages, annotated tag objects, peeled commits, and terminal ledger state. | OPEN | contract_test | Gate 5 | orchestrator | Pending. |  |  |
 
 ## Final report
@@ -65,5 +65,5 @@ All rows terminal: no.
 
 Objective complete: no.
 
-Status counts: `SUCCESS=1`, `OPEN=10`, `IN_PROGRESS=0`, `BLOCKED=0`,
+Status counts: `SUCCESS=9`, `OPEN=1`, `IN_PROGRESS=1`, `BLOCKED=0`,
 `FAIL=0`, `NO_LONGER_NEEDED=0`.

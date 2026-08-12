@@ -56,7 +56,7 @@ from daylily_ec.tests_runner import (
 
 
 runner = CliRunner()
-DAYOA_BLESSED_TAG = "13.4.33"
+DAYOA_BLESSED_TAG = "13.4.34"
 
 
 def _run_mount_record(
