@@ -53,15 +53,36 @@ Controlling plan and ledger:
 | DAYOA-PRERELEASE | DayOA | Create and verify a GitHub prerelease page for `14.0.0`. | SUCCESS | feature_implementation | Gate 5 | orchestrator | [DayOA 14.0.0 prerelease](https://github.com/lsmc-bio/daylily-omics-analysis/releases/tag/14.0.0), verified `isDraft=false` and `isPrerelease=true`, published `2026-08-12T17:18:58Z`. |  | Published from the existing remote annotated tag. |
 | DYEC-PIN | DYEC | Move active/current DayOA pins to `14.0.0`, preserve existing snapshots, and add exact `current` snapshot `17.0.0`. | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | Active repository rows and `current` contain 29 commands pinned to DayOA `14.0.0`; numeric `17.0.0` is an exact copy of updated `current`; structural comparison proves `16.1.81`, `16.1.82`, `16.1.85`, and `16.1.86` are unchanged. |  | New major snapshot added without altering historical releases. |
 | DYEC-VALIDATE | DYEC | Prove catalog parity, historical-snapshot preservation, selector behavior, and the release-focused test gate. | SUCCESS | contract_test | Gate 5 | orchestrator | Source/payload catalogs compare byte-identical; release-focused suite passed 681 tests; targeted Ruff, byte-compilation, and diff checks passed; CLI probes returned 29 commands on DayOA `14.0.0` for `current`/`17.0.0`, 29 on `13.4.34` for `16.1.86`, 29 on `13.4.33` for `16.1.85`, and 9 on `13.4.31` for `16.1.82`. |  | All pre-tag release gates passed. |
-| DYEC-TAG | DYEC | Commit, push, create annotated tag `17.0.0`, and verify the exact tagged version. | IN_PROGRESS | feature_implementation | Gate 5 | orchestrator | Release inputs validated; commit, availability recheck, annotated tag, push, and exact-tag rerun remain. |  |  |
-| DYEC-PRERELEASE | DYEC | Create and verify a GitHub prerelease page for `17.0.0`. | OPEN | feature_implementation | Gate 5 | orchestrator | Pending tag publication. |  |  |
-| FINAL-001 | Cross-repo | Verify synchronized candidate branches, immutable annotated tag objects and peeled commits, both prerelease pages, and terminal ledger state. | OPEN | contract_test | Gate 5 | orchestrator | Pending. |  |  |
+| DYEC-TAG | DYEC | Commit, push, create annotated tag `17.0.0`, and verify the exact tagged version. | SUCCESS | feature_implementation | Gate 5 | orchestrator | Release commit `336293c9adbe686c13e7b79fd5387a92a9936d27` is pushed; remote annotated tag object `ea757fc3923f26d459feb741009055b6d10c7021` peels to that commit; exact-tag CLI reported `Daylily Ephemeral Cluster 17.0.0`; the 681-test suite passed again after tag creation. |  | Availability was rechecked immediately before creation; the pushed tag was not moved. |
+| DYEC-PRERELEASE | DYEC | Create and verify a GitHub prerelease page for `17.0.0`. | SUCCESS | feature_implementation | Gate 5 | orchestrator | [DYEC 17.0.0 prerelease](https://github.com/lsmc-bio/daylily-ephemeral-cluster/releases/tag/17.0.0), verified `isDraft=false` and `isPrerelease=true`, published `2026-08-12T17:23:32Z`. |  | Published from the existing remote annotated tag. |
+| FINAL-001 | Cross-repo | Verify synchronized candidate branches, immutable annotated tag objects and peeled commits, both prerelease pages, and terminal ledger state. | SUCCESS | contract_test | Gate 5 | orchestrator | Live remote verification confirmed DayOA tag object `118d018924ececa937e4153e279795384978e61d` peeling to `f799ba3d5a7bc67bbed112ef4c3f77ca2f9da41a`, DYEC tag object `ea757fc3923f26d459feb741009055b6d10c7021` peeling to `336293c9adbe686c13e7b79fd5387a92a9936d27`, synchronized candidate refs, both `isPrerelease=true` pages, and final catalog invariants. |  | This terminal ledger closeout is the only post-tag change and will be pushed without moving `17.0.0`. |
 
 ## Final report
 
-All rows terminal: no.
+All rows terminal: yes.
 
-Objective complete: no.
+Objective complete: yes.
 
-Status counts: `SUCCESS=5`, `OPEN=2`, `IN_PROGRESS=1`, `BLOCKED=0`,
+Status counts: `SUCCESS=8`, `OPEN=0`, `IN_PROGRESS=0`, `BLOCKED=0`,
 `FAIL=0`, `NO_LONGER_NEEDED=0`.
+
+Changed files:
+
+- DayOA: no source-file changes; version promotion is the annotated `14.0.0`
+  tag on the clean tag-derived candidate commit.
+- DYEC: both command-catalog copies, seven catalog-contract test files, and
+  this durable release ledger.
+
+Validation:
+
+- DayOA isolated wheel build produced
+  `daylily_omics_analysis-14.0.0-py3-none-any.whl`.
+- DYEC release-focused suite passed 681 tests before tagging and 681 tests
+  again under exact tag `17.0.0`; targeted Ruff, byte-compilation, catalog
+  parity, historical snapshot, selector, and whitespace checks passed.
+
+Non-success terminal rows: none.
+
+Residual risks: none within the requested candidate-tag and GitHub-prerelease
+scope. Merges to `main` and package-index publication remain explicitly out of
+scope and were not performed.
