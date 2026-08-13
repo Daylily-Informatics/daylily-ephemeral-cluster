@@ -71,6 +71,11 @@ Gate 0 status: `SUCCESS`.
   guard. Recommendation: defer configuration until the active `17.0.4`
   controller is terminal and its status/lock cleanup is verified. This audit
   was source-only; the headnode and live run were not touched.
+- Release commit `01d56f9c4f9897f1ba9678e5796f800a2334f572` was pushed to
+  `origin/codex/dyec-17.0.5-dayoa-14.0.7`. Annotated tag object
+  `cc4d3b787e573a6d0f39228e1051b344610a371a` has message
+  `Release DYEC 17.0.5 with DayOA 14.0.7`, was pushed as `17.0.5`, and its
+  remote peeled ref is the exact release commit. No existing tag was moved.
 
 ## Control ledger
 
@@ -82,7 +87,7 @@ Gate 0 status: `SUCCESS`.
 | PARITY-001 | Package/test contract | Keep source and packaged catalogs byte-identical and update current-release tests without weakening history guards | SUCCESS | contract_test | Gate 5 | dyec_1705_release | Catalog byte comparison; focused 364/364; complete 2515 passed, 11 skipped |  | Package/source parity and history guards pass. |
 | BUILD-001 | Version/build | Prove exact 17.0.5 metadata and packaged catalog in clean wheel/sdist artifacts | SUCCESS | contract_test | Gate 5 | dyec_1705_release | Wheel/sdist hashes, metadata/catalog inspection, and twine checks above |  | Exact 17.0.5 release artifacts validate. |
 | SAFE-001 | Headnode configure audit | Determine whether supported headnode configure is explicitly safe during an active 17.0.4 controller without touching it | SUCCESS | legitimate_safety_handling | Gate 5 | dyec_1705_release | Docs/source inspection; no live access |  | Not explicitly safe; defer until controller terminal and cleanup verified. |
-| REL-002 | Release | Commit, create annotated non-v 17.0.5 tag, verify clean refs, and push branch and tag | IN_PROGRESS | feature_implementation | Gate 5 | dyec_1705_release | All pre-release validations passed; commit/tag/push pending |  |  |
+| REL-002 | Release | Commit, create annotated non-v 17.0.5 tag, verify clean refs, and push branch and tag | SUCCESS | feature_implementation | Gate 5 | dyec_1705_release | Release commit, annotated tag object, and remote refs above |  | Exact release commit and annotated tag are present on origin. |
 
 ## Acceptance boundary
 
@@ -93,8 +98,8 @@ branch, and tag are verified on `origin`.
 
 ## Final report
 
-All rows terminal: `no`
+All rows terminal: `yes`
 
-Objective complete: `no`
+Objective complete: `yes`
 
-Current counts: `SUCCESS=6`, `IN_PROGRESS=1`, `OPEN=0`, `FAIL=0`, `BLOCKED=0`.
+Current counts: `SUCCESS=7`, `IN_PROGRESS=0`, `OPEN=0`, `FAIL=0`, `BLOCKED=0`.
