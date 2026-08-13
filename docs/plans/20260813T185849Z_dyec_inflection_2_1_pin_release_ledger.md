@@ -48,13 +48,13 @@ After the DayOA Inflection analytical `/2.1` GitHub prerelease is remotely verif
 |---|---|---|---|---|---|---|---|---|
 | DYEC-BASE-001 | Select exact floor or eligible annotated descendant | SUCCESS | config_or_startup_contract | G0 | release_integrator | Exact `17.0.7`; object `b160c3e9...`; peeled `716137b8...`; ancestry rc=0 |  | Requested baseline selected |
 | DYEC-DEPS-001 | Verify complete DayOA release handoff | SUCCESS | config_or_startup_contract | G4 | release_integrator | DayOA annotated tag `14.0.10`; tag object `e6cdd3a1613dd895658101e94923ab5f6195428a`; peeled/remote branch `b3e52e980fa8a057c23ebe80e53329497f39ab45`; floor ancestry rc=0; full suite 1725 passed/1 skipped; pre-release https://github.com/lsmc-bio/daylily-omics-analysis/releases/tag/14.0.10; `isPrerelease=true`, assets empty; no PyPI action |  | Complete remote handoff verified |
-| DYEC-HIST-001 | Preserve every historical numeric snapshot byte-for-byte | IN_PROGRESS | legitimate_safety_handling | G4 | dyec_catalog_pin | Baseline `17.0.7` block hash recorded above; catalog agent dispatched after verified DayOA handoff |  |  |
-| DYEC-PIN-001 | Update active repository/default and all active command pins | IN_PROGRESS | config_or_startup_contract | G4 | dyec_catalog_pin | Baseline contains 29 active DayOA `14.0.9` analysis rows; target `14.0.10` |  |  |
-| DYEC-CAT-001 | Update active/current Inflection metadata to schema 2.1 | IN_PROGRESS | config_or_startup_contract | G4 | dyec_catalog_pin | Target schema 2.1 from released DayOA |  |  |
-| DYEC-SNAP-001 | Replace current and append next immutable numeric build | IN_PROGRESS | feature_implementation | G4 | dyec_catalog_pin | Expected `17.0.8` if no later eligible release appears |  |  |
-| DYEC-PARITY-001 | Preserve source/payload byte equality and current/snapshot semantic equality | IN_PROGRESS | contract_test | G4 | dyec_catalog_pin | Baseline catalog hash recorded above |  |  |
-| DYEC-TEST-001 | Focused catalog, pin, alias, provider-neutral, and fixture tests | IN_PROGRESS | contract_test | G4 | dyec_catalog_pin | Bounded catalog/pin validation dispatched |  |  |
-| DYEC-TEST-002 | Complete DYEC suite and static checks | OPEN | contract_test | G4 | release_integrator |  |  |  |
+| DYEC-HIST-001 | Preserve every historical numeric snapshot byte-for-byte | SUCCESS | legitimate_safety_handling | G4 | dyec_catalog_pin | Commit `83af52f9`; raw `17.0.7` SHA-256 remains `55d2e0e106dfb61f8aa38c28b8f4cf2c24b1efcbe486832fe9ca1666d1cf051f`, pinned to DayOA `14.0.9`; every prior numeric block byte-identical |  | Historical release contracts frozen |
+| DYEC-PIN-001 | Update active repository/default and all active command pins | SUCCESS | config_or_startup_contract | G4 | dyec_catalog_pin | Commit `83af52f9`; active 29/29 `git_tag` and `validated_version` values plus default ref are `14.0.10` |  | Released DayOA pin applied throughout active surfaces |
+| DYEC-CAT-001 | Update active/current Inflection metadata to schema 2.1 | SUCCESS | config_or_startup_contract | G4 | dyec_catalog_pin | Commit `83af52f9`; active/current Inflection alias schema text 2.1; exact command flags retained |  | No `-k`; `-n` dry only; hg38/-j333/-T0/-p/mtime preserved |
+| DYEC-SNAP-001 | Replace current and append next immutable numeric build | SUCCESS | feature_implementation | G4 | dyec_catalog_pin | Commit `83af52f9`; new `17.0.8` snapshot semantically equals current |  | Next numeric snapshot appended without modifying prior blocks |
+| DYEC-PARITY-001 | Preserve source/payload byte equality and current/snapshot semantic equality | SUCCESS | contract_test | G4 | dyec_catalog_pin | Final source/payload SHA-256 both `6122a30bb41708de55c3b9457b2fa087b3cf49238681979ed7f40170e2e4e9e0`; semantic equality PASS |  | Mirrors exact |
+| DYEC-TEST-001 | Focused catalog, pin, alias, provider-neutral, and fixture tests | SUCCESS | contract_test | G4 | dyec_catalog_pin | 60 passed + 9 passed + strengthened alias/HG002 16 passed; diff/invariant audit PASS. Nested-export focused suite separately 46 passed. |  | Bounded focused validation complete |
+| DYEC-TEST-002 | Complete DYEC suite and static checks | IN_PROGRESS | contract_test | G4 | release_integrator | One complete suite queued after integrated catalog+nested-export commits |  |  |
 | DYEC-BUILD-001 | Local wheel/sdist metadata, hash, and embedded catalog validation | OPEN | contract_test | G4 | release_integrator |  |  |  |
 | DYEC-AUDIT-001 | Read-only ancestry/history/release audit | OPEN | contract_test | G4 | release_auditor |  |  |  |
 | DYEC-REL-001 | Commit, push, annotated tag, and GitHub prerelease | OPEN | feature_implementation | G4 | release_integrator |  |  |  |
@@ -76,5 +76,5 @@ After the DayOA Inflection analytical `/2.1` GitHub prerelease is remotely verif
 
 - All rows terminal: no.
 - Objective complete: no.
-- Working-status counts after DayOA handoff: `OPEN=6`, `IN_PROGRESS=6`, `ATTEMPTING_BUGFIX=0`.
-- Terminal-status counts after DayOA handoff: `SUCCESS=2`, `NO_LONGER_NEEDED=0`, `DUPLICATE=0`, `FAIL=0`, `BLOCKED=0`.
+- Working-status counts before full DYEC acceptance: `OPEN=5`, `IN_PROGRESS=1`, `ATTEMPTING_BUGFIX=0`.
+- Terminal-status counts before full DYEC acceptance: `SUCCESS=8`, `NO_LONGER_NEEDED=0`, `DUPLICATE=0`, `FAIL=0`, `BLOCKED=0`.
