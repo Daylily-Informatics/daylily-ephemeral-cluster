@@ -14,8 +14,8 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "14.0.6"
-PRODUCTION_DAYOA_TAG = "14.0.6"
+DAYOA_BLESSED_TAG = "14.0.7"
+PRODUCTION_DAYOA_TAG = "14.0.7"
 PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
 SOLO_KITCHEN_SINK_DAYOA_TAG = PRODUCTION_DAYOA_TAG
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
@@ -181,7 +181,9 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert {command.git_tag for command in previous_catalog_patch} == {"14.0.3"}
     previous_compression_patch = catalog.commands_for_dyec_build("17.0.3")
     assert {command.git_tag for command in previous_compression_patch} == {"14.0.4"}
-    released_build = catalog.commands_for_dyec_build("17.0.4")
+    previous_jasmine_patch = catalog.commands_for_dyec_build("17.0.4")
+    assert {command.git_tag for command in previous_jasmine_patch} == {"14.0.6"}
+    released_build = catalog.commands_for_dyec_build("17.0.5")
     assert [command.model_dump() for command in released_build] == [
         command.model_dump() for command in current_build
     ]

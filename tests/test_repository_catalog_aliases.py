@@ -26,6 +26,7 @@ HISTORICAL_BUILD_HASHES = {
     "17.0.1": "4e2650a84868f6a732e015d495a53ecd40878389fd34d242dc70cd7c7c7a7c31",
     "17.0.2": "a423e38640be95bf7f64726331a308e6fe566b4214789661e75ccf3af939df10",
     "17.0.3": "a36b3eabdd4c3d6e8d22cca31543b739b2ab63ef556e4c7390ec9b657390d243",
+    "17.0.4": "ed70d79c7e35d65dee4625ea9e039402aa5a3bd84ab520534b418a83b57a6d77",
 }
 
 
@@ -108,6 +109,7 @@ def test_existing_accessors_and_public_payload_return_resolved_aliases() -> None
     assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.2"), AnalysisCommand)
     assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.3"), AnalysisCommand)
     assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.4"), AnalysisCommand)
+    assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.5"), AnalysisCommand)
     assert ALIAS_ID in {command.command_id for command in catalog.commands()}
     payload = catalog.to_public_payload()
     assert ALIAS_ID in payload["dyec_builds"]["current"]["aliases"]
@@ -257,10 +259,11 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     assert CATALOG_PATH.read_bytes() == PACKAGED_CATALOG_PATH.read_bytes()
     raw = yaml.safe_load(source)
 
-    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.4"]
-    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["14.0.6"]
+    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.5"]
+    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["14.0.7"]
     assert raw["dyec_builds"]["17.0.2"]["dayoa_git_tags"] == ["14.0.3"]
     assert raw["dyec_builds"]["17.0.3"]["dayoa_git_tags"] == ["14.0.4"]
+    assert raw["dyec_builds"]["17.0.4"]["dayoa_git_tags"] == ["14.0.6"]
     assert OLD_DUPLICATED_ID not in raw["dyec_builds"]["current"]["commands"]
     assert OLD_DUPLICATED_ID not in raw["dyec_builds"]["current"]["aliases"]
     for build in ("16.1.82", "16.1.85", "16.1.86", "17.0.0", "17.0.1"):
