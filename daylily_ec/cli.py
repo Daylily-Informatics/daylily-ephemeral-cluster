@@ -128,11 +128,11 @@ def _validate_analysis_launch_options(
     from daylily_ec.analysis_identity import validate_analysis_segment
 
     try:
-        resolved_analysis_id = validate_analysis_segment(
+        validate_analysis_segment(
             analysis_id,
             field_name="analysis_id",
         )
-        resolved_executing_entity = validate_analysis_segment(
+        validate_analysis_segment(
             executing_entity,
             field_name="executing_entity",
         )
@@ -3857,7 +3857,7 @@ def _run_headnode_semantic_script(
                 resolved_region,
                 script,
                 profile=resolved_profile,
-                as_user="auto",
+                as_user="ubuntu",
                 timeout=timeout,
                 comment=comment,
             )

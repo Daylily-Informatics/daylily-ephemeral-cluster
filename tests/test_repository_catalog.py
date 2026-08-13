@@ -14,8 +14,8 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "13.4.33"
-PRODUCTION_DAYOA_TAG = "13.4.33"
+DAYOA_BLESSED_TAG = "14.0.7"
+PRODUCTION_DAYOA_TAG = "14.0.7"
 PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
 SOLO_KITCHEN_SINK_DAYOA_TAG = PRODUCTION_DAYOA_TAG
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
@@ -51,7 +51,7 @@ UNVALIDATED_COMMAND_IDS = {
     "package_inflection_hybrid_data",
     "betelgeuser_hiomr_prod_v1",
     "inflection-bjuice-product-v0.2",
-    "hiomr2_slim_kitchensink_mega_inflection_analytical",
+    "hiomr2_slim_kitchensink_mega",
     "sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x",
     "illumina_pangenome_snv",
     "illumina_dragen_pangenome_snv_concordance",
@@ -139,7 +139,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     catalog = load_repository_catalog(CATALOG_PATH)
     command = catalog.get_command("illumina_snv_alignstats")
 
-    assert catalog.command_catalog_version == 5
+    assert catalog.command_catalog_version == 6
     released_build = catalog.commands_for_dyec_build("16.1.81")
     assert {command.command_id for command in released_build} == {
         "illumina_hg002_kitchensink_multiqc",
@@ -161,9 +161,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     )
     assert "produce_multiqc_all" not in historical_cg.targets
     previous_build = catalog.commands_for_dyec_build("16.1.82")
-    assert {command.git_tag for command in previous_build} == {
-        PREVIOUS_PRODUCTION_DAYOA_TAG
-    }
+    assert {command.git_tag for command in previous_build} == {PREVIOUS_PRODUCTION_DAYOA_TAG}
     current_build = catalog.commands_for_dyec_build()
     assert {command.command_id for command in current_build} == {
         command.command_id for command in catalog.commands()
@@ -171,7 +169,21 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert len(current_build) == 29
     assert {command.git_tag for command in current_build} == {PRODUCTION_DAYOA_TAG}
     assert {command.repository for command in current_build} == {"daylily-omics-analysis"}
-    released_build = catalog.commands_for_dyec_build("16.1.85")
+    older_release = catalog.commands_for_dyec_build("16.1.85")
+    assert {command.git_tag for command in older_release} == {"13.4.33"}
+    previous_release = catalog.commands_for_dyec_build("16.1.86")
+    assert {command.git_tag for command in previous_release} == {"13.4.34"}
+    prior_major_release = catalog.commands_for_dyec_build("17.0.0")
+    assert {command.git_tag for command in prior_major_release} == {"14.0.0"}
+    previous_major_patch = catalog.commands_for_dyec_build("17.0.1")
+    assert {command.git_tag for command in previous_major_patch} == {"14.0.2"}
+    previous_catalog_patch = catalog.commands_for_dyec_build("17.0.2")
+    assert {command.git_tag for command in previous_catalog_patch} == {"14.0.3"}
+    previous_compression_patch = catalog.commands_for_dyec_build("17.0.3")
+    assert {command.git_tag for command in previous_compression_patch} == {"14.0.4"}
+    previous_jasmine_patch = catalog.commands_for_dyec_build("17.0.4")
+    assert {command.git_tag for command in previous_jasmine_patch} == {"14.0.6"}
+    released_build = catalog.commands_for_dyec_build("17.0.5")
     assert [command.model_dump() for command in released_build] == [
         command.model_dump() for command in current_build
     ]
@@ -400,7 +412,9 @@ def test_catalog_cli_uses_current_unless_numeric_snapshot_is_requested() -> None
     current_payload = json.loads(current_result.stdout)
     released_payload = json.loads(released_result.stdout)
     assert current_payload["dyec_version"] == "current"
-    assert {command["git_tag"] for command in current_payload["commands"]} == {"13.4.33"}
+    assert {command["git_tag"] for command in current_payload["commands"]} == {
+        PRODUCTION_DAYOA_TAG
+    }
     assert released_payload["dyec_version"] == "16.1.82"
     assert {command["git_tag"] for command in released_payload["commands"]} == {"13.4.31"}
 
@@ -449,7 +463,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "ultima_snv_alignstats_kitchensink",
         "complete_genomics_cg_snv_concordance",
         "inflection-bjuice-product-v0.2",
-        "hiomr2_slim_kitchensink_mega_inflection_analytical",
+        "hiomr2_slim_kitchensink_mega",
     }
     recoverability = catalog.get_command(
         "sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x"
@@ -461,10 +475,12 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert "nicu_fastq_recoverability" not in command.dy_command
     hiomr2_mega_ids = {
         "inflection-bjuice-product-v0.2",
-        "hiomr2_slim_kitchensink_mega_inflection_analytical",
+        "hiomr2_slim_kitchensink_mega",
     }
     for command_id in hiomr2_mega_ids:
-        assert "produce_sentdhiomr2_nicu_research" in catalog.get_command(command_id).dy_command
+        command = catalog.get_command(command_id)
+        assert "produce_sentdhiomr2_slim_kitchensink_mega" in command.dy_command
+        assert "produce_sentdhiomr2_nicu_research" not in command.dy_command
     for command_id in production_ids - hiomr2_mega_ids:
         command = catalog.get_command(command_id)
         assert "produce_sentdhiomr2_nicu_research" not in command.dy_command
@@ -669,10 +685,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     hybrid_ilmn_ont = catalog.get_command("hybrid_ilmn_ont_hiomr")
     assert hybrid_ilmn_ont.sample_manifest_template == ""
-    assert (
-        hybrid_ilmn_ont.manifest_dir_template
-        == "examples/staging/hg003_hiomrs_1x_raw_fastq"
-    )
+    assert hybrid_ilmn_ont.manifest_dir_template == "examples/staging/hg003_hiomrs_1x_raw_fastq"
     assert hybrid_ilmn_ont.test_data_profile == "hg003_hiomrs_1x_raw_fastq"
     assert hybrid_ilmn_ont.aligners == ["sentmm2ont"]
     assert hybrid_ilmn_ont.dedupers == ["na"]
@@ -846,10 +859,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     hybrid_kitchensink = catalog.get_command("hybrid_ilmn_ont_hiomr_kitchensink")
     assert hybrid_kitchensink.sample_manifest_template == ""
-    assert (
-        hybrid_kitchensink.manifest_dir_template
-        == "examples/staging/hg003_hiomrs_1x_raw_fastq"
-    )
+    assert hybrid_kitchensink.manifest_dir_template == "examples/staging/hg003_hiomrs_1x_raw_fastq"
     assert hybrid_kitchensink.test_data_profile == "hg003_hiomrs_1x_raw_fastq"
     assert hybrid_kitchensink.validation_runs == []
     assert hybrid_kitchensink.targets[:5] == [
@@ -896,7 +906,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "hiomr2",
         "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical",
         "inflection-bjuice-product-v0.2",
-        "hiomr2_slim_kitchensink_mega_inflection_analytical",
+        "hiomr2_slim_kitchensink_mega",
     ):
         hiomr2_kitchensink = catalog.get_command(command_id)
         for command in (
@@ -922,7 +932,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     for command_id in (
         "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical",
         "inflection-bjuice-product-v0.2",
-        "hiomr2_slim_kitchensink_mega_inflection_analytical",
+        "hiomr2_slim_kitchensink_mega",
     ):
         hiomr2_kitchensink = catalog.get_command(command_id)
         assert hiomr2_kitchensink.dy_command.count(hiomr2_test_scope) == 1
@@ -956,9 +966,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     )
 
     inflection_bjuice = catalog.get_command("inflection-bjuice-product-v0.2")
-    hiomr2_slim = catalog.get_command(
-        "hiomr2_slim_kitchensink_mega_inflection_analytical"
-    )
+    hiomr2_slim = catalog.get_command("hiomr2_slim_kitchensink_mega")
     hiomr2_analytical = catalog.get_command(
         "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical"
     )
@@ -970,21 +978,18 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         == "examples/staging/hg002_bjuice_verified_5x5x_fastq"
     )
     bjuice_profile = catalog.test_data_profiles[inflection_bjuice.test_data_profile]
-    assert bjuice_profile.source_s3_uri_template.endswith(
-        "/bjuice_preval_2026/HG002/"
-    )
+    assert bjuice_profile.source_s3_uri_template.endswith("/bjuice_preval_2026/HG002/")
     assert any("f35e79a5601271f6" in note for note in bjuice_profile.source_notes)
-    assert "full-coverage inputs must not be substituted" in inflection_bjuice.description
+    assert (
+        "full-coverage inputs must not be substituted" in inflection_bjuice.description.casefold()
+    )
     assert inflection_bjuice.targets == [
-        "produce_sentdhiomr2_kitchensink",
-        "produce_sentdhiomr2_nicu_research",
-        "produce_sentdhiomr2_jasmine_sharded_per_sample",
+        "produce_sentdhiomr2_slim_kitchensink_mega",
         "produce_sentdhiomr2_inflection_analytical_package",
-        "results/day/hg38/reports/DAY_final_multiqc.html",
     ]
-    assert hiomr2_slim.targets == inflection_bjuice.targets
-    assert hiomr2_slim.dy_command == inflection_bjuice.dy_command
-    assert hiomr2_slim.dryrun_dy_command == inflection_bjuice.dryrun_dy_command
+    assert hiomr2_slim.targets == ["produce_sentdhiomr2_slim_kitchensink_mega"]
+    assert hiomr2_slim.dy_command != inflection_bjuice.dy_command
+    assert hiomr2_slim.dryrun_dy_command != inflection_bjuice.dryrun_dy_command
     assert hiomr2_slim.test_data_profile == inflection_bjuice.test_data_profile
     assert hiomr2_slim.git_tag == PRODUCTION_DAYOA_TAG
     assert "standalone NICU FASTQ recoverability producer is deliberately excluded" in (
@@ -1001,10 +1006,22 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         inflection_bjuice.input_requirements.accepted_source_column_sets
     )
     assert inflection_bjuice.dy_command != hiomr2_analytical.dy_command
-    assert "produce_sentdhiomr2_kitchensink" in inflection_bjuice.dy_command
-    assert "produce_sentdhiomr2_inflection_analytical_package" in (
-        inflection_bjuice.dy_command
-    )
+    assert "produce_sentdhiomr2_slim_kitchensink_mega" in inflection_bjuice.dy_command
+    assert "produce_sentdhiomr2_inflection_analytical_package" in (inflection_bjuice.dy_command)
+    assert "produce_sentdhiomr2_inflection_analytical_package" not in (hiomr2_slim.dy_command)
+    for unwanted in (
+        "produce_sentdhiomr2_nicu_research",
+        "produce_sentdhiomr2_jasmine_sharded_per_sample",
+        "manta",
+        "dysgu",
+        "severus",
+        "survivor",
+        "octopusv",
+        "sniffles1",
+        "iris",
+    ):
+        assert unwanted not in inflection_bjuice.dy_command.casefold()
+        assert unwanted not in hiomr2_slim.dy_command.casefold()
     assert "produce_sentdhiomr2_inflection_seqone_v2" not in inflection_bjuice.dy_command
     assert "produce_sentdhiomr2_segdup_smn12_multiqc" not in inflection_bjuice.dy_command
     assert "-j 333 -T 0 -p" in inflection_bjuice.dy_command
@@ -1012,10 +1029,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert inflection_bjuice.runtime_parameters == {}
     assert "SEQONE_DELIVERY_BATCH_ID" not in inflection_bjuice.dy_command
     assert "HIOMR2_SEQONE_V2_CONFIG_FILE" not in inflection_bjuice.dy_command
-    assert (
-        "--configfile config/hg002_bjuice_5x5x_hiomr2.yaml"
-        in inflection_bjuice.dy_command
-    )
+    assert "--configfile config/hg002_bjuice_5x5x_hiomr2.yaml" in inflection_bjuice.dy_command
     assert "hiomr2_inflection_package_mode=analytical" in inflection_bjuice.dy_command
     assert "seqone_delivery_batch_id=$ANALYSIS_ID" in inflection_bjuice.dy_command
     assert inflection_bjuice.return_results is False
@@ -1040,9 +1054,19 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         inflection_launch_argv.index("--dy-command") + 1
     ]
     assert "$ANALYSIS_ID" not in rendered_inflection_command
-    assert (
-        "seqone_delivery_batch_id=test-chr19and20" in rendered_inflection_command
-    )
+    assert "seqone_delivery_batch_id=test-chr19and20" in rendered_inflection_command
+    current_set = catalog.dyec_builds["current"]
+    alias = current_set.aliases["inflection-bjuice-product-v0.2"]
+    assert alias.alias_of == "hiomr2_slim_kitchensink_mega"
+    assert alias.extend is not None
+    assert alias.replace is None
+    assert alias.extend.targets == ["produce_sentdhiomr2_inflection_analytical_package"]
+    assert [(item.key, item.value, item.environment) for item in alias.extend.config] == [
+        ("hiomr2_inflection_package_mode", "analytical", None),
+        ("seqone_delivery_batch_id", None, "ANALYSIS_ID"),
+    ]
+    with pytest.raises(KeyError):
+        catalog.get_command("hiomr2_slim_kitchensink_mega_inflection_analytical")
 
     simple_test = catalog.get_command("simple-test")
     assert simple_test.command_class == "utility"

@@ -6,11 +6,11 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_DEFAULT_TAG = "13.4.33"
-DAYOA_VALIDATED_TAG = "13.4.33"
-DAYOA_HIGHEST_RELEASE_COMMIT = "56208632627ccff4c1fb2b2525900e68de59ec12"
-ONT_DAYOA_TAG = "13.4.33"
-ONT_DAYOA_RELEASE_COMMIT = "56208632627ccff4c1fb2b2525900e68de59ec12"
+DAYOA_DEFAULT_TAG = "14.0.7"
+DAYOA_VALIDATED_TAG = "14.0.7"
+DAYOA_HIGHEST_RELEASE_COMMIT = "4e0029753244606e809cc5c431c06431c3d8bc6e"
+ONT_DAYOA_TAG = "14.0.7"
+ONT_DAYOA_RELEASE_COMMIT = "4e0029753244606e809cc5c431c06431c3d8bc6e"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
     f"{_OLD_ORG}/daylily-omics-analysis",
@@ -86,16 +86,30 @@ def test_catalogs_and_dyec_repository_config_are_lsmc_bio_pinned() -> None:
             "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical",
             "betelgeuser_hiomr_prod_v1",
             "inflection-bjuice-product-v0.2",
+            "hiomr2_slim_kitchensink_mega",
         ):
             assert commands[command_id]["git_tag"] == DAYOA_DEFAULT_TAG
             assert commands[command_id]["validated_version"] == DAYOA_VALIDATED_TAG
         assert commands["package_inflection_hybrid_data"]["git_tag"] == DAYOA_DEFAULT_TAG
-        assert commands["package_inflection_hybrid_data"]["validated_version"] == DAYOA_VALIDATED_TAG
+        assert (
+            commands["package_inflection_hybrid_data"]["validated_version"] == DAYOA_VALIDATED_TAG
+        )
         assert data["dyec_builds"]["16.1.82"]["dayoa_git_tags"] == ["13.4.31"]
         assert data["dyec_builds"]["current"]["dayoa_git_tags"] == [DAYOA_DEFAULT_TAG]
-        assert data["dyec_builds"]["16.1.85"]["dayoa_git_tags"] == [DAYOA_DEFAULT_TAG]
-        assert data["dyec_builds"]["current"] == data["dyec_builds"]["16.1.85"]
-        assert set(data["dyec_builds"]["current"]["commands"]) == set(commands)
+        assert data["dyec_builds"]["16.1.85"]["dayoa_git_tags"] == ["13.4.33"]
+        assert data["dyec_builds"]["16.1.86"]["dayoa_git_tags"] == ["13.4.34"]
+        assert data["dyec_builds"]["17.0.0"]["dayoa_git_tags"] == ["14.0.0"]
+        assert data["dyec_builds"]["17.0.1"]["dayoa_git_tags"] == ["14.0.2"]
+        assert data["dyec_builds"]["17.0.2"]["dayoa_git_tags"] == ["14.0.3"]
+        assert data["dyec_builds"]["17.0.3"]["dayoa_git_tags"] == ["14.0.4"]
+        assert data["dyec_builds"]["17.0.4"]["dayoa_git_tags"] == ["14.0.6"]
+        assert data["dyec_builds"]["17.0.5"]["dayoa_git_tags"] == [DAYOA_DEFAULT_TAG]
+        assert data["dyec_builds"]["current"] == data["dyec_builds"]["17.0.5"]
+        current = data["dyec_builds"]["current"]
+        assert set(current["commands"]) | set(current["aliases"]) == set(commands)
+        assert "hiomr2_slim_kitchensink_mega_inflection_analytical" not in commands
+        alias = current["aliases"]["inflection-bjuice-product-v0.2"]
+        assert alias["alias_of"] == "hiomr2_slim_kitchensink_mega"
 
 
 def test_dayoa_commands_use_the_scoped_release_pins() -> None:
@@ -116,9 +130,7 @@ def test_dayoa_commands_use_the_scoped_release_pins() -> None:
         ]
 
         assert commands
-        assert {command["git_tag"] for command in uniform_commands} == {
-            DAYOA_DEFAULT_TAG
-        }
+        assert {command["git_tag"] for command in uniform_commands} == {DAYOA_DEFAULT_TAG}
         assert {command["validated_version"] for command in uniform_commands} == {
             DAYOA_VALIDATED_TAG
         }

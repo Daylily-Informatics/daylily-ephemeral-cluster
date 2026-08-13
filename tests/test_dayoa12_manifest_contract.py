@@ -12,7 +12,6 @@ from daylily_ec.repositories import load_repository_catalog
 from daylily_ec.scripts.common import CommandError
 from daylily_ec.scripts.daylily_run_omics_analysis_headnode import parse_remote_config
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG = REPO_ROOT / "config/daylily_pipeline_command_catalog.yaml"
 
@@ -286,17 +285,15 @@ def test_headnode_remote_config_requires_exact_dayoa12_triple() -> None:
         )
 
 
-def test_inflection_v02_is_a_literal_hiomr2_analytical_contract() -> None:
-    command = load_repository_catalog(CATALOG).get_command("inflection-bjuice-product-v0.2")
-    assert command.git_tag == "13.4.33"
+def test_inflection_v02_resolves_the_hiomr2_analytical_alias_contract() -> None:
+    catalog = load_repository_catalog(CATALOG)
+    command = catalog.get_command("inflection-bjuice-product-v0.2")
+    assert command.git_tag == "14.0.7"
     assert command.input_contract == "six_manifest"
     assert command.input_requirements.required_source_columns == []
     assert command.targets == [
-        "produce_sentdhiomr2_kitchensink",
-        "produce_sentdhiomr2_nicu_research",
-        "produce_sentdhiomr2_jasmine_sharded_per_sample",
+        "produce_sentdhiomr2_slim_kitchensink_mega",
         "produce_sentdhiomr2_inflection_analytical_package",
-        "results/day/hg38/reports/DAY_final_multiqc.html",
     ]
     assert command.runtime_parameters == {}
     assert "seqone_delivery_batch_id=$ANALYSIS_ID" in command.dy_command
@@ -308,13 +305,15 @@ def test_inflection_v02_is_a_literal_hiomr2_analytical_contract() -> None:
     assert "use_fq_data_starting_hrs" not in command.dy_command
     assert "use_fq_data_up_to_hrs" not in command.dy_command
     assert " -j 333 -T 0 -p " in command.dy_command
-    assert "produce_sentdhiomr2_nicu_research" in command.dy_command
+    assert "produce_sentdhiomr2_slim_kitchensink_mega" in command.dy_command
+    assert "produce_sentdhiomr2_nicu_research" not in command.dy_command
+    assert "produce_sentdhiomr2_jasmine_sharded_per_sample" not in command.dy_command
     assert command.jobs == 333
     assert command.restart_times == 1
     assert command.dryrun_dy_command == f"{command.dy_command} -n"
     assert "produce_inflection_delivery_set" not in command.dy_command
     with pytest.raises(KeyError):
-        load_repository_catalog(CATALOG).get_command("inflection-bjuice-product-v0.1")
+        catalog.get_command("inflection-bjuice-product-v0.1")
 
 
 def test_inflection_v02_runtime_preflight_does_not_require_legacy_delivery_identity(

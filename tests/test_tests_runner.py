@@ -17,17 +17,16 @@ from daylily_ec.tests_runner import (
     DYEC_RELEASED_ALL_COMMAND_TOKEN,
     DYEC_RELEASED_CORE_COMMAND_IDS,
     DYEC_RELEASED_CORE_COMMAND_TOKEN,
+    RUN_DRA_CREATE_WAIT_TIMEOUT_SECONDS,
     CommandCatalogOptions,
     PhaseResult,
-    RUN_DRA_CREATE_WAIT_TIMEOUT_SECONDS,
     RenderedPhase,
-    TestsRunnerError as RunnerError,
     build_evidence_prefix,
     catalog_role_uris,
     chunked,
     convert_manifest_path,
-    convert_sample_row,
     convert_manifest_value,
+    convert_sample_row,
     dyec_released_core_command_codes,
     execute_batch,
     execute_phases,
@@ -39,8 +38,8 @@ from daylily_ec.tests_runner import (
     prepare_run_mounts,
     record_to_payload,
     render_catalog_dy_command,
-    render_phase,
     render_dy_command,
+    render_phase,
     role_root_uri,
     run_command_catalog,
     run_id_from_source,
@@ -50,13 +49,15 @@ from daylily_ec.tests_runner import (
     selected_dayoa_version,
     wait_for_phase,
     write_manifest_directory,
-    write_sample_manifest,
     write_phase_plan,
+    write_sample_manifest,
+)
+from daylily_ec.tests_runner import (
+    TestsRunnerError as RunnerError,
 )
 
-
 runner = CliRunner()
-DAYOA_BLESSED_TAG = "13.4.33"
+DAYOA_BLESSED_TAG = "14.0.7"
 
 
 def _run_mount_record(
@@ -331,12 +332,8 @@ def test_write_legacy_sample_manifest_uses_explicit_command_template(tmp_path: P
     assert metagenomics_row["EXPERIMENTID"] == "5x"
     assert "HG003_5x_R1.fastq.gz" in metagenomics_row["ILMN_R1_FQ"]
     assert "HG003_5x_R2.fastq.gz" in metagenomics_row["ILMN_R2_FQ"]
-    assert metagenomics_row["ILMN_R1_FQ"].startswith(
-        "/fsx/data/genomic_data/organism_reads_slim/"
-    )
-    assert metagenomics_row["ILMN_R2_FQ"].startswith(
-        "/fsx/data/genomic_data/organism_reads_slim/"
-    )
+    assert metagenomics_row["ILMN_R1_FQ"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
+    assert metagenomics_row["ILMN_R2_FQ"].startswith("/fsx/data/genomic_data/organism_reads_slim/")
     assert metagenomics_row["STAGE_DIRECTIVE"] == "pass_through"
 
 
@@ -387,24 +384,12 @@ def test_hiomr_six_manifest_fixture_is_copied_exactly_and_rendered(
     assert len(manifests.rows["sequencing_inputs.tsv"]) == 2
     assert len(manifests.rows["analysis_units.tsv"]) == 4
     assert len(manifests.rows["analysis_unit_inputs.tsv"]) == 8
-    inputs = {
-        row["SEQUENCING_INPUT_UID"]: row
-        for row in manifests.rows["sequencing_inputs.tsv"]
-    }
-    assert inputs["HG003-SR-1X-FASTQ"]["ILMN_R1_PATH"].endswith(
-        "/HG003_1x_R1.fastq.gz"
-    )
-    assert inputs["HG003-SR-1X-FASTQ"]["ILMN_R2_PATH"].endswith(
-        "/HG003_1x_R2.fastq.gz"
-    )
-    assert inputs["HG003-LR-1X-FASTQ"]["ONT_R1_PATH"].endswith(
-        "/HG003_1x.cleaned.primary.fastq.gz"
-    )
+    inputs = {row["SEQUENCING_INPUT_UID"]: row for row in manifests.rows["sequencing_inputs.tsv"]}
+    assert inputs["HG003-SR-1X-FASTQ"]["ILMN_R1_PATH"].endswith("/HG003_1x_R1.fastq.gz")
+    assert inputs["HG003-SR-1X-FASTQ"]["ILMN_R2_PATH"].endswith("/HG003_1x_R2.fastq.gz")
+    assert inputs["HG003-LR-1X-FASTQ"]["ONT_R1_PATH"].endswith("/HG003_1x.cleaned.primary.fastq.gz")
     assert all(not row.get("ONT_CRAM", "") for row in inputs.values())
-    units = {
-        row["ANALYSIS_UNIT_UID"]: row
-        for row in manifests.rows["analysis_units.tsv"]
-    }
+    units = {row["ANALYSIS_UNIT_UID"]: row for row in manifests.rows["analysis_units.tsv"]}
     fractions = [
         (row["SUBSAMPLE_PCT"], row["ONT_SUBSAMPLE_PCT"])
         for row in manifests.rows["analysis_units.tsv"]
@@ -412,9 +397,7 @@ def test_hiomr_six_manifest_fixture_is_copied_exactly_and_rendered(
     assert fractions == [("", ""), ("", ""), ("0.90", "0.90"), ("0.75", "0.75")]
     assert "HG003-SR1x-ONT1x-A3-SR0p90-ONT0p90" in units
     assert "HG003-SR1x-ONT1x-A4-SR0p75-ONT0p75" in units
-    assert {row["LIBRARY_EUID"] for row in manifests.rows["libraries.tsv"]} == {
-        "Z-HG003-LIB-01"
-    }
+    assert {row["LIBRARY_EUID"] for row in manifests.rows["libraries.tsv"]} == {"Z-HG003-LIB-01"}
     assert (command_dir / "six_manifest_validation_receipt.json").is_file()
 
     phase = render_phase(
@@ -654,9 +637,7 @@ def test_run_command_catalog_live_runs_all_requested_after_dryrun(tmp_path: Path
     assert all("--conda-create-envs-only" in command for command in warmup_commands)
     assert all("--export-destination-s3-uri" not in call for call in launch_calls)
     assert json.loads(
-        (tmp_path / "all_metagenomic_pipelines" / "live_rendered.json").read_text(
-            encoding="utf-8"
-        )
+        (tmp_path / "all_metagenomic_pipelines" / "live_rendered.json").read_text(encoding="utf-8")
     )["export_destination_s3_uri"].endswith(
         "/ubuntu/ccv_live_all_metagenomic_pipelines_20260607T000000Z/"
     )
@@ -913,12 +894,15 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
     with pytest.raises(RunnerError, match="--command-codes is required"):
         parse_command_codes("", catalog)
 
-    assert selected_dayoa_version(
-        [
-            SimpleNamespace(git_tag="10.0.0"),
-            SimpleNamespace(git_tag="9.0.1"),
-        ]
-    ) == "mixed-10.0.0-9.0.1"
+    assert (
+        selected_dayoa_version(
+            [
+                SimpleNamespace(git_tag="10.0.0"),
+                SimpleNamespace(git_tag="9.0.1"),
+            ]
+        )
+        == "mixed-10.0.0-9.0.1"
+    )
 
     compact = render_dy_command(
         "dy-r target -j20 --jobs=30 -T1 --timestamp=2 --dry-run --printshellcmds",

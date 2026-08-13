@@ -5,14 +5,13 @@ from pathlib import Path
 import daylily_ec.cli  # noqa: F401 - initialize workflow imports before catalog model
 from daylily_ec.repositories import CLUSTER_TYPES, load_repository_catalog
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SOURCE_CATALOG = REPO_ROOT / "config/daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG = (
     REPO_ROOT / "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml"
 )
-DAYOA_GIT_TAG = "13.4.33"
-DAYOA_VALIDATED_VERSION = "13.4.33"
+DAYOA_GIT_TAG = "14.0.7"
+DAYOA_VALIDATED_VERSION = "14.0.7"
 
 
 def test_hiomr_catalog_entry_is_native_dyr_and_mirrored() -> None:
@@ -31,10 +30,7 @@ def test_hiomr_catalog_entry_is_native_dyr_and_mirrored() -> None:
 
     assert command.type == "dev"
     assert command.sample_manifest_template == ""
-    assert (
-        command.manifest_dir_template
-        == "examples/staging/hg003_hiomrs_1x_raw_fastq"
-    )
+    assert command.manifest_dir_template == "examples/staging/hg003_hiomrs_1x_raw_fastq"
     assert command.test_data_profile == "hg003_hiomrs_1x_raw_fastq"
     assert command.targets == [
         "produce_sentdhiomr_snv_vcf",
@@ -72,10 +68,7 @@ def test_hiomr_kitchensink_has_explicit_native_targets_and_retires_hiomrs() -> N
 
     assert command.type == "dev"
     assert command.sample_manifest_template == ""
-    assert (
-        command.manifest_dir_template
-        == "examples/staging/hg003_hiomrs_1x_raw_fastq"
-    )
+    assert command.manifest_dir_template == "examples/staging/hg003_hiomrs_1x_raw_fastq"
     assert command.test_data_profile == "hg003_hiomrs_1x_raw_fastq"
     assert command.targets == [
         "produce_sentdhiomr_snv_vcf",
@@ -122,7 +115,9 @@ def test_hiomr_kitchensink_has_explicit_native_targets_and_retires_hiomrs() -> N
     assert 'snv_callers=["sentdhiomr"]' in command.dy_command
     assert 'sv_callers=["tiddit"]' in command.dy_command
     assert 'htd_callers=["smn12"]' in command.dy_command
-    assert command.dy_command.endswith("-j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete")
+    assert command.dy_command.endswith(
+        "-j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
+    )
     for forbidden in ("produce_hiomrs", "produce_expansionhunter"):
         assert forbidden not in command.dy_command
         assert forbidden not in command.dryrun_dy_command

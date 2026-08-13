@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import re
 import shlex
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Literal, Optional, Sequence
+from typing import Any, Dict, List, Literal, Optional
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -14,11 +15,15 @@ from daylily_ec.analysis_identity import validate_analysis_segment
 from daylily_ec.resources import resource_path
 from daylily_ec.workflow.dyr_preflight import normalize_dyr_preflight_options
 
-
-CATALOG_VERSION = 5
-SUPPORTED_CATALOG_VERSIONS = {1, 2, 3, 4, CATALOG_VERSION}
+CATALOG_VERSION = 6
+SUPPORTED_CATALOG_VERSIONS = {1, 2, 3, 4, 5, CATALOG_VERSION}
 CURRENT_DYEC_BUILD = "current"
 DYEC_BUILD_VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+(?:\.\d+)?$")
+CROSS_BUILD_ALIAS_PATTERN = re.compile(r"^(?:current|\d+\.\d+\.\d+(?:\.\d+)?)(?:[/:@])")
+ALIAS_CONFIG_KEY_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*$")
+ALIAS_ENVIRONMENT_PATTERN = re.compile(r"^[A-Z_][A-Z0-9_]*$")
+ALIAS_TARGET_PATTERN = re.compile(r"^[A-Za-z0-9_./:-]+$")
+SHELL_WORD_PATTERN = re.compile(r"""(?:[^\s'"\\]+|\\.|'(?:[^']*)'|"(?:\\.|[^"\\])*")+""")
 COMMAND_CLASSES = {"sample_analysis", "run_analysis", "utility"}
 COMMAND_TYPES = {"prod", "test", "dev", "research"}
 CLUSTER_TYPES = {"daywgs", "dragen", "sentieon-single"}
@@ -911,6 +916,271 @@ class AnalysisCommand(BaseModel):
         return [mode for mode in modes if mode not in supported]
 
 
+class AnalysisCommandAliasMetadata(BaseModel):
+    """Typed non-command fields that an alias may override on its base."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Optional[str] = None
+    validated_version: Optional[str] = None
+    test_data_profile: Optional[str] = None
+    sample_manifest_template: Optional[str] = None
+    manifest_dir_template: Optional[str] = None
+    display_name: Optional[str] = None
+    description: Optional[str] = None
+    datasource: Optional[str] = None
+    launcher: Optional[str] = None
+    command_class: Optional[str] = None
+    input_contract: Optional[str] = None
+    requires_staging: Optional[bool] = None
+    requires_run_mount: Optional[bool] = None
+    staging_receipt_required: Optional[bool] = None
+    runtime_parameters: Optional[Dict[str, Any]] = None
+    input_requirements: Optional[CommandInputRequirements] = None
+    genome: Optional[str] = None
+    day_profile: Optional[str] = None
+    jobs: Optional[int] = Field(default=None, gt=0)
+    keep_going: Optional[bool] = None
+    restart_times: Optional[int] = Field(default=None, ge=0)
+    aligners: Optional[List[str]] = None
+    dedupers: Optional[List[str]] = None
+    snv_callers: Optional[List[str]] = None
+    sv_callers: Optional[List[str]] = None
+    compatible_platforms: Optional[List[str]] = None
+    compatible_cluster_types: Optional[List[str]] = None
+    compatible_data_modes: Optional[List[str]] = None
+    git_tag: Optional[str] = None
+    no_containerized: Optional[bool] = None
+    return_results: Optional[bool] = None
+    default_activation: Optional[bool] = None
+    optional_features: Optional[Dict[str, AnalysisCommandFeature]] = None
+    validation_runs: Optional[List[CommandValidationRun]] = None
+    validation_evidence_s3_uri_prefix: Optional[str] = None
+    artifact_registration: Optional[ArtifactRegistrationPolicy] = None
+
+
+class AnalysisCommandAliasConfigValue(BaseModel):
+    """One literal or environment-bound ``--config`` value for an alias."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    key: str
+    value: Optional[str] = None
+    environment: Optional[str] = None
+
+    @field_validator("key")
+    @classmethod
+    def _validate_key(cls, value: str) -> str:
+        cleaned = _clean_id(value, field_name="alias config key")
+        if not ALIAS_CONFIG_KEY_PATTERN.fullmatch(cleaned):
+            raise ValueError("alias config key must be a simple DayOA config identifier")
+        return cleaned
+
+    @field_validator("value")
+    @classmethod
+    def _validate_value(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        return _clean_id(value, field_name="alias config value")
+
+    @field_validator("environment")
+    @classmethod
+    def _validate_environment(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        cleaned = _clean_id(value, field_name="alias config environment")
+        if not ALIAS_ENVIRONMENT_PATTERN.fullmatch(cleaned):
+            raise ValueError("alias config environment must be an uppercase shell identifier")
+        return cleaned
+
+    @model_validator(mode="after")
+    def _validate_source(self) -> "AnalysisCommandAliasConfigValue":
+        if (self.value is None) == (self.environment is None):
+            raise ValueError("alias config must set exactly one of value or environment")
+        return self
+
+    def render(self) -> str:
+        """Render one shell-safe DayOA config token."""
+
+        if self.environment is not None:
+            return f'"{self.key}=${self.environment}"'
+        return shlex.quote(f"{self.key}={self.value}")
+
+
+class AnalysisCommandAliasExtension(BaseModel):
+    """Declarative additions to a base DayOA command."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    targets: List[str] = Field(default_factory=list)
+    config: List[AnalysisCommandAliasConfigValue] = Field(default_factory=list)
+
+    @field_validator("targets")
+    @classmethod
+    def _validate_targets(cls, values: List[str]) -> List[str]:
+        cleaned = [_clean_id(value, field_name="alias extension target") for value in values]
+        if any(not ALIAS_TARGET_PATTERN.fullmatch(value) for value in cleaned):
+            raise ValueError("alias extension targets must be simple DayOA target names")
+        if len(set(cleaned)) != len(cleaned):
+            raise ValueError("alias extension targets must be unique")
+        return cleaned
+
+    @model_validator(mode="after")
+    def _validate_extension(self) -> "AnalysisCommandAliasExtension":
+        if not self.targets and not self.config:
+            raise ValueError("alias extension must add at least one target or config value")
+        keys = [item.key for item in self.config]
+        if len(set(keys)) != len(keys):
+            raise ValueError("alias extension config keys must be unique")
+        return self
+
+
+class AnalysisCommandAliasReplacement(BaseModel):
+    """Complete command-bearing fields for an independent alias command."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    targets: List[str]
+    dy_command: str
+    dryrun_dy_command: str
+
+    @field_validator("targets")
+    @classmethod
+    def _validate_targets(cls, values: List[str]) -> List[str]:
+        cleaned = [_clean_id(value, field_name="alias replacement target") for value in values]
+        if any(not ALIAS_TARGET_PATTERN.fullmatch(value) for value in cleaned):
+            raise ValueError("alias replacement targets must be simple DayOA target names")
+        if len(set(cleaned)) != len(cleaned):
+            raise ValueError("alias replacement targets must be unique")
+        return cleaned
+
+    @field_validator("dy_command", "dryrun_dy_command")
+    @classmethod
+    def _validate_commands(cls, value: str) -> str:
+        return _clean_id(value, field_name="alias replacement command")
+
+
+class AnalysisCommandAlias(BaseModel):
+    """A one-hop alias to a direct command in the same DYEC build."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    command_id: str
+    alias_of: str
+    metadata_overrides: AnalysisCommandAliasMetadata = Field(
+        default_factory=AnalysisCommandAliasMetadata
+    )
+    extend: Optional[AnalysisCommandAliasExtension] = None
+    replace: Optional[AnalysisCommandAliasReplacement] = None
+
+    @field_validator("command_id", "alias_of")
+    @classmethod
+    def _validate_ids(cls, value: str) -> str:
+        return _clean_id(value, field_name="alias id")
+
+    @model_validator(mode="after")
+    def _validate_mode(self) -> "AnalysisCommandAlias":
+        if self.extend is not None and self.replace is not None:
+            raise ValueError("alias extend and replace modes are mutually exclusive")
+        if (
+            self.extend is None
+            and self.replace is None
+            and not self.metadata_overrides.model_fields_set
+        ):
+            raise ValueError("alias must override metadata, extend the base, or replace commands")
+        return self
+
+
+def _shell_words(command: str) -> tuple[List[re.Match[str]], List[str]]:
+    matches = list(SHELL_WORD_PATTERN.finditer(command))
+    try:
+        values = shlex.split(command, posix=True)
+    except ValueError as exc:
+        raise ValueError(f"alias base command is not valid shell syntax: {exc}") from exc
+    if len(matches) != len(values):
+        raise ValueError("alias base command uses unsupported shell token syntax")
+    return matches, values
+
+
+def _render_extended_command(command: str, extension: AnalysisCommandAliasExtension) -> str:
+    """Insert declarative target/config values into one strict ``dy-r`` command."""
+
+    matches, values = _shell_words(command)
+    dy_r_indices = [index for index, value in enumerate(values) if value == "dy-r"]
+    if len(dy_r_indices) != 1:
+        raise ValueError("alias extension requires exactly one dy-r token in the base command")
+    dy_r_index = dy_r_indices[0]
+    target_end = dy_r_index + 1
+    while target_end < len(values) and not values[target_end].startswith("-"):
+        target_end += 1
+
+    insertions: List[tuple[int, List[str]]] = []
+    if extension.targets:
+        existing_targets = set(values[dy_r_index + 1 : target_end])
+        duplicates = sorted(existing_targets.intersection(extension.targets))
+        if duplicates:
+            raise ValueError("alias extension repeats base target(s): " + ", ".join(duplicates))
+        target_position = matches[target_end].start() if target_end < len(matches) else len(command)
+        insertions.append((target_position, list(extension.targets)))
+
+    if extension.config:
+        config_indices = [
+            index
+            for index, value in enumerate(values[dy_r_index + 1 :], start=dy_r_index + 1)
+            if value == "--config"
+        ]
+        if len(config_indices) != 1:
+            raise ValueError(
+                "alias config extension requires exactly one --config token in the base command"
+            )
+        config_index = config_indices[0]
+        config_end = config_index + 1
+        while config_end < len(values) and not values[config_end].startswith("-"):
+            config_end += 1
+        existing_keys = {
+            value.split("=", 1)[0]
+            for value in values[config_index + 1 : config_end]
+            if "=" in value
+        }
+        duplicates = sorted(existing_keys.intersection(item.key for item in extension.config))
+        if duplicates:
+            raise ValueError("alias extension repeats base config key(s): " + ", ".join(duplicates))
+        config_position = matches[config_end].start() if config_end < len(matches) else len(command)
+        insertions.append(
+            (config_position, [config_value.render() for config_value in extension.config])
+        )
+
+    rendered = command
+    for position, words in sorted(insertions, key=lambda item: item[0], reverse=True):
+        fragment = " ".join(words)
+        if position and not rendered[position - 1].isspace():
+            fragment = " " + fragment
+        if position < len(rendered) and not rendered[position].isspace():
+            fragment += " "
+        rendered = rendered[:position] + fragment + rendered[position:]
+    return rendered
+
+
+def _resolve_analysis_command_alias(
+    alias: AnalysisCommandAlias, base: AnalysisCommand
+) -> AnalysisCommand:
+    values = base.model_dump(mode="python")
+    values.update(alias.metadata_overrides.model_dump(mode="python", exclude_unset=True))
+    values["command_id"] = alias.command_id
+    if alias.extend is not None:
+        repeated_targets = sorted(set(base.targets).intersection(alias.extend.targets))
+        if repeated_targets:
+            raise ValueError(
+                "alias extension repeats base target(s): " + ", ".join(repeated_targets)
+            )
+        values["targets"] = [*base.targets, *alias.extend.targets]
+        values["dy_command"] = _render_extended_command(base.dy_command, alias.extend)
+        values["dryrun_dy_command"] = _render_extended_command(base.dryrun_dy_command, alias.extend)
+    elif alias.replace is not None:
+        values.update(alias.replace.model_dump(mode="python"))
+    return AnalysisCommand.model_validate(values)
+
+
 class DyecBuildCommandSet(BaseModel):
     """Catalog command shapes for the current view or one immutable DYEC build.
 
@@ -924,6 +1194,7 @@ class DyecBuildCommandSet(BaseModel):
     repository: str
     dayoa_git_tags: List[str]
     commands: Dict[str, AnalysisCommand]
+    aliases: Dict[str, AnalysisCommandAlias] = Field(default_factory=dict)
 
     @field_validator("dayoa_git_tags")
     @classmethod
@@ -958,7 +1229,59 @@ class DyecBuildCommandSet(BaseModel):
                     f"DYEC build command {command.command_id!r} pins DayOA "
                     f"{command.git_tag!r}, which is not declared in dayoa_git_tags"
                 )
+        alias_command_ids = [alias.command_id for alias in self.aliases.values()]
+        if len(set(alias_command_ids)) != len(alias_command_ids):
+            raise ValueError("Duplicate DYEC build alias command id")
+        direct_ids = set(self.commands)
+        alias_ids = set(alias_command_ids)
+        duplicate_ids = sorted(direct_ids.intersection(alias_ids))
+        if duplicate_ids:
+            raise ValueError(
+                "Duplicate DYEC build command and alias id: " + ", ".join(duplicate_ids)
+            )
+        for alias_key, alias in self.aliases.items():
+            cleaned_key = _clean_id(alias_key, field_name="DYEC build alias id")
+            if alias.command_id != cleaned_key:
+                raise ValueError(
+                    f"DYEC build alias key {cleaned_key!r} must match command_id "
+                    f"{alias.command_id!r}"
+                )
+            if CROSS_BUILD_ALIAS_PATTERN.match(alias.alias_of):
+                raise ValueError(
+                    f"DYEC build alias {alias.command_id!r} must not use a cross-build reference"
+                )
+            if alias.alias_of in alias_ids:
+                raise ValueError(
+                    f"DYEC build alias {alias.command_id!r} creates an alias chain or cycle; "
+                    "alias_of must name a direct same-build command"
+                )
+            if alias.alias_of not in self.commands:
+                raise ValueError(
+                    f"DYEC build alias {alias.command_id!r} references missing same-build "
+                    f"base command {alias.alias_of!r}"
+                )
+            resolved = _resolve_analysis_command_alias(alias, self.commands[alias.alias_of])
+            if resolved.repository != repository:
+                raise ValueError(
+                    f"Resolved DYEC build alias {resolved.command_id!r} repository "
+                    f"{resolved.repository!r} does not match build repository {repository!r}"
+                )
+            if resolved.git_tag not in self.dayoa_git_tags:
+                raise ValueError(
+                    f"Resolved DYEC build alias {resolved.command_id!r} pins DayOA "
+                    f"{resolved.git_tag!r}, which is not declared in dayoa_git_tags"
+                )
         return self
+
+    def resolved_commands(self) -> Dict[str, AnalysisCommand]:
+        """Return direct commands plus one-hop aliases as ordinary commands."""
+
+        resolved = dict(self.commands)
+        for alias_id, alias in self.aliases.items():
+            resolved[alias_id] = _resolve_analysis_command_alias(
+                alias, self.commands[alias.alias_of]
+            )
+        return resolved
 
 
 class RepositoryDefinition(BaseModel):
@@ -1014,11 +1337,12 @@ class RepositoryCatalog(BaseModel):
             raise ValueError("command catalog version 3 requires result_export guidance")
         if self.command_catalog_version >= 4 and not self.dyec_builds:
             raise ValueError("command catalog version 4 requires dyec_builds")
-        if (
-            self.command_catalog_version >= 5
-            and CURRENT_DYEC_BUILD not in self.dyec_builds
+        if self.command_catalog_version >= 5 and CURRENT_DYEC_BUILD not in self.dyec_builds:
+            raise ValueError("command catalog version 5 or newer requires dyec_builds.current")
+        if self.command_catalog_version < 6 and any(
+            command_set.aliases for command_set in self.dyec_builds.values()
         ):
-            raise ValueError("command catalog version 5 requires dyec_builds.current")
+            raise ValueError("command catalog aliases require command_catalog_version 6")
         for build_version in self.dyec_builds:
             if str(build_version).startswith("v"):
                 raise ValueError("dyec_builds keys must use non-v semver release identifiers")
@@ -1103,13 +1427,16 @@ class RepositoryCatalog(BaseModel):
                             + ", ".join(sorted(missing_columns))
                         )
         for build_version, command_set in self.dyec_builds.items():
-            for command in command_set.commands.values():
+            for command in command_set.resolved_commands().values():
                 if command.repository not in self.repositories:
                     raise ValueError(
                         f"DYEC build {build_version!r} command {command.command_id!r} "
                         f"references unknown repository {command.repository!r}"
                     )
-                if command.input_contract != "none" and command.input_contract not in self.input_contracts:
+                if (
+                    command.input_contract != "none"
+                    and command.input_contract not in self.input_contracts
+                ):
                     raise ValueError(
                         f"DYEC build {build_version!r} command {command.command_id!r} "
                         f"references unknown input contract {command.input_contract!r}"
@@ -1149,9 +1476,7 @@ class RepositoryCatalog(BaseModel):
             field_name="dyec_version",
         )
 
-    def commands_for_dyec_build(
-        self, dyec_version: Optional[str] = None
-    ) -> List[AnalysisCommand]:
+    def commands_for_dyec_build(self, dyec_version: Optional[str] = None) -> List[AnalysisCommand]:
         """Return current commands by default or an explicitly selected snapshot."""
 
         build_key = self.resolve_dyec_build_key(dyec_version)
@@ -1159,7 +1484,7 @@ class RepositoryCatalog(BaseModel):
             build = self.dyec_builds[build_key]
         except KeyError as exc:
             raise KeyError(f"No command eligibility set for DYEC build: {build_key}") from exc
-        return list(build.commands.values())
+        return list(build.resolved_commands().values())
 
     def get_command_for_dyec_build(
         self, command_id: str, dyec_version: Optional[str] = None

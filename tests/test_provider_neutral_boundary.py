@@ -5,10 +5,10 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
+import yaml
 from typer.testing import CliRunner
 
 from daylily_ec.cli import app
-
 
 ROOT = Path(__file__).resolve().parents[1]
 ACTIVE_SURFACES = (
@@ -18,8 +18,14 @@ ACTIVE_SURFACES = (
     ROOT / "daylily_ec" / "scripts" / "daylily_run_omics_analysis_headnode.py",
     ROOT / "daylily_ec" / "workflow" / "create_cluster.py",
     ROOT / "daylily_ec" / "workflow" / "export_data.py",
+)
+CATALOG_SURFACES = (
     ROOT / "config" / "daylily_pipeline_command_catalog.yaml",
-    ROOT / "daylily_ec" / "resources" / "payload" / "config"
+    ROOT
+    / "daylily_ec"
+    / "resources"
+    / "payload"
+    / "config"
     / "daylily_pipeline_command_catalog.yaml",
 )
 FORBIDDEN_PROVIDER_TOKENS = ("dayhoff", "ursa", "bloom", "tapdb", "dewey")
@@ -32,6 +38,32 @@ def test_active_dyec_surfaces_have_no_provider_names_or_registration_aliases() -
         for token in FORBIDDEN_PROVIDER_TOKENS:
             if token in lowered:
                 violations.append(f"{path.relative_to(ROOT)}:{token}")
+
+    def inspect_catalog(value: object, *, path: tuple[str, ...], source: Path) -> None:
+        if isinstance(value, dict):
+            for key, nested in value.items():
+                # Validation receipts are immutable historical provenance, not
+                # executable configuration or provider integration.
+                if key == "validation_runs":
+                    continue
+                inspect_catalog(nested, path=(*path, str(key)), source=source)
+            return
+        if isinstance(value, list):
+            for index, nested in enumerate(value):
+                inspect_catalog(nested, path=(*path, str(index)), source=source)
+            return
+        lowered = str(value).lower()
+        for token in FORBIDDEN_PROVIDER_TOKENS:
+            if token in lowered:
+                location = ".".join(path)
+                violations.append(f"{source.relative_to(ROOT)}:{location}:{token}")
+
+    for path in CATALOG_SURFACES:
+        inspect_catalog(
+            yaml.safe_load(path.read_text(encoding="utf-8")),
+            path=(),
+            source=path,
+        )
     assert violations == []
     assert not (ROOT / "daylily_ec" / "workflow" / "dewey_registration.py").exists()
 

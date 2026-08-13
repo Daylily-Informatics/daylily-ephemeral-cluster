@@ -222,7 +222,7 @@ def test_cost_center_storage_helper_edges() -> None:
 
 
 def test_analysis_path_metadata_and_json_errors(tmp_path: Path) -> None:
-    missing = tmp_path / "missing"
+    missing = tmp_path / "analysis_results" / "owner" / "missing"
     with pytest.raises(locks.AnalysisLockError, match="does not exist"):
         locks.normalize_analysis_root(missing)
     outside = tmp_path / "outside"
