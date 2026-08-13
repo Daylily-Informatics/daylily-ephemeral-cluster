@@ -187,6 +187,13 @@ def _allowed_export_destination_suffixes(
                 destination_analysis_id,
                 field_name="destination_analysis_id",
             )
+            if nested_suffix:
+                source_leaf = source_parts[-1]
+                package_suffix = (
+                    f"{cluster_segment}/{destination_segment}/{source_leaf}/"
+                )
+                if package_suffix not in suffixes:
+                    suffixes.append(package_suffix)
             destination_suffix = (
                 f"{cluster_segment}/analysis_results/{destination_segment}/{nested_tail}"
             )

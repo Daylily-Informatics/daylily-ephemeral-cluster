@@ -181,6 +181,25 @@ def test_validate_and_resolve_nested_export_destination_exactly() -> None:
         )
 
 
+def test_nested_package_destination_uses_explicit_batch_and_source_leaf() -> None:
+    source = (
+        "/fsx/analysis_results/prod-cand-1703/original-analysis/"
+        "daylily-omics-analysis/results/day/hg38/deliveries/inflection/"
+        "proof-batch/HG002-Z-HG002-ANALYSIS-UNIT-5X5X/"
+    )
+    destination = (
+        "s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/"
+        "proof-batch/HG002-Z-HG002-ANALYSIS-UNIT-5X5X/"
+    )
+
+    assert validate_export_destination_s3_uri(
+        destination,
+        source_path=source,
+        cluster_name="prod-cand-1703",
+        destination_analysis_id="proof-batch",
+    ) == destination
+
+
 def test_validate_s3_destination_prefix_is_immutable() -> None:
     class Existing:
         def list_objects_v2(self, **_kwargs):
