@@ -66,7 +66,7 @@ the pending version to `17.0.9`.
 | DYEC-TEST-001 | Focused catalog, pin, alias, provider-neutral, and fixture tests | SUCCESS | contract_test | G4 | dyec_catalog_pin | Post-collision focused catalog suite 60 passed; combined nested-analysis plus runtime-cache export suite 53 passed; diff/invariant audit PASS |  | Bounded focused validation complete |
 | DYEC-EXPORT-001 | Permit exact nested no-delete analytical-package export | SUCCESS | feature_implementation | G4 | release_integrator | Commits `c4a98931` + `bee5bda9`; focused export suite 46 passed; live task `task-08d5ea4b86628f7c1` SUCCEEDED 157/157/0, DRA `dra-0ccd96e22f9631ba2` detached/DELETED, `DeleteDataInFileSystem=false`; exact S3 prefix contains 157 objects/2,622,473,206 bytes and schema-2.1 manifest | Root-only export parser rejected explicit nested package source/destination before AWS resource creation | Full nested source retained for DRA/task while ownership remains first two analysis components; explicit destination batch plus exact source leaf; no fallback/discovery |
 | DYEC-TEST-002 | Complete DYEC suite and static checks | SUCCESS | contract_test | G4 | release_integrator | Post-merge complete suite: 2539 passed, 11 skipped, 1 expected dependency warning in 155.61s; `git diff --check` and conflict-marker audit passed |  | Mainline 17.0.8 plus nested export plus 14.0.10 catalog pin validated together |
-| DYEC-BUILD-001 | Local wheel/sdist metadata, hash, and embedded catalog validation | OPEN | contract_test | G4 | release_integrator |  |  |  |
+| DYEC-BUILD-001 | Local wheel/sdist metadata, hash, and embedded catalog validation | SUCCESS | contract_test | G4 | release_integrator | Pretag build from clean merge commit `bf40f6e5` with `SETUPTOOLS_SCM_PRETEND_VERSION=17.0.9`; wheel/sdist built locally in `/tmp/dyec-17.0.9-build.BK1SFH`; `twine check` passed; wheel metadata name/version `daylily-ephemeral-cluster`/`17.0.9`; source, payload, wheel, and sdist catalog SHA-256 all `c2188c91177951b85c0cede6c71fca1bb075980765b6aef29bdd5571b92676f6`; wheel SHA-256 `0558eb41...`; sdist SHA-256 `11289fa5...` |  | Local validation only; artifacts were not uploaded or attached |
 | DYEC-AUDIT-001 | Read-only ancestry/history/release audit | IN_PROGRESS | contract_test | G4 | release_auditor | Initial audit paused on the discovered 17.0.8 collision; final post-merge audit queued |  |  |
 | DYEC-REL-001 | Commit, push, annotated tag, and GitHub prerelease | IN_PROGRESS | feature_implementation | G4 | release_integrator | Release retargeted to 17.0.9 after immutable remote 17.0.8 collision |  |  |
 | DYEC-NOPYPI-001 | Prove GitHub-only release with no binary assets | OPEN | legitimate_safety_handling | G4 | release_integrator |  |  |  |
@@ -87,5 +87,5 @@ the pending version to `17.0.9`.
 
 - All rows terminal: no.
 - Objective complete: no.
-- Working-status counts before artifact/audit/release closeout: `OPEN=3`, `IN_PROGRESS=2`, `ATTEMPTING_BUGFIX=0`.
-- Terminal-status counts before artifact/audit/release closeout: `SUCCESS=10`, `NO_LONGER_NEEDED=0`, `DUPLICATE=0`, `FAIL=0`, `BLOCKED=0`.
+- Working-status counts before audit/release closeout: `OPEN=2`, `IN_PROGRESS=2`, `ATTEMPTING_BUGFIX=0`.
+- Terminal-status counts before audit/release closeout: `SUCCESS=11`, `NO_LONGER_NEEDED=0`, `DUPLICATE=0`, `FAIL=0`, `BLOCKED=0`.
