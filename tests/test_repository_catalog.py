@@ -189,7 +189,9 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert {command.git_tag for command in previous_fastqc_java_patch} == {"14.0.8"}
     previous_inflection_build = catalog.commands_for_dyec_build("17.0.7")
     assert {command.git_tag for command in previous_inflection_build} == {"14.0.9"}
-    released_build = catalog.commands_for_dyec_build("17.0.8")
+    published_collision_build = catalog.commands_for_dyec_build("17.0.8")
+    assert {command.git_tag for command in published_collision_build} == {"14.0.9"}
+    released_build = catalog.commands_for_dyec_build("17.0.9")
     assert [command.model_dump() for command in released_build] == [
         command.model_dump() for command in current_build
     ]

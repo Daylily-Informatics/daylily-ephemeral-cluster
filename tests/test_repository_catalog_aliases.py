@@ -30,6 +30,7 @@ HISTORICAL_BUILD_HASHES = {
     "17.0.5": "d7ef1dabbb31130358ca3e99357bdb742a2c198e1452f076977d46acd47ab0b0",
     "17.0.6": "b8cb52a26e74a4757850f048d3f903df45393014cc596db50ad97ae27b4242b6",
     "17.0.7": "55d2e0e106dfb61f8aa38c28b8f4cf2c24b1efcbe486832fe9ca1666d1cf051f",
+    "17.0.8": "6dac4a6f5724191ee1c930a07d209b29c90c1a8171b2574d0afc94e1628efc8e",
 }
 
 
@@ -94,8 +95,8 @@ def test_current_alias_resolves_to_an_analysis_command_and_renders_extensions() 
     assert "schema-2.1 analytical Inflection package" in alias.description
     assert alias.return_results is False
 
-    previous_alias = catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.7")
-    released_alias = catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.8")
+    previous_alias = catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.8")
+    released_alias = catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.9")
     assert "schema-2.0 analytical Inflection package" in previous_alias.description
     assert "schema-2.1 analytical Inflection package" in released_alias.description
 
@@ -122,6 +123,7 @@ def test_existing_accessors_and_public_payload_return_resolved_aliases() -> None
     assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.6"), AnalysisCommand)
     assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.7"), AnalysisCommand)
     assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.8"), AnalysisCommand)
+    assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.9"), AnalysisCommand)
     assert ALIAS_ID in {command.command_id for command in catalog.commands()}
     payload = catalog.to_public_payload()
     assert ALIAS_ID in payload["dyec_builds"]["current"]["aliases"]
@@ -271,7 +273,7 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     assert CATALOG_PATH.read_bytes() == PACKAGED_CATALOG_PATH.read_bytes()
     raw = yaml.safe_load(source)
 
-    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.8"]
+    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.9"]
     assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["14.0.10"]
     assert raw["dyec_builds"]["17.0.2"]["dayoa_git_tags"] == ["14.0.3"]
     assert raw["dyec_builds"]["17.0.3"]["dayoa_git_tags"] == ["14.0.4"]
@@ -279,6 +281,7 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     assert raw["dyec_builds"]["17.0.5"]["dayoa_git_tags"] == ["14.0.7"]
     assert raw["dyec_builds"]["17.0.6"]["dayoa_git_tags"] == ["14.0.8"]
     assert raw["dyec_builds"]["17.0.7"]["dayoa_git_tags"] == ["14.0.9"]
+    assert raw["dyec_builds"]["17.0.8"]["dayoa_git_tags"] == ["14.0.9"]
     assert OLD_DUPLICATED_ID not in raw["dyec_builds"]["current"]["commands"]
     assert OLD_DUPLICATED_ID not in raw["dyec_builds"]["current"]["aliases"]
     for build in ("16.1.82", "16.1.85", "16.1.86", "17.0.0", "17.0.1"):

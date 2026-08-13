@@ -20,6 +20,7 @@ from daylily_ec.workflow.export_data import (
     run_export_task,
     run_export_workflow,
     validate_export_destination_s3_uri,
+    validate_no_overlapping_export_dra,
     validate_s3_destination_prefix_empty,
 )
 
@@ -262,6 +263,32 @@ def test_attach_nested_export_dra_uses_full_source_but_root_ownership_tag() -> N
     assert {"Key": "Name", "Value": record.analysis_dir} in client.created_association[
         "Tags"
     ]
+
+
+def test_export_rejects_overlapping_s3_repository_path() -> None:
+    class ExistingAssociationClient:
+        def describe_data_repository_associations(self, **_kwargs):
+            return {
+                "Associations": [
+                    {
+                        "AssociationId": "dra-reference",
+                        "Lifecycle": "AVAILABLE",
+                        "FileSystemPath": "/references/",
+                        "DataRepositoryPath": "s3://reference-bucket/",
+                    }
+                ]
+            }
+
+    with pytest.raises(ExportError, match="destination_s3_uri overlaps"):
+        validate_no_overlapping_export_dra(
+            ExistingAssociationClient(),
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/cluster-a/cache-export-a",
+            destination_s3_uri=(
+                "s3://reference-bucket/runtime_assets/cached_envs/"
+                "cluster-a/cache-export-a/"
+            ),
+        )
 
 
 def test_run_export_task_uses_exact_analysis_path() -> None:

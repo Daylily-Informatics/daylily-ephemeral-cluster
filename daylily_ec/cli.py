@@ -441,6 +441,12 @@ def agent_guidance() -> None:
             "Download: dyec headnode download [-r] <remote> <local> --staging-s3-uri s3://bucket/prefix --profile <profile> --region <region> --cluster <cluster>",
             "The S3 relay prefix is retained and printed for audit; clean it up explicitly if desired.",
         ],
+        "runtime_cache_export_contract": [
+            "Never copy Conda, container, Apptainer, Singularity, or Nextflow cache trees with aws s3 cp, aws s3 sync, aws s3 mv, or SDK object-copy loops.",
+            "--no-follow-symlinks is not a cache-preserving alternative: it omits links instead of preserving their type and target.",
+            "Use dyec runtime-cache export; it stages complete real entries with cp -a in a fresh /fsx/analysis_results/<executing-entity>/<cache-export-id>/ root and exports only through FSx DRA attach/export/detach.",
+            "An existing root, active cache builder, incomplete entry, non-empty or overlapping S3 destination, or unavailable DRA must fail closed; there is no S3 CLI fallback.",
+        ],
         "monitoring": [
             "Start with dyec analysis status full --analysis-root <root> --tail-lines <n> when available.",
             "Use squeue -o '%i  %P  %C  %t  %N  %c  %T  %m  %M  %D  %j' for Slurm queue truth.",
@@ -2274,6 +2280,105 @@ def _emit_export_payload(payload: Any, *, text: str) -> None:
         output.emit_json(payload)
         return
     typer.echo(text)
+
+
+def runtime_cache_export(
+    cluster_name: str = typer.Option(
+        ...,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster whose generation-scoped runtime caches will be saved.",
+    ),
+    executing_entity: str = typer.Option(
+        ...,
+        "--executing-entity",
+        help="Owner segment for the fresh /fsx/analysis_results staging root.",
+    ),
+    cache_export_id: str = typer.Option(
+        ...,
+        "--cache-export-id",
+        help="Immutable execution segment for the fresh runtime-cache staging root.",
+    ),
+    destination_s3_uri: str = typer.Option(
+        ...,
+        "--destination-s3-uri",
+        help=(
+            "Empty non-overlapping S3 prefix ending in "
+            "<executing-entity>/<cache-export-id>/."
+        ),
+    ),
+    region: str = typer.Option(..., "--region", help="AWS region for the cluster and FSx."),
+    output_dir: Path = typer.Option(
+        ...,
+        "--output-dir",
+        help="New local directory for runtime_cache_export.yaml and the DRA receipt.",
+    ),
+    human_requestor: str = typer.Option(
+        ...,
+        "--human-requestor",
+        help="Human requestor recorded in the analysis-root lock and visit evidence.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE when omitted.",
+    ),
+    cache_user: str = typer.Option(
+        "ubuntu",
+        "--cache-user",
+        help="Generation-scoped cache owner: ubuntu, daylily, or ec2-user.",
+    ),
+    stage_timeout_seconds: int = typer.Option(
+        7200,
+        "--stage-timeout-seconds",
+        help="SSM timeout for cp -a staging on the headnode.",
+    ),
+    export_timeout_seconds: int = typer.Option(
+        5400,
+        "--export-timeout-seconds",
+        help="Timeout for the FSx DRA attach, export task, and safe detach.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Render the immutable staging and DRA plan without AWS or FSx mutations.",
+    ),
+) -> None:
+    """Save complete runtime caches to S3 exclusively through an FSx DRA."""
+
+    from daylily_ec.runtime_cache_export import (
+        RuntimeCacheExportError,
+        RuntimeCacheExportOptions,
+        run_runtime_cache_export,
+    )
+
+    try:
+        payload = run_runtime_cache_export(
+            RuntimeCacheExportOptions(
+                cluster_name=cluster_name,
+                executing_entity=executing_entity,
+                cache_export_id=cache_export_id,
+                destination_s3_uri=destination_s3_uri,
+                region=region,
+                profile=profile,
+                output_dir=output_dir.expanduser().resolve(),
+                human_requestor=human_requestor,
+                cache_user=cache_user,
+                stage_timeout_seconds=stage_timeout_seconds,
+                export_timeout_seconds=export_timeout_seconds,
+                dry_run=dry_run,
+            )
+        )
+        _emit_export_payload(
+            payload,
+            text=(
+                f"Runtime-cache export {payload['status']}: {payload['stage_root']}\n"
+                f"Transport: {payload['transport']}\n"
+                f"S3 destination: {payload['destination_s3_uri']}"
+            ),
+        )
+    except (RuntimeCacheExportError, ValueError) as exc:
+        _exit_headnode_error(exc)
 
 
 def exports_attach(
@@ -9712,6 +9817,18 @@ def register(registry, cli_spec) -> None:
             (
                 "detach",
                 exports_detach,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "runtime-cache",
+        "DRA-only preservation of cluster-scoped runtime caches.",
+        [
+            (
+                "export",
+                runtime_cache_export,
                 required_policy(supports_json=True, mutates_state=True, long_running=True),
             ),
         ],
