@@ -6,7 +6,6 @@ from pathlib import Path
 from daylily_ec.manifest_set import load_manifest_set
 from daylily_ec.repositories import load_repository_catalog
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SOURCE_CATALOG = REPO_ROOT / "config/daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG = (
@@ -26,9 +25,7 @@ def test_hg002_bjuice_catalog_uses_verified_5x5x_fixture() -> None:
     profile = catalog.test_data_profiles[command.test_data_profile]
 
     assert command.test_data_profile == "hg002_bjuice_verified_5x5x_fastq"
-    assert command.manifest_dir_template.endswith(
-        "/hg002_bjuice_verified_5x5x_fastq"
-    )
+    assert command.manifest_dir_template.endswith("/hg002_bjuice_verified_5x5x_fastq")
     assert command.jobs == 333
     assert "-j 333 -T 0 -p" in command.dy_command
     assert " -k " not in command.dy_command
@@ -39,13 +36,11 @@ def test_hg002_bjuice_catalog_uses_verified_5x5x_fixture() -> None:
     assert "seqone_delivery_batch_id=$ANALYSIS_ID" in command.dy_command
     assert "HIOMR2_SEQONE_V2_CONFIG_FILE" not in command.dy_command
     assert "SEQONE_DELIVERY_BATCH_ID" not in command.dy_command
-    assert (
-        "--configfile config/hg002_bjuice_5x5x_hiomr2.yaml" in command.dy_command
-    )
+    assert "--configfile config/hg002_bjuice_5x5x_hiomr2.yaml" in command.dy_command
     assert "use_fq_data_starting_hrs" not in command.dy_command
     assert "use_fq_data_up_to_hrs" not in command.dy_command
     assert "all supplied FASTQs are used" in command.description
-    assert "full-coverage inputs must not be substituted" in command.description
+    assert "full-coverage inputs must not be substituted" in command.description.casefold()
     assert profile.source_s3_uri_template.endswith("/bjuice_preval_2026/HG002/")
     assert any("f35e79a5601271f6" in note for note in profile.source_notes)
 
@@ -61,18 +56,10 @@ def test_hg002_bjuice_fixture_topology_and_input_identities() -> None:
         "analysis_unit_inputs.tsv": 2,
     }
 
-    inputs = {
-        row["MODALITY"]: row for row in manifest.rows["sequencing_inputs.tsv"]
-    }
-    assert inputs["sr"]["ILMN_R1_PATH"].endswith(
-        "/illumina/HG002_BJUICEPREVAL_ILMN_5x_R1.fastq.gz"
-    )
-    assert inputs["sr"]["ILMN_R2_PATH"].endswith(
-        "/illumina/HG002_BJUICEPREVAL_ILMN_5x_R2.fastq.gz"
-    )
-    assert inputs["lr"]["ONT_R1_PATH"].endswith(
-        "/ont/HG002_BJUICEPREVAL_ONT_5x.fastq.gz"
-    )
+    inputs = {row["MODALITY"]: row for row in manifest.rows["sequencing_inputs.tsv"]}
+    assert inputs["sr"]["ILMN_R1_PATH"].endswith("/illumina/HG002_BJUICEPREVAL_ILMN_5x_R1.fastq.gz")
+    assert inputs["sr"]["ILMN_R2_PATH"].endswith("/illumina/HG002_BJUICEPREVAL_ILMN_5x_R2.fastq.gz")
+    assert inputs["lr"]["ONT_R1_PATH"].endswith("/ont/HG002_BJUICEPREVAL_ONT_5x.fastq.gz")
 
     identity = json.loads((FIXTURE_ROOT / "input_identity.json").read_text())
     by_role = {item["role"]: item for item in identity["inputs"]}
@@ -95,9 +82,7 @@ def test_hg002_bjuice_fixture_topology_and_input_identities() -> None:
         "target_read_count": 1_963_980,
         "tool": "seqkit",
         "version": "2.13.0",
-        "package_sha256": (
-            "538ff4ab33819598e45939fe36ea7f4505afba62e90a7cbd95c6f63493aee6d4"
-        ),
+        "package_sha256": ("538ff4ab33819598e45939fe36ea7f4505afba62e90a7cbd95c6f63493aee6d4"),
         "compression_tool": "pigz 2.6",
         "compression_level": 1,
         "rebuild_receipt_schema": "lsmc.hg002_bjuice_ont_5x_prefix96/1.0",

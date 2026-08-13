@@ -137,7 +137,7 @@ Large local payloads are staged through S3 with `--payload-staging-s3-uri`. DYEC
 
 ### Current and released command shapes
 
-Catalog version 5 uses `dyec_builds.current` for every command-catalog action
+Catalog version 6 uses `dyec_builds.current` for every command-catalog action
 unless `--dyec-version` explicitly selects an immutable numeric release
 snapshot. When a new DYEC release is created, copy `current` to that release's
 numeric key before changing `current`; never edit an existing numeric snapshot:
@@ -147,6 +147,14 @@ dyec --json catalog list --type prod
 dyec --json catalog list --dyec-version 16.1.81 --type prod
 dyec --json catalog render <command-id> --dyec-version 16.1.81 ...
 ```
+
+A build may also declare one-hop, same-build aliases. An alias inherits one
+direct command, applies typed metadata overrides, and either extends its DayOA
+targets/config or supplies a complete replacement of `targets`, `dy_command`,
+and `dryrun_dy_command`. Alias chains, cycles, cross-build references, missing
+bases, duplicate IDs, mixed extension/replacement modes, and partial command
+replacements fail catalog validation. Existing catalog APIs return aliases as
+fully resolved `AnalysisCommand` records.
 
 Each command may declare an explicit `validation_evidence_s3_uri_prefix`. The
 prefix must contain `command_registry.json` and `summary.json` from a successful

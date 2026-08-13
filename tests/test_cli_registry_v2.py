@@ -28,7 +28,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "14.0.2"
+DAYOA_BLESSED_TAG = "14.0.3"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -3812,7 +3812,9 @@ def test_catalog_render_requires_explicit_staged_inputs_for_sample_commands() ->
     assert "requires --manifest-dir" in result.output
 
 
-def test_catalog_launch_requires_materialized_complete_staging_receipt(tmp_path, monkeypatch) -> None:
+def test_catalog_launch_requires_materialized_complete_staging_receipt(
+    tmp_path, monkeypatch
+) -> None:
     _activate_dayec_runtime(monkeypatch)
     manifest_dir = tmp_path / "complete-six"
     manifest_dir.mkdir()
@@ -3822,9 +3824,16 @@ def test_catalog_launch_requires_materialized_complete_staging_receipt(tmp_path,
     result = runner.invoke(
         app,
         [
-            "catalog", "launch", "complete_genomics_cg_snv_concordance",
-            "--analysis-id", "cg-run", "--executing-entity", "johnm",
-            "--manifest-dir", str(manifest_dir), "--dry-run",
+            "catalog",
+            "launch",
+            "complete_genomics_cg_snv_concordance",
+            "--analysis-id",
+            "cg-run",
+            "--executing-entity",
+            "johnm",
+            "--manifest-dir",
+            str(manifest_dir),
+            "--dry-run",
         ],
     )
     assert result.exit_code != 0

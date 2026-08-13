@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-import json
 import base64
 import hashlib
+import json
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-
-import daylily_ec.command_sample_stats as module
-import daylily_ec.cli as cli_module
-from daylily_ec.cli import app
 from typer.testing import CliRunner
+
+import daylily_ec.cli as cli_module
+import daylily_ec.command_sample_stats as module
+from daylily_ec.cli import app
 
 runner = CliRunner()
 
@@ -237,7 +237,7 @@ def test_collect_sample_stats_contract(analysis_root: Path) -> None:
     assert report["schema_version"] == "dyec.command_sample_stats.v2"
     assert report["compatible_schema_versions"] == ["dyec.command_sample_stats.v1"]
     assert report["command_details"]["command_catalog_key"] == "hybrid_ilmn_ont_hiomr_kitchensink"
-    assert report["command_details"]["git_tag"] == "14.0.2"
+    assert report["command_details"]["git_tag"] == "14.0.3"
     assert report["command_details"]["retried_jobs"]["count"] == 1
     assert report["analysis"]["started_at_source"] == "controller process elapsed time"
     assert 599 <= report["analysis"]["runtime_seconds"] <= 601
@@ -367,9 +367,7 @@ def test_v2_preserves_the_public_v1_field_surface(analysis_root: Path) -> None:
 def test_authoritative_analysis_unit_uid_is_unique_when_supplied(analysis_root: Path) -> None:
     units = analysis_root / "daylily-omics-analysis" / "config" / "analysis_units.tsv"
     units.write_text(
-        "ANALYSIS_UNIT_UID\tSAMPLEID\n"
-        "HG003_unit\tHG003\n"
-        "HG003_unit\tHG003\n",
+        "ANALYSIS_UNIT_UID\tSAMPLEID\n" "HG003_unit\tHG003\n" "HG003_unit\tHG003\n",
         encoding="utf-8",
     )
     with pytest.raises(module.CommandSampleStatsError, match="duplicate key"):
@@ -395,7 +393,9 @@ def test_dayoa13_sample_stats_rejects_legacy_units_even_with_six_manifests(
         analysis_root / "daylily-omics-analysis" / "config" / "units.tsv",
         "ANALYSIS_UNIT_UID\tSAMPLEID\nHG003_unit\tHG003\n",
     )
-    with pytest.raises(module.CommandSampleStatsError, match="legacy manifest files are prohibited"):
+    with pytest.raises(
+        module.CommandSampleStatsError, match="legacy manifest files are prohibited"
+    ):
         module.collect_command_sample_stats(analysis_root, name="x", pipeline="hiomr-kitchensink")
 
 
