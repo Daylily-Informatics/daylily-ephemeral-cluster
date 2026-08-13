@@ -54,6 +54,7 @@ After the DayOA Inflection analytical `/2.1` GitHub prerelease is remotely verif
 | DYEC-SNAP-001 | Replace current and append next immutable numeric build | SUCCESS | feature_implementation | G4 | dyec_catalog_pin | Commit `83af52f9`; new `17.0.8` snapshot semantically equals current |  | Next numeric snapshot appended without modifying prior blocks |
 | DYEC-PARITY-001 | Preserve source/payload byte equality and current/snapshot semantic equality | SUCCESS | contract_test | G4 | dyec_catalog_pin | Final source/payload SHA-256 both `6122a30bb41708de55c3b9457b2fa087b3cf49238681979ed7f40170e2e4e9e0`; semantic equality PASS |  | Mirrors exact |
 | DYEC-TEST-001 | Focused catalog, pin, alias, provider-neutral, and fixture tests | SUCCESS | contract_test | G4 | dyec_catalog_pin | 60 passed + 9 passed + strengthened alias/HG002 16 passed; diff/invariant audit PASS. Nested-export focused suite separately 46 passed. |  | Bounded focused validation complete |
+| DYEC-EXPORT-001 | Permit exact nested no-delete analytical-package export | SUCCESS | feature_implementation | G4 | release_integrator | Commits `c4a98931` + `bee5bda9`; focused export suite 46 passed; live task `task-08d5ea4b86628f7c1` SUCCEEDED 157/157/0, DRA `dra-0ccd96e22f9631ba2` detached/DELETED, `DeleteDataInFileSystem=false`; exact S3 prefix contains 157 objects/2,622,473,206 bytes and schema-2.1 manifest | Root-only export parser rejected explicit nested package source/destination before AWS resource creation | Full nested source retained for DRA/task while ownership remains first two analysis components; explicit destination batch plus exact source leaf; no fallback/discovery |
 | DYEC-TEST-002 | Complete DYEC suite and static checks | IN_PROGRESS | contract_test | G4 | release_integrator | One complete suite queued after integrated catalog+nested-export commits |  |  |
 | DYEC-BUILD-001 | Local wheel/sdist metadata, hash, and embedded catalog validation | OPEN | contract_test | G4 | release_integrator |  |  |  |
 | DYEC-AUDIT-001 | Read-only ancestry/history/release audit | OPEN | contract_test | G4 | release_auditor |  |  |  |
@@ -77,4 +78,4 @@ After the DayOA Inflection analytical `/2.1` GitHub prerelease is remotely verif
 - All rows terminal: no.
 - Objective complete: no.
 - Working-status counts before full DYEC acceptance: `OPEN=5`, `IN_PROGRESS=1`, `ATTEMPTING_BUGFIX=0`.
-- Terminal-status counts before full DYEC acceptance: `SUCCESS=8`, `NO_LONGER_NEEDED=0`, `DUPLICATE=0`, `FAIL=0`, `BLOCKED=0`.
+- Terminal-status counts before full DYEC acceptance: `SUCCESS=9`, `NO_LONGER_NEEDED=0`, `DUPLICATE=0`, `FAIL=0`, `BLOCKED=0`.
