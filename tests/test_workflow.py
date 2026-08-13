@@ -2751,6 +2751,38 @@ class TestConfigureHeadnode:
     @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
+    def test_active_controller_blocks_all_headnode_mutation(
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+    ):
+        mock_run_shell.side_effect = SsmCommandFailedError(
+            "controller active",
+            SsmCommandResult(
+                command_id="cmd-guard",
+                instance_id="i-abc123",
+                status="Failed",
+                response_code=1,
+                stdout="",
+                stderr="Refusing headnode configuration while a DayOA controller is active",
+            ),
+        )
+
+        assert not configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+        )
+        mock_run_shell.assert_called_once()
+        assert mock_run_shell.call_args.kwargs["comment"] == "Verify no active DayOA controller"
+        mock_write_remote_text.assert_not_called()
+        mock_validate_headnode_readiness.assert_not_called()
+
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
     def test_success_path(
         self,
         mock_run_shell,
@@ -2769,6 +2801,8 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
         ]
         mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
 
@@ -2779,8 +2813,10 @@ class TestConfigureHeadnode:
             profile="test",
         )
         assert ok is True
-        assert mock_run_shell.call_count == 5
+        assert mock_run_shell.call_count == 7
         assert [call.kwargs.get("timeout") for call in mock_run_shell.call_args_list] == [
+            None,
+            None,
             None,
             None,
             None,
@@ -2793,11 +2829,20 @@ class TestConfigureHeadnode:
             "ubuntu",
             "ubuntu",
             "ubuntu",
+            "ubuntu",
+            "ubuntu",
         ]
         assert [
             call.kwargs["require_startup_success"] for call in mock_run_shell.call_args_list
-        ] == [False, False, False, False, False]
-        tos_cmd = mock_run_shell.call_args_list[2].args[2]
+        ] == [False, False, False, False, False, False, False]
+        guard_cmd = mock_run_shell.call_args_list[0].args[2]
+        assert "Refusing headnode configuration while a DayOA controller is active" in guard_cmd
+        namespace_cmd = mock_run_shell.call_args_list[1].args[2]
+        assert "aws cloudformation describe-stacks" in namespace_cmd
+        assert "DAYOA_CLUSTER_CACHE_NAMESPACE" in namespace_cmd
+        assert "for cache_user in ubuntu daylily ec2-user" in namespace_cmd
+        assert "Legacy linked Conda environments are forbidden" in namespace_cmd
+        tos_cmd = mock_run_shell.call_args_list[4].args[2]
         assert "conda config --set plugins.auto_accept_tos true" in tos_cmd
         assert "conda tos accept --user --override-channels" in tos_cmd
         assert "https://repo.anaconda.com/pkgs/main" in tos_cmd
@@ -2806,15 +2851,15 @@ class TestConfigureHeadnode:
         assert "--site" not in tos_cmd
         assert (
             "source ~/projects/daylily-ephemeral-cluster/activate"
-            in mock_run_shell.call_args_list[3].args[2]
+            in mock_run_shell.call_args_list[5].args[2]
         )
-        rebuild_cmd = mock_run_shell.call_args_list[3].args[2]
+        rebuild_cmd = mock_run_shell.call_args_list[5].args[2]
         assert "python -m pip install --upgrade pygraphviz" in rebuild_cmd
         assert "pygraphviz DAY-EC import OK" in rebuild_cmd
         assert "sudo install -o root -g root -m 0755" in rebuild_cmd
         assert "/config/day_cluster/sbatch /opt/slurm/bin/sbatch" in rebuild_cmd
         assert "cmp --silent" in rebuild_cmd
-        verify_cmd = mock_run_shell.call_args_list[4].args[2]
+        verify_cmd = mock_run_shell.call_args_list[6].args[2]
         assert "Daylily Ephemeral Cluster 16.1.85" in verify_cmd
         assert "dyec --version" in verify_cmd
         mock_validate_headnode_readiness.assert_called_once_with(
@@ -2914,13 +2959,13 @@ class TestConfigureHeadnode:
             "secret_arn": secret_arn,
         }
         assert "token-value" not in mock_write_remote_text.call_args_list[1].args[3]
-        helper_setup = mock_run_shell.call_args_list[0].args[2]
+        helper_setup = mock_run_shell.call_args_list[1].args[2]
         assert "credential.useHttpPath true" in helper_setup
         assert "credential.interactive false" in helper_setup
         assert "daylily-github-credential" in helper_setup
         assert "git@github.com:lsmc-bio/" in helper_setup
         assert "ssh://git@github.com/lsmc-bio/" in helper_setup
-        clone_command = mock_run_shell.call_args_list[1].args[2]
+        clone_command = mock_run_shell.call_args_list[3].args[2]
         assert "git clone https://github.com/" in clone_command
 
     @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
@@ -2978,7 +3023,7 @@ class TestConfigureHeadnode:
                 },
             },
         }
-        clone_cmd = mock_run_shell.call_args_list[0].args[2]
+        clone_cmd = mock_run_shell.call_args_list[2].args[2]
         assert (
             "git clone git@github.com:lsmc-bio/daylily-ephemeral-cluster.git "
             "daylily-ephemeral-cluster"
@@ -3014,6 +3059,8 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
         ]
         mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
 
@@ -3027,6 +3074,8 @@ class TestConfigureHeadnode:
 
         assert ok is True
         assert [call.kwargs["as_user"] for call in mock_run_shell.call_args_list] == [
+            "ec2-user",
+            "ec2-user",
             "ec2-user",
             "ec2-user",
             "ec2-user",
@@ -3065,6 +3114,8 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
         ]
         mock_validate_headnode_readiness.side_effect = SsmCommandFailedError(
             "validation failed",
@@ -3085,7 +3136,7 @@ class TestConfigureHeadnode:
             profile="test",
         )
         assert ok is False
-        assert mock_run_shell.call_count == 5
+        assert mock_run_shell.call_count == 7
         mock_validate_headnode_readiness.assert_called_once()
         mock_write_remote_text.assert_not_called()
 
@@ -3105,6 +3156,8 @@ class TestConfigureHeadnode:
         monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
 
         mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SsmCommandFailedError(
@@ -3127,7 +3180,7 @@ class TestConfigureHeadnode:
             profile="test",
         )
         assert ok is False
-        assert mock_run_shell.call_count == 3
+        assert mock_run_shell.call_count == 5
         mock_validate_headnode_readiness.assert_not_called()
         mock_write_remote_text.assert_not_called()
 
@@ -3179,6 +3232,8 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
         ]
         mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
 
@@ -3192,7 +3247,7 @@ class TestConfigureHeadnode:
             repo_overrides={"daylily-omics-analysis": "feature/refactor"},
         )
         assert ok is True
-        assert mock_run_shell.call_count == 5
+        assert mock_run_shell.call_count == 7
         mock_write_remote_text.assert_called_once()
         mock_validate_headnode_readiness.assert_called_once()
 
@@ -3212,6 +3267,8 @@ class TestConfigureHeadnode:
         monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
 
         mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
@@ -3263,6 +3320,8 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
         ]
 
         ok = configure_headnode(
@@ -3294,6 +3353,8 @@ class TestConfigureHeadnode:
         monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
 
         mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
@@ -3340,14 +3401,14 @@ class TestConfigureHeadnode:
         )
 
         assert ok is True
-        clone_cmd = mock_run_shell.call_args_list[0].args[2]
+        clone_cmd = mock_run_shell.call_args_list[2].args[2]
         assert (
             "git clone https://github.com/lsmc-bio/daylily-ephemeral-cluster.git "
             "daylily-ephemeral-cluster"
         ) in clone_cmd
         assert "git checkout --detach refs/tags/16.1.85" in clone_cmd
         assert "feature-checkout" not in clone_cmd
-        assert mock_run_shell.call_count == 5
+        assert mock_run_shell.call_count == 7
         mock_subprocess_run.assert_not_called()
         mock_validate_headnode_readiness.assert_called_once()
         mock_write_remote_text.assert_not_called()
@@ -3382,7 +3443,7 @@ class TestConfigureHeadnode:
         )
 
         assert ok is True
-        clone_cmd = mock_run_shell.call_args_list[0].args[2]
+        clone_cmd = mock_run_shell.call_args_list[2].args[2]
         assert (
             "git clone https://github.com/lsmc-bio/daylily-ephemeral-cluster.git "
             "daylily-ephemeral-cluster"

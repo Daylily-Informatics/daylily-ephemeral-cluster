@@ -962,14 +962,23 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     )
     assert 'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-${DAYLILY_APPTAINER_CACHE}}"' in script
     assert (
-        "DayOA conda, container, and Nextflow caches are seeded from "
+        "DayOA Conda environments use an empty cluster-scoped writable cache; "
+        "container and Nextflow caches are seeded from "
         "${runtime_assets_root}/cached_envs into ${environment_cache_root}" in script
     )
     assert "link_cached_entries" in script
-    assert '"${environment_cache_root}/conda/${user_name}/${host_name}"' in script
-    assert '"${environment_cache_root}/containers/${user_name}/${host_name}"' in script
-    assert '"${runtime_assets_root}/cached_envs/conda"' in script
+    assert "resolve_cluster_cache_namespace" in script
+    assert "aws cloudformation describe-stacks" in script
+    assert '"${environment_cache_root}/conda/${user_name}/${cluster_cache_namespace}"' in script
+    assert (
+        '"${environment_cache_root}/containers/${user_name}/${cluster_cache_namespace}"'
+        in script
+    )
+    assert '"${runtime_assets_root}/cached_envs/conda"' not in script
     assert '"${runtime_assets_root}/cached_envs/containers"' in script
+    assert "/etc/profile.d/daylily-cluster-cache-namespace.sh" in script
+    assert 'export DAYOA_CLUSTER_CACHE_NAMESPACE="${cluster_cache_namespace}"' in script
+    assert "legacy linked Conda environments are forbidden" in script
     for removed in (
         "tail" + "scale",
         "headnode-" + "authkey",
@@ -1004,10 +1013,14 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "cat <<'EOF' > /opt/slurm/sbin/check_tags.sh" in script
     assert "* * * * * /opt/slurm/sbin/check_tags.sh" in script
     global_actions = script.split("# GLOBAL ACTIONS HeadNode and ComputeFleet", 1)[1]
-    assert global_actions.index("prepare_dayoa_environment_cache") < global_actions.index(
-        'if [ "${cfn_node_type}" == "HeadNode" ];then'
+    headnode_branch = global_actions.split('if [ "${cfn_node_type}" == "HeadNode" ];then', 1)[1]
+    assert "prepare_dayoa_environment_cache" not in global_actions.split(
+        'if [ "${cfn_node_type}" == "HeadNode" ];then', 1
+    )[0]
+    assert headnode_branch.index("prepare_dayoa_environment_cache") < headnode_branch.index(
+        "install_headnode_runtime_cache_profile"
     )
-    assert global_actions.index("prepare_headnode_writable_dirs") < global_actions.index(
+    assert headnode_branch.index("prepare_headnode_writable_dirs") < headnode_branch.index(
         "install_headnode_runtime_cache_profile"
     )
     assert script.index("cat <<'EOF' > /opt/slurm/sbin/check_tags.sh") < script.index(
@@ -1104,5 +1117,14 @@ def test_rhel_dragen_post_install_removes_cromwell_and_requires_womtool() -> Non
         assert 'limits_file="/etc/security/limits.d/99-edico.conf"' in script
         assert "memlock   unlimited" in script
         assert "configure_dragen_memlock_limits\nconfigure_kernel_and_shm" in script
+        assert "resolve_cluster_cache_namespace" in script
+        assert "aws cloudformation describe-stacks" in script
+        assert '"${runtime_assets_root}/cached_envs/conda"' not in script
+        assert 'export DAYOA_CLUSTER_CACHE_NAMESPACE="${cluster_cache_namespace}"' in script
+        assert "legacy linked Conda environments are forbidden" in script
+
+        assert script.count("\n    prepare_dayoa_environment_cache\n") == 1
+        headnode_actions = script.rsplit('if [ "${node_type}" = "HeadNode" ]; then', 1)[1]
+        assert "prepare_dayoa_environment_cache" in headnode_actions
 
     assert source == packaged

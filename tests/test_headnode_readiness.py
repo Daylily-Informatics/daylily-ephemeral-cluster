@@ -41,10 +41,12 @@ def test_readiness_script_requires_day_ec_tools_and_fsx_reference_assets():
     for path in REQUIRED_ROLE_DIRECTORIES:
         assert f"test -d {path}" in script
     for template in REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES:
-        assert f"test -d {template.format(hostname='$(hostname)', remote_user='ubuntu')}" in script
+        assert f'test -d "{template.format(remote_user="ubuntu")}"' in script
     for template in REQUIRED_HEADNODE_WORK_DIRECTORY_TEMPLATES:
         assert f"test -d {template.format(remote_user='ubuntu')}" in script
     assert "test -r /etc/profile.d/daylily-runtime-cache.sh" in script
+    assert "test -r /etc/profile.d/daylily-cluster-cache-namespace.sh" in script
+    assert 'test -n "${DAYOA_CLUSTER_CACHE_NAMESPACE:-}"' in script
     assert "DAYLILY_CONTAINER_CACHE" in script
     assert "DAYLILY_APPTAINER_CACHE" in script
     assert "DAYLILY_NEXTFLOW_SEED_CACHE" in script
@@ -56,8 +58,11 @@ def test_readiness_script_can_target_ec2_user():
 
     assert 'test "$(id -un)" = ec2-user' in script
     assert 'test "$(id -un)" = ubuntu' not in script
-    assert "/fsx/resources/environments/conda/ec2-user/$(hostname)" in script
-    assert "/fsx/resources/environments/containers/ec2-user/$(hostname)" in script
+    assert "/fsx/resources/environments/conda/ec2-user/${DAYOA_CLUSTER_CACHE_NAMESPACE}" in script
+    assert (
+        "/fsx/resources/environments/containers/ec2-user/${DAYOA_CLUSTER_CACHE_NAMESPACE}"
+        in script
+    )
     assert "/fsx/work/ec2-user/containers" in script
     assert "DAYLILY_EC_HEADNODE_BOOTSTRAPPED" in script
     assert "day-clone --list >/dev/null" in script
@@ -83,8 +88,10 @@ def test_validate_headnode_readiness_runs_shared_script_as_ubuntu():
     assert "day-clone --list" in script
     assert "day-clone --check-auth --repository daylily-omics-analysis" in script
     assert "/fsx/references/genomic_data" in script
-    assert "/fsx/resources/environments/conda/ubuntu/$(hostname)" in script
-    assert "/fsx/resources/environments/containers/ubuntu/$(hostname)" in script
+    assert "/fsx/resources/environments/conda/ubuntu/${DAYOA_CLUSTER_CACHE_NAMESPACE}" in script
+    assert (
+        "/fsx/resources/environments/containers/ubuntu/${DAYOA_CLUSTER_CACHE_NAMESPACE}" in script
+    )
     assert "/fsx/work/ubuntu/containers" in script
     assert "/fsx/work/ubuntu/nextflow" in script
     assert "/fsx/work/ubuntu/sarek" in script

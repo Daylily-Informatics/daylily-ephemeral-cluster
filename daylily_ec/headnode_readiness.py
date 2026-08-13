@@ -16,12 +16,11 @@ REQUIRED_ROLE_FILES = (
 )
 REQUIRED_ROLE_DIRECTORIES = (
     "/fsx/references/genomic_data",
-    "/fsx/references/runtime_assets/cached_envs/conda",
 )
 REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES = (
     "/fsx/resources/environments/apptainer/cache/net",
-    "/fsx/resources/environments/conda/{remote_user}/{hostname}",
-    "/fsx/resources/environments/containers/{remote_user}/{hostname}",
+    "/fsx/resources/environments/conda/{remote_user}/${{DAYOA_CLUSTER_CACHE_NAMESPACE}}",
+    "/fsx/resources/environments/containers/{remote_user}/${{DAYOA_CLUSTER_CACHE_NAMESPACE}}",
     "/fsx/resources/environments/nextflow",
 )
 REQUIRED_HEADNODE_WORK_DIRECTORY_TEMPLATES = (
@@ -46,7 +45,7 @@ def build_headnode_readiness_script(
     file_checks = "\n".join(f"test -s {path}" for path in REQUIRED_ROLE_FILES)
     dir_checks = "\n".join(f"test -d {path}" for path in REQUIRED_ROLE_DIRECTORIES)
     writable_cache_checks = "\n".join(
-        f"test -d {template.format(hostname='$(hostname)', remote_user=remote_user)}"
+        f'test -d "{template.format(remote_user=remote_user)}"'
         for template in REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES
     )
     headnode_work_checks = "\n".join(
@@ -64,6 +63,13 @@ test "$(id -un)" = {remote_user_q}
 test "${{DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}}" = 1
 test "${{CONDA_DEFAULT_ENV:-}}" = DAY-EC
 test "${{SENTIEON_LICENSE:-}}" = {sentieon_license_endpoint_q}
+test -n "${{DAYOA_CLUSTER_CACHE_NAMESPACE:-}}"
+case "${{DAYOA_CLUSTER_CACHE_NAMESPACE}}" in
+  *[!A-Za-z0-9._-]*|'')
+    echo "Invalid DAYOA_CLUSTER_CACHE_NAMESPACE: ${{DAYOA_CLUSTER_CACHE_NAMESPACE:-<empty>}}" >&2
+    exit 1
+    ;;
+esac
 command -v daylily-ec >/dev/null 2>&1
 command -v day-clone >/dev/null 2>&1
 stty -a 2>/dev/null | grep -Eq '(^|[[:space:];])-ixon([[:space:];]|$)'
@@ -73,6 +79,8 @@ df -P /fsx >/dev/null
 {writable_cache_checks}
 {headnode_work_checks}
 test -r /etc/profile.d/daylily-runtime-cache.sh
+test -r /etc/profile.d/daylily-cluster-cache-namespace.sh
+grep -Fq 'DAYOA_CLUSTER_CACHE_NAMESPACE' /etc/profile.d/daylily-cluster-cache-namespace.sh
 grep -Fq 'DAYLILY_CONTAINER_CACHE' /etc/profile.d/daylily-runtime-cache.sh
 grep -Fq 'DAYLILY_APPTAINER_CACHE' /etc/profile.d/daylily-runtime-cache.sh
 grep -Fq 'DAYLILY_NEXTFLOW_SEED_CACHE' /etc/profile.d/daylily-runtime-cache.sh
