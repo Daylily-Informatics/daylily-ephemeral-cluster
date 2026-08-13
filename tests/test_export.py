@@ -18,6 +18,7 @@ from daylily_ec.workflow.export_data import (
     run_export_task,
     run_export_workflow,
     validate_export_destination_s3_uri,
+    validate_no_overlapping_export_dra,
     validate_s3_destination_prefix_empty,
 )
 
@@ -172,6 +173,32 @@ def test_attach_export_dra_has_no_autoexport_or_delete() -> None:
     assert client.created_association is not None
     assert client.created_association["BatchImportMetaDataOnCreate"] is False
     assert "S3" not in client.created_association
+
+
+def test_export_rejects_overlapping_s3_repository_path() -> None:
+    class ExistingAssociationClient:
+        def describe_data_repository_associations(self, **_kwargs):
+            return {
+                "Associations": [
+                    {
+                        "AssociationId": "dra-reference",
+                        "Lifecycle": "AVAILABLE",
+                        "FileSystemPath": "/references/",
+                        "DataRepositoryPath": "s3://reference-bucket/",
+                    }
+                ]
+            }
+
+    with pytest.raises(ExportError, match="destination_s3_uri overlaps"):
+        validate_no_overlapping_export_dra(
+            ExistingAssociationClient(),
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/cluster-a/cache-export-a",
+            destination_s3_uri=(
+                "s3://reference-bucket/runtime_assets/cached_envs/"
+                "cluster-a/cache-export-a/"
+            ),
+        )
 
 
 def test_run_export_task_uses_exact_analysis_path() -> None:

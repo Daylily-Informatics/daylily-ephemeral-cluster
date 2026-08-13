@@ -140,6 +140,32 @@ For cost/performance reports, aggregate directly from those rows: `sum(s)` for t
 - Do not treat FSx/DYEC run-mount creation as timed out before at least 40 minutes. Dynamic FSx data repository associations can legitimately stay in `CREATING` for around 40 minutes, especially large Illumina run directories.
 - When running `dyec mounts create --wait` or equivalent run-mount operations, set an explicit timeout comfortably above 40 minutes when the CLI supports it, and continue read-only lifecycle polling rather than retrying, duplicating, deleting, or declaring failure at the default short timeout.
 
+# Runtime Cache Export Boundary
+
+- Never upload, publish, relay, promote, or copy Conda environment trees,
+  adjacent environment YAMLs, container images, Apptainer/Singularity caches,
+  Nextflow caches, or other runtime-cache directories with `aws s3 cp`,
+  `aws s3 sync`, `aws s3 mv`, SDK object-copy loops, or another object-by-object
+  S3 transfer. This prohibition applies to cache sources under
+  `/fsx/resources/environments/**`, `/fsx/work/**`, and
+  `/fsx/references/runtime_assets/cached_envs/**`.
+- `--no-follow-symlinks` is not a valid cache-preserving alternative: it skips
+  links instead of preserving their type and target. Do not use it as a
+  fallback.
+- The supported save path is `dyec runtime-cache export`. It inventories only
+  complete real cluster-generation entries, rejects active builders and
+  incomplete cache state, stages with `cp -a` into one fresh dedicated
+  `/fsx/analysis_results/<executing-entity>/<cache-export-id>/` root, and then
+  uses DYEC's FSx DRA attach, `EXPORT_TO_REPOSITORY`, and safe-detach workflow.
+- The staging root and destination S3 prefix must not overlap any active DRA,
+  and the destination prefix must be empty. If the intended canonical bucket
+  is already mapped by a whole-bucket reference DRA, use an explicit separate
+  non-overlapping cache-export destination; do not detach the reference DRA or
+  fall back to S3 copying.
+- Preserve the staged FSx root and receipts until the DRA task is `SUCCEEDED`
+  and future-cluster import/linkage has been verified. Cleanup or replacement
+  is a separate destructive operation and approval boundary.
+
 # Version Tags
 
 - Use non-v semver tags for package releases, e.g. `2.0.19` or `5.0.21`, not `v2.0.19`.

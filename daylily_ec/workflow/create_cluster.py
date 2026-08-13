@@ -4043,6 +4043,9 @@ def configure_headnode(
     if dayoa_deploy_key_secret_arn and not dayoa_deploy_key_region:
         logger.error("  ✗ DayOA deploy-key region is required with the secret ARN")
         return False
+    if not CLUSTER_NAME_PATTERN.fullmatch(cluster_name):
+        logger.error("  ✗ Invalid cluster name for the DayOA cache namespace: %s", cluster_name)
+        return False
     if bool(github_token_secret_arn) != bool(github_token_region):
         logger.error("  ✗ GitHub token secret ARN and region must be provided together")
         return False
@@ -4059,6 +4062,31 @@ def configure_headnode(
         repo_url,
         repo_ref,
     )
+
+    active_controller_guard = (
+        "active_controllers=\"$(pgrep -u \"$(id -u)\" -af "
+        "'([b]in/day_run|[s]nakemake .*--profile([= ]|$))' || true)\"; "
+        "if [ -n \"$active_controllers\" ]; then "
+        "echo 'Refusing headnode configuration while a DayOA controller is active:' >&2; "
+        "printf '%s\\n' \"$active_controllers\" >&2; "
+        "exit 1; "
+        "fi"
+    )
+    logger.info("  ▸ Verifying no DayOA controller is active ...")
+    try:
+        run_shell(
+            head_node_instance_id,
+            region,
+            active_controller_guard,
+            profile=profile,
+            as_user=remote_user,
+            require_startup_success=False,
+            comment="Verify no active DayOA controller",
+        )
+        logger.info("  ✓ No active DayOA controller detected")
+    except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
+        logger.error("  ✗ Headnode configuration safety check failed: %s", exc)
+        return False
 
     deploy_keys: dict[str, dict[str, str]] = {}
     if dyec_deploy_key_secret_arn:
@@ -4149,7 +4177,43 @@ def configure_headnode(
             logger.error("  ✗ Managed GitHub token credential helper deployment failed: %s", exc)
             return False
 
+    cluster_name_q = shlex.quote(cluster_name)
     steps = [
+        (
+            "Configure cluster-scoped DayOA cache namespace",
+            (
+                f"cluster_name={cluster_name_q}; "
+                f"stack_id=\"$(aws cloudformation describe-stacks --region {shlex.quote(region)} "
+                "--stack-name \"$cluster_name\" --query 'Stacks[0].StackId' --output text)\"; "
+                "case \"$stack_id\" in "
+                "arn:aws*:cloudformation:*:*:stack/\"$cluster_name\"/*) ;; "
+                "*) echo \"Unable to resolve immutable CloudFormation stack generation: $stack_id\" >&2; exit 1;; "
+                "esac; "
+                "stack_generation=\"${stack_id##*/}\"; "
+                "cluster_cache_namespace=\"$cluster_name-$stack_generation\"; "
+                "case \"$cluster_cache_namespace\" in "
+                "*[!a-z0-9-]*|'') echo 'Invalid DayOA cluster cache namespace' >&2; exit 1;; "
+                "esac; "
+                "for cache_user in ubuntu daylily ec2-user; do "
+                "sudo install -d -m 1777 "
+                "\"/fsx/resources/environments/conda/$cache_user/$cluster_cache_namespace\" "
+                "\"/fsx/resources/environments/containers/$cache_user/$cluster_cache_namespace\"; "
+                "if find \"/fsx/resources/environments/conda/$cache_user/$cluster_cache_namespace\" "
+                "-mindepth 1 -maxdepth 1 -type l -print -quit | grep -q .; then "
+                "echo 'Legacy linked Conda environments are forbidden in the cluster-scoped cache' >&2; "
+                "exit 1; "
+                "fi; "
+                "done; "
+                "namespace_profile=\"$(mktemp /tmp/daylily-cluster-cache-namespace.XXXXXX)\"; "
+                "trap 'rm -f \"$namespace_profile\"' EXIT; "
+                "printf '%s\\n' '# Managed by DYEC headnode configure.' "
+                "\"export DAYOA_CLUSTER_CACHE_NAMESPACE=\\\"$cluster_cache_namespace\\\"\" "
+                " > \"$namespace_profile\"; "
+                "sudo install -o root -g root -m 0644 \"$namespace_profile\" "
+                "/etc/profile.d/daylily-cluster-cache-namespace.sh"
+            ),
+            None,
+        ),
         (
             "Clone repository to headnode",
             _build_headnode_repo_sync_command(

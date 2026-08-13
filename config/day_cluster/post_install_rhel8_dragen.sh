@@ -99,6 +99,30 @@ resolve_cluster_name_for_tags() {
   return 1
 }
 
+resolve_cluster_cache_namespace() {
+  local stack_id
+  local stack_generation
+  if [ -z "${stack_name:-}" ]; then
+    echo "ERROR: stack_name is required from /etc/parallelcluster/cfnconfig for the DayOA cache namespace" >&2
+    return 1
+  fi
+  if [[ ! "${stack_name}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+    echo "ERROR: invalid ParallelCluster stack_name for the DayOA cache namespace: ${stack_name}" >&2
+    return 1
+  fi
+  stack_id="$(aws cloudformation describe-stacks \
+    --region "${region}" \
+    --stack-name "${stack_name}" \
+    --query 'Stacks[0].StackId' \
+    --output text)"
+  if [[ ! "${stack_id}" =~ ^arn:aws[^:]*:cloudformation:[^:]+:[0-9]+:stack/${stack_name}/[0-9a-f-]+$ ]]; then
+    echo "ERROR: unable to resolve an immutable CloudFormation stack generation for ${stack_name}: ${stack_id}" >&2
+    return 1
+  fi
+  stack_generation="${stack_id##*/}"
+  printf '%s-%s\n' "${stack_name}" "${stack_generation}"
+}
+
 repair_compute_cluster_tags() {
   if [ "${node_type}" != "ComputeFleet" ]; then
     return 0
@@ -571,7 +595,6 @@ wait_for_reference_data() {
   echo "Waiting for required DayOA role entries from FSx DRAs"
   wait_for_dir "${references_root}" "reference DRA path" "${reference_wait_timeout_seconds}" "${reference_wait_interval_seconds}"
   wait_for_dir "${runtime_assets_root}" "runtime assets path" "${reference_wait_timeout_seconds}" "${reference_wait_interval_seconds}"
-  wait_for_dir "${runtime_assets_root}/cached_envs/conda" "cached conda environments" "${reference_wait_timeout_seconds}" "${reference_wait_interval_seconds}"
   wait_for_dir "${references_root}/genomic_data" "genomic reference data" "${reference_wait_timeout_seconds}" "${reference_wait_interval_seconds}"
   wait_for_dir "${runtime_assets_root}/tool_specific_resources" "tool-specific runtime resources" "${reference_wait_timeout_seconds}" "${reference_wait_interval_seconds}"
   wait_for_file "${runtime_assets_root}/tool_specific_resources/womtool_87.jar" "womtool_87.jar" "${reference_wait_timeout_seconds}" "${reference_wait_interval_seconds}"
@@ -625,10 +648,10 @@ prepare_headnode_writable_dirs() {
 }
 
 prepare_dayoa_environment_cache() {
-  local host_name
+  local cluster_cache_namespace
   local user_name
 
-  host_name="$(hostname)"
+  cluster_cache_namespace="$(resolve_cluster_cache_namespace)"
   install -d -m 1777 \
     "${environment_cache_root}/apptainer" \
     "${environment_cache_root}/apptainer/cache" \
@@ -649,20 +672,31 @@ prepare_dayoa_environment_cache() {
 
   for user_name in ubuntu daylily ec2-user; do
     install -d -m 1777 \
-      "${environment_cache_root}/conda/${user_name}/${host_name}" \
-      "${environment_cache_root}/containers/${user_name}/${host_name}"
-    link_cached_entries \
-      "${runtime_assets_root}/cached_envs/conda" \
-      "${environment_cache_root}/conda/${user_name}/${host_name}" \
-      required
+      "${environment_cache_root}/conda/${user_name}/${cluster_cache_namespace}" \
+      "${environment_cache_root}/containers/${user_name}/${cluster_cache_namespace}"
+    if find "${environment_cache_root}/conda/${user_name}/${cluster_cache_namespace}" \
+      -mindepth 1 -maxdepth 1 -type l -print -quit | grep -q .; then
+      echo "ERROR: legacy linked Conda environments are forbidden in the cluster-scoped cache: ${environment_cache_root}/conda/${user_name}/${cluster_cache_namespace}" >&2
+      exit 1
+    fi
     link_cached_entries \
       "${runtime_assets_root}/cached_envs/containers" \
-      "${environment_cache_root}/containers/${user_name}/${host_name}" \
+      "${environment_cache_root}/containers/${user_name}/${cluster_cache_namespace}" \
       optional
   done
 }
 
 install_runtime_profiles() {
+  if [ "${node_type}" = "HeadNode" ]; then
+    local cluster_cache_namespace
+    cluster_cache_namespace="$(resolve_cluster_cache_namespace)"
+    cat > /etc/profile.d/daylily-cluster-cache-namespace.sh <<EOF
+# Managed by DAY-EC node setup. ParallelCluster stack names are stable across node replacement.
+export DAYOA_CLUSTER_CACHE_NAMESPACE="${cluster_cache_namespace}"
+EOF
+    chmod 0644 /etc/profile.d/daylily-cluster-cache-namespace.sh
+  fi
+
   cat <<'EOF' > /etc/profile.d/daylily-sentieon-license.sh
 # Managed by DAY-EC node setup. Sentieon clients use the dedicated regional service.
 export SENTIEON_LICENSE="license.sentieon.lsmc.bio:8990"
@@ -934,10 +968,8 @@ install_slurm_job_hooks
 if [ "${storage_mode}" = "fsx" ]; then
   wait_for_reference_data
   make_role_data_read_only
-  prepare_dayoa_environment_cache
   install_womtool_link
   install_apptainer_if_available
-  echo "DayOA conda, container, and Nextflow caches are seeded from ${runtime_assets_root}/cached_envs into ${environment_cache_root}"
 else
   echo "No-FSx DRAGEN mode selected; skipped FSx reference, cache, Womtool, and Apptainer setup."
 fi
@@ -945,7 +977,9 @@ fi
 if [ "${node_type}" = "HeadNode" ]; then
   echo "[$(date +%Y%m%d_%H%M%S)] Running HeadNode RHEL8 DRAGEN configure actions"
   if [ "${storage_mode}" = "fsx" ]; then
+    prepare_dayoa_environment_cache
     prepare_headnode_writable_dirs
+    echo "DayOA Conda environments use an empty cluster-scoped writable cache; container and Nextflow caches are seeded from ${runtime_assets_root}/cached_envs into ${environment_cache_root}"
   fi
   install_headnode_slurm_wrappers
   install_slurm_submission_policy

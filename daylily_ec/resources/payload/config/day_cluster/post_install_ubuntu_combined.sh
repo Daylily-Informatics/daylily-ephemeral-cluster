@@ -79,6 +79,30 @@ resolve_cluster_name_for_tags() {
   return 1
 }
 
+resolve_cluster_cache_namespace() {
+  local stack_id
+  local stack_generation
+  if [ -z "${stack_name:-}" ]; then
+    echo "ERROR: stack_name is required from /etc/parallelcluster/cfnconfig for the DayOA cache namespace" >&2
+    return 1
+  fi
+  if [[ ! "${stack_name}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+    echo "ERROR: invalid ParallelCluster stack_name for the DayOA cache namespace: ${stack_name}" >&2
+    return 1
+  fi
+  stack_id="$(aws cloudformation describe-stacks \
+    --region "${region}" \
+    --stack-name "${stack_name}" \
+    --query 'Stacks[0].StackId' \
+    --output text)"
+  if [[ ! "${stack_id}" =~ ^arn:aws[^:]*:cloudformation:[^:]+:[0-9]+:stack/${stack_name}/[0-9a-f-]+$ ]]; then
+    echo "ERROR: unable to resolve an immutable CloudFormation stack generation for ${stack_name}: ${stack_id}" >&2
+    return 1
+  fi
+  stack_generation="${stack_id##*/}"
+  printf '%s-%s\n' "${stack_name}" "${stack_generation}"
+}
+
 repair_compute_cluster_tags() {
   if [ "${cfn_node_type:-}" != "ComputeFleet" ]; then
     return 0
@@ -428,7 +452,6 @@ wait_for_reference_data() {
     if [ -s "${apptainer_deb}" ] \
       && [ -s "${runtime_assets_root}/tool_specific_resources/cromwell_87.jar" ] \
       && [ -s "${runtime_assets_root}/tool_specific_resources/womtool_87.jar" ] \
-      && [ -d "${runtime_assets_root}/cached_envs/conda" ] \
       && [ -d "${references_root}/genomic_data" ]; then
       echo "Required DayOA role entries are visible"
       return 0
@@ -524,8 +547,8 @@ prepare_headnode_writable_dirs() {
 }
 
 prepare_dayoa_environment_cache() {
-  local host_name
-  host_name="$(hostname)"
+  local cluster_cache_namespace
+  cluster_cache_namespace="$(resolve_cluster_cache_namespace)"
   local user_name
 
   install -d -m 1777 \
@@ -548,15 +571,16 @@ prepare_dayoa_environment_cache() {
 
   for user_name in ubuntu daylily; do
     install -d -m 1777 \
-      "${environment_cache_root}/conda/${user_name}/${host_name}" \
-      "${environment_cache_root}/containers/${user_name}/${host_name}"
-    link_cached_entries \
-      "${runtime_assets_root}/cached_envs/conda" \
-      "${environment_cache_root}/conda/${user_name}/${host_name}" \
-      required
+      "${environment_cache_root}/conda/${user_name}/${cluster_cache_namespace}" \
+      "${environment_cache_root}/containers/${user_name}/${cluster_cache_namespace}"
+    if find "${environment_cache_root}/conda/${user_name}/${cluster_cache_namespace}" \
+      -mindepth 1 -maxdepth 1 -type l -print -quit | grep -q .; then
+      echo "ERROR: legacy linked Conda environments are forbidden in the cluster-scoped cache: ${environment_cache_root}/conda/${user_name}/${cluster_cache_namespace}" >&2
+      exit 1
+    fi
     link_cached_entries \
       "${runtime_assets_root}/cached_envs/containers" \
-      "${environment_cache_root}/containers/${user_name}/${host_name}" \
+      "${environment_cache_root}/containers/${user_name}/${cluster_cache_namespace}" \
       optional
   done
 
@@ -567,13 +591,23 @@ prepare_dayoa_environment_cache() {
     "${environment_cache_root}/conda" \
     "${environment_cache_root}/containers" \
     "${environment_cache_root}/nextflow" \
-    "${environment_cache_root}/conda/ubuntu/${host_name}" \
-    "${environment_cache_root}/containers/ubuntu/${host_name}" \
-    "${environment_cache_root}/conda/daylily/${host_name}" \
-    "${environment_cache_root}/containers/daylily/${host_name}"
+    "${environment_cache_root}/conda/ubuntu/${cluster_cache_namespace}" \
+    "${environment_cache_root}/containers/ubuntu/${cluster_cache_namespace}" \
+    "${environment_cache_root}/conda/daylily/${cluster_cache_namespace}" \
+    "${environment_cache_root}/containers/daylily/${cluster_cache_namespace}"
 }
 
 install_headnode_runtime_cache_profile() {
+  local cluster_cache_namespace
+  cluster_cache_namespace="$(resolve_cluster_cache_namespace)"
+  cat > /etc/profile.d/daylily-cluster-cache-namespace.sh <<EOF
+# Managed by DAY-EC node setup. ParallelCluster stack names are stable across node replacement.
+export DAYOA_CLUSTER_CACHE_NAMESPACE="${cluster_cache_namespace}"
+EOF
+  chmod 0644 /etc/profile.d/daylily-cluster-cache-namespace.sh
+  stat -c "DayOA cluster cache namespace profile: %A %U:%G %n" \
+    /etc/profile.d/daylily-cluster-cache-namespace.sh
+
   cat <<'EOF' > /etc/profile.d/daylily-runtime-cache.sh
 # Managed by DAY-EC headnode setup.
 if [ -n "${USER:-}" ] && [ "${USER}" != "root" ] && [ -d /fsx/work ]; then
@@ -652,9 +686,7 @@ prepare_common_writable_dirs
 wait_for_reference_data
 make_role_data_read_only
 prepare_reference_compat_symlink
-prepare_dayoa_environment_cache
 install_sentieon_license_client_profile
-echo "DayOA conda, container, and Nextflow caches are seeded from ${runtime_assets_root}/cached_envs into ${environment_cache_root}"
 
 # Configure hugepages and namespaces (common to both head and compute nodes)
 echo "vm.nr_hugepages=2048" | tee -a /etc/sysctl.conf
@@ -707,10 +739,11 @@ chmod a+r /usr/local/bin/cromwell.jar /usr/local/bin/womtool.jar
 if [ "${cfn_node_type}" == "HeadNode" ];then
 
   echo "[$(date +%Y%m%d_%H%M%S)] Running HeadNode post-install actions"
-  
 
+  prepare_dayoa_environment_cache
   prepare_headnode_writable_dirs
   install_headnode_runtime_cache_profile
+  echo "DayOA Conda environments use an empty cluster-scoped writable cache; container and Nextflow caches are seeded from ${runtime_assets_root}/cached_envs into ${environment_cache_root}"
 
 
   if [ ! -e /opt/slurm/sbin/sbatch ]; then
