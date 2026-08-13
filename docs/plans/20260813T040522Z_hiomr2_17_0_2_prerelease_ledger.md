@@ -35,8 +35,8 @@ Gate 0 status: `SUCCESS`.
 | DYEC-006 | Catalog pins | Update `current` to DayOA 14.0.3 and copy it exactly to numeric snapshot `17.0.2` | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | Raw YAML equality and resolved model tests passed; each build exposes 29 resolved commands pinned to 14.0.3 |  | DayOA annotated tag and prerelease 14.0.3 already verified |
 | DYEC-007 | History/parity | Preserve every older numeric snapshot byte-for-byte and keep source/packaged catalogs byte-identical | SUCCESS | contract_test | Gate 1 | orchestrator | Six prior numeric block SHA256 values match baseline; source and packaged catalog `cmp` passed |  | Old duplicated Inflection-named ID remains only in immutable historical snapshots |
 | DYEC-008 | Validation | Run alias, accessor, rendering, historical, payload, full tests, wheel, and whitespace validation | SUCCESS | contract_test | Gate 5 | orchestrator | Expanded release-focused gate: 367 passed; complete suite: 2,495 passed, 11 skipped, 20 failed; an untouched baseline replay produced the identical 20 failures; source/payload `cmp`, focused Ruff, `git diff --check`, wheel/sdist build, 17.0.2 metadata, and wheel catalog parity passed | The repository baseline already fails four activation tests, six CLI callback tests, one analysis-lock precedence test, eight headnode transport tests, and one provider-neutrality test | No new full-suite failure was introduced; the baseline failures are outside this release's catalog scope and are preserved explicitly below |
-| DYEC-009 | Release | Commit/push candidate branch; create/verify annotated `17.0.2`; publish GitHub prerelease with local-only caveat | OPEN | feature_implementation | Gate 5 | orchestrator | Pending DayOA 14.0.3 prerelease and Git/GitHub evidence |  |  |
-| DYEC-010 | Boundary | Do not merge main, publish package-index artifacts, or run AWS/headnode workflows | OPEN | legitimate_safety_handling | Gate 5 | orchestrator | Pending final audit |  |  |
+| DYEC-009 | Release | Commit/push candidate branch; create/verify annotated `17.0.2`; publish GitHub prerelease with local-only caveat | SUCCESS | feature_implementation | Gate 5 | orchestrator | Release commit `95bbcd911bbb46bef9f3fe8b8dbc3fb62b7455ce` pushed to `origin/prod-candidate-260812`; annotated tag object `d665e82978565725bf823771c393170408553bbe` peels to that commit locally and remotely; exact-tag wheel/sdist and `twine check` passed; prerelease published at `https://github.com/lsmc-bio/daylily-ephemeral-cluster/releases/tag/17.0.2` |  | GitHub reports non-draft prerelease, published 2026-08-13T05:19:47Z, with no attached assets |
+| DYEC-010 | Boundary | Do not merge main, publish package-index artifacts, or run AWS/headnode workflows | SUCCESS | legitimate_safety_handling | Gate 5 | orchestrator | Release commit is not an ancestor of `origin/main` (`b7c1b056feb3ee1b24c0daa338d5f11ec015944d`); GitHub release assets are empty; no package upload, AWS, headnode, Slurm, or live clinical command was run |  | Candidate branch, annotated tag, and GitHub prerelease are the complete authorized external changes |
 
 ## Validation record
 
@@ -47,12 +47,22 @@ Gate 0 status: `SUCCESS`.
 - Source and packaged catalog byte comparison: passed.
 - Focused Ruff `F,I` static checks and `git diff --check`: passed.
 - Isolated PyPA validation build using explicit pre-tag SCM version `17.0.2`: wheel SHA256 `9ab061fc6dbd0746f2b5a24b2a50b642f104589e9a5da1658ae8dddfd0f6f89f`; sdist SHA256 `86cea2294c1ff2d6812bad910a79b7a08a917bea91861180a9174b35785f226e`.
-- Wheel metadata reported `17.0.2`, and its embedded command catalog was byte-identical to source (SHA256 `43970ca8366d55295f012279d3f484a76f733c54f339dd89340dcfcba3e3d608`). An exact-tag build remains part of release row DYEC-009.
+- Wheel metadata reported `17.0.2`, and its embedded command catalog was byte-identical to source (SHA256 `43970ca8366d55295f012279d3f484a76f733c54f339dd89340dcfcba3e3d608`).
+
+## Release record
+
+- Release commit: `95bbcd911bbb46bef9f3fe8b8dbc3fb62b7455ce`.
+- Annotated tag object: `d665e82978565725bf823771c393170408553bbe`; local and remote peeled commit: `95bbcd911bbb46bef9f3fe8b8dbc3fb62b7455ce`.
+- Exact-tag wheel: `daylily_ephemeral_cluster-17.0.2-py3-none-any.whl`, SHA256 `153e67f0fe96c7c33f654327a2818dbcbdc213c850e66a020e1b395a765eb19a`.
+- Exact-tag sdist: `daylily_ephemeral_cluster-17.0.2.tar.gz`, SHA256 `f012c08702f2491bdb846598869d3569ea1593f934dc3a75979e3d41d5aa62b6`.
+- `twine check` passed for both locally built artifacts; neither artifact was uploaded or attached.
+- GitHub prerelease: `https://github.com/lsmc-bio/daylily-ephemeral-cluster/releases/tag/17.0.2`, published 2026-08-13T05:19:47Z.
+- Validation and release evidence is local and fixture-backed. No AWS/headnode, Slurm, or live clinical workflow execution is claimed.
 
 ## Final report
 
-All rows terminal: no
+All rows terminal: yes
 
-Objective complete: no
+Objective complete: yes
 
-Status counts: SUCCESS 8; OPEN 2; DUPLICATE 0; NO_LONGER_NEEDED 0; FAIL 0; BLOCKED 0.
+Status counts: SUCCESS 10; OPEN 0; DUPLICATE 0; NO_LONGER_NEEDED 0; FAIL 0; BLOCKED 0.
