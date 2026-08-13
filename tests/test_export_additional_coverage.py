@@ -24,6 +24,85 @@ def test_export_source_rejected_namespaces(path: str) -> None:
         export.normalize_export_source_path(path)
 
 
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/analysis_results/alice/run/nested/../escape",
+        "/analysis_results/alice/run/nested/./child",
+        "/analysis_results/alice/run/nested//child",
+        "/analysis_results/alice/run/nested/%2E%2E/child",
+        "/fsx/staging/alice/run/nested/child",
+        "analysis_results/alice/run/nested/child",
+    ],
+)
+def test_nested_export_source_rejects_unsafe_or_alternate_paths(path: str) -> None:
+    with pytest.raises((export.ExportError, ValueError)):
+        export.normalize_export_source_path(path)
+
+
+def test_nested_export_source_validation_does_not_discover_symlinks(monkeypatch) -> None:
+    def unexpected_file_system_access(*_args, **_kwargs):
+        raise AssertionError("source validation must remain lexical")
+
+    monkeypatch.setattr(Path, "resolve", unexpected_file_system_access)
+    monkeypatch.setattr(Path, "exists", unexpected_file_system_access)
+    monkeypatch.setattr(Path, "is_symlink", unexpected_file_system_access)
+
+    assert export.normalize_export_source_path(
+        "/analysis_results/alice/run/symlink-shaped/child"
+    ) == "/analysis_results/alice/run/symlink-shaped/child/"
+
+
+@pytest.mark.parametrize(
+    "existing_path",
+    [
+        "/analysis_results/alice/run/",
+        "/analysis_results/alice/run/proof-batch/AU/child/",
+    ],
+)
+def test_nested_export_overlap_uses_full_source_path(
+    monkeypatch, existing_path: str
+) -> None:
+    monkeypatch.setattr(
+        export,
+        "describe_data_repository_associations",
+        lambda *_args, **_kwargs: [
+            {
+                "AssociationId": "dra-overlap",
+                "Lifecycle": "AVAILABLE",
+                "FileSystemPath": existing_path,
+            }
+        ],
+    )
+
+    with pytest.raises(export.ExportError, match="dra-overlap"):
+        export.validate_no_overlapping_export_dra(
+            object(),
+            fsx_file_system_id="fs-123",
+            source_path="/analysis_results/alice/run/proof-batch/AU/",
+        )
+
+
+def test_nested_export_overlap_allows_sibling_path(monkeypatch) -> None:
+    monkeypatch.setattr(
+        export,
+        "describe_data_repository_associations",
+        lambda *_args, **_kwargs: [
+            {
+                "AssociationId": "dra-sibling",
+                "Lifecycle": "AVAILABLE",
+                "FileSystemPath": "/analysis_results/alice/run/proof-batch/AU-2/",
+            }
+        ],
+    )
+
+    export.validate_no_overlapping_export_dra(
+        object(),
+        fsx_file_system_id="fs-123",
+        source_path="/analysis_results/alice/run/proof-batch/AU/",
+    )
+
+
 def test_launch_destination_requires_cluster_for_root() -> None:
     with pytest.raises(export.ExportError, match="--cluster is required"):
         export.resolve_launch_export_destination_s3_uri(
