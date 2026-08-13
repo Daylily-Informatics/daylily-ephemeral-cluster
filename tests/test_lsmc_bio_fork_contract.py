@@ -6,11 +6,11 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_DEFAULT_TAG = "14.0.4"
-DAYOA_VALIDATED_TAG = "14.0.4"
-DAYOA_HIGHEST_RELEASE_COMMIT = "b2d79181e8589a06f29901fadc25be172f259eb8"
-ONT_DAYOA_TAG = "14.0.4"
-ONT_DAYOA_RELEASE_COMMIT = "b2d79181e8589a06f29901fadc25be172f259eb8"
+DAYOA_DEFAULT_TAG = "14.0.6"
+DAYOA_VALIDATED_TAG = "14.0.6"
+DAYOA_HIGHEST_RELEASE_COMMIT = "105344052a71576588dbc3b6f37258eb2c6d2623"
+ONT_DAYOA_TAG = "14.0.6"
+ONT_DAYOA_RELEASE_COMMIT = "105344052a71576588dbc3b6f37258eb2c6d2623"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
     f"{_OLD_ORG}/daylily-omics-analysis",
@@ -101,8 +101,9 @@ def test_catalogs_and_dyec_repository_config_are_lsmc_bio_pinned() -> None:
         assert data["dyec_builds"]["17.0.0"]["dayoa_git_tags"] == ["14.0.0"]
         assert data["dyec_builds"]["17.0.1"]["dayoa_git_tags"] == ["14.0.2"]
         assert data["dyec_builds"]["17.0.2"]["dayoa_git_tags"] == ["14.0.3"]
-        assert data["dyec_builds"]["17.0.3"]["dayoa_git_tags"] == [DAYOA_DEFAULT_TAG]
-        assert data["dyec_builds"]["current"] == data["dyec_builds"]["17.0.3"]
+        assert data["dyec_builds"]["17.0.3"]["dayoa_git_tags"] == ["14.0.4"]
+        assert data["dyec_builds"]["17.0.4"]["dayoa_git_tags"] == [DAYOA_DEFAULT_TAG]
+        assert data["dyec_builds"]["current"] == data["dyec_builds"]["17.0.4"]
         current = data["dyec_builds"]["current"]
         assert set(current["commands"]) | set(current["aliases"]) == set(commands)
         assert "hiomr2_slim_kitchensink_mega_inflection_analytical" not in commands
