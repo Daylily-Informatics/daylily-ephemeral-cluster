@@ -62,6 +62,7 @@ EXPECTED_COMMANDS = {
     ("runtime", "status"),
     ("runtime", "check"),
     ("runtime", "explain"),
+    ("runtime-cache", "export"),
     ("pricing", "snapshot"),
     ("pricing", "spot-logs"),
     ("aws", "validate", "permissions"),
@@ -325,6 +326,10 @@ def test_agent_guidance_json() -> None:
     assert "raw Snakemake" in payload["summary"]
     assert any("headnode upload" in item for item in payload["headnode_file_transfer"])
     assert any("dy-r" in item for item in payload["dayoa_controller_contract"])
+    cache_guidance = payload["runtime_cache_export_contract"]
+    assert any("runtime-cache export" in item for item in cache_guidance)
+    assert any("aws s3 sync" in item for item in cache_guidance)
+    assert any("no S3 CLI fallback" in item for item in cache_guidance)
 
 
 def test_main_propagates_command_return_code(monkeypatch, tmp_path) -> None:
@@ -396,6 +401,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     runtime_status_cmd = registry.get_command(("runtime", "status"))
     runtime_check_cmd = registry.get_command(("runtime", "check"))
     runtime_explain_cmd = registry.get_command(("runtime", "explain"))
+    runtime_cache_export_cmd = registry.get_command(("runtime-cache", "export"))
     agent_guidance_cmd = registry.get_command(("agent", "guidance"))
     headnode_init_cmd = registry.get_command(("headnode", "init"))
     headnode_connect_cmd = registry.get_command(("headnode", "connect"))
@@ -544,6 +550,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
         assert runtime_cmd is not None
         assert runtime_cmd.policy.supports_json is True
         assert runtime_cmd.policy.runtime_guard == "exempt"
+
+    assert runtime_cache_export_cmd is not None
+    assert runtime_cache_export_cmd.policy.supports_json is True
+    assert runtime_cache_export_cmd.policy.mutates_state is True
+    assert runtime_cache_export_cmd.policy.long_running is True
 
     assert agent_guidance_cmd is not None
     assert agent_guidance_cmd.policy.supports_json is True

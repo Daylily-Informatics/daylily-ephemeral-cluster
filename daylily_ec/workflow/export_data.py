@@ -299,6 +299,7 @@ def validate_no_overlapping_export_dra(
     *,
     fsx_file_system_id: str,
     source_path: str,
+    destination_s3_uri: Optional[str] = None,
 ) -> None:
     try:
         associations = describe_data_repository_associations(
@@ -308,15 +309,31 @@ def validate_no_overlapping_export_dra(
     except (BotoCoreError, ClientError, RunMountError) as exc:
         raise ExportError(f"Unable to inspect existing FSx data repository associations: {exc}") from exc
     normalized_source = normalize_export_source_path(source_path)
+    normalized_destination = (
+        normalize_s3_uri(destination_s3_uri) if destination_s3_uri else None
+    )
     for association in associations:
         if not association_is_active(association):
             continue
+        association_id = str(association.get("AssociationId") or "unknown")
         existing_path = str(association.get("FileSystemPath") or "")
         if existing_path and paths_overlap(existing_path, normalized_source):
-            association_id = str(association.get("AssociationId") or "unknown")
             raise ExportError(
                 "source_path overlaps existing FSx data repository association "
                 f"{association_id} at {existing_path}."
+            )
+        existing_repository = str(association.get("DataRepositoryPath") or "")
+        if (
+            normalized_destination
+            and existing_repository
+            and paths_overlap(
+                normalize_s3_uri(existing_repository),
+                normalized_destination,
+            )
+        ):
+            raise ExportError(
+                "destination_s3_uri overlaps existing FSx data repository association "
+                f"{association_id} at {existing_repository}."
             )
 
 
@@ -354,6 +371,7 @@ def attach_export_dra(
         client,
         fsx_file_system_id=resolved_fsx_id,
         source_path=file_system_path,
+        destination_s3_uri=destination,
     )
     try:
         response = client.create_data_repository_association(

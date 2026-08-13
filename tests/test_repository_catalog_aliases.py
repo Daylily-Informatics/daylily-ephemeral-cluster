@@ -114,6 +114,7 @@ def test_existing_accessors_and_public_payload_return_resolved_aliases() -> None
     assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.5"), AnalysisCommand)
     assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.6"), AnalysisCommand)
     assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.7"), AnalysisCommand)
+    assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.8"), AnalysisCommand)
     assert ALIAS_ID in {command.command_id for command in catalog.commands()}
     payload = catalog.to_public_payload()
     assert ALIAS_ID in payload["dyec_builds"]["current"]["aliases"]
@@ -263,8 +264,9 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     assert CATALOG_PATH.read_bytes() == PACKAGED_CATALOG_PATH.read_bytes()
     raw = yaml.safe_load(source)
 
-    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.7"]
+    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.8"]
     assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["14.0.9"]
+    assert raw["dyec_builds"]["17.0.7"]["dayoa_git_tags"] == ["14.0.9"]
     assert raw["dyec_builds"]["17.0.2"]["dayoa_git_tags"] == ["14.0.3"]
     assert raw["dyec_builds"]["17.0.3"]["dayoa_git_tags"] == ["14.0.4"]
     assert raw["dyec_builds"]["17.0.4"]["dayoa_git_tags"] == ["14.0.6"]

@@ -69,6 +69,7 @@ It covers:
 - DayOA controller rules;
 - analysis-root visit/lock safety;
 - headnode upload/download syntax;
+- the DRA-only runtime-cache export boundary;
 - monitoring commands and Slurm queue format.
 
 Use this when an operator or agent needs a concise reminder of the safe path.
@@ -831,6 +832,57 @@ Verify `fsx_export.yaml` reports `status=success`, `phase=complete`,
 `task_lifecycle=SUCCEEDED`, and `detached=true`; then verify object counts and
 expected S3 outputs. FSx data is preserved by default. Cleanup is a separate,
 destructive operation and is not part of the catalog export recipe.
+
+## Runtime-cache export
+
+Save every complete real Conda environment and newly fetched real container
+image from one cluster-generation namespace with:
+
+```bash
+export CACHE_EXPORT_ID=<immutable-cache-export-id>
+export CACHE_STAGE_ROOT=/fsx/analysis_results/$CLUSTER/$CACHE_EXPORT_ID
+export CACHE_DESTINATION_S3_URI=s3://<dedicated-cache-export-bucket>/<prefix>/$CLUSTER/$CACHE_EXPORT_ID/
+
+dyec runtime-cache export \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --executing-entity "$CLUSTER" \
+  --cache-export-id "$CACHE_EXPORT_ID" \
+  --destination-s3-uri "$CACHE_DESTINATION_S3_URI" \
+  --output-dir ./cache-export-receipts/$CACHE_EXPORT_ID \
+  --human-requestor <requestor> \
+  --stage-timeout-seconds 7200 \
+  --export-timeout-seconds 5400
+```
+
+Review the exact plan without touching AWS or FSx by adding `--dry-run`. A live
+command performs these phases in order:
+
+1. Resolve the cluster headnode and FSx filesystem.
+2. Require a new analysis staging root, an empty destination, and no active
+   file-system-path or S3-prefix DRA overlap.
+3. Reject active Conda mutations or container pulls/builds, incomplete Conda
+   directories, missing adjacent YAMLs, and incomplete real container files.
+4. Copy the complete real entries with `cp -a`, compare environment byte counts
+   and symlink manifests, and retain a runtime-cache manifest in the staging
+   root.
+5. Recheck the immutable destination, then attach a temporary DRA, run an FSx
+   `EXPORT_TO_REPOSITORY` task, and detach without deleting staged FSx data.
+
+The sole supported cache-publication transport is this `cp -a` staging plus
+FSx DRA path. Never use `aws s3 cp`, `aws s3 sync`, `aws s3 mv`, or an SDK
+object-copy loop for Conda, container, Apptainer/Singularity, or Nextflow cache
+trees. `--no-follow-symlinks` is also invalid because it skips symlinks instead
+of preserving their type and target. Missing DRA compatibility, permission, or
+non-overlap must fail; there is no S3 CLI fallback.
+
+An FSx filesystem cannot have overlapping DRA filesystem paths or S3 data
+repository paths. If `/references/` already maps the whole reference bucket,
+the runtime-cache export cannot target a subprefix of that bucket from the same
+filesystem. Supply a dedicated non-overlapping cache-export bucket/prefix and
+retain `runtime_cache_export.yaml`, `dra/fsx_export.yaml`, and the staged root
+until a future cluster's explicit import/link contract has been verified.
 
 ## Cost and pricing helpers
 
