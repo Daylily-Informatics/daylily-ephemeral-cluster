@@ -14,8 +14,8 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "14.0.3"
-PRODUCTION_DAYOA_TAG = "14.0.3"
+DAYOA_BLESSED_TAG = "14.0.4"
+PRODUCTION_DAYOA_TAG = "14.0.4"
 PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
 SOLO_KITCHEN_SINK_DAYOA_TAG = PRODUCTION_DAYOA_TAG
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
@@ -177,7 +177,9 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert {command.git_tag for command in prior_major_release} == {"14.0.0"}
     previous_major_patch = catalog.commands_for_dyec_build("17.0.1")
     assert {command.git_tag for command in previous_major_patch} == {"14.0.2"}
-    released_build = catalog.commands_for_dyec_build("17.0.2")
+    previous_catalog_patch = catalog.commands_for_dyec_build("17.0.2")
+    assert {command.git_tag for command in previous_catalog_patch} == {"14.0.3"}
+    released_build = catalog.commands_for_dyec_build("17.0.3")
     assert [command.model_dump() for command in released_build] == [
         command.model_dump() for command in current_build
     ]
@@ -406,7 +408,9 @@ def test_catalog_cli_uses_current_unless_numeric_snapshot_is_requested() -> None
     current_payload = json.loads(current_result.stdout)
     released_payload = json.loads(released_result.stdout)
     assert current_payload["dyec_version"] == "current"
-    assert {command["git_tag"] for command in current_payload["commands"]} == {"14.0.3"}
+    assert {command["git_tag"] for command in current_payload["commands"]} == {
+        PRODUCTION_DAYOA_TAG
+    }
     assert released_payload["dyec_version"] == "16.1.82"
     assert {command["git_tag"] for command in released_payload["commands"]} == {"13.4.31"}
 

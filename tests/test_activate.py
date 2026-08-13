@@ -4,7 +4,6 @@ import os
 import subprocess
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ACTIVATE = REPO_ROOT / "activate"
 ENVIRONMENT_YAML = REPO_ROOT / "environment.yaml"
@@ -69,6 +68,12 @@ if [[ "$cmd" == "env" && "$subcmd" == "list" ]]; then
   if [[ -d "${root}/envs/DAY-EC" ]]; then
     echo "DAY-EC ${root}/envs/DAY-EC"
   fi
+  exit 0
+fi
+
+if [[ "$cmd" == "config" && "$subcmd" == "--set" ]]; then
+  [[ "${3:-}" == "plugins.auto_accept_tos" ]]
+  [[ "${4:-}" == "true" ]]
   exit 0
 fi
 
@@ -205,6 +210,7 @@ def test_activate_creates_dayec_activates_and_installs_editable(tmp_path: Path) 
     assert "kind=file" in result.stdout
     assert "env-cli:--help" in result.stdout
     assert f"env create -n DAY-EC -f {ENVIRONMENT_YAML}" in log
+    assert "config --set plugins.auto_accept_tos true" in log
     assert f"python -m pip install --editable {REPO_ROOT}" in log
     assert (fake_root / "last_editable_repo").read_text(encoding="utf-8").strip() == str(REPO_ROOT)
     assert "env update" not in log
@@ -242,6 +248,7 @@ def test_activate_reuses_existing_dayec_without_create_update_pip_or_smoke_tests
     assert f"pythonpath={REPO_ROOT}" in result.stdout
     assert "existing-env:--help" in result.stdout
     assert "env create -n DAY-EC" not in log
+    assert "config --set plugins.auto_accept_tos true" in log
     assert "env update" not in log
     assert "pip install" not in log
     assert "run -n DAY-EC" not in log

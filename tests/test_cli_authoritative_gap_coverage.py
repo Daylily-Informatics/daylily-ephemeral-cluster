@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+
 import click
 import pytest
 import typer
@@ -308,6 +309,7 @@ def test_run_cli_return_values(
     expected: int,
 ) -> None:
     monkeypatch.setattr(cli, "_reset_cli_core_runtime", lambda: None)
+    monkeypatch.setattr(cli, "_install_dayec_version_option", lambda _app: None)
     monkeypatch.setattr(cli, "create_app", lambda spec: lambda args, standalone_mode: result)
     assert cli._run_cli(["version"]) == expected
 
@@ -327,6 +329,7 @@ def test_run_cli_handled_exceptions(
     expected: int,
 ) -> None:
     monkeypatch.setattr(cli, "_reset_cli_core_runtime", lambda: None)
+    monkeypatch.setattr(cli, "_install_dayec_version_option", lambda _app: None)
 
     def fail(args, standalone_mode):
         raise exception
@@ -337,6 +340,7 @@ def test_run_cli_handled_exceptions(
 
 def test_run_cli_no_args_help(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(cli, "_reset_cli_core_runtime", lambda: None)
+    monkeypatch.setattr(cli, "_install_dayec_version_option", lambda _app: None)
     context = click.Context(click.Command("dyec"))
 
     def fail(args, standalone_mode):
