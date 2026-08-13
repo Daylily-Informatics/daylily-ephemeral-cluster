@@ -43,9 +43,9 @@ Controlling plan and ledger:
 | ID | Area/repo | Requirement | Status | Category | Approval gate | Owner | Evidence | Root cause | Terminal note |
 |---|---|---|---|---|---|---|---|---|---|
 | G0-001 | DYEC/DayOA | Freeze branches, commits, tag provenance, release objects, catalog state, version inference, and scope. | SUCCESS | contract_test | Gate 0 | orchestrator | Gate 0 inventory above; live fetch/status/tag/release/catalog checks completed. |  | Baseline recorded before release writes. |
-| DYEC-PIN | DYEC | Move active/current DayOA pins to `14.0.2`, preserve existing numeric snapshots, and add exact `current` snapshot `17.0.1`. | IN_PROGRESS | config_or_startup_contract | Gate 2 | orchestrator | Pending catalog and contract-test changes. |  |  |
-| DYEC-VALIDATE | DYEC | Prove catalog parity, historical-snapshot preservation, selector behavior, focused lint/compile checks, and the release-focused test gate. | OPEN | contract_test | Gate 5 | orchestrator | Pending. |  |  |
-| DYEC-TAG | DYEC | Commit and push the candidate changes, create and push annotated tag `17.0.1`, and verify the exact tagged version. | OPEN | feature_implementation | Gate 5 | orchestrator | Pending. |  |  |
+| DYEC-PIN | DYEC | Move active/current DayOA pins to `14.0.2`, preserve existing numeric snapshots, and add exact `current` snapshot `17.0.1`. | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | Active repository rows and `current` contain 29 commands pinned to DayOA `14.0.2`; numeric `17.0.1` is an exact copy of updated `current`; parsed structural comparison proves `16.1.81`, `16.1.82`, `16.1.85`, `16.1.86`, and `17.0.0` are unchanged from annotated tag `17.0.0`. |  | New patch snapshot added without altering historical release pins. |
+| DYEC-VALIDATE | DYEC | Prove catalog parity, historical-snapshot preservation, selector behavior, focused lint/compile checks, and the release-focused test gate. | SUCCESS | contract_test | Gate 5 | orchestrator | Source/payload catalogs compare byte-identical; release-focused suite passed 681 tests; focused 327-test slice passed; targeted Ruff syntax/undefined-name rules, byte-compilation, and diff checks passed; CLI probes returned 29 commands on DayOA `14.0.2` for `current`/`17.0.1`, 29 on `14.0.0` for `17.0.0`, 29 on `13.4.34` for `16.1.86`, 29 on `13.4.33` for `16.1.85`, and 9 on `13.4.31` for `16.1.82`. |  | All pre-tag release gates passed. |
+| DYEC-TAG | DYEC | Commit and push the candidate changes, create and push annotated tag `17.0.1`, and verify the exact tagged version. | IN_PROGRESS | feature_implementation | Gate 5 | orchestrator | Catalog and tests are validated; release commit/tag pending. |  |  |
 | DYEC-PRERELEASE | DYEC | Create and verify a GitHub prerelease page for `17.0.1`. | OPEN | feature_implementation | Gate 5 | orchestrator | Pending. |  |  |
 | FINAL-001 | DYEC | Verify the remote candidate branch, immutable annotated tag, prerelease page, clean worktree, catalog invariants, and terminal ledger state. | OPEN | contract_test | Gate 5 | orchestrator | Pending. |  |  |
 
@@ -55,7 +55,7 @@ All rows terminal: no.
 
 Objective complete: no.
 
-Status counts: `SUCCESS=1`, `IN_PROGRESS=1`, `OPEN=4`, `BLOCKED=0`,
+Status counts: `SUCCESS=3`, `IN_PROGRESS=1`, `OPEN=2`, `BLOCKED=0`,
 `FAIL=0`, `NO_LONGER_NEEDED=0`.
 
 Validation, changed-file inventory, non-success terminal rows, and residual

@@ -11,8 +11,8 @@ SOURCE_CATALOG = REPO_ROOT / "config/daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG = (
     REPO_ROOT / "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml"
 )
-DAYOA_GIT_TAG = "14.0.0"
-DAYOA_VALIDATED_VERSION = "14.0.0"
+DAYOA_GIT_TAG = "14.0.2"
+DAYOA_VALIDATED_VERSION = "14.0.2"
 
 
 def test_hiomr_catalog_entry_is_native_dyr_and_mirrored() -> None:
