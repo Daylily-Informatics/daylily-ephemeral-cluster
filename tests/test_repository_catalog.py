@@ -197,7 +197,9 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert {command.git_tag for command in previous_released_build} == {"14.0.11"}
     prior_released_build = catalog.commands_for_dyec_build("17.0.12")
     assert {command.git_tag for command in prior_released_build} == {"14.0.13"}
-    released_build = catalog.commands_for_dyec_build("17.0.13")
+    prior_released_build = catalog.commands_for_dyec_build("17.0.13")
+    assert {command.git_tag for command in prior_released_build} == {"14.0.14"}
+    released_build = catalog.commands_for_dyec_build("17.0.14")
     assert [command.model_dump() for command in released_build] == [
         command.model_dump() for command in current_build
     ]

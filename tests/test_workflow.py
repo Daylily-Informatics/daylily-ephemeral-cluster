@@ -2187,6 +2187,47 @@ class TestRunCreateWorkflow:
             ":secret:dayec/dayoa-key"
         )
 
+    def test_collects_every_prompt_before_baseline_provisioning(self, tmp_path, monkeypatch):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=True,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            policy_candidates=["arn:policy:existing-a", "arn:policy:existing-b"],
+            config_overrides={
+                "enable_detailed_monitoring": ["PROMPTUSER", "false", ""],
+                "delete_local_root": ["PROMPTUSER", "true", ""],
+                "spot_instance_allocation_strategy": [
+                    "PROMPTUSER",
+                    "price-capacity-optimized",
+                    "",
+                ],
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert {
+            "Enable detailed monitoring",
+            "Delete local root",
+            "Spot allocation strategy",
+        }.issubset(records["prompt_labels"])
+        assert records["prompt_labels"].count("Enter selection number") == 1
+        first_provisioning_index = records["events"].index(("ensure_pcluster_env_stack", None))
+        prompt_indices = [
+            index for index, event in enumerate(records["events"]) if event[0] == "prompt"
+        ]
+        assert prompt_indices
+        assert max(prompt_indices) < first_provisioning_index
+        assert ("Subnets", "pub=subnet-pub  priv=subnet-priv") in records["details"]
+        assert ("Policy", "arn:policy:existing-a") in records["details"]
+        assert records["render_substitutions"]["REGSUB_DETAILED_MONITORING"] == "false"
+        assert records["render_substitutions"]["REGSUB_DELETE_LOCAL_ROOT"] == "true"
+        assert (
+            records["render_substitutions"]["REGSUB_ALLOCATION_STRATEGY"]
+            == "price-capacity-optimized"
+        )
+
     def test_create_output_never_prints_deploy_key_secret_arns(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
             tmp_path,
@@ -3578,6 +3619,7 @@ def _run_stubbed_create_workflow(
     regional_clusters: list[dict[str, str]] | None = None,
     regional_cluster_list_result: object | None = None,
     postcreate_result: object | None = None,
+    policy_candidates: list[str] | None = None,
 ) -> dict[str, object]:
     template_path = tmp_path / "template.yaml"
     template_path.write_text(
@@ -3695,6 +3737,10 @@ HeadNode:
             "Heartbeat email": "johnm@lsmc.com",
             "Heartbeat schedule": "rate(60 minutes)",
             "Heartbeat scheduler role ARN (leave blank to skip)": "",
+            "Enable detailed monitoring": "false",
+            "Delete local root": "true",
+            "Spot allocation strategy": "price-capacity-optimized",
+            "Enter selection number": "1",
         }
         return answers[label]
 
@@ -3811,6 +3857,7 @@ HeadNode:
     )
 
     def fake_ensure_pcluster_env_stack(*_args, **_kwargs):
+        records["events"].append(("ensure_pcluster_env_stack", None))
         records["baseline_stack_calls"] += 1
         return SimpleNamespace(
             public_subnet_id="subnet-pub",
@@ -3830,7 +3877,7 @@ HeadNode:
     monkeypatch.setattr(
         aws_ec2,
         "list_pcluster_tags_budget_policies",
-        lambda *_args, **_kwargs: [],
+        lambda *_args, **_kwargs: list(policy_candidates or []),
     )
 
     def fake_configure_headnode(**kwargs):

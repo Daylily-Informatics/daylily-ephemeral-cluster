@@ -111,7 +111,8 @@ def test_catalogs_and_dyec_repository_config_are_lsmc_bio_pinned() -> None:
         assert data["dyec_builds"]["17.0.10"]["dayoa_git_tags"] == ["14.0.11"]
         assert data["dyec_builds"]["17.0.11"]["dayoa_git_tags"] == ["14.0.13"]
         assert data["dyec_builds"]["17.0.12"]["dayoa_git_tags"] == ["14.0.13"]
-        assert data["dyec_builds"]["current"] == data["dyec_builds"]["17.0.13"]
+        assert data["dyec_builds"]["17.0.13"]["dayoa_git_tags"] == ["14.0.14"]
+        assert data["dyec_builds"]["current"] == data["dyec_builds"]["17.0.14"]
         current = data["dyec_builds"]["current"]
         assert set(current["commands"]) | set(current["aliases"]) == set(commands)
         assert "hiomr2_slim_kitchensink_mega_inflection_analytical" not in commands

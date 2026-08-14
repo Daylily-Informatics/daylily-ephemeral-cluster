@@ -2727,7 +2727,7 @@ def run_create_workflow(
         ui.fail(str(exc))
         return EXIT_VALIDATION_FAILURE
 
-    ui.phase("CREATE INPUTS: BUDGETS, COST CENTER & HEARTBEAT")
+    ui.phase("CREATE INPUTS")
     try:
         post_create_inputs = _resolve_post_create_inputs(
             cfg,
@@ -2761,6 +2761,36 @@ def run_create_workflow(
         headnode_instance_type = _resolve_headnode_instance_type(
             cfg,
             non_interactive=non_interactive,
+        )
+        enable_detailed_monitoring = (
+            _resolve_config_value(
+                cfg,
+                "enable_detailed_monitoring",
+                "Enable detailed monitoring",
+                non_interactive=non_interactive,
+                default_fallback="false",
+            )
+            or "false"
+        )
+        delete_local_root = (
+            _resolve_config_value(
+                cfg,
+                "delete_local_root",
+                "Delete local root",
+                non_interactive=non_interactive,
+                default_fallback="false",
+            )
+            or "false"
+        )
+        spot_instance_allocation_strategy = (
+            _resolve_config_value(
+                cfg,
+                "spot_instance_allocation_strategy",
+                "Spot allocation strategy",
+                non_interactive=non_interactive,
+                default_fallback="price-capacity-optimized",
+            )
+            or "price-capacity-optimized"
         )
         template_yaml = resolve_cluster_template_yaml(
             cfg,
@@ -3165,7 +3195,26 @@ def run_create_workflow(
         for key in ("public_subnet_id", "private_subnet_id", "iam_policy_arn")
     )
 
-    # 3a. Baseline CFN stack
+    # 3a. Resolve the only live-resource choice that can remain interactive.
+    # When an account has multiple matching policies, collect that selection
+    # before waiting for the baseline stack.
+    iam_client = aws_ctx.client("iam")
+    policy_arns = list_pcluster_tags_budget_policies(iam_client)
+    iam_t = ec.config.get("iam_policy_arn")
+    policy_arn = select_policy_arn(
+        policy_arns,
+        cfg_action=iam_t.action if iam_t else "",
+        cfg_set_value=iam_t.set_value if iam_t else "",
+        cfg_fallback="",
+    )
+    if not policy_arn and iam_t and _has_explicit_set_value(cfg, "iam_policy_arn"):
+        policy_arn = iam_t.set_value.strip()
+    if not policy_arn and not non_interactive and policy_arns:
+        policy_arn = _prompt_select("IAM policy ARN", policy_arns)
+
+    ui.ok("Create inputs resolved; provisioning can now run unattended")
+
+    # 3b. Baseline CFN stack (first long-running provisioning step)
     stack_name = derive_stack_name(region_az)
     if explicit_core_resources:
         cfn_outputs = StackOutputs()
@@ -3181,7 +3230,7 @@ def run_create_workflow(
             return EXIT_AWS_FAILURE
         ui.ok("CFN stack ready")
 
-    # 3b. Subnet selection (from live EC2)
+    # 3c. Subnet resolution is deterministic once baseline outputs exist.
     ec2 = aws_ctx.client("ec2")
     pub_list = list_public_subnets(ec2, region_az)
     priv_list = list_private_subnets(ec2, region_az)
@@ -3198,11 +3247,6 @@ def run_create_workflow(
         )
         or cfn_outputs.public_subnet_id
     )
-    if not public_subnet and not non_interactive and pub_list:
-        public_subnet = _prompt_select(
-            "public subnet",
-            [subnet.subnet_id for subnet in pub_list],
-        )
     try:
         explicit_public_subnet = _resolve_explicit_subnet_id(
             ec2,
@@ -3227,11 +3271,6 @@ def run_create_workflow(
         )
         or cfn_outputs.private_subnet_id
     )
-    if not private_subnet and not non_interactive and priv_list:
-        private_subnet = _prompt_select(
-            "private subnet",
-            [subnet.subnet_id for subnet in priv_list],
-        )
     try:
         explicit_private_subnet = _resolve_explicit_subnet_id(
             ec2,
@@ -3247,23 +3286,7 @@ def run_create_workflow(
         ui.fail(str(exc))
         return EXIT_VALIDATION_FAILURE
 
-    # 3c. Policy ARN selection
-    iam_client = aws_ctx.client("iam")
-    policy_arns = list_pcluster_tags_budget_policies(iam_client)
-    iam_t = ec.config.get("iam_policy_arn")
-    policy_arn = (
-        select_policy_arn(
-            policy_arns,
-            cfg_action=iam_t.action if iam_t else "",
-            cfg_set_value=iam_t.set_value if iam_t else "",
-            cfg_fallback=cfn_outputs.policy_arn,
-        )
-        or cfn_outputs.policy_arn
-    )
-    if not policy_arn and iam_t and _has_explicit_set_value(cfg, "iam_policy_arn"):
-        policy_arn = iam_t.set_value.strip()
-    if not policy_arn and not non_interactive and policy_arns:
-        policy_arn = _prompt_select("IAM policy ARN", policy_arns)
+    policy_arn = policy_arn or cfn_outputs.policy_arn
 
     missing_resources = _require_values(
         {
@@ -3408,25 +3431,11 @@ def run_create_workflow(
         "REGSUB_S3_CONTROL_DATA_URI": control_data_s3_uri.rstrip("/"),
         "REGSUB_S3_STAGE_URI": stage_s3_uri.rstrip("/"),
         "REGSUB_FSX_SIZE": fsx_size,
-        "REGSUB_DETAILED_MONITORING": _resolve_config_value(
-            cfg,
-            "enable_detailed_monitoring",
-            "Enable detailed monitoring",
-            non_interactive=non_interactive,
-            default_fallback="false",
-        )
-        or "false",
+        "REGSUB_DETAILED_MONITORING": enable_detailed_monitoring,
         "REGSUB_CLUSTER_NAME": cluster_name,
         "REGSUB_USERNAME": f"{_os.environ.get('USER', 'unknown')}-{aws_ctx.iam_username}",
         "REGSUB_PROJECT": cluster_name,
-        "REGSUB_DELETE_LOCAL_ROOT": _resolve_config_value(
-            cfg,
-            "delete_local_root",
-            "Delete local root",
-            non_interactive=non_interactive,
-            default_fallback="false",
-        )
-        or "false",
+        "REGSUB_DELETE_LOCAL_ROOT": delete_local_root,
         "REGSUB_DRAGEN_PCLUSTER_AMI": (
             dragen_inputs.backport.image_ami_id if dragen_inputs else ""
         ),
@@ -3449,14 +3458,7 @@ def run_create_workflow(
         "REGSUB_COST_CENTER_TABLE": DEFAULT_COST_CENTER_TABLE,
         "REGSUB_COST_CENTER_USAGE_TABLE": DEFAULT_COST_CENTER_USAGE_TABLE,
         "REGSUB_AWS_ACCOUNT_ID": f"aws_profile-{aws_ctx.profile}",
-        "REGSUB_ALLOCATION_STRATEGY": _resolve_config_value(
-            cfg,
-            "spot_instance_allocation_strategy",
-            "Spot allocation strategy",
-            non_interactive=non_interactive,
-            default_fallback="price-capacity-optimized",
-        )
-        or "price-capacity-optimized",
+        "REGSUB_ALLOCATION_STRATEGY": spot_instance_allocation_strategy,
         # Tag value must be non-empty (AWS min length = 1).
         "REGSUB_DAYLILY_GIT_DEETS": "none",
         "REGSUB_MAX_COUNT_8I": max_count_values["max_count_8I"],
