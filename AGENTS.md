@@ -20,6 +20,13 @@
 - Example DayOA smoke/dry-run command: `dy-r help -p -k -j 1 -n`.
 - For BCL/DayOA execution, send these commands into the persistent `tmux` pane as separate commands. Do not collapse setup and execution into a one-shot non-interactive SSM script.
 
+# Pinned DayOA Source Immutability
+
+- A DYEC controller must never create, edit, delete, move, chmod, or patch a versioned file in a pinned DayOA checkout. This includes workflow rules, scripts, versioned environment YAMLs, `bin/`, and versioned configuration.
+- Runtime source overlays, generated source helpers, and text-rewrite repairs are prohibited. The controller must verify that the selected DayOA ref is clean before dispatch and again after the workflow returns.
+- Explicit input manifests may be materialized only at their established ignored runtime paths; they are not a mechanism for altering DayOA source.
+- If a required behavior is absent from the selected release, fail clearly and land it in a new, tested, tagged DayOA release. Never repair it on the headnode.
+
 # Provider-Neutral Execution Boundary
 
 - DYEC is a standalone cluster/workflow CLI. It must not require, import,

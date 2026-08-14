@@ -34,6 +34,7 @@ Use `--cluster` for DYEC commands. Keep `--cluster-name` for tools such as `pclu
 
 - Use `dyec`; do not launch DayOA by invoking raw `snakemake`.
 - New DayOA checkouts must be explicit-tag checkouts.
+- A DYEC controller never mutates a pinned DayOA release: no runtime rule/script/environment/config patches, source overlays, or generated helpers in the checkout. It verifies the selected ref is clean before dispatch and after the workflow returns. Missing behavior is a hard error that must be fixed and released in DayOA, never repaired on the headnode.
 - Headnode work uses a cluster-appropriate remote user selected by platform: Ubuntu/Intel DayOA headnodes use `ubuntu`; DRAGEN/RHEL-style headnodes use `ec2-user`.
 - DYEC-created headnode shells must be bash login/interactive contexts and source `~/.bashrc`; workflow controllers still run in persistent `tmux` panes.
 - DYEC CLI launch helpers create the supported headnode controller for you; they do not require an interactive SSM session for standard catalog launches.

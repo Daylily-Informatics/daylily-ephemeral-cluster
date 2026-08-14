@@ -14,9 +14,9 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "14.0.14"
-PRODUCTION_DAYOA_TAG = "14.0.14"
-BJUICE_V2_DAYOA_TAG = "14.0.15"
+DAYOA_BLESSED_TAG = "14.0.22"
+PRODUCTION_DAYOA_TAG = "14.0.22"
+BJUICE_V2_DAYOA_TAG = "14.0.22"
 PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
 SOLO_KITCHEN_SINK_DAYOA_TAG = PRODUCTION_DAYOA_TAG
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
@@ -210,10 +210,20 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
         not in {command.command_id for command in released_build}
     )
-    released_build = catalog.commands_for_dyec_build("17.0.15")
-    assert [command.model_dump() for command in released_build] == [
-        command.model_dump() for command in current_build
-    ]
+    prior_released_build = catalog.commands_for_dyec_build("17.0.15")
+    assert {command.git_tag for command in prior_released_build} == {
+        "14.0.14",
+        "14.0.15",
+    }
+    merged_pin_build = catalog.commands_for_dyec_build("17.0.16")
+    assert {command.git_tag for command in merged_pin_build} == {"14.0.16"}
+    intervening_build = catalog.commands_for_dyec_build("17.0.17")
+    assert {command.git_tag for command in intervening_build} == {
+        "14.0.14",
+        "14.0.15",
+    }
+    released_build = catalog.commands_for_dyec_build("17.0.18")
+    assert {command.git_tag for command in released_build} == {"14.0.16"}
     current_cg = catalog.get_command_for_dyec_build("complete_genomics_cg_snv_concordance")
     assert "produce_multiqc_all" in current_cg.targets
     assert catalog.result_export is not None
@@ -541,7 +551,16 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         if not command.validation_runs:
             assert command.command_id in UNVALIDATED_COMMAND_IDS
             continue
-        expected_validation_runs = 2 if command.command_id == "ultima_run_qc" else 1
+        expected_validation_runs = (
+            2
+            if command.command_id
+            in {
+                "complete_genomics_cg_snv_concordance",
+                "ont_run_qc",
+                "ultima_run_qc",
+            }
+            else 1
+        )
         assert len(command.validation_runs) == expected_validation_runs
         validation_run = command.validation_runs[0]
         if validation_run.run_id == "dayoa_2017_hg002_kitchensink_j200_readhapsfix2_151101":
@@ -580,6 +599,25 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert validation_run.live_analysis_id == validation_run.run_id
             assert "run_context_only=true" in validation_run.tested_command
             assert "bclconvert" not in validation_run.tested_command.lower()
+            continue
+        if (
+            validation_run.run_id
+            == "prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z"
+        ):
+            assert command.command_id == "inflection-bjuice-product-v0.2"
+            assert validation_run.cluster == "prod-cand-1703"
+            assert validation_run.region == "us-west-2"
+            assert validation_run.region_az == "us-west-2c"
+            assert validation_run.dayec_tag == "17.0.19"
+            assert validation_run.dayoa_tag == "14.0.14"
+            assert validation_run.dayoa_commit == "8bbf0fe0b45918a65cb2c884c5b435bab0582cb1"
+            assert validation_run.status == "success"
+            assert validation_run.dryrun_status == "success"
+            assert validation_run.live_status == "success"
+            assert validation_run.live_analysis_id == validation_run.run_id
+            assert "produce_sentdhiomr2_slim_kitchensink_mega" in validation_run.tested_command
+            assert "produce_sentdhiomr2_inflection_analytical_package" in validation_run.tested_command
+            assert command.git_tag == DAYOA_BLESSED_TAG
             continue
         assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
         assert validation_run.report_path == "docs/tstver411b_command_catalog_test_results.md"
@@ -1001,7 +1039,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical"
     )
     assert inflection_bjuice.sample_manifest_template == ""
-    assert inflection_bjuice.validation_runs == []
+    assert [run.run_id for run in inflection_bjuice.validation_runs] == [
+        "prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z"
+    ]
     assert inflection_bjuice.test_data_profile == "hg002_bjuice_verified_5x5x_fastq"
     assert (
         inflection_bjuice.manifest_dir_template
@@ -1306,7 +1346,8 @@ def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() ->
     assert command.command_class == "sample_analysis"
     assert command.input_contract == "six_manifest"
     assert command.requires_staging is True
-    assert command.staging_receipt_required is True
+    assert command.staging_receipt_required is False
+    assert command.cost_center_required is True
     assert command.requires_run_mount is True
     assert command.test_data_profile == "hg002_bjuice_v2_full_preval_run_mounts"
     assert command.targets == [
@@ -1348,6 +1389,22 @@ def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() ->
     assert command_id not in catalog.dyec_builds["current"].aliases
     assert command_id not in catalog.dyec_builds["17.0.14"].commands
     assert command_id in catalog.dyec_builds["17.0.15"].commands
+
+    with pytest.raises(ValueError, match="requires an explicit --cost-center"):
+        command.launch_argv(
+            analysis_id="bjuice-v2-multiau",
+            executing_entity="prod-cand-1703",
+            manifest_dir="/tmp/bjuice-v2-manifests",
+        )
+    launch_argv = command.launch_argv(
+        analysis_id="bjuice-v2-multiau",
+        executing_entity="prod-cand-1703",
+        manifest_dir="/tmp/bjuice-v2-manifests",
+        cost_center="prod-cand-1703-ccenter",
+    )
+    assert launch_argv[launch_argv.index("--cost-center") + 1] == (
+        "prod-cand-1703-ccenter"
+    )
 
 
 def test_repository_catalog_v1_migrates_to_sample_analysis(tmp_path: Path) -> None:

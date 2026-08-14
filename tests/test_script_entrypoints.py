@@ -42,6 +42,39 @@ def _controller_target_marker(
     )
 
 
+def _assert_immutable_pinned_dayoa_controller(script: str) -> None:
+    forbidden = (
+        "BCLCONVERT_PROFILE_PATCH_SCRIPT",
+        "BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT",
+        "patch_bclconvert_profile_config",
+        "patch_bclconvert_lane_split",
+        "patch_dayoa_runtime_tmpdir_wrappers",
+        "patch_run_qc_reports_pycoqc_python",
+        "patch_pycoqc_readonly_sort",
+        "patch_goleft_indexcov_empty_sex_arg",
+        "patch_mosdepth_empty_outputs",
+        "patch_rtg_vcfeval_parse_output_dir",
+        "patch_vep_empty_concat_fofn",
+        "patch_contam_identity_zero_variant_outputs",
+        "runtime_repair_requested",
+        "workflow/rules/",
+        "workflow/envs/",
+    )
+    for marker in forbidden:
+        assert marker not in script
+    assert 'verify_pinned_dayoa_checkout "before workflow dispatch"' in script
+    assert 'verify_pinned_dayoa_checkout "after workflow return"' in script
+    assert 'git -C "$repo_path" diff --quiet --' in script
+    assert 'git -C "$repo_path" diff --cached --quiet --' in script
+    assert 'git -C "$repo_path" ls-files --others --exclude-standard' in script
+    assert script.index('verify_pinned_dayoa_checkout "before workflow dispatch"') < script.index(
+        'run_dy_command "$DY_COMMAND"'
+    )
+    assert script.index('verify_pinned_dayoa_checkout "after workflow return"') > script.index(
+        'run_dy_command "$DY_COMMAND"'
+    )
+
+
 def test_regular_file_controller_log_does_not_delay_receipt_for_inherited_descriptor(
     tmp_path,
 ) -> None:
@@ -164,59 +197,9 @@ class TestRunOmicsAnalysisHeadnodeScript:
     def _default_remote_user(self, monkeypatch):
         monkeypatch.setattr(run_omics_module, "resolve_remote_user", lambda *args, **kwargs: "ubuntu")
 
-    def test_bclconvert_profile_patch_inserts_yaml_keys_at_existing_child_indent(
-        self, tmp_path, monkeypatch
-    ):
-        run_dir = tmp_path / "run-dir"
-        run_dir.mkdir()
-        (tmp_path / "config").mkdir()
-        (tmp_path / "config" / "runs.tsv").write_text(
-            f"RUNID\tPLATFORM\tRUN_DIR\nRUN-1\tILMN\t{run_dir}\n",
-            encoding="utf-8",
-        )
-        profile_dir = tmp_path / "profile"
-        profile_dir.mkdir()
-        rule_config = profile_dir / "rule_config.yaml"
-        rule_config.write_text(
-            "\n".join(
-                [
-                    "other:",
-                    "  value: true",
-                    "bclconvert:",
-                    "  run_dir: ''",
-                    "  force: 'false'",
-                    "  threads: '1'",
-                    "  partition: i1",
-                    "  parallel_tiles: '1'",
-                    "  conversion_threads: '1'",
-                    "  compression_threads: '1'",
-                    "  decompression_threads: '1'",
-                    "  fastq_gzip_compression_level: '4'",
-                    "  tmpdir: /tmp",
-                    "next:",
-                    "  value: true",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-        )
-        monkeypatch.chdir(tmp_path)
-        monkeypatch.setenv("DAY_PROFILE_DIR", str(profile_dir))
-
-        exec(run_omics_module.BCLCONVERT_PROFILE_PATCH_SCRIPT, {})
-
-        text = rule_config.read_text(encoding="utf-8")
-        parsed = yaml.safe_load(text)
-        assert parsed["bclconvert"]["adapter_read1"] == ""
-        assert parsed["bclconvert"]["sample_sheet_settings"] == "{}"
-        assert parsed["bclconvert"]["barcode_mismatches_index1"] == "0"
-        assert parsed["bclconvert"]["threads"] == "48"
-        assert parsed["bclconvert"]["parallel_tiles"] == "8"
-        assert parsed["bclconvert"]["conversion_threads"] == "2"
-        assert parsed["bclconvert"]["compression_threads"] == "24"
-        assert parsed["bclconvert"]["decompression_threads"] == "8"
-        assert "\n  adapter_read1:" in text
-        assert "\n    adapter_read1:" not in text
+    def test_controller_has_no_embedded_dayoa_source_patch_payload(self):
+        assert not hasattr(run_omics_module, "BCLCONVERT_PROFILE_PATCH_SCRIPT")
+        assert not hasattr(run_omics_module, "BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT")
 
     def test_parse_remote_config_success(self):
         result = run_omics_module.parse_remote_config(
@@ -658,15 +641,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             'export PIP_BUILD_TRACKER="${PIP_BUILD_TRACKER:-$DAYOA_RUNTIME_TMPDIR/pip-build-tracker}"'
             in script
         )
-        assert "patch_dayoa_runtime_tmpdir_wrappers()" in script
-        assert "DayOA runtime TMPDIR wrapper repair" in script
-        assert "configured_tmpdir=$(yq -r '.daylily.sentieon_tmpdir'" in script
-        assert script.index("patch_dayoa_runtime_tmpdir_wrappers") < script.index(
-            '. "$HOME/miniconda3/etc/profile.d/conda.sh"'
-        )
-        assert script.index("patch_dayoa_runtime_tmpdir_wrappers") < script.index(
-            "dy-a slurm hg38"
-        )
+        _assert_immutable_pinned_dayoa_controller(script)
         assert 'repo_key = "daylily-omics-analysis"' in script
         assert "DAY_CONTAINERIZED=true" in script
         assert "DY_COMMAND='DAY_CONTAINERIZED=true" in script
@@ -1176,38 +1151,6 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "*produce_illumina_run_qc_and_bclconvert*" in script
         assert "generate_bclconvert_runtime_tables" in script
         assert "project_run_context_mounts" in script
-        assert "patch_bclconvert_profile_config" in script
-        assert "patch_bclconvert_lane_split" in script
-        assert 'replace_required_scalar("tmpdir", "/dev/shm")' in script
-        assert 'replace_required_scalar("force", "true")' in script
-        assert 'upsert_scalar("merge_lane_fastqs", "false")' in script
-        assert 'upsert_scalar("merge_tile_fastqs", "false")' in script
-        assert 'replace_required_scalar("partition", "i192hugenvme")' in script
-        assert 'replace_required_scalar("parallel_tiles", "8")' in script
-        assert 'replace_required_scalar("conversion_threads", "2")' in script
-        assert 'replace_required_scalar("compression_threads", "24")' in script
-        assert 'replace_required_scalar("decompression_threads", "8")' in script
-        assert 'upsert_scalar("shared_thread_odirect_output", "false")' in script
-        assert 'upsert_scalar("num_unknown_barcodes_reported", "1000")' in script
-        assert 'upsert_scalar("output_legacy_stats", "true")' in script
-        assert 'upsert_scalar("barcode_mismatches_index1", "0")' in script
-        assert 'upsert_scalar("barcode_mismatches_index2", "0")' in script
-        assert 'upsert_scalar("sample_sheet_settings", "{}")' in script
-        assert "DAYOA_BCLCONVERT_LANE_SPLIT = True" in script
-        assert "BCL_MERGE_LANE_FASTQS" in script
-        assert "BCL_FASTQ_LIST_INPUT_FILES" in script
-        assert "run_bclconvert_lane_fastqs_ready" in script
-        assert "rule run_bclconvert_lane:" in script
-        assert "workflow/scripts/run_bclconvert_lane.sh" in script
-        assert "workflow/scripts/prepare_bclconvert_lane_samplesheet.py" in script
-        assert "workflow/scripts/merge_bclconvert_lanes.py" in script
-        assert "DayOA native BCL Convert lane-split rules detected" in script
-        assert "do not expose native lane-split support" in script
-        assert "dyec_run_bclconvert_lane.sh" not in script
-        assert "gzip.decompress" not in script
-        assert "base64.b64decode" not in script
-        assert "Untested pending feature" in script
-        assert "BCLCONVERT_PROFILE_PATCH_REQUESTED=true" in script
         assert "BCLConvert_Data" in script
         assert "SAMPLE_SHEET" in script
         assert 'raw_line.rstrip("\\r\\n")' in script
@@ -1217,6 +1160,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "config/samples.tsv" in script
         assert "config/units.tsv" in script
         assert "bootstrap_bclconvert=true" in script
+        _assert_immutable_pinned_dayoa_controller(script)
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
@@ -1330,7 +1274,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         return_value="us-west-2",
     )
     @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.need_cmd")
-    def test_main_repairs_ont_run_qc_pycoqc_runtime(
+    def test_main_keeps_ont_run_qc_checkout_immutable(
         self,
         _mock_need_cmd,
         _mock_region,
@@ -1370,23 +1314,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert rc == 0
         mock_discover.assert_not_called()
         script = mock_run_shell.call_args.args[2]
-        assert "ont_run_qc_runtime_repair_requested" in script
-        assert "validate_ont_run_qc_reports_numpy_dependency" in script
-        assert "workflow/envs/ont_run_qc_reports_v0.1.yaml" in script
-        assert "immutable env validates numpy dependency" in script
-        assert "immutable env is missing numpy" in script
-        assert "Patched ONT runQC env numpy dependency" not in script
-        assert "patch_run_qc_reports_pycoqc_python" in script
-        assert "workflow/rules/run_qc_reports.smk" in script
-        assert '$(dirname "$(command -v pycoQC)")/python' in script
-        assert "patch_pycoqc_readonly_sort" in script
-        assert "data = data.dropna().values" in script
-        assert 'data = data.dropna().astype("int64").to_numpy(copy=True)' in script
-        assert "cum_sum += int(v)" in script
-        assert "return 0" in script
-        assert "\nPYPYCOQC\n" in script
-        assert "if ont_run_qc_runtime_repair_requested; then" in script
-        assert "pycoQC readonly-sort repair target not found" in script
+        _assert_immutable_pinned_dayoa_controller(script)
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
@@ -1428,7 +1356,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         return_value="us-west-2",
     )
     @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.need_cmd")
-    def test_main_repairs_goleft_empty_sex_arg_runtime(
+    def test_main_keeps_alignstats_checkout_immutable(
         self,
         _mock_need_cmd,
         _mock_region,
@@ -1460,22 +1388,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
 
         assert rc == 0
         script = mock_run_shell.call_args.args[2]
-        assert "goleft_indexcov_runtime_repair_requested" in script
-        assert "patch_goleft_indexcov_empty_sex_arg" in script
-        assert "goleft indexcov --directory $gl --sex {params.sexchrms:q}" in script
-        assert "goleft indexcov --directory $gl " in script
-        assert "goleft_status=$?" in script
-        assert "goleft empty-sex guard already native in DayOA" in script
-        assert 'goleft indexcov --directory $gl "${{sex_args[@]}}"' in script
-        assert "no usable chroms?omes|no usable chromosomes" in script
-        assert "--fai {params.huref}.fai {input.crai}" in script
-        assert "\nPYGOLEFT\n" in script
-        assert "if goleft_indexcov_runtime_repair_requested; then" in script
-        assert "goleft runtime repair target not found" in script
-        assert "mosdepth_empty_output_runtime_repair_requested" in script
-        assert "patch_mosdepth_empty_outputs" in script
-        assert "mosdepth emitted no global distribution" in script
-        assert "if mosdepth_empty_output_runtime_repair_requested; then" in script
+        _assert_immutable_pinned_dayoa_controller(script)
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
@@ -1517,7 +1430,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         return_value="us-west-2",
     )
     @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.need_cmd")
-    def test_main_repairs_rtg_vcfeval_parse_output_dir_runtime(
+    def test_main_keeps_snv_concordance_checkout_immutable(
         self,
         _mock_need_cmd,
         _mock_region,
@@ -1549,12 +1462,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
 
         assert rc == 0
         script = mock_run_shell.call_args.args[2]
-        assert "rtg_vcfeval_parse_runtime_repair_requested" in script
-        assert "patch_rtg_vcfeval_parse_output_dir" in script
-        assert "if rtg_vcfeval_parse_runtime_repair_requested; then" in script
-        assert 'mkdir -p "$(dirname {output.mqc})"' in script
-        assert "rtg_mem_gb=$(( ({resources.mem_mb} * 85 / 100 + 1023) / 1024 ))" in script
-        assert 'RTG_MEM="${{rtg_mem_gb}}G" rtg vcfeval' in script
+        _assert_immutable_pinned_dayoa_controller(script)
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
@@ -1596,7 +1504,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         return_value="us-west-2",
     )
     @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.need_cmd")
-    def test_main_repairs_zero_variant_vep_and_contam_identity_runtime(
+    def test_main_keeps_zero_variant_kitchensink_checkout_immutable(
         self,
         _mock_need_cmd,
         _mock_region,
@@ -1628,42 +1536,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
 
         assert rc == 0
         script = mock_run_shell.call_args.args[2]
-        assert "vep_zero_variant_runtime_repair_requested" in script
-        assert "patch_vep_empty_concat_fofn" in script
-        assert 'echo "${{count_path%.record_count}}"' in script
-        assert "contam_identity_zero_variant_runtime_repair_requested" in script
-        assert "patch_contam_identity_zero_variant_outputs" in script
-        assert (
-            "NO_VARIANTS: haplocheck skipped because the input VCF has no variant records."
-            in script
-        )
-        assert (
-            "UNSUPPORTED_REFERENCE: haplocheck skipped because the input VCF is not restricted to rCRS positions."
-            in script
-        )
-        assert "if grep -q 'outside the range.*rCRS only' {log:q}; then" in script
-        assert 'elif [[ "$haplocheck_rc" -eq 0 ]]; then' in script
-        assert (
-            "NO_VARIANTS: read_haps skipped because the input VCF has no variant records." in script
-        )
-        assert (
-            "READ_HAPS_FAILED: read_haps exited with status %s or wrote no usable QC table."
-            in script
-        )
-        assert "READ_HAPS_UNAVAILABLE: read_haps command is unavailable" in script
-        assert "READ_HAPS_MARKERS_UNAVAILABLE" in script
-        assert 'if [[ \\"$read_haps_rc\\" != \\"0\\" ]]' in script
-        assert '\\"$read_haps_rc\\" >> {log:q}' in script
-        assert "read_haps_empty_failure_old" in script
-        assert "read_haps_strict_precheck_old" in script
-        assert "if ! command -v {params.command:q} > /dev/null; then" in script
-        assert "elif [[ ! -s {params.reliable_snp_file:q} ]]; then" in script
-        assert "hybrid_ultima_ont_stage1_runtime_repair_requested" not in script
-        assert "patch_hybrid_ultima_ont_stage1_assertion" not in script
-        assert "ReadSequenceKmerGraphBuilder.*kmerSize >= 1" not in script
-        assert "if vep_zero_variant_runtime_repair_requested; then" in script
-        assert "if contam_identity_zero_variant_runtime_repair_requested; then" in script
-        assert "if hybrid_ultima_ont_stage1_runtime_repair_requested; then" not in script
+        _assert_immutable_pinned_dayoa_controller(script)
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
