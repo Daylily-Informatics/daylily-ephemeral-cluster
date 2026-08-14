@@ -73,6 +73,12 @@ and publish new immutable annotated release tags.
   It had reached 300 passing tests and exposed two stale merge-line assertions;
   both expectations were reconciled to the retained max-line behavior, but no
   test suite was rerun. No workflow environment was built.
+- During final tag reservation, annotated `17.0.27` appeared at peeled commit
+  `6b700a291f18b992e017bd237c1d90e539bffbdd`. It branched from `17.0.25`
+  and adds a non-regressive explicit cost-center requirement for the Bjuice
+  multi-AU command, but does not contain `17.0.26` or `17.0.18`. The branch was
+  merged without moving or overwriting that tag; the release candidate advanced
+  to `17.0.28`, whose historical `17.0.27` snapshot reflects the published tag.
 
 ## Control ledger
 
@@ -84,8 +90,8 @@ and publish new immutable annotated release tags.
 | EXP-003 | Verify required ONT native and demultiplexed MultiQC objects at the exact S3 prefix | SUCCESS | Exact S3 HEAD checks verified native MultiQC (2,845,226 bytes), demux MultiQC (3,406,606 bytes), summary HTML (1,017 bytes), and demux done marker (9 bytes) | DRA lifecycle and object evidence are both present. |
 | DAYOA-001 | Merge repaired DayOA `14.0.17` into maximum DayOA `14.0.18` and validate | SUCCESS | Union commit `1108a942df9df4143531745be6dca17396b997b6`; all `14.0.16`-`14.0.20` releases are ancestors; 66 focused static tests passed | Immutable v0.5 YAML remains byte-identical to `14.0.16`. |
 | DAYOA-002 | Commit, push, and publish the next annotated DayOA tag | SUCCESS | Annotated `14.0.21`, tag object `e38fcab71232552969e946112a2b86100273e369` | Branch and tag were pushed; no tag was moved. |
-| CAT-001 | Add the exact exported ONT success record to active catalog state and the new DYEC snapshot | SUCCESS | Active/current `ont_run_qc` record for `pc1703-ont-set4fc1-seqqc-17018-20260814`; exact S3 report and prefix; snapshot `17.0.27` | Source/payload catalogs are canonicalized byte-identically; CG and Bjuice evidence from `17.0.26` is retained. |
-| DYEC-001 | Merge repaired DYEC `17.0.18` into maximum DYEC `17.0.26`, pin the merged DayOA release, and validate | SUCCESS | First-parent base includes `17.0.26` plus main closeout; merge parent is `17.0.18`; active/current DayOA pin is `14.0.21` | User stopped the static suite at 300 passing tests; two observed stale assertions were reconciled without rerunning tests. No Conda environment was built. |
+| CAT-001 | Add the exact exported ONT success record to active catalog state and the new DYEC snapshot | SUCCESS | Active/current `ont_run_qc` record for `pc1703-ont-set4fc1-seqqc-17018-20260814`; exact S3 report and prefix; snapshot `17.0.28` | Source/payload catalogs are canonicalized byte-identically; CG and Bjuice evidence from `17.0.26` and the Bjuice cost-center contract from `17.0.27` are retained. |
+| DYEC-001 | Merge repaired DYEC `17.0.18` and cost-center DYEC `17.0.27` into the `17.0.26` maximum release line, then pin the merged DayOA release | SUCCESS | Base includes `17.0.26` plus main closeout; merge ancestry includes `17.0.18` and `17.0.27`; active/current DayOA pin is `14.0.21` | User stopped the static suite at 300 passing tests; two observed stale assertions were reconciled without rerunning tests. No Conda environment was built. |
 | DYEC-002 | Commit, push, and publish the next annotated DYEC tag | PENDING | Pending live remote-tag reservation | Do not move or reuse a tag. |
 | FINAL-001 | Verify remote annotated tag objects, peeled commits, ancestry, catalog URI, and all rows terminal | PENDING | Pending terminal release audit | Report exact versions, commits, and S3 URI. |
 

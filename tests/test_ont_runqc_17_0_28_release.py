@@ -26,7 +26,7 @@ def _run(command: dict, run_id: str) -> dict:
     return next(item for item in command.get("validation_runs", []) if item["run_id"] == run_id)
 
 
-def test_17_0_27_catalog_is_uniform_and_preserves_all_recent_evidence() -> None:
+def test_17_0_28_catalog_is_uniform_and_preserves_all_recent_evidence() -> None:
     assert SOURCE.read_bytes() == PAYLOAD.read_bytes()
     raw = yaml.safe_load(SOURCE.read_text(encoding="utf-8"))
     repo = raw["repositories"]["daylily-omics-analysis"]
@@ -34,7 +34,7 @@ def test_17_0_27_catalog_is_uniform_and_preserves_all_recent_evidence() -> None:
     current = raw["dyec_builds"]["current"]
 
     assert repo["default_ref"] == DAYOA_TAG
-    assert current == raw["dyec_builds"]["17.0.27"]
+    assert current == raw["dyec_builds"]["17.0.28"]
     assert current["dayoa_git_tags"] == [DAYOA_TAG]
     assert {item["git_tag"] for item in active.values()} == {DAYOA_TAG}
     assert {item["validated_version"] for item in active.values()} == {DAYOA_TAG}

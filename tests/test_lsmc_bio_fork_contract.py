@@ -135,7 +135,7 @@ def test_catalogs_and_dyec_repository_config_are_lsmc_bio_pinned() -> None:
             "14.0.14",
             "14.0.15",
         ]
-        assert data["dyec_builds"]["current"] == data["dyec_builds"]["17.0.27"]
+        assert data["dyec_builds"]["current"] == data["dyec_builds"]["17.0.28"]
         current = data["dyec_builds"]["current"]
         assert set(current["commands"]) | set(current["aliases"]) == set(commands)
         assert "hiomr2_slim_kitchensink_mega_inflection_analytical" not in commands

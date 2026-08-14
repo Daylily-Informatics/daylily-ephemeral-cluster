@@ -572,6 +572,7 @@ class AnalysisCommand(BaseModel):
     requires_staging: bool
     requires_run_mount: bool
     staging_receipt_required: bool = False
+    cost_center_required: bool = False
     runtime_parameters: Dict[str, Any] = Field(default_factory=dict)
     input_requirements: CommandInputRequirements = Field(default_factory=CommandInputRequirements)
     targets: List[str]
@@ -803,6 +804,11 @@ class AnalysisCommand(BaseModel):
             from daylily_ec.aws.cost_centers import validate_cost_center_name
 
             resolved_cost_center = validate_cost_center_name(cost_center)
+        if self.cost_center_required and resolved_cost_center is None:
+            raise ValueError(
+                f"{self.command_id} requires an explicit --cost-center; "
+                "select an active DYEC cost center and do not infer it from --cluster"
+            )
         if export_trigger not in EXPORT_TRIGGERS:
             raise ValueError("export_trigger must be one of: " + ", ".join(sorted(EXPORT_TRIGGERS)))
         if export_destination_s3_uri and export_trigger == "none":
@@ -949,6 +955,7 @@ class AnalysisCommandAliasMetadata(BaseModel):
     requires_staging: Optional[bool] = None
     requires_run_mount: Optional[bool] = None
     staging_receipt_required: Optional[bool] = None
+    cost_center_required: Optional[bool] = None
     runtime_parameters: Optional[Dict[str, Any]] = None
     input_requirements: Optional[CommandInputRequirements] = None
     genome: Optional[str] = None
