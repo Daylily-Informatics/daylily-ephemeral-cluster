@@ -1544,10 +1544,10 @@ repositories:
         repository: daylily-omics-analysis
       - command_id: bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical
         type: prod
-        validated_version: 14.0.18
+        validated_version: 14.0.20
         test_data_profile: hg002_bjuice_v2_full_preval_run_mounts
         display_name: Bjuice v2 HG002 Multi-AU HIOMR2 Kitchen Sink Mega + Analytical Inflection
-        description: "Explicit HG002 full-prevalence seven-analysis-unit HIOMR2 kitchen-sink mega and analytical Inflection command. It consumes only a fresh six-manifest set generated from one terminal direct Illumina coverage receipt, reads the two verified existing Bjuice run mounts, uses per-analysis-unit ONT [start,end) hour windows, and runs the complete numeric 1-25 chromosome scope. It is independent of all generic, slim, and alias command definitions."
+        description: "Explicit HG002 full-prevalence seven-analysis-unit HIOMR2 kitchen-sink mega and analytical Inflection command. It consumes only a fresh six-manifest set generated from one terminal direct Illumina coverage receipt, reads the two verified existing Bjuice run mounts, uses per-analysis-unit ONT [start,end) hour windows, and runs the complete numeric 1-25 chromosome scope. Manifest identity rule: ANALYSIS_UNIT_UID is a required local workflow key, may be a user-chosen unique integer, must be unique across all seven analysis_units.tsv rows, and must be mirrored exactly in analysis_unit_inputs.tsv; it is not an EUID. Keep ANALYSIS_UNIT_EUID, SAMPLE_EUID, SPECIMEN_EUID, and DELIVERY_EUID blank unless owner-issued. Keep SAMPLEID and EXTERNAL_SAMPLE_ID exactly HG002. Do not leave ANALYSIS_UNIT_UID blank. It is independent of all generic, slim, and alias command definitions."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
@@ -1577,7 +1577,7 @@ repositories:
         compatible_platforms: [ILMN, ONT]
         compatible_cluster_types: [sentieon-single]
         compatible_data_modes: [hybrid_ilmn_ont]
-        git_tag: 14.0.18
+        git_tag: 14.0.20
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis
@@ -3444,6 +3444,7 @@ dyec_builds:
     - 14.0.14
     - 14.0.15
     - 14.0.18
+    - 14.0.20
     commands:
       simple-test:
         command_id: simple-test
@@ -5262,10 +5263,10 @@ dyec_builds:
       bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical:
         command_id: bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical
         type: prod
-        validated_version: 14.0.18
+        validated_version: 14.0.20
         test_data_profile: hg002_bjuice_v2_full_preval_run_mounts
         display_name: Bjuice v2 HG002 Multi-AU HIOMR2 Kitchen Sink Mega + Analytical Inflection
-        description: "Explicit HG002 full-prevalence seven-analysis-unit HIOMR2 kitchen-sink mega and analytical Inflection command. It consumes only a fresh six-manifest set generated from one terminal direct Illumina coverage receipt, reads the two verified existing Bjuice run mounts, uses per-analysis-unit ONT [start,end) hour windows, and runs the complete numeric 1-25 chromosome scope. It is independent of all generic, slim, and alias command definitions."
+        description: "Explicit HG002 full-prevalence seven-analysis-unit HIOMR2 kitchen-sink mega and analytical Inflection command. It consumes only a fresh six-manifest set generated from one terminal direct Illumina coverage receipt, reads the two verified existing Bjuice run mounts, uses per-analysis-unit ONT [start,end) hour windows, and runs the complete numeric 1-25 chromosome scope. Manifest identity rule: ANALYSIS_UNIT_UID is a required local workflow key, may be a user-chosen unique integer, must be unique across all seven analysis_units.tsv rows, and must be mirrored exactly in analysis_unit_inputs.tsv; it is not an EUID. Keep ANALYSIS_UNIT_EUID, SAMPLE_EUID, SPECIMEN_EUID, and DELIVERY_EUID blank unless owner-issued. Keep SAMPLEID and EXTERNAL_SAMPLE_ID exactly HG002. Do not leave ANALYSIS_UNIT_UID blank. It is independent of all generic, slim, and alias command definitions."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
@@ -5295,7 +5296,7 @@ dyec_builds:
         compatible_platforms: [ILMN, ONT]
         compatible_cluster_types: [sentieon-single]
         compatible_data_modes: [hybrid_ilmn_ont]
-        git_tag: 14.0.18
+        git_tag: 14.0.20
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis
