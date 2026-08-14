@@ -234,6 +234,26 @@ dyec --json catalog config-bjuice-preval \
 
 The helper writes the six manifest TSVs plus `bjuice_preval_config_receipt.json`, validates the manifest set, and records file hashes. It fails if reviewed sample metadata, legacy unit metadata, S3 listings, or expected ILMN/ONT source groups are absent or ambiguous.
 
+## Bjuice v2 HG002 full-prevalence multi-AU helper
+
+`dyec catalog config-bjuice-v2-hg002-multi-au` is a separate, fixed contract for the seven HG002 analysis units `p5xp5`, `1x1`, `3x3`, `5x5`, `10x5`, `15x5`, and `15x10`. It accepts one direct Illumina coverage denominator and requires a matching terminal receipt; it never derives coverage from total or hybrid evidence.
+
+```bash
+dyec --json catalog config-bjuice-v2-hg002-multi-au \
+  --output-dir ./config-hg002-bjuice-v2 \
+  --source-manifest-json /path/to/source_manifest_resolved.json \
+  --run-evidence-json /path/to/run_evidence_v2.json \
+  --library-run-matrix-tsv /path/to/bjuice_preval_library_run_matrix.tsv \
+  --sample-metadata-tsv /path/to/samples.tsv \
+  --legacy-units-tsv /path/to/units.tsv \
+  --direct-ilmn-coverage-x "$C_ILMN" \
+  --direct-ilmn-coverage-evidence /path/to/direct_ilmn_terminal_receipt.json \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION"
+```
+
+The receipt must use `dyec.bjuice_v2_direct_ilmn_coverage_receipt.v1`, identify `HG002`, have terminal status, and provide a matching `ilmn_direct_coverage_x`. The output has blank nullable live EUID fields, writes per-AU `ONT_FQ_START_HOUR`/`ONT_FQ_END_HOUR`, and calculates `SUBSAMPLE_PCT = target_x / C_ILMN` at 12 decimal places with `ROUND_DOWN`. It fails before writing output if the receipt is missing or ambiguous, coverage is non-positive, or a requested target exceeds the verified denominator.
+
 ## Headnode commands and transfer
 
 Open a full interactive shell when you need one:
