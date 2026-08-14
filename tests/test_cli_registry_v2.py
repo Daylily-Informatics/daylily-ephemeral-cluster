@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import inspect
 import json
 import logging
 import shlex
@@ -113,6 +114,7 @@ EXPECTED_COMMANDS = {
     ("catalog", "show"),
     ("catalog", "validation-compare"),
     ("catalog", "config-bjuice-preval"),
+    ("catalog", "config-bjuice-v2-hg002-multi-au"),
     ("catalog", "render"),
     ("catalog", "launch"),
     ("catalog", "quick-launch"),
@@ -435,6 +437,9 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     catalog_show_cmd = registry.get_command(("catalog", "show"))
     catalog_validation_compare_cmd = registry.get_command(("catalog", "validation-compare"))
     catalog_config_bjuice_preval_cmd = registry.get_command(("catalog", "config-bjuice-preval"))
+    catalog_config_bjuice_v2_hg002_multi_au_cmd = registry.get_command(
+        ("catalog", "config-bjuice-v2-hg002-multi-au")
+    )
     catalog_render_cmd = registry.get_command(("catalog", "render"))
     catalog_launch_cmd = registry.get_command(("catalog", "launch"))
     catalog_quick_launch_cmd = registry.get_command(("catalog", "quick-launch"))
@@ -664,6 +669,10 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert catalog_config_bjuice_preval_cmd is not None
     assert catalog_config_bjuice_preval_cmd.policy.supports_json is True
     assert catalog_config_bjuice_preval_cmd.policy.long_running is True
+
+    assert catalog_config_bjuice_v2_hg002_multi_au_cmd is not None
+    assert catalog_config_bjuice_v2_hg002_multi_au_cmd.policy.supports_json is True
+    assert catalog_config_bjuice_v2_hg002_multi_au_cmd.policy.long_running is True
 
     for catalog_launch_like_cmd in (catalog_launch_cmd, catalog_quick_launch_cmd):
         assert catalog_launch_like_cmd is not None
@@ -5372,3 +5381,16 @@ def test_state_list_and_show_are_json_capable(monkeypatch, tmp_path) -> None:
     assert show_result.exit_code == 0
     show_payload = json.loads(show_result.stdout)
     assert show_payload["run_id"] == "20260102020202"
+
+
+def test_bjuice_v2_multi_au_manifest_cli_requires_direct_coverage_contract() -> None:
+    result = runner.invoke(app, ["catalog", "config-bjuice-v2-hg002-multi-au", "--help"])
+
+    assert result.exit_code == 0
+    assert "--direct-ilmn-coverage-x" in result.stdout
+    assert "--direct-ilmn-coverage-evide" in result.stdout
+    assert "--euid" not in result.stdout.lower()
+    assert {
+        "direct_ilmn_coverage_x",
+        "direct_ilmn_coverage_evidence",
+    }.issubset(inspect.signature(cli_module.catalog_config_bjuice_v2_hg002_multi_au).parameters)

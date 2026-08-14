@@ -1,0 +1,13 @@
+{
+  "schema": "dyec.bjuice_v2_direct_ilmn_coverage_receipt.v1",
+  "sample_id": "HG002",
+  "status": "terminal",
+  "ilmn_direct_coverage_x": "43.73",
+  "source_analysis_root": "/fsx/analysis_results/prod-cand-1703/pc1703-hg002-fc-ont0-24-mega-ifx-1409-20260813",
+  "source_metric_path": "/fsx/analysis_results/prod-cand-1703/pc1703-hg002-fc-ont0-24-mega-ifx-1409-20260813/daylily-omics-analysis/results/day/hg38/HG002-gxhqp705c2qc5s/align/sentdhiomr2sr/smd/alignqc/mosdepth/HG002-gxhqp705c2qc5s.sentdhiomr2sr.smd.mosdepth.summary.txt",
+  "source_metric_sha256": "5db712bdee30b383422f5729ea73497896aca01fd2db749b39a1b829c6484f80",
+  "source_metric_header": "chrom length bases mean min max",
+  "source_metric_row": "total 3099922541 135544210000 43.73 0 4616921",
+  "source_controller_exit_code": 1,
+  "source_controller_caveat": "The direct short-read coverage stage completed and its metric is verified; the original all-target controller ended with rc=1."
+}

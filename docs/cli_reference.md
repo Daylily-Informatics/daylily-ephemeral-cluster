@@ -394,6 +394,38 @@ The helper:
 - writes a receipt with manifest hashes and row counts;
 - fails on missing or ambiguous source metadata.
 
+## Bjuice v2 HG002 full-prevalence multi-AU config helper
+
+Purpose: generate exactly seven HG002 analysis units for the full-prevalence Bjuice v2 HIOMR2 contract. This is not an alias or an extension of the slim Bjuice fixture command.
+
+```bash
+dyec --json catalog config-bjuice-v2-hg002-multi-au \
+  --output-dir ./config-hg002-bjuice-v2 \
+  --source-manifest-json /path/to/source_manifest_resolved.json \
+  --run-evidence-json /path/to/run_evidence_v2.json \
+  --library-run-matrix-tsv /path/to/bjuice_preval_library_run_matrix.tsv \
+  --sample-metadata-tsv /path/to/legacy_samples.tsv \
+  --legacy-units-tsv /path/to/legacy_units.tsv \
+  --direct-ilmn-coverage-x "$C_ILMN" \
+  --direct-ilmn-coverage-evidence /path/to/direct_ilmn_terminal_receipt.json \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION"
+```
+
+The direct-coverage evidence is a required terminal JSON receipt with schema `dyec.bjuice_v2_direct_ilmn_coverage_receipt.v1`, `sample_id: HG002`, and a matching `ilmn_direct_coverage_x`. Total, combined, and hybrid coverage evidence is rejected. The helper computes each `SUBSAMPLE_PCT` with decimal `ROUND_DOWN` precision and writes the immutable AU matrix:
+
+| AU | ILMN target | ONT interval |
+|---|---:|---|
+| `p5xp5` | 0.5x | `[0,1)` |
+| `1x1` | 1x | `[0,2)` |
+| `3x3` | 3x | `[0,7)` |
+| `5x5` | 5x | `[0,11)` |
+| `10x5` | 10x | `[0,19)` |
+| `15x5` | 15x | `[0,24)` |
+| `15x10` | 15x | `[0,19)` |
+
+It writes `bjuice_v2_hg002_multi_au_manifest_receipt.json`, validates the six-manifest topology, leaves nullable live EUID fields blank, and fails hard if the evidence or source topology is incomplete or ambiguous.
+
 ## Catalog discovery
 
 List commands:

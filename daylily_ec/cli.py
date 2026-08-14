@@ -6621,6 +6621,104 @@ def catalog_config_bjuice_preval(
         _exit_headnode_error(exc)
 
 
+def catalog_config_bjuice_v2_hg002_multi_au(
+    output_dir: Path = typer.Option(
+        ...,
+        "--output-dir",
+        help="Empty output directory where the fixed seven-AU DayOA manifests will be written.",
+    ),
+    source_manifest_json: Path = typer.Option(
+        ...,
+        "--source-manifest-json",
+        help="Reviewed Bjuice source_manifest_resolved.json.",
+    ),
+    run_evidence_json: Path = typer.Option(
+        ...,
+        "--run-evidence-json",
+        help="Reviewed Bjuice run_evidence_v2.json.",
+    ),
+    library_run_matrix_tsv: Path = typer.Option(
+        ...,
+        "--library-run-matrix-tsv",
+        help="Reviewed Bjuice library/run matrix TSV. Source identity fields are never copied to output.",
+    ),
+    sample_metadata_tsv: Path = typer.Option(
+        ...,
+        "--sample-metadata-tsv",
+        help="Reviewed sample metadata TSV containing the HG002 analysis fields.",
+    ),
+    legacy_units_tsv: Path = typer.Option(
+        ...,
+        "--legacy-units-tsv",
+        help="Reviewed legacy units TSV used only for explicit matching analysis fields.",
+    ),
+    direct_ilmn_coverage_x: str = typer.Option(
+        ...,
+        "--direct-ilmn-coverage-x",
+        help="Verified direct Illumina HG002 coverage denominator C_ILMN; total/hybrid coverage is rejected.",
+    ),
+    direct_ilmn_coverage_evidence: Path = typer.Option(
+        ...,
+        "--direct-ilmn-coverage-evidence",
+        help=(
+            "Terminal direct-coverage JSON receipt with schema "
+            "dyec.bjuice_v2_direct_ilmn_coverage_receipt.v1 and matching "
+            "ilmn_direct_coverage_x."
+        ),
+    ),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile for S3 listing."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region for S3 listing."),
+    fsx_run_mount_root: str = typer.Option(
+        "/fsx/run_dir_mounts",
+        "--fsx-run-mount-root",
+        help="Headnode FSx run-mount root used for ILMN FASTQ paths.",
+    ),
+    ont_fsx_root: str = typer.Option(
+        "/fsx/run_dir_mounts/pca100-2026",
+        "--ont-fsx-root",
+        help="Headnode FSx run-mount root used for ONT pca100/2026 FASTQ paths.",
+    ),
+) -> None:
+    """Generate the fixed HG002 Bjuice v2 full-prevalence seven-AU manifests."""
+
+    try:
+        from daylily_ec.bjuice_v2_hg002_multi_au_config import (
+            AU_MATRIX,
+            generate_bjuice_v2_hg002_multi_au_manifests,
+        )
+
+        result = generate_bjuice_v2_hg002_multi_au_manifests(
+            output_dir=output_dir.expanduser(),
+            source_manifest_json=source_manifest_json.expanduser(),
+            run_evidence_json=run_evidence_json.expanduser(),
+            library_run_matrix_tsv=library_run_matrix_tsv.expanduser(),
+            sample_metadata_tsv=sample_metadata_tsv.expanduser(),
+            legacy_units_tsv=legacy_units_tsv.expanduser(),
+            direct_ilmn_coverage_x=direct_ilmn_coverage_x,
+            direct_ilmn_coverage_evidence=direct_ilmn_coverage_evidence.expanduser(),
+            profile=profile,
+            region=region,
+            fsx_run_mount_root=fsx_run_mount_root,
+            ont_fsx_root=ont_fsx_root,
+        )
+        payload = {
+            "ok": True,
+            "output_dir": str(result.output_dir),
+            "receipt_path": str(result.receipt_path),
+            "manifest_hashes": dict(result.manifest_hashes),
+            "sample_id": "HG002",
+            "analysis_unit_count": len(AU_MATRIX),
+            "analysis_unit_labels": [label for label, _target, _start, _end in AU_MATRIX],
+            "direct_ilmn_coverage_x": direct_ilmn_coverage_x,
+        }
+        if _json_mode():
+            output.emit_json(payload)
+            return
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
 def catalog_render(
     command_id: str = typer.Argument(..., help="Repository catalog command id."),
     analysis_id: str = typer.Option(..., "--analysis-id", help="FSx analysis identifier."),
@@ -9970,6 +10068,11 @@ def register(registry, cli_spec) -> None:
             (
                 "config-bjuice-preval",
                 catalog_config_bjuice_preval,
+                required_policy(supports_json=True, long_running=True),
+            ),
+            (
+                "config-bjuice-v2-hg002-multi-au",
+                catalog_config_bjuice_v2_hg002_multi_au,
                 required_policy(supports_json=True, long_running=True),
             ),
             ("render", catalog_render, EXEMPT_JSON),

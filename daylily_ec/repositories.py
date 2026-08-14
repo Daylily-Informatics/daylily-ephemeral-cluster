@@ -37,7 +37,12 @@ INPUT_CONTRACTS = {
 SAMPLE_INPUT_CONTRACTS = {"six_manifest", "sample_manifest", "sample_manifest_v12"}
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 VALIDATION_STATUSES = {"success", "failed", "blocked", "not_run"}
-SOURCE_MOUNT_MODES = {"none", "default_mounted", "run_dra_required"}
+SOURCE_MOUNT_MODES = {
+    "none",
+    "default_mounted",
+    "explicit_run_mounts",
+    "run_dra_required",
+}
 ARTIFACT_REGISTRATION_INCLUDE_MODES = {"classification", "path"}
 ARTIFACT_REGISTRATION_MANIFEST_SOURCES = {"dayoa_manifest", "s3_inventory"}
 
@@ -341,6 +346,17 @@ class TestDataProfile(BaseModel):
                 raise ValueError("default_mounted profiles must not declare run-context columns")
             if self.run_context_values:
                 raise ValueError("default_mounted profiles must not declare run-context values")
+        elif self.source_mount_mode == "explicit_run_mounts":
+            if not self.source_s3_uri_template:
+                raise ValueError("explicit_run_mounts profiles must declare source_s3_uri_template")
+            if not self.source_fsx_prefix:
+                raise ValueError("explicit_run_mounts profiles must declare source_fsx_prefix")
+            if self.locations:
+                raise ValueError("explicit_run_mounts profiles must not declare default locations")
+            if self.run_context_source_s3_column or self.run_context_mount_id_column:
+                raise ValueError("explicit_run_mounts profiles must not declare run-context columns")
+            if self.run_context_values:
+                raise ValueError("explicit_run_mounts profiles must not declare run-context values")
         elif self.source_mount_mode == "run_dra_required":
             if not self.source_s3_uri_template:
                 raise ValueError("run_dra_required profiles must declare source_s3_uri_template")
@@ -680,8 +696,6 @@ class AnalysisCommand(BaseModel):
                 )
             if not self.requires_staging:
                 raise ValueError("sample_analysis commands must require staging")
-            if self.requires_run_mount:
-                raise ValueError("sample_analysis commands must not require run mounts")
         if self.command_class == "run_analysis":
             if self.input_contract != "run_context":
                 raise ValueError("run_analysis commands must use run_context input")
@@ -1403,6 +1417,24 @@ class RepositoryCatalog(BaseModel):
                         f"Command {command.command_id!r} is sample_analysis but "
                         f"test_data_profile {command.test_data_profile!r} requires a run DRA"
                     )
+                if command.command_class == "sample_analysis":
+                    if (
+                        profile.source_mount_mode == "explicit_run_mounts"
+                        and not command.requires_run_mount
+                    ):
+                        raise ValueError(
+                            f"Command {command.command_id!r} uses explicit run mounts but "
+                            "does not require them"
+                        )
+                    if (
+                        profile.source_mount_mode != "explicit_run_mounts"
+                        and command.requires_run_mount
+                    ):
+                        raise ValueError(
+                            f"Command {command.command_id!r} requires run mounts but "
+                            f"test_data_profile {command.test_data_profile!r} is "
+                            f"{profile.source_mount_mode!r}"
+                        )
                 if command.command_class == "run_analysis":
                     if profile.source_mount_mode != "run_dra_required":
                         raise ValueError(
@@ -1446,6 +1478,32 @@ class RepositoryCatalog(BaseModel):
                         f"DYEC build {build_version!r} command {command.command_id!r} "
                         f"references unknown test_data_profile {command.test_data_profile!r}"
                     )
+                profile = self.test_data_profiles[command.test_data_profile]
+                if (
+                    command.command_class == "sample_analysis"
+                    and profile.source_mount_mode == "run_dra_required"
+                ):
+                    raise ValueError(
+                        f"DYEC build {build_version!r} command {command.command_id!r} is "
+                        "sample_analysis but its profile requires a run DRA"
+                    )
+                if command.command_class == "sample_analysis":
+                    if (
+                        profile.source_mount_mode == "explicit_run_mounts"
+                        and not command.requires_run_mount
+                    ):
+                        raise ValueError(
+                            f"DYEC build {build_version!r} command {command.command_id!r} "
+                            "uses explicit run mounts but does not require them"
+                        )
+                    if (
+                        profile.source_mount_mode != "explicit_run_mounts"
+                        and command.requires_run_mount
+                    ):
+                        raise ValueError(
+                            f"DYEC build {build_version!r} command {command.command_id!r} "
+                            "requires run mounts without an explicit_run_mounts profile"
+                        )
         return self
 
     def _repository_commands(self) -> List[AnalysisCommand]:

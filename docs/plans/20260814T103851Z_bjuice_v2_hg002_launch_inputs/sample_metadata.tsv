@@ -1,0 +1,2 @@
+SAMPLEID	SAMPLESOURCE	SAMPLE_TYPE	SAMPLECLASS	SAMPLEUSE	ORDER_TYPE	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	IDDNA_UID	TRUTH_DATA_DIR	BIOLOGICAL_SEX	N_X	N_Y	BWA_KMER	DEEP_MODEL	MERGE_SINGLE
+HG002	blood	gdna	research	posControl	RESEARCH	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/	true	false	na	HG002		/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/	male	1	1	19	WGS	single

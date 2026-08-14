@@ -1,0 +1,64 @@
+{
+  "schema": "ursa.bjuice_hybrid_source_manifest.v1",
+  "sources": [
+    {
+      "source_id": "ilmn-full-preval",
+      "uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260618_LH01106_0011_A23MFMCLT3/Analysis/1/Data/BCLConvert/fastq/"
+    },
+    {
+      "source_id": "ont-fc2-full-preval",
+      "uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC2/20260615_ONT_Set4-FC2/20260616_0040_3B_PBK89197_822a87b5/"
+    },
+    {
+      "source_id": "ont-fc3-full-preval",
+      "uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC3/20260615_ONT_Set4-FC3/20260616_0041_3C_PBK89101_bd86eaac/"
+    },
+    {
+      "source_id": "ont-fc1-full-preval",
+      "uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC1/20260615_ONT_Set4-FC1/20260616_0048_3A_PBM08268_14b096e3/"
+    }
+  ],
+  "runs": [
+    {
+      "run_id": "20260618_LH01106_0011_A23MFMCLT3",
+      "platform": "ILMN",
+      "prefix_source_id": "ilmn-full-preval",
+      "position_id": "L001-L008"
+    },
+    {
+      "run_id": "20260616_0040_3B_PBK89197_822a87b5",
+      "platform": "ONT",
+      "prefix_source_id": "ont-fc2-full-preval",
+      "position_id": "3B"
+    },
+    {
+      "run_id": "20260616_0041_3C_PBK89101_bd86eaac",
+      "platform": "ONT",
+      "prefix_source_id": "ont-fc3-full-preval",
+      "position_id": "3C"
+    },
+    {
+      "run_id": "20260616_0048_3A_PBM08268_14b096e3",
+      "platform": "ONT",
+      "prefix_source_id": "ont-fc1-full-preval",
+      "position_id": "3A"
+    }
+  ],
+  "mappings": [
+    {
+      "sample_id": "HG002",
+      "run_id": "20260616_0040_3B_PBK89197_822a87b5",
+      "barcode": "barcode15"
+    },
+    {
+      "sample_id": "HG002",
+      "run_id": "20260616_0041_3C_PBK89101_bd86eaac",
+      "barcode": "barcode15"
+    },
+    {
+      "sample_id": "HG002",
+      "run_id": "20260616_0048_3A_PBM08268_14b096e3",
+      "barcode": "barcode15"
+    }
+  ]
+}
