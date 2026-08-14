@@ -1544,7 +1544,7 @@ repositories:
         repository: daylily-omics-analysis
       - command_id: bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical
         type: prod
-        validated_version: 14.0.15
+        validated_version: 14.0.18
         test_data_profile: hg002_bjuice_v2_full_preval_run_mounts
         display_name: Bjuice v2 HG002 Multi-AU HIOMR2 Kitchen Sink Mega + Analytical Inflection
         description: "Explicit HG002 full-prevalence seven-analysis-unit HIOMR2 kitchen-sink mega and analytical Inflection command. It consumes only a fresh six-manifest set generated from one terminal direct Illumina coverage receipt, reads the two verified existing Bjuice run mounts, uses per-analysis-unit ONT [start,end) hour windows, and runs the complete numeric 1-25 chromosome scope. It is independent of all generic, slim, and alias command definitions."
@@ -1577,7 +1577,7 @@ repositories:
         compatible_platforms: [ILMN, ONT]
         compatible_cluster_types: [sentieon-single]
         compatible_data_modes: [hybrid_ilmn_ont]
-        git_tag: 14.0.15
+        git_tag: 14.0.18
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis
@@ -3443,6 +3443,7 @@ dyec_builds:
     dayoa_git_tags:
     - 14.0.14
     - 14.0.15
+    - 14.0.18
     commands:
       simple-test:
         command_id: simple-test
@@ -5261,7 +5262,7 @@ dyec_builds:
       bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical:
         command_id: bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical
         type: prod
-        validated_version: 14.0.15
+        validated_version: 14.0.18
         test_data_profile: hg002_bjuice_v2_full_preval_run_mounts
         display_name: Bjuice v2 HG002 Multi-AU HIOMR2 Kitchen Sink Mega + Analytical Inflection
         description: "Explicit HG002 full-prevalence seven-analysis-unit HIOMR2 kitchen-sink mega and analytical Inflection command. It consumes only a fresh six-manifest set generated from one terminal direct Illumina coverage receipt, reads the two verified existing Bjuice run mounts, uses per-analysis-unit ONT [start,end) hour windows, and runs the complete numeric 1-25 chromosome scope. It is independent of all generic, slim, and alias command definitions."
@@ -5294,7 +5295,7 @@ dyec_builds:
         compatible_platforms: [ILMN, ONT]
         compatible_cluster_types: [sentieon-single]
         compatible_data_modes: [hybrid_ilmn_ont]
-        git_tag: 14.0.15
+        git_tag: 14.0.18
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis
@@ -36490,6 +36491,7 @@ dyec_builds:
     dayoa_git_tags:
     - 14.0.14
     - 14.0.15
+    - 14.0.18
     commands:
       simple-test:
         command_id: simple-test
@@ -38308,7 +38310,7 @@ dyec_builds:
       bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical:
         command_id: bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical
         type: prod
-        validated_version: 14.0.15
+        validated_version: 14.0.18
         test_data_profile: hg002_bjuice_v2_full_preval_run_mounts
         display_name: Bjuice v2 HG002 Multi-AU HIOMR2 Kitchen Sink Mega + Analytical Inflection
         description: "Explicit HG002 full-prevalence seven-analysis-unit HIOMR2 kitchen-sink mega and analytical Inflection command. It consumes only a fresh six-manifest set generated from one terminal direct Illumina coverage receipt, reads the two verified existing Bjuice run mounts, uses per-analysis-unit ONT [start,end) hour windows, and runs the complete numeric 1-25 chromosome scope. It is independent of all generic, slim, and alias command definitions."
@@ -38341,7 +38343,7 @@ dyec_builds:
         compatible_platforms: [ILMN, ONT]
         compatible_cluster_types: [sentieon-single]
         compatible_data_modes: [hybrid_ilmn_ont]
-        git_tag: 14.0.15
+        git_tag: 14.0.18
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis
@@ -38366,6 +38368,7 @@ dyec_builds:
     dayoa_git_tags:
     - 14.0.14
     - 14.0.15
+    - 14.0.18
     commands:
       simple-test:
         command_id: simple-test
@@ -40184,7 +40187,7 @@ dyec_builds:
       bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical:
         command_id: bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical
         type: prod
-        validated_version: 14.0.15
+        validated_version: 14.0.18
         test_data_profile: hg002_bjuice_v2_full_preval_run_mounts
         display_name: Bjuice v2 HG002 Multi-AU HIOMR2 Kitchen Sink Mega + Analytical Inflection
         description: "Explicit HG002 full-prevalence seven-analysis-unit HIOMR2 kitchen-sink mega and analytical Inflection command. It consumes only a fresh six-manifest set generated from one terminal direct Illumina coverage receipt, reads the two verified existing Bjuice run mounts, uses per-analysis-unit ONT [start,end) hour windows, and runs the complete numeric 1-25 chromosome scope. It is independent of all generic, slim, and alias command definitions."
@@ -40217,7 +40220,7 @@ dyec_builds:
         compatible_platforms: [ILMN, ONT]
         compatible_cluster_types: [sentieon-single]
         compatible_data_modes: [hybrid_ilmn_ont]
-        git_tag: 14.0.15
+        git_tag: 14.0.18
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis
