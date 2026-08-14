@@ -16,7 +16,7 @@ runner = CliRunner()
 
 DAYOA_BLESSED_TAG = "14.0.14"
 PRODUCTION_DAYOA_TAG = "14.0.14"
-BJUICE_V2_DAYOA_TAG = "14.0.15"
+BJUICE_V2_DAYOA_TAG = "14.0.20"
 PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
 SOLO_KITCHEN_SINK_DAYOA_TAG = PRODUCTION_DAYOA_TAG
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
@@ -1306,7 +1306,8 @@ def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() ->
     assert command.command_class == "sample_analysis"
     assert command.input_contract == "six_manifest"
     assert command.requires_staging is True
-    assert command.staging_receipt_required is True
+    assert command.staging_receipt_required is False
+    assert command.cost_center_required is True
     assert command.requires_run_mount is True
     assert command.test_data_profile == "hg002_bjuice_v2_full_preval_run_mounts"
     assert command.targets == [
@@ -1348,6 +1349,20 @@ def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() ->
     assert command_id not in catalog.dyec_builds["current"].aliases
     assert command_id not in catalog.dyec_builds["17.0.14"].commands
     assert command_id in catalog.dyec_builds["17.0.15"].commands
+
+    with pytest.raises(ValueError, match="requires an explicit --cost-center"):
+        command.launch_argv(
+            analysis_id="bjuice-v2-multiau",
+            executing_entity="prod-cand-1703",
+            manifest_dir="/tmp/bjuice-v2-manifests",
+        )
+    launch_argv = command.launch_argv(
+        analysis_id="bjuice-v2-multiau",
+        executing_entity="prod-cand-1703",
+        manifest_dir="/tmp/bjuice-v2-manifests",
+        cost_center="prod-cand-1703-ccenter",
+    )
+    assert launch_argv[launch_argv.index("--cost-center") + 1] == "prod-cand-1703-ccenter"
 
 
 def test_repository_catalog_v1_migrates_to_sample_analysis(tmp_path: Path) -> None:

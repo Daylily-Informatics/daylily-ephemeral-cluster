@@ -1547,7 +1547,7 @@ repositories:
         validated_version: 14.0.20
         test_data_profile: hg002_bjuice_v2_full_preval_run_mounts
         display_name: Bjuice v2 HG002 Multi-AU HIOMR2 Kitchen Sink Mega + Analytical Inflection
-        description: "Explicit HG002 full-prevalence seven-analysis-unit HIOMR2 kitchen-sink mega and analytical Inflection command. It consumes only a fresh six-manifest set generated from one terminal direct Illumina coverage receipt, reads the two verified existing Bjuice run mounts, uses per-analysis-unit ONT [start,end) hour windows, and runs the complete numeric 1-25 chromosome scope. Manifest identity rule: ANALYSIS_UNIT_UID is a required local workflow key, may be a user-chosen unique integer, must be unique across all seven analysis_units.tsv rows, and must be mirrored exactly in analysis_unit_inputs.tsv; it is not an EUID. Keep ANALYSIS_UNIT_EUID, SAMPLE_EUID, SPECIMEN_EUID, and DELIVERY_EUID blank unless owner-issued. Keep SAMPLEID and EXTERNAL_SAMPLE_ID exactly HG002. Do not leave ANALYSIS_UNIT_UID blank. It is independent of all generic, slim, and alias command definitions."
+        description: "Explicit HG002 full-prevalence seven-analysis-unit HIOMR2 kitchen-sink mega and analytical Inflection command. It consumes only a fresh six-manifest set generated from one terminal direct Illumina coverage receipt, reads the two verified existing Bjuice run mounts, uses per-analysis-unit ONT [start,end) hour windows, and runs the complete numeric 1-25 chromosome scope. Manifest identity rule: ANALYSIS_UNIT_UID is a required local workflow key, may be a user-chosen unique integer, must be unique across all seven analysis_units.tsv rows, and must be mirrored exactly in analysis_unit_inputs.tsv; it is not an EUID. Keep ANALYSIS_UNIT_EUID, SAMPLE_EUID, SPECIMEN_EUID, and DELIVERY_EUID blank unless owner-issued. Keep SAMPLEID and EXTERNAL_SAMPLE_ID exactly HG002. Do not leave ANALYSIS_UNIT_UID blank. Launch rule: pass an explicit active DYEC cost center with --cost-center; for a dedicated cluster, also pass the same value with --project so dyoainit and Slurm use one accounting identity. It is independent of all generic, slim, and alias command definitions."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
@@ -1555,6 +1555,7 @@ repositories:
         requires_staging: true
         requires_run_mount: true
         staging_receipt_required: false
+        cost_center_required: true
         runtime_parameters:
           ont_fastq_hour_window_mode: per_analysis_unit
           direct_ilmn_coverage_receipt_required: "true"
@@ -5266,7 +5267,7 @@ dyec_builds:
         validated_version: 14.0.20
         test_data_profile: hg002_bjuice_v2_full_preval_run_mounts
         display_name: Bjuice v2 HG002 Multi-AU HIOMR2 Kitchen Sink Mega + Analytical Inflection
-        description: "Explicit HG002 full-prevalence seven-analysis-unit HIOMR2 kitchen-sink mega and analytical Inflection command. It consumes only a fresh six-manifest set generated from one terminal direct Illumina coverage receipt, reads the two verified existing Bjuice run mounts, uses per-analysis-unit ONT [start,end) hour windows, and runs the complete numeric 1-25 chromosome scope. Manifest identity rule: ANALYSIS_UNIT_UID is a required local workflow key, may be a user-chosen unique integer, must be unique across all seven analysis_units.tsv rows, and must be mirrored exactly in analysis_unit_inputs.tsv; it is not an EUID. Keep ANALYSIS_UNIT_EUID, SAMPLE_EUID, SPECIMEN_EUID, and DELIVERY_EUID blank unless owner-issued. Keep SAMPLEID and EXTERNAL_SAMPLE_ID exactly HG002. Do not leave ANALYSIS_UNIT_UID blank. It is independent of all generic, slim, and alias command definitions."
+        description: "Explicit HG002 full-prevalence seven-analysis-unit HIOMR2 kitchen-sink mega and analytical Inflection command. It consumes only a fresh six-manifest set generated from one terminal direct Illumina coverage receipt, reads the two verified existing Bjuice run mounts, uses per-analysis-unit ONT [start,end) hour windows, and runs the complete numeric 1-25 chromosome scope. Manifest identity rule: ANALYSIS_UNIT_UID is a required local workflow key, may be a user-chosen unique integer, must be unique across all seven analysis_units.tsv rows, and must be mirrored exactly in analysis_unit_inputs.tsv; it is not an EUID. Keep ANALYSIS_UNIT_EUID, SAMPLE_EUID, SPECIMEN_EUID, and DELIVERY_EUID blank unless owner-issued. Keep SAMPLEID and EXTERNAL_SAMPLE_ID exactly HG002. Do not leave ANALYSIS_UNIT_UID blank. Launch rule: pass an explicit active DYEC cost center with --cost-center; for a dedicated cluster, also pass the same value with --project so dyoainit and Slurm use one accounting identity. It is independent of all generic, slim, and alias command definitions."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
@@ -5274,6 +5275,7 @@ dyec_builds:
         requires_staging: true
         requires_run_mount: true
         staging_receipt_required: false
+        cost_center_required: true
         runtime_parameters:
           ont_fastq_hour_window_mode: per_analysis_unit
           direct_ilmn_coverage_receipt_required: "true"
