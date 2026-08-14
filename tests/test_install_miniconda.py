@@ -15,6 +15,15 @@ PAYLOAD_SCRIPT_PATH = (
 )
 
 
+EXPECTED_CONDA_CONFIG_LOG = """config --set plugins.auto_accept_tos true
+config --add channels bioconda
+config --add channels conda-forge
+config --show channels
+config --remove channels defaults
+config --set channel_priority strict
+"""
+
+
 def _write_executable(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
     path.chmod(0o755)
@@ -113,7 +122,10 @@ if [[ "${1:-}" == "config" ]]; then
   if [[ "${INSTALLER_FAIL_ON_CONDA_CONFIG:-0}" == "1" ]]; then
     exit 42
   fi
-  printf '%s\\n' "$*" > "${INSTALLER_CONDA_CONFIG_MARKER:?}"
+  printf '%s\\n' "$*" >> "${INSTALLER_CONDA_CONFIG_MARKER:?}"
+  if [[ "$*" == "config --show channels" ]]; then
+    printf 'channels:\\n  - defaults\\n'
+  fi
   exit 0
 fi
 
@@ -161,7 +173,10 @@ if [[ "${1:-}" == "config" ]]; then
   if [[ "${INSTALLER_FAIL_ON_CONDA_CONFIG:-0}" == "1" ]]; then
     exit 42
   fi
-  printf '%s\\n' "$*" > "${INSTALLER_CONDA_CONFIG_MARKER:?}"
+  printf '%s\\n' "$*" >> "${INSTALLER_CONDA_CONFIG_MARKER:?}"
+  if [[ "$*" == "config --show channels" ]]; then
+    printf 'channels:\\n  - defaults\\n'
+  fi
   exit 0
 fi
 
@@ -236,9 +251,9 @@ def test_install_miniconda_selects_expected_installer_url(
 
     assert result.returncode == 0, result.stderr
     assert f"curl:-fsSL {expected_url}" in log_path.read_text(encoding="utf-8")
-    assert Path(env["INSTALLER_CONDA_CONFIG_MARKER"]).read_text(encoding="utf-8") == (
-        "config --set plugins.auto_accept_tos true\n"
-    )
+    assert Path(env["INSTALLER_CONDA_CONFIG_MARKER"]).read_text(
+        encoding="utf-8"
+    ) == EXPECTED_CONDA_CONFIG_LOG
 
 
 def test_install_miniconda_rejects_sourcing(tmp_path: Path) -> None:
@@ -313,6 +328,19 @@ def test_activate_configures_user_scoped_conda_tos_auto_acceptance() -> None:
     assert "conda config --set plugins.auto_accept_tos true" in activate
     assert "conda config --system --set plugins.auto_accept_tos true" not in activate
     assert "sudo" not in activate
+
+
+def test_install_miniconda_configures_supported_bioconda_channels() -> None:
+    installer = SCRIPT_PATH.read_text(encoding="utf-8")
+
+    assert "config --add channels bioconda" in installer
+    assert "config --add channels conda-forge" in installer
+    assert "config --remove channels defaults" in installer
+    assert "config --set channel_priority strict" in installer
+    assert installer.index("config --add channels bioconda") < installer.index(
+        "config --add channels conda-forge"
+    )
+    assert "Failed to set conda priority" not in installer
 
 
 def test_install_miniconda_repairs_shell_init_when_home_miniconda_exists(tmp_path: Path) -> None:

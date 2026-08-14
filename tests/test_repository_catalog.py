@@ -14,9 +14,9 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "14.0.14"
-PRODUCTION_DAYOA_TAG = "14.0.14"
-BJUICE_V2_DAYOA_TAG = "14.0.15"
+DAYOA_BLESSED_TAG = "14.0.16"
+PRODUCTION_DAYOA_TAG = "14.0.16"
+BJUICE_V2_DAYOA_TAG = "14.0.16"
 PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
 SOLO_KITCHEN_SINK_DAYOA_TAG = PRODUCTION_DAYOA_TAG
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
@@ -210,7 +210,12 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
         not in {command.command_id for command in released_build}
     )
-    released_build = catalog.commands_for_dyec_build("17.0.15")
+    prior_released_build = catalog.commands_for_dyec_build("17.0.15")
+    assert {command.git_tag for command in prior_released_build} == {
+        "14.0.14",
+        "14.0.15",
+    }
+    released_build = catalog.commands_for_dyec_build("17.0.16")
     assert [command.model_dump() for command in released_build] == [
         command.model_dump() for command in current_build
     ]
