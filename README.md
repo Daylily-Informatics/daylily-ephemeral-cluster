@@ -66,6 +66,22 @@ Run `dyec --help` for the live list. Current major groups are:
 
 Detailed examples live in [docs/cli_reference.md](docs/cli_reference.md).
 
+## Quick cluster and queue checks
+
+Use the aggregate read-only view to see which clusters are ready and how many
+Slurm jobs each has. A provisioning or teardown cluster is shown as
+`CLUSTER_NOT_READY`, not as an idle queue.
+
+```bash
+dyec cluster jobs --profile "$AWS_PROFILE" --region "$REGION"
+```
+
+For the exact job list on one cluster, use the drill-down command:
+
+```bash
+dyec headnode jobs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER"
+```
+
 ## CLI-first catalog launch
 
 Catalog launch is the preferred path for known DayOA commands because it renders the exact `dyec workflow launch` command before it starts anything. Use `--project` for DayOA initialization and `--cost-center` for the explicit Slurm submission account; DYEC validates the latter without inferring one.

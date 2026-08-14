@@ -199,6 +199,57 @@ class TestClusterInfoTable:
         }
         assert scripts == []
 
+    def test_cluster_jobs_summarizes_ready_clusters(self, monkeypatch):
+        import daylily_ec.aws.ssm as ssm_module
+
+        _activate_dayec_runtime(monkeypatch)
+        monkeypatch.setenv("AWS_PROFILE", "test-profile")
+        calls: list[tuple[str, str, str, dict]] = []
+        monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+
+        def fake_run_shell(instance_id, region, script, **kwargs):
+            calls.append((instance_id, region, script, kwargs))
+            return SsmCommandResult(
+                command_id="cmd-1",
+                instance_id=instance_id,
+                status="Success",
+                response_code=0,
+                stdout=(
+                    "DAY-EC activated.\n"
+                    "__DYEC_CLUSTER_JOBS_BEGIN__\n"
+                    "101|R\n102|PD\n103|CF\n"
+                    "__DYEC_CLUSTER_JOBS_END__\n"
+                ),
+                stderr="",
+            )
+
+        monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+        with patch("subprocess.run", side_effect=_side_effect_for_happy):
+            result = runner.invoke(
+                app,
+                ["--json", "cluster", "jobs", "--region", "us-west-2"],
+            )
+
+        assert result.exit_code == 0
+        data = json.loads(result.stdout)
+        assert data["regions"] == ["us-west-2"]
+        alpha, beta = data["clusters"]
+        assert alpha["name"] == "alpha"
+        assert alpha["job_query_status"] == "SUCCESS"
+        assert alpha["total_jobs"] == 3
+        assert alpha["running_jobs"] == 1
+        assert alpha["pending_jobs"] == 1
+        assert alpha["other_jobs"] == 1
+        assert alpha["jobs_by_state"] == {"CF": 1, "PD": 1, "R": 1}
+        assert beta["name"] == "beta"
+        assert beta["job_query_status"] == "CLUSTER_NOT_READY"
+        assert beta["total_jobs"] is None
+        assert beta["jobs_by_state"] == {}
+        assert len(calls) == 1
+        assert calls[0][0] == "i-alpha"
+        assert "squeue --noheader -o" in calls[0][2]
+        assert calls[0][3]["as_user"] == "auto"
+
     def test_cluster_list_verbose_json_output(self, monkeypatch):
         _activate_dayec_runtime(monkeypatch)
         monkeypatch.setenv("AWS_PROFILE", "test-profile")

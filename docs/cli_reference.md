@@ -102,6 +102,12 @@ dyec cluster list \
   --region "$REGION" \
   --verbose
 
+# One read-only queue-count row per cluster. Provisioning and teardown clusters
+# are reported as CLUSTER_NOT_READY rather than as an empty queue.
+dyec cluster jobs \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION"
+
 dyec --json cluster describe \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \

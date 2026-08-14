@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import binascii
 import contextlib
+from concurrent.futures import ThreadPoolExecutor
 import csv
 import functools
 import hashlib
@@ -572,6 +573,258 @@ def _cluster_rows_from_list(
             row.pop("details", None)
         rows.append(row)
     return rows
+
+
+def _summarize_squeue_jobs(
+    *,
+    instance_id: str,
+    cluster: str,
+    profile: str,
+    region: str,
+    remote_user: str,
+) -> dict[str, Any]:
+    """Return a compact, machine-readable Slurm state count for one headnode."""
+
+    from daylily_ec.aws.ssm import (
+        SsmCommandFailedError,
+        SsmError,
+        run_shell,
+        wait_for_ssm_online,
+    )
+    from daylily_ec.scripts.common import CommandError
+
+    begin_marker = "__DYEC_CLUSTER_JOBS_BEGIN__"
+    end_marker = "__DYEC_CLUSTER_JOBS_END__"
+    try:
+        wait_for_ssm_online(
+            instance_id,
+            region,
+            profile=profile,
+            timeout=120,
+        )
+        result = run_shell(
+            instance_id,
+            region,
+            "\n".join(
+                [
+                    "set -euo pipefail",
+                    "printf '%s\\n' " + shlex.quote(begin_marker),
+                    "squeue --noheader -o " + shlex.quote("%i|%t"),
+                    "printf '%s\\n' " + shlex.quote(end_marker),
+                ]
+            ),
+            profile=profile,
+            as_user=remote_user,
+            timeout=120,
+            comment=f"Summarize Slurm jobs for {cluster}",
+        )
+    except SsmCommandFailedError as exc:
+        detail = exc.result.stderr.strip() or exc.result.stdout.strip() or str(exc)
+        raise CommandError(
+            f"Could not inspect Slurm jobs for cluster '{cluster}': {detail}"
+        ) from exc
+    except (SsmError, TimeoutError) as exc:
+        raise CommandError(
+            f"Could not inspect Slurm jobs for cluster '{cluster}': {exc}"
+        ) from exc
+
+    states: dict[str, int] = {}
+    seen_begin = False
+    seen_end = False
+    for raw_line in result.stdout.splitlines():
+        line = raw_line.strip()
+        if line == begin_marker:
+            if seen_begin or seen_end:
+                raise CommandError(
+                    f"Unexpected duplicate squeue summary marker for cluster '{cluster}'."
+                )
+            seen_begin = True
+            continue
+        if line == end_marker:
+            if not seen_begin or seen_end:
+                raise CommandError(
+                    f"Unexpected squeue summary marker order for cluster '{cluster}'."
+                )
+            seen_end = True
+            continue
+        if not seen_begin or seen_end:
+            continue
+        if not line:
+            continue
+        fields = line.split("|", maxsplit=1)
+        if len(fields) != 2 or not fields[0].strip() or not fields[1].strip():
+            raise CommandError(
+                f"Unexpected squeue summary output for cluster '{cluster}': {raw_line!r}"
+            )
+        state = fields[1].strip()
+        states[state] = states.get(state, 0) + 1
+
+    if not seen_begin or not seen_end:
+        raise CommandError(f"Missing squeue summary markers for cluster '{cluster}'.")
+
+    total = sum(states.values())
+    running = states.get("R", 0)
+    pending = states.get("PD", 0)
+    return {
+        "job_query_status": "SUCCESS",
+        "total_jobs": total,
+        "running_jobs": running,
+        "pending_jobs": pending,
+        "other_jobs": total - running - pending,
+        "jobs_by_state": dict(sorted(states.items())),
+    }
+
+
+def _emit_cluster_jobs_table(regions: list[str], rows: list[dict[str, Any]]) -> None:
+    region_label = ", ".join(regions)
+    if not rows:
+        output.print_text(f"No clusters found in {region_label}.")
+        return
+
+    output.heading("Cluster job snapshot in %s" % region_label)
+    header = "%-30s %-15s %-20s %-16s %-7s %-9s %-9s %-7s" % (
+        "CLUSTER_NAME",
+        "REGION",
+        "STATUS",
+        "JOB_QUERY",
+        "TOTAL",
+        "RUNNING",
+        "PENDING",
+        "OTHER",
+    )
+    sep = "%s %s %s %s %s %s %s %s" % (
+        "─" * 30,
+        "─" * 15,
+        "─" * 20,
+        "─" * 16,
+        "─" * 7,
+        "─" * 9,
+        "─" * 9,
+        "─" * 7,
+    )
+    output.print_text(header)
+    output.print_text(sep)
+    for row in rows:
+        values = [
+            row["total_jobs"],
+            row["running_jobs"],
+            row["pending_jobs"],
+            row["other_jobs"],
+        ]
+        text_values = ["N/A" if value is None else str(value) for value in values]
+        output.print_text(
+            "%-30s %-15s %-20s %-16s %-7s %-9s %-9s %-7s"
+            % (
+                row["name"],
+                row["region"],
+                row["status"],
+                row["job_query_status"],
+                *text_values,
+            )
+        )
+
+
+def cluster_jobs(
+    regions: List[str] = typer.Option(
+        ...,
+        "--region",
+        help="AWS region to query. Repeat --region once per requested region.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote login user for read-only SSM job queries: auto, ubuntu, or ec2-user.",
+    ),
+) -> None:
+    """Summarize Slurm job counts for every ready cluster in the given regions."""
+
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile = _resolved_aws_profile(profile)
+        requested_regions = _normalize_cluster_list_regions(regions)
+        rows: list[dict[str, Any]] = []
+        ready_rows: list[tuple[dict[str, Any], str, str]] = []
+        for region in requested_regions:
+            payload = _run_pcluster_json(
+                ["pcluster", "list-clusters", "--region", region],
+                profile=resolved_profile,
+                region=region,
+            )
+            clusters = payload.get("clusters", [])
+            if not isinstance(clusters, list):
+                raise CommandError("pcluster list-clusters returned a non-list clusters value.")
+            for item in clusters:
+                if not isinstance(item, dict):
+                    raise CommandError("pcluster list-clusters returned a non-object cluster entry.")
+                name = str(item.get("clusterName") or "").strip()
+                if not name:
+                    raise CommandError(
+                        "pcluster list-clusters returned a cluster entry without clusterName."
+                    )
+                details = _describe_cluster_payload(
+                    profile=resolved_profile,
+                    region=region,
+                    cluster=name,
+                )
+                base_row = _cluster_row_from_details(name, details)
+                status = str(base_row["status"])
+                row: dict[str, Any] = {
+                    "name": name,
+                    "region": region,
+                    "status": status,
+                    "instance_id": base_row["instance_id"] or None,
+                }
+                if status not in {"CREATE_COMPLETE", "UPDATE_COMPLETE"}:
+                    row.update(
+                        {
+                            "job_query_status": "CLUSTER_NOT_READY",
+                            "total_jobs": None,
+                            "running_jobs": None,
+                            "pending_jobs": None,
+                            "other_jobs": None,
+                            "jobs_by_state": {},
+                        }
+                    )
+                else:
+                    instance_id = str(base_row["instance_id"] or "").strip()
+                    if not instance_id:
+                        raise CommandError(
+                            f"Cluster '{name}' is {status} but has no headnode instance id."
+                        )
+                    ready_rows.append((row, instance_id, region))
+                rows.append(row)
+        with ThreadPoolExecutor(max_workers=len(ready_rows) or 1) as executor:
+            futures = [
+                (
+                    row,
+                    executor.submit(
+                        _summarize_squeue_jobs,
+                        instance_id=instance_id,
+                        cluster=str(row["name"]),
+                        profile=resolved_profile,
+                        region=region,
+                        remote_user=remote_user,
+                    ),
+                )
+                for row, instance_id, region in ready_rows
+            ]
+            for row, future in futures:
+                row.update(future.result())
+    except CommandError as exc:
+        _exit_headnode_error(exc)
+
+    result = {"regions": requested_regions, "clusters": rows}
+    if _json_mode():
+        output.emit_json(result)
+        return
+    _emit_cluster_jobs_table(requested_regions, rows)
 
 
 def _describe_cluster_payload(
@@ -9951,6 +10204,7 @@ def register(registry, cli_spec) -> None:
         "ParallelCluster inspection helpers.",
         [
             ("list", cluster_list, REQUIRED_JSON),
+            ("jobs", cluster_jobs, REQUIRED_JSON),
             ("describe", cluster_describe, REQUIRED_JSON),
             ("wait", cluster_wait, REQUIRED_LONG_RUNNING),
             (

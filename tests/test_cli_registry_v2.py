@@ -29,7 +29,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "14.0.22"
+DAYOA_BLESSED_TAG = "15.0.1"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -39,6 +39,7 @@ EXPECTED_COMMANDS = {
     ("drift",),
     ("cluster-info",),
     ("cluster", "list"),
+    ("cluster", "jobs"),
     ("cluster", "describe"),
     ("cluster", "wait"),
     ("cluster", "tags"),
@@ -394,6 +395,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     resources_dir_cmd = registry.get_command(("resources-dir",))
     cluster_info_cmd = registry.get_command(("cluster-info",))
     cluster_list_cmd = registry.get_command(("cluster", "list"))
+    cluster_jobs_cmd = registry.get_command(("cluster", "jobs"))
     cluster_describe_cmd = registry.get_command(("cluster", "describe"))
     cluster_wait_cmd = registry.get_command(("cluster", "wait"))
     cluster_tags_cmd = registry.get_command(("cluster", "tags"))
@@ -527,6 +529,10 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert cluster_list_cmd is not None
     assert cluster_list_cmd.policy.supports_json is True
     assert cluster_list_cmd.policy.mutates_state is False
+
+    assert cluster_jobs_cmd is not None
+    assert cluster_jobs_cmd.policy.supports_json is True
+    assert cluster_jobs_cmd.policy.mutates_state is False
 
     assert cluster_describe_cmd is not None
     assert cluster_describe_cmd.policy.supports_json is True
