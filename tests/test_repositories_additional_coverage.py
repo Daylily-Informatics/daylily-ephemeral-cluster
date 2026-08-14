@@ -93,6 +93,23 @@ def _profile(**overrides):
             "source_fsx_prefix": "/x",
             "run_context_values": {"x": "y"},
         },
+        {"source_mount_mode": "explicit_run_mounts"},
+        {
+            "source_mount_mode": "explicit_run_mounts",
+            "source_s3_uri_template": "s3://x",
+        },
+        {
+            "source_mount_mode": "explicit_run_mounts",
+            "source_s3_uri_template": "s3://x",
+            "source_fsx_prefix": "/x",
+            "locations": ["loc"],
+        },
+        {
+            "source_mount_mode": "explicit_run_mounts",
+            "source_s3_uri_template": "s3://x",
+            "source_fsx_prefix": "/x",
+            "run_context_source_s3_column": "SOURCE_S3_URI",
+        },
         {"source_mount_mode": "run_dra_required"},
         {"source_mount_mode": "run_dra_required", "source_s3_uri_template": "s3://x"},
         {
@@ -110,6 +127,19 @@ def _profile(**overrides):
 )
 def test_data_profile_contract_errors(overrides) -> None:
     _fails(repos.TestDataProfile, **_profile(**overrides))
+
+
+def test_explicit_run_mount_profile_is_a_non_run_context_sample_contract() -> None:
+    profile = repos.TestDataProfile.model_validate(
+        _profile(
+            source_mount_mode="explicit_run_mounts",
+            source_s3_uri_template="s3://fixture/bjuice/",
+            source_fsx_prefix="/fsx/run_dir_mounts/",
+        )
+    )
+
+    assert profile.source_mount_mode == "explicit_run_mounts"
+    assert profile.locations == []
 
 
 def _policy(**overrides):
@@ -206,7 +236,6 @@ def test_analysis_command_model_and_launch_error_branches() -> None:
         {"input_contract": "bad"},
         {"input_contract": "none"},
         {"requires_staging": False},
-        {"requires_run_mount": True},
         {"compatible_platforms": []},
         {"compatible_cluster_types": []},
         {"compatible_cluster_types": ["bad"]},
@@ -217,6 +246,10 @@ def test_analysis_command_model_and_launch_error_branches() -> None:
     for mutation in mutations:
         with pytest.raises(ValidationError):
             repos.AnalysisCommand.model_validate({**deepcopy(base), **mutation})
+
+    assert repos.AnalysisCommand.model_validate(
+        {**deepcopy(base), "requires_run_mount": True}
+    ).requires_run_mount is True
 
     six_manifest = catalog.get_command("hybrid_ilmn_ont_hiomr")
     with pytest.raises(ValidationError, match="must use manifest_dir_template"):

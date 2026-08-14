@@ -89,6 +89,31 @@ def test_load_six_manifests_preserves_plural_lineage(tmp_path: Path) -> None:
     assert validate(manifests.root)["invariants"]["network_accessed"] is False
 
 
+def test_reused_z_euids_remain_test_only_fixture_values(tmp_path: Path) -> None:
+    """A deliberately duplicated Z-* value is valid test data, not live identity."""
+
+    root = six_manifests(tmp_path / "reused-z")
+    repeated = "Z-reused-fixture-euid"
+    _write(root / "specimens.tsv", ["SPECIMEN_ID", "SPECIMEN_EUID"], [["SP1", repeated]])
+    _write(root / "samples.tsv", ["SAMPLEID", "SPECIMEN_ID", "SAMPLE_EUID"], [["SA1", "SP1", repeated]])
+    _write(
+        root / "libraries.tsv",
+        ["LIBRARY_ID", "SAMPLEID", "LIBRARY_EUID"],
+        [["L1", "SA1", repeated], ["L2", "SA1", repeated]],
+    )
+    _write(
+        root / "analysis_units.tsv",
+        ["ANALYSIS_UNIT_UID", "SAMPLEID", "ANALYSIS_UNIT_EUID", "DELIVERY_EUID"],
+        [["AU1", "SA1", repeated, repeated]],
+    )
+
+    status = identity_status(load_manifest_set(root))
+
+    assert all(counts["owner_issued"] == 0 for counts in status["fields"].values())
+    assert status["analysis_units"][0]["customer_release_eligible"] is False
+    assert "SPECIMEN_EUID" in status["analysis_units"][0]["test_identity_fields"]
+
+
 @pytest.mark.parametrize(
     ("mutation", "message"),
     [

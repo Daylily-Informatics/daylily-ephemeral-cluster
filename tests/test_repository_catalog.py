@@ -16,6 +16,7 @@ runner = CliRunner()
 
 DAYOA_BLESSED_TAG = "14.0.14"
 PRODUCTION_DAYOA_TAG = "14.0.14"
+BJUICE_V2_DAYOA_TAG = "14.0.15"
 PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
 SOLO_KITCHEN_SINK_DAYOA_TAG = PRODUCTION_DAYOA_TAG
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
@@ -52,6 +53,7 @@ UNVALIDATED_COMMAND_IDS = {
     "betelgeuser_hiomr_prod_v1",
     "inflection-bjuice-product-v0.2",
     "hiomr2_slim_kitchensink_mega",
+    "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical",
     "sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x",
     "illumina_pangenome_snv",
     "illumina_dragen_pangenome_snv_concordance",
@@ -166,8 +168,11 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert {command.command_id for command in current_build} == {
         command.command_id for command in catalog.commands()
     }
-    assert len(current_build) == 29
-    assert {command.git_tag for command in current_build} == {PRODUCTION_DAYOA_TAG}
+    assert len(current_build) == 30
+    assert {command.git_tag for command in current_build} == {
+        PRODUCTION_DAYOA_TAG,
+        BJUICE_V2_DAYOA_TAG,
+    }
     assert {command.repository for command in current_build} == {"daylily-omics-analysis"}
     older_release = catalog.commands_for_dyec_build("16.1.85")
     assert {command.git_tag for command in older_release} == {"13.4.33"}
@@ -200,6 +205,12 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     prior_released_build = catalog.commands_for_dyec_build("17.0.13")
     assert {command.git_tag for command in prior_released_build} == {"14.0.14"}
     released_build = catalog.commands_for_dyec_build("17.0.14")
+    assert BJUICE_V2_DAYOA_TAG not in {command.git_tag for command in released_build}
+    assert (
+        "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
+        not in {command.command_id for command in released_build}
+    )
+    released_build = catalog.commands_for_dyec_build("17.0.15")
     assert [command.model_dump() for command in released_build] == [
         command.model_dump() for command in current_build
     ]
@@ -429,7 +440,8 @@ def test_catalog_cli_uses_current_unless_numeric_snapshot_is_requested() -> None
     released_payload = json.loads(released_result.stdout)
     assert current_payload["dyec_version"] == "current"
     assert {command["git_tag"] for command in current_payload["commands"]} == {
-        PRODUCTION_DAYOA_TAG
+        PRODUCTION_DAYOA_TAG,
+        BJUICE_V2_DAYOA_TAG,
     }
     assert released_payload["dyec_version"] == "16.1.82"
     assert {command["git_tag"] for command in released_payload["commands"]} == {"13.4.31"}
@@ -480,6 +492,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "complete_genomics_cg_snv_concordance",
         "inflection-bjuice-product-v0.2",
         "hiomr2_slim_kitchensink_mega",
+        "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical",
     }
     recoverability = catalog.get_command(
         "sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x"
@@ -492,6 +505,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     hiomr2_mega_ids = {
         "inflection-bjuice-product-v0.2",
         "hiomr2_slim_kitchensink_mega",
+        "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical",
     }
     for command_id in hiomr2_mega_ids:
         command = catalog.get_command(command_id)
@@ -1278,6 +1292,62 @@ def test_repository_catalog_rejects_run_dra_profile_without_mount_columns(
 
     with pytest.raises(ValueError, match="missing required column\\(s\\): MOUNT_ID"):
         load_repository_catalog(path)
+
+
+def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() -> None:
+    command_id = (
+        "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
+    )
+    catalog = load_repository_catalog(CATALOG_PATH)
+    command = catalog.get_command(command_id)
+
+    assert command.git_tag == BJUICE_V2_DAYOA_TAG
+    assert command.validated_version == BJUICE_V2_DAYOA_TAG
+    assert command.command_class == "sample_analysis"
+    assert command.input_contract == "six_manifest"
+    assert command.requires_staging is True
+    assert command.staging_receipt_required is True
+    assert command.requires_run_mount is True
+    assert command.test_data_profile == "hg002_bjuice_v2_full_preval_run_mounts"
+    assert command.targets == [
+        "produce_sentdhiomr2_slim_kitchensink_mega",
+        "produce_sentdhiomr2_inflection_analytical_package",
+    ]
+    assert command.runtime_parameters == {
+        "ont_fastq_hour_window_mode": "per_analysis_unit",
+        "direct_ilmn_coverage_receipt_required": "true",
+    }
+    assert command.input_requirements.accepted_source_column_sets == [
+        ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"]
+    ]
+    assert command.dryrun_dy_command == f"{command.dy_command} -n"
+    for literal in (
+        "config/hg002_bjuice_v2_multi_analysis_unit_hiomr2.yaml",
+        'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}',
+        "ont_fastq_hour_window_mode=per_analysis_unit",
+        "hiomr2_inflection_package_mode=analytical",
+        'seqone_delivery_batch_id=$ANALYSIS_ID',
+    ):
+        assert literal in command.dy_command
+    for forbidden in (
+        "use_fq_data_starting_hrs",
+        "use_fq_data_up_to_hrs",
+        "hg002_bjuice_5x5x_hiomr2.yaml",
+        "alias_of",
+        "euid",
+    ):
+        assert forbidden not in command.dy_command.casefold()
+
+    profile = catalog.test_data_profiles[command.test_data_profile]
+    assert profile.source_mount_mode == "explicit_run_mounts"
+    assert profile.locations == []
+    assert profile.source_fsx_prefix == "/fsx/run_dir_mounts/"
+    assert profile.run_context_source_s3_column == ""
+    assert profile.run_context_mount_id_column == ""
+    assert catalog.dyec_builds["current"].commands[command_id].model_dump() == command.model_dump()
+    assert command_id not in catalog.dyec_builds["current"].aliases
+    assert command_id not in catalog.dyec_builds["17.0.14"].commands
+    assert command_id in catalog.dyec_builds["17.0.15"].commands
 
 
 def test_repository_catalog_v1_migrates_to_sample_analysis(tmp_path: Path) -> None:

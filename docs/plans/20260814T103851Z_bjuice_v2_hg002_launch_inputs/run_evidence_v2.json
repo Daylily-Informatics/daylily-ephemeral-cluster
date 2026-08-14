@@ -1,0 +1,15 @@
+{
+  "schema": "ursa.bjuice_hybrid_run_evidence.v2",
+  "run_mounts": [
+    {
+      "run_id": "20260618_LH01106_0011_A23MFMCLT3",
+      "association_id": "dra-0b789d77240836540",
+      "headnode_path": "/fsx/run_dir_mounts/20260618_LH01106_0011_A23MFMCLT3/"
+    },
+    {
+      "run_id": "pca100-2026",
+      "association_id": "dra-0281455160baf94c5",
+      "headnode_path": "/fsx/run_dir_mounts/pca100-2026/"
+    }
+  ]
+}
