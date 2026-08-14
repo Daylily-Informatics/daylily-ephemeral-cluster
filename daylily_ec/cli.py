@@ -3172,7 +3172,6 @@ def pricing_spot_logs(
 
     from daylily_ec.aws.ssm import (
         SsmCommandFailedError,
-        SsmError,
         run_shell,
         wait_for_ssm_online,
     )
@@ -6172,6 +6171,16 @@ def _catalog_validate_explicit_inputs(
             raise CommandError(f"Catalog command {command.command_id} requires --manifest-dir.")
         if require_staging_receipt and command.staging_receipt_required:
             receipt_path = Path(manifest_dir) / "staging_receipt.json"
+            if (
+                command.command_id
+                == "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
+            ):
+                from daylily_ec.bjuice_v2_hg002_multi_au_staging import (
+                    validate_materialized_bjuice_v2_staging_receipt,
+                )
+
+                validate_materialized_bjuice_v2_staging_receipt(Path(manifest_dir))
+                return
             if not receipt_path.is_file():
                 raise CommandError(
                     f"Catalog command {command.command_id} requires a materialized staging receipt: "
@@ -6715,6 +6724,106 @@ def catalog_config_bjuice_v2_hg002_multi_au(
             output.emit_json(payload)
             return
         typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def catalog_materialize_bjuice_v2_hg002_multi_au_staging(
+    manifest_dir: Path = typer.Option(
+        ...,
+        "--manifest-dir",
+        help="Bjuice v2 six-manifest directory containing the planned staging receipt.",
+    ),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", help="ParallelCluster name."),
+    remote_user: str = typer.Option(
+        "ubuntu",
+        "--remote-user",
+        help="Required headnode user for mounted-input verification.",
+    ),
+    timeout: int = typer.Option(
+        900,
+        "--timeout",
+        help="Remote mounted-file verification timeout in seconds.",
+    ),
+) -> None:
+    """Verify exact Bjuice v2 mounted FASTQs and finalize staging_receipt.json."""
+
+    from daylily_ec.aws.ssm import (
+        SsmCommandFailedError,
+        run_shell,
+        wait_for_ssm_online,
+    )
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        if remote_user != "ubuntu":
+            raise CommandError("Bjuice v2 mounted-input verification must run as ubuntu")
+        if timeout <= 0:
+            raise CommandError("--timeout must be greater than zero")
+        from daylily_ec.bjuice_v2_hg002_multi_au_staging import (
+            finalize_bjuice_v2_staging_receipt,
+            load_bjuice_v2_staging_plan,
+            parse_bjuice_v2_staging_verification_output,
+            render_bjuice_v2_staging_verification_script,
+        )
+
+        plan = load_bjuice_v2_staging_plan(manifest_dir.expanduser())
+        script = render_bjuice_v2_staging_verification_script(plan)
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        result = run_shell(
+            target.instance_id,
+            resolved_region,
+            script,
+            profile=resolved_profile,
+            as_user="ubuntu",
+            timeout=timeout,
+            comment="DYEC Bjuice v2 mounted FASTQ verification",
+        )
+        verified_files, total_size_bytes = parse_bjuice_v2_staging_verification_output(
+            result.stdout
+        )
+        receipt_path = finalize_bjuice_v2_staging_receipt(
+            manifest_dir=plan.manifest_dir,
+            cluster=resolved_cluster,
+            region=resolved_region,
+            headnode_instance_id=target.instance_id,
+            remote_user="ubuntu",
+            verified_files=verified_files,
+            total_size_bytes=total_size_bytes,
+            verification_script=script,
+        )
+        payload = {
+            "ok": True,
+            "manifest_dir": str(plan.manifest_dir),
+            "receipt_path": str(receipt_path),
+            "cluster": resolved_cluster,
+            "region": resolved_region,
+            "headnode_instance_id": target.instance_id,
+            "ssm_command_id": result.command_id,
+            "files_verified": {**plan.expected_counts, "total_size_bytes": total_size_bytes},
+            "mount_roots": list(plan.mount_roots),
+        }
+        if _json_mode():
+            output.emit_json(payload)
+            return
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+    except SsmCommandFailedError as exc:
+        if exc.result.stderr.strip():
+            typer.echo(exc.result.stderr.rstrip(), err=True)
+        _exit_headnode_error(exc)
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
 
@@ -10074,6 +10183,11 @@ def register(registry, cli_spec) -> None:
                 "config-bjuice-v2-hg002-multi-au",
                 catalog_config_bjuice_v2_hg002_multi_au,
                 required_policy(supports_json=True, long_running=True),
+            ),
+            (
+                "materialize-bjuice-v2-hg002-multi-au-staging",
+                catalog_materialize_bjuice_v2_hg002_multi_au_staging,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
             ),
             ("render", catalog_render, EXEMPT_JSON),
             (

@@ -524,6 +524,11 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
     for filename, rows in manifest_rows.items():
         _write_tsv(output_dir / filename, V2_MANIFEST_COLUMNS[filename], rows)
     manifest_set = load_manifest_set(output_dir)
+    from daylily_ec.bjuice_v2_hg002_multi_au_staging import (
+        write_planned_bjuice_v2_staging_receipt,
+    )
+
+    staging_receipt_path = write_planned_bjuice_v2_staging_receipt(output_dir)
     receipt: dict[str, Any] = {
         "schema": "dyec.bjuice_v2_hg002_multi_au_manifest_generation.v1",
         "sample_id": HG002_SAMPLE_ID,
@@ -552,6 +557,7 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
             "ont_inputs": receipt_ont_inputs,
         },
         "manifest_hashes": dict(manifest_set.hashes),
+        "staging_receipt_path": str(staging_receipt_path),
     }
     receipt_path = output_dir / "bjuice_v2_hg002_multi_au_manifest_receipt.json"
     receipt_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
