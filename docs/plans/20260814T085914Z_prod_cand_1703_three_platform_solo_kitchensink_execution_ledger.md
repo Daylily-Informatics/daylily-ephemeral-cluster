@@ -138,4 +138,30 @@ intervention was performed by the 2026-08-14T09:44:18Z amendment.
 
 | CG-MANIFEST-001 | CG input contract | Materialize and validate an exact six-manifest bundle for the mounted CG slim pair. | SUCCESS | feature_implementation | Gate 1 | orchestrator | Receipt-bound bundle and identity validation above. |  | New bundle only; no old/full-input receipt reused. |
 | DRY-CG-001 | Catalog dry launch | Render and run the one supported CG catalog profile with the receipt-bound slim bundle; require controller rc=0 and zero Slurm submissions. | SUCCESS | contract_test | Gate 1 | orchestrator | `pc1703-cg-solo-ks-17014-20260814-1008-dry` and fresh restart proof `pc1703-cg-solo-ks-17014-20260814-1018-restart-proof`, both attributed rc=0 and zero submissions. |  | The status-startup race is bounded in the CLI; the dirty completed root was preserved. |
-| LIVE-CG-001 | CG catalog launch | Launch and monitor the supported CG profile from the receipt-bound slim bundle without Slurm intervention. | OPEN | feature_implementation | Gate 1 | orchestrator | Dry controller/restart proof complete. |  | Pending fresh live analysis root after the requested commit/tag release gate. |
+| LIVE-CG-001 | CG catalog launch | Launch and monitor the supported CG profile from the receipt-bound slim bundle without Slurm intervention. | SUCCESS | feature_implementation | Gate 1 | orchestrator | The first fresh root `pc1703-cg-solo-ks-17014-20260814-1025` stopped at attributed `rc=1` before a task-owned Slurm admission because its implicit project-name lookup returned empty JSON. The active registry entry `prod-cand-1703-ccenter` was then supplied explicitly. Primary root `pc1703-cg-solo-ks-17014-20260814-1032` submitted jobs `1170`-`1173` and reached attributed `rc=0`; independently started duplicate root `pc1703-cg-solo-ks-17014-20260814-1035` submitted `1174`-`1177` and also reached attributed `rc=0`. Both terminal receipts are under their exact `/home/ubuntu/daylily-runs/<session>/status.json` paths. |  | Receipt-bound slim inputs, explicit active cost center, and both controllers completed; no cancellation, requeue, or other Slurm intervention occurred. |
+
+## 2026-08-14T11:08:01Z CG live completion and terminal notification
+
+- The supported catalog command `complete_genomics_cg_snv_concordance` now has
+  live, attributed controller `rc=0` evidence for the exact mounted slim CG
+  six-manifest contract. The primary run is
+  `pc1703-cg-solo-ks-17014-20260814-1032`; the independently started duplicate
+  `pc1703-cg-solo-ks-17014-20260814-1035` had already completed before any
+  cancellation decision was needed.
+- The primary terminal receipt is
+  `/home/ubuntu/daylily-runs/pc1703-cg-solo-ks-17014-20260814-1032/status.json#exit_code`
+  and the duplicate terminal receipt is
+  `/home/ubuntu/daylily-runs/pc1703-cg-solo-ks-17014-20260814-1035/status.json#exit_code`;
+  both report attributed `exit_code: 0`. Their active controller processes and
+  task-owned Slurm jobs had exited by the terminal observation.
+- The root cause of the earlier live failure was the catalog's implicit
+  cost-center/project-name lookup returning empty JSON. Passing the already
+  active, unchanged `prod-cand-1703-ccenter` explicitly admitted the primary
+  Slurm batch; no budget, registry, Slurm, or cluster setting was changed.
+- The required terminal Slack reply was sent to the existing JEM/Michael
+  group-DM thread: `D0AQK8RB3D5/1786703258.407299`, message
+  `1786705674.833329`.
+- The CG-specific materialization, controller restart proof, live rerun, and
+  terminal notification are complete. The separately blocked Ultima S3 export
+  still needs an explicit destination URI, and FSx deletion remains a separate
+  second-approval boundary.
