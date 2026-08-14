@@ -4863,6 +4863,194 @@ def _parse_workflow_launch_metadata(launch_stdout: str) -> dict[str, str]:
     return parsed
 
 
+CG_SLIM_MATERIALIZATION_MARKER = "__DYEC_CG_SLIM_MATERIALIZATION__="
+
+
+def _cg_slim_materialization_script(workflow_paths: list[str]) -> str:
+    """Build the bounded read-only headnode verifier for two mounted CG files."""
+
+    return "\n".join(
+        [
+            "set -euo pipefail",
+            "python3 - " + shlex.quote(json.dumps(workflow_paths)) + " <<'PY'",
+            "import json",
+            "import os",
+            "import stat",
+            "import sys",
+            "paths = json.loads(sys.argv[1])",
+            "for path in paths:",
+            "    state = os.stat(path)",
+            "    if not stat.S_ISREG(state.st_mode):",
+            "        raise SystemExit('not a regular file: ' + path)",
+            "    with open(path, 'rb') as handle:",
+            "        gzip_magic = handle.read(2).hex()",
+            "    if gzip_magic != '1f8b':",
+            "        raise SystemExit('not a gzip stream: ' + path)",
+            "    payload = {'workflow_path': path, 'size_bytes': state.st_size, 'gzip_magic': gzip_magic}",
+            f"    print({CG_SLIM_MATERIALIZATION_MARKER!r} + json.dumps(payload, sort_keys=True))",
+            "PY",
+        ]
+    )
+
+
+def _parse_cg_slim_materialization(
+    stdout: str, *, expected_paths: list[str]
+) -> list[dict[str, object]]:
+    """Parse exactly the two marker payloads emitted by the read-only verifier."""
+
+    verified: list[dict[str, object]] = []
+    for line in stdout.splitlines():
+        if not line.startswith(CG_SLIM_MATERIALIZATION_MARKER):
+            continue
+        try:
+            payload = json.loads(line[len(CG_SLIM_MATERIALIZATION_MARKER) :])
+        except json.JSONDecodeError as exc:
+            raise ValueError("mounted CG verifier emitted invalid JSON") from exc
+        if not isinstance(payload, dict):
+            raise ValueError("mounted CG verifier payload must be an object")
+        verified.append(payload)
+    if [str(item.get("workflow_path") or "") for item in verified] != expected_paths:
+        raise ValueError("mounted CG verifier did not attest the exact expected pair in order")
+    return verified
+
+
+def samples_materialize_cg_slim(
+    source_manifest: Path = typer.Option(
+        ...,
+        "--source-manifest",
+        help="Explicit one-row CG slim source table with exact S3 input URIs.",
+    ),
+    output_dir: Path = typer.Option(
+        ...,
+        "--output-dir",
+        help="Required new local directory for the six manifests and receipts.",
+    ),
+    reference_s3_uri: str = typer.Option(
+        ...,
+        "--reference-s3-uri",
+        help="Exact S3 root mounted at --reference-fsx-root.",
+    ),
+    reference_fsx_root: str = typer.Option(
+        ...,
+        "--reference-fsx-root",
+        help="Exact mounted reference role root; must be /fsx/references.",
+    ),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: str = typer.Option(
+        ...,
+        "--cluster",
+        "--cluster-name",
+        help="Cluster whose headnode exposes the mounted slim inputs.",
+    ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote SSM login user: auto, ubuntu, or ec2-user.",
+    ),
+) -> None:
+    """Create a materialized six-manifest receipt for an exact mounted CG slim pair."""
+
+    from datetime import datetime, timezone
+
+    from daylily_ec.aws.ssm import resolve_remote_user, run_shell, wait_for_ssm_online
+    from daylily_ec.complete_genomics_manifest import (
+        finalize_complete_genomics_slim_mounted_reference_materialization,
+        generate_complete_genomics_slim_mounted_reference_six_manifest,
+    )
+    from daylily_ec.identity_receipts import validate as validate_identities
+    from daylily_ec.manifest_set import atomic_json, load_manifest_set
+
+    _warn_if_dayec_env_inactive()
+    destination = output_dir.expanduser().resolve()
+    temporary_root: Path | None = None
+    try:
+        if destination.exists():
+            raise ValueError(
+                f"refusing to overwrite existing CG slim manifest directory: {destination}"
+            )
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        temporary_root = Path(
+            tempfile.mkdtemp(prefix=".dyec-cg-slim-materialize-", dir=str(destination.parent))
+        )
+        staged_bundle = temporary_root / "manifest"
+        generate_complete_genomics_slim_mounted_reference_six_manifest(
+            source=source_manifest.expanduser().resolve(),
+            output_dir=staged_bundle,
+            reference_s3_uri=reference_s3_uri,
+            reference_fsx_root=reference_fsx_root,
+        )
+        manifests = load_manifest_set(staged_bundle)
+        [sequencing_input] = manifests.rows["sequencing_inputs.tsv"]
+        expected_paths = [
+            sequencing_input["ILMN_R1_PATH"],
+            sequencing_input["ILMN_R2_PATH"],
+        ]
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        resolved_remote_user = resolve_remote_user(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            as_user=remote_user,
+        )
+        remote_result = run_shell(
+            target.instance_id,
+            resolved_region,
+            _cg_slim_materialization_script(expected_paths),
+            profile=resolved_profile,
+            as_user=resolved_remote_user,
+            timeout=120,
+            comment="Verify mounted Complete Genomics slim inputs",
+        )
+        files_verified = _parse_cg_slim_materialization(
+            remote_result.stdout,
+            expected_paths=expected_paths,
+        )
+        verified_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+        receipt = finalize_complete_genomics_slim_mounted_reference_materialization(
+            manifest_dir=staged_bundle,
+            files_verified=files_verified,
+            verified_at=verified_at,
+            headnode={
+                "cluster": resolved_cluster,
+                "region": resolved_region,
+                "instance_id": target.instance_id,
+                "ssm_command_id": remote_result.command_id,
+                "remote_user": resolved_remote_user,
+            },
+        )
+        identity_validation = validate_identities(staged_bundle)
+        atomic_json(staged_bundle / "identity_validation_receipt.json", identity_validation)
+        os.replace(staged_bundle, destination)
+        temporary_root.rmdir()
+        temporary_root = None
+        payload = {
+            "schema_version": "dyec.complete_genomics.slim_materialization.v1",
+            "manifest_dir": str(destination),
+            "source_manifest": str(source_manifest.expanduser().resolve()),
+            "staging_receipt": receipt,
+            "identity_validation": identity_validation,
+        }
+        if _json_mode():
+            output.emit_json(payload)
+        else:
+            typer.echo(f"Materialized CG slim six-manifest set at {destination}")
+    except Exception as exc:  # noqa: BLE001
+        if temporary_root is not None:
+            shutil.rmtree(temporary_root, ignore_errors=True)
+        _exit_headnode_error(exc)
+
+
 def samples_stage(
     analysis_samples: Path = typer.Argument(
         ...,
@@ -7651,6 +7839,16 @@ def workflow_status(
         "--remote-user",
         help="Remote login user for default run-dir resolution: auto, ubuntu, or ec2-user.",
     ),
+    receipt_wait_seconds: int = typer.Option(
+        90,
+        "--receipt-wait-seconds",
+        min=0,
+        max=300,
+        help=(
+            "Bounded wait for a just-launched controller to create its status receipt; "
+            "0 preserves immediate failure for a missing receipt."
+        ),
+    ),
 ) -> None:
     """Report exact controller, Snakemake, progress, Slurm, and terminal state."""
 
@@ -7658,22 +7856,33 @@ def workflow_status(
     from daylily_ec.scripts.common import CommandError
 
     _warn_if_dayec_env_inactive()
-    try:
-        payload = _collect_workflow_observability(
-            profile=profile,
-            region=region,
-            cluster=cluster,
-            session=session,
-            run_dir=run_dir,
-            repo_path=repo_path,
-            controller_pid=controller_pid,
-            snakemake_log=snakemake_log,
-            remote_user=remote_user,
-        )
-    except SsmCommandFailedError as exc:
-        _exit_workflow_ssm_failure(exc)
-    except (CommandError, SsmError, TimeoutError, json.JSONDecodeError) as exc:
-        _exit_headnode_error(exc)
+    receipt_deadline = time.monotonic() + receipt_wait_seconds
+    while True:
+        try:
+            payload = _collect_workflow_observability(
+                profile=profile,
+                region=region,
+                cluster=cluster,
+                session=session,
+                run_dir=run_dir,
+                repo_path=repo_path,
+                controller_pid=controller_pid,
+                snakemake_log=snakemake_log,
+                remote_user=remote_user,
+            )
+            break
+        except SsmCommandFailedError as exc:
+            stderr = str(getattr(exc.result, "stderr", ""))
+            receipt_missing = (
+                "workflow status receipt is missing" in stderr
+                or "controller target receipt is missing" in stderr
+            )
+            if receipt_missing and time.monotonic() < receipt_deadline:
+                time.sleep(min(2.0, max(0.0, receipt_deadline - time.monotonic())))
+                continue
+            _exit_workflow_ssm_failure(exc)
+        except (CommandError, SsmError, TimeoutError, json.JSONDecodeError) as exc:
+            _exit_headnode_error(exc)
 
     if _json_mode():
         output.emit_json(payload)
@@ -9699,6 +9908,11 @@ def register(registry, cli_spec) -> None:
         "Sample staging helpers.",
         [
             ("stage", samples_stage, REQUIRED_MUTATING_LONG_RUNNING),
+            (
+                "materialize-cg-slim",
+                samples_materialize_cg_slim,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
             ("run", samples_run, REQUIRED_MUTATING_LONG_RUNNING),
         ],
     )
