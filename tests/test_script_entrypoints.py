@@ -67,6 +67,20 @@ def _assert_immutable_pinned_dayoa_controller(script: str) -> None:
     assert 'git -C "$repo_path" diff --quiet --' in script
     assert 'git -C "$repo_path" diff --cached --quiet --' in script
     assert 'git -C "$repo_path" ls-files --others --exclude-standard' in script
+    assert "is_allowed_catalog_runtime_path()" in script
+    for allowed_path in (
+        ".dyec/controller.log",
+        "config/specimens.tsv",
+        "config/samples.tsv",
+        "config/libraries.tsv",
+        "config/sequencing_inputs.tsv",
+        "config/analysis_units.tsv",
+        "config/analysis_unit_inputs.tsv",
+        "config/dyec_manifest_stage_receipt.json",
+        "config/day_profiles/slurm/.template-source.sha256",
+    ):
+        assert allowed_path in script
+    assert 'case "$1" in' in script
     assert script.index('verify_pinned_dayoa_checkout "before workflow dispatch"') < script.index(
         'run_dy_command "$DY_COMMAND"'
     )

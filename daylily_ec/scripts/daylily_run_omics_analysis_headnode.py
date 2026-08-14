@@ -1725,6 +1725,23 @@ verify_pinned_dayoa_checkout() {{
   local expected_commit
   local actual_commit
   local unexpected_paths
+  local disallowed_paths
+  local runtime_path
+
+  # These are the only untracked runtime files that the catalog controller is
+  # permitted to materialize in a pinned DayOA checkout.  Keep this list exact:
+  # accepting an entire directory would turn the immutable-source verifier into
+  # a source-mutation bypass.
+  is_allowed_catalog_runtime_path() {{
+    case "$1" in
+      .dyec/controller.log|config/specimens.tsv|config/samples.tsv|config/libraries.tsv|config/sequencing_inputs.tsv|config/analysis_units.tsv|config/analysis_unit_inputs.tsv|config/dyec_manifest_stage_receipt.json|config/day_profiles/slurm/.template-source.sha256)
+        return 0
+        ;;
+      *)
+        return 1
+        ;;
+    esac
+  }}
   if [[ "$(git -C "$repo_path" rev-parse --is-inside-work-tree 2>/dev/null)" != "true" ]]; then
     echo "[ERROR] DayOA checkout is not a Git work tree during $phase: $repo_path"
     return 25
@@ -1752,9 +1769,16 @@ verify_pinned_dayoa_checkout() {{
     return 25
   fi
   unexpected_paths="$(git -C "$repo_path" ls-files --others --exclude-standard)"
-  if [[ -n "$unexpected_paths" ]]; then
+  disallowed_paths=""
+  while IFS= read -r runtime_path; do
+    [[ -z "$runtime_path" ]] && continue
+    if ! is_allowed_catalog_runtime_path "$runtime_path"; then
+      disallowed_paths+="$runtime_path"$'\\n'
+    fi
+  done <<< "$unexpected_paths"
+  if [[ -n "$disallowed_paths" ]]; then
     echo "[ERROR] DayOA checkout has untracked nonignored entries during $phase; generated source is forbidden."
-    printf '%s\n' "$unexpected_paths"
+    printf '%s' "$disallowed_paths"
     return 25
   fi
   echo "[INFO] Verified immutable pinned DayOA checkout during $phase: $actual_commit"
