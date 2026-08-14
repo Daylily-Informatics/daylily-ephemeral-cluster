@@ -11,6 +11,8 @@ from typer.testing import CliRunner
 from daylily_ec.workflow.export_data import (
     ExportError,
     ExportOptions,
+    analysis_dir_from_source_path,
+    analysis_headnode_path,
     attach_export_dra,
     cleanup_exported_analysis,
     normalize_export_source_path,
@@ -119,6 +121,18 @@ def test_normalize_export_source_accepts_analysis_dir(raw: str, expected: str) -
     assert normalize_export_source_path(raw) == expected
 
 
+def test_nested_export_source_preserves_full_path_and_analysis_ownership() -> None:
+    source = "/fsx/analysis_results/prod-cand-1703/proof-batch/AU"
+
+    assert normalize_export_source_path(source) == (
+        "/analysis_results/prod-cand-1703/proof-batch/AU/"
+    )
+    assert analysis_dir_from_source_path(source) == "prod-cand-1703/proof-batch"
+    assert analysis_headnode_path(source) == (
+        "/fsx/analysis_results/prod-cand-1703/proof-batch/AU/"
+    )
+
+
 @pytest.mark.parametrize("raw", ["/fsx", "/tmp/run", "/fsx/analysis_results/user"])
 def test_normalize_export_source_rejects_non_analysis_dir(raw: str) -> None:
     with pytest.raises(ExportError):
@@ -141,6 +155,50 @@ def test_validate_and_resolve_export_destination() -> None:
         cluster_name="cluster-a",
         destination_analysis_id="M-RGX-FSAP",
     ) == "s3://bucket/derived/cluster-a/analysis_results/M-RGX-FSAP/"
+
+
+def test_validate_and_resolve_nested_export_destination_exactly() -> None:
+    source = "/fsx/analysis_results/prod-cand-1703/proof-batch/AU/"
+    destination = (
+        "s3://lsmc-ssf-sequencing-data/derived/"
+        "prod-cand-1703/proof-batch/AU/"
+    )
+
+    assert validate_export_destination_s3_uri(
+        destination,
+        source_path=source,
+        cluster_name="prod-cand-1703",
+    ) == destination
+    assert resolve_launch_export_destination_s3_uri(
+        "s3://lsmc-ssf-sequencing-data/derived/",
+        source_path=source,
+        cluster_name="prod-cand-1703",
+    ) == destination
+    with pytest.raises(ExportError, match="must end"):
+        validate_export_destination_s3_uri(
+            "s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/proof-batch/",
+            source_path=source,
+            cluster_name="prod-cand-1703",
+        )
+
+
+def test_nested_package_destination_uses_explicit_batch_and_source_leaf() -> None:
+    source = (
+        "/fsx/analysis_results/prod-cand-1703/original-analysis/"
+        "daylily-omics-analysis/results/day/hg38/deliveries/inflection/"
+        "proof-batch/HG002-Z-HG002-ANALYSIS-UNIT-5X5X/"
+    )
+    destination = (
+        "s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/"
+        "proof-batch/HG002-Z-HG002-ANALYSIS-UNIT-5X5X/"
+    )
+
+    assert validate_export_destination_s3_uri(
+        destination,
+        source_path=source,
+        cluster_name="prod-cand-1703",
+        destination_analysis_id="proof-batch",
+    ) == destination
 
 
 def test_validate_s3_destination_prefix_is_immutable() -> None:
@@ -173,6 +231,38 @@ def test_attach_export_dra_has_no_autoexport_or_delete() -> None:
     assert client.created_association is not None
     assert client.created_association["BatchImportMetaDataOnCreate"] is False
     assert "S3" not in client.created_association
+
+
+def test_attach_nested_export_dra_uses_full_source_but_root_ownership_tag() -> None:
+    client = FakeFsxClient()
+    source = "/fsx/analysis_results/prod-cand-1703/proof-batch/AU/"
+    destination = (
+        "s3://lsmc-ssf-sequencing-data/derived/"
+        "prod-cand-1703/proof-batch/AU/"
+    )
+
+    record = attach_export_dra(
+        cluster_name="prod-cand-1703",
+        fsx_file_system_id="fs-123",
+        source_path=source,
+        destination_s3_uri=destination,
+        region="us-west-2",
+        profile="profile",
+        wait=False,
+        timeout_seconds=1,
+        fsx_client=client,
+    )
+
+    assert record.analysis_dir == "prod-cand-1703/proof-batch"
+    assert record.file_system_path == (
+        "/analysis_results/prod-cand-1703/proof-batch/AU/"
+    )
+    assert record.headnode_path == source
+    assert client.created_association is not None
+    assert client.created_association["FileSystemPath"] == record.file_system_path
+    assert {"Key": "Name", "Value": record.analysis_dir} in client.created_association[
+        "Tags"
+    ]
 
 
 def test_export_rejects_overlapping_s3_repository_path() -> None:
@@ -216,6 +306,28 @@ def test_run_export_task_uses_exact_analysis_path() -> None:
     assert client.created_task is not None
     assert client.created_task["Paths"] == ["/analysis_results/user/run/"]
     assert client.created_task["Report"]["Scope"] == "FAILED_FILES_ONLY"
+
+
+def test_run_export_task_uses_exact_nested_path() -> None:
+    client = FakeFsxClient()
+    receipt = run_export_task(
+        fsx_file_system_id="fs-123",
+        source_path="/fsx/analysis_results/prod-cand-1703/proof-batch/AU/",
+        destination_s3_uri=(
+            "s3://lsmc-ssf-sequencing-data/derived/"
+            "prod-cand-1703/proof-batch/AU/"
+        ),
+        cluster_name="prod-cand-1703",
+        wait=True,
+        timeout_seconds=1,
+        fsx_client=client,
+    )
+
+    assert receipt["source_path"] == (
+        "/analysis_results/prod-cand-1703/proof-batch/AU/"
+    )
+    assert client.created_task is not None
+    assert client.created_task["Paths"] == [receipt["source_path"]]
 
 
 def test_run_export_workflow_writes_provider_neutral_receipt(tmp_path, monkeypatch) -> None:

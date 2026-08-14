@@ -28,7 +28,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "14.0.9"
+DAYOA_BLESSED_TAG = "14.0.14"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -100,6 +100,7 @@ EXPECTED_COMMANDS = {
     ("headnode", "configure"),
     ("headnode", "configure-dragen"),
     ("samples", "stage"),
+    ("samples", "materialize-cg-slim"),
     ("samples", "run"),
     ("workflow", "launch"),
     ("workflow", "status"),
@@ -422,6 +423,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     headnode_configure_cmd = registry.get_command(("headnode", "configure"))
     headnode_configure_dragen_cmd = registry.get_command(("headnode", "configure-dragen"))
     samples_stage_cmd = registry.get_command(("samples", "stage"))
+    samples_materialize_cg_slim_cmd = registry.get_command(("samples", "materialize-cg-slim"))
     workflow_launch_cmd = registry.get_command(("workflow", "launch"))
     workflow_status_cmd = registry.get_command(("workflow", "status"))
     workflow_logs_cmd = registry.get_command(("workflow", "logs"))
@@ -615,6 +617,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert samples_stage_cmd is not None
     assert samples_stage_cmd.policy.mutates_state is True
     assert samples_stage_cmd.policy.long_running is True
+
+    assert samples_materialize_cg_slim_cmd is not None
+    assert samples_materialize_cg_slim_cmd.policy.supports_json is True
+    assert samples_materialize_cg_slim_cmd.policy.mutates_state is True
+    assert samples_materialize_cg_slim_cmd.policy.long_running is True
 
     assert workflow_launch_cmd is not None
     assert workflow_launch_cmd.policy.mutates_state is True
@@ -3114,6 +3121,100 @@ def test_samples_stage_help_does_not_advertise_generated_cram_index_flags() -> N
     assert result.exit_code == 0
     assert "--generate-missing-cram-indexes" not in result.stdout
     assert "--index-threads" not in result.stdout
+
+
+def test_samples_materialize_cg_slim_records_headnode_pair_evidence(monkeypatch, tmp_path) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda cluster, region, profile=None: HeadNodeTarget(cluster, region, "i-abc123"),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
+    expected_paths = [
+        (
+            "/fsx/references/genomic_data/organism_reads_slim/fastq/H_sapiens/complete_genomics/"
+            "T7plus_WGS_PE150_HG003_PCR_Free/downsampled/"
+            "T7plus_WGS_PE150_HG003_PCR_Free_10pct_Read_1.fq.gz"
+        ),
+        (
+            "/fsx/references/genomic_data/organism_reads_slim/fastq/H_sapiens/complete_genomics/"
+            "T7plus_WGS_PE150_HG003_PCR_Free/downsampled/"
+            "T7plus_WGS_PE150_HG003_PCR_Free_10pct_Read_2.fq.gz"
+        ),
+    ]
+
+    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+        calls["run_shell"] = (instance_id, region, script, kwargs)
+        stdout = "".join(
+            cli_module.CG_SLIM_MATERIALIZATION_MARKER
+            + json.dumps(
+                {
+                    "workflow_path": path,
+                    "size_bytes": size,
+                    "gzip_magic": "1f8b",
+                },
+                sort_keys=True,
+            )
+            + "\n"
+            for path, size in zip(expected_paths, (10251454933, 10405048250))
+        )
+        return SsmCommandResult("cmd-1", instance_id, "Success", 0, stdout, "")
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+    source = (
+        Path(__file__).resolve().parents[1]
+        / "examples/staging/complete_genomics_solo_slim_mounted_reference_v1"
+        / "analysis_samples_manifest.tsv"
+    )
+    output_dir = tmp_path / "cg-slim"
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "samples",
+            "materialize-cg-slim",
+            "--source-manifest",
+            str(source),
+            "--output-dir",
+            str(output_dir),
+            "--reference-s3-uri",
+            "s3://lsmc-dayoa-references-usw2",
+            "--reference-fsx-root",
+            "/fsx/references",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--remote-user",
+            "ubuntu",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout + result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["manifest_dir"] == str(output_dir)
+    assert payload["staging_receipt"]["state"] == "materialized"
+    assert payload["staging_receipt"]["materialization"]["copy_performed"] is False
+    assert (output_dir / "identity_validation_receipt.json").is_file()
+    instance_id, region, script, kwargs = calls["run_shell"]
+    assert instance_id == "i-abc123"
+    assert region == "us-west-2"
+    assert expected_paths[0] in script
+    assert "os.stat" in script
+    assert kwargs["comment"] == "Verify mounted Complete Genomics slim inputs"
 
 
 def _write_complete_genomics_manifest(path) -> None:

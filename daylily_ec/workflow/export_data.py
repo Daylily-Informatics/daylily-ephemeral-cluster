@@ -98,13 +98,14 @@ def _safe_analysis_dir(candidate: str) -> str:
 
 def analysis_headnode_path(source_path: str) -> str:
     normalized = normalize_export_source_path(source_path)
-    return f"{HEADNODE_ANALYSIS_EXPORT_ROOT}{analysis_dir_from_source_path(normalized)}/"
+    suffix = normalized[len(ANALYSIS_EXPORT_ROOT) :]
+    return f"{HEADNODE_ANALYSIS_EXPORT_ROOT}{suffix}"
 
 
 def analysis_dir_from_source_path(source_path: str) -> str:
     normalized = normalize_export_source_path(source_path)
     suffix = normalized[len(ANALYSIS_EXPORT_ROOT) :].strip("/")
-    return _safe_analysis_dir(suffix)
+    return _safe_analysis_dir("/".join(suffix.split("/")[:2]))
 
 
 def normalize_export_source_path(source_path: str) -> str:
@@ -143,16 +144,22 @@ def normalize_export_source_path(source_path: str) -> str:
         raise ExportError("source_path must be an absolute FSx path.")
     if "//" in raw:
         raise ExportError("source_path must not contain duplicate slashes.")
+    raw_parts = raw.strip("/").split("/")
+    if any(part in {".", ".."} for part in raw_parts):
+        raise ExportError("source_path must not contain '.' or '..' components.")
     parts = PurePosixPath(raw).parts
-    if ".." in parts:
-        raise ExportError("source_path must not contain '..'.")
     normalized = "/" + "/".join(part for part in parts if part != "/")
     if not normalized.startswith(ANALYSIS_EXPORT_ROOT):
         raise ExportError(
             "source_path must be under /analysis_results/<executing_entity>/<analysis_id>."
         )
     suffix = normalized[len(ANALYSIS_EXPORT_ROOT) :].strip("/")
-    _safe_analysis_dir(suffix)
+    source_parts = suffix.split("/")
+    if len(source_parts) < 2:
+        raise ExportError("source_path must include <executing_entity>/<analysis_id>.")
+    _safe_analysis_dir("/".join(source_parts[:2]))
+    for index, part in enumerate(source_parts[2:], start=1):
+        validate_analysis_segment(part, field_name=f"nested_source_component_{index}")
     return normalized.rstrip("/") + "/"
 
 
@@ -162,12 +169,17 @@ def _allowed_export_destination_suffixes(
     cluster_name: Optional[str] = None,
     destination_analysis_id: Optional[str] = None,
 ) -> list[str]:
-    analysis_dir = analysis_dir_from_source_path(source_path)
-    suffixes = [f"{analysis_dir}/"]
+    normalized_source = normalize_export_source_path(source_path)
+    source_suffix = normalized_source[len(ANALYSIS_EXPORT_ROOT) :]
+    source_parts = source_suffix.rstrip("/").split("/")
+    analysis_dir = "/".join(source_parts[:2])
+    nested_suffix = "/".join(source_parts[2:])
+    nested_tail = f"{nested_suffix}/" if nested_suffix else ""
+    suffixes = [source_suffix]
     if cluster_name:
         cluster_segment = validate_analysis_segment(cluster_name, field_name="cluster_name")
         analysis_id = analysis_dir.split("/", 1)[1]
-        cluster_suffix = f"{cluster_segment}/{analysis_id}/"
+        cluster_suffix = f"{cluster_segment}/{analysis_id}/{nested_tail}"
         if cluster_suffix not in suffixes:
             suffixes.append(cluster_suffix)
         if destination_analysis_id:
@@ -175,8 +187,15 @@ def _allowed_export_destination_suffixes(
                 destination_analysis_id,
                 field_name="destination_analysis_id",
             )
+            if nested_suffix:
+                source_leaf = source_parts[-1]
+                package_suffix = (
+                    f"{cluster_segment}/{destination_segment}/{source_leaf}/"
+                )
+                if package_suffix not in suffixes:
+                    suffixes.append(package_suffix)
             destination_suffix = (
-                f"{cluster_segment}/analysis_results/{destination_segment}/"
+                f"{cluster_segment}/analysis_results/{destination_segment}/{nested_tail}"
             )
             if destination_suffix not in suffixes:
                 suffixes.append(destination_suffix)
@@ -244,10 +263,14 @@ def resolve_launch_export_destination_s3_uri(
             "--cluster is required when --export-destination-s3-uri is an export root "
             "instead of a full <executing_entity>/<analysis_id>/ destination."
         )
-    analysis_id = analysis_dir_from_source_path(source_path).split("/", 1)[1]
+    normalized_source = normalize_export_source_path(source_path)
+    source_parts = normalized_source[len(ANALYSIS_EXPORT_ROOT) :].rstrip("/").split("/")
+    analysis_id = source_parts[1]
+    nested_suffix = "/".join(source_parts[2:])
+    nested_tail = f"{nested_suffix}/" if nested_suffix else ""
     cluster_segment = validate_analysis_segment(cluster_name, field_name="cluster_name")
     return validate_export_destination_s3_uri(
-        f"{destination}{cluster_segment}/{analysis_id}/",
+        f"{destination}{cluster_segment}/{analysis_id}/{nested_tail}",
         source_path=source_path,
         cluster_name=cluster_name,
         destination_analysis_id=destination_analysis_id,
