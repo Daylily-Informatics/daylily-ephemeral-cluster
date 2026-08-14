@@ -274,8 +274,8 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     assert CATALOG_PATH.read_bytes() == PACKAGED_CATALOG_PATH.read_bytes()
     raw = yaml.safe_load(source)
 
-    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.10"]
-    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["14.0.11"]
+    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.11"]
+    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["14.0.12"]
     assert raw["dyec_builds"]["17.0.2"]["dayoa_git_tags"] == ["14.0.3"]
     assert raw["dyec_builds"]["17.0.3"]["dayoa_git_tags"] == ["14.0.4"]
     assert raw["dyec_builds"]["17.0.4"]["dayoa_git_tags"] == ["14.0.6"]
@@ -284,6 +284,7 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     assert raw["dyec_builds"]["17.0.7"]["dayoa_git_tags"] == ["14.0.9"]
     assert raw["dyec_builds"]["17.0.8"]["dayoa_git_tags"] == ["14.0.9"]
     assert raw["dyec_builds"]["17.0.9"]["dayoa_git_tags"] == ["14.0.10"]
+    assert raw["dyec_builds"]["17.0.10"]["dayoa_git_tags"] == ["14.0.11"]
     assert OLD_DUPLICATED_ID not in raw["dyec_builds"]["current"]["commands"]
     assert OLD_DUPLICATED_ID not in raw["dyec_builds"]["current"]["aliases"]
     for build in ("16.1.82", "16.1.85", "16.1.86", "17.0.0", "17.0.1"):
