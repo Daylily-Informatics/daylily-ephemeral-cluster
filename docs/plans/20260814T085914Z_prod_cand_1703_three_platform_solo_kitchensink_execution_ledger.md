@@ -165,3 +165,36 @@ intervention was performed by the 2026-08-14T09:44:18Z amendment.
   terminal notification are complete. The separately blocked Ultima S3 export
   still needs an explicit destination URI, and FSx deletion remains a separate
   second-approval boundary.
+
+## 2026-08-14T11:17:01Z primary CG DRA export attempt
+
+- A headnode ubuntu/tmux export visit was recorded for the exact completed CG
+  root /fsx/analysis_results/prod-cand-1703/pc1703-cg-solo-ks-17014-20260814-1032.
+- The first no-delete dyec exports transfer target used
+  s3://lsmc-ssf/derived/prod-cand-1703/pc1703-cg-solo-ks-17014-20260814-1032/
+  with destination_analysis_id equal to the real analysis name; no EUID was
+  generated or substituted.
+- FSx rejected CreateDataRepositoryAssociation before creating a DRA because
+  the lsmc-ssf bucket did not exist. No data transfer, S3 evidence URI,
+  catalog update, or FSx cleanup occurred from that failed attempt.
+
+| EXPORT-CG-001 | FSx-to-S3 export | Transfer the primary completed CG analysis through a temporary DRA to the supplied derived prefix, verify success, and detach without FSx deletion. | SUCCESS | feature_implementation | Gate 1 | orchestrator | A corrected headnode export visit targeted s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/pc1703-cg-solo-ks-17014-20260814-1032/. Temporary DRA dra-00f1368711631e73d reached AVAILABLE; task task-06adea4ad8e644e89 reached SUCCEEDED with 3,616 succeeded and 0 failed files. The DRA is detached, and the exact exported final MultiQC and evidence-manifest objects were read back from S3. | The initial lsmc-ssf bucket name was invalid. | Export completed without FSx deletion. |
+
+## 2026-08-14T11:26:08Z primary CG export completion
+
+- The corrected no-delete destination is
+  s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/pc1703-cg-solo-ks-17014-20260814-1032/.
+  It was empty before DRA attachment; the DRA created the cluster and analysis
+  path through the export rather than a pre-created marker object.
+- FSx task task-06adea4ad8e644e89 has Lifecycle SUCCEEDED,
+  Type EXPORT_TO_REPOSITORY, SucceededCount 3616, and FailedCount 0.
+  Its temporary DRA dra-00f1368711631e73d no longer appears in the association
+  inventory, proving the required detach. No cleanup command was invoked.
+- Verified exported success evidence:
+  - s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/pc1703-cg-solo-ks-17014-20260814-1032/daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc.html
+    (7,298,938 bytes).
+  - s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/pc1703-cg-solo-ks-17014-20260814-1032/daylily-omics-analysis/results/day/hg38/reports/dayoa_evidence_manifest.json
+    (283,270 bytes).
+- The live command provenance is immutable DYEC 17.0.14
+  (96cec5a45993e706e8e075853ac0f5fe27b812ac) and DayOA 14.0.14
+  (8bbf0fe0b45918a65cb2c884c5b435bab0582cb1) on prod-cand-1703 in us-west-2c.
