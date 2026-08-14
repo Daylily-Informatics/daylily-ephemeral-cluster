@@ -362,8 +362,12 @@ def _write_run_receipts(
         "session_name": session,
         "repo_path": str(dayoa.resolve()),
         "started_at": "2026-07-25T16:37:41Z",
+        "workflow_completed_at": completed_at,
+        "workflow_exit_code": exit_code,
         "completed_at": completed_at,
         "exit_code": exit_code,
+        "snakemake_log_path": None,
+        "snakemake_log_attribution": None,
         "command": "bin/day_run produce_illumina_run_qc",
     }
     (run_dir / "status.json").write_text(json.dumps(status), encoding="utf-8")
@@ -469,6 +473,27 @@ def test_malformed_status_for_exact_run_control_receipt_fails_loudly(
     root = _root(tmp_path)
     run_state_root = _write_run_receipts(tmp_path, root)
     (run_state_root / "session-1" / "status.json").write_text("{}", encoding="utf-8")
+    _activate(monkeypatch)
+    monkeypatch.setattr("daylily_ec.analysis_status.shutil.which", lambda _name: None)
+
+    with pytest.raises(AnalysisStatusError, match="status receipt fields are invalid"):
+        collect_analysis_status(
+            root,
+            mode="slim",
+            runner=_fake_runner,
+            run_state_root=run_state_root,
+        )
+
+
+def test_run_control_receipt_rejects_unknown_status_field(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _root(tmp_path)
+    run_state_root = _write_run_receipts(tmp_path, root)
+    status_path = run_state_root / "session-1" / "status.json"
+    status = json.loads(status_path.read_text(encoding="utf-8"))
+    status["unapproved_extension"] = "not part of the DYEC writer contract"
+    status_path.write_text(json.dumps(status), encoding="utf-8")
     _activate(monkeypatch)
     monkeypatch.setattr("daylily_ec.analysis_status.shutil.which", lambda _name: None)
 

@@ -68,6 +68,27 @@ FAILED_STATES = {
 }
 ACTIVE_STATES = {"RUNNING", "CONFIGURING", "COMPLETING"}
 SAFE_WORKFLOW_IDENTIFIER_RE = re.compile(r"[A-Za-z0-9_.-]+")
+RUN_CONTROL_STATUS_REQUIRED_FIELDS = frozenset(
+    {
+        "session_name",
+        "repo_path",
+        "started_at",
+        "completed_at",
+        "exit_code",
+        "command",
+    }
+)
+RUN_CONTROL_STATUS_OPTIONAL_FIELDS = frozenset(
+    {
+        "workflow_completed_at",
+        "workflow_exit_code",
+        "snakemake_log_path",
+        "snakemake_log_attribution",
+    }
+)
+RUN_CONTROL_STATUS_ALLOWED_FIELDS = (
+    RUN_CONTROL_STATUS_REQUIRED_FIELDS | RUN_CONTROL_STATUS_OPTIONAL_FIELDS
+)
 
 
 def _normalized_slurm_state(value: Any) -> str:
@@ -726,15 +747,11 @@ def _controller_run_receipt(
         raise AnalysisStatusError(
             f"matched run-control status receipt is invalid: {status_path}: {exc}"
         ) from exc
-    required = {
-        "session_name",
-        "repo_path",
-        "started_at",
-        "completed_at",
-        "exit_code",
-        "command",
-    }
-    if not isinstance(payload, dict) or set(payload) != required:
+    if (
+        not isinstance(payload, dict)
+        or not RUN_CONTROL_STATUS_REQUIRED_FIELDS.issubset(payload)
+        or set(payload).difference(RUN_CONTROL_STATUS_ALLOWED_FIELDS)
+    ):
         raise AnalysisStatusError(
             f"matched run-control status receipt fields are invalid: {status_path}"
         )
@@ -766,6 +783,27 @@ def _controller_run_receipt(
     if return_code is not None and payload["completed_at"] is None:
         raise AnalysisStatusError(
             f"matched terminal run-control status has no completed_at: {status_path}"
+        )
+    for field in (
+        "workflow_completed_at",
+        "snakemake_log_path",
+        "snakemake_log_attribution",
+    ):
+        value = payload.get(field)
+        if value is not None and (not isinstance(value, str) or not value.strip()):
+            raise AnalysisStatusError(
+                f"matched run-control status {field} is invalid: {status_path}"
+            )
+    workflow_return_code = payload.get("workflow_exit_code")
+    if workflow_return_code is not None and (
+        isinstance(workflow_return_code, bool) or not isinstance(workflow_return_code, int)
+    ):
+        raise AnalysisStatusError(
+            f"matched run-control status workflow_exit_code is invalid: {status_path}"
+        )
+    if workflow_return_code is not None and payload.get("workflow_completed_at") is None:
+        raise AnalysisStatusError(
+            f"matched terminal workflow status has no workflow_completed_at: {status_path}"
         )
     result.update(
         {
