@@ -47,7 +47,7 @@ def test_hg002_bjuice_catalog_uses_verified_5x5x_fixture() -> None:
     assert "use_fq_data_up_to_hrs" not in command.dy_command
     assert "all supplied FASTQs are used" in command.description
     assert "full-coverage inputs must not be substituted" in command.description.casefold()
-    assert "schema-2.1 analytical Inflection package" in command.description
+    assert "schema-2.2 analytical Inflection package" in command.description
     assert profile.source_s3_uri_template.endswith("/bjuice_preval_2026/HG002/")
     assert any("f35e79a5601271f6" in note for note in profile.source_notes)
 
