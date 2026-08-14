@@ -1554,7 +1554,7 @@ repositories:
         input_contract: six_manifest
         requires_staging: true
         requires_run_mount: true
-        staging_receipt_required: true
+        staging_receipt_required: false
         runtime_parameters:
           ont_fastq_hour_window_mode: per_analysis_unit
           direct_ilmn_coverage_receipt_required: "true"
@@ -5271,7 +5271,7 @@ dyec_builds:
         input_contract: six_manifest
         requires_staging: true
         requires_run_mount: true
-        staging_receipt_required: true
+        staging_receipt_required: false
         runtime_parameters:
           ont_fastq_hour_window_mode: per_analysis_unit
           direct_ilmn_coverage_receipt_required: "true"
@@ -38318,7 +38318,7 @@ dyec_builds:
         input_contract: six_manifest
         requires_staging: true
         requires_run_mount: true
-        staging_receipt_required: true
+        staging_receipt_required: false
         runtime_parameters:
           ont_fastq_hour_window_mode: per_analysis_unit
           direct_ilmn_coverage_receipt_required: "true"
@@ -40194,7 +40194,7 @@ dyec_builds:
         input_contract: six_manifest
         requires_staging: true
         requires_run_mount: true
-        staging_receipt_required: true
+        staging_receipt_required: false
         runtime_parameters:
           ont_fastq_hour_window_mode: per_analysis_unit
           direct_ilmn_coverage_receipt_required: "true"
