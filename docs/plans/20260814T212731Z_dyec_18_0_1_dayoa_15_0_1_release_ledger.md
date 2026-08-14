@@ -19,5 +19,21 @@ Ledger path: `docs/plans/20260814T212731Z_dyec_18_0_1_dayoa_15_0_1_release_ledge
 |---|---|---|---|---|---|---|---|---|---|
 | DYEC-001 | CLI | Add the requested `dyec cluster jobs` aggregate read-only queue-count command, docs, and contracts. | SUCCESS | feature_implementation | Gate 1 | Codex | `daylily_ec/cli.py`; `README.md`; `docs/cli_reference.md`; `tests/test_cluster_info.py`; `tests/test_cli_registry_v2.py`; focused pytest -> `257 passed in 27.48s`. |  | The command reports per-cluster total/running/pending/other Slurm jobs through central read-only SSM calls; unavailable cluster states report `CLUSTER_NOT_READY`. |
 | DYEC-002 | Catalog | Pin the active DYEC DayOA catalog surfaces to remote annotated DayOA `15.0.1` without rewriting historical provenance. | SUCCESS | config_or_startup_contract | Gate 2 | Codex | Source/payload catalog parity check passed; each active catalog has `120` `15.0.1` references and zero active `14.0.22` references; 100 focused catalog-contract tests passed. |  | Only `repositories.daylily-omics-analysis` and `dyec_builds.current` moved to `15.0.1`; historical `17.0.29` remains explicitly pinned to `14.0.22`. |
-| DYEC-003 | Release | Commit, push, merge, and create/push the annotated DYEC `18.0.1` tag. | IN_PROGRESS | config_or_startup_contract | Gate 5 | Codex | Remote maximum numeric tag is `18.0.0`; candidate `18.0.1` is absent. |  |  |
-| DYEC-004 | Validation | Verify CLI/contracts, source-payload pin parity, PR checks, merge commit, and remote tag. | IN_PROGRESS | contract_test | Gate 5 | Codex | `pytest` -> `257 passed` and `100 passed`; catalog parity assertion and `git diff --check` passed; `compileall` passed; Ruff reports no diagnostics on changed Python lines. |  |  |
+| DYEC-003 | Release | Commit, push, merge, and create/push the annotated DYEC `18.0.1` tag. | SUCCESS | config_or_startup_contract | Gate 5 | Codex | PR #104 merged at `da72fb47f629beca3d7d64794264fe5daa609b30`; remote `18.0.1` tag object peels to the same commit and is type `tag`. |  | DYEC `18.0.1` is a published annotated release. |
+| DYEC-004 | Validation | Verify CLI/contracts, source-payload pin parity, PR checks, merge commit, and remote tag. | SUCCESS | contract_test | Gate 5 | Codex | `pytest` -> `257 passed` and `100 passed`; catalog parity assertion, `compileall`, and `git diff --check` passed; remote `main` semantic pin check passed; Ruff reports no diagnostics on changed Python lines. |  | Remote `main` has active DayOA `15.0.1` pins, source/payload blobs match, and historical `17.0.29` remains `14.0.22`. |
+
+## Final Report
+
+All rows terminal: yes
+
+Objective complete: yes
+
+Status counts:
+
+- SUCCESS: 4
+- DUPLICATE: 0
+- NO_LONGER_NEEDED: 0
+- FAIL: 0
+- BLOCKED: 0
+
+Released tag: DYEC `18.0.1` -> `da72fb47f629beca3d7d64794264fe5daa609b30`
