@@ -5216,6 +5216,26 @@ dyec_builds:
         metadata_overrides:
           display_name: Inflection BJuice HG002 Verified 5x+5x Analytical Product v0.2
           description: BJuice analytical-product alias of hiomr2_slim_kitchensink_mega for the verified HG002 5.862704556x Illumina plus receipt-bound 4.794169766x ONT fixture. It adds only the schema-2.2 analytical Inflection package target, sets analytical package mode, and binds the delivery batch to the explicit DYEC $ANALYSIS_ID. The base overlay uses only Sniffles2, LongReadSV, and TIDDIT for normalized TrusSV consensus and disables the retained legacy six-caller/NICU/Jasmine lanes. The checked-in HG002 analytical overlay explicitly selects FASTQ input and enables the three-caller consensus and Truvari lane; ONT time chunking remains opt-in and all supplied FASTQs are used when no start/end hours are provided. Full-coverage inputs must not be substituted. The command defaults to the quick 19-20 validation scope; replace 19-20 with 1-25 for full production coverage (23=X, 24=Y, and 25=M/MT as resolved from the reference FAI).
+          validation_runs:
+          - run_id: prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z
+            generated_at: "2026-08-14T10:25:45Z"
+            report_path: s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z/daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z/HG002-Z-HG002-ANALYSIS-UNIT-5X5X/package_manifest.json
+            ledger_path: docs/plans/20260814T080546Z_prod_cand_1703_hg002_slim5x5x_hiomr2_inflection_execution_ledger.md
+            cluster: prod-cand-1703
+            region: us-west-2
+            region_az: us-west-2c
+            dayec_tag: "17.0.19"
+            dayec_commit: 35531ab8ba0224932ba9f6a921b4779a7182862d
+            dayoa_tag: "14.0.14"
+            dayoa_commit: 8bbf0fe0b45918a65cb2c884c5b435bab0582cb1
+            tested_command: >-
+              DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]' hiomr2_inflection_package_mode=analytical "seqone_delivery_batch_id=$ANALYSIS_ID" -j 333 -T 0 -p --rerun-triggers mtime
+            status: success
+            dryrun_status: success
+            live_status: success
+            live_analysis_id: prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z
+            stage_or_context: s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z/
+            notes: "Attributable recovery controller exited rc=0. No-delete DRA task task-0ed9c6b1e8492244a succeeded, detached DRA dra-0031790513f4fa0ec, and exported package-manifest and Inflection MultiQC evidence were verified in S3."
           return_results: false
         extend:
           targets:
