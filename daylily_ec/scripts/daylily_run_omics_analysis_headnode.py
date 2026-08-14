@@ -1734,7 +1734,7 @@ verify_pinned_dayoa_checkout() {{
   # a source-mutation bypass.
   is_allowed_catalog_runtime_path() {{
     case "$1" in
-      .dyec/controller.log|config/specimens.tsv|config/samples.tsv|config/libraries.tsv|config/sequencing_inputs.tsv|config/analysis_units.tsv|config/analysis_unit_inputs.tsv|config/dyec_manifest_stage_receipt.json|config/day_profiles/slurm/.template-source.sha256)
+      .dyec/controller.log|analysis_artifacts.tsv|artifact_lineage.tsv|config/specimens.tsv|config/samples.tsv|config/libraries.tsv|config/sequencing_inputs.tsv|config/analysis_units.tsv|config/analysis_unit_inputs.tsv|config/dyec_manifest_stage_receipt.json|config/day_profiles/slurm/.template-source.sha256)
         return 0
         ;;
       *)
