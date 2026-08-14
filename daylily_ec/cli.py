@@ -6918,6 +6918,14 @@ def catalog_config_bjuice_v2_hg002_multi_au(
             "ilmn_direct_coverage_x."
         ),
     ),
+    retarget_plan_json: Optional[Path] = typer.Option(
+        None,
+        "--retarget-plan-json",
+        help=(
+            "Strict HG002 seven-AU measured-coverage retarget plan. When supplied, it must "
+            "declare every canonical AU and its verified one-step ILMN correction plus ONT window."
+        ),
+    ),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile for S3 listing."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region for S3 listing."),
     fsx_run_mount_root: str = typer.Option(
@@ -6948,6 +6956,7 @@ def catalog_config_bjuice_v2_hg002_multi_au(
             legacy_units_tsv=legacy_units_tsv.expanduser(),
             direct_ilmn_coverage_x=direct_ilmn_coverage_x,
             direct_ilmn_coverage_evidence=direct_ilmn_coverage_evidence.expanduser(),
+            retarget_plan_json=(retarget_plan_json.expanduser() if retarget_plan_json else None),
             profile=profile,
             region=region,
             fsx_run_mount_root=fsx_run_mount_root,
@@ -6962,6 +6971,7 @@ def catalog_config_bjuice_v2_hg002_multi_au(
             "analysis_unit_count": len(AU_MATRIX),
             "analysis_unit_labels": [label for label, _target, _start, _end in AU_MATRIX],
             "direct_ilmn_coverage_x": direct_ilmn_coverage_x,
+            "retarget_plan_json": str(retarget_plan_json) if retarget_plan_json else None,
         }
         if _json_mode():
             output.emit_json(payload)

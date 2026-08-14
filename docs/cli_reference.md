@@ -432,6 +432,34 @@ The direct-coverage evidence is a required terminal JSON receipt with schema `dy
 
 It writes `bjuice_v2_hg002_multi_au_manifest_receipt.json`, validates the six-manifest topology, leaves nullable live EUID fields blank, and fails hard if the evidence or source topology is incomplete or ambiguous.
 
+### Measured-coverage retargeting
+
+For a second Bjuice-v2 matrix, do **not** hand-edit `analysis_units.tsv`. Supply
+one strict plan to the same DYEC generator with `--retarget-plan-json`:
+
+```bash
+dyec --json catalog config-bjuice-v2-hg002-multi-au \
+  --output-dir ./config-hg002-bjuice-v2-retargeted \
+  --source-manifest-json /path/to/source_manifest_resolved.json \
+  --run-evidence-json /path/to/run_evidence_v2.json \
+  --library-run-matrix-tsv /path/to/bjuice_preval_library_run_matrix.tsv \
+  --sample-metadata-tsv /path/to/legacy_samples.tsv \
+  --legacy-units-tsv /path/to/legacy_units.tsv \
+  --direct-ilmn-coverage-x "$C_ILMN" \
+  --direct-ilmn-coverage-evidence /path/to/direct_ilmn_terminal_receipt.json \
+  --retarget-plan-json /path/to/hg002_bjuice_v2_retarget_plan.json \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION"
+```
+
+The plan schema is `dyec.bjuice_v2_hg002_retarget_plan.v1`. It must contain
+`sample_id: HG002`, a non-empty `source_analysis_id`, and exactly the seven
+canonical AU labels. Each row declares `target_ilmn_coverage_x`,
+`prior_measured_ilmn_coverage_x`, `prior_subsample_pct`, `subsample_pct`,
+`target_ont_coverage_x`, `ont_fq_start_hour`, and `ont_fq_end_hour`. DYEC
+rejects any plan whose fraction is not exactly
+`ROUND_DOWN(prior_subsample_pct * target_ilmn_coverage_x / prior_measured_ilmn_coverage_x, 12 places)`, whose target set changes, or whose ONT window is not a valid cumulative `[0,end)` interval. The direct-coverage receipt remains required as the source-input contract; it is not silently replaced by a measured/hybrid coverage value.
+
 ## Catalog discovery
 
 List commands:

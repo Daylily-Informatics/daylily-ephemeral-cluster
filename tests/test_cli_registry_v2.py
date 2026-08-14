@@ -5395,8 +5395,10 @@ def test_bjuice_v2_multi_au_manifest_cli_requires_direct_coverage_contract() -> 
     assert result.exit_code == 0
     assert "--direct-ilmn-coverage-x" in result.stdout
     assert "--direct-ilmn-coverage-evide" in result.stdout
+    assert "--retarget-plan-json" in result.stdout
     assert "--euid" not in result.stdout.lower()
     assert {
         "direct_ilmn_coverage_x",
         "direct_ilmn_coverage_evidence",
+        "retarget_plan_json",
     }.issubset(inspect.signature(cli_module.catalog_config_bjuice_v2_hg002_multi_au).parameters)
