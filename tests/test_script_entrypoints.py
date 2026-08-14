@@ -70,6 +70,8 @@ def _assert_immutable_pinned_dayoa_controller(script: str) -> None:
     assert "is_allowed_catalog_runtime_path()" in script
     for allowed_path in (
         ".dyec/controller.log",
+        "analysis_artifacts.tsv",
+        "artifact_lineage.tsv",
         "config/specimens.tsv",
         "config/samples.tsv",
         "config/libraries.tsv",
