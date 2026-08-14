@@ -31,6 +31,7 @@ HISTORICAL_BUILD_HASHES = {
     "17.0.6": "b8cb52a26e74a4757850f048d3f903df45393014cc596db50ad97ae27b4242b6",
     "17.0.7": "55d2e0e106dfb61f8aa38c28b8f4cf2c24b1efcbe486832fe9ca1666d1cf051f",
     "17.0.8": "6dac4a6f5724191ee1c930a07d209b29c90c1a8171b2574d0afc94e1628efc8e",
+    "17.0.9": "8065f45dec35d88277dba5e0d2b2995eaab84829b029fe337c25be0ce1001ce7",
 }
 
 
@@ -273,8 +274,8 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     assert CATALOG_PATH.read_bytes() == PACKAGED_CATALOG_PATH.read_bytes()
     raw = yaml.safe_load(source)
 
-    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.9"]
-    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["14.0.10"]
+    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.10"]
+    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["14.0.11"]
     assert raw["dyec_builds"]["17.0.2"]["dayoa_git_tags"] == ["14.0.3"]
     assert raw["dyec_builds"]["17.0.3"]["dayoa_git_tags"] == ["14.0.4"]
     assert raw["dyec_builds"]["17.0.4"]["dayoa_git_tags"] == ["14.0.6"]
@@ -282,6 +283,7 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     assert raw["dyec_builds"]["17.0.6"]["dayoa_git_tags"] == ["14.0.8"]
     assert raw["dyec_builds"]["17.0.7"]["dayoa_git_tags"] == ["14.0.9"]
     assert raw["dyec_builds"]["17.0.8"]["dayoa_git_tags"] == ["14.0.9"]
+    assert raw["dyec_builds"]["17.0.9"]["dayoa_git_tags"] == ["14.0.10"]
     assert OLD_DUPLICATED_ID not in raw["dyec_builds"]["current"]["commands"]
     assert OLD_DUPLICATED_ID not in raw["dyec_builds"]["current"]["aliases"]
     for build in ("16.1.82", "16.1.85", "16.1.86", "17.0.0", "17.0.1"):
