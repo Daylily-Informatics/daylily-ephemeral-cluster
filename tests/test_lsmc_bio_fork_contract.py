@@ -6,12 +6,12 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_DEFAULT_TAG = "14.0.14"
-DAYOA_VALIDATED_TAG = "14.0.14"
-BJUICE_V2_DAYOA_TAG = "14.0.15"
-DAYOA_HIGHEST_RELEASE_COMMIT = "8bbf0fe0b45918a65cb2c884c5b435bab0582cb1"
-ONT_DAYOA_TAG = "14.0.14"
-ONT_DAYOA_RELEASE_COMMIT = "8bbf0fe0b45918a65cb2c884c5b435bab0582cb1"
+DAYOA_DEFAULT_TAG = "14.0.16"
+DAYOA_VALIDATED_TAG = "14.0.16"
+BJUICE_V2_DAYOA_TAG = "14.0.16"
+DAYOA_HIGHEST_RELEASE_COMMIT = "ab8a66afa65a62b4d447ce583c9e44855b6be6dc"
+ONT_DAYOA_TAG = "14.0.16"
+ONT_DAYOA_RELEASE_COMMIT = "ab8a66afa65a62b4d447ce583c9e44855b6be6dc"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
     f"{_OLD_ORG}/daylily-omics-analysis",
@@ -108,10 +108,7 @@ def test_catalogs_and_dyec_repository_config_are_lsmc_bio_pinned() -> None:
             == BJUICE_V2_DAYOA_TAG
         )
         assert data["dyec_builds"]["16.1.82"]["dayoa_git_tags"] == ["13.4.31"]
-        assert data["dyec_builds"]["current"]["dayoa_git_tags"] == [
-            DAYOA_DEFAULT_TAG,
-            BJUICE_V2_DAYOA_TAG,
-        ]
+        assert data["dyec_builds"]["current"]["dayoa_git_tags"] == [DAYOA_DEFAULT_TAG]
         assert data["dyec_builds"]["16.1.85"]["dayoa_git_tags"] == ["13.4.33"]
         assert data["dyec_builds"]["16.1.86"]["dayoa_git_tags"] == ["13.4.34"]
         assert data["dyec_builds"]["17.0.0"]["dayoa_git_tags"] == ["14.0.0"]
@@ -128,7 +125,17 @@ def test_catalogs_and_dyec_repository_config_are_lsmc_bio_pinned() -> None:
         assert data["dyec_builds"]["17.0.11"]["dayoa_git_tags"] == ["14.0.13"]
         assert data["dyec_builds"]["17.0.12"]["dayoa_git_tags"] == ["14.0.13"]
         assert data["dyec_builds"]["17.0.13"]["dayoa_git_tags"] == ["14.0.14"]
-        assert data["dyec_builds"]["current"] == data["dyec_builds"]["17.0.15"]
+        assert data["dyec_builds"]["17.0.14"]["dayoa_git_tags"] == ["14.0.14"]
+        assert data["dyec_builds"]["17.0.15"]["dayoa_git_tags"] == [
+            "14.0.14",
+            "14.0.15",
+        ]
+        assert data["dyec_builds"]["17.0.16"]["dayoa_git_tags"] == ["14.0.16"]
+        assert data["dyec_builds"]["17.0.17"]["dayoa_git_tags"] == [
+            "14.0.14",
+            "14.0.15",
+        ]
+        assert data["dyec_builds"]["current"] == data["dyec_builds"]["17.0.18"]
         current = data["dyec_builds"]["current"]
         assert set(current["commands"]) | set(current["aliases"]) == set(commands)
         assert "hiomr2_slim_kitchensink_mega_inflection_analytical" not in commands
