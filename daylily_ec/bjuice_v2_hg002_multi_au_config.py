@@ -74,6 +74,16 @@ AU_MATRIX: tuple[tuple[str, Decimal, int, int], ...] = (
     ("15x5", Decimal("15"), 0, 24),
     ("15x10", Decimal("15"), 0, 19),
 )
+AU_ONT_TARGETS: Mapping[str, Decimal] = {
+    "p5xp5": Decimal("0.5"),
+    "1x1": Decimal("1"),
+    "3x3": Decimal("3"),
+    "5x5": Decimal("5"),
+    "10x5": Decimal("5"),
+    "15x5": Decimal("5"),
+    "15x10": Decimal("10"),
+}
+RETARGET_PLAN_SCHEMA = "dyec.bjuice_v2_hg002_retarget_plan.v1"
 
 
 def _parse_direct_coverage(value: str, *, field_name: str) -> Decimal:
@@ -105,6 +115,119 @@ def _format_subsample_pct(*, target_x: Decimal, coverage_x: Decimal, au_label: s
             f"target {target_x}x and coverage {coverage_x}x"
         )
     return format(rounded, "f")
+
+
+def _parse_subsample_pct(value: Any, *, field_name: str) -> Decimal:
+    parsed = _parse_direct_coverage(str(value or ""), field_name=field_name)
+    if parsed > 1:
+        raise BjuiceConfigError(f"{field_name} must not exceed 1; found {value!r}")
+    return parsed
+
+
+def _format_retargeted_subsample_pct(
+    *,
+    target_x: Decimal,
+    prior_measured_coverage_x: Decimal,
+    prior_subsample_pct: Decimal,
+    au_label: str,
+) -> str:
+    with localcontext() as context:
+        context.prec = 50
+        value = prior_subsample_pct * target_x / prior_measured_coverage_x
+    rounded = value.quantize(SUBSAMPLE_QUANTUM, rounding=ROUND_DOWN)
+    if rounded <= 0 or rounded > 1:
+        raise BjuiceConfigError(
+            f"AU {au_label} retargeted SUBSAMPLE_PCT must be in (0,1]; found {format(rounded, 'f')}"
+        )
+    return format(rounded, "f")
+
+
+def _load_retarget_plan(path: Path) -> Mapping[str, Mapping[str, Any]]:
+    """Load the explicit, fixed-seven-AU measurement-based retarget plan.
+
+    This contract deliberately rejects partial/general manifest edits. It only
+    accepts the canonical Bjuice-v2 labels and targets and proves that each
+    requested fraction is the decimal-round-down one-step correction derived
+    from the prior AU's measured Illumina coverage.
+    """
+    if not path.is_file():
+        raise BjuiceConfigError(f"retarget plan is missing: {path}")
+    payload = _read_json(path)
+    if payload.get("schema") != RETARGET_PLAN_SCHEMA:
+        raise BjuiceConfigError(f"retarget plan schema must be {RETARGET_PLAN_SCHEMA}")
+    if str(payload.get("sample_id") or "").strip() != HG002_SAMPLE_ID:
+        raise BjuiceConfigError("retarget plan must be for HG002")
+    if not str(payload.get("source_analysis_id") or "").strip():
+        raise BjuiceConfigError("retarget plan must declare source_analysis_id")
+    rows = payload.get("analysis_units")
+    if not isinstance(rows, list):
+        raise BjuiceConfigError("retarget plan analysis_units must be a list")
+    expected_targets = {label: target for label, target, _start, _end in AU_MATRIX}
+    if len(rows) != len(expected_targets):
+        raise BjuiceConfigError(f"retarget plan must contain exactly {len(expected_targets)} analysis units")
+    by_label: dict[str, Mapping[str, Any]] = {}
+    for row in rows:
+        if not isinstance(row, Mapping):
+            raise BjuiceConfigError("retarget plan analysis_units rows must be objects")
+        label = str(row.get("label") or "").strip()
+        if label in by_label:
+            raise BjuiceConfigError(f"retarget plan has duplicate AU label {label!r}")
+        by_label[label] = row
+    if set(by_label) != set(expected_targets):
+        raise BjuiceConfigError(
+            "retarget plan labels must exactly match the canonical AU matrix; found "
+            + ", ".join(sorted(by_label))
+        )
+    for label, target_x in expected_targets.items():
+        row = by_label[label]
+        declared_target = _parse_direct_coverage(
+            str(row.get("target_ilmn_coverage_x") or ""),
+            field_name=f"retarget plan {label} target_ilmn_coverage_x",
+        )
+        if declared_target != target_x:
+            raise BjuiceConfigError(
+                f"retarget plan {label} target_ilmn_coverage_x must be {target_x}; found {declared_target}"
+            )
+        prior_measured = _parse_direct_coverage(
+            str(row.get("prior_measured_ilmn_coverage_x") or ""),
+            field_name=f"retarget plan {label} prior_measured_ilmn_coverage_x",
+        )
+        prior_pct = _parse_subsample_pct(
+            row.get("prior_subsample_pct"), field_name=f"retarget plan {label} prior_subsample_pct"
+        )
+        actual_pct = _parse_subsample_pct(
+            row.get("subsample_pct"), field_name=f"retarget plan {label} subsample_pct"
+        )
+        expected_pct = _format_retargeted_subsample_pct(
+            target_x=target_x,
+            prior_measured_coverage_x=prior_measured,
+            prior_subsample_pct=prior_pct,
+            au_label=label,
+        )
+        if format(actual_pct.quantize(SUBSAMPLE_QUANTUM), "f") != expected_pct:
+            raise BjuiceConfigError(
+                f"retarget plan {label} subsample_pct must equal prior_subsample_pct * "
+                f"target_ilmn_coverage_x / prior_measured_ilmn_coverage_x rounded down: {expected_pct}"
+            )
+        declared_ont_target = _parse_direct_coverage(
+            str(row.get("target_ont_coverage_x") or ""),
+            field_name=f"retarget plan {label} target_ont_coverage_x",
+        )
+        if declared_ont_target != AU_ONT_TARGETS[label]:
+            raise BjuiceConfigError(
+                f"retarget plan {label} target_ont_coverage_x must be {AU_ONT_TARGETS[label]}; "
+                f"found {declared_ont_target}"
+            )
+        try:
+            start_hour = int(row.get("ont_fq_start_hour"))
+            end_hour = int(row.get("ont_fq_end_hour"))
+        except (TypeError, ValueError) as exc:
+            raise BjuiceConfigError(f"retarget plan {label} ONT hours must be integers") from exc
+        if start_hour != 0 or end_hour <= start_hour:
+            raise BjuiceConfigError(
+                f"retarget plan {label} requires a valid cumulative [0,end) ONT interval"
+            )
+    return by_label
 
 
 def _load_direct_ilmn_coverage_receipt(
@@ -191,6 +314,7 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
     legacy_units_tsv: Path,
     direct_ilmn_coverage_x: str,
     direct_ilmn_coverage_evidence: Path,
+    retarget_plan_json: Path | None = None,
     profile: str | None,
     region: str | None,
     fsx_run_mount_root: str = DEFAULT_FSX_RUN_MOUNT_ROOT,
@@ -199,8 +323,10 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
     """Write the fixed HG002 Bjuice v2 seven-AU DayOA six-manifest set.
 
     ``direct_ilmn_coverage_x`` must be the exact denominator in a terminal,
-    direct-only receipt.  It is not inferred from source FASTQs, read counts,
-    total coverage, or hybrid coverage.
+    direct-only receipt. It is not inferred from source FASTQs, read counts,
+    total coverage, or hybrid coverage. When ``retarget_plan_json`` is present,
+    its strict, measurement-derived fractions and ONT intervals replace only
+    the canonical defaults; the seven labels/targets remain immutable.
     """
 
     if output_dir.exists() and any(output_dir.iterdir()):
@@ -214,6 +340,7 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
         direct_ilmn_coverage_evidence,
         requested_coverage_x=coverage_x,
     )
+    retarget_plan = _load_retarget_plan(retarget_plan_json) if retarget_plan_json else None
     for au_label, target_x, _start_hour, _end_hour in AU_MATRIX:
         _format_subsample_pct(target_x=target_x, coverage_x=coverage_x, au_label=au_label)
 
@@ -466,11 +593,32 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
     generated_aus: list[dict[str, Any]] = []
     for au_label, target_x, start_hour, end_hour in AU_MATRIX:
         analysis_unit_uid = f"{HG002_SAMPLE_ID}-{au_label}"
-        subsample_pct = _format_subsample_pct(
-            target_x=target_x,
-            coverage_x=coverage_x,
-            au_label=au_label,
-        )
+        if retarget_plan:
+            retarget_row = retarget_plan[au_label]
+            subsample_pct = format(
+                _parse_subsample_pct(
+                    retarget_row["subsample_pct"],
+                    field_name=f"retarget plan {au_label} subsample_pct",
+                ).quantize(SUBSAMPLE_QUANTUM),
+                "f",
+            )
+            start_hour = int(retarget_row["ont_fq_start_hour"])
+            end_hour = int(retarget_row["ont_fq_end_hour"])
+            comment = (
+                f"Bjuice v2 HG002 AU {au_label}: measurement-retargeted direct ILMN target "
+                f"{target_x}x from prior {retarget_row['prior_measured_ilmn_coverage_x']}x; "
+                f"ONT target {retarget_row['target_ont_coverage_x']}x interval [{start_hour},{end_hour})."
+            )
+        else:
+            subsample_pct = _format_subsample_pct(
+                target_x=target_x,
+                coverage_x=coverage_x,
+                au_label=au_label,
+            )
+            comment = (
+                f"Bjuice v2 HG002 AU {au_label}: direct ILMN target {target_x}x / "
+                f"{coverage_x}x; ONT interval [{start_hour},{end_hour})."
+            )
         analysis_units.append(
             {
                 "ANALYSIS_UNIT_UID": analysis_unit_uid,
@@ -487,10 +635,7 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
                 "BWA_KMER": bwa_kmer,
                 "DEEP_MODEL": deep_model,
                 "MERGE_SINGLE": merge_single,
-                "ANALYSIS_UNIT_COMMENT": (
-                    f"Bjuice v2 HG002 AU {au_label}: direct ILMN target {target_x}x / "
-                    f"{coverage_x}x; ONT interval [{start_hour},{end_hour})."
-                ),
+                "ANALYSIS_UNIT_COMMENT": comment,
             }
         )
         for ordinal, sequencing_input in enumerate(sequencing_inputs, start=1):
@@ -509,6 +654,17 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
                 "subsample_pct": subsample_pct,
                 "ont_fq_start_hour": start_hour,
                 "ont_fq_end_hour": end_hour,
+                **(
+                    {
+                        "prior_measured_ilmn_coverage_x": str(
+                            retarget_plan[au_label]["prior_measured_ilmn_coverage_x"]
+                        ),
+                        "prior_subsample_pct": str(retarget_plan[au_label]["prior_subsample_pct"]),
+                        "target_ont_coverage_x": str(retarget_plan[au_label]["target_ont_coverage_x"]),
+                    }
+                    if retarget_plan
+                    else {}
+                ),
             }
         )
 
@@ -531,6 +687,16 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
         "direct_ilmn_coverage_x": str(coverage_x),
         "direct_ilmn_coverage_evidence": str(direct_ilmn_coverage_evidence),
         "direct_ilmn_coverage_evidence_sha256": _sha256(direct_ilmn_coverage_evidence),
+        "retarget_plan": (
+            {
+                "schema": RETARGET_PLAN_SCHEMA,
+                "path": str(retarget_plan_json),
+                "sha256": _sha256(retarget_plan_json),
+                "mode": "per_au_measured_coverage_one_step_correction",
+            }
+            if retarget_plan_json
+            else None
+        ),
         "subsample_rounding": {
             "mode": "ROUND_DOWN",
             "decimal_places": SUBSAMPLE_DECIMAL_PLACES,
