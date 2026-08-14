@@ -32,6 +32,9 @@ HISTORICAL_BUILD_HASHES = {
     "17.0.7": "55d2e0e106dfb61f8aa38c28b8f4cf2c24b1efcbe486832fe9ca1666d1cf051f",
     "17.0.8": "6dac4a6f5724191ee1c930a07d209b29c90c1a8171b2574d0afc94e1628efc8e",
     "17.0.9": "8065f45dec35d88277dba5e0d2b2995eaab84829b029fe337c25be0ce1001ce7",
+    "17.0.10": "9542314e9433e62020aa43f61e9375eb73ce7e7432f6cb1553c36d23daab027c",
+    "17.0.11": "45bdfcb75f6cc67bdbf7054ae29d63ad687d5c7abaa5bb7cb0bea9eabdbb278c",
+    "17.0.12": "0b1b6eb5bd1b00ce492c15cd18f91ce0cd1398deabe1e4e989d5398f441fceeb",
 }
 
 
@@ -93,7 +96,7 @@ def test_current_alias_resolves_to_an_analysis_command_and_renders_extensions() 
     assert alias.dryrun_dy_command == f"{alias.dy_command} -n"
     assert alias.display_name.startswith("Inflection BJuice")
     assert alias.description.startswith("BJuice analytical-product alias")
-    assert "schema-2.1 analytical Inflection package" in alias.description
+    assert "schema-2.2 analytical Inflection package" in alias.description
     assert alias.return_results is False
 
     previous_alias = catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.8")
@@ -274,8 +277,8 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     assert CATALOG_PATH.read_bytes() == PACKAGED_CATALOG_PATH.read_bytes()
     raw = yaml.safe_load(source)
 
-    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.11"]
-    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["14.0.13"]
+    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.13"]
+    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["14.0.14"]
     assert raw["dyec_builds"]["17.0.2"]["dayoa_git_tags"] == ["14.0.3"]
     assert raw["dyec_builds"]["17.0.3"]["dayoa_git_tags"] == ["14.0.4"]
     assert raw["dyec_builds"]["17.0.4"]["dayoa_git_tags"] == ["14.0.6"]
@@ -285,6 +288,8 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     assert raw["dyec_builds"]["17.0.8"]["dayoa_git_tags"] == ["14.0.9"]
     assert raw["dyec_builds"]["17.0.9"]["dayoa_git_tags"] == ["14.0.10"]
     assert raw["dyec_builds"]["17.0.10"]["dayoa_git_tags"] == ["14.0.11"]
+    assert raw["dyec_builds"]["17.0.11"]["dayoa_git_tags"] == ["14.0.13"]
+    assert raw["dyec_builds"]["17.0.12"]["dayoa_git_tags"] == ["14.0.13"]
     assert OLD_DUPLICATED_ID not in raw["dyec_builds"]["current"]["commands"]
     assert OLD_DUPLICATED_ID not in raw["dyec_builds"]["current"]["aliases"]
     for build in ("16.1.82", "16.1.85", "16.1.86", "17.0.0", "17.0.1"):

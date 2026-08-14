@@ -1,9 +1,9 @@
 # HIOMR2 Release, Export, and Validation Cycles Ledger
 
-Created: 2026-08-13T23:43:21Z  
-Owner: root release integrator / sole ledger writer  
-Cadence: one existing 20-minute heartbeat only  
-Cluster: `prod-cand-1703` (`lsmc`, `us-west-2`)  
+Created: 2026-08-13T23:43:21Z
+Owner: root release integrator / sole ledger writer
+Cadence: one existing 20-minute heartbeat only
+Cluster: `prod-cand-1703` (`lsmc`, `us-west-2`)
 Safety boundary: no PyPI; no Slurm intervention; no destructive FSx/S3 action; no headnode configure while any DayOA controller is active.
 
 ## Objective
@@ -60,7 +60,7 @@ Carry the active full-coverage recovery to attributable rc=0; release its proven
 | `SLACK-FRESH1-START-001` | G3 | PASS | Notify Mike/John after attributable Slurm jobs submit | [Mike/John DM](https://lsmchq.slack.com/archives/D0AQK8RB3D5/p1786673040994579); includes scope and non-stable gap-analysis caveat |
 | `FRESH1-MON-001` | G3 | PASS | Monitor every 20 minutes; diagnose and recover natural failures | sole heartbeat monitored the exact live3 root to natural terminal rc=0; no Slurm intervention |
 | `FRESH1-RC0-001` | G3 | PASS | Validate fresh run outputs at attributable rc=0 | manifest SHA256 `0e61a88d...`; 167 declared artifacts, 168 files including manifest, 0 missing/bad hashes/undeclared; 26 VCFs, 2 CRAMs, cross-format identity true; 26 packaged stats summaries; native MultiQC module present |
-| `REL-B-001` | G4 | IN_PROGRESS | If Fresh1 required source changes, release DayOA and DYEC as above; otherwise `NO_LONGER_NEEDED` | DayOA `14.0.14` annotated tag object `b05c5a2a...`, peel `8bbf0fe0...`; 1726 passed, 1 skipped; [pre-release](https://github.com/lsmc-bio/daylily-omics-analysis/releases/tag/14.0.14); DYEC pin/release pending |
+| `REL-B-001` | G4 | IN_PROGRESS | If Fresh1 required source changes, release DayOA and DYEC as above; otherwise `NO_LONGER_NEEDED` | DayOA `14.0.14` annotated tag object `b05c5a2a...`, peel `8bbf0fe0...`; 1726 passed, 1 skipped; [pre-release](https://github.com/lsmc-bio/daylily-omics-analysis/releases/tag/14.0.14). DYEC `17.0.13` candidate pins active/current to `14.0.14`, preserves `17.0.12` on `14.0.13`, and passed 331 focused tests; release pending |
 | `EXPORT-B-001` | G4 | OPEN | No-delete export of exact Fresh1 live analysis root | DRA/task/receipt/counts/full S3 prefix |
 | `INSTALL-B-001` | G4 | OPEN | Install/configure final Fresh1 release only after terminal controller | version/pin proof |
 | `SLACK-B-001` | G4 | OPEN | Send Fresh1 result, export, releases, and stability caveat | conversation/message URLs |
