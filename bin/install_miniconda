@@ -191,6 +191,13 @@ main() {
         "$conda_bin" init zsh
         echo "Configuring Conda automatic Terms of Service acceptance..."
         "$conda_bin" config --set plugins.auto_accept_tos true
+        echo "Configuring the supported Conda-Forge and Bioconda channel contract..."
+        "$conda_bin" config --add channels bioconda
+        "$conda_bin" config --add channels conda-forge
+        if "$conda_bin" config --show channels | grep -Fxq "  - defaults"; then
+            "$conda_bin" config --remove channels defaults
+        fi
+        "$conda_bin" config --set channel_priority strict
 
         bashrc="$HOME/.bashrc"
         bash_profile="$HOME/.bash_profile"

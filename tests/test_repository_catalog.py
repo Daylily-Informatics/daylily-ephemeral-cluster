@@ -14,9 +14,9 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "14.0.14"
-PRODUCTION_DAYOA_TAG = "14.0.14"
-BJUICE_V2_DAYOA_TAG = "14.0.15"
+DAYOA_BLESSED_TAG = "14.0.21"
+PRODUCTION_DAYOA_TAG = "14.0.21"
+BJUICE_V2_DAYOA_TAG = "14.0.21"
 PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
 SOLO_KITCHEN_SINK_DAYOA_TAG = PRODUCTION_DAYOA_TAG
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
@@ -210,10 +210,20 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
         not in {command.command_id for command in released_build}
     )
-    released_build = catalog.commands_for_dyec_build("17.0.15")
-    assert [command.model_dump() for command in released_build] == [
-        command.model_dump() for command in current_build
-    ]
+    prior_released_build = catalog.commands_for_dyec_build("17.0.15")
+    assert {command.git_tag for command in prior_released_build} == {
+        "14.0.14",
+        "14.0.15",
+    }
+    merged_pin_build = catalog.commands_for_dyec_build("17.0.16")
+    assert {command.git_tag for command in merged_pin_build} == {"14.0.16"}
+    intervening_build = catalog.commands_for_dyec_build("17.0.17")
+    assert {command.git_tag for command in intervening_build} == {
+        "14.0.14",
+        "14.0.15",
+    }
+    released_build = catalog.commands_for_dyec_build("17.0.18")
+    assert {command.git_tag for command in released_build} == {"14.0.16"}
     current_cg = catalog.get_command_for_dyec_build("complete_genomics_cg_snv_concordance")
     assert "produce_multiqc_all" in current_cg.targets
     assert catalog.result_export is not None
@@ -541,7 +551,16 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         if not command.validation_runs:
             assert command.command_id in UNVALIDATED_COMMAND_IDS
             continue
-        expected_validation_runs = 2 if command.command_id == "ultima_run_qc" else 1
+        expected_validation_runs = (
+            2
+            if command.command_id
+            in {
+                "complete_genomics_cg_snv_concordance",
+                "ont_run_qc",
+                "ultima_run_qc",
+            }
+            else 1
+        )
         assert len(command.validation_runs) == expected_validation_runs
         validation_run = command.validation_runs[0]
         if validation_run.run_id == "dayoa_2017_hg002_kitchensink_j200_readhapsfix2_151101":
@@ -1306,7 +1325,7 @@ def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() ->
     assert command.command_class == "sample_analysis"
     assert command.input_contract == "six_manifest"
     assert command.requires_staging is True
-    assert command.staging_receipt_required is True
+    assert command.staging_receipt_required is False
     assert command.requires_run_mount is True
     assert command.test_data_profile == "hg002_bjuice_v2_full_preval_run_mounts"
     assert command.targets == [

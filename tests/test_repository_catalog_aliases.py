@@ -277,8 +277,17 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     assert CATALOG_PATH.read_bytes() == PACKAGED_CATALOG_PATH.read_bytes()
     raw = yaml.safe_load(source)
 
-    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.15"]
-    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["14.0.14", "14.0.15"]
+    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.27"]
+    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["14.0.21"]
+    assert raw["dyec_builds"]["17.0.16"]["dayoa_git_tags"] == ["14.0.16"]
+    assert raw["dyec_builds"]["17.0.17"]["dayoa_git_tags"] == [
+        "14.0.14",
+        "14.0.15",
+    ]
+    assert raw["dyec_builds"]["17.0.15"]["dayoa_git_tags"] == [
+        "14.0.14",
+        "14.0.15",
+    ]
     assert raw["dyec_builds"]["17.0.14"]["dayoa_git_tags"] == ["14.0.14"]
     assert raw["dyec_builds"]["17.0.13"]["dayoa_git_tags"] == ["14.0.14"]
     assert raw["dyec_builds"]["17.0.2"]["dayoa_git_tags"] == ["14.0.3"]
