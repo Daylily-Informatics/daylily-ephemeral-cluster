@@ -40,8 +40,17 @@ commits as breaking-major prereleases DayOA 15.0.0 and DYEC 18.0.0.
 | DAYOA-1500 | Publish annotated breaking-major prerelease | SUCCESS | tag object `ea4831faa6082e79ac8138217caf3f0ea9fad924`; peeled merge `5f00d136de0a0082b94115762a6f03df4521ba98` |
 | DYEC-1729 | Verify 17.0.29 uniformly pins DayOA 14.0.22 | SUCCESS | tag object `1059c2bc995e20a4ca0b67aed2f94d5e5d94e154`; peeled release `e1a56a46ef06452126800ca43d306505c0805fce`; source/payload SHA-256 `a270199257864fb29bb98d1132898deb40f8df248b33646998d3072d7b50f587` |
 | ORPHAN-AUDIT | Reconcile recent source and worktree state | SUCCESS | unique work promoted; redundant operational files preserved; retired ledger supersession documented above |
-| DYEC-PR | Promote 17.0.29 release train to main | IN_PROGRESS | branch `codex/dyec-17.0.29-main-promotion` |
-| DYEC-1800 | Publish annotated breaking-major prerelease | PENDING | waits for normal PR merge and exact merged-main commit |
+| DYEC-PR | Promote 17.0.29 release train to main | SUCCESS | PR 102; merge `d14113c7fe26a98b236d54d84f28b41a20054b0f` |
+| DYEC-1800 | Publish annotated breaking-major prerelease | SUCCESS | tag object `581d1281bfcc82dedd9fbe7bf3cd4cc5cab0856c`; peeled merge `d14113c7fe26a98b236d54d84f28b41a20054b0f` |
 
 The running Bjuice controller, Slurm jobs, analysis root, export monitor, and
 Slack thread are outside this source-release lane and are not modified here.
+
+## Final acceptance
+
+All ledger rows terminal: yes.
+
+Objective complete: yes. DayOA prerelease:
+`https://github.com/lsmc-bio/daylily-omics-analysis/releases/tag/15.0.0`.
+DYEC prerelease:
+`https://github.com/lsmc-bio/daylily-ephemeral-cluster/releases/tag/18.0.0`.
