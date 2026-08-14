@@ -18,8 +18,8 @@ BASE_ID = "hiomr2_slim_kitchensink_mega"
 ALIAS_ID = "inflection-bjuice-product-v0.2"
 OLD_DUPLICATED_ID = "hiomr2_slim_kitchensink_mega_inflection_analytical"
 HISTORICAL_BUILD_HASHES = {
-    "16.1.81": "f3f1293ef9621dbe1ef8ae97c56ea653dceff61cbc87dbaca1450eaf59fb9e2e",
-    "16.1.82": "52fc687de80a95312ec3d5b4babe3695647684902fa27e197864fd52917568dc",
+    "16.1.81": "219606c84c6a24b12ad84499580788b46301549b9c521c3583a6ddf07c869fc9",
+    "16.1.82": "106dded9e9d8329966d418b08217c0d674ec22fb5795388565ce7e6f7b511ed5",
     "16.1.85": "67ae45a0184c0f1e316616ddcf239479aa50f9a4635eb6da86d2ee3588d7c747",
     "16.1.86": "3386317b17f07335e4decf339ad54a6120f7ad3ec99f1e3e24ec21e9629b3f10",
     "17.0.0": "4b8766a3a4c639c99c08fb702a391b5cbb6455921c2d3e333f0b8953387bc384",
@@ -277,8 +277,8 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     assert CATALOG_PATH.read_bytes() == PACKAGED_CATALOG_PATH.read_bytes()
     raw = yaml.safe_load(source)
 
-    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.28"]
-    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["14.0.21"]
+    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["17.0.29"]
+    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["14.0.22"]
     assert raw["dyec_builds"]["17.0.16"]["dayoa_git_tags"] == ["14.0.16"]
     assert raw["dyec_builds"]["17.0.17"]["dayoa_git_tags"] == [
         "14.0.14",

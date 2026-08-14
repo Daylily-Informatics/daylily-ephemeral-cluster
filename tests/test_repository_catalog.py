@@ -14,9 +14,9 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "14.0.21"
-PRODUCTION_DAYOA_TAG = "14.0.21"
-BJUICE_V2_DAYOA_TAG = "14.0.21"
+DAYOA_BLESSED_TAG = "14.0.22"
+PRODUCTION_DAYOA_TAG = "14.0.22"
+BJUICE_V2_DAYOA_TAG = "14.0.22"
 PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
 SOLO_KITCHEN_SINK_DAYOA_TAG = PRODUCTION_DAYOA_TAG
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
@@ -600,6 +600,25 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert "run_context_only=true" in validation_run.tested_command
             assert "bclconvert" not in validation_run.tested_command.lower()
             continue
+        if (
+            validation_run.run_id
+            == "prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z"
+        ):
+            assert command.command_id == "inflection-bjuice-product-v0.2"
+            assert validation_run.cluster == "prod-cand-1703"
+            assert validation_run.region == "us-west-2"
+            assert validation_run.region_az == "us-west-2c"
+            assert validation_run.dayec_tag == "17.0.19"
+            assert validation_run.dayoa_tag == "14.0.14"
+            assert validation_run.dayoa_commit == "8bbf0fe0b45918a65cb2c884c5b435bab0582cb1"
+            assert validation_run.status == "success"
+            assert validation_run.dryrun_status == "success"
+            assert validation_run.live_status == "success"
+            assert validation_run.live_analysis_id == validation_run.run_id
+            assert "produce_sentdhiomr2_slim_kitchensink_mega" in validation_run.tested_command
+            assert "produce_sentdhiomr2_inflection_analytical_package" in validation_run.tested_command
+            assert command.git_tag == DAYOA_BLESSED_TAG
+            continue
         assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
         assert validation_run.report_path == "docs/tstver411b_command_catalog_test_results.md"
         assert (
@@ -1020,7 +1039,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical"
     )
     assert inflection_bjuice.sample_manifest_template == ""
-    assert inflection_bjuice.validation_runs == []
+    assert [run.run_id for run in inflection_bjuice.validation_runs] == [
+        "prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z"
+    ]
     assert inflection_bjuice.test_data_profile == "hg002_bjuice_verified_5x5x_fastq"
     assert (
         inflection_bjuice.manifest_dir_template
