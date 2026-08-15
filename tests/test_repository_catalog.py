@@ -1386,6 +1386,9 @@ def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() ->
     assert profile.run_context_source_s3_column == ""
     assert profile.run_context_mount_id_column == ""
     assert catalog.dyec_builds["current"].commands[command_id].model_dump() == command.model_dump()
+    snapshot_command = catalog.get_command_for_dyec_build(command_id, "18.0.6")
+    assert snapshot_command.git_tag == BJUICE_V2_DAYOA_TAG
+    assert snapshot_command.validated_version == BJUICE_V2_DAYOA_TAG
     assert command_id not in catalog.dyec_builds["current"].aliases
     assert command_id not in catalog.dyec_builds["17.0.14"].commands
     assert command_id in catalog.dyec_builds["17.0.15"].commands
