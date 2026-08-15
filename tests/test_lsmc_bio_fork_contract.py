@@ -8,7 +8,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 _OLD_ORG = "Daylily-" + "Informatics"
 DAYOA_DEFAULT_TAG = "15.0.1"
 DAYOA_VALIDATED_TAG = "15.0.1"
-BJUICE_V2_DAYOA_TAG = "15.0.1"
+BJUICE_V2_DAYOA_TAG = "15.0.2"
 DAYOA_HIGHEST_RELEASE_COMMIT = "c0f8d4f16a2f123c0740c7743b504e0f4e7caac2"
 ONT_DAYOA_TAG = "15.0.1"
 ONT_DAYOA_RELEASE_COMMIT = "c0f8d4f16a2f123c0740c7743b504e0f4e7caac2"
@@ -108,7 +108,10 @@ def test_catalogs_and_dyec_repository_config_are_lsmc_bio_pinned() -> None:
             == BJUICE_V2_DAYOA_TAG
         )
         assert data["dyec_builds"]["16.1.82"]["dayoa_git_tags"] == ["13.4.31"]
-        assert data["dyec_builds"]["current"]["dayoa_git_tags"] == [DAYOA_DEFAULT_TAG]
+        assert data["dyec_builds"]["current"]["dayoa_git_tags"] == [
+            DAYOA_DEFAULT_TAG,
+            BJUICE_V2_DAYOA_TAG,
+        ]
         assert data["dyec_builds"]["16.1.85"]["dayoa_git_tags"] == ["13.4.33"]
         assert data["dyec_builds"]["16.1.86"]["dayoa_git_tags"] == ["13.4.34"]
         assert data["dyec_builds"]["17.0.0"]["dayoa_git_tags"] == ["14.0.0"]

@@ -278,7 +278,7 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     raw = yaml.safe_load(source)
 
     assert raw["dyec_builds"]["current"] != raw["dyec_builds"]["17.0.29"]
-    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["15.0.1"]
+    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["15.0.1", "15.0.2"]
     assert raw["dyec_builds"]["17.0.29"]["dayoa_git_tags"] == ["14.0.22"]
     assert raw["dyec_builds"]["17.0.16"]["dayoa_git_tags"] == ["14.0.16"]
     assert raw["dyec_builds"]["17.0.17"]["dayoa_git_tags"] == [
