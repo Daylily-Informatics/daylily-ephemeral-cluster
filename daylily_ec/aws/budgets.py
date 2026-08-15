@@ -14,6 +14,7 @@ Two budget types:
 from __future__ import annotations
 
 import logging
+from decimal import Decimal, InvalidOperation
 from typing import Any, Dict, List
 
 from daylily_ec.state.models import CheckResult, CheckStatus
@@ -162,6 +163,56 @@ def create_budget(
     budget = _build_budget_dict(budget_name, amount, cluster_name)
     budgets_client.create_budget(AccountId=account_id, Budget=budget)
     log.info("Created budget '%s' (%s USD/month)", budget_name, amount)
+
+
+def update_budget_limit(
+    budgets_client: Any,
+    account_id: str,
+    budget_name: str,
+    amount: str,
+) -> Dict[str, Any]:
+    """Replace the monthly limit of an existing AWS Budget.
+
+    AWS Budgets returns read-only fields from ``describe_budget`` which cannot
+    be sent back to ``update_budget``. Preserve only the documented mutable
+    budget contract and change only ``BudgetLimit``.
+    """
+
+    try:
+        normalized_amount = Decimal(str(amount))
+    except (InvalidOperation, ValueError) as exc:
+        raise ValueError("budget amount must be a positive USD decimal") from exc
+    if not normalized_amount.is_finite() or normalized_amount <= 0:
+        raise ValueError("budget amount must be a positive USD decimal")
+
+    existing = describe_budget(budgets_client, account_id, budget_name)
+    if existing is None:
+        raise ValueError(f"AWS Budget '{budget_name}' does not exist")
+
+    mutable_fields = (
+        "BudgetName",
+        "BudgetType",
+        "CostFilters",
+        "CostTypes",
+        "TimeUnit",
+        "TimePeriod",
+        "PlannedBudgetLimits",
+        "BillingViewArn",
+        "AutoAdjustData",
+    )
+    new_budget = {
+        field: existing[field]
+        for field in mutable_fields
+        if field in existing and existing[field] is not None
+    }
+    new_budget["BudgetName"] = budget_name
+    new_budget["BudgetLimit"] = {
+        "Amount": format(normalized_amount, "f"),
+        "Unit": str((existing.get("BudgetLimit") or {}).get("Unit") or "USD"),
+    }
+    budgets_client.update_budget(AccountId=account_id, NewBudget=new_budget)
+    log.info("Updated budget '%s' to %s USD/month", budget_name, new_budget["BudgetLimit"]["Amount"])
+    return new_budget
 
 
 def create_notifications(

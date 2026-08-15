@@ -3096,6 +3096,58 @@ def unset_vars(
         typer.echo(f"Cleared {', '.join(affected)}; removed empty {context.path}")
 
 
+def aws_budget_set_limit(
+    name: str = typer.Argument(..., help="Existing AWS Budget name (cluster name for DYEC clusters)."),
+    monthly_cap_usd: str = typer.Option(..., "--monthly-cap-usd", help="Replacement monthly USD cap."),
+    profile: Optional[str] = context_option(
+        "aws_profile",
+        None,
+        "--profile",
+        help="AWS CLI profile.",
+        required=True,
+    ),
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
+        "--region",
+        help="AWS Budgets home region.",
+        required=True,
+    ),
+) -> None:
+    """Replace an existing AWS Budget's monthly limit."""
+
+    from daylily_ec.aws.budgets import describe_budget, update_budget_limit
+    from daylily_ec.aws.context import AWSContext
+
+    try:
+        aws_ctx = AWSContext.build_region(str(region), profile=profile)
+        before = describe_budget(aws_ctx.client("budgets"), aws_ctx.account_id, name)
+        if before is None:
+            raise ValueError(f"AWS Budget '{name}' does not exist")
+        updated = update_budget_limit(
+            aws_ctx.client("budgets"),
+            aws_ctx.account_id,
+            name,
+            monthly_cap_usd,
+        )
+        after = describe_budget(aws_ctx.client("budgets"), aws_ctx.account_id, name)
+        if after is None:
+            raise RuntimeError(f"AWS Budget '{name}' disappeared after update")
+    except (RuntimeError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    payload = {
+        "budget_name": name,
+        "previous_monthly_cap_usd": str((before.get("BudgetLimit") or {}).get("Amount") or ""),
+        "monthly_cap_usd": str((after.get("BudgetLimit") or {}).get("Amount") or ""),
+        "region": str(region),
+    }
+    if _json_mode():
+        output.emit_json(payload)
+    else:
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+
+
 def aws_audit_api_calls(
     profile: Optional[str] = context_option(
         "aws_profile",
@@ -10307,6 +10359,18 @@ def register(registry, cli_spec) -> None:
         "aws",
         "AWS readiness validation helpers.",
         [],
+    )
+    register_group_commands(
+        registry,
+        "aws/budget",
+        "AWS Budget inspection and limit management.",
+        [
+            (
+                "set-limit",
+                aws_budget_set_limit,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+        ],
     )
     register_group_commands(
         registry,
