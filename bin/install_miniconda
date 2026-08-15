@@ -120,6 +120,7 @@ main() {
     local installer_label=""
     local installer_sha256=""
     local conda_bin=""
+    local configured_channels=""
     local bashrc bash_profile
     local bashrc_has_block=false
     local bash_profile_has_block=false
@@ -194,7 +195,9 @@ main() {
         echo "Configuring the supported Conda-Forge and Bioconda channel contract..."
         "$conda_bin" config --add channels bioconda
         "$conda_bin" config --add channels conda-forge
-        if "$conda_bin" config --show channels | grep -Fxq "  - defaults"; then
+        configured_channels="$("$conda_bin" config --get channels)"
+        if printf '%s\n' "$configured_channels" \
+            | grep -Eq "^[[:space:]]*--add[[:space:]]+channels[[:space:]]+['\"]?defaults['\"]?([[:space:]]|$)"; then
             "$conda_bin" config --remove channels defaults
         fi
         "$conda_bin" config --set channel_priority strict
