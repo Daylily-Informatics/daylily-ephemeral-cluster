@@ -599,6 +599,19 @@ class AnalysisCommand(BaseModel):
     validation_evidence_s3_uri_prefix: str = ""
     artifact_registration: Optional[ArtifactRegistrationPolicy] = None
 
+    @property
+    def validation_pending(self) -> bool:
+        """Whether the target ref lacks matching recorded validation evidence."""
+
+        return self.git_tag != self.validated_version
+
+    def to_public_payload(self) -> Dict[str, Any]:
+        """Serialize one command with derived validation state for public CLI output."""
+
+        payload = self.model_dump(mode="json")
+        payload["validation_pending"] = self.validation_pending
+        return payload
+
     @field_validator(
         "command_id",
         "type",
@@ -1304,6 +1317,16 @@ class DyecBuildCommandSet(BaseModel):
             )
         return resolved
 
+    def to_public_payload(self) -> Dict[str, Any]:
+        """Serialize direct command pins with their derived validation state."""
+
+        payload = self.model_dump(mode="json")
+        payload["commands"] = {
+            command_id: command.to_public_payload()
+            for command_id, command in self.commands.items()
+        }
+        return payload
+
 
 class RepositoryDefinition(BaseModel):
     """A repository configured for explicit-ref day-clone launches."""
@@ -1319,6 +1342,15 @@ class RepositoryDefinition(BaseModel):
     default_ref: str
     relative_path: str
     analysis_commands: List[AnalysisCommand] = Field(default_factory=list)
+
+    def to_public_payload(self) -> Dict[str, Any]:
+        """Serialize repository commands with their derived validation state."""
+
+        payload = self.model_dump(mode="json")
+        payload["analysis_commands"] = [
+            command.to_public_payload() for command in self.analysis_commands
+        ]
+        return payload
 
     @model_validator(mode="after")
     def _validate_clone_auth(self) -> "RepositoryDefinition":
@@ -1582,14 +1614,14 @@ class RepositoryCatalog(BaseModel):
                 for key, profile in self.test_data_profiles.items()
             },
             "dyec_builds": {
-                build_version: command_set.model_dump(mode="json")
+                build_version: command_set.to_public_payload()
                 for build_version, command_set in self.dyec_builds.items()
             },
             "repositories": {
-                repo_key: repo.model_dump(mode="json")
+                repo_key: repo.to_public_payload()
                 for repo_key, repo in self.repositories.items()
             },
-            "commands": [command.model_dump(mode="json") for command in self.commands()],
+            "commands": [command.to_public_payload() for command in self.commands()],
         }
 
 

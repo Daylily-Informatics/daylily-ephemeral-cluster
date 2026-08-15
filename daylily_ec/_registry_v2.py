@@ -8,6 +8,8 @@ from typing import Any, Callable, Sequence, Tuple
 from cli_core_yo.registry import CommandRegistry
 from cli_core_yo.spec import CommandPolicy
 
+from daylily_ec.cli_context import contextualize_callback
+
 DAYLILY_EC_RUNTIME_TAG = "daylily-ec-runtime"
 
 EXEMPT = CommandPolicy(runtime_guard="exempt")
@@ -79,10 +81,11 @@ def register_group_commands(
     else:
         registry.add_group(group_path, help_text=group_help)
     for name, callback, policy in commands:
+        resolved_callback = contextualize_callback(callback)
         registry.add_command(
             group_path,
             name,
-            callback,
+            resolved_callback,
             help_text=help_text(callback),
             policy=policy,
         )
@@ -95,10 +98,11 @@ def register_root_command(
     policy: CommandPolicy,
 ) -> None:
     """Register a root-level command callback."""
+    resolved_callback = contextualize_callback(callback)
     registry.add_command(
         None,
         name,
-        callback,
+        resolved_callback,
         help_text=help_text(callback),
         policy=policy,
     )

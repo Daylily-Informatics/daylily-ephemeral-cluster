@@ -29,7 +29,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "15.0.1"
+DAYOA_BLESSED_TAG = "15.0.5"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -56,6 +56,8 @@ EXPECTED_COMMANDS = {
     ("identities", "evidence"),
     ("delete",),
     ("resources-dir",),
+    ("set-vars",),
+    ("unset-vars",),
     ("agent", "guidance"),
     ("env", "status"),
     ("env", "activate"),
@@ -967,8 +969,10 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "slurm_accounting": "on",
         "fail_on_sacct_error": False,
         "create_slurm_accounting_if_missing": False,
-        "acknowledge_slurm_accounting_create_cost": False,
-    }
+            "acknowledge_slurm_accounting_create_cost": False,
+            "budget_email_override": None,
+            "budget_email_fallback": None,
+        }
 
 
 def test_create_command_prints_and_info_logs_total_runtime(

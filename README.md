@@ -28,6 +28,31 @@ dyec agent guidance
 dyec --json catalog list
 ```
 
+### Optional project-local context
+
+When working repeatedly from one DYEC checkout, save the four recurring DYEC
+values in its ignored local context file rather than exporting a second set of
+environment variables:
+
+```bash
+dyec set-vars \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --region-az us-west-2d \
+  --cluster-admin-email operator@example.org
+
+dyec -v --json info
+```
+
+DYEC reads only `$PWD/.dyec.config.yaml`; it never reads or writes `DYEC_*`
+environment variables. For `--profile`, `--region`, and `--region-az`, an
+explicit flag wins over this local file, which wins over the command's existing
+behavior. A required option may therefore be omitted only when its matching
+local value is present. Use explicit flags to override the local context for
+one command, `dyec unset-vars --region` to clear one value, or
+`dyec unset-vars` to clear the file. `-v` prints the resolved local-context
+diagnostic to stderr before the subcommand, preserving JSON stdout.
+
 Use `--cluster` for DYEC commands. Keep `--cluster-name` for tools such as `pcluster` that require that spelling.
 
 ## Safety contracts
@@ -49,7 +74,7 @@ Run `dyec --help` for the live list. Current major groups are:
 
 | Group | Purpose |
 |---|---|
-| `version`, `info`, `runtime`, `env`, `resources-dir`, `state` | Local/runtime introspection. |
+| `version`, `info`, `runtime`, `env`, `resources-dir`, `state`, `set-vars`, `unset-vars` | Local/runtime introspection and per-checkout local context. |
 | `preflight`, `create`, `drift`, `delete` | Cluster lifecycle. |
 | `cluster`, `cluster-info` | ParallelCluster inspection and tag helpers. |
 | `headnode` | SSM-backed headnode connection, command execution, file transfer, and observability. |
@@ -172,6 +197,11 @@ and `dryrun_dy_command`. Alias chains, cycles, cross-build references, missing
 bases, duplicate IDs, mixed extension/replacement modes, and partial command
 replacements fail catalog validation. Existing catalog APIs return aliases as
 fully resolved `AnalysisCommand` records.
+
+The active catalog targets DayOA `15.0.5`. Public catalog output includes a
+derived `validation_pending` field: `true` means the command now targets a
+different DayOA tag than its retained `validated_version`. It is a visibility
+signal only; it does not relabel older validation receipts or block a launch.
 
 Each command may declare an explicit `validation_evidence_s3_uri_prefix`. The
 prefix must contain `command_registry.json` and `summary.json` from a successful

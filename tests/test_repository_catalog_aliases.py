@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -84,6 +85,8 @@ def test_current_alias_resolves_to_an_analysis_command_and_renders_extensions() 
     assert ALIAS_ID not in build.commands
     assert ALIAS_ID in build.aliases
     assert build.aliases[ALIAS_ID].alias_of == BASE_ID
+    assert base.git_tag == "15.0.5"
+    assert alias.git_tag == base.git_tag
     assert base.targets == ["produce_sentdhiomr2_slim_kitchensink_mega"]
     assert alias.targets == [
         "produce_sentdhiomr2_slim_kitchensink_mega",
@@ -276,9 +279,42 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     source = CATALOG_PATH.read_text(encoding="utf-8")
     assert CATALOG_PATH.read_bytes() == PACKAGED_CATALOG_PATH.read_bytes()
     raw = yaml.safe_load(source)
+    baseline_source = subprocess.check_output(
+        ["git", "show", "18.0.8:config/daylily_pipeline_command_catalog.yaml"],
+        cwd=REPO_ROOT,
+        text=True,
+    )
+    baseline = yaml.safe_load(baseline_source)
 
     assert raw["dyec_builds"]["current"] != raw["dyec_builds"]["17.0.29"]
-    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["15.0.1", "15.0.3"]
+    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == "15.0.5"
+    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["15.0.5"]
+    assert {
+        command["git_tag"]
+        for command in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]
+    } == {"15.0.5"}
+    assert {
+        command["git_tag"]
+        for command in raw["dyec_builds"]["current"]["commands"].values()
+    } == {"15.0.5"}
+    top_level_commands = {
+        command["command_id"]
+        for command in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]
+    }
+    baseline_top_level_commands = {
+        command["command_id"]: command
+        for command in baseline["repositories"]["daylily-omics-analysis"]["analysis_commands"]
+    }
+    for command in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]:
+        baseline_command = baseline_top_level_commands[command["command_id"]]
+        assert command["validated_version"] == baseline_command["validated_version"]
+        assert command.get("validation_runs", []) == baseline_command.get("validation_runs", [])
+    assert top_level_commands == set(baseline_top_level_commands)
+    for command_id, command in raw["dyec_builds"]["current"]["commands"].items():
+        baseline_command = baseline["dyec_builds"]["current"]["commands"][command_id]
+        assert command["validated_version"] == baseline_command["validated_version"]
+        assert command.get("validation_runs", []) == baseline_command.get("validation_runs", [])
+    assert raw["dyec_builds"]["current"]["aliases"] == baseline["dyec_builds"]["current"]["aliases"]
     assert raw["dyec_builds"]["17.0.29"]["dayoa_git_tags"] == ["14.0.22"]
     assert raw["dyec_builds"]["17.0.16"]["dayoa_git_tags"] == ["14.0.16"]
     assert raw["dyec_builds"]["17.0.17"]["dayoa_git_tags"] == [
@@ -308,6 +344,16 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
         assert OLD_DUPLICATED_ID in raw["dyec_builds"][build]["commands"]
 
     blocks = _raw_build_blocks(source)
+    baseline_blocks = _raw_build_blocks(baseline_source)
+    assert {
+        build: hashlib.sha256(blocks[build]).hexdigest()
+        for build in blocks
+        if build != "current"
+    } == {
+        build: hashlib.sha256(baseline_blocks[build]).hexdigest()
+        for build in baseline_blocks
+        if build != "current"
+    }
     assert {
         build: hashlib.sha256(blocks[build]).hexdigest() for build in HISTORICAL_BUILD_HASHES
     } == HISTORICAL_BUILD_HASHES

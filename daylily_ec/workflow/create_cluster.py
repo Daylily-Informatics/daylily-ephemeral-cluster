@@ -29,7 +29,7 @@ import os as _os
 import re
 import shlex
 import subprocess
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -2372,6 +2372,7 @@ def _resolve_post_create_inputs(
     cluster_name: str,
     disable_budget_enforcement: bool,
     slurm_accounting: str,
+    heartbeat_email_default: Optional[str] = None,
 ) -> _PostCreateInputs:
     """Resolve budget and heartbeat inputs once before the create phase."""
     if disable_budget_enforcement:
@@ -2397,6 +2398,7 @@ def _resolve_post_create_inputs(
         )
         or budget_email_default
     )
+    configured_budget_email = _resolve_nonprompt_config_value(cfg, "budget_email", "")
     budget_amount = (
         _resolve_config_value(
             cfg,
@@ -2468,17 +2470,22 @@ def _resolve_post_create_inputs(
                 raise ValueError("cost_center_allowed_users entries must not contain whitespace.")
         except (CostCenterError, InvalidOperation, ValueError) as exc:
             raise ValueError(f"Invalid cost-center input: {exc}") from exc
+    heartbeat_default = (
+        budget_email
+        if configured_budget_email
+        else (heartbeat_email_default or budget_email)
+    )
     heartbeat_email = (
         _resolve_config_value(
             cfg,
             "heartbeat_email",
             "Heartbeat email",
             non_interactive=non_interactive,
-            default_fallback=budget_email,
+            default_fallback=heartbeat_default,
             required=False,
             allow_empty=True,
         )
-        or budget_email
+        or heartbeat_default
     )
     heartbeat_schedule = (
         _resolve_config_value(
@@ -2582,6 +2589,8 @@ def run_create_workflow(
     fail_on_sacct_error: bool = False,
     create_slurm_accounting_if_missing: bool = False,
     acknowledge_slurm_accounting_create_cost: bool = False,
+    budget_email_override: Optional[str] = None,
+    budget_email_fallback: Optional[str] = None,
 ) -> int:
     """End-to-end cluster creation: preflight → create → post-create.
 
@@ -2732,12 +2741,18 @@ def run_create_workflow(
         post_create_inputs = _resolve_post_create_inputs(
             cfg,
             non_interactive=non_interactive,
-            budget_email_default=_default_budget_email(),
+            budget_email_default=(budget_email_fallback or _default_budget_email()),
+            heartbeat_email_default=_default_budget_email(),
             allowed_budget_users_default="ubuntu",
             cluster_name=cluster_name,
             disable_budget_enforcement=disable_budget_enforcement,
             slurm_accounting=slurm_accounting,
         )
+        if (budget_email_override or "").strip():
+            post_create_inputs = replace(
+                post_create_inputs,
+                budget_email=budget_email_override.strip(),
+            )
     except ValueError as exc:
         logger.error("Create input validation failed: %s", exc)
         ui.fail(str(exc))

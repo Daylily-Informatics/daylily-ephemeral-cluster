@@ -70,6 +70,12 @@ EXAMPLES = {
     },
 }
 
+# This tracked legacy fixture is deliberately not launchable: it labels S3
+# reads as a mounted-reference pass-through source. The strict manifest
+# contract must continue to reject that shape until an actual headnode-visible
+# mounted source is supplied.
+NON_RUNNABLE_EXAMPLES = ("complete_genomics_solo_slim_mounted_reference_v1",)
+
 SOURCE_PATH_FIELDS = {
     module.PATH_TO_CONCORDANCE,
     module.CONCORDANCE_CONTROL_PATH,
@@ -163,6 +169,7 @@ def test_staging_example_manifests_have_supported_schema_and_s3_sources() -> Non
         "README.md",
         "complete_genomics_solo",
         "complete_genomics_solo_six_manifest_v1",
+        "complete_genomics_solo_slim_mounted_reference_v1",
         "hybrid_ilmn_ont",
         "hybrid_ilmn_ont_hg003_5x5x",
         "ilmn_hg002_solo",
@@ -195,6 +202,25 @@ def test_staging_example_manifests_have_supported_schema_and_s3_sources() -> Non
                     assert value.startswith(allowed_roots), (
                         f"{example_name} has unsupported source path in {field}: {value}"
                     )
+
+
+@pytest.mark.parametrize("example_name", NON_RUNNABLE_EXAMPLES)
+def test_legacy_mounted_reference_examples_fail_without_headnode_visible_sources(
+    monkeypatch: pytest.MonkeyPatch,
+    example_name: str,
+) -> None:
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+
+    with pytest.raises(
+        module.CommandError,
+        match="not headnode-visible. Use STAGE_DIRECTIVE=stage_data",
+    ):
+        module.load_manifest_rows(
+            _manifest_path(example_name),
+            reference_s3_uri="s3://lsmc-dayoa-references-usw2",
+            aws_env={},
+            debug=False,
+        )
 
 
 @pytest.mark.parametrize("example_name", EXAMPLES)

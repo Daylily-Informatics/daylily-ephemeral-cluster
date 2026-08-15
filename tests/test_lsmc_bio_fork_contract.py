@@ -6,12 +6,14 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_DEFAULT_TAG = "15.0.1"
+DAYOA_DEFAULT_TAG = "15.0.5"
 DAYOA_VALIDATED_TAG = "15.0.1"
-BJUICE_V2_DAYOA_TAG = "15.0.3"
-DAYOA_HIGHEST_RELEASE_COMMIT = "c0f8d4f16a2f123c0740c7743b504e0f4e7caac2"
-ONT_DAYOA_TAG = "15.0.1"
-ONT_DAYOA_RELEASE_COMMIT = "c0f8d4f16a2f123c0740c7743b504e0f4e7caac2"
+BJUICE_V2_DAYOA_TARGET_TAG = "15.0.5"
+BJUICE_V2_DAYOA_VALIDATED_TAG = "15.0.3"
+DAYOA_HIGHEST_RELEASE_COMMIT = "c4341516d1a228056b2331bb8524828d629dae27"
+ONT_DAYOA_TAG = "15.0.5"
+ONT_DAYOA_VALIDATED_TAG = "15.0.1"
+ONT_DAYOA_RELEASE_COMMIT = "c4341516d1a228056b2331bb8524828d629dae27"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
     f"{_OLD_ORG}/daylily-omics-analysis",
@@ -99,19 +101,16 @@ def test_catalogs_and_dyec_repository_config_are_lsmc_bio_pinned() -> None:
             commands[
                 "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
             ]["git_tag"]
-            == BJUICE_V2_DAYOA_TAG
+            == BJUICE_V2_DAYOA_TARGET_TAG
         )
         assert (
             commands[
                 "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
             ]["validated_version"]
-            == BJUICE_V2_DAYOA_TAG
+            == BJUICE_V2_DAYOA_VALIDATED_TAG
         )
         assert data["dyec_builds"]["16.1.82"]["dayoa_git_tags"] == ["13.4.31"]
-        assert data["dyec_builds"]["current"]["dayoa_git_tags"] == [
-            DAYOA_DEFAULT_TAG,
-            BJUICE_V2_DAYOA_TAG,
-        ]
+        assert data["dyec_builds"]["current"]["dayoa_git_tags"] == [DAYOA_DEFAULT_TAG]
         assert data["dyec_builds"]["16.1.85"]["dayoa_git_tags"] == ["13.4.33"]
         assert data["dyec_builds"]["16.1.86"]["dayoa_git_tags"] == ["13.4.34"]
         assert data["dyec_builds"]["17.0.0"]["dayoa_git_tags"] == ["14.0.0"]
@@ -176,4 +175,4 @@ def test_dayoa_commands_use_the_scoped_release_pins() -> None:
             DAYOA_VALIDATED_TAG
         }
         assert command_by_id["ont_run_qc"]["git_tag"] == ONT_DAYOA_TAG
-        assert command_by_id["ont_run_qc"]["validated_version"] == ONT_DAYOA_TAG
+        assert command_by_id["ont_run_qc"]["validated_version"] == ONT_DAYOA_VALIDATED_TAG
