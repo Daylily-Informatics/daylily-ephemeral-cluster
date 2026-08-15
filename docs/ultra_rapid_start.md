@@ -2,7 +2,7 @@
 
 Use this only when AWS setup, quotas, Session Manager, the DYEC config, and the
 selected DayOA command/input contract are already known-good. This is the
-`18.0.9` catalog-first path; it performs real cloud operations when `--dry-run`
+`18.0.10` catalog-first path; it performs real cloud operations when `--dry-run`
 is removed.
 
 ```bash

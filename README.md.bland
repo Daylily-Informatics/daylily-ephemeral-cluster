@@ -1,7 +1,7 @@
 # Daylily Ephemeral Cluster
 
 DYEC is the command-line control plane for short-lived AWS ParallelCluster
-bioinformatics environments. This concise guide describes the `18.0.9` release.
+bioinformatics environments. This concise guide describes the `18.0.10` release.
 Use [README.md](README.md) and [docs/cli_reference.md](docs/cli_reference.md)
 for the full operator contract.
 

@@ -10,7 +10,6 @@ from daylily_ec.cli import app
 from daylily_ec.repositories import load_repository_catalog
 from daylily_ec.versioning import get_version
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CURRENT_OPERATOR_DOCS = (
     REPO_ROOT / "README.md",
@@ -76,9 +75,10 @@ def _current_docs_text() -> str:
 def test_current_operator_docs_state_the_shipped_cli_and_catalog_versions() -> None:
     text = _current_docs_text()
     dayoa_tag = load_repository_catalog().repositories["daylily-omics-analysis"].default_ref
+    release_version = get_version().partition(".dev")[0].partition("+")[0]
 
-    assert get_version() == "18.0.9"
-    assert f"`{get_version()}`" in text
+    assert release_version == "18.0.10"
+    assert f"`{release_version}`" in text
     assert dayoa_tag == "15.0.5"
     assert f"`{dayoa_tag}`" in text
     assert "dyec set-vars" in text

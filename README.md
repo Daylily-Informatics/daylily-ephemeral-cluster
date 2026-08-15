@@ -1,6 +1,6 @@
 # Daylily Ephemeral Cluster
 
-Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the CLI control plane for short-lived AWS ParallelCluster bioinformatics work. Release `18.0.9` creates and configures clusters, mounts sequencing-run data into FSx, launches pinned workflow repositories on the headnode, monitors exact analysis roots, moves files between local and headnode storage, and exports finished results to S3 with receipts.
+Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the CLI control plane for short-lived AWS ParallelCluster bioinformatics work. Release `18.0.10` creates and configures clusters, mounts sequencing-run data into FSx, launches pinned workflow repositories on the headnode, monitors exact analysis roots, moves files between local and headnode storage, and exports finished results to S3 with receipts.
 
 DYEC is not an identity service and not a workflow engine. It does not require or contact a metadata or identity service. It consumes explicit local configuration, explicit manifests, explicit S3 paths, and explicit command-catalog entries. DayOA owns its workflow rules and `dy-r` execution. DYEC owns cluster/headnode orchestration and the launch/export envelope.
 
@@ -538,4 +538,4 @@ python -m pytest tests/test_cli_registry_v2.py -q
 git diff --check
 ```
 
-Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. The checked-in release baseline is `18.0.9`; choose any future version only through the explicit release process on a clean release commit.
+Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. The checked-in release baseline is `18.0.10`; choose any future version only through the explicit release process on a clean release commit.
