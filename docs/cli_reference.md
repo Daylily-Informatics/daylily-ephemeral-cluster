@@ -1,6 +1,6 @@
 # DYEC CLI Reference
 
-This document is the operator-facing reference for the current `dyec` command surface. It favors explicit commands and receipts over implicit state. `daylily-ec` may exist as a historical alias, but current docs and ledgers should use `dyec`.
+This document is the operator-facing reference for the `18.0.9` `dyec` command surface. It favors explicit commands and receipts over implicit state. `daylily-ec` is an installed compatibility entrypoint for the same CLI, but current docs and ledgers use `dyec`.
 
 ## Conventions
 
@@ -50,9 +50,11 @@ dyec -v --json info
 The file contains only `aws_profile`, `aws_region`, `aws_region_az`, and
 `cluster_admin_email`. DYEC reads only the file in the current working
 directory; it does not search parents and does not read or write `DYEC_*`
-environment variables. Blank values clear a key. Use `dyec unset-vars --region`
-to clear one key, or `dyec unset-vars` to clear all keys and remove
-the file once it is empty.
+environment variables. YAML must be a mapping with only those string keys;
+malformed YAML, unknown keys, and non-string values fail clearly. Blank and
+whitespace-only values clear a key. Use `dyec unset-vars --region` to clear one
+key, or `dyec unset-vars` to clear all keys and remove the file once it is
+empty.
 
 For every DYEC `--profile`, `--region`, and `--region-az` option, resolution is
 explicit flag, then project-local context, then the command's existing behavior.
@@ -88,8 +90,26 @@ Global options:
 | `--dry-run` | Plan without persistent changes when supported by that command. |
 | `--no-color` | Disable ANSI styling. |
 | `--debug` | Print debug diagnostics. |
+| `--version` | Print the installed DYEC version and exit. |
 | `-v`, `--verbose` | Print project-local context diagnostics to stderr before the subcommand. |
 | `--install-completion`, `--show-completion` | Shell completion setup. |
+
+## Command-group index
+
+The root help surface is intentionally broad. Use the following index before
+opening nested help:
+
+| Area | Commands |
+|---|---|
+| Local | `version`, `info`, `env`, `runtime`, `resources-dir`, `state`, `set-vars`, `unset-vars`, `agent guidance` |
+| Lifecycle | `preflight`, `create`, `drift`, `cluster-info`, `delete` |
+| Cluster/headnode | `cluster`, `headnode`, `slurm-accounting`, `cost-centers`, `pricing`, `aws` |
+| Workflow/catalog | `workflow`, `repositories`, `catalog`, `samples`, `identities`, `tests` |
+| FSx/analysis | `mounts`, `mount`, `export`, `exports`, `runtime-cache`, `analysis`, `command` |
+
+`cluster list --verbose` is a command-specific table-detail flag. It is
+different from root `dyec -v`, which reports local invocation context before
+the subcommand.
 
 ## Agent guidance
 
@@ -519,7 +539,7 @@ dyec --json catalog list --command-class run_analysis --type prod
 Show one command:
 
 ```bash
-dyec --json catalog show hybrid_ilmn_ont_hiomrs_kitchensink
+dyec --json catalog show hybrid_ilmn_ont_hiomr_kitchensink
 dyec --json catalog show package_inflection_hybrid_data
 dyec --json catalog show illumina_run_qc
 ```
@@ -546,7 +566,7 @@ receipt. Existing validation runs and receipt tags remain historical evidence.
 Render the exact `dyec workflow launch` argv without starting a controller:
 
 ```bash
-dyec --json catalog render hybrid_ilmn_ont_hiomrs_kitchensink \
+dyec --json catalog render hybrid_ilmn_ont_hiomr_kitchensink \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$CLUSTER" \
   --profile "$AWS_PROFILE" \
@@ -572,7 +592,7 @@ Useful options:
 | `--stage-dir` | Existing headnode/FSx staging directory. |
 | `--dy-config key=value` | Append one explicit DayOA/Snakemake config assignment. Repeatable. |
 | `--export-destination-s3-uri` | Optional auto-export root/destination. |
-| `--export-trigger none|on-success|always` | Auto-export trigger. |
+| `--export-trigger none|on-success|on-fail|all` | Auto-export trigger. |
 | `--replace-existing-analysis-dir` | Forward explicit replacement intent to workflow launch. |
 
 `--dy-config` accepts only explicit assignments like `key=value`; blank strings and free-form shell fragments fail.
@@ -580,7 +600,7 @@ Useful options:
 Example with DayOA runtime overrides:
 
 ```bash
-dyec --json catalog render hybrid_ilmn_ont_hiomrs_kitchensink \
+dyec --json catalog render hybrid_ilmn_ont_hiomr_kitchensink \
   --analysis-id bjuice-hg003-hg004-ds025-ont0to6 \
   --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
   --manifest-dir ./config-hg003-hg004-ds025 \
@@ -598,7 +618,7 @@ DYEC passes these overrides through; DayOA defines their workflow meaning.
 Launch a catalog-backed dry run:
 
 ```bash
-dyec --json catalog launch hybrid_ilmn_ont_hiomrs_kitchensink \
+dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$CLUSTER" \
   --profile "$AWS_PROFILE" \
@@ -614,7 +634,7 @@ dyec --json catalog launch hybrid_ilmn_ont_hiomrs_kitchensink \
 Launch live after the dry-run plan is reviewed:
 
 ```bash
-dyec --json catalog launch hybrid_ilmn_ont_hiomrs_kitchensink \
+dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$CLUSTER" \
   --profile "$AWS_PROFILE" \
@@ -641,7 +661,7 @@ dyec workflow launch \
   --cluster "$CLUSTER" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$CLUSTER" \
-  --git-tag 13.0.19 \
+  --git-tag 15.0.5 \
   --manifest-dir ./config \
   --payload-staging-s3-uri "$STAGING_S3_URI" \
   --session-name "$ANALYSIS_ID" \
@@ -855,11 +875,12 @@ Do not treat mount creation as timed out before 40 minutes; large DRAs can remai
 
 Run-QC commands use `input_contract: run_context`.
 
-Example `runs.tsv`:
+Every `run_context` file requires these exact TSV headers. A
+`run_dra_required` row uses `RUN_DIR` for the verified mounted path and
+`MOUNT_ID` for the explicit DRA mount identifier:
 
 ```tsv
-RUN_ID	PLATFORM	RUN_MOUNT
-20260722_LH00000_0001_AEXAMPLE	ILMN	/fsx/run_dir_mounts/20260722_LH00000_0001_AEXAMPLE
+RUNID	PLATFORM	RUN_DIR	SOURCE_S3_URI	MOUNT_ID	SAMPLE_SHEET	BASECALLING_STATE	RUN_STATUS	OUTPUT_ROOT	REGION	PROFILE
 ```
 
 Render Illumina, ONT, and Ultima run QC:
@@ -1094,7 +1115,7 @@ dyec --json tests command-catalog-performance \
 4. Render the catalog command:
 
    ```bash
-   dyec --json catalog render hybrid_ilmn_ont_hiomrs_kitchensink \
+   dyec --json catalog render hybrid_ilmn_ont_hiomr_kitchensink \
      --analysis-id "$ANALYSIS_ID" \
      --executing-entity "$CLUSTER" \
      --profile "$AWS_PROFILE" \
@@ -1109,7 +1130,7 @@ dyec --json tests command-catalog-performance \
 5. Launch the dry run:
 
    ```bash
-   dyec --json catalog launch hybrid_ilmn_ont_hiomrs_kitchensink \
+   dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
      --analysis-id "$ANALYSIS_ID" \
      --executing-entity "$CLUSTER" \
      --profile "$AWS_PROFILE" \
@@ -1132,7 +1153,7 @@ dyec --json tests command-catalog-performance \
 7. Launch live only if the plan is correct:
 
    ```bash
-   dyec --json catalog launch hybrid_ilmn_ont_hiomrs_kitchensink \
+   dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
      --analysis-id "$ANALYSIS_ID" \
      --executing-entity "$CLUSTER" \
      --profile "$AWS_PROFILE" \

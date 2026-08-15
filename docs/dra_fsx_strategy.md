@@ -91,29 +91,37 @@ flowchart LR
 
 ## Pipeline Catalog Flow
 
-`config/daylily_pipeline_command_catalog.yaml` defines repositories and launch profiles. The DayOA repository and every DayOA command are pinned to `10.0.69`.
+`config/daylily_pipeline_command_catalog.yaml` defines repositories and launch
+profiles. Its packaged copy under
+`daylily_ec/resources/payload/config/` must remain identical. The active DayOA
+repository and active command targets are pinned to `15.0.5`; older
+`validated_version` values remain historical evidence and appear as
+`validation_pending: true` when they differ from a current target.
 
 Catalog `test_data_profile` entries make the source-mount contract explicit.
 `default_mounted` profiles read from default cluster DRAs such as `/fsx/references`
-or `/fsx/control_data`. `run_dra_required` profiles require `runs.tsv`
-`SOURCE_S3_URI` and `MOUNT_ID`; DYEC must verify or create
-`/fsx/run_dir_mounts/<MOUNT_ID>/` before launch. `none` profiles do not consume
-external source data.
+or `/fsx/control_data`. `run_dra_required` profiles require the full
+`run_context` `runs.tsv` schema, including `RUNID`, `RUN_DIR`, `SOURCE_S3_URI`,
+and `MOUNT_ID`; DYEC must verify or create `/fsx/run_dir_mounts/<MOUNT_ID>/`
+before launch. `none` profiles do not consume external source data. See the
+[CLI reference](cli_reference.md#run-qc-catalog-commands) for the full header
+set.
 
 ```mermaid
 flowchart TB
-  Catalog["Repository catalog v2"] --> Repo["daylily-omics-analysis @ 10.0.69"]
+  Catalog["Repository catalog v6"] --> Repo["daylily-omics-analysis @ 15.0.5"]
   Repo --> Sample["sample_analysis"]
   Repo --> Run["run_analysis"]
 
-  Sample --> Manifest["analysis_samples.tsv"]
-  Manifest --> Stage["dyec samples stage/run"]
-  Stage --> TSV["samples.tsv + units.tsv"]
-  TSV --> LaunchA["dyec workflow launch --stage-dir"]
+  Sample --> Contract["catalog input_contract"]
+  Contract --> Six["six_manifest: --manifest-dir"]
+  Contract --> Legacy["sample_manifest: explicit staged input"]
+  Six --> LaunchA["catalog render/launch"]
+  Legacy --> LaunchA
 
   Run --> Mount["dyec mounts create/verify"]
   Mount --> Runs["runs.tsv"]
-  Runs --> LaunchB["dyec workflow launch --run-context-file"]
+  Runs --> LaunchB["catalog launch or workflow launch --input-contract run_context"]
 
   LaunchA --> DayOA["DayOA targets"]
   LaunchB --> DayOA

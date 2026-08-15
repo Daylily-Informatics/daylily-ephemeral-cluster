@@ -1,108 +1,112 @@
-# Overview
+# DYEC Overview
 
-DayEC is an operator-facing control plane for disposable AWS ParallelCluster environments. It creates the cluster, configures the headnode over Session Manager as `ubuntu`, launches Daylily workflows, and exports selected FSx results back to S3 before teardown.
+This is the living overview for DYEC `18.0.9`. The command surface is defined
+by `dyec --help`; [cli_reference.md](cli_reference.md) is the detailed
+operator reference. Dated release reports, archived documents, and plan ledgers
+retain historical evidence and are not current command guidance.
 
-## Current Model
+## Role and boundaries
 
-The current codebase is DRA-first:
+DYEC is the operator-facing control plane for ephemeral AWS ParallelCluster
+environments. It can create and inspect clusters, perform supported headnode
+operations, mount explicit S3 prefixes into FSx, launch pinned workflow
+repositories in tmux, observe exact analysis roots, and export finished output
+through an explicit FSx DRA.
 
-1. `dyec create` renders a ParallelCluster template with FSx for Lustre mounted at `/fsx`.
-2. Cluster creation adds exactly one startup `reference-data` DRA from `reference_s3_uri` to FSx API path `/references/`, visible as `/fsx/references`.
-3. `dyec mounts create <s3-uri>` can attach selected S3 run prefixes as ephemeral run DRAs under `/run_dir_mounts/<last-s3-folder>`, visible as `/fsx/run_dir_mounts/<last-s3-folder>`.
-4. `dyec workflow launch` starts DayOA work in tmux on the headnode and writes outputs under `/fsx/analysis_results/...`.
-5. `dyec export` creates a temporary output DRA directly on `/fsx/analysis_results/<executing_entity>/<analysis_id>`, runs an FSx `EXPORT_TO_REPOSITORY` task, writes `fsx_export.yaml`, and detaches the DRA.
-6. When requested by an explicit command-catalog `artifact_registration` policy, DYEC maps DayOA evidence-manifest relative paths through the export receipt and registers selected S3 artifacts with Dewey.
-7. `dyec delete` tears down the cluster after export verification.
+DYEC is not a workflow engine or an identity/metadata client. It consumes
+explicit configuration, local manifests, S3 paths, and command-catalog entries.
+It does not infer an external identity, discover a workflow revision, or replace
+a missing input with a fallback. DayOA owns `dy-r` and its workflow rules; DYEC
+owns the cluster/headnode and launch/export envelope.
 
-## Control Plane
+## Root command surface
 
-The supported operator surface is the CLI:
-
-- `dyec preflight`
-- `dyec create`
-- `dyec cluster list|describe|wait`
-- `dyec headnode connect|configure|info|jobs`
-- `dyec samples stage|run`
-- `dyec mounts create|list|describe|verify|delete`
-- `dyec mount rundir`
-- `dyec workflow launch|status|logs`
-- `dyec repositories commands`
-- `dyec export`
-- `dyec exports attach|run|detach`
-- `dyec slurm-accounting ensure`
-- `dyec state list|show`
-- `dyec delete`
-
-Historical helper scripts may still exist for packaging or compatibility tests, but current operator docs should use the CLI surface above.
-
-## Data Plane
-
-The namespace is intentionally explicit:
-
-| Path | Role |
+| Area | Commands |
 |---|---|
-| `/fsx/references` | Reference data from the cluster-created reference DRA |
-| `/fsx/run_dir_mounts/<mount_id>` | Read-oriented run-folder input DRA |
-| `/fsx/analysis_results/...` | Workflow checkout and result workspace |
+| Local information | `version`, `info`, `env`, `runtime`, `resources-dir`, `state`, `set-vars`, `unset-vars`, `agent guidance` |
+| Cluster lifecycle | `preflight`, `create`, `drift`, `cluster-info`, `delete` |
+| Cluster and headnode | `cluster`, `headnode`, `slurm-accounting`, `cost-centers`, `pricing`, `aws` |
+| Workflow and catalog | `workflow`, `repositories`, `catalog`, `samples`, `identities`, `tests` |
+| FSx and analysis | `mounts`, `mount`, `export`, `exports`, `runtime-cache`, `analysis`, `command` |
 
-Run-directory mounts are inputs. They do not define the export destination and are rejected as export sources. Export is a separate output DRA task from `/analysis_results/<executing_entity>/<analysis_id>/`. Launch auto-export may take an S3 root and expands it to `<root>/<cluster>/<analysis_id>/`; direct `dyec export` takes an explicit final S3 destination.
+Use `dyec <group> --help` for nested commands. Root `--json` is for
+machine-readable output where supported; root `--verbose`/`-v` prints
+project-local invocation diagnostics to stderr before the subcommand.
 
-The export receipt records `fsx_root`, `s3_root`, `dayoa_analysis_root`, and
-`dayoa_s3_root`. DYEC uses those fields for Dewey registration. DayOA remains a
-local `/fsx` workflow and does not receive Dewey, S3, or QEO configuration.
+## Project-local context
 
-## Workflow Plane
+`dyec set-vars` and `dyec unset-vars` manage only
+`$PWD/.dyec.config.yaml`. It is ignored by Git and may contain only
+`aws_profile`, `aws_region`, `aws_region_az`, and `cluster_admin_email` string
+values. Blank values are unset; malformed YAML, unknown keys, and non-string
+values fail clearly.
 
-`config/daylily_pipeline_command_catalog.yaml` is the source of truth for workflow repositories and blessed command profiles. The packaged copy under `daylily_ec/resources/payload/config/` must match it.
+For every supported `--profile`, `--region`, and `--region-az` option, the
+order is explicit flag, then the local context, then that command's pre-existing
+behavior. No region is inferred from an AZ, or vice versa. The local file never
+reads or writes `DYEC_*` environment variables. Direct `aws` and `pcluster`
+commands still use their normal AWS environment/profile handling.
 
-Catalog v2 splits commands by input contract:
+## Operating lifecycle
 
-- DayOA 12 `sample_analysis` commands use `sample_manifest_v12`; `dyec samples stage --manifest-contract dayoa12` writes `specimens.tsv`, `samples.tsv`, and `libraries.tsv` from explicit source-owned identities. Commands explicitly pinned before DayOA 12 retain the named legacy two-file contract only.
-- `run_analysis` commands use `runs.tsv`; run input must be mounted under `/fsx/run_dir_mounts/<mount_id>`.
+1. Activate the checkout with `source ./activate`, then inspect
+   `dyec --json version` and `dyec --help`.
+2. Resolve profile, region, and AZ explicitly or set local context; run
+   `dyec preflight` before cluster creation.
+3. Create the cluster with `dyec create`, then use `dyec cluster` and
+   `dyec headnode` commands for supported inspection and access.
+4. Use `dyec catalog show` and `dyec catalog render` before a catalog launch.
+   For a lower-level launch, pass an explicit `--git-tag`; DYEC does not choose
+   a DayOA ref for the operator.
+5. Record an `analysis visit` before inspecting an analysis root. Acquire the
+   documented lock before a protected write, unlock, delete, or kill operation.
+6. Export one completed analysis root with `dyec export`, preserve its
+   `fsx_export.yaml` receipt, and treat deletion as a separate destructive
+   decision.
 
-The current DayOA repository default is `12.0.0`. HIOMRS, HIOMRS kitchensink,
-and Inflection v0.2 are exact DayOA 12 commands; older command rows remain
-explicitly pinned to their validated pre-12 refs.
+## Data and artifact boundaries
 
-DYEC can host multiple workflow managers as long as they use the same FSx and
-export contract. DayOA is the first-class Snakemake 7 catalog repository.
-Snakemake repositories, Nextflow repositories, and future Cromwell/WDL
-repositories need manager-native launch commands and must write all durable
-outputs under `/fsx/analysis_results/<executing_entity>/<analysis_id>/`. See
-[`pipeline_manager_launches.md`](pipeline_manager_launches.md) for the manager
-contracts and examples.
+FSx is the active workflow namespace:
 
-## Headnode Model
+| Purpose | Path |
+|---|---|
+| Reference data | `/fsx/references/` |
+| Runtime assets | `/fsx/references/runtime_assets/` |
+| Control data | `/fsx/control_data/...` |
+| Staged sample inputs | `/fsx/staging/staged_external_sequencing_data/...` |
+| Run directories | `/fsx/run_dir_mounts/<mount-id>/` |
+| Analysis roots | `/fsx/analysis_results/<executing-entity>/<analysis-id>/` |
 
-Headnode work is Session-Manager-first:
+Run mounts are read-oriented by default and are not export sources. `dyec
+export` attaches a temporary output DRA to one completed analysis root, runs an
+FSx export task, writes `fsx_export.yaml`, and detaches the DRA. FSx data is
+preserved unless the explicitly destructive export cleanup option is supplied.
+`dyec runtime-cache export` is the separate, DRA-only path for preserving
+cluster-scoped runtime caches.
 
-- interactive sessions use `dyec headnode connect`
-- command payloads run as `ubuntu`
-- the supported shell is a login bash shell in `/home/ubuntu`
-- `day-clone` clones configured repositories under the FSx analysis root; use `day-clone --list` to inspect catalog rows, then launch new analyses with an explicit DayOA tag using `day-clone --repository <repo-key> --destination <analysis-id> --git-tag <ref>` or `day-clone -d <analysis-id> -t <ref>` for the default repository
+## Catalog state
 
-Manual root sessions or user switching are not part of the supported path.
+The source and packaged command catalogs must remain byte-identical. The active
+DayOA repository and active DayOA command targets are pinned to `15.0.5`.
+Catalog output preserves older validation evidence and exposes
+`validation_pending: true` when a command's current `git_tag` differs from its
+recorded `validated_version`. The indicator is informational: it does not
+relabel old proof or block a launch.
 
-## Receipts
+Catalog commands declare an explicit input contract. Inspect it with
+`dyec --json catalog show <command-id>` before choosing one of:
 
-DayEC writes operational artifacts that should be kept with the run record:
+- `six_manifest`: a validated local six-manifest directory;
+- `sample_manifest` or `sample_manifest_v12`: an explicit staged manifest path
+  or the applicable legacy staging helper;
+- `run_context`: a local `runs.tsv` plus any required verified run mount; or
+- `none`: no input file arguments.
 
-- preflight and state files in the DayEC config/state directory
-- local staged `*_specimens.tsv`, `*_samples.tsv`, and `*_libraries.tsv` for DayOA 12, or explicit legacy `*_samples.tsv`/`*_units.tsv` for pre-12 commands
-- headnode `/home/ubuntu/daylily-runs/<session>/status.json`
-- headnode `/home/ubuntu/daylily-runs/<session>/tmux.log`
-- local `fsx_export.yaml`
-- local `dewey_registration_receipt.json`, only when artifact registration was explicitly requested and accepted
+## Further reading
 
-`fsx_export.yaml` is the proof that the explicit export task completed, the
-temporary export DRA was detached, and the exported DayOA analysis root maps to
-the recorded S3 root.
-
-## Further Reading
-
-- [dra_fsx_strategy.md](dra_fsx_strategy.md)
-- [quickest_start.md](quickest_start.md)
-- [operations.md](operations.md)
-- [pipeline_manager_launches.md](pipeline_manager_launches.md)
-- [cli_reference.md](cli_reference.md)
-- [monitoring_and_troubleshooting.md](monitoring_and_troubleshooting.md)
+- [CLI reference](cli_reference.md)
+- [Quickest Start](quickest_start.md)
+- [Operations](operations.md)
+- [DRA and FSx strategy](dra_fsx_strategy.md)
+- [Analysis-root agent locking](analysis_root_agent_locking.md)
+- [Monitoring and troubleshooting](monitoring_and_troubleshooting.md)

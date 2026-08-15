@@ -17,6 +17,9 @@ session-manager-plugin
 
 `dyec` and `daylily-ec` are the same Python entrypoint.
 
+The checked-in CLI release baseline is `18.0.9`. Use `dyec --json version` to
+identify the installed source before relying on any command example.
+
 ## ParallelCluster Target
 
 This repo targets exactly:
@@ -58,7 +61,9 @@ The repository catalog must remain synchronized between:
 - `config/daylily_pipeline_command_catalog.yaml`
 - `daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml`
 
-Current DayOA catalog pins are `8.0.0`.
+The active DayOA catalog pin is `15.0.5`. Catalog output may retain an older
+`validated_version`; `validation_pending: true` reports that honest difference
+without rewriting historical validation evidence or blocking a launch.
 
 ## Stale Editable Installs
 
@@ -93,7 +98,19 @@ day-clone --list
 day-clone --check-auth --repository daylily-omics-analysis --git-tag <dayoa_version>
 ```
 
-The supported user is selected by `dyec --remote-user auto`. `day-clone --list` prints the clone syntax and repository rows from `$HOME/.config/daylily/daylily_pipeline_command_catalog.yaml`; the authentication check must also succeed for the pinned private DayOA ref. If either command fails, repair headnode configuration instead of guessing repository URLs, tags, or credentials.
+The supported user is selected by `--remote-user auto` on a headnode-facing
+command such as `dyec headnode connect`. `day-clone --list` prints the clone
+syntax and repository rows from `$HOME/.config/daylily/daylily_pipeline_command_catalog.yaml`; the authentication check must also succeed for the explicit DayOA ref. If either command fails, repair headnode configuration instead of guessing repository URLs, tags, or credentials.
+
+## Project-local DYEC context
+
+For DYEC commands only, the ignored `$PWD/.dyec.config.yaml` can hold
+`aws_profile`, `aws_region`, `aws_region_az`, and `cluster_admin_email`. Create
+or update it with `dyec set-vars`; clear fields with `dyec unset-vars`. It is
+not an environment-variable shim: DYEC never reads or writes `DYEC_*` variables,
+and direct `aws`/`pcluster` commands still require their normal profile and
+region setup. See [cli_reference.md](cli_reference.md) for precedence and
+strict-file validation rules.
 
 ## Local Validation
 

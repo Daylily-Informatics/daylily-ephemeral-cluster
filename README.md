@@ -1,8 +1,8 @@
 # Daylily Ephemeral Cluster
 
-Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the CLI control plane for short-lived AWS ParallelCluster bioinformatics work. It creates and configures clusters, mounts sequencing-run data into FSx, launches pinned workflow repositories on the headnode, monitors exact analysis roots, moves files between local and headnode storage, and exports finished results to S3 with receipts.
+Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the CLI control plane for short-lived AWS ParallelCluster bioinformatics work. Release `18.0.9` creates and configures clusters, mounts sequencing-run data into FSx, launches pinned workflow repositories on the headnode, monitors exact analysis roots, moves files between local and headnode storage, and exports finished results to S3 with receipts.
 
-DYEC is not an identity service and not a workflow engine. It does not call Dayhoff, Ursa, Bloom, TapDB, Dewey, or a metadata service. It consumes explicit local configuration, explicit manifests, explicit S3 paths, and explicit command-catalog entries. DayOA owns its workflow rules and `dy-r` execution. DYEC owns cluster/headnode orchestration and the launch/export envelope.
+DYEC is not an identity service and not a workflow engine. It does not require or contact a metadata or identity service. It consumes explicit local configuration, explicit manifests, explicit S3 paths, and explicit command-catalog entries. DayOA owns its workflow rules and `dy-r` execution. DYEC owns cluster/headnode orchestration and the launch/export envelope.
 
 ## Current operator model
 
@@ -45,12 +45,14 @@ dyec -v --json info
 ```
 
 DYEC reads only `$PWD/.dyec.config.yaml`; it never reads or writes `DYEC_*`
-environment variables. For `--profile`, `--region`, and `--region-az`, an
-explicit flag wins over this local file, which wins over the command's existing
-behavior. A required option may therefore be omitted only when its matching
-local value is present. Use explicit flags to override the local context for
-one command, `dyec unset-vars --region` to clear one value, or
-`dyec unset-vars` to clear the file. `-v` prints the resolved local-context
+environment variables. The file accepts only the four documented string keys;
+malformed YAML, unknown keys, and non-string values fail clearly. Blank and
+whitespace-only values are unset. For `--profile`, `--region`, and
+`--region-az`, an explicit flag wins over this local file, which wins over the
+command's existing behavior. A required option may therefore be omitted only
+when its matching local value is present. Use explicit flags to override the
+local context for one command, `dyec unset-vars --region` to clear one value,
+or `dyec unset-vars` to clear the file. `-v` prints the resolved local-context
 diagnostic to stderr before the subcommand, preserving JSON stdout.
 
 Use `--cluster` for DYEC commands. Keep `--cluster-name` for tools such as `pcluster` that require that spelling.
@@ -75,17 +77,17 @@ Run `dyec --help` for the live list. Current major groups are:
 | Group | Purpose |
 |---|---|
 | `version`, `info`, `runtime`, `env`, `resources-dir`, `state`, `set-vars`, `unset-vars` | Local/runtime introspection and per-checkout local context. |
+| `agent` | Compact operational guidance for an automated or human operator. |
 | `preflight`, `create`, `drift`, `delete` | Cluster lifecycle. |
 | `cluster`, `cluster-info` | ParallelCluster inspection and tag helpers. |
 | `headnode` | SSM-backed headnode connection, command execution, file transfer, and observability. |
 | `mounts`, `mount` | FSx run-directory Data Repository Associations. |
-| `workflow` | Standard DayOA/workflow clone, launch, status, logs, benchmark collection, and stop helpers. |
-| `catalog` | Command-catalog discovery, exact command rendering, and quick launch. |
+| `workflow`, `repositories`, `catalog` | Standard workflow clone/launch/status helpers plus repository and command-catalog discovery, exact rendering, and launch. |
 | `samples` | Older sample staging/launch helpers for catalog contracts that still use them. |
 | `identities` | Provider-neutral local manifest validation and receipt handling; no network service calls. |
 | `analysis` | Analysis-root visit logging, status reporting, lock ownership, and guarded commands. |
 | `command` | Command-family progress views such as HIOMRS sample stats and DAG download. |
-| `export`, `exports` | FSx analysis export through explicit S3 receipts. |
+| `export`, `exports`, `runtime-cache` | FSx analysis export and DRA-only runtime-cache preservation through explicit S3 receipts. |
 | `pricing`, `cost-centers`, `aws`, `slurm-accounting` | Cost, quota, AWS readiness, and accounting support. |
 | `tests` | Local pytest and catalog validation helpers. |
 
@@ -186,8 +188,8 @@ numeric key before changing `current`; never edit an existing numeric snapshot:
 
 ```bash
 dyec --json catalog list --type prod
-dyec --json catalog list --dyec-version 16.1.81 --type prod
-dyec --json catalog render <command-id> --dyec-version 16.1.81 ...
+dyec --json catalog list --dyec-version 18.0.9 --type prod
+dyec --json catalog render <command-id> --dyec-version 18.0.9 ...
 ```
 
 A build may also declare one-hop, same-build aliases. An alias inherits one
@@ -209,7 +211,7 @@ prefix must contain `command_registry.json` and `summary.json` from a successful
 
 ```bash
 dyec --json catalog validation-compare <command-id> \
-  --dyec-version 16.1.81 --profile "$AWS_PROFILE" --region "$REGION"
+  --dyec-version 18.0.9 --profile "$AWS_PROFILE" --region "$REGION"
 ```
 
 The comparison fails hard when no prefix is declared, the receipts are missing,
@@ -226,7 +228,7 @@ dyec workflow launch \
   --cluster "$CLUSTER" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$CLUSTER" \
-  --git-tag 13.0.20 \
+  --git-tag 15.0.5 \
   --manifest-dir ./config \
   --payload-staging-s3-uri "$STAGING_S3_URI" \
   --session-name "$ANALYSIS_ID" \
@@ -464,11 +466,13 @@ dyec --json mounts create s3://<sequencing-run-bucket>/<run-prefix>/ \
   --timeout-seconds 5400
 ```
 
-Example run-context file:
+`run_context` requires all of these exact TSV headers. For a
+`run_dra_required` command, `RUN_DIR` is the verified mounted path and
+`MOUNT_ID` is the explicit mount identifier; do not substitute the old
+three-column shape:
 
 ```tsv
-RUN_ID	PLATFORM	RUN_MOUNT
-20260722_LH00000_0001_AEXAMPLE	ILMN	/fsx/run_dir_mounts/20260722_LH00000_0001_AEXAMPLE
+RUNID	PLATFORM	RUN_DIR	SOURCE_S3_URI	MOUNT_ID	SAMPLE_SHEET	BASECALLING_STATE	RUN_STATUS	OUTPUT_ROOT	REGION	PROFILE
 ```
 
 Render each supported run-QC catalog command before launching it:
@@ -534,4 +538,4 @@ python -m pytest tests/test_cli_registry_v2.py -q
 git diff --check
 ```
 
-Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. For a breaking CLI/docs release after `13.x`, cut the next unclaimed `14.x` tag on a clean release commit.
+Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. The checked-in release baseline is `18.0.9`; choose any future version only through the explicit release process on a clean release commit.

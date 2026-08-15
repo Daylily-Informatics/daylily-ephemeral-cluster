@@ -29,7 +29,7 @@ python -m pip install -e .
 
 ## Focused Tests
 
-For the DRA docs and DayOA pin cutover:
+For the DRA/docs, local-context, and DayOA-pin surfaces:
 
 ```bash
 python -m pytest \
@@ -38,6 +38,8 @@ python -m pytest \
   tests/test_packaged_defaults.py \
   tests/test_run_mounts.py \
   tests/test_export.py \
+  tests/test_cli_context.py \
+  tests/test_cli_docs_contract.py \
   tests/test_environment_contract.py \
   -q
 ```
@@ -59,20 +61,29 @@ The source and packaged catalogs must match:
 cmp -s config/daylily_pipeline_command_catalog.yaml daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml
 ```
 
-The current DayOA pin should be `10.0.69` everywhere in the catalog:
+The active DayOA pin is `15.0.5`. Inspect it through the public surface and
+verify both checked-in catalog copies before relying on launch examples:
 
 ```bash
-rg -n "2\\.0\\.29|0\\.7\\.758|\\b1\\.0\\.[0-9]\\b" \
+dyec --json catalog show hybrid_ilmn_ont_hiomr_kitchensink
+dyec --json catalog show illumina_run_qc
+
+rg -n 'default_ref: "15\.0\.5"|git_tag: "?15\.0\.5"?' \
   config/daylily_pipeline_command_catalog.yaml \
-  daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml \
-  tests
+  daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml
 ```
 
-That command should return no stale runtime pin hits after the cutover.
+`validation_pending: true` in catalog output is expected when a command's
+target tag differs from its historical `validated_version`; it is not a failed
+catalog validation or permission to relabel old receipts.
 
 ## Docs Sweeps
 
-Active docs should not carry retired export/template options or stale run-mount flags. Use the stale-term sweep recorded in the execution ledger, and keep any old evidence in `docs/archive/**` or historical ledgers rather than active operator docs.
+The supported operator docs must match the `18.0.9` root help, current `15.0.5`
+catalog target, project-local context contract, and provider-neutral export
+surface. `tests/test_cli_docs_contract.py` checks those durable claims. Keep
+old evidence in `docs/archive/**`, dated reports, or historical ledgers rather
+than rewriting it as current guidance.
 
 ## AWS-Backed E2E Runner
 

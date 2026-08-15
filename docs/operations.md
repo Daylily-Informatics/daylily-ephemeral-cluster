@@ -2,6 +2,12 @@
 
 This is the day-2 runbook for current DayEC clusters.
 
+This guide describes the `18.0.9` CLI. For repeated work, `dyec set-vars` can
+store the four supported values in `$PWD/.dyec.config.yaml`; explicit flags
+still win, and direct `aws`/`pcluster` commands keep their normal environment
+requirements. See [cli_reference.md](cli_reference.md) for the strict local
+context contract.
+
 ## Connect
 
 ```bash
@@ -65,17 +71,17 @@ dyec --json cluster describe --profile "$AWS_PROFILE" --region "$REGION" --clust
 dyec headnode jobs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 ```
 
-To expose Ursa scheduling eligibility without changing Slurm state, use cluster
+To record an operator scheduling note without changing Slurm state, use cluster
 stack tags:
 
 ```bash
 dyec --json cluster tags --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 dyec cluster tags --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" \
   --set daylily-accept-jobs=false \
-  --set ursa-drain-reason=maintenance
+  --set operator-note=maintenance
 dyec cluster tags --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" \
   --set daylily-accept-jobs=true \
-  --delete ursa-drain-reason
+  --delete operator-note
 ```
 
 `cluster tags` updates only the CloudFormation stack tags identified by
@@ -110,11 +116,13 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --control-data-s3-uri "$CONTROL_DATA_S3_URI" \
   --stage-s3-uri "$STAGE_S3_URI" \
   --analysis-id dayoa \
-  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
+  --executing-entity "$EXECUTING_ENTITY" \
   --dry-run
 ```
 
-The catalog pin for DayOA commands is `9.0.0`.
+The active catalog pin for DayOA commands is `15.0.5`. A catalog row can retain
+an older `validated_version`; `validation_pending: true` reports the difference
+without rewriting historical evidence or blocking a launch.
 
 Use `--project <project>` on `dyec samples run` or `dyec workflow launch` when
 the cost-center/comment string should differ from the default. DYEC passes that
@@ -134,7 +142,7 @@ dyec --json workflow collect-benchmarks \
   --genome-build hg38_broad
 ```
 
-DYEC runs the collector on the headnode as `ubuntu`, from
+DYEC runs the collector as the platform-resolved remote user, from
 `<analysis-root>/daylily-omics-analysis`. The remote command acquires an
 analysis-root write lock, runs `source dyoainit`, `dy-a local <genome-build>`,
 then runs `bash bin/util/benchmarks/collect_day_benchmark_data.sh <genome-build>`.
@@ -200,32 +208,38 @@ workflows; Nextflow, Snakemake 8, and future Cromwell/WDL repositories need
 manager-native commands and output paths. See
 [`pipeline_manager_launches.md`](pipeline_manager_launches.md).
 
-Sample-manifest workflow:
+For a current six-manifest catalog command, render before launching. The
+catalog declares the exact input contract; do not substitute a legacy
+`--stage-dir` shape for a command that requires `--manifest-dir`.
 
 ```bash
-dyec workflow launch \
+dyec --json catalog render hybrid_ilmn_ont_hiomr_kitchensink \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
-  --analysis-id dayoa \
-  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 9.0.0 \
-  --genome hg38_broad \
-  --target produce_alignstats
+  --analysis-id "$ANALYSIS_ID" \
+  --executing-entity "$EXECUTING_ENTITY" \
+  --manifest-dir ./config \
+  --payload-staging-s3-uri "$STAGING_S3_URI" \
+  --dry-run
 ```
 
-Run-folder workflow:
+Launch the reviewed catalog plan by changing `render` to `launch`, keeping the
+same explicit inputs and a new live session name if needed.
+
+For a direct run-context workflow, declare the `run_context` contract and the
+DayOA release explicitly:
 
 ```bash
 dyec workflow launch \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
+  --input-contract run_context \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
-  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 9.0.0 \
+  --executing-entity "$EXECUTING_ENTITY" \
+  --git-tag 15.0.5 \
   --genome hg38_broad \
   --jobs 5 \
   --target produce_illumina_run_qc \
@@ -291,8 +305,8 @@ before cluster submission. Every resource uses its own median reference price,
 including i384 resources.
 
 Each create writes `config/<cluster>_spot_price_summary_<run_id>.json` and the
-state record stores the summary path plus partition rows for Ursa cluster-card
-rendering. Compute nodes append runtime high-price JSONL rows to
+state record stores the summary path plus partition rows for local reporting.
+Compute nodes append runtime high-price JSONL rows to
 `/fsx/scratch/spot_price_warn_exception_messages.log`, or
 `/var/log/daylily/spot_price_warn_exception_messages.log` for DRAGEN no-FSx
 mode.
@@ -342,8 +356,8 @@ For repo-native work that is not a catalog workflow command, clone the pinned re
 
 ```bash
 day-clone --list
-day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 9.0.0 --executing-entity "$EXECUTING_ENTITY"
-day-clone -d "$ANALYSIS_ID" -t 9.0.0
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 15.0.5 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 15.0.5
 ```
 
 `-t` is the short form of `--git-tag`; `-d` is required and is the short form of `--destination`. The clone target is `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`.
@@ -425,18 +439,16 @@ Success means `status: success`, `task_lifecycle: SUCCEEDED`, `detached: true`,
 explicit `fsx_root` to `s3_root` mapping. The destination must be an explicit S3
 URI ending in `<executing_entity>/<analysis_id>/`.
 
-For DayOA commands with catalog `artifact_registration` enabled, pass
-`--artifact-registration-command-id`, `--dewey-url`, and `--dewey-token-env`.
-DYEC then loads the exported DayOA evidence manifest, maps selected relative
-paths to S3 URIs through `fsx_export.yaml`, posts to Dewey, and writes
-`dewey_registration_receipt.json`. Missing policy, manifest, Dewey URL, token,
-or invalid Dewey response is a hard failure.
+`dyec export` is provider-neutral. It writes the explicit FSx-to-S3 receipt and
+does not accept metadata-service URL, token, registration, or external identity
+options.
 
 Use the command catalog's `test_data_profile.source_mount_mode` before launch:
 `default_mounted` data should already be visible through the cluster's default
-reference/control-data DRAs; `run_dra_required` data must have a `runs.tsv`
-`SOURCE_S3_URI` and `MOUNT_ID` and a verified `/fsx/run_dir_mounts/<MOUNT_ID>/`
-projection; `none` commands should not receive sample or run-source inputs.
+reference/control-data DRAs; `run_dra_required` data must have the complete
+`run_context` `runs.tsv` schema, including `RUNID`, `RUN_DIR`, `SOURCE_S3_URI`,
+and `MOUNT_ID`, plus a verified `/fsx/run_dir_mounts/<MOUNT_ID>/` projection;
+`none` commands should not receive sample or run-source inputs.
 
 ## Delete
 

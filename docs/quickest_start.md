@@ -1,6 +1,8 @@
 # Quickest Start
 
-This is the current public-safe operator path. It uses the DRA-backed FSx model, explicit config, SSM headnode access as `ubuntu`, catalog-backed DayOA commands, and explicit export receipts.
+This is the current public-safe operator path. It uses the DRA-backed FSx model,
+explicit config, a platform-resolved SSM headnode user, catalog-backed DayOA
+commands, and explicit export receipts.
 
 ## 1. Activate The Checkout
 
@@ -36,7 +38,7 @@ export REF_S3_URI=s3://<reference-bucket>
 export CONTROL_DATA_S3_URI=s3://<control-data-bucket>
 export STAGE_S3_URI=s3://<staging-bucket>/<prefix>
 export ANALYSIS_RESULTS_S3_URI=s3://<analysis-results-bucket>/<prefix>
-export EXECUTING_ENTITY=ubuntu
+export EXECUTING_ENTITY=<executing-entity>
 export ANALYSIS_ID=<analysis-id>
 export ANALYSIS_SAMPLES=./analysis_samples.tsv
 export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
@@ -121,7 +123,7 @@ runtime compute nodes append high-price JSONL exceptions to
 Sanity checks:
 
 ```bash
-dyec --verbose cluster list --profile "$AWS_PROFILE" --region "$REGION"
+dyec cluster list --profile "$AWS_PROFILE" --region "$REGION" --verbose
 
 dyec headnode connect \
   --profile "$AWS_PROFILE" \
@@ -143,13 +145,22 @@ command -v squeue
 exit
 ```
 
-Expected user is `ubuntu` and the login shell starts in `/home/ubuntu`. `day-clone --list` must print the repository rows and clone syntax from the headnode catalog. The authentication check must resolve the requested private DayOA ref before any analysis checkout is created.
+The login user must match the resolved platform user: normally `ubuntu` for
+Ubuntu/Intel DayOA headnodes, or `ec2-user` for DRAGEN/RHEL-style headnodes.
+`day-clone --list` must print the repository rows and clone syntax from the
+headnode catalog. The authentication check must resolve the requested private
+DayOA ref before any analysis checkout is created.
 
 For any new DayOA analysis, resolve the intended DayOA release tag before launch and pass it explicitly. Manual launches use `day-clone -t <dayoa_version> -d <analysis_id>`; DYEC launches use `--git-tag <dayoa_version>`. Do not rely on default refs.
 
 ## 5. Sample-Manifest Analysis
 
-Use this path when inputs are represented by `analysis_samples.tsv`. `dyec samples run` stages manifests, validates the catalog command, and launches the workflow. Export is a separate post-controller DYEC DRA operation.
+Use this path only for a catalog row whose `input_contract` is
+`sample_manifest` or `sample_manifest_v12`. `dyec samples run` stages the
+explicit source table, validates that legacy contract, and launches the
+workflow. For a `six_manifest` row, first validate the local manifest directory
+and use `dyec catalog render`/`launch --manifest-dir DIR` instead. Export is a
+separate post-controller DYEC DRA operation.
 
 The current catalog targets DayOA `15.0.5`. `dyec --json catalog list` and
 `catalog show` include `validation_pending`; `true` means the target tag is
@@ -197,7 +208,11 @@ dyec --json mounts verify \
   --mount-id <mount_id>
 ```
 
-Create a local `runs.tsv` with explicit `SOURCE_S3_URI`, `MOUNT_ID`, and platform values, then launch a catalog run-analysis command:
+Create a local `runs.tsv` with the exact required headers `RUNID`, `PLATFORM`,
+`RUN_DIR`, `SOURCE_S3_URI`, `MOUNT_ID`, `SAMPLE_SHEET`, `BASECALLING_STATE`,
+`RUN_STATUS`, `OUTPUT_ROOT`, `REGION`, and `PROFILE`. For a run-DRA command,
+`RUN_DIR` must be the verified `/fsx/run_dir_mounts/<mount-id>/` path and
+`MOUNT_ID` must identify that mount. Then launch a catalog run-analysis command:
 
 ```bash
 dyec workflow launch \
@@ -205,7 +220,8 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --repository daylily-omics-analysis \
-  --git-tag 10.0.69 \
+  --git-tag 15.0.5 \
+  --input-contract run_context \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "$EXECUTING_ENTITY" \
@@ -269,14 +285,16 @@ Expected receipt values:
 - `status: success`
 - `detached: true`
 - `delete_data_in_file_system: false`
-- `source_path: /analysis_results/<executing_entity>/<analysis_id>/`
+- `source_path: /fsx/analysis_results/<executing_entity>/<analysis_id>/`
 - `destination_s3_uri` ending in `<cluster>/<analysis_id>/` for launch auto-export, or `<executing_entity>/<analysis_id>/` for explicit direct export
 - `fsx_root: /fsx/analysis_results/<executing_entity>/<analysis_id>/`
 - `s3_root: s3://.../<cluster>/<analysis_id>/` for launch auto-export, or `s3://.../<executing_entity>/<analysis_id>/` for explicit direct export
 - `dayoa_analysis_root` under `fsx_root` when exporting DayOA
 - `dayoa_s3_root` under `s3_root` when exporting DayOA
 
-For catalog commands with an explicit `artifact_registration` policy, Dewey registration is a DYEC export concern. Pass `--artifact-registration-command-id`, `--dewey-url`, and `--dewey-token-env` with the export or auto-export launch. DayOA does not receive Dewey or QEO configuration.
+The current export CLI is provider-neutral: `dyec export` records the explicit
+FSx-to-S3 receipt and does not accept metadata-service URL, token, registration,
+or external identity options.
 
 ## 9. Delete
 

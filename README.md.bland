@@ -1,93 +1,155 @@
 # Daylily Ephemeral Cluster
 
-DayEC creates short-lived AWS ParallelCluster environments for Daylily analysis work. The repo targets exactly `aws-parallelcluster==3.15.0` for local tooling. Current clusters use a DRA-backed FSx for Lustre filesystem:
+DYEC is the command-line control plane for short-lived AWS ParallelCluster
+bioinformatics environments. This concise guide describes the `18.0.9` release.
+Use [README.md](README.md) and [docs/cli_reference.md](docs/cli_reference.md)
+for the full operator contract.
 
-- references: `/fsx/data`
-- run folders: `/fsx/run_dir_mounts/<mount_id>`
-- workflow outputs: `/fsx/analysis_results/...`
-- direct export source: `/fsx/analysis_results/ubuntu/<analysis_dir>`
+DYEC creates and inspects clusters, opens a supported SSM headnode shell,
+mounts explicit S3 run prefixes into FSx, launches explicitly pinned DayOA
+commands, records analysis-root activity, and exports completed analysis roots
+through a temporary FSx DRA. It is provider-neutral: it uses supplied local
+configuration, manifests, and S3 paths rather than contacting an identity or
+metadata service.
 
-The cluster is disposable. S3 is durable. Export and verify `fsx_export.yaml` before delete.
-
-## Happy Path
+## Start safely
 
 ```bash
+cd /path/to/daylily-ephemeral-cluster
 source ./activate
 
-export AWS_PROFILE=daylily-service-lsmc
+export AWS_PROFILE=<named-profile>
 export REGION=us-west-2
 export REGION_AZ=us-west-2d
-export CLUSTER_NAME=day-demo-$(date +%Y%m%d%H%M%S)
+export CLUSTER=<cluster-name>
+export ANALYSIS_ID=<analysis-id>
+export EXECUTING_ENTITY=<executing-entity>
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
-export REF_BUCKET=s3://lsmc-dayoa-omics-analysis-us-west-2
-export ANALYSIS_BUCKET=s3://lsmc-dayoa-analysis-results-us-west-2
-export ANALYSIS_DIR=dayoa
-export ANALYSIS_SAMPLES=etc/analysis_samples_template.tsv
-export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
-export EXPORT_DIR="$PWD/tmp-export/$ANALYSIS_DIR"
-export EXPORT_S3_URI="$ANALYSIS_BUCKET/analysis_results/ubuntu/$ANALYSIS_DIR/"
 
-dyec preflight --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
-dyec create --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
-dyec headnode connect --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec --json version
+dyec --help
+dyec agent guidance
+```
 
-dyec samples stage "$ANALYSIS_SAMPLES" \
+`dyec` and `daylily-ec` are installed entrypoints for the same CLI. Current
+operator docs use `dyec`.
+
+## Optional project-local context
+
+For repeated DYEC invocations from one checkout, store only the four supported
+values in the ignored file `$PWD/.dyec.config.yaml`:
+
+```bash
+dyec set-vars \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --reference-bucket "$REF_BUCKET" \
-  --config-dir "$STAGE_CFG_DIR"
+  --region-az "$REGION_AZ" \
+  --cluster-admin-email operator@example.org
 
+dyec -v --json info
+```
+
+For `--profile`, `--region`, and `--region-az`, the order is explicit flag,
+local context, then the command's established behavior. The file is local to
+the current working directory, accepts only the four documented string keys,
+and never reads or writes `DYEC_*` environment variables. Use
+`dyec unset-vars --region` to clear one key or `dyec unset-vars` to clear all
+keys and remove an empty file.
+
+## Cluster lifecycle
+
+```bash
+dyec preflight \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --config "$DAY_EX_CFG"
+
+dyec create \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --config "$DAY_EX_CFG"
+
+dyec --json cluster list --profile "$AWS_PROFILE" --region "$REGION"
+dyec headnode connect --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER"
+```
+
+For one create, `--admin-email` overrides the AWS Budget notification recipient.
+Otherwise the create YAML's `budget_email` takes precedence over the local
+`cluster_admin_email`; heartbeat email handling is unchanged.
+
+## Catalog-first DayOA launch
+
+The shipped catalog targets DayOA `15.0.5`. Inspect a command before launch;
+its `input_contract` determines whether it needs a local six-manifest directory,
+a staged sample-manifest input, a run-context TSV, or no input files.
+
+```bash
+dyec --json catalog list --type prod
+dyec --json catalog show <command-id>
+
+# Example for a six-manifest command.
+dyec --json catalog render <command-id> \
+  --analysis-id "$ANALYSIS_ID" \
+  --executing-entity "$CLUSTER" \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --manifest-dir ./config \
+  --payload-staging-s3-uri s3://<bucket>/<temporary-relay-prefix>/ \
+  --dry-run
+```
+
+`validation_pending: true` means a command's current `git_tag` differs from
+its retained `validated_version`. It is visibility only: it does not rewrite old
+receipts or block a launch.
+
+For a non-catalog launch, provide the DayOA ref explicitly. DYEC does not infer
+or default it:
+
+```bash
 dyec workflow launch \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
-  --destination "$ANALYSIS_DIR" \
-  --git-tag 1.0.16
+  --cluster "$CLUSTER" \
+  --analysis-id "$ANALYSIS_ID" \
+  --executing-entity "$CLUSTER" \
+  --git-tag 15.0.5 \
+  --manifest-dir ./config \
+  --payload-staging-s3-uri s3://<bucket>/<temporary-relay-prefix>/ \
+  --dy-command "dy-r <exact-target> -p -k -j 6"
+```
+
+## Export and deletion
+
+Record the visit before exporting a completed analysis root. The default export
+preserves FSx data; deletion is a separate destructive operation.
+
+```bash
+dyec analysis visit \
+  --analysis-root "/fsx/analysis_results/$CLUSTER/$ANALYSIS_ID" \
+  --mode export \
+  --intent "export completed analysis results" \
+  --s3-visit-uri "s3://<results-bucket>/<prefix>/$CLUSTER/$ANALYSIS_ID/"
 
 dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" \
-  --destination-s3-uri "$EXPORT_S3_URI" \
-  --output-dir "$EXPORT_DIR"
+  --cluster "$CLUSTER" \
+  --source-path "/fsx/analysis_results/$CLUSTER/$ANALYSIS_ID" \
+  --destination-s3-uri "s3://<results-bucket>/<prefix>/$CLUSTER/$ANALYSIS_ID/" \
+  --output-dir "./export-receipts/$ANALYSIS_ID"
 
-cat "$EXPORT_DIR/fsx_export.yaml"
-
-dyec delete --dry-run --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
-dyec delete --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec delete --dry-run --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER"
 ```
 
-## Run Folder Inputs
+Keep `fsx_export.yaml` and verify `status: success`, `task_lifecycle:
+SUCCEEDED`, and `detached: true` before considering deletion. Run a live delete
+only after separate approval for that exact cluster.
 
-Attach only the run prefixes needed for the current work:
+## Read more
 
-```bash
-dyec --json mounts create \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --s3-uri "s3://sequencer-run-bucket/runs/RUN123/" \
-  --mount-id RUN123 \
-  --run-id RUN123 \
-  --platform ILMN \
-  --read-only \
-  --wait
-
-dyec --json mounts verify \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --mount-id RUN123
-```
-
-Run mounts are input-oriented. Do not write outputs into `/fsx/run_dir_mounts`. Export completed analysis directories from `/fsx/analysis_results/ubuntu/<analysis_dir>` instead.
-
-## Read More
-
-- [docs/dra_fsx_strategy.md](docs/dra_fsx_strategy.md)
-- [docs/quickest_start.md](docs/quickest_start.md)
-- [docs/operations.md](docs/operations.md)
-- [docs/cli_reference.md](docs/cli_reference.md)
-- [docs/archive/README.md](docs/archive/README.md)
+- [CLI reference](docs/cli_reference.md)
+- [Quickest Start](docs/quickest_start.md)
+- [Operations](docs/operations.md)
+- [DRA and FSx strategy](docs/dra_fsx_strategy.md)
+- [Monitoring and troubleshooting](docs/monitoring_and_troubleshooting.md)

@@ -151,11 +151,11 @@ temporary DRA on that exact analysis directory, starts an FSx
 `EXPORT_TO_REPOSITORY` task, writes an `fsx_export.yaml` receipt, and detaches
 the DRA with `DeleteDataInFileSystem=false`.
 
-The receipt is also the explicit FSx-to-S3 mapping contract. It records
-`fsx_root`, `s3_root`, `dayoa_analysis_root`, and `dayoa_s3_root`. DYEC uses
-that mapping, plus a catalog `artifact_registration` policy and DayOA's local
-evidence manifest, to register selected exported artifacts with Dewey. DayOA
-does not know the Dewey URL, token, S3 root, or QEO import configuration.
+The receipt is the explicit FSx-to-S3 mapping contract. It records the export
+source, destination, task lifecycle, detach state, and derived FSx/S3 roots.
+The current `dyec export` command is provider-neutral: it records the export
+receipt and does not accept external metadata-service URL, token, registration,
+or identity options.
 
 The export destination must end with the same logical suffix:
 
@@ -278,7 +278,6 @@ flowchart LR
   Task --> Report["s3://analysis-results/<prefix>/<entity>/<analysis_id>/_daylily_monitor/fsx-export/..."]
   Task --> Receipt["fsx_export.yaml"]
   Receipt --> Map["fsx_root to s3_root mapping"]
-  Map --> Dewey["optional DYEC Dewey registration"]
   Receipt --> Check{"status success?"}
   Check -->|yes and delete-on-export-success| Delete["remove local FSx analysis directory"]
   Check -->|no| Keep["keep local FSx analysis directory for triage"]

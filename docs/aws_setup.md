@@ -14,10 +14,32 @@ export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
 aws sts get-caller-identity --profile "$AWS_PROFILE"
 ```
 
-If the identity check fails, fix AWS credentials before running DayEC. The AWS
-validator requires both `--profile` and `--region-az`, and rejects the implicit
-`default` profile. Keep the AZ explicit because instance offerings, rendered
-cluster demand, networking, and several quotas are evaluated for that target.
+If the identity check fails, fix AWS credentials before running DayEC. AWS
+validation and preflight require a resolved profile and `--region-az`; for DYEC
+commands those values can come from an explicit flag, the project-local context,
+or the command's established AWS fallback behavior. Direct `aws` and `pcluster`
+commands still need the shell profile/region shown above. Keep the AZ explicit:
+instance offerings, rendered cluster demand, networking, and several quotas are
+evaluated for that target. DYEC never derives a region from an AZ or an AZ from
+a region.
+
+### Project-local DYEC context
+
+For repeated DYEC work from this checkout, use the ignored
+`$PWD/.dyec.config.yaml` rather than a second set of environment variables:
+
+```bash
+dyec set-vars \
+  --profile "$AWS_PROFILE" \
+  --region "$AWS_REGION" \
+  --region-az "$REGION_AZ" \
+  --cluster-admin-email operator@example.org
+```
+
+The file is read only from the current working directory and supports only the
+four documented string values. An explicit DYEC flag wins over it. Use
+`dyec unset-vars` to clear local values; DYEC never reads or writes `DYEC_*`
+environment variables.
 
 ## IAM Expectations
 
