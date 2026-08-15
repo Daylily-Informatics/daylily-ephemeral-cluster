@@ -36,6 +36,7 @@ Ledger path: `docs/plans/20260815T112127Z_dyec_cli_docs_ledger.md`
 | DOC-006 | historical records | Preserve historical reports, archived docs, plans, and release evidence rather than relabeling them as current CLI guidance. | SUCCESS | historical_docs_only | Gate 0 | codex | 573 tracked Markdown files; current scope definition above. |  | Excluded intentionally; canonical docs will link to current reference. |
 | DOC-007 | validation | Run focused documentation/CLI tests, Markdown stale-state sweeps, source/package catalog identity, and `git diff --check`. | SUCCESS | contract_test | Gate 5 | codex | `292 passed in 65.17s`; source/package `cmp`; stale-term and obsolete run-context sweeps; `git diff --check`. |  | No test, catalog, Markdown sweep, or whitespace failure. |
 | DOC-008 | scope amendment | Add direct data/export guides to the current-doc set because they contain active CLI and provider-boundary claims. | SUCCESS | plan_amendment | Gate 1 | codex | `docs/dra_fsx_strategy.md`; `docs/s3_bucket_lifecycle.md`; docs contract test list. |  | Expanded from the initial 12 documents to 14 without rewriting historical records. |
+| DOC-009 | main promotion | Commit the tested documentation update and advance `origin/main` without a tag or release. | SUCCESS | publication | User follow-up | codex | Commit `1d265c3d`; `git push origin HEAD:main` advanced `origin/main` from `53049275` to `1d265c3d`. |  | Main contains the tested documentation update; no release tag or live AWS action was created. |
 
 ## Final report
 
@@ -45,7 +46,7 @@ Objective complete: yes
 
 Status counts:
 
-- SUCCESS: 8
+- SUCCESS: 9
 - OPEN: 0
 - IN_PROGRESS: 0
 - DUPLICATE: 0
@@ -63,6 +64,8 @@ Validation:
   target `15.0.5`, `validation_pending`, root context options, and current
   input-contract behavior. No live AWS, workflow, cluster, or external-service
   action ran.
+- Main promotion: the user-authorized push advanced `origin/main` from
+  `53049275` to `1d265c3d`; it did not create a tag or release.
 
 Residual risks: historical documents intentionally retain their original
 versions, commands, and evidence. The 14 current operator documents point to
