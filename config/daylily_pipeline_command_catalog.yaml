@@ -1563,7 +1563,7 @@ repositories:
       repository: daylily-omics-analysis
     - command_id: bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical
       type: prod
-      validated_version: 15.0.2
+      validated_version: 15.0.3
       test_data_profile: hg002_bjuice_v2_full_preval_run_mounts
       display_name: Bjuice v2 HG002 Multi-AU HIOMR2 Kitchen Sink Mega + Analytical Inflection
       description: "Explicit HG002 full-prevalence seven-analysis-unit HIOMR2 kitchen-sink mega and analytical Inflection command. It consumes only a fresh six-manifest set generated from one terminal direct Illumina coverage receipt, reads the two verified existing Bjuice run mounts, uses per-analysis-unit ONT [start,end) hour windows, and runs the complete numeric 1-25 chromosome scope. Manifest identity rule: ANALYSIS_UNIT_UID is a required local workflow key, may be a user-chosen unique integer, must be unique across all seven analysis_units.tsv rows, and must be mirrored exactly in analysis_unit_inputs.tsv; it is not an EUID. Keep ANALYSIS_UNIT_EUID, SAMPLE_EUID, SPECIMEN_EUID, and DELIVERY_EUID blank unless owner-issued. Keep SAMPLEID and EXTERNAL_SAMPLE_ID exactly HG002. Do not leave ANALYSIS_UNIT_UID blank. Launch rule: pass an explicit active DYEC cost center with --cost-center; for a dedicated cluster, also pass the same value with --project so dyoainit and Slurm use one accounting identity. It is independent of all generic, slim, and alias command definitions."
@@ -1596,7 +1596,7 @@ repositories:
       compatible_platforms: [ILMN, ONT]
       compatible_cluster_types: [sentieon-single]
       compatible_data_modes: [hybrid_ilmn_ont]
-      git_tag: 15.0.2
+      git_tag: 15.0.3
       no_containerized: false
       return_results: false
       repository: daylily-omics-analysis
@@ -2180,6 +2180,49 @@ dyec_builds:
         compatible_cluster_types: [sentieon-single]
         compatible_data_modes: [hybrid_ilmn_ont]
         git_tag: 15.0.2
+        no_containerized: false
+        return_results: false
+        repository: daylily-omics-analysis
+        cost_center_required: true
+  18.0.8:
+    repository: daylily-omics-analysis
+    dayoa_git_tags: [15.0.3]
+    commands:
+      bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical:
+        command_id: bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical
+        type: prod
+        validated_version: 15.0.3
+        test_data_profile: hg002_bjuice_v2_full_preval_run_mounts
+        display_name: Bjuice v2 HG002 Multi-AU HIOMR2 Kitchen Sink Mega + Analytical Inflection
+        description: Immutable 18.0.8 eligibility snapshot for the literal Bjuice v2 HG002 multi-AU command.
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: true
+        staging_receipt_required: false
+        runtime_parameters:
+          ont_fastq_hour_window_mode: per_analysis_unit
+          direct_ilmn_coverage_receipt_required: "true"
+        input_requirements:
+          accepted_source_column_sets:
+          - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_R1_FQ]
+        targets: [produce_sentdhiomr2_slim_kitchensink_mega, produce_sentdhiomr2_inflection_analytical_package]
+        genome: hg38
+        jobs: 333
+        keep_going: true
+        restart_times: 1
+        aligners: [sentmm2ont]
+        dedupers: [na]
+        snv_callers: [sentdhiomr2]
+        sv_callers: []
+        dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/hg002_bjuice_v2_multi_analysis_unit_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'ont_fastq_hour_window_mode=per_analysis_unit' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime"
+        dryrun_dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/hg002_bjuice_v2_multi_analysis_unit_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'ont_fastq_hour_window_mode=per_analysis_unit' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime -n"
+        compatible_platforms: [ILMN, ONT]
+        compatible_cluster_types: [sentieon-single]
+        compatible_data_modes: [hybrid_ilmn_ont]
+        git_tag: 15.0.3
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis
@@ -3586,7 +3629,7 @@ dyec_builds:
     repository: daylily-omics-analysis
     dayoa_git_tags:
     - 15.0.1
-    - 15.0.2
+    - 15.0.3
     commands:
       simple-test:
         command_id: simple-test
@@ -5443,7 +5486,7 @@ dyec_builds:
       bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical:
         command_id: bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical
         type: prod
-        validated_version: 15.0.2
+        validated_version: 15.0.3
         test_data_profile: hg002_bjuice_v2_full_preval_run_mounts
         display_name: Bjuice v2 HG002 Multi-AU HIOMR2 Kitchen Sink Mega + Analytical Inflection
         description: "Explicit HG002 full-prevalence seven-analysis-unit HIOMR2 kitchen-sink mega and analytical Inflection command. It consumes only a fresh six-manifest set generated from one terminal direct Illumina coverage receipt, reads the two verified existing Bjuice run mounts, uses per-analysis-unit ONT [start,end) hour windows, and runs the complete numeric 1-25 chromosome scope. Manifest identity rule: ANALYSIS_UNIT_UID is a required local workflow key, may be a user-chosen unique integer, must be unique across all seven analysis_units.tsv rows, and must be mirrored exactly in analysis_unit_inputs.tsv; it is not an EUID. Keep ANALYSIS_UNIT_EUID, SAMPLE_EUID, SPECIMEN_EUID, and DELIVERY_EUID blank unless owner-issued. Keep SAMPLEID and EXTERNAL_SAMPLE_ID exactly HG002. Do not leave ANALYSIS_UNIT_UID blank. Launch rule: pass an explicit active DYEC cost center with --cost-center; for a dedicated cluster, also pass the same value with --project so dyoainit and Slurm use one accounting identity. It is independent of all generic, slim, and alias command definitions."
@@ -5476,7 +5519,7 @@ dyec_builds:
         compatible_platforms: [ILMN, ONT]
         compatible_cluster_types: [sentieon-single]
         compatible_data_modes: [hybrid_ilmn_ont]
-        git_tag: 15.0.2
+        git_tag: 15.0.3
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis
