@@ -199,13 +199,13 @@ def _generate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, coverage: str = "
 
 def _retarget_plan(path: Path) -> Path:
     rows = [
-        ("p5xp5", "0.5", "8.54", "0.011433798307", "0.000669426130", "0.5", 0, 1),
-        ("1x1", "1", "9.85", "0.022867596615", "0.002321583412", "1", 0, 2),
-        ("3x3", "3", "11.93", "0.068602789846", "0.017251330221", "3", 0, 5),
-        ("5x5", "5", "12.71", "0.114337983077", "0.044979537009", "5", 0, 9),
-        ("10x5", "10", "13.65", "0.228675966155", "0.167528180333", "5", 0, 9),
-        ("15x5", "15", "14.01", "0.343013949233", "0.367252622305", "5", 0, 9),
-        ("15x10", "15", "13.65", "0.343013949233", "0.376938405750", "10", 0, 20),
+        ("p5xp5", "0.5", "8.54", "0.011433798307", "0.025000000000", "0.5", 0, 1),
+        ("1x1", "1", "9.85", "0.022867596615", "0.050000000000", "1", 0, 2),
+        ("3x3", "3", "11.93", "0.068602789846", "0.150000000000", "3", 0, 5),
+        ("5x5", "5", "12.71", "0.114337983077", "0.250000000000", "5", 0, 9),
+        ("10x5", "10", "13.65", "0.228675966155", "0.500000000000", "5", 0, 9),
+        ("15x5", "15", "14.01", "0.343013949233", "0.750000000000", "5", 0, 9),
+        ("15x10", "15", "13.65", "0.343013949233", "0.750000000000", "10", 0, 20),
     ]
     _write_json(
         path,
@@ -305,7 +305,7 @@ def test_round_down_is_explicit_and_not_bankers_rounding() -> None:
     ) == "0.166666666666"
 
 
-def test_generator_applies_strict_measured_coverage_retarget_plan(
+def test_generator_uses_direct_denominator_with_measured_ont_retarget_plan(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     import daylily_ec.bjuice_v2_hg002_multi_au_config as module
@@ -325,13 +325,13 @@ def test_generator_applies_strict_measured_coverage_retarget_plan(
     )
     units = _read_tsv(result.output_dir / "analysis_units.tsv")
     assert [row["SUBSAMPLE_PCT"] for row in units] == [
-        "0.000669426130",
-        "0.002321583412",
-        "0.017251330221",
-        "0.044979537009",
-        "0.167528180333",
-        "0.367252622305",
-        "0.376938405750",
+        "0.025000000000",
+        "0.050000000000",
+        "0.150000000000",
+        "0.250000000000",
+        "0.500000000000",
+        "0.750000000000",
+        "0.750000000000",
     ]
     assert [(row["ONT_FQ_START_HOUR"], row["ONT_FQ_END_HOUR"]) for row in units] == [
         ("0", "1"), ("0", "2"), ("0", "5"), ("0", "9"),
@@ -339,10 +339,10 @@ def test_generator_applies_strict_measured_coverage_retarget_plan(
     ]
     generated_receipt = json.loads(result.receipt_path.read_text(encoding="utf-8"))
     assert generated_receipt["retarget_plan"]["schema"] == RETARGET_PLAN_SCHEMA
-    assert generated_receipt["retarget_plan"]["mode"] == "per_au_measured_coverage_one_step_correction"
+    assert generated_receipt["retarget_plan"]["mode"] == "measured_ont_hours_direct_ilmn_denominator"
 
 
-def test_generator_rejects_retarget_plan_fraction_that_does_not_match_measurement(
+def test_generator_rejects_retarget_plan_fraction_that_does_not_match_direct_denominator(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     import daylily_ec.bjuice_v2_hg002_multi_au_config as module
@@ -352,9 +352,9 @@ def test_generator_rejects_retarget_plan_fraction_that_does_not_match_measuremen
     receipt = _coverage_receipt(tmp_path / "direct_coverage_receipt.json", "20")
     plan = _retarget_plan(tmp_path / "retarget_plan.json")
     payload = json.loads(plan.read_text(encoding="utf-8"))
-    payload["analysis_units"][0]["subsample_pct"] = "0.000669426131"
+    payload["analysis_units"][0]["subsample_pct"] = "0.025000000001"
     _write_json(plan, payload)
-    with pytest.raises(BjuiceConfigError, match="must equal prior_subsample_pct"):
+    with pytest.raises(BjuiceConfigError, match="must equal target_ilmn_coverage_x"):
         generate_bjuice_v2_hg002_multi_au_manifests(
             output_dir=tmp_path / "output",
             **inputs,

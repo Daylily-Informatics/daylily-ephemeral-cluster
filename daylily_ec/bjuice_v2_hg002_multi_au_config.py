@@ -124,31 +124,16 @@ def _parse_subsample_pct(value: Any, *, field_name: str) -> Decimal:
     return parsed
 
 
-def _format_retargeted_subsample_pct(
-    *,
-    target_x: Decimal,
-    prior_measured_coverage_x: Decimal,
-    prior_subsample_pct: Decimal,
-    au_label: str,
-) -> str:
-    with localcontext() as context:
-        context.prec = 50
-        value = prior_subsample_pct * target_x / prior_measured_coverage_x
-    rounded = value.quantize(SUBSAMPLE_QUANTUM, rounding=ROUND_DOWN)
-    if rounded <= 0 or rounded > 1:
-        raise BjuiceConfigError(
-            f"AU {au_label} retargeted SUBSAMPLE_PCT must be in (0,1]; found {format(rounded, 'f')}"
-        )
-    return format(rounded, "f")
-
-
-def _load_retarget_plan(path: Path) -> Mapping[str, Mapping[str, Any]]:
+def _load_retarget_plan(
+    path: Path, *, direct_ilmn_coverage_x: Decimal
+) -> Mapping[str, Mapping[str, Any]]:
     """Load the explicit, fixed-seven-AU measurement-based retarget plan.
 
     This contract deliberately rejects partial/general manifest edits. It only
     accepts the canonical Bjuice-v2 labels and targets and proves that each
-    requested fraction is the decimal-round-down one-step correction derived
-    from the prior AU's measured Illumina coverage.
+    requested fraction is independently derived from the verified direct
+    Illumina denominator. Prior observations are retained as audit metadata;
+    they cannot override the full-prevalence source denominator.
     """
     if not path.is_file():
         raise BjuiceConfigError(f"retarget plan is missing: {path}")
@@ -198,16 +183,16 @@ def _load_retarget_plan(path: Path) -> Mapping[str, Mapping[str, Any]]:
         actual_pct = _parse_subsample_pct(
             row.get("subsample_pct"), field_name=f"retarget plan {label} subsample_pct"
         )
-        expected_pct = _format_retargeted_subsample_pct(
+        expected_pct = _format_subsample_pct(
             target_x=target_x,
-            prior_measured_coverage_x=prior_measured,
-            prior_subsample_pct=prior_pct,
+            coverage_x=direct_ilmn_coverage_x,
             au_label=label,
         )
         if format(actual_pct.quantize(SUBSAMPLE_QUANTUM), "f") != expected_pct:
             raise BjuiceConfigError(
-                f"retarget plan {label} subsample_pct must equal prior_subsample_pct * "
-                f"target_ilmn_coverage_x / prior_measured_ilmn_coverage_x rounded down: {expected_pct}"
+                f"retarget plan {label} subsample_pct must equal target_ilmn_coverage_x / "
+                f"verified direct_ilmn_coverage_x ({format(direct_ilmn_coverage_x, 'f')}) "
+                f"rounded down: {expected_pct}"
             )
         declared_ont_target = _parse_direct_coverage(
             str(row.get("target_ont_coverage_x") or ""),
@@ -340,7 +325,11 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
         direct_ilmn_coverage_evidence,
         requested_coverage_x=coverage_x,
     )
-    retarget_plan = _load_retarget_plan(retarget_plan_json) if retarget_plan_json else None
+    retarget_plan = (
+        _load_retarget_plan(retarget_plan_json, direct_ilmn_coverage_x=coverage_x)
+        if retarget_plan_json
+        else None
+    )
     for au_label, target_x, _start_hour, _end_hour in AU_MATRIX:
         _format_subsample_pct(target_x=target_x, coverage_x=coverage_x, au_label=au_label)
 
@@ -595,19 +584,17 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
         analysis_unit_uid = f"{HG002_SAMPLE_ID}-{au_label}"
         if retarget_plan:
             retarget_row = retarget_plan[au_label]
-            subsample_pct = format(
-                _parse_subsample_pct(
-                    retarget_row["subsample_pct"],
-                    field_name=f"retarget plan {au_label} subsample_pct",
-                ).quantize(SUBSAMPLE_QUANTUM),
-                "f",
+            subsample_pct = _format_subsample_pct(
+                target_x=target_x,
+                coverage_x=coverage_x,
+                au_label=au_label,
             )
             start_hour = int(retarget_row["ont_fq_start_hour"])
             end_hour = int(retarget_row["ont_fq_end_hour"])
             comment = (
-                f"Bjuice v2 HG002 AU {au_label}: measurement-retargeted direct ILMN target "
-                f"{target_x}x from prior {retarget_row['prior_measured_ilmn_coverage_x']}x; "
-                f"ONT target {retarget_row['target_ont_coverage_x']}x interval [{start_hour},{end_hour})."
+                f"Bjuice v2 HG002 AU {au_label}: direct ILMN target {target_x}x / "
+                f"verified {coverage_x}x; measured ONT target "
+                f"{retarget_row['target_ont_coverage_x']}x interval [{start_hour},{end_hour})."
             )
         else:
             subsample_pct = _format_subsample_pct(
@@ -692,7 +679,7 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
                 "schema": RETARGET_PLAN_SCHEMA,
                 "path": str(retarget_plan_json),
                 "sha256": _sha256(retarget_plan_json),
-                "mode": "per_au_measured_coverage_one_step_correction",
+                "mode": "measured_ont_hours_direct_ilmn_denominator",
             }
             if retarget_plan_json
             else None
