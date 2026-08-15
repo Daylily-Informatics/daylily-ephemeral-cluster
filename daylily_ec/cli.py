@@ -6923,7 +6923,7 @@ def catalog_config_bjuice_v2_hg002_multi_au(
         "--retarget-plan-json",
         help=(
             "Strict HG002 seven-AU measured-coverage retarget plan. When supplied, it must "
-            "declare every canonical AU and its verified one-step ILMN correction plus ONT window."
+            "declare every canonical AU, direct-denominator ILMN fraction, and measured ONT window."
         ),
     ),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile for S3 listing."),

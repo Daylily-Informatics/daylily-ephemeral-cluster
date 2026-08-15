@@ -458,7 +458,7 @@ canonical AU labels. Each row declares `target_ilmn_coverage_x`,
 `prior_measured_ilmn_coverage_x`, `prior_subsample_pct`, `subsample_pct`,
 `target_ont_coverage_x`, `ont_fq_start_hour`, and `ont_fq_end_hour`. DYEC
 rejects any plan whose fraction is not exactly
-`ROUND_DOWN(prior_subsample_pct * target_ilmn_coverage_x / prior_measured_ilmn_coverage_x, 12 places)`, whose target set changes, or whose ONT window is not a valid cumulative `[0,end)` interval. The direct-coverage receipt remains required as the source-input contract; it is not silently replaced by a measured/hybrid coverage value.
+`ROUND_DOWN(target_ilmn_coverage_x / direct_ilmn_coverage_x, 12 places)`, whose target set changes, or whose ONT window is not a valid cumulative `[0,end)` interval. Prior measured-coverage fields are audit metadata only: they may guide the ONT hour windows but can never override the verified direct Illumina denominator. The direct-coverage receipt remains required as the source-input contract; it is not silently replaced by a measured/hybrid coverage value.
 
 ## Catalog discovery
 
