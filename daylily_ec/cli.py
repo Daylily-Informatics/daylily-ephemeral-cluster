@@ -3097,8 +3097,17 @@ def unset_vars(
 
 
 def aws_budget_set_limit(
-    name: str = typer.Argument(..., help="Existing AWS Budget name (cluster name for DYEC clusters)."),
-    monthly_cap_usd: str = typer.Option(..., "--monthly-cap-usd", help="Replacement monthly USD cap."),
+    name: str = typer.Argument(
+        ..., help="Existing AWS Budget name (cluster name for DYEC clusters)."
+    ),
+    monthly_cap_usd: str = typer.Option(
+        ..., "--monthly-cap-usd", help="Replacement monthly USD cap."
+    ),
+    expected_current_monthly_cap_usd: str = typer.Option(
+        ...,
+        "--expected-current-monthly-cap-usd",
+        help="Required current monthly USD cap; mismatch fails before mutation.",
+    ),
     profile: Optional[str] = context_option(
         "aws_profile",
         None,
@@ -3113,33 +3122,41 @@ def aws_budget_set_limit(
         help="AWS Budgets home region.",
         required=True,
     ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Validate the exact old/new cap contract without updating AWS.",
+    ),
 ) -> None:
-    """Replace an existing AWS Budget's monthly limit."""
+    """Replace one fixed monthly USD AWS Budget limit with exact old-cap proof."""
 
-    from daylily_ec.aws.budgets import describe_budget, update_budget_limit
+    from daylily_ec.aws.budgets import update_budget_limit
     from daylily_ec.aws.context import AWSContext
 
     try:
         aws_ctx = AWSContext.build_region(str(region), profile=profile)
-        before = describe_budget(aws_ctx.client("budgets"), aws_ctx.account_id, name)
-        if before is None:
-            raise ValueError(f"AWS Budget '{name}' does not exist")
-        updated = update_budget_limit(
+        result = update_budget_limit(
             aws_ctx.client("budgets"),
             aws_ctx.account_id,
             name,
             monthly_cap_usd,
+            expected_current_amount=expected_current_monthly_cap_usd,
+            dry_run=dry_run,
         )
-        after = describe_budget(aws_ctx.client("budgets"), aws_ctx.account_id, name)
-        if after is None:
-            raise RuntimeError(f"AWS Budget '{name}' disappeared after update")
     except (RuntimeError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
 
     payload = {
-        "budget_name": name,
-        "previous_monthly_cap_usd": str((before.get("BudgetLimit") or {}).get("Amount") or ""),
-        "monthly_cap_usd": str((after.get("BudgetLimit") or {}).get("Amount") or ""),
+        "budget_name": result.budget_name,
+        "previous_monthly_cap_usd": result.previous_amount,
+        "requested_monthly_cap_usd": result.requested_amount,
+        "observed_monthly_cap_usd": result.observed_amount,
+        "unit": result.unit,
+        "changed": result.changed,
+        "dry_run": result.dry_run,
+        "update_submitted": result.update_submitted,
         "region": str(region),
     }
     if _json_mode():
