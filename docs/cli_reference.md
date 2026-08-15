@@ -32,11 +32,47 @@ General rules:
 - Headnode-facing CLI commands default to `--remote-user auto`: Ubuntu/Intel DayOA headnodes resolve to `ubuntu`; DRAGEN/RHEL-style headnodes resolve to `ec2-user`. Unknown platform metadata fails hard.
 - DYEC-created headnode shells run as bash login/interactive contexts and source `~/.bashrc`; do not wrap workflow launches in a noninteractive `bash -lc` path.
 
+## Project-local context
+
+For repeated work from one checkout, DYEC can keep four invocation values in
+the ignored file `$PWD/.dyec.config.yaml`:
+
+```bash
+dyec set-vars \
+  --profile lsmc \
+  --region us-west-2 \
+  --region-az us-west-2d \
+  --cluster-admin-email operator@example.org
+
+dyec -v --json info
+```
+
+The file contains only `aws_profile`, `aws_region`, `aws_region_az`, and
+`cluster_admin_email`. DYEC reads only the file in the current working
+directory; it does not search parents and does not read or write `DYEC_*`
+environment variables. Blank values clear a key. Use `dyec unset-vars --region`
+to clear one key, or `dyec unset-vars` to clear all keys and remove
+the file once it is empty.
+
+For every DYEC `--profile`, `--region`, and `--region-az` option, resolution is
+explicit flag, then project-local context, then the command's existing behavior.
+That means existing optional `AWS_PROFILE`, `AWS_REGION`, `AWS_DEFAULT_REGION`,
+prompt, and command-default behavior remains in force when no local value is
+present. A formerly required flag is accepted without an explicit argument only
+when its matching local key is set; otherwise it produces the same missing-option
+failure. DYEC never derives a region from an AZ or an AZ from a region.
+
+`dyec --verbose` (or `dyec -v`) writes invocation diagnostics to stderr before
+the subcommand: PWD, DYEC project/executable path, version, local-file status,
+and all four values. It prints `unset` for missing or blank values, so JSON
+stdout remains valid.
+
 ## Global command
 
 ```bash
 dyec --help
 dyec --json version
+dyec -v --json info
 dyec info
 dyec runtime status
 dyec resources-dir
@@ -52,6 +88,7 @@ Global options:
 | `--dry-run` | Plan without persistent changes when supported by that command. |
 | `--no-color` | Disable ANSI styling. |
 | `--debug` | Print debug diagnostics. |
+| `-v`, `--verbose` | Print project-local context diagnostics to stderr before the subcommand. |
 | `--install-completion`, `--show-completion` | Shell completion setup. |
 
 ## Agent guidance
@@ -94,13 +131,21 @@ dyec create \
   --config ~/.config/daylily/daylily_ephemeral_cluster.yaml
 ```
 
+For this command only, `--admin-email` overrides the AWS Budget notification
+email. Its precedence is `--admin-email`, then `budget_email` in the create
+YAML, then local `cluster_admin_email`, then the pre-existing default. It does
+not change heartbeat email behavior:
+
+```bash
+dyec create --admin-email oncall@example.org --region-az us-west-2d
+```
+
 Inspect:
 
 ```bash
-dyec cluster list \
+dyec --verbose cluster list \
   --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --verbose
+  --region "$REGION"
 
 # One read-only queue-count row per cluster. Provisioning and teardown clusters
 # are reported as CLUSTER_NOT_READY rather than as an empty queue.
@@ -484,11 +529,17 @@ The catalog exposes:
 - command id and display name;
 - command class (`sample_analysis`, `run_analysis`, or `utility`);
 - repository and DayOA git tag;
+- `validated_version` and derived `validation_pending` state;
 - input contract;
 - exact `dy-r` or `bin/day_run` command string;
 - dry-run command string;
 - targets, callers, aligners, dedupers, jobs, and keep-going settings;
 - validated version metadata when present.
+
+The active catalog targets DayOA `15.0.5`. `validation_pending: true` means a
+command's launch `git_tag` differs from its recorded `validated_version`; it is
+an honest pending-validation indicator, not a launch block or a rewritten
+receipt. Existing validation runs and receipt tags remain historical evidence.
 
 ## Catalog render
 

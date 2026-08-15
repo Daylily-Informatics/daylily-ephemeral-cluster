@@ -46,6 +46,7 @@ ssl/
 *.pfx
 
 # Local credentials / temporary access links
+.dyec.config.yaml
 .tailscale_key
 presign_url_sofar.md
 *_signed_urls.tsv

@@ -45,6 +45,30 @@ export EXPORT_S3_ROOT="$ANALYSIS_RESULTS_S3_URI/"
 export EXPORT_S3_URI="$EXPORT_S3_ROOT$CLUSTER_NAME/$ANALYSIS_ID/"
 ```
 
+### Optional DYEC-local context
+
+Keep the shell variables above for direct `aws` and `pcluster` calls. For DYEC
+itself, the same four recurring values can be stored only in this checkout's
+ignored `$PWD/.dyec.config.yaml`:
+
+```bash
+dyec set-vars \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --region-az "$REGION_AZ" \
+  --cluster-admin-email operator@example.org
+
+dyec -v --json info
+```
+
+DYEC resolves `--profile`, `--region`, and `--region-az` as explicit flag,
+then this local file, then the command's established fallback behavior. Thus
+the explicit flags in the examples below remain useful overrides. A required
+flag may be omitted only when its matching local key is set. The local file
+does not read or write any `DYEC_*` environment variable. Use
+`dyec unset-vars --region` for one key, or `dyec unset-vars` to clear all local
+context.
+
 Sanity checks:
 
 ```bash
@@ -84,6 +108,11 @@ dyec create \
   --write-spot-pricing-warn-threshold 6.00
 ```
 
+For one create, `--admin-email oncall@example.org` overrides the AWS Budget
+notification recipient. The create YAML `budget_email` otherwise takes
+precedence over local `cluster_admin_email`; heartbeat email behavior is
+unchanged.
+
 Wait for the CLI to return successfully. The cluster is not DayEC-ready just because ParallelCluster reports that infrastructure exists.
 `dyec create` writes `config/<cluster>_spot_price_summary_<run_id>.json` and
 runtime compute nodes append high-price JSONL exceptions to
@@ -92,7 +121,7 @@ runtime compute nodes append high-price JSONL exceptions to
 Sanity checks:
 
 ```bash
-dyec cluster list --profile "$AWS_PROFILE" --region "$REGION" --verbose
+dyec --verbose cluster list --profile "$AWS_PROFILE" --region "$REGION"
 
 dyec headnode connect \
   --profile "$AWS_PROFILE" \
@@ -121,6 +150,11 @@ For any new DayOA analysis, resolve the intended DayOA release tag before launch
 ## 5. Sample-Manifest Analysis
 
 Use this path when inputs are represented by `analysis_samples.tsv`. `dyec samples run` stages manifests, validates the catalog command, and launches the workflow. Export is a separate post-controller DYEC DRA operation.
+
+The current catalog targets DayOA `15.0.5`. `dyec --json catalog list` and
+`catalog show` include `validation_pending`; `true` means the target tag is
+different from the command's recorded `validated_version`. It does not block a
+launch or rewrite historical validation receipts.
 
 ```bash
 dyec samples run "$ANALYSIS_SAMPLES" \

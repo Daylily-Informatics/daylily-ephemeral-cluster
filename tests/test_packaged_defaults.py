@@ -707,8 +707,11 @@ def test_dayoa_headnode_generators_do_not_emit_exclusive_rules() -> None:
         encoding="utf-8"
     )
 
-    assert 'exclusive="--exclusive"' not in script
-    assert 'exclusive=""' in script
+    # The generator no longer materializes an ``exclusive`` shell variable.
+    # Preserve the behavioral contract, rather than the obsolete implementation
+    # detail: it must not emit an exclusive Slurm rule by either form.
+    assert "--exclusive" not in script
+    assert "exclusive=" not in script
 
 
 def test_dayoa_headnode_generator_has_no_monthly_usage_staleness_override() -> None:

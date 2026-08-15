@@ -14,11 +14,13 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "15.0.1"
-PRODUCTION_DAYOA_TAG = "15.0.1"
-BJUICE_V2_DAYOA_TAG = "15.0.3"
+DAYOA_BLESSED_TAG = "15.0.5"
+CURRENT_VALIDATED_DAYOA_TAG = "15.0.1"
+PRODUCTION_DAYOA_TAG = DAYOA_BLESSED_TAG
+BJUICE_V2_DAYOA_TARGET_TAG = "15.0.5"
+BJUICE_V2_DAYOA_VALIDATED_TAG = "15.0.3"
 PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
-SOLO_KITCHEN_SINK_DAYOA_TAG = PRODUCTION_DAYOA_TAG
+SOLO_KITCHEN_SINK_DAYOA_TAG = DAYOA_BLESSED_TAG
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
@@ -169,10 +171,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         command.command_id for command in catalog.commands()
     }
     assert len(current_build) == 30
-    assert {command.git_tag for command in current_build} == {
-        PRODUCTION_DAYOA_TAG,
-        BJUICE_V2_DAYOA_TAG,
-    }
+    assert {command.git_tag for command in current_build} == {DAYOA_BLESSED_TAG}
     assert {command.repository for command in current_build} == {"daylily-omics-analysis"}
     older_release = catalog.commands_for_dyec_build("16.1.85")
     assert {command.git_tag for command in older_release} == {"13.4.33"}
@@ -205,7 +204,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     prior_released_build = catalog.commands_for_dyec_build("17.0.13")
     assert {command.git_tag for command in prior_released_build} == {"14.0.14"}
     released_build = catalog.commands_for_dyec_build("17.0.14")
-    assert BJUICE_V2_DAYOA_TAG not in {command.git_tag for command in released_build}
+    assert BJUICE_V2_DAYOA_TARGET_TAG not in {command.git_tag for command in released_build}
     assert (
         "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
         not in {command.command_id for command in released_build}
@@ -450,11 +449,37 @@ def test_catalog_cli_uses_current_unless_numeric_snapshot_is_requested() -> None
     released_payload = json.loads(released_result.stdout)
     assert current_payload["dyec_version"] == "current"
     assert {command["git_tag"] for command in current_payload["commands"]} == {
-        PRODUCTION_DAYOA_TAG,
-        BJUICE_V2_DAYOA_TAG,
+        DAYOA_BLESSED_TAG
     }
+    assert all("validation_pending" in command for command in current_payload["commands"])
+    assert all(command["validation_pending"] for command in current_payload["commands"])
     assert released_payload["dyec_version"] == "16.1.82"
     assert {command["git_tag"] for command in released_payload["commands"]} == {"13.4.31"}
+
+
+def test_catalog_public_payload_marks_target_validation_gaps_without_relabeling_evidence() -> None:
+    catalog = load_repository_catalog(CATALOG_PATH)
+    public_commands = {
+        command["command_id"]: command for command in catalog.to_public_payload()["commands"]
+    }
+
+    pending = public_commands["simple-test"]
+    bjuice = public_commands[
+        "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
+    ]
+    assert pending["git_tag"] == DAYOA_BLESSED_TAG
+    assert pending["validated_version"] == CURRENT_VALIDATED_DAYOA_TAG
+    assert pending["validation_pending"] is True
+    assert bjuice["git_tag"] == BJUICE_V2_DAYOA_TARGET_TAG
+    assert bjuice["validated_version"] == BJUICE_V2_DAYOA_VALIDATED_TAG
+    assert bjuice["validation_pending"] is True
+
+    show_result = runner.invoke(
+        app,
+        ["--json", "catalog", "show", "simple-test", "--config", str(CATALOG_PATH)],
+    )
+    assert show_result.exit_code == 0, show_result.output
+    assert json.loads(show_result.stdout)["command"]["validation_pending"] is True
 
 
 def test_hiomr2_catalog_selects_native_tiddit_and_paired_library_summary() -> None:
@@ -672,8 +697,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "complete_genomics_cg_snv_concordance",
     ):
         command = catalog.get_command(command_id)
-        assert command.validated_version == SOLO_KITCHEN_SINK_DAYOA_TAG
-        assert command.git_tag == SOLO_KITCHEN_SINK_DAYOA_TAG
+        assert command.validated_version == CURRENT_VALIDATED_DAYOA_TAG
+        assert command.git_tag == DAYOA_BLESSED_TAG
     assert complete_genomics.compatible_platforms == ["CG"]
     assert complete_genomics.compatible_cluster_types == ["daywgs"]
     assert complete_genomics.compatible_data_modes == ["complete_genomics_solo"]
@@ -1010,7 +1035,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     package_inflection = catalog.get_command("package_inflection_hybrid_data")
     assert package_inflection.type == "dev"
-    assert package_inflection.validated_version == DAYOA_BLESSED_TAG
+    assert package_inflection.validated_version == CURRENT_VALIDATED_DAYOA_TAG
     assert package_inflection.git_tag == DAYOA_BLESSED_TAG
     assert package_inflection.input_contract == "six_manifest"
     assert package_inflection.targets == ["produce_sentdhiomr2_inflection_seqone_v2"]
@@ -1253,8 +1278,8 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "bclconvert/units.tsv" not in combined_dy_command
 
     ont = catalog.get_command("ont_run_qc")
-    assert ont.validated_version == PRODUCTION_DAYOA_TAG
-    assert ont.git_tag == PRODUCTION_DAYOA_TAG
+    assert ont.validated_version == CURRENT_VALIDATED_DAYOA_TAG
+    assert ont.git_tag == DAYOA_BLESSED_TAG
     assert ont.targets == ["produce_ont_run_qc_and_demux_multiqc"]
     assert ont.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
@@ -1278,8 +1303,8 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "units_table=" not in ont_dy_command
 
     ultima = catalog.get_command("ultima_run_qc")
-    assert ultima.validated_version == PRODUCTION_DAYOA_TAG
-    assert ultima.git_tag == PRODUCTION_DAYOA_TAG
+    assert ultima.validated_version == CURRENT_VALIDATED_DAYOA_TAG
+    assert ultima.git_tag == DAYOA_BLESSED_TAG
     assert ultima.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
         "run_context_only": "true",
@@ -1341,8 +1366,8 @@ def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() ->
     catalog = load_repository_catalog(CATALOG_PATH)
     command = catalog.get_command(command_id)
 
-    assert command.git_tag == BJUICE_V2_DAYOA_TAG
-    assert command.validated_version == BJUICE_V2_DAYOA_TAG
+    assert command.git_tag == BJUICE_V2_DAYOA_TARGET_TAG
+    assert command.validated_version == BJUICE_V2_DAYOA_VALIDATED_TAG
     assert command.command_class == "sample_analysis"
     assert command.input_contract == "six_manifest"
     assert command.requires_staging is True
@@ -1387,8 +1412,8 @@ def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() ->
     assert profile.run_context_mount_id_column == ""
     assert catalog.dyec_builds["current"].commands[command_id].model_dump() == command.model_dump()
     snapshot_command = catalog.get_command_for_dyec_build(command_id, "18.0.8")
-    assert snapshot_command.git_tag == BJUICE_V2_DAYOA_TAG
-    assert snapshot_command.validated_version == BJUICE_V2_DAYOA_TAG
+    assert snapshot_command.git_tag == BJUICE_V2_DAYOA_VALIDATED_TAG
+    assert snapshot_command.validated_version == BJUICE_V2_DAYOA_VALIDATED_TAG
     assert command_id not in catalog.dyec_builds["current"].aliases
     assert command_id not in catalog.dyec_builds["17.0.14"].commands
     assert command_id in catalog.dyec_builds["17.0.15"].commands

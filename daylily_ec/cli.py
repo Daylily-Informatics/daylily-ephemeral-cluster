@@ -62,6 +62,13 @@ from daylily_ec._registry_v2 import (
     register_root_command,
     required_policy,
 )
+from daylily_ec.cli_context import (
+    CONTEXT_FIELDS,
+    clear_local_context,
+    context_option,
+    load_local_context,
+    update_local_context,
+)
 from daylily_ec.aws.spot_pricing import (
     DEFAULT_GLOBAL_SPOT_MAX_COST,
     DEFAULT_SPOT_COST_LIMIT_PCT,
@@ -210,6 +217,28 @@ def _show_dayec_version(value: bool) -> bool:
     return value
 
 
+def _show_dayec_verbose(value: bool) -> bool:
+    """Emit project-local DYEC invocation details before the subcommand."""
+
+    if not value:
+        return value
+    context = load_local_context()
+    project_path = Path(__file__).resolve().parents[1]
+    executable = Path(sys.argv[0]).resolve()
+    click.echo("DYEC verbose:", err=True)
+    click.echo(f"  PWD: {Path.cwd()}", err=True)
+    click.echo(f"  Project path: {project_path}", err=True)
+    click.echo(f"  Executable: {executable}", err=True)
+    click.echo(f"  Version: {versioning.get_version()}", err=True)
+    click.echo(
+        f"  Local context: {context.path} ({'present' if context.present else 'absent'})",
+        err=True,
+    )
+    for field in CONTEXT_FIELDS:
+        click.echo(f"  {field}: {context.value(field) or 'unset'}", err=True)
+    return value
+
+
 def _install_dayec_version_option(target_app: typer.Typer) -> None:
     root_callback = target_app.registered_callback.callback
     if root_callback is None:
@@ -228,8 +257,21 @@ def _install_dayec_version_option(target_app: typer.Typer) -> None:
             callback=_show_dayec_version,
         ),
     )
+    verbose_parameter = inspect.Parameter(
+        "verbose",
+        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        annotation=bool,
+        default=typer.Option(
+            False,
+            "--verbose",
+            "-v",
+            help="Print DYEC project-local context before running the subcommand.",
+            is_eager=True,
+            callback=_show_dayec_verbose,
+        ),
+    )
     root_callback.__signature__ = signature.replace(
-        parameters=[*signature.parameters.values(), version_parameter]
+        parameters=[*signature.parameters.values(), version_parameter, verbose_parameter]
     )
 
 
@@ -725,10 +767,12 @@ def _emit_cluster_jobs_table(regions: list[str], rows: list[dict[str, Any]]) -> 
 
 
 def cluster_jobs(
-    regions: List[str] = typer.Option(
-        ...,
+    regions: Optional[List[str]] = context_option(
+        "aws_region",
+        None,
         "--region",
         help="AWS region to query. Repeat --region once per requested region.",
+        required=True,
     ),
     profile: Optional[str] = typer.Option(
         None,
@@ -965,10 +1009,12 @@ def _emit_cluster_table(
 
 @_report_create_runtime
 def create(
-    region_az: str = typer.Option(
-        DEFAULT_CREATE_REGION_AZ,
+    region_az: Optional[str] = context_option(
+        "aws_region_az",
+        None,
         "--region-az",
         help=f"AWS region + availability zone. Defaults to {DEFAULT_CREATE_REGION_AZ}.",
+        fallback=DEFAULT_CREATE_REGION_AZ,
     ),
     cluster_type: str = typer.Option(
         DEFAULT_CREATE_CLUSTER_TYPE,
@@ -1074,6 +1120,11 @@ def create(
         "--budget-project",
         help="Retired. Cluster budgets are named by cluster name.",
     ),
+    admin_email: Optional[str] = typer.Option(
+        None,
+        "--admin-email",
+        help="Override the AWS Budget notification email for this create only.",
+    ),
     global_spot_max_cost: float = typer.Option(
         DEFAULT_GLOBAL_SPOT_MAX_COST,
         "--global-spot-max-cost",
@@ -1154,6 +1205,7 @@ def create(
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
+    local_context = load_local_context()
     output.action("Creating cluster in %s ..." % region_az)
     rc = run_create_workflow(
         region_az,
@@ -1176,15 +1228,19 @@ def create(
         fail_on_sacct_error=fail_on_sacct_error,
         create_slurm_accounting_if_missing=create_slurm_accounting_if_missing,
         acknowledge_slurm_accounting_create_cost=(acknowledge_slurm_accounting_create_cost),
+        budget_email_override=(admin_email or "").strip() or None,
+        budget_email_fallback=local_context.cluster_admin_email,
     )
     raise SystemExit(rc)
 
 
 def slurm_accounting_ensure(
-    region_az: str = typer.Option(
-        ...,
+    region_az: Optional[str] = context_option(
+        "aws_region_az",
+        None,
         "--region-az",
         help="AWS region + availability zone (e.g. us-west-2b).",
+        required=True,
     ),
     profile: Optional[str] = typer.Option(
         None,
@@ -1270,10 +1326,12 @@ def slurm_accounting_attach(
         "--cluster",
         help="Existing ParallelCluster name.",
     ),
-    region: str = typer.Option(
-        ...,
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
         "--region",
         help="AWS region containing the existing cluster.",
+        required=True,
     ),
     profile: Optional[str] = typer.Option(
         None,
@@ -1356,10 +1414,12 @@ def slurm_accounting_attach(
 
 
 def slurm_accounting_privatelink_ensure(
-    region: str = typer.Option(
-        ...,
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
         "--region",
         help="AWS region containing the provider and consumer VPCs.",
+        required=True,
     ),
     profile: Optional[str] = typer.Option(
         None,
@@ -1920,10 +1980,12 @@ def cost_centers_ensure_cur_export(
 
 
 def preflight(
-    region_az: str = typer.Option(
-        ...,
+    region_az: Optional[str] = context_option(
+        "aws_region_az",
+        None,
         "--region-az",
         help="AWS region + availability zone (e.g. us-west-2b).",
+        required=True,
     ),
     profile: Optional[str] = typer.Option(
         None,
@@ -2042,10 +2104,12 @@ def drift(
 
 
 def cluster_info(
-    region: str = typer.Option(
-        ...,
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
         "--region",
         help="AWS region to query (e.g. us-west-2).",
+        required=True,
     ),
     profile: Optional[str] = typer.Option(
         None,
@@ -2143,10 +2207,12 @@ def _normalize_cluster_list_regions(regions: List[str]) -> list[str]:
 
 
 def cluster_list(
-    regions: List[str] = typer.Option(
-        ...,
+    regions: Optional[List[str]] = context_option(
+        "aws_region",
+        None,
         "--region",
         help="AWS region to query. Repeat --region once per requested region.",
+        required=True,
     ),
     profile: Optional[str] = typer.Option(
         None,
@@ -2204,10 +2270,12 @@ def cluster_list(
 
 
 def cluster_describe(
-    region: str = typer.Option(
-        ...,
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
         "--region",
         help="AWS region to query (e.g. us-west-2).",
+        required=True,
     ),
     cluster: str = typer.Option(
         ...,
@@ -2242,10 +2310,12 @@ def cluster_describe(
 
 
 def cluster_wait(
-    region: str = typer.Option(
-        ...,
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
         "--region",
         help="AWS region to query (e.g. us-west-2).",
+        required=True,
     ),
     cluster: str = typer.Option(
         ...,
@@ -2364,10 +2434,12 @@ def _emit_cluster_tags_text(payload: dict[str, Any]) -> None:
 
 
 def cluster_tags(
-    region: str = typer.Option(
-        ...,
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
         "--region",
         help="AWS region to query (e.g. us-west-2).",
+        required=True,
     ),
     cluster: str = typer.Option(
         ...,
@@ -2471,10 +2543,12 @@ def export(
         "--destination-s3-uri",
         help="S3 URI backing the temporary export DRA.",
     ),
-    region: str = typer.Option(
-        ...,
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
         "--region",
         help="AWS region where the FSx filesystem lives.",
+        required=True,
     ),
     output_dir: Path = typer.Option(
         ...,
@@ -2560,7 +2634,13 @@ def runtime_cache_export(
             "<executing-entity>/<cache-export-id>/."
         ),
     ),
-    region: str = typer.Option(..., "--region", help="AWS region for the cluster and FSx."),
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
+        "--region",
+        help="AWS region for the cluster and FSx.",
+        required=True,
+    ),
     output_dir: Path = typer.Option(
         ...,
         "--output-dir",
@@ -2639,7 +2719,7 @@ def exports_attach(
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
     source_path: str = typer.Option(..., "--source-path"),
     destination_s3_uri: str = typer.Option(..., "--destination-s3-uri"),
-    region: str = typer.Option(..., "--region"),
+    region: Optional[str] = context_option("aws_region", None, "--region", required=True),
     profile: Optional[str] = typer.Option(None, "--profile"),
     wait: bool = typer.Option(True, "--wait/--no-wait"),
     timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
@@ -2676,7 +2756,7 @@ def exports_run(
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
     source_path: str = typer.Option(..., "--source-path"),
     destination_s3_uri: str = typer.Option(..., "--destination-s3-uri"),
-    region: str = typer.Option(..., "--region"),
+    region: Optional[str] = context_option("aws_region", None, "--region", required=True),
     profile: Optional[str] = typer.Option(None, "--profile"),
     wait: bool = typer.Option(True, "--wait/--no-wait"),
     timeout_seconds: int = typer.Option(3600, "--timeout-seconds"),
@@ -2724,7 +2804,7 @@ def exports_transfer(
     source_path: str = typer.Option(..., "--source-path"),
     destination_s3_uri: str = typer.Option(..., "--destination-s3-uri"),
     destination_analysis_id: str = typer.Option(..., "--destination-analysis-id"),
-    region: str = typer.Option(..., "--region"),
+    region: Optional[str] = context_option("aws_region", None, "--region", required=True),
     profile: Optional[str] = typer.Option(None, "--profile"),
     timeout_seconds: int = typer.Option(5400, "--timeout-seconds"),
 ) -> None:
@@ -2797,7 +2877,7 @@ def exports_cleanup(
     source_path: str = typer.Option(..., "--source-path"),
     destination_s3_uri: str = typer.Option(..., "--destination-s3-uri"),
     destination_analysis_id: str = typer.Option(..., "--destination-analysis-id"),
-    region: str = typer.Option(..., "--region"),
+    region: Optional[str] = context_option("aws_region", None, "--region", required=True),
     profile: Optional[str] = typer.Option(None, "--profile"),
     timeout_seconds: int = typer.Option(5400, "--timeout-seconds"),
     confirm_fsx_delete: bool = typer.Option(
@@ -2843,7 +2923,7 @@ def exports_cleanup(
 
 def exports_detach(
     association_id: str = typer.Option(..., "--association-id"),
-    region: str = typer.Option(..., "--region"),
+    region: Optional[str] = context_option("aws_region", None, "--region", required=True),
     profile: Optional[str] = typer.Option(None, "--profile"),
     wait: bool = typer.Option(True, "--wait/--no-wait"),
     timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
@@ -2939,8 +3019,91 @@ def resources_dir() -> None:
     output.print_text(path)
 
 
+def set_vars(
+    aws_profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="Set the project-local AWS profile; a blank value clears it.",
+    ),
+    aws_region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="Set the project-local AWS region; a blank value clears it.",
+    ),
+    aws_region_az: Optional[str] = typer.Option(
+        None,
+        "--region-az",
+        help="Set the project-local AWS region and availability zone; a blank value clears it.",
+    ),
+    cluster_admin_email: Optional[str] = typer.Option(
+        None,
+        "--cluster-admin-email",
+        help="Set the project-local AWS Budget notification email; a blank value clears it.",
+    ),
+) -> None:
+    """Update supplied fields in $PWD/.dyec.config.yaml only."""
+
+    supplied = {
+        field: value
+        for field, value in {
+            "aws_profile": aws_profile,
+            "aws_region": aws_region,
+            "aws_region_az": aws_region_az,
+            "cluster_admin_email": cluster_admin_email,
+        }.items()
+        if value is not None
+    }
+    if not supplied:
+        raise click.UsageError(
+            "set-vars requires at least one of --profile, --region, --region-az, "
+            "or --cluster-admin-email."
+        )
+    context, affected, present = update_local_context(updates=supplied)
+    action = "Updated" if present else "Cleared"
+    typer.echo(f"{action} {', '.join(affected)} in {context.path}")
+
+
+def unset_vars(
+    clear_profile: bool = typer.Option(False, "--profile", help="Clear aws_profile."),
+    clear_region: bool = typer.Option(False, "--region", help="Clear aws_region."),
+    clear_region_az: bool = typer.Option(
+        False,
+        "--region-az",
+        help="Clear aws_region_az.",
+    ),
+    clear_cluster_admin_email: bool = typer.Option(
+        False,
+        "--cluster-admin-email",
+        help="Clear cluster_admin_email.",
+    ),
+) -> None:
+    """Clear selected project-local context fields, or all fields by default."""
+
+    selected = tuple(
+        field
+        for field, enabled in (
+            ("aws_profile", clear_profile),
+            ("aws_region", clear_region),
+            ("aws_region_az", clear_region_az),
+            ("cluster_admin_email", clear_cluster_admin_email),
+        )
+        if enabled
+    )
+    context, affected, present = clear_local_context(fields=selected)
+    if present:
+        typer.echo(f"Cleared {', '.join(affected)} in {context.path}")
+    else:
+        typer.echo(f"Cleared {', '.join(affected)}; removed empty {context.path}")
+
+
 def aws_audit_api_calls(
-    profile: str = typer.Option(..., "--profile", help="Exact AWS CLI profile to audit."),
+    profile: Optional[str] = context_option(
+        "aws_profile",
+        None,
+        "--profile",
+        help="Exact AWS CLI profile to audit.",
+        required=True,
+    ),
     account_id: str = typer.Option(
         ...,
         "--account-id",
@@ -3103,7 +3266,13 @@ def aws_audit_api_calls(
 
 
 def aws_audit_cost_resources(
-    profile: str = typer.Option(..., "--profile", help="Exact AWS CLI profile to audit."),
+    profile: Optional[str] = context_option(
+        "aws_profile",
+        None,
+        "--profile",
+        help="Exact AWS CLI profile to audit.",
+        required=True,
+    ),
     account_id: str = typer.Option(
         ...,
         "--account-id",
@@ -3425,6 +3594,7 @@ def pricing_spot_logs(
 
     from daylily_ec.aws.ssm import (
         SsmCommandFailedError,
+        SsmError,
         run_shell,
         wait_for_ssm_online,
     )
@@ -3624,15 +3794,19 @@ def _run_aws_validate_command(
 
 
 def aws_validate_permissions(
-    profile: str = typer.Option(
-        ...,
+    profile: Optional[str] = context_option(
+        "aws_profile",
+        None,
         "--profile",
         help="Explicit named AWS CLI profile to validate; 'default' is rejected.",
+        required=True,
     ),
-    region_az: str = typer.Option(
-        ...,
+    region_az: Optional[str] = context_option(
+        "aws_region_az",
+        None,
         "--region-az",
         help="Target AWS availability zone, e.g. us-west-2b.",
+        required=True,
     ),
     config: Optional[str] = typer.Option(
         None,
@@ -3657,15 +3831,19 @@ def aws_validate_permissions(
 
 
 def aws_validate_quotas(
-    profile: str = typer.Option(
-        ...,
+    profile: Optional[str] = context_option(
+        "aws_profile",
+        None,
         "--profile",
         help="Explicit named AWS CLI profile to validate; 'default' is rejected.",
+        required=True,
     ),
-    region_az: str = typer.Option(
-        ...,
+    region_az: Optional[str] = context_option(
+        "aws_region_az",
+        None,
         "--region-az",
         help="Target AWS availability zone, e.g. us-west-2b.",
+        required=True,
     ),
     config: Optional[str] = typer.Option(
         None,
@@ -3690,15 +3868,19 @@ def aws_validate_quotas(
 
 
 def aws_validate_all(
-    profile: str = typer.Option(
-        ...,
+    profile: Optional[str] = context_option(
+        "aws_profile",
+        None,
         "--profile",
         help="Explicit named AWS CLI profile to validate; 'default' is rejected.",
+        required=True,
     ),
-    region_az: str = typer.Option(
-        ...,
+    region_az: Optional[str] = context_option(
+        "aws_region_az",
+        None,
         "--region-az",
         help="Target AWS availability zone, e.g. us-west-2b.",
+        required=True,
     ),
     config: Optional[str] = typer.Option(
         None,
@@ -6367,6 +6549,7 @@ def _catalog_command_summary(command: Any) -> dict[str, Any]:
         "description": command.description,
         "type": command.type,
         "validated_version": command.validated_version,
+        "validation_pending": command.validation_pending,
         "validation_evidence_s3_uri_prefix": command.validation_evidence_s3_uri_prefix,
         "command_class": command.command_class,
         "input_contract": command.input_contract,
@@ -6725,7 +6908,7 @@ def catalog_show(
                 if catalog.result_export is not None
                 else None
             ),
-            "command": command.model_dump(mode="json"),
+            "command": command.to_public_payload(),
         }
         if _json_mode():
             output.emit_json(payload)
@@ -7318,7 +7501,13 @@ def mounts_create(
         "--fsx-file-system-id",
         help="Explicit FSx file system id. Required when --cluster is omitted.",
     ),
-    region: str = typer.Option(..., "--region", help="AWS region."),
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
+        "--region",
+        help="AWS region.",
+        required=True,
+    ),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS profile."),
     mount_id: Optional[str] = typer.Option(None, "--mount-id", help="Safe mount id."),
     run_id: Optional[str] = typer.Option(None, "--run-id", help="Run id for local records."),
@@ -7395,7 +7584,7 @@ def mount_rundir(
     ),
     cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
-    region: str = typer.Option(..., "--region"),
+    region: Optional[str] = context_option("aws_region", None, "--region", required=True),
     profile: Optional[str] = typer.Option(None, "--profile"),
     mount_id: Optional[str] = typer.Option(None, "--mount-id"),
     run_id: Optional[str] = typer.Option(None, "--run-id"),
@@ -7446,7 +7635,7 @@ def mount_rundir(
 def mounts_list(
     cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
-    region: str = typer.Option(..., "--region"),
+    region: Optional[str] = context_option("aws_region", None, "--region", required=True),
     profile: Optional[str] = typer.Option(None, "--profile"),
     purpose: Optional[str] = typer.Option(None, "--purpose"),
 ) -> None:
@@ -7473,7 +7662,7 @@ def mounts_describe(
     association_id: Optional[str] = typer.Option(None, "--association-id"),
     cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
-    region: str = typer.Option(..., "--region"),
+    region: Optional[str] = context_option("aws_region", None, "--region", required=True),
     profile: Optional[str] = typer.Option(None, "--profile"),
 ) -> None:
     """Describe one FSx run directory mount."""
@@ -7499,7 +7688,7 @@ def mounts_delete(
     association_id: Optional[str] = typer.Option(None, "--association-id"),
     cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
-    region: str = typer.Option(..., "--region"),
+    region: Optional[str] = context_option("aws_region", None, "--region", required=True),
     profile: Optional[str] = typer.Option(None, "--profile"),
     wait: bool = typer.Option(False, "--wait/--no-wait"),
     timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
@@ -7529,7 +7718,7 @@ def mounts_verify(
     association_id: Optional[str] = typer.Option(None, "--association-id"),
     cluster: str = typer.Option(..., "--cluster", "--cluster-name"),
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
-    region: str = typer.Option(..., "--region"),
+    region: Optional[str] = context_option("aws_region", None, "--region", required=True),
     profile: Optional[str] = typer.Option(None, "--profile"),
     platform: Optional[str] = typer.Option(None, "--platform"),
     timeout_seconds: int = typer.Option(300, "--timeout-seconds"),
@@ -9795,8 +9984,20 @@ def tests_pytest(
 
 def tests_command_catalog(
     cluster: str = typer.Option(..., "--cluster", "--cluster-name", help="Target cluster name."),
-    profile: str = typer.Option(..., "--profile", help="AWS CLI profile."),
-    region: str = typer.Option(..., "--region", help="AWS region."),
+    profile: Optional[str] = context_option(
+        "aws_profile",
+        None,
+        "--profile",
+        help="AWS CLI profile.",
+        required=True,
+    ),
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
+        "--region",
+        help="AWS region.",
+        required=True,
+    ),
     command_codes: str = typer.Option(
         ...,
         "--command-codes",
@@ -10072,6 +10273,18 @@ def register(registry, cli_spec) -> None:
         registry,
         "resources-dir",
         resources_dir,
+        EXEMPT,
+    )
+    register_root_command(
+        registry,
+        "set-vars",
+        set_vars,
+        EXEMPT,
+    )
+    register_root_command(
+        registry,
+        "unset-vars",
+        unset_vars,
         EXEMPT,
     )
     register_group_commands(

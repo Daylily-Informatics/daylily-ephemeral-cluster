@@ -1187,6 +1187,51 @@ class TestWorkflowResolutionHelpers:
         assert values.cost_center_monthly_cap_usd == DEFAULT_COST_CENTER_MONTHLY_CAP_USD
         assert values.cost_center_monthly_cap_usd == "200"
 
+    def test_local_budget_email_fallback_does_not_change_heartbeat_default(self):
+        cfg = ConfigFile.model_validate(
+            {"ephemeral_cluster": {"config": {}, "template_defaults": {}}}
+        )
+
+        values = _resolve_post_create_inputs(
+            cfg,
+            cluster_name="cluster-a",
+            non_interactive=True,
+            disable_budget_enforcement=False,
+            budget_email_default="local-context@example.org",
+            heartbeat_email_default="legacy-default@example.org",
+            allowed_budget_users_default="ubuntu",
+            slurm_accounting="off",
+        )
+
+        assert values.budget_email == "local-context@example.org"
+        assert values.heartbeat_email == "legacy-default@example.org"
+
+    def test_create_yaml_budget_email_precedes_the_local_budget_fallback(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {
+                        "budget_email": ["USESETVALUE", "", "yaml-budget@example.org"],
+                    },
+                    "template_defaults": {},
+                }
+            }
+        )
+
+        values = _resolve_post_create_inputs(
+            cfg,
+            cluster_name="cluster-a",
+            non_interactive=True,
+            disable_budget_enforcement=False,
+            budget_email_default="local-context@example.org",
+            heartbeat_email_default="legacy-default@example.org",
+            allowed_budget_users_default="ubuntu",
+            slurm_accounting="off",
+        )
+
+        assert values.budget_email == "yaml-budget@example.org"
+        assert values.heartbeat_email == "yaml-budget@example.org"
+
     def test_post_create_inputs_prompts_with_cost_center_defaults(self):
         cfg = ConfigFile.model_validate(
             {
