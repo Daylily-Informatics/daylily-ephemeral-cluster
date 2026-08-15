@@ -16,7 +16,7 @@ runner = CliRunner()
 
 DAYOA_BLESSED_TAG = "15.0.1"
 PRODUCTION_DAYOA_TAG = "15.0.1"
-BJUICE_V2_DAYOA_TAG = "15.0.2"
+BJUICE_V2_DAYOA_TAG = "15.0.3"
 PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
 SOLO_KITCHEN_SINK_DAYOA_TAG = PRODUCTION_DAYOA_TAG
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
@@ -1386,7 +1386,7 @@ def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() ->
     assert profile.run_context_source_s3_column == ""
     assert profile.run_context_mount_id_column == ""
     assert catalog.dyec_builds["current"].commands[command_id].model_dump() == command.model_dump()
-    snapshot_command = catalog.get_command_for_dyec_build(command_id, "18.0.6")
+    snapshot_command = catalog.get_command_for_dyec_build(command_id, "18.0.8")
     assert snapshot_command.git_tag == BJUICE_V2_DAYOA_TAG
     assert snapshot_command.validated_version == BJUICE_V2_DAYOA_TAG
     assert command_id not in catalog.dyec_builds["current"].aliases
