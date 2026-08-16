@@ -1,6 +1,6 @@
 # DYEC CLI Reference
 
-This document is the operator-facing reference for the `18.0.10` `dyec` command surface. It favors explicit commands and receipts over implicit state. `daylily-ec` is an installed compatibility entrypoint for the same CLI, but current docs and ledgers use `dyec`.
+This document is the operator-facing reference for the `18.0.12` `dyec` command surface. It favors explicit commands and receipts over implicit state. `daylily-ec` is an installed compatibility entrypoint for the same CLI, but current docs and ledgers use `dyec`.
 
 ## Conventions
 
@@ -556,7 +556,7 @@ The catalog exposes:
 - targets, callers, aligners, dedupers, jobs, and keep-going settings;
 - validated version metadata when present.
 
-The active catalog targets DayOA `15.0.5`. `validation_pending: true` means a
+The active catalog targets DayOA `15.0.6`. `validation_pending: true` means a
 command's launch `git_tag` differs from its recorded `validated_version`; it is
 an honest pending-validation indicator, not a launch block or a rewritten
 receipt. Existing validation runs and receipt tags remain historical evidence.
@@ -661,7 +661,7 @@ dyec workflow launch \
   --cluster "$CLUSTER" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$CLUSTER" \
-  --git-tag 15.0.5 \
+  --git-tag 15.0.6 \
   --manifest-dir ./config \
   --payload-staging-s3-uri "$STAGING_S3_URI" \
   --session-name "$ANALYSIS_ID" \
@@ -1050,6 +1050,24 @@ dyec --json cost-centers refresh-usage project-a \
 ```
 
 Budget/cap changes require the workspace double-approval process before live mutation.
+For an existing fixed monthly USD AWS Budget, plan the exact change first:
+
+```bash
+dyec aws budget set-limit "$CLUSTER" \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --expected-current-monthly-cap-usd 200 \
+  --monthly-cap-usd 300 \
+  --dry-run
+```
+
+After the required approvals, repeat the command without `--dry-run`. The
+expected-current value is a compare-before-write guard. Dry-run mode never
+calls AWS `UpdateBudget`; a live update preserves the supported budget filter
+and time contract, omits read-only fields, and verifies the new limit with an
+immediate readback. A stale expected cap, planned or auto-adjusting budget,
+non-monthly/non-cost/non-USD budget, or readback mismatch fails explicitly.
+Requesting the already-current cap succeeds without submitting an update.
 
 AWS readiness and quota helpers:
 

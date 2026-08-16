@@ -29,7 +29,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "15.0.5"
+DAYOA_BLESSED_TAG = "15.0.6"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -69,6 +69,7 @@ EXPECTED_COMMANDS = {
     ("runtime-cache", "export"),
     ("pricing", "snapshot"),
     ("pricing", "spot-logs"),
+    ("aws", "budget", "set-limit"),
     ("aws", "validate", "permissions"),
     ("aws", "validate", "quotas"),
     ("aws", "validate", "all"),
@@ -472,6 +473,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     analysis_lock_takeover_cmd = registry.get_command(("analysis", "lock", "takeover"))
     pricing_snapshot_cmd = registry.get_command(("pricing", "snapshot"))
     pricing_spot_logs_cmd = registry.get_command(("pricing", "spot-logs"))
+    aws_budget_set_limit_cmd = registry.get_command(("aws", "budget", "set-limit"))
     aws_validate_permissions_cmd = registry.get_command(("aws", "validate", "permissions"))
     aws_validate_quotas_cmd = registry.get_command(("aws", "validate", "quotas"))
     aws_validate_all_cmd = registry.get_command(("aws", "validate", "all"))
@@ -789,6 +791,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert aws_audit_cost_resources_cmd.policy.supports_json is True
     assert aws_audit_cost_resources_cmd.policy.mutates_state is False
     assert aws_audit_cost_resources_cmd.policy.long_running is True
+
+    assert aws_budget_set_limit_cmd is not None
+    assert aws_budget_set_limit_cmd.policy.supports_json is True
+    assert aws_budget_set_limit_cmd.policy.mutates_state is True
+    assert aws_budget_set_limit_cmd.policy.long_running is False
 
     assert slurm_accounting_ensure_cmd is not None
     assert slurm_accounting_ensure_cmd.policy.supports_json is True
@@ -2459,6 +2466,111 @@ def test_pricing_spot_logs_supports_json(monkeypatch) -> None:
     assert payload["row_count"] == 0
     assert payload["cost_interval_count"] == 0
     assert payload["cost_intervals"] == []
+
+
+def test_aws_budget_set_limit_passes_exact_contract_and_json(monkeypatch) -> None:
+    import daylily_ec.aws.budgets as budgets_module
+    import daylily_ec.aws.context as context_module
+
+    _activate_dayec_runtime(monkeypatch)
+    calls: dict[str, object] = {}
+    budgets_client = object()
+
+    class FakeContext:
+        account_id = "123456789012"
+
+        def client(self, service: str) -> object:
+            calls["client_service"] = service
+            return budgets_client
+
+    def fake_build_region(cls, region: str, profile: str | None = None) -> FakeContext:
+        calls["context"] = (region, profile)
+        return FakeContext()
+
+    def fake_update_budget_limit(client, account_id, budget_name, amount, **kwargs):
+        calls["update"] = (client, account_id, budget_name, amount, kwargs)
+        return SimpleNamespace(
+            budget_name="cluster-a",
+            previous_amount="200",
+            requested_amount="300",
+            observed_amount="200",
+            unit="USD",
+            changed=True,
+            dry_run=True,
+            update_submitted=False,
+        )
+
+    monkeypatch.setattr(
+        context_module.AWSContext,
+        "build_region",
+        classmethod(fake_build_region),
+    )
+    monkeypatch.setattr(budgets_module, "update_budget_limit", fake_update_budget_limit)
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "aws",
+            "budget",
+            "set-limit",
+            "cluster-a",
+            "--monthly-cap-usd",
+            "300",
+            "--expected-current-monthly-cap-usd",
+            "200",
+            "--profile",
+            "lsmc",
+            "--region",
+            "us-west-2",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert calls["context"] == ("us-west-2", "lsmc")
+    assert calls["client_service"] == "budgets"
+    assert calls["update"] == (
+        budgets_client,
+        "123456789012",
+        "cluster-a",
+        "300",
+        {"expected_current_amount": "200", "dry_run": True},
+    )
+    assert json.loads(result.stdout) == {
+        "budget_name": "cluster-a",
+        "changed": True,
+        "dry_run": True,
+        "observed_monthly_cap_usd": "200",
+        "previous_monthly_cap_usd": "200",
+        "region": "us-west-2",
+        "requested_monthly_cap_usd": "300",
+        "unit": "USD",
+        "update_submitted": False,
+    }
+
+
+def test_aws_budget_set_limit_requires_expected_current_cap(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+
+    result = runner.invoke(
+        app,
+        [
+            "aws",
+            "budget",
+            "set-limit",
+            "cluster-a",
+            "--monthly-cap-usd",
+            "300",
+            "--profile",
+            "lsmc",
+            "--region",
+            "us-west-2",
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert "--expected-current-monthly-cap-usd" in result.output
 
 
 def test_aws_validate_all_passes_options_and_json(monkeypatch, tmp_path) -> None:

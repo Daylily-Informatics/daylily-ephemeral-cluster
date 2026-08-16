@@ -2,7 +2,7 @@
 
 This is the day-2 runbook for current DayEC clusters.
 
-This guide describes the `18.0.10` CLI. For repeated work, `dyec set-vars` can
+This guide describes the `18.0.12` CLI. For repeated work, `dyec set-vars` can
 store the four supported values in `$PWD/.dyec.config.yaml`; explicit flags
 still win, and direct `aws`/`pcluster` commands keep their normal environment
 requirements. See [cli_reference.md](cli_reference.md) for the strict local
@@ -120,7 +120,7 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --dry-run
 ```
 
-The active catalog pin for DayOA commands is `15.0.5`. A catalog row can retain
+The active catalog pin for DayOA commands is `15.0.6`. A catalog row can retain
 an older `validated_version`; `validation_pending: true` reports the difference
 without rewriting historical evidence or blocking a launch.
 
@@ -239,7 +239,7 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 15.0.5 \
+  --git-tag 15.0.6 \
   --genome hg38_broad \
   --jobs 5 \
   --target produce_illumina_run_qc \
@@ -289,6 +289,25 @@ dyec cost-centers edit RnD --clear-active-until
 
 Disabling budget enforcement skips only the cluster AWS Budget lookup. It does
 not remove the `--comment <cost-center>` requirement or cost-center validation.
+
+To change the cluster AWS Budget, first record the exact current cap and obtain
+the required budget-change approvals. Validate the intended old/new cap pair
+without mutating AWS:
+
+```bash
+dyec aws budget set-limit "$CLUSTER" \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --expected-current-monthly-cap-usd 200 \
+  --monthly-cap-usd 300 \
+  --dry-run
+```
+
+After approval, repeat the same command without `--dry-run`. The command fails
+before mutation if the current limit changed or the budget is not a fixed
+monthly USD cost budget, and it fails if the post-update readback does not
+match. An equal old/new cap is an idempotent no-op. This command changes only
+the AWS Budget; cost-center caps remain a separate control.
 
 ## Create-Time Spot Bid Safeguards
 
@@ -356,8 +375,8 @@ For repo-native work that is not a catalog workflow command, clone the pinned re
 
 ```bash
 day-clone --list
-day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 15.0.5 --executing-entity "$EXECUTING_ENTITY"
-day-clone -d "$ANALYSIS_ID" -t 15.0.5
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 15.0.6 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 15.0.6
 ```
 
 `-t` is the short form of `--git-tag`; `-d` is required and is the short form of `--destination`. The clone target is `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`.

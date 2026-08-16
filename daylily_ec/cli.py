@@ -3096,6 +3096,75 @@ def unset_vars(
         typer.echo(f"Cleared {', '.join(affected)}; removed empty {context.path}")
 
 
+def aws_budget_set_limit(
+    name: str = typer.Argument(
+        ..., help="Existing AWS Budget name (cluster name for DYEC clusters)."
+    ),
+    monthly_cap_usd: str = typer.Option(
+        ..., "--monthly-cap-usd", help="Replacement monthly USD cap."
+    ),
+    expected_current_monthly_cap_usd: str = typer.Option(
+        ...,
+        "--expected-current-monthly-cap-usd",
+        help="Required current monthly USD cap; mismatch fails before mutation.",
+    ),
+    profile: Optional[str] = context_option(
+        "aws_profile",
+        None,
+        "--profile",
+        help="AWS CLI profile.",
+        required=True,
+    ),
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
+        "--region",
+        help="AWS Budgets home region.",
+        required=True,
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Validate the exact old/new cap contract without updating AWS.",
+    ),
+) -> None:
+    """Replace one fixed monthly USD AWS Budget limit with exact old-cap proof."""
+
+    from daylily_ec.aws.budgets import update_budget_limit
+    from daylily_ec.aws.context import AWSContext
+
+    try:
+        aws_ctx = AWSContext.build_region(str(region), profile=profile)
+        result = update_budget_limit(
+            aws_ctx.client("budgets"),
+            aws_ctx.account_id,
+            name,
+            monthly_cap_usd,
+            expected_current_amount=expected_current_monthly_cap_usd,
+            dry_run=dry_run,
+        )
+    except (RuntimeError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+    payload = {
+        "budget_name": result.budget_name,
+        "previous_monthly_cap_usd": result.previous_amount,
+        "requested_monthly_cap_usd": result.requested_amount,
+        "observed_monthly_cap_usd": result.observed_amount,
+        "unit": result.unit,
+        "changed": result.changed,
+        "dry_run": result.dry_run,
+        "update_submitted": result.update_submitted,
+        "region": str(region),
+    }
+    if _json_mode():
+        output.emit_json(payload)
+    else:
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+
+
 def aws_audit_api_calls(
     profile: Optional[str] = context_option(
         "aws_profile",
@@ -10307,6 +10376,18 @@ def register(registry, cli_spec) -> None:
         "aws",
         "AWS readiness validation helpers.",
         [],
+    )
+    register_group_commands(
+        registry,
+        "aws/budget",
+        "AWS Budget inspection and limit management.",
+        [
+            (
+                "set-limit",
+                aws_budget_set_limit,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+        ],
     )
     register_group_commands(
         registry,

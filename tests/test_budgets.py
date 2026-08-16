@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+import pytest
+
 from daylily_ec.aws.budgets import (
     CLUSTER_THRESHOLDS,
     GLOBAL_BUDGET_NAME,
@@ -19,6 +21,7 @@ from daylily_ec.aws.budgets import (
     ensure_cluster_budget,
     ensure_global_budget,
     make_budget_preflight_step,
+    update_budget_limit,
     update_tags_file,
 )
 from daylily_ec.state.models import CheckStatus
@@ -46,10 +49,34 @@ def _budgets_client(budgets_list=None, create_ok=True):
         raise _BudgetNotFound(f"Budget {BudgetName} not found")
 
     c.describe_budget.side_effect = describe_budget
+
+    def update_budget(AccountId, NewBudget):
+        _ = AccountId
+        for index, budget in enumerate(budgets):
+            if budget.get("BudgetName") == NewBudget.get("BudgetName"):
+                budgets[index] = dict(NewBudget)
+                return {}
+        raise _BudgetNotFound(f"Budget {NewBudget.get('BudgetName')} not found")
+
+    c.update_budget.side_effect = update_budget
     c.describe_budgets.return_value = {"Budgets": budgets}
     if not create_ok:
         c.create_budget.side_effect = Exception("boom")
     return c
+
+
+def _fixed_monthly_budget(amount="200"):
+    return {
+        "BudgetName": "cluster-a",
+        "BudgetLimit": {"Amount": amount, "Unit": "USD"},
+        "BudgetType": "COST",
+        "CostFilters": {"TagKeyValue": ["user:aws-parallelcluster-clustername$cluster-a"]},
+        "CostTypes": {"IncludeTax": True, "UseBlended": False},
+        "TimeUnit": "MONTHLY",
+        "TimePeriod": {"Start": "start", "End": "end"},
+        "CalculatedSpend": {"ActualSpend": {"Amount": "12", "Unit": "USD"}},
+        "LastUpdatedTime": "read-only",
+    }
 
 
 def _s3_client(existing_body=None):
@@ -210,6 +237,215 @@ class TestCreateBudget:
         c = _budgets_client([{"BudgetName": "b1"}])
         create_budget(c, "111", "b1", "200", "c1")
         c.create_budget.assert_not_called()
+
+
+# ===================================================================
+# update_budget_limit
+# ===================================================================
+
+
+class TestUpdateBudgetLimit:
+    def test_updates_only_fixed_limit_and_preserves_mutable_contract(self):
+        budget = _fixed_monthly_budget()
+        client = _budgets_client([budget])
+
+        result = update_budget_limit(
+            client,
+            "111",
+            "cluster-a",
+            "300.00",
+            expected_current_amount="200.0",
+        )
+
+        assert result.previous_amount == "200"
+        assert result.requested_amount == "300.00"
+        assert result.observed_amount == "300.00"
+        assert result.unit == "USD"
+        assert result.changed is True
+        assert result.dry_run is False
+        assert result.update_submitted is True
+        request = client.update_budget.call_args.kwargs
+        assert request["AccountId"] == "111"
+        assert request["NewBudget"] == {
+            "BudgetName": "cluster-a",
+            "BudgetLimit": {"Amount": "300.00", "Unit": "USD"},
+            "BudgetType": "COST",
+            "CostFilters": budget["CostFilters"],
+            "CostTypes": budget["CostTypes"],
+            "TimeUnit": "MONTHLY",
+            "TimePeriod": budget["TimePeriod"],
+        }
+        assert "CalculatedSpend" not in request["NewBudget"]
+        assert "LastUpdatedTime" not in request["NewBudget"]
+
+    def test_preserves_expression_filter_contract_without_legacy_fields(self):
+        budget = _fixed_monthly_budget()
+        budget.pop("CostFilters")
+        budget.pop("CostTypes")
+        budget["FilterExpression"] = {"Tags": {"Key": "cluster", "Values": ["cluster-a"]}}
+        budget["Metrics"] = ["UnblendedCost"]
+        client = _budgets_client([budget])
+
+        update_budget_limit(
+            client,
+            "111",
+            "cluster-a",
+            "300",
+            expected_current_amount="200",
+        )
+
+        new_budget = client.update_budget.call_args.kwargs["NewBudget"]
+        assert new_budget["FilterExpression"] == budget["FilterExpression"]
+        assert new_budget["Metrics"] == budget["Metrics"]
+        assert "CostFilters" not in new_budget
+        assert "CostTypes" not in new_budget
+
+    @pytest.mark.parametrize(
+        "mutation",
+        [
+            lambda budget: budget.update(
+                {
+                    "FilterExpression": {"Tags": {"Key": "cluster", "Values": ["cluster-a"]}},
+                    "Metrics": ["UnblendedCost"],
+                }
+            ),
+            lambda budget: budget.pop("CostTypes"),
+        ],
+    )
+    def test_rejects_mixed_or_incomplete_filter_contract(self, mutation):
+        budget = _fixed_monthly_budget()
+        mutation(budget)
+        client = _budgets_client([budget])
+
+        with pytest.raises(ValueError, match="filter contract|CostFilters/CostTypes"):
+            update_budget_limit(
+                client,
+                "111",
+                "cluster-a",
+                "300",
+                expected_current_amount="200",
+            )
+
+        client.update_budget.assert_not_called()
+
+    def test_dry_run_validates_without_submitting(self):
+        client = _budgets_client([_fixed_monthly_budget()])
+
+        result = update_budget_limit(
+            client,
+            "111",
+            "cluster-a",
+            "300",
+            expected_current_amount="200",
+            dry_run=True,
+        )
+
+        assert result.changed is True
+        assert result.dry_run is True
+        assert result.update_submitted is False
+        assert result.observed_amount == "200"
+        client.update_budget.assert_not_called()
+
+    def test_equal_limit_is_an_idempotent_no_op(self):
+        client = _budgets_client([_fixed_monthly_budget("200.00")])
+
+        result = update_budget_limit(
+            client,
+            "111",
+            "cluster-a",
+            "200",
+            expected_current_amount="200",
+        )
+
+        assert result.changed is False
+        assert result.update_submitted is False
+        assert result.observed_amount == "200.00"
+        client.update_budget.assert_not_called()
+
+    def test_expected_limit_mismatch_fails_before_update(self):
+        client = _budgets_client([_fixed_monthly_budget("250")])
+
+        with pytest.raises(ValueError, match="expected current limit 200 USD but observed 250 USD"):
+            update_budget_limit(
+                client,
+                "111",
+                "cluster-a",
+                "300",
+                expected_current_amount="200",
+            )
+
+        client.update_budget.assert_not_called()
+
+    @pytest.mark.parametrize("amount", ["", "0", "-1", "NaN", "Infinity", "abc"])
+    def test_invalid_replacement_limit_fails_before_update(self, amount):
+        client = _budgets_client([_fixed_monthly_budget()])
+
+        with pytest.raises(ValueError, match="budget amount must be a positive USD decimal"):
+            update_budget_limit(
+                client,
+                "111",
+                "cluster-a",
+                amount,
+                expected_current_amount="200",
+            )
+
+        client.update_budget.assert_not_called()
+
+    @pytest.mark.parametrize(
+        ("field", "value", "message"),
+        [
+            ("BudgetType", "USAGE", "must be a COST budget"),
+            ("TimeUnit", "ANNUALLY", "must use the MONTHLY time unit"),
+            ("PlannedBudgetLimits", {"1": {"Amount": "200", "Unit": "USD"}}, "planned"),
+            ("AutoAdjustData", {"AutoAdjustType": "HISTORICAL"}, "auto-adjusting"),
+            ("BudgetLimit", {"Amount": "200", "Unit": "GB"}, "unit must be USD"),
+        ],
+    )
+    def test_rejects_non_fixed_monthly_usd_budget(self, field, value, message):
+        budget = _fixed_monthly_budget()
+        budget[field] = value
+        client = _budgets_client([budget])
+
+        with pytest.raises(ValueError, match=message):
+            update_budget_limit(
+                client,
+                "111",
+                "cluster-a",
+                "300",
+                expected_current_amount="200",
+            )
+
+        client.update_budget.assert_not_called()
+
+    def test_missing_budget_fails_before_update(self):
+        client = _budgets_client([])
+
+        with pytest.raises(ValueError, match="does not exist"):
+            update_budget_limit(
+                client,
+                "111",
+                "cluster-a",
+                "300",
+                expected_current_amount="200",
+            )
+
+        client.update_budget.assert_not_called()
+
+    def test_readback_mismatch_fails(self):
+        budget = _fixed_monthly_budget()
+        client = MagicMock()
+        client.describe_budget.return_value = {"Budget": budget}
+
+        with pytest.raises(RuntimeError, match="update verification failed"):
+            update_budget_limit(
+                client,
+                "111",
+                "cluster-a",
+                "300",
+                expected_current_amount="200",
+            )
+
+        client.update_budget.assert_called_once()
 
 
 # ===================================================================
