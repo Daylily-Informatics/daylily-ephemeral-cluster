@@ -14,6 +14,8 @@ Two budget types:
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 from typing import Any, Dict, List
 
 from daylily_ec.state.models import CheckResult, CheckStatus
@@ -162,6 +164,157 @@ def create_budget(
     budget = _build_budget_dict(budget_name, amount, cluster_name)
     budgets_client.create_budget(AccountId=account_id, Budget=budget)
     log.info("Created budget '%s' (%s USD/month)", budget_name, amount)
+
+
+@dataclass(frozen=True)
+class BudgetLimitUpdateResult:
+    """Verified result of planning or applying one fixed-budget limit update."""
+
+    budget_name: str
+    previous_amount: str
+    requested_amount: str
+    observed_amount: str
+    unit: str
+    changed: bool
+    dry_run: bool
+    update_submitted: bool
+
+
+def _positive_decimal(value: object, *, label: str) -> Decimal:
+    try:
+        amount = Decimal(str(value))
+    except (InvalidOperation, ValueError) as exc:
+        raise ValueError(f"{label} must be a positive USD decimal") from exc
+    if not amount.is_finite() or amount <= 0:
+        raise ValueError(f"{label} must be a positive USD decimal")
+    return amount
+
+
+def _fixed_monthly_usd_limit(budget: Dict[str, Any]) -> tuple[Decimal, str]:
+    if budget.get("BudgetType") != "COST":
+        raise ValueError("AWS Budget must be a COST budget")
+    if budget.get("TimeUnit") != "MONTHLY":
+        raise ValueError("AWS Budget must use the MONTHLY time unit")
+    if budget.get("PlannedBudgetLimits"):
+        raise ValueError("planned AWS Budgets cannot be changed with the fixed-limit command")
+    if budget.get("AutoAdjustData"):
+        raise ValueError(
+            "auto-adjusting AWS Budgets cannot be changed with the fixed-limit command"
+        )
+
+    limit = budget.get("BudgetLimit")
+    if not isinstance(limit, dict):
+        raise ValueError("AWS Budget is missing its fixed BudgetLimit")
+    unit = str(limit.get("Unit") or "")
+    if unit != "USD":
+        raise ValueError("AWS Budget limit unit must be USD")
+    return _positive_decimal(limit.get("Amount"), label="current budget amount"), unit
+
+
+def _filter_contract_fields(budget: Dict[str, Any]) -> tuple[str, str]:
+    """Return the one complete AWS Budgets filter contract in use."""
+
+    legacy_fields = ("CostFilters", "CostTypes")
+    expression_fields = ("FilterExpression", "Metrics")
+    legacy_present = tuple(field for field in legacy_fields if field in budget)
+    expression_present = tuple(field for field in expression_fields if field in budget)
+
+    if legacy_present and expression_present:
+        raise ValueError("AWS Budget mixes legacy and expression filter contracts; refusing update")
+    if legacy_present and legacy_present != legacy_fields:
+        raise ValueError("AWS Budget has an incomplete CostFilters/CostTypes contract")
+    if expression_present and expression_present != expression_fields:
+        raise ValueError("AWS Budget has an incomplete FilterExpression/Metrics contract")
+    if not legacy_present and not expression_present:
+        raise ValueError("AWS Budget is missing its filter and metric contract")
+    return legacy_fields if legacy_present else expression_fields
+
+
+def update_budget_limit(
+    budgets_client: Any,
+    account_id: str,
+    budget_name: str,
+    amount: str,
+    *,
+    expected_current_amount: str,
+    dry_run: bool = False,
+) -> BudgetLimitUpdateResult:
+    """Replace the monthly limit of an existing AWS Budget.
+
+    AWS Budgets returns read-only fields from ``describe_budget`` which cannot
+    be sent back to ``update_budget``. This path supports fixed monthly USD
+    cost budgets only, preserves their documented mutable contract, and changes
+    only ``BudgetLimit`` after the caller proves the observed current limit.
+    """
+
+    normalized_amount = _positive_decimal(amount, label="budget amount")
+    expected_amount = _positive_decimal(
+        expected_current_amount,
+        label="expected current budget amount",
+    )
+
+    existing = describe_budget(budgets_client, account_id, budget_name)
+    if existing is None:
+        raise ValueError(f"AWS Budget '{budget_name}' does not exist")
+    current_amount, unit = _fixed_monthly_usd_limit(existing)
+    filter_fields = _filter_contract_fields(existing)
+    if current_amount != expected_amount:
+        raise ValueError(
+            f"AWS Budget '{budget_name}' expected current limit "
+            f"{format(expected_amount, 'f')} USD but observed "
+            f"{format(current_amount, 'f')} USD"
+        )
+
+    mutable_fields = (
+        "BudgetName",
+        "BudgetType",
+        *filter_fields,
+        "TimeUnit",
+        "TimePeriod",
+        "BillingViewArn",
+    )
+    new_budget = {
+        field: existing[field]
+        for field in mutable_fields
+        if field in existing and existing[field] is not None
+    }
+    new_budget["BudgetName"] = budget_name
+    new_budget["BudgetLimit"] = {
+        "Amount": format(normalized_amount, "f"),
+        "Unit": unit,
+    }
+    changed = current_amount != normalized_amount
+    update_submitted = changed and not dry_run
+    observed_amount = current_amount
+    if update_submitted:
+        budgets_client.update_budget(AccountId=account_id, NewBudget=new_budget)
+        observed = describe_budget(budgets_client, account_id, budget_name)
+        if observed is None:
+            raise RuntimeError(f"AWS Budget '{budget_name}' disappeared after update")
+        observed_amount, observed_unit = _fixed_monthly_usd_limit(observed)
+        if observed_unit != unit or observed_amount != normalized_amount:
+            raise RuntimeError(
+                f"AWS Budget '{budget_name}' update verification failed: expected "
+                f"{format(normalized_amount, 'f')} {unit}, observed "
+                f"{format(observed_amount, 'f')} {observed_unit}"
+            )
+        log.info(
+            "Updated budget '%s' from %s to %s USD/month",
+            budget_name,
+            format(current_amount, "f"),
+            format(observed_amount, "f"),
+        )
+
+    return BudgetLimitUpdateResult(
+        budget_name=budget_name,
+        previous_amount=format(current_amount, "f"),
+        requested_amount=format(normalized_amount, "f"),
+        observed_amount=format(observed_amount, "f"),
+        unit=unit,
+        changed=changed,
+        dry_run=dry_run,
+        update_submitted=update_submitted,
+    )
 
 
 def create_notifications(

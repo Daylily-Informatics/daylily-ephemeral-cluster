@@ -2,7 +2,7 @@
 
 This is the day-2 runbook for current DayEC clusters.
 
-This guide describes the `18.0.10` CLI. For repeated work, `dyec set-vars` can
+This guide describes the `18.0.11` CLI. For repeated work, `dyec set-vars` can
 store the four supported values in `$PWD/.dyec.config.yaml`; explicit flags
 still win, and direct `aws`/`pcluster` commands keep their normal environment
 requirements. See [cli_reference.md](cli_reference.md) for the strict local
@@ -289,6 +289,25 @@ dyec cost-centers edit RnD --clear-active-until
 
 Disabling budget enforcement skips only the cluster AWS Budget lookup. It does
 not remove the `--comment <cost-center>` requirement or cost-center validation.
+
+To change the cluster AWS Budget, first record the exact current cap and obtain
+the required budget-change approvals. Validate the intended old/new cap pair
+without mutating AWS:
+
+```bash
+dyec aws budget set-limit "$CLUSTER" \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --expected-current-monthly-cap-usd 200 \
+  --monthly-cap-usd 300 \
+  --dry-run
+```
+
+After approval, repeat the same command without `--dry-run`. The command fails
+before mutation if the current limit changed or the budget is not a fixed
+monthly USD cost budget, and it fails if the post-update readback does not
+match. An equal old/new cap is an idempotent no-op. This command changes only
+the AWS Budget; cost-center caps remain a separate control.
 
 ## Create-Time Spot Bid Safeguards
 
