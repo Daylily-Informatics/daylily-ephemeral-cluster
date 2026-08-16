@@ -280,7 +280,6 @@ def test_local_context_precedence_fills_required_and_optional_command_options(
             "acknowledge_regional_cap_increase": False,
             "acknowledge_regional_cap_risk": False,
             "slurm_accounting": "on",
-            "fail_on_sacct_error": False,
             "create_slurm_accounting_if_missing": False,
             "acknowledge_slurm_accounting_create_cost": False,
             "budget_email_override": None,

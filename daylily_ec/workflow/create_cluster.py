@@ -2586,7 +2586,6 @@ def run_create_workflow(
     acknowledge_regional_cap_increase: bool = False,
     acknowledge_regional_cap_risk: bool = False,
     slurm_accounting: str = "on",
-    fail_on_sacct_error: bool = False,
     create_slurm_accounting_if_missing: bool = False,
     acknowledge_slurm_accounting_create_cost: bool = False,
     budget_email_override: Optional[str] = None,
@@ -3972,16 +3971,29 @@ def run_create_workflow(
         ui.ok(status_message(accounting_outcome))
     ui.detail("Slurm accounting receipt", str(accounting_receipt_path))
 
-    logger.info("✅ Cluster %s creation complete.", cluster_name)
+    accounting_failed = slurm_accounting == "on" and not accounting_result.succeeded
+    if accounting_failed:
+        logger.error(
+            "Cluster %s base creation completed, but requested Slurm accounting failed.",
+            cluster_name,
+        )
+    else:
+        logger.info("✅ Cluster %s creation complete.", cluster_name)
     elapsed_total = monitor_result.elapsed_seconds
-    ui.success_panel(
-        "CLUSTER CREATION COMPLETE",
+    final_body = (
         f"[bold]Cluster:[/]  {cluster_name}\n"
         f"[bold]Region:[/]   {aws_ctx.region} ({region_az})\n"
         f"[bold]Elapsed:[/]  {ui.elapsed_str(elapsed_total)}\n"
         f"[bold]Accounting:[/] {accounting_outcome.value}\n"
-        f"{_format_idle_cost_summary(idle_cost)}",
+        f"{_format_idle_cost_summary(idle_cost)}"
     )
+    if accounting_failed:
+        ui.error_panel(
+            "CLUSTER BASE CREATED · SLURM ACCOUNTING FAILED",
+            final_body,
+        )
+    else:
+        ui.success_panel("CLUSTER CREATION COMPLETE", final_body)
     typer.echo(
         _build_connection_command(
             cluster_name,
@@ -3990,9 +4002,12 @@ def run_create_workflow(
         )
     )
     typer.echo(f"Idle cluster hourly estimate: ${idle_cost.total_hourly_usd:.4f}/hour")
-    typer.echo("...fin!")
-    _maybe_say_onward()
-    if slurm_accounting == "on" and not accounting_result.succeeded and fail_on_sacct_error:
+    if accounting_failed:
+        typer.echo("Cluster base creation completed, but requested Slurm accounting did not.")
+    else:
+        typer.echo("...fin!")
+        _maybe_say_onward()
+    if accounting_failed:
         return EXIT_AWS_FAILURE
     return EXIT_SUCCESS
 

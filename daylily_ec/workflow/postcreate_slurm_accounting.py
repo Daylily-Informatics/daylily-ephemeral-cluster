@@ -1,8 +1,9 @@
-"""Create-only, fail-soft post-create Slurm accounting orchestration.
+"""Create-only post-create Slurm accounting orchestration.
 
 This module deliberately owns the compute-fleet lifecycle instead of changing
-the standalone ``slurm-accounting attach`` command.  Service resolution and
-update-config rendering complete before the first fleet mutation.
+the standalone ``slurm-accounting attach`` command. Service resolution and
+update-config rendering complete before the first fleet mutation, and callers
+must treat every non-enabled requested-accounting result as a create failure.
 """
 
 from __future__ import annotations
@@ -44,6 +45,24 @@ SAFE_CLUSTER_STATES = frozenset(
 )
 SAFE_FLEET_STATES = frozenset(
     {"UNKNOWN", "RUNNING", "STOPPED", "START_REQUESTED", "STOP_REQUESTED"}
+)
+ACCOUNTING_VERIFICATION_COMMAND = "\n".join(
+    (
+        "set -euo pipefail",
+        "test \"$(systemctl is-active slurmdbd)\" = active",
+        "test \"$(systemctl is-active slurmctld)\" = active",
+        "accounting_storage=$(scontrol show config | awk -F= '",
+        "  /^AccountingStorageType[[:space:]]*=/ {gsub(/[[:space:]]/, \"\", $2); print $2}'",
+        ")",
+        "test \"$accounting_storage\" = accounting_storage/slurmdbd",
+        "cluster_name=$(scontrol show config | awk -F= '",
+        "  /^ClusterName[[:space:]]*=/ {gsub(/^[[:space:]]+|[[:space:]]+$/, \"\", $2); print $2}'",
+        ")",
+        "test -n \"$cluster_name\"",
+        "registered_cluster=$(sacctmgr -nP show cluster \"$cluster_name\" format=Cluster | head -n 1)",
+        "test \"$registered_cluster\" = \"$cluster_name\"",
+        "timeout 60 sacct -X --starttime now-1hour --noheader --parsable2 >/dev/null",
+    )
 )
 
 
@@ -680,7 +699,7 @@ def run_postcreate_slurm_accounting(
         run_shell(
             replacement_id,
             region,
-            "set -euo pipefail\ncommand -v sacct >/dev/null\ntimeout 60 sacct -X --starttime now-1hour --noheader --parsable2 >/dev/null",
+            ACCOUNTING_VERIFICATION_COMMAND,
             profile=profile,
             as_user="ubuntu",
             timeout=120,

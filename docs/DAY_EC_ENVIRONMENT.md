@@ -17,7 +17,7 @@ session-manager-plugin
 
 `dyec` and `daylily-ec` are the same Python entrypoint.
 
-The checked-in CLI release baseline is `18.0.13`. Use `dyec --json version` to
+The checked-in CLI release baseline is `18.0.14`. Use `dyec --json version` to
 identify the installed source before relying on any command example.
 
 ## ParallelCluster Target

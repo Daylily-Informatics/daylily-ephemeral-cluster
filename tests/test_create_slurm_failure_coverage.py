@@ -926,6 +926,7 @@ def test_accounting_remaining_structured_edges(tmp_path, monkeypatch):
         username=db.username,
         password_secret_arn="",
         client_security_group_id=db.client_security_group_id,
+        client_secret_read_policy_arn=db.client_secret_read_policy_arn,
         instance_id=db.instance_id,
     )
     with pytest.raises(SlurmAccountingError, match="secret ARN"):

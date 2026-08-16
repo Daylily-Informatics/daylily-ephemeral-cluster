@@ -238,6 +238,9 @@ class TestAllSubstitutionKeys:
             username="slurm_acct",
             password_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:acct",
             client_security_group_id="sg-0123456789abcdef0",
+            client_secret_read_policy_arn=(
+                "arn:aws:iam::123456789012:policy/accounting-client-read"
+            ),
             instance_id="i-0123456789abcdef0",
         )
         subs = _full_subs()

@@ -974,7 +974,6 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "acknowledge_regional_cap_increase": False,
         "acknowledge_regional_cap_risk": False,
         "slurm_accounting": "on",
-        "fail_on_sacct_error": False,
         "create_slurm_accounting_if_missing": False,
             "acknowledge_slurm_accounting_create_cost": False,
             "budget_email_override": None,
@@ -1055,7 +1054,6 @@ def test_create_command_slurm_accounting_mode_contract(
     assert result.exit_code == 0, result.output
     assert len(calls) == 1
     assert calls[0]["slurm_accounting"] == expected_mode
-    assert calls[0]["fail_on_sacct_error"] is False
     assert calls[0]["create_slurm_accounting_if_missing"] is False
     assert calls[0]["acknowledge_slurm_accounting_create_cost"] is False
 
@@ -1152,42 +1150,6 @@ def test_create_command_rejects_unpaired_accounting_creation_approval_before_wor
     assert missing_flag in result.output
 
 
-def test_create_command_accepts_off_with_strict_flag_and_forwards_ignored_policy(
-    monkeypatch,
-    tmp_path,
-) -> None:
-    import daylily_ec.workflow.create_cluster as create_module
-
-    calls: list[dict[str, object]] = []
-    _activate_dayec_runtime(monkeypatch)
-    config_path = tmp_path / "daylily.yaml"
-    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
-    monkeypatch.setattr(
-        create_module,
-        "run_create_workflow",
-        lambda _region_az, **kwargs: calls.append(kwargs) or 0,
-    )
-
-    result = runner.invoke(
-        app,
-        [
-            "create",
-            "--region-az",
-            "us-west-2d",
-            "--config",
-            str(config_path),
-            "--non-interactive",
-            "--slurm-accounting",
-            "off",
-            "--fail-on-sacct-error",
-        ],
-    )
-
-    assert result.exit_code == 0, result.output
-    assert calls[0]["slurm_accounting"] == "off"
-    assert calls[0]["fail_on_sacct_error"] is True
-
-
 def test_create_command_forwards_ursa_noninteractive_accounting_approvals(
     monkeypatch,
     tmp_path,
@@ -1234,7 +1196,6 @@ def test_create_command_help_exposes_postcreate_accounting_contract() -> None:
     assert options["--slurm-accounting"].default == "on"
     assert set(options["--slurm-accounting"].type.choices) == {"on", "off"}
     assert options["--slurm-accounting"].type.case_sensitive is True
-    assert options["--fail-on-sacct-error"].default is False
     assert options["--create-slurm-accounting-if-missing"].default is False
     assert options["--acknowledge-slurm-accounting-create-cost"].default is False
 
@@ -1243,8 +1204,8 @@ def test_create_command_help_exposes_postcreate_accounting_contract() -> None:
     assert "--slurm-accounting" in result.output
     assert "[on|off]" in result.output
     assert "[default: on]" in result.output
-    assert "--fail-on-sacct-error" in result.output
-    assert "Ignored when" in result.output
+    assert "--fail-on-sacct-error" not in result.output
+    assert "--allow-sacct-error" not in result.output
 
 
 def test_create_command_passes_explicit_regional_cap_override(monkeypatch, tmp_path) -> None:
@@ -1554,6 +1515,8 @@ def test_create_command_rejects_retired_budget_project(monkeypatch) -> None:
         "--create-slurm-accounting-db",
         "--scan-slurm-accounting-db",
         "--slurm-accounting-stack-name",
+        "--fail-on-sacct-error",
+        "--allow-sacct-error",
     ],
 )
 def test_create_rejects_removed_initial_accounting_flags(monkeypatch, legacy_flag) -> None:
@@ -1604,6 +1567,9 @@ def test_slurm_accounting_ensure_reports_resolved_db(monkeypatch) -> None:
             username="slurm_acct",
             password_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:acct",
             client_security_group_id="sg-0123456789abcdef0",
+            client_secret_read_policy_arn=(
+                "arn:aws:iam::123456789012:policy/accounting-client-read"
+            ),
             instance_id="i-0123456789abcdef0",
         )
 
