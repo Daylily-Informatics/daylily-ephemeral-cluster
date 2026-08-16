@@ -17,7 +17,7 @@ session-manager-plugin
 
 `dyec` and `daylily-ec` are the same Python entrypoint.
 
-The checked-in CLI release baseline is `18.0.12`. Use `dyec --json version` to
+The checked-in CLI release baseline is `18.0.13`. Use `dyec --json version` to
 identify the installed source before relying on any command example.
 
 ## ParallelCluster Target
@@ -61,7 +61,7 @@ The repository catalog must remain synchronized between:
 - `config/daylily_pipeline_command_catalog.yaml`
 - `daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml`
 
-The active DayOA catalog pin is `15.0.6`. Catalog output may retain an older
+The active DayOA catalog pin is `15.0.7`. Catalog output may retain an older
 `validated_version`; `validation_pending: true` reports that honest difference
 without rewriting historical validation evidence or blocking a launch.
 
