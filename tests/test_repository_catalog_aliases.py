@@ -85,7 +85,7 @@ def test_current_alias_resolves_to_an_analysis_command_and_renders_extensions() 
     assert ALIAS_ID not in build.commands
     assert ALIAS_ID in build.aliases
     assert build.aliases[ALIAS_ID].alias_of == BASE_ID
-    assert base.git_tag == "15.0.8"
+    assert base.git_tag == "15.0.9"
     assert alias.git_tag == base.git_tag
     assert base.targets == ["produce_sentdhiomr2_slim_kitchensink_mega"]
     assert alias.targets == [
@@ -287,16 +287,16 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     baseline = yaml.safe_load(baseline_source)
 
     assert raw["dyec_builds"]["current"] != raw["dyec_builds"]["17.0.29"]
-    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == "15.0.8"
-    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["15.0.8"]
+    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == "15.0.9"
+    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["15.0.9"]
     assert {
         command["git_tag"]
         for command in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]
-    } == {"15.0.8"}
+    } == {"15.0.9"}
     assert {
         command["git_tag"]
         for command in raw["dyec_builds"]["current"]["commands"].values()
-    } == {"15.0.8"}
+    } == {"15.0.9"}
     top_level_commands = {
         command["command_id"]
         for command in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]

@@ -420,7 +420,7 @@ def test_root_verbose_precedes_json_stdout_and_reports_local_context(tmp_path, m
 
     result = runner.invoke(app, ["-v", "--json", "info"])
     assert result.exit_code == 0, result.output
-    assert json.loads(result.stdout)["Pinned DayOA Version"] == "15.0.8"
+    assert json.loads(result.stdout)["Pinned DayOA Version"] == "15.0.9"
     assert result.output.index("DYEC verbose:") < result.output.index("{")
     assert f"PWD: {tmp_path}" in result.stderr
     assert "Project path:" in result.stderr
