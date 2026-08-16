@@ -49,7 +49,7 @@ Ledger path: `docs/plans/20260816T083627Z_pcan18013_slurm_accounting_recovery_le
 | SACCT-004 | Local verification | Run focused accounting/create tests, lint/format checks, and diff checks. | SUCCESS | contract_test | Gate 2 | Forge | Full suite: `2620 passed, 11 skipped`; focused suites passed; both CloudFormation templates validated; `git diff --check` passed. |  | Repository-wide Ruff/Black checks expose pre-existing baseline findings in untouched code, so no unrelated mass formatting was performed. |
 | SACCT-005 | Live accounting-stack contract | Update the existing accounting singleton to add the exact client secret-read policy/output without replacing the retained DB, secret, instance, or networking resources. | SUCCESS | active_product_contract | Gate 3 | Forge | Safe change set `dyec-client-secret-policy-safe-20260816T090100Z` contained one IAM managed-policy add and reached `UPDATE_COMPLETE`; DB instance `i-088957ddbc7fcf3d1` and private IP `10.0.1.237` were preserved. | The first change set also included an unintended DB replacement because its template resolved a newer AMI. | The unsafe unexecuted change set `dyec-client-secret-policy-20260816T085649Z` is confirmed deleted. No database, secret, instance, stack, or cluster was deleted. |
 | SACCT-006 | Live cluster repair | Retry a supported stopped-fleet ParallelCluster update using the corrected config, allow its declared Slurm bootstrap/restart, reach a stable update state, then start the fleet and prove `slurmdbd`, `slurmctld`, registered cluster, and `sacct`. | SUCCESS | active_product_contract | Gate 3 | Forge | Approved `dyec --json slurm-accounting attach` returned `update_submitted=true`; cluster and stack reached `UPDATE_COMPLETE` with fleet stopped; approved fleet request reached `RUNNING`; central SSM helper returned code 0 as `ubuntu` with both daemons active, exact storage type and registration, and bounded `sacct=success`. | Head-node role lacked access to the accounting password secret. | No jobs were inspected, submitted, cancelled, requeued, held, released, or otherwise manipulated. |
-| SACCT-007 | Final acceptance | Record terminal row counts, exact live proof, and residual risks; objective is complete only if all source and live rows succeed. | OPEN | contract_test | Gate 4 | Forge | Pending. |  |  |
+| SACCT-007 | Final acceptance | Record terminal row counts, exact live proof, and residual risks; objective is complete only if all source and live rows succeed. | SUCCESS | contract_test | Gate 4 | Forge | All seven rows are terminal `SUCCESS`; annotated DYEC tag `18.0.14` points to release commit `ef7c78dcf181d2a8231798788dd0fa38bca30b72` and is pushed with branch `codex/dyec-18014-slurm-accounting`. |  | The live cluster is healthy and the released current interface is forward-only. Existing stacks missing the newly required output fail hard and must be explicitly updated; there is no compatibility shim. |
 
 ## Acceptance contract
 
@@ -64,3 +64,16 @@ Ledger path: `docs/plans/20260816T083627Z_pcan18013_slurm_accounting_recovery_le
 5. Live repair is accepted only from stable ParallelCluster state plus active
    `slurmdbd`/`slurmctld`, `AccountingStorageType=accounting_storage/slurmdbd`, exact
    cluster registration, and successful bounded `sacct` as `ubuntu`.
+
+## Final acceptance
+
+- Terminal rows: `7 SUCCESS`, `0 BLOCKED`, `0 OPEN`, `0 IN_PROGRESS`.
+- Live cluster: `pcan-18013` is `UPDATE_COMPLETE`; compute fleet is `RUNNING`.
+- Read-only head-node proof as `ubuntu`: `slurmdbd=active`, `slurmctld=active`,
+  `AccountingStorageType=accounting_storage/slurmdbd`, `ClusterName=pcan-18013`,
+  registered cluster `pcan-18013`, and bounded `sacct` exit code `0`.
+- Destructive boundary: only the explicitly approved unexecuted change set
+  `dyec-client-secret-policy-20260816T085649Z` was deleted. No database, secret,
+  instance, stack, job, or cluster was deleted, and no job was manipulated.
+- Release: annotated `18.0.14` at
+  `ef7c78dcf181d2a8231798788dd0fa38bca30b72`.
