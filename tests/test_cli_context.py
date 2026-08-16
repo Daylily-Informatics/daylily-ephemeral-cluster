@@ -280,7 +280,6 @@ def test_local_context_precedence_fills_required_and_optional_command_options(
             "acknowledge_regional_cap_increase": False,
             "acknowledge_regional_cap_risk": False,
             "slurm_accounting": "on",
-            "fail_on_sacct_error": False,
             "create_slurm_accounting_if_missing": False,
             "acknowledge_slurm_accounting_create_cost": False,
             "budget_email_override": None,
@@ -421,7 +420,7 @@ def test_root_verbose_precedes_json_stdout_and_reports_local_context(tmp_path, m
 
     result = runner.invoke(app, ["-v", "--json", "info"])
     assert result.exit_code == 0, result.output
-    assert json.loads(result.stdout)["Pinned DayOA Version"] == "15.0.7"
+    assert json.loads(result.stdout)["Pinned DayOA Version"] == "15.0.9"
     assert result.output.index("DYEC verbose:") < result.output.index("{")
     assert f"PWD: {tmp_path}" in result.stderr
     assert "Project path:" in result.stderr

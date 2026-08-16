@@ -2638,9 +2638,7 @@ class TestRunCreateWorkflow:
         assert first_state_index < accounting_index < receipt_index < final_state_index
         assert records["postcreate_kwargs"]["cluster_configuration"].is_file()
 
-    def test_accounting_warning_is_soft_by_default_and_strict_mode_returns_two(
-        self, tmp_path, monkeypatch
-    ):
+    def test_accounting_warning_is_always_a_failed_create(self, tmp_path, monkeypatch):
         from daylily_ec.workflow.postcreate_slurm_accounting import (
             ACCOUNTING_OUTCOME_WARNING,
             PostCreateSlurmAccountingResult,
@@ -2655,31 +2653,20 @@ class TestRunCreateWorkflow:
             terminal_cluster_state="CREATE_COMPLETE",
             error_stage="service_preparation",
         )
-        (tmp_path / "soft").mkdir()
-        (tmp_path / "strict").mkdir()
-        soft_records = _run_stubbed_create_workflow(
-            tmp_path / "soft",
+        records = _run_stubbed_create_workflow(
+            tmp_path,
             monkeypatch,
             interactive=False,
             head_node_ip="54.1.2.3",
             say_available=False,
-            postcreate_result=warning_result,
-        )
-        strict_records = _run_stubbed_create_workflow(
-            tmp_path / "strict",
-            monkeypatch,
-            interactive=False,
-            head_node_ip="54.1.2.3",
-            say_available=False,
-            run_kwargs={"fail_on_sacct_error": True},
             postcreate_result=warning_result,
         )
 
-        assert soft_records["rc"] == EXIT_SUCCESS
-        assert strict_records["rc"] == EXIT_AWS_FAILURE
-        assert soft_records["warnings"] == strict_records["warnings"]
-        assert soft_records["success_panel"][1] == strict_records["success_panel"][1]
-        assert "Accounting:[/] WARNING" in soft_records["success_panel"][1]
+        assert records["rc"] == EXIT_AWS_FAILURE
+        assert "Accounting:[/] WARNING" in records["error_panel"][1]
+        assert records["error_panel"][0] == (
+            "CLUSTER BASE CREATED · SLURM ACCOUNTING FAILED"
+        )
 
     @pytest.mark.parametrize(
         "mode,outcome,stage,recovery_required",
@@ -2726,8 +2713,12 @@ class TestRunCreateWorkflow:
             postcreate_result=result,
         )
 
-        assert records["rc"] == EXIT_SUCCESS
-        assert f"Accounting:[/] {outcome}" in records["success_panel"][1]
+        expected_rc = (
+            EXIT_AWS_FAILURE if mode == "on" and outcome != "ENABLED" else EXIT_SUCCESS
+        )
+        panel_key = "error_panel" if expected_rc == EXIT_AWS_FAILURE else "success_panel"
+        assert records["rc"] == expected_rc
+        assert f"Accounting:[/] {outcome}" in records[panel_key][1]
 
     def test_explicit_network_and_policy_config_skip_baseline_stack(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
@@ -3666,6 +3657,22 @@ def _run_stubbed_create_workflow(
     postcreate_result: object | None = None,
     policy_candidates: list[str] | None = None,
 ) -> dict[str, object]:
+    if postcreate_result is None:
+        from daylily_ec.workflow.postcreate_slurm_accounting import (
+            ACCOUNTING_OUTCOME_ENABLED,
+            PostCreateSlurmAccountingResult,
+        )
+
+        postcreate_result = PostCreateSlurmAccountingResult(
+            requested_mode="on",
+            outcome=ACCOUNTING_OUTCOME_ENABLED,
+            create_approval_flag=False,
+            cost_acknowledgement_flag=False,
+            stage_reached="complete",
+            terminal_cluster_state="UPDATE_COMPLETE",
+            terminal_fleet_state="RUNNING",
+            fleet_restored=True,
+        )
     template_path = tmp_path / "template.yaml"
     template_path.write_text(
         """
@@ -3828,6 +3835,10 @@ HeadNode:
     def fake_success_panel(title: str, body: str):
         records["events"].append(("success_panel", title))
         records["success_panel"] = (title, body)
+
+    def fake_error_panel(title: str, body: str):
+        records["events"].append(("error_panel", title))
+        records["error_panel"] = (title, body)
 
     def fake_echo(message: str):
         records["echoes"].append(message)
@@ -4089,6 +4100,7 @@ SharedStorage:
         lambda message, *_args, **_kwargs: records["failures"].append(message),
     )
     monkeypatch.setattr(create_cluster_module.ui, "success_panel", fake_success_panel)
+    monkeypatch.setattr(create_cluster_module.ui, "error_panel", fake_error_panel)
     monkeypatch.setattr(create_cluster_module.typer, "prompt", fake_prompt)
     monkeypatch.setattr(create_cluster_module.typer, "echo", fake_echo)
     monkeypatch.setattr(create_cluster_module.subprocess, "run", fake_subprocess_run)

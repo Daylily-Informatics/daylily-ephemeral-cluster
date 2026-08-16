@@ -26,7 +26,11 @@ def test_packaged_accounting_template_tolerates_nlb_health_checks() -> None:
         / "daylily_ec/resources/payload/config/day_cluster/slurm_accounting_mysql_ec2.yml"
     )
     assert repo.read_bytes() == packaged.read_bytes()
-    assert "max_connect_errors = 4294967295" in repo.read_text(encoding="utf-8")
+    text = repo.read_text(encoding="utf-8")
+    assert "max_connect_errors = 4294967295" in text
+    assert "AccountingClientSecretReadPolicy:" in text
+    assert "AccountingClientSecretReadPolicyArn:" in text
+    assert "secretsmanager:GetSecretValue" in text
 
 
 def _tags(region_az: str = "us-west-2b", vpc_id: str = "vpc-123") -> list[dict[str, str]]:
@@ -59,6 +63,10 @@ def _outputs(
         {
             "OutputKey": "AccountingClientSecurityGroupId",
             "OutputValue": client_security_group_id,
+        },
+        {
+            "OutputKey": "AccountingClientSecretReadPolicyArn",
+            "OutputValue": "arn:aws:iam::123456789012:policy/accounting-client-secret-read",
         },
         {"OutputKey": "AccountingInstanceId", "OutputValue": instance_id},
     ]
@@ -565,6 +573,24 @@ def test_output_validation_requires_all_required_outputs() -> None:
         )
 
 
+def test_output_validation_rejects_stack_without_client_secret_policy() -> None:
+    outputs = [
+        item
+        for item in _outputs()
+        if item["OutputKey"] != "AccountingClientSecretReadPolicyArn"
+    ]
+    cfn = FakeCloudFormation([_stack("acct", outputs=outputs)])
+
+    with pytest.raises(SlurmAccountingError, match="AccountingClientSecretReadPolicyArn"):
+        ensure_slurm_accounting_db(
+            FakeAwsContext(cfn),
+            region_az="us-west-2b",
+            vpc_id="vpc-123",
+            private_subnet_id="subnet-private",
+            create_if_missing=False,
+        )
+
+
 def test_create_when_missing_uses_expected_parameters_and_no_destructive_calls() -> None:
     cfn = FakeCloudFormation([])
 
@@ -584,6 +610,7 @@ def test_create_when_missing_uses_expected_parameters_and_no_destructive_calls()
     create_call = create_calls[0]
     assert create_call["StackName"] == "dayec-slurm-accounting-us-west-2"
     assert create_call["EnableTerminationProtection"] is True
+    assert create_call["Capabilities"] == ["CAPABILITY_IAM"]
     assert {"Key": ACCOUNTING_VPC_TAG_KEY, "Value": "vpc-123"} in create_call["Tags"]
     assert {"Key": ACCOUNTING_REGION_TAG_KEY, "Value": "us-west-2"} in create_call["Tags"]
     assert {"Key": ACCOUNTING_REGION_AZ_TAG_KEY, "Value": "us-west-2b"} in create_call["Tags"]
@@ -593,6 +620,7 @@ def test_create_when_missing_uses_expected_parameters_and_no_destructive_calls()
     }
     assert params["AssignPublicIpAddress"] == "false"
     assert db.stack_name == "dayec-slurm-accounting-us-west-2"
+    assert db.client_secret_read_policy_arn.endswith("accounting-client-secret-read")
     destructive = [
         name
         for name, _kwargs in cfn.calls

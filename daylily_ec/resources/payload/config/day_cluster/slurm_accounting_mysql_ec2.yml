@@ -83,6 +83,20 @@ Resources:
         - Key: daylily-ec:managed-by
           Value: daylily-ephemeral-cluster
 
+  AccountingClientSecretReadPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: !Sub "${EnvironmentName} head-node access to the accounting password secret"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !Ref AccountingPasswordSecret
+
   AccountingDbSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     DeletionPolicy: Retain
@@ -286,6 +300,9 @@ Outputs:
   AccountingClientSecurityGroupId:
     Description: Security group to attach to the ParallelCluster head node.
     Value: !Ref AccountingClientSecurityGroup
+  AccountingClientSecretReadPolicyArn:
+    Description: Least-privilege managed policy for ParallelCluster head nodes.
+    Value: !Ref AccountingClientSecretReadPolicy
   AccountingInstanceId:
     Description: Retained private MariaDB EC2 instance ID.
     Value: !Ref AccountingDbHost

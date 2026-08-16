@@ -36,6 +36,7 @@ REQUIRED_PROVIDER_OUTPUTS = frozenset(
 REQUIRED_BRIDGE_OUTPUTS = frozenset(
     {
         "AccountingClientSecurityGroupId",
+        "AccountingClientSecretReadPolicyArn",
         "AccountingDatabaseName",
         "AccountingEndpointId",
         "AccountingEndpointServiceId",
@@ -66,6 +67,7 @@ class SlurmAccountingPrivateLinkBridge:
     endpoint_service_id: str
     endpoint_subnet_id: str
     client_security_group_id: str
+    client_secret_read_policy_arn: str
     target_group_arn: str = field(repr=False)
     uri: str = field(repr=False)
     endpoint_private_ip: str = field(repr=False)
@@ -84,6 +86,7 @@ class SlurmAccountingPrivateLinkBridge:
             username=self.username,
             password_secret_arn=self.password_secret_arn,
             client_security_group_id=self.client_security_group_id,
+            client_secret_read_policy_arn=self.client_secret_read_policy_arn,
             instance_id=self.accounting_instance_id,
         )
 
@@ -189,6 +192,7 @@ def ensure_slurm_accounting_privatelink_bridge(
             cfn.update_stack(
                 StackName=name,
                 TemplateBody=template_body,
+                Capabilities=["CAPABILITY_IAM"],
                 Parameters=stack_parameters,
                 Tags=tags,
             )
@@ -224,6 +228,7 @@ def ensure_slurm_accounting_privatelink_bridge(
         cfn.create_stack(
             StackName=name,
             TemplateBody=template_body,
+            Capabilities=["CAPABILITY_IAM"],
             EnableTerminationProtection=True,
             Parameters=stack_parameters,
             Tags=tags,
@@ -534,6 +539,7 @@ def _resolve_bridge(
         endpoint_service_id=outputs["AccountingEndpointServiceId"],
         endpoint_subnet_id=outputs["ConsumerEndpointSubnetId"],
         client_security_group_id=outputs["AccountingClientSecurityGroupId"],
+        client_secret_read_policy_arn=outputs["AccountingClientSecretReadPolicyArn"],
         target_group_arn=outputs["AccountingTargetGroupArn"],
         uri=f"{dns_names[0]}:3306",
         endpoint_private_ip=str(enis[0]["PrivateIpAddress"]),

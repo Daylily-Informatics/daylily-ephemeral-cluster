@@ -156,6 +156,18 @@ Resources:
         - Key: daylily-ec:component
           Value: slurm-accounting-privatelink
 
+  ConsumerSecretReadPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: !Sub "${EnvironmentName} head-node access to the accounting password secret"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !Ref ProviderAccountingPasswordSecretArn
+
   ConsumerEndpointSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -211,6 +223,8 @@ Resources:
 Outputs:
   AccountingClientSecurityGroupId:
     Value: !Ref ConsumerClientSecurityGroup
+  AccountingClientSecretReadPolicyArn:
+    Value: !Ref ConsumerSecretReadPolicy
   AccountingDatabaseName:
     Value: !Ref AccountingDatabaseName
   AccountingEndpointId:

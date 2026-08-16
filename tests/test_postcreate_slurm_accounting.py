@@ -598,7 +598,12 @@ def test_accounting_verification_is_read_only_and_runs_as_ubuntu(monkeypatch, tm
     command = verify[2]
     assert "sacct -X" in command
     assert "timeout 60" in command
-    for forbidden in ("sudo", "systemctl", "service ", "sacctmgr", "scontrol"):
+    assert "systemctl is-active slurmdbd" in command
+    assert "systemctl is-active slurmctld" in command
+    assert "AccountingStorageType" in command
+    assert "accounting_storage/slurmdbd" in command
+    assert "sacctmgr -nP show cluster" in command
+    for forbidden in ("sudo", " restart", " start", " stop", " enable", " disable"):
         assert forbidden not in command
 
 

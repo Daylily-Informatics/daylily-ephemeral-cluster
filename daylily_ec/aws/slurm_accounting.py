@@ -75,6 +75,7 @@ REQUIRED_OUTPUTS = {
     "AccountingUserName",
     "AccountingPasswordSecretArn",
     "AccountingClientSecurityGroupId",
+    "AccountingClientSecretReadPolicyArn",
 }
 
 DATABASE_NAME_RE = re.compile(r"^[a-z0-9_]{1,64}$")
@@ -97,6 +98,7 @@ class SlurmAccountingDb:
     username: str
     password_secret_arn: str = field(repr=False)
     client_security_group_id: str
+    client_secret_read_policy_arn: str
     instance_id: str = ""
 
 
@@ -954,6 +956,7 @@ def _db_from_stack(stack: dict[str, Any]) -> SlurmAccountingDb:
     username = validate_username(outputs["AccountingUserName"])
     secret_arn = outputs["AccountingPasswordSecretArn"].strip()
     client_sg = outputs["AccountingClientSecurityGroupId"].strip()
+    client_secret_policy = outputs["AccountingClientSecretReadPolicyArn"].strip()
 
     if not private_ip:
         raise SlurmAccountingError(f"Slurm accounting stack '{stack_name}' has empty private IP.")
@@ -962,6 +965,10 @@ def _db_from_stack(stack: dict[str, Any]) -> SlurmAccountingDb:
     if not client_sg:
         raise SlurmAccountingError(
             f"Slurm accounting stack '{stack_name}' has empty client security group."
+        )
+    if not client_secret_policy:
+        raise SlurmAccountingError(
+            f"Slurm accounting stack '{stack_name}' has empty client secret-read policy ARN."
         )
 
     return SlurmAccountingDb(
@@ -973,6 +980,7 @@ def _db_from_stack(stack: dict[str, Any]) -> SlurmAccountingDb:
         username=username,
         password_secret_arn=secret_arn,
         client_security_group_id=client_sg,
+        client_secret_read_policy_arn=client_secret_policy,
         instance_id=outputs.get("AccountingInstanceId", "").strip(),
     )
 

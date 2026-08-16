@@ -1086,14 +1086,6 @@ def create(
             "The initial cluster build never includes accounting."
         ),
     ),
-    fail_on_sacct_error: bool = typer.Option(
-        False,
-        "--fail-on-sacct-error",
-        help=(
-            "Return the AWS failure exit code when the post-create Slurm "
-            "accounting stage fails. Ignored when --slurm-accounting off."
-        ),
-    ),
     create_slurm_accounting_if_missing: bool = typer.Option(
         False,
         "--create-slurm-accounting-if-missing",
@@ -1225,7 +1217,6 @@ def create(
         acknowledge_regional_cap_increase=acknowledge_regional_cap_increase,
         acknowledge_regional_cap_risk=acknowledge_regional_cap_risk,
         slurm_accounting=slurm_accounting,
-        fail_on_sacct_error=fail_on_sacct_error,
         create_slurm_accounting_if_missing=create_slurm_accounting_if_missing,
         acknowledge_slurm_accounting_create_cost=(acknowledge_slurm_accounting_create_cost),
         budget_email_override=(admin_email or "").strip() or None,

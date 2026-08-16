@@ -36,6 +36,7 @@ def _db() -> SlurmAccountingDb:
         username="slurm_acct",
         password_secret_arn="arn:aws:secretsmanager:us-west-2:123:secret:acct",
         client_security_group_id="sg-accounting-client",
+        client_secret_read_policy_arn="arn:aws:iam::123:policy/accounting-client-read",
         instance_id="i-accounting",
     )
 
@@ -47,6 +48,11 @@ def _config(path: Path) -> Path:
                 "Region": "us-west-2",
                 "HeadNode": {
                     "InstanceType": "r7i.2xlarge",
+                    "Iam": {
+                        "AdditionalIamPolicies": [
+                            {"Policy": "arn:aws:iam::123:policy/existing"}
+                        ]
+                    },
                     "Networking": {
                         "SubnetId": "subnet-head",
                         "AdditionalSecurityGroups": ["sg-existing"],
@@ -178,6 +184,10 @@ def test_render_update_config_adds_database_and_preserves_existing_group(tmp_pat
         "sg-existing",
         "sg-accounting-client",
     ]
+    assert updated["HeadNode"]["Iam"]["AdditionalIamPolicies"] == [
+        {"Policy": "arn:aws:iam::123:policy/existing"},
+        {"Policy": "arn:aws:iam::123:policy/accounting-client-read"},
+    ]
     assert updated["Scheduling"]["SlurmSettings"]["Database"] == {
         "Uri": "10.0.1.237:3306",
         "UserName": "slurm_acct",
@@ -232,6 +242,65 @@ def test_attach_dry_run_never_submits_real_update(tmp_path, monkeypatch) -> None
     assert result.update_submitted is False
     assert result.dry_run_only is True
     assert Path(result.update_config_path).is_file()
+
+
+def test_attach_accepts_failed_cluster_after_cloudformation_rollback(
+    tmp_path, monkeypatch
+) -> None:
+    update_calls: list[bool] = []
+    _patch_ready_cluster(monkeypatch, update_calls)
+    monkeypatch.setattr(
+        attach_module.pcluster_runner,
+        "describe_cluster",
+        lambda *_args, **_kwargs: _result(
+            {
+                "clusterStatus": "UPDATE_FAILED",
+                "cloudFormationStackStatus": "UPDATE_ROLLBACK_COMPLETE",
+            }
+        ),
+    )
+
+    result = attach_slurm_accounting(
+        cluster_name="cluster-a",
+        region="us-west-2",
+        profile="lsmc",
+        cluster_configuration=_config(tmp_path / "source.yaml"),
+        output_dir=tmp_path,
+        dry_run_only=True,
+    )
+
+    assert update_calls == [True]
+    assert result.dry_run_only is True
+
+
+def test_attach_rejects_failed_cluster_before_cloudformation_rollback_finishes(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setattr(
+        attach_module.pcluster_runner,
+        "describe_cluster",
+        lambda *_args, **_kwargs: _result(
+            {
+                "clusterStatus": "UPDATE_FAILED",
+                "cloudFormationStackStatus": "UPDATE_ROLLBACK_IN_PROGRESS",
+            }
+        ),
+    )
+    monkeypatch.setattr(
+        attach_module,
+        "prepare_slurm_accounting_update",
+        lambda **_kwargs: pytest.fail("accounting must not resolve"),
+    )
+
+    with pytest.raises(SlurmAccountingAttachError, match="UPDATE_ROLLBACK_COMPLETE"):
+        attach_slurm_accounting(
+            cluster_name="cluster-a",
+            region="us-west-2",
+            profile="lsmc",
+            cluster_configuration=_config(tmp_path / "source.yaml"),
+            output_dir=tmp_path,
+            dry_run_only=True,
+        )
 
 
 def test_prepare_renders_before_any_pcluster_command_and_reports_creation(
@@ -337,6 +406,7 @@ def test_prepare_auto_reuses_deterministic_healthy_privatelink_bridge(
         username="slurm_acct",
         password_secret_arn="arn:aws:secretsmanager:us-west-2:123:secret:acct",
         client_security_group_id="sg-consumer-client",
+        client_secret_read_policy_arn="arn:aws:iam::123:policy/consumer-accounting-read",
         instance_id="i-accounting",
     )
     bridge_calls = []
@@ -440,6 +510,7 @@ def test_prepare_uses_explicit_healthy_privatelink_bridge(tmp_path, monkeypatch)
         username="slurm_acct",
         password_secret_arn="arn:aws:secretsmanager:us-west-2:123:secret:acct",
         client_security_group_id="sg-consumer-client",
+        client_secret_read_policy_arn="arn:aws:iam::123:policy/consumer-accounting-read",
         instance_id="i-accounting",
     )
 
@@ -482,6 +553,9 @@ def test_prepare_uses_explicit_healthy_privatelink_bridge(tmp_path, monkeypatch)
     assert rendered["HeadNode"]["Networking"]["AdditionalSecurityGroups"][-1] == (
         "sg-consumer-client"
     )
+    assert rendered["HeadNode"]["Iam"]["AdditionalIamPolicies"][-1] == {
+        "Policy": "arn:aws:iam::123:policy/consumer-accounting-read"
+    }
     assert rendered["Scheduling"]["SlurmSettings"]["Database"]["Uri"] == (
         "vpce-accounting.example:3306"
     )

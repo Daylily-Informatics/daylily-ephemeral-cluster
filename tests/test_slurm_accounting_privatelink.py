@@ -17,6 +17,7 @@ from daylily_ec.aws.slurm_accounting_privatelink import (
 def _bridge_stack() -> dict:
     values = {
         "AccountingClientSecurityGroupId": "sg-client",
+        "AccountingClientSecretReadPolicyArn": "arn:aws:iam::123:policy/accounting-client-read",
         "AccountingDatabaseName": "dayec_slurm_acct",
         "AccountingEndpointId": "vpce-123",
         "AccountingEndpointServiceId": "vpce-svc-123",
@@ -82,6 +83,7 @@ def test_bridge_resolves_to_redacted_accounting_db() -> None:
 
     assert db.uri.endswith(":3306")
     assert db.client_security_group_id == "sg-client"
+    assert db.client_secret_read_policy_arn.endswith("accounting-client-read")
     assert bridge.password_secret_arn not in repr(bridge)
     assert bridge.uri not in repr(bridge)
     assert db.password_secret_arn not in repr(db)
@@ -228,6 +230,7 @@ def test_ensure_updates_existing_stack_and_allows_its_owned_subnet(
     assert result is sentinel
     assert validation["allowed_existing_subnet_id"] == "subnet-endpoint"
     assert cfn.update_calls[0]["TemplateBody"] == "Resources: {}"
+    assert cfn.update_calls[0]["Capabilities"] == ["CAPABILITY_IAM"]
 
 
 def test_packaged_and_repo_templates_match() -> None:
@@ -244,3 +247,5 @@ def test_packaged_and_repo_templates_match() -> None:
     assert "Port: 3306" in text
     assert "AcceptanceRequired: false" in text
     assert "arn:${AWS::Partition}:iam::${AWS::AccountId}:root" in text
+    assert "AccountingClientSecretReadPolicyArn:" in text
+    assert "secretsmanager:GetSecretValue" in text

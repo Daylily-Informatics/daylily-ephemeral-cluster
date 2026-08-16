@@ -44,6 +44,11 @@ class SlurmAccountingPreparationError(SlurmAccountingAttachError):
         self.regional_stack_count = regional_stack_count
 
 
+ATTACHABLE_CLUSTER_STATES = frozenset({"CREATE_COMPLETE", "UPDATE_COMPLETE"})
+RECOVERABLE_FAILED_CLUSTER_STATE = "UPDATE_FAILED"
+RECOVERABLE_CLOUDFORMATION_STATE = "UPDATE_ROLLBACK_COMPLETE"
+
+
 @dataclass(frozen=True)
 class PreparedSlurmAccountingUpdate:
     """Non-secret, pre-rendered update ready for supported pcluster execution."""
@@ -163,6 +168,24 @@ def render_slurm_accounting_update_config(
         )
     if db.client_security_group_id not in additional_groups:
         additional_groups.append(db.client_security_group_id)
+
+    iam = head_node.setdefault("Iam", {})
+    if not isinstance(iam, dict):
+        raise SlurmAccountingAttachError("HeadNode.Iam must be a YAML mapping.")
+    additional_policies = iam.setdefault("AdditionalIamPolicies", [])
+    if not isinstance(additional_policies, list) or not all(
+        isinstance(value, dict)
+        and set(value) == {"Policy"}
+        and isinstance(value["Policy"], str)
+        and value["Policy"]
+        for value in additional_policies
+    ):
+        raise SlurmAccountingAttachError(
+            "HeadNode.Iam.AdditionalIamPolicies must be a list of Policy mappings."
+        )
+    client_policy = {"Policy": db.client_secret_read_policy_arn}
+    if client_policy not in additional_policies:
+        additional_policies.append(client_policy)
 
     slurm_settings["Database"] = {
         "Uri": db.uri,
@@ -418,10 +441,17 @@ def attach_slurm_accounting(
             f"Could not describe ParallelCluster {cluster_name!r} in {region}."
         )
     status = description.json_body.get("clusterStatus")
-    if status != "CREATE_COMPLETE":
+    cloudformation_status = description.json_body.get("cloudFormationStackStatus")
+    recoverable_failed_update = (
+        status == RECOVERABLE_FAILED_CLUSTER_STATE
+        and cloudformation_status == RECOVERABLE_CLOUDFORMATION_STATE
+    )
+    if status not in ATTACHABLE_CLUSTER_STATES and not recoverable_failed_update:
         raise SlurmAccountingAttachError(
-            f"Cluster {cluster_name!r} must be CREATE_COMPLETE before accounting attach; "
-            f"current status is {status!r}."
+            f"Cluster {cluster_name!r} must be CREATE_COMPLETE, UPDATE_COMPLETE, or an "
+            "UPDATE_FAILED cluster whose CloudFormation stack is "
+            "UPDATE_ROLLBACK_COMPLETE before accounting attach; current states are "
+            f"cluster={status!r}, cloudformation={cloudformation_status!r}."
         )
 
     fleet = pcluster_runner.describe_compute_fleet(
