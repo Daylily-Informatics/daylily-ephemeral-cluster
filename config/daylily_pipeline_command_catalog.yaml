@@ -607,6 +607,7 @@ repositories:
     - command_id: illumina_hg002_kitchensink_multiqc
       type: prod
       validated_version: "15.0.1"
+      validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live/
       test_data_profile: default_reads_slim
       manifest_dir_template: ""
       display_name: "Illumina HG002 Kitchen Sink MultiQC"
@@ -680,6 +681,25 @@ repositories:
         live_analysis_id: dayoa_2017_hg002_kitchensink_j200_readhapsfix2_151101
         stage_or_context: /fsx/analysis_results/ubuntu/2.0.17/daylily-omics-analysis
         notes: "Headnode run used the dy-r alias with the same targets/config on the 2.0.17 clone plus local stabilization patches that were mirrored into DayOA release 2.0.19; final report was results/day/hg38/reports/DAY_final_multiqc.html."
+      - run_id: pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live
+        generated_at: "2026-08-17T03:30:59Z"
+        report_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+        ledger_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+        cluster: pcand-18015
+        region: us-west-2
+        region_az: us-west-2c
+        dayec_tag: 18.0.18
+        dayec_commit: 7f6f8ea82b2bd6a7fb1efae20870949b29b13887
+        dayoa_tag: 15.0.10
+        dayoa_commit: 3a501d3f927a9573dc52adb978af31b5b64c85f3
+        tested_command: "dyec catalog launch illumina_hg002_kitchensink_multiqc --dyec-version current --cost-center pcand-18015-ccenter"
+        status: success
+        dryrun_status: success
+        live_status: success
+        dryrun_analysis_id: pcand18015_ilmn_solo_slim_1510_20260817t011900z_dry
+        live_analysis_id: pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live
+        stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live/
+        notes: "No-delete DRA task task-0cba5482e91a16c8a SUCCEEDED, detached dra-044cb9ffb45f00362, and the exported final MultiQC HTML was verified in S3 (8548561 bytes)."
     - command_id: illumina_pangenome_snv
       type: dev
       validated_version: "15.0.1"
@@ -822,6 +842,7 @@ repositories:
     - command_id: ultima_snv_alignstats_kitchensink
       type: prod
       validated_version: "15.0.1"
+      validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live/
       test_data_profile: default_reads_slim
       display_name: "Ultima SNV + Alignstats Kitchen Sink"
       description: "Ultima CRAM/FASTQ Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, Kraken2/Ganon2/sourmash metagenomics, and final MultiQC launch profile."
@@ -865,6 +886,26 @@ repositories:
       git_tag: "15.0.10"
       no_containerized: false
       artifact_registration: *dayoa_multiqc_artifact_registration
+      validation_runs:
+      - run_id: pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live
+        generated_at: "2026-08-17T03:30:59Z"
+        report_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+        ledger_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+        cluster: pcand-18015
+        region: us-west-2
+        region_az: us-west-2c
+        dayec_tag: 18.0.18
+        dayec_commit: 7f6f8ea82b2bd6a7fb1efae20870949b29b13887
+        dayoa_tag: 15.0.10
+        dayoa_commit: 3a501d3f927a9573dc52adb978af31b5b64c85f3
+        tested_command: "dyec catalog launch ultima_snv_alignstats_kitchensink --dyec-version current --cost-center pcand-18015-ccenter"
+        status: success
+        dryrun_status: success
+        live_status: success
+        dryrun_analysis_id: pcand18015_ultima_solo_slim_1510_20260817t012700z_dry
+        live_analysis_id: pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live
+        stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live/
+        notes: "No-delete DRA task task-03aef1ba4e80efa95 SUCCEEDED, detached dra-08d22e4432145f447, and the exported final MultiQC HTML was verified in S3 (7642590 bytes)."
     - command_id: ultima_pangenome_snv
       type: dev
       validated_version: "15.0.1"
@@ -967,6 +1008,7 @@ repositories:
     - command_id: ont_snv_alignstats_kitchensink
       type: prod
       validated_version: "15.0.1"
+      validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live/
       test_data_profile: default_reads_slim
       display_name: "ONT SNV + Alignstats Kitchen Sink"
       description: "ONT alignment, Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, Kraken2/Ganon2/sourmash metagenomics, and final MultiQC launch profile."
@@ -1014,6 +1056,26 @@ repositories:
       git_tag: "15.0.10"
       no_containerized: false
       artifact_registration: *dayoa_multiqc_artifact_registration
+      validation_runs:
+      - run_id: pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live
+        generated_at: "2026-08-17T03:30:59Z"
+        report_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+        ledger_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+        cluster: pcand-18015
+        region: us-west-2
+        region_az: us-west-2c
+        dayec_tag: 18.0.18
+        dayec_commit: 7f6f8ea82b2bd6a7fb1efae20870949b29b13887
+        dayoa_tag: 15.0.10
+        dayoa_commit: 3a501d3f927a9573dc52adb978af31b5b64c85f3
+        tested_command: "dyec catalog launch ont_snv_alignstats_kitchensink --dyec-version current --cost-center pcand-18015-ccenter"
+        status: success
+        dryrun_status: success
+        live_status: success
+        dryrun_analysis_id: pcand18015_ont_solo_slim_1510_20260817t012300z_dry
+        live_analysis_id: pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live
+        stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live/
+        notes: "No-delete DRA task task-002eacd7a1405af78 SUCCEEDED, detached dra-03db1877decce2e50, and the exported final MultiQC HTML was verified in S3 (6941320 bytes)."
     - command_id: pacbio_snv_alignstats
       type: research
       validated_version: "15.0.1"
@@ -3949,6 +4011,7 @@ dyec_builds:
         command_id: illumina_hg002_kitchensink_multiqc
         type: prod
         validated_version: 15.0.1
+        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live/
         test_data_profile: default_reads_slim
         manifest_dir_template: ''
         display_name: Illumina HG002 Kitchen Sink MultiQC
@@ -4067,6 +4130,25 @@ dyec_builds:
           live_analysis_id: dayoa_2017_hg002_kitchensink_j200_readhapsfix2_151101
           stage_or_context: /fsx/analysis_results/ubuntu/2.0.17/daylily-omics-analysis
           notes: Headnode run used the dy-r alias with the same targets/config on the 2.0.17 clone plus local stabilization patches that were mirrored into DayOA release 2.0.19; final report was results/day/hg38/reports/DAY_final_multiqc.html.
+        - run_id: pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live
+          generated_at: '2026-08-17T03:30:59Z'
+          report_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+          ledger_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+          cluster: pcand-18015
+          region: us-west-2
+          region_az: us-west-2c
+          dayec_tag: 18.0.18
+          dayec_commit: 7f6f8ea82b2bd6a7fb1efae20870949b29b13887
+          dayoa_tag: 15.0.10
+          dayoa_commit: 3a501d3f927a9573dc52adb978af31b5b64c85f3
+          tested_command: dyec catalog launch illumina_hg002_kitchensink_multiqc --dyec-version current --cost-center pcand-18015-ccenter
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18015_ilmn_solo_slim_1510_20260817t011900z_dry
+          live_analysis_id: pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live
+          stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live/
+          notes: No-delete DRA task task-0cba5482e91a16c8a SUCCEEDED, detached dra-044cb9ffb45f00362, and the exported final MultiQC HTML was verified in S3 (8548561 bytes).
         repository: daylily-omics-analysis
       illumina_pangenome_snv:
         command_id: illumina_pangenome_snv
@@ -4220,6 +4302,7 @@ dyec_builds:
         command_id: ultima_snv_alignstats_kitchensink
         type: prod
         validated_version: 15.0.1
+        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live/
         test_data_profile: default_reads_slim
         display_name: Ultima SNV + Alignstats Kitchen Sink
         description: Ultima CRAM/FASTQ Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, Kraken2/Ganon2/sourmash metagenomics, and final MultiQC launch profile.
@@ -4313,6 +4396,26 @@ dyec_builds:
           identity:
             analysis_euid: '{analysis_id}'
             run_euid: '{analysis_id}'
+        validation_runs:
+        - run_id: pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live
+          generated_at: '2026-08-17T03:30:59Z'
+          report_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+          ledger_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+          cluster: pcand-18015
+          region: us-west-2
+          region_az: us-west-2c
+          dayec_tag: 18.0.18
+          dayec_commit: 7f6f8ea82b2bd6a7fb1efae20870949b29b13887
+          dayoa_tag: 15.0.10
+          dayoa_commit: 3a501d3f927a9573dc52adb978af31b5b64c85f3
+          tested_command: dyec catalog launch ultima_snv_alignstats_kitchensink --dyec-version current --cost-center pcand-18015-ccenter
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18015_ultima_solo_slim_1510_20260817t012700z_dry
+          live_analysis_id: pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live
+          stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live/
+          notes: No-delete DRA task task-03aef1ba4e80efa95 SUCCEEDED, detached dra-08d22e4432145f447, and the exported final MultiQC HTML was verified in S3 (7642590 bytes).
         repository: daylily-omics-analysis
       ultima_pangenome_snv:
         command_id: ultima_pangenome_snv
@@ -4429,6 +4532,7 @@ dyec_builds:
         command_id: ont_snv_alignstats_kitchensink
         type: prod
         validated_version: 15.0.1
+        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live/
         test_data_profile: default_reads_slim
         display_name: ONT SNV + Alignstats Kitchen Sink
         description: ONT alignment, Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, Kraken2/Ganon2/sourmash metagenomics, and final MultiQC launch profile.
@@ -4528,6 +4632,26 @@ dyec_builds:
           identity:
             analysis_euid: '{analysis_id}'
             run_euid: '{analysis_id}'
+        validation_runs:
+        - run_id: pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live
+          generated_at: '2026-08-17T03:30:59Z'
+          report_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+          ledger_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+          cluster: pcand-18015
+          region: us-west-2
+          region_az: us-west-2c
+          dayec_tag: 18.0.18
+          dayec_commit: 7f6f8ea82b2bd6a7fb1efae20870949b29b13887
+          dayoa_tag: 15.0.10
+          dayoa_commit: 3a501d3f927a9573dc52adb978af31b5b64c85f3
+          tested_command: dyec catalog launch ont_snv_alignstats_kitchensink --dyec-version current --cost-center pcand-18015-ccenter
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18015_ont_solo_slim_1510_20260817t012300z_dry
+          live_analysis_id: pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live
+          stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live/
+          notes: No-delete DRA task task-002eacd7a1405af78 SUCCEEDED, detached dra-03db1877decce2e50, and the exported final MultiQC HTML was verified in S3 (6941320 bytes).
         repository: daylily-omics-analysis
       pacbio_snv_alignstats:
         command_id: pacbio_snv_alignstats

@@ -77,8 +77,10 @@ def test_current_operator_docs_state_the_shipped_cli_and_catalog_versions() -> N
     dayoa_tag = load_repository_catalog().repositories["daylily-omics-analysis"].default_ref
     release_version = get_version().partition(".dev")[0].partition("+")[0]
 
-    assert release_version == "18.0.18"
-    assert f"`{release_version}`" in text
+    # A release branch describes the next tag before that tag exists; an exact
+    # release checkout reports the new tag once it has been created.
+    assert release_version in {"18.0.18", "18.0.19"}
+    assert "`18.0.19`" in text
     assert dayoa_tag == "15.0.10"
     assert f"`{dayoa_tag}`" in text
     assert "dyec set-vars" in text

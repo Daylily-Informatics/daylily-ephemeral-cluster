@@ -18,6 +18,11 @@ PACKAGED_CATALOG_PATH = (
 BASE_ID = "hiomr2_slim_kitchensink_mega"
 ALIAS_ID = "inflection-bjuice-product-v0.2"
 OLD_DUPLICATED_ID = "hiomr2_slim_kitchensink_mega_inflection_analytical"
+PCAND18015_SOLO_EVIDENCE_RUNS = {
+    "illumina_hg002_kitchensink_multiqc": "pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live",
+    "ont_snv_alignstats_kitchensink": "pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live",
+    "ultima_snv_alignstats_kitchensink": "pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live",
+}
 HISTORICAL_BUILD_HASHES = {
     "16.1.81": "219606c84c6a24b12ad84499580788b46301549b9c521c3583a6ddf07c869fc9",
     "16.1.82": "106dded9e9d8329966d418b08217c0d674ec22fb5795388565ce7e6f7b511ed5",
@@ -308,12 +313,38 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     for command in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]:
         baseline_command = baseline_top_level_commands[command["command_id"]]
         assert command["validated_version"] == baseline_command["validated_version"]
-        assert command.get("validation_runs", []) == baseline_command.get("validation_runs", [])
+        if command["command_id"] in PCAND18015_SOLO_EVIDENCE_RUNS:
+            assert command.get("validation_runs", [])[:-1] == baseline_command.get(
+                "validation_runs", []
+            )
+            assert command["validation_runs"][-1]["run_id"] == PCAND18015_SOLO_EVIDENCE_RUNS[
+                command["command_id"]
+            ]
+            assert command["validation_evidence_s3_uri_prefix"].startswith(
+                "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
+            )
+        else:
+            assert command.get("validation_runs", []) == baseline_command.get(
+                "validation_runs", []
+            )
     assert top_level_commands == set(baseline_top_level_commands)
     for command_id, command in raw["dyec_builds"]["current"]["commands"].items():
         baseline_command = baseline["dyec_builds"]["current"]["commands"][command_id]
         assert command["validated_version"] == baseline_command["validated_version"]
-        assert command.get("validation_runs", []) == baseline_command.get("validation_runs", [])
+        if command_id in PCAND18015_SOLO_EVIDENCE_RUNS:
+            assert command.get("validation_runs", [])[:-1] == baseline_command.get(
+                "validation_runs", []
+            )
+            assert command["validation_runs"][-1]["run_id"] == PCAND18015_SOLO_EVIDENCE_RUNS[
+                command_id
+            ]
+            assert command["validation_evidence_s3_uri_prefix"].startswith(
+                "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
+            )
+        else:
+            assert command.get("validation_runs", []) == baseline_command.get(
+                "validation_runs", []
+            )
     assert raw["dyec_builds"]["current"]["aliases"] == baseline["dyec_builds"]["current"]["aliases"]
     assert raw["dyec_builds"]["17.0.29"]["dayoa_git_tags"] == ["14.0.22"]
     assert raw["dyec_builds"]["17.0.16"]["dayoa_git_tags"] == ["14.0.16"]

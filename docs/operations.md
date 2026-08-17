@@ -2,7 +2,7 @@
 
 This is the day-2 runbook for current DayEC clusters.
 
-This guide describes the `18.0.18` CLI. For repeated work, `dyec set-vars` can
+This guide describes the `18.0.19` CLI. For repeated work, `dyec set-vars` can
 store the four supported values in `$PWD/.dyec.config.yaml`; explicit flags
 still win, and direct `aws`/`pcluster` commands keep their normal environment
 requirements. See [cli_reference.md](cli_reference.md) for the strict local
