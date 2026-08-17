@@ -9,13 +9,18 @@ PAYLOAD = (
     REPO_ROOT
     / "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml"
 )
-DAYOA_TARGET_TAG = "15.0.9"
-DAYOA_VALIDATED_TAGS = {"15.0.1", "15.0.3"}
+DAYOA_TARGET_TAG = "15.0.10"
+DAYOA_VALIDATED_TAGS = {"15.0.1", "15.0.3", "15.0.9"}
 HISTORICAL_DAYOA_TAG = "14.0.21"
 ONT_RUN_ID = "pc1703-ont-set4fc1-seqqc-17018-20260814"
 ONT_EVIDENCE_PREFIX = (
     "s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/"
     "pc1703-ont-set4fc1-seqqc-17018-20260814/daylily-omics-analysis/"
+    "results/runs/20260615_ONT_Set4-FC1/run_qc/ont/"
+)
+CURRENT_ONT_EVIDENCE_PREFIX = (
+    "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
+    "pcand18015_ont_runqc_1509_live_20260816T1422Z/daylily-omics-analysis/"
     "results/runs/20260615_ONT_Set4-FC1/run_qc/ont/"
 )
 CG_RUN_ID = "prod-cand-1703-cg-slim-20260814-1032"
@@ -55,7 +60,7 @@ def test_current_catalog_promotion_preserves_17_0_28_evidence() -> None:
         assert record["report_path"] == ONT_EVIDENCE_PREFIX + "multiqc_report.html"
         assert record["dayec_tag"] == "17.0.18"
         assert record["dayoa_tag"] == "14.0.16"
-        assert not command.get("validation_evidence_s3_uri_prefix")
+        assert command["validation_evidence_s3_uri_prefix"] == CURRENT_ONT_EVIDENCE_PREFIX
 
     for command in (
         active["complete_genomics_cg_snv_concordance"],

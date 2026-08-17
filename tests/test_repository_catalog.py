@@ -14,10 +14,11 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "15.0.9"
+DAYOA_BLESSED_TAG = "15.0.10"
 CURRENT_VALIDATED_DAYOA_TAG = "15.0.1"
+RUN_QC_VALIDATED_DAYOA_TAG = "15.0.9"
 PRODUCTION_DAYOA_TAG = DAYOA_BLESSED_TAG
-BJUICE_V2_DAYOA_TARGET_TAG = "15.0.9"
+BJUICE_V2_DAYOA_TARGET_TAG = "15.0.10"
 BJUICE_V2_DAYOA_VALIDATED_TAG = "15.0.3"
 PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
 SOLO_KITCHEN_SINK_DAYOA_TAG = DAYOA_BLESSED_TAG
@@ -576,16 +577,12 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         if not command.validation_runs:
             assert command.command_id in UNVALIDATED_COMMAND_IDS
             continue
-        expected_validation_runs = (
-            2
-            if command.command_id
-            in {
-                "complete_genomics_cg_snv_concordance",
-                "ont_run_qc",
-                "ultima_run_qc",
-            }
-            else 1
-        )
+        expected_validation_runs = {
+            "illumina_run_qc": 2,
+            "complete_genomics_cg_snv_concordance": 2,
+            "ont_run_qc": 3,
+            "ultima_run_qc": 3,
+        }.get(command.command_id, 1)
         assert len(command.validation_runs) == expected_validation_runs
         validation_run = command.validation_runs[0]
         if validation_run.run_id == "dayoa_2017_hg002_kitchensink_j200_readhapsfix2_151101":
@@ -1278,7 +1275,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "bclconvert/units.tsv" not in combined_dy_command
 
     ont = catalog.get_command("ont_run_qc")
-    assert ont.validated_version == CURRENT_VALIDATED_DAYOA_TAG
+    assert ont.validated_version == RUN_QC_VALIDATED_DAYOA_TAG
     assert ont.git_tag == DAYOA_BLESSED_TAG
     assert ont.targets == ["produce_ont_run_qc_and_demux_multiqc"]
     assert ont.runtime_parameters == {
@@ -1303,7 +1300,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "units_table=" not in ont_dy_command
 
     ultima = catalog.get_command("ultima_run_qc")
-    assert ultima.validated_version == CURRENT_VALIDATED_DAYOA_TAG
+    assert ultima.validated_version == RUN_QC_VALIDATED_DAYOA_TAG
     assert ultima.git_tag == DAYOA_BLESSED_TAG
     assert ultima.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
