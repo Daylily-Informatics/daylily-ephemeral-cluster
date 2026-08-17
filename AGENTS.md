@@ -26,6 +26,9 @@
 - Runtime source overlays, generated source helpers, and text-rewrite repairs are prohibited. The controller must verify that the selected DayOA ref is clean before dispatch and again after the workflow returns.
 - Explicit input manifests may be materialized only at their established ignored runtime paths; they are not a mechanism for altering DayOA source.
 - If a required behavior is absent from the selected release, fail clearly and land it in a new, tested, tagged DayOA release. Never repair it on the headnode.
+- The sole exception is an explicit **pinned-source test override** for one named existing analysis root. A human must authorize that root, source ref/commit, intended source change, and test command in the current thread. The controller itself still does not patch, reset, or check out source; the override permits an already-made, explicitly authorized dirty change to be exercised only after verifying its existing HEAD.
+- Use only `dyec workflow launch --pinned-source-test-override "<non-secret reason>"` with `--reuse-existing-analysis-dir --reuse-local-git-ref --reuse-local-git-commit <40-char-sha> --input-contract none --no-input-staging --dry-run --export-trigger none`. The controller records the selected ref, status, staged/working-tree diffs, untracked paths, reason, and command before and after the test outside the DayOA checkout.
+- A pinned-source test override is never valid for a live run, catalog launch, automatic/manual export, delivery, cleanup, or promotion. It cannot replace a source release: make the permanent correction in DayOA, validate it under the approved gate, and publish a tagged release before any production use.
 
 # Provider-Neutral Execution Boundary
 

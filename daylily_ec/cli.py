@@ -6338,6 +6338,14 @@ def workflow_launch(
             "or substitutes a revision."
         ),
     ),
+    pinned_source_test_override: Optional[str] = typer.Option(
+        None,
+        "--pinned-source-test-override",
+        help=(
+            "Reasoned test-only override for one explicitly approved dirty reused checkout. "
+            "Requires local ref+commit, --dry-run, and no export."
+        ),
+    ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Launch a dry-run workflow command."),
 ) -> None:
     """Launch daylily-omics-analysis inside tmux on the headnode."""
@@ -6414,6 +6422,48 @@ def workflow_launch(
                 "--reuse-local-git-commit must be a lowercase 40-character commit SHA",
                 param_hint="--reuse-local-git-commit",
             )
+    if pinned_source_test_override is not None:
+        pinned_source_test_override = pinned_source_test_override.strip()
+        if not pinned_source_test_override:
+            raise typer.BadParameter(
+                "--pinned-source-test-override requires a non-empty reason",
+                param_hint="--pinned-source-test-override",
+            )
+        if "\n" in pinned_source_test_override or "\r" in pinned_source_test_override:
+            raise typer.BadParameter(
+                "--pinned-source-test-override reason must be single-line",
+                param_hint="--pinned-source-test-override",
+            )
+        if not reuse_existing_analysis_dir:
+            raise typer.BadParameter(
+                "--pinned-source-test-override requires --reuse-existing-analysis-dir",
+                param_hint="--pinned-source-test-override",
+            )
+        if not reuse_local_git_ref:
+            raise typer.BadParameter(
+                "--pinned-source-test-override requires --reuse-local-git-ref",
+                param_hint="--pinned-source-test-override",
+            )
+        if reuse_local_git_commit is None:
+            raise typer.BadParameter(
+                "--pinned-source-test-override requires --reuse-local-git-commit",
+                param_hint="--pinned-source-test-override",
+            )
+        if not dry_run:
+            raise typer.BadParameter(
+                "--pinned-source-test-override requires --dry-run",
+                param_hint="--pinned-source-test-override",
+            )
+        if dy_command is not None:
+            from daylily_ec.scripts.daylily_run_omics_analysis_headnode import (
+                dy_command_has_dry_run_flag,
+            )
+
+            if not dy_command_has_dry_run_flag(dy_command):
+                raise typer.BadParameter(
+                    "--pinned-source-test-override requires --dy-command to include -n",
+                    param_hint="--dy-command",
+                )
     if manifest_dir is not None:
         if input_contract != "six_manifest":
             raise typer.BadParameter(
@@ -6486,6 +6536,7 @@ def workflow_launch(
         ("--repository", repository),
         ("--git-tag", git_tag),
         ("--reuse-local-git-commit", reuse_local_git_commit),
+        ("--pinned-source-test-override", pinned_source_test_override),
         ("--project", project),
         ("--cost-center", resolved_cost_center),
         ("--genome", genome),

@@ -538,6 +538,20 @@ def build_default_command(
         raise CommandError(str(exc)) from exc
 
 
+def dy_command_has_dry_run_flag(command: str) -> bool:
+    """Return whether a normalized dy-r command includes a dry-run flag."""
+
+    try:
+        tokens = shlex.split(command)
+    except ValueError:
+        return False
+    return any(
+        token == "--dry-run"
+        or (token.startswith("-") and not token.startswith("--") and "n" in token[1:])
+        for token in tokens
+    )
+
+
 def _normalize_payload_staging_s3_uri(value: str) -> str:
     cleaned = str(value or "").strip().rstrip("/")
     if not cleaned.startswith("s3://"):
@@ -843,6 +857,15 @@ def build_parser() -> argparse.ArgumentParser:
             "--reuse-existing-analysis-dir and --reuse-local-git-ref."
         ),
     )
+    parser.add_argument(
+        "--pinned-source-test-override",
+        metavar="REASON",
+        help=(
+            "Explicit test-only waiver for one already-dirty reused DayOA checkout. "
+            "Requires a non-secret reason, --reuse-existing-analysis-dir, "
+            "--reuse-local-git-ref, --reuse-local-git-commit, --dry-run, and no export."
+        ),
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.set_defaults(
         skip_project_check=True,
@@ -913,6 +936,34 @@ def main(argv: Optional[List[str]] = None) -> int:
         if re.fullmatch(r"[0-9a-f]{40}", args.reuse_local_git_commit) is None:
             raise CommandError(
                 "--reuse-local-git-commit must be a lowercase 40-character commit SHA."
+            )
+    if args.pinned_source_test_override is not None:
+        args.pinned_source_test_override = args.pinned_source_test_override.strip()
+        if not args.pinned_source_test_override:
+            raise CommandError("--pinned-source-test-override requires a non-empty reason.")
+        if "\n" in args.pinned_source_test_override or "\r" in args.pinned_source_test_override:
+            raise CommandError("--pinned-source-test-override reason must be single-line.")
+        if not args.reuse_existing_analysis_dir:
+            raise CommandError(
+                "--pinned-source-test-override requires --reuse-existing-analysis-dir."
+            )
+        if not args.reuse_local_git_ref:
+            raise CommandError(
+                "--pinned-source-test-override requires --reuse-local-git-ref."
+            )
+        if args.reuse_local_git_commit is None:
+            raise CommandError(
+                "--pinned-source-test-override requires --reuse-local-git-commit."
+            )
+        if not args.dry_run:
+            raise CommandError("--pinned-source-test-override requires --dry-run.")
+        if (
+            args.export_destination_s3_uri
+            or args.export_trigger != "none"
+            or args.delete_on_export_success
+        ):
+            raise CommandError(
+                "--pinned-source-test-override cannot be combined with export or deletion."
             )
     if args.cost_center is not None:
         try:
@@ -1112,6 +1163,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         dy_command,
         max_runtime_minutes=args.max_runtime_minutes,
     )
+    if (
+        args.pinned_source_test_override is not None
+        and not dy_command_has_dry_run_flag(dy_command)
+    ):
+        raise CommandError(
+            "--pinned-source-test-override requires the effective --dy-command to include -n."
+        )
 
     project_arg = shlex.quote(args.project) if args.project else ""
     cost_center_arg = shlex.quote(args.cost_center) if args.cost_center else ""
@@ -1163,6 +1221,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     reuse_existing_analysis_dir = "true" if args.reuse_existing_analysis_dir else "false"
     reuse_local_git_ref = "true" if args.reuse_local_git_ref else "false"
     reuse_local_git_commit = args.reuse_local_git_commit or ""
+    pinned_source_test_override = args.pinned_source_test_override or ""
+    dry_run_mode = "true" if args.dry_run else "false"
     if stage_config is None:
         stage_specimens_path = ""
         stage_samples_path = ""
@@ -1194,6 +1254,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "exit_code=exit_code, "
         "snakemake_log_path=os.environ.get('DAYLILY_STATUS_SNAKEMAKE_LOG_PATH') or None, "
         "snakemake_log_attribution=os.environ.get('DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION') or None, "
+        "pinned_source_test_override=os.environ.get('DAYLILY_STATUS_PINNED_SOURCE_TEST_OVERRIDE') or None, "
         "command=os.environ['DAYLILY_STATUS_COMMAND']); "
         "path.parent.mkdir(parents=True, exist_ok=True); "
         "temporary = path.with_name(path.name + '.tmp'); "
@@ -1274,6 +1335,8 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	REUSE_EXISTING_ANALYSIS_DIR={reuse_existing_analysis_dir}
 	REUSE_LOCAL_GIT_REF={reuse_local_git_ref}
 	REUSE_LOCAL_GIT_COMMIT={shlex.quote(reuse_local_git_commit)}
+	PINNED_SOURCE_TEST_OVERRIDE={shlex.quote(pinned_source_test_override)}
+	DRY_RUN_MODE={dry_run_mode}
 	DAYOA_GIT_REF={shlex.quote(args.git_tag)}
 	REPO_KEY={shlex.quote(args.repository)}
 STATUS_FILE="${{DAYLILY_RUN_DIR}}/status.json"
@@ -1290,8 +1353,23 @@ export DAYLILY_STATUS_FILE="$STATUS_FILE"
 export DAYLILY_STATUS_SESSION="$SESSION_NAME"
 export DAYLILY_STATUS_REPO_PATH="${{DAYLILY_REPO_PATH}}"
 export DAYLILY_STATUS_COMMAND="$DY_COMMAND"
+export DAYLILY_STATUS_PINNED_SOURCE_TEST_OVERRIDE="$PINNED_SOURCE_TEST_OVERRIDE"
 export DAYLILY_CONTROLLER_PID="$BASHPID"
 python3 -c {write_controller_target_python}
+if [[ -n "$PINNED_SOURCE_TEST_OVERRIDE" ]]; then
+  if [[ "$REUSE_EXISTING_ANALYSIS_DIR" != "true" \
+    || "$REUSE_LOCAL_GIT_REF" != "true" \
+    || -z "$REUSE_LOCAL_GIT_COMMIT" \
+    || "$INPUT_CONTRACT" != "none" \
+    || "$INPUT_STAGING_MODE" != "false" \
+    || "$DRY_RUN_MODE" != "true" \
+    || "$EXPORT_TRIGGER" != "none" \
+    || -n "$EXPORT_DESTINATION_S3_URI" \
+    || "$DELETE_ON_EXPORT_SUCCESS" != "false" ]]; then
+    echo "[ERROR] Pinned-source test override runtime contract is invalid."
+    exit 25
+  fi
+fi
 runtime_tmp_name="${{SESSION_NAME//[^A-Za-z0-9_-]/_}}"
 if [[ -z "$runtime_tmp_name" ]]; then
   echo "__DAYLILY_ERROR__=invalid_runtime_tmp_name"
@@ -1403,7 +1481,8 @@ if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
     echo "__DAYLILY_ERROR__=existing_analysis_repo_invalid"
     exit 8
   fi
-  if [[ -n "$(git -C "$repo_path" status --porcelain --untracked-files=no)" ]]; then
+  if [[ -n "$(git -C "$repo_path" status --porcelain --untracked-files=no)" \
+    && -z "$PINNED_SOURCE_TEST_OVERRIDE" ]]; then
     echo "__DAYLILY_ERROR__=existing_analysis_repo_dirty"
     exit 8
   fi
@@ -1433,8 +1512,18 @@ if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
       exit 8
     }}
   fi
-  git -C "$repo_path" checkout --detach "$expected_commit"
-  actual_commit="$(git -C "$repo_path" rev-parse HEAD)"
+  if [[ -n "$PINNED_SOURCE_TEST_OVERRIDE" ]]; then
+    actual_commit="$(git -C "$repo_path" rev-parse HEAD)" || {{
+      echo "__DAYLILY_ERROR__=existing_analysis_ref_checkout_mismatch"
+      exit 8
+    }}
+  else
+    if ! git -C "$repo_path" checkout --detach "$expected_commit"; then
+      echo "__DAYLILY_ERROR__=existing_analysis_ref_checkout_mismatch"
+      exit 8
+    fi
+    actual_commit="$(git -C "$repo_path" rev-parse HEAD)"
+  fi
   if [[ "$actual_commit" != "$expected_commit" ]]; then
     echo "__DAYLILY_ERROR__=existing_analysis_ref_checkout_mismatch"
     exit 8
@@ -1727,6 +1816,8 @@ verify_pinned_dayoa_checkout() {{
   local unexpected_paths
   local disallowed_paths
   local runtime_path
+  local evidence_phase
+  local evidence_prefix
 
   # These are the only untracked runtime files that the catalog controller is
   # permitted to materialize in a pinned DayOA checkout.  Keep this list exact:
@@ -1757,6 +1848,23 @@ verify_pinned_dayoa_checkout() {{
   if [[ "$actual_commit" != "$expected_commit" ]]; then
     echo "[ERROR] DayOA HEAD differs from selected ref during $phase: expected=$expected_commit actual=$actual_commit"
     return 25
+  fi
+  if [[ -n "$PINNED_SOURCE_TEST_OVERRIDE" ]]; then
+    evidence_phase="${{phase// /_}}"
+    evidence_prefix="$DAYLILY_RUN_DIR/pinned-source-test-override-$evidence_phase"
+    {{
+      printf 'reason=%s\n' "$PINNED_SOURCE_TEST_OVERRIDE"
+      printf 'phase=%s\n' "$phase"
+      printf 'requested_ref=%s\n' "$DAYOA_GIT_REF"
+      printf 'expected_commit=%s\n' "$expected_commit"
+      printf 'actual_commit=%s\n' "$actual_commit"
+      git -C "$repo_path" status --short --untracked-files=all
+    }} > "$evidence_prefix.status.txt"
+    git -C "$repo_path" diff --binary -- > "$evidence_prefix.worktree.patch"
+    git -C "$repo_path" diff --cached --binary -- > "$evidence_prefix.index.patch"
+    git -C "$repo_path" ls-files --others --exclude-standard > "$evidence_prefix.untracked.txt"
+    echo "[WARN] Explicit pinned-source test override active during $phase; source evidence recorded at $evidence_prefix.*"
+    return 0
   fi
   if ! git -C "$repo_path" diff --quiet --; then
     echo "[ERROR] DayOA tracked source is modified during $phase; controller mutation is forbidden."

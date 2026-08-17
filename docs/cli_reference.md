@@ -710,6 +710,44 @@ detached mode. It leaves the analysis root and its untracked runtime inputs
 intact; a missing root, dirty tracked checkout, absent source ref, or checkout
 mismatch fails closed.
 
+### Explicit pinned-source test override
+
+`--pinned-source-test-override "<reason>"` is the deliberately narrow
+exception for a human-approved test against one already-dirty existing DayOA
+checkout. It is not a normal retry or catalog option. The command requires all
+of the following: `--reuse-existing-analysis-dir`, `--reuse-local-git-ref`, a
+full `--reuse-local-git-commit`, `--input-contract none`,
+`--no-input-staging`, `--dry-run`, and an effective `dy-r` command containing
+`-n`. It refuses every export/delete option and retains source evidence in the
+headnode run directory before and after the test.
+
+The current-thread human approval must name the exact analysis root, selected
+ref/commit, intended source change, reason, and dry-run command. The controller
+does not patch, reset, or check out source in this path; it only verifies that
+the existing HEAD is the requested commit. This option only permits that
+explicit pre-existing change to be exercised; it never authorizes a live run,
+delivery, export, cleanup, or promotion.
+
+```bash
+dyec workflow launch \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --analysis-id "$ANALYSIS_ID" \
+  --executing-entity "$CLUSTER" \
+  --git-tag "$DAYOA_REF" \
+  --input-contract none \
+  --no-input-staging \
+  --reuse-existing-analysis-dir \
+  --reuse-local-git-ref \
+  --reuse-local-git-commit "$DAYOA_COMMIT" \
+  --pinned-source-test-override "approved dyoainit initialization test" \
+  --dry-run \
+  --export-trigger none \
+  --session-name "$TEST_SESSION" \
+  --dy-command "dy-r <exact-targets> -p -k -j 6 -n"
+```
+
 Read status and logs:
 
 ```bash

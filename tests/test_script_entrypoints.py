@@ -68,6 +68,9 @@ def _assert_immutable_pinned_dayoa_controller(script: str) -> None:
     assert 'git -C "$repo_path" diff --cached --quiet --' in script
     assert 'git -C "$repo_path" ls-files --others --exclude-standard' in script
     assert "is_allowed_catalog_runtime_path()" in script
+    assert "PINNED_SOURCE_TEST_OVERRIDE=" in script
+    assert "pinned-source-test-override-$evidence_phase" in script
+    assert "Explicit pinned-source test override active" in script
     for allowed_path in (
         ".dyec/controller.log",
         "analysis_artifacts.tsv",
@@ -879,7 +882,68 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'if [[ "$expected_commit" != "$REUSE_LOCAL_GIT_COMMIT" ]]; then' in local_ref_branch
         assert 'git -C "$repo_path" fetch --quiet --tags origin "$DAYOA_GIT_REF"' not in local_ref_branch
 
+        mock_run_shell.reset_mock()
+        rc = run_omics_module.main(
+            [
+                "--profile",
+                "dev",
+                "--git-tag",
+                "13.0.42",
+                "--input-contract",
+                "none",
+                "--no-input-staging",
+                "--analysis-id",
+                "analysis",
+                "--executing-entity",
+                "johnm",
+                "--session-name",
+                "analysis-pinned-source-test",
+                "--reuse-existing-analysis-dir",
+                "--reuse-local-git-ref",
+                "--reuse-local-git-commit",
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "--pinned-source-test-override",
+                "approved dyoainit initialization test",
+                "--dry-run",
+                "--dy-command",
+                "dy-r produce_sentdhiomr2_kitchensink -p -k -j 6 -n",
+            ]
+        )
+        assert rc == 0
+        override_script = mock_run_shell.call_args.args[2]
+        assert "PINNED_SOURCE_TEST_OVERRIDE='approved dyoainit initialization test'" in override_script
+        assert "DRY_RUN_MODE=true" in override_script
+        assert "pinned-source-test-override-$evidence_phase.status.txt" in override_script
+        assert "pinned-source-test-override-$evidence_phase.worktree.patch" in override_script
+        assert "pinned-source-test-override-$evidence_phase.index.patch" in override_script
+        assert "pinned-source-test-override-$evidence_phase.untracked.txt" in override_script
+        override_reuse_block = override_script.split(
+            'if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then',
+            1,
+        )[1].split("else\n  day-clone", 1)[0]
+        assert '&& -z "$PINNED_SOURCE_TEST_OVERRIDE"' in override_reuse_block
+        assert 'if [[ -n "$PINNED_SOURCE_TEST_OVERRIDE" ]]; then' in override_reuse_block
+        assert 'actual_commit="$(git -C "$repo_path" rev-parse HEAD)"' in override_reuse_block
+
     def test_main_rejects_unsafe_existing_analysis_continuation(self):
+        with pytest.raises(
+            run_omics_module.CommandError,
+            match="requires --reuse-existing-analysis-dir",
+        ):
+            run_omics_module.main(
+                [
+                    "--profile",
+                    "dev",
+                    "--git-tag",
+                    "13.0.42",
+                    "--analysis-id",
+                    "analysis",
+                    "--pinned-source-test-override",
+                    "approved source test",
+                    "--dry-run",
+                ]
+            )
+
         with pytest.raises(
             run_omics_module.CommandError,
             match="requires --input-contract none",
