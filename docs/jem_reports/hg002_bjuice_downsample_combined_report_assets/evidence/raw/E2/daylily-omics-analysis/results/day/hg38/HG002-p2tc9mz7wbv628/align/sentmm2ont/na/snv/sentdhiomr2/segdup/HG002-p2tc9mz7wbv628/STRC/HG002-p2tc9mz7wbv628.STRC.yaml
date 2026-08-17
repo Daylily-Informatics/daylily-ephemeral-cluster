@@ -1,0 +1,42 @@
+STRC:
+  Copy numbers:
+    CATSPER2: 2
+    STRC: 2
+    STRCP1: 2
+  Variants: /scratch/dayoa.HG002-p2tc9mz7wbv628.hiomr2-segdup-STRC.4302.17734.6AfQnYVW/work/results/STRC/HG002-p2tc9mz7wbv628.STRC.result.vcf.gz
+  cn_interpretation: |-
+    STRC (DFNB16 autosomal-recessive hearing loss) Analysis:
+      STRC:     CN=2
+      STRCP1:   CN=2
+      CATSPER2: CN=2
+
+    SUMMARY: no pathogenic STRC deletion or conversion allele detected.
+      NOTE: only the recurrent deletion, its CATSPER2 extent, and configured STRCP1->STRC conversion PSVs are interpreted here; other STRC pathogenic point mutations are reported via the base variant calls. STRC and STRCP1 are ~100% identical over exons 1-15, so variants there are low-confidence (no discriminating PSVs) — confirm orthogonally.
+config:
+  job_options:
+    genes: STRC
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-seqkitfix-20260815T080300Z/daylily-omics-analysis/results/day/hg38/HG002-p2tc9mz7wbv628/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-p2tc9mz7wbv628.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-p2tc9mz7wbv628.hiomr2-segdup-STRC.4302.17734.6AfQnYVW/work/results/STRC
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-p2tc9mz7wbv628
+    short_read_bam: /scratch/dayoa.HG002-p2tc9mz7wbv628.hiomr2-segdup-STRC.4302.17734.6AfQnYVW/work/HG002-p2tc9mz7wbv628.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 13594660864
+    system_time_seconds: 294.049
+    user_time_seconds: 386.9
+    wall_time_seconds: 73.391
+  run_date: '2026-08-15'
+  run_datetime: '2026-08-15T23:41:26.492241'
+  run_time: '23:41:26'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

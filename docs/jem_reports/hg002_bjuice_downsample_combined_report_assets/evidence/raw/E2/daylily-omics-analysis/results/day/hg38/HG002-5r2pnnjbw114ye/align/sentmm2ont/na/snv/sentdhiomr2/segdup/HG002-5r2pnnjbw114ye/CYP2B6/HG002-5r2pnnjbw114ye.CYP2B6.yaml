@@ -1,0 +1,54 @@
+CYP2B6:
+  Copy numbers:
+    CYP2B6: 1
+    CYP2B6_intergenic: 1
+    CYP2B7P: 0
+  Variants: /scratch/dayoa.HG002-5r2pnnjbw114ye.hiomr2-segdup-CYP2B6.4032.25844.C5X95ub8/work/results/CYP2B6/HG002-5r2pnnjbw114ye.CYP2B6.result.vcf.gz
+  cn_interpretation: |-
+    CYP2B6: CN=1
+    CYP2B7P: CN=0
+    CYP2B6/CYP2B7P intergenic CN=1 -> *29 partial deletion (1 allele(s); single-copy dosage probe over the intron4-junction NAHR interval)
+    No structural/conversion events detected
+    Star Alleles: *29
+      Note: *29 structural allele - intergenic-depth dosage; no corroborating conversion junction call (the PSV-sparse 5' junction can hide it)
+    Phenotype: Poor metabolizer (no functional alleles; non-diploid)
+      Efavirenz: consider 400 or 200 mg/day (elevated exposure; higher adverse-effect risk)
+  gene_conversions: []
+  star_alleles:
+    alleles:
+    - '*29'
+    copy_number: 1
+    intergenic_cn: 1
+    method: phased_consumption_require_all
+    note: '*29 structural allele - intergenic-depth dosage; no corroborating conversion
+      junction call (the PSV-sparse 5'' junction can hide it)'
+    structural:
+      '*29': 1
+config:
+  job_options:
+    genes: CYP2B6
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-seqkitfix-20260815T080300Z/daylily-omics-analysis/results/day/hg38/HG002-5r2pnnjbw114ye/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-5r2pnnjbw114ye.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-5r2pnnjbw114ye.hiomr2-segdup-CYP2B6.4032.25844.C5X95ub8/work/results/CYP2B6
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-5r2pnnjbw114ye
+    short_read_bam: /scratch/dayoa.HG002-5r2pnnjbw114ye.hiomr2-segdup-CYP2B6.4032.25844.C5X95ub8/work/HG002-5r2pnnjbw114ye.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 6037499904
+    system_time_seconds: 208.76
+    user_time_seconds: 110.143
+    wall_time_seconds: 51.052
+  run_date: '2026-08-15'
+  run_datetime: '2026-08-15T13:28:02.582748'
+  run_time: '13:28:02'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

@@ -1,0 +1,41 @@
+SBDS:
+  Copy numbers:
+    SBDS: 1
+    SBDSP1: 1
+  Variants: /scratch/dayoa.HG002-5r2pnnjbw114ye.hiomr2-segdup-SBDS.3946.34904.Kj7kuw4R/work/results/SBDS/HG002-5r2pnnjbw114ye.SBDS.result.vcf.gz
+  cn_interpretation: |-
+    SBDS (Shwachman-Diamond syndrome) Analysis:
+      SBDS:   CN=1
+      SBDSP1: CN=1
+
+    SUMMARY: no recurrent SBDS conversion variant detected.
+      NOTE: only the two recurrent exon-2 PSVs (c.258+2T>C, c.183_184delinsCT) are typed here; other SBDS pathogenic variants are reported via the base variant calls.
+  gene_conversions: []
+config:
+  job_options:
+    genes: SBDS
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-seqkitfix-20260815T080300Z/daylily-omics-analysis/results/day/hg38/HG002-5r2pnnjbw114ye/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-5r2pnnjbw114ye.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-5r2pnnjbw114ye.hiomr2-segdup-SBDS.3946.34904.Kj7kuw4R/work/results/SBDS
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-5r2pnnjbw114ye
+    short_read_bam: /scratch/dayoa.HG002-5r2pnnjbw114ye.hiomr2-segdup-SBDS.3946.34904.Kj7kuw4R/work/HG002-5r2pnnjbw114ye.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 13962133504
+    system_time_seconds: 489.875
+    user_time_seconds: 217.966
+    wall_time_seconds: 77.711
+  run_date: '2026-08-15'
+  run_datetime: '2026-08-15T13:25:10.540713'
+  run_time: '13:25:10'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

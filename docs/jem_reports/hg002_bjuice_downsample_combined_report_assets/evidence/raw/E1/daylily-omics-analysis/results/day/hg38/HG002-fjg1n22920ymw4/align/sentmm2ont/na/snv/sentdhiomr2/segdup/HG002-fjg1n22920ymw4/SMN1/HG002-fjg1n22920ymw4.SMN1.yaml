@@ -1,0 +1,33 @@
+SMN1:
+  Copy numbers:
+    SMN1: 2
+    SMN2: 2
+  Variants: /scratch/dayoa.HG002-fjg1n22920ymw4.hiomr2-segdup-SMN1.1539.17293.ZP00E6Lt/work/results/SMN1/HG002-fjg1n22920ymw4.SMN1.result.vcf.gz
+config:
+  job_options:
+    genes: SMN1
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z/daylily-omics-analysis/results/day/hg38/HG002-fjg1n22920ymw4/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-fjg1n22920ymw4.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-fjg1n22920ymw4.hiomr2-segdup-SMN1.1539.17293.ZP00E6Lt/work/results/SMN1
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-fjg1n22920ymw4
+    short_read_bam: /scratch/dayoa.HG002-fjg1n22920ymw4.hiomr2-segdup-SMN1.1539.17293.ZP00E6Lt/work/HG002-fjg1n22920ymw4.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 18928934912
+    system_time_seconds: 367.214
+    user_time_seconds: 1076.255
+    wall_time_seconds: 118.987
+  run_date: '2026-08-14'
+  run_datetime: '2026-08-14T12:41:00.774905'
+  run_time: '12:41:00'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

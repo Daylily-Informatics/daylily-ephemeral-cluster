@@ -1,0 +1,39 @@
+RHD:
+  Copy numbers:
+    RHCE: 2
+    RHD: 2
+  Variants: /scratch/dayoa.HG002-vqs89p8gahfwf9.hiomr2-segdup-RH.1647.68125.rflcoU3m/work/results/RH/HG002-vqs89p8gahfwf9.RHD.result.vcf.gz
+  cn_interpretation: |-
+    RH (Rh blood group) Analysis:
+      RHD:  CN=2
+      RHCE: CN=2
+      Predicted RhD zygosity: RhD-positive, homozygous — two RHD copies
+  gene_conversions: []
+config:
+  job_options:
+    genes: RH
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z/daylily-omics-analysis/results/day/hg38/HG002-vqs89p8gahfwf9/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-vqs89p8gahfwf9.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-vqs89p8gahfwf9.hiomr2-segdup-RH.1647.68125.rflcoU3m/work/results/RH
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-vqs89p8gahfwf9
+    short_read_bam: /scratch/dayoa.HG002-vqs89p8gahfwf9.hiomr2-segdup-RH.1647.68125.rflcoU3m/work/HG002-vqs89p8gahfwf9.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 30696210432
+    system_time_seconds: 1129.803
+    user_time_seconds: 1642.233
+    wall_time_seconds: 223.599
+  run_date: '2026-08-14'
+  run_datetime: '2026-08-14T12:59:00.793122'
+  run_time: '12:59:00'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

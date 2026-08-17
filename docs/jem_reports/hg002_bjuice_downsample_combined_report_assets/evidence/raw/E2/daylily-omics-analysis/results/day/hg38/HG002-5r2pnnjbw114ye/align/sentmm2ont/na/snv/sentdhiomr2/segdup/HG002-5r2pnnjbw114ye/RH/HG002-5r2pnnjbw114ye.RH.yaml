@@ -1,0 +1,39 @@
+RHD:
+  Copy numbers:
+    RHCE: 1
+    RHD: 1
+  Variants: /scratch/dayoa.HG002-5r2pnnjbw114ye.hiomr2-segdup-RH.3940.23615.iIc8wiU8/work/results/RH/HG002-5r2pnnjbw114ye.RHD.result.vcf.gz
+  cn_interpretation: |-
+    RH (Rh blood group) Analysis:
+      RHD:  CN=1
+      RHCE: CN=1
+      Predicted RhD zygosity: RhD-positive, hemizygous — single RHD copy (one RhD-negative allele in trans)
+  gene_conversions: []
+config:
+  job_options:
+    genes: RH
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-seqkitfix-20260815T080300Z/daylily-omics-analysis/results/day/hg38/HG002-5r2pnnjbw114ye/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-5r2pnnjbw114ye.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-5r2pnnjbw114ye.hiomr2-segdup-RH.3940.23615.iIc8wiU8/work/results/RH
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-5r2pnnjbw114ye
+    short_read_bam: /scratch/dayoa.HG002-5r2pnnjbw114ye.hiomr2-segdup-RH.3940.23615.iIc8wiU8/work/HG002-5r2pnnjbw114ye.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 20133687296
+    system_time_seconds: 657.595
+    user_time_seconds: 409.44
+    wall_time_seconds: 115.572
+  run_date: '2026-08-15'
+  run_datetime: '2026-08-15T13:24:37.766318'
+  run_time: '13:24:37'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

@@ -1,0 +1,56 @@
+CYP2B6:
+  Copy numbers:
+    CYP2B6: 2
+    CYP2B6_intergenic: 2
+    CYP2B7P: 2
+  Variants: /scratch/dayoa.HG002-pw12ff0qe3akkp.hiomr2-segdup-CYP2B6.4372.52308.cS2fSZi8/work/results/CYP2B6/HG002-pw12ff0qe3akkp.CYP2B6.result.vcf.gz
+  cn_interpretation: |-
+    CYP2B6: CN=2
+    CYP2B7P: CN=2
+    Structural/conversion events detected: 1
+      Event 1: Conversion (CYP2B7P->CYP2B6)
+        Region: chr19:41013399-41014102
+        Allele change: +1
+    Star Alleles: *1 / *1
+    Phenotype: Normal metabolizer
+      Efavirenz: standard 600 mg/day
+  gene_conversions:
+  - conversion_sites: []
+    converted_alleles: 1
+    is_fusion_candidate: false
+    region: chr19:41013399-41014102
+    star_allele: Conversion (CYP2B7P->CYP2B6)
+  star_alleles:
+    alleles:
+    - '*1'
+    - '*1'
+    copy_number: 2
+    method: phased_consumption_require_all
+config:
+  job_options:
+    genes: CYP2B6
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-seqkitfix-20260815T080300Z/daylily-omics-analysis/results/day/hg38/HG002-pw12ff0qe3akkp/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-pw12ff0qe3akkp.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-pw12ff0qe3akkp.hiomr2-segdup-CYP2B6.4372.52308.cS2fSZi8/work/results/CYP2B6
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-pw12ff0qe3akkp
+    short_read_bam: /scratch/dayoa.HG002-pw12ff0qe3akkp.hiomr2-segdup-CYP2B6.4372.52308.cS2fSZi8/work/HG002-pw12ff0qe3akkp.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 8842407936
+    system_time_seconds: 997.048
+    user_time_seconds: 337.918
+    wall_time_seconds: 108.194
+  run_date: '2026-08-15'
+  run_datetime: '2026-08-15T23:41:32.236129'
+  run_time: '23:41:32'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

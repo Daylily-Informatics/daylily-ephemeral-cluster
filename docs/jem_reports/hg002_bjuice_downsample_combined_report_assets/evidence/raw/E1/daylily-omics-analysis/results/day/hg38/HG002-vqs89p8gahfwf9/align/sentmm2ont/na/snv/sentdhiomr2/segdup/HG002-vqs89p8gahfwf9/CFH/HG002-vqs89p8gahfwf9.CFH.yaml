@@ -1,0 +1,41 @@
+CFH:
+  Copy numbers:
+    CFH: 2
+    CFHR142: 2
+    CFHR2: 2
+    CFHR31: 1
+  Variants: /scratch/dayoa.HG002-vqs89p8gahfwf9.hiomr2-segdup-CFH.1636.40654.w5dSZNdq/work/results/CFH/HG002-vqs89p8gahfwf9.CFH.result.vcf.gz
+  cn_interpretation: |-
+    CFH: Normal copy number (CN=2)
+    CFHR31: Heterozygous deletion (CN=1, chr1:196774840-196832189)
+    CFHR142: Normal copy number (CN=2)
+    CFHR2: Normal copy number (CN=2)
+    CNV events detected: 1
+config:
+  job_options:
+    genes: CFH
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z/daylily-omics-analysis/results/day/hg38/HG002-vqs89p8gahfwf9/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-vqs89p8gahfwf9.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-vqs89p8gahfwf9.hiomr2-segdup-CFH.1636.40654.w5dSZNdq/work/results/CFH
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-vqs89p8gahfwf9
+    short_read_bam: /scratch/dayoa.HG002-vqs89p8gahfwf9.hiomr2-segdup-CFH.1636.40654.w5dSZNdq/work/HG002-vqs89p8gahfwf9.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 21307781120
+    system_time_seconds: 1196.255
+    user_time_seconds: 1662.137
+    wall_time_seconds: 230.883
+  run_date: '2026-08-14'
+  run_datetime: '2026-08-14T12:58:07.835768'
+  run_time: '12:58:07'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

@@ -1,0 +1,76 @@
+SBDS:
+  Copy numbers:
+    SBDS: 2
+    SBDSP1: 2
+  Variants: /scratch/dayoa.HG002-pw12ff0qe3akkp.hiomr2-segdup-SBDS.4386.30810.NjooiMtu/work/results/SBDS/HG002-pw12ff0qe3akkp.SBDS.result.vcf.gz
+  cn_interpretation: |-
+    SBDS (Shwachman-Diamond syndrome) Analysis:
+      SBDS:   CN=2
+      SBDSP1: CN=2
+
+    Positive-direction conversion tract(s): 2 — ratio-based, non-diagnostic alone (can reflect allelic dropout of a divergent haplotype; pathogenic status is set by the direct PSV calls above)
+      Tract 1: chr7:66992681-66992961, converted_alleles=1
+      Tract 2: chr7:66993897-66994624, converted_alleles=1
+        matches SBDS_c.258+2T>C (score 100.0%) — NOT corroborated by a direct PSV call (non-diagnostic; likely allelic-dropout artifact)
+        matches SBDS_c.183_184delinsCT (score 100.0%) — NOT corroborated by a direct PSV call (non-diagnostic; likely allelic-dropout artifact)
+
+    SUMMARY: no recurrent SBDS conversion variant detected.
+      NOTE: only the two recurrent exon-2 PSVs (c.258+2T>C, c.183_184delinsCT) are typed here; other SBDS pathogenic variants are reported via the base variant calls.
+  gene_conversions:
+  - conversion_sites: []
+    converted_alleles: -1
+    is_fusion_candidate: false
+    region: chr7:66990228-66990419
+  - conversion_sites: []
+    converted_alleles: -2
+    is_fusion_candidate: false
+    region: chr7:66991741-66991792
+  - conversion_sites: []
+    converted_alleles: 1
+    is_fusion_candidate: false
+    region: chr7:66992681-66992961
+  - conversion_sites: []
+    converted_alleles: -1
+    is_fusion_candidate: false
+    region: chr7:66993484-66993897
+  - conversion_sites: []
+    converted_alleles: 1
+    interpretation:
+    - event_name: SBDS_c.258+2T>C
+      match_score: 1.0
+      matched_variants:
+      - 66994209_A_G
+    - event_name: SBDS_c.183_184delinsCT
+      match_score: 1.0
+      matched_variants:
+      - 66994285_T_A
+    is_fusion_candidate: false
+    region: chr7:66993897-66994624
+config:
+  job_options:
+    genes: SBDS
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-seqkitfix-20260815T080300Z/daylily-omics-analysis/results/day/hg38/HG002-pw12ff0qe3akkp/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-pw12ff0qe3akkp.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-pw12ff0qe3akkp.hiomr2-segdup-SBDS.4386.30810.NjooiMtu/work/results/SBDS
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-pw12ff0qe3akkp
+    short_read_bam: /scratch/dayoa.HG002-pw12ff0qe3akkp.hiomr2-segdup-SBDS.4386.30810.NjooiMtu/work/HG002-pw12ff0qe3akkp.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 19395317760
+    system_time_seconds: 487.916
+    user_time_seconds: 287.847
+    wall_time_seconds: 86.664
+  run_date: '2026-08-15'
+  run_datetime: '2026-08-15T23:41:44.322013'
+  run_time: '23:41:44'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

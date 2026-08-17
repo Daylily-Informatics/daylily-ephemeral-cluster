@@ -1,0 +1,46 @@
+IKBKG:
+  Copy numbers:
+    IKBKG: 1
+    IKBKGP1: 1
+    IKBKGdel_region (IKBKG+IKBKGP1 total): 1
+  Variants: ''
+  cn_interpretation: |-
+    IKBKG (NEMO) Analysis (male):
+      IKBKG flanks: CN=1
+      IKBKGP1 flanks: CN=1
+      IKBKGdel_region — 11.7kb shared segment (exons 4-10): total CN=1 (expected 2)
+
+    [UNRESOLVED] 11.7kb segment deletion detected (total CN=1, expected=2)
+      The 11.7kb segment is identical between IKBKG and IKBKGP1.
+      Short reads cannot resolve which gene carries this event.
+      Mechanism: NAHR between segmental duplications.
+      If IKBKG: pathogenic (exon 4-10 loss). If IKBKGP1: benign.
+      Recommend long-read confirmation for definitive assignment.
+config:
+  job_options:
+    genes: IKBKG
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z/daylily-omics-analysis/results/day/hg38/HG002-871vyxbnp4n81v/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-871vyxbnp4n81v.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-871vyxbnp4n81v.hiomr2-segdup-IKBKG.1579.36097.6qQcCboo/work/results/IKBKG
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-871vyxbnp4n81v
+    short_read_bam: /scratch/dayoa.HG002-871vyxbnp4n81v.hiomr2-segdup-IKBKG.1579.36097.6qQcCboo/work/HG002-871vyxbnp4n81v.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 13400899584
+    system_time_seconds: 151.386
+    user_time_seconds: 451.053
+    wall_time_seconds: 72.55
+  run_date: '2026-08-14'
+  run_datetime: '2026-08-14T12:47:33.481310'
+  run_time: '12:47:33'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

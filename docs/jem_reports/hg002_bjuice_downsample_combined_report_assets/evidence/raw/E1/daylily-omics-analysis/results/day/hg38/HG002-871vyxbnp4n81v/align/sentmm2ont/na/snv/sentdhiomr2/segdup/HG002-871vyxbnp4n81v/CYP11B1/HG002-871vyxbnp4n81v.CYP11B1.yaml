@@ -1,0 +1,33 @@
+CYP11B1:
+  Copy numbers:
+    CYP11B1: 2
+    CYP11B2: 2
+  Variants: /scratch/dayoa.HG002-871vyxbnp4n81v.hiomr2-segdup-CYP11B1.1588.47935.Fp2WxcUv/work/results/CYP11B1/HG002-871vyxbnp4n81v.CYP11B1.result.vcf.gz
+config:
+  job_options:
+    genes: CYP11B1
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z/daylily-omics-analysis/results/day/hg38/HG002-871vyxbnp4n81v/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-871vyxbnp4n81v.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-871vyxbnp4n81v.hiomr2-segdup-CYP11B1.1588.47935.Fp2WxcUv/work/results/CYP11B1
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-871vyxbnp4n81v
+    short_read_bam: /scratch/dayoa.HG002-871vyxbnp4n81v.hiomr2-segdup-CYP11B1.1588.47935.Fp2WxcUv/work/HG002-871vyxbnp4n81v.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 19944472576
+    system_time_seconds: 360.399
+    user_time_seconds: 1060.305
+    wall_time_seconds: 140.723
+  run_date: '2026-08-14'
+  run_datetime: '2026-08-14T12:50:37.017034'
+  run_time: '12:50:37'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

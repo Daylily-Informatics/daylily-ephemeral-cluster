@@ -1,0 +1,38 @@
+PMS2:
+  Copy numbers:
+    PMS2: 1
+    PMS2CL: 0
+  Variants: /scratch/dayoa.HG002-5r2pnnjbw114ye.hiomr2-segdup-PMS2.4105.56252.svsxympt/work/results/PMS2/HG002-5r2pnnjbw114ye.PMS2.result.vcf.gz
+  cn_interpretation: |-
+    PMS2: CN=1
+    PMS2CL: CN=0
+    No gene conversion events detected
+  gene_conversions: []
+config:
+  job_options:
+    genes: PMS2
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-seqkitfix-20260815T080300Z/daylily-omics-analysis/results/day/hg38/HG002-5r2pnnjbw114ye/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-5r2pnnjbw114ye.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-5r2pnnjbw114ye.hiomr2-segdup-PMS2.4105.56252.svsxympt/work/results/PMS2
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-5r2pnnjbw114ye
+    short_read_bam: /scratch/dayoa.HG002-5r2pnnjbw114ye.hiomr2-segdup-PMS2.4105.56252.svsxympt/work/HG002-5r2pnnjbw114ye.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 13431549952
+    system_time_seconds: 172.497
+    user_time_seconds: 182.096
+    wall_time_seconds: 70.2
+  run_date: '2026-08-15'
+  run_datetime: '2026-08-15T13:26:54.144998'
+  run_time: '13:26:54'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

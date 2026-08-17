@@ -1,0 +1,57 @@
+CYP2A6:
+  Copy numbers:
+    CYP2A6: 2
+    CYP2A6_4del: 0
+    CYP2A7: 2
+  Variants: /scratch/dayoa.HG002-98xq4xrqz7dwy9.hiomr2-segdup-CYP2A6.1610.35486.pYjnuTJc/work/results/CYP2A6/HG002-98xq4xrqz7dwy9.CYP2A6.result.vcf.gz
+  cn_interpretation: |-
+    CYP2A6: CN=2
+    CYP2A7: CN=2
+    Structural/conversion events detected: 1
+      Event 1: 3'-flank conversion (CYP2A7<->CYP2A6; *1B/*46-type, benign/normal function)
+        Region: chr19:40841916-40844144
+        Allele change: -1
+    Star Alleles: *1 / *1
+    Nicotine-metabolism phenotype: Normal metabolizer
+      Note: research nicotine-metabolism grouping (activity score); CYP2A6 has no CPIC dosing guideline
+  gene_conversions:
+  - converted_alleles: -1
+    fusion_type: 3_PRIME
+    is_fusion_candidate: true
+    region: chr19:40841916-40844144
+    star_allele: 3'-flank conversion (CYP2A7<->CYP2A6; *1B/*46-type, benign/normal
+      function)
+  star_alleles:
+    alleles:
+    - '*1'
+    - '*1'
+    copy_number: 2
+    method: phased_consumption_require_all
+config:
+  job_options:
+    genes: CYP2A6
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z/daylily-omics-analysis/results/day/hg38/HG002-98xq4xrqz7dwy9/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-98xq4xrqz7dwy9.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-98xq4xrqz7dwy9.hiomr2-segdup-CYP2A6.1610.35486.pYjnuTJc/work/results/CYP2A6
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-98xq4xrqz7dwy9
+    short_read_bam: /scratch/dayoa.HG002-98xq4xrqz7dwy9.hiomr2-segdup-CYP2A6.1610.35486.pYjnuTJc/work/HG002-98xq4xrqz7dwy9.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 6297690112
+    system_time_seconds: 224.021
+    user_time_seconds: 351.862
+    wall_time_seconds: 57.549
+  run_date: '2026-08-14'
+  run_datetime: '2026-08-14T12:53:07.574993'
+  run_time: '12:53:07'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

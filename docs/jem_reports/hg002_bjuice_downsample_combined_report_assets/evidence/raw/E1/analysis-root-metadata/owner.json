@@ -1,0 +1,12 @@
+{
+  "analysis_id": "prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z",
+  "analysis_results_root": "/fsx/analysis_results",
+  "cluster": null,
+  "created_at": "2026-08-14T11:47:38.716312Z",
+  "fsx_id": null,
+  "owner": "prod-cand-1703",
+  "owning_ledger": null,
+  "realpath": "/fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z",
+  "schema_version": "dayoa.analysis_agent_lock.v1",
+  "updated_at": "2026-08-16T09:58:29.276654Z"
+}

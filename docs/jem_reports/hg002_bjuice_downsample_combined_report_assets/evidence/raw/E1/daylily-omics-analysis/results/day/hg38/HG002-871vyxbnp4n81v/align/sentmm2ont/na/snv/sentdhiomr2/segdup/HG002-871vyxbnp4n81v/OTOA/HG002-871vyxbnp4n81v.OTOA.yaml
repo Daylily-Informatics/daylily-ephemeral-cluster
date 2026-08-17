@@ -1,0 +1,45 @@
+OTOA:
+  Copy numbers:
+    OTOA: 2
+    OTOAP1: 4
+  Variants: /scratch/dayoa.HG002-871vyxbnp4n81v.hiomr2-segdup-OTOA.1578.27733.7RlgTYSv/work/results/OTOA/HG002-871vyxbnp4n81v.OTOA.result.vcf.gz
+  cn_interpretation: |-
+    OTOA (DFNB22 nonsyndromic hearing loss) Analysis:
+      OTOA:   CN=2
+      OTOAP1: CN=4
+
+    SUMMARY: no recurrent OTOA deletion or conversion allele detected.
+      NOTE: only the recurrent deletion and the p.Glu787* conversion PSV are typed here; other OTOA pathogenic point mutations are reported via the base variant calls. Variants in the ~15 kb PSV desert mid-block of the OTOA 3' duplication (5 coding exons) are low-confidence (dark paralog region) — confirm orthogonally.
+  gene_conversions:
+  - conversion_sites: []
+    converted_alleles: -1
+    is_fusion_candidate: false
+    region: chr16:21760176-21760937
+config:
+  job_options:
+    genes: OTOA
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z/daylily-omics-analysis/results/day/hg38/HG002-871vyxbnp4n81v/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-871vyxbnp4n81v.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-871vyxbnp4n81v.hiomr2-segdup-OTOA.1578.27733.7RlgTYSv/work/results/OTOA
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-871vyxbnp4n81v
+    short_read_bam: /scratch/dayoa.HG002-871vyxbnp4n81v.hiomr2-segdup-OTOA.1578.27733.7RlgTYSv/work/HG002-871vyxbnp4n81v.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 11269226496
+    system_time_seconds: 249.982
+    user_time_seconds: 537.322
+    wall_time_seconds: 80.794
+  run_date: '2026-08-14'
+  run_datetime: '2026-08-14T12:47:18.279970'
+  run_time: '12:47:18'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

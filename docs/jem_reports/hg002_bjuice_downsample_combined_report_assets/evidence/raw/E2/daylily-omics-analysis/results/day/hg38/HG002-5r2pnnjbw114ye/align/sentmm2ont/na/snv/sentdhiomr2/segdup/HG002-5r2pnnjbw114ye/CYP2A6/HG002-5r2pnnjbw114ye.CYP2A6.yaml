@@ -1,0 +1,49 @@
+CYP2A6:
+  Copy numbers:
+    CYP2A6: 2
+    CYP2A6_4del: 0
+    CYP2A7: 1
+  Variants: /scratch/dayoa.HG002-5r2pnnjbw114ye.hiomr2-segdup-CYP2A6.3986.20027.eXuIUYgc/work/results/CYP2A6/HG002-5r2pnnjbw114ye.CYP2A6.result.vcf.gz
+  cn_interpretation: |-
+    CYP2A6: CN=2
+      NOTE: *4 deletion call VETOED by CYP2A6/CYP2A7 PSV gate: observed CYP2A6 allele fraction 0.56 over 68 exon-body PSV sites is diploid-level (>= 0.42), inconsistent with a deletion; the depth drop is a mappability/coverage artifact. CYP2A6 CN 1 -> 2.
+    CYP2A7: CN=1
+    No structural/conversion events detected
+    Star Alleles: *1 / *1
+    Nicotine-metabolism phenotype: Normal metabolizer
+      Note: research nicotine-metabolism grouping (activity score); CYP2A6 has no CPIC dosing guideline
+  gene_conversions: []
+  star_alleles:
+    alleles:
+    - '*1'
+    - '*1'
+    copy_number: 2
+    method: phased_consumption_require_all
+config:
+  job_options:
+    genes: CYP2A6
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-seqkitfix-20260815T080300Z/daylily-omics-analysis/results/day/hg38/HG002-5r2pnnjbw114ye/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-5r2pnnjbw114ye.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-5r2pnnjbw114ye.hiomr2-segdup-CYP2A6.3986.20027.eXuIUYgc/work/results/CYP2A6
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-5r2pnnjbw114ye
+    short_read_bam: /scratch/dayoa.HG002-5r2pnnjbw114ye.hiomr2-segdup-CYP2A6.3986.20027.eXuIUYgc/work/HG002-5r2pnnjbw114ye.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 6428942336
+    system_time_seconds: 250.734
+    user_time_seconds: 141.144
+    wall_time_seconds: 53.025
+  run_date: '2026-08-15'
+  run_datetime: '2026-08-15T13:27:08.930350'
+  run_time: '13:27:08'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

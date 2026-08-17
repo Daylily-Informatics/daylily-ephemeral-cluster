@@ -1,0 +1,310 @@
+LPA:
+  Copy numbers:
+    LPA_KIV2_allele1: 22
+    LPA_KIV2_allele2: 12
+    LPA_KIV2_total: 34
+  Variants: ''
+  interpretation: |-
+    LPA (Lp(a) / KIV-2 VNTR) analysis:
+      KIV-2 total copies (both alleles): 34
+      allele split: 22 + 12 copies
+      (smaller allele drives plasma Lp(a): fewer KIV-2 copies -> higher Lp(a) -> higher ASCVD risk)
+      Qualitative Lp(a)/ASCVD association only (RUO); no quantitative Lp(a) value.
+  kiv2_alleles:
+  - 22
+  - 12
+  kiv2_detail:
+    flank_depth: 17.93
+    ratio: 18.4941
+    total_units_raw: 33.84
+    unit_depth: 331.6
+  kiv2_total_units: 34
+  markers:
+  - alt: C
+    alt_frac: 0.268
+    alt_reads: 51
+    depth: 190
+    pos: 162
+  - alt: C
+    alt_frac: 0.322
+    alt_reads: 110
+    depth: 342
+    pos: 385
+  - alt: C
+    alt_frac: 0.228
+    alt_reads: 82
+    depth: 359
+    pos: 448
+  - alt: C
+    alt_frac: 0.0
+    alt_reads: 0
+    depth: 359
+    pos: 488
+  - alt: A
+    alt_frac: 0.137
+    alt_reads: 50
+    depth: 366
+    pos: 680
+  - alt: C
+    alt_frac: 0.162
+    alt_reads: 56
+    depth: 345
+    pos: 694
+  - alt: A
+    alt_frac: 0.162
+    alt_reads: 56
+    depth: 345
+    pos: 697
+  - alt: C
+    alt_frac: 0.172
+    alt_reads: 61
+    depth: 354
+    pos: 704
+  - alt: C
+    alt_frac: 0.186
+    alt_reads: 67
+    depth: 361
+    pos: 712
+  - alt: G
+    alt_frac: 0.126
+    alt_reads: 43
+    depth: 340
+    pos: 1173
+  - alt: C
+    alt_frac: 0.155
+    alt_reads: 58
+    depth: 374
+    pos: 1313
+  - alt: A
+    alt_frac: 0.157
+    alt_reads: 59
+    depth: 376
+    pos: 1316
+  - alt: C
+    alt_frac: 0.355
+    alt_reads: 135
+    depth: 380
+    pos: 1391
+  - alt: G
+    alt_frac: 0.321
+    alt_reads: 100
+    depth: 312
+    pos: 1484
+  - alt: T
+    alt_frac: 0.333
+    alt_reads: 101
+    depth: 303
+    pos: 1677
+  - alt: G
+    alt_frac: 0.337
+    alt_reads: 102
+    depth: 303
+    pos: 1678
+  - alt: T
+    alt_frac: 0.065
+    alt_reads: 21
+    depth: 322
+    pos: 1764
+  - alt: C
+    alt_frac: 0.304
+    alt_reads: 95
+    depth: 312
+    pos: 2413
+  - alt: G
+    alt_frac: 0.388
+    alt_reads: 132
+    depth: 340
+    pos: 2646
+  - alt: C
+    alt_frac: 0.21
+    alt_reads: 73
+    depth: 348
+    pos: 2688
+  - alt: T
+    alt_frac: 0.41
+    alt_reads: 126
+    depth: 307
+    pos: 2885
+  - alt: G
+    alt_frac: 0.422
+    alt_reads: 144
+    depth: 341
+    pos: 2965
+  - alt: T
+    alt_frac: 0.207
+    alt_reads: 67
+    depth: 323
+    pos: 3044
+  - alt: A
+    alt_frac: 0.186
+    alt_reads: 53
+    depth: 285
+    pos: 3061
+  - alt: T
+    alt_frac: 0.192
+    alt_reads: 55
+    depth: 286
+    pos: 3062
+  - alt: C
+    alt_frac: 0.0
+    alt_reads: 0
+    depth: 314
+    pos: 3089
+  - alt: C
+    alt_frac: 0.0
+    alt_reads: 0
+    depth: 308
+    pos: 3158
+  - alt: A
+    alt_frac: 0.254
+    alt_reads: 80
+    depth: 315
+    pos: 3242
+  - alt: G
+    alt_frac: 0.061
+    alt_reads: 19
+    depth: 313
+    pos: 3244
+  - alt: T
+    alt_frac: 0.0
+    alt_reads: 0
+    depth: 278
+    pos: 3333
+  - alt: T
+    alt_frac: 0.374
+    alt_reads: 108
+    depth: 289
+    pos: 3340
+  - alt: C
+    alt_frac: 0.147
+    alt_reads: 42
+    depth: 285
+    pos: 3398
+  - alt: T
+    alt_frac: 0.022
+    alt_reads: 7
+    depth: 316
+    pos: 3508
+  - alt: T
+    alt_frac: 0.111
+    alt_reads: 39
+    depth: 352
+    pos: 3643
+  - alt: G
+    alt_frac: 0.164
+    alt_reads: 55
+    depth: 336
+    pos: 4115
+  - alt: C
+    alt_frac: 0.0
+    alt_reads: 0
+    depth: 314
+    pos: 4217
+  - alt: G
+    alt_frac: 0.324
+    alt_reads: 107
+    depth: 330
+    pos: 4393
+  - alt: G
+    alt_frac: 0.024
+    alt_reads: 8
+    depth: 335
+    pos: 4452
+  - alt: C
+    alt_frac: 0.238
+    alt_reads: 91
+    depth: 382
+    pos: 4890
+  - alt: A
+    alt_frac: 0.235
+    alt_reads: 80
+    depth: 341
+    pos: 5083
+  - alt: G
+    alt_frac: 0.261
+    alt_reads: 97
+    depth: 371
+    pos: 5128
+  - alt: C
+    alt_frac: 0.248
+    alt_reads: 93
+    depth: 375
+    pos: 5155
+  - alt: A
+    alt_frac: 0.211
+    alt_reads: 79
+    depth: 374
+    pos: 5184
+  - alt: A
+    alt_frac: 0.21
+    alt_reads: 79
+    depth: 377
+    pos: 5185
+  - alt: A
+    alt_frac: 0.215
+    alt_reads: 82
+    depth: 382
+    pos: 5194
+  - alt: A
+    alt_frac: 0.236
+    alt_reads: 88
+    depth: 373
+    pos: 5210
+  - alt: A
+    alt_frac: 0.225
+    alt_reads: 85
+    depth: 377
+    pos: 5214
+  - alt: C
+    alt_frac: 0.227
+    alt_reads: 85
+    depth: 374
+    pos: 5215
+  - alt: T
+    alt_frac: 0.229
+    alt_reads: 86
+    depth: 375
+    pos: 5220
+  - alt: A
+    alt_frac: 0.227
+    alt_reads: 85
+    depth: 375
+    pos: 5235
+  phaseable: true
+  split_diag:
+    gain: 20.171
+    gain_gate: 1.25
+    gated: null
+    markers_covered: 50
+    minor_pred: 12
+    resid: 0.0014
+    spread: 0
+    spread_gate: 4
+config:
+  job_options:
+    genes: LPA
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-seqkitfix-20260815T080300Z/daylily-omics-analysis/results/day/hg38/HG002-p2tc9mz7wbv628/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-p2tc9mz7wbv628.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-p2tc9mz7wbv628.hiomr2-segdup-LPA.4314.16882.GAlcxYAv/work/results/LPA
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-p2tc9mz7wbv628
+    short_read_bam: /scratch/dayoa.HG002-p2tc9mz7wbv628.hiomr2-segdup-LPA.4314.16882.GAlcxYAv/work/HG002-p2tc9mz7wbv628.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 1391149056
+    system_time_seconds: 2.436
+    user_time_seconds: 23.938
+    wall_time_seconds: 7.073
+  run_date: '2026-08-15'
+  run_datetime: '2026-08-15T23:42:13.502032'
+  run_time: '23:42:13'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

@@ -1,0 +1,47 @@
+STRC:
+  Copy numbers:
+    CATSPER2: 2
+    STRC: 1
+    STRCP1: 3
+  Variants: /scratch/dayoa.HG002-pw12ff0qe3akkp.hiomr2-segdup-STRC.4438.102974.IAOUgl7x/work/results/STRC/HG002-pw12ff0qe3akkp.STRC.result.vcf.gz
+  cn_interpretation: |-
+    STRC (DFNB16 autosomal-recessive hearing loss) Analysis:
+      STRC:     CN=1
+      STRCP1:   CN=3
+      CATSPER2: CN=2
+
+    STRC copy loss: 1 allele(s) deleted — recurrent DFNB16 ~100 kb NAHR deletion of the functional STRC copy.
+      Extent: CATSPER2 intact (CN=2) — STRC-limited deletion (hearing loss without the CATSPER2 infertility component).
+
+    Copy gain (STRC CN=1, STRCP1 CN=3) — benign polymorphism (~1.85% of the population carry a 3-copy gain); not a pathogenic allele.
+
+    SUMMARY: 1 pathogenic STRC allele (deletion) — carrier (heterozygous).
+      NOTE: only the recurrent deletion, its CATSPER2 extent, and configured STRCP1->STRC conversion PSVs are interpreted here; other STRC pathogenic point mutations are reported via the base variant calls. STRC and STRCP1 are ~100% identical over exons 1-15, so variants there are low-confidence (no discriminating PSVs) — confirm orthogonally.
+config:
+  job_options:
+    genes: STRC
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-seqkitfix-20260815T080300Z/daylily-omics-analysis/results/day/hg38/HG002-pw12ff0qe3akkp/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-pw12ff0qe3akkp.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-pw12ff0qe3akkp.hiomr2-segdup-STRC.4438.102974.IAOUgl7x/work/results/STRC
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-pw12ff0qe3akkp
+    short_read_bam: /scratch/dayoa.HG002-pw12ff0qe3akkp.hiomr2-segdup-STRC.4438.102974.IAOUgl7x/work/HG002-pw12ff0qe3akkp.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 9197215744
+    system_time_seconds: 271.62
+    user_time_seconds: 171.036
+    wall_time_seconds: 58.437
+  run_date: '2026-08-15'
+  run_datetime: '2026-08-15T23:42:38.734765'
+  run_time: '23:42:38'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

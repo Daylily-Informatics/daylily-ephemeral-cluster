@@ -1,0 +1,49 @@
+SBDS:
+  Copy numbers:
+    SBDS: 2
+    SBDSP1: 2
+  Variants: /scratch/dayoa.HG002-vqs89p8gahfwf9.hiomr2-segdup-SBDS.1629.31457.KYtAIpz0/work/results/SBDS/HG002-vqs89p8gahfwf9.SBDS.result.vcf.gz
+  cn_interpretation: |-
+    SBDS (Shwachman-Diamond syndrome) Analysis:
+      SBDS:   CN=2
+      SBDSP1: CN=2
+
+    SUMMARY: no recurrent SBDS conversion variant detected.
+      NOTE: only the two recurrent exon-2 PSVs (c.258+2T>C, c.183_184delinsCT) are typed here; other SBDS pathogenic variants are reported via the base variant calls.
+  gene_conversions:
+  - conversion_sites: []
+    converted_alleles: -1
+    is_fusion_candidate: false
+    region: chr7:66990260-66990419
+  - conversion_sites: []
+    converted_alleles: -2
+    is_fusion_candidate: false
+    region: chr7:66991741-66991792
+config:
+  job_options:
+    genes: SBDS
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z/daylily-omics-analysis/results/day/hg38/HG002-vqs89p8gahfwf9/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-vqs89p8gahfwf9.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-vqs89p8gahfwf9.hiomr2-segdup-SBDS.1629.31457.KYtAIpz0/work/results/SBDS
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-vqs89p8gahfwf9
+    short_read_bam: /scratch/dayoa.HG002-vqs89p8gahfwf9.hiomr2-segdup-SBDS.1629.31457.KYtAIpz0/work/HG002-vqs89p8gahfwf9.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 24169930752
+    system_time_seconds: 375.061
+    user_time_seconds: 894.25
+    wall_time_seconds: 107.702
+  run_date: '2026-08-14'
+  run_datetime: '2026-08-14T13:01:46.149312'
+  run_time: '13:01:46'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

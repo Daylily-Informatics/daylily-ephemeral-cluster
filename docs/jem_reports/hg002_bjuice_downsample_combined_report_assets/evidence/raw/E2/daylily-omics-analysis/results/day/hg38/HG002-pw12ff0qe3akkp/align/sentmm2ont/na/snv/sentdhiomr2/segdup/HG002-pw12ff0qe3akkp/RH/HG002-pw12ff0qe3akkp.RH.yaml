@@ -1,0 +1,77 @@
+RHD:
+  Copy numbers:
+    RHCE: 2
+    RHD: 2
+  Variants: /scratch/dayoa.HG002-pw12ff0qe3akkp.hiomr2-segdup-RH.4427.30425.9A5kpoRF/work/results/RH/HG002-pw12ff0qe3akkp.RHD.result.vcf.gz
+  cn_interpretation: |-
+    RH (Rh blood group) Analysis:
+      RHD:  CN=2
+      RHCE: CN=2
+      Predicted RhD zygosity: RhD-positive, homozygous — two RHD copies
+
+    Gene conversion events: 6
+      Event 1: chr1:25280497-25287805, converted_alleles=1
+        RHCE-like sequence within RHD — RHD-CE-D hybrid (partial-D) candidate; confirm serologically.
+      Event 2: chr1:25298750-25299030, converted_alleles=-1
+        RHCE-like sequence within RHD — RHD-CE-D hybrid (partial-D) candidate; confirm serologically.
+      Event 3: chr1:25299030-25299610, converted_alleles=1
+        RHCE-like sequence within RHD — RHD-CE-D hybrid (partial-D) candidate; confirm serologically.
+      Event 4: chr1:25299610-25301052, converted_alleles=-1
+        RHCE-like sequence within RHD — RHD-CE-D hybrid (partial-D) candidate; confirm serologically.
+      Event 5: chr1:25301052-25302661, converted_alleles=1
+        RHCE-like sequence within RHD — RHD-CE-D hybrid (partial-D) candidate; confirm serologically.
+      Event 6: chr1:25320188-25322417, converted_alleles=-1
+        RHCE-like sequence within RHD — RHD-CE-D hybrid (partial-D) candidate; confirm serologically.
+  gene_conversions:
+  - conversion_sites: []
+    converted_alleles: 1
+    is_fusion_candidate: false
+    region: chr1:25280497-25287805
+  - conversion_sites: []
+    converted_alleles: -1
+    is_fusion_candidate: false
+    region: chr1:25298750-25299030
+  - conversion_sites: []
+    converted_alleles: 1
+    is_fusion_candidate: false
+    region: chr1:25299030-25299610
+  - conversion_sites: []
+    converted_alleles: -1
+    is_fusion_candidate: false
+    region: chr1:25299610-25301052
+  - conversion_sites: []
+    converted_alleles: 1
+    is_fusion_candidate: false
+    region: chr1:25301052-25302661
+  - conversion_sites: []
+    converted_alleles: -1
+    is_fusion_candidate: false
+    region: chr1:25320188-25322417
+config:
+  job_options:
+    genes: RH
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-seqkitfix-20260815T080300Z/daylily-omics-analysis/results/day/hg38/HG002-pw12ff0qe3akkp/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-pw12ff0qe3akkp.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-pw12ff0qe3akkp.hiomr2-segdup-RH.4427.30425.9A5kpoRF/work/results/RH
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-pw12ff0qe3akkp
+    short_read_bam: /scratch/dayoa.HG002-pw12ff0qe3akkp.hiomr2-segdup-RH.4427.30425.9A5kpoRF/work/HG002-pw12ff0qe3akkp.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 25950248960
+    system_time_seconds: 1034.883
+    user_time_seconds: 736.762
+    wall_time_seconds: 183.153
+  run_date: '2026-08-15'
+  run_datetime: '2026-08-15T23:42:32.233376'
+  run_time: '23:42:32'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

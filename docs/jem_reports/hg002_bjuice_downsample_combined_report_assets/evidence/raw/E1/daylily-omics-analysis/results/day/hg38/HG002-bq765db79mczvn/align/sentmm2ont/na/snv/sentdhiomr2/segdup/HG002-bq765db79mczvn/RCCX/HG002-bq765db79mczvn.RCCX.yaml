@@ -1,0 +1,93 @@
+RCCX1:
+  Copy numbers:
+    C4A: 2
+    C4B: 2
+    CYP21A1P: 2
+    CYP21A2: 2
+    TNXA: 2
+    TNXB: 2
+  Variants: /scratch/dayoa.HG002-bq765db79mczvn.hiomr2-segdup-RCCX.1561.37955.GYmDbpq3/work/results/RCCX/HG002-bq765db79mczvn.RCCX1.result.vcf.gz
+  c4_analysis:
+    c4_long_count: 4
+    c4_short_count: 0
+    c4a_count: 2
+    c4b_count: 2
+    detail:
+    - C4A (x2)
+    - C4B (x2)
+    - Long (x4)
+    isotype_mismatch: 0
+    isotype_switching: None
+    total_c4: 4
+  cn_interpretation: |-
+    RCCX Module Analysis:
+      Total Modules: 4
+      Haplotype: Bimodular/Bimodular (Standard)
+
+    C4 (Complement Component 4):
+      Total C4 Copies: 4
+      Isotypes: 2 C4A, 2 C4B
+      Sizes: 4 Long (with HERV-K), 0 Short (HERV-K deleted)
+
+    CYP21 (Steroid 21-Hydroxylase):
+      Total CYP21 Copies: 4
+      Functional (CYP21A2): 2
+      Pseudogene (CYP21A1P): 2
+      Chimera Classification: None
+      Conversion Events: None
+
+    TNX (Tenascin X):
+      Functional TNXB: 2
+      CAH-X Classification: None
+      Conversion Events: None
+  cyp21_analysis:
+    chimera_class: None
+    chimera_detected: false
+    conversion_events: []
+    detail: 2 Functional, 2 Pseudo
+    functional_count: 2
+    pseudo_count: 2
+    total_cyp21: 4
+  gene_conversions:
+  - conversion_sites: []
+    converted_alleles: -1
+    is_fusion_candidate: false
+    region: chr6:32043711-32043861
+  module_count: 4
+  tnx_analysis:
+    cah_x_class: None
+    cah_x_detected: false
+    clinical_note: ''
+    events: []
+    functional_tnxb: 2
+    haploinsufficiency: false
+    status: Normal
+    tnxa_count: 2
+config:
+  job_options:
+    genes: RCCX
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z/daylily-omics-analysis/results/day/hg38/HG002-bq765db79mczvn/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-bq765db79mczvn.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-bq765db79mczvn.hiomr2-segdup-RCCX.1561.37955.GYmDbpq3/work/results/RCCX
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-bq765db79mczvn
+    short_read_bam: /scratch/dayoa.HG002-bq765db79mczvn.hiomr2-segdup-RCCX.1561.37955.GYmDbpq3/work/HG002-bq765db79mczvn.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 26547081216
+    system_time_seconds: 666.21
+    user_time_seconds: 1120.143
+    wall_time_seconds: 129.203
+  run_date: '2026-08-14'
+  run_datetime: '2026-08-14T12:46:18.996890'
+  run_time: '12:46:18'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

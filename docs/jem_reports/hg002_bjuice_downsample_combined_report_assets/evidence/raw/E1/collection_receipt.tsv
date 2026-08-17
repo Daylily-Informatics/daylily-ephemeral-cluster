@@ -1,0 +1,9 @@
+field\tvalue
+experiment\tE1
+analysis_root\t/fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z
+runtime_analysis_units\t7
+coverage_summaries\t14
+hard_vcf_giabhc_files\t7
+truvari_summaries\t28
+smn12_json_summaries\t7
+segdup_result_vcfs\t105

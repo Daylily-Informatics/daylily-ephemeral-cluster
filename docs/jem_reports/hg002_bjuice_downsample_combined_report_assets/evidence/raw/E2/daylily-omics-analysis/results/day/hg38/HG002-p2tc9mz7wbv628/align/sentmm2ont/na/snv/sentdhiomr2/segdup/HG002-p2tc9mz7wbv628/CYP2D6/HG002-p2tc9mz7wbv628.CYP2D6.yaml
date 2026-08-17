@@ -1,0 +1,61 @@
+CYP2D6:
+  Copy numbers:
+    CYP2D6: 2
+    CYP2D7: 2
+  Variants: /scratch/dayoa.HG002-p2tc9mz7wbv628.hiomr2-segdup-CYP2D6.4285.18044.nBVJB7pd/work/results/CYP2D6/HG002-p2tc9mz7wbv628.CYP2D6.result.vcf.gz
+  cn_interpretation: |-
+    CYP2D6: CN=2
+    CYP2D7: CN=2
+    Structural variants detected: 1
+      Event 1: Conversion (CYP2D7→CYP2D6)
+        Region: chr22:42131765-42131923
+        Allele change: +1
+        Signature sites: rs773084621, rs760552322, rs186443092, rs557254045, rs560733541
+        Clinical: May affect enzyme function
+    Star Alleles: *4 / *2
+    Phenotype: Intermediate metabolizer (mix of functional and impaired alleles)
+  gene_conversions:
+  - conversion_sites:
+    - rs773084621
+    - rs760552322
+    - rs186443092
+    - rs557254045
+    - rs560733541
+    converted_alleles: 1
+    is_fusion_candidate: false
+    region: chr22:42131765-42131923
+    star_allele: Conversion (CYP2D7→CYP2D6)
+  star_alleles:
+    alleles:
+    - '*4'
+    - '*2'
+    copy_number: 2
+    method: phased_consumption
+config:
+  job_options:
+    genes: CYP2D6
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-seqkitfix-20260815T080300Z/daylily-omics-analysis/results/day/hg38/HG002-p2tc9mz7wbv628/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-p2tc9mz7wbv628.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-p2tc9mz7wbv628.hiomr2-segdup-CYP2D6.4285.18044.nBVJB7pd/work/results/CYP2D6
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-p2tc9mz7wbv628
+    short_read_bam: /scratch/dayoa.HG002-p2tc9mz7wbv628.hiomr2-segdup-CYP2D6.4285.18044.nBVJB7pd/work/HG002-p2tc9mz7wbv628.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 7361142784
+    system_time_seconds: 411.546
+    user_time_seconds: 338.064
+    wall_time_seconds: 73.188
+  run_date: '2026-08-15'
+  run_datetime: '2026-08-15T23:40:44.515074'
+  run_time: '23:40:44'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'

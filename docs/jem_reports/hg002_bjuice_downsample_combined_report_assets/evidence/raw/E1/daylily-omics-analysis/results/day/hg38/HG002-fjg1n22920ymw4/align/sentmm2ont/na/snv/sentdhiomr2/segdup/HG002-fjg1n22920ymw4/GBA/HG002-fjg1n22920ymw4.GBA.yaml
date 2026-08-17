@@ -1,0 +1,38 @@
+GBA1:
+  Copy numbers:
+    GBA1: 2
+    GBAP1: 2
+  Variants: /scratch/dayoa.HG002-fjg1n22920ymw4.hiomr2-segdup-GBA.1544.17155.yXGfG3kC/work/results/GBA/HG002-fjg1n22920ymw4.GBA1.result.vcf.gz
+  cn_interpretation: |-
+    GBA1: CN=2
+    GBAP1: CN=2
+    No gene conversion or fusion events detected
+  gene_conversions: []
+config:
+  job_options:
+    genes: GBA
+    keep_temp: true
+    log_level: INFO
+    long_read_bam: /fsx/analysis_results/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z/daylily-omics-analysis/results/day/hg38/HG002-fjg1n22920ymw4/align/sentmm2ont/na/snv/sentdhiomr2/lr/HG002-fjg1n22920ymw4.sentdhiomr2.fastq.cram
+    lr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/DNAscopeONT2.3.bundle
+    lr_prefix: lr
+    outdir: /scratch/dayoa.HG002-fjg1n22920ymw4.hiomr2-segdup-GBA.1544.17155.yXGfG3kC/work/results/GBA
+    reference: /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta
+    sample_name: HG002-fjg1n22920ymw4
+    short_read_bam: /scratch/dayoa.HG002-fjg1n22920ymw4.hiomr2-segdup-GBA.1544.17155.yXGfG3kC/work/HG002-fjg1n22920ymw4.sentdhiomr2.sr.bam
+    sr_model: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.03/bundles/SentieonIlluminaWGS2.2.bundle
+    sr_prefix: sr
+    threads: 128
+  resource_usage:
+    memory_bytes: 21626736640
+    system_time_seconds: 952.91
+    user_time_seconds: 2149.332
+    wall_time_seconds: 238.696
+  run_date: '2026-08-14'
+  run_datetime: '2026-08-14T12:43:32.013005'
+  run_time: '12:43:32'
+  software_versions:
+    bcftools: 1.23.1
+    samtools: '1.23'
+    segdup-caller: 0.9.0
+    sentieon: '202503.03'
