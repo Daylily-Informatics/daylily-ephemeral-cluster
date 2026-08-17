@@ -366,7 +366,7 @@ def test_prepare_incompatible_service_error_is_structured_and_redacted(
     )
     monkeypatch.setattr(
         privatelink_module,
-        "resolve_slurm_accounting_privatelink_bridge_for_consumer",
+        "reconcile_existing_slurm_accounting_privatelink_bridge_for_consumer",
         lambda *_args, **_kwargs: (_ for _ in ()).throw(
             SlurmAccountingPrivateLinkError("no compatible bridge")
         ),
@@ -459,12 +459,89 @@ def test_prepare_auto_reuses_deterministic_healthy_privatelink_bridge(
     assert bridge_calls == [
         {
             "consumer_vpc_id": "vpc-cluster",
-            "provider_accounting_stack_name": "",
+            "provider_accounting_stack_name": "existing-other-vpc",
         }
     ]
     assert rendered["Scheduling"]["SlurmSettings"]["Database"]["Uri"] == (
         "vpce-accounting.example:3306"
     )
+
+
+def test_prepare_reconciles_existing_bridge_before_approved_cross_vpc_attachment(
+    tmp_path, monkeypatch
+) -> None:
+    source = _config(tmp_path / "source.yaml")
+    bridge_db = SlurmAccountingDb(
+        stack_name="dayec-sacct-pl-vpc-cluster",
+        status="UPDATE_COMPLETE",
+        uri="vpce-accounting.example:3306",
+        private_ip="10.0.2.4",
+        database_name="dayec_slurm_acct",
+        username="slurm_acct",
+        password_secret_arn="arn:aws:secretsmanager:us-west-2:123:secret:acct",
+        client_security_group_id="sg-consumer-client",
+        client_secret_read_policy_arn="arn:aws:iam::123:policy/consumer-accounting-read",
+        instance_id="i-accounting",
+    )
+    reconciliation_calls = []
+
+    class Bridge:
+        @staticmethod
+        def as_accounting_db():
+            return bridge_db
+
+    monkeypatch.setattr(
+        attach_module.AWSContext,
+        "build_region",
+        classmethod(lambda _cls, _region, profile=None: _AwsContext()),
+    )
+    monkeypatch.setattr(
+        attach_module,
+        "list_regional_slurm_accounting_stacks",
+        lambda *_args, **_kwargs: [{"StackName": "dayec-slurm-accounting-us-west-2c"}],
+    )
+    monkeypatch.setattr(
+        attach_module,
+        "resolve_slurm_accounting_db",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            SlurmAccountingError("direct VPC mismatch")
+        ),
+    )
+
+    def reconcile_bridge(*_args, **kwargs):
+        reconciliation_calls.append(kwargs)
+        return Bridge()
+
+    monkeypatch.setattr(
+        privatelink_module,
+        "reconcile_existing_slurm_accounting_privatelink_bridge_for_consumer",
+        reconcile_bridge,
+    )
+    monkeypatch.setattr(
+        privatelink_module,
+        "resolve_slurm_accounting_privatelink_bridge_for_consumer",
+        lambda *_args, **_kwargs: pytest.fail(
+            "approved create must reconcile instead of read-only resolving"
+        ),
+    )
+
+    prepared = prepare_slurm_accounting_update(
+        cluster_name="cluster-a",
+        region="us-west-2",
+        profile="lsmc",
+        cluster_configuration=source,
+        create_if_missing=True,
+        output_dir=tmp_path,
+    )
+
+    assert prepared.accounting_stack_name == "dayec-sacct-pl-vpc-cluster"
+    assert prepared.service_created is False
+    assert reconciliation_calls == [
+        {
+            "consumer_vpc_id": "vpc-cluster",
+            "provider_accounting_stack_name": "dayec-slurm-accounting-us-west-2c",
+        }
+    ]
 
 
 def test_prepare_missing_service_has_machine_readable_reason(tmp_path, monkeypatch) -> None:
