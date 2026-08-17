@@ -19,8 +19,8 @@ ONT_EVIDENCE_PREFIX = (
     "results/runs/20260615_ONT_Set4-FC1/run_qc/ont/"
 )
 CURRENT_ONT_EVIDENCE_PREFIX = (
-    "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
-    "pcand18015_ont_runqc_1509_live_20260816T1422Z/daylily-omics-analysis/"
+    "s3://lsmc-ssf-sequencing-data/derived/pcand-18022/"
+    "pcand18022_ont_seq_qc_15011_live_20260817T0752Z/daylily-omics-analysis/"
     "results/runs/20260615_ONT_Set4-FC1/run_qc/ont/"
 )
 CG_RUN_ID = "prod-cand-1703-cg-slim-20260814-1032"

@@ -580,10 +580,10 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             continue
         expected_validation_runs = {
             "illumina_hg002_kitchensink_multiqc": 2,
-            "illumina_run_qc": 2,
+            "illumina_run_qc": 3,
             "complete_genomics_cg_snv_concordance": 2,
-            "ont_run_qc": 3,
-            "ultima_run_qc": 3,
+            "ont_run_qc": 4,
+            "ultima_run_qc": 4,
         }.get(command.command_id, 1)
         assert len(command.validation_runs) == expected_validation_runs
         validation_run = command.validation_runs[0]

@@ -1578,6 +1578,26 @@ repositories:
         live_analysis_id: prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z
         stage_or_context: s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z/
         notes: "Attributable recovery controller exited rc=0. No-delete DRA task task-0ed9c6b1e8492244a succeeded, detached DRA dra-0031790513f4fa0ec, and exported package-manifest and Inflection MultiQC evidence were verified in S3."
+      - run_id: pcand18022-hg002-slim5x5x-bjuice-ifx-20260817t0648z
+        generated_at: "2026-08-17T09:14:04Z"
+        report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-hg002-slim5x5x-bjuice-ifx-20260817t0648z/daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc_data/multiqc_giab_concordance.txt
+        ledger_path: docs/plans/20260817T064328Z_slim5x5x_bjuice_hiomr2_execution_ledger.md
+        cluster: pcand-18022
+        region: us-west-2
+        region_az: us-west-2c
+        dayec_tag: "18.0.22"
+        dayec_commit: unrecorded
+        dayoa_tag: "15.0.11"
+        dayoa_commit: c113b6140b20a308c78c61bd035dde1bd48e0ed5
+        tested_command: >-
+          DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]' hiomr2_inflection_package_mode=analytical "seqone_delivery_batch_id=$ANALYSIS_ID" -j 333 -T 0 -p --rerun-triggers mtime
+        status: success
+        dryrun_status: success
+        live_status: success
+        dryrun_analysis_id: pcand18022-hg002-slim5x5x-bjuice-ifx-dry2-20260817t0653z
+        live_analysis_id: pcand18022-hg002-slim5x5x-bjuice-ifx-20260817t0648z
+        stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-hg002-slim5x5x-bjuice-ifx-20260817t0648z/
+        notes: "Historical DayOA 15.0.11 evidence only; it does not clear the current 15.0.12 validation-pending state. Both attributable controllers reached rc=0. The one authorized no-delete retry succeeded as task task-0a96f7581ba6ddc90, detached DRA dra-065329a4fceb729fd, retained the FSx root, and verified this 82,088-byte GIAB MultiQC concordance artifact in S3."
     - command_id: hiomr2_slim_kitchensink_mega
       type: prod
       validated_version: 15.0.1
@@ -1623,6 +1643,27 @@ repositories:
       no_containerized: false
       return_results: false
       repository: daylily-omics-analysis
+      validation_runs:
+      - run_id: pcand18022-hg002-slim5x5x-hiomr2-20260817t0648z
+        generated_at: "2026-08-17T09:14:04Z"
+        report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-hg002-slim5x5x-hiomr2-20260817t0648z/daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc_data/multiqc_giab_concordance.txt
+        ledger_path: docs/plans/20260817T064328Z_slim5x5x_bjuice_hiomr2_execution_ledger.md
+        cluster: pcand-18022
+        region: us-west-2
+        region_az: us-west-2c
+        dayec_tag: "18.0.22"
+        dayec_commit: unrecorded
+        dayoa_tag: "15.0.11"
+        dayoa_commit: c113b6140b20a308c78c61bd035dde1bd48e0ed5
+        tested_command: >-
+          DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime
+        status: success
+        dryrun_status: success
+        live_status: success
+        dryrun_analysis_id: pcand18022-hg002-slim5x5x-hiomr2-dry2-20260817t0700z
+        live_analysis_id: pcand18022-hg002-slim5x5x-hiomr2-20260817t0648z
+        stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-hg002-slim5x5x-hiomr2-20260817t0648z/
+        notes: "Historical DayOA 15.0.11 evidence only; it does not clear the current 15.0.12 validation-pending state. Both attributable controllers reached rc=0. No-delete DRA task task-07042d644f5dfb3fb succeeded, detached DRA dra-099bf60af970a4503, and verified this 82,088-byte GIAB MultiQC concordance artifact in S3."
     - command_id: bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical
       type: prod
       validated_version: 15.0.3
@@ -1783,7 +1824,7 @@ repositories:
     - command_id: illumina_run_qc
       type: prod
       validated_version: "15.0.9"
-      validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ilmn_runqc_1509_live2_20260816T1404Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/
+      validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/
       test_data_profile: illumina_run_directory
       display_name: "Illumina Run QC"
       description: "Illumina run-folder QC without BCLConvert execution from a mounted or explicit S3 run context."
@@ -1886,6 +1927,25 @@ repositories:
         live_analysis_id: pcand18015_ilmn_runqc_1509_live2_20260816T1404Z
         stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ilmn_runqc_1509_live2_20260816T1404Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/
         notes: Exact DayOA 15.0.9 dry-run exited rc=0 with zero Slurm submissions. The live controller exited rc=0 after five jobs. No-delete DRA task task-0bcbd1dad1a9a53a2 succeeded, detached dra-032a2da68b14f742d, preserved the FSx source, and the 4,039,466-byte MultiQC report plus its data were verified in S3.
+      - run_id: pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z
+        generated_at: "2026-08-17T09:09:51Z"
+        report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/multiqc_report.html
+        ledger_path: docs/plans/20260817T064326Z_pcand18022_bjuice_preval_three_platform_seq_qc_ledger.md
+        cluster: pcand-18022
+        region: us-west-2
+        region_az: unrecorded
+        dayec_tag: 18.0.22
+        dayec_commit: unrecorded
+        dayoa_tag: 15.0.11
+        dayoa_commit: unrecorded
+        tested_command: bin/day_run produce_illumina_run_qc -p -j 20 -k --config run_context_file=config/runs.tsv run_context_only=true
+        status: success
+        dryrun_status: success
+        live_status: success
+        dryrun_analysis_id: pcand18022_ilmn_seq_qc_15011_dry_20260817T0709Z
+        live_analysis_id: pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z
+        stage_or_context: /fsx/run_dir_mounts/20260618_LH01106_0011_A23MFMCLT3/
+        notes: Exact DayOA 15.0.11 dry-run exited rc=0 with zero Slurm submissions; live controller exited rc=0 without BCL Convert. Authorized deleting DRA export task task-04314e6ad167c3da3 succeeded, detached dra-0eccda2383d501558, and deleted only /fsx/analysis_results/pcand-18022/pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z after export to s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z/.
     - command_id: illumina_bclconvert
       type: research
       validated_version: "15.0.1"
@@ -2015,7 +2075,7 @@ repositories:
     - command_id: ont_run_qc
       type: prod
       validated_version: "15.0.9"
-      validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ont_runqc_1509_live_20260816T1422Z/daylily-omics-analysis/results/runs/20260615_ONT_Set4-FC1/run_qc/ont/
+      validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/daylily-omics-analysis/results/runs/20260615_ONT_Set4-FC1/run_qc/ont/
       test_data_profile: ont_run_directory
       display_name: "ONT Run QC"
       description: "ONT mounted run-folder QC plus demultiplexed FASTQ QC and focused MultiQC reports in one run-analysis output tree."
@@ -2106,10 +2166,29 @@ repositories:
         live_analysis_id: pcand18015_ont_runqc_1509_live_20260816T1422Z
         stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ont_runqc_1509_live_20260816T1422Z/daylily-omics-analysis/results/runs/20260615_ONT_Set4-FC1/run_qc/ont/
         notes: Exact DayOA 15.0.9 dry-run exited rc=0 with zero Slurm submissions. The live controller exited rc=0 after all 10 workflow steps. No-delete DRA task task-061399116a85f689b succeeded, detached dra-0186810753e344290, preserved the FSx source, and the 2,845,229-byte native plus 3,406,609-byte demultiplexed MultiQC reports were verified in S3.
+      - run_id: pcand18022_ont_seq_qc_15011_live_20260817T0752Z
+        generated_at: "2026-08-17T09:09:51Z"
+        report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/daylily-omics-analysis/results/runs/20260615_ONT_Set4-FC1/run_qc/ont/multiqc_report.html
+        ledger_path: docs/plans/20260817T064326Z_pcand18022_bjuice_preval_three_platform_seq_qc_ledger.md
+        cluster: pcand-18022
+        region: us-west-2
+        region_az: unrecorded
+        dayec_tag: 18.0.22
+        dayec_commit: unrecorded
+        dayoa_tag: 15.0.11
+        dayoa_commit: unrecorded
+        tested_command: bin/day_run produce_ont_run_qc_and_demux_multiqc -p -j 6 -k --config run_context_file=config/runs.tsv run_context_only=true --produce-analysis-artifact-manifest true --produce-rulegraph true --produce-filegraph false --produce-dag false
+        status: success
+        dryrun_status: success
+        live_status: success
+        dryrun_analysis_id: pcand18022_ont_seq_qc_15011_dry_20260817T0750Z
+        live_analysis_id: pcand18022_ont_seq_qc_15011_live_20260817T0752Z
+        stage_or_context: /fsx/run_dir_mounts/pca100-2026/20260615_ONT_Set4-FC1/
+        notes: Exact DayOA 15.0.11 dry-run exited rc=0 with zero Slurm submissions; live controller exited rc=0 without basecalling. Authorized deleting DRA export task task-0ab635bdaf6de0351 succeeded, detached dra-07a7629ad6d148601, and deleted only /fsx/analysis_results/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z after export to s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/.
     - command_id: ultima_run_qc
       type: prod
       validated_version: "15.0.9"
-      validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ultima_runqc_1509_live_20260816T1513Z/daylily-omics-analysis/results/runs/604834-20260717_2309/run_qc/ultima/
+      validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ultima_seq_qc_15011_live_20260817T0734Z/daylily-omics-analysis/results/runs/604834-20260717_2309/run_qc/ultima/
       test_data_profile: ultima_run_directory
       display_name: "Ultima Run QC"
       description: "Ultima run-folder QC from a mounted run context."
@@ -2199,6 +2278,25 @@ repositories:
         live_analysis_id: pcand18015_ultima_runqc_1509_live_20260816T1513Z
         stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ultima_runqc_1509_live_20260816T1513Z/daylily-omics-analysis/results/runs/604834-20260717_2309/run_qc/ultima/
         notes: Exact DayOA 15.0.9 dry-run exited rc=0 with zero Slurm submissions. The live controller exited rc=0 after four Slurm jobs. No-delete DRA task task-0ab47c24639346b61 succeeded, detached dra-049aa949551c8d1be, preserved the FSx source, and the 3,645,480-byte native MultiQC report was verified in S3.
+      - run_id: pcand18022_ultima_seq_qc_15011_live_20260817T0734Z
+        generated_at: "2026-08-17T09:09:51Z"
+        report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ultima_seq_qc_15011_live_20260817T0734Z/daylily-omics-analysis/results/runs/604834-20260717_2309/run_qc/ultima/ultima_native.multiqc.html
+        ledger_path: docs/plans/20260817T064326Z_pcand18022_bjuice_preval_three_platform_seq_qc_ledger.md
+        cluster: pcand-18022
+        region: us-west-2
+        region_az: unrecorded
+        dayec_tag: 18.0.22
+        dayec_commit: unrecorded
+        dayoa_tag: 15.0.11
+        dayoa_commit: unrecorded
+        tested_command: bin/day_run produce_ultima_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv run_context_only=true
+        status: success
+        dryrun_status: success
+        live_status: success
+        dryrun_analysis_id: pcand18022_ultima_seq_qc_15011_dry_20260817T0732Z
+        live_analysis_id: pcand18022_ultima_seq_qc_15011_live_20260817T0734Z
+        stage_or_context: /fsx/run_dir_mounts/ultima-604834-20260717/
+        notes: Exact DayOA 15.0.11 dry-run and live controller each exited rc=0 without basecalling. Authorized deleting DRA export task task-0764f6ed0d480690c succeeded, detached dra-0392265fb9f0f8aa9, and deleted only /fsx/analysis_results/pcand-18022/pcand18022_ultima_seq_qc_15011_live_20260817T0734Z after export to s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ultima_seq_qc_15011_live_20260817T0734Z/.
   rna-seq-star-deseq2:
     display_name: "RNA-seq STAR + DESeq2"
     description: "RNA sequencing alignment and differential expression analysis workflows."
@@ -2721,6 +2819,27 @@ dyec_builds:
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis
+        validation_runs:
+        - run_id: pcand18022-hg002-slim5x5x-hiomr2-20260817t0648z
+          generated_at: "2026-08-17T09:14:04Z"
+          report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-hg002-slim5x5x-hiomr2-20260817t0648z/daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc_data/multiqc_giab_concordance.txt
+          ledger_path: docs/plans/20260817T064328Z_slim5x5x_bjuice_hiomr2_execution_ledger.md
+          cluster: pcand-18022
+          region: us-west-2
+          region_az: us-west-2c
+          dayec_tag: "18.0.22"
+          dayec_commit: unrecorded
+          dayoa_tag: "15.0.11"
+          dayoa_commit: c113b6140b20a308c78c61bd035dde1bd48e0ed5
+          tested_command: >-
+            DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18022-hg002-slim5x5x-hiomr2-dry2-20260817t0700z
+          live_analysis_id: pcand18022-hg002-slim5x5x-hiomr2-20260817t0648z
+          stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-hg002-slim5x5x-hiomr2-20260817t0648z/
+          notes: "Historical DayOA 15.0.11 evidence only; it does not clear the current 15.0.12 validation-pending state. Both attributable controllers reached rc=0. No-delete DRA task task-07042d644f5dfb3fb succeeded, detached DRA dra-099bf60af970a4503, and verified this 82,088-byte GIAB MultiQC concordance artifact in S3."
       sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x:
         command_id: sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x
         type: research
@@ -5301,7 +5420,7 @@ dyec_builds:
         command_id: illumina_run_qc
         type: prod
         validated_version: 15.0.9
-        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ilmn_runqc_1509_live2_20260816T1404Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/
+        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/
         test_data_profile: illumina_run_directory
         display_name: Illumina Run QC
         description: Illumina run-folder QC without BCLConvert execution from a mounted or explicit S3 run context.
@@ -5404,6 +5523,25 @@ dyec_builds:
           live_analysis_id: pcand18015_ilmn_runqc_1509_live2_20260816T1404Z
           stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ilmn_runqc_1509_live2_20260816T1404Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/
           notes: Exact DayOA 15.0.9 dry-run exited rc=0 with zero Slurm submissions. The live controller exited rc=0 after five jobs. No-delete DRA task task-0bcbd1dad1a9a53a2 succeeded, detached dra-032a2da68b14f742d, preserved the FSx source, and the 4,039,466-byte MultiQC report plus its data were verified in S3.
+        - run_id: pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z
+          generated_at: "2026-08-17T09:09:51Z"
+          report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/multiqc_report.html
+          ledger_path: docs/plans/20260817T064326Z_pcand18022_bjuice_preval_three_platform_seq_qc_ledger.md
+          cluster: pcand-18022
+          region: us-west-2
+          region_az: unrecorded
+          dayec_tag: 18.0.22
+          dayec_commit: unrecorded
+          dayoa_tag: 15.0.11
+          dayoa_commit: unrecorded
+          tested_command: bin/day_run produce_illumina_run_qc -p -j 20 -k --config run_context_file=config/runs.tsv run_context_only=true
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18022_ilmn_seq_qc_15011_dry_20260817T0709Z
+          live_analysis_id: pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z
+          stage_or_context: /fsx/run_dir_mounts/20260618_LH01106_0011_A23MFMCLT3/
+          notes: Exact DayOA 15.0.11 dry-run exited rc=0 with zero Slurm submissions; live controller exited rc=0 without BCL Convert. Authorized deleting DRA export task task-04314e6ad167c3da3 succeeded, detached dra-0eccda2383d501558, and deleted only /fsx/analysis_results/pcand-18022/pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z after export to s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z/.
         repository: daylily-omics-analysis
       illumina_bclconvert:
         command_id: illumina_bclconvert
@@ -5539,7 +5677,7 @@ dyec_builds:
         command_id: ont_run_qc
         type: prod
         validated_version: 15.0.9
-        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ont_runqc_1509_live_20260816T1422Z/daylily-omics-analysis/results/runs/20260615_ONT_Set4-FC1/run_qc/ont/
+        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/daylily-omics-analysis/results/runs/20260615_ONT_Set4-FC1/run_qc/ont/
         test_data_profile: ont_run_directory
         display_name: ONT Run QC
         description: ONT mounted run-folder QC plus demultiplexed FASTQ QC and focused MultiQC reports in one run-analysis output tree.
@@ -5630,12 +5768,31 @@ dyec_builds:
           live_analysis_id: pcand18015_ont_runqc_1509_live_20260816T1422Z
           stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ont_runqc_1509_live_20260816T1422Z/daylily-omics-analysis/results/runs/20260615_ONT_Set4-FC1/run_qc/ont/
           notes: Exact DayOA 15.0.9 dry-run exited rc=0 with zero Slurm submissions. The live controller exited rc=0 after all 10 workflow steps. No-delete DRA task task-061399116a85f689b succeeded, detached dra-0186810753e344290, preserved the FSx source, and the 2,845,229-byte native plus 3,406,609-byte demultiplexed MultiQC reports were verified in S3.
+        - run_id: pcand18022_ont_seq_qc_15011_live_20260817T0752Z
+          generated_at: "2026-08-17T09:09:51Z"
+          report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/daylily-omics-analysis/results/runs/20260615_ONT_Set4-FC1/run_qc/ont/multiqc_report.html
+          ledger_path: docs/plans/20260817T064326Z_pcand18022_bjuice_preval_three_platform_seq_qc_ledger.md
+          cluster: pcand-18022
+          region: us-west-2
+          region_az: unrecorded
+          dayec_tag: 18.0.22
+          dayec_commit: unrecorded
+          dayoa_tag: 15.0.11
+          dayoa_commit: unrecorded
+          tested_command: bin/day_run produce_ont_run_qc_and_demux_multiqc -p -j 6 -k --config run_context_file=config/runs.tsv run_context_only=true --produce-analysis-artifact-manifest true --produce-rulegraph true --produce-filegraph false --produce-dag false
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18022_ont_seq_qc_15011_dry_20260817T0750Z
+          live_analysis_id: pcand18022_ont_seq_qc_15011_live_20260817T0752Z
+          stage_or_context: /fsx/run_dir_mounts/pca100-2026/20260615_ONT_Set4-FC1/
+          notes: Exact DayOA 15.0.11 dry-run exited rc=0 with zero Slurm submissions; live controller exited rc=0 without basecalling. Authorized deleting DRA export task task-0ab635bdaf6de0351 succeeded, detached dra-07a7629ad6d148601, and deleted only /fsx/analysis_results/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z after export to s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/.
         repository: daylily-omics-analysis
       ultima_run_qc:
         command_id: ultima_run_qc
         type: prod
         validated_version: 15.0.9
-        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ultima_runqc_1509_live_20260816T1513Z/daylily-omics-analysis/results/runs/604834-20260717_2309/run_qc/ultima/
+        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ultima_seq_qc_15011_live_20260817T0734Z/daylily-omics-analysis/results/runs/604834-20260717_2309/run_qc/ultima/
         test_data_profile: ultima_run_directory
         display_name: Ultima Run QC
         description: Ultima run-folder QC from a mounted run context.
@@ -5725,6 +5882,25 @@ dyec_builds:
           live_analysis_id: pcand18015_ultima_runqc_1509_live_20260816T1513Z
           stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ultima_runqc_1509_live_20260816T1513Z/daylily-omics-analysis/results/runs/604834-20260717_2309/run_qc/ultima/
           notes: Exact DayOA 15.0.9 dry-run exited rc=0 with zero Slurm submissions. The live controller exited rc=0 after four Slurm jobs. No-delete DRA task task-0ab47c24639346b61 succeeded, detached dra-049aa949551c8d1be, preserved the FSx source, and the 3,645,480-byte native MultiQC report was verified in S3.
+        - run_id: pcand18022_ultima_seq_qc_15011_live_20260817T0734Z
+          generated_at: "2026-08-17T09:09:51Z"
+          report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ultima_seq_qc_15011_live_20260817T0734Z/daylily-omics-analysis/results/runs/604834-20260717_2309/run_qc/ultima/ultima_native.multiqc.html
+          ledger_path: docs/plans/20260817T064326Z_pcand18022_bjuice_preval_three_platform_seq_qc_ledger.md
+          cluster: pcand-18022
+          region: us-west-2
+          region_az: unrecorded
+          dayec_tag: 18.0.22
+          dayec_commit: unrecorded
+          dayoa_tag: 15.0.11
+          dayoa_commit: unrecorded
+          tested_command: bin/day_run produce_ultima_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv run_context_only=true
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18022_ultima_seq_qc_15011_dry_20260817T0732Z
+          live_analysis_id: pcand18022_ultima_seq_qc_15011_live_20260817T0734Z
+          stage_or_context: /fsx/run_dir_mounts/ultima-604834-20260717/
+          notes: Exact DayOA 15.0.11 dry-run and live controller each exited rc=0 without basecalling. Authorized deleting DRA export task task-0764f6ed0d480690c succeeded, detached dra-0392265fb9f0f8aa9, and deleted only /fsx/analysis_results/pcand-18022/pcand18022_ultima_seq_qc_15011_live_20260817T0734Z after export to s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ultima_seq_qc_15011_live_20260817T0734Z/.
         repository: daylily-omics-analysis
       bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical:
         command_id: bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical
@@ -5836,6 +6012,26 @@ dyec_builds:
             live_analysis_id: prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z
             stage_or_context: s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z/
             notes: "Attributable recovery controller exited rc=0. No-delete DRA task task-0ed9c6b1e8492244a succeeded, detached DRA dra-0031790513f4fa0ec, and exported package-manifest and Inflection MultiQC evidence were verified in S3."
+          - run_id: pcand18022-hg002-slim5x5x-bjuice-ifx-20260817t0648z
+            generated_at: "2026-08-17T09:14:04Z"
+            report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-hg002-slim5x5x-bjuice-ifx-20260817t0648z/daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc_data/multiqc_giab_concordance.txt
+            ledger_path: docs/plans/20260817T064328Z_slim5x5x_bjuice_hiomr2_execution_ledger.md
+            cluster: pcand-18022
+            region: us-west-2
+            region_az: us-west-2c
+            dayec_tag: "18.0.22"
+            dayec_commit: unrecorded
+            dayoa_tag: "15.0.11"
+            dayoa_commit: c113b6140b20a308c78c61bd035dde1bd48e0ed5
+            tested_command: >-
+              DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]' hiomr2_inflection_package_mode=analytical "seqone_delivery_batch_id=$ANALYSIS_ID" -j 333 -T 0 -p --rerun-triggers mtime
+            status: success
+            dryrun_status: success
+            live_status: success
+            dryrun_analysis_id: pcand18022-hg002-slim5x5x-bjuice-ifx-dry2-20260817t0653z
+            live_analysis_id: pcand18022-hg002-slim5x5x-bjuice-ifx-20260817t0648z
+            stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-hg002-slim5x5x-bjuice-ifx-20260817t0648z/
+            notes: "Historical DayOA 15.0.11 evidence only; it does not clear the current 15.0.12 validation-pending state. Both attributable controllers reached rc=0. The one authorized no-delete retry succeeded as task task-0a96f7581ba6ddc90, detached DRA dra-065329a4fceb729fd, retained the FSx root, and verified this 82,088-byte GIAB MultiQC concordance artifact in S3."
         extend:
           targets:
           - produce_sentdhiomr2_inflection_analytical_package

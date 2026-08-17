@@ -23,6 +23,11 @@ PCAND18015_SOLO_EVIDENCE_RUNS = {
     "ont_snv_alignstats_kitchensink": "pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live",
     "ultima_snv_alignstats_kitchensink": "pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live",
 }
+PCAND18022_RUNQC_EVIDENCE_RUNS = {
+    "illumina_run_qc": "pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z",
+    "ont_run_qc": "pcand18022_ont_seq_qc_15011_live_20260817T0752Z",
+    "ultima_run_qc": "pcand18022_ultima_seq_qc_15011_live_20260817T0734Z",
+}
 HISTORICAL_BUILD_HASHES = {
     "16.1.81": "219606c84c6a24b12ad84499580788b46301549b9c521c3583a6ddf07c869fc9",
     "16.1.82": "106dded9e9d8329966d418b08217c0d674ec22fb5795388565ce7e6f7b511ed5",
@@ -323,6 +328,16 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
             assert command["validation_evidence_s3_uri_prefix"].startswith(
                 "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
             )
+        elif command["command_id"] in PCAND18022_RUNQC_EVIDENCE_RUNS:
+            assert command.get("validation_runs", [])[:-1] == baseline_command.get(
+                "validation_runs", []
+            )
+            assert command["validation_runs"][-1]["run_id"] == PCAND18022_RUNQC_EVIDENCE_RUNS[
+                command["command_id"]
+            ]
+            assert command["validation_evidence_s3_uri_prefix"].startswith(
+                "s3://lsmc-ssf-sequencing-data/derived/pcand-18022/"
+            )
         else:
             assert command.get("validation_runs", []) == baseline_command.get(
                 "validation_runs", []
@@ -340,6 +355,16 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
             ]
             assert command["validation_evidence_s3_uri_prefix"].startswith(
                 "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
+            )
+        elif command_id in PCAND18022_RUNQC_EVIDENCE_RUNS:
+            assert command.get("validation_runs", [])[:-1] == baseline_command.get(
+                "validation_runs", []
+            )
+            assert command["validation_runs"][-1]["run_id"] == PCAND18022_RUNQC_EVIDENCE_RUNS[
+                command_id
+            ]
+            assert command["validation_evidence_s3_uri_prefix"].startswith(
+                "s3://lsmc-ssf-sequencing-data/derived/pcand-18022/"
             )
         else:
             assert command.get("validation_runs", []) == baseline_command.get(
