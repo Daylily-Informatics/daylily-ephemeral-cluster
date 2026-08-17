@@ -1,0 +1,24 @@
+figure	chart_type	title	source_table	metric
+combined_measured_coverage_grid.png	heatmap	Combined measured-coverage availability grid	coverage_grid.tsv	retained observation occupancy
+planned_vs_measured_coverage.png	scatter	Planned versus measured coverage	retained_observations.tsv	target and measured coverage
+ont_coverage_vs_runtime.png	line-scatter	Combined ONT aligned coverage versus cumulative input runtime	retained_observations.tsv	ONT coverage and end hour
+hard_vcf_giabhc_snp_fscore_heatmap.png	heatmap	Combined hard-VCF GIAB-HC SNP (SNPts + SNPtv/2): F-score	hard_vcf_giabhc_metrics.tsv	fscore
+hard_vcf_giabhc_snp_fn_heatmap.png	heatmap	Combined hard-VCF GIAB-HC SNP (SNPts + SNPtv/2): false negatives	hard_vcf_giabhc_metrics.tsv	fn
+hard_vcf_giabhc_snp_fp_heatmap.png	heatmap	Combined hard-VCF GIAB-HC SNP (SNPts + SNPtv/2): false positives	hard_vcf_giabhc_metrics.tsv	fp
+hard_vcf_giabhc_snp_precision_recall.png	scatter	Combined hard-VCF GIAB-HC SNP (SNPts + SNPtv/2): precision versus recall	hard_vcf_giabhc_metrics.tsv	precision versus recall
+hard_vcf_giabhc_ins_50_fscore_heatmap.png	heatmap	Combined hard-VCF GIAB-HC INS_50: F-score	hard_vcf_giabhc_metrics.tsv	fscore
+hard_vcf_giabhc_ins_50_fn_heatmap.png	heatmap	Combined hard-VCF GIAB-HC INS_50: false negatives	hard_vcf_giabhc_metrics.tsv	fn
+hard_vcf_giabhc_ins_50_fp_heatmap.png	heatmap	Combined hard-VCF GIAB-HC INS_50: false positives	hard_vcf_giabhc_metrics.tsv	fp
+hard_vcf_giabhc_ins_50_precision_recall.png	scatter	Combined hard-VCF GIAB-HC INS_50: precision versus recall	hard_vcf_giabhc_metrics.tsv	precision versus recall
+hard_vcf_giabhc_del_50_fscore_heatmap.png	heatmap	Combined hard-VCF GIAB-HC DEL_50: F-score	hard_vcf_giabhc_metrics.tsv	fscore
+hard_vcf_giabhc_del_50_fn_heatmap.png	heatmap	Combined hard-VCF GIAB-HC DEL_50: false negatives	hard_vcf_giabhc_metrics.tsv	fn
+hard_vcf_giabhc_del_50_fp_heatmap.png	heatmap	Combined hard-VCF GIAB-HC DEL_50: false positives	hard_vcf_giabhc_metrics.tsv	fp
+hard_vcf_giabhc_del_50_precision_recall.png	scatter	Combined hard-VCF GIAB-HC DEL_50: precision versus recall	hard_vcf_giabhc_metrics.tsv	precision versus recall
+truvari_trussv_global_fscore_heatmap.png	heatmap	Combined Truvari tagged TrussSV: global F-score	truvari_metrics.tsv	fscore
+truvari_trussv_gt_concordance_heatmap.png	heatmap	Combined Truvari tagged TrussSV: genotype concordance	truvari_metrics.tsv	gt_concordance
+truvari_all_callers_precision_recall.png	faceted scatter	Combined Truvari precision versus recall: solo callers and TrussSV	truvari_metrics.tsv	precision versus recall
+segdup_call_heatmap.png	heatmap	Combined SegDup non-reference calls by retained observation	segdup_calls.tsv	non-reference record count
+smn12_copy_number_heatmap.png	heatmap	Combined SMN1/2 copy-number calls by retained observation	smn12_calls.tsv	SMN1 SMN2 copy number
+benchmark_per_task_walltime.png	small-multiple bar	Per-task walltime by retained observation	benchmark_task_groups.tsv	longest_walltime_s
+benchmark_per_task_cost.png	small-multiple bar	Per-task cost by retained observation	benchmark_task_groups.tsv	total_cost_usd
+benchmark_au_totals.png	grouped bar	Benchmark totals by retained observation	benchmark_au_totals.tsv	cost CPU and duration

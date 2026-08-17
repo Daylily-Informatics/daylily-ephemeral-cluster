@@ -87,7 +87,7 @@ cluster-scoped runtime caches.
 ## Catalog state
 
 The source and packaged command catalogs must remain byte-identical. The active
-DayOA repository and active DayOA command targets are pinned to `15.0.10`.
+DayOA repository and active DayOA command targets are pinned to `15.0.11`.
 Catalog output preserves older validation evidence and exposes
 `validation_pending: true` when a command's current `git_tag` differs from its
 recorded `validated_version`. The indicator is informational: it does not
