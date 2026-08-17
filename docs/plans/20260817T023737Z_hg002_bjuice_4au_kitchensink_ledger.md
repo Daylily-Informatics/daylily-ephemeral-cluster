@@ -57,3 +57,8 @@ include `produce_sentdhiomr2_slim_kitchensink_mega` and
 mode with `seqone_delivery_batch_id=$ANALYSIS_ID`, and pass exactly
 `-j 345 -T 1 -p -k`. The amendment is released only after source/payload
 catalog parity, focused tests, PR merge, annotated tag, and GitHub release.
+
+| ID | Requirement | Status | Evidence / terminal note |
+| --- | --- | --- | --- |
+| RLS-001 | Preserve an independently pushed source branch containing the custom-AU feature and packaging amendment. | SUCCESS | `codex/hg002-bjuice-4au-kitchensink-inflection-20260817`, commit `596c1ae9`; it includes original feature commit `0696e8c5`. |
+| RLS-002 | Integrate both commits onto the newest DYEC release line without moving an existing tag. | IN_PROGRESS | Base `origin/main` / annotated `18.0.20` commit `b0eb6f51`; integration branch `codex/dyec-18.0.21-bjuice-4au-inflection-20260817`. |
