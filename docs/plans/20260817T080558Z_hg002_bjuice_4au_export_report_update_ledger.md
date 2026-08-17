@@ -41,5 +41,5 @@ Objective complete: yes
 ## Git evidence
 
 - Branch: `codex/bjuice-4au-export-report-20260817`
-- Commit: `c11cedc5c57651aecaa80a3764e1cd9ead3ea0cb` (`Update HG002 Bjuice combined report with four-AU results`).
+- Report commit: `16fb6bdb69f6ac822191c356381b39b42e108a54` (`Update HG002 Bjuice combined report with four-AU results`).
 - Export guarantee: DRA task `task-0086514fbf61dae5e` succeeded; the association was detached and FSx preservation was explicitly recorded as `delete_data_in_file_system: false`.
