@@ -79,7 +79,7 @@ catalog validation or permission to relabel old receipts.
 
 ## Docs Sweeps
 
-The supported operator docs must match the `18.0.18` root help, current `15.0.10`
+The supported operator docs must match the `18.0.19` root help, current `15.0.10`
 catalog target, project-local context contract, and provider-neutral export
 surface. `tests/test_cli_docs_contract.py` checks those durable claims. Keep
 old evidence in `docs/archive/**`, dated reports, or historical ledgers rather

@@ -46,8 +46,6 @@ UNVALIDATED_COMMAND_IDS = {
     "simple-test",
     "illumina_run_qc_bclconvert",
     "all_metagenomic_pipelines",
-    "ultima_snv_alignstats_kitchensink",
-    "ont_snv_alignstats_kitchensink",
     "hybrid_ilmn_ont_hiomr",
     "hybrid_ilmn_ont_hiomr_kitchensink",
     "hiomr2",
@@ -578,6 +576,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert command.command_id in UNVALIDATED_COMMAND_IDS
             continue
         expected_validation_runs = {
+            "illumina_hg002_kitchensink_multiqc": 2,
             "illumina_run_qc": 2,
             "complete_genomics_cg_snv_concordance": 2,
             "ont_run_qc": 3,
@@ -621,6 +620,26 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert validation_run.live_analysis_id == validation_run.run_id
             assert "run_context_only=true" in validation_run.tested_command
             assert "bclconvert" not in validation_run.tested_command.lower()
+            continue
+        if validation_run.run_id in {
+            "pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live",
+            "pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live",
+        }:
+            assert command.command_id in {
+                "ont_snv_alignstats_kitchensink",
+                "ultima_snv_alignstats_kitchensink",
+            }
+            assert validation_run.cluster == "pcand-18015"
+            assert validation_run.region == "us-west-2"
+            assert validation_run.dayec_tag == "18.0.18"
+            assert validation_run.dayoa_tag == "15.0.10"
+            assert validation_run.dayoa_commit == "3a501d3f927a9573dc52adb978af31b5b64c85f3"
+            assert validation_run.status == "success"
+            assert validation_run.dryrun_status == "success"
+            assert validation_run.live_status == "success"
+            assert validation_run.live_analysis_id == validation_run.run_id
+            assert validation_run.stage_or_context == command.validation_evidence_s3_uri_prefix
+            assert "No-delete DRA task" in validation_run.notes
             continue
         if (
             validation_run.run_id
@@ -821,6 +840,14 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "enable_tools" in vep_multiqc.dy_command
 
     illumina_kitchensink = catalog.get_command("illumina_hg002_kitchensink_multiqc")
+    assert [run.run_id for run in illumina_kitchensink.validation_runs] == [
+        "dayoa_2017_hg002_kitchensink_j200_readhapsfix2_151101",
+        "pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live",
+    ]
+    assert illumina_kitchensink.validation_evidence_s3_uri_prefix == (
+        "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
+        "pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live/"
+    )
     assert illumina_kitchensink.targets == [
         "produce_sent_align",
         "produce_dmd_dedup_cram",
@@ -876,7 +903,13 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert 'multiqc_qc={"enable_tools":["metagenomics"]}' in metagenomics.dy_command
 
     ultima_kitchensink = catalog.get_command("ultima_snv_alignstats_kitchensink")
-    assert ultima_kitchensink.validation_runs == []
+    assert [run.run_id for run in ultima_kitchensink.validation_runs] == [
+        "pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live"
+    ]
+    assert ultima_kitchensink.validation_evidence_s3_uri_prefix == (
+        "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
+        "pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live/"
+    )
     assert ultima_kitchensink.input_contract == "six_manifest"
     assert ultima_kitchensink.sample_manifest_template == ""
     assert ultima_kitchensink.manifest_dir_template == ""
@@ -913,7 +946,13 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     )
 
     ont_kitchensink = catalog.get_command("ont_snv_alignstats_kitchensink")
-    assert ont_kitchensink.validation_runs == []
+    assert [run.run_id for run in ont_kitchensink.validation_runs] == [
+        "pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live"
+    ]
+    assert ont_kitchensink.validation_evidence_s3_uri_prefix == (
+        "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
+        "pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live/"
+    )
     assert ont_kitchensink.input_contract == "six_manifest"
     assert ont_kitchensink.sample_manifest_template == ""
     assert ont_kitchensink.manifest_dir_template == ""
