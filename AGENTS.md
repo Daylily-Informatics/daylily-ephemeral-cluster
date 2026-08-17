@@ -19,12 +19,22 @@
   4. `dy-r <targets> <flags>`
 - Example DayOA smoke/dry-run command: `dy-r help -p -k -j 1 -n`.
 - For BCL/DayOA execution, send these commands into the persistent `tmux` pane as separate commands. Do not collapse setup and execution into a one-shot non-interactive SSM script.
+- Store every analysis-specific YAML/config file inside that analysis's cloned
+  `daylily-omics-analysis` directory, normally under `config/`, and make the
+  saved controller command reference that in-clone path. Never use a
+  controller-specific config path outside the clone. The clone must preserve
+  all manifests and configuration required to rerun the exact analysis,
+  excluding only explicit links/paths to source reads, CRAMs, references,
+  licenses, and other declared runtime assets.
 
 # Pinned DayOA Source Immutability
 
 - A DYEC controller must never create, edit, delete, move, chmod, or patch a versioned file in a pinned DayOA checkout. This includes workflow rules, scripts, versioned environment YAMLs, `bin/`, and versioned configuration.
 - Runtime source overlays, generated source helpers, and text-rewrite repairs are prohibited. The controller must verify that the selected DayOA ref is clean before dispatch and again after the workflow returns.
-- Explicit input manifests may be materialized only at their established ignored runtime paths; they are not a mechanism for altering DayOA source.
+- Explicit input manifests and analysis-specific runtime config may be
+  materialized only at their established in-clone runtime paths; they are not
+  a mechanism for altering versioned DayOA source. Pinned-source checks must
+  distinguish these analysis artifacts from source modifications.
 - If a required behavior is absent from the selected release, fail clearly and land it in a new, tested, tagged DayOA release. Never repair it on the headnode.
 - The sole exception is an explicit **pinned-source test override** for one named existing analysis root. A human must authorize that root, source ref/commit, intended source change, and test command in the current thread. The controller itself still does not patch, reset, or check out source; the override permits an already-made, explicitly authorized dirty change to be exercised only after verifying its existing HEAD.
 - Use only `dyec workflow launch --pinned-source-test-override "<non-secret reason>"` with `--reuse-existing-analysis-dir --reuse-local-git-ref --reuse-local-git-commit <40-char-sha> --input-contract none --no-input-staging --dry-run --export-trigger none`. The controller records the selected ref, status, staged/working-tree diffs, untracked paths, reason, and command before and after the test outside the DayOA checkout.
