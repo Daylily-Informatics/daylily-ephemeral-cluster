@@ -6,13 +6,13 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_DEFAULT_TAG = "15.0.9"
+DAYOA_DEFAULT_TAG = "15.0.10"
 DAYOA_VALIDATED_TAG = "15.0.1"
-BJUICE_V2_DAYOA_TARGET_TAG = "15.0.9"
+BJUICE_V2_DAYOA_TARGET_TAG = "15.0.10"
 BJUICE_V2_DAYOA_VALIDATED_TAG = "15.0.3"
 DAYOA_HIGHEST_RELEASE_COMMIT = "d99e61d9b8839e4392931ec6604ad768d971973f"
-ONT_DAYOA_TAG = "15.0.9"
-ONT_DAYOA_VALIDATED_TAG = "15.0.1"
+ONT_DAYOA_TAG = "15.0.10"
+ONT_DAYOA_VALIDATED_TAG = "15.0.9"
 ONT_DAYOA_RELEASE_COMMIT = "d99e61d9b8839e4392931ec6604ad768d971973f"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
@@ -164,7 +164,9 @@ def test_dayoa_commands_use_the_scoped_release_pins() -> None:
             for command in commands
             if command["command_id"]
             not in {
+                "illumina_run_qc",
                 "ont_run_qc",
+                "ultima_run_qc",
                 "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical",
             }
         ]
@@ -176,3 +178,5 @@ def test_dayoa_commands_use_the_scoped_release_pins() -> None:
         }
         assert command_by_id["ont_run_qc"]["git_tag"] == ONT_DAYOA_TAG
         assert command_by_id["ont_run_qc"]["validated_version"] == ONT_DAYOA_VALIDATED_TAG
+        assert command_by_id["illumina_run_qc"]["validated_version"] == ONT_DAYOA_VALIDATED_TAG
+        assert command_by_id["ultima_run_qc"]["validated_version"] == ONT_DAYOA_VALIDATED_TAG
