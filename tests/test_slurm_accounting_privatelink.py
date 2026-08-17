@@ -9,6 +9,7 @@ from daylily_ec.aws.slurm_accounting_privatelink import (
     SlurmAccountingPrivateLinkError,
     derive_privatelink_stack_name,
     ensure_slurm_accounting_privatelink_bridge,
+    reconcile_existing_slurm_accounting_privatelink_bridge_for_consumer,
     resolve_slurm_accounting_privatelink_bridge,
     resolve_slurm_accounting_privatelink_bridge_for_consumer,
 )
@@ -33,6 +34,12 @@ def _bridge_stack() -> dict:
     return {
         "StackName": "dayec-sacct-pl-vpc-consumer",
         "StackStatus": "CREATE_COMPLETE",
+        "Parameters": [
+            {
+                "ParameterKey": "ConsumerEndpointSubnetCidr",
+                "ParameterValue": "10.0.2.0/28",
+            }
+        ],
         "Outputs": [{"OutputKey": key, "OutputValue": value} for key, value in values.items()],
     }
 
@@ -231,6 +238,79 @@ def test_ensure_updates_existing_stack_and_allows_its_owned_subnet(
     assert validation["allowed_existing_subnet_id"] == "subnet-endpoint"
     assert cfn.update_calls[0]["TemplateBody"] == "Resources: {}"
     assert cfn.update_calls[0]["Capabilities"] == ["CAPABILITY_IAM"]
+
+
+def test_reconcile_existing_bridge_reuses_authoritative_stack_cidr(monkeypatch) -> None:
+    stack = _bridge_stack()
+    calls = []
+
+    class _ReconcileCfn:
+        def describe_stacks(self, *, StackName):
+            assert StackName == "dayec-sacct-pl-vpc-0123456789abcdef0"
+            return {"Stacks": [stack]}
+
+    class _ReconcileContext:
+        def client(self, service):
+            assert service == "cloudformation"
+            return _ReconcileCfn()
+
+    sentinel = object()
+
+    def ensure(*_args, **kwargs):
+        calls.append(kwargs)
+        return sentinel
+
+    monkeypatch.setattr(
+        privatelink,
+        "ensure_slurm_accounting_privatelink_bridge",
+        ensure,
+    )
+
+    result = reconcile_existing_slurm_accounting_privatelink_bridge_for_consumer(
+        _ReconcileContext(),
+        consumer_vpc_id="vpc-0123456789abcdef0",
+        provider_accounting_stack_name="dayec-slurm-accounting-us-west-2c",
+    )
+
+    assert result is sentinel
+    assert calls == [
+        {
+            "provider_accounting_stack_name": "dayec-slurm-accounting-us-west-2c",
+            "consumer_vpc_id": "vpc-0123456789abcdef0",
+            "consumer_endpoint_subnet_cidr": "10.0.2.0/28",
+            "stack_name": "dayec-sacct-pl-vpc-0123456789abcdef0",
+            "sleep_fn": privatelink.time.sleep,
+            "target_health_attempts": 60,
+        }
+    ]
+
+
+def test_reconcile_existing_bridge_rejects_missing_authoritative_cidr(monkeypatch) -> None:
+    stack = _bridge_stack()
+    stack["Parameters"] = []
+
+    class _ReconcileCfn:
+        def describe_stacks(self, *, StackName):
+            assert StackName == "dayec-sacct-pl-vpc-0123456789abcdef0"
+            return {"Stacks": [stack]}
+
+    class _ReconcileContext:
+        def client(self, service):
+            assert service == "cloudformation"
+            return _ReconcileCfn()
+
+    monkeypatch.setattr(
+        privatelink,
+        "ensure_slurm_accounting_privatelink_bridge",
+        lambda *_args, **_kwargs: pytest.fail("missing CIDR must not update the stack"),
+    )
+
+    with pytest.raises(SlurmAccountingPrivateLinkError, match="authoritative"):
+        reconcile_existing_slurm_accounting_privatelink_bridge_for_consumer(
+            _ReconcileContext(),
+            consumer_vpc_id="vpc-0123456789abcdef0",
+            provider_accounting_stack_name="dayec-slurm-accounting-us-west-2c",
+        )
 
 
 def test_packaged_and_repo_templates_match() -> None:

@@ -1,6 +1,6 @@
 # DYEC CLI Reference
 
-This document is the operator-facing reference for the `18.0.19` `dyec` command surface. It favors explicit commands and receipts over implicit state. `daylily-ec` is an installed compatibility entrypoint for the same CLI, but current docs and ledgers use `dyec`.
+This document is the operator-facing reference for the `18.0.20` `dyec` command surface. It favors explicit commands and receipts over implicit state. `daylily-ec` is an installed compatibility entrypoint for the same CLI, but current docs and ledgers use `dyec`.
 
 ## Conventions
 
@@ -150,6 +150,13 @@ dyec create \
   --region-az "$REGION_AZ" \
   --config ~/.config/daylily/daylily_ephemeral_cluster.yaml
 ```
+
+When create is explicitly approved to prepare missing Slurm-accounting
+infrastructure and the regional database is reached through an existing
+cross-VPC PrivateLink bridge, DYEC first reconciles the deterministic bridge
+stack to the packaged template. It reuses only the endpoint subnet CIDR stored
+as that stack's CloudFormation parameter. A missing bridge or missing parameter
+fails before any compute-fleet mutation; DYEC does not invent network values.
 
 For this command only, `--admin-email` overrides the AWS Budget notification
 email. Its precedence is `--admin-email`, then `budget_email` in the create

@@ -294,6 +294,7 @@ def prepare_slurm_accounting_update(
         ) from None
 
     regional_stack_count: int | None = None
+    regional_stacks: list[dict] = []
     if privatelink_stack_name.strip():
         from daylily_ec.aws.slurm_accounting_privatelink import (
             SlurmAccountingPrivateLinkError,
@@ -324,12 +325,11 @@ def prepare_slurm_accounting_update(
             ) from None
     else:
         try:
-            regional_stack_count = len(
-                list_regional_slurm_accounting_stacks(
-                    aws_ctx,
-                    region_az=region_az,
-                )
+            regional_stacks = list_regional_slurm_accounting_stacks(
+                aws_ctx,
+                region_az=region_az,
             )
+            regional_stack_count = len(regional_stacks)
         except SlurmAccountingError:
             raise SlurmAccountingPreparationError(
                 "Regional Slurm accounting service discovery did not complete safely.",
@@ -354,18 +354,35 @@ def prepare_slurm_accounting_update(
             service_created = resolution.service_created
         except SlurmAccountingError:
             bridge = None
-            if regional_stack_count:
+            if regional_stack_count == 1:
                 from daylily_ec.aws.slurm_accounting_privatelink import (
                     SlurmAccountingPrivateLinkError,
+                    reconcile_existing_slurm_accounting_privatelink_bridge_for_consumer,
                     resolve_slurm_accounting_privatelink_bridge_for_consumer,
                 )
 
                 try:
-                    bridge = resolve_slurm_accounting_privatelink_bridge_for_consumer(
-                        aws_ctx,
-                        consumer_vpc_id=vpc_id,
-                        provider_accounting_stack_name=stack_name.strip(),
-                    )
+                    provider_stack_name = stack_name.strip() or str(
+                        regional_stacks[0].get("StackName") or ""
+                    ).strip()
+                    if not provider_stack_name:
+                        raise SlurmAccountingPrivateLinkError(
+                            "The regional accounting stack is missing its identity."
+                        )
+                    if create_if_missing:
+                        bridge = (
+                            reconcile_existing_slurm_accounting_privatelink_bridge_for_consumer(
+                                aws_ctx,
+                                consumer_vpc_id=vpc_id,
+                                provider_accounting_stack_name=provider_stack_name,
+                            )
+                        )
+                    else:
+                        bridge = resolve_slurm_accounting_privatelink_bridge_for_consumer(
+                            aws_ctx,
+                            consumer_vpc_id=vpc_id,
+                            provider_accounting_stack_name=provider_stack_name,
+                        )
                 except SlurmAccountingPrivateLinkError:
                     bridge = None
             if bridge is None:

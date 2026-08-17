@@ -257,6 +257,57 @@ def ensure_slurm_accounting_privatelink_bridge(
     )
 
 
+def reconcile_existing_slurm_accounting_privatelink_bridge_for_consumer(
+    aws_ctx: Any,
+    *,
+    consumer_vpc_id: str,
+    provider_accounting_stack_name: str,
+    sleep_fn: Callable[[float], None] = time.sleep,
+    target_health_attempts: int = 60,
+) -> SlurmAccountingPrivateLinkBridge:
+    """Update the deterministic existing bridge to the packaged template contract.
+
+    Reconciliation is intentionally existing-only. The endpoint subnet CIDR is
+    read from the bridge stack's authoritative CloudFormation parameter; a
+    missing stack or parameter fails instead of guessing network configuration.
+    """
+    consumer_vpc_id = consumer_vpc_id.strip()
+    provider_accounting_stack_name = provider_accounting_stack_name.strip()
+    if not provider_accounting_stack_name:
+        raise SlurmAccountingPrivateLinkError(
+            "An explicit provider accounting stack name is required for bridge reconciliation."
+        )
+    stack_name = derive_privatelink_stack_name(consumer_vpc_id)
+    stack = _describe_stack(aws_ctx.client("cloudformation"), stack_name)
+    if stack is None:
+        raise SlurmAccountingPrivateLinkError(
+            f"PrivateLink stack '{stack_name}' does not exist; create it explicitly with "
+            "a reviewed consumer endpoint subnet CIDR."
+        )
+    endpoint_subnet_cidr = next(
+        (
+            str(item.get("ParameterValue") or "").strip()
+            for item in stack.get("Parameters", [])
+            if item.get("ParameterKey") == "ConsumerEndpointSubnetCidr"
+        ),
+        "",
+    )
+    if not endpoint_subnet_cidr:
+        raise SlurmAccountingPrivateLinkError(
+            f"PrivateLink stack '{stack_name}' is missing its authoritative "
+            "ConsumerEndpointSubnetCidr parameter."
+        )
+    return ensure_slurm_accounting_privatelink_bridge(
+        aws_ctx,
+        provider_accounting_stack_name=provider_accounting_stack_name,
+        consumer_vpc_id=consumer_vpc_id,
+        consumer_endpoint_subnet_cidr=endpoint_subnet_cidr,
+        stack_name=stack_name,
+        sleep_fn=sleep_fn,
+        target_health_attempts=target_health_attempts,
+    )
+
+
 def resolve_slurm_accounting_privatelink_bridge(
     aws_ctx: Any,
     *,
