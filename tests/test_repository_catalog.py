@@ -1474,6 +1474,26 @@ def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() ->
     )
 
 
+def test_bjuice_v2_custom_multi_au_catalog_command_includes_analytical_inflection() -> None:
+    command_id = "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega"
+    catalog = load_repository_catalog(CATALOG_PATH)
+    command = catalog.get_command(command_id)
+
+    assert command.targets == [
+        "produce_sentdhiomr2_slim_kitchensink_mega",
+        "produce_sentdhiomr2_inflection_analytical_package",
+    ]
+    assert command.jobs == 345
+    assert command.keep_going is True
+    assert command.dryrun_dy_command == f"{command.dy_command} -n"
+    for literal in (
+        "hiomr2_inflection_package_mode=analytical",
+        'seqone_delivery_batch_id=$ANALYSIS_ID',
+        "-j 345 -T 1 -p -k",
+    ):
+        assert literal in command.dy_command
+
+
 def test_repository_catalog_v1_migrates_to_sample_analysis(tmp_path: Path) -> None:
     path = tmp_path / "v1.yaml"
     path.write_text(

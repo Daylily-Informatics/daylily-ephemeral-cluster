@@ -46,3 +46,14 @@ Fractions are `ROUND_DOWN(target / 43.73, 12 places)` and are all `>0` and `<=1`
 - The only workflow target is `produce_sentdhiomr2_slim_kitchensink_mega`; the rendered command must not contain `inflection`, `package`, or `seqone_delivery_batch_id`.
 - A dry-run root and live root are distinct and fresh.
 - No export, delete, release, PR, or tag is authorized by this ledger.
+
+## 2026-08-17 release amendment
+
+The already-running four-AU controller remains a no-Inflection execution and is
+not modified by this amendment. At the operator's request, the follow-on
+catalog command with the same literal ID is changed for future launches to
+include `produce_sentdhiomr2_slim_kitchensink_mega` and
+`produce_sentdhiomr2_inflection_analytical_package`, use analytical package
+mode with `seqone_delivery_batch_id=$ANALYSIS_ID`, and pass exactly
+`-j 345 -T 1 -p -k`. The amendment is released only after source/payload
+catalog parity, focused tests, PR merge, annotated tag, and GitHub release.
