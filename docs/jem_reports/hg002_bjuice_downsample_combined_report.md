@@ -2,31 +2,47 @@
 
 ## Technical summary
 
-This report combines **14 retained measured-coverage observations** from two completed HG002 HIOMR2 kitchensink-mega downsampling experiments. Exact duplicate identity is `(AU, measured ILMN, measured ONT)`; **0 older E1 observation(s)** were superseded by E2. Experiment provenance remains visible as `E1:<AU>` or `E2:<AU>` in every chart and table.
+This report combines **18 retained measured-coverage observations** from three completed HG002 HIOMR2 kitchensink-mega experiments. Exact duplicate identity is `(AU, measured ILMN, measured ONT)`; **0 older observation(s)** were superseded by the newest matching experiment. Experiment provenance remains visible as `E1:<AU>`, `E2:<AU>`, or `E3:<AU>` in every chart and table.
 
-E2 reduced mean absolute Illumina target error to **4.62x**, versus **5.65x** in E1, but measured Illumina coverage remained below nominal in **7/7 E2 AUs**. ONT mean absolute target error was **0.12x** in E2 and **1.99x** in E1. The strongest retained TrussSV global F-score was **0.7190** at **E1:15x5**. Successful benchmark task rows sum to **$201.27** for retained E1 observations and **$113.16** for retained E2 observations.
+All coverage coordinates in this report are source-reported measured Mosdepth totals—never nominal target coverage. The strongest retained TrussSV global F-score was **0.7382** at **E3:20xby15x**. Successful benchmark task rows sum to **$201.27** for E1, **$113.16** for E2, **$108.52** for E3.
 
-E1 completed its live rerun at `rc=0` on 2026-08-14; E2 completed the retained kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-16. E1's manifest fractions were present, but its Illumina rule did not apply them as intended; E1 coverage is therefore used only as measured observational evidence. E2 is the corrected re-downsampling experiment. Analytical packaging is not part of the E2 completion claim.
+E1 completed its live rerun at `rc=0` on 2026-08-14; E2 completed the retained kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-16; and E3 completed the four-AU kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-17. E1 coverage remains observational evidence only; E2 is the corrected re-downsampling experiment; E3 supplies the new 10–15x/15–30x measured-coverage observations. Analytical packaging is not included in the E3 closure claim.
+
+## Source S3 URIs
+
+| Source | S3 URI |
+| --- | ---: |
+| Shared full-prevalence Illumina FASTQs | `s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260618_LH01106_0011_A23MFMCLT3/Analysis/1/Data/BCLConvert/fastq/` |
+| Shared HG002 ONT FC1 source | `s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC1/20260615_ONT_Set4-FC1/20260616_0048_3A_PBM08268_14b096e3/` |
+| Shared HG002 ONT FC2 source | `s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC2/20260615_ONT_Set4-FC2/20260616_0040_3B_PBK89197_822a87b5/` |
+| Shared HG002 ONT FC3 source | `s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC3/20260615_ONT_Set4-FC3/20260616_0041_3C_PBK89101_bd86eaac/` |
+| E3 completed no-delete output export | `s3://lsmc-dayoa-analysis-results-usw2/derived/bjuice-v2-multi-analysis-unit/prod-cand-1703/prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z/` |
+
+The E3 export was successful (`task-0086514fbf61dae5e`); its temporary DRA was detached and the FSx analysis root was preserved. These exact source URIs are also available in [source_s3_uris.tsv](hg002_bjuice_downsample_combined_report_assets/tables/source_s3_uris.tsv).
 
 ## Where data exist: unified measured-coverage grid
 
 Rows are measured Illumina coverage and columns are measured ONT coverage. The Markdown grid is shown from largest ILMN value at the top to smallest at the bottom, matching the plotted heatmap's smallest-at-bottom orientation. `—` is a true grid gap.
 
-| ILMN \ ONT | 0.57x | 1.16x | 2.96x | 4.09x | 5.17x | 6.20x | 9.67x | 10.05x | 11.43x |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 14.01x | — | — | — | — | — | — | — | — | E1:15x5 |
-| 13.65x | — | — | — | — | — | — | E1:10x5; E1:15x10 | — | — |
-| 12.71x | — | — | — | — | — | E1:5x5 | — | — | — |
-| 11.93x | — | — | — | E1:3x3 | — | — | — | — | — |
-| 9.85x | — | E1:1x1 | — | — | — | — | — | — | — |
-| 8.54x | E1:p5xp5 | — | — | — | — | — | — | — | — |
-| 5.47x | — | — | — | — | — | — | — | E2:15x10 | — |
-| 4.96x | — | — | — | — | E2:15x5 | — | — | — | — |
-| 3.50x | — | — | — | — | E2:10x5 | — | — | — | — |
-| 1.82x | — | — | — | — | E2:5x5 | — | — | — | — |
-| 1.01x | — | — | E2:3x3 | — | — | — | — | — | — |
-| 0.27x | — | E2:1x1 | — | — | — | — | — | — | — |
-| 0.11x | E2:p5xp5 | — | — | — | — | — | — | — | — |
+| ILMN \ ONT | 0.57x | 1.16x | 2.96x | 4.09x | 5.17x | 6.20x | 9.67x | 10.05x | 11.43x | 14.71x |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 14.01x | — | — | — | — | — | — | — | — | E1:15x5 | — |
+| 13.65x | — | — | — | — | — | — | E1:10x5; E1:15x10 | — | — | — |
+| 12.71x | — | — | — | — | — | E1:5x5 | — | — | — | — |
+| 11.93x | — | — | — | E1:3x3 | — | — | — | — | — | — |
+| 10.50x | — | — | — | — | — | — | — | — | — | E3:30xby15x |
+| 9.85x | — | E1:1x1 | — | — | — | — | — | — | — | — |
+| 8.54x | E1:p5xp5 | — | — | — | — | — | — | — | — | — |
+| 7.36x | — | — | — | — | — | — | — | — | — | E3:20xby15x |
+| 5.47x | — | — | — | — | — | — | — | E2:15x10 | — | — |
+| 4.96x | — | — | — | — | E2:15x5 | — | — | — | — | — |
+| 4.77x | — | — | — | — | — | — | — | — | E3:12xby12x | — |
+| 3.72x | — | — | — | — | — | — | E3:10xby10x | — | — | — |
+| 3.50x | — | — | — | — | E2:10x5 | — | — | — | — | — |
+| 1.82x | — | — | — | — | E2:5x5 | — | — | — | — | — |
+| 1.01x | — | — | E2:3x3 | — | — | — | — | — | — | — |
+| 0.27x | — | E2:1x1 | — | — | — | — | — | — | — | — |
+| 0.11x | E2:p5xp5 | — | — | — | — | — | — | — | — | — |
 
 ![combined_measured_coverage_grid.png](hg002_bjuice_downsample_combined_report_assets/figures/combined_measured_coverage_grid.png)
 
@@ -48,12 +64,14 @@ Rows are measured Illumina coverage and columns are measured ONT coverage. The M
 | E2:10x5 | 10.0x × 5.0x | 3.50x × 5.17x | 0.228675966155 | [0,9) | HG002-tb1jdkbzdpwenh | retained_unique |
 | E2:15x5 | 15.0x × 5.0x | 4.96x × 5.17x | 0.343013949233 | [0,9) | HG002-56db7xrgpanwkk | retained_unique |
 | E2:15x10 | 15.0x × 10.0x | 5.47x × 10.05x | 0.343013949233 | [0,20) | HG002-p2tc9mz7wbv628 | retained_unique |
+| E3:10xby10x | 9.85x × 9.67x | 3.72x × 9.67x | 0.225245826663 | [0,19) | HG002-nxw0jbvh1h5mqx | retained_unique |
+| E3:12xby12x | 12.71x × 11.43x | 4.77x × 11.43x | 0.290647152984 | [0,24) | HG002-nfjdv62wjc8dwr | retained_unique |
+| E3:20xby15x | 20.0x × 15.0x | 7.36x × 14.71x | 0.457351932311 | [0,36) | HG002-wesenyqd5xz29g | retained_unique |
+| E3:30xby15x | 30.0x × 15.0x | 10.50x × 14.71x | 0.686027898467 | [0,36) | HG002-q73e7s390m0hjt | retained_unique |
 
 The full retained-observation table includes nominal targets, exact measured tokens, fractions, ONT windows, source paths, and selection status: [retained_observations.tsv](hg002_bjuice_downsample_combined_report_assets/tables/retained_observations.tsv).
 
-## Coverage targeting and ONT yield
-
-![planned_vs_measured_coverage.png](hg002_bjuice_downsample_combined_report_assets/figures/planned_vs_measured_coverage.png)
+## Measured ONT coverage and runtime
 
 ![ont_coverage_vs_runtime.png](hg002_bjuice_downsample_combined_report_assets/figures/ont_coverage_vs_runtime.png)
 
@@ -103,7 +121,7 @@ Exact hard-VCF values: [hard_vcf_giabhc_metrics.tsv](hg002_bjuice_downsample_com
 
 ![truvari_all_callers_precision_recall.png](hg002_bjuice_downsample_combined_report_assets/figures/truvari_all_callers_precision_recall.png)
 
-Caller color and shape are stable; E1 uses open markers and E2 filled markers. Points with undefined raw precision or recall remain in the table as `NA` and are not plotted. Exact raw-summary values: [truvari_metrics.tsv](hg002_bjuice_downsample_combined_report_assets/tables/truvari_metrics.tsv).
+Caller color and marker shape encode the caller (TIDDIT, LongReadSV, Sniffles2, or tagged TrussSV); experiment is encoded by marker fill. Every plotted point is labelled with experiment, AU, and F-score. Points with undefined raw precision or recall remain in the table as `NA` and are not plotted. Exact raw-summary values: [truvari_metrics.tsv](hg002_bjuice_downsample_combined_report_assets/tables/truvari_metrics.tsv).
 
 ## SegDup and SMN1/2 calls
 
@@ -135,7 +153,7 @@ Supporting benchmark tables: [benchmark_task_groups.tsv](hg002_bjuice_downsample
 - Truvari metrics come from raw `summary.json`. Undefined no-call rates are `NA`, even where a downstream report-oriented artifact normalized them to zero.
 - SegDup is descriptive callset output, not truth/query concordance. A no-call state is not evidence of reference genotype truth.
 - The two experiments reuse the same HG002 source material and their downsampled inputs are nested; observations are not statistically independent. Results are descriptive and no causal or inferential claim is made.
-- E1 and E2 may contain different runtime software provenance because E2 was completed after authorized R&D reporting repairs. The report uses produced artifacts and does not relabel E2 as a pristine later release execution.
+- E1, E2, and E3 may contain different runtime software provenance because later experiments were completed after authorized R&D reporting repairs. The report uses produced artifacts and does not relabel a later experiment as a pristine re-execution of an earlier release.
 
 ## Audit and reproducibility
 
@@ -144,4 +162,4 @@ Supporting benchmark tables: [benchmark_task_groups.tsv](hg002_bjuice_downsample
 - Duplicate metric comparisons: [duplicate_metric_audit.tsv](hg002_bjuice_downsample_combined_report_assets/tables/duplicate_metric_audit.tsv).
 - Figure-to-table mapping: [chart_map.tsv](hg002_bjuice_downsample_combined_report_assets/tables/chart_map.tsv).
 
-Generated from bounded DYEC evidence snapshots on 2026-08-16.
+Generated from bounded DYEC evidence snapshots and the E3 no-delete export receipt on 2026-08-17.
