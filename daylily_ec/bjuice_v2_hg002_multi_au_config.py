@@ -10,6 +10,7 @@ inputs, but every nullable live EUID output field is intentionally blank.
 from __future__ import annotations
 
 import json
+import re
 from decimal import Decimal, InvalidOperation, ROUND_DOWN, localcontext
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -84,6 +85,8 @@ AU_ONT_TARGETS: Mapping[str, Decimal] = {
     "15x10": Decimal("10"),
 }
 RETARGET_PLAN_SCHEMA = "dyec.bjuice_v2_hg002_retarget_plan.v1"
+CUSTOM_AU_PLAN_SCHEMA = "dyec.bjuice_v2_hg002_custom_au_plan.v1"
+CUSTOM_AU_LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 
 
 def _parse_direct_coverage(value: str, *, field_name: str) -> Decimal:
@@ -122,6 +125,52 @@ def _parse_subsample_pct(value: Any, *, field_name: str) -> Decimal:
     if parsed > 1:
         raise BjuiceConfigError(f"{field_name} must not exceed 1; found {value!r}")
     return parsed
+
+
+def _load_custom_au_plan(
+    path: Path,
+) -> tuple[tuple[str, Decimal, Decimal, int, int], ...]:
+    """Load an explicit non-empty HG002 AU matrix without inferred targets."""
+    if not path.is_file():
+        raise BjuiceConfigError(f"custom AU plan is missing: {path}")
+    payload = _read_json(path)
+    if payload.get("schema") != CUSTOM_AU_PLAN_SCHEMA:
+        raise BjuiceConfigError(f"custom AU plan schema must be {CUSTOM_AU_PLAN_SCHEMA}")
+    if str(payload.get("sample_id") or "").strip() != HG002_SAMPLE_ID:
+        raise BjuiceConfigError("custom AU plan must be for HG002")
+    rows = payload.get("analysis_units")
+    if not isinstance(rows, list) or not rows:
+        raise BjuiceConfigError("custom AU plan analysis_units must be a non-empty list")
+    parsed_rows: list[tuple[str, Decimal, Decimal, int, int]] = []
+    labels: set[str] = set()
+    for row in rows:
+        if not isinstance(row, Mapping):
+            raise BjuiceConfigError("custom AU plan analysis_units rows must be objects")
+        label = str(row.get("label") or "").strip()
+        if not CUSTOM_AU_LABEL_RE.fullmatch(label):
+            raise BjuiceConfigError(f"custom AU plan has invalid AU label {label!r}")
+        if label in labels:
+            raise BjuiceConfigError(f"custom AU plan has duplicate AU label {label!r}")
+        labels.add(label)
+        ilmn_target = _parse_direct_coverage(
+            str(row.get("target_ilmn_coverage_x") or ""),
+            field_name=f"custom AU plan {label} target_ilmn_coverage_x",
+        )
+        ont_target = _parse_direct_coverage(
+            str(row.get("target_ont_coverage_x") or ""),
+            field_name=f"custom AU plan {label} target_ont_coverage_x",
+        )
+        try:
+            start_hour = int(row.get("ont_fq_start_hour"))
+            end_hour = int(row.get("ont_fq_end_hour"))
+        except (TypeError, ValueError) as exc:
+            raise BjuiceConfigError(f"custom AU plan {label} ONT hours must be integers") from exc
+        if start_hour < 0 or end_hour <= start_hour:
+            raise BjuiceConfigError(
+                f"custom AU plan {label} requires a valid [start,end) ONT interval"
+            )
+        parsed_rows.append((label, ilmn_target, ont_target, start_hour, end_hour))
+    return tuple(parsed_rows)
 
 
 def _load_retarget_plan(
@@ -300,18 +349,21 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
     direct_ilmn_coverage_x: str,
     direct_ilmn_coverage_evidence: Path,
     retarget_plan_json: Path | None = None,
+    analysis_unit_plan_json: Path | None = None,
     profile: str | None,
     region: str | None,
     fsx_run_mount_root: str = DEFAULT_FSX_RUN_MOUNT_ROOT,
     ont_fsx_root: str = DEFAULT_ONT_FSX_ROOT,
 ) -> BjuiceConfigResult:
-    """Write the fixed HG002 Bjuice v2 seven-AU DayOA six-manifest set.
+    """Write the HG002 Bjuice v2 DayOA six-manifest set.
 
     ``direct_ilmn_coverage_x`` must be the exact denominator in a terminal,
     direct-only receipt. It is not inferred from source FASTQs, read counts,
     total coverage, or hybrid coverage. When ``retarget_plan_json`` is present,
     its strict, measurement-derived fractions and ONT intervals replace only
-    the canonical defaults; the seven labels/targets remain immutable.
+    the canonical defaults; the seven labels/targets remain immutable. An
+    explicit ``analysis_unit_plan_json`` instead supplies a custom AU matrix;
+    the two plan modes are mutually exclusive.
     """
 
     if output_dir.exists() and any(output_dir.iterdir()):
@@ -325,12 +377,21 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
         direct_ilmn_coverage_evidence,
         requested_coverage_x=coverage_x,
     )
+    if retarget_plan_json and analysis_unit_plan_json:
+        raise BjuiceConfigError(
+            "--retarget-plan-json and --analysis-unit-plan-json are mutually exclusive"
+        )
     retarget_plan = (
         _load_retarget_plan(retarget_plan_json, direct_ilmn_coverage_x=coverage_x)
         if retarget_plan_json
         else None
     )
-    for au_label, target_x, _start_hour, _end_hour in AU_MATRIX:
+    custom_plan = _load_custom_au_plan(analysis_unit_plan_json) if analysis_unit_plan_json else None
+    analysis_unit_rows = custom_plan or tuple(
+        (label, target, AU_ONT_TARGETS[label], start, end)
+        for label, target, start, end in AU_MATRIX
+    )
+    for au_label, target_x, _ont_target_x, _start_hour, _end_hour in analysis_unit_rows:
         _format_subsample_pct(target_x=target_x, coverage_x=coverage_x, au_label=au_label)
 
     source_manifest = _read_json(source_manifest_json)
@@ -580,7 +641,7 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
     analysis_units: list[dict[str, str]] = []
     analysis_unit_inputs: list[dict[str, str]] = []
     generated_aus: list[dict[str, Any]] = []
-    for au_label, target_x, start_hour, end_hour in AU_MATRIX:
+    for au_label, target_x, ont_target_x, start_hour, end_hour in analysis_unit_rows:
         analysis_unit_uid = f"{HG002_SAMPLE_ID}-{au_label}"
         if retarget_plan:
             retarget_row = retarget_plan[au_label]
@@ -604,7 +665,7 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
             )
             comment = (
                 f"Bjuice v2 HG002 AU {au_label}: direct ILMN target {target_x}x / "
-                f"{coverage_x}x; ONT interval [{start_hour},{end_hour})."
+                f"{coverage_x}x; ONT target {ont_target_x}x interval [{start_hour},{end_hour})."
             )
         analysis_units.append(
             {
@@ -637,8 +698,10 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
         generated_aus.append(
             {
                 "analysis_unit_uid": analysis_unit_uid,
+                "label": au_label,
                 "target_ilmn_coverage_x": str(target_x),
                 "subsample_pct": subsample_pct,
+                "target_ont_coverage_x": str(ont_target_x),
                 "ont_fq_start_hour": start_hour,
                 "ont_fq_end_hour": end_hour,
                 **(
@@ -682,6 +745,16 @@ def generate_bjuice_v2_hg002_multi_au_manifests(
                 "mode": "measured_ont_hours_direct_ilmn_denominator",
             }
             if retarget_plan_json
+            else None
+        ),
+        "analysis_unit_plan": (
+            {
+                "schema": CUSTOM_AU_PLAN_SCHEMA,
+                "path": str(analysis_unit_plan_json),
+                "sha256": _sha256(analysis_unit_plan_json),
+                "mode": "explicit_custom_analysis_unit_matrix",
+            }
+            if analysis_unit_plan_json
             else None
         ),
         "subsample_rounding": {

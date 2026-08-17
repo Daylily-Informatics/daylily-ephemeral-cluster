@@ -7120,7 +7120,7 @@ def catalog_config_bjuice_v2_hg002_multi_au(
     output_dir: Path = typer.Option(
         ...,
         "--output-dir",
-        help="Empty output directory where the fixed seven-AU DayOA manifests will be written.",
+        help="Empty output directory where the DayOA manifests will be written.",
     ),
     source_manifest_json: Path = typer.Option(
         ...,
@@ -7169,6 +7169,15 @@ def catalog_config_bjuice_v2_hg002_multi_au(
             "declare every canonical AU, direct-denominator ILMN fraction, and measured ONT window."
         ),
     ),
+    analysis_unit_plan_json: Optional[Path] = typer.Option(
+        None,
+        "--analysis-unit-plan-json",
+        help=(
+            "Explicit HG002 custom AU matrix. Each row declares its label, direct Illumina "
+            "target, ONT target, and [start,end) hour interval. Mutually exclusive with "
+            "--retarget-plan-json."
+        ),
+    ),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile for S3 listing."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region for S3 listing."),
     fsx_run_mount_root: str = typer.Option(
@@ -7182,11 +7191,10 @@ def catalog_config_bjuice_v2_hg002_multi_au(
         help="Headnode FSx run-mount root used for ONT pca100/2026 FASTQ paths.",
     ),
 ) -> None:
-    """Generate the fixed HG002 Bjuice v2 full-prevalence seven-AU manifests."""
+    """Generate default or explicitly planned HG002 Bjuice v2 manifests."""
 
     try:
         from daylily_ec.bjuice_v2_hg002_multi_au_config import (
-            AU_MATRIX,
             generate_bjuice_v2_hg002_multi_au_manifests,
         )
 
@@ -7200,6 +7208,9 @@ def catalog_config_bjuice_v2_hg002_multi_au(
             direct_ilmn_coverage_x=direct_ilmn_coverage_x,
             direct_ilmn_coverage_evidence=direct_ilmn_coverage_evidence.expanduser(),
             retarget_plan_json=(retarget_plan_json.expanduser() if retarget_plan_json else None),
+            analysis_unit_plan_json=(
+                analysis_unit_plan_json.expanduser() if analysis_unit_plan_json else None
+            ),
             profile=profile,
             region=region,
             fsx_run_mount_root=fsx_run_mount_root,
@@ -7211,10 +7222,13 @@ def catalog_config_bjuice_v2_hg002_multi_au(
             "receipt_path": str(result.receipt_path),
             "manifest_hashes": dict(result.manifest_hashes),
             "sample_id": "HG002",
-            "analysis_unit_count": len(AU_MATRIX),
-            "analysis_unit_labels": [label for label, _target, _start, _end in AU_MATRIX],
+            "analysis_unit_count": len(result.receipt["analysis_units"]),
+            "analysis_unit_labels": [row["label"] for row in result.receipt["analysis_units"]],
             "direct_ilmn_coverage_x": direct_ilmn_coverage_x,
             "retarget_plan_json": str(retarget_plan_json) if retarget_plan_json else None,
+            "analysis_unit_plan_json": (
+                str(analysis_unit_plan_json) if analysis_unit_plan_json else None
+            ),
         }
         if _json_mode():
             output.emit_json(payload)

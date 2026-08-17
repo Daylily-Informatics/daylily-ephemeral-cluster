@@ -10,6 +10,7 @@ import pytest
 from daylily_ec.bjuice_preval_config import BjuiceConfigError
 from daylily_ec.bjuice_v2_hg002_multi_au_config import (
     AU_MATRIX,
+    CUSTOM_AU_PLAN_SCHEMA,
     DIRECT_ILMN_COVERAGE_RECEIPT_SCHEMA,
     RETARGET_PLAN_SCHEMA,
     _format_subsample_pct,
@@ -303,6 +304,84 @@ def test_round_down_is_explicit_and_not_bankers_rounding() -> None:
         coverage_x=Decimal("6"),
         au_label="fixture",
     ) == "0.166666666666"
+
+
+def test_generator_writes_explicit_custom_four_au_matrix(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import daylily_ec.bjuice_v2_hg002_multi_au_config as module
+
+    monkeypatch.setattr(module, "_list_s3_objects", _fake_s3_listing)
+    inputs = _source_inputs(tmp_path)
+    receipt = _coverage_receipt(tmp_path / "direct_coverage_receipt.json", "43.73")
+    plan = tmp_path / "custom_au_plan.json"
+    _write_json(
+        plan,
+        {
+            "schema": CUSTOM_AU_PLAN_SCHEMA,
+            "sample_id": "HG002",
+            "analysis_units": [
+                {
+                    "label": "20xby15x",
+                    "target_ilmn_coverage_x": "20",
+                    "target_ont_coverage_x": "15",
+                    "ont_fq_start_hour": 0,
+                    "ont_fq_end_hour": 36,
+                },
+                {
+                    "label": "30xby15x",
+                    "target_ilmn_coverage_x": "30",
+                    "target_ont_coverage_x": "15",
+                    "ont_fq_start_hour": 0,
+                    "ont_fq_end_hour": 36,
+                },
+                {
+                    "label": "10xby10x",
+                    "target_ilmn_coverage_x": "9.85",
+                    "target_ont_coverage_x": "9.67",
+                    "ont_fq_start_hour": 0,
+                    "ont_fq_end_hour": 19,
+                },
+                {
+                    "label": "12xby12x",
+                    "target_ilmn_coverage_x": "12.71",
+                    "target_ont_coverage_x": "11.43",
+                    "ont_fq_start_hour": 0,
+                    "ont_fq_end_hour": 24,
+                },
+            ],
+        },
+    )
+    result = generate_bjuice_v2_hg002_multi_au_manifests(
+        output_dir=tmp_path / "output",
+        **inputs,
+        direct_ilmn_coverage_x="43.73",
+        direct_ilmn_coverage_evidence=receipt,
+        analysis_unit_plan_json=plan,
+        profile=None,
+        region=None,
+    )
+    units = _read_tsv(result.output_dir / "analysis_units.tsv")
+    assert [row["ANALYSIS_UNIT_UID"] for row in units] == [
+        "HG002-20xby15x",
+        "HG002-30xby15x",
+        "HG002-10xby10x",
+        "HG002-12xby12x",
+    ]
+    assert [row["SUBSAMPLE_PCT"] for row in units] == [
+        "0.457351932311",
+        "0.686027898467",
+        "0.225245826663",
+        "0.290647152984",
+    ]
+    assert [(row["ONT_FQ_START_HOUR"], row["ONT_FQ_END_HOUR"]) for row in units] == [
+        ("0", "36"),
+        ("0", "36"),
+        ("0", "19"),
+        ("0", "24"),
+    ]
+    assert len(_read_tsv(result.output_dir / "analysis_unit_inputs.tsv")) == 16
+    assert all(Decimal("0") < Decimal(row["SUBSAMPLE_PCT"]) <= Decimal("1") for row in units)
 
 
 def test_generator_uses_direct_denominator_with_measured_ont_retarget_plan(
