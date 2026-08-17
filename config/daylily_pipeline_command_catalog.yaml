@@ -5767,6 +5767,46 @@ dyec_builds:
         return_results: false
         repository: daylily-omics-analysis
         cost_center_required: true
+      bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega:
+        command_id: bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega
+        type: prod
+        validated_version: 15.0.3
+        test_data_profile: hg002_bjuice_v2_full_preval_run_mounts
+        display_name: Bjuice v2 HG002 Custom Multi-AU HIOMR2 Kitchen Sink Mega
+        description: "Explicit HG002 full-prevalence custom-analysis-unit HIOMR2 kitchen-sink mega command without Inflection packaging. It consumes a six-manifest set generated from one terminal direct Illumina coverage receipt plus an explicit custom AU plan, reads the two verified existing Bjuice run mounts, uses per-analysis-unit ONT [start,end) hour windows, and runs the complete numeric 1-25 chromosome scope. All nullable live EUID columns remain blank unless owner-issued. ANALYSIS_UNIT_UID is a required local workflow key and must be unique. This command produces final MultiQC through the mega target and deliberately excludes every Inflection packaging target. Launch with an explicit active DYEC cost center and matching project on a dedicated cluster."
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: true
+        staging_receipt_required: false
+        runtime_parameters:
+          ont_fastq_hour_window_mode: per_analysis_unit
+          direct_ilmn_coverage_receipt_required: "true"
+        input_requirements:
+          accepted_source_column_sets:
+          - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_R1_FQ]
+        targets:
+        - produce_sentdhiomr2_slim_kitchensink_mega
+        genome: hg38
+        jobs: 333
+        keep_going: false
+        restart_times: 1
+        aligners: [sentmm2ont]
+        dedupers: [na]
+        snv_callers: [sentdhiomr2]
+        sv_callers: []
+        dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_v2_multi_analysis_unit_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'ont_fastq_hour_window_mode=per_analysis_unit' -j 333 -T 0 -p --rerun-triggers mtime"
+        dryrun_dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_v2_multi_analysis_unit_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'ont_fastq_hour_window_mode=per_analysis_unit' -j 333 -T 0 -p --rerun-triggers mtime -n"
+        compatible_platforms: [ILMN, ONT]
+        compatible_cluster_types: [sentieon-single]
+        compatible_data_modes: [hybrid_ilmn_ont]
+        git_tag: 15.0.10
+        no_containerized: false
+        return_results: false
+        repository: daylily-omics-analysis
+        cost_center_required: true
     aliases:
       inflection-bjuice-product-v0.2:
         command_id: inflection-bjuice-product-v0.2

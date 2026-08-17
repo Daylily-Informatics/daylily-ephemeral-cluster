@@ -1,0 +1,105 @@
+{
+  "analysis_unit_plan": {
+    "mode": "explicit_custom_analysis_unit_matrix",
+    "path": "docs/plans/20260817T023737Z_hg002_bjuice_4au_custom_plan.json",
+    "schema": "dyec.bjuice_v2_hg002_custom_au_plan.v1",
+    "sha256": "d79d09ee43e33afdc6f8d01d58b81829c974279d72b736c605b74ad393876b99"
+  },
+  "analysis_units": [
+    {
+      "analysis_unit_uid": "HG002-20xby15x",
+      "label": "20xby15x",
+      "ont_fq_end_hour": 36,
+      "ont_fq_start_hour": 0,
+      "subsample_pct": "0.457351932311",
+      "target_ilmn_coverage_x": "20",
+      "target_ont_coverage_x": "15"
+    },
+    {
+      "analysis_unit_uid": "HG002-30xby15x",
+      "label": "30xby15x",
+      "ont_fq_end_hour": 36,
+      "ont_fq_start_hour": 0,
+      "subsample_pct": "0.686027898467",
+      "target_ilmn_coverage_x": "30",
+      "target_ont_coverage_x": "15"
+    },
+    {
+      "analysis_unit_uid": "HG002-10xby10x",
+      "label": "10xby10x",
+      "ont_fq_end_hour": 19,
+      "ont_fq_start_hour": 0,
+      "subsample_pct": "0.225245826663",
+      "target_ilmn_coverage_x": "9.85",
+      "target_ont_coverage_x": "9.67"
+    },
+    {
+      "analysis_unit_uid": "HG002-12xby12x",
+      "label": "12xby12x",
+      "ont_fq_end_hour": 24,
+      "ont_fq_start_hour": 0,
+      "subsample_pct": "0.290647152984",
+      "target_ilmn_coverage_x": "12.71",
+      "target_ont_coverage_x": "11.43"
+    }
+  ],
+  "coverage_method": "direct_illumina_terminal_receipt",
+  "direct_ilmn_coverage_evidence": "/Users/jmajor/projects/lsmc/.codex-worktrees/dyec-bjuice-v2-multiau-170020/docs/plans/20260814T103851Z_bjuice_v2_hg002_launch_inputs/direct_ilmn_coverage_receipt.json",
+  "direct_ilmn_coverage_evidence_sha256": "a8bd48276d3a0689d289f7763fe8117fb8bc6b8e66c037babf00c6a906092c0d",
+  "direct_ilmn_coverage_x": "43.73",
+  "fsx_run_mount_root": "/fsx/run_dir_mounts",
+  "legacy_units_tsv": "/Users/jmajor/projects/lsmc/.codex-worktrees/dyec-bjuice-v2-multiau-170020/docs/plans/20260814T103851Z_bjuice_v2_hg002_launch_inputs/legacy_units.tsv",
+  "library_run_matrix_tsv": "/Users/jmajor/projects/lsmc/.codex-worktrees/dyec-bjuice-v2-multiau-170020/docs/plans/20260814T103851Z_bjuice_v2_hg002_launch_inputs/library_run_matrix.tsv",
+  "manifest_hashes": {
+    "analysis_unit_inputs.tsv": "04753090debbdb6565711319c6791ef74d509ba5667d32780ba452abdfef4923",
+    "analysis_units.tsv": "12e6ce08111cb9ec322c71770471a7d91b560f38bf78263a957aa8edff7ccbf8",
+    "libraries.tsv": "0a8ab721256e55e6a4a358adb305c3de723664e310a1bb070930e933bcabc1c8",
+    "samples.tsv": "2c035fd7ccf6bc26368d1cda62909c9fb8e255d5bcb0c85b3d1d6131de87f2b2",
+    "sequencing_inputs.tsv": "07704217887814164c6185c051801bed2acdf944703746ea9195d22b562204a5",
+    "specimens.tsv": "6e8bda59a851d797f9d8d9d137beae8dd76b2a04256b5bdf7f4f3ed37eb6c8e2"
+  },
+  "ont_fsx_root": "/fsx/run_dir_mounts/pca100-2026",
+  "retarget_plan": null,
+  "run_evidence_json": "/Users/jmajor/projects/lsmc/.codex-worktrees/dyec-bjuice-v2-multiau-170020/docs/plans/20260814T103851Z_bjuice_v2_hg002_launch_inputs/run_evidence_v2.json",
+  "sample_id": "HG002",
+  "sample_metadata_tsv": "/Users/jmajor/projects/lsmc/.codex-worktrees/dyec-bjuice-v2-multiau-170020/docs/plans/20260814T103851Z_bjuice_v2_hg002_launch_inputs/sample_metadata.tsv",
+  "schema": "dyec.bjuice_v2_hg002_multi_au_manifest_generation.v1",
+  "source_manifest_json": "/Users/jmajor/projects/lsmc/.codex-worktrees/dyec-bjuice-v2-multiau-170020/docs/plans/20260814T103851Z_bjuice_v2_hg002_launch_inputs/source_manifest_resolved.json",
+  "source_observations": {
+    "ilmn_dayoa_run_label": "20260618-LH01106-0011-A23MFMCLT3",
+    "ilmn_fastq_r1_count": 8,
+    "ilmn_fastq_r2_count": 8,
+    "ilmn_prefix": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260618_LH01106_0011_A23MFMCLT3/Analysis/1/Data/BCLConvert/fastq/",
+    "ilmn_run_id": "20260618_LH01106_0011_A23MFMCLT3",
+    "ont_inputs": [
+      {
+        "barcode": "barcode15",
+        "dayoa_run_label": "20260616-0040-3B-PBK89197-822a87b5",
+        "fastq_count": 146,
+        "prefix_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC2/20260615_ONT_Set4-FC2/20260616_0040_3B_PBK89197_822a87b5/",
+        "run_id": "20260616_0040_3B_PBK89197_822a87b5",
+        "sequencing_input_uid": "HG002-ONT-20260616-0040-3B-PBK89197-822a87b5-barcode15"
+      },
+      {
+        "barcode": "barcode15",
+        "dayoa_run_label": "20260616-0041-3C-PBK89101-bd86eaac",
+        "fastq_count": 146,
+        "prefix_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC3/20260615_ONT_Set4-FC3/20260616_0041_3C_PBK89101_bd86eaac/",
+        "run_id": "20260616_0041_3C_PBK89101_bd86eaac",
+        "sequencing_input_uid": "HG002-ONT-20260616-0041-3C-PBK89101-bd86eaac-barcode15"
+      },
+      {
+        "barcode": "barcode15",
+        "dayoa_run_label": "20260616-0048-3A-PBM08268-14b096e3",
+        "fastq_count": 146,
+        "prefix_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC1/20260615_ONT_Set4-FC1/20260616_0048_3A_PBM08268_14b096e3/",
+        "run_id": "20260616_0048_3A_PBM08268_14b096e3",
+        "sequencing_input_uid": "HG002-ONT-20260616-0048-3A-PBM08268-14b096e3-barcode15"
+      }
+    ]
+  },
+  "subsample_rounding": {
+    "decimal_places": 12,
+    "mode": "ROUND_DOWN"
+  }
+}

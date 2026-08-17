@@ -55,6 +55,7 @@ UNVALIDATED_COMMAND_IDS = {
     "inflection-bjuice-product-v0.2",
     "hiomr2_slim_kitchensink_mega",
     "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical",
+    "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega",
     "sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x",
     "illumina_pangenome_snv",
     "illumina_dragen_pangenome_snv_concordance",
@@ -169,7 +170,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert {command.command_id for command in current_build} == {
         command.command_id for command in catalog.commands()
     }
-    assert len(current_build) == 30
+    assert len(current_build) == 31
     assert {command.git_tag for command in current_build} == {DAYOA_BLESSED_TAG}
     assert {command.repository for command in current_build} == {"daylily-omics-analysis"}
     older_release = catalog.commands_for_dyec_build("16.1.85")
@@ -527,6 +528,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "inflection-bjuice-product-v0.2",
         "hiomr2_slim_kitchensink_mega",
         "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical",
+        "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega",
     }
     recoverability = catalog.get_command(
         "sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x"
@@ -540,6 +542,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "inflection-bjuice-product-v0.2",
         "hiomr2_slim_kitchensink_mega",
         "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical",
+        "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega",
     }
     for command_id in hiomr2_mega_ids:
         command = catalog.get_command(command_id)

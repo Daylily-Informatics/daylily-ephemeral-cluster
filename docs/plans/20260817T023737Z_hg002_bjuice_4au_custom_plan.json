@@ -1,0 +1,45 @@
+{
+  "schema": "dyec.bjuice_v2_hg002_custom_au_plan.v1",
+  "sample_id": "HG002",
+  "description": "Four additional measured-coverage matrix examples; HIOMR2 kitchensink mega and final MultiQC only, with no Inflection packaging.",
+  "direct_ilmn_coverage_x": "43.73",
+  "ont_hour_basis": {
+    "method": "measured cumulative aligned-yield curve from the completed E1 matrix",
+    "known_points": [
+      {"end_hour": 19, "measured_coverage_x": "9.67"},
+      {"end_hour": 24, "measured_coverage_x": "11.43"}
+    ],
+    "modeled_15x_end_hour": 36,
+    "available_source_hour_chunks": 73
+  },
+  "analysis_units": [
+    {
+      "label": "20xby15x",
+      "target_ilmn_coverage_x": "20",
+      "target_ont_coverage_x": "15",
+      "ont_fq_start_hour": 0,
+      "ont_fq_end_hour": 36
+    },
+    {
+      "label": "30xby15x",
+      "target_ilmn_coverage_x": "30",
+      "target_ont_coverage_x": "15",
+      "ont_fq_start_hour": 0,
+      "ont_fq_end_hour": 36
+    },
+    {
+      "label": "10xby10x",
+      "target_ilmn_coverage_x": "9.85",
+      "target_ont_coverage_x": "9.67",
+      "ont_fq_start_hour": 0,
+      "ont_fq_end_hour": 19
+    },
+    {
+      "label": "12xby12x",
+      "target_ilmn_coverage_x": "12.71",
+      "target_ont_coverage_x": "11.43",
+      "ont_fq_start_hour": 0,
+      "ont_fq_end_hour": 24
+    }
+  ]
+}
