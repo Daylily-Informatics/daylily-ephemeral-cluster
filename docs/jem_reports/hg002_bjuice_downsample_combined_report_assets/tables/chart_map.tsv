@@ -1,6 +1,5 @@
 figure	chart_type	title	source_table	metric
 combined_measured_coverage_grid.png	heatmap	Combined measured-coverage availability grid	coverage_grid.tsv	retained observation occupancy
-planned_vs_measured_coverage.png	scatter	Planned versus measured coverage	retained_observations.tsv	target and measured coverage
 ont_coverage_vs_runtime.png	line-scatter	Combined ONT aligned coverage versus cumulative input runtime	retained_observations.tsv	ONT coverage and end hour
 hard_vcf_giabhc_snp_fscore_heatmap.png	heatmap	Combined hard-VCF GIAB-HC SNP (SNPts + SNPtv/2): F-score	hard_vcf_giabhc_metrics.tsv	fscore
 hard_vcf_giabhc_snp_fn_heatmap.png	heatmap	Combined hard-VCF GIAB-HC SNP (SNPts + SNPtv/2): false negatives	hard_vcf_giabhc_metrics.tsv	fn
