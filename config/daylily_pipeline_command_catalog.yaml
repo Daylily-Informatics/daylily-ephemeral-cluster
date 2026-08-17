@@ -1604,7 +1604,7 @@ repositories:
       test_data_profile: hg002_bjuice_verified_5x5x_fastq
       manifest_dir_template: examples/staging/hg002_bjuice_verified_5x5x_fastq
       display_name: HIOMR2 Slim 5x+5x Kitchen Sink Mega
-      description: Generic HG002 5.862704556x Illumina plus receipt-bound 4.794169766x ONT three-caller HIOMR2 kitchen-sink mega run. It selects only Sniffles2, LongReadSV, and TIDDIT for normalized TrusSV consensus, runs exactly four native Truvari bench comparisons, produces tagged SV/CNV results, full DAY MultiQC, and isolated per-analysis-unit Inflection MultiQC. The DayOA overlay disables the retained legacy six-caller, NICU, Jasmine, SURVIVOR, and retired Sniffles1/Iris lanes. The standalone NICU FASTQ recoverability producer is deliberately excluded. The catalog command defaults the HIOMR2 caller to the quick two-contig validation scope 19-20; replace 19-20 with 1-25 for full production coverage (23=X, 24=Y, and 25=M/MT as resolved from the reference FAI). Symbolic X,Y,MT tokens are not accepted by this setting. The packaged six-manifest fixture binds the canonical slim-data FASTQs to exact receipt identities; full-coverage inputs must not be substituted. SMNCopyNumber is the sole selected special caller.
+      description: Generic HG002 5.862704556x Illumina plus receipt-bound 4.794169766x ONT three-caller HIOMR2 kitchen-sink mega run. It selects only Sniffles2, LongReadSV, and TIDDIT for normalized TrusSV consensus, runs exactly four native Truvari bench comparisons, produces tagged SV/CNV results, full DAY MultiQC, and isolated per-analysis-unit Inflection MultiQC. The DayOA overlay disables the retained legacy six-caller, NICU, Jasmine, SURVIVOR, and retired Sniffles1/Iris lanes. The standalone NICU FASTQ recoverability producer is deliberately excluded. The catalog command defaults the HIOMR2 caller to numeric chromosomes 1-25 (23=X, 24=Y, and 25=M/MT as resolved from the reference FAI). Symbolic X,Y,MT tokens are not accepted by this setting. The packaged six-manifest fixture binds the canonical slim-data FASTQs to exact receipt identities; full-coverage inputs must not be substituted. SMNCopyNumber is the sole selected special caller.
       datasource: Hybrid ILMN+ONT
       launcher: workflow_launch
       command_class: sample_analysis
@@ -1630,8 +1630,8 @@ repositories:
       snv_callers:
       - sentdhiomr2
       sv_callers: []
-      dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime
-      dryrun_dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime -n
+      dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime
+      dryrun_dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime -n
       compatible_platforms:
       - ILMN
       - ONT
@@ -1663,7 +1663,7 @@ repositories:
         dryrun_analysis_id: pcand18022-hg002-slim5x5x-hiomr2-dry2-20260817t0700z
         live_analysis_id: pcand18022-hg002-slim5x5x-hiomr2-20260817t0648z
         stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-hg002-slim5x5x-hiomr2-20260817t0648z/
-        notes: "Historical DayOA 15.0.11 evidence only; it does not clear the current 15.0.12 validation-pending state. Both attributable controllers reached rc=0. No-delete DRA task task-07042d644f5dfb3fb succeeded, detached DRA dra-099bf60af970a4503, and verified this 82,088-byte GIAB MultiQC concordance artifact in S3."
+        notes: "Historical DayOA 15.0.11 production evidence. Both attributable controllers reached rc=0. No-delete DRA task task-07042d644f5dfb3fb succeeded, detached DRA dra-099bf60af970a4503, and verified this 82,088-byte GIAB MultiQC concordance artifact in S3. It does not validate the new 18.0.25 default numeric 1-25 scope."
     - command_id: inflection-bjuice-product-v0.9
       type: prod
       validated_version: 15.0.3
@@ -5246,7 +5246,7 @@ dyec_builds:
         test_data_profile: hg002_bjuice_verified_5x5x_fastq
         manifest_dir_template: examples/staging/hg002_bjuice_verified_5x5x_fastq
         display_name: HIOMR2 Slim 5x+5x Kitchen Sink Mega
-        description: Generic HG002 5.862704556x Illumina plus receipt-bound 4.794169766x ONT three-caller HIOMR2 kitchen-sink mega run. It selects only Sniffles2, LongReadSV, and TIDDIT for normalized TrusSV consensus, runs exactly four native Truvari bench comparisons, produces tagged SV/CNV results, full DAY MultiQC, and isolated per-analysis-unit Inflection MultiQC. The DayOA overlay disables the retained legacy six-caller, NICU, Jasmine, SURVIVOR, and retired Sniffles1/Iris lanes. The standalone NICU FASTQ recoverability producer is deliberately excluded. The catalog command defaults the HIOMR2 caller to the quick two-contig validation scope 19-20; replace 19-20 with 1-25 for full production coverage (23=X, 24=Y, and 25=M/MT as resolved from the reference FAI). Symbolic X,Y,MT tokens are not accepted by this setting. The packaged six-manifest fixture binds the canonical slim-data FASTQs to exact receipt identities; full-coverage inputs must not be substituted. SMNCopyNumber is the sole selected special caller.
+        description: Generic HG002 5.862704556x Illumina plus receipt-bound 4.794169766x ONT three-caller HIOMR2 kitchen-sink mega run. It selects only Sniffles2, LongReadSV, and TIDDIT for normalized TrusSV consensus, runs exactly four native Truvari bench comparisons, produces tagged SV/CNV results, full DAY MultiQC, and isolated per-analysis-unit Inflection MultiQC. The DayOA overlay disables the retained legacy six-caller, NICU, Jasmine, SURVIVOR, and retired Sniffles1/Iris lanes. The standalone NICU FASTQ recoverability producer is deliberately excluded. The catalog command defaults the HIOMR2 caller to numeric chromosomes 1-25 (23=X, 24=Y, and 25=M/MT as resolved from the reference FAI). Symbolic X,Y,MT tokens are not accepted by this setting. The packaged six-manifest fixture binds the canonical slim-data FASTQs to exact receipt identities; full-coverage inputs must not be substituted. SMNCopyNumber is the sole selected special caller.
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
         command_class: sample_analysis
@@ -5272,8 +5272,8 @@ dyec_builds:
         snv_callers:
         - sentdhiomr2
         sv_callers: []
-        dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime
-        dryrun_dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime -n
+        dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime
+        dryrun_dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime -n
         compatible_platforms:
         - ILMN
         - ONT
