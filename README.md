@@ -166,7 +166,12 @@ dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
   --dry-run
 ```
 
-If the dry-run plan is bounded and correct, launch the same catalog command without `--dry-run` and use a new session name:
+If the dry-run plan is bounded and correct, continue the same analysis ID,
+FSx root, DayOA checkout, staged manifests, in-clone runtime config, and
+controller context. The live `dy-r` argv must differ only by removal of `-n`;
+do not clone or stage the analysis again. If the CLI needs a new controller
+process for continuation, it must explicitly reuse and verify that same root,
+ref, commit, and config hash with input staging disabled.
 
 ```bash
 dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
@@ -182,7 +187,9 @@ dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
   --cost-center "$COST_CENTER"
 ```
 
-For DayOA runtime config, pass explicit `key=value` overrides. DYEC appends them to the `dy-r ... --config` section and does not reinterpret their workflow-specific meaning:
+For scalar DayOA runtime config, pass explicit `key=value` overrides. DYEC
+appends them to the `dy-r ... --config` section and does not reinterpret their
+workflow-specific meaning:
 
 ```bash
 dyec --json catalog render hybrid_ilmn_ont_hiomr_kitchensink \
@@ -196,6 +203,14 @@ dyec --json catalog render hybrid_ilmn_ont_hiomr_kitchensink \
   --dy-config global_sr_subsample_pct=0.25 \
   --dy-config global_ont_subsample_pct=0.25
 ```
+
+Typed YAML analysis configuration must be materialized inside the cloned DayOA
+analysis directory, normally under `config/`, and passed to `dy-r` through an
+in-clone `--configfile` path. Never retain a controller-specific YAML/config
+under `/home/ubuntu`, `/tmp`, or another path outside the clone. Together with
+the in-clone manifests and saved command/receipts, the clone is the rerunnable
+analysis capsule; only the explicitly declared source reads, CRAMs, references,
+licenses, and runtime assets remain external.
 
 Large local payloads are staged through S3 with `--payload-staging-s3-uri`. DYEC uploads a tarball containing input manifests, a payload manifest, and the controller launch script. The headnode downloads and expands that tarball into the workflow run directory, starts the tmux controller, and then saves the exact executed script under `<analysis-root>/bin/dyec-controller-launch.sh` after `day-clone` creates the analysis root. This avoids SSM document-size limits without pre-creating the analysis root.
 
@@ -220,7 +235,7 @@ bases, duplicate IDs, mixed extension/replacement modes, and partial command
 replacements fail catalog validation. Existing catalog APIs return aliases as
 fully resolved `AnalysisCommand` records.
 
-The active catalog targets DayOA `15.0.12`. Public catalog output includes a
+The active catalog targets DayOA `15.0.15`. Public catalog output includes a
 derived `validation_pending` field: `true` means the command now targets a
 different DayOA tag than its retained `validated_version`. It is a visibility
 signal only; it does not relabel older validation receipts or block a launch.
@@ -248,7 +263,7 @@ dyec workflow launch \
   --cluster "$CLUSTER" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$CLUSTER" \
-  --git-tag 15.0.12 \
+  --git-tag 15.0.15 \
   --manifest-dir ./config \
   --payload-staging-s3-uri "$STAGING_S3_URI" \
   --session-name "$ANALYSIS_ID" \
