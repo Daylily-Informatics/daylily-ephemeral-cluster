@@ -79,9 +79,9 @@ def test_current_operator_docs_state_the_shipped_cli_and_catalog_versions() -> N
 
     # A release branch describes the next tag before that tag exists; an exact
     # release checkout reports the new tag once it has been created.
-    assert release_version in {"18.0.19", "18.0.20"}
-    assert "`18.0.20`" in text
-    assert dayoa_tag == "15.0.11"
+    assert release_version == "18.0.23"
+    assert "`18.0.23`" in text
+    assert dayoa_tag == "15.0.12"
     assert f"`{dayoa_tag}`" in text
     assert "dyec set-vars" in text
     assert "dyec unset-vars" in text
