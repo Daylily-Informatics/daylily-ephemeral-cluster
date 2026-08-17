@@ -1823,7 +1823,7 @@ repositories:
     - command_id: illumina_run_qc
       type: prod
       validated_version: "15.0.9"
-      validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/
+      validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025_ilm_seq_qc_18026_15015_20260817T1427Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/
       test_data_profile: illumina_run_directory
       display_name: "Illumina Run QC"
       description: "Illumina run-folder QC without BCLConvert execution from a mounted or explicit S3 run context."
