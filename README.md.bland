@@ -79,7 +79,7 @@ Otherwise the create YAML's `budget_email` takes precedence over the local
 
 ## Catalog-first DayOA launch
 
-The shipped catalog targets DayOA `15.0.21`. Inspect a command before launch;
+The shipped catalog targets DayOA `15.0.22`. Inspect a command before launch;
 its `input_contract` determines whether it needs a local six-manifest directory,
 a staged sample-manifest input, a run-context TSV, or no input files.
 
@@ -113,7 +113,7 @@ dyec workflow launch \
   --cluster "$CLUSTER" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$CLUSTER" \
-  --git-tag 15.0.21 \
+  --git-tag 15.0.22 \
   --manifest-dir ./config \
   --payload-staging-s3-uri s3://<bucket>/<temporary-relay-prefix>/ \
   --dy-command "dy-r <exact-target> -p -k -j 6"

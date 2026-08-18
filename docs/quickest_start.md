@@ -162,7 +162,7 @@ workflow. For a `six_manifest` row, first validate the local manifest directory
 and use `dyec catalog render`/`launch --manifest-dir DIR` instead. Export is a
 separate post-controller DYEC DRA operation.
 
-The current catalog targets DayOA `15.0.21`. `dyec --json catalog list` and
+The current catalog targets DayOA `15.0.22`. `dyec --json catalog list` and
 `catalog show` include `validation_pending`; `true` means the target tag is
 different from the command's recorded `validated_version`. It does not block a
 launch or rewrite historical validation receipts.
@@ -220,7 +220,7 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --repository daylily-omics-analysis \
-  --git-tag 15.0.21 \
+  --git-tag 15.0.22 \
   --input-contract run_context \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
