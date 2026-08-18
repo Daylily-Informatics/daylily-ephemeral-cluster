@@ -125,7 +125,7 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --dry-run
 ```
 
-The active catalog pin for DayOA commands is `15.0.22`. A catalog row can retain
+The active catalog pin for DayOA commands is `15.0.23`. A catalog row can retain
 an older `validated_version`; `validation_pending: true` reports the difference
 without rewriting historical evidence or blocking a launch.
 
@@ -244,7 +244,7 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 15.0.22 \
+  --git-tag 15.0.23 \
   --genome hg38_broad \
   --jobs 5 \
   --target produce_illumina_run_qc \
@@ -380,8 +380,8 @@ For repo-native work that is not a catalog workflow command, clone the pinned re
 
 ```bash
 day-clone --list
-day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 15.0.22 --executing-entity "$EXECUTING_ENTITY"
-day-clone -d "$ANALYSIS_ID" -t 15.0.22
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 15.0.23 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 15.0.23
 ```
 
 `-t` is the short form of `--git-tag`; `-d` is required and is the short form of `--destination`. The clone target is `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`.

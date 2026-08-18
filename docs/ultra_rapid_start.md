@@ -31,7 +31,7 @@ win and direct `aws`/`pcluster` calls still use their normal environment setup.
 
 ## Render first
 
-Inspect the exact catalog contract. The active catalog targets DayOA `15.0.22`.
+Inspect the exact catalog contract. The active catalog targets DayOA `15.0.23`.
 For a six-manifest command, the directory must contain the complete validated
 manifest set; a legacy `--stage-dir` is not interchangeable with
 `--manifest-dir`.

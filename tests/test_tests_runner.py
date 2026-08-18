@@ -57,7 +57,7 @@ from daylily_ec.tests_runner import (
 )
 
 runner = CliRunner()
-DAYOA_BLESSED_TAG = "15.0.22"
+DAYOA_BLESSED_TAG = "15.0.23"
 
 
 def _terminal_status(code: int) -> dict[str, int]:

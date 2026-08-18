@@ -61,7 +61,7 @@ The repository catalog must remain synchronized between:
 - `config/daylily_pipeline_command_catalog.yaml`
 - `daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml`
 
-The active DayOA catalog pin is `15.0.22`. Catalog output may retain an older
+The active DayOA catalog pin is `15.0.23`. Catalog output may retain an older
 `validated_version`; `validation_pending: true` reports that honest difference
 without rewriting historical validation evidence or blocking a launch.
 
