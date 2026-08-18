@@ -59,10 +59,12 @@ If the shell is incomplete:
 dyec headnode configure \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
+  --cluster "$CLUSTER_NAME" \
+  --dyec-deploy-key-secret-arn "$DYEC_DEPLOY_KEY_SECRET_ARN" \
+  --dayoa-deploy-key-secret-arn "$DAYOA_DEPLOY_KEY_SECRET_ARN"
 ```
 
-If DayOA `dy-r` reports `No such command 'analysis'`, the headnode DYEC command surface is stale. Re-run `dyec headnode configure --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"` from the activated local DYEC checkout, reconnect, and verify `dyec analysis --help` before any workflow write.
+If DayOA `dy-r` reports `No such command 'analysis'`, the headnode DYEC command surface is stale. Re-run the required-key `dyec headnode configure` command above from the activated local DYEC checkout, reconnect, and verify `dyec analysis --help` before any workflow write.
 
 ## 4. Reference DRA
 

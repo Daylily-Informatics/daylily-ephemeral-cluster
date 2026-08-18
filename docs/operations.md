@@ -34,16 +34,19 @@ The supported remote user is selected by cluster/platform: `ubuntu` for Ubuntu/I
 dyec headnode configure \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
+  --cluster "$CLUSTER_NAME" \
+  --dyec-deploy-key-secret-arn "$DYEC_DEPLOY_KEY_SECRET_ARN" \
+  --dayoa-deploy-key-secret-arn "$DAYOA_DEPLOY_KEY_SECRET_ARN"
 ```
 
 Use this after a cluster exists but the DayEC headnode tools, catalog, analysis guard surface, or login shell need repair. In particular, if a DayOA run reports `No such command 'analysis'`, rerun this command from an activated local checkout and then verify `dyec analysis --help` on the headnode before workflow writes.
 
 ### Managed LSMC Bio GitHub Access
 
-For ordinary `git clone`, `fetch`, `pull`, and `push` from the headnode, use a
-dedicated GitHub fine-grained token stored as a Secrets Manager `SecretString`.
-Limit it to `lsmc-bio/daylily-ephemeral-cluster` and
+Both deploy-key secret references are mandatory. The headnode role must already
+have read access to both secrets. A dedicated GitHub fine-grained token is
+optional additional authentication only; it does not replace the deploy-key
+flags. Limit a token to `lsmc-bio/daylily-ephemeral-cluster` and
 `lsmc-bio/daylily-omics-analysis`, with repository contents read/write access:
 
 ```bash
@@ -51,6 +54,8 @@ dyec headnode configure \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
+  --dyec-deploy-key-secret-arn "$DYEC_DEPLOY_KEY_SECRET_ARN" \
+  --dayoa-deploy-key-secret-arn "$DAYOA_DEPLOY_KEY_SECRET_ARN" \
   --github-token-secret-arn "$GITHUB_TOKEN_SECRET_ARN"
 ```
 

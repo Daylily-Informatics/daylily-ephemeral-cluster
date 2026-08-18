@@ -286,8 +286,13 @@ Configure/repair the headnode:
 dyec headnode configure \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER"
+  --cluster "$CLUSTER" \
+  --dyec-deploy-key-secret-arn "$DYEC_DEPLOY_KEY_SECRET_ARN" \
+  --dayoa-deploy-key-secret-arn "$DAYOA_DEPLOY_KEY_SECRET_ARN"
 ```
+
+Both deploy-key secret references are required. DYEC rejects a missing or blank
+reference before selecting the headnode or sending an SSM command.
 
 Run this after a DYEC upgrade when the headnode is missing new commands such as `dyec analysis status`, `dyec headnode run`, or current `dy-r` analysis-lock support.
 

@@ -48,13 +48,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--dyec-deploy-key-secret-arn",
-        default="",
-        help="Exact Secrets Manager ARN for the DYEC read-only deploy key",
+        required=True,
+        help="Required exact Secrets Manager ARN for the DYEC read-only deploy key",
     )
     parser.add_argument(
         "--dayoa-deploy-key-secret-arn",
-        default="",
-        help="Exact Secrets Manager ARN for the DayOA read-only deploy key",
+        required=True,
+        help="Required exact Secrets Manager ARN for the DayOA read-only deploy key",
     )
     return parser
 
@@ -63,6 +63,12 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if not args.profile:
         raise CommandError("AWS profile is required. Set AWS_PROFILE or use --profile.")
+    dyec_deploy_key_secret_arn = args.dyec_deploy_key_secret_arn.strip()
+    dayoa_deploy_key_secret_arn = args.dayoa_deploy_key_secret_arn.strip()
+    if not dyec_deploy_key_secret_arn:
+        raise CommandError("--dyec-deploy-key-secret-arn must be non-empty.")
+    if not dayoa_deploy_key_secret_arn:
+        raise CommandError("--dayoa-deploy-key-secret-arn must be non-empty.")
 
     need_cmd("aws")
     need_cmd("pcluster")
@@ -72,7 +78,7 @@ def main(argv: list[str] | None = None) -> int:
     overrides = _load_repo_overrides(args.repo_overrides)
     try:
         dyec_repo_spec = resolve_configured_headnode_repo_spec(
-            deploy_key_auth=bool(args.dyec_deploy_key_secret_arn)
+            deploy_key_auth=True
         )
     except RuntimeError as exc:
         raise CommandError(f"Unable to resolve the running DYEC release: {exc}") from exc
@@ -84,12 +90,12 @@ def main(argv: list[str] | None = None) -> int:
         head_node_instance_id=target.instance_id,
         region=region,
         profile=args.profile,
-        dyec_deploy_key_secret_arn=args.dyec_deploy_key_secret_arn,
-        dyec_deploy_key_region=region if args.dyec_deploy_key_secret_arn else "",
+        dyec_deploy_key_secret_arn=dyec_deploy_key_secret_arn,
+        dyec_deploy_key_region=region,
         dyec_repo_url=dyec_repo_spec.url,
         dyec_repo_ref=dyec_repo_spec.ref,
-        dayoa_deploy_key_secret_arn=args.dayoa_deploy_key_secret_arn,
-        dayoa_deploy_key_region=region if args.dayoa_deploy_key_secret_arn else "",
+        dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
+        dayoa_deploy_key_region=region,
         repo_overrides=overrides or None,
     )
     if not ok:

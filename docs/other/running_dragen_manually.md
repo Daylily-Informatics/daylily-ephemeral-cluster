@@ -99,7 +99,9 @@ After creation reaches `CREATE_COMPLETE`, use the supported DYEC surfaces:
 ```bash
 dyec cluster-info --profile lsmc --region us-west-2
 dyec headnode jobs --profile lsmc --region us-west-2 --cluster dragain9b
-dyec headnode configure-dragen --profile lsmc --region us-west-2 --cluster dragain9b
+dyec headnode configure-dragen --profile lsmc --region us-west-2 --cluster dragain9b \
+  --dyec-deploy-key-secret-arn "$DYEC_DEPLOY_KEY_SECRET_ARN" \
+  --dayoa-deploy-key-secret-arn "$DAYOA_DEPLOY_KEY_SECRET_ARN"
 dyec headnode connect --profile lsmc --region us-west-2 --cluster dragain9b
 ```
 

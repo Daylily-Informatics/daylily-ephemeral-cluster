@@ -5113,14 +5113,20 @@ def _configure_headnode_command(
     )
 
     _warn_if_dayec_env_inactive()
+    dyec_secret_arn = dyec_deploy_key_secret_arn.strip()
+    dayoa_secret_arn = dayoa_deploy_key_secret_arn.strip()
+    github_token_arn = github_token_secret_arn.strip()
     try:
+        if not dyec_secret_arn:
+            raise CommandError("--dyec-deploy-key-secret-arn must be non-empty.")
+        if not dayoa_secret_arn:
+            raise CommandError("--dayoa-deploy-key-secret-arn must be non-empty.")
         resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
             profile=profile,
             region=region,
             cluster=cluster,
         )
         overrides = _load_repo_overrides(str(repo_overrides) if repo_overrides else None)
-        dyec_secret_arn = dyec_deploy_key_secret_arn.strip()
         try:
             dyec_repo_spec = resolve_configured_headnode_repo_spec(
                 deploy_key_auth=bool(dyec_secret_arn)
@@ -5142,10 +5148,10 @@ def _configure_headnode_command(
             dyec_deploy_key_region=resolved_region if dyec_secret_arn else "",
             dyec_repo_url=dyec_repo_spec.url,
             dyec_repo_ref=dyec_repo_spec.ref,
-            dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn.strip(),
-            dayoa_deploy_key_region=resolved_region if dayoa_deploy_key_secret_arn.strip() else "",
-            github_token_secret_arn=github_token_secret_arn.strip(),
-            github_token_region=resolved_region if github_token_secret_arn.strip() else "",
+            dayoa_deploy_key_secret_arn=dayoa_secret_arn,
+            dayoa_deploy_key_region=resolved_region,
+            github_token_secret_arn=github_token_arn,
+            github_token_region=resolved_region if github_token_arn else "",
             repo_overrides=overrides or None,
             remote_user=remote_user,
         )
@@ -5180,19 +5186,19 @@ def headnode_configure(
         help="File containing repo overrides as repo-key:git-ref lines.",
     ),
     dyec_deploy_key_secret_arn: str = typer.Option(
-        "",
+        ...,
         "--dyec-deploy-key-secret-arn",
         help=(
-            "Exact Secrets Manager ARN for the DYEC read-only deploy key. The headnode "
+            "Required exact Secrets Manager ARN for the DYEC read-only deploy key. The headnode "
             "role must already allow access to this secret."
         ),
     ),
     dayoa_deploy_key_secret_arn: str = typer.Option(
-        "",
+        ...,
         "--dayoa-deploy-key-secret-arn",
         help=(
-            "Exact Secrets Manager ARN for the DayOA read-only deploy key. Required when "
-            "configuring a legacy headnode that does not already have the reference."
+            "Required exact Secrets Manager ARN for the DayOA read-only deploy key. The headnode "
+            "role must already allow access to this secret."
         ),
     ),
     github_token_secret_arn: str = typer.Option(
@@ -5242,19 +5248,19 @@ def headnode_configure_dragen(
         help="File containing repo overrides as repo-key:git-ref lines.",
     ),
     dyec_deploy_key_secret_arn: str = typer.Option(
-        "",
+        ...,
         "--dyec-deploy-key-secret-arn",
         help=(
-            "Exact Secrets Manager ARN for the DYEC read-only deploy key. The headnode "
+            "Required exact Secrets Manager ARN for the DYEC read-only deploy key. The headnode "
             "role must already allow access to this secret."
         ),
     ),
     dayoa_deploy_key_secret_arn: str = typer.Option(
-        "",
+        ...,
         "--dayoa-deploy-key-secret-arn",
         help=(
-            "Exact Secrets Manager ARN for the DayOA read-only deploy key. Required when "
-            "configuring a legacy headnode that does not already have the reference."
+            "Required exact Secrets Manager ARN for the DayOA read-only deploy key. The headnode "
+            "role must already allow access to this secret."
         ),
     ),
     github_token_secret_arn: str = typer.Option(

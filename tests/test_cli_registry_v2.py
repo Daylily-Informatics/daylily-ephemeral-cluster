@@ -3005,6 +3005,61 @@ def test_headnode_configure_has_no_version_override() -> None:
         assert "--dyec-version" not in result.output
 
 
+@pytest.mark.parametrize("command", ("configure", "configure-dragen"))
+def test_headnode_configure_requires_both_deploy_key_references(command: str) -> None:
+    base = ["headnode", command, "--profile", "dev", "--region", "us-west-2", "--cluster", "cluster-a"]
+
+    missing_dyec = runner.invoke(app, base)
+    assert missing_dyec.exit_code == 2
+    assert "--dyec-deploy-key-secret-arn" in missing_dyec.output
+
+    missing_dayoa = runner.invoke(
+        app,
+        base + ["--dyec-deploy-key-secret-arn", "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key"],
+    )
+    assert missing_dayoa.exit_code == 2
+    assert "--dayoa-deploy-key-secret-arn" in missing_dayoa.output
+
+
+@pytest.mark.parametrize(
+    ("command", "blank_option", "expected_message"),
+    (
+        ("configure", "--dyec-deploy-key-secret-arn", "--dyec-deploy-key-secret-arn must be non-empty"),
+        ("configure-dragen", "--dayoa-deploy-key-secret-arn", "--dayoa-deploy-key-secret-arn must be non-empty"),
+    ),
+)
+def test_headnode_configure_rejects_blank_deploy_key_before_target_resolution(
+    monkeypatch,
+    command: str,
+    blank_option: str,
+    expected_message: str,
+) -> None:
+    def unexpected_target_resolution(**_kwargs):
+        pytest.fail("blank deploy-key input must fail before target resolution")
+
+    monkeypatch.setattr(cli_module, "_resolve_headnode_cli_target", unexpected_target_resolution)
+    args = [
+        "headnode",
+        command,
+        "--profile",
+        "dev",
+        "--region",
+        "us-west-2",
+        "--cluster",
+        "cluster-a",
+        "--dyec-deploy-key-secret-arn",
+        "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+        "--dayoa-deploy-key-secret-arn",
+        "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
+    ]
+    args[args.index(blank_option) + 1] = " "
+
+    result = runner.invoke(app, args)
+
+    assert result.exit_code == 1
+    assert expected_message in result.stderr
+
+
 def test_headnode_configure_uses_workflow_configure(monkeypatch, tmp_path) -> None:
     import daylily_ec.aws.ssm as ssm_module
     import daylily_ec.workflow.create_cluster as workflow_module
@@ -3052,18 +3107,22 @@ def test_headnode_configure_uses_workflow_configure(monkeypatch, tmp_path) -> No
             "cluster-a",
             "--repo-overrides",
             str(override_file),
+            "--dyec-deploy-key-secret-arn",
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+            "--dayoa-deploy-key-secret-arn",
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
         ],
     )
 
     assert result.exit_code == 0
     assert calls["configure"] == {
         "cluster_name": "cluster-a",
-        "dyec_deploy_key_region": "",
-        "dyec_deploy_key_secret_arn": "",
+        "dyec_deploy_key_region": "us-west-2",
+        "dyec_deploy_key_secret_arn": "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
         "dyec_repo_ref": "16.1.85",
         "dyec_repo_url": "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
-        "dayoa_deploy_key_region": "",
-        "dayoa_deploy_key_secret_arn": "",
+        "dayoa_deploy_key_region": "us-west-2",
+        "dayoa_deploy_key_secret_arn": "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
         "github_token_region": "",
         "github_token_secret_arn": "",
         "head_node_instance_id": "i-abc123",
@@ -3121,18 +3180,22 @@ def test_headnode_configure_dragen_uses_ec2_user(monkeypatch, tmp_path) -> None:
             "dragen-cluster",
             "--repo-overrides",
             str(override_file),
+            "--dyec-deploy-key-secret-arn",
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+            "--dayoa-deploy-key-secret-arn",
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
         ],
     )
 
     assert result.exit_code == 0
     assert calls["configure"] == {
         "cluster_name": "dragen-cluster",
-        "dyec_deploy_key_region": "",
-        "dyec_deploy_key_secret_arn": "",
+        "dyec_deploy_key_region": "us-west-2",
+        "dyec_deploy_key_secret_arn": "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
         "dyec_repo_ref": "16.1.85",
         "dyec_repo_url": "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
-        "dayoa_deploy_key_region": "",
-        "dayoa_deploy_key_secret_arn": "",
+        "dayoa_deploy_key_region": "us-west-2",
+        "dayoa_deploy_key_secret_arn": "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
         "github_token_region": "",
         "github_token_secret_arn": "",
         "head_node_instance_id": "i-drg123",

@@ -1831,7 +1831,18 @@ class TestCfgHeadnodeScript:
         override_file = tmp_path / "repos.txt"
         override_file.write_text("daylily-omics-analysis:release-1\n", encoding="utf-8")
 
-        rc = cfg_headnode_module.main(["--profile", "dev", "--repo-overrides", str(override_file)])
+        rc = cfg_headnode_module.main(
+            [
+                "--profile",
+                "dev",
+                "--repo-overrides",
+                str(override_file),
+                "--dyec-deploy-key-secret-arn",
+                "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+                "--dayoa-deploy-key-secret-arn",
+                "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
+            ]
+        )
 
         assert rc == 0
         mock_configure.assert_called_once_with(
@@ -1839,12 +1850,12 @@ class TestCfgHeadnodeScript:
             head_node_instance_id="i-abc123",
             region="us-west-2",
             profile="dev",
-            dyec_deploy_key_secret_arn="",
-            dyec_deploy_key_region="",
+            dyec_deploy_key_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+            dyec_deploy_key_region="us-west-2",
             dyec_repo_url="https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
             dyec_repo_ref="16.1.85",
-            dayoa_deploy_key_secret_arn="",
-            dayoa_deploy_key_region="",
+            dayoa_deploy_key_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
+            dayoa_deploy_key_region="us-west-2",
             repo_overrides={"daylily-omics-analysis": "release-1"},
         )
         assert "Headnode configured via SSM" in capsys.readouterr().out
@@ -1852,6 +1863,39 @@ class TestCfgHeadnodeScript:
     def test_parser_does_not_offer_a_dyec_version_override(self):
         with pytest.raises(SystemExit):
             cfg_headnode_module.build_parser().parse_args(["--dyec-version", "16.1.84"])
+
+    def test_parser_requires_both_deploy_key_references(self):
+        parser = cfg_headnode_module.build_parser()
+        with pytest.raises(SystemExit):
+            parser.parse_args(["--profile", "dev"])
+        with pytest.raises(SystemExit):
+            parser.parse_args(
+                [
+                    "--profile",
+                    "dev",
+                    "--dyec-deploy-key-secret-arn",
+                    "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+                ]
+            )
+
+    def test_main_rejects_blank_deploy_key_reference_before_tools(self, monkeypatch):
+        monkeypatch.setattr(
+            cfg_headnode_module,
+            "need_cmd",
+            lambda *_args, **_kwargs: pytest.fail("blank key must fail before tool checks"),
+        )
+
+        with pytest.raises(CommandError, match="--dyec-deploy-key-secret-arn must be non-empty"):
+            cfg_headnode_module.main(
+                [
+                    "--profile",
+                    "dev",
+                    "--dyec-deploy-key-secret-arn",
+                    " ",
+                    "--dayoa-deploy-key-secret-arn",
+                    "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
+                ]
+            )
 
     @patch("daylily_ec.scripts.daylily_cfg_headnode.configure_headnode", return_value=False)
     @patch(
@@ -1880,7 +1924,16 @@ class TestCfgHeadnodeScript:
         _mock_configure,
     ):
         with pytest.raises(CommandError, match="Headnode configuration failed"):
-            cfg_headnode_module.main(["--profile", "dev"])
+            cfg_headnode_module.main(
+                [
+                    "--profile",
+                    "dev",
+                    "--dyec-deploy-key-secret-arn",
+                    "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+                    "--dayoa-deploy-key-secret-arn",
+                    "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
+                ]
+            )
 
 
 class TestRemoteTestsScript:
