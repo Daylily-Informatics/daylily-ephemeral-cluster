@@ -1,0 +1,21 @@
+ANALYSIS_UNIT_UID	ANALYSIS_UNIT_EUID	SAMPLEID	DELIVERY_EUID	DELIVERY_PROFILE	CUSTOMER_DELIVERY_ID	SUBSAMPLE_PCT	ONT_SUBSAMPLE_PCT	ONT_FQ_START_HOUR	ONT_FQ_END_HOUR	ALIGNED_REF_UID	BWA_KMER	DEEP_MODEL	MERGE_SINGLE	ANALYSIS_UNIT_COMMENT
+HG002-ilmn0p5x_ont0p5x_h01		HG002				0.011433798307		0	1		19	WGS	single	Bjuice v2 HG002 AU ilmn0p5x_ont0p5x_h01: direct ILMN target 0.5x / 43.73x; ONT target 0.5x interval [0,1).
+HG002-ilmn0p5x_ont4x_h08		HG002				0.011433798307		0	8		19	WGS	single	Bjuice v2 HG002 AU ilmn0p5x_ont4x_h08: direct ILMN target 0.5x / 43.73x; ONT target 4x interval [0,8).
+HG002-ilmn0p5x_ont12x_h24		HG002				0.011433798307		0	24		19	WGS	single	Bjuice v2 HG002 AU ilmn0p5x_ont12x_h24: direct ILMN target 0.5x / 43.73x; ONT target 12x interval [0,24).
+HG002-ilmn0p5x_ont30x_h72		HG002				0.011433798307		0	72		19	WGS	single	Bjuice v2 HG002 AU ilmn0p5x_ont30x_h72: direct ILMN target 0.5x / 43.73x; ONT target 30x interval [0,72).
+HG002-ilmn2x_ont0p5x_h01		HG002				0.045735193231		0	1		19	WGS	single	Bjuice v2 HG002 AU ilmn2x_ont0p5x_h01: direct ILMN target 2x / 43.73x; ONT target 0.5x interval [0,1).
+HG002-ilmn2x_ont4x_h08		HG002				0.045735193231		0	8		19	WGS	single	Bjuice v2 HG002 AU ilmn2x_ont4x_h08: direct ILMN target 2x / 43.73x; ONT target 4x interval [0,8).
+HG002-ilmn2x_ont12x_h24		HG002				0.045735193231		0	24		19	WGS	single	Bjuice v2 HG002 AU ilmn2x_ont12x_h24: direct ILMN target 2x / 43.73x; ONT target 12x interval [0,24).
+HG002-ilmn2x_ont30x_h72		HG002				0.045735193231		0	72		19	WGS	single	Bjuice v2 HG002 AU ilmn2x_ont30x_h72: direct ILMN target 2x / 43.73x; ONT target 30x interval [0,72).
+HG002-ilmn10x_ont0p5x_h01		HG002				0.228675966155		0	1		19	WGS	single	Bjuice v2 HG002 AU ilmn10x_ont0p5x_h01: direct ILMN target 10x / 43.73x; ONT target 0.5x interval [0,1).
+HG002-ilmn10x_ont4x_h08		HG002				0.228675966155		0	8		19	WGS	single	Bjuice v2 HG002 AU ilmn10x_ont4x_h08: direct ILMN target 10x / 43.73x; ONT target 4x interval [0,8).
+HG002-ilmn10x_ont12x_h24		HG002				0.228675966155		0	24		19	WGS	single	Bjuice v2 HG002 AU ilmn10x_ont12x_h24: direct ILMN target 10x / 43.73x; ONT target 12x interval [0,24).
+HG002-ilmn10x_ont30x_h72		HG002				0.228675966155		0	72		19	WGS	single	Bjuice v2 HG002 AU ilmn10x_ont30x_h72: direct ILMN target 10x / 43.73x; ONT target 30x interval [0,72).
+HG002-ilmn20x_ont0p5x_h01		HG002				0.457351932311		0	1		19	WGS	single	Bjuice v2 HG002 AU ilmn20x_ont0p5x_h01: direct ILMN target 20x / 43.73x; ONT target 0.5x interval [0,1).
+HG002-ilmn20x_ont4x_h08		HG002				0.457351932311		0	8		19	WGS	single	Bjuice v2 HG002 AU ilmn20x_ont4x_h08: direct ILMN target 20x / 43.73x; ONT target 4x interval [0,8).
+HG002-ilmn20x_ont12x_h24		HG002				0.457351932311		0	24		19	WGS	single	Bjuice v2 HG002 AU ilmn20x_ont12x_h24: direct ILMN target 20x / 43.73x; ONT target 12x interval [0,24).
+HG002-ilmn20x_ont30x_h72		HG002				0.457351932311		0	72		19	WGS	single	Bjuice v2 HG002 AU ilmn20x_ont30x_h72: direct ILMN target 20x / 43.73x; ONT target 30x interval [0,72).
+HG002-ilmn5x_ont30x_h72		HG002				0.114337983077		0	72		19	WGS	single	Bjuice v2 HG002 AU ilmn5x_ont30x_h72: direct ILMN target 5x / 43.73x; ONT target 30x interval [0,72).
+HG002-ilmn15x_ont30x_h72		HG002				0.343013949233		0	72		19	WGS	single	Bjuice v2 HG002 AU ilmn15x_ont30x_h72: direct ILMN target 15x / 43.73x; ONT target 30x interval [0,72).
+HG002-ilmn30x_ont30x_h72		HG002				0.686027898467		0	72		19	WGS	single	Bjuice v2 HG002 AU ilmn30x_ont30x_h72: direct ILMN target 30x / 43.73x; ONT target 30x interval [0,72).
+HG002-ilmn43p73x_ont30x_h72		HG002				1.000000000000		0	72		19	WGS	single	Bjuice v2 HG002 AU ilmn43p73x_ont30x_h72: direct ILMN target 43.73x / 43.73x; ONT target 30x interval [0,72).

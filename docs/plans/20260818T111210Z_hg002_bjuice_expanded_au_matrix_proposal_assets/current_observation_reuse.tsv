@@ -1,0 +1,13 @@
+observation_id	experiment	analysis_id	au	ont_window	input_illumina_fraction	measured_native_sr_x	measured_rsr_x	measured_lr_ont_x	reuse_role
+OBS01	E3	prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z	10xby10x	[0,19)	0.225245826663	10.81	3.72	9.67	direct-S3 measured evidence; do not infer a planned native-SR control from E1 input label
+OBS02	E3	prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z	12xby12x	[0,24)	0.290647152984	13.83	4.77	11.43	direct-S3 measured evidence; do not infer a planned native-SR control from E1 input label
+OBS03	E3	prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z	20xby15x	[0,36)	0.457351932311	21.33	7.36	14.71	direct-S3 measured evidence; do not infer a planned native-SR control from E1 input label
+OBS04	E3	prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z	30xby15x	[0,36)	0.686027898467	31.12	10.50	14.71	direct-S3 measured evidence; do not infer a planned native-SR control from E1 input label
+OBS05	E1	prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z	p5xp5	[0,1)	0.011433798307	43.73	8.54	0.57	direct-S3 measured evidence; do not infer a planned native-SR control from E1 input label
+OBS06	E1	prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z	1x1	[0,2)	0.022867596615	43.73	9.85	1.16	direct-S3 measured evidence; do not infer a planned native-SR control from E1 input label
+OBS07	E1	prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z	3x3	[0,7)	0.068602789846	43.73	11.93	4.09	direct-S3 measured evidence; do not infer a planned native-SR control from E1 input label
+OBS08	E1	prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z	5x5	[0,11)	0.114337983077	43.73	12.71	6.20	direct-S3 measured evidence; do not infer a planned native-SR control from E1 input label
+OBS09	E1	prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z	10x5	[0,19)	0.228675966155	43.73	13.65	9.67	direct-S3 measured evidence; do not infer a planned native-SR control from E1 input label
+OBS10	E1	prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z	15x10	[0,19)	0.343013949233	43.73	13.65	9.67	direct-S3 measured evidence; do not infer a planned native-SR control from E1 input label
+OBS11	E1	prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z	15x5	[0,24)	0.343013949233	43.73	14.01	11.43	direct-S3 measured evidence; do not infer a planned native-SR control from E1 input label
+OBS12	P1	pcand18022-bjuice-preval6-15014-dry-20260817t112900z	fullcov_0to24	[0,24)	full	43.73	14.01	11.43	direct-S3 measured evidence; do not infer a planned native-SR control from E1 input label
