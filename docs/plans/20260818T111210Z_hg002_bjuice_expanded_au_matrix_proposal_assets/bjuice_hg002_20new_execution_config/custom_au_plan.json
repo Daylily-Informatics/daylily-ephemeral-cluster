@@ -1,0 +1,44 @@
+{
+  "schema": "dyec.bjuice_v2_hg002_custom_au_plan.v1",
+  "sample_id": "HG002",
+  "description": "Twenty new Bjuice HG002 controlled downsampling AUs. The 12 E1/E3/P1 observations are retained as evidence and are deliberately not repeated here.",
+  "direct_ilmn_coverage_x": "43.73",
+  "ont_hour_basis": {
+    "method": "cumulative ONT FASTQ input windows; actual LR Mosdepth is measured after execution",
+    "nominal_coverage_strata_x": {
+      "0_1_hours": "0.5",
+      "0_8_hours": "4",
+      "0_24_hours": "12",
+      "0_72_hours": "30"
+    },
+    "observed_reference_points": [
+      {"end_hour": 1, "measured_lr_coverage_x": "0.57", "evidence": "E1"},
+      {"end_hour": 19, "measured_lr_coverage_x": "9.67", "evidence": "E1/E3"},
+      {"end_hour": 24, "measured_lr_coverage_x": "11.43", "evidence": "E1/E3/P1"},
+      {"end_hour": 36, "measured_lr_coverage_x": "14.71", "evidence": "E3"}
+    ],
+    "guardrail": "The nominal ONT values classify requested input intervals only. They must not be emitted as measured coverage."
+  },
+  "analysis_units": [
+    {"label": "ilmn0p5x_ont0p5x_h01", "target_ilmn_coverage_x": "0.5", "target_ont_coverage_x": "0.5", "ont_fq_start_hour": 0, "ont_fq_end_hour": 1},
+    {"label": "ilmn0p5x_ont4x_h08", "target_ilmn_coverage_x": "0.5", "target_ont_coverage_x": "4", "ont_fq_start_hour": 0, "ont_fq_end_hour": 8},
+    {"label": "ilmn0p5x_ont12x_h24", "target_ilmn_coverage_x": "0.5", "target_ont_coverage_x": "12", "ont_fq_start_hour": 0, "ont_fq_end_hour": 24},
+    {"label": "ilmn0p5x_ont30x_h72", "target_ilmn_coverage_x": "0.5", "target_ont_coverage_x": "30", "ont_fq_start_hour": 0, "ont_fq_end_hour": 72},
+    {"label": "ilmn2x_ont0p5x_h01", "target_ilmn_coverage_x": "2", "target_ont_coverage_x": "0.5", "ont_fq_start_hour": 0, "ont_fq_end_hour": 1},
+    {"label": "ilmn2x_ont4x_h08", "target_ilmn_coverage_x": "2", "target_ont_coverage_x": "4", "ont_fq_start_hour": 0, "ont_fq_end_hour": 8},
+    {"label": "ilmn2x_ont12x_h24", "target_ilmn_coverage_x": "2", "target_ont_coverage_x": "12", "ont_fq_start_hour": 0, "ont_fq_end_hour": 24},
+    {"label": "ilmn2x_ont30x_h72", "target_ilmn_coverage_x": "2", "target_ont_coverage_x": "30", "ont_fq_start_hour": 0, "ont_fq_end_hour": 72},
+    {"label": "ilmn10x_ont0p5x_h01", "target_ilmn_coverage_x": "10", "target_ont_coverage_x": "0.5", "ont_fq_start_hour": 0, "ont_fq_end_hour": 1},
+    {"label": "ilmn10x_ont4x_h08", "target_ilmn_coverage_x": "10", "target_ont_coverage_x": "4", "ont_fq_start_hour": 0, "ont_fq_end_hour": 8},
+    {"label": "ilmn10x_ont12x_h24", "target_ilmn_coverage_x": "10", "target_ont_coverage_x": "12", "ont_fq_start_hour": 0, "ont_fq_end_hour": 24},
+    {"label": "ilmn10x_ont30x_h72", "target_ilmn_coverage_x": "10", "target_ont_coverage_x": "30", "ont_fq_start_hour": 0, "ont_fq_end_hour": 72},
+    {"label": "ilmn20x_ont0p5x_h01", "target_ilmn_coverage_x": "20", "target_ont_coverage_x": "0.5", "ont_fq_start_hour": 0, "ont_fq_end_hour": 1},
+    {"label": "ilmn20x_ont4x_h08", "target_ilmn_coverage_x": "20", "target_ont_coverage_x": "4", "ont_fq_start_hour": 0, "ont_fq_end_hour": 8},
+    {"label": "ilmn20x_ont12x_h24", "target_ilmn_coverage_x": "20", "target_ont_coverage_x": "12", "ont_fq_start_hour": 0, "ont_fq_end_hour": 24},
+    {"label": "ilmn20x_ont30x_h72", "target_ilmn_coverage_x": "20", "target_ont_coverage_x": "30", "ont_fq_start_hour": 0, "ont_fq_end_hour": 72},
+    {"label": "ilmn5x_ont30x_h72", "target_ilmn_coverage_x": "5", "target_ont_coverage_x": "30", "ont_fq_start_hour": 0, "ont_fq_end_hour": 72},
+    {"label": "ilmn15x_ont30x_h72", "target_ilmn_coverage_x": "15", "target_ont_coverage_x": "30", "ont_fq_start_hour": 0, "ont_fq_end_hour": 72},
+    {"label": "ilmn30x_ont30x_h72", "target_ilmn_coverage_x": "30", "target_ont_coverage_x": "30", "ont_fq_start_hour": 0, "ont_fq_end_hour": 72},
+    {"label": "ilmn43p73x_ont30x_h72", "target_ilmn_coverage_x": "43.73", "target_ont_coverage_x": "30", "ont_fq_start_hour": 0, "ont_fq_end_hour": 72}
+  ]
+}
