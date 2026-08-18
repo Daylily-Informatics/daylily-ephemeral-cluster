@@ -18,9 +18,10 @@ PACKAGED_CATALOG = (
     / "config"
     / "daylily_pipeline_command_catalog.yaml"
 )
-DYEC_RELEASE = "18.0.45"
-DAYOA_RELEASE = "15.0.26"
-BASELINE_DYEC_RELEASE = "18.0.43"
+DYEC_RELEASE = "18.0.46"
+DAYOA_RELEASE = "15.0.27"
+PREVIOUS_DYEC_RELEASE = "18.0.45"
+LEGACY_DYEC_RELEASE = "18.0.43"
 RECONCILED_DYEC_RELEASE = "18.0.44"
 
 NINE_EXISTING_LANE_IDS = (
@@ -65,12 +66,13 @@ def _render_kwargs(command) -> dict[str, str]:
     return kwargs
 
 
-def test_18_0_45_is_a_current_parity_snapshot_pinned_only_to_dayoa_15_0_26() -> None:
+def test_18_0_46_is_a_current_parity_snapshot_pinned_only_to_dayoa_15_0_27() -> None:
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
     raw = _raw_catalog()
     release = raw["dyec_builds"][DYEC_RELEASE]
     current = raw["dyec_builds"]["current"]
-    baseline = _release_tag_catalog(BASELINE_DYEC_RELEASE)
+    previous = _release_tag_catalog(PREVIOUS_DYEC_RELEASE)
+    legacy = _release_tag_catalog(LEGACY_DYEC_RELEASE)
     reconciled = _release_tag_catalog(RECONCILED_DYEC_RELEASE)
 
     assert release == current
@@ -80,13 +82,17 @@ def test_18_0_45_is_a_current_parity_snapshot_pinned_only_to_dayoa_15_0_26() -> 
     assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == DAYOA_RELEASE
     assert release["dayoa_git_tags"] == [DAYOA_RELEASE]
     assert {command["git_tag"] for command in release["commands"].values()} == {DAYOA_RELEASE}
-    assert raw["dyec_builds"][BASELINE_DYEC_RELEASE] == baseline["dyec_builds"][
-        BASELINE_DYEC_RELEASE
+    assert raw["dyec_builds"][PREVIOUS_DYEC_RELEASE] == previous["dyec_builds"][
+        PREVIOUS_DYEC_RELEASE
     ]
-    assert raw["dyec_builds"][BASELINE_DYEC_RELEASE]["dayoa_git_tags"] == ["15.0.24"]
+    assert raw["dyec_builds"][PREVIOUS_DYEC_RELEASE]["dayoa_git_tags"] == ["15.0.26"]
+    assert raw["dyec_builds"][LEGACY_DYEC_RELEASE] == legacy["dyec_builds"][
+        LEGACY_DYEC_RELEASE
+    ]
+    assert raw["dyec_builds"][LEGACY_DYEC_RELEASE]["dayoa_git_tags"] == ["15.0.24"]
 
 
-def test_18_0_45_all_eleven_production_lanes_have_exact_rc0_controller_shapes() -> None:
+def test_18_0_46_all_eleven_production_lanes_have_exact_rc0_controller_shapes() -> None:
     catalog = load_repository_catalog(SOURCE_CATALOG)
 
     for command_id in ALL_LANE_IDS:
@@ -107,7 +113,7 @@ def test_18_0_45_all_eleven_production_lanes_have_exact_rc0_controller_shapes() 
         assert command.dryrun_dy_command == f"{command.dy_command} -n"
 
         argv = command.launch_argv(
-            analysis_id="release-18045-catalog-render",
+            analysis_id="release-18046-catalog-render",
             executing_entity="pre-rel-18025",
             dry_run=True,
             **_render_kwargs(command),
@@ -121,7 +127,7 @@ def test_18_0_45_all_eleven_production_lanes_have_exact_rc0_controller_shapes() 
         assert " -n" in rendered
 
 
-def test_18_0_45_pangenome_lanes_use_graph_targets_without_a_pangenome_genome_build() -> None:
+def test_18_0_46_pangenome_lanes_use_graph_targets_without_a_pangenome_genome_build() -> None:
     catalog = load_repository_catalog(SOURCE_CATALOG)
     illumina = catalog.get_command_for_dyec_build(
         "illumina_sentieon_pangenome_kitchensink", DYEC_RELEASE
@@ -166,11 +172,11 @@ def test_18_0_45_pangenome_lanes_use_graph_targets_without_a_pangenome_genome_bu
         assert "genome_build=pangenome" not in command.dy_command
 
 
-def test_18_0_45_leaves_legacy_dev_pangenome_closures_unmodified() -> None:
+def test_18_0_46_leaves_legacy_dev_pangenome_closures_unmodified() -> None:
     raw = _raw_catalog()
-    baseline = _release_tag_catalog(BASELINE_DYEC_RELEASE)
+    legacy = _release_tag_catalog(LEGACY_DYEC_RELEASE)
     commands = raw["dyec_builds"][DYEC_RELEASE]["commands"]
-    baseline_commands = baseline["dyec_builds"][BASELINE_DYEC_RELEASE]["commands"]
+    baseline_commands = legacy["dyec_builds"][LEGACY_DYEC_RELEASE]["commands"]
 
     expected_targets = {
         "illumina_pangenome_snv": ["produce_sentpg_snv_vcf"],

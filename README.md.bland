@@ -1,7 +1,7 @@
 # Daylily Ephemeral Cluster
 
 DYEC is the command-line control plane for short-lived AWS ParallelCluster
-bioinformatics environments. This concise guide describes the `18.0.45` release.
+bioinformatics environments. This concise guide describes the `18.0.46` release.
 Use [README.md](README.md) and [docs/cli_reference.md](docs/cli_reference.md)
 for the full operator contract.
 
@@ -79,7 +79,7 @@ Otherwise the create YAML's `budget_email` takes precedence over the local
 
 ## Catalog-first DayOA launch
 
-The shipped catalog targets DayOA `15.0.26`. Inspect a command before launch;
+The shipped catalog targets DayOA `15.0.27`. Inspect a command before launch;
 its `input_contract` determines whether it needs a local six-manifest directory,
 a staged sample-manifest input, a run-context TSV, or no input files.
 
@@ -113,7 +113,7 @@ dyec workflow launch \
   --cluster "$CLUSTER" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$CLUSTER" \
-  --git-tag 15.0.26 \
+  --git-tag 15.0.27 \
   --manifest-dir ./config \
   --payload-staging-s3-uri s3://<bucket>/<temporary-relay-prefix>/ \
   --dy-command "dy-r <exact-target> -p -k -j 6"
