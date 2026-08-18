@@ -34,8 +34,16 @@ EXPERIMENTS = {
         "analysis_id": "prod-cand-1703-hg002-bjuice-v2-seqkitfix-20260815T080300Z",
         "title": "Corrected balanced re-downsampling experiment",
     },
+    "E3": {
+        "analysis_id": "prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z",
+        "title": "Four-AU measured-coverage gap-fill experiment",
+    },
+    "P1": {
+        "analysis_id": "pcand18022-bjuice-preval6-15014-dry-20260817t112900z",
+        "title": "Bjuice v0.9 production full-coverage execution 1",
+    },
 }
-AU_ORDER = ["p5xp5", "1x1", "3x3", "5x5", "10x5", "15x5", "15x10"]
+AU_ORDER = ["p5xp5", "1x1", "3x3", "5x5", "10x5", "15x5", "15x10", "10xby10x", "12xby12x", "20xby15x", "30xby15x", "fullcov_0to24"]
 AU_INDEX = {name: index for index, name in enumerate(AU_ORDER)}
 TARGETS = {
     "p5xp5": (Decimal("0.5"), Decimal("0.5")),
@@ -45,15 +53,27 @@ TARGETS = {
     "10x5": (Decimal("10"), Decimal("5")),
     "15x5": (Decimal("15"), Decimal("5")),
     "15x10": (Decimal("15"), Decimal("10")),
+    "10xby10x": (Decimal("9.85"), Decimal("9.67")),
+    "12xby12x": (Decimal("12.71"), Decimal("11.43")),
+    "20xby15x": (Decimal("20"), Decimal("15")),
+    "30xby15x": (Decimal("30"), Decimal("15")),
 }
-EXPERIMENT_COLORS = {"E1": "#3977a8", "E2": "#d0783d"}
-EXPERIMENT_MARKERS = {"E1": "o", "E2": "s"}
+EXPERIMENT_COLORS = {"E1": "#3977a8", "E2": "#d0783d", "E3": "#5d8f70", "P1": "#87589b"}
+EXPERIMENT_MARKERS = {"E1": "o", "E2": "s", "E3": "^", "P1": "P"}
 CALLER_STYLES = {
     "TrussSV": ("#315f88", "o"),
     "Sniffles2": ("#c2783e", "s"),
     "LongReadSV": ("#7a5a9d", "^"),
     "TIDDIT": ("#6f8850", "D"),
 }
+SOURCE_S3_URIS = [
+    ("Shared full-prevalence Illumina FASTQs", "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260618_LH01106_0011_A23MFMCLT3/Analysis/1/Data/BCLConvert/fastq/"),
+    ("Shared HG002 ONT FC1 source", "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC1/20260615_ONT_Set4-FC1/20260616_0048_3A_PBM08268_14b096e3/"),
+    ("Shared HG002 ONT FC2 source", "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC2/20260615_ONT_Set4-FC2/20260616_0040_3B_PBK89197_822a87b5/"),
+    ("Shared HG002 ONT FC3 source", "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC3/20260615_ONT_Set4-FC3/20260616_0041_3C_PBK89101_bd86eaac/"),
+    ("E3 completed no-delete output export", "s3://lsmc-dayoa-analysis-results-usw2/derived/bjuice-v2-multi-analysis-unit/prod-cand-1703/prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z/"),
+    ("P1 completed production output export", "s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-bjuice-preval6-15014-dry-20260817t112900z/daylily-omics-analysis/"),
+]
 
 plt.rcParams.update(
     {
@@ -127,7 +147,7 @@ def annotate_side_labels(
     fontsize: float,
 ) -> None:
     """Place dense point labels in stable experiment-specific callout columns."""
-    for experiment, x_fraction in (("E1", 0.03), ("E2", 0.62)):
+    for experiment, x_fraction in zip(EXPERIMENTS, np.linspace(0.02, 0.77, len(EXPERIMENTS))):
         group = sorted(
             [row for row in points if row["experiment"] == experiment],
             key=lambda row: (float(row[y_key]), float(row[x_key]), row["au"]),
@@ -201,7 +221,147 @@ def verify_source_inventory(experiment: str, bundle_root: Path, dayoa_root: Path
     return verified
 
 
+def parse_compact_e3(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Read the bounded, hash-bound E3 extract collected through DYEC."""
+    bundle_root = evidence_root / "E3"
+    compact_path = bundle_root / "compact_evidence.json"
+    compact = json.loads(compact_path.read_text())
+    units = {row["ANALYSIS_UNIT_UID"]: row for row in compact["units"]}
+    identities = compact["identity"]
+    if len(units) != 4 or len(identities) != 4:
+        raise ValueError("E3: expected four analysis units")
+    observations: list[dict[str, Any]] = []
+    for identity in identities:
+        runtime = identity["RUNTIME_ANALYSIS_UNIT_UID"]
+        unit = units[identity["SOURCE_ANALYSIS_UNIT_UID"]]
+        label = label_from_comment(unit["ANALYSIS_UNIT_COMMENT"])
+        coverage = compact["coverage"].get(runtime)
+        if coverage is None:
+            raise ValueError(f"E3:{runtime}: missing compact coverage")
+        target_ilmn, target_ont = TARGETS[label]
+        ilmn = Decimal(coverage["ilmn"])
+        ont = Decimal(coverage["ont"])
+        observations.append(
+            {
+                "experiment": "E3",
+                "experiment_title": EXPERIMENTS["E3"]["title"],
+                "analysis_id": EXPERIMENTS["E3"]["analysis_id"],
+                "au": label,
+                "runtime_au": runtime,
+                "source_analysis_unit_uid": identity["SOURCE_ANALYSIS_UNIT_UID"],
+                "plot_label": f"E3:{label}",
+                "ilmn_measured_token": coverage["ilmn"],
+                "ilmn_measured": float(ilmn),
+                "ont_measured_token": coverage["ont"],
+                "ont_measured": float(ont),
+                "ilmn_target": float(target_ilmn),
+                "ont_target": float(target_ont),
+                "subsample_pct": unit["SUBSAMPLE_PCT"],
+                "ont_start_hour": int(unit["ONT_FQ_START_HOUR"]),
+                "ont_end_hour": int(unit["ONT_FQ_END_HOUR"]),
+                "ilmn_abs_error": float(ilmn - target_ilmn),
+                "ont_abs_error": float(ont - target_ont),
+                "coverage_source_ilmn": coverage["ilmn_source"],
+                "coverage_source_ont": coverage["ont_source"],
+                "dayoa_root": compact["analysis_root"] + "/daylily-omics-analysis",
+                "selection_status": "source",
+                "compact_evidence": compact,
+            }
+        )
+    expected = {"10xby10x", "12xby12x", "20xby15x", "30xby15x"}
+    if {row["au"] for row in observations} != expected:
+        raise ValueError("E3: AU label set mismatch")
+    inventory = [
+        {
+            "experiment": "E3",
+            "analysis_root": compact["analysis_root"],
+            **row,
+            "local_path": "NA (bounded DYEC headnode extract)",
+            "local_sha256": "NA",
+            "local_sha256_match": "remote_hash_only",
+        }
+        for row in compact["inventory"]
+    ]
+    observations.sort(key=lambda row: AU_INDEX[row["au"]])
+    return observations, {"inventory": inventory, "dayoa_root": None, "bundle_root": bundle_root}
+
+
+def parse_compact_p1(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Read the bounded P1 production extract without inventing a coverage target."""
+    bundle_root = evidence_root / "P1"
+    compact = json.loads((bundle_root / "compact_evidence.json").read_text())
+    expected_contract = {"short_read": "full", "long_read_window": "[0,24)", "coverage_target": None}
+    if compact.get("input_contract") != expected_contract:
+        raise ValueError("P1: full-input contract mismatch")
+    expected_measurement_contract = {
+        "short_read": "native SR (sentdhiomr2sr/smd; not RSR)",
+        "long_read": "LR (sentdhiomr2lr/na)",
+        "metric": "Mosdepth chrom=total mean",
+    }
+    if compact.get("coverage_measurement_contract") != expected_measurement_contract:
+        raise ValueError("P1: coverage measurement contract mismatch")
+    units = {row["ANALYSIS_UNIT_UID"]: row for row in compact["units"]}
+    identities = compact["identity"]
+    if len(units) != 1 or len(identities) != 1:
+        raise ValueError("P1: expected one HG002 full-coverage analysis unit")
+    identity = identities[0]
+    runtime = identity["RUNTIME_ANALYSIS_UNIT_UID"]
+    unit = units.get(identity["SOURCE_ANALYSIS_UNIT_UID"])
+    if unit is None or unit.get("SAMPLEID") != "HG002":
+        raise ValueError("P1: runtime identity does not resolve to HG002")
+    if "SR downsample full; ONT downsample full" not in unit.get("ANALYSIS_UNIT_COMMENT", ""):
+        raise ValueError("P1: manifest does not attest full SR and ONT input")
+    coverage = compact["coverage"].get(runtime)
+    if coverage is None:
+        raise ValueError("P1: missing Mosdepth coverage")
+    if "/align/sentdhiomr2sr/smd/alignqc/mosdepth/" not in coverage["ilmn_source"]:
+        raise ValueError("P1: SR coverage is not from native SR")
+    ilmn = Decimal(coverage["ilmn"])
+    ont = Decimal(coverage["ont"])
+    observation = {
+        "experiment": "P1",
+        "experiment_title": EXPERIMENTS["P1"]["title"],
+        "analysis_id": EXPERIMENTS["P1"]["analysis_id"],
+        "au": "fullcov_0to24",
+        "runtime_au": runtime,
+        "source_analysis_unit_uid": identity["SOURCE_ANALYSIS_UNIT_UID"],
+        "plot_label": "P1:fullcov",
+        "ilmn_measured_token": coverage["ilmn"],
+        "ilmn_measured": float(ilmn),
+        "ont_measured_token": coverage["ont"],
+        "ont_measured": float(ont),
+        "ilmn_target": None,
+        "ont_target": None,
+        "subsample_pct": "full",
+        "ont_start_hour": 0,
+        "ont_end_hour": 24,
+        "ilmn_abs_error": None,
+        "ont_abs_error": None,
+        "coverage_source_ilmn": coverage["ilmn_source"],
+        "coverage_source_ont": coverage["ont_source"],
+        "dayoa_root": compact["analysis_root"],
+        "selection_status": "source",
+        "compact_evidence": compact,
+    }
+    inventory = [
+        {
+            "experiment": "P1",
+            "analysis_root": compact["analysis_root"],
+            **row,
+            "local_path": "NA (bounded S3 export extract)",
+            "local_sha256": "NA",
+            "local_sha256_match": "s3_extract_hash",
+        }
+        for row in compact["inventory"]
+    ]
+    return [observation], {"inventory": inventory, "dayoa_root": None, "bundle_root": bundle_root}
+
+
 def parse_experiment(experiment: str, evidence_root: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    if experiment == "E3":
+        return parse_compact_e3(evidence_root)
+    if experiment == "P1":
+        return parse_compact_p1(evidence_root)
     bundle_root = evidence_root / experiment
     dayoa_root = bundle_root / "daylily-omics-analysis"
     manifest_root = dayoa_root / "results/day/hg38/reports/input_manifests"
@@ -253,7 +413,8 @@ def parse_experiment(experiment: str, evidence_root: Path) -> tuple[list[dict[st
             }
         )
     observations.sort(key=lambda row: (AU_INDEX[row["au"]], row["experiment"]))
-    if {row["au"] for row in observations} != set(AU_ORDER):
+    expected = {"p5xp5", "1x1", "3x3", "5x5", "10x5", "15x5", "15x10"}
+    if {row["au"] for row in observations} != expected:
         raise ValueError(f"{experiment}: AU label set mismatch")
     return observations, {"inventory": inventory, "dayoa_root": dayoa_root, "bundle_root": bundle_root}
 
@@ -274,7 +435,7 @@ def deduplicate(source_observations: list[dict[str, Any]]) -> tuple[list[dict[st
         retained.append(selected)
         all_with_status.append(selected)
         for dropped in ordered[1:]:
-            dropped_status = {**dropped, "selection_status": "superseded_by_E2"}
+            dropped_status = {**dropped, "selection_status": f"superseded_by_{selected['experiment']}"}
             all_with_status.append(dropped_status)
             resolutions.append(
                 {
@@ -285,7 +446,7 @@ def deduplicate(source_observations: list[dict[str, Any]]) -> tuple[list[dict[st
                     "dropped_runtime_au": dropped["runtime_au"],
                     "retained_experiment": selected["experiment"],
                     "retained_runtime_au": selected["runtime_au"],
-                    "reason": "exact observation duplicate; newer E2 retained",
+                    "reason": f"exact observation duplicate; newer {selected['experiment']} retained",
                 }
             )
     retained.sort(key=lambda row: (row["ilmn_measured"], row["ont_measured"], AU_INDEX[row["au"]], row["experiment"]))
@@ -340,7 +501,7 @@ def coverage_grid(observations: list[dict[str, Any]], figures: Path, tables: Pat
         for col_index in range(len(x_values)):
             key = (y_values[row_index], x_values[col_index])
             label = "\n".join(member["plot_label"] for member in groups.get(key, [])) or "—"
-            ax.text(col_index, row_index, label, ha="center", va="center", fontsize=10.5, color="black", fontweight="medium")
+            ax.text(col_index, row_index, label, ha="center", va="center", fontsize=10.5, color="black", fontweight="normal")
     output = figures / "combined_measured_coverage_grid.png"
     save_figure(fig, output)
     chart_map.append(
@@ -423,7 +584,7 @@ def plot_metric_heatmap(
     ax.tick_params(which="minor", bottom=False, left=False)
     for y, x in groups:
         label = "\n".join(annotations[(y, x)])
-        ax.text(x_index[x], y_index[y], label, ha="center", va="center", fontsize=9.2, color="black", fontweight="medium")
+        ax.text(x_index[x], y_index[y], label, ha="center", va="center", fontsize=9.2, color="black", fontweight="normal")
     bar = fig.colorbar(image, ax=ax, shrink=0.85)
     bar.set_label(cbar_label)
     output = figures / filename
@@ -434,12 +595,18 @@ def plot_metric_heatmap(
 def hard_vcf_metrics(observations: list[dict[str, Any]]) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for observation in observations:
-        dayoa_root = Path(observation["dayoa_root"])
-        unit_root = dayoa_root / "results/day/hg38" / observation["runtime_au"]
-        files = list(unit_root.glob("align/sentmm2ont/na/snv/sentdhiomr2/concordance/_giabHC/*_concordance.mqc.tsv"))
-        if len(files) != 1:
-            raise ValueError(f"expected one hard-VCF GIAB-HC file for {observation['plot_label']}")
-        source = {row["VariantClass"]: row for row in read_tsv(files[0]) if row["ROI"] == "giabHC"}
+        if "compact_evidence" in observation:
+            payload = observation["compact_evidence"]["hard_vcf"][observation["runtime_au"]]
+            source = {row["VariantClass"]: row for row in payload["rows"] if row["ROI"] == "giabHC"}
+            source_path = payload["source_path"]
+        else:
+            dayoa_root = Path(observation["dayoa_root"])
+            unit_root = dayoa_root / "results/day/hg38" / observation["runtime_au"]
+            files = list(unit_root.glob("align/sentmm2ont/na/snv/sentdhiomr2/concordance/_giabHC/*_concordance.mqc.tsv"))
+            if len(files) != 1:
+                raise ValueError(f"expected one hard-VCF GIAB-HC file for {observation['plot_label']}")
+            source = {row["VariantClass"]: row for row in read_tsv(files[0]) if row["ROI"] == "giabHC"}
+            source_path = source_relative(files[0], dayoa_root)
         for klass in ("SNP", "INS_50", "DEL_50"):
             if klass == "SNP":
                 components = [source["SNPts"], source["SNPtv"]]
@@ -464,7 +631,7 @@ def hard_vcf_metrics(observations: list[dict[str, Any]]) -> list[dict[str, Any]]
                     "recall": recall,
                     "fscore": fscore,
                     "roi": "giabHC",
-                    "source_path": source_relative(files[0], dayoa_root),
+                    "source_path": source_path,
                 }
             )
     return rows
@@ -496,7 +663,7 @@ def hard_vcf_plots(observations: list[dict[str, Any]], rows: list[dict[str, Any]
 
         fig, ax = plt.subplots(figsize=(11.5, 8.5), constrained_layout=True)
         plotted_points: list[dict[str, Any]] = []
-        for experiment in ("E1", "E2"):
+        for experiment in EXPERIMENTS:
             points = [row for row in subset if row["experiment"] == experiment and row["precision"] is not None and row["recall"] is not None]
             plotted_points.extend(points)
             ax.scatter(
@@ -515,7 +682,7 @@ def hard_vcf_plots(observations: list[dict[str, Any]], rows: list[dict[str, Any]
         ax.set_xlabel("Recall")
         ax.set_ylabel("Precision")
         ax.grid(alpha=0.25)
-        ax.legend(loc="best")
+        fig.legend(loc="outside lower center", ncol=3, fontsize=8.5)
         output = figures / f"hard_vcf_giabhc_{token}_precision_recall.png"
         save_figure(fig, output)
         chart_map.append({"figure": output.name, "chart_type": "scatter", "title": ax.get_title(), "source_table": "hard_vcf_giabhc_metrics.tsv", "metric": "precision versus recall"})
@@ -525,18 +692,22 @@ def truvari_metrics(observations: list[dict[str, Any]]) -> list[dict[str, Any]]:
     caller_names = {"tagged_trussv": "TrussSV", "sniffles2": "Sniffles2", "longreadsv": "LongReadSV", "tiddit": "TIDDIT"}
     rows: list[dict[str, Any]] = []
     for observation in observations:
-        dayoa_root = Path(observation["dayoa_root"])
-        unit_root = dayoa_root / "results/day/hg38" / observation["runtime_au"]
-        files = sorted(unit_root.glob("align/sentmm2ont/na/snv/sentdhiomr2/slim-consensus/truari/*"))
-        if files:
-            raise AssertionError("misspelled Truvari directory unexpectedly exists")
-        summaries = sorted(unit_root.glob("align/sentmm2ont/na/snv/sentdhiomr2/slim-consensus/truvari/*/queries/*/truvari/summary.json"))
-        if len(summaries) != 4:
-            raise ValueError(f"expected four raw Truvari summaries for {observation['plot_label']}; found {len(summaries)}")
-        for path in summaries:
-            caller_token = path.parents[1].name
-            caller = caller_names.get(caller_token, caller_token)
-            data = json.loads(path.read_text())
+        if "compact_evidence" in observation:
+            summaries = observation["compact_evidence"]["truvari"][observation["runtime_au"]]
+            iterable = [(entry["caller"], entry["summary"], entry["source_path"]) for entry in summaries]
+        else:
+            dayoa_root = Path(observation["dayoa_root"])
+            unit_root = dayoa_root / "results/day/hg38" / observation["runtime_au"]
+            files = sorted(unit_root.glob("align/sentmm2ont/na/snv/sentdhiomr2/slim-consensus/truari/*"))
+            if files:
+                raise AssertionError("misspelled Truvari directory unexpectedly exists")
+            summaries = sorted(unit_root.glob("align/sentmm2ont/na/snv/sentdhiomr2/slim-consensus/truvari/*/queries/*/truvari/summary.json"))
+            if len(summaries) != 4:
+                raise ValueError(f"expected four raw Truvari summaries for {observation['plot_label']}; found {len(summaries)}")
+            iterable = [(caller_names.get(path.parents[1].name, path.parents[1].name), json.loads(path.read_text()), source_relative(path, dayoa_root)) for path in summaries]
+        if len(iterable) != 4:
+            raise ValueError(f"expected four raw Truvari summaries for {observation['plot_label']}; found {len(iterable)}")
+        for caller, data, source_path in iterable:
             rows.append(
                 {
                     **{key: observation[key] for key in ("experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token")},
@@ -552,7 +723,7 @@ def truvari_metrics(observations: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     "gt_concordance": data.get("gt_concordance"),
                     "base_count": data.get("base cnt"),
                     "query_count": data.get("comp cnt"),
-                    "source_path": source_relative(path, dayoa_root),
+                    "source_path": source_path,
                 }
             )
     return rows
@@ -571,12 +742,17 @@ def truvari_plots(observations: list[dict[str, Any]], rows: list[dict[str, Any]]
     for ax, caller in zip(axes.ravel(), callers):
         color, marker = CALLER_STYLES.get(caller, ("#555555", "o"))
         plotted_points: list[dict[str, Any]] = []
-        for experiment in ("E1", "E2"):
+        for experiment in EXPERIMENTS:
             points = [row for row in rows if row["caller"] == caller and row["experiment"] == experiment and number(row["precision"]) is not None and number(row["recall"]) is not None]
             if not points:
                 continue
             plotted_points.extend(points)
-            face = "none" if experiment == "E1" else color
+            face = {
+                "E1": "none",
+                "E2": "white",
+                "E3": "#777777",
+                "P1": EXPERIMENT_COLORS["P1"],
+            }[experiment]
             ax.scatter(
                 [row["recall"] for row in points],
                 [row["precision"] for row in points],
@@ -598,7 +774,9 @@ def truvari_plots(observations: list[dict[str, Any]], rows: list[dict[str, Any]]
     legend_handles.extend(
         [
             Line2D([0], [0], marker="o", color="none", markerfacecolor="none", markeredgecolor="#444", label="E1 open markers"),
-            Line2D([0], [0], marker="o", color="none", markerfacecolor="#777", markeredgecolor="#444", label="E2 filled markers"),
+            Line2D([0], [0], marker="o", color="none", markerfacecolor="white", markeredgecolor="#444", label="E2 white markers"),
+            Line2D([0], [0], marker="o", color="none", markerfacecolor="#777", markeredgecolor="#444", label="E3 filled markers"),
+            Line2D([0], [0], marker="o", color="none", markerfacecolor=EXPERIMENT_COLORS["P1"], markeredgecolor="#444", label="P1 purple markers"),
         ]
     )
     fig.legend(handles=legend_handles, fontsize=10, ncol=6, loc="outside lower center")
@@ -609,31 +787,8 @@ def truvari_plots(observations: list[dict[str, Any]], rows: list[dict[str, Any]]
 
 
 def coverage_plots(observations: list[dict[str, Any]], figures: Path, chart_map: list[dict[str, str]]) -> None:
-    fig, axes = plt.subplots(1, 2, figsize=(15, 6.8), constrained_layout=True)
-    for axis, target_key, measured_key, title in (
-        (axes[0], "ilmn_target", "ilmn_measured", "Illumina target versus measured coverage"),
-        (axes[1], "ont_target", "ont_measured", "ONT target versus measured coverage"),
-    ):
-        for experiment in ("E1", "E2"):
-            subset = [row for row in observations if row["experiment"] == experiment]
-            axis.scatter([row[target_key] for row in subset], [row[measured_key] for row in subset], color=EXPERIMENT_COLORS[experiment], marker=EXPERIMENT_MARKERS[experiment], s=85, edgecolor="#222", linewidth=0.6, alpha=0.88, label=experiment)
-            for row in subset:
-                axis.annotate(row["plot_label"], (row[target_key], row[measured_key]), xytext=(5, 4), textcoords="offset points", fontsize=8.3)
-        limit = max(max(row[target_key] for row in observations), max(row[measured_key] for row in observations)) * 1.08
-        axis.plot([0, limit], [0, limit], linestyle="--", color="#4b5563", linewidth=1.2, label="target = measured")
-        axis.set_xlim(0, limit)
-        axis.set_ylim(0, limit)
-        axis.set_title(title)
-        axis.set_xlabel("Nominal target coverage (x)")
-        axis.set_ylabel("Measured Mosdepth total mean (x)")
-        axis.grid(alpha=0.22)
-    axes[0].legend(loc="best")
-    output = figures / "planned_vs_measured_coverage.png"
-    save_figure(fig, output)
-    chart_map.append({"figure": output.name, "chart_type": "scatter", "title": "Planned versus measured coverage", "source_table": "retained_observations.tsv", "metric": "target and measured coverage"})
-
     fig, ax = plt.subplots(figsize=(12, 8), constrained_layout=True)
-    for experiment in ("E1", "E2"):
+    for experiment in EXPERIMENTS:
         subset = sorted([row for row in observations if row["experiment"] == experiment], key=lambda row: (row["ont_end_hour"], row["au"]))
         grouped: dict[int, list[dict[str, Any]]] = defaultdict(list)
         for row in subset:
@@ -648,7 +803,7 @@ def coverage_plots(observations: list[dict[str, Any]], figures: Path, chart_map:
     ax.set_xlabel("ONT end hour for cumulative [0,end) input")
     ax.set_ylabel("Measured ONT coverage (Mosdepth total mean)")
     ax.grid(alpha=0.22)
-    ax.legend(handles=[Line2D([0], [0], color=EXPERIMENT_COLORS[e], marker=EXPERIMENT_MARKERS[e], label=e) for e in ("E1", "E2")])
+    ax.legend(handles=[Line2D([0], [0], color=EXPERIMENT_COLORS[e], marker=EXPERIMENT_MARKERS[e], label=e) for e in EXPERIMENTS])
     output = figures / "ont_coverage_vs_runtime.png"
     save_figure(fig, output)
     chart_map.append({"figure": output.name, "chart_type": "line-scatter", "title": ax.get_title(), "source_table": "retained_observations.tsv", "metric": "ONT coverage and end hour"})
@@ -680,20 +835,32 @@ def call_tables_and_plots(observations: list[dict[str, Any]], figures: Path, cha
     genes: set[str] = set()
     smn_rows: list[dict[str, Any]] = []
     for observation in observations:
-        dayoa_root = Path(observation["dayoa_root"])
-        unit_root = dayoa_root / "results/day/hg38" / observation["runtime_au"]
-        vcf_files = sorted(unit_root.glob("align/sentmm2ont/na/snv/sentdhiomr2/segdup/*/*/*.result.vcf.gz"))
-        if not vcf_files:
-            raise ValueError(f"no SegDup VCFs for {observation['plot_label']}")
-        for path in vcf_files:
-            gene = path.parent.name
-            genes.add(gene)
-            parsed_segdup[(observation["observation_id"], gene)] = parse_vcf_records(path)
-
-        smn_files = list(unit_root.glob("align/sentdhiomr2sr/smd/htd/smn12/*.summary.json"))
-        if len(smn_files) != 1:
-            raise ValueError(f"expected one SMN12 summary for {observation['plot_label']}")
-        payload = json.loads(smn_files[0].read_text())
+        if "compact_evidence" in observation:
+            compact = observation["compact_evidence"]
+            for gene, summary in compact["segdup"][observation["runtime_au"]].items():
+                genes.add(gene)
+                empty_record = {"chrom": None, "pos": None, "ref": None, "alt": None, "qual": None, "gt": None}
+                parsed_segdup[(observation["observation_id"], gene)] = [
+                    {**empty_record, "filter": "PASS"} for _ in range(int(summary["pass_count"]))
+                ] + [{**empty_record, "filter": "non_PASS"} for _ in range(int(summary["failed_count"]))]
+            smn_summary = compact["smn12"][observation["runtime_au"]]
+            payload = smn_summary["payload"]
+            smn_source_path = smn_summary["source_path"]
+        else:
+            dayoa_root = Path(observation["dayoa_root"])
+            unit_root = dayoa_root / "results/day/hg38" / observation["runtime_au"]
+            vcf_files = sorted(unit_root.glob("align/sentmm2ont/na/snv/sentdhiomr2/segdup/*/*/*.result.vcf.gz"))
+            if not vcf_files:
+                raise ValueError(f"no SegDup VCFs for {observation['plot_label']}")
+            for path in vcf_files:
+                gene = path.parent.name
+                genes.add(gene)
+                parsed_segdup[(observation["observation_id"], gene)] = parse_vcf_records(path)
+            smn_files = list(unit_root.glob("align/sentdhiomr2sr/smd/htd/smn12/*.summary.json"))
+            if len(smn_files) != 1:
+                raise ValueError(f"expected one SMN12 summary for {observation['plot_label']}")
+            payload = json.loads(smn_files[0].read_text())
+            smn_source_path = source_relative(smn_files[0], dayoa_root)
         values = next(iter(payload.values()))
         smn_rows.append(
             {
@@ -709,7 +876,7 @@ def call_tables_and_plots(observations: list[dict[str, Any]], figures: Path, cha
                 "isCarrier": values.get("isCarrier"),
                 "Info": values.get("Info"),
                 "Median_depth": values.get("Median_depth"),
-                "source_path": source_relative(smn_files[0], dayoa_root),
+                "source_path": smn_source_path,
             }
         )
 
@@ -819,10 +986,10 @@ def interval_union_hours(intervals: list[tuple[datetime, datetime]]) -> float:
 def benchmark_data(observations: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     retained = {(row["experiment"], row["runtime_au"]): row for row in observations}
     raw_by_obs: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    for experiment in ("E1", "E2"):
+    for experiment in EXPERIMENTS:
         exemplar = next(row for row in observations if row["experiment"] == experiment)
-        benchmark_path = Path(exemplar["dayoa_root"]) / "results/day/hg38/reports/benchmarks_summary.tsv"
-        for raw in read_tsv(benchmark_path):
+        raw_records = exemplar["compact_evidence"]["benchmarks"] if "compact_evidence" in exemplar else read_tsv(Path(exemplar["dayoa_root"]) / "results/day/hg38/reports/benchmarks_summary.tsv")
+        for raw in raw_records:
             runtime = raw["sample"].rstrip(".")
             observation = retained.get((experiment, runtime))
             if observation is None or raw.get("status") != "success":
@@ -903,7 +1070,9 @@ def benchmark_plots(observations: list[dict[str, Any]], task_rows: list[dict[str
         ("longest_walltime_s", 1 / 3600, "Longest successful execution (hours)", "Per-task walltime by retained observation", "benchmark_per_task_walltime.png", "#3977a8"),
         ("total_cost_usd", 1, "Total task-group cost (USD)", "Per-task cost by retained observation", "benchmark_per_task_cost.png", "#d0783d"),
     ):
-        fig, axes = plt.subplots(7, 2, figsize=(18, 28), constrained_layout=True)
+        ncols = 2
+        nrows = math.ceil(len(obs_order) / ncols)
+        fig, axes = plt.subplots(nrows, ncols, figsize=(18, max(14, nrows * 4.0)), constrained_layout=True)
         axes = axes.ravel()
         for axis, observation in zip(axes, obs_order):
             subset = sorted([row for row in task_rows if row["observation_id"] == observation["observation_id"]], key=lambda row: row[metric], reverse=True)[:12]
@@ -915,6 +1084,8 @@ def benchmark_plots(observations: list[dict[str, Any]], task_rows: list[dict[str
             axis.set_title(observation["plot_label"], fontsize=12)
             axis.set_xlabel(xlabel, fontsize=9)
             axis.grid(axis="x", alpha=0.2)
+        for axis in axes[len(obs_order):]:
+            axis.set_visible(False)
         fig.suptitle(title, fontsize=19)
         output = figures / filename
         save_figure(fig, output)
@@ -971,22 +1142,23 @@ def build_report(
 ) -> None:
     figures = assets / "figures"
     tables = assets / "tables"
-    e1 = [row for row in observations if row["experiment"] == "E1"]
-    e2 = [row for row in observations if row["experiment"] == "E2"]
-    e1_ilmn_mae = float(np.mean([abs(row["ilmn_abs_error"]) for row in e1]))
-    e2_ilmn_mae = float(np.mean([abs(row["ilmn_abs_error"]) for row in e2]))
-    e1_ont_mae = float(np.mean([abs(row["ont_abs_error"]) for row in e1]))
-    e2_ont_mae = float(np.mean([abs(row["ont_abs_error"]) for row in e2]))
     trussv = [row for row in truvari_rows if row["caller"] == "TrussSV" and number(row["fscore"]) is not None]
     best_trussv = max(trussv, key=lambda row: row["fscore"])
+    p1_observation = next(row for row in observations if row["experiment"] == "P1")
     costs = {row["observation_id"]: row["total_cost_usd"] for row in benchmark_summaries}
-    total_cost_e1 = sum(costs[row["observation_id"]] for row in e1)
-    total_cost_e2 = sum(costs[row["observation_id"]] for row in e2)
-    e2_below_target = sum(row["ilmn_measured"] < row["ilmn_target"] for row in e2)
+    total_cost_by_experiment = {
+        experiment: sum(costs.get(row["observation_id"], 0.0) for row in observations if row["experiment"] == experiment)
+        for experiment in EXPERIMENTS
+    }
+    def target_text(row: dict[str, Any]) -> str:
+        if row["ilmn_target"] is None or row["ont_target"] is None:
+            return "No target"
+        return f"{row['ilmn_target']}x × {row['ont_target']}x"
+
     observation_markdown = [
         [
             row["plot_label"],
-            f"{row['ilmn_target']}x × {row['ont_target']}x",
+            target_text(row),
             f"{row['ilmn_measured_token']}x × {row['ont_measured_token']}x",
             str(row["subsample_pct"]),
             f"[{row['ont_start_hour']},{row['ont_end_hour']})",
@@ -999,15 +1171,21 @@ def build_report(
     image = lambda name: f"![{name}]({relative_asset(report_path, figures / name)})"
     table_link = lambda name: f"[{name}]({relative_asset(report_path, tables / name)})"
     lines: list[str] = [
-        "# HG002 Bjuice combined downsampling heatmap report",
+        "# HG002 Bjuice measured-coverage matrix report",
         "",
         "## Technical summary",
         "",
-        f"This report combines **{len(observations)} retained measured-coverage observations** from two completed HG002 HIOMR2 kitchensink-mega downsampling experiments. Exact duplicate identity is `(AU, measured ILMN, measured ONT)`; **{duplicate_count} older E1 observation(s)** were superseded by E2. Experiment provenance remains visible as `E1:<AU>` or `E2:<AU>` in every chart and table.",
+        f"This report combines **{len(observations)} retained measured-coverage observations** from two HG002 downsampling experiments (E1/E2), a four-AU gap-fill experiment (E3), and the completed Bjuice v0.9 production full-coverage execution (P1). Exact duplicate identity is `(AU, measured ILMN, measured ONT)`; **{duplicate_count} older observation(s)** were superseded by the newest matching experiment. Experiment provenance remains visible as `E1:<AU>`, `E2:<AU>`, `E3:<AU>`, or `P1:fullcov` in every chart and table.",
         "",
-        f"E2 reduced mean absolute Illumina target error to **{e2_ilmn_mae:.2f}x**, versus **{e1_ilmn_mae:.2f}x** in E1, but measured Illumina coverage remained below nominal in **{e2_below_target}/7 E2 AUs**. ONT mean absolute target error was **{e2_ont_mae:.2f}x** in E2 and **{e1_ont_mae:.2f}x** in E1. The strongest retained TrussSV global F-score was **{best_trussv['fscore']:.4f}** at **{best_trussv['plot_label']}**. Successful benchmark task rows sum to **${total_cost_e1:,.2f}** for retained E1 observations and **${total_cost_e2:,.2f}** for retained E2 observations.",
+        f"All coverage coordinates in this report are source-reported measured Mosdepth totals—never nominal target coverage. P1 has no coverage target: its target and target-error fields are `NA`, while its measured coordinate is **{p1_observation['ilmn_measured_token']}× SR × {p1_observation['ont_measured_token']}× LR**. Its SR coordinate comes from native `sentdhiomr2sr/smd` Mosdepth, not `rsr`. The strongest retained TrussSV global F-score was **{best_trussv['fscore']:.4f}** at **{best_trussv['plot_label']}**. Successful benchmark task rows sum to " + ", ".join(f"**${total_cost_by_experiment[experiment]:,.2f}** for {experiment}" for experiment in EXPERIMENTS) + ".",
         "",
-        "E1 completed its live rerun at `rc=0` on 2026-08-14; E2 completed the retained kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-16. E1's manifest fractions were present, but its Illumina rule did not apply them as intended; E1 coverage is therefore used only as measured observational evidence. E2 is the corrected re-downsampling experiment. Analytical packaging is not part of the E2 completion claim.",
+        "E1 completed its live rerun at `rc=0` on 2026-08-14; E2 completed the retained kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-16; and E3 completed the four-AU kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-17. P1 is the separately completed Bjuice v0.9 production execution 1 for HG002 with full Illumina and ONT `[0,24)` input. E1 coverage remains observational evidence only; E2 is the corrected re-downsampling experiment; E3 supplies gap-fill coverage observations; P1 is retained as a distinct no-target production observation.",
+        "",
+        "## Source S3 URIs",
+        "",
+        markdown_table(["Source", "S3 URI"], [[label, f"`{uri}`"] for label, uri in SOURCE_S3_URIS]),
+        "",
+        "The E3 and P1 sources are completed exported execution outputs. These exact source URIs are also available in " + table_link("source_s3_uris.tsv") + ".",
         "",
         "## Where data exist: unified measured-coverage grid",
         "",
@@ -1019,13 +1197,11 @@ def build_report(
         "",
         "### Retained observation provenance",
         "",
-        markdown_table(["Observation", "Nominal ILMN × ONT", "Measured ILMN × ONT", "ILMN fraction", "ONT hours", "Runtime AU", "Selection"], observation_markdown),
+        markdown_table(["Observation", "Coverage target", "Measured SR × LR", "SR fraction / mode", "ONT hours", "Runtime AU", "Selection"], observation_markdown),
         "",
-        "The full retained-observation table includes nominal targets, exact measured tokens, fractions, ONT windows, source paths, and selection status: " + table_link("retained_observations.tsv") + ".",
+        "The full retained-observation table includes targets where they exist, exact measured SR/LR tokens, SR fraction or full-input mode, ONT windows, source paths, and selection status: " + table_link("retained_observations.tsv") + ".",
         "",
-        "## Coverage targeting and ONT yield",
-        "",
-        image("planned_vs_measured_coverage.png"),
+        "## Measured ONT coverage and runtime",
         "",
         image("ont_coverage_vs_runtime.png"),
         "",
@@ -1063,7 +1239,7 @@ def build_report(
             "",
             image("truvari_all_callers_precision_recall.png"),
             "",
-            "Caller color and shape are stable; E1 uses open markers and E2 filled markers. Points with undefined raw precision or recall remain in the table as `NA` and are not plotted. Exact raw-summary values: " + table_link("truvari_metrics.tsv") + ".",
+            "Caller color and marker shape encode the caller (TIDDIT, LongReadSV, Sniffles2, or tagged TrussSV); experiment is encoded by marker fill. Every plotted point is labelled with experiment, AU, and F-score. Points with undefined raw precision or recall remain in the table as `NA` and are not plotted. Exact raw-summary values: " + table_link("truvari_metrics.tsv") + ".",
             "",
             "## SegDup and SMN1/2 calls",
             "",
@@ -1094,8 +1270,8 @@ def build_report(
             "- Hard-VCF metrics are restricted to `ROI=giabHC`; the crude SNP construction is intentionally not a standard variant-class aggregation.",
             "- Truvari metrics come from raw `summary.json`. Undefined no-call rates are `NA`, even where a downstream report-oriented artifact normalized them to zero.",
             "- SegDup is descriptive callset output, not truth/query concordance. A no-call state is not evidence of reference genotype truth.",
-            "- The two experiments reuse the same HG002 source material and their downsampled inputs are nested; observations are not statistically independent. Results are descriptive and no causal or inferential claim is made.",
-            "- E1 and E2 may contain different runtime software provenance because E2 was completed after authorized R&D reporting repairs. The report uses produced artifacts and does not relabel E2 as a pristine later release execution.",
+            "- E1, E2, E3, and P1 reuse the same HG002 source material; downsampled inputs are nested and P1 is a full-input production observation. Results are descriptive and no causal or inferential claim is made.",
+            "- E1, E2, E3, and P1 may contain different runtime software provenance because later executions were completed after authorized R&D reporting repairs. The report uses produced artifacts and does not relabel a later execution as a pristine re-execution of an earlier release.",
             "",
             "## Audit and reproducibility",
             "",
@@ -1104,7 +1280,7 @@ def build_report(
             "- Duplicate metric comparisons: " + table_link("duplicate_metric_audit.tsv") + ".",
             "- Figure-to-table mapping: " + table_link("chart_map.tsv") + ".",
             "",
-            "Generated from bounded DYEC evidence snapshots on 2026-08-16.",
+            "Generated from bounded DYEC evidence snapshots, the E3 no-delete export receipt, and the P1 completed production S3 export on 2026-08-18.",
         ]
     )
     report_path.write_text("\n".join(lines) + "\n")
@@ -1151,14 +1327,22 @@ def main() -> None:
 
     source_observations: list[dict[str, Any]] = []
     source_inventory: list[dict[str, Any]] = []
-    for experiment in ("E1", "E2"):
+    for experiment in EXPERIMENTS:
         observations, metadata = parse_experiment(experiment, args.evidence_root)
         source_observations.extend(observations)
         source_inventory.extend(metadata["inventory"])
-    if len(source_observations) != 14:
-        raise ValueError("expected fourteen source observations")
+    if len(source_observations) != 19:
+        raise ValueError("expected nineteen source observations")
 
     retained, resolutions, all_status = deduplicate(source_observations)
+    p1_observations = [row for row in retained if row["experiment"] == "P1"]
+    if len(p1_observations) != 1:
+        raise AssertionError("expected one retained P1 observation")
+    p1_observation = p1_observations[0]
+    if any(p1_observation[field] is not None for field in ("ilmn_target", "ont_target", "ilmn_abs_error", "ont_abs_error")):
+        raise AssertionError("P1 must not have invented target or target-error values")
+    if (p1_observation["subsample_pct"], p1_observation["ont_start_hour"], p1_observation["ont_end_hour"]) != ("full", 0, 24):
+        raise AssertionError("P1 full-input contract was not retained")
     for index, observation in enumerate(retained, start=1):
         observation["observation_id"] = f"OBS{index:02d}"
     retained_key_to_id = {(row["experiment"], row["runtime_au"]): row["observation_id"] for row in retained}
@@ -1200,6 +1384,7 @@ def main() -> None:
     write_tsv(tables / "benchmark_task_groups.tsv", benchmark_tasks, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "rule", "successful_records", "priced_records", "unpriced_records", "longest_walltime_s", "total_cost_usd", "allocated_vcpu_h", "observed_cpu_h"])
     write_tsv(tables / "benchmark_au_totals.tsv", benchmark_summaries, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "successful_records", "priced_records", "unpriced_records", "task_groups", "total_cost_usd", "allocated_vcpu_h", "observed_cpu_h", "sum_task_wall_h", "observed_makespan_h", "active_interval_union_h", "longest_task_h"])
     write_tsv(tables / "source_inventory.tsv", source_inventory, ["experiment", "analysis_root", "relative_path", "bytes", "mtime_epoch", "sha256", "local_path", "local_sha256", "local_sha256_match"])
+    write_tsv(tables / "source_s3_uris.tsv", [{"source": label, "s3_uri": uri} for label, uri in SOURCE_S3_URIS], ["source", "s3_uri"])
     write_tsv(tables / "chart_map.tsv", chart_map, ["figure", "chart_type", "title", "source_table", "metric"])
 
     heatmaps = [row for row in chart_map if row["chart_type"] == "heatmap"]
@@ -1214,7 +1399,7 @@ def main() -> None:
     expected_tables = {
         "retained_observations.tsv", "coverage_grid.tsv", "duplicate_resolution.tsv", "duplicate_metric_audit.tsv",
         "hard_vcf_giabhc_metrics.tsv", "truvari_metrics.tsv", "segdup_calls.tsv", "smn12_calls.tsv",
-        "benchmark_task_groups.tsv", "benchmark_au_totals.tsv", "source_inventory.tsv", "chart_map.tsv",
+        "benchmark_task_groups.tsv", "benchmark_au_totals.tsv", "source_inventory.tsv", "source_s3_uris.tsv", "chart_map.tsv",
     }
     missing_tables = [name for name in expected_tables if not (tables / name).is_file()]
     if missing_tables:
