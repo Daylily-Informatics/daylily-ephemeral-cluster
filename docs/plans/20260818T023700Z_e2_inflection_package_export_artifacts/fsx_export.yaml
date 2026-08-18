@@ -1,0 +1,13 @@
+fsx_export:
+  schema_version: 4
+  status: error
+  phase: validate
+  cluster_name: pre-rel-18025
+  region: us-west-2
+  source_path: /fsx/analysis_results/pre-rel-18025/prerel18025-bjuice-preval14-15015-dry-20260817t151033z/daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/prerel18025-bjuice-preval14-15015-dry-20260817t151033z
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/for_inflection/prerel18025-bjuice-preval14-15015-dry-20260817t151033z/
+  detached: false
+  delete_data_in_file_system: false
+  failure_details:
+    message: destination_s3_uri must end with one of ['pre-rel-18025/prerel18025-bjuice-preval14-15015-dry-20260817t151033z/daylily-omics-analysis/results/day/hg38/deliveries/inflection_hiomr2_analytical_callsets_vcf_gvcf/prerel18025-bjuice-preval14-15015-dry-20260817t151033z/'];
+      got s3://lsmc-ssf-sequencing-data/derived/for_inflection/prerel18025-bjuice-preval14-15015-dry-20260817t151033z/
