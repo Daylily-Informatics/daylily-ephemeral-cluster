@@ -479,6 +479,8 @@ def attach_export_dra(
     timeout_seconds: int,
     destination_analysis_id: Optional[str] = None,
     fsx_client: Optional[Any] = None,
+    s3_client: Optional[Any] = None,
+    require_empty_destination: bool = False,
     on_created: Optional[Callable[[ExportDraRecord], None]] = None,
 ) -> ExportDraRecord:
     """Create an output DRA directly on an analysis directory without AutoExport."""
@@ -503,6 +505,23 @@ def attach_export_dra(
         source_path=file_system_path,
         destination_s3_uri=destination,
     )
+    if require_empty_destination:
+        destination_s3_client = s3_client
+        if destination_s3_client is None and session is not None:
+            destination_s3_client = session.client("s3")
+        if destination_s3_client is None:
+            raise ExportError(
+                "S3 client is required to verify an empty export destination before DRA creation."
+            )
+        # This must stay directly adjacent to the mutating association request: a
+        # non-empty destination is never a valid target for a fresh no-delete export.
+        destination = validate_s3_destination_prefix_empty(
+            destination_s3_client,
+            destination,
+            source_path=file_system_path,
+            cluster_name=cluster_name,
+            destination_analysis_id=destination_analysis_id,
+        )
     try:
         response = client.create_data_repository_association(
             FileSystemId=resolved_fsx_id,
@@ -933,6 +952,8 @@ def run_export_workflow(options: ExportOptions) -> int:
             timeout_seconds=options.timeout_seconds,
             destination_analysis_id=options.destination_analysis_id,
             fsx_client=client,
+            s3_client=session.client("s3"),
+            require_empty_destination=True,
             on_created=_capture_created_dra,
         )
         receipt["fsx_export"].update(record.to_payload())

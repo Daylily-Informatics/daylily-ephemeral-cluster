@@ -105,16 +105,20 @@ class FakeFsxClient:
         }
 
 
+class EmptyS3Client:
+    def list_objects_v2(self, **_kwargs):
+        return {"KeyCount": 0}
+
+
 class FakeSession:
     def __init__(self, client: FakeFsxClient, s3_client: object | None = None) -> None:
         self.fsx_client = client
-        self.s3_client = s3_client
+        self.s3_client = s3_client or EmptyS3Client()
 
     def client(self, service_name: str):
         if service_name == "fsx":
             return self.fsx_client
         assert service_name == "s3"
-        assert self.s3_client is not None
         return self.s3_client
 
 
@@ -169,9 +173,15 @@ def _exported_status_v2() -> dict[str, object]:
 
 
 class FakeS3Client:
-    def __init__(self, payload: dict[str, object]) -> None:
+    def __init__(self, payload: dict[str, object], *, key_count: int = 0) -> None:
         self.payload = payload
+        self.key_count = key_count
         self.get_requests: list[dict[str, str]] = []
+        self.list_requests: list[dict[str, str | int]] = []
+
+    def list_objects_v2(self, **kwargs):
+        self.list_requests.append(kwargs)
+        return {"KeyCount": self.key_count}
 
     def get_object(self, **kwargs):
         self.get_requests.append(kwargs)
@@ -435,6 +445,37 @@ def test_analysis_export_rejects_nested_source_before_attaching_dra(tmp_path, mo
     receipt = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))["fsx_export"]
     assert receipt["phase"] == "validate"
     assert "complete analysis directory" in receipt["failure_details"]["message"]
+
+
+def test_export_rejects_nonempty_s3_prefix_before_creating_dra(tmp_path, monkeypatch) -> None:
+    client = FakeFsxClient()
+    s3 = FakeS3Client(_exported_status_v2(), key_count=1)
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(client, s3),
+    )
+
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/user/run",
+            destination_s3_uri="s3://bucket/root/user/run/",
+            region="us-west-2",
+            profile="profile",
+            output_dir=tmp_path,
+            wait=False,
+        )
+    )
+
+    assert rc == 1
+    assert client.created_association is None
+    assert s3.list_requests == [
+        {"Bucket": "bucket", "Prefix": "root/user/run/", "MaxKeys": 1}
+    ]
+    receipt = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))["fsx_export"]
+    assert receipt["phase"] == "preflight"
+    assert "destination prefix is not empty" in receipt["failure_details"]["message"]
 
 
 def test_verify_exported_clone_status_v2_evidence_reads_retained_attempts() -> None:

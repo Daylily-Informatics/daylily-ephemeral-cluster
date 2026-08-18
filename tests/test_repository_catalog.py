@@ -60,6 +60,8 @@ UNVALIDATED_COMMAND_IDS = {
     "illumina_pangenome_snv",
     "illumina_dragen_pangenome_snv_concordance",
     "ultima_pangenome_snv",
+    "illumina_sentieon_pangenome_kitchensink",
+    "ultima_sentieon_pangenome_kitchensink",
 }
 SIMPLE_TEST_DY_COMMAND = "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
 
@@ -170,7 +172,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert {command.command_id for command in current_build} == {
         command.command_id for command in catalog.commands()
     }
-    assert len(current_build) == 31
+    assert len(current_build) == 33
     assert {command.git_tag for command in current_build} == {DAYOA_BLESSED_TAG}
     assert {command.repository for command in current_build} == {"daylily-omics-analysis"}
     older_release = catalog.commands_for_dyec_build("16.1.85")
@@ -345,7 +347,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert multiqc_command.artifact_registration.identity.analysis_euid == "{analysis_id}"
 
     plain_run_qc_command = catalog.get_command("illumina_run_qc")
-    assert plain_run_qc_command.jobs == 20
+    assert plain_run_qc_command.jobs == 333
     assert plain_run_qc_command.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
         "run_context_only": "true",
@@ -527,6 +529,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "hiomr2_slim_kitchensink_mega",
         "inflection-bjuice-product-v0.9",
         "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega",
+        "illumina_sentieon_pangenome_kitchensink",
+        "ultima_sentieon_pangenome_kitchensink",
     }
     recoverability = catalog.get_command(
         "sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x"
@@ -569,6 +573,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "illumina_pangenome_snv",
         "illumina_dragen_pangenome_snv_concordance",
         "ultima_pangenome_snv",
+        "illumina_sentieon_pangenome_kitchensink",
+        "ultima_sentieon_pangenome_kitchensink",
         "complete_genomics_cg_snv_concordance",
     } <= command_ids
 
@@ -878,7 +884,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert illumina_kitchensink.sv_callers == []
     assert 'htd_callers=["cyrius"]' in illumina_kitchensink.dy_command
     assert "--rerun-triggers mtime" in illumina_kitchensink.dy_command
-    assert " -j 333 -p -T 0 " in illumina_kitchensink.dy_command
+    assert " -j 333 -T 0 -p " in illumina_kitchensink.dy_command
     assert " -k " not in illumina_kitchensink.dy_command
     assert "produce_metagenomics" in illumina_kitchensink.dy_command
     assert "produce_multiqc_all" in illumina_kitchensink.dy_command
@@ -1341,7 +1347,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "--produce-analysis-artifact-manifest true" in ont_dy_command
     assert "--produce-rulegraph true" in ont_dy_command
     assert ont.genome == "hg38"
-    assert ont.jobs == 6
+    assert ont.jobs == 333
     assert "run_context_file=config/runs.tsv" in ont_dy_command
     assert "run_context_only=true" in ont_dy_command
     assert "samples_table=" not in ont_dy_command

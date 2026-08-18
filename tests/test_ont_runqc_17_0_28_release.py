@@ -9,7 +9,8 @@ PAYLOAD = (
     REPO_ROOT
     / "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml"
 )
-DAYOA_TARGET_TAG = "15.0.23"
+DAYOA_TARGET_TAG = "15.0.24"
+CURRENT_DAYOA_TARGET_TAG = "15.0.26"
 DAYOA_VALIDATED_TAGS = {"15.0.1", "15.0.3", "15.0.9"}
 HISTORICAL_DAYOA_TAG = "14.0.21"
 ONT_RUN_ID = "pc1703-ont-set4fc1-seqqc-17018-20260814"
@@ -41,16 +42,18 @@ def test_current_catalog_promotion_preserves_17_0_28_evidence() -> None:
     active = {item["command_id"]: item for item in repo["analysis_commands"]}
     current = raw["dyec_builds"]["current"]
 
-    assert repo["default_ref"] == DAYOA_TARGET_TAG
+    assert repo["default_ref"] == CURRENT_DAYOA_TARGET_TAG
     assert current != raw["dyec_builds"]["17.0.28"]
     assert raw["dyec_builds"]["17.0.28"]["dayoa_git_tags"] == [HISTORICAL_DAYOA_TAG]
-    assert current["dayoa_git_tags"] == [DAYOA_TARGET_TAG]
+    assert current["dayoa_git_tags"] == [CURRENT_DAYOA_TARGET_TAG]
     assert {item["git_tag"] for item in active.values()} == {DAYOA_TARGET_TAG}
     assert {item["validated_version"] for item in active.values()} == DAYOA_VALIDATED_TAGS
-    assert {item["git_tag"] for item in current["commands"].values()} == {DAYOA_TARGET_TAG}
+    assert {item["git_tag"] for item in current["commands"].values()} == {
+        CURRENT_DAYOA_TARGET_TAG
+    }
     assert {
         item["validated_version"] for item in current["commands"].values()
-    } == DAYOA_VALIDATED_TAGS
+    } == DAYOA_VALIDATED_TAGS | {"unvalidated"}
 
     for command in (active["ont_run_qc"], current["commands"]["ont_run_qc"]):
         record = _run(command, ONT_RUN_ID)
