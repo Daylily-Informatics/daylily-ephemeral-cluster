@@ -38,8 +38,27 @@ EXPERIMENTS = {
         "analysis_id": "pcand18022-bjuice-preval6-15014-dry-20260817t112900z",
         "title": "Bjuice v0.9 production full-coverage execution 1",
     },
+    "E4": {
+        "analysis_id": "prerel18025-bjuice-v2-hg002-20au-18042-20260818t1255z-live",
+        "title": "Twenty-AU controlled native-SR × cumulative-ONT matrix",
+    },
 }
-AU_ORDER = ["p5xp5", "1x1", "3x3", "5x5", "10x5", "15x5", "15x10", "10xby10x", "12xby12x", "20xby15x", "30xby15x", "fullcov_0to24"]
+EXPERIMENT_INDEX = {name: index for index, name in enumerate(EXPERIMENTS)}
+AU_ORDER = [
+    "p5xp5",
+    "1x1",
+    "3x3",
+    "5x5",
+    "10x5",
+    "15x5",
+    "15x10",
+    "10xby10x",
+    "12xby12x",
+    "20xby15x",
+    "30xby15x",
+    "fullcov_0to24",
+    *[f"N{index:02d}" for index in range(1, 21)],
+]
 AU_INDEX = {name: index for index, name in enumerate(AU_ORDER)}
 TARGETS = {
     "p5xp5": (Decimal("0.5"), Decimal("0.5")),
@@ -54,8 +73,31 @@ TARGETS = {
     "20xby15x": (Decimal("20"), Decimal("15")),
     "30xby15x": (Decimal("30"), Decimal("15")),
 }
-EXPERIMENT_COLORS = {"E1": "#3977a8", "E3": "#5d8f70", "P1": "#87589b"}
-EXPERIMENT_MARKERS = {"E1": "o", "E3": "^", "P1": "P"}
+E4_SOURCE_TO_PLAN = {
+    "HG002-ilmn0p5x-ont0p5x-h01": ("N01", Decimal("0.5"), Decimal("0.5"), 1),
+    "HG002-ilmn0p5x-ont4x-h08": ("N02", Decimal("0.5"), Decimal("4"), 8),
+    "HG002-ilmn0p5x-ont12x-h24": ("N03", Decimal("0.5"), Decimal("12"), 24),
+    "HG002-ilmn0p5x-ont30x-h72": ("N04", Decimal("0.5"), Decimal("30"), 72),
+    "HG002-ilmn10x-ont0p5x-h01": ("N05", Decimal("10"), Decimal("0.5"), 1),
+    "HG002-ilmn10x-ont4x-h08": ("N06", Decimal("10"), Decimal("4"), 8),
+    "HG002-ilmn10x-ont12x-h24": ("N07", Decimal("10"), Decimal("12"), 24),
+    "HG002-ilmn10x-ont30x-h72": ("N08", Decimal("10"), Decimal("30"), 72),
+    "HG002-ilmn30x-ont30x-h72": ("N09", Decimal("30"), Decimal("30"), 72),
+    "HG002-ilmn43p73x-ont30x-h72": ("N10", Decimal("43.73"), Decimal("30"), 72),
+    "HG002-ilmn2x-ont0p5x-h01": ("N11", Decimal("2"), Decimal("0.5"), 1),
+    "HG002-ilmn2x-ont4x-h08": ("N12", Decimal("2"), Decimal("4"), 8),
+    "HG002-ilmn2x-ont12x-h24": ("N13", Decimal("2"), Decimal("12"), 24),
+    "HG002-ilmn2x-ont30x-h72": ("N14", Decimal("2"), Decimal("30"), 72),
+    "HG002-ilmn20x-ont0p5x-h01": ("N15", Decimal("20"), Decimal("0.5"), 1),
+    "HG002-ilmn20x-ont4x-h08": ("N16", Decimal("20"), Decimal("4"), 8),
+    "HG002-ilmn20x-ont12x-h24": ("N17", Decimal("20"), Decimal("12"), 24),
+    "HG002-ilmn20x-ont30x-h72": ("N18", Decimal("20"), Decimal("30"), 72),
+    "HG002-ilmn5x-ont30x-h72": ("N19", Decimal("5"), Decimal("30"), 72),
+    "HG002-ilmn15x-ont30x-h72": ("N20", Decimal("15"), Decimal("30"), 72),
+}
+TARGETS.update({label: (target_sr, target_lr) for label, target_sr, target_lr, _ in E4_SOURCE_TO_PLAN.values()})
+EXPERIMENT_COLORS = {"E1": "#3977a8", "E3": "#5d8f70", "P1": "#87589b", "E4": "#d0783d"}
+EXPERIMENT_MARKERS = {"E1": "o", "E3": "^", "P1": "P", "E4": "X"}
 CALLER_STYLES = {
     "TrussSV": ("#315f88", "o"),
     "Sniffles2": ("#c2783e", "s"),
@@ -373,11 +415,116 @@ def parse_compact_p1(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
     return [observation], {"inventory": inventory, "dayoa_root": None, "bundle_root": bundle_root}
 
 
+def parse_compact_e4(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Read the checksum-bound, in-flight E4 snapshot collected through DYEC."""
+    bundle_root = evidence_root / "E4"
+    compact_path = bundle_root / "compact_evidence.json"
+    compact = json.loads(compact_path.read_text())
+    if compact.get("schema_version") != "lsmc.hg002_bjuice_e4_compact_evidence.v1":
+        raise ValueError("E4: unexpected compact-evidence schema")
+    if compact.get("analysis_id") != EXPERIMENTS["E4"]["analysis_id"]:
+        raise ValueError("E4: analysis identity mismatch")
+    units = {row["ANALYSIS_UNIT_UID"]: row for row in compact["units"]}
+    identities = compact["identity"]
+    if set(units) != set(E4_SOURCE_TO_PLAN) or len(identities) != 20:
+        raise ValueError("E4: expected the reviewed 20 source and runtime analysis units")
+    source_to_runtime = {
+        row["SOURCE_ANALYSIS_UNIT_UID"]: row["RUNTIME_ANALYSIS_UNIT_UID"] for row in identities
+    }
+    if set(source_to_runtime) != set(E4_SOURCE_TO_PLAN) or len(set(source_to_runtime.values())) != 20:
+        raise ValueError("E4: incomplete or duplicate source/runtime identity mapping")
+
+    end_status = compact["workflow_status_end"]["attempts"][-1]
+    snapshot_state = end_status.get("state")
+    snapshot_rc = end_status.get("controller", {}).get("exit_code")
+    observations: list[dict[str, Any]] = []
+    for source_uid, (label, target_sr, target_lr, expected_end_hour) in E4_SOURCE_TO_PLAN.items():
+        runtime = source_to_runtime[source_uid]
+        unit = units[source_uid]
+        coverage = compact["coverage"].get(runtime)
+        completeness = compact["completeness"].get(runtime)
+        if coverage is None or completeness is None:
+            raise ValueError(f"E4:{runtime}: missing coverage or completeness evidence")
+        if (
+            completeness.get("native_sr_coverage") != "complete"
+            or completeness.get("lr_coverage") != "complete"
+            or completeness.get("hard_vcf_giabhc") != "complete"
+            or completeness.get("truvari_summaries") != 4
+            or completeness.get("smn12_summary") != "complete"
+            or completeness.get("segdup_vcfs") != 15
+        ):
+            raise ValueError(f"E4:{runtime}: a required report metric is not complete")
+        if int(unit["ONT_FQ_START_HOUR"]) != 0 or int(unit["ONT_FQ_END_HOUR"]) != expected_end_hour:
+            raise ValueError(f"E4:{source_uid}: ONT input interval disagrees with the reviewed plan")
+        if f"target {target_sr}x" not in unit["ANALYSIS_UNIT_COMMENT"]:
+            raise ValueError(f"E4:{source_uid}: native-SR target comment disagrees with the reviewed plan")
+        native_sr = Decimal(coverage["native_sr"])
+        rsr = Decimal(coverage["rsr"])
+        lr = Decimal(coverage["lr"])
+        if "/align/sentdhiomr2sr/smd/alignqc/mosdepth/" not in coverage["native_sr_source"]:
+            raise ValueError(f"E4:{runtime}: native-SR source is not sentdhiomr2sr/smd")
+        if "/align/sentdhiomr2rsr/na/alignqc/mosdepth/" not in coverage["rsr_source"]:
+            raise ValueError(f"E4:{runtime}: RSR audit source mismatch")
+        if "/align/sentdhiomr2lr/na/alignqc/mosdepth/" not in coverage["lr_source"]:
+            raise ValueError(f"E4:{runtime}: LR source is not sentdhiomr2lr/na")
+        observations.append(
+            {
+                "experiment": "E4",
+                "experiment_title": EXPERIMENTS["E4"]["title"],
+                "analysis_id": EXPERIMENTS["E4"]["analysis_id"],
+                "au": label,
+                "runtime_au": runtime,
+                "source_analysis_unit_uid": source_uid,
+                "plot_label": f"E4:{label}",
+                "ilmn_measured_token": coverage["native_sr"],
+                "ilmn_measured": float(native_sr),
+                "rsr_measured_token": coverage["rsr"],
+                "rsr_measured": float(rsr),
+                "ont_measured_token": coverage["lr"],
+                "ont_measured": float(lr),
+                "ilmn_target": float(target_sr),
+                "ont_target": float(target_lr),
+                "subsample_pct": unit["SUBSAMPLE_PCT"],
+                "ont_start_hour": 0,
+                "ont_end_hour": expected_end_hour,
+                "ilmn_abs_error": float(native_sr - target_sr),
+                "ont_abs_error": float(lr - target_lr),
+                "coverage_source_ilmn": coverage["native_sr_source"],
+                "coverage_source_rsr": coverage["rsr_source"],
+                "coverage_source_ont": coverage["lr_source"],
+                "coverage_capture_method": "bounded live-FSx snapshot through DYEC",
+                "evidence_captured_at": compact["captured_at_end_utc"],
+                "direct_s3_captured_at": None,
+                "snapshot_workflow_state": snapshot_state,
+                "snapshot_controller_rc": snapshot_rc,
+                "benchmark_scope": compact["capture_contract"]["benchmark_scope"],
+                "dayoa_root": compact["dayoa_root"],
+                "selection_status": "source_inflight_snapshot",
+                "compact_evidence": compact,
+            }
+        )
+    observations.sort(key=lambda row: AU_INDEX[row["au"]])
+    inventory = [
+        {
+            "experiment": "E4",
+            "analysis_root": compact["analysis_root"],
+            **row,
+            "local_path": "NA (bounded DYEC headnode extract)",
+            "local_sha256": "NA",
+            "local_sha256_match": "remote_hash_only",
+        }
+        for row in compact["inventory"]
+    ]
+    return observations, {"inventory": inventory, "dayoa_root": None, "bundle_root": bundle_root}
+
+
 def parse_experiment(experiment: str, evidence_root: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     if experiment == "E3":
         return parse_compact_e3(evidence_root)
     if experiment == "P1":
         return parse_compact_p1(evidence_root)
+    if experiment == "E4":
+        return parse_compact_e4(evidence_root)
     bundle_root = evidence_root / experiment
     dayoa_root = bundle_root / "daylily-omics-analysis"
     manifest_root = dayoa_root / "results/day/hg38/reports/input_manifests"
@@ -527,6 +674,11 @@ def apply_direct_s3_coverage(observations: list[dict[str, Any]], direct_rows: li
                 "coverage_source_rsr": direct["rsr_summary_s3_uri"],
                 "coverage_source_ont": direct["lr_summary_s3_uri"],
                 "direct_s3_captured_at": direct["captured_at_utc"],
+                "evidence_captured_at": direct["captured_at_utc"],
+                "coverage_capture_method": "direct completed-export S3 read",
+                "snapshot_workflow_state": "completed export",
+                "snapshot_controller_rc": 0,
+                "benchmark_scope": "completed execution benchmark summary",
             }
         )
 
@@ -576,6 +728,37 @@ def coordinate_groups(observations: list[dict[str, Any]]) -> dict[tuple[float, f
     return groups
 
 
+def coordinate_label_offsets(coordinates: Iterable[tuple[float, float]]) -> dict[tuple[float, float], tuple[float, float]]:
+    """Nudge labels inside near-touching circles without moving data points."""
+    ordered = sorted(set(coordinates))
+    offsets = {coordinate: (0.0, 0.0) for coordinate in ordered}
+    claimed: set[tuple[float, float]] = set()
+    for index, first in enumerate(ordered):
+        if first in claimed:
+            continue
+        for second in ordered[index + 1 :]:
+            if second in claimed:
+                continue
+            first_sr, first_lr = first
+            second_sr, second_lr = second
+            delta_x = second_lr - first_lr
+            delta_y = second_sr - first_sr
+            distance = math.hypot(delta_x, delta_y)
+            if not 0 < distance < 0.8:
+                continue
+            # Offset perpendicular to the line connecting the exact centers.
+            # A 0.18× displacement remains within the 600 pt² circles but
+            # separates labels at the E1 0.57×/1.16× LR pair.
+            perpendicular_x = -delta_y / distance
+            perpendicular_y = delta_x / distance
+            amount = 0.18
+            offsets[first] = (-perpendicular_x * amount, -perpendicular_y * amount)
+            offsets[second] = (perpendicular_x * amount, perpendicular_y * amount)
+            claimed.update((first, second))
+            break
+    return offsets
+
+
 def configure_coverage_axes(ax: Any, observations: list[dict[str, Any]]) -> None:
     """Use a true numeric, equally scaled native-SR×/LR× coordinate system."""
     x_values = sorted({float(row["ont_measured"]) for row in observations})
@@ -584,8 +767,16 @@ def configure_coverage_axes(ax: Any, observations: list[dict[str, Any]]) -> None
     y_margin = max(0.8, (max(y_values) - min(y_values)) * 0.05)
     ax.set_xlim(min(x_values) - x_margin, max(x_values) + x_margin)
     ax.set_ylim(min(y_values) - y_margin, max(y_values) + y_margin)
-    ax.set_xticks(x_values, [f"{value:g}×" for value in x_values], rotation=35, ha="right")
-    ax.set_yticks(y_values, [f"{value:g}×" for value in y_values])
+    # Regular numeric ticks keep close measured values (for example 10.81× and
+    # 10.97× native SR) from producing illegible overlapping tick labels. The
+    # points remain at their exact unrounded coordinates and the exact values
+    # are preserved in the linked TSVs and report sanity table.
+    x_step = 2.5 if max(x_values) <= 25 else 5.0
+    y_step = 5.0
+    x_ticks = np.arange(0.0, math.ceil((max(x_values) + x_margin) / x_step) * x_step + x_step / 2, x_step)
+    y_ticks = np.arange(0.0, math.ceil((max(y_values) + y_margin) / y_step) * y_step + y_step / 2, y_step)
+    ax.set_xticks(x_ticks, [f"{value:g}×" for value in x_ticks], rotation=35, ha="right")
+    ax.set_yticks(y_ticks, [f"{value:g}×" for value in y_ticks])
     ax.set_xlabel("Measured ONT LR coverage (Mosdepth total mean)")
     ax.set_ylabel("Measured Illumina native SR coverage (Mosdepth total mean)")
     ax.set_aspect("equal", adjustable="box")
@@ -642,6 +833,7 @@ def save_figure(fig: plt.Figure, path: Path) -> None:
 
 def coverage_grid(observations: list[dict[str, Any]], figures: Path, tables: Path, chart_map: list[dict[str, str]]) -> None:
     groups = coordinate_groups(observations)
+    label_offsets = coordinate_label_offsets(groups)
     fig, ax = plt.subplots(figsize=(11.5, 20), constrained_layout=True)
     configure_coverage_axes(ax, observations)
     ax.set_title("Measured native-SR × LR coverage availability", pad=14)
@@ -649,7 +841,8 @@ def coverage_grid(observations: list[dict[str, Any]], figures: Path, tables: Pat
         ax.scatter(lr, sr, marker="o", s=CIRCLE_MARKER_AREA, facecolor="#dbeaf4", edgecolors="none", linewidths=0, zorder=3)
     overlay_coordinate_density(ax, observations)
     for (sr, lr), members in sorted(groups.items()):
-        ax.text(lr, sr, f"n={len(members)}", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color="#111827", zorder=4)
+        offset_x, offset_y = label_offsets[(sr, lr)]
+        ax.text(lr + offset_x, sr + offset_y, f"n={len(members)}", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color="#111827", zorder=4)
     ax.text(
         0.02,
         0.015,
@@ -699,6 +892,7 @@ def plot_metric_heatmap(
 ) -> None:
     by_observation = {row["observation_id"]: row for row in metric_rows}
     groups = coordinate_groups(observations)
+    label_offsets = coordinate_label_offsets(groups)
     values_by_coordinate: dict[tuple[float, float], list[float]] = {}
     for key, members in groups.items():
         values: list[float] = []
@@ -734,11 +928,12 @@ def plot_metric_heatmap(
     image = ax.scatter(colored_x, colored_y, c=colored_values, marker="o", s=CIRCLE_MARKER_AREA, cmap=cmap, vmin=vmin, vmax=vmax, edgecolors="none", linewidths=0, alpha=0.9, zorder=3)
     overlay_coordinate_density(ax, observations)
     for (sr, lr), values in sorted(values_by_coordinate.items()):
+        offset_x, offset_y = label_offsets[(sr, lr)]
         if values:
             value = float(np.mean(values))
-            ax.text(lr, sr, value_format.format(value), ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color=marker_label_color(cmap, image.norm, value), zorder=4)
+            ax.text(lr + offset_x, sr + offset_y, value_format.format(value), ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color=marker_label_color(cmap, image.norm, value), zorder=4)
         else:
-            ax.text(lr, sr, "NA", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color="#4b5563", zorder=4)
+            ax.text(lr + offset_x, sr + offset_y, "NA", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color="#4b5563", zorder=4)
     ax.text(
         0.02,
         0.015,
@@ -848,7 +1043,7 @@ def hard_vcf_plots(observations: list[dict[str, Any]], rows: list[dict[str, Any]
         ax.set_xlabel("Recall")
         ax.set_ylabel("Precision")
         ax.grid(alpha=0.25)
-        fig.legend(loc="outside lower center", ncol=3, fontsize=8.5)
+        fig.legend(loc="outside lower center", ncol=len(EXPERIMENTS), fontsize=8.5)
         output = figures / f"hard_vcf_giabhc_{token}_precision_recall.png"
         save_figure(fig, output)
         chart_map.append({"figure": output.name, "chart_type": "scatter", "title": ax.get_title(), "source_table": "hard_vcf_giabhc_metrics.tsv", "metric": "precision versus recall"})
@@ -917,6 +1112,7 @@ def truvari_plots(observations: list[dict[str, Any]], rows: list[dict[str, Any]]
                 "E1": "none",
                 "E3": "#777777",
                 "P1": EXPERIMENT_COLORS["P1"],
+                "E4": EXPERIMENT_COLORS["E4"],
             }[experiment]
             ax.scatter(
                 [row["recall"] for row in points],
@@ -941,9 +1137,10 @@ def truvari_plots(observations: list[dict[str, Any]], rows: list[dict[str, Any]]
             Line2D([0], [0], marker="o", color="none", markerfacecolor="none", markeredgecolor="#444", label="E1 open markers"),
             Line2D([0], [0], marker="o", color="none", markerfacecolor="#777", markeredgecolor="#444", label="E3 filled markers"),
             Line2D([0], [0], marker="o", color="none", markerfacecolor=EXPERIMENT_COLORS["P1"], markeredgecolor="#444", label="P1 purple markers"),
+            Line2D([0], [0], marker="o", color="none", markerfacecolor=EXPERIMENT_COLORS["E4"], markeredgecolor="#444", label="E4 orange markers"),
         ]
     )
-    fig.legend(handles=legend_handles, fontsize=10, ncol=6, loc="outside lower center")
+    fig.legend(handles=legend_handles, fontsize=9, ncol=4, loc="outside lower center")
     fig.suptitle("Combined Truvari precision versus recall: solo callers and TrussSV", fontsize=19)
     output = figures / "truvari_all_callers_precision_recall.png"
     save_figure(fig, output)
@@ -1079,6 +1276,7 @@ def call_tables_and_plots(observations: list[dict[str, Any]], figures: Path, cha
 
     obs_order = sorted(observations, key=lambda row: (row["ilmn_measured"], row["ont_measured"], row["experiment"], AU_INDEX[row["au"]]))
     groups = coordinate_groups(observations)
+    label_offsets = coordinate_label_offsets(groups)
     summary: dict[tuple[str, str], tuple[int, int]] = {}
     for observation in obs_order:
         for gene in gene_order:
@@ -1115,7 +1313,8 @@ def call_tables_and_plots(observations: list[dict[str, Any]], figures: Path, cha
         )
         overlay_coordinate_density(ax, observations)
         for (sr, lr), count in zip(coordinates, counts):
-            ax.text(lr, sr, f"{count:g}", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color=marker_label_color(cmap, image.norm, count), zorder=4)
+            offset_x, offset_y = label_offsets[(sr, lr)]
+            ax.text(lr + offset_x, sr + offset_y, f"{count:g}", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color=marker_label_color(cmap, image.norm, count), zorder=4)
     for ax in axes[len(gene_order):]:
         ax.set_visible(False)
     fig.suptitle("SegDup calls at measured native-SR × LR coordinates\nDashed contours = retained-AU coordinate density, not a metric interpolation", fontsize=18)
@@ -1167,11 +1366,13 @@ def call_tables_and_plots(observations: list[dict[str, Any]], figures: Path, cha
             ax.scatter(lr, sr, marker="o", s=CIRCLE_MARKER_AREA, facecolor="#f0f1f2", edgecolors="none", linewidths=0, zorder=3)
         overlay_coordinate_density(ax, observations)
         for sr, lr in missing_coordinates:
-            ax.text(lr, sr, "NA", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color="#4b5563", zorder=4)
+            offset_x, offset_y = label_offsets[(sr, lr)]
+            ax.text(lr + offset_x, sr + offset_y, "NA", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color="#4b5563", zorder=4)
         for coordinate in numeric_coordinates:
             value = float(np.mean(coordinate_values[coordinate]))
             sr, lr = coordinate
-            ax.text(lr, sr, f"{value:g}", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color=marker_label_color(smn_cmap, image.norm, value), zorder=4)
+            offset_x, offset_y = label_offsets[coordinate]
+            ax.text(lr + offset_x, sr + offset_y, f"{value:g}", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color=marker_label_color(smn_cmap, image.norm, value), zorder=4)
     fig.suptitle("SMN copy-number calls at measured native-SR × LR coordinates\nDashed contours = retained-AU coordinate density, not a metric interpolation", fontsize=18)
     if image is None:
         raise AssertionError("SMN numeric-coordinate heatmap has no panels")
@@ -1244,6 +1445,7 @@ def benchmark_data(observations: list[dict[str, Any]]) -> tuple[list[dict[str, A
                     "total_cost_usd": sum(priced_costs),
                     "allocated_vcpu_h": sum(allocated_vcpu_values),
                     "observed_cpu_h": sum(observed_cpu_values),
+                    "benchmark_scope": observation.get("benchmark_scope", "completed execution benchmark summary"),
                 }
             )
         intervals: list[tuple[datetime, datetime]] = []
@@ -1275,21 +1477,22 @@ def benchmark_data(observations: list[dict[str, Any]]) -> tuple[list[dict[str, A
                 "observed_makespan_h": ((max(end for _, end in intervals) - min(start for start, _ in intervals)).total_seconds() / 3600) if intervals else None,
                 "active_interval_union_h": interval_union_hours(intervals),
                 "longest_task_h": max(float(row["s"]) for row in raw_rows) / 3600,
+                "benchmark_scope": observation.get("benchmark_scope", "completed execution benchmark summary"),
             }
         )
     return task_rows, summary_rows
 
 
 def benchmark_plots(observations: list[dict[str, Any]], task_rows: list[dict[str, Any]], summary_rows: list[dict[str, Any]], figures: Path, chart_map: list[dict[str, str]]) -> None:
-    obs_order = sorted(observations, key=lambda row: (row["experiment"], AU_INDEX[row["au"]]))
+    obs_order = sorted(observations, key=lambda row: (EXPERIMENT_INDEX[row["experiment"]], AU_INDEX[row["au"]]))
     for metric, scale, xlabel, title, filename, color in (
         ("longest_walltime_s", 1 / 3600, "Longest successful execution (hours)", "Per-task walltime by retained observation", "benchmark_per_task_walltime.png", "#3977a8"),
         ("total_cost_usd", 1, "Total task-group cost (USD)", "Per-task cost by retained observation", "benchmark_per_task_cost.png", "#d0783d"),
     ):
-        ncols = 2
+        ncols = 4 if len(obs_order) > 16 else 2
         nrows = math.ceil(len(obs_order) / ncols)
-        fig, axes = plt.subplots(nrows, ncols, figsize=(18, max(14, nrows * 4.0)), constrained_layout=True)
-        axes = axes.ravel()
+        fig, axes = plt.subplots(nrows, ncols, figsize=(26 if ncols == 4 else 18, max(14, nrows * 4.0)), constrained_layout=True)
+        axes = np.atleast_1d(axes).ravel()
         for axis, observation in zip(axes, obs_order):
             subset = sorted([row for row in task_rows if row["observation_id"] == observation["observation_id"]], key=lambda row: row[metric], reverse=True)[:12]
             subset.reverse()
@@ -1307,10 +1510,10 @@ def benchmark_plots(observations: list[dict[str, Any]], task_rows: list[dict[str
         save_figure(fig, output)
         chart_map.append({"figure": output.name, "chart_type": "small-multiple bar", "title": title, "source_table": "benchmark_task_groups.tsv", "metric": metric})
 
-    summaries = sorted(summary_rows, key=lambda row: (row["experiment"], AU_INDEX[row["au"]]))
+    summaries = sorted(summary_rows, key=lambda row: (EXPERIMENT_INDEX[row["experiment"]], AU_INDEX[row["au"]]))
     labels = [row["plot_label"] for row in summaries]
     x = np.arange(len(labels))
-    fig, axes = plt.subplots(1, 3, figsize=(19, 6.5), constrained_layout=True)
+    fig, axes = plt.subplots(1, 3, figsize=(25 if len(labels) > 20 else 19, 8), constrained_layout=True)
     colors = [EXPERIMENT_COLORS[row["experiment"]] for row in summaries]
     axes[0].bar(x, [row["total_cost_usd"] for row in summaries], color=colors, edgecolor="#333", linewidth=0.4)
     axes[0].set_title("Total successful task cost")
@@ -1328,8 +1531,9 @@ def benchmark_plots(observations: list[dict[str, Any]], task_rows: list[dict[str
     axes[2].set_ylabel("Hours")
     axes[2].legend(fontsize=8)
     for axis in axes:
-        axis.set_xticks(x, labels, rotation=45, ha="right", fontsize=8)
+        axis.set_xticks(x, labels, rotation=60 if len(labels) > 20 else 45, ha="right", fontsize=7.2 if len(labels) > 20 else 8)
         axis.grid(axis="y", alpha=0.2)
+    fig.suptitle("Benchmark totals by retained observation (E4 values are an in-flight snapshot)", fontsize=17)
     output = figures / "benchmark_au_totals.png"
     save_figure(fig, output)
     chart_map.append({"figure": output.name, "chart_type": "grouped bar", "title": "Benchmark totals by retained observation", "source_table": "benchmark_au_totals.tsv", "metric": "cost CPU and duration"})
@@ -1363,7 +1567,21 @@ def build_report(
         experiment: sum(costs.get(row["observation_id"], 0.0) for row in observations if row["experiment"] == experiment)
         for experiment in EXPERIMENTS
     }
-    ordered = sorted(observations, key=lambda row: (row["experiment"], AU_INDEX[row["au"]]))
+    ordered = sorted(observations, key=lambda row: (EXPERIMENT_INDEX[row["experiment"]], AU_INDEX[row["au"]]))
+    prior_observations = [row for row in observations if row["experiment"] != "E4"]
+    e4_observations = [row for row in observations if row["experiment"] == "E4"]
+    if len(prior_observations) != 12 or len(e4_observations) != 20:
+        raise ValueError("report requires 12 prior observations plus 20 E4 observations")
+    e4_compact = e4_observations[0]["compact_evidence"]
+    e4_capture_time = e4_compact["captured_at_end_utc"]
+    e4_workflow = e4_compact["workflow_status_end"]["attempts"][-1]
+    e4_benchmark_rejections = e4_compact["benchmark_rejections"]
+    e4_failed_benchmark_rows = sum("status=failed" in row["reason"] for row in e4_benchmark_rejections)
+    e4_invalid_success_rows = sum("invalid successful benchmark" in row["reason"] for row in e4_benchmark_rejections)
+    cost_parts = []
+    for experiment in EXPERIMENTS:
+        suffix = " (in-flight partial snapshot)" if experiment == "E4" else ""
+        cost_parts.append(f"**${total_cost_by_experiment[experiment]:,.2f}** for {experiment}{suffix}")
     top_coverage_table = [
         [
             row["plot_label"],
@@ -1386,33 +1604,58 @@ def build_report(
         ]
         for row in ordered
     ]
+    e4_completeness_markdown = [
+        [
+            row["plot_label"],
+            row["source_analysis_unit_uid"],
+            f"{row['ilmn_measured_token']}×",
+            f"{row['ont_measured_token']}×",
+            "complete",
+            "4/4",
+            "15/15",
+            "complete",
+            str(e4_compact["completeness"][row["runtime_au"]]["benchmark_success_rows"]),
+        ]
+        for row in sorted(e4_observations, key=lambda row: AU_INDEX[row["au"]])
+    ]
 
     image = lambda name: f"![{name}]({relative_asset(report_path, figures / name)})"
     table_link = lambda name: f"[{name}]({relative_asset(report_path, tables / name)})"
     lines: list[str] = [
         "# HG002 Bjuice native-SR × LR measured-coverage matrix report",
         "",
-        "## Direct-S3 coverage sanity table",
+        "## Measured-coverage sanity table",
         "",
         markdown_table(["ID", "target ILMNx", "SR ILMNx", "RSR ILMNx", "target ONTx", "LRONTx"], top_coverage_table),
         "",
-        "This is the only report table that presents requested coverage targets. All values were re-read from the three completed analysis exports on S3 at the summary-file level; the full paths and SHA-256 values are available in " + table_link("direct_s3_coverage_regather.tsv") + ".",
+        "This is the only report table that presents requested coverage targets. E1/E3/P1 values were re-read from three completed S3 exports; E4 values were read from the live FSx analysis root in a bounded DYEC snapshot. Every source path and SHA-256 is retained in " + table_link("direct_s3_coverage_regather.tsv") + " and " + table_link("source_inventory.tsv") + ".",
         "",
         "## Technical summary",
         "",
-        f"This report contains **{len(observations)} direct-S3-audited observations**: E1 (seven AUs), E3 (four AUs), and P1 (one full-input AU).",
+        f"This report contains **{len(observations)} observations**: all **12 prior E1/E3/P1 observations** plus **20 E4 controlled-matrix AUs** captured at **{e4_capture_time}**. E4 remained **{e4_workflow['state']}** with no controller, `day_run`, or Snakemake return code at capture, so E4 benchmark accounting is explicitly partial.",
         "",
-        "Every coverage-positioned figure uses **measured native SR×** on its vertical axis and **measured LR×** on its horizontal axis, with equal numeric scale. RSR× is audit-only. The strongest retained tagged-TrussSV global F-score is **" + f"{best_trussv['fscore']:.4f}** at **{best_trussv['plot_label']}**. Successful benchmark task rows sum to " + ", ".join(f"**${total_cost_by_experiment[experiment]:,.2f}** for {experiment}" for experiment in EXPERIMENTS) + ".",
+        "Every coverage-positioned figure uses **measured native SR×** on its vertical axis and **measured LR×** on its horizontal axis, with equal numeric scale. RSR× is audit-only. The strongest retained tagged-TrussSV global F-score is **" + f"{best_trussv['fscore']:.4f}** at **{best_trussv['plot_label']}**. Captured successful benchmark rows sum to " + ", ".join(cost_parts) + ".",
         "",
-        "E1 is **not a valid two-axis Illumina downsampling series**: every direct-S3 native-SR summary is exactly 43.73× (and has the same SHA-256), despite the AU-specific declared fractions. It is retained as a full-SR / variable-LR experiment. E3 supplies the actual variable-native-SR observations; P1 is a distinct full-input observation.",
+        "E1 is **not a valid two-axis Illumina downsampling series**: every direct-S3 native-SR summary is exactly 43.73× (and has the same SHA-256), despite the AU-specific declared fractions. It is retained as a full-SR / variable-LR experiment. E3 supplies four variable-native-SR observations, P1 is a distinct full-input observation, and E4 supplies the intended 20-cell controlled matrix.",
         "",
         "RSR is not a conventional random Illumina downsample. The E1 Sentieon hybrid log shows stage 3 running on a generated `hybrid_stage2.bed` interval set, followed by `hybrid_transfer` from the full SR alignment into `g_sr_realigned.cram`. Its retained-record fraction and Mosdepth therefore vary with the hybrid-selected regions and LR input. The 8.54–14.01× E1 RSR range is expected to differ from the uniform 43.73× native-SR evidence and must not form a coverage-matrix axis.",
         "",
-        "## Source S3 URIs",
+        "## E4 in-flight snapshot completeness",
+        "",
+        f"All 20 E4 AUs supplied parseable native-SR, RSR-audit, LR, hard-VCF GIAB-HC, four-caller Truvari, SMN12, and 15-gene SegDup artifacts. Their measured native-SR range is **{min(row['ilmn_measured'] for row in e4_observations):g}×–{max(row['ilmn_measured'] for row in e4_observations):g}×** and measured LR range is **{min(row['ont_measured'] for row in e4_observations):g}×–{max(row['ont_measured'] for row in e4_observations):g}×**.",
+        "",
+        markdown_table(
+            ["E4 AU", "source AU", "native SR", "LR", "hard VCF", "Truvari", "SegDup", "SMN12", "usable benchmark rows"],
+            e4_completeness_markdown,
+        ),
+        "",
+        f"The E4 snapshot contains **{len(e4_compact['benchmarks']):,} usable successful raw benchmark rows**. Because the controller was still running, these are not final cost or runtime totals. The collector also retained an audit of **{e4_failed_benchmark_rows} failed-attempt rows** and excluded **{e4_invalid_success_rows} rows labelled successful whose walltime was `NA`**. Exact per-AU counts are in " + table_link("e4_snapshot_completeness.tsv") + ".",
+        "",
+        "## Source locations",
         "",
         markdown_table(["Source", "S3 URI"], [[label, f"`{uri}`"] for label, uri in SOURCE_S3_URIS]),
         "",
-        "The exact S3 roots and every direct summary-file URI are recorded in " + table_link("source_s3_uris.tsv") + " and " + table_link("direct_s3_coverage_regather.tsv") + ".",
+        f"E4 live source at capture: `{e4_compact['analysis_root']}` (DayOA {e4_compact['dayoa_git']['exact_tag']} at `{e4_compact['dayoa_git']['commit']}`). The exact completed-export S3 roots and direct summary-file URIs are recorded in " + table_link("source_s3_uris.tsv") + " and " + table_link("direct_s3_coverage_regather.tsv") + "; E4 file hashes and paths are in " + table_link("source_inventory.tsv") + ".",
         "",
         "## Measured native-SR × LR availability",
         "",
@@ -1443,7 +1686,7 @@ def build_report(
             [
                 f"### {title}",
                 "",
-                "F-score, false-negative, false-positive, and precision–recall views below all use the direct-S3 measured coverage contract; no RSR or nominal coverage is used to position an observation.",
+                "F-score, false-negative, false-positive, and precision–recall views below all use the measured native-SR/LR coverage contract; no RSR or nominal coverage is used to position an observation.",
                 "",
                 image(f"hard_vcf_giabhc_{klass}_fscore_heatmap.png"),
                 "",
@@ -1461,7 +1704,7 @@ def build_report(
             "",
             "## Truvari structural-variant concordance",
             "",
-            "The two coverage-coordinate maps use tagged TrussSV values. The precision–recall facets retain the same E1/E3/P1 observations and label each point directly; raw summary metrics remain available for audit.",
+            "The two coverage-coordinate maps use tagged TrussSV values. The precision–recall facets retain all E1/E3/P1/E4 observations and label each point directly; raw summary metrics remain available for audit.",
             "",
             image("truvari_trussv_global_fscore_heatmap.png"),
             "",
@@ -1485,7 +1728,7 @@ def build_report(
             "",
             "## Benchmark cost and parallel-aware runtime",
             "",
-            "The per-task panels retain individual-AU task groups; the summary uses the exact retained observations. Neither view uses requested coverage values.",
+            "The per-task panels retain individual-AU task groups; the summary uses the exact retained observations. Neither view uses requested coverage values. E4 bars are explicitly an in-flight snapshot and must not be interpreted as final AU cost or duration.",
             "",
             image("benchmark_per_task_walltime.png"),
             "",
@@ -1493,28 +1736,30 @@ def build_report(
             "",
             image("benchmark_au_totals.png"),
             "",
-            "The task plots show the top 12 groups per retained observation; the TSV retains every successful task group. Observed makespan spans the first through last benchmark timestamp. Active-interval union merges overlapping task intervals. Longest task is a lower bound, not a DAG-derived critical path.",
+            "The task plots show the top 12 groups per retained observation; the TSV retains every usable successful task group. Observed makespan spans the first through last benchmark timestamp. Active-interval union merges overlapping task intervals. Longest task is a lower bound, not a DAG-derived critical path. E4 values stop at the snapshot timestamp and will increase as the controller finishes.",
             "",
             "Supporting benchmark tables: " + table_link("benchmark_task_groups.tsv") + " and " + table_link("benchmark_au_totals.tsv") + ".",
             "",
             "## Scope, methods, and limitations",
             "",
             "- Native SR× is the exact `chrom=total` Mosdepth mean from `sentdhiomr2sr/smd`; LR× is from `sentdhiomr2lr/na`. RSR× from `sentdhiomr2rsr/na` is retained only as a separately named audit result.",
-            "- The S3 collection rejects a missing or duplicate native-SR, RSR, or LR summary and fails if a re-read direct value differs from the recorded contract.",
+            "- The completed-export S3 collection rejects a missing or duplicate native-SR, RSR, or LR summary and fails if a re-read direct value differs from the recorded contract. The E4 collector applies the same exact-cardinality and schema checks against its live FSx snapshot.",
             "- E1’s seven identical native-SR summaries establish a data-generation limitation, not a charting transformation. This report does not claim that its declared SR fractions were applied.",
             "- Hard-VCF metrics are restricted to `ROI=giabHC`; the crude SNP construction is intentionally not a standard variant-class aggregation.",
             "- Truvari metrics come from raw `summary.json`. Undefined no-call rates are `NA`, even where a downstream report-oriented artifact normalized them to zero.",
             "- SegDup is descriptive callset output, not truth/query concordance. A no-call state is not evidence of reference genotype truth.",
-            "- E1, E3, and P1 reuse the same HG002 source material; input subsets are nested and P1 is a full-input production observation. Results are descriptive and no causal or inferential claim is made.",
+            "- E1, E3, P1, and E4 reuse the same HG002 source material; input subsets are nested and P1 is a full-input production observation. Results are descriptive and no causal or inferential claim is made.",
+            f"- E4 was nonterminal at {e4_capture_time}. Its 20 core metric sets were complete and parseable, but its {len(e4_compact['benchmarks']):,} benchmark rows are a lower-bound snapshot, not final workflow accounting.",
             "- The executions may have different runtime software provenance. The report uses produced artifacts and does not relabel a later execution as a pristine re-execution of an earlier release.",
             "",
             "## Audit and reproducibility",
             "",
             "- Direct S3 native-SR, RSR, and LR values with exact source paths and SHA-256 values: " + table_link("direct_s3_coverage_regather.tsv") + ".",
+            "- E4 per-AU metric and benchmark completeness at capture: " + table_link("e4_snapshot_completeness.tsv") + ".",
             "- Existing bounded evidence inventory for detailed call/benchmark inputs: " + table_link("source_inventory.tsv") + ".",
             "- Figure-to-table mapping: " + table_link("chart_map.tsv") + ".",
             "",
-            "Generated from bounded E1/E3/P1 evidence snapshots plus direct S3 reads of all 36 Mosdepth summaries on 2026-08-18.",
+            f"Generated from bounded E1/E3/P1 evidence, direct S3 reads of their 36 Mosdepth summaries, and the checksum-bound E4 live-FSx snapshot captured {e4_compact['captured_at_start_utc']} through {e4_capture_time}.",
         ]
     )
     report_path.write_text("\n".join(lines) + "\n")
@@ -1533,14 +1778,19 @@ def main() -> None:
         observations, metadata = parse_experiment(experiment, args.evidence_root)
         source_observations.extend(observations)
         source_inventory.extend(metadata["inventory"])
-    if len(source_observations) != 12:
-        raise ValueError("expected twelve E1/E3/P1 source observations")
+    experiment_counts = {
+        experiment: sum(row["experiment"] == experiment for row in source_observations)
+        for experiment in EXPERIMENTS
+    }
+    if experiment_counts != {"E1": 7, "E3": 4, "P1": 1, "E4": 20}:
+        raise ValueError(f"unexpected source-observation counts: {experiment_counts}")
     direct_s3_rows = read_direct_s3_coverage(args.direct_s3_coverage)
-    apply_direct_s3_coverage(source_observations, direct_s3_rows)
+    prior_source_observations = [row for row in source_observations if row["experiment"] != "E4"]
+    apply_direct_s3_coverage(prior_source_observations, direct_s3_rows)
 
     retained, resolutions, _ = deduplicate(source_observations)
-    if len(retained) != 12 or resolutions:
-        raise AssertionError("E1/E3/P1 source rows must remain 12 unique observations")
+    if len(retained) != 32 or resolutions:
+        raise AssertionError("the 12 prior and 20 E4 rows must remain 32 unique observations")
     p1_observations = [row for row in retained if row["experiment"] == "P1"]
     if len(p1_observations) != 1:
         raise AssertionError("expected one retained P1 observation")
@@ -1583,7 +1833,9 @@ def main() -> None:
     observation_fields = [
         "observation_id", "experiment", "experiment_title", "analysis_id", "au", "runtime_au", "source_analysis_unit_uid",
         "plot_label", "ilmn_measured_token", "rsr_measured_token", "ont_measured_token",
-        "subsample_pct", "ont_start_hour", "ont_end_hour", "selection_status", "coverage_source_ilmn", "coverage_source_rsr", "coverage_source_ont", "direct_s3_captured_at",
+        "ilmn_target", "ont_target", "ilmn_abs_error", "ont_abs_error", "subsample_pct", "ont_start_hour", "ont_end_hour",
+        "selection_status", "coverage_source_ilmn", "coverage_source_rsr", "coverage_source_ont", "coverage_capture_method",
+        "evidence_captured_at", "direct_s3_captured_at", "snapshot_workflow_state", "snapshot_controller_rc", "benchmark_scope",
     ]
     write_tsv(tables / "retained_observations.tsv", retained, observation_fields)
     write_tsv(tables / "direct_s3_coverage_regather.tsv", direct_s3_rows, list(direct_s3_rows[0]))
@@ -1591,9 +1843,47 @@ def main() -> None:
     write_tsv(tables / "truvari_metrics.tsv", truvari_rows, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "caller", "tp_base", "tp_comp", "fn", "fp", "precision", "recall", "fscore", "gt_concordance", "base_count", "query_count", "source_path"])
     write_tsv(tables / "segdup_calls.tsv", segdup_rows, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "gene", "call_state", "chrom", "pos", "ref", "alt", "filter", "gt", "qual"])
     write_tsv(tables / "smn12_calls.tsv", smn_rows, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "SMN1_CN", "SMN2_CN", "SMN2delta7_8_CN", "Total_CN_raw", "Full_length_CN_raw", "g27134TG_CN", "isSMA", "isCarrier", "Info", "Median_depth", "source_path"])
-    write_tsv(tables / "benchmark_task_groups.tsv", benchmark_tasks, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "rule", "successful_records", "priced_records", "unpriced_records", "longest_walltime_s", "total_cost_usd", "allocated_vcpu_h", "observed_cpu_h"])
-    write_tsv(tables / "benchmark_au_totals.tsv", benchmark_summaries, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "successful_records", "priced_records", "unpriced_records", "task_groups", "total_cost_usd", "allocated_vcpu_h", "observed_cpu_h", "sum_task_wall_h", "observed_makespan_h", "active_interval_union_h", "longest_task_h"])
-    write_tsv(tables / "source_inventory.tsv", source_inventory, ["experiment", "analysis_root", "relative_path", "bytes", "mtime_epoch", "sha256", "local_path", "local_sha256", "local_sha256_match"])
+    write_tsv(tables / "benchmark_task_groups.tsv", benchmark_tasks, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "rule", "successful_records", "priced_records", "unpriced_records", "longest_walltime_s", "total_cost_usd", "allocated_vcpu_h", "observed_cpu_h", "benchmark_scope"])
+    write_tsv(tables / "benchmark_au_totals.tsv", benchmark_summaries, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "successful_records", "priced_records", "unpriced_records", "task_groups", "total_cost_usd", "allocated_vcpu_h", "observed_cpu_h", "sum_task_wall_h", "observed_makespan_h", "active_interval_union_h", "longest_task_h", "benchmark_scope"])
+    e4_observations = [row for row in retained if row["experiment"] == "E4"]
+    e4_compact = e4_observations[0]["compact_evidence"]
+    e4_completeness_rows = []
+    for observation in sorted(e4_observations, key=lambda row: AU_INDEX[row["au"]]):
+        completeness = e4_compact["completeness"][observation["runtime_au"]]
+        e4_completeness_rows.append(
+            {
+                "captured_at_utc": e4_compact["captured_at_end_utc"],
+                "analysis_id": observation["analysis_id"],
+                "planned_au": observation["au"],
+                "source_analysis_unit_uid": observation["source_analysis_unit_uid"],
+                "runtime_au": observation["runtime_au"],
+                "target_native_sr_x": observation["ilmn_target"],
+                "measured_native_sr_x": observation["ilmn_measured_token"],
+                "measured_rsr_audit_x": observation["rsr_measured_token"],
+                "target_lr_x": observation["ont_target"],
+                "measured_lr_x": observation["ont_measured_token"],
+                "hard_vcf_giabhc": completeness["hard_vcf_giabhc"],
+                "truvari_summaries": completeness["truvari_summaries"],
+                "segdup_vcfs": completeness["segdup_vcfs"],
+                "smn12_summary": completeness["smn12_summary"],
+                "benchmark_success_rows": completeness["benchmark_success_rows"],
+                "benchmark_rejected_or_incomplete_rows": completeness["benchmark_rejected_or_incomplete_rows"],
+                "benchmark_snapshot": completeness["benchmark_snapshot"],
+                "workflow_state_at_capture": observation["snapshot_workflow_state"],
+                "controller_rc_at_capture": observation["snapshot_controller_rc"],
+            }
+        )
+    write_tsv(
+        tables / "e4_snapshot_completeness.tsv",
+        e4_completeness_rows,
+        [
+            "captured_at_utc", "analysis_id", "planned_au", "source_analysis_unit_uid", "runtime_au",
+            "target_native_sr_x", "measured_native_sr_x", "measured_rsr_audit_x", "target_lr_x", "measured_lr_x",
+            "hard_vcf_giabhc", "truvari_summaries", "segdup_vcfs", "smn12_summary", "benchmark_success_rows",
+            "benchmark_rejected_or_incomplete_rows", "benchmark_snapshot", "workflow_state_at_capture", "controller_rc_at_capture",
+        ],
+    )
+    write_tsv(tables / "source_inventory.tsv", source_inventory, ["experiment", "analysis_root", "category", "relative_path", "bytes", "mtime_epoch", "sha256", "local_path", "local_sha256", "local_sha256_match"])
     write_tsv(tables / "source_s3_uris.tsv", [{"source": label, "s3_uri": uri} for label, uri in SOURCE_S3_URIS], ["source", "s3_uri"])
     write_tsv(tables / "chart_map.tsv", chart_map, ["figure", "chart_type", "title", "source_table", "metric"])
 
@@ -1608,6 +1898,7 @@ def main() -> None:
 
     expected_tables = {
         "retained_observations.tsv", "direct_s3_coverage_regather.tsv", "coverage_grid.tsv",
+        "e4_snapshot_completeness.tsv",
         "hard_vcf_giabhc_metrics.tsv", "truvari_metrics.tsv", "segdup_calls.tsv", "smn12_calls.tsv",
         "benchmark_task_groups.tsv", "benchmark_au_totals.tsv", "source_inventory.tsv", "source_s3_uris.tsv", "chart_map.tsv",
     }
@@ -1616,7 +1907,7 @@ def main() -> None:
         raise AssertionError(f"missing tables: {missing_tables}")
     if not args.report_path.is_file():
         raise AssertionError("report was not created")
-    print(json.dumps({"report": str(args.report_path), "assets": str(args.assets_dir), "source_observations": len(source_observations), "retained_observations": len(retained), "direct_s3_coverage_rows": len(direct_s3_rows), "concordance_heatmaps": len(concordance_heatmaps), "all_heatmaps": len(heatmaps), "figures": len(chart_map), "tables": len(expected_tables)}, indent=2))
+    print(json.dumps({"report": str(args.report_path), "assets": str(args.assets_dir), "source_observations": len(source_observations), "retained_observations": len(retained), "prior_observations": len(prior_source_observations), "e4_observations": len(e4_observations), "direct_s3_coverage_rows": len(direct_s3_rows), "e4_benchmark_rows": len(e4_compact["benchmarks"]), "concordance_heatmaps": len(concordance_heatmaps), "all_heatmaps": len(heatmaps), "figures": len(chart_map), "tables": len(expected_tables)}, indent=2))
 
 
 if __name__ == "__main__":
