@@ -28,6 +28,35 @@ PCAND18022_RUNQC_EVIDENCE_RUNS = {
     "ont_run_qc": "pcand18022_ont_seq_qc_15011_live_20260817T0752Z",
     "ultima_run_qc": "pcand18022_ultima_seq_qc_15011_live_20260817T0734Z",
 }
+RUNQC_EVIDENCE_PREFIXES = {
+    "illumina_run_qc": (
+        "s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/"
+        "prerel18025_ilm_seq_qc_18026_15015_20260817T1427Z/"
+        "daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/"
+        "run_qc/illumina/"
+    ),
+    "ont_run_qc": (
+        "s3://lsmc-ssf-sequencing-data/derived/pcand-18022/"
+        "pcand18022_ont_seq_qc_15011_live_20260817T0752Z/"
+        "daylily-omics-analysis/results/runs/20260615_ONT_Set4-FC1/run_qc/ont/"
+    ),
+    "ultima_run_qc": (
+        "s3://lsmc-ssf-sequencing-data/derived/pcand-18022/"
+        "pcand18022_ultima_seq_qc_15011_live_20260817T0734Z/"
+        "daylily-omics-analysis/results/runs/604834-20260717_2309/run_qc/ultima/"
+    ),
+}
+PCAND18022_BJUICE_EVIDENCE_RUNS = {
+    "inflection-bjuice-product-v0.2": "pcand18022-hg002-slim5x5x-bjuice-ifx-20260817t0648z",
+    "hiomr2_slim_kitchensink_mega": "pcand18022-hg002-slim5x5x-hiomr2-20260817t0648z",
+}
+NEW_TOP_LEVEL_COMMAND_IDS = {"inflection-bjuice-product-v0.9"}
+REMOVED_TOP_LEVEL_COMMAND_IDS = {
+    "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
+}
+NEW_CURRENT_COMMAND_IDS = NEW_TOP_LEVEL_COMMAND_IDS | {
+    "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega"
+}
 HISTORICAL_BUILD_HASHES = {
     "16.1.81": "219606c84c6a24b12ad84499580788b46301549b9c521c3583a6ddf07c869fc9",
     "16.1.82": "106dded9e9d8329966d418b08217c0d674ec22fb5795388565ce7e6f7b511ed5",
@@ -95,7 +124,7 @@ def test_current_alias_resolves_to_an_analysis_command_and_renders_extensions() 
     assert ALIAS_ID not in build.commands
     assert ALIAS_ID in build.aliases
     assert build.aliases[ALIAS_ID].alias_of == BASE_ID
-    assert base.git_tag == "15.0.19"
+    assert base.git_tag == "15.0.21"
     assert alias.git_tag == base.git_tag
     assert base.targets == ["produce_sentdhiomr2_slim_kitchensink_mega"]
     assert alias.targets == [
@@ -297,16 +326,16 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
     baseline = yaml.safe_load(baseline_source)
 
     assert raw["dyec_builds"]["current"] != raw["dyec_builds"]["17.0.29"]
-    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == "15.0.19"
-    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["15.0.19"]
+    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == "15.0.21"
+    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["15.0.21"]
     assert {
         command["git_tag"]
         for command in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]
-    } == {"15.0.19"}
+    } == {"15.0.21"}
     assert {
         command["git_tag"]
         for command in raw["dyec_builds"]["current"]["commands"].values()
-    } == {"15.0.19"}
+    } == {"15.0.21"}
     top_level_commands = {
         command["command_id"]
         for command in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]
@@ -316,6 +345,9 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
         for command in baseline["repositories"]["daylily-omics-analysis"]["analysis_commands"]
     }
     for command in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]:
+        if command["command_id"] in NEW_TOP_LEVEL_COMMAND_IDS:
+            assert command.get("validation_runs", []) == []
+            continue
         baseline_command = baseline_top_level_commands[command["command_id"]]
         assert command["validated_version"] == baseline_command["validated_version"]
         if command["command_id"] in PCAND18015_SOLO_EVIDENCE_RUNS:
@@ -335,15 +367,30 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
             assert command["validation_runs"][-1]["run_id"] == PCAND18022_RUNQC_EVIDENCE_RUNS[
                 command["command_id"]
             ]
-            assert command["validation_evidence_s3_uri_prefix"].startswith(
+            assert command["validation_evidence_s3_uri_prefix"] == RUNQC_EVIDENCE_PREFIXES[
+                command["command_id"]
+            ]
+        elif command["command_id"] in PCAND18022_BJUICE_EVIDENCE_RUNS:
+            assert command.get("validation_runs", [])[:-1] == baseline_command.get(
+                "validation_runs", []
+            )
+            assert command["validation_runs"][-1]["run_id"] == (
+                PCAND18022_BJUICE_EVIDENCE_RUNS[command["command_id"]]
+            )
+            assert command["validation_runs"][-1]["stage_or_context"].startswith(
                 "s3://lsmc-ssf-sequencing-data/derived/pcand-18022/"
             )
         else:
             assert command.get("validation_runs", []) == baseline_command.get(
                 "validation_runs", []
             )
-    assert top_level_commands == set(baseline_top_level_commands)
+    assert top_level_commands == (
+        set(baseline_top_level_commands) - REMOVED_TOP_LEVEL_COMMAND_IDS
+    ) | NEW_TOP_LEVEL_COMMAND_IDS
     for command_id, command in raw["dyec_builds"]["current"]["commands"].items():
+        if command_id in NEW_CURRENT_COMMAND_IDS:
+            assert command.get("validation_runs", []) == []
+            continue
         baseline_command = baseline["dyec_builds"]["current"]["commands"][command_id]
         assert command["validated_version"] == baseline_command["validated_version"]
         if command_id in PCAND18015_SOLO_EVIDENCE_RUNS:
@@ -363,14 +410,32 @@ def test_current_snapshot_history_and_packaged_payload_are_exact() -> None:
             assert command["validation_runs"][-1]["run_id"] == PCAND18022_RUNQC_EVIDENCE_RUNS[
                 command_id
             ]
-            assert command["validation_evidence_s3_uri_prefix"].startswith(
-                "s3://lsmc-ssf-sequencing-data/derived/pcand-18022/"
-            )
+            assert command["validation_evidence_s3_uri_prefix"] == RUNQC_EVIDENCE_PREFIXES[
+                command_id
+            ]
         else:
             assert command.get("validation_runs", []) == baseline_command.get(
                 "validation_runs", []
             )
-    assert raw["dyec_builds"]["current"]["aliases"] == baseline["dyec_builds"]["current"]["aliases"]
+    current_aliases = raw["dyec_builds"]["current"]["aliases"]
+    baseline_aliases = baseline["dyec_builds"]["current"]["aliases"]
+    assert set(current_aliases) == set(baseline_aliases) == {ALIAS_ID}
+    current_alias = current_aliases[ALIAS_ID]
+    baseline_alias = baseline_aliases[ALIAS_ID]
+    assert current_alias["alias_of"] == baseline_alias["alias_of"]
+    current_metadata = current_alias["metadata_overrides"]
+    baseline_metadata = baseline_alias["metadata_overrides"]
+    assert {
+        key: value for key, value in current_metadata.items() if key != "validation_runs"
+    } == {
+        key: value for key, value in baseline_metadata.items() if key != "validation_runs"
+    }
+    assert current_metadata["validation_runs"][:-1] == baseline_metadata[
+        "validation_runs"
+    ]
+    assert current_metadata["validation_runs"][-1]["run_id"] == (
+        PCAND18022_BJUICE_EVIDENCE_RUNS[ALIAS_ID]
+    )
     assert raw["dyec_builds"]["17.0.29"]["dayoa_git_tags"] == ["14.0.22"]
     assert raw["dyec_builds"]["17.0.16"]["dayoa_git_tags"] == ["14.0.16"]
     assert raw["dyec_builds"]["17.0.17"]["dayoa_git_tags"] == [

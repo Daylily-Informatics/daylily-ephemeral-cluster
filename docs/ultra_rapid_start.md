@@ -2,7 +2,7 @@
 
 Use this only when AWS setup, quotas, Session Manager, the DYEC config, and the
 selected DayOA command/input contract are already known-good. This is the
-`18.0.30` catalog-first path; it performs real cloud operations when `--dry-run`
+`18.0.31` catalog-first path; it performs real cloud operations when `--dry-run`
 is removed.
 
 ```bash
@@ -31,7 +31,7 @@ win and direct `aws`/`pcluster` calls still use their normal environment setup.
 
 ## Render first
 
-Inspect the exact catalog contract. The active catalog targets DayOA `15.0.19`.
+Inspect the exact catalog contract. The active catalog targets DayOA `15.0.21`.
 For a six-manifest command, the directory must contain the complete validated
 manifest set; a legacy `--stage-dir` is not interchangeable with
 `--manifest-dir`.

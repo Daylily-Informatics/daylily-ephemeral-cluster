@@ -14,11 +14,11 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "15.0.19"
+DAYOA_BLESSED_TAG = "15.0.21"
 CURRENT_VALIDATED_DAYOA_TAG = "15.0.1"
 RUN_QC_VALIDATED_DAYOA_TAG = "15.0.9"
 PRODUCTION_DAYOA_TAG = DAYOA_BLESSED_TAG
-BJUICE_V2_DAYOA_TARGET_TAG = "15.0.19"
+BJUICE_V2_DAYOA_TARGET_TAG = "15.0.21"
 BJUICE_V2_DAYOA_VALIDATED_TAG = "15.0.3"
 PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
 SOLO_KITCHEN_SINK_DAYOA_TAG = DAYOA_BLESSED_TAG
@@ -54,7 +54,7 @@ UNVALIDATED_COMMAND_IDS = {
     "betelgeuser_hiomr_prod_v1",
     "inflection-bjuice-product-v0.2",
     "hiomr2_slim_kitchensink_mega",
-    "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical",
+    "inflection-bjuice-product-v0.9",
     "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega",
     "sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x",
     "illumina_pangenome_snv",
@@ -464,9 +464,7 @@ def test_catalog_public_payload_marks_target_validation_gaps_without_relabeling_
     }
 
     pending = public_commands["simple-test"]
-    bjuice = public_commands[
-        "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
-    ]
+    bjuice = public_commands["inflection-bjuice-product-v0.9"]
     assert pending["git_tag"] == DAYOA_BLESSED_TAG
     assert pending["validated_version"] == CURRENT_VALIDATED_DAYOA_TAG
     assert pending["validation_pending"] is True
@@ -527,7 +525,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "complete_genomics_cg_snv_concordance",
         "inflection-bjuice-product-v0.2",
         "hiomr2_slim_kitchensink_mega",
-        "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical",
+        "inflection-bjuice-product-v0.9",
         "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega",
     }
     recoverability = catalog.get_command(
@@ -541,7 +539,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     hiomr2_mega_ids = {
         "inflection-bjuice-product-v0.2",
         "hiomr2_slim_kitchensink_mega",
-        "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical",
+        "inflection-bjuice-product-v0.9",
         "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega",
     }
     for command_id in hiomr2_mega_ids:
@@ -584,6 +582,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             "complete_genomics_cg_snv_concordance": 2,
             "ont_run_qc": 4,
             "ultima_run_qc": 4,
+            "inflection-bjuice-product-v0.2": 2,
         }.get(command.command_id, 1)
         assert len(command.validation_runs) == expected_validation_runs
         validation_run = command.validation_runs[0]
@@ -1057,20 +1056,26 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             ):
                 assert excluded_special_caller not in command
 
-    # The two catalogued HIOMR2 + Inflection workflow tests intentionally
-    # demonstrate a quick multi-chromosome range.  DayOA's numeric scope maps
-    # 23=X, 24=Y, and 25=M/MT, so full production coverage is 1-25.
+    # The hybrid workflow test intentionally demonstrates a quick
+    # multi-chromosome range. DayOA's numeric scope maps 23=X, 24=Y, and
+    # 25=M/MT, so the production BJuice commands cover 1-25.
     hiomr2_test_scope = 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}'
+    hybrid_hiomr2 = catalog.get_command(
+        "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical"
+    )
+    assert hybrid_hiomr2.dy_command.count(hiomr2_test_scope) == 1
+    assert hybrid_hiomr2.dryrun_dy_command.count(hiomr2_test_scope) == 1
+    assert "replace 19-20 with 1-25" in hybrid_hiomr2.description
+    assert "23=X, 24=Y, and 25=M/MT" in hybrid_hiomr2.description
+
+    hiomr2_production_scope = 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}'
     for command_id in (
-        "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical",
         "inflection-bjuice-product-v0.2",
         "hiomr2_slim_kitchensink_mega",
     ):
         hiomr2_kitchensink = catalog.get_command(command_id)
-        assert hiomr2_kitchensink.dy_command.count(hiomr2_test_scope) == 1
-        assert hiomr2_kitchensink.dryrun_dy_command.count(hiomr2_test_scope) == 1
-        assert "replace 19-20 with 1-25" in hiomr2_kitchensink.description
-        assert "23=X, 24=Y, and 25=M/MT" in hiomr2_kitchensink.description
+        assert hiomr2_kitchensink.dy_command.count(hiomr2_production_scope) == 1
+        assert hiomr2_kitchensink.dryrun_dy_command.count(hiomr2_production_scope) == 1
 
     package_inflection = catalog.get_command("package_inflection_hybrid_data")
     assert package_inflection.type == "dev"
@@ -1104,7 +1109,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     )
     assert inflection_bjuice.sample_manifest_template == ""
     assert [run.run_id for run in inflection_bjuice.validation_runs] == [
-        "prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z"
+        "prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z",
+        "pcand18022-hg002-slim5x5x-bjuice-ifx-20260817t0648z",
     ]
     assert inflection_bjuice.test_data_profile == "hg002_bjuice_verified_5x5x_fastq"
     assert (
@@ -1399,7 +1405,8 @@ def test_repository_catalog_rejects_run_dra_profile_without_mount_columns(
 
 
 def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() -> None:
-    command_id = (
+    command_id = "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega"
+    historical_command_id = (
         "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
     )
     catalog = load_repository_catalog(CATALOG_PATH)
@@ -1450,12 +1457,12 @@ def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() ->
     assert profile.run_context_source_s3_column == ""
     assert profile.run_context_mount_id_column == ""
     assert catalog.dyec_builds["current"].commands[command_id].model_dump() == command.model_dump()
-    snapshot_command = catalog.get_command_for_dyec_build(command_id, "18.0.8")
+    snapshot_command = catalog.get_command_for_dyec_build(historical_command_id, "18.0.8")
     assert snapshot_command.git_tag == BJUICE_V2_DAYOA_VALIDATED_TAG
     assert snapshot_command.validated_version == BJUICE_V2_DAYOA_VALIDATED_TAG
     assert command_id not in catalog.dyec_builds["current"].aliases
-    assert command_id not in catalog.dyec_builds["17.0.14"].commands
-    assert command_id in catalog.dyec_builds["17.0.15"].commands
+    assert historical_command_id not in catalog.dyec_builds["17.0.14"].commands
+    assert historical_command_id in catalog.dyec_builds["17.0.15"].commands
 
     with pytest.raises(ValueError, match="requires an explicit --cost-center"):
         command.launch_argv(

@@ -235,7 +235,7 @@ bases, duplicate IDs, mixed extension/replacement modes, and partial command
 replacements fail catalog validation. Existing catalog APIs return aliases as
 fully resolved `AnalysisCommand` records.
 
-The active catalog targets DayOA `15.0.19`. Public catalog output includes a
+The active catalog targets DayOA `15.0.21`. Public catalog output includes a
 derived `validation_pending` field: `true` means the command now targets a
 different DayOA tag than its retained `validated_version`. It is a visibility
 signal only; it does not relabel older validation receipts or block a launch.
@@ -263,7 +263,7 @@ dyec workflow launch \
   --cluster "$CLUSTER" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$CLUSTER" \
-  --git-tag 15.0.19 \
+  --git-tag 15.0.21 \
   --manifest-dir ./config \
   --payload-staging-s3-uri "$STAGING_S3_URI" \
   --session-name "$ANALYSIS_ID" \
