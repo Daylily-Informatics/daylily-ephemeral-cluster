@@ -1,2 +1,0 @@
-SAMPLEID	SAMPLE_EUID	SPECIMEN_ID	SAMPLECLASS	SAMPLE_TYPE	SAMPLEUSE	ORDER_TYPE	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	IDDNA_UID	TRUTH_DATA_DIR	SAMPLE_COMMENT
-HG002		HG002	research	gdna	posControl	RESEARCH	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/	true	false	na	HG002		/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/	Bjuice v2 HG002 full-prevalence analysis sample.
