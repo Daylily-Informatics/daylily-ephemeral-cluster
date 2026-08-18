@@ -1,4 +1,4 @@
-command_catalog_version: 7
+command_catalog_version: 6
 default_repository: daylily-omics-analysis
 result_export:
   description: "DayOA runs pipeline work only. After the controller exits successfully, DYEC must separately record an export visit with explicit intent, create a no-delete DRA export from the analysis root, and verify the detached receipt and expected S3 objects."
