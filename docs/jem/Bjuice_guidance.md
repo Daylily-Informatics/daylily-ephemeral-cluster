@@ -15,6 +15,10 @@ No DayOA controller, dry-run controller, workflow, cluster, DRA, run mount, S3 w
 OWY repair, release, or cleanup was started while producing this guidance. The commands
 near the end are retained for a future explicitly approved dry run; they were not executed.
 
+The concise Bundle 1a operator handoff, including DRA, run-level SeqQC, control/NTC scope,
+and the current mixed-sample command-catalog blocker, is
+`docs/jem/Bjuice_validation_bundle_handoff.md`.
+
 ## Outcome
 
 The workbook maps 157 rows across four logical validation runs. Ninety-nine rows have both
