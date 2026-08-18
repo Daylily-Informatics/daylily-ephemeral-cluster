@@ -18,6 +18,75 @@ from daylily_ec.cli import app
 runner = CliRunner()
 
 
+def _write_status_v2(
+    root: Path,
+    *,
+    controller_exit_code: int | None = None,
+    day_run_exit_code: int | None = None,
+    snakemake_exit_code: int | None = None,
+    command: str = "bin/day_run target -p -j 5 -k",
+) -> None:
+    root = root.resolve()
+    dayoa = (root / "daylily-omics-analysis").resolve()
+    started_at = "2026-07-25T16:37:41Z"
+    completed_at = "2026-07-25T16:45:14Z" if controller_exit_code is not None else None
+
+    def child(code: int | None, argv: list[str], *, log: bool = False) -> dict[str, object]:
+        state = "running" if code is None else ("succeeded" if code == 0 else "failed")
+        payload: dict[str, object] = {
+            "state": state,
+            "argv": argv,
+            "started_at": started_at,
+            "completed_at": completed_at if code is not None else None,
+            "exit_code": code,
+        }
+        if log:
+            payload.update({"log_path": None, "log_attribution": None})
+        return payload
+
+    controller_state = (
+        "running"
+        if controller_exit_code is None
+        else ("succeeded" if controller_exit_code == 0 else "failed")
+    )
+    attempt = {
+        "attempt_id": "00000000-0000-4000-8000-000000000001",
+        "sequence": 1,
+        "origin": "dyec_controller",
+        "mode": "dry_run",
+        "requested_command": command,
+        "started_at": started_at,
+        "completed_at": completed_at,
+        "state": controller_state,
+        "controller": {
+            "state": controller_state,
+            "session_name": "session-1",
+            "pid": 4242,
+            "command": command,
+            "started_at": started_at,
+            "completed_at": completed_at,
+            "exit_code": controller_exit_code,
+        },
+        "day_run": child(day_run_exit_code, ["bin/day_run", "target"]),
+        "snakemake": child(snakemake_exit_code, ["snakemake", "target"], log=True),
+    }
+    (dayoa / "status.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "daylily.analysis_status.v2",
+                "analysis": {
+                    "analysis_root": str(root),
+                    "repo_path": str(dayoa),
+                    "created_at": started_at,
+                },
+                "updated_at": completed_at or started_at,
+                "attempts": [attempt],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
 def _root(
     tmp_path: Path,
     *,
@@ -42,6 +111,7 @@ def _root(
         (report / "DAY_final_multiqc.html").write_text("html", encoding="utf-8")
         (report / "DAY_final_multiqc_data" / "multiqc_data.json").write_text("{}", encoding="utf-8")
         (report / "dayoa_evidence_manifest.json").write_text("{}", encoding="utf-8")
+    _write_status_v2(root)
     return root
 
 
@@ -222,24 +292,14 @@ def test_run_qc_success_uses_exact_controller_receipt_and_run_qc_artifacts(
         ("multiqc_report_data/multiqc_data.json", "{}"),
     ):
         (run_qc / relative).write_text(content, encoding="utf-8")
-    home = tmp_path / "home"
-    receipt_dir = home / "daylily-runs" / root.name
-    receipt_dir.mkdir(parents=True)
-    (receipt_dir / "status.json").write_text(
-        json.dumps(
-            {
-                "command": "bin/day_run produce_illumina_run_qc -p -j 5 -k",
-                "completed_at": "2026-07-26T08:11:39Z",
-                "exit_code": 0,
-                "repo_path": str(dayoa),
-                "session_name": root.name,
-                "started_at": "2026-07-26T07:56:58Z",
-            }
-        ),
-        encoding="utf-8",
+    _write_status_v2(
+        root,
+        controller_exit_code=0,
+        day_run_exit_code=0,
+        snakemake_exit_code=0,
+        command="bin/day_run produce_illumina_run_qc -p -j 5 -k",
     )
     _activate(monkeypatch)
-    monkeypatch.setenv("HOME", str(home))
     monkeypatch.setattr(
         "daylily_ec.analysis_status.shutil.which",
         lambda name: "/bin/tool" if name in {"squeue", "scontrol"} else None,
@@ -257,8 +317,9 @@ def test_run_qc_success_uses_exact_controller_receipt_and_run_qc_artifacts(
     payload = collect_analysis_status(root, mode="slim", runner=fake)
 
     assert payload["state"] == "SUCCESS"
-    assert payload["controller"]["return_code"] == 0
-    assert payload["controller"]["return_code_source"].endswith("status.json")
+    assert payload["terminal_evidence"]["controller_exit_code"] == 0
+    assert payload["terminal_evidence"]["day_run_exit_code"] == 0
+    assert payload["terminal_evidence"]["snakemake_exit_code"] == 0
     assert payload["canonical_artifacts"]["contract"] == "run_qc_illumina"
     assert payload["canonical_artifacts"]["all_present"] is True
 
@@ -267,6 +328,12 @@ def test_success_is_verified_only_with_controller_rc_zero(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = _root(tmp_path, complete=True)
+    _write_status_v2(
+        root,
+        controller_exit_code=0,
+        day_run_exit_code=0,
+        snakemake_exit_code=0,
+    )
     _activate(monkeypatch)
     monkeypatch.setattr(
         "daylily_ec.analysis_status.shutil.which",
@@ -299,14 +366,20 @@ def test_success_is_verified_only_with_controller_rc_zero(
     payload = collect_analysis_status(root, mode="slim", runner=fake)
 
     assert payload["state"] == "SUCCESS"
-    assert payload["controller"]["return_code"] == 0
+    assert payload["terminal_evidence"]["controller_exit_code"] == 0
     assert payload["terminal_evidence"]["success_verified"] is True
 
 
-def test_success_can_use_master_log_terminal_rc_when_progress_line_is_missing(
+def test_success_uses_v2_results_when_master_log_progress_is_missing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = _root(tmp_path, terminal_success_without_progress=True)
+    _write_status_v2(
+        root,
+        controller_exit_code=0,
+        day_run_exit_code=0,
+        snakemake_exit_code=0,
+    )
     _activate(monkeypatch)
     monkeypatch.setattr(
         "daylily_ec.analysis_status.shutil.which",
@@ -325,82 +398,51 @@ def test_success_can_use_master_log_terminal_rc_when_progress_line_is_missing(
     payload = collect_analysis_status(root, mode="slim", runner=fake)
 
     assert payload["state"] == "SUCCESS"
-    assert payload["terminal_evidence"]["return_code"] == 0
-    assert payload["terminal_evidence"]["return_code_source"].endswith("20260716.snakemake.log")
+    assert payload["terminal_evidence"]["controller_exit_code"] == 0
+    assert payload["terminal_evidence"]["day_run_exit_code"] == 0
+    assert payload["terminal_evidence"]["snakemake_exit_code"] == 0
+    assert payload["terminal_evidence"]["controller_exit_code_source"].endswith(
+        "/status.json#attempts/00000000-0000-4000-8000-000000000001/controller/exit_code"
+    )
     assert payload["terminal_evidence"]["requirements"]["workflow_progress_complete"] is False
     assert payload["terminal_evidence"]["requirements"]["workflow_terminal_success"] is True
     assert payload["terminal_evidence"]["success_verified"] is True
     assert "INCOMPLETE_OR_UNKNOWN" not in render_analysis_status(payload)
 
 
-def _write_run_receipts(
-    tmp_path: Path,
-    root: Path,
-    *,
-    session: str = "session-1",
-    exit_code: int | None = 1,
-    completed_at: str | None = "2026-07-25T16:45:14Z",
-) -> Path:
-    run_state_root = tmp_path / "home" / "ubuntu" / "daylily-runs"
-    run_dir = run_state_root / session
-    run_dir.mkdir(parents=True)
-    dayoa = root / "daylily-omics-analysis"
-    target = {
-        "schema_version": "dyec.controller_target.v1",
-        "controller_id": session,
-        "pid": 4242,
-        "cwd": str(dayoa.resolve()),
-        "log_path": str((dayoa / ".dyec" / "controller.log").resolve()),
-        "dag_path": str((dayoa / ".dyec" / "controller-dag.png").resolve()),
-        "analysis_root": str(root.resolve()),
-    }
-    (run_dir / "controller_target.json").write_text(
-        json.dumps(target),
-        encoding="utf-8",
-    )
-    status = {
-        "session_name": session,
-        "repo_path": str(dayoa.resolve()),
-        "started_at": "2026-07-25T16:37:41Z",
-        "workflow_completed_at": completed_at,
-        "workflow_exit_code": exit_code,
-        "completed_at": completed_at,
-        "exit_code": exit_code,
-        "snakemake_log_path": None,
-        "snakemake_log_attribution": None,
-        "command": "bin/day_run produce_illumina_run_qc",
-    }
-    (run_dir / "status.json").write_text(json.dumps(status), encoding="utf-8")
-    return run_state_root
-
-
-def test_exact_run_control_receipt_terminalizes_failed_workflow(
+def test_clone_resident_v2_terminalizes_failed_workflow(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = _root(tmp_path)
-    run_state_root = _write_run_receipts(tmp_path, root)
+    _write_status_v2(
+        root,
+        controller_exit_code=1,
+        day_run_exit_code=1,
+        snakemake_exit_code=1,
+    )
     _activate(monkeypatch)
     monkeypatch.setattr("daylily_ec.analysis_status.shutil.which", lambda _name: None)
 
-    payload = collect_analysis_status(
-        root,
-        mode="slim",
-        runner=_fake_runner,
-        run_state_root=run_state_root,
-    )
+    payload = collect_analysis_status(root, mode="slim", runner=_fake_runner)
 
     assert payload["state"] == "FAILED"
-    assert payload["terminal_evidence"]["return_code"] == 1
-    assert payload["terminal_evidence"]["return_code_source"].endswith("/status.json")
+    assert payload["terminal_evidence"]["controller_exit_code"] == 1
+    assert payload["terminal_evidence"]["day_run_exit_code"] == 1
+    assert payload["terminal_evidence"]["snakemake_exit_code"] == 1
     assert payload["controller"]["run_receipt"]["controller_id"] == "session-1"
     assert payload["controller"]["run_receipt"]["completed_at"] == "2026-07-25T16:45:14Z"
 
 
-def test_exact_run_control_receipt_terminalizes_success_without_optional_artifacts(
+def test_clone_resident_v2_terminalizes_success_without_optional_artifacts(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = _root(tmp_path)
-    run_state_root = _write_run_receipts(tmp_path, root, exit_code=0)
+    _write_status_v2(
+        root,
+        controller_exit_code=0,
+        day_run_exit_code=0,
+        snakemake_exit_code=0,
+    )
     _activate(monkeypatch)
     monkeypatch.setattr(
         "daylily_ec.analysis_status.shutil.which",
@@ -412,104 +454,66 @@ def test_exact_run_control_receipt_terminalizes_success_without_optional_artifac
             return subprocess.CompletedProcess(argv, 0, "", "")
         return _fake_runner(argv)
 
-    payload = collect_analysis_status(
-        root,
-        mode="slim",
-        runner=fake,
-        run_state_root=run_state_root,
-    )
+    payload = collect_analysis_status(root, mode="slim", runner=fake)
 
     assert payload["state"] == "SUCCESS"
-    assert payload["terminal_evidence"]["return_code"] == 0
+    assert payload["terminal_evidence"]["controller_exit_code"] == 0
     assert payload["terminal_evidence"]["requirements"]["exact_run_receipt_success"] is True
     assert payload["terminal_evidence"]["success_verified"] is True
     assert payload["canonical_artifacts"]["all_present"] is False
-    assert "exact completed run-control receipt" in payload["warnings"][-1]
+    assert "exact completed clone-resident v2 receipt" in payload["warnings"][-1]
 
 
-def test_run_control_receipt_requires_exact_analysis_root(
+def test_missing_clone_resident_v2_status_fails_clearly(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = _root(tmp_path)
-    other = tmp_path / "other-analysis"
-    other.mkdir()
-    run_state_root = _write_run_receipts(tmp_path, other)
+    (root / "daylily-omics-analysis" / "status.json").unlink()
     _activate(monkeypatch)
     monkeypatch.setattr("daylily_ec.analysis_status.shutil.which", lambda _name: None)
 
-    payload = collect_analysis_status(
-        root,
-        mode="slim",
-        runner=_fake_runner,
-        run_state_root=run_state_root,
-    )
-
-    assert payload["state"] == "INCOMPLETE_OR_UNKNOWN"
-    assert payload["controller"]["run_receipt"]["available"] is False
-    assert payload["controller"]["run_receipt"]["return_code"] is None
+    with pytest.raises(AnalysisStatusError, match="clone-resident status v2 is missing"):
+        collect_analysis_status(root, mode="slim", runner=_fake_runner)
 
 
-def test_duplicate_exact_run_control_receipts_fail_loudly(
+def test_historic_home_status_is_not_a_v2_fallback(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = _root(tmp_path)
-    run_state_root = _write_run_receipts(tmp_path, root, session="session-1")
-    _write_run_receipts(tmp_path, root, session="session-2")
+    (root / "daylily-omics-analysis" / "status.json").unlink()
+    home_status = tmp_path / "home" / "ubuntu" / "daylily-runs" / "session-1" / "status.json"
+    home_status.parent.mkdir(parents=True)
+    home_status.write_text('{"exit_code": 0}', encoding="utf-8")
     _activate(monkeypatch)
+    monkeypatch.setenv("HOME", str(tmp_path / "home" / "ubuntu"))
     monkeypatch.setattr("daylily_ec.analysis_status.shutil.which", lambda _name: None)
 
-    with pytest.raises(AnalysisStatusError, match="multiple run-control receipts"):
-        collect_analysis_status(
-            root,
-            mode="slim",
-            runner=_fake_runner,
-            run_state_root=run_state_root,
-        )
+    with pytest.raises(AnalysisStatusError, match="clone-resident status v2 is missing"):
+        collect_analysis_status(root, mode="slim", runner=_fake_runner)
 
 
-def test_malformed_status_for_exact_run_control_receipt_fails_loudly(
+def test_malformed_clone_resident_v2_status_fails_loudly(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = _root(tmp_path)
-    run_state_root = _write_run_receipts(tmp_path, root)
-    (run_state_root / "session-1" / "status.json").write_text("{}", encoding="utf-8")
+    (root / "daylily-omics-analysis" / "status.json").write_text("{}", encoding="utf-8")
     _activate(monkeypatch)
     monkeypatch.setattr("daylily_ec.analysis_status.shutil.which", lambda _name: None)
 
-    with pytest.raises(AnalysisStatusError, match="status receipt fields are invalid"):
-        collect_analysis_status(
-            root,
-            mode="slim",
-            runner=_fake_runner,
-            run_state_root=run_state_root,
-        )
-
-
-def test_run_control_receipt_rejects_unknown_status_field(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    root = _root(tmp_path)
-    run_state_root = _write_run_receipts(tmp_path, root)
-    status_path = run_state_root / "session-1" / "status.json"
-    status = json.loads(status_path.read_text(encoding="utf-8"))
-    status["unapproved_extension"] = "not part of the DYEC writer contract"
-    status_path.write_text(json.dumps(status), encoding="utf-8")
-    _activate(monkeypatch)
-    monkeypatch.setattr("daylily_ec.analysis_status.shutil.which", lambda _name: None)
-
-    with pytest.raises(AnalysisStatusError, match="status receipt fields are invalid"):
-        collect_analysis_status(
-            root,
-            mode="slim",
-            runner=_fake_runner,
-            run_state_root=run_state_root,
-        )
+    with pytest.raises(AnalysisStatusError, match="unexpected keys"):
+        collect_analysis_status(root, mode="slim", runner=_fake_runner)
 
 
 def test_controller_rc_zero_does_not_claim_success_without_scheduler_evidence(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = _root(tmp_path, complete=True)
+    _write_status_v2(
+        root,
+        controller_exit_code=0,
+        day_run_exit_code=0,
+        snakemake_exit_code=0,
+    )
     _activate(monkeypatch)
     monkeypatch.setattr(
         "daylily_ec.analysis_status.shutil.which",

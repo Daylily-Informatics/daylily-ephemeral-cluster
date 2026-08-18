@@ -95,43 +95,94 @@ def test_exact_tail_round_trips_through_compressed_probe_payload(
 def _launched_receipts(
     tmp_path: Path,
     *,
-    exit_code: int | None = None,
-    completed_at: str | None = None,
-    workflow_exit_code: int | None = None,
-    workflow_completed_at: str | None = None,
-) -> Path:
+    controller_exit_code: int | None = None,
+    day_run_exit_code: int | None = None,
+    snakemake_exit_code: int | None = None,
+    log_path: str | None = None,
+    log_attribution: str | None = None,
+) -> tuple[Path, dict[str, object]]:
     run_dir = tmp_path / "daylily-runs" / "session-1"
     run_dir.mkdir(parents=True)
+    attempt_id = "00000000-0000-4000-8000-000000000001"
     (run_dir / "controller_target.json").write_text(
         json.dumps(
             {
-                "schema_version": "dyec.controller_target.v1",
+                "schema_version": "dyec.controller_target.v2",
                 "controller_id": "session-1",
                 "pid": 4242,
                 "cwd": REPO,
                 "log_path": f"{REPO}/.dyec/controller.log",
                 "dag_path": f"{REPO}/.dyec/controller-dag.png",
                 "analysis_root": str(Path(REPO).parent),
+                "status_attempt_id": attempt_id,
             }
         ),
         encoding="utf-8",
     )
-    (run_dir / "status.json").write_text(
-        json.dumps(
-            {
-                "session_name": "session-1",
-                "repo_path": REPO,
-                "started_at": "2026-08-10T07:21:21Z",
-                "completed_at": completed_at,
-                "exit_code": exit_code,
-                "workflow_completed_at": workflow_completed_at,
-                "workflow_exit_code": workflow_exit_code,
-                "command": "dy-r target -j 333 -p -k",
-            }
-        ),
-        encoding="utf-8",
+    started_at = "2026-08-10T07:21:21Z"
+    completed_at = "2026-08-10T07:40:00Z" if controller_exit_code is not None else None
+
+    def child(code: int | None, argv: list[str], *, include_log: bool = False) -> dict[str, object]:
+        state = (
+            "running"
+            if code is None
+            else ("succeeded" if code == 0 else "failed")
+        )
+        result: dict[str, object] = {
+            "state": state,
+            "argv": argv,
+            "started_at": started_at,
+            "completed_at": completed_at if code is not None else None,
+            "exit_code": code,
+        }
+        if include_log:
+            result["log_path"] = log_path
+            result["log_attribution"] = log_attribution
+        return result
+
+    controller_state = (
+        "running"
+        if controller_exit_code is None
+        else ("succeeded" if controller_exit_code == 0 else "failed")
     )
-    return run_dir
+    attempt: dict[str, object] = {
+        "attempt_id": attempt_id,
+        "sequence": 1,
+        "origin": "dyec_controller",
+        "mode": "dry_run",
+        "requested_command": "dy-r target -j 333 -p -k",
+        "started_at": started_at,
+        "completed_at": completed_at,
+        "state": controller_state,
+        "controller": {
+            "state": controller_state,
+            "session_name": "session-1",
+            "pid": 4242,
+            "command": "dy-r target -j 333 -p -k",
+            "started_at": started_at,
+            "completed_at": completed_at,
+            "exit_code": controller_exit_code,
+        },
+        "day_run": child(
+            day_run_exit_code,
+            ["bin/day_run", "target", "-j", "333", "-p", "-k"],
+        ),
+        "snakemake": child(
+            snakemake_exit_code,
+            ["snakemake", "target", "-j", "333", "-p", "-k"],
+            include_log=True,
+        ),
+    }
+    return run_dir, {
+        "schema_version": "daylily.analysis_status.v2",
+        "analysis": {
+            "analysis_root": str(Path(REPO).parent),
+            "repo_path": REPO,
+            "created_at": started_at,
+        },
+        "updated_at": completed_at or started_at,
+        "attempts": [attempt],
+    }
 
 
 def _patch_runtime(
@@ -141,7 +192,14 @@ def _patch_runtime(
     open_logs: list[str],
     log_lines: list[str] | None = None,
     slurm: dict[str, object] | None = None,
+    status_payload: dict[str, object] | None = None,
 ) -> None:
+    if status_payload is not None:
+        monkeypatch.setattr(
+            workflow_observability,
+            "read_execution_status",
+            lambda *_args, **_kwargs: status_payload,
+        )
     monkeypatch.setattr(workflow_observability, "_process_snapshot", lambda: {4242: 4000})
     monkeypatch.setattr(
         workflow_observability,
@@ -183,7 +241,7 @@ def _patch_runtime(
 def test_launched_running_reports_exact_log_progress_jobs_and_slurm(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    run_dir = _launched_receipts(tmp_path)
+    run_dir, status_payload = _launched_receipts(tmp_path)
     _patch_runtime(
         monkeypatch,
         live=True,
@@ -202,6 +260,7 @@ def test_launched_running_reports_exact_log_progress_jobs_and_slurm(
             ],
             "state_counts": {"CONFIGURING": 1, "RUNNING": 1},
         },
+        status_payload=status_payload,
     )
 
     payload = collect_workflow_observability(
@@ -221,8 +280,10 @@ def test_launched_running_reports_exact_log_progress_jobs_and_slurm(
     assert payload["jobs"]["submitted_count"] == 2
     assert payload["jobs"]["finished_count"] == 1
     assert payload["slurm"]["state_counts"] == {"CONFIGURING": 1, "RUNNING": 1}
-    assert payload["terminal"]["exit_code"] is None
-    assert payload["terminal"]["exit_code_attributed"] is False
+    assert payload["terminal"]["controller_exit_code"] is None
+    assert payload["terminal"]["day_run_exit_code"] is None
+    assert payload["terminal"]["snakemake_exit_code"] is None
+    assert payload["terminal"]["controller_exit_code_attributed"] is False
 
 
 @pytest.mark.parametrize(
@@ -235,85 +296,79 @@ def test_launched_terminal_state_uses_only_matching_status_receipt(
     exit_code: int,
     expected_state: str,
 ) -> None:
-    run_dir = _launched_receipts(
+    run_dir, status_payload = _launched_receipts(
         tmp_path,
-        exit_code=exit_code,
-        completed_at="2026-08-10T07:40:00Z",
+        controller_exit_code=exit_code,
+        day_run_exit_code=exit_code,
+        snakemake_exit_code=exit_code,
     )
-    _patch_runtime(monkeypatch, live=False, open_logs=[])
+    _patch_runtime(monkeypatch, live=False, open_logs=[], status_payload=status_payload)
 
     payload = collect_workflow_observability(
         mode="launched", session="session-1", run_dir=str(run_dir)
     )
 
     assert payload["state"] == expected_state
-    assert payload["terminal"]["exit_code"] == exit_code
-    assert payload["terminal"]["exit_code_attributed"] is True
-    assert payload["terminal"]["exit_code_source"].endswith("/status.json#exit_code")
+    assert payload["terminal"]["controller_exit_code"] == exit_code
+    assert payload["terminal"]["day_run_exit_code"] == exit_code
+    assert payload["terminal"]["snakemake_exit_code"] == exit_code
+    assert payload["terminal"]["controller_exit_code_attributed"] is True
+    assert payload["terminal"]["controller_exit_code_source"].endswith(
+        "/status.json#attempts/00000000-0000-4000-8000-000000000001/controller/exit_code"
+    )
 
 
-def test_launched_workflow_rc_is_terminal_before_controller_postprocessing_finishes(
+def test_launched_snakemake_rc_is_not_terminal_before_controller_postprocessing_finishes(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    run_dir = _launched_receipts(
+    run_dir, status_payload = _launched_receipts(
         tmp_path,
-        workflow_exit_code=0,
-        workflow_completed_at="2026-08-10T07:40:00Z",
+        snakemake_exit_code=0,
     )
-    _patch_runtime(monkeypatch, live=True, open_logs=[LOG])
+    _patch_runtime(monkeypatch, live=True, open_logs=[LOG], status_payload=status_payload)
 
     payload = collect_workflow_observability(
         mode="launched", session="session-1", run_dir=str(run_dir)
     )
 
-    assert payload["state"] == "SUCCEEDED"
+    assert payload["state"] == "RUNNING"
     assert payload["controller"]["live"] is True
-    assert payload["terminal"] == {
-        "exit_code": 0,
-        "exit_code_attributed": True,
-        "exit_code_source": f"{run_dir}/status.json#workflow_exit_code",
-        "failure_markers": [],
-    }
+    assert payload["terminal"]["controller_exit_code"] is None
+    assert payload["terminal"]["snakemake_exit_code"] == 0
 
 
-def test_launched_final_controller_rc_overrides_earlier_workflow_rc(
+def test_launched_status_preserves_divergent_day_run_and_snakemake_results(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    run_dir = _launched_receipts(
+    run_dir, status_payload = _launched_receipts(
         tmp_path,
-        exit_code=24,
-        completed_at="2026-08-10T07:41:00Z",
-        workflow_exit_code=0,
-        workflow_completed_at="2026-08-10T07:40:00Z",
+        controller_exit_code=24,
+        day_run_exit_code=7,
+        snakemake_exit_code=0,
     )
-    _patch_runtime(monkeypatch, live=False, open_logs=[])
+    _patch_runtime(monkeypatch, live=False, open_logs=[], status_payload=status_payload)
 
     payload = collect_workflow_observability(
         mode="launched", session="session-1", run_dir=str(run_dir)
     )
 
     assert payload["state"] == "FAILED"
-    assert payload["terminal"]["exit_code"] == 24
-    assert payload["terminal"]["exit_code_source"].endswith("#exit_code")
+    assert payload["terminal"]["controller_exit_code"] == 24
+    assert payload["terminal"]["day_run_exit_code"] == 7
+    assert payload["terminal"]["snakemake_exit_code"] == 0
 
 
 def test_launched_terminal_receipt_preserves_exact_invocation_log_and_job_counts(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    run_dir = _launched_receipts(
+    run_dir, status_payload = _launched_receipts(
         tmp_path,
-        exit_code=0,
-        completed_at="2026-08-10T07:40:00Z",
+        controller_exit_code=0,
+        day_run_exit_code=0,
+        snakemake_exit_code=0,
+        log_path=LOG,
+        log_attribution="exact invocation file-set difference",
     )
-    status_path = run_dir / "status.json"
-    status = json.loads(status_path.read_text(encoding="utf-8"))
-    status.update(
-        {
-            "snakemake_log_path": LOG,
-            "snakemake_log_attribution": "exact invocation file-set difference",
-        }
-    )
-    status_path.write_text(json.dumps(status), encoding="utf-8")
     _patch_runtime(
         monkeypatch,
         live=False,
@@ -323,6 +378,7 @@ def test_launched_terminal_receipt_preserves_exact_invocation_log_and_job_counts
             "Finished job 21.",
             "1 of 1 steps (100%) done",
         ],
+        status_payload=status_payload,
     )
 
     payload = collect_workflow_observability(
@@ -339,16 +395,17 @@ def test_launched_terminal_receipt_preserves_exact_invocation_log_and_job_counts
 def test_stale_or_mismatched_status_receipt_is_rejected(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    run_dir = _launched_receipts(
+    run_dir, status_payload = _launched_receipts(
         tmp_path,
-        exit_code=0,
-        completed_at="2026-08-10T07:20:00Z",
+        controller_exit_code=0,
+        day_run_exit_code=0,
+        snakemake_exit_code=0,
     )
-    status_path = run_dir / "status.json"
-    payload = json.loads(status_path.read_text(encoding="utf-8"))
-    payload["session_name"] = "prior-invocation"
-    status_path.write_text(json.dumps(payload), encoding="utf-8")
-    _patch_runtime(monkeypatch, live=False, open_logs=[])
+    target_path = run_dir / "controller_target.json"
+    target = json.loads(target_path.read_text(encoding="utf-8"))
+    target["controller_id"] = "prior-invocation"
+    target_path.write_text(json.dumps(target), encoding="utf-8")
+    _patch_runtime(monkeypatch, live=False, open_logs=[], status_payload=status_payload)
 
     with pytest.raises(WorkflowObservabilityError, match="does not match requested session"):
         collect_workflow_observability(mode="launched", session="session-1", run_dir=str(run_dir))
@@ -376,7 +433,7 @@ def test_manual_running_requires_explicit_repo_and_pid_and_never_infers_rc(
     )
 
     assert payload["state"] == "RUNNING"
-    assert payload["terminal"]["exit_code"] is None
+    assert payload["terminal"]["controller_exit_code"] is None
     assert payload["terminal"]["failure_markers"] == []
     assert payload["semantics"]["generic_error_text_is_terminal_failure"] is False
 
@@ -399,8 +456,8 @@ def test_manual_dead_controller_with_only_stale_rc_or_generic_error_is_unknown(
     )
 
     assert payload["state"] == "UNKNOWN"
-    assert payload["terminal"]["exit_code"] is None
-    assert payload["terminal"]["exit_code_attributed"] is False
+    assert payload["terminal"]["controller_exit_code"] is None
+    assert payload["terminal"]["controller_exit_code_attributed"] is False
 
 
 def test_manual_persistent_tmux_shell_is_not_a_live_controller(
@@ -456,7 +513,7 @@ def test_manual_dead_controller_high_signal_failure_is_failed_without_invented_r
     )
 
     assert payload["state"] == "FAILED"
-    assert payload["terminal"]["exit_code"] is None
+    assert payload["terminal"]["controller_exit_code"] is None
     assert [item["marker"] for item in payload["terminal"]["failure_markers"]] == [
         "rule_error",
         "job_execution_failed",
@@ -466,9 +523,14 @@ def test_manual_dead_controller_high_signal_failure_is_failed_without_invented_r
 def test_multiple_open_logs_are_reported_as_ambiguous_without_newest_guess(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    run_dir = _launched_receipts(tmp_path)
+    run_dir, status_payload = _launched_receipts(tmp_path)
     second = f"{REPO}/.snakemake/log/2026-08-10T072122.snakemake.log"
-    _patch_runtime(monkeypatch, live=True, open_logs=[LOG, second])
+    _patch_runtime(
+        monkeypatch,
+        live=True,
+        open_logs=[LOG, second],
+        status_payload=status_payload,
+    )
 
     payload = collect_workflow_observability(
         mode="launched", session="session-1", run_dir=str(run_dir)

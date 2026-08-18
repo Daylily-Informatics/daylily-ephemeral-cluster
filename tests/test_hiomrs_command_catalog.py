@@ -10,7 +10,7 @@ SOURCE_CATALOG = REPO_ROOT / "config/daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG = (
     REPO_ROOT / "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml"
 )
-DAYOA_GIT_TAG = "15.0.15"
+DAYOA_GIT_TAG = "15.0.19"
 DAYOA_VALIDATED_VERSION = "15.0.1"
 
 

@@ -10,6 +10,29 @@ from daylily_ec.scripts.common import CommandError
 import daylily_ec.ssh_to_ssm_e2e_runner as runner_module
 
 
+def _launch_stdout(
+    *,
+    session_name: str = "sess-1",
+    repo_path: str = "/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis",
+) -> str:
+    target = {
+        "schema_version": "dyec.controller_target.v2",
+        "controller_id": session_name,
+        "pid": 4242,
+        "cwd": repo_path,
+        "log_path": f"{repo_path}/.dyec/controller.log",
+        "dag_path": f"{repo_path}/.dyec/controller-dag.png",
+        "analysis_root": str(Path(repo_path).parent),
+        "status_attempt_id": "00000000-0000-4000-8000-000000000001",
+    }
+    return (
+        f"__DAYLILY_SESSION__={session_name}\n"
+        f"__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/{session_name}\n"
+        f"__DAYLILY_REPO_PATH__={repo_path}\n"
+        "__DYEC_CONTROLLER_TARGET__=" + json.dumps(target, sort_keys=True) + "\n"
+    )
+
+
 def test_repo_root_points_to_checkout_root() -> None:
     assert (runner_module.REPO_ROOT / "bin" / "daylily-cfg-headnode").is_file()
     assert (runner_module.REPO_ROOT / "pyproject.toml").is_file()
@@ -43,32 +66,26 @@ def test_parse_remote_stage_dir_extracts_path() -> None:
 
 
 def test_parse_tmux_session_extracts_session_name() -> None:
-    stdout = (
-        "__DAYLILY_SESSION__=daylily-omics-analysis\n"
-        "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/daylily-omics-analysis\n"
-        "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis\n"
-    )
+    stdout = _launch_stdout(session_name="daylily-omics-analysis")
 
     assert runner_module.parse_tmux_session(stdout) == "daylily-omics-analysis"
 
 
 def test_parse_workflow_launch_extracts_run_dir_and_repo_path() -> None:
-    stdout = (
-        "__DAYLILY_SESSION__=sess-1\n"
-        "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
-        "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis\n"
-    )
+    stdout = _launch_stdout()
 
     launch = runner_module.parse_workflow_launch(stdout)
 
     assert launch.session_name == "sess-1"
     assert launch.run_dir == "/home/ubuntu/daylily-runs/sess-1"
     assert launch.repo_path.endswith("/daylily-omics-analysis")
+    assert launch.status_attempt_id == "00000000-0000-4000-8000-000000000001"
 
 
 def test_parse_workflow_status_extracts_payload_and_tail() -> None:
     stdout = (
-        '__DAYLILY_STATUS__={"command":"bin/day_run","completed_at":"2026-04-13T00:05:00Z","exit_code":0,'
+        '__DAYLILY_STATUS__={"command":"bin/day_run","completed_at":"2026-04-13T00:05:00Z","controller_exit_code":0,'
+        '"day_run_exit_code":0,"snakemake_exit_code":0,'
         '"repo_path":"/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis","session_name":"sess-1",'
         '"started_at":"2026-04-13T00:00:00Z"}\n'
         "__DAYLILY_LOG_TAIL_START__\n"
@@ -81,7 +98,9 @@ def test_parse_workflow_status_extracts_payload_and_tail() -> None:
 
     assert status is not None
     assert status.session_name == "sess-1"
-    assert status.exit_code == 0
+    assert status.controller_exit_code == 0
+    assert status.day_run_exit_code == 0
+    assert status.snakemake_exit_code == 0
     assert tail == "log line 1\nlog line 2"
 
 
@@ -264,6 +283,7 @@ def test_wait_for_workflow_completion_passes_on_zero_exit(monkeypatch, tmp_path:
         session_name="sess-1",
         run_dir="/home/ubuntu/daylily-runs/sess-1",
         repo_path="/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis",
+        status_attempt_id="00000000-0000-4000-8000-000000000001",
     )
 
     monkeypatch.setattr(
@@ -275,7 +295,9 @@ def test_wait_for_workflow_completion_passes_on_zero_exit(monkeypatch, tmp_path:
                 repo_path=launch.repo_path,
                 started_at="2026-04-13T00:00:00Z",
                 completed_at="2026-04-13T00:05:00Z",
-                exit_code=0,
+                controller_exit_code=0,
+                day_run_exit_code=0,
+                snakemake_exit_code=0,
                 command="bin/day_run",
             ),
             "tail text",
@@ -294,7 +316,9 @@ def test_wait_for_workflow_completion_passes_on_zero_exit(monkeypatch, tmp_path:
         poll_interval_seconds=0,
     )
 
-    assert status.exit_code == 0
+    assert status.controller_exit_code == 0
+    assert status.day_run_exit_code == 0
+    assert status.snakemake_exit_code == 0
 
 
 def test_wait_for_workflow_completion_raises_on_nonzero_exit(monkeypatch, tmp_path: Path) -> None:
@@ -312,6 +336,7 @@ def test_wait_for_workflow_completion_raises_on_nonzero_exit(monkeypatch, tmp_pa
         session_name="sess-1",
         run_dir="/home/ubuntu/daylily-runs/sess-1",
         repo_path="/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis",
+        status_attempt_id="00000000-0000-4000-8000-000000000001",
     )
 
     monkeypatch.setattr(
@@ -323,7 +348,9 @@ def test_wait_for_workflow_completion_raises_on_nonzero_exit(monkeypatch, tmp_pa
                 repo_path=launch.repo_path,
                 started_at="2026-04-13T00:00:00Z",
                 completed_at="2026-04-13T00:05:00Z",
-                exit_code=9,
+                controller_exit_code=9,
+                day_run_exit_code=9,
+                snakemake_exit_code=9,
                 command="bin/day_run",
             ),
             "boom log",
@@ -331,7 +358,7 @@ def test_wait_for_workflow_completion_raises_on_nonzero_exit(monkeypatch, tmp_pa
         ),
     )
 
-    with pytest.raises(CommandError, match="Workflow failed with exit code 9"):
+    with pytest.raises(CommandError, match="controller=9, day_run=9, snakemake=9"):
         runner_module._wait_for_workflow_completion(
             summary,
             tmp_path / "summary.json",
@@ -359,6 +386,7 @@ def test_wait_for_workflow_completion_raises_on_timeout(monkeypatch, tmp_path: P
         session_name="sess-1",
         run_dir="/home/ubuntu/daylily-runs/sess-1",
         repo_path="/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis",
+        status_attempt_id="00000000-0000-4000-8000-000000000001",
     )
 
     monkeypatch.setattr(
@@ -449,11 +477,7 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
             )
             return stdout
         if name == "launch-workflow":
-            stdout = (
-                "__DAYLILY_SESSION__=sess-1\n"
-                "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
-                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis\n"
-            )
+            stdout = _launch_stdout()
             runner_module._record_step(
                 summary, output_path, name, "passed", command=" ".join(command)
             )
@@ -596,11 +620,7 @@ def test_main_reuses_existing_cluster_and_skips_create(monkeypatch, tmp_path: Pa
             )
             return stdout
         if name == "launch-workflow":
-            stdout = (
-                "__DAYLILY_SESSION__=sess-1\n"
-                "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
-                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis\n"
-            )
+            stdout = _launch_stdout()
             runner_module._record_step(
                 summary, output_path, name, "passed", command=" ".join(command)
             )
@@ -706,10 +726,8 @@ def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Pat
             )
             return stdout
         if name == "launch-workflow":
-            stdout = (
-                "__DAYLILY_SESSION__=sess-1\n"
-                "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
-                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/run_deploy/daylily-omics-analysis\n"
+            stdout = _launch_stdout(
+                repo_path="/fsx/analysis_results/johnm/run_deploy/daylily-omics-analysis"
             )
             runner_module._record_step(
                 summary, output_path, name, "passed", command=" ".join(command)

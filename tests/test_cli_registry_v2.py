@@ -29,7 +29,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "15.0.15"
+DAYOA_BLESSED_TAG = "15.0.19"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -5249,8 +5249,8 @@ def test_workflow_stop_interrupts_controller_via_ssm(monkeypatch) -> None:
             "slurm_jobs_before": [],
             "scancelled_job_ids": [],
             "slurm_jobs_after": [],
-            "status_path": "/home/ubuntu/daylily-runs/sess-1/status.json",
-            "status_updated": True,
+            "clone_resident_status_mutated_by_stop": False,
+            "clone_resident_status_note": "not modified; the controller owns its append-only v2 attempt",
         }
         return SsmCommandResult(
             "cmd-1",
@@ -5287,13 +5287,15 @@ def test_workflow_stop_interrupts_controller_via_ssm(monkeypatch) -> None:
     assert payload["interrupted_tmux_session"] is True
     assert payload["killed_tmux_session"] is False
     assert payload["cancel_slurm_jobs"] is False
+    assert payload["clone_resident_status_mutated_by_stop"] is False
     _instance_id, _region, script, kwargs = calls["run_shell"]
     assert "DAYLILY_WORKFLOW_SESSION=sess-1" in script
     assert "DAYLILY_CANCEL_SLURM_JOBS=false" in script
     assert 'run(["tmux", "send-keys"' in script
     assert '"C-c"' in script
     assert 'run(["tmux", "kill-session"' in script
-    assert 'status["exit_code"] = 130' in script
+    assert 'status["exit_code"] = 130' not in script
+    assert '"clone_resident_status_mutated_by_stop": False' in script
     assert "scancel" in script
     assert kwargs["profile"] == "dev"
 
@@ -5334,8 +5336,8 @@ def test_workflow_stop_can_cancel_slurm_jobs_with_explicit_pattern(monkeypatch) 
             "slurm_jobs_before": [{"job_id": "101", "name": "sentmm2ont-ONT-4Coriells"}],
             "scancelled_job_ids": ["101"],
             "slurm_jobs_after": [],
-            "status_path": "/home/ubuntu/daylily-runs/sess-1/status.json",
-            "status_updated": True,
+            "clone_resident_status_mutated_by_stop": False,
+            "clone_resident_status_note": "not modified; the controller owns its append-only v2 attempt",
         }
         return SsmCommandResult(
             "cmd-1",

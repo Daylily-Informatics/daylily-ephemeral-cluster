@@ -2566,6 +2566,15 @@ def export(
             "export DRA after a successful export task."
         ),
     ),
+    require_clone_status_v2_evidence: bool = typer.Option(
+        False,
+        "--require-clone-status-v2-evidence",
+        help=(
+            "After FSx reports success, read and validate the exported "
+            "daylily-omics-analysis/status.json v2 record. This requires a full "
+            "analysis-root export and is opt-in so historical exports are unchanged."
+        ),
+    ),
 ) -> None:
     """Export FSx outputs through an explicit DRA and immutable S3 receipt."""
 
@@ -2588,6 +2597,7 @@ def export(
             wait=wait,
             timeout_seconds=timeout_seconds,
             delete_data_in_file_system=delete_data_in_file_system,
+            require_clone_status_v2_evidence=require_clone_status_v2_evidence,
         )
     )
     raise typer.Exit(rc)
@@ -2798,6 +2808,14 @@ def exports_transfer(
     region: Optional[str] = context_option("aws_region", None, "--region", required=True),
     profile: Optional[str] = typer.Option(None, "--profile"),
     timeout_seconds: int = typer.Option(5400, "--timeout-seconds"),
+    require_clone_status_v2_evidence: bool = typer.Option(
+        False,
+        "--require-clone-status-v2-evidence",
+        help=(
+            "Require a validated exported daylily-omics-analysis/status.json v2 "
+            "record before accepting this full-analysis transfer."
+        ),
+    ),
 ) -> None:
     """Attach, export, and detach one exact analysis directory without deletion."""
 
@@ -2823,6 +2841,7 @@ def exports_transfer(
                 wait=True,
                 timeout_seconds=timeout_seconds,
                 delete_data_in_file_system=False,
+                require_clone_status_v2_evidence=require_clone_status_v2_evidence,
             )
             with (
                 contextlib.redirect_stdout(captured_stdout),
@@ -7962,29 +7981,27 @@ def _read_workflow_controller_log(
     remote_user: str,
     tail_lines: int,
 ):
-    """Read the controller-owned log recorded by a workflow status receipt."""
+    """Read the controller-owned log attributed by the clone-resident v2 status."""
 
     from daylily_ec.aws.ssm import SsmError, resolve_remote_user, run_shell, wait_for_ssm_online
     from daylily_ec.scripts.common import CommandError
 
-    status_result = _read_workflow_file(
+    observability = _collect_workflow_observability(
         profile=profile,
         region=region,
         cluster=cluster,
         session=session,
         run_dir=run_dir,
-        filename="status.json",
         remote_user=remote_user,
     )
-    status_payload = _parse_workflow_status_payload(status_result.stdout)
-    repo_text = str(status_payload.get("repo_path") or "").strip()
+    repo_text = str(observability.get("repo_path") or "").strip()
     repo_path = PurePosixPath(repo_text)
     if (
         not repo_path.is_absolute()
         or repo_path.name != "daylily-omics-analysis"
         or "analysis_results" not in repo_path.parts
     ):
-        raise CommandError("Workflow status receipt has an invalid DayOA repository path.")
+        raise CommandError("Clone-resident v2 status has an invalid DayOA repository path.")
     log_path = repo_path / ".dyec" / "controller.log"
 
     try:
@@ -8519,7 +8536,7 @@ def workflow_status(
         min=0,
         max=300,
         help=(
-            "Bounded wait for a just-launched controller to create its status receipt; "
+            "Bounded wait for a just-launched controller to create its clone-resident v2 status; "
             "0 preserves immediate failure for a missing receipt."
         ),
     ),
@@ -8548,7 +8565,7 @@ def workflow_status(
         except SsmCommandFailedError as exc:
             stderr = str(getattr(exc.result, "stderr", ""))
             receipt_missing = (
-                "workflow status receipt is missing" in stderr
+                "clone-resident status v2 is missing" in stderr
                 or "controller target receipt is missing" in stderr
             )
             if receipt_missing and time.monotonic() < receipt_deadline:
@@ -9240,9 +9257,6 @@ if cancel_slurm and jobs_before:
 
 after_tmux = tmux_present(session_tmux)
 jobs_after = slurm_jobs_matching(job_name_pattern) if cancel_slurm else []
-status_path = run_dir / "status.json"
-status_updated = False
-status_write_error = ""
 
 lock_agent_id = f"dyec-workflow-{{session_tmux}}"
 lock_release = {{
@@ -9289,29 +9303,6 @@ if release_analysis_lock:
         else:
             lock_release["released"] = True
 
-if interrupted_tmux or killed_tmux or scancelled_job_ids:
-    try:
-        now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
-        status = {{}}
-        if status_path.is_file():
-            try:
-                status = json.loads(status_path.read_text(encoding="utf-8") or "{{}}")
-            except json.JSONDecodeError:
-                status = {{}}
-        if not isinstance(status, dict):
-            status = {{}}
-        status.setdefault("session_name", session)
-        status["completed_at"] = now
-        status["exit_code"] = 130
-        status["stopped"] = True
-        status["stop_reason"] = "dyec workflow stop"
-        status["stop_cancelled_slurm_job_ids"] = scancelled_job_ids
-        status_path.parent.mkdir(parents=True, exist_ok=True)
-        status_path.write_text(json.dumps(status, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
-        status_updated = True
-    except OSError as exc:
-        status_write_error = str(exc)
-
 payload = {{
     "session_name": session,
     "run_dir": str(run_dir),
@@ -9327,15 +9318,14 @@ payload = {{
     "slurm_jobs_before": jobs_before,
     "scancelled_job_ids": scancelled_job_ids,
     "slurm_jobs_after": jobs_after,
-    "status_path": str(status_path),
-    "status_updated": status_updated,
-    "status_write_error": status_write_error,
+    "clone_resident_status_mutated_by_stop": False,
+    "clone_resident_status_note": "not modified; the controller owns its append-only v2 attempt",
     "force_kill_session": force_kill_session,
     "analysis_lock_release": lock_release,
 }}
 print("__DAYLILY_WORKFLOW_STOP__=" + json.dumps(payload, sort_keys=True))
-if status_write_error or lock_release["error"]:
-    raise SystemExit(status_write_error or lock_release["error"])
+if lock_release["error"]:
+    raise SystemExit(lock_release["error"])
 PY
 """
         result = run_shell(
@@ -10207,15 +10197,27 @@ def tests_command_catalog(
         phase: RenderedPhase,
     ) -> dict[str, Any]:
         session_name = metadata.session_name or phase.session_name
-        result = _read_workflow_file(
+        observability = _collect_workflow_observability(
             profile=profile,
             region=region,
             cluster=cluster,
             session=session_name,
             run_dir=None if session_name else (metadata.run_dir or None),
-            filename="status.json",
         )
-        return _parse_workflow_status_payload(result.stdout)
+        terminal = observability.get("terminal")
+        if not isinstance(terminal, dict):
+            raise RuntimeError("workflow observability omitted terminal v2 status")
+        return {
+            "state": observability.get("state"),
+            "controller_exit_code": terminal.get("controller_exit_code"),
+            "day_run_exit_code": terminal.get("day_run_exit_code"),
+            "snakemake_exit_code": terminal.get("snakemake_exit_code"),
+            "status_path": (
+                observability.get("status", {}).get("path")
+                if isinstance(observability.get("status"), dict)
+                else None
+            ),
+        }
 
     try:
         result = run_command_catalog(

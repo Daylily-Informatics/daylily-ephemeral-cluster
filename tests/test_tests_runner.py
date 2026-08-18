@@ -57,7 +57,15 @@ from daylily_ec.tests_runner import (
 )
 
 runner = CliRunner()
-DAYOA_BLESSED_TAG = "15.0.15"
+DAYOA_BLESSED_TAG = "15.0.19"
+
+
+def _terminal_status(code: int) -> dict[str, int]:
+    return {
+        "controller_exit_code": code,
+        "day_run_exit_code": code,
+        "snakemake_exit_code": code,
+    }
 
 
 def _run_mount_record(
@@ -507,7 +515,7 @@ def test_run_command_catalog_dry_run_only_renders_and_exports(tmp_path: Path) ->
         ),
         stage_func=_fake_stage,
         launch_func=_fake_launch_factory(launch_calls),
-        status_func=lambda _metadata, _phase: {"exit_code": 0},
+        status_func=lambda _metadata, _phase: _terminal_status(0),
         mount_list_func=lambda **_kwargs: [
             _run_mount_record(source_s3_uri=ont_source, mount_id="ONT-RUN", platform="ONT"),
             _run_mount_record(
@@ -581,7 +589,7 @@ def test_run_command_catalog_launches_ready_commands_before_missing_run_dras(
         ),
         stage_func=_fake_stage,
         launch_func=fake_launch,
-        status_func=lambda _metadata, _phase: {"exit_code": 0},
+        status_func=lambda _metadata, _phase: _terminal_status(0),
         mount_list_func=lambda **_kwargs: [],
         mount_create_func=fake_create,
     )
@@ -614,7 +622,7 @@ def test_run_command_catalog_live_runs_all_requested_after_dryrun(tmp_path: Path
         ),
         stage_func=_fake_stage,
         launch_func=_fake_launch_factory(launch_calls),
-        status_func=lambda _metadata, _phase: {"exit_code": 0},
+        status_func=lambda _metadata, _phase: _terminal_status(0),
         mount_list_func=lambda **_kwargs: [],
     )
 
@@ -661,7 +669,7 @@ def test_run_command_catalog_live_runs_pangenome_dev_commands(tmp_path: Path) ->
         ),
         stage_func=_fake_stage,
         launch_func=_fake_launch_factory(launch_calls),
-        status_func=lambda _metadata, _phase: {"exit_code": 0},
+        status_func=lambda _metadata, _phase: _terminal_status(0),
         mount_list_func=lambda **_kwargs: [],
     )
 
@@ -693,7 +701,7 @@ def test_run_command_catalog_renders_dragen_dev_command_with_rhel_profile(
         ),
         stage_func=_fake_stage,
         launch_func=_fake_launch_factory(launch_calls),
-        status_func=lambda _metadata, _phase: {"exit_code": 0},
+        status_func=lambda _metadata, _phase: _terminal_status(0),
         mount_list_func=lambda **_kwargs: [],
     )
 
@@ -743,7 +751,7 @@ def test_run_command_catalog_counts_dev_commands_for_aggregate_rc(tmp_path: Path
         ),
         stage_func=_fake_stage,
         launch_func=_fake_launch_factory(launch_calls),
-        status_func=lambda _metadata, _phase: {"exit_code": 1},
+        status_func=lambda _metadata, _phase: _terminal_status(1),
         mount_list_func=lambda **_kwargs: [],
     )
 
@@ -764,9 +772,13 @@ def test_command_catalog_cli_emits_json(monkeypatch: pytest.MonkeyPatch, tmp_pat
     }
     captured_read: dict[str, object] = {}
 
-    def fake_read_workflow_file(**kwargs):
+    def fake_collect_workflow_observability(**kwargs):
         captured_read.update(kwargs)
-        return SimpleNamespace(stdout='{"exit_code": 0}')
+        return {
+            "state": "SUCCEEDED",
+            "status": {"path": "/fsx/analysis_results/johnm/analysis/daylily-omics-analysis/status.json"},
+            "terminal": _terminal_status(0),
+        }
 
     def fake_run_command_catalog(options, **kwargs):
         captured_read["parallel"] = options.parallel
@@ -789,10 +801,9 @@ def test_command_catalog_cli_emits_json(monkeypatch: pytest.MonkeyPatch, tmp_pat
         )
         return SimpleNamespace(rc=0, to_payload=lambda: payload)
 
-    monkeypatch.setattr("daylily_ec.cli._read_workflow_file", fake_read_workflow_file)
     monkeypatch.setattr(
-        "daylily_ec.cli._parse_workflow_status_payload",
-        lambda _stdout: {"exit_code": 0},
+        "daylily_ec.cli._collect_workflow_observability",
+        fake_collect_workflow_observability,
     )
     monkeypatch.setattr("daylily_ec.tests_runner.run_command_catalog", fake_run_command_catalog)
 
@@ -837,10 +848,13 @@ def test_runner_payloads_and_small_helpers(tmp_path: Path, monkeypatch: pytest.M
 
     assert PhaseResult(phase=phase, launch_rc=1).succeeded is False
     assert PhaseResult(phase=phase).succeeded is True
-    assert PhaseResult(phase=phase, status_payload={"exit_code": "0"}).exit_code is None
+    assert PhaseResult(
+        phase=phase,
+        status_payload={"controller_exit_code": "0"},
+    ).controller_exit_code is None
     payload = PhaseResult(
         phase=phase,
-        status_payload={"exit_code": 0},
+        status_payload=_terminal_status(0),
         launch_metadata=SimpleNamespace(
             session_name="session-a",
             run_dir="/run/dir",
@@ -852,13 +866,17 @@ def test_runner_payloads_and_small_helpers(tmp_path: Path, monkeypatch: pytest.M
             "phases": [
                 {
                     "command_id": payload.phase.command_id,
-                    "exit_code": payload.exit_code,
+                    "controller_exit_code": payload.controller_exit_code,
+                    "day_run_exit_code": payload.day_run_exit_code,
+                    "snakemake_exit_code": payload.snakemake_exit_code,
                     "run_dir": payload.launch_metadata.run_dir,
                 }
             ]
         }
     ).to_payload()
-    assert result_payload["phases"][0]["exit_code"] == 0
+    assert result_payload["phases"][0]["controller_exit_code"] == 0
+    assert result_payload["phases"][0]["day_run_exit_code"] == 0
+    assert result_payload["phases"][0]["snakemake_exit_code"] == 0
 
     captured: dict[str, list[str]] = {}
 
@@ -1123,7 +1141,7 @@ def test_render_phase_none_contract_and_execution_failure_paths(tmp_path: Path) 
     failed = execute_batch(
         [phase],
         launch_func=failing_launch,
-        status_func=lambda _metadata, _phase: {"exit_code": 0},
+        status_func=lambda _metadata, _phase: _terminal_status(0),
         timeout_minutes=1,
         poll_interval_seconds=1,
         output_dir=tmp_path,
@@ -1164,7 +1182,7 @@ def test_render_phase_none_contract_and_execution_failure_paths(tmp_path: Path) 
         dry_run_only=False,
         parallel=3,
         launch_func=lambda _argv: 0,
-        status_func=lambda _metadata, _phase: {"exit_code": 1},
+        status_func=lambda _metadata, _phase: _terminal_status(1),
         timeout_minutes=1,
         poll_interval_seconds=1,
         output_dir=tmp_path,
@@ -1197,7 +1215,7 @@ def test_execute_phases_batches_warmups_by_parallel(tmp_path: Path) -> None:
 
     def status(_metadata, _phase) -> dict[str, int]:
         status_launch_counts.append(len(launches))
-        return {"exit_code": 0}
+        return _terminal_status(0)
 
     results = execute_phases(
         phases,

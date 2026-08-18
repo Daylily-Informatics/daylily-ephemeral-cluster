@@ -352,7 +352,7 @@ repositories:
     auth_mode: aws_deploy_key
     https_url: https://github.com/lsmc-bio/daylily-omics-analysis.git
     ssh_url: git@github.com:lsmc-bio/daylily-omics-analysis.git
-    default_ref: "15.0.18"
+    default_ref: "15.0.19"
     relative_path: daylily-omics-analysis
     analysis_commands:
     - command_id: simple-test
@@ -385,7 +385,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - none
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: true
       validation_runs: []
     - command_id: illumina_snv_alignstats
@@ -428,7 +428,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - ilmn_solo
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       validation_runs:
       - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -493,7 +493,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - ilmn_solo
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       artifact_registration: &dayoa_multiqc_artifact_registration
         enabled: true
@@ -601,7 +601,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - ilmn_solo
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       validation_runs: []
     - command_id: illumina_hg002_kitchensink_multiqc
@@ -658,7 +658,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - ilmn_solo
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       artifact_registration: *dayoa_multiqc_artifact_registration
       validation_runs:
@@ -735,7 +735,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - ilmn_solo
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
     - command_id: illumina_dragen_pangenome_snv_concordance
       type: dev
@@ -775,7 +775,7 @@ repositories:
       - dragen
       compatible_data_modes:
       - ilmn_solo
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       default_activation: false
     - command_id: ultima_snv_alignstats
@@ -817,7 +817,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - ultima_solo
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       validation_runs:
       - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -883,7 +883,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - ultima_solo
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       artifact_registration: *dayoa_multiqc_artifact_registration
       validation_runs:
@@ -941,7 +941,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - ultima_solo
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
     - command_id: ont_snv_alignstats
       type: research
@@ -983,7 +983,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - ont_solo
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       validation_runs:
       - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1053,7 +1053,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - ont_solo
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       artifact_registration: *dayoa_multiqc_artifact_registration
       validation_runs:
@@ -1116,7 +1116,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - pacbio_solo
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       validation_runs:
       - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1177,7 +1177,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - roche_solo
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       validation_runs:
       - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1240,7 +1240,7 @@ repositories:
       - sentieon-single
       compatible_data_modes:
       - hybrid_ilmn_ont
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
     - command_id: hybrid_ilmn_ont_hiomr_kitchensink
       type: dev
@@ -1300,7 +1300,7 @@ repositories:
       - sentieon-single
       compatible_data_modes:
       - hybrid_ilmn_ont
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
     - command_id: hiomr2
       type: dev
@@ -1360,7 +1360,7 @@ repositories:
       - sentieon-single
       compatible_data_modes:
       - hybrid_ilmn_ont
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
 
     - command_id: package_inflection_hybrid_data
@@ -1404,7 +1404,7 @@ repositories:
       - sentieon-single
       compatible_data_modes:
       - hybrid_ilmn_ont
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       return_results: false
     - command_id: betelgeuser_hiomr_prod_v1
@@ -1464,7 +1464,7 @@ repositories:
       - sentieon-single
       compatible_data_modes:
       - hybrid_ilmn_ont
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
     - command_id: hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical
       type: dev
@@ -1509,7 +1509,7 @@ repositories:
       - sentieon-single
       compatible_data_modes:
       - hybrid_ilmn_ont
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       return_results: false
     - command_id: inflection-bjuice-product-v0.2
@@ -1554,7 +1554,7 @@ repositories:
       - sentieon-single
       compatible_data_modes:
       - hybrid_ilmn_ont
-      git_tag: 15.0.18
+      git_tag: 15.0.19
       no_containerized: false
       return_results: false
       repository: daylily-omics-analysis
@@ -1639,7 +1639,7 @@ repositories:
       - sentieon-single
       compatible_data_modes:
       - hybrid_ilmn_ont
-      git_tag: 15.0.18
+      git_tag: 15.0.19
       no_containerized: false
       return_results: false
       repository: daylily-omics-analysis
@@ -1698,7 +1698,7 @@ repositories:
       compatible_platforms: [ILMN, ONT]
       compatible_cluster_types: [sentieon-single]
       compatible_data_modes: [hybrid_ilmn_ont]
-      git_tag: 15.0.18
+      git_tag: 15.0.19
       no_containerized: false
       return_results: false
       repository: daylily-omics-analysis
@@ -1735,7 +1735,7 @@ repositories:
       compatible_platforms: [ILMN, ONT]
       compatible_cluster_types: [sentieon-single]
       compatible_data_modes: [hybrid_ilmn_ont]
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       return_results: false
     - command_id: complete_genomics_cg_snv_concordance
@@ -1781,7 +1781,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - complete_genomics_solo
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       validation_runs:
       - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1823,7 +1823,7 @@ repositories:
     - command_id: illumina_run_qc
       type: prod
       validated_version: "15.0.9"
-      validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/
+      validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025_ilm_seq_qc_18026_15015_20260817T1427Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/
       test_data_profile: illumina_run_directory
       display_name: "Illumina Run QC"
       description: "Illumina run-folder QC without BCLConvert execution from a mounted or explicit S3 run context."
@@ -1855,7 +1855,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - run_directory_mount
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       artifact_registration:
         enabled: true
@@ -1928,7 +1928,7 @@ repositories:
         notes: Exact DayOA 15.0.9 dry-run exited rc=0 with zero Slurm submissions. The live controller exited rc=0 after five jobs. No-delete DRA task task-0bcbd1dad1a9a53a2 succeeded, detached dra-032a2da68b14f742d, preserved the FSx source, and the 4,039,466-byte MultiQC report plus its data were verified in S3.
       - run_id: pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z
         generated_at: "2026-08-17T09:09:51Z"
-        report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/multiqc_report.html
+        report_path: s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025_ilm_seq_qc_18026_15015_20260817T1427Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/multiqc_report.html
         ledger_path: docs/plans/20260817T064326Z_pcand18022_bjuice_preval_three_platform_seq_qc_ledger.md
         cluster: pcand-18022
         region: us-west-2
@@ -1979,7 +1979,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - run_directory_mount
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       validation_runs:
       - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -2034,7 +2034,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - run_directory_mount
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       artifact_registration:
         enabled: true
@@ -2106,7 +2106,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - run_directory_mount
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       validation_runs:
       - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -2219,7 +2219,7 @@ repositories:
       - daywgs
       compatible_data_modes:
       - run_directory_mount
-      git_tag: "15.0.18"
+      git_tag: "15.0.19"
       no_containerized: false
       validation_runs:
       - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -3868,7 +3868,7 @@ dyec_builds:
   current:
     repository: daylily-omics-analysis
     dayoa_git_tags:
-    - 15.0.15
+    - 15.0.19
     commands:
       simple-test:
         command_id: simple-test
@@ -3901,7 +3901,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - none
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: true
         validation_runs: []
         repository: daylily-omics-analysis
@@ -3946,7 +3946,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - ilmn_solo
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         validation_runs:
         - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -4013,7 +4013,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - ilmn_solo
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         artifact_registration:
           enabled: true
@@ -4121,7 +4121,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - ilmn_solo
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         validation_runs: []
         repository: daylily-omics-analysis
@@ -4178,7 +4178,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - ilmn_solo
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         artifact_registration:
           enabled: true
@@ -4304,7 +4304,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - ilmn_solo
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         repository: daylily-omics-analysis
       illumina_dragen_pangenome_snv_concordance:
@@ -4346,7 +4346,7 @@ dyec_builds:
         - dragen
         compatible_data_modes:
         - ilmn_solo
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         default_activation: false
         repository: daylily-omics-analysis
@@ -4393,7 +4393,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - ultima_solo
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         validation_runs:
         - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -4464,7 +4464,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - ultima_solo
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         artifact_registration:
           enabled: true
@@ -4574,7 +4574,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - ultima_solo
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         repository: daylily-omics-analysis
       ont_snv_alignstats:
@@ -4623,7 +4623,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - ont_solo
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         validation_runs:
         - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -4700,7 +4700,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - ont_solo
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         artifact_registration:
           enabled: true
@@ -4815,7 +4815,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - pacbio_solo
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         validation_runs:
         - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -4878,7 +4878,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - roche_solo
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         validation_runs:
         - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -4945,7 +4945,7 @@ dyec_builds:
         - sentieon-single
         compatible_data_modes:
         - hybrid_ilmn_ont
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         repository: daylily-omics-analysis
       hybrid_ilmn_ont_hiomr_kitchensink:
@@ -5009,7 +5009,7 @@ dyec_builds:
         - sentieon-single
         compatible_data_modes:
         - hybrid_ilmn_ont
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         repository: daylily-omics-analysis
       hiomr2:
@@ -5073,7 +5073,7 @@ dyec_builds:
         - sentieon-single
         compatible_data_modes:
         - hybrid_ilmn_ont
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         repository: daylily-omics-analysis
       package_inflection_hybrid_data:
@@ -5120,7 +5120,7 @@ dyec_builds:
         - sentieon-single
         compatible_data_modes:
         - hybrid_ilmn_ont
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis
@@ -5186,7 +5186,7 @@ dyec_builds:
         - sentieon-single
         compatible_data_modes:
         - hybrid_ilmn_ont
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         repository: daylily-omics-analysis
       hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical:
@@ -5235,7 +5235,7 @@ dyec_builds:
         - sentieon-single
         compatible_data_modes:
         - hybrid_ilmn_ont
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis
@@ -5281,7 +5281,7 @@ dyec_builds:
         - sentieon-single
         compatible_data_modes:
         - hybrid_ilmn_ont
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis
@@ -5327,7 +5327,7 @@ dyec_builds:
         - sentieon-single
         compatible_data_modes:
         - hybrid_ilmn_ont
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis
@@ -5375,7 +5375,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - complete_genomics_solo
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         validation_runs:
         - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -5419,7 +5419,7 @@ dyec_builds:
         command_id: illumina_run_qc
         type: prod
         validated_version: 15.0.9
-        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/
+        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025_ilm_seq_qc_18026_15015_20260817T1427Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/
         test_data_profile: illumina_run_directory
         display_name: Illumina Run QC
         description: Illumina run-folder QC without BCLConvert execution from a mounted or explicit S3 run context.
@@ -5451,7 +5451,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - run_directory_mount
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         artifact_registration:
           enabled: true
@@ -5524,7 +5524,7 @@ dyec_builds:
           notes: Exact DayOA 15.0.9 dry-run exited rc=0 with zero Slurm submissions. The live controller exited rc=0 after five jobs. No-delete DRA task task-0bcbd1dad1a9a53a2 succeeded, detached dra-032a2da68b14f742d, preserved the FSx source, and the 4,039,466-byte MultiQC report plus its data were verified in S3.
         - run_id: pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z
           generated_at: "2026-08-17T09:09:51Z"
-          report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/multiqc_report.html
+          report_path: s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025_ilm_seq_qc_18026_15015_20260817T1427Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/multiqc_report.html
           ledger_path: docs/plans/20260817T064326Z_pcand18022_bjuice_preval_three_platform_seq_qc_ledger.md
           cluster: pcand-18022
           region: us-west-2
@@ -5577,7 +5577,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - run_directory_mount
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         validation_runs:
         - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -5634,7 +5634,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - run_directory_mount
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         artifact_registration:
           enabled: true
@@ -5708,7 +5708,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - run_directory_mount
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         validation_runs:
         - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -5823,7 +5823,7 @@ dyec_builds:
         - daywgs
         compatible_data_modes:
         - run_directory_mount
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         validation_runs:
         - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -5936,7 +5936,7 @@ dyec_builds:
         compatible_platforms: [ILMN, ONT]
         compatible_cluster_types: [sentieon-single]
         compatible_data_modes: [hybrid_ilmn_ont]
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis
@@ -5977,7 +5977,7 @@ dyec_builds:
         compatible_platforms: [ILMN, ONT]
         compatible_cluster_types: [sentieon-single]
         compatible_data_modes: [hybrid_ilmn_ont]
-        git_tag: 15.0.15
+        git_tag: 15.0.19
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis

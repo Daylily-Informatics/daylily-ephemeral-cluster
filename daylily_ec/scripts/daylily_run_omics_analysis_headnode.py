@@ -46,7 +46,7 @@ from daylily_ec.workflow.dyr_preflight import (
 
 
 STAGE_CONFIG_DISCOVERY_TIMEOUT_SECONDS = 180
-CONTROLLER_TARGET_SCHEMA_VERSION = "dyec.controller_target.v1"
+CONTROLLER_TARGET_SCHEMA_VERSION = "dyec.controller_target.v2"
 
 
 def shlex_quote_compressed_python(source: str) -> str:
@@ -167,6 +167,7 @@ class ControllerTargetReceipt:
     log_path: str
     dag_path: str
     analysis_root: str
+    status_attempt_id: str
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -177,6 +178,7 @@ class ControllerTargetReceipt:
             "log_path": self.log_path,
             "dag_path": self.dag_path,
             "analysis_root": self.analysis_root,
+            "status_attempt_id": self.status_attempt_id,
         }
 
 
@@ -259,6 +261,7 @@ def parse_controller_target(raw: str) -> ControllerTargetReceipt:
         "log_path",
         "dag_path",
         "analysis_root",
+        "status_attempt_id",
     }
     if set(payload) != required:
         missing = sorted(required.difference(payload))
@@ -287,14 +290,23 @@ def parse_controller_target(raw: str) -> ControllerTargetReceipt:
     cwd = _controller_target_path(payload["cwd"], field="cwd")
     log_path = _controller_target_path(payload["log_path"], field="log_path")
     dag_path = _controller_target_path(payload["dag_path"], field="dag_path")
-    if not _path_within(cwd, analysis_root):
-        raise CommandError("controller target cwd must be within analysis_root")
+    if cwd != f"{analysis_root}/daylily-omics-analysis":
+        raise CommandError(
+            "controller target cwd must be the daylily-omics-analysis clone at analysis_root"
+        )
     if not _path_within(log_path, cwd):
         raise CommandError("controller target log_path must be within cwd")
     if not _path_within(dag_path, cwd):
         raise CommandError("controller target dag_path must be within cwd")
     if log_path == dag_path:
         raise CommandError("controller target log_path and dag_path must be different")
+    status_attempt_id = payload["status_attempt_id"]
+    if not isinstance(status_attempt_id, str):
+        raise CommandError("controller target status_attempt_id must be a UUID")
+    try:
+        uuid.UUID(status_attempt_id)
+    except (ValueError, AttributeError) as exc:
+        raise CommandError("controller target status_attempt_id must be a UUID") from exc
     return ControllerTargetReceipt(
         schema_version=CONTROLLER_TARGET_SCHEMA_VERSION,
         controller_id=controller_id,
@@ -303,6 +315,7 @@ def parse_controller_target(raw: str) -> ControllerTargetReceipt:
         log_path=log_path,
         dag_path=dag_path,
         analysis_root=analysis_root,
+        status_attempt_id=status_attempt_id,
     )
 
 
@@ -1233,35 +1246,6 @@ def main(argv: Optional[List[str]] = None) -> int:
         stage_samples_path = stage_config.samples_path
         stage_libraries_path = stage_config.libraries_path
         stage_units_path = stage_config.units_path
-    write_status_python = shlex.quote(
-        "import json, os, pathlib; "
-        "path = pathlib.Path(os.environ['DAYLILY_STATUS_FILE']); "
-        "exit_code_raw = os.environ.get('DAYLILY_STATUS_EXIT_CODE', ''); "
-        "exit_code = None if exit_code_raw in ('', '__PENDING__') else "
-        "(int(exit_code_raw) if exit_code_raw.lstrip('-').isdigit() else exit_code_raw); "
-        "workflow_exit_code_raw = os.environ.get('DAYLILY_STATUS_WORKFLOW_EXIT_CODE', ''); "
-        "workflow_exit_code = None if workflow_exit_code_raw in ('', '__PENDING__') else "
-        "(int(workflow_exit_code_raw) if workflow_exit_code_raw.lstrip('-').isdigit() "
-        "else workflow_exit_code_raw); "
-        "payload = dict("
-        "session_name=os.environ['DAYLILY_STATUS_SESSION'], "
-        "repo_path=os.environ['DAYLILY_STATUS_REPO_PATH'], "
-        "started_at=os.environ.get('DAYLILY_STATUS_STARTED_AT') or None, "
-        "workflow_completed_at=os.environ.get('DAYLILY_STATUS_WORKFLOW_COMPLETED_AT') "
-        "or None, "
-        "workflow_exit_code=workflow_exit_code, "
-        "completed_at=os.environ.get('DAYLILY_STATUS_COMPLETED_AT') or None, "
-        "exit_code=exit_code, "
-        "snakemake_log_path=os.environ.get('DAYLILY_STATUS_SNAKEMAKE_LOG_PATH') or None, "
-        "snakemake_log_attribution=os.environ.get('DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION') or None, "
-        "pinned_source_test_override=os.environ.get('DAYLILY_STATUS_PINNED_SOURCE_TEST_OVERRIDE') or None, "
-        "command=os.environ['DAYLILY_STATUS_COMMAND']); "
-        "path.parent.mkdir(parents=True, exist_ok=True); "
-        "temporary = path.with_name(path.name + '.tmp'); "
-        "temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\\n', "
-        "encoding='utf-8'); "
-        "os.replace(temporary, path)"
-    )
     write_controller_target_python = shlex.quote(
         "import json, os, pathlib; "
         "path = pathlib.Path(os.environ['DAYLILY_CONTROLLER_TARGET_FILE']); "
@@ -1272,7 +1256,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         "cwd=os.environ['DAYLILY_REPO_PATH'], "
         "log_path=os.environ['DAYLILY_CONTROLLER_LOG_PATH'], "
         "dag_path=os.environ['DAYLILY_CONTROLLER_DAG_PATH'], "
-        "analysis_root=str(pathlib.PurePosixPath(os.environ['DAYLILY_REPO_PATH']).parent)); "
+        "analysis_root=str(pathlib.PurePosixPath(os.environ['DAYLILY_REPO_PATH']).parent), "
+        "status_attempt_id=os.environ['DAYLILY_STATUS_ATTEMPT_ID']); "
         "temporary = path.with_name(path.name + '.tmp'); "
         "temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\\n', "
         "encoding='utf-8'); "
@@ -1339,21 +1324,41 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	DRY_RUN_MODE={dry_run_mode}
 	DAYOA_GIT_REF={shlex.quote(args.git_tag)}
 	REPO_KEY={shlex.quote(args.repository)}
-STATUS_FILE="${{DAYLILY_RUN_DIR}}/status.json"
+STATUS_FILE="${{DAYLILY_REPO_PATH}}/status.json"
+STATUS_HELPER="${{DAYLILY_REPO_PATH}}/bin/util/analysis_status.py"
 TMUX_LOG="${{DAYLILY_TMUX_LOG}}"
 CONTROLLER_TARGET_FILE="${{DAYLILY_CONTROLLER_TARGET_FILE}}"
 CONTROLLER_LOG_PATH="${{DAYLILY_CONTROLLER_LOG_PATH}}"
 CONTROLLER_DAG_PATH="${{DAYLILY_CONTROLLER_DAG_PATH}}"
+STATUS_ATTEMPT_ID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
+if [[ -z "$STATUS_ATTEMPT_ID" ]]; then
+  echo "[ERROR] Could not generate execution-status attempt ID."
+  exit 25
+fi
+if [[ "$DRY_RUN_MODE" == "true" ]]; then
+  STATUS_MODE=dry_run
+else
+  STATUS_MODE=live
+fi
 
-write_status() {{
-  python3 -c {write_status_python}
+status_v2() {{
+  local action="$1"
+  shift
+  if [[ ! -f "$STATUS_HELPER" ]]; then
+    echo "[ERROR] DayOA execution-status v2 helper is missing: $STATUS_HELPER"
+    return 25
+  fi
+  python3 "$STATUS_HELPER" "$action" \
+    --status-path "$STATUS_FILE" \
+    --repo-path "$repo_path" \
+    --analysis-root "$clone_root" \
+    --attempt-id "$STATUS_ATTEMPT_ID" \
+    --quiet \
+    "$@"
 }}
 
 export DAYLILY_STATUS_FILE="$STATUS_FILE"
-export DAYLILY_STATUS_SESSION="$SESSION_NAME"
-export DAYLILY_STATUS_REPO_PATH="${{DAYLILY_REPO_PATH}}"
-export DAYLILY_STATUS_COMMAND="$DY_COMMAND"
-export DAYLILY_STATUS_PINNED_SOURCE_TEST_OVERRIDE="$PINNED_SOURCE_TEST_OVERRIDE"
+export DAYLILY_STATUS_ATTEMPT_ID="$STATUS_ATTEMPT_ID"
 export DAYLILY_CONTROLLER_PID="$BASHPID"
 python3 -c {write_controller_target_python}
 if [[ -n "$PINNED_SOURCE_TEST_OVERRIDE" ]]; then
@@ -1391,16 +1396,8 @@ export DAYOA_AGENT_KIND="${{DAYOA_AGENT_KIND:-dyec-cli}}"
 export DAYOA_HUMAN_REQUESTOR="${{DAYOA_HUMAN_REQUESTOR:-${{USER:-ubuntu}}}}"
 export DAYOA_TMUX_SESSION="${{DAYLILY_TMUX_SESSION}}"
 export DAYOA_LEDGER_PATH="${{DAYOA_LEDGER_PATH:-${{DAYLILY_RUN_DIR}}/workflow-launch-ledger.md}}"
-export DAYLILY_STATUS_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-export DAYLILY_STATUS_WORKFLOW_COMPLETED_AT=""
-export DAYLILY_STATUS_WORKFLOW_EXIT_CODE="__PENDING__"
-export DAYLILY_STATUS_COMPLETED_AT=""
-export DAYLILY_STATUS_EXIT_CODE="__PENDING__"
-export DAYLILY_STATUS_SNAKEMAKE_LOG_PATH=""
-export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION=""
-write_status
-
 analysis_lock_acquired=0
+status_attempt_created=0
 release_analysis_lock_on_exit() {{
   local status="$1"
   if [[ "$analysis_lock_acquired" == "1" ]]; then
@@ -1417,7 +1414,16 @@ release_analysis_lock_on_exit() {{
   fi
 }}
 
-trap 'status=$?; release_analysis_lock_on_exit "$status"; if [[ "${{DAYLILY_STATUS_FINALIZED:-0}}" != "1" ]]; then export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; export DAYLILY_STATUS_EXIT_CODE="$status"; write_status; fi' EXIT
+finalize_status_attempt_on_exit() {{
+  local status="$1"
+  if [[ "$status_attempt_created" == "1" && "${{DAYLILY_STATUS_FINALIZED:-0}}" != "1" ]]; then
+    if ! status_v2 finish-controller --exit-code "$status"; then
+      echo "[ERROR] Failed to finalize clone-resident controller status (rc=$status)."
+    fi
+  fi
+}}
+
+trap 'status=$?; release_analysis_lock_on_exit "$status"; finalize_status_attempt_on_exit "$status"' EXIT
 
 clone_root="$(dirname "${{DAYLILY_REPO_PATH}}")"
 repo_path="${{DAYLILY_REPO_PATH}}"
@@ -1544,6 +1550,17 @@ if [[ -n "${{BASH_SOURCE[0]:-}}" && -f "${{BASH_SOURCE[0]}}" ]]; then
   chmod 0700 "$clone_root/bin/dyec-controller-launch.sh"
 fi
 cd "$repo_path"
+export DAYLILY_STATUS_REPO_PATH="$repo_path"
+export DAYLILY_STATUS_ANALYSIS_ROOT="$clone_root"
+export DAYLILY_STATUS_MODE="$STATUS_MODE"
+if ! status_v2 start-controller \
+  --session-name "$SESSION_NAME" \
+  --pid "$BASHPID" \
+  --command "$DY_COMMAND" \
+  --mode "$STATUS_MODE"; then
+  exit 25
+fi
+status_attempt_created=1
 mkdir -p "$(dirname "$CONTROLLER_LOG_PATH")" "$(dirname "$CONTROLLER_DAG_PATH")"
 # Keep controller output on a regular file. A tee/process-substitution pipe can
 # remain open when workflow descendants inherit it, delaying foreground shell
@@ -1825,7 +1842,7 @@ verify_pinned_dayoa_checkout() {{
   # a source-mutation bypass.
   is_allowed_catalog_runtime_path() {{
     case "$1" in
-      .dyec/controller.log|analysis_artifacts.tsv|artifact_lineage.tsv|pipeline_details.md|pipeline_workflow_planned.mmd|pipeline_workflow_planned.pdf|pipeline_workflow_checkpoint_*.mmd|pipeline_workflow_checkpoint_*.pdf|pipeline_workflow_final_success.mmd|pipeline_workflow_final_success.pdf|pipeline_workflow_final_failed.mmd|pipeline_workflow_final_failed.pdf|config/specimens.tsv|config/samples.tsv|config/libraries.tsv|config/sequencing_inputs.tsv|config/analysis_units.tsv|config/analysis_unit_inputs.tsv|config/dyec_manifest_stage_receipt.json|config/day_profiles/slurm/.template-source.sha256)
+      .dyec/controller.log|.dyec/status.json.lock|.dyec/status.json.tmp-*|status.json|analysis_artifacts.tsv|artifact_lineage.tsv|pipeline_details.md|pipeline_workflow_planned.mmd|pipeline_workflow_planned.pdf|pipeline_workflow_checkpoint_*.mmd|pipeline_workflow_checkpoint_*.pdf|pipeline_workflow_final_success.mmd|pipeline_workflow_final_success.pdf|pipeline_workflow_final_failed.mmd|pipeline_workflow_final_failed.pdf|config/specimens.tsv|config/samples.tsv|config/libraries.tsv|config/sequencing_inputs.tsv|config/analysis_units.tsv|config/analysis_unit_inputs.tsv|config/dyec_manifest_stage_receipt.json|config/day_profiles/slurm/.template-source.sha256)
         return 0
         ;;
       *)
@@ -2057,9 +2074,10 @@ fi
 	else
 	  : > "$snakemake_log_baseline"
 	fi
-	set +e
+set +e
 run_dy_command "$DY_COMMAND"
-workflow_status=$?
+day_run_status=$?
+workflow_status=$day_run_status
 post_integrity_status=0
 verify_pinned_dayoa_checkout "after workflow return" || post_integrity_status=$?
 if [[ "$post_integrity_status" -ne 0 ]]; then
@@ -2068,9 +2086,6 @@ if [[ "$post_integrity_status" -ne 0 ]]; then
     workflow_status="$post_integrity_status"
   fi
 fi
-	export DAYLILY_STATUS_WORKFLOW_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-	export DAYLILY_STATUS_WORKFLOW_EXIT_CODE="$workflow_status"
-	write_status
 	if [[ -d "$repo_path/.snakemake/log" ]]; then
 	  find "$repo_path/.snakemake/log" -maxdepth 1 -type f -name '*.snakemake.log' -print \
 	    | sort > "$snakemake_log_current"
@@ -2081,15 +2096,22 @@ fi
 	  comm -13 "$snakemake_log_baseline" "$snakemake_log_current"
 	)
 	rm -f -- "$snakemake_log_baseline" "$snakemake_log_current"
+	status_log_status=0
 	if [[ "${{#invocation_snakemake_logs[@]}}" -eq 1 ]]; then
-	  export DAYLILY_STATUS_SNAKEMAKE_LOG_PATH="${{invocation_snakemake_logs[0]}}"
-	  export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION="exact invocation file-set difference"
+	  status_v2 record-snakemake-log \
+	    --log-path "${{invocation_snakemake_logs[0]}}" \
+	    --log-attribution "exact invocation file-set difference" || status_log_status=$?
 	elif [[ "${{#invocation_snakemake_logs[@]}}" -gt 1 ]]; then
-	  export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION="ambiguous: multiple invocation logs"
+	  status_v2 record-snakemake-log \
+	    --log-attribution "ambiguous: multiple invocation logs" || status_log_status=$?
 	else
-	  export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION="unavailable: no invocation log"
+	  status_v2 record-snakemake-log \
+	    --log-attribution "unavailable: no invocation log" || status_log_status=$?
 	fi
-	write_status
+	if [[ "$status_log_status" -ne 0 ]]; then
+	  echo "[ERROR] Failed to persist Snakemake log attribution in clone-resident status."
+	  [[ "$workflow_status" -ne 0 ]] || workflow_status=25
+	fi
 	touch "$controller_dag_stop"
 	set +e
 	wait "$controller_dag_monitor_pid"
@@ -2104,9 +2126,10 @@ fi
 	  [[ "$workflow_status" -ne 0 ]] || workflow_status=24
 	fi
 export DAYLILY_STATUS_FINALIZED=1
-export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-export DAYLILY_STATUS_EXIT_CODE="$workflow_status"
-write_status
+if ! status_v2 finish-controller --exit-code "$workflow_status"; then
+  echo "[ERROR] Failed to finalize clone-resident controller status (rc=$workflow_status)."
+  [[ "$workflow_status" -ne 0 ]] || workflow_status=25
+fi
 echo "[INFO] Workflow exited with status $workflow_status"
 if [[ ! -d "$clone_root" ]]; then
   exit "$workflow_status"
@@ -2205,7 +2228,7 @@ work_script="$run_dir/dyec-controller-launch.sh"
 tmux_entrypoint="$run_dir/dyec-controller-entrypoint.sh"
 tmux_log="$run_dir/tmux.log"
 bootstrap_log="$run_dir/tmux-bootstrap.log"
-status_file="$run_dir/status.json"
+status_file="$repo_path/status.json"
 controller_target_file="$run_dir/controller_target.json"
 controller_log_path="$repo_path/.dyec/controller.log"
 controller_dag_path="$repo_path/.dyec/controller-dag.png"
@@ -2331,16 +2354,23 @@ while true; do
     break
   fi
   if [[ -f "$status_file" ]]; then
-    if quick_status="$(python3 - "$status_file" <<'PYQUICK'
+    if quick_status="$(python3 - "$status_file" "$controller_target_file" <<'PYQUICK'
 import json
 import sys
 from pathlib import Path
 
 payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-exit_code = payload.get("exit_code")
-if exit_code is None:
+target = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+attempt_id = target.get("status_attempt_id")
+attempt = next(
+    (item for item in payload.get("attempts", []) if item.get("attempt_id") == attempt_id),
+    None,
+)
+controller = attempt.get("controller") if isinstance(attempt, dict) else None
+exit_code = controller.get("exit_code") if isinstance(controller, dict) else None
+if isinstance(exit_code, bool) or not isinstance(exit_code, int):
     raise SystemExit(1)
-print(f"exit_code={{exit_code}}")
+print(f"controller_exit_code={{exit_code}}")
 PYQUICK
 )"; then
       break

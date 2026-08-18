@@ -141,6 +141,7 @@ class WorkflowLaunchMetadata:
     run_dir: str = ""
     repo_path: str = ""
     dy_command: str = ""
+    status_attempt_id: str = ""
 
 
 @dataclass(frozen=True)
@@ -173,8 +174,18 @@ class PhaseResult:
     launch_metadata: WorkflowLaunchMetadata = field(default_factory=WorkflowLaunchMetadata)
 
     @property
-    def exit_code(self) -> Optional[int]:
-        value = self.status_payload.get("exit_code")
+    def controller_exit_code(self) -> Optional[int]:
+        value = self.status_payload.get("controller_exit_code")
+        return value if isinstance(value, int) else None
+
+    @property
+    def day_run_exit_code(self) -> Optional[int]:
+        value = self.status_payload.get("day_run_exit_code")
+        return value if isinstance(value, int) else None
+
+    @property
+    def snakemake_exit_code(self) -> Optional[int]:
+        value = self.status_payload.get("snakemake_exit_code")
         return value if isinstance(value, int) else None
 
     @property
@@ -183,7 +194,11 @@ class PhaseResult:
             return False
         if not self.status_payload:
             return True
-        return self.exit_code == 0
+        return (
+            self.controller_exit_code == 0
+            and self.day_run_exit_code == 0
+            and self.snakemake_exit_code == 0
+        )
 
 
 @dataclass(frozen=True)
@@ -210,7 +225,9 @@ class CommandCatalogResult:
                     "analysis_id": phase.phase.analysis_id,
                     "session_name": phase.phase.session_name,
                     "launch_rc": phase.launch_rc,
-                    "exit_code": phase.exit_code,
+                    "controller_exit_code": phase.controller_exit_code,
+                    "day_run_exit_code": phase.day_run_exit_code,
+                    "snakemake_exit_code": phase.snakemake_exit_code,
                     "export_destination_s3_uri": phase.phase.export_destination_s3_uri,
                     "run_dir": phase.launch_metadata.run_dir,
                     "repo_path": phase.launch_metadata.repo_path,
@@ -1336,7 +1353,12 @@ def execute_phases(
                 PhaseResult(
                     phase=phase,
                     launch_rc=1,
-                    status_payload={"exit_code": 1, "reason": "dryrun did not succeed"},
+                    status_payload={
+                        "controller_exit_code": 1,
+                        "day_run_exit_code": None,
+                        "snakemake_exit_code": None,
+                        "reason": "dryrun did not succeed",
+                    },
                 )
             )
         for batch in chunked(eligible_lives, parallel):
@@ -1420,11 +1442,20 @@ def parse_workflow_launch_metadata(stdout: str) -> WorkflowLaunchMetadata:
             values["repo_path"] = line.split("=", 1)[1].strip()
         elif line.startswith("__DAYLILY_DY_COMMAND__="):
             values["dy_command"] = line.split("=", 1)[1].strip()
+        elif line.startswith("__DYEC_CONTROLLER_TARGET__="):
+            try:
+                target = json.loads(line.split("=", 1)[1].strip())
+            except json.JSONDecodeError:
+                continue
+            attempt_id = target.get("status_attempt_id") if isinstance(target, dict) else None
+            if isinstance(attempt_id, str):
+                values["status_attempt_id"] = attempt_id
     return WorkflowLaunchMetadata(
         session_name=values.get("session_name", ""),
         run_dir=values.get("run_dir", ""),
         repo_path=values.get("repo_path", ""),
         dy_command=values.get("dy_command", ""),
+        status_attempt_id=values.get("status_attempt_id", ""),
     )
 
 
@@ -1438,11 +1469,16 @@ def wait_for_phase(
     deadline = time.time() + timeout_minutes * 60
     while time.time() <= deadline:
         payload = status_func(result.launch_metadata, result.phase)
-        if isinstance(payload.get("exit_code"), int):
+        if isinstance(payload.get("controller_exit_code"), int):
             result.status_payload = payload
             return result
         time.sleep(poll_interval_seconds)
-    result.status_payload = {"exit_code": 1, "reason": "workflow status wait timed out"}
+    result.status_payload = {
+        "controller_exit_code": 1,
+        "day_run_exit_code": None,
+        "snakemake_exit_code": None,
+        "reason": "workflow status wait timed out",
+    }
     return result
 
 

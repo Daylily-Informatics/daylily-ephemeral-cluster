@@ -26,13 +26,14 @@ def _controller_target_marker(
 ) -> str:
     analysis_root = posixpath.dirname(repo_path)
     payload = {
-        "schema_version": "dyec.controller_target.v1",
+        "schema_version": "dyec.controller_target.v2",
         "controller_id": session_name,
         "pid": pid,
         "cwd": repo_path,
         "log_path": f"{repo_path}/.dyec/controller.log",
         "dag_path": f"{repo_path}/.dyec/controller-dag.png",
         "analysis_root": analysis_root,
+        "status_attempt_id": "00000000-0000-4000-8000-000000000001",
     }
     return "\n".join(
         [
@@ -73,6 +74,9 @@ def _assert_immutable_pinned_dayoa_controller(script: str) -> None:
     assert "Explicit pinned-source test override active" in script
     for allowed_path in (
         ".dyec/controller.log",
+        ".dyec/status.json.lock",
+        ".dyec/status.json.tmp-*",
+        "status.json",
         "analysis_artifacts.tsv",
         "artifact_lineage.tsv",
         "pipeline_details.md",
@@ -283,9 +287,13 @@ class TestRunOmicsAnalysisHeadnodeScript:
     @pytest.mark.parametrize(
         ("updates", "match"),
         [
-            ({"schema_version": "dyec.controller_target.v2"}, "schema must be"),
+            ({"schema_version": "dyec.controller_target.v1"}, "schema must be"),
             ({"pid": 0}, "positive integer"),
             ({"cwd": "relative/path"}, "canonical absolute path"),
+            (
+                {"cwd": "/fsx/analysis_results/johnm/dayoa/not-the-dayoa-clone"},
+                "must be the daylily-omics-analysis clone",
+            ),
             (
                 {"log_path": "/home/ubuntu/daylily-runs/controller.log"},
                 "log_path must be within cwd",
@@ -615,23 +623,23 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'controller_target_file="$run_dir/controller_target.json"' in script
         assert 'controller_log_path="$repo_path/.dyec/controller.log"' in script
         assert 'controller_dag_path="$repo_path/.dyec/controller-dag.png"' in script
-        assert 'STATUS_FILE="${DAYLILY_RUN_DIR}/status.json"' in script
+        assert 'STATUS_FILE="${DAYLILY_REPO_PATH}/status.json"' in script
+        assert 'STATUS_HELPER="${DAYLILY_REPO_PATH}/bin/util/analysis_status.py"' in script
+        assert "STATUS_ATTEMPT_ID=" in script
+        assert "status_v2 start-controller" in script
+        assert "status_v2 finish-controller" in script
+        assert "status_v2 record-snakemake-log" in script
         assert 'export DAYLILY_CONTROLLER_PID="$BASHPID"' in script
-        assert 'export DAYLILY_STATUS_SNAKEMAKE_LOG_PATH=""' in script
-        assert 'export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION=""' in script
-        assert 'export DAYLILY_STATUS_WORKFLOW_COMPLETED_AT=""' in script
-        assert 'export DAYLILY_STATUS_WORKFLOW_EXIT_CODE="__PENDING__"' in script
-        assert 'export DAYLILY_STATUS_WORKFLOW_EXIT_CODE="$workflow_status"' in script
-        assert script.index(
-            'export DAYLILY_STATUS_WORKFLOW_EXIT_CODE="$workflow_status"'
-        ) < script.index('wait "$controller_dag_monitor_pid"')
+        assert 'export DAYLILY_STATUS_ATTEMPT_ID="$STATUS_ATTEMPT_ID"' in script
+        assert 'status_file="$repo_path/status.json"' in script
+        assert 'status_file="$run_dir/status.json"' not in script
         assert "os.replace(temporary, path)" in script
         assert 'snakemake_log_baseline="$DAYLILY_RUN_DIR/snakemake-log-baseline.txt"' in script
         assert "-name '*.snakemake.log'" in script
         assert 'comm -13 "$snakemake_log_baseline" "$snakemake_log_current"' in script
-        assert 'DAYLILY_STATUS_SNAKEMAKE_LOG_PATH="${invocation_snakemake_logs[0]}"' in script
-        assert 'DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION="exact invocation file-set difference"' in script
-        assert "dyec.controller_target.v1" in script
+        assert '--log-path "${invocation_snakemake_logs[0]}"' in script
+        assert '--log-attribution "exact invocation file-set difference"' in script
+        assert "dyec.controller_target.v2" in script
         assert "python3 -c " in script
         assert "DAYLILY_RUN_DIR=%q" in script
         assert "DAYLILY_REPO_PATH=%q" in script
@@ -913,10 +921,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
         override_script = mock_run_shell.call_args.args[2]
         assert "PINNED_SOURCE_TEST_OVERRIDE='approved dyoainit initialization test'" in override_script
         assert "DRY_RUN_MODE=true" in override_script
-        assert "pinned-source-test-override-$evidence_phase.status.txt" in override_script
-        assert "pinned-source-test-override-$evidence_phase.worktree.patch" in override_script
-        assert "pinned-source-test-override-$evidence_phase.index.patch" in override_script
-        assert "pinned-source-test-override-$evidence_phase.untracked.txt" in override_script
+        assert '"$evidence_prefix.status.txt"' in override_script
+        assert '"$evidence_prefix.worktree.patch"' in override_script
+        assert '"$evidence_prefix.index.patch"' in override_script
+        assert '"$evidence_prefix.untracked.txt"' in override_script
         override_reuse_block = override_script.split(
             'if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then',
             1,

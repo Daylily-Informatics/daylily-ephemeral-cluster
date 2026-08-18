@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
+import json
 import logging
 import time
 from datetime import datetime, timezone
@@ -16,6 +17,12 @@ from botocore.exceptions import BotoCoreError, ClientError
 
 from daylily_ec import ui
 from daylily_ec.analysis_identity import validate_analysis_segment
+from daylily_ec.execution_status import (
+    ExecutionStatusError,
+    STATUS_FILENAME as EXECUTION_STATUS_FILENAME,
+    STATUS_SCHEMA_VERSION as EXECUTION_STATUS_SCHEMA_VERSION,
+    validate_execution_status,
+)
 from daylily_ec.run_mounts import (
     RunMountError,
     association_is_active,
@@ -34,7 +41,7 @@ LOGGER = logging.getLogger("daylily.export_fsx")
 ANALYSIS_EXPORT_ROOT = "/analysis_results/"
 HEADNODE_ANALYSIS_EXPORT_ROOT = "/fsx/analysis_results/"
 STATUS_FILENAME = "fsx_export.yaml"
-EXPORT_SCHEMA_VERSION = 4
+EXPORT_SCHEMA_VERSION = 5
 EXPORT_PURPOSE_TAG = "output-export"
 POLL_INTERVAL_SECONDS = 30
 
@@ -56,6 +63,7 @@ class ExportOptions:
     wait: bool = True
     timeout_seconds: int = 3600
     delete_data_in_file_system: bool = False
+    require_clone_status_v2_evidence: bool = False
 
 
 @dataclasses.dataclass(frozen=True)
@@ -227,6 +235,102 @@ def validate_export_destination_s3_uri(
             f"{expected_keys!r}; got s3://{parsed.netloc}/{key}"
         )
     return destination
+
+
+def clone_status_evidence_s3_uri(
+    *,
+    source_path: str,
+    destination_s3_uri: str,
+    cluster_name: Optional[str] = None,
+    destination_analysis_id: Optional[str] = None,
+) -> str:
+    """Return the one v2 status object that a full analysis export must retain.
+
+    This deliberately accepts only a complete analysis-root export.  A nested
+    export cannot honestly claim to contain the clone-root execution record.
+    """
+
+    normalized_source = normalize_export_source_path(source_path)
+    analysis_dir = analysis_dir_from_source_path(normalized_source)
+    expected_source = f"{ANALYSIS_EXPORT_ROOT}{analysis_dir}/"
+    if normalized_source != expected_source:
+        raise ExportError(
+            "clone-status evidence requires the complete analysis directory, not a nested export"
+        )
+    destination = validate_export_destination_s3_uri(
+        destination_s3_uri,
+        source_path=normalized_source,
+        cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
+    )
+    return f"{destination}daylily-omics-analysis/{EXECUTION_STATUS_FILENAME}"
+
+
+def verify_exported_clone_status_v2_evidence(
+    s3_client: Any,
+    *,
+    source_path: str,
+    destination_s3_uri: str,
+    cluster_name: Optional[str] = None,
+    destination_analysis_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Read and validate the exported canonical v2 record without mutation."""
+
+    status_s3_uri = clone_status_evidence_s3_uri(
+        source_path=source_path,
+        destination_s3_uri=destination_s3_uri,
+        cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
+    )
+    parsed = urlparse(status_s3_uri)
+    bucket = parsed.netloc
+    key = parsed.path.lstrip("/")
+    try:
+        response = s3_client.get_object(Bucket=bucket, Key=key)
+        body = response.get("Body")
+        if body is None or not hasattr(body, "read"):
+            raise ExportError("S3 clone-status evidence object has no readable body")
+        raw_bytes = body.read()
+    except (BotoCoreError, ClientError, OSError) as exc:
+        raise ExportError(
+            "Unable to read exported clone-resident status v2 evidence "
+            f"at {status_s3_uri}: {exc}"
+        ) from exc
+    if not isinstance(raw_bytes, bytes):
+        raise ExportError("S3 clone-status evidence body must be bytes")
+    try:
+        payload = json.loads(raw_bytes.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ExportError(
+            f"Exported clone-resident status v2 is not valid JSON: {status_s3_uri}"
+        ) from exc
+    normalized_source = normalize_export_source_path(source_path)
+    analysis_root = analysis_headnode_path(normalized_source).rstrip("/")
+    repo_path = f"{analysis_root}/daylily-omics-analysis"
+    try:
+        validated = validate_execution_status(
+            payload,
+            repo_path=repo_path,
+            analysis_root=analysis_root,
+        )
+    except ExecutionStatusError as exc:
+        raise ExportError(
+            f"Exported clone-resident status v2 is invalid at {status_s3_uri}: {exc}"
+        ) from exc
+    attempts = validated["attempts"]
+    if not attempts:
+        raise ExportError(
+            "Exported clone-resident status v2 contains no retained execution attempts: "
+            f"{status_s3_uri}"
+        )
+    return {
+        "required": True,
+        "verified": True,
+        "s3_uri": status_s3_uri,
+        "schema_version": EXECUTION_STATUS_SCHEMA_VERSION,
+        "attempt_count": len(attempts),
+        "latest_attempt_id": attempts[-1]["attempt_id"],
+    }
 
 
 def resolve_launch_export_destination_s3_uri(
@@ -828,6 +932,16 @@ def run_export_workflow(options: ExportOptions) -> int:
             raise ExportError(
                 "FSx export task ended with lifecycle "
                 f"{task_payload['task_lifecycle']}: {task_payload['failure_details']}"
+            )
+        if options.require_clone_status_v2_evidence:
+            receipt["fsx_export"]["clone_status_v2_evidence"] = (
+                verify_exported_clone_status_v2_evidence(
+                    session.client("s3"),
+                    source_path=record.headnode_path,
+                    destination_s3_uri=record.destination_s3_uri,
+                    cluster_name=record.cluster_name,
+                    destination_analysis_id=options.destination_analysis_id,
+                )
             )
         rc = 0
         message = "Export complete"
