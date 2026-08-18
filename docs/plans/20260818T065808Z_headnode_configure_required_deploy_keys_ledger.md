@@ -20,7 +20,8 @@ Scope: make both existing GitHub deploy-key secret references mandatory for the 
 | K2 | Tests | Reject missing flags before SSM; prove supplied flags are forwarded for both command variants | SUCCESS | contract_test | Gate 2 | 2026-08-18T07:03:22Z: focused CLI/script suite passed: 14 passed. It covers missing and blank references, both command variants, and exact forwarding of both reference/region pairs. |
 | K3 | Docs | State the mandatory key references in CLI reference/help-facing documentation | SUCCESS | feature_implementation | Gate 2 | Updated current CLI reference, operations, monitoring, and DRAGEN operator documentation; `--help` marks both arguments `[required]`. |
 | K4 | Verification | Run targeted help/contract tests and check formatting | SUCCESS | contract_test | Gate 5 | 2026-08-18T07:03:22Z: `dyec headnode configure --help` and `configure-dragen --help` show both required flags; docs/no-PEM suite passed: 8 passed; `git diff --check` clean. No raw Snakemake or live workflow run. |
-| K5 | Delivery | Commit the complete ledger, source, docs, and tests on the feature branch | SUCCESS | feature_implementation | Gate 5 | This complete implementation is committed on the local feature branch. Push/release remains outside this request unless separately authorized. |
+| K5 | Delivery | Commit the complete ledger, source, docs, and tests on the feature branch | SUCCESS | feature_implementation | Gate 5 | Commit `38469760f398d183fa9f43386c74a43eecb2af73` contains the implementation. |
+| R1 | Release | Push the feature branch and create/push annotated DYEC `18.0.32` | IN_PROGRESS | release | Gate 5 | User explicitly authorized the no-additional-tests release on 2026-08-18. Current docs and version-contract test are advanced to `18.0.32` in the pending release commit. |
 
 ## Acceptance
 
