@@ -26,7 +26,7 @@ Controlling request: locate the checked-in HG002 downsample matrix report; add t
 | MOD-001 | Extend the renderer/collector so a no-target full-coverage observation can coexist with E1/E2 downsample observations. | SUCCESS | Added P1 full-input parser/collector and a strict native-SR-not-RSR measurement contract; target and target-error values are represented as `NA`. |
 | REP-001 | Regenerate Markdown, figures, tables, source inventory, and checksums from all 19 observations. | SUCCESS | Generated 22 figures and 13 tables; the report retains 19 observations and zero exact duplicates. |
 | QA-001 | Verify source hashes, row counts, chart/table reconciliation, Markdown links, and no-target semantics. | SUCCESS | 1,107 asset checksums verify; all Markdown local links resolve; P1 row is 43.73× SR × 11.43× LR with `NA` target/error fields; coverage grid and GIAB heatmap visually reviewed. |
-| GIT-001 | Commit only report-refresh artifacts and this ledger, then push the fast-forward update to `origin/main`. | PENDING | User explicitly requested `main`; direct push is allowed only if `origin/main` remains an ancestor of the reviewed commit. |
+| GIT-001 | Commit only report-refresh artifacts and this ledger, then push the fast-forward update to `origin/main`. | SUCCESS | `a339091ee8681fcad7c5fe2fed8fb015955dab7a` was pushed fast-forward to `main` from reviewed base `12288f5f410768e09246da116ef8c28687dd67aa`; no force push or unrelated worktree content was included. |
 
 ## Completion criteria
 
