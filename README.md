@@ -1,8 +1,10 @@
 # Daylily Ephemeral Cluster
 
-Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the CLI control plane for short-lived AWS ParallelCluster bioinformatics work. Release `18.0.46` creates and configures clusters, mounts sequencing-run data into FSx, launches pinned workflow repositories on the headnode, monitors exact analysis roots, moves files between local and headnode storage, and exports finished results to S3 with receipts.
+Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the CLI control plane for short-lived AWS ParallelCluster bioinformatics work. Release `18.0.47` creates and configures clusters, mounts sequencing-run data into FSx, launches pinned workflow repositories on the headnode, monitors exact analysis roots, moves files between local and headnode storage, and exports finished results to S3 with receipts.
 
 DYEC is not an identity service and not a workflow engine. It does not require or contact a metadata or identity service. It consumes explicit local configuration, explicit manifests, explicit S3 paths, and explicit command-catalog entries. DayOA owns its workflow rules and `dy-r` execution. DYEC owns cluster/headnode orchestration and the launch/export envelope.
+
+> **Agent and operator starting point:** read [docs/agent_cli_guide.md](docs/agent_cli_guide.md) before operating a cluster or DayOA analysis. It maps the common DYEC CLI paths, the interactive DayOA contract, and the stop conditions. `dyec agent guidance` is the matching compact terminal reminder.
 
 ## Current operator model
 
@@ -91,7 +93,7 @@ Run `dyec --help` for the live list. Current major groups are:
 | `pricing`, `cost-centers`, `aws`, `slurm-accounting` | Cost, quota, AWS readiness, and accounting support. |
 | `tests` | Local pytest and catalog validation helpers. |
 
-Detailed examples live in [docs/cli_reference.md](docs/cli_reference.md).
+Detailed option-level examples live in [docs/cli_reference.md](docs/cli_reference.md). The task-oriented path is [docs/agent_cli_guide.md](docs/agent_cli_guide.md).
 
 ## Guarded AWS Budget updates
 
@@ -166,26 +168,13 @@ dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
   --dry-run
 ```
 
-If the dry-run plan is bounded and correct, continue the same analysis ID,
-FSx root, DayOA checkout, staged manifests, in-clone runtime config, and
-controller context. The live `dy-r` argv must differ only by removal of `-n`;
-do not clone or stage the analysis again. If the CLI needs a new controller
-process for continuation, it must explicitly reuse and verify that same root,
-ref, commit, and config hash with input staging disabled.
-
-```bash
-dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER" \
-  --analysis-id "$ANALYSIS_ID" \
-  --executing-entity "$CLUSTER" \
-  --manifest-dir ./config \
-  --payload-staging-s3-uri "$STAGING_S3_URI" \
-  --session-name "$ANALYSIS_ID" \
-  --project RnD \
-  --cost-center "$COST_CENTER"
-```
+If the dry-run plan is bounded and correct and the production contract requires
+a same-root continuation, do not issue a second catalog launch against the
+existing root. Start a new `dyec workflow launch` controller with
+`--reuse-existing-analysis-dir --input-contract none --no-input-staging`, the
+exact ref/commit, and the rendered live `dy-r` argv with only `-n` removed.
+The full continuation command and its lock boundary are in
+[docs/agent_cli_guide.md](docs/agent_cli_guide.md#5-preferred-path-catalog-render-dry-controller-and-live-controller).
 
 For scalar DayOA runtime config, pass explicit `key=value` overrides. DYEC
 appends them to the `dy-r ... --config` section and does not reinterpret their
@@ -223,8 +212,8 @@ numeric key before changing `current`; never edit an existing numeric snapshot:
 
 ```bash
 dyec --json catalog list --type prod
-dyec --json catalog list --dyec-version 18.0.9 --type prod
-dyec --json catalog render <command-id> --dyec-version 18.0.9 ...
+dyec --json catalog list --dyec-version 18.0.47 --type prod
+dyec --json catalog render <command-id> --dyec-version 18.0.47 ...
 ```
 
 A build may also declare one-hop, same-build aliases. An alias inherits one
@@ -246,7 +235,7 @@ prefix must contain `command_registry.json` and `summary.json` from a successful
 
 ```bash
 dyec --json catalog validation-compare <command-id> \
-  --dyec-version 18.0.9 --profile "$AWS_PROFILE" --region "$REGION"
+  --dyec-version 18.0.47 --profile "$AWS_PROFILE" --region "$REGION"
 ```
 
 The comparison fails hard when no prefix is declared, the receipts are missing,
@@ -542,8 +531,7 @@ Export one completed analysis directory:
 dyec analysis visit \
   --analysis-root /fsx/analysis_results/"$CLUSTER"/"$ANALYSIS_ID" \
   --mode export \
-  --intent "export completed pipeline results to $DESTINATION_S3_URI without FSx cleanup" \
-  --s3-visit-uri "$DESTINATION_S3_URI"
+  --intent "export completed pipeline results to $DESTINATION_S3_URI without FSx cleanup"
 
 dyec export \
   --profile "$AWS_PROFILE" \
@@ -556,7 +544,9 @@ dyec export \
 
 `dyec catalog list`, `show`, and `render` expose the same `result_export`
 contract. DayOA never exports: after the controller succeeds, run the displayed
-DYEC visit and DRA export commands from the analysis root.
+DYEC visit and DRA export commands from the analysis root. Leave the destination
+prefix empty for `dyec export`'s fail-closed preflight; do not put an
+`--s3-visit-uri` marker in that intended destination.
 `dyec export` records a local receipt and uses an explicit DRA/export path.
 Verify `status=success`, `phase=complete`, `task_lifecycle=SUCCEEDED`,
 `detached=true`, and the expected S3 objects. FSx data is preserved unless a
@@ -573,4 +563,4 @@ python -m pytest tests/test_cli_registry_v2.py -q
 git diff --check
 ```
 
-Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. The checked-in release baseline is `18.0.46`; choose any future version only through the explicit release process on a clean release commit.
+Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. The checked-in release baseline is `18.0.47`; choose any future version only through the explicit release process on a clean release commit.

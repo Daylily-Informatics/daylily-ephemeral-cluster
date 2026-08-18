@@ -1,9 +1,10 @@
 # Daylily Ephemeral Cluster
 
 DYEC is the command-line control plane for short-lived AWS ParallelCluster
-bioinformatics environments. This concise guide describes the `18.0.46` release.
-Use [README.md](README.md) and [docs/cli_reference.md](docs/cli_reference.md)
-for the full operator contract.
+bioinformatics environments. This concise guide describes the `18.0.47` release.
+Start with [docs/agent_cli_guide.md](docs/agent_cli_guide.md) for the common
+operator/agent path, then use [README.md](README.md) and
+[docs/cli_reference.md](docs/cli_reference.md) for full detail.
 
 DYEC creates and inspects clusters, opens a supported SSM headnode shell,
 mounts explicit S3 run prefixes into FSx, launches explicitly pinned DayOA
@@ -128,8 +129,7 @@ preserves FSx data; deletion is a separate destructive operation.
 dyec analysis visit \
   --analysis-root "/fsx/analysis_results/$CLUSTER/$ANALYSIS_ID" \
   --mode export \
-  --intent "export completed analysis results" \
-  --s3-visit-uri "s3://<results-bucket>/<prefix>/$CLUSTER/$ANALYSIS_ID/"
+  --intent "export completed analysis results without FSx deletion"
 
 dyec export \
   --profile "$AWS_PROFILE" \
@@ -137,11 +137,14 @@ dyec export \
   --cluster "$CLUSTER" \
   --source-path "/fsx/analysis_results/$CLUSTER/$ANALYSIS_ID" \
   --destination-s3-uri "s3://<results-bucket>/<prefix>/$CLUSTER/$ANALYSIS_ID/" \
-  --output-dir "./export-receipts/$ANALYSIS_ID"
+  --output-dir "./export-receipts/$ANALYSIS_ID" \
+  --wait --timeout-seconds 5400
 
 dyec delete --dry-run --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER"
 ```
 
+Keep the intended destination empty before export; do not use `--s3-visit-uri`
+for that prefix because the marker would defeat the empty-prefix preflight.
 Keep `fsx_export.yaml` and verify `status: success`, `task_lifecycle:
 SUCCEEDED`, and `detached: true` before considering deletion. Run a live delete
 only after separate approval for that exact cluster.
@@ -149,6 +152,7 @@ only after separate approval for that exact cluster.
 ## Read more
 
 - [CLI reference](docs/cli_reference.md)
+- [Agent and operator CLI guide](docs/agent_cli_guide.md)
 - [Quickest Start](docs/quickest_start.md)
 - [Operations](docs/operations.md)
 - [DRA and FSx strategy](docs/dra_fsx_strategy.md)

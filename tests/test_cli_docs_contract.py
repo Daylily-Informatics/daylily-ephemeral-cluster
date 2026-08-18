@@ -15,6 +15,7 @@ CURRENT_OPERATOR_DOCS = (
     REPO_ROOT / "README.md",
     REPO_ROOT / "README.md.bland",
     REPO_ROOT / "docs" / "DAY_EC_ENVIRONMENT.md",
+    REPO_ROOT / "docs" / "agent_cli_guide.md",
     REPO_ROOT / "docs" / "aws_setup.md",
     REPO_ROOT / "docs" / "cli_reference.md",
     REPO_ROOT / "docs" / "dra_fsx_strategy.md",
@@ -79,8 +80,8 @@ def test_current_operator_docs_state_the_shipped_cli_and_catalog_versions() -> N
 
     # A release branch describes the next tag before that tag exists; an exact
     # release checkout reports the new tag once it has been created.
-    assert release_version == "18.0.46"
-    assert "`18.0.46`" in text
+    assert release_version == "18.0.47"
+    assert "`18.0.47`" in text
     assert dayoa_tag == "15.0.27"
     assert f"`{dayoa_tag}`" in text
     assert "dyec set-vars" in text

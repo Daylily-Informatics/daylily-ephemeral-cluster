@@ -2,8 +2,11 @@
 
 Use this only when AWS setup, quotas, Session Manager, the DYEC config, and the
 selected DayOA command/input contract are already known-good. This is the
-`18.0.46` catalog-first path; it performs real cloud operations when `--dry-run`
+`18.0.47` catalog-first path; it performs real cloud operations when `--dry-run`
 is removed.
+
+For the full agent/operator decision map, see
+[agent_cli_guide.md](agent_cli_guide.md).
 
 ```bash
 source ./activate
@@ -69,8 +72,7 @@ dyec --json workflow status \
 dyec analysis visit \
   --analysis-root "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
   --mode export \
-  --intent "export completed analysis results" \
-  --s3-visit-uri "$EXPORT_S3_URI"
+  --intent "export completed analysis results without FSx deletion"
 
 dyec export \
   --profile "$AWS_PROFILE" \
@@ -78,9 +80,12 @@ dyec export \
   --cluster "$CLUSTER" \
   --source-path "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
   --destination-s3-uri "$EXPORT_S3_URI" \
-  --output-dir "$EXPORT_DIR"
+  --output-dir "$EXPORT_DIR" \
+  --wait --timeout-seconds 5400
 ```
 
+Leave `$EXPORT_S3_URI` empty before the export; do not use `--s3-visit-uri` for
+that destination because its marker would fail the empty-prefix preflight.
 Verify `fsx_export.yaml` reports `status: success`, `task_lifecycle:
 SUCCEEDED`, and `detached: true`. A live `dyec delete` is destructive and needs
 separate approval for the exact cluster; start with `dyec delete --dry-run`.

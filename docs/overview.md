@@ -1,8 +1,9 @@
 # DYEC Overview
 
-This is the living overview for DYEC `18.0.46`. The command surface is defined
-by `dyec --help`; [cli_reference.md](cli_reference.md) is the detailed
-operator reference. Dated release reports, archived documents, and plan ledgers
+This is the living overview for DYEC `18.0.47`. The command surface is defined
+by `dyec --help`; [agent_cli_guide.md](agent_cli_guide.md) is the task-oriented
+operator/agent guide and [cli_reference.md](cli_reference.md) is the detailed
+option reference. Dated release reports, archived documents, and plan ledgers
 retain historical evidence and are not current command guidance.
 
 ## Role and boundaries
@@ -105,6 +106,7 @@ Catalog commands declare an explicit input contract. Inspect it with
 ## Further reading
 
 - [CLI reference](cli_reference.md)
+- [Agent and operator CLI guide](agent_cli_guide.md)
 - [Quickest Start](quickest_start.md)
 - [Operations](operations.md)
 - [DRA and FSx strategy](dra_fsx_strategy.md)

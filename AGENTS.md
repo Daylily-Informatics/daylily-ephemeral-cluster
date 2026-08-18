@@ -1,3 +1,16 @@
+# Agent quick start
+
+**Before a DYEC or DayOA operation, read
+[docs/agent_cli_guide.md](docs/agent_cli_guide.md).** It is the visible CLI
+route map for local setup, cluster/headnode inspection, run mounts, catalog
+launch, interactive DayOA work, monitoring, no-delete export, and terminal
+stop conditions. In an activated checkout, run `dyec agent guidance` for the
+compact companion reminder.
+
+The detailed rules below are mandatory. When guidance conflicts, follow the
+current instruction hierarchy and the closest applicable safety contract; do not
+invent a fallback or bypass the supported DYEC/DAYOA CLI path.
+
 # Shell Session Defaults
 
 - Default to an interactive shell for shell work. On this Mac, use the user's default shell unless the user explicitly asks for another shell.

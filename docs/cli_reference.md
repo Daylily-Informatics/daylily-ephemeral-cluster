@@ -1,6 +1,6 @@
 # DYEC CLI Reference
 
-This document is the operator-facing reference for the `18.0.46` `dyec` command surface. It favors explicit commands and receipts over implicit state. `daylily-ec` is an installed compatibility entrypoint for the same CLI, but current docs and ledgers use `dyec`.
+This document is the operator-facing reference for the `18.0.47` `dyec` command surface. It favors explicit commands and receipts over implicit state. `daylily-ec` is an installed compatibility entrypoint for the same CLI, but current docs and ledgers use `dyec`.
 
 ## Conventions
 
@@ -130,6 +130,9 @@ It covers:
 - monitoring commands and Slurm queue format.
 
 Use this when an operator or agent needs a concise reminder of the safe path.
+For the prominent task-by-task route map—including catalog versus manual DayOA
+work, same-root continuation, and no-delete export—read
+[agent_cli_guide.md](agent_cli_guide.md).
 
 ## Cluster lifecycle
 
@@ -605,8 +608,7 @@ Useful options:
 | `--run-context-file` | Local run-context TSV for run-analysis commands. |
 | `--stage-dir` | Existing headnode/FSx staging directory. |
 | `--dy-config key=value` | Append one explicit DayOA/Snakemake config assignment. Repeatable. |
-| `--export-destination-s3-uri` | Optional auto-export root/destination. |
-| `--export-trigger none|on-success|on-fail|all` | Auto-export trigger. |
+| `--export-destination-s3-uri`, `--export-trigger`, `--delete-on-export-success` | Present for compatibility in help but rejected for standard catalog/workflow launch. Export separately after terminal controller success. |
 | `--replace-existing-analysis-dir` | Forward explicit replacement intent to workflow launch. |
 
 `--dy-config` accepts only explicit assignments like `key=value`; blank strings and free-form shell fragments fail.
@@ -645,20 +647,12 @@ dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
   --dry-run
 ```
 
-Launch live after the dry-run plan is reviewed:
-
-```bash
-dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
-  --analysis-id "$ANALYSIS_ID" \
-  --executing-entity "$CLUSTER" \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER" \
-  --manifest-dir ./config \
-  --payload-staging-s3-uri "$STAGING_S3_URI" \
-  --session-name "$ANALYSIS_ID" \
-  --project "$PROJECT"
-```
+For a fresh live root, render and launch the approved live catalog command.
+When a dry controller has already created the exact analysis root and the
+contract requires same-root continuation, do **not** reissue `catalog launch`.
+Use `workflow launch --reuse-existing-analysis-dir --input-contract none
+--no-input-staging` with the exact dry command, ref, and commit, changing only
+the DayOA `-n` flag. See [agent_cli_guide.md](agent_cli_guide.md#5-preferred-path-catalog-render-dry-controller-and-live-controller).
 
 `catalog quick-launch` is an alias for `catalog launch`.
 
@@ -993,8 +987,7 @@ Export one exact analysis root:
 dyec analysis visit \
   --analysis-root "$ANALYSIS_ROOT" \
   --mode export \
-  --intent "export completed pipeline results to $DESTINATION_S3_URI without FSx cleanup" \
-  --s3-visit-uri "$DESTINATION_S3_URI"
+  --intent "export completed pipeline results to $DESTINATION_S3_URI without FSx cleanup"
 
 dyec export \
   --profile "$AWS_PROFILE" \
@@ -1010,7 +1003,9 @@ dyec export \
 The command catalog exposes this contract in the `result_export` object from
 `dyec catalog list`, `dyec catalog show`, and `dyec catalog render`. After the
 controller succeeds, run the displayed DYEC visit and DRA export commands from
-the analysis root. DayOA does not export results.
+the analysis root. DayOA does not export results. The destination prefix must
+remain empty for export's fail-closed preflight, so do not use
+`--s3-visit-uri` for that intended destination.
 
 Use export helpers for existing receipts or bulk operation surfaces:
 
@@ -1220,20 +1215,9 @@ dyec --json tests command-catalog-performance \
    dyec workflow logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" --session "${ANALYSIS_ID}-dryrun" --lines 200
    ```
 
-7. Launch live only if the plan is correct:
-
-   ```bash
-   dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
-     --analysis-id "$ANALYSIS_ID" \
-     --executing-entity "$CLUSTER" \
-     --profile "$AWS_PROFILE" \
-     --region "$REGION" \
-     --cluster "$CLUSTER" \
-     --manifest-dir ./config \
-     --payload-staging-s3-uri "$STAGING_S3_URI" \
-     --session-name "$ANALYSIS_ID" \
-     --project "$PROJECT"
-   ```
+7. For a fresh live root, render and launch the live catalog command. For a
+   same-root dry-to-live controller, follow the explicit `workflow launch`
+   continuation in [agent_cli_guide.md](agent_cli_guide.md#5-preferred-path-catalog-render-dry-controller-and-live-controller); do not relaunch the catalog row onto the existing root.
 
 8. Monitor the exact analysis root:
 
@@ -1246,7 +1230,8 @@ dyec --json tests command-catalog-performance \
      --tail-lines 1000
    ```
 
-9. Export after success:
+9. Export after success. Record an `analysis visit --mode export` first, then
+   run the command below with a previously empty destination prefix:
 
    ```bash
    dyec export \
@@ -1255,7 +1240,8 @@ dyec --json tests command-catalog-performance \
      --cluster "$CLUSTER" \
      --source-path "$ANALYSIS_ROOT" \
      --destination-s3-uri s3://<analysis-results-bucket>/<prefix>/$CLUSTER/$ANALYSIS_ID/ \
-     --output-dir ./export-receipts/$ANALYSIS_ID
+     --output-dir ./export-receipts/$ANALYSIS_ID \
+     --wait --timeout-seconds 5400
    ```
 
 ## Release conventions

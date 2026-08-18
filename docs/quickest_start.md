@@ -4,6 +4,9 @@ This is the current public-safe operator path. It uses the DRA-backed FSx model,
 explicit config, a platform-resolved SSM headnode user, catalog-backed DayOA
 commands, and explicit export receipts.
 
+For the concise agent/operator route map and DayOA tmux contract, read
+[agent_cli_guide.md](agent_cli_guide.md) before starting a controller.
+
 ## 1. Activate The Checkout
 
 ```bash
@@ -266,16 +269,24 @@ Do not cancel, requeue, drain, resume, or restart Slurm components without separ
 
 ## 8. Export Completed Analysis Directory
 
-Export directly from the completed analysis directory on FSx:
+Record the no-delete export visit, then export directly from the completed
+analysis directory on FSx. Keep `$EXPORT_S3_URI` empty before this sequence; do
+not use `--s3-visit-uri` for that intended destination.
 
 ```bash
+dyec analysis visit \
+  --analysis-root "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
+  --mode export \
+  --intent "export completed analysis root without FSx deletion"
+
 dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --source-path "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
   --destination-s3-uri "$EXPORT_S3_URI" \
-  --output-dir "$EXPORT_DIR"
+  --output-dir "$EXPORT_DIR" \
+  --wait --timeout-seconds 5400
 
 cat "$EXPORT_DIR/fsx_export.yaml"
 ```
@@ -286,9 +297,9 @@ Expected receipt values:
 - `detached: true`
 - `delete_data_in_file_system: false`
 - `source_path: /fsx/analysis_results/<executing_entity>/<analysis_id>/`
-- `destination_s3_uri` ending in `<cluster>/<analysis_id>/` for launch auto-export, or `<executing_entity>/<analysis_id>/` for explicit direct export
+- `destination_s3_uri` ending in the exact `<executing_entity>/<analysis_id>/` destination selected for the complete analysis root
 - `fsx_root: /fsx/analysis_results/<executing_entity>/<analysis_id>/`
-- `s3_root: s3://.../<cluster>/<analysis_id>/` for launch auto-export, or `s3://.../<executing_entity>/<analysis_id>/` for explicit direct export
+- `s3_root: s3://.../<executing_entity>/<analysis_id>/` for the explicit direct export
 - `dayoa_analysis_root` under `fsx_root` when exporting DayOA
 - `dayoa_s3_root` under `s3_root` when exporting DayOA
 
