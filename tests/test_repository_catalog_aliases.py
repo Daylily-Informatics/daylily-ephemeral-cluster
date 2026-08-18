@@ -54,7 +54,9 @@ REMOVED_TOP_LEVEL_COMMAND_IDS = {
     "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
 }
 NEW_CURRENT_COMMAND_IDS = NEW_TOP_LEVEL_COMMAND_IDS | {
-    "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega"
+    "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega",
+    "illumina_sentieon_pangenome_kitchensink",
+    "ultima_sentieon_pangenome_kitchensink",
 }
 def _raw_catalog() -> dict:
     return yaml.safe_load(CATALOG_PATH.read_text(encoding="utf-8"))
@@ -280,6 +282,7 @@ def test_catalog_version_five_rejects_aliases(tmp_path: Path) -> None:
 
 def test_current_snapshot_history_and_packaged_payload_retain_active_semantics() -> None:
     source = CATALOG_PATH.read_text(encoding="utf-8")
+    assert CATALOG_PATH.read_bytes() == PACKAGED_CATALOG_PATH.read_bytes()
     raw = yaml.safe_load(source)
     packaged = yaml.safe_load(PACKAGED_CATALOG_PATH.read_text(encoding="utf-8"))
     # Reproducibility requires the active catalog resolution to match the
