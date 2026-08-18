@@ -1,0 +1,25 @@
+fsx_export:
+  schema_version: 4
+  status: success
+  phase: complete
+  cluster_name: pre-rel-18025
+  region: us-west-2
+  analysis_dir: pre-rel-18025/prerel18025-bjuice-preval14-15015-dry-20260817t151033z
+  source_path: /analysis_results/pre-rel-18025/prerel18025-bjuice-preval14-15015-dry-20260817t151033z/
+  headnode_path: /fsx/analysis_results/pre-rel-18025/prerel18025-bjuice-preval14-15015-dry-20260817t151033z/
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025-bjuice-preval14-15015-dry-20260817t151033z/
+  fsx_root: /fsx/analysis_results/pre-rel-18025/prerel18025-bjuice-preval14-15015-dry-20260817t151033z/
+  s3_root: s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025-bjuice-preval14-15015-dry-20260817t151033z/
+  dayoa_analysis_root: /fsx/analysis_results/pre-rel-18025/prerel18025-bjuice-preval14-15015-dry-20260817t151033z/daylily-omics-analysis/
+  dayoa_s3_root: s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025-bjuice-preval14-15015-dry-20260817t151033z/daylily-omics-analysis/
+  detached: true
+  delete_data_in_file_system: false
+  failure_details: {}
+  fsx_file_system_id: fs-0b1dadc673c44817f
+  file_system_path: /analysis_results/pre-rel-18025/prerel18025-bjuice-preval14-15015-dry-20260817t151033z/
+  association_id: dra-009282df7bed2b03d
+  lifecycle: AVAILABLE
+  task_id: task-08f03a52158762562
+  task_lifecycle: SUCCEEDED
+  report_path: s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025-bjuice-preval14-15015-dry-20260817t151033z/_daylily_monitor/fsx-export/20260818T022434Z/export-report/
+  detach_lifecycle: DELETED

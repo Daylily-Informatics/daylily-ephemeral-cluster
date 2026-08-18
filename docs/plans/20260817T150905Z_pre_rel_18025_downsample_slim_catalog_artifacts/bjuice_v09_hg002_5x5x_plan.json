@@ -1,0 +1,13 @@
+{
+  "schema": "dyec.bjuice_v2_hg002_custom_au_plan.v1",
+  "sample_id": "HG002",
+  "analysis_units": [
+    {
+      "label": "5x5",
+      "target_ilmn_coverage_x": "5",
+      "target_ont_coverage_x": "5",
+      "ont_fq_start_hour": 0,
+      "ont_fq_end_hour": 11
+    }
+  ]
+}
