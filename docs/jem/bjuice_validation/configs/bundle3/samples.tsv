@@ -1,0 +1,18 @@
+SAMPLEID	SAMPLE_EUID	SPECIMEN_ID	SAMPLECLASS	SAMPLE_TYPE	SAMPLEUSE	ORDER_TYPE	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	IDDNA_UID	TRUTH_DATA_DIR	SAMPLE_COMMENT
+CASE1-F		CASE1-F	research	blood	research	research		false	false	na	CASE1-F			Bjuice validation workbook sample; no sample-specific truth source verified
+CASE1-M		CASE1-M	research	blood	research	research		false	false	na	CASE1-M			Bjuice validation workbook sample; no sample-specific truth source verified
+CASE1-P		CASE1-P	research	blood	research	research		false	false	na	CASE1-P			Bjuice validation workbook sample; no sample-specific truth source verified
+CASE3		CASE3	research	blood	research	research		false	false	na	CASE3			Bjuice validation workbook sample; no sample-specific truth source verified
+CASE4		CASE4	research	blood	research	research		false	false	na	CASE4			Bjuice validation workbook sample; no sample-specific truth source verified
+HG002		HG002	research	blood	posControl	positive control	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/	true	false	na	HG002		/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/	GIAB benchmark positive control
+HG003		HG003	research	blood	posControl	positive control	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/	true	false	na	HG003		/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/	GIAB benchmark positive control
+HG004		HG004	research	blood	posControl	positive control	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG004/	true	false	na	HG004		/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG004/	GIAB benchmark positive control
+NA05067		NA05067	research	blood	research	research		false	false	na	NA05067			Bjuice validation workbook sample; no sample-specific truth source verified
+NA10799		NA10799	research	blood	research	research		false	false	na	NA10799			Bjuice validation workbook sample; no sample-specific truth source verified
+NA11907		NA11907	research	blood	research	research		false	false	na	NA11907			Bjuice validation workbook sample; no sample-specific truth source verified
+NA12548		NA12548	research	blood	research	research		false	false	na	NA12548			Bjuice validation workbook sample; no sample-specific truth source verified
+NA14734		NA14734	research	blood	research	research		false	false	na	NA14734			Bjuice validation workbook sample; no sample-specific truth source verified
+NA15603		NA15603	research	blood	research	research		false	false	na	NA15603			Bjuice validation workbook sample; no sample-specific truth source verified
+NA15850		NA15850	research	blood	research	research		false	false	na	NA15850			Bjuice validation workbook sample; no sample-specific truth source verified
+NA20515		NA20515	research	blood	research	research		false	false	na	NA20515			Bjuice validation workbook sample; no sample-specific truth source verified
+NA20755		NA20755	research	blood	research	research		false	false	na	NA20755			Bjuice validation workbook sample; no sample-specific truth source verified

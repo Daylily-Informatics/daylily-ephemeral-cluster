@@ -1,0 +1,29 @@
+SPECIMEN_ID	SPECIMEN_EUID	SAMPLESOURCE	SPECIMEN_TYPE	EXTERNAL_SPECIMEN_ID	BIOLOGICAL_SEX	N_X	N_Y	SPECIMEN_COMMENT
+BUCCAL1		buccal	buccal	BUCCAL1				Canonical biological specimen from reviewed Bjuice validation workbook
+BUCCAL2		buccal	buccal	BUCCAL2				Canonical biological specimen from reviewed Bjuice validation workbook
+BUCCAL3		buccal	buccal	BUCCAL3				Canonical biological specimen from reviewed Bjuice validation workbook
+BUCCAL4		buccal	buccal	BUCCAL4				Canonical biological specimen from reviewed Bjuice validation workbook
+BUCCAL5		buccal	buccal	BUCCAL5				Canonical biological specimen from reviewed Bjuice validation workbook
+BUCCAL6		buccal	buccal	BUCCAL6				Canonical biological specimen from reviewed Bjuice validation workbook
+HG001		blood	blood	HG001	female	2	0	GIAB benchmark specimen
+HG002		blood	blood	HG002	male	1	1	GIAB benchmark specimen
+HG003		blood	blood	HG003	male	1	1	GIAB benchmark specimen
+HG004		blood	blood	HG004	female	2	0	GIAB benchmark specimen
+NA00232		blood	blood	NA00232				Canonical biological specimen from reviewed Bjuice validation workbook
+NA03813		blood	blood	NA03813				Canonical biological specimen from reviewed Bjuice validation workbook
+NA03814		blood	blood	NA03814				Canonical biological specimen from reviewed Bjuice validation workbook
+NA05067		blood	blood	NA05067				Canonical biological specimen from reviewed Bjuice validation workbook
+NA10684		blood	blood	NA10684				Canonical biological specimen from reviewed Bjuice validation workbook
+NA10799		blood	blood	NA10799				Canonical biological specimen from reviewed Bjuice validation workbook
+NA11907		blood	blood	NA11907				Canonical biological specimen from reviewed Bjuice validation workbook
+NA12548		blood	blood	NA12548				Canonical biological specimen from reviewed Bjuice validation workbook
+NA13189		blood	blood	NA13189				Canonical biological specimen from reviewed Bjuice validation workbook
+NA14734		blood	blood	NA14734				Canonical biological specimen from reviewed Bjuice validation workbook
+NA15603		blood	blood	NA15603				Canonical biological specimen from reviewed Bjuice validation workbook
+NA15850		blood	blood	NA15850				Canonical biological specimen from reviewed Bjuice validation workbook
+NA16207		blood	blood	NA16207				Canonical biological specimen from reviewed Bjuice validation workbook
+NA19177		blood	blood	NA19177				Canonical biological specimen from reviewed Bjuice validation workbook
+NA19249		blood	blood	NA19249				Canonical biological specimen from reviewed Bjuice validation workbook
+NA21526		blood	blood	NA21526				Canonical biological specimen from reviewed Bjuice validation workbook
+NA21527		blood	blood	NA21527				Canonical biological specimen from reviewed Bjuice validation workbook
+NA23688		blood	blood	NA23688				Canonical biological specimen from reviewed Bjuice validation workbook

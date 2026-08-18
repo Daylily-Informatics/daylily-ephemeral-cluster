@@ -1,0 +1,18 @@
+SPECIMEN_ID	SPECIMEN_EUID	SAMPLESOURCE	SPECIMEN_TYPE	EXTERNAL_SPECIMEN_ID	BIOLOGICAL_SEX	N_X	N_Y	SPECIMEN_COMMENT
+CASE1-F		blood	blood	CASE1-F				Canonical biological specimen from reviewed Bjuice validation workbook
+CASE1-M		blood	blood	CASE1-M				Canonical biological specimen from reviewed Bjuice validation workbook
+CASE1-P		blood	blood	CASE1-P				Canonical biological specimen from reviewed Bjuice validation workbook
+CASE3		blood	blood	CASE3				Canonical biological specimen from reviewed Bjuice validation workbook
+CASE4		blood	blood	CASE4				Canonical biological specimen from reviewed Bjuice validation workbook
+HG002		blood	blood	HG002	male	1	1	GIAB benchmark specimen
+HG003		blood	blood	HG003	male	1	1	GIAB benchmark specimen
+HG004		blood	blood	HG004	female	2	0	GIAB benchmark specimen
+NA05067		blood	blood	NA05067				Canonical biological specimen from reviewed Bjuice validation workbook
+NA10799		blood	blood	NA10799				Canonical biological specimen from reviewed Bjuice validation workbook
+NA11907		blood	blood	NA11907				Canonical biological specimen from reviewed Bjuice validation workbook
+NA12548		blood	blood	NA12548				Canonical biological specimen from reviewed Bjuice validation workbook
+NA14734		blood	blood	NA14734				Canonical biological specimen from reviewed Bjuice validation workbook
+NA15603		blood	blood	NA15603				Canonical biological specimen from reviewed Bjuice validation workbook
+NA15850		blood	blood	NA15850				Canonical biological specimen from reviewed Bjuice validation workbook
+NA20515		blood	blood	NA20515				Canonical biological specimen from reviewed Bjuice validation workbook
+NA20755		blood	blood	NA20755				Canonical biological specimen from reviewed Bjuice validation workbook

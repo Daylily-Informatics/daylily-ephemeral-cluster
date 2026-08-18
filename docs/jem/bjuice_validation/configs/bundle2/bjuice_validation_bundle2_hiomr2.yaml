@@ -1,0 +1,60 @@
+ont_fastq_hour_window_mode: per_analysis_unit
+sentdhiomr2:
+  hg38_sentdhiomr2_chrms: 1-25
+  lr_input_mode_by_sample:
+    BUCCAL7: fastq
+    BUCCAL8: fastq
+    BUCCAL9: fastq
+    CASE1-F: fastq
+    CASE1-M: fastq
+    CASE1-P: fastq
+    HG002: fastq
+    HG003: fastq
+    HG004: fastq
+    NA05067: fastq
+    NA10799: fastq
+    NA11907: fastq
+    NA12548: fastq
+    NA14734: fastq
+    NA15603: fastq
+    NA15847: fastq
+    NA15850: fastq
+    NA16595: fastq
+    NA17867: fastq
+  provenance_run_id: bjuice_validation_bundle2
+  retain_stage_artifacts: true
+multiqc_qc:
+  enable_tools:
+  - unmapped_metagenomics_ganon2
+  library_summary:
+    primary_alignments:
+      sr:
+        aligner: sentdhiomr2sr
+        deduper: smd
+      ont:
+        aligner: sentdhiomr2lr
+        deduper: na
+    contamination_method: site_mix
+sentdhiomr2_nicu_research:
+  enabled: false
+  fastq_recoverability_enabled: false
+sentdhiomr2_slim_consensus:
+  enabled: true
+sentdhiomr2_jasmine:
+  enabled: false
+truvari_sv_benchmark:
+  enabled: true
+  env_yaml: ../envs/truari_v0.2.yaml
+  threads: 32
+  mem_mb: 64000
+  partition: i128nvme,i192nvme,i192hugenvme,i384nvme
+  extra_args: --passonly --sizemin 50 --sizefilt 50 --sizemax -1 --refdist 500 --pctsize
+    0.7 --pctseq 0.7 --pctovl 0 --pick single
+  truthsets:
+    HG002:
+      alt_id: HG002
+      regions:
+        giab_sv_v5_0q_hc:
+          truth_vcf: /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/sv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_stvar.vcf.gz
+          truth_tbi: /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/sv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_stvar.vcf.gz.tbi
+          truth_bed: /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/sv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_stvar.benchmark.bed

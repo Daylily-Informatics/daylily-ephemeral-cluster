@@ -1,0 +1,541 @@
+{
+  "schema": "dyec.bjuice_validation_source_spec.v1",
+  "workbook": {
+    "path": "/Users/jmajor/Downloads/Betelgeuse Validation - LAB.xlsx",
+    "sha256": "face0fc30a241b87ee02223c3f8117a831a6c16b17233b395ae8a15f4ba8bdd7"
+  },
+  "aws": {
+    "bucket": "lsmc-ssf-sequencing-data",
+    "profile": "lsmc",
+    "region": "us-west-2"
+  },
+  "dyec": {
+    "release_version": "18.0.43",
+    "release_tag_object": "f46b58b6bdae0ccc9a621fb9f5d88ef8feafd6dd",
+    "release_commit": "7e7e9a1bb0ce9b6989ab31b19e945a83c8a6fcbe",
+    "catalog_snapshot": "dyec_builds.18.0.43",
+    "pinned_dayoa_version": "15.0.24",
+    "command_contract": "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega"
+  },
+  "dayoa": {
+    "requested_version": "15.0.24",
+    "requested_commit": "9cd4e43fded97ea57f11f19c164ab1fbe3fa77d4",
+    "targets": [
+      "produce_sentdhiomr2_slim_kitchensink_mega",
+      "produce_sentdhiomr2_inflection_analytical_package"
+    ]
+  },
+  "bundles": [
+    {
+      "bundle_id": "bundle1a",
+      "logical_run": 1,
+      "expected_paired_aus": 32,
+      "ilmn_source_id": "ilmn-run1a",
+      "ont_source_ids": [
+        "ont-run1-set1",
+        "ont-run1-set2",
+        "ont-run1-set3",
+        "ont-run1-set4",
+        "ont-run1-set5",
+        "ont-run1-set6",
+        "ont-run1-set7",
+        "ont-run1-set8"
+      ]
+    },
+    {
+      "bundle_id": "bundle1b",
+      "logical_run": 1,
+      "expected_paired_aus": 32,
+      "ilmn_source_id": "ilmn-run1b",
+      "ont_source_ids": [
+        "ont-run1-set1",
+        "ont-run1-set2",
+        "ont-run1-set3",
+        "ont-run1-set4",
+        "ont-run1-set5",
+        "ont-run1-set6",
+        "ont-run1-set7",
+        "ont-run1-set8"
+      ]
+    },
+    {
+      "bundle_id": "bundle2",
+      "logical_run": 2,
+      "expected_paired_aus": 19,
+      "ilmn_source_id": "ilmn-run2",
+      "ont_source_ids": [
+        "ont-run2-set1",
+        "ont-run2-set2",
+        "ont-run2-set3",
+        "ont-run2-set4",
+        "ont-run2-set5",
+        "ont-run2-set6",
+        "ont-run2-set7",
+        "ont-run2-set8"
+      ]
+    },
+    {
+      "bundle_id": "bundle3",
+      "logical_run": 3,
+      "expected_paired_aus": 17,
+      "ilmn_source_id": "ilmn-run3",
+      "ont_source_ids": [
+        "ont-run3-set1",
+        "ont-run3-set2",
+        "ont-run3-set3",
+        "ont-run3-set4",
+        "ont-run3-set5",
+        "ont-run3-set6",
+        "ont-run3-set7",
+        "ont-run3-set8"
+      ]
+    },
+    {
+      "bundle_id": "bundle4",
+      "logical_run": 4,
+      "expected_paired_aus": 31,
+      "ilmn_source_id": "ilmn-run4",
+      "ont_source_ids": [
+        "ont-run4-set1",
+        "ont-run4-set2",
+        "ont-run4-set3",
+        "ont-run4-set4",
+        "ont-run4-set5",
+        "ont-run4-set6",
+        "ont-run4-set7",
+        "ont-run4-set8"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "ilmn-run1a",
+      "platform": "ILMN",
+      "logical_run": 1,
+      "run_id": "20260624_LH01106_0012_A23WW3CLT4",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260624_LH01106_0012_A23WW3CLT4/",
+      "seqnas_path": "/mnt/seqdata/LH01106/20260624_LH01106_0012_A23WW3CLT4",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260624_LH01106_0012_A23WW3CLT4/",
+      "mount_path": "/fsx/run_dir_mounts/20260624_LH01106_0012_A23WW3CLT4"
+    },
+    {
+      "source_id": "ilmn-run1b",
+      "platform": "ILMN",
+      "logical_run": 1,
+      "run_id": "20260629_LH01106_0014_B23WV5HLT4",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260629_LH01106_0014_B23WV5HLT4/",
+      "seqnas_path": "/mnt/seqdata/LH01106/20260629_LH01106_0014_B23WV5HLT4",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260629_LH01106_0014_B23WV5HLT4/",
+      "mount_path": "/fsx/run_dir_mounts/20260629_LH01106_0014_B23WV5HLT4"
+    },
+    {
+      "source_id": "ilmn-run2",
+      "platform": "ILMN",
+      "logical_run": 2,
+      "run_id": "20260624_LH01106_0013_B23M753LT3",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260624_LH01106_0013_B23M753LT3/",
+      "seqnas_path": "/mnt/seqdata/LH01106/20260624_LH01106_0013_B23M753LT3",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260624_LH01106_0013_B23M753LT3/",
+      "mount_path": "/fsx/run_dir_mounts/20260624_LH01106_0013_B23M753LT3"
+    },
+    {
+      "source_id": "ilmn-run3",
+      "platform": "ILMN",
+      "logical_run": 3,
+      "run_id": "20260701_LH01106_0015_B23M5J7LT3",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260701_LH01106_0015_B23M5J7LT3/",
+      "seqnas_path": "/mnt/seqdata/LH01106/20260701_LH01106_0015_B23M5J7LT3",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260701_LH01106_0015_B23M5J7LT3/",
+      "mount_path": "/fsx/run_dir_mounts/20260701_LH01106_0015_B23M5J7LT3"
+    },
+    {
+      "source_id": "ilmn-run4",
+      "platform": "ILMN",
+      "logical_run": 4,
+      "run_id": "20260722_LH01106_0016_A23WW3YLT4",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260722_LH01106_0016_A23WW3YLT4/",
+      "seqnas_path": "/mnt/seqdata/LH01106/20260722_LH01106_0016_A23WW3YLT4",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260722_LH01106_0016_A23WW3YLT4/",
+      "mount_path": "/fsx/run_dir_mounts/20260722_LH01106_0016_A23WW3YLT4"
+    },
+    {
+      "source_id": "ont-run1-set1",
+      "platform": "ONT",
+      "logical_run": 1,
+      "set_number": 1,
+      "run_id": "20260626_ONT_BGS_ValR1_Set1",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260626_ONT_BGS_ValR1_Set1/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260626_ONT_BGS_ValR1_Set1",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run1-set2",
+      "platform": "ONT",
+      "logical_run": 1,
+      "set_number": 2,
+      "run_id": "20260626_ONT_BGS_ValR1_Set2",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260626_ONT_BGS_ValR1_Set2/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260626_ONT_BGS_ValR1_Set2",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run1-set3",
+      "platform": "ONT",
+      "logical_run": 1,
+      "set_number": 3,
+      "run_id": "20260626_ONT_BGS_ValR1_Set3",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260626_ONT_BGS_ValR1_Set3/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260626_ONT_BGS_ValR1_Set3",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run1-set4",
+      "platform": "ONT",
+      "logical_run": 1,
+      "set_number": 4,
+      "run_id": "20260626_ONT_BGS_ValR1_Set4",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260626_ONT_BGS_ValR1_Set4/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260626_ONT_BGS_ValR1_Set4",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run1-set5",
+      "platform": "ONT",
+      "logical_run": 1,
+      "set_number": 5,
+      "run_id": "20260626_ONT_BGS_ValR1_Set5",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260626_ONT_BGS_ValR1_Set5/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260626_ONT_BGS_ValR1_Set5",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run1-set6",
+      "platform": "ONT",
+      "logical_run": 1,
+      "set_number": 6,
+      "run_id": "20260626_ONT_BGS_ValR1_Set6",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260626_ONT_BGS_ValR1_Set6/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260626_ONT_BGS_ValR1_Set6",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run1-set7",
+      "platform": "ONT",
+      "logical_run": 1,
+      "set_number": 7,
+      "run_id": "20260626_ONT_BGS_ValR1_Set7",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260626_ONT_BGS_ValR1_Set7/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260626_ONT_BGS_ValR1_Set7",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run1-set8",
+      "platform": "ONT",
+      "logical_run": 1,
+      "set_number": 8,
+      "run_id": "20260626_ONT_BGS_ValR1_Set8",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260626_ONT_BGS_ValR1_Set8/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260626_ONT_BGS_ValR1_Set8",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run2-set1",
+      "platform": "ONT",
+      "logical_run": 2,
+      "set_number": 1,
+      "run_id": "20250629_ONT_BGS_Run2_Set1",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/20250629_ONT_BGS_Run2_Set1/",
+      "seqnas_path": "/mnt/seqdata/pca100/20250629_ONT_BGS_Run2_Set1",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2025"
+    },
+    {
+      "source_id": "ont-run2-set2",
+      "platform": "ONT",
+      "logical_run": 2,
+      "set_number": 2,
+      "run_id": "20250629_ONT_BGS_Run2_Set2",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/20250629_ONT_BGS_Run2_Set2/",
+      "seqnas_path": "/mnt/seqdata/pca100/20250629_ONT_BGS_Run2_Set2",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2025"
+    },
+    {
+      "source_id": "ont-run2-set3",
+      "platform": "ONT",
+      "logical_run": 2,
+      "set_number": 3,
+      "run_id": "20250629_ONT_BGS_Run2_Set3",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/20250629_ONT_BGS_Run2_Set3/",
+      "seqnas_path": "/mnt/seqdata/pca100/20250629_ONT_BGS_Run2_Set3",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2025"
+    },
+    {
+      "source_id": "ont-run2-set4",
+      "platform": "ONT",
+      "logical_run": 2,
+      "set_number": 4,
+      "run_id": "20250629_ONT_BGS_Run2_Set4",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/20250629_ONT_BGS_Run2_Set4/",
+      "seqnas_path": "/mnt/seqdata/pca100/20250629_ONT_BGS_Run2_Set4",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2025"
+    },
+    {
+      "source_id": "ont-run2-set5",
+      "platform": "ONT",
+      "logical_run": 2,
+      "set_number": 5,
+      "run_id": "20250629_ONT_BGS_Run2_Set5",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/20250629_ONT_BGS_Run2_Set5/",
+      "seqnas_path": "/mnt/seqdata/pca100/20250629_ONT_BGS_Run2_Set5",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2025"
+    },
+    {
+      "source_id": "ont-run2-set6",
+      "platform": "ONT",
+      "logical_run": 2,
+      "set_number": 6,
+      "run_id": "20250629_ONT_BGS_Run2_Set6",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/20250629_ONT_BGS_Run2_Set6/",
+      "seqnas_path": "/mnt/seqdata/pca100/20250629_ONT_BGS_Run2_Set6",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2025"
+    },
+    {
+      "source_id": "ont-run2-set7",
+      "platform": "ONT",
+      "logical_run": 2,
+      "set_number": 7,
+      "run_id": "20250629_ONT_BGS_Run2_Set7",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/20250629_ONT_BGS_Run2_Set7/",
+      "seqnas_path": "/mnt/seqdata/pca100/20250629_ONT_BGS_Run2_Set7",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2025"
+    },
+    {
+      "source_id": "ont-run2-set8",
+      "platform": "ONT",
+      "logical_run": 2,
+      "set_number": 8,
+      "run_id": "20250629_ONT_BGS_Run2_Set8",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/20250629_ONT_BGS_Run2_Set8/",
+      "seqnas_path": "/mnt/seqdata/pca100/20250629_ONT_BGS_Run2_Set8",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2025/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2025"
+    },
+    {
+      "source_id": "ont-run3-set1",
+      "platform": "ONT",
+      "logical_run": 3,
+      "set_number": 1,
+      "run_id": "20260713_ONT_BGS_Run3_Set1",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260713_ONT_BGS_Run3_Set1/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260713_ONT_BGS_Run3_Set1",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run3-set2",
+      "platform": "ONT",
+      "logical_run": 3,
+      "set_number": 2,
+      "run_id": "20260713_ONT_BGS_Run3_Set2",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260713_ONT_BGS_Run3_Set2/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260713_ONT_BGS_Run3_Set2",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run3-set3",
+      "platform": "ONT",
+      "logical_run": 3,
+      "set_number": 3,
+      "run_id": "20260713_ONT_BGS_Run3_Set3",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260713_ONT_BGS_Run3_Set3/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260713_ONT_BGS_Run3_Set3",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run3-set4",
+      "platform": "ONT",
+      "logical_run": 3,
+      "set_number": 4,
+      "run_id": "20260713_ONT_BGS_Run3_Set4",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260713_ONT_BGS_Run3_Set4/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260713_ONT_BGS_Run3_Set4",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run3-set5",
+      "platform": "ONT",
+      "logical_run": 3,
+      "set_number": 5,
+      "run_id": "20260713_ONT_BGS_Run3_Set5",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260713_ONT_BGS_Run3_Set5/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260713_ONT_BGS_Run3_Set5",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run3-set6",
+      "platform": "ONT",
+      "logical_run": 3,
+      "set_number": 6,
+      "run_id": "20260713_ONT_BGS_Run3_Set6",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260713_ONT_BGS_Run3_Set6/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260713_ONT_BGS_Run3_Set6",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run3-set7",
+      "platform": "ONT",
+      "logical_run": 3,
+      "set_number": 7,
+      "run_id": "20260713_ONT_BGS_Run3_Set7",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260713_ONT_BGS_Run3_Set7/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260713_ONT_BGS_Run3_Set7",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run3-set8",
+      "platform": "ONT",
+      "logical_run": 3,
+      "set_number": 8,
+      "run_id": "20260713_ONT_BGS_Run3_Set8",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260713_ONT_BGS_Run3_Set8/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260713_ONT_BGS_Run3_Set8",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run4-set1",
+      "platform": "ONT",
+      "logical_run": 4,
+      "set_number": 1,
+      "run_id": "20260723_ONT_BGS_Run4_Set1",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260723_ONT_BGS_Run4_Set1/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260723_ONT_BGS_Run4_Set1",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run4-set2",
+      "platform": "ONT",
+      "logical_run": 4,
+      "set_number": 2,
+      "run_id": "20260723_ONT_BGS_Run4_Set2",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260723_ONT_BGS_Run4_Set2/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260723_ONT_BGS_Run4_Set2",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run4-set3",
+      "platform": "ONT",
+      "logical_run": 4,
+      "set_number": 3,
+      "run_id": "20260723_ONT_BGS_Run4_Set3",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260723_ONT_BGS_Run4_Set3/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260723_ONT_BGS_Run4_Set3",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run4-set4",
+      "platform": "ONT",
+      "logical_run": 4,
+      "set_number": 4,
+      "run_id": "20260723_ONT_BGS_Run4_Set4",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260723_ONT_BGS_Run4_Set4/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260723_ONT_BGS_Run4_Set4",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run4-set5",
+      "platform": "ONT",
+      "logical_run": 4,
+      "set_number": 5,
+      "run_id": "20260723_ONT_BGS_Run4_Set5",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260723_ONT_BGS_Run4_Set5/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260723_ONT_BGS_Run4_Set5",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run4-set6",
+      "platform": "ONT",
+      "logical_run": 4,
+      "set_number": 6,
+      "run_id": "20260723_ONT_BGS_Run4_Set6",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260723_ONT_BGS_Run4_Set6/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260723_ONT_BGS_Run4_Set6",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run4-set7",
+      "platform": "ONT",
+      "logical_run": 4,
+      "set_number": 7,
+      "run_id": "20260723_ONT_BGS_Run4_Set7",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260723_ONT_BGS_Run4_Set7/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260723_ONT_BGS_Run4_Set7",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    },
+    {
+      "source_id": "ont-run4-set8",
+      "platform": "ONT",
+      "logical_run": 4,
+      "set_number": 8,
+      "run_id": "20260723_ONT_BGS_Run4_Set8",
+      "s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260723_ONT_BGS_Run4_Set8/",
+      "seqnas_path": "/mnt/seqdata/pca100/20260723_ONT_BGS_Run4_Set8",
+      "mount_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/",
+      "mount_path": "/fsx/run_dir_mounts/pca100-2026"
+    }
+  ],
+  "exclusions": [
+    {
+      "kind": "separate_cohort",
+      "pattern": "Bjuice-preval and 20260618_LH01106_0011_A23MFMCLT3",
+      "reason": "The prevalence cohort is not part of this validation inventory."
+    },
+    {
+      "kind": "ont_qc",
+      "pattern": "*_QC and *_QC*",
+      "reason": "ONT QC folders are not sequencing inputs for validation AUs."
+    },
+    {
+      "kind": "negative_control",
+      "pattern": "NTC",
+      "reason": "Workbook NTC rows are controls outside the requested paired sample analyses."
+    },
+    {
+      "kind": "hidden_migration",
+      "pattern": ".*-migration-cleanup",
+      "reason": "Hidden OWY migration/control prefixes are never canonical run data."
+    },
+    {
+      "kind": "ont_nonpassing",
+      "pattern": "fastq_fail and unclassified",
+      "reason": "Only flow-cell-qualified fastq_pass/barcodeNN FASTQs are allowed."
+    }
+  ]
+}
