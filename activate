@@ -208,7 +208,7 @@ if ! __daylily_activate_dayec_exists; then
   fi
 
   echo "Creating DAY-EC from ${__daylily_activate_env_yaml} ..." >&2
-  conda env create -n DAY-EC -f "${__daylily_activate_env_yaml}" --yes || return 1
+  conda env create -n DAY-EC -f "${__daylily_activate_env_yaml}" || return 1
   __daylily_activate_created_dayec=1
 fi
 
