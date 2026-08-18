@@ -286,13 +286,15 @@ Configure/repair the headnode:
 dyec headnode configure \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER" \
-  --dyec-deploy-key-secret-arn "$DYEC_DEPLOY_KEY_SECRET_ARN" \
-  --dayoa-deploy-key-secret-arn "$DAYOA_DEPLOY_KEY_SECRET_ARN"
+  --cluster "$CLUSTER"
 ```
 
-Both deploy-key secret references are required. DYEC rejects a missing or blank
-reference before selecting the headnode or sending an SSM command.
+The default credential authority is the newest local DYEC create-state record for
+`$CLUSTER`. Its exact saved next-run config supplies both deploy-key references. Use
+`--state-file <state.json>` when the intended cluster generation is not the newest one.
+The two direct deploy-key options are an all-or-nothing recovery override; a partial pair,
+mixed state/direct inputs, malformed state, missing config, wrong cluster, or wrong region
+fails before an SSM command is sent.
 
 Run this after a DYEC upgrade when the headnode is missing new commands such as `dyec analysis status`, `dyec headnode run`, or current `dy-r` analysis-lock support.
 

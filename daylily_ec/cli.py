@@ -5100,6 +5100,7 @@ def _configure_headnode_command(
     region: Optional[str],
     cluster: Optional[str],
     repo_overrides: Optional[Path],
+    state_file: Optional[Path],
     dyec_deploy_key_secret_arn: str,
     dayoa_deploy_key_secret_arn: str,
     github_token_secret_arn: str,
@@ -5107,6 +5108,7 @@ def _configure_headnode_command(
     force: bool,
 ) -> None:
     from daylily_ec.aws.ssm import SsmError, wait_for_ssm_online
+    from daylily_ec.headnode_config_inputs import resolve_headnode_deploy_key_inputs
     from daylily_ec.scripts.common import CommandError
     from daylily_ec.scripts.daylily_cfg_headnode import _load_repo_overrides
     from daylily_ec.workflow.create_cluster import (
@@ -5115,23 +5117,24 @@ def _configure_headnode_command(
     )
 
     _warn_if_dayec_env_inactive()
-    dyec_secret_arn = dyec_deploy_key_secret_arn.strip()
-    dayoa_secret_arn = dayoa_deploy_key_secret_arn.strip()
     github_token_arn = github_token_secret_arn.strip()
     try:
-        if not dyec_secret_arn:
-            raise CommandError("--dyec-deploy-key-secret-arn must be non-empty.")
-        if not dayoa_secret_arn:
-            raise CommandError("--dayoa-deploy-key-secret-arn must be non-empty.")
         resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
             profile=profile,
             region=region,
             cluster=cluster,
         )
+        deploy_key_inputs = resolve_headnode_deploy_key_inputs(
+            cluster_name=resolved_cluster,
+            region=resolved_region,
+            state_file=state_file,
+            dyec_deploy_key_secret_arn=dyec_deploy_key_secret_arn,
+            dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
+        )
         overrides = _load_repo_overrides(str(repo_overrides) if repo_overrides else None)
         try:
             dyec_repo_spec = resolve_configured_headnode_repo_spec(
-                deploy_key_auth=bool(dyec_secret_arn)
+                deploy_key_auth=True
             )
         except RuntimeError as exc:
             raise CommandError(f"Unable to resolve the running DYEC release: {exc}") from exc
@@ -5146,11 +5149,11 @@ def _configure_headnode_command(
             head_node_instance_id=target.instance_id,
             region=resolved_region,
             profile=resolved_profile,
-            dyec_deploy_key_secret_arn=dyec_secret_arn,
-            dyec_deploy_key_region=resolved_region if dyec_secret_arn else "",
+            dyec_deploy_key_secret_arn=deploy_key_inputs.dyec_secret_arn,
+            dyec_deploy_key_region=resolved_region,
             dyec_repo_url=dyec_repo_spec.url,
             dyec_repo_ref=dyec_repo_spec.ref,
-            dayoa_deploy_key_secret_arn=dayoa_secret_arn,
+            dayoa_deploy_key_secret_arn=deploy_key_inputs.dayoa_secret_arn,
             dayoa_deploy_key_region=resolved_region,
             github_token_secret_arn=github_token_arn,
             github_token_region=resolved_region if github_token_arn else "",
@@ -5163,6 +5166,11 @@ def _configure_headnode_command(
     except (CommandError, SsmError, TimeoutError) as exc:
         _exit_headnode_error(exc)
 
+    if deploy_key_inputs.state_path is not None:
+        output.print_text(
+            "Using deploy-key references from state "
+            f"{deploy_key_inputs.state_path} and config {deploy_key_inputs.config_path}."
+        )
     output.success(f"Headnode configured via SSM for cluster '{resolved_cluster}'.")
 
 
@@ -5188,20 +5196,28 @@ def headnode_configure(
         "--repo-overrides",
         help="File containing repo overrides as repo-key:git-ref lines.",
     ),
+    state_file: Optional[Path] = typer.Option(
+        None,
+        "--state-file",
+        help=(
+            "Exact local DYEC create-state JSON to use for deploy-key references. "
+            "Defaults to the newest state for --cluster."
+        ),
+    ),
     dyec_deploy_key_secret_arn: str = typer.Option(
-        ...,
+        "",
         "--dyec-deploy-key-secret-arn",
         help=(
-            "Required exact Secrets Manager ARN for the DYEC read-only deploy key. The headnode "
-            "role must already allow access to this secret."
+            "Optional exact Secrets Manager ARN for the DYEC deploy key. Provide this and "
+            "--dayoa-deploy-key-secret-arn together only to override the state-backed default."
         ),
     ),
     dayoa_deploy_key_secret_arn: str = typer.Option(
-        ...,
+        "",
         "--dayoa-deploy-key-secret-arn",
         help=(
-            "Required exact Secrets Manager ARN for the DayOA read-only deploy key. The headnode "
-            "role must already allow access to this secret."
+            "Optional exact Secrets Manager ARN for the DayOA deploy key. Provide this and "
+            "--dyec-deploy-key-secret-arn together only to override the state-backed default."
         ),
     ),
     github_token_secret_arn: str = typer.Option(
@@ -5229,6 +5245,7 @@ def headnode_configure(
         region=region,
         cluster=cluster,
         repo_overrides=repo_overrides,
+        state_file=state_file,
         dyec_deploy_key_secret_arn=dyec_deploy_key_secret_arn,
         dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
         github_token_secret_arn=github_token_secret_arn,
@@ -5259,20 +5276,28 @@ def headnode_configure_dragen(
         "--repo-overrides",
         help="File containing repo overrides as repo-key:git-ref lines.",
     ),
+    state_file: Optional[Path] = typer.Option(
+        None,
+        "--state-file",
+        help=(
+            "Exact local DYEC create-state JSON to use for deploy-key references. "
+            "Defaults to the newest state for --cluster."
+        ),
+    ),
     dyec_deploy_key_secret_arn: str = typer.Option(
-        ...,
+        "",
         "--dyec-deploy-key-secret-arn",
         help=(
-            "Required exact Secrets Manager ARN for the DYEC read-only deploy key. The headnode "
-            "role must already allow access to this secret."
+            "Optional exact Secrets Manager ARN for the DYEC deploy key. Provide this and "
+            "--dayoa-deploy-key-secret-arn together only to override the state-backed default."
         ),
     ),
     dayoa_deploy_key_secret_arn: str = typer.Option(
-        ...,
+        "",
         "--dayoa-deploy-key-secret-arn",
         help=(
-            "Required exact Secrets Manager ARN for the DayOA read-only deploy key. The headnode "
-            "role must already allow access to this secret."
+            "Optional exact Secrets Manager ARN for the DayOA deploy key. Provide this and "
+            "--dyec-deploy-key-secret-arn together only to override the state-backed default."
         ),
     ),
     github_token_secret_arn: str = typer.Option(
@@ -5292,6 +5317,7 @@ def headnode_configure_dragen(
         region=region,
         cluster=cluster,
         repo_overrides=repo_overrides,
+        state_file=state_file,
         dyec_deploy_key_secret_arn=dyec_deploy_key_secret_arn,
         dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
         github_token_secret_arn=github_token_secret_arn,

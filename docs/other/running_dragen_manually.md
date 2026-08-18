@@ -99,11 +99,13 @@ After creation reaches `CREATE_COMPLETE`, use the supported DYEC surfaces:
 ```bash
 dyec cluster-info --profile lsmc --region us-west-2
 dyec headnode jobs --profile lsmc --region us-west-2 --cluster dragain9b
-dyec headnode configure-dragen --profile lsmc --region us-west-2 --cluster dragain9b \
-  --dyec-deploy-key-secret-arn "$DYEC_DEPLOY_KEY_SECRET_ARN" \
-  --dayoa-deploy-key-secret-arn "$DAYOA_DEPLOY_KEY_SECRET_ARN"
+dyec headnode configure-dragen --profile lsmc --region us-west-2 --cluster dragain9b
 dyec headnode connect --profile lsmc --region us-west-2 --cluster dragain9b
 ```
+
+`configure-dragen` uses the named cluster's newest local create-state record and its exact
+saved next-run config for both deploy-key references. Use `--state-file` for a specific
+generation; direct deploy-key options remain an all-or-nothing recovery override.
 
 For standard Ubuntu DayOA clusters, use `dyec headnode configure`. For RHEL
 DRAGEN clusters, use `dyec headnode configure-dragen` when a post-create

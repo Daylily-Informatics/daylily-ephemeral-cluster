@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from daylily_ec.aws.ssm import resolve_headnode_instance_id, wait_for_ssm_online
+from daylily_ec.headnode_config_inputs import resolve_headnode_deploy_key_inputs
 from daylily_ec.scripts.common import CommandError, need_cmd, resolve_cluster, resolve_region
 from daylily_ec.workflow.create_cluster import (
     configure_headnode,
@@ -47,14 +48,27 @@ def build_parser() -> argparse.ArgumentParser:
         help="File containing repo overrides (format: repo-key:git-ref per line)",
     )
     parser.add_argument(
+        "--state-file",
+        help=(
+            "Exact local DYEC create-state JSON to use for deploy-key references "
+            "(defaults to the newest state for --cluster)"
+        ),
+    )
+    parser.add_argument(
         "--dyec-deploy-key-secret-arn",
-        required=True,
-        help="Required exact Secrets Manager ARN for the DYEC read-only deploy key",
+        default="",
+        help=(
+            "Optional exact Secrets Manager ARN for the DYEC deploy key; provide together "
+            "with --dayoa-deploy-key-secret-arn to override the state-backed default"
+        ),
     )
     parser.add_argument(
         "--dayoa-deploy-key-secret-arn",
-        required=True,
-        help="Required exact Secrets Manager ARN for the DayOA read-only deploy key",
+        default="",
+        help=(
+            "Optional exact Secrets Manager ARN for the DayOA deploy key; provide together "
+            "with --dyec-deploy-key-secret-arn to override the state-backed default"
+        ),
     )
     parser.add_argument(
         "--force",
@@ -71,18 +85,19 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if not args.profile:
         raise CommandError("AWS profile is required. Set AWS_PROFILE or use --profile.")
-    dyec_deploy_key_secret_arn = args.dyec_deploy_key_secret_arn.strip()
-    dayoa_deploy_key_secret_arn = args.dayoa_deploy_key_secret_arn.strip()
-    if not dyec_deploy_key_secret_arn:
-        raise CommandError("--dyec-deploy-key-secret-arn must be non-empty.")
-    if not dayoa_deploy_key_secret_arn:
-        raise CommandError("--dayoa-deploy-key-secret-arn must be non-empty.")
 
     need_cmd("aws")
     need_cmd("pcluster")
 
     region = resolve_region(args.profile, args.region)
     cluster_name = resolve_cluster(args.profile, region, args.cluster)
+    deploy_key_inputs = resolve_headnode_deploy_key_inputs(
+        cluster_name=cluster_name,
+        region=region,
+        state_file=Path(args.state_file) if args.state_file else None,
+        dyec_deploy_key_secret_arn=args.dyec_deploy_key_secret_arn,
+        dayoa_deploy_key_secret_arn=args.dayoa_deploy_key_secret_arn,
+    )
     overrides = _load_repo_overrides(args.repo_overrides)
     try:
         dyec_repo_spec = resolve_configured_headnode_repo_spec(
@@ -98,17 +113,22 @@ def main(argv: list[str] | None = None) -> int:
         head_node_instance_id=target.instance_id,
         region=region,
         profile=args.profile,
-        dyec_deploy_key_secret_arn=dyec_deploy_key_secret_arn,
+        dyec_deploy_key_secret_arn=deploy_key_inputs.dyec_secret_arn,
         dyec_deploy_key_region=region,
         dyec_repo_url=dyec_repo_spec.url,
         dyec_repo_ref=dyec_repo_spec.ref,
-        dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
+        dayoa_deploy_key_secret_arn=deploy_key_inputs.dayoa_secret_arn,
         dayoa_deploy_key_region=region,
         repo_overrides=overrides or None,
         force=args.force,
     )
     if not ok:
         raise CommandError(f"Headnode configuration failed for cluster '{cluster_name}'.")
+    if deploy_key_inputs.state_path is not None:
+        print(
+            "Using deploy-key references from state "
+            f"{deploy_key_inputs.state_path} and config {deploy_key_inputs.config_path}."
+        )
     print(f"Headnode configured via SSM for cluster '{cluster_name}'.")
     return 0
 
