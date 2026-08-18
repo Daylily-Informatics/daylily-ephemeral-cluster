@@ -106,3 +106,34 @@ def register_root_command(
         help_text=help_text(callback),
         policy=policy,
     )
+
+
+def alphabetize_registry(registry: CommandRegistry) -> None:
+    """Order every visible command level alphabetically before the registry freezes.
+
+    ``cli-core-yo`` renders help from node ``order`` rather than dictionary
+    insertion order.  Keep this narrow compatibility boundary explicit: a
+    changed registry structure must fail at startup instead of quietly leaving
+    a partially unsorted operator interface.
+    """
+    if registry.is_frozen:
+        raise RuntimeError("Cannot alphabetize a frozen command registry.")
+    roots = getattr(registry, "_roots", None)
+    if not isinstance(roots, dict):
+        raise RuntimeError("cli-core-yo registry does not expose a command-node mapping.")
+
+    def _order_siblings(nodes: dict[str, Any]) -> None:
+        ordered_nodes = sorted(
+            nodes.values(),
+            key=lambda node: (str(getattr(node, "name", "")).casefold(), str(getattr(node, "name", ""))),
+        )
+        for order, node in enumerate(ordered_nodes, start=1):
+            if not isinstance(getattr(node, "name", None), str) or not hasattr(node, "order"):
+                raise RuntimeError("cli-core-yo registry node is missing name/order fields.")
+            node.order = order
+            children = getattr(node, "children", None)
+            if not isinstance(children, dict):
+                raise RuntimeError("cli-core-yo registry node is missing a child-node mapping.")
+            _order_siblings(children)
+
+    _order_siblings(roots)

@@ -425,6 +425,210 @@ def resolve_configured_headnode_repo_spec(*, deploy_key_auth: bool) -> HeadnodeR
     )
 
 
+def resolve_configured_headnode_dayoa_repo_spec(
+    *,
+    deploy_key_auth: bool,
+    repo_overrides: Optional[Dict[str, str]] = None,
+) -> HeadnodeRepoSpec:
+    """Resolve the exact DayOA repository/ref that headnode configure must bootstrap."""
+    from daylily_ec.repositories import load_repository_catalog
+
+    repository_key = "daylily-omics-analysis"
+    catalog = load_repository_catalog(_repository_catalog_path())
+    repository = catalog.repositories.get(repository_key)
+    if repository is None:
+        raise RuntimeError(f"Repository catalog does not define {repository_key!r}.")
+
+    if repo_overrides:
+        unknown_repositories = sorted(set(repo_overrides) - set(catalog.repositories))
+        if unknown_repositories:
+            raise RuntimeError(
+                "Repository override keys are absent from the command catalog: "
+                + ", ".join(unknown_repositories)
+            )
+
+    requested_ref = ""
+    if repo_overrides and repository_key in repo_overrides:
+        requested_ref = str(repo_overrides[repository_key] or "").strip()
+        if not requested_ref:
+            raise RuntimeError(
+                f"Repository override for {repository_key!r} must name a non-empty Git ref."
+            )
+    dayoa_ref = requested_ref or str(repository.default_ref or "").strip()
+    if not dayoa_ref:
+        raise RuntimeError(f"Repository catalog {repository_key!r} has no default_ref.")
+
+    repository_url = repository.ssh_url if deploy_key_auth else repository.https_url
+    if not repository_url:
+        transport = "SSH" if deploy_key_auth else "HTTPS"
+        raise RuntimeError(f"Repository catalog {repository_key!r} has no {transport} clone URL.")
+    return HeadnodeRepoSpec(
+        url=_normalize_headnode_repo_url(repository_url, deploy_key_auth=deploy_key_auth),
+        ref=dayoa_ref,
+    )
+
+
+def _build_headnode_config_yaml_sync_command(repo_name: str) -> str:
+    """Copy the exact DYEC top-level YAML configuration into the headnode home config."""
+    repo_name_q = shlex.quote(repo_name)
+    return "\n".join(
+        (
+            "set -euo pipefail",
+            f"repo_name={repo_name_q}",
+            'repo_dir="$HOME/projects/$repo_name"',
+            'source_dir="$repo_dir/config"',
+            'destination_dir="$HOME/.config/daylily"',
+            'test -d "$source_dir"',
+            'set -- "$source_dir"/*.yaml',
+            'if [ ! -f "$1" ]; then',
+            '  echo "No DYEC config/*.yaml files found at $source_dir" >&2',
+            "  exit 1",
+            "fi",
+            'install -d -m 0700 "$destination_dir"',
+            'install -m 0644 "$@" "$destination_dir/"',
+        )
+    )
+
+
+def _build_headnode_conda_environment_reset_command() -> str:
+    """Return the explicit, opt-in reset for the two named headnode environments."""
+    return "\n".join(
+        (
+            "set -euo pipefail",
+            'source "$HOME/miniconda3/etc/profile.d/conda.sh"',
+            'case "${CONDA_DEFAULT_ENV:-}" in',
+            "  DAYOA|DAY-EC) conda deactivate ;;",
+            "esac",
+            "for env_name in DAYOA DAY-EC; do",
+            '  if conda env list | awk \'{print $1}\' | grep -Fx "$env_name" >/dev/null 2>&1; then',
+            '    conda env remove -n "$env_name" --yes',
+            "  fi",
+            "done",
+            'rm -f "$HOME/.config/daylily/headnode_dayoa_bootstrap.tsv"',
+        )
+    )
+
+
+def _build_headnode_dayec_install_command(repo_name: str) -> str:
+    """Build or update the named DAY-EC environment without ambient confirmation settings."""
+    repo_name_q = shlex.quote(repo_name)
+    return "\n".join(
+        (
+            "set -euo pipefail",
+            f"repo_name={repo_name_q}",
+            'repo_dir="$HOME/projects/$repo_name"',
+            'cd "$repo_dir"',
+            'source "$HOME/miniconda3/etc/profile.d/conda.sh"',
+            'if conda env list | awk \'{print $1}\' | grep -Fx DAY-EC >/dev/null 2>&1; then',
+            "  conda env update --name DAY-EC --file environment.yaml --prune --yes",
+            "else",
+            "  conda env create --name DAY-EC --file environment.yaml --yes",
+            "fi",
+            "conda activate DAY-EC",
+            "python -m pip install --editable .",
+            "python -m pip install --upgrade pygraphviz",
+            "python -c 'import pygraphviz; print(\"pygraphviz DAY-EC import OK\", pygraphviz.__version__)'",
+            'source "$repo_dir/activate"',
+            '"$repo_dir/bin/install-daylily-headnode-tools"',
+            'test -f "$repo_dir/config/day_cluster/sbatch"',
+            'sudo install -o root -g root -m 0755 "$repo_dir/config/day_cluster/sbatch" /opt/slurm/bin/sbatch',
+            'cmp --silent "$repo_dir/config/day_cluster/sbatch" /opt/slurm/bin/sbatch',
+        )
+    )
+
+
+def _build_headnode_dayoa_bootstrap_command(
+    *,
+    cluster_name: str,
+    dayoa_ref: str,
+    dyec_version: str,
+) -> str:
+    """Serialize first-use DayOA bootstrap in the required Ubuntu interactive login shell."""
+    body = "\n".join(
+        (
+            "set -euo pipefail",
+            'test "$(id -un)" = ubuntu',
+            'repo_dir="$HOME/projects/daylily-omics-analysis"',
+            'dayec_repo_dir="$HOME/projects/daylily-ephemeral-cluster"',
+            'receipt="$HOME/.config/daylily/headnode_dayoa_bootstrap.tsv"',
+            'lock_path="$HOME/.config/daylily/headnode_dayoa_bootstrap.lock"',
+            f"expected_ref={shlex.quote(dayoa_ref)}",
+            f"expected_dyec_version={shlex.quote(dyec_version)}",
+            f"project_name={shlex.quote(cluster_name)}",
+            'test -d "$repo_dir/.git"',
+            'test -f "$repo_dir/dyoainit"',
+            'test -x "$dayec_repo_dir/bin/init_dayec"',
+            'command -v flock >/dev/null 2>&1',
+            'source "$HOME/miniconda3/etc/profile.d/conda.sh"',
+            'install -d -m 0700 "$HOME/.config/daylily"',
+            'exec 9>"$lock_path"',
+            "flock -x 9",
+            'dayoa_commit="$(git -C "$repo_dir" rev-parse HEAD)"',
+            "daylily_env_exists() {",
+            '  conda env list | awk \'{print $1}\' | grep -Fx "$1" >/dev/null 2>&1',
+            "}",
+            "receipt_value() {",
+            '  receipt_key="$1"',
+            '  receipt_count="$(awk -F \'\\t\' -v key="$receipt_key" \'$1 == key {count += 1} END {print count + 0}\' "$receipt")"',
+            '  if [ "$receipt_count" != "1" ]; then',
+            '    echo "Malformed DayOA bootstrap receipt: expected one $receipt_key field" >&2',
+            "    exit 1",
+            "  fi",
+            '  awk -F \'\\t\' -v key="$receipt_key" \'$1 == key {print $2}\' "$receipt"',
+            "}",
+            'if [ -e "$receipt" ]; then',
+            '  if [ ! -f "$receipt" ]; then',
+            '    echo "DayOA bootstrap receipt is not a regular file: $receipt" >&2',
+            "    exit 1",
+            "  fi",
+            '  stored_schema="$(receipt_value schema_version)"',
+            '  stored_ref="$(receipt_value dayoa_ref)"',
+            '  stored_commit="$(receipt_value dayoa_commit)"',
+            '  if [ "$stored_schema" != "1" ] || [ "$stored_ref" != "$expected_ref" ] || [ "$stored_commit" != "$dayoa_commit" ]; then',
+            '    echo "Pinned DayOA bootstrap receipt does not match the checked-out source; rerun dyec headnode configure --force." >&2',
+            "    exit 1",
+            "  fi",
+            '  if ! daylily_env_exists DAYOA; then',
+            '    echo "DayOA bootstrap receipt exists but DAYOA is absent; rerun dyec headnode configure --force." >&2',
+            "    exit 1",
+            "  fi",
+            '  printf "Pinned DayOA bootstrap already complete: %s @ %s\\n" "$expected_ref" "$dayoa_commit"',
+            "  exit 0",
+            "fi",
+            "if daylily_env_exists DAYOA; then",
+            '  echo "DAYOA exists without a successful bootstrap receipt; rerun dyec headnode configure --force." >&2',
+            "  exit 1",
+            "fi",
+            'cd "$repo_dir"',
+            'source dyoainit --project "$project_name" --skip-project-check',
+            "shopt -s expand_aliases",
+            'alias dy-b="$dayec_repo_dir/bin/init_dayec"',
+            # A bash -c payload is parsed before its alias definition executes.
+            # Re-parse this fixed literal so the required DayOA/DYEC ``dy-b``
+            # interface is really used rather than calling the target path directly.
+            'eval "dy-b BUILD"',
+            "if ! daylily_env_exists DAYOA; then",
+            '  echo "dyoainit completed but DAYOA is absent" >&2',
+            "  exit 1",
+            "fi",
+            "if ! daylily_env_exists DAY-EC; then",
+            '  echo "dy-b BUILD completed but DAY-EC is absent" >&2',
+            "  exit 1",
+            "fi",
+            'receipt_stage="$(mktemp "${receipt}.tmp.XXXXXX")"',
+            'trap \'rm -f "$receipt_stage"\' EXIT',
+            "printf 'schema_version\\t1\\n' > \"$receipt_stage\"",
+            "printf 'dyec_version\\t%s\\n' \"$expected_dyec_version\" >> \"$receipt_stage\"",
+            "printf 'dayoa_ref\\t%s\\n' \"$expected_ref\" >> \"$receipt_stage\"",
+            "printf 'dayoa_commit\\t%s\\n' \"$dayoa_commit\" >> \"$receipt_stage\"",
+            'mv "$receipt_stage" "$receipt"',
+            "trap - EXIT",
+            'printf "Pinned DayOA bootstrap complete: %s @ %s\\n" "$expected_ref" "$dayoa_commit"',
+        )
+    )
+    return f"bash --login --interactive -c {shlex.quote(body)}"
+
+
 def _build_headnode_repo_sync_command(
     repo_name: str,
     repo_url: str,
@@ -4033,6 +4237,7 @@ def configure_headnode(
     github_token_region: str = "",
     repo_overrides: Optional[Dict[str, str]] = None,
     remote_user: str = "ubuntu",
+    force: bool = False,
 ) -> bool:
     """Configure the headnode after a successful cluster creation."""
     import yaml
@@ -4094,6 +4299,22 @@ def configure_headnode(
         repo_url,
         repo_ref,
     )
+
+    dayoa_repo_spec: Optional[HeadnodeRepoSpec] = None
+    if remote_user == "ubuntu":
+        try:
+            dayoa_repo_spec = resolve_configured_headnode_dayoa_repo_spec(
+                deploy_key_auth=bool(dayoa_deploy_key_secret_arn),
+                repo_overrides=repo_overrides,
+            )
+        except RuntimeError as exc:
+            logger.error("  ✗ Could not resolve the pinned DayOA release: %s", exc)
+            return False
+        logger.info(
+            "  ▸ Pinned DayOA bootstrap source: %s @ %s",
+            dayoa_repo_spec.url,
+            dayoa_repo_spec.ref,
+        )
 
     active_controller_guard = (
         "active_controllers=\"$(pgrep -u \"$(id -u)\" -af "
@@ -4267,8 +4488,9 @@ def configure_headnode(
             None,
         ),
         (
-            "Configure Ubuntu Conda Terms of Service",
+            "Configure Ubuntu Conda non-interactive policy and Terms of Service",
             (
+                "~/miniconda3/bin/conda config --set always_yes true && "
                 "~/miniconda3/bin/conda config --set plugins.auto_accept_tos true && "
                 "~/miniconda3/bin/conda tos accept --user "
                 "--override-channels --channel https://repo.anaconda.com/pkgs/main "
@@ -4276,26 +4498,52 @@ def configure_headnode(
             ),
             None,
         ),
+    ]
+    if force:
+        steps.append(
+            (
+                "Remove requested DAYOA and DAY-EC environments",
+                _build_headnode_conda_environment_reset_command(),
+                None,
+            )
+        )
+    steps.append(
         (
             "Rebuild DAY-EC and install headnode tools",
-            (
-                f"cd ~/projects/{repo_name} && "
-                "source ~/miniconda3/etc/profile.d/conda.sh && "
-                "conda env update --name DAY-EC --file environment.yaml --prune && "
-                "conda activate DAY-EC && "
-                "python -m pip install --editable . && "
-                "python -m pip install --upgrade pygraphviz && "
-                "python -c 'import pygraphviz; print(\"pygraphviz DAY-EC import OK\", pygraphviz.__version__)' && "
-                f"source ~/projects/{repo_name}/activate && "
-                "./bin/install-daylily-headnode-tools && "
-                f"test -f ~/projects/{repo_name}/config/day_cluster/sbatch && "
-                f"sudo install -o root -g root -m 0755 ~/projects/{repo_name}/config/day_cluster/sbatch "
-                "/opt/slurm/bin/sbatch && "
-                f"cmp --silent ~/projects/{repo_name}/config/day_cluster/sbatch /opt/slurm/bin/sbatch"
-            ),
+            _build_headnode_dayec_install_command(repo_name),
             None,
-        ),
-    ]
+        )
+    )
+    if dayoa_repo_spec is not None:
+        steps.extend(
+            (
+                (
+                    "Install DYEC YAML configuration",
+                    _build_headnode_config_yaml_sync_command(repo_name),
+                    None,
+                ),
+                (
+                    "Clone pinned DayOA repository to headnode",
+                    _build_headnode_repo_sync_command(
+                        "daylily-omics-analysis",
+                        dayoa_repo_spec.url,
+                        dayoa_repo_spec.ref,
+                        deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
+                        deploy_key_region=dayoa_deploy_key_region,
+                    ),
+                    None,
+                ),
+                (
+                    "Bootstrap pinned DayOA in Ubuntu interactive login shell",
+                    _build_headnode_dayoa_bootstrap_command(
+                        cluster_name=cluster_name,
+                        dayoa_ref=dayoa_repo_spec.ref,
+                        dyec_version=expected_dyec_version,
+                    ),
+                    3600,
+                ),
+            )
+        )
 
     for label, remote_cmd, timeout in steps:
         logger.info("  ▸ %s ...", label)

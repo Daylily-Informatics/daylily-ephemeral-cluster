@@ -56,6 +56,14 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         help="Required exact Secrets Manager ARN for the DayOA read-only deploy key",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help=(
+            "Explicitly remove only the DAYOA and DAY-EC Conda environments before "
+            "rebuilding the pinned headnode toolchain"
+        ),
+    )
     return parser
 
 
@@ -97,6 +105,7 @@ def main(argv: list[str] | None = None) -> int:
         dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
         dayoa_deploy_key_region=region,
         repo_overrides=overrides or None,
+        force=args.force,
     )
     if not ok:
         raise CommandError(f"Headnode configuration failed for cluster '{cluster_name}'.")

@@ -108,11 +108,58 @@ __daylily_activate_refresh_command_cache() {
   rehash 2>/dev/null || true
 }
 
-__daylily_activate_enable_conda_tos_auto_accept() {
+__daylily_activate_configure_conda_noninteractive() {
   if ! conda config --set plugins.auto_accept_tos true; then
     echo "Error: failed to configure Conda automatic Terms of Service acceptance." >&2
     return 1
   fi
+  if ! conda config --set always_yes true; then
+    echo "Error: failed to configure Conda automatic confirmation acceptance." >&2
+    return 1
+  fi
+}
+
+__daylily_activate_enable_shell_completion() {
+  case "$-" in
+    *i*) ;;
+    *) return 0 ;;
+  esac
+
+  if ! command -v dyec >/dev/null 2>&1; then
+    echo "Error: DYEC is unavailable for shell-completion setup." >&2
+    return 1
+  fi
+
+  local completion_script
+  if [ -n "${BASH_VERSION:-}" ]; then
+    completion_script="$(_DYEC_COMPLETE=source_bash dyec)" || {
+      echo "Error: DYEC Bash completion generation failed." >&2
+      return 1
+    }
+  elif [ -n "${ZSH_VERSION:-}" ]; then
+    if ! command -v compdef >/dev/null 2>&1; then
+      autoload -Uz compinit || {
+        echo "Error: unable to load Zsh completion support." >&2
+        return 1
+      }
+      compinit || {
+        echo "Error: unable to initialize Zsh completion support." >&2
+        return 1
+      }
+    fi
+    completion_script="$(_DYEC_COMPLETE=source_zsh dyec)" || {
+      echo "Error: DYEC Zsh completion generation failed." >&2
+      return 1
+    }
+  else
+    return 0
+  fi
+
+  if [ -z "${completion_script}" ]; then
+    echo "Error: DYEC generated an empty shell-completion script." >&2
+    return 1
+  fi
+  eval "${completion_script}"
 }
 
 __daylily_activate_ensure_env_bin_first() {
@@ -150,7 +197,7 @@ __daylily_activate_load_conda || {
   echo "Error: conda is not available in this shell." >&2
   return 1
 }
-__daylily_activate_enable_conda_tos_auto_accept || return 1
+__daylily_activate_configure_conda_noninteractive || return 1
 
 __daylily_activate_created_dayec=0
 if ! __daylily_activate_dayec_exists; then
@@ -161,7 +208,7 @@ if ! __daylily_activate_dayec_exists; then
   fi
 
   echo "Creating DAY-EC from ${__daylily_activate_env_yaml} ..." >&2
-  conda env create -n DAY-EC -f "${__daylily_activate_env_yaml}" || return 1
+  conda env create -n DAY-EC -f "${__daylily_activate_env_yaml}" --yes || return 1
   __daylily_activate_created_dayec=1
 fi
 
@@ -183,6 +230,8 @@ if [ "${__daylily_activate_created_dayec}" = "1" ]; then
   echo "Installed daylily-ephemeral-cluster into DAY-EC from ${DAYLILY_EC_REPO_ROOT}." >&2
 fi
 
+__daylily_activate_enable_shell_completion || return 1
+
 unset __daylily_activate_created_dayec
 unset __daylily_activate_env_yaml
 unset __daylily_activate_repo_root
@@ -192,7 +241,8 @@ unset -f __daylily_activate_conda_is_function
 unset -f __daylily_activate_conda_exe
 unset -f __daylily_activate_load_conda
 unset -f __daylily_activate_refresh_command_cache
-unset -f __daylily_activate_enable_conda_tos_auto_accept
+unset -f __daylily_activate_configure_conda_noninteractive
+unset -f __daylily_activate_enable_shell_completion
 unset -f __daylily_activate_ensure_env_bin_first
 unset -f __daylily_activate_ensure_repo_pythonpath_first
 unset -f __daylily_activate_dayec_exists

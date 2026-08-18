@@ -32,7 +32,7 @@ import typer
 import yaml
 from cli_core_yo import app as cli_core_app
 from cli_core_yo import output
-from cli_core_yo.app import create_app
+from cli_core_yo.app import _CliCoreRootGroup, create_app
 from cli_core_yo.errors import CliCoreYoError
 from cli_core_yo.runtime import _reset as _reset_cli_core_runtime
 from cli_core_yo.runtime import get_context
@@ -58,6 +58,7 @@ from daylily_ec._registry_v2 import (
     REQUIRED_LONG_RUNNING,
     REQUIRED_MUTATING_INTERACTIVE,
     REQUIRED_MUTATING_LONG_RUNNING,
+    alphabetize_registry,
     register_group_commands,
     register_root_command,
     required_policy,
@@ -5103,6 +5104,7 @@ def _configure_headnode_command(
     dayoa_deploy_key_secret_arn: str,
     github_token_secret_arn: str,
     remote_user: str,
+    force: bool,
 ) -> None:
     from daylily_ec.aws.ssm import SsmError, wait_for_ssm_online
     from daylily_ec.scripts.common import CommandError
@@ -5154,6 +5156,7 @@ def _configure_headnode_command(
             github_token_region=resolved_region if github_token_arn else "",
             repo_overrides=overrides or None,
             remote_user=remote_user,
+            force=force,
         )
         if not ok:
             raise CommandError(f"Headnode configuration failed for cluster '{resolved_cluster}'.")
@@ -5210,6 +5213,14 @@ def headnode_configure(
             "already allow access to this secret."
         ),
     ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help=(
+            "Explicitly remove only the DAYOA and DAY-EC Conda environments before "
+            "rebuilding the pinned headnode toolchain."
+        ),
+    ),
 ) -> None:
     """Configure a headnode with the same exact release as this DYEC executable."""
 
@@ -5222,6 +5233,7 @@ def headnode_configure(
         dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
         github_token_secret_arn=github_token_secret_arn,
         remote_user="ubuntu",
+        force=force,
     )
 
 
@@ -5284,6 +5296,7 @@ def headnode_configure_dragen(
         dayoa_deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
         github_token_secret_arn=github_token_secret_arn,
         remote_user="ec2-user",
+        force=False,
     )
 
 
@@ -10852,10 +10865,52 @@ def register(registry, cli_spec) -> None:
             ),
         ],
     )
+    alphabetize_registry(registry)
 
 
-app = create_app(spec)
-_install_dayec_version_option(app)
+class _AlphabeticalTyperGroup(typer.core.TyperGroup):
+    """Render command and subgroup names in one deterministic alphabetic order."""
+
+    def list_commands(self, ctx: click.Context) -> list[str]:
+        return sorted(
+            super().list_commands(ctx),
+            key=lambda command_name: (command_name.casefold(), command_name),
+        )
+
+
+class _AlphabeticalCliCoreRootGroup(_CliCoreRootGroup):
+    """Preserve cli-core-yo runtime bootstrapping while sorting root help."""
+
+    def list_commands(self, ctx: click.Context) -> list[str]:
+        return sorted(
+            super().list_commands(ctx),
+            key=lambda command_name: (command_name.casefold(), command_name),
+        )
+
+
+def _install_alphabetical_help_order(target_app: typer.Typer) -> None:
+    """Apply the help-order renderer to the root and every nested command group."""
+    target_app.info.cls = _AlphabeticalCliCoreRootGroup
+
+    def _install_nested(typer_app: typer.Typer) -> None:
+        for group_info in typer_app.registered_groups:
+            nested_app = group_info.typer_instance
+            if nested_app is None:
+                raise RuntimeError("DYEC command group is missing its Typer application.")
+            nested_app.info.cls = _AlphabeticalTyperGroup
+            _install_nested(nested_app)
+
+    _install_nested(target_app)
+
+
+def _build_cli_app() -> typer.Typer:
+    target_app = create_app(spec)
+    _install_alphabetical_help_order(target_app)
+    _install_dayec_version_option(target_app)
+    return target_app
+
+
+app = _build_cli_app()
 
 
 def _run_cli(argv: Optional[List[str]] = None) -> int:
@@ -10863,8 +10918,7 @@ def _run_cli(argv: Optional[List[str]] = None) -> int:
     _reset_cli_core_runtime()
     args = list(argv if argv is not None else sys.argv[1:])
     try:
-        cli_app = create_app(spec)
-        _install_dayec_version_option(cli_app)
+        cli_app = _build_cli_app()
         result = cli_app(args, standalone_mode=False)
         return result if isinstance(result, int) else 0
     except click.exceptions.NoArgsIsHelpError:
