@@ -80,9 +80,21 @@ Gate 0 sweep commands include `git status --short --branch`, `git rev-parse HEAD
 | BJV-014 | Acceptance | Run focused/full pytest, Ruff, coverage 70%, and `git diff --check` | OPEN | contract_test | Gate 5 | orchestrator | Pending implementation |  |  |
 | BJV-015 | Launch gate | Preserve `LAUNCH_BLOCKED` until canonical `OOW.done` publication evidence exists | OPEN | legitimate_safety_handling | Gate 5 | orchestrator | Canonical sentinel checks presently negative |  |  |
 
+## Release integration update
+
+At 2026-08-18T12:32Z the generated five-bundle configuration set and the
+companion `docs/jem/Bjuice_guidance.md` were included in the DYEC `18.0.42`
+release candidate. The focused contract suite now validates the generated
+topology, runtime YAML, manifest hashes, exclusions, and launch blockers from
+a clean release worktree (`15 passed`). This release integration does not
+remove the canonical OWY `OOW.done` gate, create a mount, or authorize a
+workflow.
+
 ## Final report
 
-All rows terminal: no
-Configuration production complete: no
+All rows terminal: no — the original broader acceptance row requires its
+separately requested full validation gate.
+Configuration production complete: yes — 5 explicit bundle capsules are
+checked in and focused-contract validated.
 Live launch authorized: no
 Live launch state: `LAUNCH_BLOCKED`
