@@ -620,7 +620,7 @@ def _build_headnode_dayoa_bootstrap_command(
             'printf "Pinned DayOA bootstrap complete: %s @ %s\\n" "$expected_ref" "$dayoa_commit"',
         )
     )
-    return f"bash --login --interactive -c {shlex.quote(body)}"
+    return f"bash --login -i -c {shlex.quote(body)}"
 
 
 def _build_headnode_repo_sync_command(
