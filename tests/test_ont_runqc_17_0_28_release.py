@@ -10,7 +10,7 @@ PAYLOAD = (
     / "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml"
 )
 DAYOA_TARGET_TAG = "15.0.24"
-CURRENT_DAYOA_TARGET_TAG = "15.0.27"
+CURRENT_DAYOA_TARGET_TAG = "15.0.28"
 DAYOA_VALIDATED_TAGS = {"15.0.1", "15.0.3", "15.0.9"}
 HISTORICAL_DAYOA_TAG = "14.0.21"
 ONT_RUN_ID = "pc1703-ont-set4fc1-seqqc-17018-20260814"

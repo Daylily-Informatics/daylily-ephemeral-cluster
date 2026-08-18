@@ -82,7 +82,7 @@ def test_current_operator_docs_state_the_shipped_cli_and_catalog_versions() -> N
     # release checkout reports the new tag once it has been created.
     assert release_version == "18.0.47"
     assert "`18.0.47`" in text
-    assert dayoa_tag == "15.0.27"
+    assert dayoa_tag == "15.0.28"
     assert f"`{dayoa_tag}`" in text
     assert "dyec set-vars" in text
     assert "dyec unset-vars" in text
