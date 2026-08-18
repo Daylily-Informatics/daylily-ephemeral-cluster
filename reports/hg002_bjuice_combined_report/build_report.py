@@ -71,6 +71,11 @@ SOURCE_S3_URIS = [
     ("E3 completed output export", "s3://lsmc-dayoa-analysis-results-usw2/derived/bjuice-v2-multi-analysis-unit/prod-cand-1703/prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z/daylily-omics-analysis/"),
     ("P1 completed output export", "s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-bjuice-preval6-15014-dry-20260817t112900z/daylily-omics-analysis/"),
 ]
+CIRCLE_MARKER_AREA = 600  # 25% larger area than the former 480 pt² squares.
+CIRCLE_LABEL_FONTSIZE = 7.2
+DENSITY_KERNEL_BANDWIDTH_X = 1.25  # Measured LR× units; each retained AU contributes one kernel.
+DENSITY_KERNEL_BANDWIDTH_Y = 1.25  # Measured native-SR× units; axes remain numerically equal-scale.
+DENSITY_GRID_SIZE = 180
 
 plt.rcParams.update(
     {
@@ -134,6 +139,13 @@ def fmt(value: Any, digits: int = 4, comma: bool = False) -> str:
     if comma:
         return f"{value:,.0f}"
     return f"{value:.{digits}f}"
+
+
+def marker_label_color(cmap: Any, norm: Any, value: float) -> str:
+    """Choose legible text against the metric-derived circle color."""
+    red, green, blue, _ = cmap(norm(value))
+    luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue
+    return "white" if luminance < 0.46 else "#111827"
 
 
 def annotate_side_labels(
@@ -564,23 +576,6 @@ def coordinate_groups(observations: list[dict[str, Any]]) -> dict[tuple[float, f
     return groups
 
 
-def coordinate_code_map(observations: list[dict[str, Any]]) -> dict[tuple[float, float], str]:
-    """Give each occupied numeric coverage coordinate a stable short visual code."""
-    return {
-        coordinate: f"C{index:02d}"
-        for index, coordinate in enumerate(sorted(coordinate_groups(observations)), start=1)
-    }
-
-
-def assign_coordinate_codes(observations: list[dict[str, Any]]) -> None:
-    """Attach the shared plot/table coordinate code to every retained observation."""
-    groups = coordinate_groups(observations)
-    codes = coordinate_code_map(observations)
-    for coordinate, members in groups.items():
-        for member in members:
-            member["coordinate_id"] = codes[coordinate]
-
-
 def configure_coverage_axes(ax: Any, observations: list[dict[str, Any]]) -> None:
     """Use a true numeric, equally scaled native-SR×/LR× coordinate system."""
     x_values = sorted({float(row["ont_measured"]) for row in observations})
@@ -598,6 +593,47 @@ def configure_coverage_axes(ax: Any, observations: list[dict[str, Any]]) -> None
     ax.set_axisbelow(True)
 
 
+def overlay_coordinate_density(ax: Any, observations: list[dict[str, Any]]) -> None:
+    """Overlay observed-AU coordinate density without interpolating any metric.
+
+    The dashed contours are a fixed-bandwidth two-dimensional kernel density
+    estimate over individual retained AU coordinates. Co-located AUs each
+    contribute one kernel, so the contour reflects observation density rather
+    than the color-mapped quality metric. This intentionally does not infer a
+    metric value for any unobserved coverage coordinate.
+    """
+    if len(observations) < 2:
+        return
+    x_values = np.array([float(row["ont_measured"]) for row in observations], dtype=float)
+    y_values = np.array([float(row["ilmn_measured"]) for row in observations], dtype=float)
+    x_grid = np.linspace(*ax.get_xlim(), DENSITY_GRID_SIZE)
+    y_grid = np.linspace(*ax.get_ylim(), DENSITY_GRID_SIZE)
+    x_mesh, y_mesh = np.meshgrid(x_grid, y_grid)
+    density = np.zeros_like(x_mesh)
+    for x_value, y_value in zip(x_values, y_values):
+        density += np.exp(
+            -0.5
+            * (
+                ((x_mesh - x_value) / DENSITY_KERNEL_BANDWIDTH_X) ** 2
+                + ((y_mesh - y_value) / DENSITY_KERNEL_BANDWIDTH_Y) ** 2
+            )
+        )
+    peak = float(np.max(density))
+    if not math.isfinite(peak) or peak <= 0:
+        return
+    ax.contour(
+        x_mesh,
+        y_mesh,
+        density,
+        levels=[peak * fraction for fraction in (0.20, 0.45, 0.70)],
+        colors="#374151",
+        linewidths=0.8,
+        linestyles="--",
+        alpha=0.52,
+        zorder=3.5,
+    )
+
+
 def save_figure(fig: plt.Figure, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=220, bbox_inches="tight", metadata={"Software": "HG002 combined report generator"})
@@ -606,17 +642,18 @@ def save_figure(fig: plt.Figure, path: Path) -> None:
 
 def coverage_grid(observations: list[dict[str, Any]], figures: Path, tables: Path, chart_map: list[dict[str, str]]) -> None:
     groups = coordinate_groups(observations)
-    codes = coordinate_code_map(observations)
     fig, ax = plt.subplots(figsize=(11.5, 20), constrained_layout=True)
     configure_coverage_axes(ax, observations)
     ax.set_title("Measured native-SR × LR coverage availability", pad=14)
     for (sr, lr), members in sorted(groups.items()):
-        ax.scatter(lr, sr, marker="s", s=480, facecolor="#dbeaf4", edgecolor="#315f88", linewidth=1.2, zorder=3)
-        ax.text(lr, sr, codes[(sr, lr)], ha="center", va="center", fontsize=6.3, color="#111827", zorder=4)
+        ax.scatter(lr, sr, marker="o", s=CIRCLE_MARKER_AREA, facecolor="#dbeaf4", edgecolors="none", linewidths=0, zorder=3)
+    overlay_coordinate_density(ax, observations)
+    for (sr, lr), members in sorted(groups.items()):
+        ax.text(lr, sr, f"n={len(members)}", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color="#111827", zorder=4)
     ax.text(
         0.02,
         0.015,
-        "Square centers use equal-scale numeric axes. C## maps to the AU(s) in coverage_grid.tsv; blank space is an unobserved coordinate.",
+        "Circle centers use equal-scale numeric axes. In-circle n is the retained-observation count; dashed contours are AU-coordinate density, not an inferred metric surface.",
         transform=ax.transAxes,
         ha="left",
         va="bottom",
@@ -637,14 +674,14 @@ def coverage_grid(observations: list[dict[str, Any]], figures: Path, tables: Pat
     )
     coordinate_rows = [
         {
-            "coordinate_id": codes[(sr, lr)],
             "measured_native_sr_ilmn_x": f"{sr:g}",
             "measured_lr_ont_x": f"{lr:g}",
+            "retained_observation_count": str(len(members)),
             "observations": "; ".join(member["plot_label"] for member in members),
         }
         for (sr, lr), members in sorted(groups.items())
     ]
-    write_tsv(tables / "coverage_grid.tsv", coordinate_rows, ["coordinate_id", "measured_native_sr_ilmn_x", "measured_lr_ont_x", "observations"])
+    write_tsv(tables / "coverage_grid.tsv", coordinate_rows, ["measured_native_sr_ilmn_x", "measured_lr_ont_x", "retained_observation_count", "observations"])
 
 
 def plot_metric_heatmap(
@@ -662,7 +699,6 @@ def plot_metric_heatmap(
 ) -> None:
     by_observation = {row["observation_id"]: row for row in metric_rows}
     groups = coordinate_groups(observations)
-    codes = coordinate_code_map(observations)
     values_by_coordinate: dict[tuple[float, float], list[float]] = {}
     for key, members in groups.items():
         values: list[float] = []
@@ -694,10 +730,27 @@ def plot_metric_heatmap(
             colored_y.append(sr)
             colored_values.append(float(np.mean(values)))
         else:
-            ax.scatter(lr, sr, marker="s", s=480, facecolor="#f0f1f2", edgecolor="#4b5563", linewidth=0.8, zorder=3)
-    image = ax.scatter(colored_x, colored_y, c=colored_values, marker="s", s=480, cmap=cmap, vmin=vmin, vmax=vmax, edgecolor="#20242a", linewidth=0.85, alpha=0.9, zorder=3)
-    for sr, lr in sorted(groups):
-        ax.text(lr, sr, codes[(sr, lr)], ha="center", va="center", fontsize=6.0, color="#111827", zorder=4)
+            ax.scatter(lr, sr, marker="o", s=CIRCLE_MARKER_AREA, facecolor="#f0f1f2", edgecolors="none", linewidths=0, zorder=3)
+    image = ax.scatter(colored_x, colored_y, c=colored_values, marker="o", s=CIRCLE_MARKER_AREA, cmap=cmap, vmin=vmin, vmax=vmax, edgecolors="none", linewidths=0, alpha=0.9, zorder=3)
+    overlay_coordinate_density(ax, observations)
+    for (sr, lr), values in sorted(values_by_coordinate.items()):
+        if values:
+            value = float(np.mean(values))
+            ax.text(lr, sr, value_format.format(value), ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color=marker_label_color(cmap, image.norm, value), zorder=4)
+        else:
+            ax.text(lr, sr, "NA", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color="#4b5563", zorder=4)
+    ax.text(
+        0.02,
+        0.015,
+        "Dashed contours = 2D density of retained AU coordinates, independent of metric color; no metric is interpolated into blank space.",
+        transform=ax.transAxes,
+        ha="left",
+        va="bottom",
+        fontsize=8.0,
+        color="#374151",
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": "#9ca3af", "alpha": 0.92, "linewidth": 0.6},
+        zorder=5,
+    )
     bar = fig.colorbar(image, ax=ax, shrink=0.76, pad=0.02)
     bar.set_label(cbar_label)
     output = figures / filename
@@ -1026,7 +1079,6 @@ def call_tables_and_plots(observations: list[dict[str, Any]], figures: Path, cha
 
     obs_order = sorted(observations, key=lambda row: (row["ilmn_measured"], row["ont_measured"], row["experiment"], AU_INDEX[row["au"]]))
     groups = coordinate_groups(observations)
-    codes = coordinate_code_map(observations)
     summary: dict[tuple[str, str], tuple[int, int]] = {}
     for observation in obs_order:
         for gene in gene_order:
@@ -1051,21 +1103,22 @@ def call_tables_and_plots(observations: list[dict[str, Any]], figures: Path, cha
             [lr for _, lr in coordinates],
             [sr for sr, _ in coordinates],
             c=counts,
-            marker="s",
-            s=480,
+            marker="o",
+            s=CIRCLE_MARKER_AREA,
             cmap=cmap,
             vmin=0,
             vmax=maximum_calls,
-            edgecolor="#20242a",
-            linewidth=0.75,
+            edgecolors="none",
+            linewidths=0,
             alpha=0.9,
             zorder=3,
         )
-        for sr, lr in coordinates:
-            ax.text(lr, sr, codes[(sr, lr)], ha="center", va="center", fontsize=6.0, color="#111827", zorder=4)
+        overlay_coordinate_density(ax, observations)
+        for (sr, lr), count in zip(coordinates, counts):
+            ax.text(lr, sr, f"{count:g}", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color=marker_label_color(cmap, image.norm, count), zorder=4)
     for ax in axes[len(gene_order):]:
         ax.set_visible(False)
-    fig.suptitle("SegDup calls at measured native-SR × LR coordinates", fontsize=18)
+    fig.suptitle("SegDup calls at measured native-SR × LR coordinates\nDashed contours = retained-AU coordinate density, not a metric interpolation", fontsize=18)
     if image is None:
         raise AssertionError("SegDup numeric-coordinate heatmap has no panels")
     bar = fig.colorbar(image, ax=list(axes[:len(gene_order)]), shrink=0.76, pad=0.02)
@@ -1100,21 +1153,26 @@ def call_tables_and_plots(observations: list[dict[str, Any]], figures: Path, cha
             [lr for _, lr in numeric_coordinates],
             [sr for sr, _ in numeric_coordinates],
             c=[float(np.mean(coordinate_values[coordinate])) for coordinate in numeric_coordinates],
-            marker="s",
-            s=480,
+            marker="o",
+            s=CIRCLE_MARKER_AREA,
             cmap=smn_cmap,
             vmin=0,
             vmax=max(4, float(max(valid)) if valid else 4),
-            edgecolor="#20242a",
-            linewidth=0.75,
+            edgecolors="none",
+            linewidths=0,
             alpha=0.9,
             zorder=3,
         )
         for sr, lr in missing_coordinates:
-            ax.scatter(lr, sr, marker="s", s=480, facecolor="#f0f1f2", edgecolor="#4b5563", linewidth=0.75, zorder=3)
-        for sr, lr in sorted(groups):
-            ax.text(lr, sr, codes[(sr, lr)], ha="center", va="center", fontsize=6.0, color="#111827", zorder=4)
-    fig.suptitle("SMN copy-number calls at measured native-SR × LR coordinates", fontsize=18)
+            ax.scatter(lr, sr, marker="o", s=CIRCLE_MARKER_AREA, facecolor="#f0f1f2", edgecolors="none", linewidths=0, zorder=3)
+        overlay_coordinate_density(ax, observations)
+        for sr, lr in missing_coordinates:
+            ax.text(lr, sr, "NA", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color="#4b5563", zorder=4)
+        for coordinate in numeric_coordinates:
+            value = float(np.mean(coordinate_values[coordinate]))
+            sr, lr = coordinate
+            ax.text(lr, sr, f"{value:g}", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color=marker_label_color(smn_cmap, image.norm, value), zorder=4)
+    fig.suptitle("SMN copy-number calls at measured native-SR × LR coordinates\nDashed contours = retained-AU coordinate density, not a metric interpolation", fontsize=18)
     if image is None:
         raise AssertionError("SMN numeric-coordinate heatmap has no panels")
     bar = fig.colorbar(image, ax=list(np.atleast_1d(axes).ravel()), shrink=0.74, pad=0.02)
@@ -1320,7 +1378,6 @@ def build_report(
     observation_markdown = [
         [
             row["plot_label"],
-            row["coordinate_id"],
             f"{row['ilmn_measured_token']}×",
             f"{row['rsr_measured_token']}×",
             f"{row['ont_measured_token']}×",
@@ -1359,13 +1416,13 @@ def build_report(
         "",
         "## Measured native-SR × LR availability",
         "",
-        "The square centers below are placed at their actual numeric native-SR× and LR× values; x and y use the same coverage-unit scale. `C##` labels map each occupied coordinate to its AU(s) in " + table_link("coverage_grid.tsv") + ". This exposes E1 as a vertical full-SR series instead of falsely spreading it across nominal Illumina positions.",
+        "The circle centers below are placed at their actual numeric native-SR× and LR× values; x and y use the same coverage-unit scale. The in-circle value is the retained-observation count, and " + table_link("coverage_grid.tsv") + " lists the corresponding AU(s). Dashed contours show two-dimensional density of retained AU coordinates only; they do not interpolate any coverage or metric into blank space. This exposes E1 as a vertical full-SR series instead of falsely spreading it across nominal Illumina positions.",
         "",
         image("combined_measured_coverage_grid.png"),
         "",
         "### Retained observation provenance",
         "",
-        markdown_table(["Observation", "coverage coordinate", "measured SR ILMNx", "measured RSR ILMNx (audit only)", "measured LRONTx", "ONT hours", "Runtime AU"], observation_markdown),
+        markdown_table(["Observation", "measured SR ILMNx", "measured RSR ILMNx (audit only)", "measured LRONTx", "ONT hours", "Runtime AU"], observation_markdown),
         "",
         "The retained-observation table has native-SR, RSR, LR, source paths, and selection provenance without repeating the requested targets: " + table_link("retained_observations.tsv") + ".",
         "",
@@ -1378,7 +1435,7 @@ def build_report(
         "",
         "## Hard-VCF GIAB high-confidence concordance",
         "",
-        "Crude SNP uses `SNPts + SNPtv/2` independently for TP, FN, and FP; precision, recall, and F-score are recalculated from those composite counts. Each color map uses the same equal-scale numeric native-SR×/LR× plane. When multiple observations share a measured coordinate, the square color is their arithmetic mean; `C##` resolves that coordinate to every AU in " + table_link("coverage_grid.tsv") + " and the metric TSV keeps unaggregated values.",
+        "Crude SNP uses `SNPts + SNPtv/2` independently for TP, FN, and FP; precision, recall, and F-score are recalculated from those composite counts. Each color map uses the same equal-scale numeric native-SR×/LR× plane. Every 25%-larger circle prints its own plotted metric and has no colored edge. Dashed contours show retained-AU coordinate density only, not interpolated metric values. When multiple observations share a measured coordinate, both the circle color and printed value are their arithmetic mean; the metric TSV keeps unaggregated values.",
         "",
     ]
     for klass, title in (("snp", "SNP (SNPts + SNPtv/2)"), ("ins_50", "INS_50"), ("del_50", "DEL_50")):
@@ -1416,7 +1473,7 @@ def build_report(
             "",
             "## SegDup and SMN1/2 calls",
             "",
-            "These callset summaries are descriptive, not truth/query concordance. Their coordinate facets use the same measured native-SR×/LR× plane, so a vertical E1 arrangement represents the actual full-SR result rather than a nominal SR ladder. `C##` resolves coordinates through " + table_link("coverage_grid.tsv") + "; colors are coordinate-level arithmetic means when observations co-locate.",
+        "These callset summaries are descriptive, not truth/query concordance. Their coordinate facets use the same measured native-SR×/LR× plane, so a vertical E1 arrangement represents the actual full-SR result rather than a nominal SR ladder. Each 25%-larger circle prints the displayed call count or copy number and has no colored edge; dashed contours represent retained-AU coordinate density only. Colors and values are coordinate-level arithmetic means when observations co-locate.",
             "",
             image("segdup_call_heatmap.png"),
             "",
@@ -1500,7 +1557,6 @@ def main() -> None:
         raise AssertionError("a plotted ONT coordinate is not LR")
     for index, observation in enumerate(retained, start=1):
         observation["observation_id"] = f"OBS{index:02d}"
-    assign_coordinate_codes(retained)
     retained_key_to_id = {(row["experiment"], row["runtime_au"]): row["observation_id"] for row in retained}
     dropped_index = 0
     for row in source_observations:
@@ -1525,7 +1581,7 @@ def main() -> None:
     benchmark_plots(retained, benchmark_tasks, benchmark_summaries, figures, chart_map)
 
     observation_fields = [
-        "observation_id", "coordinate_id", "experiment", "experiment_title", "analysis_id", "au", "runtime_au", "source_analysis_unit_uid",
+        "observation_id", "experiment", "experiment_title", "analysis_id", "au", "runtime_au", "source_analysis_unit_uid",
         "plot_label", "ilmn_measured_token", "rsr_measured_token", "ont_measured_token",
         "subsample_pct", "ont_start_hour", "ont_end_hour", "selection_status", "coverage_source_ilmn", "coverage_source_rsr", "coverage_source_ont", "direct_s3_captured_at",
     ]

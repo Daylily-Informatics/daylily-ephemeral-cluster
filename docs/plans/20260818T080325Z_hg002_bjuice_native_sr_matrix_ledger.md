@@ -56,11 +56,13 @@ realigned SR×, requested Illumina target, and requested ONT target.
 | SRC-3 | E3 source evidence | Capture exactly one native-SR, one RSR, and one LR Mosdepth summary for each of four E3 runtime AUs, with source path and SHA-256 | SUCCESS | active_product_contract | Gate 0 | Codex | Direct S3 capture at `2026-08-18T10:03:39Z` recorded four triples from the completed E3 export. |
 | SRC-4 | P1 source evidence | Revalidate native-SR, RSR, and LR Mosdepth summaries for the P1 full-input AU, with source path and SHA-256 | SUCCESS | active_product_contract | Gate 0 | Codex | Direct S3 capture at `2026-08-18T10:03:39Z` recorded the P1 triple; target cells remain `NA`. |
 | MOD-1 | Evidence collector | Use an explicit three-coverage direct-S3 capture contract and reject missing/duplicate summary files | SUCCESS | feature_implementation | Gate 1 | Codex | Added `reports/hg002_bjuice_combined_report/collect_direct_s3_coverage.py`; it reads exactly 36 summaries, hashes each payload, requires E1/E3/P1 exact values, and writes the audit TSV. |
-| MOD-2 | Renderer | Position every coverage-coordinate chart using native SR× and LR×; retain RSR× only as provenance/audit data | SUCCESS | feature_implementation | Gate 1 | Codex | Renderer asserts native `sentdhiomr2sr/smd` and LR `sentdhiomr2lr/na` source paths; RSR is retained under its own field. Ten occupied C## coordinates use equal numeric x/y coverage scales. |
+| MOD-2 | Renderer | Position every coverage-coordinate chart using native SR× and LR×; retain RSR× only as provenance/audit data | SUCCESS | feature_implementation | Gate 1 | Codex | Renderer asserts native `sentdhiomr2sr/smd` and LR `sentdhiomr2lr/na` source paths; RSR is retained under its own field. Ten occupied measured coordinates use equal numeric x/y coverage scales. |
 | MOD-3 | Report | Add the requested six-column top sanity table and direct-S3 diagnosis | SUCCESS | feature_implementation | Gate 1 | Codex | Report begins with `ID,target ILMNx, SR ILMNx, RSR ILMNx,target ONTx,LRONTx`; targets appear only there and P1 retains `NA`. |
 | REP-1 | Regeneration | Recreate the Markdown report, figures, tables, source inventory, and direct-S3 receipt from the new contract | SUCCESS | feature_implementation | Gate 1 | Codex | Regenerated report, 22 figures, 12 tables, direct-S3 evidence, and reproducible collector. E1’s actual full-SR/variable-LR geometry and selective-RSR explanation are documented. |
 | QA-1 | Contract checks | Prove 12 E1/E3/P1 rows, one of each coverage source per AU, native-SR axis sources, RSR audit values, coordinate mapping, and valid links | SUCCESS | contract_test | Gate 5 | Codex | Final focused local validator passed at `2026-08-18T10:25:14Z`: `direct_s3_rows=12 retained=12 coordinates=10 charts=22 links=complete`; visual QA confirmed no coordinate-label overlap and numeric equal-scale placement. |
 | GIT-1 | Delivery | Commit and push the regenerated report and supporting evidence on request | SUCCESS | delivery | Gate 5 | Codex | User authorized publication on 2026-08-18. The containing feature-branch commit publishes the corrected report, regenerated figures/tables, direct-S3 receipt, collector, renderer, and this ledger. Inventory found no separate duplicate Markdown/HTML report drafts to delete: the corrected report replaces the sole tracked report in place. The scoped E2 raw-evidence bundle is removed as part of the requested E1/E3/P1-only deliverable; Git history is not rewritten. |
+| VIS-1 | Metric-circle labels and density | Remove opaque C## coordinate codes from every report figure; print the plotted metric within a fill-only circle whose area is 25% larger, with a clearly non-metric 2D coordinate-density overlay | SUCCESS | report_correction | Gate 5 | Codex | User-directed correction on 2026-08-18. All coordinate figures now use actual metric text: occupancy for availability, F-score/FN/FP or GT concordance for concordance, call count for SegDup, and copy number/NA for SMN. `CIRCLE_MARKER_AREA=600` is 25% above the former 480 pt² marker area; circles have no colored edge. Dashed density contours reflect only retained-AU coordinate density and explicitly do not interpolate metric values into blank space. |
+| PLAN-1 | Expanded AU matrix proposal | Propose a future coherent SR-downsample × cumulative-ONT [0,end) matrix through full ILMN and ONT [0,72) without launching workflows | SUCCESS | planning | Gate 0 | Codex | Proposal is recorded in 20260818T111210Z_hg002_bjuice_expanded_au_matrix_proposal.md; it is explicitly non-executing and requires a separate launch authorization. |
 
 ## Read-only evidence log
 
@@ -141,6 +143,14 @@ realigned SR×, requested Illumina target, and requested ONT target.
 - Focused validation: `python /tmp/validate_hg002_native_sr_report.py` passed
   at `2026-08-18T10:25:14Z` with
   `direct_s3_rows=12 retained=12 coordinates=10 charts=22 links=complete`.
-- Visual QA: inspected the measured-coverage grid, a Truvari heatmap, the
-  SegDup facet grid, and the SMN facet grid. C## labels eliminate adjacent-AU
-  text collisions without moving any marker away from its measured coverage.
+- Visual QA: inspected the measured-coverage grid, a Hard-VCF F-score
+  heatmap, the SegDup facet grid, and the SMN facet grid. The original C##
+  labels are removed; each displayed coordinate now prints its actual plotted
+  value or retained-observation count.
+- Visual correction regeneration at 2026-08-18T11:25:20Z: the renderer emitted
+  12 retained observations, 11 concordance heatmaps, 14 heatmaps total, 22
+  figures, and 12 tables. Static validation found no `C##`,
+  `coordinate_id`, square-marker, or colored-edge implementation remaining
+  in the public report renderer/tables. The density contour is computed only
+  from the twelve retained AU coordinates using a fixed 1.25× by 1.25×
+  coverage-unit kernel and is labelled as non-metric in the report/figures.

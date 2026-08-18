@@ -1,11 +1,11 @@
-coordinate_id	measured_native_sr_ilmn_x	measured_lr_ont_x	observations
-C01	10.81	9.67	E3:10xby10x
-C02	13.83	11.43	E3:12xby12x
-C03	21.33	14.71	E3:20xby15x
-C04	31.12	14.71	E3:30xby15x
-C05	43.73	0.57	E1:p5xp5
-C06	43.73	1.16	E1:1x1
-C07	43.73	4.09	E1:3x3
-C08	43.73	6.2	E1:5x5
-C09	43.73	9.67	E1:10x5; E1:15x10
-C10	43.73	11.43	E1:15x5; P1:fullcov
+measured_native_sr_ilmn_x	measured_lr_ont_x	retained_observation_count	observations
+10.81	9.67	1	E3:10xby10x
+13.83	11.43	1	E3:12xby12x
+21.33	14.71	1	E3:20xby15x
+31.12	14.71	1	E3:30xby15x
+43.73	0.57	1	E1:p5xp5
+43.73	1.16	1	E1:1x1
+43.73	4.09	1	E1:3x3
+43.73	6.2	1	E1:5x5
+43.73	9.67	2	E1:10x5; E1:15x10
+43.73	11.43	2	E1:15x5; P1:fullcov

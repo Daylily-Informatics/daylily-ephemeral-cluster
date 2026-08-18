@@ -45,26 +45,26 @@ The exact S3 roots and every direct summary-file URI are recorded in [source_s3_
 
 ## Measured native-SR × LR availability
 
-The square centers below are placed at their actual numeric native-SR× and LR× values; x and y use the same coverage-unit scale. `C##` labels map each occupied coordinate to its AU(s) in [coverage_grid.tsv](hg002_bjuice_downsample_combined_report_assets/tables/coverage_grid.tsv). This exposes E1 as a vertical full-SR series instead of falsely spreading it across nominal Illumina positions.
+The circle centers below are placed at their actual numeric native-SR× and LR× values; x and y use the same coverage-unit scale. The in-circle value is the retained-observation count, and [coverage_grid.tsv](hg002_bjuice_downsample_combined_report_assets/tables/coverage_grid.tsv) lists the corresponding AU(s). Dashed contours show two-dimensional density of retained AU coordinates only; they do not interpolate any coverage or metric into blank space. This exposes E1 as a vertical full-SR series instead of falsely spreading it across nominal Illumina positions.
 
 ![combined_measured_coverage_grid.png](hg002_bjuice_downsample_combined_report_assets/figures/combined_measured_coverage_grid.png)
 
 ### Retained observation provenance
 
-| Observation | coverage coordinate | measured SR ILMNx | measured RSR ILMNx (audit only) | measured LRONTx | ONT hours | Runtime AU |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| E1:p5xp5 | C05 | 43.73× | 8.54× | 0.57× | [0,1) | HG002-082hc3dnbehb1c |
-| E1:1x1 | C06 | 43.73× | 9.85× | 1.16× | [0,2) | HG002-98xq4xrqz7dwy9 |
-| E1:3x3 | C07 | 43.73× | 11.93× | 4.09× | [0,7) | HG002-871vyxbnp4n81v |
-| E1:5x5 | C08 | 43.73× | 12.71× | 6.20× | [0,11) | HG002-vqs89p8gahfwf9 |
-| E1:10x5 | C09 | 43.73× | 13.65× | 9.67× | [0,19) | HG002-fjg1n22920ymw4 |
-| E1:15x5 | C10 | 43.73× | 14.01× | 11.43× | [0,24) | HG002-bq765db79mczvn |
-| E1:15x10 | C09 | 43.73× | 13.65× | 9.67× | [0,19) | HG002-f277f1cckvy1xb |
-| E3:10xby10x | C01 | 10.81× | 3.72× | 9.67× | [0,19) | HG002-nxw0jbvh1h5mqx |
-| E3:12xby12x | C02 | 13.83× | 4.77× | 11.43× | [0,24) | HG002-nfjdv62wjc8dwr |
-| E3:20xby15x | C03 | 21.33× | 7.36× | 14.71× | [0,36) | HG002-wesenyqd5xz29g |
-| E3:30xby15x | C04 | 31.12× | 10.50× | 14.71× | [0,36) | HG002-q73e7s390m0hjt |
-| P1:fullcov | C10 | 43.73× | 14.01× | 11.43× | [0,24) | HG002-qvmjccyp5fr1y3 |
+| Observation | measured SR ILMNx | measured RSR ILMNx (audit only) | measured LRONTx | ONT hours | Runtime AU |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| E1:p5xp5 | 43.73× | 8.54× | 0.57× | [0,1) | HG002-082hc3dnbehb1c |
+| E1:1x1 | 43.73× | 9.85× | 1.16× | [0,2) | HG002-98xq4xrqz7dwy9 |
+| E1:3x3 | 43.73× | 11.93× | 4.09× | [0,7) | HG002-871vyxbnp4n81v |
+| E1:5x5 | 43.73× | 12.71× | 6.20× | [0,11) | HG002-vqs89p8gahfwf9 |
+| E1:10x5 | 43.73× | 13.65× | 9.67× | [0,19) | HG002-fjg1n22920ymw4 |
+| E1:15x5 | 43.73× | 14.01× | 11.43× | [0,24) | HG002-bq765db79mczvn |
+| E1:15x10 | 43.73× | 13.65× | 9.67× | [0,19) | HG002-f277f1cckvy1xb |
+| E3:10xby10x | 10.81× | 3.72× | 9.67× | [0,19) | HG002-nxw0jbvh1h5mqx |
+| E3:12xby12x | 13.83× | 4.77× | 11.43× | [0,24) | HG002-nfjdv62wjc8dwr |
+| E3:20xby15x | 21.33× | 7.36× | 14.71× | [0,36) | HG002-wesenyqd5xz29g |
+| E3:30xby15x | 31.12× | 10.50× | 14.71× | [0,36) | HG002-q73e7s390m0hjt |
+| P1:fullcov | 43.73× | 14.01× | 11.43× | [0,24) | HG002-qvmjccyp5fr1y3 |
 
 The retained-observation table has native-SR, RSR, LR, source paths, and selection provenance without repeating the requested targets: [retained_observations.tsv](hg002_bjuice_downsample_combined_report_assets/tables/retained_observations.tsv).
 
@@ -77,7 +77,7 @@ This is descriptive aligned LR yield versus cumulative input runtime. It uses me
 
 ## Hard-VCF GIAB high-confidence concordance
 
-Crude SNP uses `SNPts + SNPtv/2` independently for TP, FN, and FP; precision, recall, and F-score are recalculated from those composite counts. Each color map uses the same equal-scale numeric native-SR×/LR× plane. When multiple observations share a measured coordinate, the square color is their arithmetic mean; `C##` resolves that coordinate to every AU in [coverage_grid.tsv](hg002_bjuice_downsample_combined_report_assets/tables/coverage_grid.tsv) and the metric TSV keeps unaggregated values.
+Crude SNP uses `SNPts + SNPtv/2` independently for TP, FN, and FP; precision, recall, and F-score are recalculated from those composite counts. Each color map uses the same equal-scale numeric native-SR×/LR× plane. Every 25%-larger circle prints its own plotted metric and has no colored edge. Dashed contours show retained-AU coordinate density only, not interpolated metric values. When multiple observations share a measured coordinate, both the circle color and printed value are their arithmetic mean; the metric TSV keeps unaggregated values.
 
 ### SNP (SNPts + SNPtv/2)
 
@@ -131,7 +131,7 @@ Caller color and marker shape encode the caller (TIDDIT, LongReadSV, Sniffles2, 
 
 ## SegDup and SMN1/2 calls
 
-These callset summaries are descriptive, not truth/query concordance. Their coordinate facets use the same measured native-SR×/LR× plane, so a vertical E1 arrangement represents the actual full-SR result rather than a nominal SR ladder. `C##` resolves coordinates through [coverage_grid.tsv](hg002_bjuice_downsample_combined_report_assets/tables/coverage_grid.tsv); colors are coordinate-level arithmetic means when observations co-locate.
+These callset summaries are descriptive, not truth/query concordance. Their coordinate facets use the same measured native-SR×/LR× plane, so a vertical E1 arrangement represents the actual full-SR result rather than a nominal SR ladder. Each 25%-larger circle prints the displayed call count or copy number and has no colored edge; dashed contours represent retained-AU coordinate density only. Colors and values are coordinate-level arithmetic means when observations co-locate.
 
 ![segdup_call_heatmap.png](hg002_bjuice_downsample_combined_report_assets/figures/segdup_call_heatmap.png)
 
