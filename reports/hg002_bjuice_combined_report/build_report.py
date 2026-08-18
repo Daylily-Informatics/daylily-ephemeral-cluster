@@ -20,7 +20,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import LinearSegmentedColormap, Normalize
 from matplotlib.lines import Line2D
 import numpy as np
 
@@ -28,11 +28,7 @@ import numpy as np
 EXPERIMENTS = {
     "E1": {
         "analysis_id": "prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z",
-        "title": "Initial downsampling experiment",
-    },
-    "E2": {
-        "analysis_id": "prod-cand-1703-hg002-bjuice-v2-seqkitfix-20260815T080300Z",
-        "title": "Corrected balanced re-downsampling experiment",
+        "title": "Initial full-SR, variable-LR experiment",
     },
     "E3": {
         "analysis_id": "prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z",
@@ -42,8 +38,27 @@ EXPERIMENTS = {
         "analysis_id": "pcand18022-bjuice-preval6-15014-dry-20260817t112900z",
         "title": "Bjuice v0.9 production full-coverage execution 1",
     },
+    "E4": {
+        "analysis_id": "prerel18025-bjuice-v2-hg002-20au-18042-20260818t1255z-live",
+        "title": "Twenty-AU controlled native-SR × cumulative-ONT matrix",
+    },
 }
-AU_ORDER = ["p5xp5", "1x1", "3x3", "5x5", "10x5", "15x5", "15x10", "10xby10x", "12xby12x", "20xby15x", "30xby15x", "fullcov_0to24"]
+EXPERIMENT_INDEX = {name: index for index, name in enumerate(EXPERIMENTS)}
+AU_ORDER = [
+    "p5xp5",
+    "1x1",
+    "3x3",
+    "5x5",
+    "10x5",
+    "15x5",
+    "15x10",
+    "10xby10x",
+    "12xby12x",
+    "20xby15x",
+    "30xby15x",
+    "fullcov_0to24",
+    *[f"N{index:02d}" for index in range(1, 21)],
+]
 AU_INDEX = {name: index for index, name in enumerate(AU_ORDER)}
 TARGETS = {
     "p5xp5": (Decimal("0.5"), Decimal("0.5")),
@@ -58,8 +73,31 @@ TARGETS = {
     "20xby15x": (Decimal("20"), Decimal("15")),
     "30xby15x": (Decimal("30"), Decimal("15")),
 }
-EXPERIMENT_COLORS = {"E1": "#3977a8", "E2": "#d0783d", "E3": "#5d8f70", "P1": "#87589b"}
-EXPERIMENT_MARKERS = {"E1": "o", "E2": "s", "E3": "^", "P1": "P"}
+E4_SOURCE_TO_PLAN = {
+    "HG002-ilmn0p5x-ont0p5x-h01": ("N01", Decimal("0.5"), Decimal("0.5"), 1),
+    "HG002-ilmn0p5x-ont4x-h08": ("N02", Decimal("0.5"), Decimal("4"), 8),
+    "HG002-ilmn0p5x-ont12x-h24": ("N03", Decimal("0.5"), Decimal("12"), 24),
+    "HG002-ilmn0p5x-ont30x-h72": ("N04", Decimal("0.5"), Decimal("30"), 72),
+    "HG002-ilmn10x-ont0p5x-h01": ("N05", Decimal("10"), Decimal("0.5"), 1),
+    "HG002-ilmn10x-ont4x-h08": ("N06", Decimal("10"), Decimal("4"), 8),
+    "HG002-ilmn10x-ont12x-h24": ("N07", Decimal("10"), Decimal("12"), 24),
+    "HG002-ilmn10x-ont30x-h72": ("N08", Decimal("10"), Decimal("30"), 72),
+    "HG002-ilmn30x-ont30x-h72": ("N09", Decimal("30"), Decimal("30"), 72),
+    "HG002-ilmn43p73x-ont30x-h72": ("N10", Decimal("43.73"), Decimal("30"), 72),
+    "HG002-ilmn2x-ont0p5x-h01": ("N11", Decimal("2"), Decimal("0.5"), 1),
+    "HG002-ilmn2x-ont4x-h08": ("N12", Decimal("2"), Decimal("4"), 8),
+    "HG002-ilmn2x-ont12x-h24": ("N13", Decimal("2"), Decimal("12"), 24),
+    "HG002-ilmn2x-ont30x-h72": ("N14", Decimal("2"), Decimal("30"), 72),
+    "HG002-ilmn20x-ont0p5x-h01": ("N15", Decimal("20"), Decimal("0.5"), 1),
+    "HG002-ilmn20x-ont4x-h08": ("N16", Decimal("20"), Decimal("4"), 8),
+    "HG002-ilmn20x-ont12x-h24": ("N17", Decimal("20"), Decimal("12"), 24),
+    "HG002-ilmn20x-ont30x-h72": ("N18", Decimal("20"), Decimal("30"), 72),
+    "HG002-ilmn5x-ont30x-h72": ("N19", Decimal("5"), Decimal("30"), 72),
+    "HG002-ilmn15x-ont30x-h72": ("N20", Decimal("15"), Decimal("30"), 72),
+}
+TARGETS.update({label: (target_sr, target_lr) for label, target_sr, target_lr, _ in E4_SOURCE_TO_PLAN.values()})
+EXPERIMENT_COLORS = {"E1": "#3977a8", "E3": "#5d8f70", "P1": "#87589b", "E4": "#d0783d"}
+EXPERIMENT_MARKERS = {"E1": "o", "E3": "^", "P1": "P", "E4": "X"}
 CALLER_STYLES = {
     "TrussSV": ("#315f88", "o"),
     "Sniffles2": ("#c2783e", "s"),
@@ -71,9 +109,16 @@ SOURCE_S3_URIS = [
     ("Shared HG002 ONT FC1 source", "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC1/20260615_ONT_Set4-FC1/20260616_0048_3A_PBM08268_14b096e3/"),
     ("Shared HG002 ONT FC2 source", "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC2/20260615_ONT_Set4-FC2/20260616_0040_3B_PBK89197_822a87b5/"),
     ("Shared HG002 ONT FC3 source", "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC3/20260615_ONT_Set4-FC3/20260616_0041_3C_PBK89101_bd86eaac/"),
-    ("E3 completed no-delete output export", "s3://lsmc-dayoa-analysis-results-usw2/derived/bjuice-v2-multi-analysis-unit/prod-cand-1703/prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z/"),
-    ("P1 completed production output export", "s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-bjuice-preval6-15014-dry-20260817t112900z/daylily-omics-analysis/"),
+    ("E1 completed output export", "s3://lsmc-dayoa-analysis-results-usw2/derived/bjuice-v2-multi-analysis-unit/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z/daylily-omics-analysis/"),
+    ("E3 completed output export", "s3://lsmc-dayoa-analysis-results-usw2/derived/bjuice-v2-multi-analysis-unit/prod-cand-1703/prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z/daylily-omics-analysis/"),
+    ("P1 completed output export", "s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-bjuice-preval6-15014-dry-20260817t112900z/daylily-omics-analysis/"),
 ]
+CIRCLE_MARKER_AREA = 600  # 25% larger area than the former 480 pt² squares.
+CIRCLE_LABEL_FONTSIZE = 7.2
+HEATMAP_FONT_SCALE = 1.35
+DENSITY_KERNEL_BANDWIDTH_X = 1.25  # Measured LR× units; each retained AU contributes one kernel.
+DENSITY_KERNEL_BANDWIDTH_Y = 1.25  # Measured native-SR× units; axes remain numerically equal-scale.
+DENSITY_GRID_SIZE = 180
 
 plt.rcParams.update(
     {
@@ -96,6 +141,7 @@ plt.rcParams.update(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--evidence-root", type=Path, required=True)
+    parser.add_argument("--direct-s3-coverage", type=Path, required=True)
     parser.add_argument("--assets-dir", type=Path, required=True)
     parser.add_argument("--report-path", type=Path, required=True)
     return parser.parse_args()
@@ -138,35 +184,121 @@ def fmt(value: Any, digits: int = 4, comma: bool = False) -> str:
     return f"{value:.{digits}f}"
 
 
-def annotate_side_labels(
+def marker_label_color(cmap: Any, norm: Any, value: float) -> str:
+    """Choose legible text against the metric-derived circle color."""
+    red, green, blue, _ = cmap(norm(value))
+    luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue
+    return "white" if luminance < 0.46 else "#111827"
+
+
+def heatmap_font_size(base_size: float) -> float:
+    """Apply the report-wide typography increase to 2D density/heatmap figures."""
+    return base_size * HEATMAP_FONT_SCALE
+
+
+def style_heatmap_colorbar(bar: Any, label: str) -> None:
+    bar.set_label(label, fontsize=heatmap_font_size(14))
+    bar.ax.tick_params(labelsize=heatmap_font_size(11))
+
+
+def coverage_group_label(group: list[dict[str, Any]], include_fscore: bool = False) -> str:
+    """Compact exact-coordinate duplicates while retaining every measured pair."""
+    pairs = [f"{row['ilmn_measured_token']}x / {row['ont_measured_token']}x" for row in group]
+    lines = ["  ·  ".join(pairs[index:index + 2]) for index in range(0, len(pairs), 2)]
+    if include_fscore:
+        lines.insert(0, "F=" + fmt(group[0]["fscore"], 3))
+    return "\n".join(lines)
+
+
+def annotate_point_labels(
     ax: Any,
     points: list[dict[str, Any]],
     x_key: str,
     y_key: str,
-    label_fn: Any,
+    group_label_fn: Any,
     fontsize: float,
-) -> None:
-    """Place dense point labels in stable experiment-specific callout columns."""
-    for experiment, x_fraction in zip(EXPERIMENTS, np.linspace(0.02, 0.77, len(EXPERIMENTS))):
-        group = sorted(
-            [row for row in points if row["experiment"] == experiment],
-            key=lambda row: (float(row[y_key]), float(row[x_key]), row["au"]),
-            reverse=True,
-        )
-        for row, y_fraction in zip(group, np.linspace(0.91, 0.09, len(group))):
+    offset_scale: float = 1.0,
+) -> list[Any]:
+    """Label exact point groups locally without experiment encoding or leaders."""
+    grouped: dict[tuple[float, float], list[dict[str, Any]]] = defaultdict(list)
+    for row in points:
+        grouped[(round(float(row[x_key]), 4), round(float(row[y_key]), 4))].append(row)
+    angles = (45, -45, 135, -135, 0, 180, 90, -90)
+    ordered_groups = sorted(grouped.values(), key=lambda group: (float(group[0][x_key]), float(group[0][y_key]), group[0].get("caller", "")))
+    annotations: list[Any] = []
+    for index, group in enumerate(ordered_groups):
+        group = sorted(group, key=lambda item: (item.get("caller", ""), float(item["ilmn_measured_token"]), float(item["ont_measured_token"])))
+        angle = math.radians(angles[index % len(angles)])
+        radius = (7 + 4 * ((index // len(angles)) % 3)) * offset_scale
+        row = group[0]
+        annotations.append(
             ax.annotate(
-                label_fn(row),
+                group_label_fn(group),
                 (float(row[x_key]), float(row[y_key])),
-                xycoords="data",
-                xytext=(x_fraction, y_fraction),
-                textcoords="axes fraction",
+                xytext=(math.cos(angle) * radius, math.sin(angle) * radius),
+                textcoords="offset points",
                 fontsize=fontsize,
-                ha="left",
+                ha="left" if math.cos(angle) >= 0 else "right",
                 va="center",
+                linespacing=0.93,
                 color="#111827",
-                bbox={"boxstyle": "round,pad=0.16", "facecolor": "white", "edgecolor": EXPERIMENT_COLORS[experiment], "alpha": 0.78, "linewidth": 0.6},
-                arrowprops={"arrowstyle": "-", "color": EXPERIMENT_COLORS[experiment], "alpha": 0.42, "linewidth": 0.55},
+                bbox={"boxstyle": "round,pad=0.08", "facecolor": "white", "edgecolor": "none", "alpha": 0.66},
+                annotation_clip=True,
             )
+        )
+    return annotations
+
+
+def relax_annotation_collisions(fig: Any, ax: Any, annotations: list[Any], iterations: int = 120) -> None:
+    """Deterministically separate enlarged direct labels in display space."""
+    if not annotations:
+        return
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    points_per_pixel = 72.0 / fig.dpi
+    for _ in range(iterations):
+        boxes = [annotation.get_window_extent(renderer).expanded(1.04, 1.12) for annotation in annotations]
+        shifts = [[0.0, 0.0] for _ in annotations]
+        collisions = 0
+        for left in range(len(boxes)):
+            left_box = boxes[left]
+            for right in range(left + 1, len(boxes)):
+                right_box = boxes[right]
+                overlap_x = min(left_box.x1, right_box.x1) - max(left_box.x0, right_box.x0)
+                overlap_y = min(left_box.y1, right_box.y1) - max(left_box.y0, right_box.y0)
+                if overlap_x <= 0 or overlap_y <= 0:
+                    continue
+                collisions += 1
+                left_center = ((left_box.x0 + left_box.x1) / 2, (left_box.y0 + left_box.y1) / 2)
+                right_center = ((right_box.x0 + right_box.x1) / 2, (right_box.y0 + right_box.y1) / 2)
+                if overlap_y <= overlap_x:
+                    direction = -1.0 if left_center[1] <= right_center[1] else 1.0
+                    distance = (overlap_y + 2.0) / 2
+                    shifts[left][1] += direction * distance
+                    shifts[right][1] -= direction * distance
+                else:
+                    direction = -1.0 if left_center[0] <= right_center[0] else 1.0
+                    distance = (overlap_x + 2.0) / 2
+                    shifts[left][0] += direction * distance
+                    shifts[right][0] -= direction * distance
+        if collisions == 0:
+            break
+        axes_box = ax.get_window_extent(renderer)
+        for index, annotation in enumerate(annotations):
+            box = boxes[index]
+            dx, dy = shifts[index]
+            if box.x0 + dx < axes_box.x0 + 2:
+                dx += axes_box.x0 + 2 - (box.x0 + dx)
+            if box.x1 + dx > axes_box.x1 - 2:
+                dx -= box.x1 + dx - (axes_box.x1 - 2)
+            if box.y0 + dy < axes_box.y0 + 2:
+                dy += axes_box.y0 + 2 - (box.y0 + dy)
+            if box.y1 + dy > axes_box.y1 - 2:
+                dy -= box.y1 + dy - (axes_box.y1 - 2)
+            x_offset, y_offset = annotation.get_position()
+            annotation.set_position((x_offset + dx * points_per_pixel, y_offset + dy * points_per_pixel))
+        fig.canvas.draw()
+        renderer = fig.canvas.get_renderer()
 
 
 def sha256_file(path: Path) -> str:
@@ -239,7 +371,7 @@ def parse_compact_e3(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
         if coverage is None:
             raise ValueError(f"E3:{runtime}: missing compact coverage")
         target_ilmn, target_ont = TARGETS[label]
-        ilmn = Decimal(coverage["ilmn"])
+        rsr = Decimal(coverage["ilmn"])
         ont = Decimal(coverage["ont"])
         observations.append(
             {
@@ -250,8 +382,10 @@ def parse_compact_e3(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
                 "runtime_au": runtime,
                 "source_analysis_unit_uid": identity["SOURCE_ANALYSIS_UNIT_UID"],
                 "plot_label": f"E3:{label}",
-                "ilmn_measured_token": coverage["ilmn"],
-                "ilmn_measured": float(ilmn),
+                "ilmn_measured_token": None,
+                "ilmn_measured": None,
+                "rsr_measured_token": coverage["ilmn"],
+                "rsr_measured": float(rsr),
                 "ont_measured_token": coverage["ont"],
                 "ont_measured": float(ont),
                 "ilmn_target": float(target_ilmn),
@@ -259,9 +393,10 @@ def parse_compact_e3(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
                 "subsample_pct": unit["SUBSAMPLE_PCT"],
                 "ont_start_hour": int(unit["ONT_FQ_START_HOUR"]),
                 "ont_end_hour": int(unit["ONT_FQ_END_HOUR"]),
-                "ilmn_abs_error": float(ilmn - target_ilmn),
+                "ilmn_abs_error": None,
                 "ont_abs_error": float(ont - target_ont),
-                "coverage_source_ilmn": coverage["ilmn_source"],
+                "coverage_source_ilmn": None,
+                "coverage_source_rsr": coverage["ilmn_source"],
                 "coverage_source_ont": coverage["ont_source"],
                 "dayoa_root": compact["analysis_root"] + "/daylily-omics-analysis",
                 "selection_status": "source",
@@ -328,6 +463,8 @@ def parse_compact_p1(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
         "plot_label": "P1:fullcov",
         "ilmn_measured_token": coverage["ilmn"],
         "ilmn_measured": float(ilmn),
+        "rsr_measured_token": None,
+        "rsr_measured": None,
         "ont_measured_token": coverage["ont"],
         "ont_measured": float(ont),
         "ilmn_target": None,
@@ -338,6 +475,7 @@ def parse_compact_p1(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
         "ilmn_abs_error": None,
         "ont_abs_error": None,
         "coverage_source_ilmn": coverage["ilmn_source"],
+        "coverage_source_rsr": None,
         "coverage_source_ont": coverage["ont_source"],
         "dayoa_root": compact["analysis_root"],
         "selection_status": "source",
@@ -357,11 +495,116 @@ def parse_compact_p1(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
     return [observation], {"inventory": inventory, "dayoa_root": None, "bundle_root": bundle_root}
 
 
+def parse_compact_e4(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Read the checksum-bound, in-flight E4 snapshot collected through DYEC."""
+    bundle_root = evidence_root / "E4"
+    compact_path = bundle_root / "compact_evidence.json"
+    compact = json.loads(compact_path.read_text())
+    if compact.get("schema_version") != "lsmc.hg002_bjuice_e4_compact_evidence.v1":
+        raise ValueError("E4: unexpected compact-evidence schema")
+    if compact.get("analysis_id") != EXPERIMENTS["E4"]["analysis_id"]:
+        raise ValueError("E4: analysis identity mismatch")
+    units = {row["ANALYSIS_UNIT_UID"]: row for row in compact["units"]}
+    identities = compact["identity"]
+    if set(units) != set(E4_SOURCE_TO_PLAN) or len(identities) != 20:
+        raise ValueError("E4: expected the reviewed 20 source and runtime analysis units")
+    source_to_runtime = {
+        row["SOURCE_ANALYSIS_UNIT_UID"]: row["RUNTIME_ANALYSIS_UNIT_UID"] for row in identities
+    }
+    if set(source_to_runtime) != set(E4_SOURCE_TO_PLAN) or len(set(source_to_runtime.values())) != 20:
+        raise ValueError("E4: incomplete or duplicate source/runtime identity mapping")
+
+    end_status = compact["workflow_status_end"]["attempts"][-1]
+    snapshot_state = end_status.get("state")
+    snapshot_rc = end_status.get("controller", {}).get("exit_code")
+    observations: list[dict[str, Any]] = []
+    for source_uid, (label, target_sr, target_lr, expected_end_hour) in E4_SOURCE_TO_PLAN.items():
+        runtime = source_to_runtime[source_uid]
+        unit = units[source_uid]
+        coverage = compact["coverage"].get(runtime)
+        completeness = compact["completeness"].get(runtime)
+        if coverage is None or completeness is None:
+            raise ValueError(f"E4:{runtime}: missing coverage or completeness evidence")
+        if (
+            completeness.get("native_sr_coverage") != "complete"
+            or completeness.get("lr_coverage") != "complete"
+            or completeness.get("hard_vcf_giabhc") != "complete"
+            or completeness.get("truvari_summaries") != 4
+            or completeness.get("smn12_summary") != "complete"
+            or completeness.get("segdup_vcfs") != 15
+        ):
+            raise ValueError(f"E4:{runtime}: a required report metric is not complete")
+        if int(unit["ONT_FQ_START_HOUR"]) != 0 or int(unit["ONT_FQ_END_HOUR"]) != expected_end_hour:
+            raise ValueError(f"E4:{source_uid}: ONT input interval disagrees with the reviewed plan")
+        if f"target {target_sr}x" not in unit["ANALYSIS_UNIT_COMMENT"]:
+            raise ValueError(f"E4:{source_uid}: native-SR target comment disagrees with the reviewed plan")
+        native_sr = Decimal(coverage["native_sr"])
+        rsr = Decimal(coverage["rsr"])
+        lr = Decimal(coverage["lr"])
+        if "/align/sentdhiomr2sr/smd/alignqc/mosdepth/" not in coverage["native_sr_source"]:
+            raise ValueError(f"E4:{runtime}: native-SR source is not sentdhiomr2sr/smd")
+        if "/align/sentdhiomr2rsr/na/alignqc/mosdepth/" not in coverage["rsr_source"]:
+            raise ValueError(f"E4:{runtime}: RSR audit source mismatch")
+        if "/align/sentdhiomr2lr/na/alignqc/mosdepth/" not in coverage["lr_source"]:
+            raise ValueError(f"E4:{runtime}: LR source is not sentdhiomr2lr/na")
+        observations.append(
+            {
+                "experiment": "E4",
+                "experiment_title": EXPERIMENTS["E4"]["title"],
+                "analysis_id": EXPERIMENTS["E4"]["analysis_id"],
+                "au": label,
+                "runtime_au": runtime,
+                "source_analysis_unit_uid": source_uid,
+                "plot_label": f"E4:{label}",
+                "ilmn_measured_token": coverage["native_sr"],
+                "ilmn_measured": float(native_sr),
+                "rsr_measured_token": coverage["rsr"],
+                "rsr_measured": float(rsr),
+                "ont_measured_token": coverage["lr"],
+                "ont_measured": float(lr),
+                "ilmn_target": float(target_sr),
+                "ont_target": float(target_lr),
+                "subsample_pct": unit["SUBSAMPLE_PCT"],
+                "ont_start_hour": 0,
+                "ont_end_hour": expected_end_hour,
+                "ilmn_abs_error": float(native_sr - target_sr),
+                "ont_abs_error": float(lr - target_lr),
+                "coverage_source_ilmn": coverage["native_sr_source"],
+                "coverage_source_rsr": coverage["rsr_source"],
+                "coverage_source_ont": coverage["lr_source"],
+                "coverage_capture_method": "bounded live-FSx snapshot through DYEC",
+                "evidence_captured_at": compact["captured_at_end_utc"],
+                "direct_s3_captured_at": None,
+                "snapshot_workflow_state": snapshot_state,
+                "snapshot_controller_rc": snapshot_rc,
+                "benchmark_scope": compact["capture_contract"]["benchmark_scope"],
+                "dayoa_root": compact["dayoa_root"],
+                "selection_status": "source_inflight_snapshot",
+                "compact_evidence": compact,
+            }
+        )
+    observations.sort(key=lambda row: AU_INDEX[row["au"]])
+    inventory = [
+        {
+            "experiment": "E4",
+            "analysis_root": compact["analysis_root"],
+            **row,
+            "local_path": "NA (bounded DYEC headnode extract)",
+            "local_sha256": "NA",
+            "local_sha256_match": "remote_hash_only",
+        }
+        for row in compact["inventory"]
+    ]
+    return observations, {"inventory": inventory, "dayoa_root": None, "bundle_root": bundle_root}
+
+
 def parse_experiment(experiment: str, evidence_root: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     if experiment == "E3":
         return parse_compact_e3(evidence_root)
     if experiment == "P1":
         return parse_compact_p1(evidence_root)
+    if experiment == "E4":
+        return parse_compact_e4(evidence_root)
     bundle_root = evidence_root / experiment
     dayoa_root = bundle_root / "daylily-omics-analysis"
     manifest_root = dayoa_root / "results/day/hg38/reports/input_manifests"
@@ -379,11 +622,11 @@ def parse_experiment(experiment: str, evidence_root: Path) -> tuple[list[dict[st
         unit = source_to_unit[source_uid]
         label = label_from_comment(unit["ANALYSIS_UNIT_COMMENT"])
         unit_root = dayoa_root / "results/day/hg38" / runtime
-        ilmn_files = list(unit_root.glob("align/sentdhiomr2rsr/na/alignqc/mosdepth/*.summary.txt"))
+        rsr_files = list(unit_root.glob("align/sentdhiomr2rsr/na/alignqc/mosdepth/*.summary.txt"))
         ont_files = list(unit_root.glob("align/sentdhiomr2lr/na/alignqc/mosdepth/*.summary.txt"))
-        if len(ilmn_files) != 1 or len(ont_files) != 1:
-            raise ValueError(f"{experiment}:{runtime}: expected one ILMN and one ONT Mosdepth summary")
-        ilmn_token, ilmn = read_total_mean(ilmn_files[0])
+        if len(rsr_files) != 1 or len(ont_files) != 1:
+            raise ValueError(f"{experiment}:{runtime}: expected one RSR and one ONT Mosdepth summary")
+        rsr_token, rsr = read_total_mean(rsr_files[0])
         ont_token, ont = read_total_mean(ont_files[0])
         target_ilmn, target_ont = TARGETS[label]
         observations.append(
@@ -395,8 +638,10 @@ def parse_experiment(experiment: str, evidence_root: Path) -> tuple[list[dict[st
                 "runtime_au": runtime,
                 "source_analysis_unit_uid": source_uid,
                 "plot_label": f"{experiment}:{label}",
-                "ilmn_measured_token": ilmn_token,
-                "ilmn_measured": float(ilmn),
+                "ilmn_measured_token": None,
+                "ilmn_measured": None,
+                "rsr_measured_token": rsr_token,
+                "rsr_measured": float(rsr),
                 "ont_measured_token": ont_token,
                 "ont_measured": float(ont),
                 "ilmn_target": float(target_ilmn),
@@ -404,9 +649,10 @@ def parse_experiment(experiment: str, evidence_root: Path) -> tuple[list[dict[st
                 "subsample_pct": unit["SUBSAMPLE_PCT"],
                 "ont_start_hour": int(unit["ONT_FQ_START_HOUR"]),
                 "ont_end_hour": int(unit["ONT_FQ_END_HOUR"]),
-                "ilmn_abs_error": float(ilmn - target_ilmn),
+                "ilmn_abs_error": None,
                 "ont_abs_error": float(ont - target_ont),
-                "coverage_source_ilmn": source_relative(ilmn_files[0], dayoa_root),
+                "coverage_source_ilmn": None,
+                "coverage_source_rsr": source_relative(rsr_files[0], dayoa_root),
                 "coverage_source_ont": source_relative(ont_files[0], dayoa_root),
                 "dayoa_root": str(dayoa_root),
                 "selection_status": "source",
@@ -417,6 +663,104 @@ def parse_experiment(experiment: str, evidence_root: Path) -> tuple[list[dict[st
     if {row["au"] for row in observations} != expected:
         raise ValueError(f"{experiment}: AU label set mismatch")
     return observations, {"inventory": inventory, "dayoa_root": dayoa_root, "bundle_root": bundle_root}
+
+
+def read_direct_s3_coverage(path: Path) -> list[dict[str, str]]:
+    """Read the bounded direct-S3 coverage capture used for every matrix coordinate."""
+    fields = {
+        "captured_at_utc",
+        "experiment",
+        "au",
+        "analysis_unit_uid",
+        "target_ilmn_x",
+        "measured_sr_ilmn_x",
+        "measured_rsr_ilmn_x",
+        "target_ont_x",
+        "measured_lr_ont_x",
+        "source_s3_root",
+        "sr_summary_s3_uri",
+        "sr_summary_sha256",
+        "rsr_summary_s3_uri",
+        "rsr_summary_sha256",
+        "lr_summary_s3_uri",
+        "lr_summary_sha256",
+    }
+    rows = read_tsv(path)
+    if len(rows) != 12:
+        raise ValueError(f"expected 12 direct-S3 coverage rows, found {len(rows)}")
+    if any(set(row) != fields for row in rows):
+        raise ValueError(f"unexpected direct-S3 coverage schema: {path}")
+    expected_counts = {"E1": 7, "E3": 4, "P1": 1}
+    actual_counts = {experiment: sum(row["experiment"] == experiment for row in rows) for experiment in expected_counts}
+    if actual_counts != expected_counts or any(row["experiment"] not in expected_counts for row in rows):
+        raise ValueError(f"unexpected direct-S3 coverage experiment counts: {actual_counts}")
+    keys = {(row["experiment"], row["analysis_unit_uid"]) for row in rows}
+    if len(keys) != len(rows):
+        raise ValueError("duplicate direct-S3 coverage identity")
+    for row in rows:
+        for field in ("measured_sr_ilmn_x", "measured_rsr_ilmn_x", "measured_lr_ont_x"):
+            try:
+                Decimal(row[field])
+            except Exception as error:
+                raise ValueError(f"invalid direct-S3 coverage {field}: {row[field]}") from error
+        if any(len(row[field]) != 64 for field in ("sr_summary_sha256", "rsr_summary_sha256", "lr_summary_sha256")):
+            raise ValueError(f"invalid direct-S3 summary hash for {row['experiment']}:{row['au']}")
+    return rows
+
+
+def apply_direct_s3_coverage(observations: list[dict[str, Any]], direct_rows: list[dict[str, str]]) -> None:
+    """Overlay native-SR/LR coordinates and preserve RSR only as audit provenance."""
+    direct_by_identity = {(row["experiment"], row["analysis_unit_uid"]): row for row in direct_rows}
+    observation_keys = {(row["experiment"], row["runtime_au"]) for row in observations}
+    if set(direct_by_identity) != observation_keys:
+        raise ValueError("direct-S3 coverage identities do not match retained E1/E3/P1 evidence")
+    for observation in observations:
+        direct = direct_by_identity[(observation["experiment"], observation["runtime_au"])]
+        expected_au = "fullcov" if observation["experiment"] == "P1" else observation["au"]
+        if direct["au"] != expected_au:
+            raise ValueError(f"direct-S3 AU mismatch for {observation['plot_label']}")
+        for local_field, direct_field in (
+            ("ilmn_measured_token", "measured_sr_ilmn_x"),
+            ("rsr_measured_token", "measured_rsr_ilmn_x"),
+            ("ont_measured_token", "measured_lr_ont_x"),
+        ):
+            local_value = observation.get(local_field)
+            if local_value is not None and Decimal(str(local_value)) != Decimal(direct[direct_field]):
+                raise ValueError(
+                    f"{observation['plot_label']}: local {local_field}={local_value} disagrees with direct S3 {direct[direct_field]}"
+                )
+        for target_field, direct_field in (("ilmn_target", "target_ilmn_x"), ("ont_target", "target_ont_x")):
+            target = observation[target_field]
+            direct_target = direct[direct_field]
+            if target is None:
+                if direct_target != "NA":
+                    raise ValueError(f"{observation['plot_label']}: direct S3 invented a target")
+            elif Decimal(str(target)) != Decimal(direct_target):
+                raise ValueError(f"{observation['plot_label']}: direct S3 target disagreement")
+        sr = Decimal(direct["measured_sr_ilmn_x"])
+        rsr = Decimal(direct["measured_rsr_ilmn_x"])
+        lr = Decimal(direct["measured_lr_ont_x"])
+        observation.update(
+            {
+                "ilmn_measured_token": direct["measured_sr_ilmn_x"],
+                "ilmn_measured": float(sr),
+                "rsr_measured_token": direct["measured_rsr_ilmn_x"],
+                "rsr_measured": float(rsr),
+                "ont_measured_token": direct["measured_lr_ont_x"],
+                "ont_measured": float(lr),
+                "ilmn_abs_error": float(sr - Decimal(str(observation["ilmn_target"]))) if observation["ilmn_target"] is not None else None,
+                "ont_abs_error": float(lr - Decimal(str(observation["ont_target"]))) if observation["ont_target"] is not None else None,
+                "coverage_source_ilmn": direct["sr_summary_s3_uri"],
+                "coverage_source_rsr": direct["rsr_summary_s3_uri"],
+                "coverage_source_ont": direct["lr_summary_s3_uri"],
+                "direct_s3_captured_at": direct["captured_at_utc"],
+                "evidence_captured_at": direct["captured_at_utc"],
+                "coverage_capture_method": "direct completed-export S3 read",
+                "snapshot_workflow_state": "completed export",
+                "snapshot_controller_rc": 0,
+                "benchmark_scope": "completed execution benchmark summary",
+            }
+        )
 
 
 def deduplicate(source_observations: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
@@ -454,19 +798,112 @@ def deduplicate(source_observations: list[dict[str, Any]]) -> tuple[list[dict[st
     return retained, resolutions, all_with_status
 
 
-def coverage_axes(observations: list[dict[str, Any]]) -> tuple[list[str], list[str]]:
-    y = sorted({row["ilmn_measured_token"] for row in observations}, key=Decimal)
-    x = sorted({row["ont_measured_token"] for row in observations}, key=Decimal)
-    return y, x
-
-
-def coordinate_groups(observations: list[dict[str, Any]]) -> dict[tuple[str, str], list[dict[str, Any]]]:
-    groups: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+def coordinate_groups(observations: list[dict[str, Any]]) -> dict[tuple[float, float], list[dict[str, Any]]]:
+    """Group only truly co-located native-SR×/LR× observations."""
+    groups: dict[tuple[float, float], list[dict[str, Any]]] = defaultdict(list)
     for row in observations:
-        groups[(row["ilmn_measured_token"], row["ont_measured_token"])].append(row)
+        groups[(float(row["ilmn_measured"]), float(row["ont_measured"]))].append(row)
     for members in groups.values():
         members.sort(key=lambda row: (row["experiment"], AU_INDEX[row["au"]]))
     return groups
+
+
+def coordinate_label_offsets(coordinates: Iterable[tuple[float, float]]) -> dict[tuple[float, float], tuple[float, float]]:
+    """Nudge labels inside near-touching circles without moving data points."""
+    ordered = sorted(set(coordinates))
+    offsets = {coordinate: (0.0, 0.0) for coordinate in ordered}
+    claimed: set[tuple[float, float]] = set()
+    for index, first in enumerate(ordered):
+        if first in claimed:
+            continue
+        for second in ordered[index + 1 :]:
+            if second in claimed:
+                continue
+            first_sr, first_lr = first
+            second_sr, second_lr = second
+            delta_x = second_lr - first_lr
+            delta_y = second_sr - first_sr
+            distance = math.hypot(delta_x, delta_y)
+            if not 0 < distance < 0.8:
+                continue
+            # Offset perpendicular to the line connecting the exact centers.
+            # A 0.18× displacement remains within the 600 pt² circles but
+            # separates labels at the E1 0.57×/1.16× LR pair.
+            perpendicular_x = -delta_y / distance
+            perpendicular_y = delta_x / distance
+            amount = 0.18
+            offsets[first] = (-perpendicular_x * amount, -perpendicular_y * amount)
+            offsets[second] = (perpendicular_x * amount, perpendicular_y * amount)
+            claimed.update((first, second))
+            break
+    return offsets
+
+
+def configure_coverage_axes(ax: Any, observations: list[dict[str, Any]]) -> None:
+    """Use a true numeric, equally scaled native-SR×/LR× coordinate system."""
+    x_values = sorted({float(row["ont_measured"]) for row in observations})
+    y_values = sorted({float(row["ilmn_measured"]) for row in observations})
+    x_margin = max(0.6, (max(x_values) - min(x_values)) * 0.07)
+    y_margin = max(0.8, (max(y_values) - min(y_values)) * 0.05)
+    ax.set_xlim(min(x_values) - x_margin, max(x_values) + x_margin)
+    ax.set_ylim(min(y_values) - y_margin, max(y_values) + y_margin)
+    # Regular numeric ticks keep close measured values (for example 10.81× and
+    # 10.97× native SR) from producing illegible overlapping tick labels. The
+    # points remain at their exact unrounded coordinates and the exact values
+    # are preserved in the linked TSVs and report sanity table.
+    x_step = 2.5 if max(x_values) <= 25 else 5.0
+    y_step = 5.0
+    x_ticks = np.arange(0.0, math.ceil((max(x_values) + x_margin) / x_step) * x_step + x_step / 2, x_step)
+    y_ticks = np.arange(0.0, math.ceil((max(y_values) + y_margin) / y_step) * y_step + y_step / 2, y_step)
+    ax.set_xticks(x_ticks, [f"{value:g}×" for value in x_ticks], rotation=35, ha="right")
+    ax.set_yticks(y_ticks, [f"{value:g}×" for value in y_ticks])
+    ax.tick_params(axis="both", labelsize=heatmap_font_size(11))
+    ax.set_xlabel("Measured ONT LR coverage (Mosdepth total mean)", fontsize=heatmap_font_size(14))
+    ax.set_ylabel("Measured Illumina native SR coverage (Mosdepth total mean)", fontsize=heatmap_font_size(14))
+    ax.set_aspect("equal", adjustable="box")
+    ax.grid(color="#d6d9de", linewidth=0.65, alpha=0.85)
+    ax.set_axisbelow(True)
+
+
+def overlay_coordinate_density(ax: Any, observations: list[dict[str, Any]]) -> None:
+    """Overlay observed-AU coordinate density without interpolating any metric.
+
+    The dashed contours are a fixed-bandwidth two-dimensional kernel density
+    estimate over individual retained AU coordinates. Co-located AUs each
+    contribute one kernel, so the contour reflects observation density rather
+    than the color-mapped quality metric. This intentionally does not infer a
+    metric value for any unobserved coverage coordinate.
+    """
+    if len(observations) < 2:
+        return
+    x_values = np.array([float(row["ont_measured"]) for row in observations], dtype=float)
+    y_values = np.array([float(row["ilmn_measured"]) for row in observations], dtype=float)
+    x_grid = np.linspace(*ax.get_xlim(), DENSITY_GRID_SIZE)
+    y_grid = np.linspace(*ax.get_ylim(), DENSITY_GRID_SIZE)
+    x_mesh, y_mesh = np.meshgrid(x_grid, y_grid)
+    density = np.zeros_like(x_mesh)
+    for x_value, y_value in zip(x_values, y_values):
+        density += np.exp(
+            -0.5
+            * (
+                ((x_mesh - x_value) / DENSITY_KERNEL_BANDWIDTH_X) ** 2
+                + ((y_mesh - y_value) / DENSITY_KERNEL_BANDWIDTH_Y) ** 2
+            )
+        )
+    peak = float(np.max(density))
+    if not math.isfinite(peak) or peak <= 0:
+        return
+    ax.contour(
+        x_mesh,
+        y_mesh,
+        density,
+        levels=[peak * fraction for fraction in (0.20, 0.45, 0.70)],
+        colors="#374151",
+        linewidths=0.8,
+        linestyles="--",
+        alpha=0.52,
+        zorder=3.5,
+    )
 
 
 def save_figure(fig: plt.Figure, path: Path) -> None:
@@ -475,58 +912,50 @@ def save_figure(fig: plt.Figure, path: Path) -> None:
     plt.close(fig)
 
 
-def coverage_grid(observations: list[dict[str, Any]], figures: Path, tables: Path, chart_map: list[dict[str, str]]) -> list[list[str]]:
-    y_values, x_values = coverage_axes(observations)
-    y_index = {value: index for index, value in enumerate(y_values)}
-    x_index = {value: index for index, value in enumerate(x_values)}
+def coverage_grid(observations: list[dict[str, Any]], figures: Path, tables: Path, chart_map: list[dict[str, str]]) -> None:
     groups = coordinate_groups(observations)
-    matrix = np.full((len(y_values), len(x_values)), np.nan)
-    for y, x in groups:
-        matrix[y_index[y], x_index[x]] = 1
-
-    cmap = LinearSegmentedColormap.from_list("coverage", ["#e8f1f8", "#3977a8"])
-    cmap.set_bad("#f0f1f2")
-    fig, ax = plt.subplots(figsize=(max(13, len(x_values) * 1.4), max(9, len(y_values) * 0.72)), constrained_layout=True)
-    ax.imshow(matrix, origin="lower", aspect="auto", cmap=cmap, vmin=0, vmax=1, alpha=0.8)
-    ax.set_title("Combined measured-coverage availability grid", pad=15)
-    ax.set_xlabel("Measured ONT coverage (Mosdepth total mean)")
-    ax.set_ylabel("Measured Illumina coverage (Mosdepth total mean)")
-    ax.set_xticks(range(len(x_values)), [f"{value}x" for value in x_values], rotation=35, ha="right")
-    ax.set_yticks(range(len(y_values)), [f"{value}x" for value in y_values])
-    ax.set_xticks(np.arange(-0.5, len(x_values), 1), minor=True)
-    ax.set_yticks(np.arange(-0.5, len(y_values), 1), minor=True)
-    ax.grid(which="minor", color="white", linewidth=1.7)
-    ax.tick_params(which="minor", bottom=False, left=False)
-    for row_index in range(len(y_values)):
-        for col_index in range(len(x_values)):
-            key = (y_values[row_index], x_values[col_index])
-            label = "\n".join(member["plot_label"] for member in groups.get(key, [])) or "—"
-            ax.text(col_index, row_index, label, ha="center", va="center", fontsize=10.5, color="black", fontweight="normal")
+    label_offsets = coordinate_label_offsets(groups)
+    fig, ax = plt.subplots(figsize=(11.5, 20), constrained_layout=True)
+    configure_coverage_axes(ax, observations)
+    ax.set_title("Measured native-SR × LR coverage availability", pad=14, fontsize=heatmap_font_size(17))
+    for (sr, lr), members in sorted(groups.items()):
+        ax.scatter(lr, sr, marker="o", s=CIRCLE_MARKER_AREA, facecolor="#dbeaf4", edgecolors="none", linewidths=0, zorder=3)
+    overlay_coordinate_density(ax, observations)
+    for (sr, lr), members in sorted(groups.items()):
+        offset_x, offset_y = label_offsets[(sr, lr)]
+        ax.text(lr + offset_x, sr + offset_y, f"n={len(members)}", ha="center", va="center", fontsize=heatmap_font_size(CIRCLE_LABEL_FONTSIZE), color="#111827", zorder=4)
+    ax.text(
+        0.02,
+        0.015,
+        "Circle centers use equal-scale numeric axes. In-circle n is the retained-observation count; dashed contours are AU-coordinate density, not an inferred metric surface.",
+        transform=ax.transAxes,
+        ha="left",
+        va="bottom",
+        fontsize=heatmap_font_size(8.5),
+        color="#374151",
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": "#9ca3af", "alpha": 0.92, "linewidth": 0.6},
+    )
     output = figures / "combined_measured_coverage_grid.png"
     save_figure(fig, output)
     chart_map.append(
         {
             "figure": output.name,
             "chart_type": "heatmap",
-            "title": "Combined measured-coverage availability grid",
+            "title": "Measured native-SR × LR coverage availability",
             "source_table": "coverage_grid.tsv",
             "metric": "retained observation occupancy",
         }
     )
-
-    wide_rows: list[dict[str, str]] = []
-    markdown_rows: list[list[str]] = []
-    for y in reversed(y_values):
-        row = {"ilmn_measured": y}
-        markdown_row = [f"{y}x"]
-        for x in x_values:
-            cell = "; ".join(member["plot_label"] for member in groups.get((y, x), [])) or "—"
-            row[f"ont_{x}x"] = cell
-            markdown_row.append(cell)
-        wide_rows.append(row)
-        markdown_rows.append(markdown_row)
-    write_tsv(tables / "coverage_grid.tsv", wide_rows, ["ilmn_measured"] + [f"ont_{x}x" for x in x_values])
-    return [["ILMN \\ ONT"] + [f"{x}x" for x in x_values]] + markdown_rows
+    coordinate_rows = [
+        {
+            "measured_native_sr_ilmn_x": f"{sr:g}",
+            "measured_lr_ont_x": f"{lr:g}",
+            "retained_observation_count": str(len(members)),
+            "observations": "; ".join(member["plot_label"] for member in members),
+        }
+        for (sr, lr), members in sorted(groups.items())
+    ]
+    write_tsv(tables / "coverage_grid.tsv", coordinate_rows, ["measured_native_sr_ilmn_x", "measured_lr_ont_x", "retained_observation_count", "observations"])
 
 
 def plot_metric_heatmap(
@@ -542,27 +971,20 @@ def plot_metric_heatmap(
     source_table: str,
     chart_map: list[dict[str, str]],
 ) -> None:
-    y_values, x_values = coverage_axes(observations)
-    y_index = {value: index for index, value in enumerate(y_values)}
-    x_index = {value: index for index, value in enumerate(x_values)}
     by_observation = {row["observation_id"]: row for row in metric_rows}
     groups = coordinate_groups(observations)
-    matrix = np.full((len(y_values), len(x_values)), np.nan)
-    annotations: dict[tuple[str, str], list[str]] = {}
+    label_offsets = coordinate_label_offsets(groups)
+    values_by_coordinate: dict[tuple[float, float], list[float]] = {}
     for key, members in groups.items():
         values: list[float] = []
-        labels: list[str] = []
         for member in members:
             row = by_observation.get(member["observation_id"])
             value = number(row.get(value_field)) if row else None
-            labels.append(f"{member['plot_label']} {value_format.format(value) if value is not None else 'NA'}")
             if value is not None:
                 values.append(value)
-        annotations[key] = labels
-        if values:
-            matrix[y_index[key[0]], x_index[key[1]]] = float(np.mean(values))
+        values_by_coordinate[key] = values
 
-    valid = matrix[~np.isnan(matrix)]
+    valid = np.array([value for values in values_by_coordinate.values() for value in values], dtype=float)
     if not len(valid):
         raise ValueError(f"no numeric values for heatmap {filename}")
     vmin, vmax = float(valid.min()), float(valid.max())
@@ -571,22 +993,42 @@ def plot_metric_heatmap(
         vmax += 0.5 if value_field in {"fn", "fp"} else 0.01
     cmap = plt.get_cmap(cmap_name).copy()
     cmap.set_bad("#f0f1f2")
-    fig, ax = plt.subplots(figsize=(max(14, len(x_values) * 1.55), max(9, len(y_values) * 0.8)), constrained_layout=True)
-    image = ax.imshow(matrix, origin="lower", aspect="auto", cmap=cmap, vmin=vmin, vmax=vmax, alpha=0.8)
-    ax.set_title(title, pad=15)
-    ax.set_xlabel("Measured ONT coverage (Mosdepth total mean)")
-    ax.set_ylabel("Measured Illumina coverage (Mosdepth total mean)")
-    ax.set_xticks(range(len(x_values)), [f"{value}x" for value in x_values], rotation=35, ha="right")
-    ax.set_yticks(range(len(y_values)), [f"{value}x" for value in y_values])
-    ax.set_xticks(np.arange(-0.5, len(x_values), 1), minor=True)
-    ax.set_yticks(np.arange(-0.5, len(y_values), 1), minor=True)
-    ax.grid(which="minor", color="white", linewidth=1.7)
-    ax.tick_params(which="minor", bottom=False, left=False)
-    for y, x in groups:
-        label = "\n".join(annotations[(y, x)])
-        ax.text(x_index[x], y_index[y], label, ha="center", va="center", fontsize=9.2, color="black", fontweight="normal")
-    bar = fig.colorbar(image, ax=ax, shrink=0.85)
-    bar.set_label(cbar_label)
+    fig, ax = plt.subplots(figsize=(12.5, 20), constrained_layout=True)
+    configure_coverage_axes(ax, observations)
+    ax.set_title(f"{title} — numeric native-SR × LR coordinates", pad=14, fontsize=heatmap_font_size(17))
+    colored_x: list[float] = []
+    colored_y: list[float] = []
+    colored_values: list[float] = []
+    for (sr, lr), values in values_by_coordinate.items():
+        if values:
+            colored_x.append(lr)
+            colored_y.append(sr)
+            colored_values.append(float(np.mean(values)))
+        else:
+            ax.scatter(lr, sr, marker="o", s=CIRCLE_MARKER_AREA, facecolor="#f0f1f2", edgecolors="none", linewidths=0, zorder=3)
+    image = ax.scatter(colored_x, colored_y, c=colored_values, marker="o", s=CIRCLE_MARKER_AREA, cmap=cmap, vmin=vmin, vmax=vmax, edgecolors="none", linewidths=0, alpha=0.9, zorder=3)
+    overlay_coordinate_density(ax, observations)
+    for (sr, lr), values in sorted(values_by_coordinate.items()):
+        offset_x, offset_y = label_offsets[(sr, lr)]
+        if values:
+            value = float(np.mean(values))
+            ax.text(lr + offset_x, sr + offset_y, value_format.format(value), ha="center", va="center", fontsize=heatmap_font_size(CIRCLE_LABEL_FONTSIZE), color=marker_label_color(cmap, image.norm, value), zorder=4)
+        else:
+            ax.text(lr + offset_x, sr + offset_y, "NA", ha="center", va="center", fontsize=heatmap_font_size(CIRCLE_LABEL_FONTSIZE), color="#4b5563", zorder=4)
+    ax.text(
+        0.02,
+        0.015,
+        "Dashed contours = 2D density of retained AU coordinates, independent of metric color; no metric is interpolated into blank space.",
+        transform=ax.transAxes,
+        ha="left",
+        va="bottom",
+        fontsize=heatmap_font_size(8.0),
+        color="#374151",
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": "#9ca3af", "alpha": 0.92, "linewidth": 0.6},
+        zorder=5,
+    )
+    bar = fig.colorbar(image, ax=ax, shrink=0.76, pad=0.02)
+    style_heatmap_colorbar(bar, cbar_label)
     output = figures / filename
     save_figure(fig, output)
     chart_map.append({"figure": filename, "chart_type": "heatmap", "title": title, "source_table": source_table, "metric": value_field})
@@ -661,28 +1103,30 @@ def hard_vcf_plots(observations: list[dict[str, Any]], rows: list[dict[str, Any]
                 chart_map,
             )
 
-        fig, ax = plt.subplots(figsize=(11.5, 8.5), constrained_layout=True)
-        plotted_points: list[dict[str, Any]] = []
-        for experiment in EXPERIMENTS:
-            points = [row for row in subset if row["experiment"] == experiment and row["precision"] is not None and row["recall"] is not None]
-            plotted_points.extend(points)
-            ax.scatter(
-                [row["recall"] for row in points],
-                [row["precision"] for row in points],
-                s=88,
-                marker=EXPERIMENT_MARKERS[experiment],
-                color=EXPERIMENT_COLORS[experiment],
-                edgecolor="#20242a",
-                linewidth=0.6,
-                alpha=0.88,
-                label=EXPERIMENTS[experiment]["title"],
-            )
-        annotate_side_labels(ax, plotted_points, "recall", "precision", lambda row: f"{row['plot_label']}  F={row['fscore']:.4f}", 7.8)
+        fig, ax = plt.subplots(figsize=(15, 10), constrained_layout=True)
+        plotted_points = [row for row in subset if row["precision"] is not None and row["recall"] is not None]
+        ax.scatter(
+            [row["recall"] for row in plotted_points],
+            [row["precision"] for row in plotted_points],
+            s=88,
+            marker="o",
+            color="#315f88",
+            edgecolor="#20242a",
+            linewidth=0.6,
+            alpha=0.82,
+        )
+        annotate_point_labels(
+            ax,
+            plotted_points,
+            "recall",
+            "precision",
+            coverage_group_label,
+            7.0,
+        )
         ax.set_title(f"Combined hard-VCF GIAB-HC {title_class}: precision versus recall")
         ax.set_xlabel("Recall")
         ax.set_ylabel("Precision")
         ax.grid(alpha=0.25)
-        fig.legend(loc="outside lower center", ncol=3, fontsize=8.5)
         output = figures / f"hard_vcf_giabhc_{token}_precision_recall.png"
         save_figure(fig, output)
         chart_map.append({"figure": output.name, "chart_type": "scatter", "title": ax.get_title(), "source_table": "hard_vcf_giabhc_metrics.tsv", "metric": "precision versus recall"})
@@ -737,53 +1181,157 @@ def truvari_plots(observations: list[dict[str, Any]], rows: list[dict[str, Any]]
     ):
         plot_metric_heatmap(observations, trussv, metric, title, filename, "{:.4f}", cmap, cbar, figures, "truvari_metrics.tsv", chart_map)
 
-    callers = sorted({row["caller"] for row in rows})
-    fig, axes = plt.subplots(2, 2, figsize=(17, 13), constrained_layout=True, sharex=True, sharey=True)
-    for ax, caller in zip(axes.ravel(), callers):
-        color, marker = CALLER_STYLES.get(caller, ("#555555", "o"))
-        plotted_points: list[dict[str, Any]] = []
-        for experiment in EXPERIMENTS:
-            points = [row for row in rows if row["caller"] == caller and row["experiment"] == experiment and number(row["precision"]) is not None and number(row["recall"]) is not None]
-            if not points:
-                continue
-            plotted_points.extend(points)
-            face = {
-                "E1": "none",
-                "E2": "white",
-                "E3": "#777777",
-                "P1": EXPERIMENT_COLORS["P1"],
-            }[experiment]
-            ax.scatter(
-                [row["recall"] for row in points],
-                [row["precision"] for row in points],
-                s=70,
-                marker=marker,
-                facecolors=face,
-                edgecolors=color,
-                linewidth=1.2,
-                alpha=0.9,
-            )
-        annotate_side_labels(ax, plotted_points, "recall", "precision", lambda row: f"{row['plot_label']}  F={fmt(row['fscore'], 3)}", 6.4)
-        ax.set_title(caller)
-        ax.set_xlabel("Recall")
-        ax.set_ylabel("Precision")
-        ax.set_xlim(-0.02, 1.02)
-        ax.set_ylim(-0.02, 1.02)
-        ax.grid(alpha=0.22)
-    legend_handles = [Line2D([0], [0], marker=CALLER_STYLES.get(caller, ("", "o"))[1], color="none", markerfacecolor=CALLER_STYLES.get(caller, ("#555", "o"))[0], markeredgecolor=CALLER_STYLES.get(caller, ("#555", "o"))[0], markersize=8, label=caller) for caller in callers]
-    legend_handles.extend(
-        [
-            Line2D([0], [0], marker="o", color="none", markerfacecolor="none", markeredgecolor="#444", label="E1 open markers"),
-            Line2D([0], [0], marker="o", color="none", markerfacecolor="white", markeredgecolor="#444", label="E2 white markers"),
-            Line2D([0], [0], marker="o", color="none", markerfacecolor="#777", markeredgecolor="#444", label="E3 filled markers"),
-            Line2D([0], [0], marker="o", color="none", markerfacecolor=EXPERIMENT_COLORS["P1"], markeredgecolor="#444", label="P1 purple markers"),
-        ]
+    plotted_points = [
+        row
+        for row in rows
+        if number(row["precision"]) is not None
+        and number(row["recall"]) is not None
+        and number(row["ilmn_measured_token"]) is not None
+        and number(row["ont_measured_token"]) is not None
+    ]
+    callers = sorted({row["caller"] for row in plotted_points})
+    coverage_values = [float(row["ilmn_measured_token"]) + float(row["ont_measured_token"]) for row in plotted_points]
+    coverage_norm = Normalize(vmin=min(coverage_values), vmax=max(coverage_values))
+    coverage_cmap = LinearSegmentedColormap.from_list(
+        "measured_total_coverage",
+        ["#f6d746", "#f28e2b", "#9b4f96", "#173f5f"],
     )
-    fig.legend(handles=legend_handles, fontsize=10, ncol=6, loc="outside lower center")
-    fig.suptitle("Combined Truvari precision versus recall: solo callers and TrussSV", fontsize=19)
+    fig, ax = plt.subplots(figsize=(21, 17), constrained_layout=True)
+    for caller in callers:
+        marker = CALLER_STYLES.get(caller, ("#555555", "o"))[1]
+        points = [row for row in plotted_points if row["caller"] == caller]
+        ax.scatter(
+            [row["recall"] for row in points],
+            [row["precision"] for row in points],
+            c=[float(row["ilmn_measured_token"]) + float(row["ont_measured_token"]) for row in points],
+            cmap=coverage_cmap,
+            norm=coverage_norm,
+            s=82,
+            marker=marker,
+            edgecolors="#20242a",
+            linewidth=0.7,
+            alpha=0.82,
+            label=caller,
+        )
+    sv_annotations = annotate_point_labels(
+        ax,
+        plotted_points,
+        "recall",
+        "precision",
+        lambda group: "F=" + fmt(group[0]["fscore"], 3),
+        13.77,
+        offset_scale=2.2,
+    )
+    ax.set_xlabel("Recall", fontsize=47.6)
+    ax.set_ylabel("Precision", fontsize=47.6)
+    ax.tick_params(axis="both", labelsize=37.4)
+    ax.margins(x=0.055, y=0.08)
+    ax.grid(alpha=0.22)
+    legend_handles = [Line2D([0], [0], marker=CALLER_STYLES.get(caller, ("", "o"))[1], color="none", markerfacecolor="#6b7280", markeredgecolor="#20242a", markersize=8, label=caller) for caller in callers]
+    ax.legend(handles=legend_handles, fontsize=17, ncol=4, loc="upper center", bbox_to_anchor=(0.5, -0.12))
+    coverage_mappable = matplotlib.cm.ScalarMappable(norm=coverage_norm, cmap=coverage_cmap)
+    coverage_bar = fig.colorbar(coverage_mappable, ax=ax, shrink=0.76, pad=0.025)
+    coverage_bar.set_label("Measured coverage (ILMN SRx + ONTx)", fontsize=28)
+    coverage_bar.ax.tick_params(labelsize=24)
+    ax.set_title("Structural-variant precision versus recall — all callers", fontsize=68)
+    relax_annotation_collisions(fig, ax, sv_annotations, iterations=200)
     output = figures / "truvari_all_callers_precision_recall.png"
     save_figure(fig, output)
-    chart_map.append({"figure": output.name, "chart_type": "faceted scatter", "title": "Combined Truvari precision versus recall: solo callers and TrussSV", "source_table": "truvari_metrics.tsv", "metric": "precision versus recall"})
+    chart_map.append({"figure": output.name, "chart_type": "scatter", "title": "Structural-variant precision versus recall — all callers", "source_table": "truvari_metrics.tsv", "metric": "precision versus recall"})
+
+    scored_rows = [
+        row
+        for row in rows
+        if number(row["fscore"]) is not None
+        and number(row["ilmn_measured_token"]) is not None
+        and number(row["ont_measured_token"]) is not None
+    ]
+    highest_pair = max(
+        (float(row["ilmn_measured_token"]), float(row["ont_measured_token"]))
+        for row in scored_rows
+    )
+    highest_rows = [
+        row
+        for row in scored_rows
+        if (float(row["ilmn_measured_token"]), float(row["ont_measured_token"])) == highest_pair
+    ]
+    expected_callers = {"LongReadSV", "Sniffles2", "TIDDIT", "TrussSV"}
+    if len(highest_rows) != 4 or {row["caller"] for row in highest_rows} != expected_callers:
+        raise ValueError(
+            "Highest measured ILMN-SR/ONT coverage pair must contain exactly one F-score for each SV caller"
+        )
+    technology = {
+        "TIDDIT": "SHORT READ",
+        "LongReadSV": "LONG READ",
+        "Sniffles2": "LONG READ",
+        "TrussSV": "ENSEMBLE",
+    }
+    caller_order = ["Sniffles2", "LongReadSV", "TrussSV", "TIDDIT"]
+    highest_by_caller = {row["caller"]: row for row in highest_rows}
+    fig, ax = plt.subplots(figsize=(11, 10), constrained_layout=True)
+    legend_handles: list[Any] = []
+    for caller in caller_order:
+        row = highest_by_caller[caller]
+        color, marker = CALLER_STYLES[caller]
+        fscore = float(row["fscore"])
+        precision = float(row["precision"])
+        recall = float(row["recall"])
+        ax.scatter(
+            recall,
+            precision,
+            s=340,
+            marker=marker,
+            facecolor=color,
+            edgecolor="#20242a",
+            linewidth=1.2,
+            zorder=3,
+        )
+        ax.annotate(
+            f"F={fscore:.4f}",
+            (recall, precision),
+            xytext=(13, 10),
+            textcoords="offset points",
+            va="bottom",
+            fontsize=18,
+            color="#111827",
+        )
+        legend_handles.append(
+            Line2D(
+                [0],
+                [0],
+                marker=marker,
+                color="none",
+                markerfacecolor=color,
+                markeredgecolor="#20242a",
+                markersize=12,
+                label=f"{caller} — {technology[caller]}",
+            )
+        )
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.set_aspect("equal", adjustable="box")
+    ax.set_xlabel("Recall", fontsize=19)
+    ax.set_ylabel("Precision", fontsize=19)
+    ax.tick_params(axis="both", labelsize=15)
+    ax.grid(alpha=0.22)
+    ax.legend(handles=legend_handles, fontsize=13, ncol=2, loc="upper center", bbox_to_anchor=(0.5, -0.10))
+    ax.set_title(
+        "Highest-coverage SV precision versus recall\n"
+        f"HG002 — {highest_pair[0]:g}× ILMN SR / {highest_pair[1]:g}× ONT",
+        fontsize=24,
+        pad=18,
+    )
+    output = figures / "truvari_highest_coverage_caller_fscore.png"
+    save_figure(fig, output)
+    chart_map.append(
+        {
+            "figure": output.name,
+            "chart_type": "scatter",
+            "title": "Highest-coverage SV precision versus recall",
+            "source_table": "truvari_metrics.tsv",
+            "metric": "precision versus recall with F-score labels at maximum measured ILMN-SR/ONT coverage",
+        }
+    )
 
 
 def coverage_plots(observations: list[dict[str, Any]], figures: Path, chart_map: list[dict[str, str]]) -> None:
@@ -914,56 +1462,112 @@ def call_tables_and_plots(observations: list[dict[str, Any]], figures: Path, cha
                     )
 
     obs_order = sorted(observations, key=lambda row: (row["ilmn_measured"], row["ont_measured"], row["experiment"], AU_INDEX[row["au"]]))
+    groups = coordinate_groups(observations)
+    label_offsets = coordinate_label_offsets(groups)
     summary: dict[tuple[str, str], tuple[int, int]] = {}
     for observation in obs_order:
         for gene in gene_order:
             calls = [row for row in segdup_rows if row["observation_id"] == observation["observation_id"] and row["gene"] == gene and row["call_state"] == "non_reference_call"]
             summary[(observation["observation_id"], gene)] = (sum(row["filter"] == "PASS" for row in calls), sum(row["filter"] != "PASS" for row in calls))
-    matrix = np.array([[sum(summary[(obs["observation_id"], gene)]) for obs in obs_order] for gene in gene_order], dtype=float)
     cmap = LinearSegmentedColormap.from_list("segdup", ["#f0f1f2", "#c5daea", "#3977a8", "#213f5a"])
-    fig, ax = plt.subplots(figsize=(max(16, len(obs_order) * 1.0), max(7, len(gene_order) * 0.5)), constrained_layout=True)
-    image = ax.imshow(matrix, cmap=cmap, aspect="auto", vmin=0, vmax=max(1, matrix.max()), alpha=0.8)
-    ax.set_title("Combined SegDup non-reference calls by retained observation")
-    ax.set_xticks(range(len(obs_order)), [obs["plot_label"] for obs in obs_order], rotation=40, ha="right")
-    ax.set_yticks(range(len(gene_order)), gene_order)
-    ax.set_xlabel("Retained experiment:AU observation")
-    ax.set_ylabel("SegDup gene")
-    for row_index, gene in enumerate(gene_order):
-        for col_index, observation in enumerate(obs_order):
-            passed, failed = summary[(observation["observation_id"], gene)]
-            label = "NA" if passed + failed == 0 else (f"P{passed}" if failed == 0 else f"P{passed}/F{failed}")
-            ax.text(col_index, row_index, label, ha="center", va="center", fontsize=7.2, color="black")
-    bar = fig.colorbar(image, ax=ax, shrink=0.85)
-    bar.set_label("Non-reference VCF record count")
+    maximum_calls = max(1, max(sum(summary[(obs["observation_id"], gene)]) for obs in obs_order for gene in gene_order))
+    ncols = min(2, len(gene_order))
+    nrows = math.ceil(len(gene_order) / ncols)
+    fig, axes = plt.subplots(nrows, ncols, figsize=(18, max(12, nrows * 13)), constrained_layout=True)
+    axes = np.atleast_1d(axes).ravel()
+    image = None
+    for ax, gene in zip(axes, gene_order):
+        configure_coverage_axes(ax, observations)
+        ax.set_title(f"{gene}: non-reference SegDup calls", fontsize=heatmap_font_size(12))
+        coordinates = sorted(groups)
+        counts = [
+            float(np.mean([sum(summary[(observation["observation_id"], gene)]) for observation in groups[coordinate]]))
+            for coordinate in coordinates
+        ]
+        image = ax.scatter(
+            [lr for _, lr in coordinates],
+            [sr for sr, _ in coordinates],
+            c=counts,
+            marker="o",
+            s=CIRCLE_MARKER_AREA,
+            cmap=cmap,
+            vmin=0,
+            vmax=maximum_calls,
+            edgecolors="none",
+            linewidths=0,
+            alpha=0.9,
+            zorder=3,
+        )
+        overlay_coordinate_density(ax, observations)
+        for (sr, lr), count in zip(coordinates, counts):
+            offset_x, offset_y = label_offsets[(sr, lr)]
+            ax.text(lr + offset_x, sr + offset_y, f"{count:g}", ha="center", va="center", fontsize=heatmap_font_size(CIRCLE_LABEL_FONTSIZE), color=marker_label_color(cmap, image.norm, count), zorder=4)
+    for ax in axes[len(gene_order):]:
+        ax.set_visible(False)
+    fig.suptitle("SegDup calls at measured native-SR × LR coordinates\nDashed contours = retained-AU coordinate density, not a metric interpolation", fontsize=heatmap_font_size(18))
+    if image is None:
+        raise AssertionError("SegDup numeric-coordinate heatmap has no panels")
+    bar = fig.colorbar(image, ax=list(axes[:len(gene_order)]), shrink=0.76, pad=0.02)
+    style_heatmap_colorbar(bar, "Non-reference VCF record count")
     output = figures / "segdup_call_heatmap.png"
     save_figure(fig, output)
-    chart_map.append({"figure": output.name, "chart_type": "heatmap", "title": ax.get_title(), "source_table": "segdup_calls.tsv", "metric": "non-reference record count"})
+    chart_map.append({"figure": output.name, "chart_type": "heatmap", "title": "SegDup calls at measured native-SR × LR coordinates", "source_table": "segdup_calls.tsv", "metric": "non-reference record count"})
 
     metrics = ["SMN1_CN", "SMN2_CN", "SMN2delta7_8_CN"]
     smn_by_obs = {row["observation_id"]: row for row in smn_rows}
-    smn_matrix = np.full((len(metrics), len(obs_order)), np.nan)
-    for row_index, metric in enumerate(metrics):
-        for col_index, observation in enumerate(obs_order):
-            value = number(smn_by_obs[observation["observation_id"]][metric])
-            if value is not None:
-                smn_matrix[row_index, col_index] = value
     smn_cmap = plt.get_cmap("YlGnBu").copy()
     smn_cmap.set_bad("#f0f1f2")
-    valid = smn_matrix[~np.isnan(smn_matrix)]
-    fig, ax = plt.subplots(figsize=(max(15, len(obs_order) * 0.95), 5.2), constrained_layout=True)
-    image = ax.imshow(smn_matrix, cmap=smn_cmap, aspect="auto", vmin=0, vmax=max(4, float(valid.max()) if len(valid) else 4), alpha=0.8)
-    ax.set_title("Combined SMN1/2 copy-number calls by retained observation")
-    ax.set_xticks(range(len(obs_order)), [obs["plot_label"] for obs in obs_order], rotation=40, ha="right")
-    ax.set_yticks(range(len(metrics)), ["SMN1 copy number", "SMN2 copy number", "SMN2 Δ7–8 copy number"])
-    for row_index, metric in enumerate(metrics):
-        for col_index, observation in enumerate(obs_order):
-            value = number(smn_by_obs[observation["observation_id"]][metric])
-            ax.text(col_index, row_index, "NA" if value is None else f"{value:g}", ha="center", va="center", fontsize=9, color="black")
-    bar = fig.colorbar(image, ax=ax, shrink=0.82)
-    bar.set_label("Copy-number call")
+    valid = [number(smn_by_obs[observation["observation_id"]][metric]) for metric in metrics for observation in obs_order]
+    valid = [value for value in valid if value is not None]
+    fig, axes = plt.subplots(1, len(metrics), figsize=(27, 18), constrained_layout=True)
+    image = None
+    labels = {"SMN1_CN": "SMN1 copy number", "SMN2_CN": "SMN2 copy number", "SMN2delta7_8_CN": "SMN2 Δ7–8 copy number"}
+    for ax, metric in zip(np.atleast_1d(axes).ravel(), metrics):
+        configure_coverage_axes(ax, observations)
+        ax.set_title(labels[metric], fontsize=heatmap_font_size(12))
+        coordinate_values = {
+            coordinate: [
+                value
+                for observation in members
+                if (value := number(smn_by_obs[observation["observation_id"]][metric])) is not None
+            ]
+            for coordinate, members in groups.items()
+        }
+        numeric_coordinates = [coordinate for coordinate in sorted(groups) if coordinate_values[coordinate]]
+        missing_coordinates = [coordinate for coordinate in sorted(groups) if not coordinate_values[coordinate]]
+        image = ax.scatter(
+            [lr for _, lr in numeric_coordinates],
+            [sr for sr, _ in numeric_coordinates],
+            c=[float(np.mean(coordinate_values[coordinate])) for coordinate in numeric_coordinates],
+            marker="o",
+            s=CIRCLE_MARKER_AREA,
+            cmap=smn_cmap,
+            vmin=0,
+            vmax=max(4, float(max(valid)) if valid else 4),
+            edgecolors="none",
+            linewidths=0,
+            alpha=0.9,
+            zorder=3,
+        )
+        for sr, lr in missing_coordinates:
+            ax.scatter(lr, sr, marker="o", s=CIRCLE_MARKER_AREA, facecolor="#f0f1f2", edgecolors="none", linewidths=0, zorder=3)
+        overlay_coordinate_density(ax, observations)
+        for sr, lr in missing_coordinates:
+            offset_x, offset_y = label_offsets[(sr, lr)]
+            ax.text(lr + offset_x, sr + offset_y, "NA", ha="center", va="center", fontsize=heatmap_font_size(CIRCLE_LABEL_FONTSIZE), color="#4b5563", zorder=4)
+        for coordinate in numeric_coordinates:
+            value = float(np.mean(coordinate_values[coordinate]))
+            sr, lr = coordinate
+            offset_x, offset_y = label_offsets[coordinate]
+            ax.text(lr + offset_x, sr + offset_y, f"{value:g}", ha="center", va="center", fontsize=heatmap_font_size(CIRCLE_LABEL_FONTSIZE), color=marker_label_color(smn_cmap, image.norm, value), zorder=4)
+    fig.suptitle("SMN copy-number calls at measured native-SR × LR coordinates\nDashed contours = retained-AU coordinate density, not a metric interpolation", fontsize=heatmap_font_size(18))
+    if image is None:
+        raise AssertionError("SMN numeric-coordinate heatmap has no panels")
+    bar = fig.colorbar(image, ax=list(np.atleast_1d(axes).ravel()), shrink=0.74, pad=0.02)
+    style_heatmap_colorbar(bar, "Copy-number call")
     output = figures / "smn12_copy_number_heatmap.png"
     save_figure(fig, output)
-    chart_map.append({"figure": output.name, "chart_type": "heatmap", "title": ax.get_title(), "source_table": "smn12_calls.tsv", "metric": "SMN1 SMN2 copy number"})
+    chart_map.append({"figure": output.name, "chart_type": "heatmap", "title": "SMN copy-number calls at measured native-SR × LR coordinates", "source_table": "smn12_calls.tsv", "metric": "SMN1 SMN2 copy number"})
     return segdup_rows, smn_rows
 
 
@@ -1028,6 +1632,7 @@ def benchmark_data(observations: list[dict[str, Any]]) -> tuple[list[dict[str, A
                     "total_cost_usd": sum(priced_costs),
                     "allocated_vcpu_h": sum(allocated_vcpu_values),
                     "observed_cpu_h": sum(observed_cpu_values),
+                    "benchmark_scope": observation.get("benchmark_scope", "completed execution benchmark summary"),
                 }
             )
         intervals: list[tuple[datetime, datetime]] = []
@@ -1059,21 +1664,22 @@ def benchmark_data(observations: list[dict[str, Any]]) -> tuple[list[dict[str, A
                 "observed_makespan_h": ((max(end for _, end in intervals) - min(start for start, _ in intervals)).total_seconds() / 3600) if intervals else None,
                 "active_interval_union_h": interval_union_hours(intervals),
                 "longest_task_h": max(float(row["s"]) for row in raw_rows) / 3600,
+                "benchmark_scope": observation.get("benchmark_scope", "completed execution benchmark summary"),
             }
         )
     return task_rows, summary_rows
 
 
 def benchmark_plots(observations: list[dict[str, Any]], task_rows: list[dict[str, Any]], summary_rows: list[dict[str, Any]], figures: Path, chart_map: list[dict[str, str]]) -> None:
-    obs_order = sorted(observations, key=lambda row: (row["experiment"], AU_INDEX[row["au"]]))
+    obs_order = sorted(observations, key=lambda row: (EXPERIMENT_INDEX[row["experiment"]], AU_INDEX[row["au"]]))
     for metric, scale, xlabel, title, filename, color in (
         ("longest_walltime_s", 1 / 3600, "Longest successful execution (hours)", "Per-task walltime by retained observation", "benchmark_per_task_walltime.png", "#3977a8"),
         ("total_cost_usd", 1, "Total task-group cost (USD)", "Per-task cost by retained observation", "benchmark_per_task_cost.png", "#d0783d"),
     ):
-        ncols = 2
+        ncols = 4 if len(obs_order) > 16 else 2
         nrows = math.ceil(len(obs_order) / ncols)
-        fig, axes = plt.subplots(nrows, ncols, figsize=(18, max(14, nrows * 4.0)), constrained_layout=True)
-        axes = axes.ravel()
+        fig, axes = plt.subplots(nrows, ncols, figsize=(26 if ncols == 4 else 18, max(14, nrows * 4.0)), constrained_layout=True)
+        axes = np.atleast_1d(axes).ravel()
         for axis, observation in zip(axes, obs_order):
             subset = sorted([row for row in task_rows if row["observation_id"] == observation["observation_id"]], key=lambda row: row[metric], reverse=True)[:12]
             subset.reverse()
@@ -1091,10 +1697,10 @@ def benchmark_plots(observations: list[dict[str, Any]], task_rows: list[dict[str
         save_figure(fig, output)
         chart_map.append({"figure": output.name, "chart_type": "small-multiple bar", "title": title, "source_table": "benchmark_task_groups.tsv", "metric": metric})
 
-    summaries = sorted(summary_rows, key=lambda row: (row["experiment"], AU_INDEX[row["au"]]))
+    summaries = sorted(summary_rows, key=lambda row: (EXPERIMENT_INDEX[row["experiment"]], AU_INDEX[row["au"]]))
     labels = [row["plot_label"] for row in summaries]
     x = np.arange(len(labels))
-    fig, axes = plt.subplots(1, 3, figsize=(19, 6.5), constrained_layout=True)
+    fig, axes = plt.subplots(1, 3, figsize=(25 if len(labels) > 20 else 19, 8), constrained_layout=True)
     colors = [EXPERIMENT_COLORS[row["experiment"]] for row in summaries]
     axes[0].bar(x, [row["total_cost_usd"] for row in summaries], color=colors, edgecolor="#333", linewidth=0.4)
     axes[0].set_title("Total successful task cost")
@@ -1112,8 +1718,9 @@ def benchmark_plots(observations: list[dict[str, Any]], task_rows: list[dict[str
     axes[2].set_ylabel("Hours")
     axes[2].legend(fontsize=8)
     for axis in axes:
-        axis.set_xticks(x, labels, rotation=45, ha="right", fontsize=8)
+        axis.set_xticks(x, labels, rotation=60 if len(labels) > 20 else 45, ha="right", fontsize=7.2 if len(labels) > 20 else 8)
         axis.grid(axis="y", alpha=0.2)
+    fig.suptitle("Benchmark totals by retained observation (E4 values are an in-flight snapshot)", fontsize=17)
     output = figures / "benchmark_au_totals.png"
     save_figure(fig, output)
     chart_map.append({"figure": output.name, "chart_type": "grouped bar", "title": "Benchmark totals by retained observation", "source_table": "benchmark_au_totals.tsv", "metric": "cost CPU and duration"})
@@ -1133,89 +1740,140 @@ def build_report(
     report_path: Path,
     assets: Path,
     observations: list[dict[str, Any]],
-    coverage_markdown: list[list[str]],
     hard_rows: list[dict[str, Any]],
     truvari_rows: list[dict[str, Any]],
     smn_rows: list[dict[str, Any]],
     benchmark_summaries: list[dict[str, Any]],
-    duplicate_count: int,
 ) -> None:
     figures = assets / "figures"
     tables = assets / "tables"
     trussv = [row for row in truvari_rows if row["caller"] == "TrussSV" and number(row["fscore"]) is not None]
     best_trussv = max(trussv, key=lambda row: row["fscore"])
-    p1_observation = next(row for row in observations if row["experiment"] == "P1")
     costs = {row["observation_id"]: row["total_cost_usd"] for row in benchmark_summaries}
     total_cost_by_experiment = {
         experiment: sum(costs.get(row["observation_id"], 0.0) for row in observations if row["experiment"] == experiment)
         for experiment in EXPERIMENTS
     }
-    def target_text(row: dict[str, Any]) -> str:
-        if row["ilmn_target"] is None or row["ont_target"] is None:
-            return "No target"
-        return f"{row['ilmn_target']}x × {row['ont_target']}x"
-
+    ordered = sorted(observations, key=lambda row: (EXPERIMENT_INDEX[row["experiment"]], AU_INDEX[row["au"]]))
+    prior_observations = [row for row in observations if row["experiment"] != "E4"]
+    e4_observations = [row for row in observations if row["experiment"] == "E4"]
+    if len(prior_observations) != 12 or len(e4_observations) != 20:
+        raise ValueError("report requires 12 prior observations plus 20 E4 observations")
+    e4_compact = e4_observations[0]["compact_evidence"]
+    e4_capture_time = e4_compact["captured_at_end_utc"]
+    e4_workflow = e4_compact["workflow_status_end"]["attempts"][-1]
+    e4_benchmark_rejections = e4_compact["benchmark_rejections"]
+    e4_failed_benchmark_rows = sum("status=failed" in row["reason"] for row in e4_benchmark_rejections)
+    e4_invalid_success_rows = sum("invalid successful benchmark" in row["reason"] for row in e4_benchmark_rejections)
+    cost_parts = []
+    for experiment in EXPERIMENTS:
+        suffix = " (in-flight partial snapshot)" if experiment == "E4" else ""
+        cost_parts.append(f"**${total_cost_by_experiment[experiment]:,.2f}** for {experiment}{suffix}")
+    top_coverage_table = [
+        [
+            row["plot_label"],
+            "NA" if row["ilmn_target"] is None else f"{row['ilmn_target']:g}×",
+            f"{row['ilmn_measured_token']}×",
+            f"{row['rsr_measured_token']}×",
+            "NA" if row["ont_target"] is None else f"{row['ont_target']:g}×",
+            f"{row['ont_measured_token']}×",
+        ]
+        for row in ordered
+    ]
     observation_markdown = [
         [
             row["plot_label"],
-            target_text(row),
-            f"{row['ilmn_measured_token']}x × {row['ont_measured_token']}x",
-            str(row["subsample_pct"]),
+            f"{row['ilmn_measured_token']}×",
+            f"{row['rsr_measured_token']}×",
+            f"{row['ont_measured_token']}×",
             f"[{row['ont_start_hour']},{row['ont_end_hour']})",
             row["runtime_au"],
-            row["selection_status"],
         ]
-        for row in sorted(observations, key=lambda row: (row["experiment"], AU_INDEX[row["au"]]))
+        for row in ordered
+    ]
+    e4_completeness_markdown = [
+        [
+            row["plot_label"],
+            row["source_analysis_unit_uid"],
+            f"{row['ilmn_measured_token']}×",
+            f"{row['ont_measured_token']}×",
+            "complete",
+            "4/4",
+            "15/15",
+            "complete",
+            str(e4_compact["completeness"][row["runtime_au"]]["benchmark_success_rows"]),
+        ]
+        for row in sorted(e4_observations, key=lambda row: AU_INDEX[row["au"]])
     ]
 
     image = lambda name: f"![{name}]({relative_asset(report_path, figures / name)})"
     table_link = lambda name: f"[{name}]({relative_asset(report_path, tables / name)})"
     lines: list[str] = [
-        "# HG002 Bjuice measured-coverage matrix report",
+        "# HG002 Bjuice native-SR × LR measured-coverage matrix report",
+        "",
+        "## Measured-coverage sanity table",
+        "",
+        markdown_table(["ID", "target ILMNx", "SR ILMNx", "RSR ILMNx", "target ONTx", "LRONTx"], top_coverage_table),
+        "",
+        "This is the only report table that presents requested coverage targets. E1/E3/P1 values were re-read from three completed S3 exports; E4 values were read from the live FSx analysis root in a bounded DYEC snapshot. Every source path and SHA-256 is retained in " + table_link("direct_s3_coverage_regather.tsv") + " and " + table_link("source_inventory.tsv") + ".",
         "",
         "## Technical summary",
         "",
-        f"This report combines **{len(observations)} retained measured-coverage observations** from two HG002 downsampling experiments (E1/E2), a four-AU gap-fill experiment (E3), and the completed Bjuice v0.9 production full-coverage execution (P1). Exact duplicate identity is `(AU, measured ILMN, measured ONT)`; **{duplicate_count} older observation(s)** were superseded by the newest matching experiment. Experiment provenance remains visible as `E1:<AU>`, `E2:<AU>`, `E3:<AU>`, or `P1:fullcov` in every chart and table.",
+        f"This report contains **{len(observations)} observations**: all **12 prior E1/E3/P1 observations** plus **20 E4 controlled-matrix AUs** captured at **{e4_capture_time}**. E4 remained **{e4_workflow['state']}** with no controller, `day_run`, or Snakemake return code at capture, so E4 benchmark accounting is explicitly partial.",
         "",
-        f"All coverage coordinates in this report are source-reported measured Mosdepth totals—never nominal target coverage. P1 has no coverage target: its target and target-error fields are `NA`, while its measured coordinate is **{p1_observation['ilmn_measured_token']}× SR × {p1_observation['ont_measured_token']}× LR**. Its SR coordinate comes from native `sentdhiomr2sr/smd` Mosdepth, not `rsr`. The strongest retained TrussSV global F-score was **{best_trussv['fscore']:.4f}** at **{best_trussv['plot_label']}**. Successful benchmark task rows sum to " + ", ".join(f"**${total_cost_by_experiment[experiment]:,.2f}** for {experiment}" for experiment in EXPERIMENTS) + ".",
+        "Every coverage-positioned figure uses **measured native SR×** on its vertical axis and **measured LR×** on its horizontal axis, with equal numeric scale. RSR× is audit-only. The strongest retained tagged-TrussSV global F-score is **" + f"{best_trussv['fscore']:.4f}** at **{best_trussv['plot_label']}**. Captured successful benchmark rows sum to " + ", ".join(cost_parts) + ".",
         "",
-        "E1 completed its live rerun at `rc=0` on 2026-08-14; E2 completed the retained kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-16; and E3 completed the four-AU kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-17. P1 is the separately completed Bjuice v0.9 production execution 1 for HG002 with full Illumina and ONT `[0,24)` input. E1 coverage remains observational evidence only; E2 is the corrected re-downsampling experiment; E3 supplies gap-fill coverage observations; P1 is retained as a distinct no-target production observation.",
+        "E1 is **not a valid two-axis Illumina downsampling series**: every direct-S3 native-SR summary is exactly 43.73× (and has the same SHA-256), despite the AU-specific declared fractions. It is retained as a full-SR / variable-LR experiment. E3 supplies four variable-native-SR observations, P1 is a distinct full-input observation, and E4 supplies the intended 20-cell controlled matrix.",
         "",
-        "## Source S3 URIs",
+        "RSR is not a conventional random Illumina downsample. The E1 Sentieon hybrid log shows stage 3 running on a generated `hybrid_stage2.bed` interval set, followed by `hybrid_transfer` from the full SR alignment into `g_sr_realigned.cram`. Its retained-record fraction and Mosdepth therefore vary with the hybrid-selected regions and LR input. The 8.54–14.01× E1 RSR range is expected to differ from the uniform 43.73× native-SR evidence and must not form a coverage-matrix axis.",
+        "",
+        "## E4 in-flight snapshot completeness",
+        "",
+        f"All 20 E4 AUs supplied parseable native-SR, RSR-audit, LR, hard-VCF GIAB-HC, four-caller Truvari, SMN12, and 15-gene SegDup artifacts. Their measured native-SR range is **{min(row['ilmn_measured'] for row in e4_observations):g}×–{max(row['ilmn_measured'] for row in e4_observations):g}×** and measured LR range is **{min(row['ont_measured'] for row in e4_observations):g}×–{max(row['ont_measured'] for row in e4_observations):g}×**.",
+        "",
+        markdown_table(
+            ["E4 AU", "source AU", "native SR", "LR", "hard VCF", "Truvari", "SegDup", "SMN12", "usable benchmark rows"],
+            e4_completeness_markdown,
+        ),
+        "",
+        f"The E4 snapshot contains **{len(e4_compact['benchmarks']):,} usable successful raw benchmark rows**. Because the controller was still running, these are not final cost or runtime totals. The collector also retained an audit of **{e4_failed_benchmark_rows} failed-attempt rows** and excluded **{e4_invalid_success_rows} rows labelled successful whose walltime was `NA`**. Exact per-AU counts are in " + table_link("e4_snapshot_completeness.tsv") + ".",
+        "",
+        "## Source locations",
         "",
         markdown_table(["Source", "S3 URI"], [[label, f"`{uri}`"] for label, uri in SOURCE_S3_URIS]),
         "",
-        "The E3 and P1 sources are completed exported execution outputs. These exact source URIs are also available in " + table_link("source_s3_uris.tsv") + ".",
+        f"E4 live source at capture: `{e4_compact['analysis_root']}` (DayOA {e4_compact['dayoa_git']['exact_tag']} at `{e4_compact['dayoa_git']['commit']}`). The exact completed-export S3 roots and direct summary-file URIs are recorded in " + table_link("source_s3_uris.tsv") + " and " + table_link("direct_s3_coverage_regather.tsv") + "; E4 file hashes and paths are in " + table_link("source_inventory.tsv") + ".",
         "",
-        "## Where data exist: unified measured-coverage grid",
+        "## Measured native-SR × LR availability",
         "",
-        "Rows are measured Illumina coverage and columns are measured ONT coverage. The Markdown grid is shown from largest ILMN value at the top to smallest at the bottom, matching the plotted heatmap's smallest-at-bottom orientation. `—` is a true grid gap.",
-        "",
-        markdown_table(coverage_markdown[0], coverage_markdown[1:]),
+        "The circle centers below are placed at their actual numeric native-SR× and LR× values; x and y use the same coverage-unit scale. The in-circle value is the retained-observation count, and " + table_link("coverage_grid.tsv") + " lists the corresponding AU(s). Dashed contours show two-dimensional density of retained AU coordinates only; they do not interpolate any coverage or metric into blank space. This exposes E1 as a vertical full-SR series instead of falsely spreading it across nominal Illumina positions.",
         "",
         image("combined_measured_coverage_grid.png"),
         "",
         "### Retained observation provenance",
         "",
-        markdown_table(["Observation", "Coverage target", "Measured SR × LR", "SR fraction / mode", "ONT hours", "Runtime AU", "Selection"], observation_markdown),
+        markdown_table(["Observation", "measured SR ILMNx", "measured RSR ILMNx (audit only)", "measured LRONTx", "ONT hours", "Runtime AU"], observation_markdown),
         "",
-        "The full retained-observation table includes targets where they exist, exact measured SR/LR tokens, SR fraction or full-input mode, ONT windows, source paths, and selection status: " + table_link("retained_observations.tsv") + ".",
+        "The retained-observation table has native-SR, RSR, LR, source paths, and selection provenance without repeating the requested targets: " + table_link("retained_observations.tsv") + ".",
         "",
         "## Measured ONT coverage and runtime",
         "",
+        "This is descriptive aligned LR yield versus cumulative input runtime. It uses measured LR× only; the lines connect experiment-specific hour means and are not a fitted yield model.",
+        "",
         image("ont_coverage_vs_runtime.png"),
         "",
-        "The ONT figure is descriptive aligned yield versus cumulative `[0,end)` input duration. Lines connect experiment-specific hour means and are not a fitted physical yield model.",
         "",
         "## Hard-VCF GIAB high-confidence concordance",
         "",
-        "Crude SNP uses `SNPts + SNPtv/2` independently for TP, FN, and FP; precision, recall, and F-score are recalculated from those composite counts. Every heatmap uses the same unified measured-coverage grid and retains all experiment/AU labels in shared cells.",
+        "Crude SNP uses `SNPts + SNPtv/2` independently for TP, FN, and FP; precision, recall, and F-score are recalculated from those composite counts. Each color map uses the same equal-scale numeric native-SR×/LR× plane. Every 25%-larger circle prints its own plotted metric and has no colored edge. Dashed contours show retained-AU coordinate density only, not interpolated metric values. When multiple observations share a measured coordinate, both the circle color and printed value are their arithmetic mean; the metric TSV keeps unaggregated values.",
         "",
     ]
     for klass, title in (("snp", "SNP (SNPts + SNPtv/2)"), ("ins_50", "INS_50"), ("del_50", "DEL_50")):
         lines.extend(
             [
                 f"### {title}",
+                "",
+                "F-score, false-negative, false-positive, and precision–recall views below all use the measured native-SR/LR coverage contract; no RSR or nominal coverage is used to position an observation. Precision–recall points use one neutral style without experiment encoding or connecting lines, and each point is labelled `measured ILMN× / measured ONT×`.",
                 "",
                 image(f"hard_vcf_giabhc_{klass}_fscore_heatmap.png"),
                 "",
@@ -1233,19 +1891,27 @@ def build_report(
             "",
             "## Truvari structural-variant concordance",
             "",
+            "The two coverage-coordinate maps use tagged TrussSV values. The final precision–recall plot combines all callers and all retained observations in one panel; raw summary metrics remain available for audit.",
+            "",
             image("truvari_trussv_global_fscore_heatmap.png"),
             "",
             image("truvari_trussv_gt_concordance_heatmap.png"),
             "",
             image("truvari_all_callers_precision_recall.png"),
             "",
-            "Caller color and marker shape encode the caller (TIDDIT, LongReadSV, Sniffles2, or tagged TrussSV); experiment is encoded by marker fill. Every plotted point is labelled with experiment, AU, and F-score. Points with undefined raw precision or recall remain in the table as `NA` and are not plotted. Exact raw-summary values: " + table_link("truvari_metrics.tsv") + ".",
+            "Marker shape encodes the caller (TIDDIT, LongReadSV, Sniffles2, or tagged TrussSV); a continuous color scale encodes total measured coverage as ILMN native-SR× plus ONT-LR×. Experiment is not encoded. There are no connecting or leader lines. Every exact-coordinate point group is labelled directly with its F-score; coverage-number labels are omitted from the plot for legibility and remain available in the exact raw-summary table. Points with undefined raw precision or recall remain in the table as `NA` and are not plotted. Exact raw-summary values: " + table_link("truvari_metrics.tsv") + ".",
+            "",
+            image("truvari_highest_coverage_caller_fscore.png"),
+            "",
+            "The four-point summary isolates the maximum retained measured-coverage observation and flags TIDDIT as short-read, LongReadSV and Sniffles2 as long-read, and TrussSV as ensemble.",
             "",
             "## SegDup and SMN1/2 calls",
             "",
+        "These callset summaries are descriptive, not truth/query concordance. Their coordinate facets use the same measured native-SR×/LR× plane, so a vertical E1 arrangement represents the actual full-SR result rather than a nominal SR ladder. Each 25%-larger circle prints the displayed call count or copy number and has no colored edge; dashed contours represent retained-AU coordinate density only. Colors and values are coordinate-level arithmetic means when observations co-locate.",
+            "",
             image("segdup_call_heatmap.png"),
             "",
-            "SegDup cell codes are `P#` for PASS non-reference calls, `F#` for non-PASS calls, and `NA` for no non-reference call. Exact records: " + table_link("segdup_calls.tsv") + ".",
+            "Exact SegDup records, including PASS/non-PASS state, are available in " + table_link("segdup_calls.tsv") + ".",
             "",
             image("smn12_copy_number_heatmap.png"),
             "",
@@ -1253,69 +1919,41 @@ def build_report(
             "",
             "## Benchmark cost and parallel-aware runtime",
             "",
+            "The per-task panels retain individual-AU task groups; the summary uses the exact retained observations. Neither view uses requested coverage values. E4 bars are explicitly an in-flight snapshot and must not be interpreted as final AU cost or duration.",
+            "",
             image("benchmark_per_task_walltime.png"),
             "",
             image("benchmark_per_task_cost.png"),
             "",
             image("benchmark_au_totals.png"),
             "",
-            "The task plots show the top 12 groups per retained observation; the TSV retains every successful task group. Observed makespan spans the first through last benchmark timestamp. Active-interval union merges overlapping task intervals. Longest task is a lower bound, not a DAG-derived critical path.",
-            "Nine successful E2 benchmark records have no source-reported task cost. They remain counted as unpriced records; cost totals sum only numeric source values and therefore represent a documented lower bound.",
+            "The task plots show the top 12 groups per retained observation; the TSV retains every usable successful task group. Observed makespan spans the first through last benchmark timestamp. Active-interval union merges overlapping task intervals. Longest task is a lower bound, not a DAG-derived critical path. E4 values stop at the snapshot timestamp and will increase as the controller finishes.",
             "",
             "Supporting benchmark tables: " + table_link("benchmark_task_groups.tsv") + " and " + table_link("benchmark_au_totals.tsv") + ".",
             "",
             "## Scope, methods, and limitations",
             "",
-            "- Coverage is the exact `chrom=total` Mosdepth mean from the HIOMR2 short-read and long-read alignment summaries.",
+            "- Native SR× is the exact `chrom=total` Mosdepth mean from `sentdhiomr2sr/smd`; LR× is from `sentdhiomr2lr/na`. RSR× from `sentdhiomr2rsr/na` is retained only as a separately named audit result.",
+            "- The completed-export S3 collection rejects a missing or duplicate native-SR, RSR, or LR summary and fails if a re-read direct value differs from the recorded contract. The E4 collector applies the same exact-cardinality and schema checks against its live FSx snapshot.",
+            "- E1’s seven identical native-SR summaries establish a data-generation limitation, not a charting transformation. This report does not claim that its declared SR fractions were applied.",
             "- Hard-VCF metrics are restricted to `ROI=giabHC`; the crude SNP construction is intentionally not a standard variant-class aggregation.",
             "- Truvari metrics come from raw `summary.json`. Undefined no-call rates are `NA`, even where a downstream report-oriented artifact normalized them to zero.",
             "- SegDup is descriptive callset output, not truth/query concordance. A no-call state is not evidence of reference genotype truth.",
-            "- E1, E2, E3, and P1 reuse the same HG002 source material; downsampled inputs are nested and P1 is a full-input production observation. Results are descriptive and no causal or inferential claim is made.",
-            "- E1, E2, E3, and P1 may contain different runtime software provenance because later executions were completed after authorized R&D reporting repairs. The report uses produced artifacts and does not relabel a later execution as a pristine re-execution of an earlier release.",
+            "- E1, E3, P1, and E4 reuse the same HG002 source material; input subsets are nested and P1 is a full-input production observation. Results are descriptive and no causal or inferential claim is made.",
+            f"- E4 was nonterminal at {e4_capture_time}. Its 20 core metric sets were complete and parseable, but its {len(e4_compact['benchmarks']):,} benchmark rows are a lower-bound snapshot, not final workflow accounting.",
+            "- The executions may have different runtime software provenance. The report uses produced artifacts and does not relabel a later execution as a pristine re-execution of an earlier release.",
             "",
             "## Audit and reproducibility",
             "",
-            "- Source inventory with original and locally verified SHA-256 values: " + table_link("source_inventory.tsv") + ".",
-            "- Exact duplicate decisions: " + table_link("duplicate_resolution.tsv") + ".",
-            "- Duplicate metric comparisons: " + table_link("duplicate_metric_audit.tsv") + ".",
+            "- Direct S3 native-SR, RSR, and LR values with exact source paths and SHA-256 values: " + table_link("direct_s3_coverage_regather.tsv") + ".",
+            "- E4 per-AU metric and benchmark completeness at capture: " + table_link("e4_snapshot_completeness.tsv") + ".",
+            "- Existing bounded evidence inventory for detailed call/benchmark inputs: " + table_link("source_inventory.tsv") + ".",
             "- Figure-to-table mapping: " + table_link("chart_map.tsv") + ".",
             "",
-            "Generated from bounded DYEC evidence snapshots, the E3 no-delete export receipt, and the P1 completed production S3 export on 2026-08-18.",
+            f"Generated from bounded E1/E3/P1 evidence, direct S3 reads of their 36 Mosdepth summaries, and the checksum-bound E4 live-FSx snapshot captured {e4_compact['captured_at_start_utc']} through {e4_capture_time}.",
         ]
     )
     report_path.write_text("\n".join(lines) + "\n")
-
-
-def duplicate_metric_audit(resolutions: list[dict[str, Any]], hard_rows: list[dict[str, Any]], truvari_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    audits: list[dict[str, Any]] = []
-    for resolution in resolutions:
-        for family, rows, group_field, metrics in (
-            ("hard_vcf", hard_rows, "class", ("fscore", "fn", "fp")),
-            ("truvari", truvari_rows, "caller", ("fscore", "precision", "recall", "gt_concordance", "fn", "fp")),
-        ):
-            dropped = [row for row in rows if row["experiment"] == resolution["dropped_experiment"] and row["runtime_au"] == resolution["dropped_runtime_au"]]
-            retained = [row for row in rows if row["experiment"] == resolution["retained_experiment"] and row["runtime_au"] == resolution["retained_runtime_au"]]
-            dropped_by = {row[group_field]: row for row in dropped}
-            retained_by = {row[group_field]: row for row in retained}
-            for group in sorted(set(dropped_by) | set(retained_by)):
-                for metric in metrics:
-                    old = number(dropped_by.get(group, {}).get(metric))
-                    new = number(retained_by.get(group, {}).get(metric))
-                    audits.append(
-                        {
-                            "au": resolution["au"],
-                            "ilmn_measured_token": resolution["ilmn_measured_token"],
-                            "ont_measured_token": resolution["ont_measured_token"],
-                            "family": family,
-                            "group": group,
-                            "metric": metric,
-                            "dropped_E1_value": old,
-                            "retained_E2_value": new,
-                            "absolute_delta": abs(new - old) if old is not None and new is not None else None,
-                            "identical": old == new if old is not None and new is not None else None,
-                        }
-                    )
-    return audits
 
 
 def main() -> None:
@@ -1331,10 +1969,19 @@ def main() -> None:
         observations, metadata = parse_experiment(experiment, args.evidence_root)
         source_observations.extend(observations)
         source_inventory.extend(metadata["inventory"])
-    if len(source_observations) != 19:
-        raise ValueError("expected nineteen source observations")
+    experiment_counts = {
+        experiment: sum(row["experiment"] == experiment for row in source_observations)
+        for experiment in EXPERIMENTS
+    }
+    if experiment_counts != {"E1": 7, "E3": 4, "P1": 1, "E4": 20}:
+        raise ValueError(f"unexpected source-observation counts: {experiment_counts}")
+    direct_s3_rows = read_direct_s3_coverage(args.direct_s3_coverage)
+    prior_source_observations = [row for row in source_observations if row["experiment"] != "E4"]
+    apply_direct_s3_coverage(prior_source_observations, direct_s3_rows)
 
-    retained, resolutions, all_status = deduplicate(source_observations)
+    retained, resolutions, _ = deduplicate(source_observations)
+    if len(retained) != 32 or resolutions:
+        raise AssertionError("the 12 prior and 20 E4 rows must remain 32 unique observations")
     p1_observations = [row for row in retained if row["experiment"] == "P1"]
     if len(p1_observations) != 1:
         raise AssertionError("expected one retained P1 observation")
@@ -1343,6 +1990,12 @@ def main() -> None:
         raise AssertionError("P1 must not have invented target or target-error values")
     if (p1_observation["subsample_pct"], p1_observation["ont_start_hour"], p1_observation["ont_end_hour"]) != ("full", 0, 24):
         raise AssertionError("P1 full-input contract was not retained")
+    if any("/align/sentdhiomr2sr/smd/alignqc/mosdepth/" not in row["coverage_source_ilmn"] for row in retained):
+        raise AssertionError("a plotted Illumina coordinate is not native SR")
+    if any("/align/sentdhiomr2rsr/na/alignqc/mosdepth/" not in row["coverage_source_rsr"] for row in retained):
+        raise AssertionError("RSR audit source mismatch")
+    if any("/align/sentdhiomr2lr/na/alignqc/mosdepth/" not in row["coverage_source_ont"] for row in retained):
+        raise AssertionError("a plotted ONT coordinate is not LR")
     for index, observation in enumerate(retained, start=1):
         observation["observation_id"] = f"OBS{index:02d}"
     retained_key_to_id = {(row["experiment"], row["runtime_au"]): row["observation_id"] for row in retained}
@@ -1355,7 +2008,7 @@ def main() -> None:
             row["observation_id"] = f"DROP{dropped_index:02d}"
 
     chart_map: list[dict[str, str]] = []
-    coverage_md = coverage_grid(retained, figures, tables, chart_map)
+    coverage_grid(retained, figures, tables, chart_map)
     coverage_plots(retained, figures, chart_map)
     all_hard_rows = hard_vcf_metrics(source_observations)
     retained_ids = {row["observation_id"] for row in retained}
@@ -1367,23 +2020,61 @@ def main() -> None:
     segdup_rows, smn_rows = call_tables_and_plots(retained, figures, chart_map)
     benchmark_tasks, benchmark_summaries = benchmark_data(retained)
     benchmark_plots(retained, benchmark_tasks, benchmark_summaries, figures, chart_map)
-    duplicate_audit = duplicate_metric_audit(resolutions, all_hard_rows, all_truvari_rows)
 
     observation_fields = [
         "observation_id", "experiment", "experiment_title", "analysis_id", "au", "runtime_au", "source_analysis_unit_uid",
-        "plot_label", "ilmn_target", "ont_target", "ilmn_measured_token", "ont_measured_token", "ilmn_abs_error", "ont_abs_error",
-        "subsample_pct", "ont_start_hour", "ont_end_hour", "selection_status", "coverage_source_ilmn", "coverage_source_ont",
+        "plot_label", "ilmn_measured_token", "rsr_measured_token", "ont_measured_token",
+        "ilmn_target", "ont_target", "ilmn_abs_error", "ont_abs_error", "subsample_pct", "ont_start_hour", "ont_end_hour",
+        "selection_status", "coverage_source_ilmn", "coverage_source_rsr", "coverage_source_ont", "coverage_capture_method",
+        "evidence_captured_at", "direct_s3_captured_at", "snapshot_workflow_state", "snapshot_controller_rc", "benchmark_scope",
     ]
     write_tsv(tables / "retained_observations.tsv", retained, observation_fields)
-    write_tsv(tables / "duplicate_resolution.tsv", resolutions, ["au", "ilmn_measured_token", "ont_measured_token", "dropped_experiment", "dropped_runtime_au", "retained_experiment", "retained_runtime_au", "reason"])
-    write_tsv(tables / "duplicate_metric_audit.tsv", duplicate_audit, ["au", "ilmn_measured_token", "ont_measured_token", "family", "group", "metric", "dropped_E1_value", "retained_E2_value", "absolute_delta", "identical"])
+    write_tsv(tables / "direct_s3_coverage_regather.tsv", direct_s3_rows, list(direct_s3_rows[0]))
     write_tsv(tables / "hard_vcf_giabhc_metrics.tsv", hard_rows, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "roi", "class", "tp", "fn", "fp", "precision", "recall", "fscore", "source_path"])
     write_tsv(tables / "truvari_metrics.tsv", truvari_rows, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "caller", "tp_base", "tp_comp", "fn", "fp", "precision", "recall", "fscore", "gt_concordance", "base_count", "query_count", "source_path"])
     write_tsv(tables / "segdup_calls.tsv", segdup_rows, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "gene", "call_state", "chrom", "pos", "ref", "alt", "filter", "gt", "qual"])
     write_tsv(tables / "smn12_calls.tsv", smn_rows, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "SMN1_CN", "SMN2_CN", "SMN2delta7_8_CN", "Total_CN_raw", "Full_length_CN_raw", "g27134TG_CN", "isSMA", "isCarrier", "Info", "Median_depth", "source_path"])
-    write_tsv(tables / "benchmark_task_groups.tsv", benchmark_tasks, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "rule", "successful_records", "priced_records", "unpriced_records", "longest_walltime_s", "total_cost_usd", "allocated_vcpu_h", "observed_cpu_h"])
-    write_tsv(tables / "benchmark_au_totals.tsv", benchmark_summaries, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "successful_records", "priced_records", "unpriced_records", "task_groups", "total_cost_usd", "allocated_vcpu_h", "observed_cpu_h", "sum_task_wall_h", "observed_makespan_h", "active_interval_union_h", "longest_task_h"])
-    write_tsv(tables / "source_inventory.tsv", source_inventory, ["experiment", "analysis_root", "relative_path", "bytes", "mtime_epoch", "sha256", "local_path", "local_sha256", "local_sha256_match"])
+    write_tsv(tables / "benchmark_task_groups.tsv", benchmark_tasks, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "rule", "successful_records", "priced_records", "unpriced_records", "longest_walltime_s", "total_cost_usd", "allocated_vcpu_h", "observed_cpu_h", "benchmark_scope"])
+    write_tsv(tables / "benchmark_au_totals.tsv", benchmark_summaries, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "successful_records", "priced_records", "unpriced_records", "task_groups", "total_cost_usd", "allocated_vcpu_h", "observed_cpu_h", "sum_task_wall_h", "observed_makespan_h", "active_interval_union_h", "longest_task_h", "benchmark_scope"])
+    e4_observations = [row for row in retained if row["experiment"] == "E4"]
+    e4_compact = e4_observations[0]["compact_evidence"]
+    e4_completeness_rows = []
+    for observation in sorted(e4_observations, key=lambda row: AU_INDEX[row["au"]]):
+        completeness = e4_compact["completeness"][observation["runtime_au"]]
+        e4_completeness_rows.append(
+            {
+                "captured_at_utc": e4_compact["captured_at_end_utc"],
+                "analysis_id": observation["analysis_id"],
+                "planned_au": observation["au"],
+                "source_analysis_unit_uid": observation["source_analysis_unit_uid"],
+                "runtime_au": observation["runtime_au"],
+                "target_native_sr_x": observation["ilmn_target"],
+                "measured_native_sr_x": observation["ilmn_measured_token"],
+                "measured_rsr_audit_x": observation["rsr_measured_token"],
+                "target_lr_x": observation["ont_target"],
+                "measured_lr_x": observation["ont_measured_token"],
+                "hard_vcf_giabhc": completeness["hard_vcf_giabhc"],
+                "truvari_summaries": completeness["truvari_summaries"],
+                "segdup_vcfs": completeness["segdup_vcfs"],
+                "smn12_summary": completeness["smn12_summary"],
+                "benchmark_success_rows": completeness["benchmark_success_rows"],
+                "benchmark_rejected_or_incomplete_rows": completeness["benchmark_rejected_or_incomplete_rows"],
+                "benchmark_snapshot": completeness["benchmark_snapshot"],
+                "workflow_state_at_capture": observation["snapshot_workflow_state"],
+                "controller_rc_at_capture": observation["snapshot_controller_rc"],
+            }
+        )
+    write_tsv(
+        tables / "e4_snapshot_completeness.tsv",
+        e4_completeness_rows,
+        [
+            "captured_at_utc", "analysis_id", "planned_au", "source_analysis_unit_uid", "runtime_au",
+            "target_native_sr_x", "measured_native_sr_x", "measured_rsr_audit_x", "target_lr_x", "measured_lr_x",
+            "hard_vcf_giabhc", "truvari_summaries", "segdup_vcfs", "smn12_summary", "benchmark_success_rows",
+            "benchmark_rejected_or_incomplete_rows", "benchmark_snapshot", "workflow_state_at_capture", "controller_rc_at_capture",
+        ],
+    )
+    write_tsv(tables / "source_inventory.tsv", source_inventory, ["experiment", "analysis_root", "category", "relative_path", "bytes", "mtime_epoch", "sha256", "local_path", "local_sha256", "local_sha256_match"])
     write_tsv(tables / "source_s3_uris.tsv", [{"source": label, "s3_uri": uri} for label, uri in SOURCE_S3_URIS], ["source", "s3_uri"])
     write_tsv(tables / "chart_map.tsv", chart_map, ["figure", "chart_type", "title", "source_table", "metric"])
 
@@ -1394,10 +2085,11 @@ def main() -> None:
     if len([row for row in heatmaps if row["figure"] == "combined_measured_coverage_grid.png"]) != 1:
         raise AssertionError("missing coverage layout heatmap")
 
-    build_report(args.report_path, args.assets_dir, retained, coverage_md, hard_rows, truvari_rows, smn_rows, benchmark_summaries, len(resolutions))
+    build_report(args.report_path, args.assets_dir, retained, hard_rows, truvari_rows, smn_rows, benchmark_summaries)
 
     expected_tables = {
-        "retained_observations.tsv", "coverage_grid.tsv", "duplicate_resolution.tsv", "duplicate_metric_audit.tsv",
+        "retained_observations.tsv", "direct_s3_coverage_regather.tsv", "coverage_grid.tsv",
+        "e4_snapshot_completeness.tsv",
         "hard_vcf_giabhc_metrics.tsv", "truvari_metrics.tsv", "segdup_calls.tsv", "smn12_calls.tsv",
         "benchmark_task_groups.tsv", "benchmark_au_totals.tsv", "source_inventory.tsv", "source_s3_uris.tsv", "chart_map.tsv",
     }
@@ -1406,7 +2098,7 @@ def main() -> None:
         raise AssertionError(f"missing tables: {missing_tables}")
     if not args.report_path.is_file():
         raise AssertionError("report was not created")
-    print(json.dumps({"report": str(args.report_path), "assets": str(args.assets_dir), "source_observations": len(source_observations), "retained_observations": len(retained), "exact_duplicates": len(resolutions), "concordance_heatmaps": len(concordance_heatmaps), "all_heatmaps": len(heatmaps), "figures": len(chart_map), "tables": len(expected_tables)}, indent=2))
+    print(json.dumps({"report": str(args.report_path), "assets": str(args.assets_dir), "source_observations": len(source_observations), "retained_observations": len(retained), "prior_observations": len(prior_source_observations), "e4_observations": len(e4_observations), "direct_s3_coverage_rows": len(direct_s3_rows), "e4_benchmark_rows": len(e4_compact["benchmarks"]), "concordance_heatmaps": len(concordance_heatmaps), "all_heatmaps": len(heatmaps), "figures": len(chart_map), "tables": len(expected_tables)}, indent=2))
 
 
 if __name__ == "__main__":
