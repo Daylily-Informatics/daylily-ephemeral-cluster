@@ -32,6 +32,15 @@ invent a fallback or bypass the supported DYEC/DAYOA CLI path.
   4. `dy-r <targets> <flags>`
 - Example DayOA smoke/dry-run command: `dy-r help -p -k -j 1 -n`.
 - For BCL/DayOA execution, send these commands into the persistent `tmux` pane as separate commands. Do not collapse setup and execution into a one-shot non-interactive SSM script.
+- A dry-to-live pair is one analysis capsule. Create its analysis root, clone,
+  staged inputs, and in-clone config once for the dry controller; after an
+  attributable dry `rc=0` with zero submitted work, run the exact same command
+  in that same analysis ID/root with only `-n` removed.
+- A `-dry` or `-live` suffix may distinguish controller/tmux session names; it
+  must never create a second analysis ID, FSx root, DayOA checkout, input
+  staging area, or runtime configuration. Creating a replacement live root
+  invalidates the dry-run proof and is prohibited unless the human explicitly
+  requests a new analysis or changes the command, pin, inputs, or config.
 - Store every analysis-specific YAML/config file inside that analysis's cloned
   `daylily-omics-analysis` directory, normally under `config/`, and make the
   saved controller command reference that in-clone path. Never use a

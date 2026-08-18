@@ -194,10 +194,18 @@ A dry controller passes only when it returns `rc=0` and submits zero workflow
 work. Capture the rendered effective command and the controller status in the
 ledger.
 
-If the production contract requires a same-root dry-to-live continuation, do
-not issue a second catalog launch against the existing root. Use the exact
-rendered workflow command for a new controller with the same analysis ID and
-the supported continuation controls:
+`$ANALYSIS_ID` names one analysis capsule: its FSx root, DayOA checkout/commit,
+staged inputs, and runtime config. The `-dry` and `-live` suffixes below are
+only controller-session labels. A passing dry run is the preflight of the live
+command in that same capsule; creating a replacement live root invalidates that
+proof. Use a new root only for a deliberately new analysis with a changed
+command, pin, inputs, or config, followed by a new dry run.
+Do not encode `-dry` or `-live` into `$ANALYSIS_ID`; use those suffixes only in
+the controller session name.
+
+To run the validated command, do not issue a second catalog launch against the
+existing root. Use the exact rendered workflow command for a new controller
+with the same analysis ID and the supported continuation controls:
 
 ```bash
 dyec workflow launch \

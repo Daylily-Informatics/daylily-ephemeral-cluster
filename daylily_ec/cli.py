@@ -474,6 +474,8 @@ def agent_guidance() -> None:
             "Inside tmux, run setup as separate commands: source dyoainit; dy-a <profile> <genome>; dy-r <targets> <flags>.",
             "Never invoke raw snakemake for DayOA workflow execution.",
             "Use explicit DayOA tags for new clones: day-clone -t <tag> -d <analysis-id>.",
+            "A successful dry controller validates the live command in the same analysis ID/root/checkout, staged inputs, and runtime config; remove only -n for live.",
+            "The -dry and -live labels may name controller sessions, never separate analysis directories. A changed command, pin, inputs, or config requires a deliberate new analysis and dry run.",
         ],
         "analysis_root_safety": [
             "Record visits before reading or touching /fsx/analysis_results/**.",

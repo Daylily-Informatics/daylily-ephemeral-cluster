@@ -124,6 +124,7 @@ It covers:
 - local activation;
 - SSM/headnode access;
 - DayOA controller rules;
+- same-analysis-root dry-to-live continuation;
 - analysis-root visit/lock safety;
 - headnode upload/download syntax;
 - the DRA-only runtime-cache export boundary;
