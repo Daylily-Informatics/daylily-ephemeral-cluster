@@ -1,0 +1,56 @@
+{
+  "access_mode": "mounted_reference_dra",
+  "contract_version": "complete-genomics-slim-mounted-reference-v1",
+  "mappings": [
+    {
+      "source_s3_uri": "s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/fastq/H_sapiens/complete_genomics/T7plus_WGS_PE150_HG003_PCR_Free/downsampled/T7plus_WGS_PE150_HG003_PCR_Free_10pct_Read_1.fq.gz",
+      "workflow_path": "/fsx/references/genomic_data/organism_reads_slim/fastq/H_sapiens/complete_genomics/T7plus_WGS_PE150_HG003_PCR_Free/downsampled/T7plus_WGS_PE150_HG003_PCR_Free_10pct_Read_1.fq.gz"
+    },
+    {
+      "source_s3_uri": "s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/fastq/H_sapiens/complete_genomics/T7plus_WGS_PE150_HG003_PCR_Free/downsampled/T7plus_WGS_PE150_HG003_PCR_Free_10pct_Read_2.fq.gz",
+      "workflow_path": "/fsx/references/genomic_data/organism_reads_slim/fastq/H_sapiens/complete_genomics/T7plus_WGS_PE150_HG003_PCR_Free/downsampled/T7plus_WGS_PE150_HG003_PCR_Free_10pct_Read_2.fq.gz"
+    }
+  ],
+  "materialization": {
+    "copy_performed": false,
+    "files_verified": [
+      {
+        "gzip_magic": "1f8b",
+        "size_bytes": 10251454933,
+        "workflow_path": "/fsx/references/genomic_data/organism_reads_slim/fastq/H_sapiens/complete_genomics/T7plus_WGS_PE150_HG003_PCR_Free/downsampled/T7plus_WGS_PE150_HG003_PCR_Free_10pct_Read_1.fq.gz"
+      },
+      {
+        "gzip_magic": "1f8b",
+        "size_bytes": 10405048250,
+        "workflow_path": "/fsx/references/genomic_data/organism_reads_slim/fastq/H_sapiens/complete_genomics/T7plus_WGS_PE150_HG003_PCR_Free/downsampled/T7plus_WGS_PE150_HG003_PCR_Free_10pct_Read_2.fq.gz"
+      }
+    ],
+    "headnode": {
+      "cluster": "pclu-18045",
+      "instance_id": "i-005c458734f5d4800",
+      "region": "us-west-2",
+      "remote_user": "ubuntu",
+      "ssm_command_id": "db853679-420a-4130-82cf-44f31f1720f7"
+    },
+    "kind": "mounted_reference_dra",
+    "verification_scope": "regular_file_readable_and_gzip_magic",
+    "verified_at": "2026-08-18T17:05:00+00:00"
+  },
+  "reference_mapping": {
+    "source_s3_uri": "s3://lsmc-dayoa-references-usw2",
+    "workflow_fsx_root": "/fsx/references"
+  },
+  "source_contract_provenance": {
+    "customer_release_eligible": false,
+    "order_type": "RESEARCH",
+    "source": "explicit downsampled slim reference S3 pair"
+  },
+  "source_manifest": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/examples/staging/complete_genomics_solo_slim_mounted_reference_v1/analysis_samples_manifest.tsv",
+  "state": "materialized",
+  "test_only_identity_contract": {
+    "library_euid": "Z-CG-TVBCG5X-HG003-5X-SLIM-SR-LIBRARY",
+    "sample_euid": "Z-CG-TVBCG5X-HG003-5X-SLIM-SAMPLE",
+    "scope": "Reserved Z- fixture identifiers only; never owner-issued, persisted, registered, or used for customer release.",
+    "specimen_euid": "Z-CG-TVBCG5X-HG003-5X-SLIM-SPECIMEN"
+  }
+}
