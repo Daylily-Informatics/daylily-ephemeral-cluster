@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -ne 3 ]]; then
-    echo "usage: $0 <experiment-code> <analysis-root> <output-tar.gz>" >&2
+if [[ $# -ne 4 ]]; then
+    echo "usage: $0 <experiment-code> <analysis-root> <expected-analysis-unit-count> <output-tar.gz>" >&2
     exit 2
 fi
 
 experiment_code=$1
 analysis_root=$2
-output_tar=$3
+expected_analysis_units=$3
+output_tar=$4
 dayoa_root="${analysis_root}/daylily-omics-analysis"
 manifest_dir="${dayoa_root}/results/day/hg38/reports/input_manifests"
 identity_audit="${manifest_dir}/analysis_unit_identity_audit.tsv"
 
-[[ "$experiment_code" == "E1" || "$experiment_code" == "E2" ]] || {
-    echo "experiment code must be E1 or E2" >&2
+[[ "$experiment_code" == "E1" || "$experiment_code" == "E2" || "$experiment_code" == "E3" ]] || {
+    echo "experiment code must be E1, E2, or E3" >&2
     exit 2
 }
 [[ -d "$dayoa_root" ]] || { echo "missing DayOA root: $dayoa_root" >&2; exit 3; }
@@ -22,8 +23,12 @@ identity_audit="${manifest_dir}/analysis_unit_identity_audit.tsv"
 [[ ! -e "$output_tar" ]] || { echo "output already exists: $output_tar" >&2; exit 3; }
 
 mapfile -t runtime_units < <(tail -n +2 "$identity_audit" | cut -f1)
-[[ ${#runtime_units[@]} -eq 7 ]] || {
-    echo "expected seven runtime analysis units; found ${#runtime_units[@]}" >&2
+[[ "$expected_analysis_units" =~ ^[1-9][0-9]*$ ]] || {
+    echo "expected-analysis-unit-count must be a positive integer" >&2
+    exit 2
+}
+[[ ${#runtime_units[@]} -eq "$expected_analysis_units" ]] || {
+    echo "expected ${expected_analysis_units} runtime analysis units; found ${#runtime_units[@]}" >&2
     exit 4
 }
 
@@ -45,9 +50,7 @@ for report_file in benchmarks_summary.tsv dayoa_evidence_manifest.json; do
     echo "$report_path" >> "$file_list"
 done
 
-if [[ -f "${dayoa_root}/config/hg002_bjuice_v2_multi_analysis_unit_hiomr2.yaml" ]]; then
-    echo "config/hg002_bjuice_v2_multi_analysis_unit_hiomr2.yaml" >> "$file_list"
-fi
+find "${dayoa_root}/config" -maxdepth 1 -type f -name 'hg002_bjuice*.yaml' -printf 'config/%f\n' >> "$file_list"
 
 for runtime_unit in "${runtime_units[@]}"; do
     unit_root="results/day/hg38/${runtime_unit}"
@@ -69,10 +72,10 @@ truvari_count=$(rg -c '/truvari/summary\.json$' "$file_list" || true)
 smn12_count=$(rg -c '/htd/smn12/[^/]+\.summary\.json$' "$file_list" || true)
 segdup_count=$(rg -c '/segdup/.+\.result\.vcf\.gz$' "$file_list" || true)
 
-[[ "$coverage_count" -eq 14 ]] || { echo "expected 14 coverage summaries; found $coverage_count" >&2; exit 6; }
-[[ "$hard_vcf_count" -eq 7 ]] || { echo "expected 7 GIAB-HC hard-VCF files; found $hard_vcf_count" >&2; exit 6; }
-[[ "$truvari_count" -eq 28 ]] || { echo "expected 28 raw Truvari summaries; found $truvari_count" >&2; exit 6; }
-[[ "$smn12_count" -eq 7 ]] || { echo "expected 7 SMN12 JSON summaries; found $smn12_count" >&2; exit 6; }
+[[ "$coverage_count" -eq $((expected_analysis_units * 2)) ]] || { echo "expected $((expected_analysis_units * 2)) coverage summaries; found $coverage_count" >&2; exit 6; }
+[[ "$hard_vcf_count" -eq "$expected_analysis_units" ]] || { echo "expected ${expected_analysis_units} GIAB-HC hard-VCF files; found $hard_vcf_count" >&2; exit 6; }
+[[ "$truvari_count" -eq $((expected_analysis_units * 4)) ]] || { echo "expected $((expected_analysis_units * 4)) raw Truvari summaries; found $truvari_count" >&2; exit 6; }
+[[ "$smn12_count" -eq "$expected_analysis_units" ]] || { echo "expected ${expected_analysis_units} SMN12 JSON summaries; found $smn12_count" >&2; exit 6; }
 [[ "$segdup_count" -gt 0 ]] || { echo "no SegDup result VCFs found" >&2; exit 6; }
 
 rsync -a --files-from="$file_list" "${dayoa_root}/" "${dayoa_bundle}/"

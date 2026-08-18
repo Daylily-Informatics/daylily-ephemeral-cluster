@@ -1,8 +1,0 @@
-ANALYSIS_UNIT_UID	ANALYSIS_UNIT_EUID	SAMPLEID	DELIVERY_EUID	DELIVERY_PROFILE	CUSTOMER_DELIVERY_ID	SUBSAMPLE_PCT	ONT_SUBSAMPLE_PCT	ONT_FQ_START_HOUR	ONT_FQ_END_HOUR	ALIGNED_REF_UID	BWA_KMER	DEEP_MODEL	MERGE_SINGLE	ANALYSIS_UNIT_COMMENT
-HG002-p5xp5		HG002				0.011433798307		0	1		19	WGS	single	Bjuice v2 HG002 AU p5xp5: direct ILMN target 0.5x / verified 43.73x; measured ONT target 0.5x interval [0,1).
-HG002-1x1		HG002				0.022867596615		0	2		19	WGS	single	Bjuice v2 HG002 AU 1x1: direct ILMN target 1x / verified 43.73x; measured ONT target 1x interval [0,2).
-HG002-3x3		HG002				0.068602789846		0	5		19	WGS	single	Bjuice v2 HG002 AU 3x3: direct ILMN target 3x / verified 43.73x; measured ONT target 3x interval [0,5).
-HG002-5x5		HG002				0.114337983077		0	9		19	WGS	single	Bjuice v2 HG002 AU 5x5: direct ILMN target 5x / verified 43.73x; measured ONT target 5x interval [0,9).
-HG002-10x5		HG002				0.228675966155		0	9		19	WGS	single	Bjuice v2 HG002 AU 10x5: direct ILMN target 10x / verified 43.73x; measured ONT target 5x interval [0,9).
-HG002-15x5		HG002				0.343013949233		0	9		19	WGS	single	Bjuice v2 HG002 AU 15x5: direct ILMN target 15x / verified 43.73x; measured ONT target 5x interval [0,9).
-HG002-15x10		HG002				0.343013949233		0	20		19	WGS	single	Bjuice v2 HG002 AU 15x10: direct ILMN target 15x / verified 43.73x; measured ONT target 10x interval [0,20).
