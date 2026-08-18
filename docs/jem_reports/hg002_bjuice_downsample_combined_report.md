@@ -1,12 +1,12 @@
-# HG002 Bjuice combined downsampling heatmap report
+# HG002 Bjuice measured-coverage matrix report
 
 ## Technical summary
 
-This report combines **18 retained measured-coverage observations** from three completed HG002 HIOMR2 kitchensink-mega experiments. Exact duplicate identity is `(AU, measured ILMN, measured ONT)`; **0 older observation(s)** were superseded by the newest matching experiment. Experiment provenance remains visible as `E1:<AU>`, `E2:<AU>`, or `E3:<AU>` in every chart and table.
+This report combines **19 retained measured-coverage observations** from two HG002 downsampling experiments (E1/E2), a four-AU gap-fill experiment (E3), and the completed Bjuice v0.9 production full-coverage execution (P1). Exact duplicate identity is `(AU, measured ILMN, measured ONT)`; **0 older observation(s)** were superseded by the newest matching experiment. Experiment provenance remains visible as `E1:<AU>`, `E2:<AU>`, `E3:<AU>`, or `P1:fullcov` in every chart and table.
 
-All coverage coordinates in this report are source-reported measured Mosdepth totals—never nominal target coverage. The strongest retained TrussSV global F-score was **0.7382** at **E3:20xby15x**. Successful benchmark task rows sum to **$201.27** for E1, **$113.16** for E2, **$108.52** for E3.
+All coverage coordinates in this report are source-reported measured Mosdepth totals—never nominal target coverage. P1 has no coverage target: its target and target-error fields are `NA`, while its measured coordinate is **43.73× SR × 11.43× LR**. Its SR coordinate comes from native `sentdhiomr2sr/smd` Mosdepth, not `rsr`. The strongest retained TrussSV global F-score was **0.7382** at **E3:20xby15x**. Successful benchmark task rows sum to **$201.27** for E1, **$113.16** for E2, **$108.52** for E3, **$31.46** for P1.
 
-E1 completed its live rerun at `rc=0` on 2026-08-14; E2 completed the retained kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-16; and E3 completed the four-AU kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-17. E1 coverage remains observational evidence only; E2 is the corrected re-downsampling experiment; E3 supplies the new 10–15x/15–30x measured-coverage observations. Analytical packaging is not included in the E3 closure claim.
+E1 completed its live rerun at `rc=0` on 2026-08-14; E2 completed the retained kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-16; and E3 completed the four-AU kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-17. P1 is the separately completed Bjuice v0.9 production execution 1 for HG002 with full Illumina and ONT `[0,24)` input. E1 coverage remains observational evidence only; E2 is the corrected re-downsampling experiment; E3 supplies gap-fill coverage observations; P1 is retained as a distinct no-target production observation.
 
 ## Source S3 URIs
 
@@ -17,8 +17,9 @@ E1 completed its live rerun at `rc=0` on 2026-08-14; E2 completed the retained k
 | Shared HG002 ONT FC2 source | `s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC2/20260615_ONT_Set4-FC2/20260616_0040_3B_PBK89197_822a87b5/` |
 | Shared HG002 ONT FC3 source | `s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC3/20260615_ONT_Set4-FC3/20260616_0041_3C_PBK89101_bd86eaac/` |
 | E3 completed no-delete output export | `s3://lsmc-dayoa-analysis-results-usw2/derived/bjuice-v2-multi-analysis-unit/prod-cand-1703/prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z/` |
+| P1 completed production output export | `s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-bjuice-preval6-15014-dry-20260817t112900z/daylily-omics-analysis/` |
 
-The E3 export was successful (`task-0086514fbf61dae5e`); its temporary DRA was detached and the FSx analysis root was preserved. These exact source URIs are also available in [source_s3_uris.tsv](hg002_bjuice_downsample_combined_report_assets/tables/source_s3_uris.tsv).
+The E3 and P1 sources are completed exported execution outputs. These exact source URIs are also available in [source_s3_uris.tsv](hg002_bjuice_downsample_combined_report_assets/tables/source_s3_uris.tsv).
 
 ## Where data exist: unified measured-coverage grid
 
@@ -26,6 +27,7 @@ Rows are measured Illumina coverage and columns are measured ONT coverage. The M
 
 | ILMN \ ONT | 0.57x | 1.16x | 2.96x | 4.09x | 5.17x | 6.20x | 9.67x | 10.05x | 11.43x | 14.71x |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 43.73x | — | — | — | — | — | — | — | — | P1:fullcov | — |
 | 14.01x | — | — | — | — | — | — | — | — | E1:15x5 | — |
 | 13.65x | — | — | — | — | — | — | E1:10x5; E1:15x10 | — | — | — |
 | 12.71x | — | — | — | — | — | E1:5x5 | — | — | — | — |
@@ -48,7 +50,7 @@ Rows are measured Illumina coverage and columns are measured ONT coverage. The M
 
 ### Retained observation provenance
 
-| Observation | Nominal ILMN × ONT | Measured ILMN × ONT | ILMN fraction | ONT hours | Runtime AU | Selection |
+| Observation | Coverage target | Measured SR × LR | SR fraction / mode | ONT hours | Runtime AU | Selection |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | E1:p5xp5 | 0.5x × 0.5x | 8.54x × 0.57x | 0.011433798307 | [0,1) | HG002-082hc3dnbehb1c | retained_unique |
 | E1:1x1 | 1.0x × 1.0x | 9.85x × 1.16x | 0.022867596615 | [0,2) | HG002-98xq4xrqz7dwy9 | retained_unique |
@@ -68,8 +70,9 @@ Rows are measured Illumina coverage and columns are measured ONT coverage. The M
 | E3:12xby12x | 12.71x × 11.43x | 4.77x × 11.43x | 0.290647152984 | [0,24) | HG002-nfjdv62wjc8dwr | retained_unique |
 | E3:20xby15x | 20.0x × 15.0x | 7.36x × 14.71x | 0.457351932311 | [0,36) | HG002-wesenyqd5xz29g | retained_unique |
 | E3:30xby15x | 30.0x × 15.0x | 10.50x × 14.71x | 0.686027898467 | [0,36) | HG002-q73e7s390m0hjt | retained_unique |
+| P1:fullcov | No target | 43.73x × 11.43x | full | [0,24) | HG002-qvmjccyp5fr1y3 | retained_unique |
 
-The full retained-observation table includes nominal targets, exact measured tokens, fractions, ONT windows, source paths, and selection status: [retained_observations.tsv](hg002_bjuice_downsample_combined_report_assets/tables/retained_observations.tsv).
+The full retained-observation table includes targets where they exist, exact measured SR/LR tokens, SR fraction or full-input mode, ONT windows, source paths, and selection status: [retained_observations.tsv](hg002_bjuice_downsample_combined_report_assets/tables/retained_observations.tsv).
 
 ## Measured ONT coverage and runtime
 
@@ -152,8 +155,8 @@ Supporting benchmark tables: [benchmark_task_groups.tsv](hg002_bjuice_downsample
 - Hard-VCF metrics are restricted to `ROI=giabHC`; the crude SNP construction is intentionally not a standard variant-class aggregation.
 - Truvari metrics come from raw `summary.json`. Undefined no-call rates are `NA`, even where a downstream report-oriented artifact normalized them to zero.
 - SegDup is descriptive callset output, not truth/query concordance. A no-call state is not evidence of reference genotype truth.
-- The two experiments reuse the same HG002 source material and their downsampled inputs are nested; observations are not statistically independent. Results are descriptive and no causal or inferential claim is made.
-- E1, E2, and E3 may contain different runtime software provenance because later experiments were completed after authorized R&D reporting repairs. The report uses produced artifacts and does not relabel a later experiment as a pristine re-execution of an earlier release.
+- E1, E2, E3, and P1 reuse the same HG002 source material; downsampled inputs are nested and P1 is a full-input production observation. Results are descriptive and no causal or inferential claim is made.
+- E1, E2, E3, and P1 may contain different runtime software provenance because later executions were completed after authorized R&D reporting repairs. The report uses produced artifacts and does not relabel a later execution as a pristine re-execution of an earlier release.
 
 ## Audit and reproducibility
 
@@ -162,4 +165,4 @@ Supporting benchmark tables: [benchmark_task_groups.tsv](hg002_bjuice_downsample
 - Duplicate metric comparisons: [duplicate_metric_audit.tsv](hg002_bjuice_downsample_combined_report_assets/tables/duplicate_metric_audit.tsv).
 - Figure-to-table mapping: [chart_map.tsv](hg002_bjuice_downsample_combined_report_assets/tables/chart_map.tsv).
 
-Generated from bounded DYEC evidence snapshots and the E3 no-delete export receipt on 2026-08-17.
+Generated from bounded DYEC evidence snapshots, the E3 no-delete export receipt, and the P1 completed production S3 export on 2026-08-18.

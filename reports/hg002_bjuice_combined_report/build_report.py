@@ -38,8 +38,12 @@ EXPERIMENTS = {
         "analysis_id": "prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z",
         "title": "Four-AU measured-coverage gap-fill experiment",
     },
+    "P1": {
+        "analysis_id": "pcand18022-bjuice-preval6-15014-dry-20260817t112900z",
+        "title": "Bjuice v0.9 production full-coverage execution 1",
+    },
 }
-AU_ORDER = ["p5xp5", "1x1", "3x3", "5x5", "10x5", "15x5", "15x10", "10xby10x", "12xby12x", "20xby15x", "30xby15x"]
+AU_ORDER = ["p5xp5", "1x1", "3x3", "5x5", "10x5", "15x5", "15x10", "10xby10x", "12xby12x", "20xby15x", "30xby15x", "fullcov_0to24"]
 AU_INDEX = {name: index for index, name in enumerate(AU_ORDER)}
 TARGETS = {
     "p5xp5": (Decimal("0.5"), Decimal("0.5")),
@@ -54,8 +58,8 @@ TARGETS = {
     "20xby15x": (Decimal("20"), Decimal("15")),
     "30xby15x": (Decimal("30"), Decimal("15")),
 }
-EXPERIMENT_COLORS = {"E1": "#3977a8", "E2": "#d0783d", "E3": "#5d8f70"}
-EXPERIMENT_MARKERS = {"E1": "o", "E2": "s", "E3": "^"}
+EXPERIMENT_COLORS = {"E1": "#3977a8", "E2": "#d0783d", "E3": "#5d8f70", "P1": "#87589b"}
+EXPERIMENT_MARKERS = {"E1": "o", "E2": "s", "E3": "^", "P1": "P"}
 CALLER_STYLES = {
     "TrussSV": ("#315f88", "o"),
     "Sniffles2": ("#c2783e", "s"),
@@ -68,6 +72,7 @@ SOURCE_S3_URIS = [
     ("Shared HG002 ONT FC2 source", "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC2/20260615_ONT_Set4-FC2/20260616_0040_3B_PBK89197_822a87b5/"),
     ("Shared HG002 ONT FC3 source", "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC3/20260615_ONT_Set4-FC3/20260616_0041_3C_PBK89101_bd86eaac/"),
     ("E3 completed no-delete output export", "s3://lsmc-dayoa-analysis-results-usw2/derived/bjuice-v2-multi-analysis-unit/prod-cand-1703/prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z/"),
+    ("P1 completed production output export", "s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-bjuice-preval6-15014-dry-20260817t112900z/daylily-omics-analysis/"),
 ]
 
 plt.rcParams.update(
@@ -142,7 +147,7 @@ def annotate_side_labels(
     fontsize: float,
 ) -> None:
     """Place dense point labels in stable experiment-specific callout columns."""
-    for experiment, x_fraction in zip(EXPERIMENTS, (0.02, 0.35, 0.68)):
+    for experiment, x_fraction in zip(EXPERIMENTS, np.linspace(0.02, 0.77, len(EXPERIMENTS))):
         group = sorted(
             [row for row in points if row["experiment"] == experiment],
             key=lambda row: (float(row[y_key]), float(row[x_key]), row["au"]),
@@ -281,9 +286,82 @@ def parse_compact_e3(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
     return observations, {"inventory": inventory, "dayoa_root": None, "bundle_root": bundle_root}
 
 
+def parse_compact_p1(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Read the bounded P1 production extract without inventing a coverage target."""
+    bundle_root = evidence_root / "P1"
+    compact = json.loads((bundle_root / "compact_evidence.json").read_text())
+    expected_contract = {"short_read": "full", "long_read_window": "[0,24)", "coverage_target": None}
+    if compact.get("input_contract") != expected_contract:
+        raise ValueError("P1: full-input contract mismatch")
+    expected_measurement_contract = {
+        "short_read": "native SR (sentdhiomr2sr/smd; not RSR)",
+        "long_read": "LR (sentdhiomr2lr/na)",
+        "metric": "Mosdepth chrom=total mean",
+    }
+    if compact.get("coverage_measurement_contract") != expected_measurement_contract:
+        raise ValueError("P1: coverage measurement contract mismatch")
+    units = {row["ANALYSIS_UNIT_UID"]: row for row in compact["units"]}
+    identities = compact["identity"]
+    if len(units) != 1 or len(identities) != 1:
+        raise ValueError("P1: expected one HG002 full-coverage analysis unit")
+    identity = identities[0]
+    runtime = identity["RUNTIME_ANALYSIS_UNIT_UID"]
+    unit = units.get(identity["SOURCE_ANALYSIS_UNIT_UID"])
+    if unit is None or unit.get("SAMPLEID") != "HG002":
+        raise ValueError("P1: runtime identity does not resolve to HG002")
+    if "SR downsample full; ONT downsample full" not in unit.get("ANALYSIS_UNIT_COMMENT", ""):
+        raise ValueError("P1: manifest does not attest full SR and ONT input")
+    coverage = compact["coverage"].get(runtime)
+    if coverage is None:
+        raise ValueError("P1: missing Mosdepth coverage")
+    if "/align/sentdhiomr2sr/smd/alignqc/mosdepth/" not in coverage["ilmn_source"]:
+        raise ValueError("P1: SR coverage is not from native SR")
+    ilmn = Decimal(coverage["ilmn"])
+    ont = Decimal(coverage["ont"])
+    observation = {
+        "experiment": "P1",
+        "experiment_title": EXPERIMENTS["P1"]["title"],
+        "analysis_id": EXPERIMENTS["P1"]["analysis_id"],
+        "au": "fullcov_0to24",
+        "runtime_au": runtime,
+        "source_analysis_unit_uid": identity["SOURCE_ANALYSIS_UNIT_UID"],
+        "plot_label": "P1:fullcov",
+        "ilmn_measured_token": coverage["ilmn"],
+        "ilmn_measured": float(ilmn),
+        "ont_measured_token": coverage["ont"],
+        "ont_measured": float(ont),
+        "ilmn_target": None,
+        "ont_target": None,
+        "subsample_pct": "full",
+        "ont_start_hour": 0,
+        "ont_end_hour": 24,
+        "ilmn_abs_error": None,
+        "ont_abs_error": None,
+        "coverage_source_ilmn": coverage["ilmn_source"],
+        "coverage_source_ont": coverage["ont_source"],
+        "dayoa_root": compact["analysis_root"],
+        "selection_status": "source",
+        "compact_evidence": compact,
+    }
+    inventory = [
+        {
+            "experiment": "P1",
+            "analysis_root": compact["analysis_root"],
+            **row,
+            "local_path": "NA (bounded S3 export extract)",
+            "local_sha256": "NA",
+            "local_sha256_match": "s3_extract_hash",
+        }
+        for row in compact["inventory"]
+    ]
+    return [observation], {"inventory": inventory, "dayoa_root": None, "bundle_root": bundle_root}
+
+
 def parse_experiment(experiment: str, evidence_root: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     if experiment == "E3":
         return parse_compact_e3(evidence_root)
+    if experiment == "P1":
+        return parse_compact_p1(evidence_root)
     bundle_root = evidence_root / experiment
     dayoa_root = bundle_root / "daylily-omics-analysis"
     manifest_root = dayoa_root / "results/day/hg38/reports/input_manifests"
@@ -669,7 +747,12 @@ def truvari_plots(observations: list[dict[str, Any]], rows: list[dict[str, Any]]
             if not points:
                 continue
             plotted_points.extend(points)
-            face = "none" if experiment == "E1" else ("white" if experiment == "E2" else color)
+            face = {
+                "E1": "none",
+                "E2": "white",
+                "E3": "#777777",
+                "P1": EXPERIMENT_COLORS["P1"],
+            }[experiment]
             ax.scatter(
                 [row["recall"] for row in points],
                 [row["precision"] for row in points],
@@ -693,6 +776,7 @@ def truvari_plots(observations: list[dict[str, Any]], rows: list[dict[str, Any]]
             Line2D([0], [0], marker="o", color="none", markerfacecolor="none", markeredgecolor="#444", label="E1 open markers"),
             Line2D([0], [0], marker="o", color="none", markerfacecolor="white", markeredgecolor="#444", label="E2 white markers"),
             Line2D([0], [0], marker="o", color="none", markerfacecolor="#777", markeredgecolor="#444", label="E3 filled markers"),
+            Line2D([0], [0], marker="o", color="none", markerfacecolor=EXPERIMENT_COLORS["P1"], markeredgecolor="#444", label="P1 purple markers"),
         ]
     )
     fig.legend(handles=legend_handles, fontsize=10, ncol=6, loc="outside lower center")
@@ -1060,15 +1144,21 @@ def build_report(
     tables = assets / "tables"
     trussv = [row for row in truvari_rows if row["caller"] == "TrussSV" and number(row["fscore"]) is not None]
     best_trussv = max(trussv, key=lambda row: row["fscore"])
+    p1_observation = next(row for row in observations if row["experiment"] == "P1")
     costs = {row["observation_id"]: row["total_cost_usd"] for row in benchmark_summaries}
     total_cost_by_experiment = {
         experiment: sum(costs.get(row["observation_id"], 0.0) for row in observations if row["experiment"] == experiment)
         for experiment in EXPERIMENTS
     }
+    def target_text(row: dict[str, Any]) -> str:
+        if row["ilmn_target"] is None or row["ont_target"] is None:
+            return "No target"
+        return f"{row['ilmn_target']}x × {row['ont_target']}x"
+
     observation_markdown = [
         [
             row["plot_label"],
-            f"{row['ilmn_target']}x × {row['ont_target']}x",
+            target_text(row),
             f"{row['ilmn_measured_token']}x × {row['ont_measured_token']}x",
             str(row["subsample_pct"]),
             f"[{row['ont_start_hour']},{row['ont_end_hour']})",
@@ -1081,21 +1171,21 @@ def build_report(
     image = lambda name: f"![{name}]({relative_asset(report_path, figures / name)})"
     table_link = lambda name: f"[{name}]({relative_asset(report_path, tables / name)})"
     lines: list[str] = [
-        "# HG002 Bjuice combined downsampling heatmap report",
+        "# HG002 Bjuice measured-coverage matrix report",
         "",
         "## Technical summary",
         "",
-        f"This report combines **{len(observations)} retained measured-coverage observations** from three completed HG002 HIOMR2 kitchensink-mega experiments. Exact duplicate identity is `(AU, measured ILMN, measured ONT)`; **{duplicate_count} older observation(s)** were superseded by the newest matching experiment. Experiment provenance remains visible as `E1:<AU>`, `E2:<AU>`, or `E3:<AU>` in every chart and table.",
+        f"This report combines **{len(observations)} retained measured-coverage observations** from two HG002 downsampling experiments (E1/E2), a four-AU gap-fill experiment (E3), and the completed Bjuice v0.9 production full-coverage execution (P1). Exact duplicate identity is `(AU, measured ILMN, measured ONT)`; **{duplicate_count} older observation(s)** were superseded by the newest matching experiment. Experiment provenance remains visible as `E1:<AU>`, `E2:<AU>`, `E3:<AU>`, or `P1:fullcov` in every chart and table.",
         "",
-        f"All coverage coordinates in this report are source-reported measured Mosdepth totals—never nominal target coverage. The strongest retained TrussSV global F-score was **{best_trussv['fscore']:.4f}** at **{best_trussv['plot_label']}**. Successful benchmark task rows sum to " + ", ".join(f"**${total_cost_by_experiment[experiment]:,.2f}** for {experiment}" for experiment in EXPERIMENTS) + ".",
+        f"All coverage coordinates in this report are source-reported measured Mosdepth totals—never nominal target coverage. P1 has no coverage target: its target and target-error fields are `NA`, while its measured coordinate is **{p1_observation['ilmn_measured_token']}× SR × {p1_observation['ont_measured_token']}× LR**. Its SR coordinate comes from native `sentdhiomr2sr/smd` Mosdepth, not `rsr`. The strongest retained TrussSV global F-score was **{best_trussv['fscore']:.4f}** at **{best_trussv['plot_label']}**. Successful benchmark task rows sum to " + ", ".join(f"**${total_cost_by_experiment[experiment]:,.2f}** for {experiment}" for experiment in EXPERIMENTS) + ".",
         "",
-        "E1 completed its live rerun at `rc=0` on 2026-08-14; E2 completed the retained kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-16; and E3 completed the four-AU kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-17. E1 coverage remains observational evidence only; E2 is the corrected re-downsampling experiment; E3 supplies the new 10–15x/15–30x measured-coverage observations. Analytical packaging is not included in the E3 closure claim.",
+        "E1 completed its live rerun at `rc=0` on 2026-08-14; E2 completed the retained kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-16; and E3 completed the four-AU kitchensink-mega/final-MultiQC closure at `rc=0` on 2026-08-17. P1 is the separately completed Bjuice v0.9 production execution 1 for HG002 with full Illumina and ONT `[0,24)` input. E1 coverage remains observational evidence only; E2 is the corrected re-downsampling experiment; E3 supplies gap-fill coverage observations; P1 is retained as a distinct no-target production observation.",
         "",
         "## Source S3 URIs",
         "",
         markdown_table(["Source", "S3 URI"], [[label, f"`{uri}`"] for label, uri in SOURCE_S3_URIS]),
         "",
-        "The E3 export was successful (`task-0086514fbf61dae5e`); its temporary DRA was detached and the FSx analysis root was preserved. These exact source URIs are also available in " + table_link("source_s3_uris.tsv") + ".",
+        "The E3 and P1 sources are completed exported execution outputs. These exact source URIs are also available in " + table_link("source_s3_uris.tsv") + ".",
         "",
         "## Where data exist: unified measured-coverage grid",
         "",
@@ -1107,9 +1197,9 @@ def build_report(
         "",
         "### Retained observation provenance",
         "",
-        markdown_table(["Observation", "Nominal ILMN × ONT", "Measured ILMN × ONT", "ILMN fraction", "ONT hours", "Runtime AU", "Selection"], observation_markdown),
+        markdown_table(["Observation", "Coverage target", "Measured SR × LR", "SR fraction / mode", "ONT hours", "Runtime AU", "Selection"], observation_markdown),
         "",
-        "The full retained-observation table includes nominal targets, exact measured tokens, fractions, ONT windows, source paths, and selection status: " + table_link("retained_observations.tsv") + ".",
+        "The full retained-observation table includes targets where they exist, exact measured SR/LR tokens, SR fraction or full-input mode, ONT windows, source paths, and selection status: " + table_link("retained_observations.tsv") + ".",
         "",
         "## Measured ONT coverage and runtime",
         "",
@@ -1180,8 +1270,8 @@ def build_report(
             "- Hard-VCF metrics are restricted to `ROI=giabHC`; the crude SNP construction is intentionally not a standard variant-class aggregation.",
             "- Truvari metrics come from raw `summary.json`. Undefined no-call rates are `NA`, even where a downstream report-oriented artifact normalized them to zero.",
             "- SegDup is descriptive callset output, not truth/query concordance. A no-call state is not evidence of reference genotype truth.",
-            "- The two experiments reuse the same HG002 source material and their downsampled inputs are nested; observations are not statistically independent. Results are descriptive and no causal or inferential claim is made.",
-            "- E1, E2, and E3 may contain different runtime software provenance because later experiments were completed after authorized R&D reporting repairs. The report uses produced artifacts and does not relabel a later experiment as a pristine re-execution of an earlier release.",
+            "- E1, E2, E3, and P1 reuse the same HG002 source material; downsampled inputs are nested and P1 is a full-input production observation. Results are descriptive and no causal or inferential claim is made.",
+            "- E1, E2, E3, and P1 may contain different runtime software provenance because later executions were completed after authorized R&D reporting repairs. The report uses produced artifacts and does not relabel a later execution as a pristine re-execution of an earlier release.",
             "",
             "## Audit and reproducibility",
             "",
@@ -1190,7 +1280,7 @@ def build_report(
             "- Duplicate metric comparisons: " + table_link("duplicate_metric_audit.tsv") + ".",
             "- Figure-to-table mapping: " + table_link("chart_map.tsv") + ".",
             "",
-            "Generated from bounded DYEC evidence snapshots and the E3 no-delete export receipt on 2026-08-17.",
+            "Generated from bounded DYEC evidence snapshots, the E3 no-delete export receipt, and the P1 completed production S3 export on 2026-08-18.",
         ]
     )
     report_path.write_text("\n".join(lines) + "\n")
@@ -1241,10 +1331,18 @@ def main() -> None:
         observations, metadata = parse_experiment(experiment, args.evidence_root)
         source_observations.extend(observations)
         source_inventory.extend(metadata["inventory"])
-    if len(source_observations) != 18:
-        raise ValueError("expected eighteen source observations")
+    if len(source_observations) != 19:
+        raise ValueError("expected nineteen source observations")
 
     retained, resolutions, all_status = deduplicate(source_observations)
+    p1_observations = [row for row in retained if row["experiment"] == "P1"]
+    if len(p1_observations) != 1:
+        raise AssertionError("expected one retained P1 observation")
+    p1_observation = p1_observations[0]
+    if any(p1_observation[field] is not None for field in ("ilmn_target", "ont_target", "ilmn_abs_error", "ont_abs_error")):
+        raise AssertionError("P1 must not have invented target or target-error values")
+    if (p1_observation["subsample_pct"], p1_observation["ont_start_hour"], p1_observation["ont_end_hour"]) != ("full", 0, 24):
+        raise AssertionError("P1 full-input contract was not retained")
     for index, observation in enumerate(retained, start=1):
         observation["observation_id"] = f"OBS{index:02d}"
     retained_key_to_id = {(row["experiment"], row["runtime_au"]): row["observation_id"] for row in retained}
