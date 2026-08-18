@@ -41,9 +41,12 @@ LOGGER = logging.getLogger("daylily.export_fsx")
 ANALYSIS_EXPORT_ROOT = "/analysis_results/"
 HEADNODE_ANALYSIS_EXPORT_ROOT = "/fsx/analysis_results/"
 STATUS_FILENAME = "fsx_export.yaml"
-EXPORT_SCHEMA_VERSION = 5
+EXPORT_SCHEMA_VERSION = 6
 EXPORT_PURPOSE_TAG = "output-export"
 POLL_INTERVAL_SECONDS = 30
+ANALYSIS_EXPORT_KIND = "analysis"
+RUNTIME_CACHE_EXPORT_KIND = "runtime_cache"
+EXPORT_KINDS = frozenset({ANALYSIS_EXPORT_KIND, RUNTIME_CACHE_EXPORT_KIND})
 
 
 class ExportError(RuntimeError):
@@ -63,7 +66,7 @@ class ExportOptions:
     wait: bool = True
     timeout_seconds: int = 3600
     delete_data_in_file_system: bool = False
-    require_clone_status_v2_evidence: bool = False
+    export_kind: str = ANALYSIS_EXPORT_KIND
 
 
 @dataclasses.dataclass(frozen=True)
@@ -830,6 +833,10 @@ def _write_status(options: ExportOptions, payload: Dict[str, Any]) -> None:
 
 
 def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
+    if options.export_kind not in EXPORT_KINDS:
+        raise ExportError(
+            f"unsupported export kind: {options.export_kind!r}; expected one of {sorted(EXPORT_KINDS)!r}"
+        )
     normalized_source = normalize_export_source_path(options.source_path)
     destination_s3_uri = validate_export_destination_s3_uri(
         options.destination_s3_uri,
@@ -838,7 +845,19 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
         destination_analysis_id=options.destination_analysis_id,
     )
     headnode_path = analysis_headnode_path(normalized_source)
-    return {
+    clone_status_evidence: Dict[str, Any] | None = None
+    if options.export_kind == ANALYSIS_EXPORT_KIND:
+        clone_status_evidence = {
+            "required": True,
+            "verified": False,
+            "s3_uri": clone_status_evidence_s3_uri(
+                source_path=normalized_source,
+                destination_s3_uri=destination_s3_uri,
+                cluster_name=options.cluster_name,
+                destination_analysis_id=options.destination_analysis_id,
+            ),
+        }
+    receipt = {
         "fsx_export": {
             "schema_version": EXPORT_SCHEMA_VERSION,
             "status": "started",
@@ -858,6 +877,9 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
             "failure_details": {},
         }
     }
+    if clone_status_evidence is not None:
+        receipt["fsx_export"]["clone_status_v2_evidence"] = clone_status_evidence
+    return receipt
 
 
 def run_export_workflow(options: ExportOptions) -> int:
@@ -933,7 +955,7 @@ def run_export_workflow(options: ExportOptions) -> int:
                 "FSx export task ended with lifecycle "
                 f"{task_payload['task_lifecycle']}: {task_payload['failure_details']}"
             )
-        if options.require_clone_status_v2_evidence:
+        if options.export_kind == ANALYSIS_EXPORT_KIND:
             receipt["fsx_export"]["clone_status_v2_evidence"] = (
                 verify_exported_clone_status_v2_evidence(
                     session.client("s3"),

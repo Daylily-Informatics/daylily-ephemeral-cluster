@@ -2566,15 +2566,6 @@ def export(
             "export DRA after a successful export task."
         ),
     ),
-    require_clone_status_v2_evidence: bool = typer.Option(
-        False,
-        "--require-clone-status-v2-evidence",
-        help=(
-            "After FSx reports success, read and validate the exported "
-            "daylily-omics-analysis/status.json v2 record. This requires a full "
-            "analysis-root export and is opt-in so historical exports are unchanged."
-        ),
-    ),
 ) -> None:
     """Export FSx outputs through an explicit DRA and immutable S3 receipt."""
 
@@ -2597,7 +2588,6 @@ def export(
             wait=wait,
             timeout_seconds=timeout_seconds,
             delete_data_in_file_system=delete_data_in_file_system,
-            require_clone_status_v2_evidence=require_clone_status_v2_evidence,
         )
     )
     raise typer.Exit(rc)
@@ -2808,14 +2798,6 @@ def exports_transfer(
     region: Optional[str] = context_option("aws_region", None, "--region", required=True),
     profile: Optional[str] = typer.Option(None, "--profile"),
     timeout_seconds: int = typer.Option(5400, "--timeout-seconds"),
-    require_clone_status_v2_evidence: bool = typer.Option(
-        False,
-        "--require-clone-status-v2-evidence",
-        help=(
-            "Require a validated exported daylily-omics-analysis/status.json v2 "
-            "record before accepting this full-analysis transfer."
-        ),
-    ),
 ) -> None:
     """Attach, export, and detach one exact analysis directory without deletion."""
 
@@ -2841,7 +2823,6 @@ def exports_transfer(
                 wait=True,
                 timeout_seconds=timeout_seconds,
                 delete_data_in_file_system=False,
-                require_clone_status_v2_evidence=require_clone_status_v2_evidence,
             )
             with (
                 contextlib.redirect_stdout(captured_stdout),

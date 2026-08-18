@@ -410,6 +410,33 @@ def test_exported_clone_status_v2_evidence_requires_full_analysis_export() -> No
         )
 
 
+def test_analysis_export_rejects_nested_source_before_attaching_dra(tmp_path, monkeypatch) -> None:
+    client = FakeFsxClient()
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(client, FakeS3Client(_exported_status_v2())),
+    )
+
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/user/run/AU/",
+            destination_s3_uri="s3://bucket/root/user/run/AU/",
+            region="us-west-2",
+            profile="profile",
+            output_dir=tmp_path,
+            wait=False,
+        )
+    )
+
+    assert rc == 1
+    assert client.created_association is None
+    receipt = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))["fsx_export"]
+    assert receipt["phase"] == "validate"
+    assert "complete analysis directory" in receipt["failure_details"]["message"]
+
+
 def test_verify_exported_clone_status_v2_evidence_reads_retained_attempts() -> None:
     s3 = FakeS3Client(_exported_status_v2())
 
@@ -435,7 +462,7 @@ def test_verify_exported_clone_status_v2_evidence_reads_retained_attempts() -> N
     ]
 
 
-def test_export_evidence_failure_prevents_fsx_delete(tmp_path, monkeypatch) -> None:
+def test_analysis_export_rejects_legacy_evidence_by_default(tmp_path, monkeypatch) -> None:
     client = FakeFsxClient()
     s3 = FakeS3Client({"schema_version": "retired.home.status.v1"})
     monkeypatch.setattr(
@@ -454,7 +481,6 @@ def test_export_evidence_failure_prevents_fsx_delete(tmp_path, monkeypatch) -> N
             output_dir=tmp_path,
             wait=False,
             delete_data_in_file_system=True,
-            require_clone_status_v2_evidence=True,
         )
     )
 
@@ -483,7 +509,6 @@ def test_export_workflow_records_validated_clone_status_evidence(tmp_path, monke
             profile="profile",
             output_dir=tmp_path,
             wait=False,
-            require_clone_status_v2_evidence=True,
         )
     )
 
@@ -497,7 +522,7 @@ def test_run_export_workflow_writes_provider_neutral_receipt(tmp_path, monkeypat
     client = FakeFsxClient()
     monkeypatch.setattr(
         "daylily_ec.workflow.export_data._create_session",
-        lambda _region, _profile: FakeSession(client),
+        lambda _region, _profile: FakeSession(client, FakeS3Client(_exported_status_v2())),
     )
     rc = run_export_workflow(
         ExportOptions(
@@ -518,6 +543,7 @@ def test_run_export_workflow_writes_provider_neutral_receipt(tmp_path, monkeypat
     assert receipt["status"] == "success"
     assert receipt["detached"] is True
     assert receipt["delete_data_in_file_system"] is False
+    assert receipt["clone_status_v2_evidence"]["verified"] is True
     text = (tmp_path / "fsx_export.yaml").read_text(encoding="utf-8").lower()
     for forbidden in ("dayhoff", "ursa", "bloom", "tapdb", "dewey"):
         assert forbidden not in text
@@ -611,7 +637,6 @@ def test_exports_transfer_emits_json_receipt_and_preserves_fsx(monkeypatch) -> N
             "us-west-2",
             "--profile",
             "lsmc",
-            "--require-clone-status-v2-evidence",
         ],
     )
 
@@ -621,8 +646,17 @@ def test_exports_transfer_emits_json_receipt_and_preserves_fsx(monkeypatch) -> N
     assert isinstance(options, ExportOptions)
     assert options.destination_analysis_id == "M-RGX-FSAP"
     assert options.delete_data_in_file_system is False
-    assert options.require_clone_status_v2_evidence is True
+    assert not hasattr(options, "require_clone_status_v2_evidence")
     assert options.timeout_seconds == 5400
+
+
+def test_analysis_export_cli_has_no_legacy_evidence_opt_in() -> None:
+    from daylily_ec.cli import app
+
+    for argv in (["export", "--help"], ["exports", "transfer", "--help"]):
+        result = runner.invoke(app, argv)
+        assert result.exit_code == 0, result.stdout + result.stderr
+        assert "--require-clone-status-v2-evidence" not in result.output
 
 
 def test_cleanup_exported_analysis_deletes_only_exact_fsx_path() -> None:

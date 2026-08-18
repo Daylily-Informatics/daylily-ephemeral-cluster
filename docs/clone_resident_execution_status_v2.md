@@ -1,6 +1,6 @@
 # Clone-resident execution status v2
 
-DYEC 18.0.29 consumes DayOA's canonical execution record only from:
+DYEC 18.0.30 consumes DayOA's canonical execution record only from:
 
 ```text
 <analysis-root>/daylily-omics-analysis/status.json
@@ -55,14 +55,11 @@ status.json
 
 It does not allow arbitrary untracked clone-root paths.
 
-## Export evidence acceptance
+## Mandatory export evidence acceptance
 
-Full analysis exports remain unchanged by default. To require evidence for a
-new v2 analysis, use either `dyec export` or `dyec exports transfer` with:
-
-```text
---require-clone-status-v2-evidence
-```
+Every `dyec export` and `dyec exports transfer` analysis export requires v2
+evidence. There is no compatibility flag, legacy receipt reader, or successful
+analysis-export path for a missing or pre-v2 status record.
 
 After the FSx export task succeeds, DYEC reads exactly:
 
@@ -73,9 +70,11 @@ After the FSx export task succeeds, DYEC reads exactly:
 It validates the strict `daylily.analysis_status.v2` record against the source
 clone identity and requires at least one retained attempt. The export receipt
 then includes `clone_status_v2_evidence` with the S3 URI, schema version,
-attempt count, and latest attempt ID. Evidence failure prevents an optional
-FSx delete-on-success path; it does not mutate S3 or retry the DRA.
+attempt count, and latest attempt ID. A missing, malformed, mismatched, or
+legacy record fails the export acceptance check and prevents an optional FSx
+delete-on-success path; it does not mutate S3 or retry the DRA.
 
-The option deliberately rejects nested exports because a nested export cannot
-prove that it retained the clone-root status file. Historical exports remain
-available without the option.
+The mandatory check rejects nested analysis exports before attaching a DRA,
+because a nested export cannot prove that it retained the clone-root status
+file. The separate `dyec runtime-cache export` path declares its explicit
+`runtime_cache` export kind and is not an analysis export.

@@ -1,6 +1,6 @@
 # DYEC Overview
 
-This is the living overview for DYEC `18.0.29`. The command surface is defined
+This is the living overview for DYEC `18.0.30`. The command surface is defined
 by `dyec --help`; [cli_reference.md](cli_reference.md) is the detailed
 operator reference. Dated release reports, archived documents, and plan ledgers
 retain historical evidence and are not current command guidance.
