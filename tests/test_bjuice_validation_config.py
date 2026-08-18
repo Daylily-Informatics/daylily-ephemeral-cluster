@@ -12,6 +12,8 @@ import yaml
 from daylily_ec.bjuice_preval_config import BjuiceConfigError
 from daylily_ec.bjuice_validation_config import (
     CROSSWALK_COLUMNS,
+    DAYOA_BASELINE,
+    DYEC_BASELINE,
     EXPECTED_MAPPED_ROWS,
     EXPECTED_ONT_ROWS,
     EXPECTED_PAIRED_ROWS,
@@ -193,9 +195,13 @@ def test_generated_bundle_has_exact_hybrid_topology_and_runtime(
     assert receipt["launch_status"] == "LAUNCH_BLOCKED"
     assert receipt["topology"]["analysis_unit_count"] == expected_aus
     assert receipt["topology"]["manifest_hashes"] == manifests.hashes
-    assert "CANONICAL_OWY_OOW_DONE_MISSING" in receipt["launch_blockers"]
+    assert receipt["dyec"] == DYEC_BASELINE
+    assert all(receipt["dayoa"][key] == value for key, value in DAYOA_BASELINE.items())
+    assert receipt["launch_blockers"] == ["CANONICAL_OWY_OOW_DONE_MISSING"]
     assert "produce_sentdhiomr2_slim_kitchensink_mega" in receipt["saved_dy_r_command"]
     assert "produce_sentdhiomr2_inflection_analytical_package" in receipt["saved_dy_r_command"]
+    assert "ont_fastq_hour_window_mode=per_analysis_unit" in receipt["saved_dy_r_command"]
+    assert "-j 345 -T 1 -p -k" in receipt["saved_dy_r_command"]
     assert "snakemake" not in receipt["saved_dy_r_command"].lower()
 
 
