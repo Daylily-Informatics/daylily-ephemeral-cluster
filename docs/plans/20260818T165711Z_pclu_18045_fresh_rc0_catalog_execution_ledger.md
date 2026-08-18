@@ -1,7 +1,7 @@
 # `pclu-18045` fresh-RC0 catalog execution ledger
 
-Created: 2026-08-18T16:57:11Z  
-Controlling request: Run the eleven fresh production catalog lanes on `pclu-18045` using DYEC `18.0.47`, pinned to DayOA `15.0.27`.  
+Created: 2026-08-18T16:57:11Z
+Controlling request: Run the eleven fresh production catalog lanes on `pclu-18045` using DYEC `18.0.47`, pinned to DayOA `15.0.27`.
 Ledger owner: Codex / `codex/pclu-18045-rc0-catalog-execution`
 
 ## Scope and acceptance
