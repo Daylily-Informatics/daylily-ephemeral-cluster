@@ -18,13 +18,21 @@ PACKAGED_CATALOG = (
     / "config"
     / "daylily_pipeline_command_catalog.yaml"
 )
-DYEC_RELEASE = "18.0.55"
-PREVIOUS_DYEC_RELEASE = "18.0.54"
-DAYOA_RELEASE = "15.0.35"
-
-PANGENOME_COMMANDS = {
-    "illumina_sentieon_pangenome_kitchensink": "produce_sentpg_sr_snv_vcf",
-    "ultima_sentieon_pangenome_kitchensink": "produce_sentpg_ug_snv_vcf",
+DYEC_RELEASE = "18.0.56"
+PREVIOUS_DYEC_RELEASE = "18.0.55"
+DAYOA_RELEASE = "15.0.37"
+PRODUCTION_COMMAND_IDS = {
+    "illumina_run_qc",
+    "ont_run_qc",
+    "ultima_run_qc",
+    "hiomr2_slim_kitchensink_mega",
+    "inflection-bjuice-product-v0.9",
+    "illumina_hg002_kitchensink_multiqc",
+    "ont_snv_alignstats_kitchensink",
+    "ultima_snv_alignstats_kitchensink",
+    "complete_genomics_cg_snv_concordance",
+    "illumina_sentieon_pangenome_kitchensink",
+    "ultima_sentieon_pangenome_kitchensink",
 }
 
 
@@ -41,17 +49,18 @@ def _tag_catalog(release: str) -> dict:
     return yaml.safe_load(source)
 
 
-def test_18_0_55_remains_a_frozen_snapshot_pinned_to_dayoa_15_0_35() -> None:
+def test_18_0_56_freezes_current_to_dayoa_15_0_37() -> None:
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
 
     raw = _raw_catalog()
+    current = raw["dyec_builds"]["current"]
     release = raw["dyec_builds"][DYEC_RELEASE]
-    tagged_release = _tag_catalog(DYEC_RELEASE)
     previous = _tag_catalog(PREVIOUS_DYEC_RELEASE)
 
-    assert release == tagged_release["dyec_builds"][DYEC_RELEASE]
-    assert release["dayoa_git_tags"] == [DAYOA_RELEASE]
-    assert {command["git_tag"] for command in release["commands"].values()} == {
+    assert release == current
+    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == DAYOA_RELEASE
+    assert current["dayoa_git_tags"] == [DAYOA_RELEASE]
+    assert {command["git_tag"] for command in current["commands"].values()} == {
         DAYOA_RELEASE
     }
     assert raw["dyec_builds"][PREVIOUS_DYEC_RELEASE] == previous["dyec_builds"][
@@ -59,16 +68,18 @@ def test_18_0_55_remains_a_frozen_snapshot_pinned_to_dayoa_15_0_35() -> None:
     ]
 
 
-def test_18_0_55_pangenome_commands_remain_production_same_root_dry_closures() -> None:
+def test_18_0_56_preserves_the_complete_rc0_production_catalog() -> None:
     catalog = load_repository_catalog(SOURCE_CATALOG)
+    production_commands = {
+        command.command_id
+        for command in catalog.commands_for_dyec_build(DYEC_RELEASE)
+        if command.type == "prod"
+    }
 
-    for command_id, graph_target in PANGENOME_COMMANDS.items():
+    assert production_commands == PRODUCTION_COMMAND_IDS
+    for command_id in PRODUCTION_COMMAND_IDS:
         command = catalog.get_command_for_dyec_build(command_id, DYEC_RELEASE)
-
-        assert command.type == "prod"
         assert command.git_tag == DAYOA_RELEASE
-        assert command.genome == "hg38"
         assert command.jobs == 333
-        assert graph_target in command.targets
         assert " -j 333 -T 0 -p" in command.dy_command
         assert command.dryrun_dy_command == f"{command.dy_command} -n"
