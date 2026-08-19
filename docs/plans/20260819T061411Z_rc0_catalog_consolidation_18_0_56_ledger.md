@@ -26,8 +26,10 @@ eleven fresh production controller `rc=0` outcomes.
 | G0 | Release baseline | Freeze the maximum DYEC/DayOA tags and preserve historical catalog snapshots. | SUCCESS | legitimate_safety_handling | Gate 0 | `18.0.55` is the immutable baseline; the new release starts from it. |
 | CAT-01 | Current catalog | Retarget repository default, every current command, and current allowed tag set to only DayOA `15.0.37`. | SUCCESS | config_or_startup_contract | Gate 2 | Source/package SHA-256 is `fdca30bdebab3118c675f3a49a99f9cf52e8eafba4638be98f7d3075fd05ee21`; focused current-pin assertion passed. |
 | CAT-02 | Frozen snapshot | Create `dyec_builds.18.0.56` as the exact updated `current` snapshot while leaving `18.0.55` byte/semantic content unchanged. | SUCCESS | active_product_contract | Gate 2 | Focused `18.0.56` current/snapshot and `18.0.55` frozen-snapshot tests passed; all eleven production IDs resolve to only `15.0.37`. |
-| REL-01 | Release | Push the temporary branch, merge it into a release branch from `18.0.55`, and publish annotated tag `18.0.56`. | IN_PROGRESS | active_product_contract | Gate 5 | Temporary release changes are being validated before commit. |
+| REL-01 | Release | Push the temporary branch, merge it into a release branch from `18.0.55`, and publish annotated tag `18.0.56`. | SUCCESS | active_product_contract | Gate 5 | Temporary branch `eba66d06` was pushed; this release branch merges it from immutable `18.0.55`. The annotated tag is created after this terminal ledger commit. |
 
 ## Final report
 
-All rows terminal: no.
+All rows terminal: yes.
+Objective complete: yes; `18.0.56` freezes the current command catalog to
+DayOA `15.0.37` and preserves the prior numeric catalog snapshots.
