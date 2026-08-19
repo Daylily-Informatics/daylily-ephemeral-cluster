@@ -308,12 +308,16 @@ def test_current_snapshot_history_and_packaged_payload_retain_active_semantics()
         command["git_tag"]
         for command in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]
     } == {"15.0.28"}
-    assert raw["dyec_builds"]["current"] == tagged["dyec_builds"]["current"]
-    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["15.0.37"]
+    assert raw["dyec_builds"]["current"] != tagged["dyec_builds"]["current"]
+    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["18.0.59"]
+    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == [
+        "15.0.37",
+        "15.0.38",
+    ]
     assert {
         command["git_tag"]
         for command in raw["dyec_builds"]["current"]["commands"].values()
-    } == {"15.0.37"}
+    } == {"15.0.37", "15.0.38"}
     assert raw["dyec_builds"]["18.0.58"] == tagged["dyec_builds"]["18.0.58"]
 
     current = raw["dyec_builds"]["current"]

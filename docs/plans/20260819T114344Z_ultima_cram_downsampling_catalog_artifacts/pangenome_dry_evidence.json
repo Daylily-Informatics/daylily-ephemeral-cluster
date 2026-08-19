@@ -1,0 +1,37 @@
+{
+  "schema_version": "dyec.ultima_cram_downsampling_dry_evidence.v1",
+  "analysis_id": "pclu18045_u075_pang_18059_15038_20260819t130742z",
+  "command_id": "ultima_sentieon_pangenome_kitchensink",
+  "mode": "dry_only",
+  "completed_at": "2026-08-19T13:21:23Z",
+  "dyec_version": "18.0.59.dev1+g20325e840.d20260819",
+  "dyec_base_commit": "20325e84014fabe666c1d5b7f381374444597949",
+  "dyec_git_state": "dirty catalog candidate",
+  "dayoa_tag": "15.0.38",
+  "dayoa_commit": "95cabdbfd35e57bd8974ec0b6583f3f2dd4b3202",
+  "manifest_value": "0.75",
+  "status_receipt": "/fsx/analysis_results/pclu-18045/pclu18045_u075_pang_18059_15038_20260819t130742z/daylily-omics-analysis/status.json",
+  "controller_log": "/fsx/analysis_results/pclu-18045/pclu18045_u075_pang_18059_15038_20260819t130742z/daylily-omics-analysis/.dyec/controller.log",
+  "terminal": {
+    "controller_exit_code": 0,
+    "day_run_exit_code": 0,
+    "snakemake_exit_code": 0,
+    "submitted_job_count": 0
+  },
+  "dag_evidence": {
+    "pre_prep_ultima_cram_rule_count": 1,
+    "seed_33_75_count": 1,
+    "canonicalize_pangenome_ug_input_cram_rule_count": 1,
+    "threads": 48,
+    "view_command": "samtools view -@ 48 -T /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -C -s 33.75 /fsx/run_dir_mounts/ultima-604834-20260717/604834-HG002-Z0346-CATGAGCATGAGGCGAT/604834-HG002-Z0346-CATGAGCATGAGGCGAT.cram -o $local_cram",
+    "index_command": "samtools index -@ 48 $local_cram $local_crai",
+    "prepared_cram": "results/day/hg38/HG002-hna1djvyqcavt4/align/ug/HG002-hna1djvyqcavt4.cram",
+    "canonicalizer_inputs": [
+      "results/day/hg38/HG002-hna1djvyqcavt4/align/ug/HG002-hna1djvyqcavt4.cram",
+      "results/day/hg38/HG002-hna1djvyqcavt4/align/ug/HG002-hna1djvyqcavt4.cram.crai"
+    ],
+    "sentieon_pangenome_input": "results/day/hg38/HG002-hna1djvyqcavt4/align/ug/canonical_reference/HG002-hna1djvyqcavt4.ug.canonical_reference.cram"
+  },
+  "live_status": "not_run",
+  "limitations": "Dry-run proof only; no CRAM records were sampled, no workflow job was submitted, and no read-count or performance claim is made."
+}

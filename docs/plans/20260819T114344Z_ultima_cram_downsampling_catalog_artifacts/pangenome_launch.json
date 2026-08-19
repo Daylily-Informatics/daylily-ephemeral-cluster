@@ -1,0 +1,16 @@
+{
+  "analysis_id": "pclu18045_u075_pang_18059_15038_20260819t130742z",
+  "command_id": "ultima_sentieon_pangenome_kitchensink",
+  "command_catalog_version": 6,
+  "cost_center": "pclu-18045-ccenter",
+  "dry_run": true,
+  "dyec_version": "18.0.59",
+  "executing_entity": "pclu-18045",
+  "git_tag": "15.0.38",
+  "workflow_launch": {
+    "repo_path": "/fsx/analysis_results/pclu-18045/pclu18045_u075_pang_18059_15038_20260819t130742z/daylily-omics-analysis",
+    "run_dir": "/home/ubuntu/daylily-runs/pclu18045_u075_pang_18059_15038_20260819t130742z-dry",
+    "session_name": "pclu18045_u075_pang_18059_15038_20260819t130742z-dry",
+    "dy_command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_sentpg_ug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config genome_build=hg38 'aligners=[\"ug\",\"pangenome_ug\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdug\",\"sentpg\"]' 'sv_callers=[]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' 'sentdug={\"hg38_sentdug_chrms\":\"1-25\"}' -j 333 -T 0 -p --rerun-triggers mtime -n --produce-analysis-artifact-manifest true --produce-rulegraph true --produce-filegraph false --produce-dag false"
+  }
+}

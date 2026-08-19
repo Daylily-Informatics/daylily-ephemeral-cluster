@@ -1,0 +1,20 @@
+{
+  "schema_version": "dyec.ultima_cram_downsampling_post_dry_cluster_snapshot.v1",
+  "observed_at": "2026-08-19T13:23:07.241537Z",
+  "cluster": "pclu-18045",
+  "region": "us-west-2",
+  "controller_count": 0,
+  "controller_count_authoritative": true,
+  "receipted_live_controller_count": 0,
+  "unreceipted_live_controller_count": 0,
+  "slurm_job_count": 1,
+  "slurm_jobs": [
+    {
+      "job_id": "1604",
+      "partition": "i192nvme",
+      "state": "RUNNING",
+      "name": "sentieon_pangenome_ug-HG002-fj9frmbwyyz1yr",
+      "relationship": "pre-existing and unrelated; unchanged by both dry launches"
+    }
+  ]
+}

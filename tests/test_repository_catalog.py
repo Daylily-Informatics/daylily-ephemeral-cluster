@@ -15,6 +15,7 @@ runner = CliRunner()
 
 
 DAYOA_BLESSED_TAG = "15.0.37"
+ULTIMA_DOWNSAMPLE_DAYOA_TAG = "15.0.38"
 CURRENT_VALIDATED_DAYOA_TAG = "15.0.1"
 RUN_QC_VALIDATED_DAYOA_TAG = "15.0.9"
 PRODUCTION_DAYOA_TAG = DAYOA_BLESSED_TAG
@@ -23,6 +24,10 @@ BJUICE_V2_DAYOA_VALIDATED_TAG = "15.0.3"
 PREVIOUS_PRODUCTION_DAYOA_TAG = "13.4.31"
 SOLO_KITCHEN_SINK_DAYOA_TAG = DAYOA_BLESSED_TAG
 DRAGEN_DAYOA_REF = DAYOA_BLESSED_TAG
+ULTIMA_DOWNSAMPLE_COMMAND_IDS = {
+    "ultima_snv_alignstats_kitchensink",
+    "ultima_sentieon_pangenome_kitchensink",
+}
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG_PATH = (
@@ -173,7 +178,10 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         command.command_id for command in catalog.commands()
     }
     assert len(current_build) == 31
-    assert {command.git_tag for command in current_build} == {DAYOA_BLESSED_TAG}
+    assert {command.git_tag for command in current_build} == {
+        DAYOA_BLESSED_TAG,
+        ULTIMA_DOWNSAMPLE_DAYOA_TAG,
+    }
     assert {command.repository for command in current_build} == {"daylily-omics-analysis"}
     older_release = catalog.commands_for_dyec_build("16.1.85")
     assert {command.git_tag for command in older_release} == {"13.4.33"}
@@ -451,7 +459,8 @@ def test_catalog_cli_uses_current_unless_numeric_snapshot_is_requested() -> None
     released_payload = json.loads(released_result.stdout)
     assert current_payload["dyec_version"] == "current"
     assert {command["git_tag"] for command in current_payload["commands"]} == {
-        DAYOA_BLESSED_TAG
+        DAYOA_BLESSED_TAG,
+        ULTIMA_DOWNSAMPLE_DAYOA_TAG,
     }
     assert all("validation_pending" in command for command in current_payload["commands"])
     assert all(command["validation_pending"] for command in current_payload["commands"])
@@ -731,8 +740,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.compatible_cluster_types == ["daywgs"]
         assert command.compatible_data_modes
         expected_tag = (
-            SOLO_KITCHEN_SINK_DAYOA_TAG
-            if command.command_id == "complete_genomics_cg_snv_concordance"
+            ULTIMA_DOWNSAMPLE_DAYOA_TAG
+            if command.command_id in ULTIMA_DOWNSAMPLE_COMMAND_IDS
             else DAYOA_BLESSED_TAG
         )
         assert command.git_tag == expected_tag
@@ -760,7 +769,12 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     ):
         command = catalog.get_command(command_id)
         assert command.validated_version == CURRENT_VALIDATED_DAYOA_TAG
-        assert command.git_tag == DAYOA_BLESSED_TAG
+        expected_tag = (
+            ULTIMA_DOWNSAMPLE_DAYOA_TAG
+            if command_id in ULTIMA_DOWNSAMPLE_COMMAND_IDS
+            else DAYOA_BLESSED_TAG
+        )
+        assert command.git_tag == expected_tag
     assert complete_genomics.compatible_platforms == ["CG"]
     assert complete_genomics.compatible_cluster_types == ["daywgs"]
     assert complete_genomics.compatible_data_modes == ["complete_genomics_solo"]

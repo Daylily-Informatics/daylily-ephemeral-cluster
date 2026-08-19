@@ -1,0 +1,114 @@
+{
+  "dyec_version": "18.0.59.dev1+g20325e840.d20260819",
+  "generated_at": "2026-08-19T13:09:25.442357+00:00",
+  "identity_status": {
+    "analysis_units": [
+      {
+        "analysis_unit_uid": "HG002-ULTIMA-604834-PRIMARY-SUBSAMPLE075",
+        "customer_release_eligible": false,
+        "missing_identity_fields": [
+          "ANALYSIS_UNIT_EUID",
+          "DELIVERY_EUID",
+          "LIBRARY_EUID[HG002-ULTIMA-604834-PRIMARY]",
+          "SAMPLE_EUID",
+          "SPECIMEN_EUID"
+        ],
+        "test_identity_fields": []
+      }
+    ],
+    "analysis_units_total": 1,
+    "customer_release_eligible_units": 0,
+    "fields": {
+      "analysis_units.tsv:ANALYSIS_UNIT_EUID": {
+        "blank": 1,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "analysis_units.tsv:DELIVERY_EUID": {
+        "blank": 1,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "libraries.tsv:LIBRARY_EUID": {
+        "blank": 1,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "samples.tsv:SAMPLE_EUID": {
+        "blank": 1,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "sequencing_inputs.tsv:POOL_TUBE_EUID": {
+        "blank": 1,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "sequencing_inputs.tsv:SEQUENCING_RUN_EUID": {
+        "blank": 1,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "sequencing_inputs.tsv:SOURCE_ARTIFACT_EUID": {
+        "blank": 1,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "specimens.tsv:SPECIMEN_EUID": {
+        "blank": 1,
+        "owner_issued": 0,
+        "test": 0
+      }
+    }
+  },
+  "inputs": {
+    "analysis_unit_inputs.tsv": {
+      "path": "/Users/jmajor/.codex-worktrees/dyec-downsample-ultima-cram-in-config/docs/plans/20260819T114344Z_ultima_cram_downsampling_catalog_artifacts/manifest/analysis_unit_inputs.tsv",
+      "rows": 1,
+      "sha256": "0599a0171e6ee57762d03cb38864b2b6027286e7d95f1737690f7577a3379f96"
+    },
+    "analysis_units.tsv": {
+      "path": "/Users/jmajor/.codex-worktrees/dyec-downsample-ultima-cram-in-config/docs/plans/20260819T114344Z_ultima_cram_downsampling_catalog_artifacts/manifest/analysis_units.tsv",
+      "rows": 1,
+      "sha256": "5cc97b890d0990e4718dcca4fa0bf56929edff63b32d0832b2ff53847f32c49e"
+    },
+    "libraries.tsv": {
+      "path": "/Users/jmajor/.codex-worktrees/dyec-downsample-ultima-cram-in-config/docs/plans/20260819T114344Z_ultima_cram_downsampling_catalog_artifacts/manifest/libraries.tsv",
+      "rows": 1,
+      "sha256": "2f562dfacb57e163819f7bc86deca7646d7a4142bf8c524b3f244a6d360875bf"
+    },
+    "samples.tsv": {
+      "path": "/Users/jmajor/.codex-worktrees/dyec-downsample-ultima-cram-in-config/docs/plans/20260819T114344Z_ultima_cram_downsampling_catalog_artifacts/manifest/samples.tsv",
+      "rows": 1,
+      "sha256": "6629415cafdb9e76fd381258f5034a372611a00da673f839971ae30ef88af8c7"
+    },
+    "sequencing_inputs.tsv": {
+      "path": "/Users/jmajor/.codex-worktrees/dyec-downsample-ultima-cram-in-config/docs/plans/20260819T114344Z_ultima_cram_downsampling_catalog_artifacts/manifest/sequencing_inputs.tsv",
+      "rows": 1,
+      "sha256": "099be3b12fb2bedc7834272cf7c8c565da25422c281567567d59b303088287b0"
+    },
+    "specimens.tsv": {
+      "path": "/Users/jmajor/.codex-worktrees/dyec-downsample-ultima-cram-in-config/docs/plans/20260819T114344Z_ultima_cram_downsampling_catalog_artifacts/manifest/specimens.tsv",
+      "rows": 1,
+      "sha256": "3576fb46bdb49cf708dd47ebafe8d3fe6fd22a2f5e024138658fe2c2f827fa12"
+    }
+  },
+  "invariants": {
+    "foreign_keys_valid": true,
+    "identifiers_created": false,
+    "identifiers_rewritten": false,
+    "network_accessed": false,
+    "ordered_inputs_valid": true,
+    "provider_neutral": true
+  },
+  "manifest_dir": "/Users/jmajor/.codex-worktrees/dyec-downsample-ultima-cram-in-config/docs/plans/20260819T114344Z_ultima_cram_downsampling_catalog_artifacts/manifest",
+  "manifest_order": [
+    "specimens.tsv",
+    "samples.tsv",
+    "libraries.tsv",
+    "sequencing_inputs.tsv",
+    "analysis_units.tsv",
+    "analysis_unit_inputs.tsv"
+  ],
+  "schema_version": "dyec.six_manifest.validation.v1"
+}
