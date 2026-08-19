@@ -914,6 +914,8 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "fd-find ripgrep docker.io" in script
     assert "graphviz graphviz-dev python3-pip" in script
     assert "install_global_pygraphviz" in script
+    assert 'python3 -m pip install --upgrade "pygraphviz==2.0.1"' in script
+    assert "python3 -m pip install --upgrade pygraphviz" not in script
     assert "pygraphviz global import OK" in script
     assert "sbatch_wrapper_sha256" not in script
     assert "sleep_test_sha256" not in script

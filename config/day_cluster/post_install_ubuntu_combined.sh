@@ -673,7 +673,7 @@ EOF
 }
 
 install_global_pygraphviz() {
-  python3 -m pip install --upgrade pygraphviz
+  python3 -m pip install --upgrade "pygraphviz==2.0.1"
   python3 - <<'PY'
 import pygraphviz
 print(f"pygraphviz global import OK: {pygraphviz.__version__}")
