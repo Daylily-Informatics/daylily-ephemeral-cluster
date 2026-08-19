@@ -1,0 +1,32 @@
+fsx_export:
+  schema_version: 6
+  status: success
+  phase: complete
+  cluster_name: pclu-18045
+  region: us-west-2
+  analysis_dir: pclu-18045/pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z
+  source_path: /analysis_results/pclu-18045/pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z/
+  headnode_path: /fsx/analysis_results/pclu-18045/pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z/
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/pclu-18045/pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z/
+  fsx_root: /fsx/analysis_results/pclu-18045/pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z/
+  s3_root: s3://lsmc-ssf-sequencing-data/derived/pclu-18045/pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z/
+  dayoa_analysis_root: /fsx/analysis_results/pclu-18045/pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z/daylily-omics-analysis/
+  dayoa_s3_root: s3://lsmc-ssf-sequencing-data/derived/pclu-18045/pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z/daylily-omics-analysis/
+  detached: true
+  delete_data_in_file_system: false
+  failure_details: {}
+  clone_status_v2_evidence:
+    required: true
+    verified: true
+    s3_uri: s3://lsmc-ssf-sequencing-data/derived/pclu-18045/pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z/daylily-omics-analysis/status.json
+    schema_version: daylily.analysis_status.v2
+    attempt_count: 2
+    latest_attempt_id: 55afaa62-0e36-4740-a519-dee1ad4c99d3
+  fsx_file_system_id: fs-0155b7007bb82000c
+  file_system_path: /analysis_results/pclu-18045/pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z/
+  association_id: dra-0399a694ff79bf48a
+  lifecycle: AVAILABLE
+  task_id: task-0a564cfaa7a78831b
+  task_lifecycle: SUCCEEDED
+  report_path: s3://lsmc-ssf-sequencing-data/derived/pclu-18045/pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z/_daylily_monitor/fsx-export/20260819T075214Z/export-report/
+  detach_lifecycle: DELETED
