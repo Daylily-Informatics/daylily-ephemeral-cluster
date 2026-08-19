@@ -1,6 +1,6 @@
 # Daylily Ephemeral Cluster
 
-Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the CLI control plane for short-lived AWS ParallelCluster bioinformatics work. Release `18.0.47` creates and configures clusters, mounts sequencing-run data into FSx, launches pinned workflow repositories on the headnode, monitors exact analysis roots, moves files between local and headnode storage, and exports finished results to S3 with receipts.
+Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the CLI control plane for short-lived AWS ParallelCluster bioinformatics work. Release `18.0.57` creates and configures clusters, mounts sequencing-run data into FSx, launches pinned workflow repositories on the headnode, monitors exact analysis roots, moves files between local and headnode storage, and exports finished results to S3 with receipts.
 
 DYEC is not an identity service and not a workflow engine. It does not require or contact a metadata or identity service. It consumes explicit local configuration, explicit manifests, explicit S3 paths, and explicit command-catalog entries. DayOA owns its workflow rules and `dy-r` execution. DYEC owns cluster/headnode orchestration and the launch/export envelope.
 
@@ -212,8 +212,8 @@ numeric key before changing `current`; never edit an existing numeric snapshot:
 
 ```bash
 dyec --json catalog list --type prod
-dyec --json catalog list --dyec-version 18.0.47 --type prod
-dyec --json catalog render <command-id> --dyec-version 18.0.47 ...
+dyec --json catalog list --dyec-version 18.0.57 --type prod
+dyec --json catalog render <command-id> --dyec-version 18.0.57 ...
 ```
 
 A build may also declare one-hop, same-build aliases. An alias inherits one
@@ -224,7 +224,7 @@ bases, duplicate IDs, mixed extension/replacement modes, and partial command
 replacements fail catalog validation. Existing catalog APIs return aliases as
 fully resolved `AnalysisCommand` records.
 
-The active catalog targets DayOA `15.0.28`. Public catalog output includes a
+The active catalog targets DayOA `15.0.37`. Public catalog output includes a
 derived `validation_pending` field: `true` means the command now targets a
 different DayOA tag than its retained `validated_version`. It is a visibility
 signal only; it does not relabel older validation receipts or block a launch.
@@ -235,7 +235,7 @@ prefix must contain `command_registry.json` and `summary.json` from a successful
 
 ```bash
 dyec --json catalog validation-compare <command-id> \
-  --dyec-version 18.0.47 --profile "$AWS_PROFILE" --region "$REGION"
+  --dyec-version 18.0.57 --profile "$AWS_PROFILE" --region "$REGION"
 ```
 
 The comparison fails hard when no prefix is declared, the receipts are missing,
@@ -252,7 +252,7 @@ dyec workflow launch \
   --cluster "$CLUSTER" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$CLUSTER" \
-  --git-tag 15.0.28 \
+  --git-tag 15.0.37 \
   --manifest-dir ./config \
   --payload-staging-s3-uri "$STAGING_S3_URI" \
   --session-name "$ANALYSIS_ID" \
@@ -563,4 +563,4 @@ python -m pytest tests/test_cli_registry_v2.py -q
 git diff --check
 ```
 
-Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. The checked-in release baseline is `18.0.47`; choose any future version only through the explicit release process on a clean release commit.
+Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. The checked-in release baseline is `18.0.57`; choose any future version only through the explicit release process on a clean release commit.
