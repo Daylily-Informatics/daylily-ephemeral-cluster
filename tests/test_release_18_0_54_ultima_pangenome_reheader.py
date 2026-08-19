@@ -18,9 +18,9 @@ PACKAGED_CATALOG = (
     / "config"
     / "daylily_pipeline_command_catalog.yaml"
 )
-DYEC_RELEASE = "18.0.53"
-PREVIOUS_DYEC_RELEASE = "18.0.52"
-DAYOA_RELEASE = "15.0.30"
+DYEC_RELEASE = "18.0.54"
+PREVIOUS_DYEC_RELEASE = "18.0.53"
+DAYOA_RELEASE = "15.0.34"
 
 PANGENOME_COMMANDS = {
     "illumina_sentieon_pangenome_kitchensink": "produce_sentpg_sr_snv_vcf",
@@ -41,21 +41,26 @@ def _tag_catalog(release: str) -> dict:
     return yaml.safe_load(source)
 
 
-def test_18_0_53_remains_a_frozen_snapshot_pinned_to_dayoa_15_0_30() -> None:
+def test_18_0_54_is_the_current_frozen_snapshot_pinned_to_dayoa_15_0_34() -> None:
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
 
     raw = _raw_catalog()
+    current = raw["dyec_builds"]["current"]
     release = raw["dyec_builds"][DYEC_RELEASE]
-    tagged = _tag_catalog(DYEC_RELEASE)
     previous = _tag_catalog(PREVIOUS_DYEC_RELEASE)
 
-    assert release == tagged["dyec_builds"][DYEC_RELEASE]
+    assert release == current
+    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == DAYOA_RELEASE
+    assert current["dayoa_git_tags"] == [DAYOA_RELEASE]
+    assert {command["git_tag"] for command in current["commands"].values()} == {
+        DAYOA_RELEASE
+    }
     assert raw["dyec_builds"][PREVIOUS_DYEC_RELEASE] == previous["dyec_builds"][
         PREVIOUS_DYEC_RELEASE
     ]
 
 
-def test_18_0_53_pangenome_commands_are_production_same_root_dry_closures() -> None:
+def test_18_0_54_pangenome_commands_remain_production_same_root_dry_closures() -> None:
     catalog = load_repository_catalog(SOURCE_CATALOG)
 
     for command_id, graph_target in PANGENOME_COMMANDS.items():
