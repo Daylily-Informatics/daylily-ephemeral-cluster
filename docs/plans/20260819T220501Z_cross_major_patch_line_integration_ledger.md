@@ -23,7 +23,7 @@ Cross-repository ledger: `/Users/jmajor/.codex-worktrees/dayoa-max-pre-major-bre
 | ID | Scope | Action | Status | Evidence / terminal condition |
 |---|---|---|---|---|
 | DYEC-001 | patch line | Create `max-pre-major-breaking` at `18.0.59`. | SUCCESS | Worktree created at `/Users/jmajor/.codex-worktrees/dyec-max-pre-major-breaking`, starting at `a4b1defc197798fa2125398c9e547a2a4caaaf60`. |
-| DYEC-002 | patch line | Commit and push `max-pre-major-breaking`. | OPEN | Only the Gate 0 ledger is expected beyond the complete 18-series history. |
+| DYEC-002 | patch line | Commit and push `max-pre-major-breaking`. | SUCCESS | `origin/max-pre-major-breaking` was created without force at `d1bfa5b63a7b2347b3865c2c0ade6e943102e08d`; this ledger closeout is fast-forwarded afterward. No released 18-series behavior needed merging. |
 | DYEC-003 | major line | Resolve the absent-19-base discrepancy from repository evidence and create `new-break-ver` without overwriting any ref. | OPEN | If the open first-19 design is compatible, create `19.0.0` from the complete 18-series integration; otherwise stop. |
 | DYEC-004 | pins/catalog | Pin active DYEC DayOA references and command-catalog `current` entries to the new maximum DayOA `16.0.*`; preserve historical numeric snapshots and canonical/package equality. | OPEN | Exact new DayOA tag is supplied by the sibling release ledger. |
 | DYEC-005 | release | Commit, push, create the next valid annotated `19.0.*` tag, and verify the remote peel. | OPEN | Expected candidate is `19.0.0` only because no 19-series tag currently exists. |
