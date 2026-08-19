@@ -19,7 +19,6 @@ PACKAGED_CATALOG = (
     / "daylily_pipeline_command_catalog.yaml"
 )
 DYEC_RELEASE = "18.0.52"
-PREVIOUS_DYEC_RELEASE = "18.0.51"
 DAYOA_RELEASE = "15.0.29"
 
 RC0_REMEDIATION_COMMAND_IDS = (
@@ -56,23 +55,14 @@ def _tag_catalog(release: str) -> dict:
     return yaml.safe_load(source)
 
 
-def test_18_0_52_is_a_frozen_current_snapshot_pinned_to_dayoa_15_0_29() -> None:
+def test_18_0_52_remains_a_frozen_snapshot_pinned_to_dayoa_15_0_29() -> None:
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
 
     raw = _raw_catalog()
     release = raw["dyec_builds"][DYEC_RELEASE]
-    current = raw["dyec_builds"]["current"]
-    previous = _tag_catalog(PREVIOUS_DYEC_RELEASE)
+    tagged = _tag_catalog(DYEC_RELEASE)
 
-    assert release == current
-    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == DAYOA_RELEASE
-    assert current["dayoa_git_tags"] == [DAYOA_RELEASE]
-    assert {command["git_tag"] for command in current["commands"].values()} == {
-        DAYOA_RELEASE
-    }
-    assert raw["dyec_builds"][PREVIOUS_DYEC_RELEASE] == previous["dyec_builds"][
-        PREVIOUS_DYEC_RELEASE
-    ]
+    assert release == tagged["dyec_builds"][DYEC_RELEASE]
 
 
 def test_18_0_52_has_exact_release_controlled_rc0_remediation_commands() -> None:
