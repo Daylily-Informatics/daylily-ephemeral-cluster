@@ -22,6 +22,17 @@ Execution branch: `codex/pclu-18045-rc0-exports-18.0.57`, based on annotated DYE
 | Destination safety | SUCCESS | Each newly exported S3 destination was empty immediately before DRA creation; every no-delete export receipt is `success`, `complete`, `SUCCEEDED`, detached, and clone-status-v2 verified.  The three already-delivered Run-QC roots were re-HEADed rather than overwritten. |
 | Deletion authority | BLOCKED | A second explicit user confirmation is required before any cleanup command can delete FSx data. |
 
+## Control ledger
+
+| ID | Area | Requirement | Status | Category | Approval gate | Owner | Evidence / terminal note |
+|---|---|---|---|---|---|---|---|
+| GO-01 | RC0 delivery | Export all eleven accepted production roots through a full-root, no-delete DRA. | SUCCESS | legitimate_safety_handling | Gate 0 / 5 | ledger owner | EXP-01 through EXP-11 below all have `success` / `SUCCEEDED`, `detached: true`, `delete_data_in_file_system: false`, and re-HEADed status evidence. |
+| EVD-01 | Catalog provenance | Record every delivered S3 root and actual run pin without changing the current DayOA command pin. | IN_PROGRESS | active_product_contract | Gate 5 | ledger owner | Current and frozen `18.0.57` catalog parse, retain `git_tag: 15.0.37`, and hold eleven new provenance rows; commit is local and release publication is pending. |
+| CACHE-01 | Runtime cache export | Preserve the complete `pclu-18045` Ubuntu cache generation through supported `dyec runtime-cache export`. | IN_PROGRESS | legitimate_safety_handling | Gate 0 / 5 | runtime-cache export owner | Retry `pclu18045_runtime_cache_20260819t071328z` is staging with semantic-tree verification.  The first pre-DRA failure is retained with no S3/DRA effect. |
+| CACHE-02 | Future-cache bootstrap | Make one declared cache-export URI import through FSx and link verified entries into the DayOA cluster cache namespace. | IN_PROGRESS | config_or_startup_contract | Gate 2 / 5 | runtime-cache export owner | Isolated implementation is uncommitted pending a successful source export; it has focused checks and a source/package bootstrap parity check. |
+| REL-01 | Evidence/cache release | Publish an immutable DYEC release only after EVD-01 and CACHE-01/02 succeed. | IN_PROGRESS | feature_implementation | Gate 5 | ledger owner | The intended frozen catalog build is `18.0.57`; remote tag absence was verified before local materialization. |
+| DEL-01 | FSx cleanup | Delete exactly the eleven delivered analysis roots, never their S3 delivery roots. | BLOCKED | legitimate_safety_handling | Gate 5 | ledger owner | Requires the user’s second explicit confirmation naming the exact destructive FSx cleanup scope; no cleanup command has been issued. |
+
 ## Export rows
 
 | ID | Catalog command | Accepted analysis root | Export status | Receipt directory | S3 destination | Acceptance evidence |
