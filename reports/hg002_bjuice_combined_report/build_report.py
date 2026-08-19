@@ -415,11 +415,36 @@ def parse_compact_p1(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
     return [observation], {"inventory": inventory, "dayoa_root": None, "bundle_root": bundle_root}
 
 
+def parse_e4_export_evidence(bundle_root: Path) -> dict[str, Any]:
+    path = bundle_root / "export_evidence.json"
+    if not path.is_file():
+        return {}
+    evidence = json.loads(path.read_text())
+    if evidence.get("schema_version") != "lsmc.hg002_bjuice_e4_export_evidence.v1":
+        raise ValueError("E4: unexpected export-evidence schema")
+    if evidence.get("analysis_id") != EXPERIMENTS["E4"]["analysis_id"]:
+        raise ValueError("E4: export-evidence analysis identity mismatch")
+    if evidence.get("task_lifecycle") != "SUCCEEDED":
+        raise ValueError("E4: export task is not terminal success")
+    if evidence.get("failed_count") != 0 or evidence.get("succeeded_count") != evidence.get("total_count"):
+        raise ValueError("E4: export task contains failed objects")
+    if evidence.get("delete_data_in_file_system") is not False:
+        raise ValueError("E4: export evidence does not prove source preservation")
+    return evidence
+
+
+def e4_s3_source(export_root: str, relative_path: str) -> str:
+    return export_root.rstrip("/") + "/daylily-omics-analysis/" + relative_path.lstrip("/")
+
+
 def parse_compact_e4(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """Read the checksum-bound, in-flight E4 snapshot collected through DYEC."""
+    """Read the checksum-bound E4 snapshot and any terminal export receipt."""
     bundle_root = evidence_root / "E4"
     compact_path = bundle_root / "compact_evidence.json"
     compact = json.loads(compact_path.read_text())
+    export_evidence = parse_e4_export_evidence(bundle_root)
+    if export_evidence:
+        compact["export_evidence"] = export_evidence
     if compact.get("schema_version") != "lsmc.hg002_bjuice_e4_compact_evidence.v1":
         raise ValueError("E4: unexpected compact-evidence schema")
     if compact.get("analysis_id") != EXPERIMENTS["E4"]["analysis_id"]:
@@ -467,6 +492,7 @@ def parse_compact_e4(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
             raise ValueError(f"E4:{runtime}: RSR audit source mismatch")
         if "/align/sentdhiomr2lr/na/alignqc/mosdepth/" not in coverage["lr_source"]:
             raise ValueError(f"E4:{runtime}: LR source is not sentdhiomr2lr/na")
+        export_root = export_evidence.get("destination_s3_uri") if export_evidence else None
         observations.append(
             {
                 "experiment": "E4",
@@ -489,10 +515,10 @@ def parse_compact_e4(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
                 "ont_end_hour": expected_end_hour,
                 "ilmn_abs_error": float(native_sr - target_sr),
                 "ont_abs_error": float(lr - target_lr),
-                "coverage_source_ilmn": coverage["native_sr_source"],
-                "coverage_source_rsr": coverage["rsr_source"],
-                "coverage_source_ont": coverage["lr_source"],
-                "coverage_capture_method": "bounded live-FSx snapshot through DYEC",
+                "coverage_source_ilmn": e4_s3_source(export_root, coverage["native_sr_source"]) if export_root else coverage["native_sr_source"],
+                "coverage_source_rsr": e4_s3_source(export_root, coverage["rsr_source"]) if export_root else coverage["rsr_source"],
+                "coverage_source_ont": e4_s3_source(export_root, coverage["lr_source"]) if export_root else coverage["lr_source"],
+                "coverage_capture_method": "successful no-delete S3 export of E4 clone" if export_root else "bounded live-FSx snapshot through DYEC",
                 "evidence_captured_at": compact["captured_at_end_utc"],
                 "direct_s3_captured_at": None,
                 "snapshot_workflow_state": snapshot_state,
@@ -507,11 +533,11 @@ def parse_compact_e4(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
     inventory = [
         {
             "experiment": "E4",
-            "analysis_root": compact["analysis_root"],
+            "analysis_root": export_evidence.get("destination_s3_uri", compact["analysis_root"]),
             **row,
-            "local_path": "NA (bounded DYEC headnode extract)",
+            "local_path": "NA (successful S3 export extract)" if export_evidence else "NA (bounded DYEC headnode extract)",
             "local_sha256": "NA",
-            "local_sha256_match": "remote_hash_only",
+            "local_sha256_match": "export_receipt_task_success" if export_evidence else "remote_hash_only",
         }
         for row in compact["inventory"]
     ]
@@ -1573,6 +1599,10 @@ def build_report(
     if len(prior_observations) != 12 or len(e4_observations) != 20:
         raise ValueError("report requires 12 prior observations plus 20 E4 observations")
     e4_compact = e4_observations[0]["compact_evidence"]
+    e4_export = e4_compact.get("export_evidence", {})
+    source_rows = list(SOURCE_S3_URIS)
+    if e4_export:
+        source_rows.append(("E4 exported interrupted clone", e4_export["destination_s3_uri"] + "daylily-omics-analysis/"))
     e4_capture_time = e4_compact["captured_at_end_utc"]
     e4_workflow = e4_compact["workflow_status_end"]["attempts"][-1]
     e4_benchmark_rejections = e4_compact["benchmark_rejections"]
@@ -1580,7 +1610,7 @@ def build_report(
     e4_invalid_success_rows = sum("invalid successful benchmark" in row["reason"] for row in e4_benchmark_rejections)
     cost_parts = []
     for experiment in EXPERIMENTS:
-        suffix = " (in-flight partial snapshot)" if experiment == "E4" else ""
+        suffix = " (preserved interrupted-export snapshot)" if experiment == "E4" else ""
         cost_parts.append(f"**${total_cost_by_experiment[experiment]:,.2f}** for {experiment}{suffix}")
     top_coverage_table = [
         [
@@ -1621,6 +1651,7 @@ def build_report(
 
     image = lambda name: f"![{name}]({relative_asset(report_path, figures / name)})"
     table_link = lambda name: f"[{name}]({relative_asset(report_path, tables / name)})"
+    status_v2_link = relative_asset(report_path, assets / "evidence/raw/E4/status_v2.json")
     lines: list[str] = [
         "# HG002 Bjuice native-SR × LR measured-coverage matrix report",
         "",
@@ -1628,11 +1659,11 @@ def build_report(
         "",
         markdown_table(["ID", "target ILMNx", "SR ILMNx", "RSR ILMNx", "target ONTx", "LRONTx"], top_coverage_table),
         "",
-        "This is the only report table that presents requested coverage targets. E1/E3/P1 values were re-read from three completed S3 exports; E4 values were read from the live FSx analysis root in a bounded DYEC snapshot. Every source path and SHA-256 is retained in " + table_link("direct_s3_coverage_regather.tsv") + " and " + table_link("source_inventory.tsv") + ".",
+        "This is the only report table that presents requested coverage targets. E1/E3/P1 values were re-read from three completed S3 exports; E4 values were retained from the checksum-bound snapshot and are now provenance-linked to its successful no-delete S3 clone export. Every source path and SHA-256 is retained in " + table_link("direct_s3_coverage_regather.tsv") + " and " + table_link("source_inventory.tsv") + ".",
         "",
         "## Technical summary",
         "",
-        f"This report contains **{len(observations)} observations**: all **12 prior E1/E3/P1 observations** plus **20 E4 controlled-matrix AUs** captured at **{e4_capture_time}**. E4 remained **{e4_workflow['state']}** with no controller, `day_run`, or Snakemake return code at capture, so E4 benchmark accounting is explicitly partial.",
+        f"This report contains **{len(observations)} observations**: all **12 prior E1/E3/P1 observations** plus **20 E4 controlled-matrix AUs** captured at **{e4_capture_time}**. The E4 snapshot was captured while the workflow state was **{e4_workflow['state']}** with no terminal controller, `day_run`, or Snakemake return code; the full clone was subsequently preserved by a successful no-delete export (task `{e4_export.get('task_id', 'not recorded')}`), so E4 benchmark accounting remains explicitly partial.",
         "",
         "Every coverage-positioned figure uses **measured native SR×** on its vertical axis and **measured LR×** on its horizontal axis, with equal numeric scale. RSR× is audit-only. The strongest retained tagged-TrussSV global F-score is **" + f"{best_trussv['fscore']:.4f}** at **{best_trussv['plot_label']}**. Captured successful benchmark rows sum to " + ", ".join(cost_parts) + ".",
         "",
@@ -1640,7 +1671,7 @@ def build_report(
         "",
         "RSR is not a conventional random Illumina downsample. The E1 Sentieon hybrid log shows stage 3 running on a generated `hybrid_stage2.bed` interval set, followed by `hybrid_transfer` from the full SR alignment into `g_sr_realigned.cram`. Its retained-record fraction and Mosdepth therefore vary with the hybrid-selected regions and LR input. The 8.54–14.01× E1 RSR range is expected to differ from the uniform 43.73× native-SR evidence and must not form a coverage-matrix axis.",
         "",
-        "## E4 in-flight snapshot completeness",
+        "## E4 exported snapshot completeness",
         "",
         f"All 20 E4 AUs supplied parseable native-SR, RSR-audit, LR, hard-VCF GIAB-HC, four-caller Truvari, SMN12, and 15-gene SegDup artifacts. Their measured native-SR range is **{min(row['ilmn_measured'] for row in e4_observations):g}×–{max(row['ilmn_measured'] for row in e4_observations):g}×** and measured LR range is **{min(row['ont_measured'] for row in e4_observations):g}×–{max(row['ont_measured'] for row in e4_observations):g}×**.",
         "",
@@ -1649,13 +1680,13 @@ def build_report(
             e4_completeness_markdown,
         ),
         "",
-        f"The E4 snapshot contains **{len(e4_compact['benchmarks']):,} usable successful raw benchmark rows**. Because the controller was still running, these are not final cost or runtime totals. The collector also retained an audit of **{e4_failed_benchmark_rows} failed-attempt rows** and excluded **{e4_invalid_success_rows} rows labelled successful whose walltime was `NA`**. Exact per-AU counts are in " + table_link("e4_snapshot_completeness.tsv") + ".",
+        f"The exported E4 clone preserves **{len(e4_compact['benchmarks']):,} usable successful raw benchmark rows** from the snapshot. Because the workflow was nonterminal when captured, these are not final cost or runtime totals. The collector also retained an audit of **{e4_failed_benchmark_rows} failed-attempt rows** and excluded **{e4_invalid_success_rows} rows labelled successful whose walltime was `NA`**. Exact per-AU counts are in " + table_link("e4_snapshot_completeness.tsv") + ". The export receipt and retained status-v2 history are linked in the audit section below.",
         "",
         "## Source locations",
         "",
-        markdown_table(["Source", "S3 URI"], [[label, f"`{uri}`"] for label, uri in SOURCE_S3_URIS]),
+        markdown_table(["Source", "S3 URI"], [[label, f"`{uri}`"] for label, uri in source_rows]),
         "",
-        f"E4 live source at capture: `{e4_compact['analysis_root']}` (DayOA {e4_compact['dayoa_git']['exact_tag']} at `{e4_compact['dayoa_git']['commit']}`). The exact completed-export S3 roots and direct summary-file URIs are recorded in " + table_link("source_s3_uris.tsv") + " and " + table_link("direct_s3_coverage_regather.tsv") + "; E4 file hashes and paths are in " + table_link("source_inventory.tsv") + ".",
+        f"E4 snapshot source: `{e4_compact['analysis_root']}` (DayOA {e4_compact['dayoa_git']['exact_tag']} at `{e4_compact['dayoa_git']['commit']}`); the complete clone was subsequently preserved at `{e4_export.get('destination_s3_uri', 'export not recorded')}`. The exact S3 roots and direct summary-file URIs are recorded in " + table_link("source_s3_uris.tsv") + " and " + table_link("direct_s3_coverage_regather.tsv") + "; E4 file hashes and paths are in " + table_link("source_inventory.tsv") + ".",
         "",
         "## Measured native-SR × LR availability",
         "",
@@ -1728,7 +1759,7 @@ def build_report(
             "",
             "## Benchmark cost and parallel-aware runtime",
             "",
-            "The per-task panels retain individual-AU task groups; the summary uses the exact retained observations. Neither view uses requested coverage values. E4 bars are explicitly an in-flight snapshot and must not be interpreted as final AU cost or duration.",
+            "The per-task panels retain individual-AU task groups; the summary uses the exact retained observations. Neither view uses requested coverage values. E4 bars are explicitly a preserved nonterminal snapshot and must not be interpreted as final AU cost or duration.",
             "",
             image("benchmark_per_task_walltime.png"),
             "",
@@ -1736,7 +1767,7 @@ def build_report(
             "",
             image("benchmark_au_totals.png"),
             "",
-            "The task plots show the top 12 groups per retained observation; the TSV retains every usable successful task group. Observed makespan spans the first through last benchmark timestamp. Active-interval union merges overlapping task intervals. Longest task is a lower bound, not a DAG-derived critical path. E4 values stop at the snapshot timestamp and will increase as the controller finishes.",
+            "The task plots show the top 12 groups per retained observation; the TSV retains every usable successful task group. Observed makespan spans the first through last benchmark timestamp. Active-interval union merges overlapping task intervals. Longest task is a lower bound, not a DAG-derived critical path. E4 values stop at the captured snapshot timestamp because the controller was interrupted before a terminal workflow receipt.",
             "",
             "Supporting benchmark tables: " + table_link("benchmark_task_groups.tsv") + " and " + table_link("benchmark_au_totals.tsv") + ".",
             "",
@@ -1749,17 +1780,18 @@ def build_report(
             "- Truvari metrics come from raw `summary.json`. Undefined no-call rates are `NA`, even where a downstream report-oriented artifact normalized them to zero.",
             "- SegDup is descriptive callset output, not truth/query concordance. A no-call state is not evidence of reference genotype truth.",
             "- E1, E3, P1, and E4 reuse the same HG002 source material; input subsets are nested and P1 is a full-input production observation. Results are descriptive and no causal or inferential claim is made.",
-            f"- E4 was nonterminal at {e4_capture_time}. Its 20 core metric sets were complete and parseable, but its {len(e4_compact['benchmarks']):,} benchmark rows are a lower-bound snapshot, not final workflow accounting.",
+            f"- E4 was nonterminal at {e4_capture_time}; the complete clone was later preserved by export task `{e4_export.get('task_id', 'not recorded')}`. Its 20 core metric sets were complete and parseable, but its {len(e4_compact['benchmarks']):,} benchmark rows are a lower-bound snapshot, not final workflow accounting.",
             "- The executions may have different runtime software provenance. The report uses produced artifacts and does not relabel a later execution as a pristine re-execution of an earlier release.",
             "",
             "## Audit and reproducibility",
             "",
             "- Direct S3 native-SR, RSR, and LR values with exact source paths and SHA-256 values: " + table_link("direct_s3_coverage_regather.tsv") + ".",
             "- E4 per-AU metric and benchmark completeness at capture: " + table_link("e4_snapshot_completeness.tsv") + ".",
+            "- E4 export receipt: " + table_link("e4_export_evidence.tsv") + f"; retained clone status-v2 history: [status_v2.json]({status_v2_link}).",
             "- Existing bounded evidence inventory for detailed call/benchmark inputs: " + table_link("source_inventory.tsv") + ".",
             "- Figure-to-table mapping: " + table_link("chart_map.tsv") + ".",
             "",
-            f"Generated from bounded E1/E3/P1 evidence, direct S3 reads of their 36 Mosdepth summaries, and the checksum-bound E4 live-FSx snapshot captured {e4_compact['captured_at_start_utc']} through {e4_capture_time}.",
+            f"Generated from bounded E1/E3/P1 evidence, direct S3 reads of their 36 Mosdepth summaries, and the checksum-bound E4 snapshot captured {e4_compact['captured_at_start_utc']} through {e4_capture_time}, with the full E4 clone preserved by the recorded no-delete S3 export.",
         ]
     )
     report_path.write_text("\n".join(lines) + "\n")
@@ -1847,6 +1879,19 @@ def main() -> None:
     write_tsv(tables / "benchmark_au_totals.tsv", benchmark_summaries, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "successful_records", "priced_records", "unpriced_records", "task_groups", "total_cost_usd", "allocated_vcpu_h", "observed_cpu_h", "sum_task_wall_h", "observed_makespan_h", "active_interval_union_h", "longest_task_h", "benchmark_scope"])
     e4_observations = [row for row in retained if row["experiment"] == "E4"]
     e4_compact = e4_observations[0]["compact_evidence"]
+    e4_export = e4_compact.get("export_evidence", {})
+    if not e4_export:
+        raise ValueError("E4 export evidence is required for this report build")
+    write_tsv(
+        tables / "e4_export_evidence.tsv",
+        [e4_export],
+        [
+            "captured_at_utc", "analysis_id", "fsx_file_system_id", "fsx_storage_capacity_gib", "source_path",
+            "destination_s3_uri", "dra_id", "dra_detached", "task_id", "task_type", "task_lifecycle",
+            "total_count", "succeeded_count", "failed_count", "failure_details", "delete_data_in_file_system",
+            "status_s3_uri", "status_schema_version", "status_attempt_count",
+        ],
+    )
     e4_completeness_rows = []
     for observation in sorted(e4_observations, key=lambda row: AU_INDEX[row["au"]]):
         completeness = e4_compact["completeness"][observation["runtime_au"]]
@@ -1884,7 +1929,10 @@ def main() -> None:
         ],
     )
     write_tsv(tables / "source_inventory.tsv", source_inventory, ["experiment", "analysis_root", "category", "relative_path", "bytes", "mtime_epoch", "sha256", "local_path", "local_sha256", "local_sha256_match"])
-    write_tsv(tables / "source_s3_uris.tsv", [{"source": label, "s3_uri": uri} for label, uri in SOURCE_S3_URIS], ["source", "s3_uri"])
+    source_s3_rows = list(SOURCE_S3_URIS)
+    if e4_export:
+        source_s3_rows.append(("E4 exported interrupted clone", e4_export["destination_s3_uri"] + "daylily-omics-analysis/"))
+    write_tsv(tables / "source_s3_uris.tsv", [{"source": label, "s3_uri": uri} for label, uri in source_s3_rows], ["source", "s3_uri"])
     write_tsv(tables / "chart_map.tsv", chart_map, ["figure", "chart_type", "title", "source_table", "metric"])
 
     heatmaps = [row for row in chart_map if row["chart_type"] == "heatmap"]
@@ -1898,7 +1946,7 @@ def main() -> None:
 
     expected_tables = {
         "retained_observations.tsv", "direct_s3_coverage_regather.tsv", "coverage_grid.tsv",
-        "e4_snapshot_completeness.tsv",
+        "e4_snapshot_completeness.tsv", "e4_export_evidence.tsv",
         "hard_vcf_giabhc_metrics.tsv", "truvari_metrics.tsv", "segdup_calls.tsv", "smn12_calls.tsv",
         "benchmark_task_groups.tsv", "benchmark_au_totals.tsv", "source_inventory.tsv", "source_s3_uris.tsv", "chart_map.tsv",
     }

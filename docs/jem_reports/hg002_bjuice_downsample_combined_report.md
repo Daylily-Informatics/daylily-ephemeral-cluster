@@ -37,19 +37,19 @@
 | E4:N19 | 5× | 5.57× | 1.99× | 30× | 18.77× |
 | E4:N20 | 15× | 16.22× | 5.71× | 30× | 18.77× |
 
-This is the only report table that presents requested coverage targets. E1/E3/P1 values were re-read from three completed S3 exports; E4 values were read from the live FSx analysis root in a bounded DYEC snapshot. Every source path and SHA-256 is retained in [direct_s3_coverage_regather.tsv](hg002_bjuice_downsample_combined_report_assets/tables/direct_s3_coverage_regather.tsv) and [source_inventory.tsv](hg002_bjuice_downsample_combined_report_assets/tables/source_inventory.tsv).
+This is the only report table that presents requested coverage targets. E1/E3/P1 values were re-read from three completed S3 exports; E4 values were retained from the checksum-bound snapshot and are now provenance-linked to its successful no-delete S3 clone export. Every source path and SHA-256 is retained in [direct_s3_coverage_regather.tsv](hg002_bjuice_downsample_combined_report_assets/tables/direct_s3_coverage_regather.tsv) and [source_inventory.tsv](hg002_bjuice_downsample_combined_report_assets/tables/source_inventory.tsv).
 
 ## Technical summary
 
-This report contains **32 observations**: all **12 prior E1/E3/P1 observations** plus **20 E4 controlled-matrix AUs** captured at **2026-08-18T17:55:26Z**. E4 remained **running** with no controller, `day_run`, or Snakemake return code at capture, so E4 benchmark accounting is explicitly partial.
+This report contains **32 observations**: all **12 prior E1/E3/P1 observations** plus **20 E4 controlled-matrix AUs** captured at **2026-08-18T17:55:26Z**. The E4 snapshot was captured while the workflow state was **running** with no terminal controller, `day_run`, or Snakemake return code; the full clone was subsequently preserved by a successful no-delete export (task `task-08e04406a00b92553`), so E4 benchmark accounting remains explicitly partial.
 
-Every coverage-positioned figure uses **measured native SR×** on its vertical axis and **measured LR×** on its horizontal axis, with equal numeric scale. RSR× is audit-only. The strongest retained tagged-TrussSV global F-score is **0.7611** at **E4:N04**. Captured successful benchmark rows sum to **$201.27** for E1, **$108.52** for E3, **$31.46** for P1, **$256.59** for E4 (in-flight partial snapshot).
+Every coverage-positioned figure uses **measured native SR×** on its vertical axis and **measured LR×** on its horizontal axis, with equal numeric scale. RSR× is audit-only. The strongest retained tagged-TrussSV global F-score is **0.7611** at **E4:N04**. Captured successful benchmark rows sum to **$201.27** for E1, **$108.52** for E3, **$31.46** for P1, **$256.59** for E4 (preserved interrupted-export snapshot).
 
 E1 is **not a valid two-axis Illumina downsampling series**: every direct-S3 native-SR summary is exactly 43.73× (and has the same SHA-256), despite the AU-specific declared fractions. It is retained as a full-SR / variable-LR experiment. E3 supplies four variable-native-SR observations, P1 is a distinct full-input observation, and E4 supplies the intended 20-cell controlled matrix.
 
 RSR is not a conventional random Illumina downsample. The E1 Sentieon hybrid log shows stage 3 running on a generated `hybrid_stage2.bed` interval set, followed by `hybrid_transfer` from the full SR alignment into `g_sr_realigned.cram`. Its retained-record fraction and Mosdepth therefore vary with the hybrid-selected regions and LR input. The 8.54–14.01× E1 RSR range is expected to differ from the uniform 43.73× native-SR evidence and must not form a coverage-matrix axis.
 
-## E4 in-flight snapshot completeness
+## E4 exported snapshot completeness
 
 All 20 E4 AUs supplied parseable native-SR, RSR-audit, LR, hard-VCF GIAB-HC, four-caller Truvari, SMN12, and 15-gene SegDup artifacts. Their measured native-SR range is **0.56×–43.73×** and measured LR range is **0.57×–18.77×**.
 
@@ -76,7 +76,7 @@ All 20 E4 AUs supplied parseable native-SR, RSR-audit, LR, hard-VCF GIAB-HC, fou
 | E4:N19 | HG002-ilmn5x-ont30x-h72 | 5.57× | 18.77× | complete | 4/4 | 15/15 | complete | 208 |
 | E4:N20 | HG002-ilmn15x-ont30x-h72 | 16.22× | 18.77× | complete | 4/4 | 15/15 | complete | 207 |
 
-The E4 snapshot contains **4,539 usable successful raw benchmark rows**. Because the controller was still running, these are not final cost or runtime totals. The collector also retained an audit of **242 failed-attempt rows** and excluded **18 rows labelled successful whose walltime was `NA`**. Exact per-AU counts are in [e4_snapshot_completeness.tsv](hg002_bjuice_downsample_combined_report_assets/tables/e4_snapshot_completeness.tsv).
+The exported E4 clone preserves **4,539 usable successful raw benchmark rows** from the snapshot. Because the workflow was nonterminal when captured, these are not final cost or runtime totals. The collector also retained an audit of **242 failed-attempt rows** and excluded **18 rows labelled successful whose walltime was `NA`**. Exact per-AU counts are in [e4_snapshot_completeness.tsv](hg002_bjuice_downsample_combined_report_assets/tables/e4_snapshot_completeness.tsv). The export receipt and retained status-v2 history are linked in the audit section below.
 
 ## Source locations
 
@@ -89,8 +89,9 @@ The E4 snapshot contains **4,539 usable successful raw benchmark rows**. Because
 | E1 completed output export | `s3://lsmc-dayoa-analysis-results-usw2/derived/bjuice-v2-multi-analysis-unit/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z/daylily-omics-analysis/` |
 | E3 completed output export | `s3://lsmc-dayoa-analysis-results-usw2/derived/bjuice-v2-multi-analysis-unit/prod-cand-1703/prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z/daylily-omics-analysis/` |
 | P1 completed output export | `s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-bjuice-preval6-15014-dry-20260817t112900z/daylily-omics-analysis/` |
+| E4 exported interrupted clone | `s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025-bjuice-v2-hg002-20au-18042-20260818t1255z-live/daylily-omics-analysis/` |
 
-E4 live source at capture: `/fsx/analysis_results/pre-rel-18025/prerel18025-bjuice-v2-hg002-20au-18042-20260818t1255z-live` (DayOA 15.0.24 at `9cd4e43fded97ea57f11f19c164ab1fbe3fa77d4`). The exact completed-export S3 roots and direct summary-file URIs are recorded in [source_s3_uris.tsv](hg002_bjuice_downsample_combined_report_assets/tables/source_s3_uris.tsv) and [direct_s3_coverage_regather.tsv](hg002_bjuice_downsample_combined_report_assets/tables/direct_s3_coverage_regather.tsv); E4 file hashes and paths are in [source_inventory.tsv](hg002_bjuice_downsample_combined_report_assets/tables/source_inventory.tsv).
+E4 snapshot source: `/fsx/analysis_results/pre-rel-18025/prerel18025-bjuice-v2-hg002-20au-18042-20260818t1255z-live` (DayOA 15.0.24 at `9cd4e43fded97ea57f11f19c164ab1fbe3fa77d4`); the complete clone was subsequently preserved at `s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025-bjuice-v2-hg002-20au-18042-20260818t1255z-live/`. The exact S3 roots and direct summary-file URIs are recorded in [source_s3_uris.tsv](hg002_bjuice_downsample_combined_report_assets/tables/source_s3_uris.tsv) and [direct_s3_coverage_regather.tsv](hg002_bjuice_downsample_combined_report_assets/tables/direct_s3_coverage_regather.tsv); E4 file hashes and paths are in [source_inventory.tsv](hg002_bjuice_downsample_combined_report_assets/tables/source_inventory.tsv).
 
 ## Measured native-SR × LR availability
 
@@ -212,7 +213,7 @@ Undefined low-coverage SMN copy-number calls remain `NA`; they are not coerced t
 
 ## Benchmark cost and parallel-aware runtime
 
-The per-task panels retain individual-AU task groups; the summary uses the exact retained observations. Neither view uses requested coverage values. E4 bars are explicitly an in-flight snapshot and must not be interpreted as final AU cost or duration.
+The per-task panels retain individual-AU task groups; the summary uses the exact retained observations. Neither view uses requested coverage values. E4 bars are explicitly a preserved nonterminal snapshot and must not be interpreted as final AU cost or duration.
 
 ![benchmark_per_task_walltime.png](hg002_bjuice_downsample_combined_report_assets/figures/benchmark_per_task_walltime.png)
 
@@ -220,7 +221,7 @@ The per-task panels retain individual-AU task groups; the summary uses the exact
 
 ![benchmark_au_totals.png](hg002_bjuice_downsample_combined_report_assets/figures/benchmark_au_totals.png)
 
-The task plots show the top 12 groups per retained observation; the TSV retains every usable successful task group. Observed makespan spans the first through last benchmark timestamp. Active-interval union merges overlapping task intervals. Longest task is a lower bound, not a DAG-derived critical path. E4 values stop at the snapshot timestamp and will increase as the controller finishes.
+The task plots show the top 12 groups per retained observation; the TSV retains every usable successful task group. Observed makespan spans the first through last benchmark timestamp. Active-interval union merges overlapping task intervals. Longest task is a lower bound, not a DAG-derived critical path. E4 values stop at the captured snapshot timestamp because the controller was interrupted before a terminal workflow receipt.
 
 Supporting benchmark tables: [benchmark_task_groups.tsv](hg002_bjuice_downsample_combined_report_assets/tables/benchmark_task_groups.tsv) and [benchmark_au_totals.tsv](hg002_bjuice_downsample_combined_report_assets/tables/benchmark_au_totals.tsv).
 
@@ -233,14 +234,15 @@ Supporting benchmark tables: [benchmark_task_groups.tsv](hg002_bjuice_downsample
 - Truvari metrics come from raw `summary.json`. Undefined no-call rates are `NA`, even where a downstream report-oriented artifact normalized them to zero.
 - SegDup is descriptive callset output, not truth/query concordance. A no-call state is not evidence of reference genotype truth.
 - E1, E3, P1, and E4 reuse the same HG002 source material; input subsets are nested and P1 is a full-input production observation. Results are descriptive and no causal or inferential claim is made.
-- E4 was nonterminal at 2026-08-18T17:55:26Z. Its 20 core metric sets were complete and parseable, but its 4,539 benchmark rows are a lower-bound snapshot, not final workflow accounting.
+- E4 was nonterminal at 2026-08-18T17:55:26Z; the complete clone was later preserved by export task `task-08e04406a00b92553`. Its 20 core metric sets were complete and parseable, but its 4,539 benchmark rows are a lower-bound snapshot, not final workflow accounting.
 - The executions may have different runtime software provenance. The report uses produced artifacts and does not relabel a later execution as a pristine re-execution of an earlier release.
 
 ## Audit and reproducibility
 
 - Direct S3 native-SR, RSR, and LR values with exact source paths and SHA-256 values: [direct_s3_coverage_regather.tsv](hg002_bjuice_downsample_combined_report_assets/tables/direct_s3_coverage_regather.tsv).
 - E4 per-AU metric and benchmark completeness at capture: [e4_snapshot_completeness.tsv](hg002_bjuice_downsample_combined_report_assets/tables/e4_snapshot_completeness.tsv).
+- E4 export receipt: [e4_export_evidence.tsv](hg002_bjuice_downsample_combined_report_assets/tables/e4_export_evidence.tsv); retained clone status-v2 history: [status_v2.json](hg002_bjuice_downsample_combined_report_assets/evidence/raw/E4/status_v2.json).
 - Existing bounded evidence inventory for detailed call/benchmark inputs: [source_inventory.tsv](hg002_bjuice_downsample_combined_report_assets/tables/source_inventory.tsv).
 - Figure-to-table mapping: [chart_map.tsv](hg002_bjuice_downsample_combined_report_assets/tables/chart_map.tsv).
 
-Generated from bounded E1/E3/P1 evidence, direct S3 reads of their 36 Mosdepth summaries, and the checksum-bound E4 live-FSx snapshot captured 2026-08-18T17:54:41Z through 2026-08-18T17:55:26Z.
+Generated from bounded E1/E3/P1 evidence, direct S3 reads of their 36 Mosdepth summaries, and the checksum-bound E4 snapshot captured 2026-08-18T17:54:41Z through 2026-08-18T17:55:26Z, with the full E4 clone preserved by the recorded no-delete S3 export.
