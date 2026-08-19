@@ -2,11 +2,11 @@
 
 Created: `2026-08-19T07:01:43Z`  
 Controlling request: export the eleven fresh `rc=0` production command-catalog analysis roots from FSx to S3, capture delivery evidence in the catalog, and only then remove the verified FSx roots after a separate destructive confirmation.  
-Execution branch: `codex/pclu-18045-rc0-exports-18.0.57`, based on annotated DYEC `18.0.56` (`b3129397d1ba74906e30044ef4293b7113e27205`).
+Execution branch: `codex/pclu-18045-rc0-exports-18.0.58`, rebased onto concurrent annotated DYEC `18.0.57` (`00ca1846b8cc9a5f6329d417ee06e5c0357303b8`).
 
 ## Invariants
 
-- The current 18.0.56 command catalog pins every command to the maximum released DayOA tag, `15.0.37` (`a31c9ca8c2ca5c9281face0e0716d9241b8fca86`).  The forward evidence release must retain that pin.
+- The current 18.0.57 command catalog pins every command to the maximum released DayOA tag, `15.0.37` (`a31c9ca8c2ca5c9281face0e0716d9241b8fca86`).  The forward evidence release must retain that pin.
 - A validation receipt must preserve its actual execution tag.  Several already-accepted RC0 runs predate 15.0.37; their provenance must not be relabeled as a 15.0.37 execution merely because the current catalog is now pinned there.
 - Each export uses the full analysis root, a unique empty destination `s3://lsmc-ssf-sequencing-data/derived/pclu-18045/<analysis-id>/`, a pre-export `analysis visit --mode export`, and `dyec export --wait --timeout-seconds 5400` with FSx deletion disabled.
 - `dyec exports cleanup --confirm-fsx-delete` is destructive.  It is blocked until every delivery receipt succeeds and the user gives a second explicit confirmation naming the eleven exact FSx roots.
@@ -17,7 +17,7 @@ Execution branch: `codex/pclu-18045-rc0-exports-18.0.57`, based on annotated DYE
 | Check | Status | Evidence |
 |---|---|---|
 | Cluster identity and controller safety | SUCCESS | `pclu-18045`, `us-west-2`, stack `UPDATE_COMPLETE`, compute fleet `RUNNING`; `dyec --json headnode dayoa-controllers` at `2026-08-19T07:00:55Z` reported zero live controllers and zero Slurm jobs.  Historical tmux panes are stale and are not active controllers. |
-| Release authority | SUCCESS | Annotated DYEC `18.0.56` and DayOA `15.0.37` tags were verified; current catalog lists all eleven `type: prod` commands at `git_tag: 15.0.37`. |
+| Release authority | SUCCESS | Concurrent annotated DYEC `18.0.57` and DayOA `15.0.37` tags were verified; current catalog lists all eleven `type: prod` commands at `git_tag: 15.0.37`. |
 | Analysis-root inventory | SUCCESS | All eleven accepted same-root dry/live controller status objects were read; every recorded dry and live controller/day-run receipt is `rc=0`, and every live Snakemake receipt is `rc=0`. |
 | Destination safety | SUCCESS | Each newly exported S3 destination was empty immediately before DRA creation; every no-delete export receipt is `success`, `complete`, `SUCCEEDED`, detached, and clone-status-v2 verified.  The three already-delivered Run-QC roots were re-HEADed rather than overwritten. |
 | Deletion authority | BLOCKED | A second explicit user confirmation is required before any cleanup command can delete FSx data. |
@@ -27,10 +27,10 @@ Execution branch: `codex/pclu-18045-rc0-exports-18.0.57`, based on annotated DYE
 | ID | Area | Requirement | Status | Category | Approval gate | Owner | Evidence / terminal note |
 |---|---|---|---|---|---|---|---|
 | GO-01 | RC0 delivery | Export all eleven accepted production roots through a full-root, no-delete DRA. | SUCCESS | legitimate_safety_handling | Gate 0 / 5 | ledger owner | EXP-01 through EXP-11 below all have `success` / `SUCCEEDED`, `detached: true`, `delete_data_in_file_system: false`, and re-HEADed status evidence. |
-| EVD-01 | Catalog provenance | Record every delivered S3 root and actual run pin without changing the current DayOA command pin. | IN_PROGRESS | active_product_contract | Gate 5 | ledger owner | Current and frozen `18.0.57` catalog parse, retain `git_tag: 15.0.37`, and hold eleven new provenance rows; the release publication is pending. |
+| EVD-01 | Catalog provenance | Record every delivered S3 root and actual run pin without changing the current DayOA command pin. | IN_PROGRESS | active_product_contract | Gate 5 | ledger owner | Current and frozen `18.0.58` catalog parse, retain `git_tag: 15.0.37`, and hold eleven new provenance rows; the release publication is pending. |
 | CACHE-01 | Runtime cache export | Preserve the complete `pclu-18045` Ubuntu cache generation through supported `dyec runtime-cache export`. | FAIL | operational_timeout | Gate 1 | runtime-cache export owner | Retry `pclu18045_runtime_cache_20260819t071328z` timed out during FSx staging (`rc=137`) at 31/42 Conda entries and before either image/DRA export.  No S3 delivery, temporary DRA, deletion, retry, or fallback occurred.  Both staging roots and receipts are retained. |
 | CACHE-02 | Future-cache bootstrap | Make one declared cache-export URI import through FSx and link verified entries into the DayOA cluster cache namespace. | BLOCKED | operational_timeout | Gate 2 | runtime-cache export owner | No verified immutable runtime-cache S3 source exists because CACHE-01 never reached DRA export.  The isolated import/link code stays uncommitted and no region reference-bucket bundle was published. |
-| REL-01 | Evidence release | Publish the completed catalog-provenance release independently of the blocked cache workstream. | IN_PROGRESS | feature_implementation | Gate 5 | ledger owner | The intended frozen catalog build is `18.0.57`; it contains delivery evidence only, not unverified runtime-cache import/link code.  Remote tag absence was verified before local materialization. |
+| REL-01 | Evidence release | Publish the completed catalog-provenance release independently of the blocked cache workstream. | IN_PROGRESS | feature_implementation | Gate 5 | ledger owner | The intended frozen catalog build is `18.0.58`; it contains delivery evidence only, not unverified runtime-cache import/link code.  The concurrent `18.0.57` release was rebased in; remote `18.0.58` tag absence was verified before materialization. |
 | DEL-01 | FSx cleanup | Delete exactly the eleven delivered analysis roots, never their S3 delivery roots. | BLOCKED | legitimate_safety_handling | Gate 5 | ledger owner | Requires the user’s second explicit confirmation naming the exact destructive FSx cleanup scope; no cleanup command has been issued. |
 
 ## Export rows
@@ -55,8 +55,8 @@ The `..._artifacts` directories are relative to this ledger's parent directory a
 
 | ID | Requirement | Status | Terminal/evidence rule |
 |---|---|---|---|
-| EVD-01 through EVD-11 | Add each successful export's S3 root and direct-run receipt provenance to the matching production catalog command. | IN_PROGRESS | Source and packaged catalog copies now carry the eleven fresh `pclu-18045` S3 roots and RC0 `validation_runs`; the current view and new frozen `18.0.57` snapshot parse and both retain `git_tag: 15.0.37`.  Release publication remains pending. |
-| REL-01 | Cut a forward immutable DYEC evidence release after all eleven exports pass. | IN_PROGRESS | Source/package catalog parity and `18.0.57` frozen snapshot are present locally.  The parallel cache workstream ended pre-DRA with a staging timeout, so this release intentionally excludes its unverified import/link code.  No claim that earlier executions ran at 15.0.37. |
+| EVD-01 through EVD-11 | Add each successful export's S3 root and direct-run receipt provenance to the matching production catalog command. | IN_PROGRESS | Source and packaged catalog copies now carry the eleven fresh `pclu-18045` S3 roots and RC0 `validation_runs`; the current view and new frozen `18.0.58` snapshot parse and both retain `git_tag: 15.0.37`.  Release publication remains pending. |
+| REL-01 | Cut a forward immutable DYEC evidence release after all eleven exports pass. | IN_PROGRESS | Source/package catalog parity and `18.0.58` frozen snapshot are present locally.  The concurrent `18.0.57` release was rebased in.  The parallel cache workstream ended pre-DRA with a staging timeout, so this release intentionally excludes its unverified import/link code.  No claim that earlier executions ran at 15.0.37. |
 | DEL-01 through DEL-11 | Delete each corresponding FSx analysis root only after export verification. | BLOCKED | Requires a second explicit destructive confirmation, then exactly `dyec exports cleanup --confirm-fsx-delete` with matching root/S3/analysis ID and a cleanup receipt. |
 
 ## Parallel runtime-cache workstream

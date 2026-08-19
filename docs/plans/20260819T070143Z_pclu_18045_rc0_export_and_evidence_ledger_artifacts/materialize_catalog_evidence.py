@@ -5,7 +5,7 @@ This is a one-off, deterministic ledger companion.  It reads only exported
 status objects and local FSx-export receipts, refuses any non-RC0 or
 non-successful-delivery evidence, updates the current catalog text without
 reserializing unrelated historical entries, and freezes the same current view
-as DYEC 18.0.57.
+as DYEC 18.0.58.
 """
 
 from __future__ import annotations
@@ -333,7 +333,7 @@ def main() -> None:
     if source_text != payload_text:
         raise RuntimeError("source and packaged catalog copies differ before update")
     if re.search(r"^  18\.0\.57:\n", source_text, re.MULTILINE):
-        raise RuntimeError("18.0.57 snapshot already exists")
+        raise RuntimeError("18.0.58 snapshot already exists")
 
     generated_at = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     records = [validated_record(dict(lane), generated_at) for lane in LANES]
@@ -352,7 +352,7 @@ def main() -> None:
         current_block = update_command(current_block, record)
     if not current_block.startswith("  current:\n"):
         raise RuntimeError("updated current catalog boundary is invalid")
-    snapshot = current_block.replace("  current:\n", "  18.0.57:\n", 1)
+    snapshot = current_block.replace("  current:\n", "  18.0.58:\n", 1)
     new_text = source_text[:start] + current_block + source_text[end:]
     if not new_text.endswith("\n"):
         new_text += "\n"
@@ -362,9 +362,9 @@ def main() -> None:
     # reserializing or mutating unrelated catalog history.
     parsed = yaml.safe_load(new_text)
     current = parsed["dyec_builds"]["current"]
-    frozen = parsed["dyec_builds"]["18.0.57"]
+    frozen = parsed["dyec_builds"]["18.0.58"]
     if current != frozen:
-        raise RuntimeError("18.0.57 snapshot does not exactly match current")
+        raise RuntimeError("18.0.58 snapshot does not exactly match current")
     for record in records:
         command = current["commands"][record["command_id"]]
         if command["git_tag"] != "15.0.37":
