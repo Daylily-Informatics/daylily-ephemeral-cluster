@@ -1,7 +1,7 @@
-# `pclu-18045` DYEC 18.0.53 / DayOA 15.0.30 Fresh RC0 Remediation Ledger
+# `pclu-18045` DYEC 18.0.54 / DayOA 15.0.34 Fresh RC0 Remediation Ledger
 
-Controlling request: use released DYEC `18.0.53`, pinned only to released DayOA
-`15.0.30`, to obtain fresh same-root dry/live `rc=0` evidence for the eight
+Controlling request: use released DYEC `18.0.54`, pinned only to released DayOA
+`15.0.34`, to obtain fresh same-root dry/live `rc=0` evidence for the eight
 production catalog lanes whose preceding `pclu-18045` controllers ended
 nonzero. The three Run-QC lanes already reached fresh dry/live `rc=0` in this
 campaign and are context only, not rerun scope. Every remediation lane uses an
@@ -34,6 +34,17 @@ That earlier ledger remains an immutable record of its terminal outcomes.
   HIOMR2 and Bjuice retain `PIP_NO_BUILD_ISOLATION=1` before their
   controller-owned `dy-r` command. Each fresh pangenome render must confirm
   this exact immutable pin before launch.
+- DayOA `15.0.34` is an annotated, pushed successor peeling to
+  `ad4d85a2a5ea75209ea4815a71a2f09a9101ec6f`. It repairs the Ultima graph
+  canonicalization pipe by emitting BAM before `samtools reheader`; the failed
+  `15.0.30` live controller proved that `reheader` rejects the prior SAM stream.
+  Its focused pangenome target/selector tests passed `17/17` before release.
+- DYEC `18.0.54` is the annotated, pushed successor peeling to
+  `8ea1f1bf95c50a4ace4f4bfac667dc72844093ab`. It freezes `18.0.53` exactly,
+  removes the malformed duplicate raw snapshot blocks from the prior assembly,
+  and makes mutable `current` and frozen `18.0.54` pin only DayOA `15.0.34`.
+  Source and packaged catalogs are byte-identical SHA-256
+  `8e6d466331727c6463bbfdd4e0d87c12f048f0e86fef7e8d01f24df05adf9dbc`.
 - No raw Snakemake, queue intervention, implicit inputs, or replacement live
   root after a passing dry run is allowed.  A dry/run pair remains in one
   analysis ID/root and differs only by removal of `-n`.
@@ -66,9 +77,9 @@ That earlier ledger remains an immutable record of its terminal outcomes.
   configuration began.
 - At `2026-08-19T02:11Z`, the authorized `18.0.53` force-configure correctly
   refused while the HIOMR2, Bjuice, and CG live controllers were active. No
-  controller, Slurm, lock, or source state was changed by that refusal. The
-  configure will be retried only after all three current controllers are
-  terminal; it is not safe to replace the DayOA/DYEC runtime beneath them.
+  controller, Slurm, lock, or source state was changed by that refusal. After
+  those controllers became terminal, the same exact-release configure completed
+  and remote `dyec version` reported `18.0.53`.
 
 ## Control ledger
 
@@ -83,20 +94,24 @@ That earlier ledger remains an immutable record of its terminal outcomes.
 | HN-03 | Headnode | Force-configure `pclu-18045` with exact released DYEC `18.0.52`; prove remote `dyec version` and controller surface. | SUCCESS | config_or_startup_contract | Gate 0 | Configure completed before the first dry wave; remote reported `18.0.52` / DayOA `15.0.29`. |
 | REL-04 | DayOA source release | Publish immutable DayOA `15.0.30` for the two pangenome dry-closure defects found before workflow submission. | SUCCESS | active_product_contract | Gate 0 | Annotated/pushed `15.0.30` peels to `65c45c74…be859`; focused selector/canonical-input tests passed `17/17`. |
 | REL-05 | Forward catalog release | Publish immutable DYEC `18.0.53`, frozen/current pinned only to DayOA `15.0.30`. | SUCCESS | active_product_contract | Gate 0 | Annotated/pushed `18.0.53` peels to `3f41a6b4…2ba0`; focused frozen-snapshot/catalog tests passed `5/5`; source/package bytes match. |
-| HN-04 | Headnode | Force-configure `pclu-18045` with exact released DYEC `18.0.53`; prove remote version and catalog surface before the replacement pangenome dry roots. | BLOCKED | legitimate_safety_handling | Gate 0 | `--force` was refused by the active-controller safety check at `2026-08-19T02:11Z`. CG and HIOMR2 are now terminal; retry only after the remaining Bjuice controller is terminal. |
+| HN-04 | Headnode | Force-configure `pclu-18045` with exact released DYEC `18.0.53`; prove remote version and catalog surface before the replacement pangenome dry roots. | SUCCESS | legitimate_safety_handling | Gate 0 | The initial `--force` refusal preserved live state; after HIOMR2/Bjuice/CG became terminal, the exact-release configure completed and `dyec headnode run` reported `Daylily Ephemeral Cluster 18.0.53`. |
+| REL-06 | DayOA source release | Publish immutable DayOA `15.0.34` correcting the Ultima graph canonicalizer's SAM-to-`samtools reheader` mismatch. | SUCCESS | active_product_contract | Gate 0 | Annotated/pushed `15.0.34` peels to `ad4d85a2a5ea75209ea4815a71a2f09a9101ec6f`; the focused target/selector suite passed `17/17`. |
+| REL-07 | Forward catalog release | Publish immutable DYEC `18.0.54`, freeze `18.0.53`, normalize the duplicate raw snapshot defect, and pin mutable/frozen current only to DayOA `15.0.34`. | SUCCESS | active_product_contract | Gate 0 | Annotated/pushed `18.0.54` peels to `8ea1f1bf95c50a4ace4f4bfac667dc72844093ab`; source/package catalog SHA-256 is `8e6d4663…f9dbc`; 18.0.54 release tests passed `2/2` and historical frozen-snapshot assertions passed. |
+| HN-05 | Headnode | Force-configure `pclu-18045` with exact released DYEC `18.0.54`; prove remote version before the fresh 15.0.34 Ultima pangenome dry root. | BLOCKED | legitimate_safety_handling | Gate 0 | The 18.0.53 Illumina pangenome live controller is still active. Do not replace the DAYOA/DYEC runtime beneath it; retry only after that controller reaches a terminal state. |
 | CAT-01 | Catalog | Render the eight remediation commands from `18.0.52`; prove DayOA `15.0.29`, `-j 333 -T 0 -p`, dry-only `-n`, unique roots, and declared explicit inputs. | SUCCESS | active_product_contract | Gate 0 | All eight rendered with the declared six-manifests and exact flags; the two pangenome dry failures were source selector closures before submitted work. |
-| CAT-03 | Catalog | Render the two replacement pangenome remediation commands from `18.0.53`; prove DayOA `15.0.30`, same flags, fresh roots, and declared explicit inputs. | OPEN | active_product_contract | Gate 0 | Cannot render/launch on the headnode until HN-04 succeeds. |
+| CAT-03 | Catalog | Render the two replacement pangenome remediation commands from `18.0.53`; prove DayOA `15.0.30`, same flags, fresh roots, and declared explicit inputs. | SUCCESS | active_product_contract | Gate 0 | Both fresh renders and dry controllers reached controller/day-run/Snakemake `rc=0` with zero submitted work: ILMN attempt `b0c441ec…0775`; Ultima attempt `a4e7ee2f…e3`. |
+| CAT-04 | Catalog | Render the fresh replacement Ultima pangenome command from `18.0.54`; prove DayOA `15.0.34`, exact same flags, a new root, and declared explicit input manifest. | OPEN | active_product_contract | Gate 0 | Pending HN-05 after the active ILMN pangenome controller becomes terminal. |
 | MQC-01 | Catalog | Confirm SOLO ONT, SOLO Ultima, SOLO CG, and both pangenome kitchen-sink closures include final MultiQC HTML plus evidence manifest. | SUCCESS | active_product_contract | Gate 0 | `18.0.52` and `18.0.53` release tests assert the exact target pairs; all relevant controller argv retain them. |
 | RUN-01 | ILMN Run-QC | `illumina_run_qc`, explicit mounted ILMN run context, no BCL Convert. | NO_LONGER_NEEDED | scope_control | Gate 1 | Fresh campaign dry/live controllers already reached RC0 and were exported; user narrowed this remediation wave to only commands that ended nonzero. |
 | RUN-02 | ONT Run-QC | `ont_run_qc`, explicit mounted ONT run context, no basecalling. | NO_LONGER_NEEDED | scope_control | Gate 1 | Fresh campaign dry/live controllers already reached RC0 and were exported; user narrowed this remediation wave to only commands that ended nonzero. |
 | RUN-03 | Ultima Run-QC | `ultima_run_qc`, explicit mounted Ultima run context, no basecalling. | NO_LONGER_NEEDED | scope_control | Gate 1 | Fresh campaign dry/live controllers already reached RC0 and were exported; user narrowed this remediation wave to only commands that ended nonzero. |
 | RUN-04 | HIOMR2 | `hiomr2_slim_kitchensink_mega`, 5x ILMN + 5x ONT slim-data. | SUCCESS | active_product_contract | Gate 1 | Dry attempt `ed173b24…bb4e` reached `rc=0` / zero submitted work; same-root live attempt `bb42a3c8…e08` reached controller/day-run/Snakemake `rc=0` at `2026-08-19T03:25Z`. |
-| RUN-05 | Bjuice v0.9 | `inflection-bjuice-product-v0.9`, 5x ILMN + 5x ONT slim-data. | IN_PROGRESS | active_product_contract | Gate 1 | Dry attempt `3639fac1…06b8` reached `rc=0` / zero submitted work; same-root live attempt `9ff50ccd…f2` is running (`98/295`, one Slurm job RUNNING) with no failure marker. |
+| RUN-05 | Bjuice v0.9 | `inflection-bjuice-product-v0.9`, 5x ILMN + 5x ONT slim-data. | SUCCESS | active_product_contract | Gate 1 | Dry attempt `3639fac1…06b8` reached `rc=0` / zero submitted work; same-root live attempt `9ff50ccd…f2` reached controller/day-run/Snakemake `rc=0`. |
 | RUN-06 | SOLO ILMN | `illumina_hg002_kitchensink_multiqc`, ILMN slim-data. | SUCCESS | active_product_contract | Gate 1 | Dry attempt `bbb65050…49d` and same-root live attempt `2a31be56…98` both reached controller/day-run/Snakemake `rc=0`. |
 | RUN-07 | SOLO ONT | `ont_snv_alignstats_kitchensink`, ONT slim-data. | SUCCESS | active_product_contract | Gate 1 | Dry attempt `98e1ea33…4f2` and same-root live attempt `9fc58392…4f2` both reached controller/day-run/Snakemake `rc=0`, including the declared final MultiQC/evidence targets. |
 | RUN-08 | SOLO Ultima | `ultima_snv_alignstats_kitchensink`, Ultima slim-data. | SUCCESS | active_product_contract | Gate 1 | Dry attempt `12265cdf…d15` and same-root live attempt `b5a83d2f…6fbc` both reached controller/day-run/Snakemake `rc=0`, including the declared final MultiQC/evidence targets. |
 | RUN-09 | SOLO CG | `complete_genomics_cg_snv_concordance`, CG slim-data. | SUCCESS | active_product_contract | Gate 1 | Dry attempt `5ef4ed24…d55` reached `rc=0` / zero submitted work; same-root live attempt `d5d0cb54…3543` reached controller/day-run/Snakemake `rc=0` at `2026-08-19T02:29Z`, including final MultiQC/evidence targets. |
-| RUN-10 | Pangenome ILMN | `illumina_sentieon_pangenome_kitchensink`, ILMN slim-data. | IN_PROGRESS | active_product_contract | Gate 1 | The `15.0.29` dry attempt `4cba625c…0fa` failed before submitted work when the current sentd selector requested a graph/doppelmark path. `15.0.30` fixes that selector; a new dry/live same-root pair is pending HN-04. |
-| RUN-11 | Pangenome Ultima | `ultima_sentieon_pangenome_kitchensink`, Ultima slim-data. | IN_PROGRESS | active_product_contract | Gate 1 | The `15.0.29` dry attempt `6a08b710…4c` failed before submitted work because `pre_prep_ultima_cram` ambiguously claimed the canonicalized graph CRAM. `15.0.30` constrains the input-lane wildcard; a new dry/live same-root pair is pending HN-04. |
+| RUN-10 | Pangenome ILMN | `illumina_sentieon_pangenome_kitchensink`, ILMN slim-data. | IN_PROGRESS | active_product_contract | Gate 1 | The `15.0.29` dry attempt `4cba625c…0fa` failed before submitted work when the current sentd selector requested a graph/doppelmark path. The replacement `15.0.30` dry attempt `b0c441ec…0775` reached `rc=0` / zero submitted work; its same-root live attempt `55afaa62…99d3` remains active (`50/235` at the last read-only check, with no failure marker). |
+| RUN-11 | Pangenome Ultima | `ultima_sentieon_pangenome_kitchensink`, Ultima slim-data. | ATTEMPTING_BUGFIX | active_product_contract | Gate 1 | The `15.0.29` dry attempt `6a08b710…4c` failed before submitted work because `pre_prep_ultima_cram` ambiguously claimed the canonicalized graph CRAM. The `15.0.30` dry attempt `a4e7ee2f…e3` then reached `rc=0` / zero submitted work, but its same-root live attempt `4c44b356…9294` ended controller/day-run/Snakemake `rc=1` when `samtools reheader` received SAM. DayOA `15.0.34` corrects that exact pipe; after HN-05, use a new root for its changed pin and repeat dry then same-root live. |
 | CAT-02 | Future catalog | Remove the two named retired Bjuice v2/v0.2 commands from mutable `current` in a forward-only DYEC release. | SUCCESS | active_product_contract | Gate 0 | `18.0.51` removed the named command and alias only from `current`; `18.0.52` retains that removal. |
 | EVD-01 | Evidence | Update this ledger with dry/live controller receipts, effective argv, terminal rc, and blockers; export only after explicitly requested post-RC0 authorization. | IN_PROGRESS | legitimate_safety_handling | Gate 5 | This ledger now records all initial controller attempts and release transitions. No export/delete action is implied or has been performed. |
