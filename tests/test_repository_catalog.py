@@ -14,8 +14,8 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "15.0.37"
-ULTIMA_DOWNSAMPLE_DAYOA_TAG = "15.0.38"
+DAYOA_BLESSED_TAG = "16.0.1"
+ULTIMA_DOWNSAMPLE_DAYOA_TAG = DAYOA_BLESSED_TAG
 CURRENT_VALIDATED_DAYOA_TAG = "15.0.1"
 RUN_QC_VALIDATED_DAYOA_TAG = "15.0.9"
 PRODUCTION_DAYOA_TAG = DAYOA_BLESSED_TAG
@@ -734,8 +734,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert validation_run.live_status in {"success", "failed", "blocked", "not_run"}
         if command.command_class != "sample_analysis":
             continue
-        assert command.dy_command.startswith("bin/day_run ")
-        assert command.dryrun_dy_command.startswith("bin/day_run ")
+        assert command.dy_command.startswith("dy-r ")
+        assert command.dryrun_dy_command.startswith("dy-r ")
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_cluster_types == ["daywgs"]

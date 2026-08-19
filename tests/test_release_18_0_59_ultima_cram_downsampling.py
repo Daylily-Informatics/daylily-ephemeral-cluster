@@ -19,6 +19,8 @@ PACKAGED_CATALOG = (
 )
 DYEC_RELEASE = "18.0.59"
 PREVIOUS_DYEC_RELEASE = "18.0.58"
+CURRENT_DYEC_RELEASE = "19.0.0"
+CURRENT_DAYOA_RELEASE = "16.0.1"
 DEFAULT_DAYOA_RELEASE = "15.0.37"
 ULTIMA_DOWNSAMPLE_DAYOA_RELEASE = "15.0.38"
 ULTIMA_DOWNSAMPLE_COMMAND_IDS = {
@@ -50,18 +52,20 @@ def _tag_catalog(release: str) -> dict:
     return yaml.safe_load(source)
 
 
-def test_18_0_59_is_current_and_preserves_every_historical_snapshot() -> None:
+def test_18_0_59_remains_frozen_and_preserves_every_older_snapshot() -> None:
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
 
     raw = _raw_catalog()
     previous = _tag_catalog(PREVIOUS_DYEC_RELEASE)
-    current = raw["dyec_builds"]["current"]
+    release = raw["dyec_builds"][DYEC_RELEASE]
+    tagged = _tag_catalog(DYEC_RELEASE)
 
-    assert current == raw["dyec_builds"][DYEC_RELEASE]
+    assert release == tagged["dyec_builds"][DYEC_RELEASE]
+    assert raw["dyec_builds"]["current"] == raw["dyec_builds"][CURRENT_DYEC_RELEASE]
     assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == (
-        DEFAULT_DAYOA_RELEASE
+        CURRENT_DAYOA_RELEASE
     )
-    assert current["dayoa_git_tags"] == [
+    assert release["dayoa_git_tags"] == [
         DEFAULT_DAYOA_RELEASE,
         ULTIMA_DOWNSAMPLE_DAYOA_RELEASE,
     ]
@@ -75,7 +79,7 @@ def test_18_0_59_is_current_and_preserves_every_historical_snapshot() -> None:
 def test_18_0_59_changes_only_the_two_ultima_command_records() -> None:
     raw = _raw_catalog()
     previous = _tag_catalog(PREVIOUS_DYEC_RELEASE)["dyec_builds"]["current"]
-    current = raw["dyec_builds"]["current"]
+    current = raw["dyec_builds"][DYEC_RELEASE]
 
     assert set(current["commands"]) == set(previous["commands"])
     changed_command_ids = {
@@ -95,7 +99,7 @@ def test_18_0_59_changes_only_the_two_ultima_command_records() -> None:
 def test_18_0_59_pins_only_the_two_ultima_commands_without_command_drift() -> None:
     raw = _raw_catalog()
     previous = _tag_catalog(PREVIOUS_DYEC_RELEASE)["dyec_builds"]["current"]
-    current = raw["dyec_builds"]["current"]
+    current = raw["dyec_builds"][DYEC_RELEASE]
 
     assert {
         command_id
@@ -133,7 +137,7 @@ def test_18_0_59_pins_only_the_two_ultima_commands_without_command_drift() -> No
 def test_18_0_59_records_new_downsampling_proof_as_dry_only() -> None:
     raw = _raw_catalog()
     previous = _tag_catalog(PREVIOUS_DYEC_RELEASE)["dyec_builds"]["current"]
-    current = raw["dyec_builds"]["current"]
+    current = raw["dyec_builds"][DYEC_RELEASE]
     release = raw["dyec_builds"][DYEC_RELEASE]
 
     for command_id, run_id in EXPECTED_DRY_RUN_IDS.items():

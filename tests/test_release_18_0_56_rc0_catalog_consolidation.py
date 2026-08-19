@@ -21,6 +21,7 @@ PACKAGED_CATALOG = (
 DYEC_RELEASE = "18.0.56"
 PREVIOUS_DYEC_RELEASE = "18.0.55"
 DAYOA_RELEASE = "15.0.37"
+CURRENT_DAYOA_RELEASE = "16.0.1"
 PRODUCTION_COMMAND_IDS = {
     "illumina_run_qc",
     "ont_run_qc",
@@ -60,7 +61,9 @@ def test_18_0_56_remains_frozen_at_dayoa_15_0_37() -> None:
 
     assert release == tagged_release["dyec_builds"][DYEC_RELEASE]
     assert release != current
-    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == DAYOA_RELEASE
+    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == (
+        CURRENT_DAYOA_RELEASE
+    )
     assert release["dayoa_git_tags"] == [DAYOA_RELEASE]
     assert {command["git_tag"] for command in release["commands"].values()} == {
         DAYOA_RELEASE
