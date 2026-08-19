@@ -589,7 +589,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             continue
         expected_validation_runs = {
             "illumina_hg002_kitchensink_multiqc": 3,
-            "ultima_snv_alignstats_kitchensink": 2,
+            "ultima_snv_alignstats_kitchensink": 3,
+            "ultima_sentieon_pangenome_kitchensink": 2,
             "ont_snv_alignstats_kitchensink": 2,
             "illumina_run_qc": 4,
             "complete_genomics_cg_snv_concordance": 3,
@@ -967,6 +968,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert [run.run_id for run in ultima_kitchensink.validation_runs] == [
         "pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live",
         "pclu18045_rc0_18052_soloultima_20260819T004600Z",
+        "pclu18045_u075_solo_18059_15038_20260819t130742z",
     ]
     assert ultima_kitchensink.validation_evidence_s3_uri_prefix == (
         "s3://lsmc-ssf-sequencing-data/derived/pclu-18045/"

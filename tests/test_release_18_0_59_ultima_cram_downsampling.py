@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 
@@ -23,6 +24,16 @@ ULTIMA_DOWNSAMPLE_DAYOA_RELEASE = "15.0.38"
 ULTIMA_DOWNSAMPLE_COMMAND_IDS = {
     "ultima_snv_alignstats_kitchensink",
     "ultima_sentieon_pangenome_kitchensink",
+}
+DYEC_DRY_EXECUTABLE_BASE = "20325e84014fabe666c1d5b7f381374444597949"
+DYEC_CANDIDATE_COMMIT = "8fd55dbd31bbf161869e014e3b7743d20154a02d"
+EXPECTED_DRY_RUN_IDS = {
+    "ultima_snv_alignstats_kitchensink": (
+        "pclu18045_u075_solo_18059_15038_20260819t130742z"
+    ),
+    "ultima_sentieon_pangenome_kitchensink": (
+        "pclu18045_u075_pang_18059_15038_20260819t130742z"
+    ),
 }
 
 
@@ -117,3 +128,47 @@ def test_18_0_59_pins_only_the_two_ultima_commands_without_command_drift() -> No
         assert "seed 33" in command["description"]
         for field in immutable_fields:
             assert command[field] == frozen_command[field]
+
+
+def test_18_0_59_records_new_downsampling_proof_as_dry_only() -> None:
+    raw = _raw_catalog()
+    previous = _tag_catalog(PREVIOUS_DYEC_RELEASE)["dyec_builds"]["current"]
+    current = raw["dyec_builds"]["current"]
+    release = raw["dyec_builds"][DYEC_RELEASE]
+
+    for command_id, run_id in EXPECTED_DRY_RUN_IDS.items():
+        current_runs = current["commands"][command_id]["validation_runs"]
+        release_runs = release["commands"][command_id]["validation_runs"]
+        previous_runs = previous["commands"][command_id]["validation_runs"]
+
+        assert current_runs[:-1] == previous_runs
+        assert release_runs == current_runs
+
+        evidence = current_runs[-1]
+        assert evidence["run_id"] == run_id
+        assert evidence["status"] == "success"
+        assert evidence["dryrun_status"] == "success"
+        assert evidence["live_status"] == "not_run"
+        assert evidence["dryrun_analysis_id"] == run_id
+        assert evidence["live_analysis_id"] == ""
+        assert evidence["dayec_tag"] == DYEC_RELEASE
+        assert evidence["dayec_commit"] == DYEC_DRY_EXECUTABLE_BASE
+        assert evidence["dayoa_tag"] == ULTIMA_DOWNSAMPLE_DAYOA_RELEASE
+        assert DYEC_CANDIDATE_COMMIT in evidence["notes"]
+        assert "submitted jobs=0" in evidence["notes"]
+        assert "Live status remains not_run" in evidence["notes"]
+
+        receipt_path = REPO_ROOT / evidence["report_path"]
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        assert receipt["state"] == "SUCCEEDED"
+        assert receipt["jobs"]["submitted_count"] == 0
+        terminal = receipt["terminal"]
+        assert terminal["controller_exit_code"] == 0
+        assert terminal["controller_exit_code_attributed"] is True
+        assert terminal["day_run_exit_code"] == 0
+        assert terminal["snakemake_exit_code"] == 0
+        assert terminal["failure_markers"] == []
+
+    assert "canonicalize_pangenome_ug_input_cram" in current["commands"][
+        "ultima_sentieon_pangenome_kitchensink"
+    ]["validation_runs"][-1]["notes"]

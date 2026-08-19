@@ -7,6 +7,7 @@
   "dyec_version": "18.0.59.dev1+g20325e840.d20260819",
   "dyec_base_commit": "20325e84014fabe666c1d5b7f381374444597949",
   "dyec_git_state": "dirty catalog candidate",
+  "subsequent_candidate_commit": "8fd55dbd31bbf161869e014e3b7743d20154a02d",
   "dayoa_tag": "15.0.38",
   "dayoa_commit": "95cabdbfd35e57bd8974ec0b6583f3f2dd4b3202",
   "manifest_value": "0.75",
