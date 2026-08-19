@@ -37,10 +37,17 @@ Ubuntu `post_install_ubuntu_combined.sh`, to each existing requested
 | R2 | config_or_startup_contract | SUCCESS | Published and byte-for-byte read-back verified all seven objects in `lsmc-dayoa-references-use1` at the exact release prefix. |
 | R3 | not_applicable_after_inspection | NO_LONGER_NEEDED | No matching requested bucket exists in `us-west-1`; no object action is needed. |
 | R4 | not_applicable_after_inspection | NO_LONGER_NEEDED | No matching requested bucket exists in `us-east-2`; no object action is needed. |
-| R5 | active_product_contract | IN_PROGRESS | Commit and fast-forward the final ledger evidence to `origin/main`; no force push. |
+| R5 | active_product_contract | SUCCESS | Commit `d8a3e223e14b7e0474c45807678bbce0af7d0b5d` fast-forwarded `origin/main`; no force push. |
 
 ## Acceptance
 
 All rows must be terminal. Each existing target bucket must contain the same
 content-addressed release bundle, and every uploaded object must read back with
 the source body SHA-256 and matching `daylily-sha256` metadata.
+
+## Completion
+
+All rows are terminal and successful. A final read-back audit verified all
+seven objects in both existing target buckets against source-body and metadata
+SHA-256 values. No matching bucket existed in the two remaining requested
+regions, and no cluster or existing S3 object was altered.
