@@ -49,10 +49,23 @@ aws sts get-caller-identity          # expect assumed-role/DaylilyBaselineDeploy
 date -u +%Y-%m-%dT%H:%M:%SZ          # <-- T0
 ```
 
-**Tell people you are deploying.** On 2026-08-14 the baseline cluster was deleted
-through Ursa's admin API ten minutes after CREATE_COMPLETE — by a person, not a
-reaper. The config now sets `sweep_protection_tag: dyec-preserve=true`, but a tag
-is not a substitute for announcing the run.
+**Tell people you are deploying.**
+
+Ursa runs a cluster sweeper that deletes an idle cluster after
+`ursa_cluster_auto_cleanup_idle_minutes` (default **60**) plus
+`ursa_cluster_auto_cleanup_grace_minutes` (default **30**), polled every 900s —
+roughly **90-105 minutes with no running jobs**. A capture run is comfortably
+under that, so no protection is wired. If a run ever needs to sit idle longer,
+tag the cluster `ursa-preserve=true`
+(`daylib_ursa/cluster_sweeper.py:preserve_tag_is_set`).
+
+⚠️ **`sweep_protection_tag: dyec-preserve=true` is not that protection.** It is
+consumed as `Persistent2Spec.sweep_preserve` and governs DYEC's own PERSISTENT_2
+**FSx** sweeping. Two different sweepers, two different tag keys.
+
+Announcing still matters independently: on 2026-08-14 the cluster was deleted ten
+minutes after CREATE_COMPLETE — well inside any idle threshold, so that one was a
+person, not the sweeper.
 
 **Abort if:** a compute node is already running in **us-west-2d**.
 

@@ -87,9 +87,18 @@ ephemeral_cluster:
     fsx_lifecycle:           [USESETVALUE, "", "CLUSTER_BOUND"]
 
     # --- protection ----------------------------------------------------------
-    # On 2026-08-14 the baseline cluster was deleted through Ursa's admin API
-    # 10 minutes after CREATE_COMPLETE. This tag marks it as not-litter; it is
-    # not a substitute for announcing the run.
+    # This key does NOT protect the cluster from deletion. It is consumed at
+    # create_cluster.py:3594 as Persistent2Spec.sweep_preserve and governs DYEC's
+    # own PERSISTENT_2 **FSx** sweeping only.
+    #
+    # Cluster deletion is a separate mechanism: Ursa's sweeper removes an idle
+    # cluster after idle_minutes (default 60) + grace_minutes (default 30),
+    # polled every 900s — roughly 90-105 minutes with no running jobs. It defers
+    # only on an `ursa-preserve=true` cluster tag, which DYEC does not set.
+    #
+    # Not wired deliberately: a capture run is well under 90 minutes, so the
+    # window never opens. If a run ever needs to sit idle longer, tag the cluster
+    # `ursa-preserve=true` rather than assuming this key covers it.
     sweep_protection_tag:    [USESETVALUE, "", "dyec-preserve=true"]
 
     enable_detailed_monitoring: [USESETVALUE, "", "false"]
