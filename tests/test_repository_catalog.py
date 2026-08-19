@@ -14,7 +14,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "15.0.28"
+DAYOA_BLESSED_TAG = "15.0.37"
 CURRENT_VALIDATED_DAYOA_TAG = "15.0.1"
 RUN_QC_VALIDATED_DAYOA_TAG = "15.0.9"
 PRODUCTION_DAYOA_TAG = DAYOA_BLESSED_TAG
@@ -172,7 +172,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert {command.command_id for command in current_build} == {
         command.command_id for command in catalog.commands()
     }
-    assert len(current_build) == 33
+    assert len(current_build) == 31
     assert {command.git_tag for command in current_build} == {DAYOA_BLESSED_TAG}
     assert {command.repository for command in current_build} == {"daylily-omics-analysis"}
     older_release = catalog.commands_for_dyec_build("16.1.85")
@@ -470,7 +470,7 @@ def test_catalog_public_payload_marks_target_validation_gaps_without_relabeling_
     assert pending["git_tag"] == DAYOA_BLESSED_TAG
     assert pending["validated_version"] == CURRENT_VALIDATED_DAYOA_TAG
     assert pending["validation_pending"] is True
-    assert bjuice["git_tag"] == BJUICE_V2_DAYOA_TARGET_TAG
+    assert bjuice["git_tag"] == DAYOA_BLESSED_TAG
     assert bjuice["validated_version"] == BJUICE_V2_DAYOA_VALIDATED_TAG
     assert bjuice["validation_pending"] is True
 
@@ -525,10 +525,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "ont_snv_alignstats_kitchensink",
         "ultima_snv_alignstats_kitchensink",
         "complete_genomics_cg_snv_concordance",
-        "inflection-bjuice-product-v0.2",
         "hiomr2_slim_kitchensink_mega",
         "inflection-bjuice-product-v0.9",
-        "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega",
         "illumina_sentieon_pangenome_kitchensink",
         "ultima_sentieon_pangenome_kitchensink",
     }
@@ -541,10 +539,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         command = catalog.get_command(command_id)
         assert "nicu_fastq_recoverability" not in command.dy_command
     hiomr2_mega_ids = {
-        "inflection-bjuice-product-v0.2",
         "hiomr2_slim_kitchensink_mega",
         "inflection-bjuice-product-v0.9",
-        "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega",
     }
     for command_id in hiomr2_mega_ids:
         command = catalog.get_command(command_id)
@@ -583,12 +579,13 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert command.command_id in UNVALIDATED_COMMAND_IDS
             continue
         expected_validation_runs = {
-            "illumina_hg002_kitchensink_multiqc": 2,
-            "illumina_run_qc": 3,
-            "complete_genomics_cg_snv_concordance": 2,
-            "ont_run_qc": 4,
-            "ultima_run_qc": 4,
-            "inflection-bjuice-product-v0.2": 2,
+            "illumina_hg002_kitchensink_multiqc": 3,
+            "ultima_snv_alignstats_kitchensink": 2,
+            "ont_snv_alignstats_kitchensink": 2,
+            "illumina_run_qc": 4,
+            "complete_genomics_cg_snv_concordance": 3,
+            "ont_run_qc": 5,
+            "ultima_run_qc": 5,
         }.get(command.command_id, 1)
         assert len(command.validation_runs) == expected_validation_runs
         validation_run = command.validation_runs[0]
@@ -646,7 +643,10 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert validation_run.dryrun_status == "success"
             assert validation_run.live_status == "success"
             assert validation_run.live_analysis_id == validation_run.run_id
-            assert validation_run.stage_or_context == command.validation_evidence_s3_uri_prefix
+            assert validation_run.stage_or_context == (
+                "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
+                f"{validation_run.run_id}/"
+            )
             assert "No-delete DRA task" in validation_run.notes
             continue
         if (
@@ -667,6 +667,44 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert "produce_sentdhiomr2_slim_kitchensink_mega" in validation_run.tested_command
             assert "produce_sentdhiomr2_inflection_analytical_package" in validation_run.tested_command
             assert command.git_tag == DAYOA_BLESSED_TAG
+            continue
+        rc0_catalog_evidence = {
+            "pclu18045_rc0_18052_hiomr2_20260819T004600Z": (
+                "hiomr2_slim_kitchensink_mega",
+                "18.0.52",
+                "15.0.29",
+            ),
+            "pclu18045_rc0_18052_bjuice_20260819T004600Z": (
+                "inflection-bjuice-product-v0.9",
+                "18.0.52",
+                "15.0.29",
+            ),
+            "pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z": (
+                "illumina_sentieon_pangenome_kitchensink",
+                "18.0.53",
+                "15.0.30",
+            ),
+            "pclu18045_rc0_18055_pangenomeultima_20260819T051914Z": (
+                "ultima_sentieon_pangenome_kitchensink",
+                "18.0.55",
+                "15.0.35",
+            ),
+        }
+        if validation_run.run_id in rc0_catalog_evidence:
+            expected_command_id, expected_dyec_tag, expected_dayoa_tag = (
+                rc0_catalog_evidence[validation_run.run_id]
+            )
+            assert command.command_id == expected_command_id
+            assert validation_run.cluster == "pclu-18045"
+            assert validation_run.region == "us-west-2"
+            assert validation_run.dayec_tag == expected_dyec_tag
+            assert validation_run.dayoa_tag == expected_dayoa_tag
+            assert validation_run.status == "success"
+            assert validation_run.dryrun_status == "success"
+            assert validation_run.live_status == "success"
+            assert validation_run.live_analysis_id == validation_run.run_id
+            assert validation_run.stage_or_context == command.validation_evidence_s3_uri_prefix
+            assert "actual execution DayOA tag is retained" in validation_run.notes
             continue
         assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
         assert validation_run.report_path == "docs/tstver411b_command_catalog_test_results.md"
@@ -851,10 +889,11 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert [run.run_id for run in illumina_kitchensink.validation_runs] == [
         "dayoa_2017_hg002_kitchensink_j200_readhapsfix2_151101",
         "pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live",
+        "pclu18045_rc0_18052_soloilmn_20260819T004600Z",
     ]
     assert illumina_kitchensink.validation_evidence_s3_uri_prefix == (
-        "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
-        "pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live/"
+        "s3://lsmc-ssf-sequencing-data/derived/pclu-18045/"
+        "pclu18045_rc0_18052_soloilmn_20260819T004600Z/"
     )
     assert illumina_kitchensink.targets == [
         "produce_sent_align",
@@ -912,11 +951,12 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     ultima_kitchensink = catalog.get_command("ultima_snv_alignstats_kitchensink")
     assert [run.run_id for run in ultima_kitchensink.validation_runs] == [
-        "pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live"
+        "pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live",
+        "pclu18045_rc0_18052_soloultima_20260819T004600Z",
     ]
     assert ultima_kitchensink.validation_evidence_s3_uri_prefix == (
-        "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
-        "pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live/"
+        "s3://lsmc-ssf-sequencing-data/derived/pclu-18045/"
+        "pclu18045_rc0_18052_soloultima_20260819T004600Z/"
     )
     assert ultima_kitchensink.input_contract == "six_manifest"
     assert ultima_kitchensink.sample_manifest_template == ""
@@ -930,6 +970,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "produce_vep",
         "produce_metagenomics",
         "produce_multiqc_all",
+        "results/day/hg38/reports/DAY_final_multiqc.html",
+        "results/day/hg38/reports/dayoa_evidence_manifest.json",
     ]
     assert ultima_kitchensink.aligners == ["ug"]
     assert ultima_kitchensink.dedupers == ["na"]
@@ -955,11 +997,12 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     ont_kitchensink = catalog.get_command("ont_snv_alignstats_kitchensink")
     assert [run.run_id for run in ont_kitchensink.validation_runs] == [
-        "pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live"
+        "pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live",
+        "pclu18045_rc0_18052_soloont_20260819T004600Z",
     ]
     assert ont_kitchensink.validation_evidence_s3_uri_prefix == (
-        "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
-        "pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live/"
+        "s3://lsmc-ssf-sequencing-data/derived/pclu-18045/"
+        "pclu18045_rc0_18052_soloont_20260819T004600Z/"
     )
     assert ont_kitchensink.input_contract == "six_manifest"
     assert ont_kitchensink.sample_manifest_template == ""
@@ -1042,7 +1085,6 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     for command_id in (
         "hiomr2",
         "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical",
-        "inflection-bjuice-product-v0.2",
         "hiomr2_slim_kitchensink_mega",
     ):
         hiomr2_kitchensink = catalog.get_command(command_id)
@@ -1075,11 +1117,12 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "23=X, 24=Y, and 25=M/MT" in hybrid_hiomr2.description
 
     hiomr2_production_scope = 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}'
-    for command_id in (
-        "inflection-bjuice-product-v0.2",
-        "hiomr2_slim_kitchensink_mega",
+    for hiomr2_kitchensink in (
+        catalog.get_command_for_dyec_build(
+            "inflection-bjuice-product-v0.2", "18.0.50"
+        ),
+        catalog.get_command("hiomr2_slim_kitchensink_mega"),
     ):
-        hiomr2_kitchensink = catalog.get_command(command_id)
         assert hiomr2_kitchensink.dy_command.count(hiomr2_production_scope) == 1
         assert hiomr2_kitchensink.dryrun_dy_command.count(hiomr2_production_scope) == 1
 
@@ -1108,7 +1151,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         package_inflection.input_requirements.accepted_source_column_sets
     )
 
-    inflection_bjuice = catalog.get_command("inflection-bjuice-product-v0.2")
+    inflection_bjuice = catalog.get_command_for_dyec_build(
+        "inflection-bjuice-product-v0.2", "18.0.50"
+    )
     hiomr2_slim = catalog.get_command("hiomr2_slim_kitchensink_mega")
     hiomr2_analytical = catalog.get_command(
         "hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical"
@@ -1201,8 +1246,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     ]
     assert "$ANALYSIS_ID" not in rendered_inflection_command
     assert "seqone_delivery_batch_id=test-chr19and20" in rendered_inflection_command
-    current_set = catalog.dyec_builds["current"]
-    alias = current_set.aliases["inflection-bjuice-product-v0.2"]
+    historical_set = catalog.dyec_builds["18.0.50"]
+    alias = historical_set.aliases["inflection-bjuice-product-v0.2"]
     assert alias.alias_of == "hiomr2_slim_kitchensink_mega"
     assert alias.extend is not None
     assert alias.replace is None
@@ -1416,7 +1461,7 @@ def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() ->
         "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
     )
     catalog = load_repository_catalog(CATALOG_PATH)
-    command = catalog.get_command(command_id)
+    command = catalog.get_command_for_dyec_build(command_id, "18.0.50")
 
     assert command.git_tag == BJUICE_V2_DAYOA_TARGET_TAG
     assert command.validated_version == BJUICE_V2_DAYOA_VALIDATED_TAG
@@ -1462,7 +1507,11 @@ def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() ->
     assert profile.source_fsx_prefix == "/fsx/run_dir_mounts/"
     assert profile.run_context_source_s3_column == ""
     assert profile.run_context_mount_id_column == ""
-    assert catalog.dyec_builds["current"].commands[command_id].model_dump() == command.model_dump()
+    assert command_id not in catalog.dyec_builds["current"].commands
+    assert (
+        catalog.dyec_builds["18.0.50"].commands[command_id].model_dump()
+        == command.model_dump()
+    )
     snapshot_command = catalog.get_command_for_dyec_build(historical_command_id, "18.0.8")
     assert snapshot_command.git_tag == BJUICE_V2_DAYOA_VALIDATED_TAG
     assert snapshot_command.validated_version == BJUICE_V2_DAYOA_VALIDATED_TAG
@@ -1490,7 +1539,8 @@ def test_bjuice_v2_multi_au_catalog_command_is_literal_full_preval_contract() ->
 def test_bjuice_v2_custom_multi_au_catalog_command_includes_analytical_inflection() -> None:
     command_id = "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega"
     catalog = load_repository_catalog(CATALOG_PATH)
-    command = catalog.get_command(command_id)
+    command = catalog.get_command_for_dyec_build(command_id, "18.0.50")
+    assert command_id not in catalog.dyec_builds["current"].commands
 
     assert command.targets == [
         "produce_sentdhiomr2_slim_kitchensink_mega",

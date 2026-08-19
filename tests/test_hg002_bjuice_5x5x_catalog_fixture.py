@@ -7,6 +7,7 @@ from daylily_ec.manifest_set import load_manifest_set
 from daylily_ec.repositories import load_repository_catalog
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+HISTORICAL_BJUICE_BUILD = "18.0.50"
 SOURCE_CATALOG = REPO_ROOT / "config/daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG = (
     REPO_ROOT / "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml"
@@ -21,8 +22,14 @@ FIXTURE_ROOT = (
 def test_hg002_bjuice_catalog_uses_verified_5x5x_fixture() -> None:
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
     catalog = load_repository_catalog(SOURCE_CATALOG)
-    command = catalog.get_command("inflection-bjuice-product-v0.2")
+    command = catalog.get_command_for_dyec_build(
+        "inflection-bjuice-product-v0.2", HISTORICAL_BJUICE_BUILD
+    )
     profile = catalog.test_data_profiles[command.test_data_profile]
+
+    assert "inflection-bjuice-product-v0.2" not in {
+        item.command_id for item in catalog.commands()
+    }
 
     assert command.test_data_profile == "hg002_bjuice_verified_5x5x_fastq"
     assert command.manifest_dir_template.endswith("/hg002_bjuice_verified_5x5x_fastq")

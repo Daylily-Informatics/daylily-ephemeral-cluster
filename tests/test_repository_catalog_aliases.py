@@ -16,6 +16,7 @@ PACKAGED_CATALOG_PATH = (
 )
 BASE_ID = "hiomr2_slim_kitchensink_mega"
 ALIAS_ID = "inflection-bjuice-product-v0.2"
+HISTORICAL_ALIAS_BUILD = "18.0.50"
 OLD_DUPLICATED_ID = "hiomr2_slim_kitchensink_mega_inflection_analytical"
 PCAND18015_SOLO_EVIDENCE_RUNS = {
     "illumina_hg002_kitchensink_multiqc": "pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live",
@@ -78,17 +79,18 @@ def _metadata_alias(command_id: str, alias_of: str) -> dict:
     }
 
 
-def test_current_alias_resolves_to_an_analysis_command_and_renders_extensions() -> None:
+def test_historical_alias_resolves_to_an_analysis_command_and_renders_extensions() -> None:
     catalog = load_repository_catalog(CATALOG_PATH)
-    build = catalog.dyec_builds["current"]
-    base = catalog.get_command(BASE_ID)
-    alias = catalog.get_command(ALIAS_ID)
+    build = catalog.dyec_builds[HISTORICAL_ALIAS_BUILD]
+    base = catalog.get_command_for_dyec_build(BASE_ID, HISTORICAL_ALIAS_BUILD)
+    alias = catalog.get_command_for_dyec_build(ALIAS_ID, HISTORICAL_ALIAS_BUILD)
 
     assert isinstance(base, AnalysisCommand)
     assert isinstance(alias, AnalysisCommand)
     assert BASE_ID in build.commands
     assert ALIAS_ID not in build.commands
     assert ALIAS_ID in build.aliases
+    assert ALIAS_ID not in catalog.dyec_builds["current"].aliases
     assert build.aliases[ALIAS_ID].alias_of == BASE_ID
     assert base.git_tag == "15.0.28"
     assert alias.git_tag == base.git_tag
@@ -123,11 +125,17 @@ def test_current_alias_resolves_to_an_analysis_command_and_renders_extensions() 
     assert "seqone_delivery_batch_id=alias-render" in rendered
 
 
-def test_existing_accessors_and_public_payload_return_resolved_aliases() -> None:
+def test_existing_accessors_resolve_frozen_aliases_but_not_removed_current_aliases() -> None:
     catalog = load_repository_catalog(CATALOG_PATH)
 
-    assert isinstance(catalog.get_command(ALIAS_ID), AnalysisCommand)
-    assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID), AnalysisCommand)
+    with pytest.raises(KeyError, match="Unknown analysis command"):
+        catalog.get_command(ALIAS_ID)
+    with pytest.raises(KeyError, match="not eligible for DYEC build 'current'"):
+        catalog.get_command_for_dyec_build(ALIAS_ID)
+    assert isinstance(
+        catalog.get_command_for_dyec_build(ALIAS_ID, HISTORICAL_ALIAS_BUILD),
+        AnalysisCommand,
+    )
     assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.2"), AnalysisCommand)
     assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.3"), AnalysisCommand)
     assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.4"), AnalysisCommand)
@@ -136,13 +144,10 @@ def test_existing_accessors_and_public_payload_return_resolved_aliases() -> None
     assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.7"), AnalysisCommand)
     assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.8"), AnalysisCommand)
     assert isinstance(catalog.get_command_for_dyec_build(ALIAS_ID, "17.0.9"), AnalysisCommand)
-    assert ALIAS_ID in {command.command_id for command in catalog.commands()}
+    assert ALIAS_ID not in {command.command_id for command in catalog.commands()}
     payload = catalog.to_public_payload()
-    assert ALIAS_ID in payload["dyec_builds"]["current"]["aliases"]
-    payload_alias = next(
-        command for command in payload["commands"] if command["command_id"] == ALIAS_ID
-    )
-    assert payload_alias["targets"][-1] == "produce_sentdhiomr2_inflection_analytical_package"
+    assert ALIAS_ID not in payload["dyec_builds"]["current"]["aliases"]
+    assert ALIAS_ID not in {command["command_id"] for command in payload["commands"]}
 
 
 def test_alias_can_use_mutually_exclusive_complete_command_replacement(tmp_path: Path) -> None:
@@ -180,7 +185,10 @@ def test_alias_can_use_mutually_exclusive_complete_command_replacement(tmp_path:
     [
         (
             lambda raw: raw["dyec_builds"]["current"]["aliases"].update(
-                {"chain": _metadata_alias("chain", ALIAS_ID)}
+                {
+                    "base-alias": _metadata_alias("base-alias", BASE_ID),
+                    "chain": _metadata_alias("chain", "base-alias"),
+                }
             ),
             "chain or cycle",
         ),
@@ -281,167 +289,51 @@ def test_catalog_version_five_rejects_aliases(tmp_path: Path) -> None:
 
 
 def test_current_snapshot_history_and_packaged_payload_retain_active_semantics() -> None:
-    source = CATALOG_PATH.read_text(encoding="utf-8")
     assert CATALOG_PATH.read_bytes() == PACKAGED_CATALOG_PATH.read_bytes()
-    raw = yaml.safe_load(source)
+
+    raw = _raw_catalog()
     packaged = yaml.safe_load(PACKAGED_CATALOG_PATH.read_text(encoding="utf-8"))
-    # Reproducibility requires the active catalog resolution to match the
-    # packaged payload. Historical YAML layout may legitimately differ while
-    # retaining immutable parsed snapshot content.
-    assert raw["repositories"] == packaged["repositories"]
-    assert raw["dyec_builds"]["current"] == packaged["dyec_builds"]["current"]
-    baseline_source = subprocess.check_output(
-        ["git", "show", "18.0.17:config/daylily_pipeline_command_catalog.yaml"],
+    tagged_source = subprocess.check_output(
+        ["git", "show", "18.0.58:config/daylily_pipeline_command_catalog.yaml"],
         cwd=REPO_ROOT,
         text=True,
     )
-    baseline = yaml.safe_load(baseline_source)
+    tagged = yaml.safe_load(tagged_source)
 
-    assert raw["dyec_builds"]["current"] != raw["dyec_builds"]["17.0.29"]
-    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == "15.0.28"
-    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["15.0.28"]
+    assert raw["repositories"] == packaged["repositories"]
+    assert raw["dyec_builds"]["current"] == packaged["dyec_builds"]["current"]
+    assert raw["repositories"] == tagged["repositories"]
+    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == "15.0.37"
     assert {
         command["git_tag"]
         for command in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]
     } == {"15.0.28"}
+    assert raw["dyec_builds"]["current"] == tagged["dyec_builds"]["current"]
+    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["15.0.37"]
     assert {
         command["git_tag"]
         for command in raw["dyec_builds"]["current"]["commands"].values()
-    } == {"15.0.28"}
-    top_level_commands = {
-        command["command_id"]
-        for command in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]
-    }
-    baseline_top_level_commands = {
-        command["command_id"]: command
-        for command in baseline["repositories"]["daylily-omics-analysis"]["analysis_commands"]
-    }
-    for command in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]:
-        if command["command_id"] in NEW_TOP_LEVEL_COMMAND_IDS:
-            assert command.get("validation_runs", []) == []
-            continue
-        baseline_command = baseline_top_level_commands[command["command_id"]]
-        assert command["validated_version"] == baseline_command["validated_version"]
-        if command["command_id"] in PCAND18015_SOLO_EVIDENCE_RUNS:
-            assert command.get("validation_runs", [])[:-1] == baseline_command.get(
-                "validation_runs", []
-            )
-            assert command["validation_runs"][-1]["run_id"] == PCAND18015_SOLO_EVIDENCE_RUNS[
-                command["command_id"]
-            ]
-            assert command["validation_evidence_s3_uri_prefix"].startswith(
-                "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
-            )
-        elif command["command_id"] in PCAND18022_RUNQC_EVIDENCE_RUNS:
-            assert command.get("validation_runs", [])[:-1] == baseline_command.get(
-                "validation_runs", []
-            )
-            assert command["validation_runs"][-1]["run_id"] == PCAND18022_RUNQC_EVIDENCE_RUNS[
-                command["command_id"]
-            ]
-            assert command["validation_evidence_s3_uri_prefix"] == RUNQC_EVIDENCE_PREFIXES[
-                command["command_id"]
-            ]
-        elif command["command_id"] in PCAND18022_BJUICE_EVIDENCE_RUNS:
-            assert command.get("validation_runs", [])[:-1] == baseline_command.get(
-                "validation_runs", []
-            )
-            assert command["validation_runs"][-1]["run_id"] == (
-                PCAND18022_BJUICE_EVIDENCE_RUNS[command["command_id"]]
-            )
-            assert command["validation_runs"][-1]["stage_or_context"].startswith(
-                "s3://lsmc-ssf-sequencing-data/derived/pcand-18022/"
-            )
-        else:
-            assert command.get("validation_runs", []) == baseline_command.get(
-                "validation_runs", []
-            )
-    assert top_level_commands == (
-        set(baseline_top_level_commands) - REMOVED_TOP_LEVEL_COMMAND_IDS
-    ) | NEW_TOP_LEVEL_COMMAND_IDS
-    for command_id, command in raw["dyec_builds"]["current"]["commands"].items():
-        if command_id in NEW_CURRENT_COMMAND_IDS:
-            assert command.get("validation_runs", []) == []
-            continue
-        baseline_command = baseline["dyec_builds"]["current"]["commands"][command_id]
-        assert command["validated_version"] == baseline_command["validated_version"]
-        if command_id in PCAND18015_SOLO_EVIDENCE_RUNS:
-            assert command.get("validation_runs", [])[:-1] == baseline_command.get(
-                "validation_runs", []
-            )
-            assert command["validation_runs"][-1]["run_id"] == PCAND18015_SOLO_EVIDENCE_RUNS[
-                command_id
-            ]
-            assert command["validation_evidence_s3_uri_prefix"].startswith(
-                "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
-            )
-        elif command_id in PCAND18022_RUNQC_EVIDENCE_RUNS:
-            assert command.get("validation_runs", [])[:-1] == baseline_command.get(
-                "validation_runs", []
-            )
-            assert command["validation_runs"][-1]["run_id"] == PCAND18022_RUNQC_EVIDENCE_RUNS[
-                command_id
-            ]
-            assert command["validation_evidence_s3_uri_prefix"] == RUNQC_EVIDENCE_PREFIXES[
-                command_id
-            ]
-        else:
-            assert command.get("validation_runs", []) == baseline_command.get(
-                "validation_runs", []
-            )
-    current_aliases = raw["dyec_builds"]["current"]["aliases"]
-    baseline_aliases = baseline["dyec_builds"]["current"]["aliases"]
-    assert set(current_aliases) == set(baseline_aliases) == {ALIAS_ID}
-    current_alias = current_aliases[ALIAS_ID]
-    baseline_alias = baseline_aliases[ALIAS_ID]
-    assert current_alias["alias_of"] == baseline_alias["alias_of"]
-    current_metadata = current_alias["metadata_overrides"]
-    baseline_metadata = baseline_alias["metadata_overrides"]
-    assert {
-        key: value for key, value in current_metadata.items() if key != "validation_runs"
-    } == {
-        key: value for key, value in baseline_metadata.items() if key != "validation_runs"
-    }
-    assert current_metadata["validation_runs"][:-1] == baseline_metadata[
-        "validation_runs"
-    ]
-    assert current_metadata["validation_runs"][-1]["run_id"] == (
-        PCAND18022_BJUICE_EVIDENCE_RUNS[ALIAS_ID]
-    )
-    assert raw["dyec_builds"]["17.0.29"]["dayoa_git_tags"] == ["14.0.22"]
-    assert raw["dyec_builds"]["17.0.16"]["dayoa_git_tags"] == ["14.0.16"]
-    assert raw["dyec_builds"]["17.0.17"]["dayoa_git_tags"] == [
-        "14.0.14",
-        "14.0.15",
-    ]
-    assert raw["dyec_builds"]["17.0.15"]["dayoa_git_tags"] == [
-        "14.0.14",
-        "14.0.15",
-    ]
-    assert raw["dyec_builds"]["17.0.14"]["dayoa_git_tags"] == ["14.0.14"]
-    assert raw["dyec_builds"]["17.0.13"]["dayoa_git_tags"] == ["14.0.14"]
-    assert raw["dyec_builds"]["17.0.2"]["dayoa_git_tags"] == ["14.0.3"]
-    assert raw["dyec_builds"]["17.0.3"]["dayoa_git_tags"] == ["14.0.4"]
-    assert raw["dyec_builds"]["17.0.4"]["dayoa_git_tags"] == ["14.0.6"]
-    assert raw["dyec_builds"]["17.0.5"]["dayoa_git_tags"] == ["14.0.7"]
-    assert raw["dyec_builds"]["17.0.6"]["dayoa_git_tags"] == ["14.0.8"]
-    assert raw["dyec_builds"]["17.0.7"]["dayoa_git_tags"] == ["14.0.9"]
-    assert raw["dyec_builds"]["17.0.8"]["dayoa_git_tags"] == ["14.0.9"]
-    assert raw["dyec_builds"]["17.0.9"]["dayoa_git_tags"] == ["14.0.10"]
-    assert raw["dyec_builds"]["17.0.10"]["dayoa_git_tags"] == ["14.0.11"]
-    assert raw["dyec_builds"]["17.0.11"]["dayoa_git_tags"] == ["14.0.13"]
-    assert raw["dyec_builds"]["17.0.12"]["dayoa_git_tags"] == ["14.0.13"]
-    assert OLD_DUPLICATED_ID not in raw["dyec_builds"]["current"]["commands"]
-    assert OLD_DUPLICATED_ID not in raw["dyec_builds"]["current"]["aliases"]
+    } == {"15.0.37"}
+    assert raw["dyec_builds"]["18.0.58"] == tagged["dyec_builds"]["18.0.58"]
+
+    current = raw["dyec_builds"]["current"]
+    historical_alias_build = raw["dyec_builds"][HISTORICAL_ALIAS_BUILD]
+    assert current["aliases"] == {}
+    assert ALIAS_ID not in current["commands"]
+    assert ALIAS_ID in historical_alias_build["aliases"]
+    assert historical_alias_build["aliases"][ALIAS_ID]["alias_of"] == BASE_ID
+    assert historical_alias_build["dayoa_git_tags"] == ["15.0.28"]
+    assert OLD_DUPLICATED_ID not in current["commands"]
+    assert OLD_DUPLICATED_ID not in current["aliases"]
     for build in ("16.1.82", "16.1.85", "16.1.86", "17.0.0", "17.0.1"):
         assert OLD_DUPLICATED_ID in raw["dyec_builds"][build]["commands"]
-
-
-
 def test_two_hiomr2_catalog_commands_exclude_unwanted_callers_and_mergers() -> None:
     catalog = load_repository_catalog(CATALOG_PATH)
-    for command_id in (BASE_ID, ALIAS_ID):
-        command = catalog.get_command(command_id)
+    commands = (
+        catalog.get_command(BASE_ID),
+        catalog.get_command_for_dyec_build(ALIAS_ID, HISTORICAL_ALIAS_BUILD),
+    )
+    for command in commands:
         assert command.targets[0] == "produce_sentdhiomr2_slim_kitchensink_mega"
         for unwanted in (
             "manta",

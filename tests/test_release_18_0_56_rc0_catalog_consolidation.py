@@ -49,18 +49,20 @@ def _tag_catalog(release: str) -> dict:
     return yaml.safe_load(source)
 
 
-def test_18_0_56_freezes_current_to_dayoa_15_0_37() -> None:
+def test_18_0_56_remains_frozen_at_dayoa_15_0_37() -> None:
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
 
     raw = _raw_catalog()
     current = raw["dyec_builds"]["current"]
     release = raw["dyec_builds"][DYEC_RELEASE]
+    tagged_release = _tag_catalog(DYEC_RELEASE)
     previous = _tag_catalog(PREVIOUS_DYEC_RELEASE)
 
-    assert release == current
+    assert release == tagged_release["dyec_builds"][DYEC_RELEASE]
+    assert release != current
     assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == DAYOA_RELEASE
-    assert current["dayoa_git_tags"] == [DAYOA_RELEASE]
-    assert {command["git_tag"] for command in current["commands"].values()} == {
+    assert release["dayoa_git_tags"] == [DAYOA_RELEASE]
+    assert {command["git_tag"] for command in release["commands"].values()} == {
         DAYOA_RELEASE
     }
     assert raw["dyec_builds"][PREVIOUS_DYEC_RELEASE] == previous["dyec_builds"][

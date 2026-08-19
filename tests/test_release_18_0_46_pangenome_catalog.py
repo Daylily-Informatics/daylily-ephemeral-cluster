@@ -20,6 +20,7 @@ PACKAGED_CATALOG = (
 )
 DYEC_RELEASE = "18.0.46"
 DAYOA_RELEASE = "15.0.27"
+CURRENT_DEFAULT_DAYOA_RELEASE = "15.0.37"
 PREVIOUS_DYEC_RELEASE = "18.0.45"
 LEGACY_DYEC_RELEASE = "18.0.43"
 RECONCILED_DYEC_RELEASE = "18.0.44"
@@ -66,20 +67,22 @@ def _render_kwargs(command) -> dict[str, str]:
     return kwargs
 
 
-def test_18_0_46_is_a_current_parity_snapshot_pinned_only_to_dayoa_15_0_27() -> None:
+def test_18_0_46_remains_frozen_and_pinned_only_to_dayoa_15_0_27() -> None:
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
     raw = _raw_catalog()
     release = raw["dyec_builds"][DYEC_RELEASE]
-    current = raw["dyec_builds"]["current"]
+    tagged_release = _release_tag_catalog(DYEC_RELEASE)
     previous = _release_tag_catalog(PREVIOUS_DYEC_RELEASE)
     legacy = _release_tag_catalog(LEGACY_DYEC_RELEASE)
     reconciled = _release_tag_catalog(RECONCILED_DYEC_RELEASE)
 
-    assert release == current
+    assert release == tagged_release["dyec_builds"][DYEC_RELEASE]
     assert raw["dyec_builds"][RECONCILED_DYEC_RELEASE] == reconciled["dyec_builds"][
         RECONCILED_DYEC_RELEASE
     ]
-    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == DAYOA_RELEASE
+    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == (
+        CURRENT_DEFAULT_DAYOA_RELEASE
+    )
     assert release["dayoa_git_tags"] == [DAYOA_RELEASE]
     assert {command["git_tag"] for command in release["commands"].values()} == {DAYOA_RELEASE}
     assert raw["dyec_builds"][PREVIOUS_DYEC_RELEASE] == previous["dyec_builds"][
