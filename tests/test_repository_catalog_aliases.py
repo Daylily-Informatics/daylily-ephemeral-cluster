@@ -311,18 +311,18 @@ def test_current_snapshot_history_and_packaged_payload_retain_active_semantics()
         for key, value in tagged["repositories"].items()
         if key != "daylily-omics-analysis"
     }
-    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == "16.0.1"
+    assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == "16.0.2"
     assert {
         command["git_tag"]
         for command in raw["repositories"]["daylily-omics-analysis"]["analysis_commands"]
-    } == {"16.0.1"}
+    } == {"16.0.2"}
     assert raw["dyec_builds"]["current"] != tagged["dyec_builds"]["current"]
-    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["19.0.0"]
-    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["16.0.1"]
+    assert raw["dyec_builds"]["current"] == raw["dyec_builds"]["19.0.1"]
+    assert raw["dyec_builds"]["current"]["dayoa_git_tags"] == ["16.0.2"]
     assert {
         command["git_tag"]
         for command in raw["dyec_builds"]["current"]["commands"].values()
-    } == {"16.0.1"}
+    } == {"16.0.2"}
     assert raw["dyec_builds"]["18.0.58"] == tagged["dyec_builds"]["18.0.58"]
 
     current = raw["dyec_builds"]["current"]

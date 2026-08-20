@@ -14,7 +14,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "16.0.1"
+DAYOA_BLESSED_TAG = "16.0.2"
 ULTIMA_DOWNSAMPLE_DAYOA_TAG = DAYOA_BLESSED_TAG
 CURRENT_VALIDATED_DAYOA_TAG = "15.0.1"
 RUN_QC_VALIDATED_DAYOA_TAG = "15.0.9"

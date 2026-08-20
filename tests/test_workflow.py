@@ -2931,7 +2931,8 @@ class TestConfigureHeadnode:
             in mock_run_shell.call_args_list[5].args[2]
         )
         rebuild_cmd = mock_run_shell.call_args_list[5].args[2]
-        assert "python -m pip install --upgrade pygraphviz" in rebuild_cmd
+        assert "python -m pip install --upgrade 'pygraphviz==2.0.1'" in rebuild_cmd
+        assert "python -m pip install --upgrade pygraphviz" not in rebuild_cmd
         assert "pygraphviz DAY-EC import OK" in rebuild_cmd
         assert "sudo install -o root -g root -m 0755" in rebuild_cmd
         assert "/config/day_cluster/sbatch /opt/slurm/bin/sbatch" in rebuild_cmd

@@ -894,7 +894,7 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert 'exec > >(tee -a "${local_log_fn}" "${fsx_log_fn}") 2>&1' in script
     assert "apptainer_1.4.5_amd64.deb" in script
     assert "70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05" in script
-    assert "reference_wait_timeout_seconds=1800" in script
+    assert "reference_wait_timeout_seconds=3600" in script
     assert "wait_for_reference_data" in script
     assert 'runtime_assets_root="/fsx/references/runtime_assets"' in script
     assert 'references_root="/fsx/references"' in script
@@ -914,6 +914,8 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "fd-find ripgrep docker.io" in script
     assert "graphviz graphviz-dev python3-pip" in script
     assert "install_global_pygraphviz" in script
+    assert 'python3 -m pip install --upgrade "pygraphviz==2.0.1"' in script
+    assert "python3 -m pip install --upgrade pygraphviz" not in script
     assert "pygraphviz global import OK" in script
     assert "sbatch_wrapper_sha256" not in script
     assert "sleep_test_sha256" not in script

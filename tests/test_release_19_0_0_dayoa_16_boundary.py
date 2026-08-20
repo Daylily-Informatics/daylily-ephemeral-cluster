@@ -44,48 +44,33 @@ def _retargeted(command: dict) -> dict:
     return expected
 
 
-def test_19_0_0_is_current_and_pins_the_dayoa_16_boundary() -> None:
+def test_19_0_0_remains_frozen_at_the_dayoa_16_0_1_boundary() -> None:
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
 
     raw = _catalog()
-    current = raw["dyec_builds"]["current"]
     release = raw["dyec_builds"][DYEC_RELEASE]
-    repository = raw["repositories"]["daylily-omics-analysis"]
+    tagged_release = _tag_catalog(DYEC_RELEASE)["dyec_builds"][DYEC_RELEASE]
 
-    assert current == release
-    assert repository["default_ref"] == DAYOA_RELEASE
-    assert {command["git_tag"] for command in repository["analysis_commands"]} == {
+    assert release == tagged_release
+    assert release["dayoa_git_tags"] == [DAYOA_RELEASE]
+    assert {command["git_tag"] for command in release["commands"].values()} == {
         DAYOA_RELEASE
     }
-    assert current["dayoa_git_tags"] == [DAYOA_RELEASE]
-    assert {command["git_tag"] for command in current["commands"].values()} == {
-        DAYOA_RELEASE
-    }
-    assert len(repository["analysis_commands"]) == 30
-    assert len(current["commands"]) == 31
-    for command in (*repository["analysis_commands"], *current["commands"].values()):
+    assert len(release["commands"]) == 31
+    for command in release["commands"].values():
         for field in COMMAND_FIELDS:
             assert "bin/day_run" not in command[field]
             assert "dy-r" in command[field]
 
 
-def test_19_0_0_changes_only_active_pins_and_the_wrapper_boundary() -> None:
+def test_19_0_0_changes_only_command_pins_and_the_wrapper_boundary() -> None:
     raw = _catalog()
     tagged = _tag_catalog(PREVIOUS_DYEC_RELEASE)
-    prior_repository = tagged["repositories"]["daylily-omics-analysis"]
-    repository = raw["repositories"]["daylily-omics-analysis"]
     prior_current = tagged["dyec_builds"]["current"]
-    current = raw["dyec_builds"]["current"]
+    release = raw["dyec_builds"][DYEC_RELEASE]
 
-    prior_active = {
-        command["command_id"]: command for command in prior_repository["analysis_commands"]
-    }
-    active = {command["command_id"]: command for command in repository["analysis_commands"]}
-    assert set(active) == set(prior_active)
-    assert set(current["commands"]) == set(prior_current["commands"])
-    for command_id, command in active.items():
-        assert command == _retargeted(prior_active[command_id])
-    for command_id, command in current["commands"].items():
+    assert set(release["commands"]) == set(prior_current["commands"])
+    for command_id, command in release["commands"].items():
         assert command == _retargeted(prior_current["commands"][command_id])
 
 

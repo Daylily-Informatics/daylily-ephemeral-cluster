@@ -526,7 +526,7 @@ def _build_headnode_dayec_install_command(repo_name: str) -> str:
             "fi",
             "conda activate DAY-EC",
             "python -m pip install --editable .",
-            "python -m pip install --upgrade pygraphviz",
+            "python -m pip install --upgrade 'pygraphviz==2.0.1'",
             "python -c 'import pygraphviz; print(\"pygraphviz DAY-EC import OK\", pygraphviz.__version__)'",
             'source "$repo_dir/activate"',
             '"$repo_dir/bin/install-daylily-headnode-tools"',
