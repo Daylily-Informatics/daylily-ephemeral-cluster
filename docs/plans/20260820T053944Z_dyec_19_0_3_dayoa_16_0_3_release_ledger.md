@@ -36,8 +36,40 @@ Gate 0 baseline:
 | CAT-002 | DYEC catalog | Retarget `dyec_builds.current` and create immutable `19.0.3` with all 31 commands pinned to `16.0.3` | SUCCESS | feature_implementation | Gate 1 | orchestrator | `current == 19.0.3`; 31 commands; `dayoa_git_tags == [16.0.3]`; every command pin is `16.0.3`; CLI render reports the same |  | New numeric snapshot is the exact retargeted current catalog |
 | CAT-003 | DYEC catalog | Preserve every prior numeric snapshot and canonical/package byte parity | SUCCESS | active_product_contract | Gate 5 | orchestrator | All 48 prior numeric snapshots compare equal to tag `19.0.2`; both catalog files are byte-identical at SHA-256 `b98bfe4f26aa7ee49ed09001f82af3b32ab2106a06ee8c77b752e6a90d3ae67d`; reconstructed expected text matches exactly |  | Historical catalog data and packaged parity are preserved |
 | TEST-001 | DYEC tests | Update mutable-current expectations and add release-specific invariants for `19.0.3` without weakening historical checks | SUCCESS | contract_test | Gate 5 | orchestrator | Initial focused gate: 6 passed. Broader gate exposed three stale `bin/day_run` assertions; targeted rerun after test-only correction: 2 passed. Final combined gate: 16 passed in 171.08s. New release test passes Ruff check and format check. | Stale test-only wrapper expectations survived the prior DayOA 16 boundary release. | Mutable expectations now follow `19.0.3`; `19.0.1` remains explicitly frozen at `16.0.2`; all focused checks pass |
-| REL-002 | DYEC release | Validate, commit, push the branch, create an annotated `19.0.3` tag, and push the tag | IN_PROGRESS | feature_implementation | Gate 5 | orchestrator | Candidate tag is unoccupied; focused tests, exact-text reconstruction, CLI render, catalog parity, and `git diff --check` pass |  | Preparing the clean release commit and publication |
+| REL-002 | DYEC release | Validate, commit, push the branch, create an annotated `19.0.3` tag, and push the tag | SUCCESS | feature_implementation | Gate 5 | orchestrator | Implementation commit `43b9574c2dae0ec764a758077cbb508f74b20cc5` pushed to `origin/codex/pin-dayoa-16.0.3-dyec-19.0.3`; remote candidate tag remained unoccupied; this terminal closeout is the exact clean commit targeted by annotated tag `19.0.3` and its immediate push |  | DYEC `19.0.3` publication sequence completed without moving an existing tag |
 
 ## Final Report
 
-Pending.
+All rows terminal: yes
+
+Objective complete: yes
+
+Status counts:
+
+- SUCCESS: 6
+- DUPLICATE: 0
+- NO_LONGER_NEEDED: 0
+- FAIL: 0
+- BLOCKED: 0
+
+Changed files:
+
+- Canonical and packaged command catalogs: `config/daylily_pipeline_command_catalog.yaml`, `daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml`
+- Current/release contract tests: `tests/test_repository_catalog.py`, `tests/test_repository_catalog_aliases.py`, `tests/test_hiomrs_command_catalog.py`, `tests/test_release_18_0_46_pangenome_catalog.py`, `tests/test_release_18_0_56_rc0_catalog_consolidation.py`, `tests/test_release_18_0_59_ultima_cram_downsampling.py`, `tests/test_release_19_0_1_orphaned_pull_forward.py`, `tests/test_release_19_0_3_dayoa_16_0_3_pin.py`
+- Durable release ledger: this file
+
+Validation:
+
+- Final focused catalog/release pytest gate: 16 passed in 171.08 seconds.
+- `dyec --json catalog list --dyec-version 19.0.3`: 31 commands, one DayOA tag (`16.0.3`), and 11 production commands.
+- Exact-text reconstruction from tag `19.0.2`: both catalog files match the intended 32 active substitutions, 32 `current` substitutions, and appended `19.0.3` snapshot exactly.
+- Historical semantic comparison: all 48 pre-existing numeric snapshots are unchanged.
+- Canonical/package SHA-256 parity: both are `b98bfe4f26aa7ee49ed09001f82af3b32ab2106a06ee8c77b752e6a90d3ae67d`.
+- New `19.0.3` release test: Ruff check and format check pass.
+- `git diff --check`: pass.
+
+Non-success terminal rows: none.
+
+Live approvals/actions not performed: no workflow, cluster, headnode, AWS, package-registry, GitHub Release, or pull-request action was part of this release.
+
+Residual risk: the release used the focused 16-test catalog gate requested for a fast pin-only release; the complete DYEC test suite was not run.
