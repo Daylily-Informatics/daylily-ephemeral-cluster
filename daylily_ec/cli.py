@@ -1239,6 +1239,77 @@ def create(
     raise SystemExit(rc)
 
 
+def slurm_accounting_inspect(
+    region_az: Optional[str] = context_option(
+        "aws_region_az",
+        None,
+        "--region-az",
+        help="Exact AWS region + availability zone to inspect.",
+        required=True,
+    ),
+    profile: str = typer.Option(
+        ...,
+        "--profile",
+        help="Exact AWS CLI profile for the read-only inspection.",
+    ),
+    stack_name: str = typer.Option(
+        "",
+        "--stack-name",
+        help="Optional exact expected regional accounting provider stack.",
+    ),
+    privatelink_stack_name: str = typer.Option(
+        "",
+        "--privatelink-stack-name",
+        help="Optional exact existing PrivateLink bridge stack to inspect.",
+    ),
+) -> None:
+    """Inspect bounded provider/bridge identity without mutating AWS."""
+
+    from daylily_ec.workflow.inspect_slurm_accounting import (
+        SLURM_ACCOUNTING_INSPECTION_SCHEMA,
+        SlurmAccountingInspectionError,
+        inspect_slurm_accounting,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        result = inspect_slurm_accounting(
+            profile=profile,
+            region_az=region_az,
+            expected_accounting_stack_name=stack_name,
+            expected_privatelink_stack_name=privatelink_stack_name,
+        )
+    except SlurmAccountingInspectionError as exc:
+        if _json_mode():
+            _exit_versioned_contract_error(
+                schema_version=SLURM_ACCOUNTING_INSPECTION_SCHEMA,
+                error_code="slurm_accounting_inspection_failed",
+                message=str(exc),
+            )
+        _exit_headnode_error(exc)
+
+    payload = result.to_payload()
+    if _json_mode():
+        output.emit_json(payload)
+        return
+
+    output.heading("Slurm accounting inspection (read-only)")
+    output.print_text(f"Region/AZ: {payload['region_az']}")
+    output.print_text(f"Regional providers: {payload['regional_provider_count']}")
+    for provider in payload["regional_providers"]:
+        output.print_text(
+            "Provider: "
+            f"{provider['stack_name']} {provider['status']} "
+            f"VPC={provider['vpc_id']} healthy={provider['contract_healthy']}"
+        )
+    if payload["expected_privatelink_stack_name"] is not None:
+        output.print_text(
+            "Exact bridge resolved: "
+            f"{payload['exact_bridge_resolved']} "
+            f"({payload['expected_privatelink_stack_name']})"
+        )
+
+
 def slurm_accounting_ensure(
     region_az: Optional[str] = context_option(
         "aws_region_az",
@@ -1458,6 +1529,14 @@ def slurm_accounting_recover(
         "--stack-name",
         help="Exact regional DayEC Slurm accounting stack name.",
     ),
+    privatelink_stack_name: str = typer.Option(
+        "",
+        "--privatelink-stack-name",
+        help=(
+            "Exact existing PrivateLink bridge stack. Empty means direct same-VPC "
+            "attachment only; no bridge is discovered or created."
+        ),
+    ),
     database_name: str = typer.Option(
         ...,
         "--database-name",
@@ -1514,6 +1593,7 @@ def slurm_accounting_recover(
             cluster_configuration=cluster_configuration,
             output_dir=output_dir,
             stack_name=stack_name,
+            privatelink_stack_name=privatelink_stack_name,
             database_name=database_name,
             db_username=db_username,
             instance_type=instance_type,
@@ -10788,6 +10868,11 @@ def register(registry, cli_spec) -> None:
         "slurm-accounting",
         "Slurm accounting database helpers.",
         [
+            (
+                "inspect",
+                slurm_accounting_inspect,
+                required_policy(supports_json=True),
+            ),
             (
                 "ensure",
                 slurm_accounting_ensure,

@@ -29,6 +29,7 @@ from daylily_ec.pcluster.runner import (
 from daylily_ec.workflow.attach_slurm_accounting import (
     PreparedSlurmAccountingUpdate,
     SlurmAccountingPreparationError,
+    inspect_cluster_accounting_network,
     prepare_slurm_accounting_update,
 )
 from daylily_ec.workflow.compute_fleet import (
@@ -183,6 +184,15 @@ def _required_text(value: object, *, field: str) -> str:
     return text
 
 
+def _optional_trimmed_text(value: object, *, field: str) -> str | None:
+    text = str(value or "")
+    if not text:
+        return None
+    if text != text.strip():
+        raise SlurmAccountingRecoveryError(f"{field} must be a trimmed string when supplied.")
+    return text
+
+
 def _positive_number(value: object, *, field: str) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
         raise SlurmAccountingRecoveryError(f"{field} must be greater than zero.")
@@ -300,19 +310,24 @@ def _validate_prepared_identity(
     cluster_name: str,
     region: str,
     stack_name: str,
+    privatelink_stack_name: str | None,
+    consumer_vpc_id: str,
     database_name: str,
     db_username: str,
 ) -> None:
     if (
         prepared.cluster_name != cluster_name
         or prepared.region != region
-        or prepared.accounting_stack_name != stack_name
+        or prepared.accounting_stack_name != (privatelink_stack_name or stack_name)
+        or prepared.provider_accounting_stack_name != stack_name
+        or prepared.privatelink_stack_name != privatelink_stack_name
+        or prepared.consumer_vpc_id != consumer_vpc_id
         or prepared.database_name != database_name
         or prepared.db_username != db_username
     ):
         raise SlurmAccountingRecoveryError(
-            "The prepared accounting stack/database/user identity does not match the "
-            "exact recovery request."
+            "The prepared accounting provider/bridge/VPC/database/user identity does not "
+            "match the exact recovery request."
         )
 
 
@@ -325,6 +340,8 @@ def _progress_payload(
     aws_profile: str,
     aws_account_id: str,
     stack_name: str,
+    privatelink_stack_name: str | None,
+    consumer_vpc_id: str,
     database_name: str,
     db_username: str,
     instance_type: str,
@@ -354,6 +371,8 @@ def _progress_payload(
         "aws_profile": aws_profile,
         "aws_account_id": aws_account_id,
         "accounting_stack_name": stack_name,
+        "privatelink_stack_name": privatelink_stack_name,
+        "consumer_vpc_id": consumer_vpc_id,
         "database_name": database_name,
         "db_username": db_username,
         "instance_type": instance_type,
@@ -380,6 +399,8 @@ def _persist_progress_receipt(
     aws_profile: str,
     aws_account_id: str,
     stack_name: str,
+    privatelink_stack_name: str | None,
+    consumer_vpc_id: str,
     database_name: str,
     db_username: str,
     instance_type: str,
@@ -403,6 +424,8 @@ def _persist_progress_receipt(
             aws_profile=aws_profile,
             aws_account_id=aws_account_id,
             stack_name=stack_name,
+            privatelink_stack_name=privatelink_stack_name,
+            consumer_vpc_id=consumer_vpc_id,
             database_name=database_name,
             db_username=db_username,
             instance_type=instance_type,
@@ -428,6 +451,8 @@ def _load_bound_recovery_receipt(
     aws_profile: str,
     aws_account_id: str,
     stack_name: str,
+    privatelink_stack_name: str | None,
+    consumer_vpc_id: str,
     database_name: str,
     db_username: str,
     instance_type: str,
@@ -467,6 +492,8 @@ def _load_bound_recovery_receipt(
         "aws_profile": aws_profile,
         "aws_account_id": aws_account_id,
         "accounting_stack_name": stack_name,
+        "privatelink_stack_name": privatelink_stack_name,
+        "consumer_vpc_id": consumer_vpc_id,
         "database_name": database_name,
         "db_username": db_username,
         "instance_type": instance_type,
@@ -476,7 +503,9 @@ def _load_bound_recovery_receipt(
         "cluster_configuration_sha256": source_sha256,
         "update_configuration_path": str(update_config),
     }
-    if any(payload.get(field) != value for field, value in expected_values.items()):
+    if any(
+        field not in payload or payload[field] != value for field, value in expected_values.items()
+    ):
         raise SlurmAccountingRecoveryError(
             "The deterministic accounting recovery identity receipt does not match the "
             "exact request."
@@ -573,6 +602,8 @@ def _verify_exact_target_binding(
     update_config: Path,
     update_sha256: str,
     stack_name: str,
+    privatelink_stack_name: str | None,
+    consumer_vpc_id: str,
     database_name: str,
     db_username: str,
     instance_type: str,
@@ -594,6 +625,7 @@ def _verify_exact_target_binding(
                 profile=profile,
                 cluster_configuration=source_config,
                 stack_name=stack_name,
+                privatelink_stack_name=privatelink_stack_name or "",
                 database_name=database_name,
                 db_username=db_username,
                 instance_type=instance_type,
@@ -616,6 +648,8 @@ def _verify_exact_target_binding(
             cluster_name=cluster_name,
             region=region,
             stack_name=stack_name,
+            privatelink_stack_name=privatelink_stack_name,
+            consumer_vpc_id=consumer_vpc_id,
             database_name=database_name,
             db_username=db_username,
         )
@@ -718,6 +752,8 @@ class SlurmAccountingRecoveryResult:
     aws_profile: str
     aws_account_id: str
     accounting_stack_name: str
+    privatelink_stack_name: str | None
+    consumer_vpc_id: str
     database_name: str
     db_username: str
     instance_type: str
@@ -756,6 +792,8 @@ class SlurmAccountingRecoveryResult:
             "aws_profile": self.aws_profile,
             "aws_account_id": self.aws_account_id,
             "accounting_stack_name": self.accounting_stack_name,
+            "privatelink_stack_name": self.privatelink_stack_name,
+            "consumer_vpc_id": self.consumer_vpc_id,
             "database_name": self.database_name,
             "db_username": self.db_username,
             "instance_type": self.instance_type,
@@ -800,6 +838,7 @@ def recover_slurm_accounting(
     cluster_configuration: Path,
     output_dir: Path,
     stack_name: str,
+    privatelink_stack_name: str = "",
     database_name: str,
     db_username: str,
     instance_type: str,
@@ -809,6 +848,7 @@ def recover_slurm_accounting(
     poll_interval_seconds: float,
     idle_probe_fn: Callable[..., ClusterIdleProof] = probe_cluster_idle,
     account_id_resolver: Callable[..., str] = _resolve_account_id,
+    network_identity_resolver: Callable[..., Any] = inspect_cluster_accounting_network,
     monotonic_fn: Callable[[], float] = time.monotonic,
     sleep_fn: Callable[[float], None] = time.sleep,
 ) -> SlurmAccountingRecoveryResult:
@@ -819,6 +859,10 @@ def recover_slurm_accounting(
     region_az = _required_text(region_az, field="region_az")
     profile = _required_text(profile, field="profile")
     stack_name = _required_text(stack_name, field="stack_name")
+    exact_privatelink_stack_name = _optional_trimmed_text(
+        privatelink_stack_name,
+        field="privatelink_stack_name",
+    )
     database_name = _required_text(database_name, field="database_name")
     db_username = _required_text(db_username, field="db_username")
     instance_type = _required_text(instance_type, field="instance_type")
@@ -838,6 +882,10 @@ def recover_slurm_accounting(
             "--create-slurm-accounting-if-missing and "
             "--acknowledge-slurm-accounting-create-cost must be supplied together."
         )
+    if exact_privatelink_stack_name is not None and create_slurm_accounting_if_missing:
+        raise SlurmAccountingRecoveryError(
+            "An explicit PrivateLink recovery cannot create an accounting provider or bridge."
+        )
     aws_account_id = _required_text(
         account_id_resolver(region=region, profile=profile),
         field="aws_account_id",
@@ -849,6 +897,27 @@ def recover_slurm_accounting(
             "cluster_configuration must be an existing regular file."
         )
     source_sha256 = _sha256_path(source_config)
+    try:
+        network = network_identity_resolver(
+            source_config=source_config,
+            region=region,
+            profile=profile,
+            expected_region_az=region_az,
+        )
+    except SlurmAccountingPreparationError as exc:
+        raise _preparation_recovery_error(
+            exc,
+            message="The exact cluster consumer VPC could not be bound safely.",
+        ) from None
+    try:
+        consumer_vpc_id = _required_text(
+            network.vpc_id,
+            field="consumer_vpc_id",
+        )
+    except (AttributeError, SlurmAccountingRecoveryError):
+        raise SlurmAccountingRecoveryError(
+            "The exact cluster consumer VPC identity is missing or invalid."
+        ) from None
     destination_dir = output_dir.expanduser().resolve()
     if destination_dir.exists() and not destination_dir.is_dir():
         raise SlurmAccountingRecoveryError("output_dir exists but is not a directory.")
@@ -903,6 +972,8 @@ def recover_slurm_accounting(
             aws_profile=profile,
             aws_account_id=aws_account_id,
             stack_name=stack_name,
+            privatelink_stack_name=exact_privatelink_stack_name,
+            consumer_vpc_id=consumer_vpc_id,
             database_name=database_name,
             db_username=db_username,
             instance_type=instance_type,
@@ -942,6 +1013,8 @@ def recover_slurm_accounting(
             aws_profile=profile,
             aws_account_id=aws_account_id,
             stack_name=stack_name,
+            privatelink_stack_name=exact_privatelink_stack_name,
+            consumer_vpc_id=consumer_vpc_id,
             database_name=database_name,
             db_username=db_username,
             instance_type=instance_type,
@@ -1009,6 +1082,7 @@ def recover_slurm_accounting(
                         profile=profile,
                         cluster_configuration=source_config,
                         stack_name=stack_name,
+                        privatelink_stack_name=exact_privatelink_stack_name or "",
                         database_name=database_name,
                         db_username=db_username,
                         instance_type=instance_type,
@@ -1033,6 +1107,8 @@ def recover_slurm_accounting(
                     cluster_name=cluster_name,
                     region=region,
                     stack_name=stack_name,
+                    privatelink_stack_name=exact_privatelink_stack_name,
+                    consumer_vpc_id=consumer_vpc_id,
                     database_name=database_name,
                     db_username=db_username,
                 )
@@ -1044,7 +1120,7 @@ def recover_slurm_accounting(
                     raise SlurmAccountingRecoveryError(
                         "The source cluster configuration changed while accounting was rendered."
                     )
-                accounting_stack_name = prepared.accounting_stack_name
+                accounting_stack_name = prepared.provider_accounting_stack_name
                 service_created = prepared.service_created
                 update_configuration_path = str(update_config)
                 update_configuration_sha256 = _sha256_path(update_config)
@@ -1061,6 +1137,8 @@ def recover_slurm_accounting(
                     update_config=update_config,
                     update_sha256=update_configuration_sha256,
                     stack_name=stack_name,
+                    privatelink_stack_name=exact_privatelink_stack_name,
+                    consumer_vpc_id=consumer_vpc_id,
                     database_name=database_name,
                     db_username=db_username,
                     instance_type=instance_type,
@@ -1190,6 +1268,8 @@ def recover_slurm_accounting(
         update_config=update_config,
         update_sha256=update_configuration_sha256,
         stack_name=stack_name,
+        privatelink_stack_name=exact_privatelink_stack_name,
+        consumer_vpc_id=consumer_vpc_id,
         database_name=database_name,
         db_username=db_username,
         instance_type=instance_type,
@@ -1239,6 +1319,8 @@ def recover_slurm_accounting(
         aws_profile=profile,
         aws_account_id=aws_account_id,
         accounting_stack_name=accounting_stack_name,
+        privatelink_stack_name=exact_privatelink_stack_name,
+        consumer_vpc_id=consumer_vpc_id,
         database_name=database_name,
         db_username=db_username,
         instance_type=instance_type,

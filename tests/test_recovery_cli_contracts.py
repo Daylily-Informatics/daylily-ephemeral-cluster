@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 from typer.testing import CliRunner
 
@@ -154,6 +155,100 @@ def test_cluster_compute_fleet_cli_emits_versioned_json_failure(monkeypatch) -> 
     }
 
 
+def test_slurm_accounting_inspect_cli_passes_exact_read_only_contract(monkeypatch) -> None:
+    import daylily_ec.workflow.inspect_slurm_accounting as inspection_module
+
+    _activate(monkeypatch)
+    calls: dict[str, object] = {}
+    payload = {
+        "schema_version": "dyec.slurm_accounting_inspection.v1",
+        "ok": True,
+        "read_only": True,
+        "aws_profile": "lsmc",
+        "aws_account_id": "123456789012",
+        "region": "us-west-2",
+        "region_az": "us-west-2d",
+        "expected_accounting_stack_name": "dayec-slurm-accounting-us-west-2c",
+        "expected_privatelink_stack_name": "dayec-sacct-pl-vpc-cluster",
+        "regional_provider_count": 1,
+        "regional_singleton": True,
+        "regional_provider_matches_expected": True,
+        "regional_providers": [],
+        "exact_bridge": None,
+        "exact_bridge_resolved": False,
+        "exact_bridge_error_code": "exact_bridge_unavailable_or_incompatible",
+        "bridge_provider_matches_expected": None,
+        "bridge_provider_binding_matches_regional_provider": None,
+    }
+
+    def fake_inspect(**kwargs):
+        calls.update(kwargs)
+        return SimpleNamespace(to_payload=lambda: payload)
+
+    monkeypatch.setattr(inspection_module, "inspect_slurm_accounting", fake_inspect)
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "slurm-accounting",
+            "inspect",
+            "--profile",
+            "lsmc",
+            "--region-az",
+            "us-west-2d",
+            "--stack-name",
+            "dayec-slurm-accounting-us-west-2c",
+            "--privatelink-stack-name",
+            "dayec-sacct-pl-vpc-cluster",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert calls == {
+        "profile": "lsmc",
+        "region_az": "us-west-2d",
+        "expected_accounting_stack_name": "dayec-slurm-accounting-us-west-2c",
+        "expected_privatelink_stack_name": "dayec-sacct-pl-vpc-cluster",
+    }
+    assert json.loads(result.stdout) == payload
+
+
+def test_slurm_accounting_inspect_cli_emits_versioned_safe_failure(monkeypatch) -> None:
+    import daylily_ec.workflow.inspect_slurm_accounting as inspection_module
+
+    _activate(monkeypatch)
+    monkeypatch.setattr(
+        inspection_module,
+        "inspect_slurm_accounting",
+        lambda **_kwargs: (_ for _ in ()).throw(
+            inspection_module.SlurmAccountingInspectionError(
+                "The regional accounting provider inventory could not be inspected safely."
+            )
+        ),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "slurm-accounting",
+            "inspect",
+            "--profile",
+            "lsmc",
+            "--region-az",
+            "us-west-2d",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert json.loads(result.stdout) == {
+        "schema_version": "dyec.slurm_accounting_inspection.v1",
+        "ok": False,
+        "error_code": "slurm_accounting_inspection_failed",
+        "error": ("The regional accounting provider inventory could not be inspected safely."),
+    }
+
+
 def test_slurm_accounting_recover_cli_passes_exact_public_contract(
     tmp_path: Path, monkeypatch
 ) -> None:
@@ -174,6 +269,8 @@ def test_slurm_accounting_recover_cli_passes_exact_public_contract(
             aws_profile="lsmc",
             aws_account_id="123456789012",
             accounting_stack_name="dayec-slurm-accounting-us-west-2",
+            privatelink_stack_name=None,
+            consumer_vpc_id="vpc-cluster",
             database_name="dayec_slurm_acct",
             db_username="slurm_acct",
             instance_type="t4g.micro",
@@ -253,6 +350,7 @@ def test_slurm_accounting_recover_cli_passes_exact_public_contract(
         "cluster_configuration": source,
         "output_dir": output_dir,
         "stack_name": "dayec-slurm-accounting-us-west-2",
+        "privatelink_stack_name": "",
         "database_name": "dayec_slurm_acct",
         "db_username": "slurm_acct",
         "instance_type": "t4g.micro",
@@ -267,12 +365,84 @@ def test_slurm_accounting_recover_cli_passes_exact_public_contract(
     assert payload["status"] == "complete"
     assert payload["aws_profile"] == "lsmc"
     assert payload["aws_account_id"] == "123456789012"
+    assert payload["privatelink_stack_name"] is None
+    assert payload["consumer_vpc_id"] == "vpc-cluster"
     assert payload["database_name"] == "dayec_slurm_acct"
     assert payload["db_username"] == "slurm_acct"
     assert payload["accounting_verified"] is True
     assert payload["final_cluster_state"] == "UPDATE_COMPLETE"
     assert payload["final_fleet_state"] == "RUNNING"
     assert payload["recovery_receipt_sha256"] == "c" * 64
+
+
+def test_slurm_accounting_recover_cli_passes_explicit_privatelink_name(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import daylily_ec.workflow.recover_slurm_accounting as recovery_module
+
+    _activate(monkeypatch)
+    calls: dict[str, object] = {}
+    source = tmp_path / "cluster.yaml"
+    source.write_text("Region: us-west-2\n", encoding="utf-8")
+    output_dir = tmp_path / "receipts"
+    payload = {
+        "schema_version": "dyec.slurm_accounting_recovery.v1",
+        "ok": True,
+        "terminal": True,
+        "status": "complete",
+        "accounting_stack_name": "dayec-slurm-accounting-us-west-2c",
+        "privatelink_stack_name": "dayec-sacct-pl-vpc-cluster",
+        "consumer_vpc_id": "vpc-cluster",
+        "accounting_verified": True,
+    }
+
+    def fake_recover(**kwargs):
+        calls.update(kwargs)
+        return SimpleNamespace(to_payload=lambda: payload)
+
+    monkeypatch.setattr(recovery_module, "recover_slurm_accounting", fake_recover)
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "slurm-accounting",
+            "recover",
+            "--cluster",
+            "cluster-a",
+            "--region",
+            "us-west-2",
+            "--region-az",
+            "us-west-2d",
+            "--profile",
+            "lsmc",
+            "--cluster-configuration",
+            str(source),
+            "--output-dir",
+            str(output_dir),
+            "--stack-name",
+            "dayec-slurm-accounting-us-west-2c",
+            "--privatelink-stack-name",
+            "dayec-sacct-pl-vpc-cluster",
+            "--database-name",
+            "dayec_slurm_acct",
+            "--db-username",
+            "slurm_acct",
+            "--instance-type",
+            "t4g.micro",
+            "--timeout-seconds",
+            "5400",
+            "--poll-interval-seconds",
+            "30",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert calls["stack_name"] == "dayec-slurm-accounting-us-west-2c"
+    assert calls["privatelink_stack_name"] == "dayec-sacct-pl-vpc-cluster"
+    assert calls["create_slurm_accounting_if_missing"] is False
+    assert calls["acknowledge_slurm_accounting_create_cost"] is False
+    assert json.loads(result.stdout) == payload
 
 
 def test_slurm_accounting_recover_cli_emits_versioned_json_failure(

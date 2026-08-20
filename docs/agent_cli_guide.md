@@ -17,6 +17,7 @@ DYEC is neither an identity service nor a replacement for DayOA.
 | Inspect cluster, headnode, controllers, or queue | `dyec cluster describe`, `dyec headnode dayoa-controllers`, `dyec headnode jobs` | Inspection does not authorize Slurm or node intervention. |
 | Create a cluster | `dyec preflight`, then `dyec create` | Creation is a cloud change; use only with the approved exact config and budget. |
 | Stop/start a compute fleet | `dyec cluster compute-fleet` | Exact state pairs only; every stop proves controllers/jobs idle, and `--drain` only waits naturally. |
+| Inspect accounting topology | `dyec slurm-accounting inspect` | Read-only exact provider/bridge evidence; it never creates, reconciles, or selects a bridge. |
 | Recover incomplete accounting | `dyec slurm-accounting recover` | Never rerun create against `CREATE_COMPLETE`; recovery owns stop, attach, restart, and working-`sacct` proof. |
 | Make an S3 run directory available on FSx | `dyec mounts create`, then `dyec mounts verify` | Run mounts are read-only by default. Wait generously for DRA availability. |
 | Run a known production workflow | `dyec catalog show`, `dyec catalog render`, `dyec catalog launch` | Render first; honor the command's exact input contract and DayOA pin. |
@@ -104,7 +105,10 @@ dyec create \
 Automation and upstream services use the installed `dyec` console script as
 the sole cluster-operation boundary. They must not run `pcluster` directly,
 import `daylily_ec.pcluster` or another DYEC Python internal, or replace the
-console script with `python -m daylily_ec.cli`.
+console script with `python -m daylily_ec.cli`. `dyec create` owns live pricing,
+accounting-provider/bridge lifecycle, and initial cluster provisioning. A
+missing upstream operation is a public CLI contract gap to implement in DYEC;
+it is never permission to import or execute an internal helper.
 
 Use the guarded fleet command for an exact lifecycle transition:
 
@@ -123,27 +127,42 @@ finish, do not rerun `dyec create`. Invoke the exact persisted recovery
 contract:
 
 ```bash
+dyec --json slurm-accounting inspect \
+  --profile "$AWS_PROFILE" --region-az <region-az> \
+  --stack-name <regional-provider-stack> \
+  --privatelink-stack-name <existing-bridge-stack>
+```
+
+The bridge option is omitted for a direct same-VPC attachment. Inspection is
+read-only and never derives another bridge name. For cross-VPC recovery, review
+the returned exact provider, provider VPC, consumer VPC, provider binding, and
+`contract_healthy` evidence before invoking recovery.
+
+```bash
 dyec --json slurm-accounting recover \
   --cluster "$CLUSTER" --region "$REGION" --region-az <region-az> \
   --profile "$AWS_PROFILE" \
   --cluster-configuration <persisted-cluster.yaml> \
   --output-dir <stable-recovery-directory> \
-  --stack-name <accounting-stack> \
+  --stack-name <regional-provider-stack> \
+  --privatelink-stack-name <existing-bridge-stack> \
   --database-name <database> --db-username <user> \
   --instance-type <accounting-instance-type> \
   --timeout-seconds 5400 --poll-interval-seconds 30
 ```
 
-Add both `--create-slurm-accounting-if-missing` and
+Omit `--privatelink-stack-name` for direct same-VPC recovery. Add both
+`--create-slurm-accounting-if-missing` and
 `--acknowledge-slurm-accounting-create-cost` only when that creation and cost
-were explicitly approved. Recovery binds the trimmed AWS profile/account,
-cluster/config hashes, and exact stack/database/user; it never selects an
-alternate stack or PrivateLink bridge. Keep the same output directory on
-retry. A reclaimed update-submission intent is polled for provider visibility
-and never blindly resubmitted. A success response is terminal only when it
-reports `status: complete`, `terminal: true`, cluster `UPDATE_COMPLETE`, fleet
-`RUNNING`, and `accounting_verified: true`; that boolean includes a working
-`sacct` probe. The exact state machine, stable output filenames, and JSON fields are in
+were explicitly approved; those flags are forbidden with an exact bridge.
+Recovery binds the trimmed AWS profile/account, cluster/config hashes, exact
+regional provider, exact bridge-or-null, consumer VPC, database, and user. It
+never selects an alternate bridge or creates/reconciles any bridge. Keep the
+same output directory on retry. A reclaimed update-submission intent is polled
+for provider visibility and never blindly resubmitted. A success response is
+terminal only when it reports `status: complete`, `terminal: true`, cluster
+`UPDATE_COMPLETE`, fleet `RUNNING`, and `accounting_verified: true`; that
+boolean includes a working `sacct` probe. The exact state machine, stable output filenames, and JSON fields are in
 [cli_reference.md](cli_reference.md#crash-safe-slurm-accounting-recovery).
 
 For an interactive headnode shell, use DYEC rather than an ad hoc SSM command:

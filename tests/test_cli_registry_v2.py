@@ -76,6 +76,7 @@ EXPECTED_COMMANDS = {
     ("aws", "validate", "all"),
     ("aws", "audit", "api-calls"),
     ("aws", "audit", "cost-resources"),
+    ("slurm-accounting", "inspect"),
     ("slurm-accounting", "ensure"),
     ("slurm-accounting", "attach"),
     ("slurm-accounting", "recover"),
@@ -486,6 +487,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     aws_validate_all_cmd = registry.get_command(("aws", "validate", "all"))
     aws_audit_api_calls_cmd = registry.get_command(("aws", "audit", "api-calls"))
     aws_audit_cost_resources_cmd = registry.get_command(("aws", "audit", "cost-resources"))
+    slurm_accounting_inspect_cmd = registry.get_command(("slurm-accounting", "inspect"))
     slurm_accounting_ensure_cmd = registry.get_command(("slurm-accounting", "ensure"))
     slurm_accounting_attach_cmd = registry.get_command(("slurm-accounting", "attach"))
     slurm_accounting_recover_cmd = registry.get_command(("slurm-accounting", "recover"))
@@ -817,6 +819,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert slurm_accounting_ensure_cmd.policy.long_running is True
 
     assert slurm_accounting_attach_cmd is not None
+    assert slurm_accounting_inspect_cmd is not None
+    assert slurm_accounting_inspect_cmd.policy.supports_json is True
+    assert slurm_accounting_inspect_cmd.policy.mutates_state is False
+    assert slurm_accounting_inspect_cmd.policy.long_running is False
+
     assert slurm_accounting_attach_cmd.policy.supports_json is True
     assert slurm_accounting_attach_cmd.policy.mutates_state is True
     assert slurm_accounting_attach_cmd.policy.long_running is True

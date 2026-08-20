@@ -93,7 +93,7 @@ Run `dyec --help` for the live list. Current major groups are:
 | `analysis` | Analysis-root visit logging, status reporting, lock ownership, and guarded commands. |
 | `command` | Command-family progress views such as HIOMRS sample stats and DAG download. |
 | `export`, `exports`, `runtime-cache` | FSx analysis export and DRA-only runtime-cache preservation through explicit S3 receipts. |
-| `pricing`, `cost-centers`, `aws`, `slurm-accounting` | Cost, quota, AWS readiness, and accounting support. |
+| `pricing`, `cost-centers`, `aws`, `slurm-accounting` | Cost, quota, AWS readiness, read-only accounting-topology inspection, and guarded accounting support. |
 | `tests` | Local pytest and catalog validation helpers. |
 
 Detailed option-level examples live in [docs/cli_reference.md](docs/cli_reference.md). The task-oriented path is [docs/agent_cli_guide.md](docs/agent_cli_guide.md).

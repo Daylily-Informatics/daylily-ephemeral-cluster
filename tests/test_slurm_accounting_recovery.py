@@ -48,10 +48,21 @@ def _prepared(destination: Path) -> PreparedSlurmAccountingUpdate:
         cluster_name="cluster-a",
         region="us-west-2",
         accounting_stack_name="dayec-slurm-accounting-us-west-2",
+        provider_accounting_stack_name="dayec-slurm-accounting-us-west-2",
+        privatelink_stack_name=None,
+        consumer_vpc_id="vpc-exact",
         update_config_path=destination,
         service_created=False,
         database_name="dayec_slurm_acct",
         db_username="slurm_acct",
+    )
+
+
+def _prepared_bridge(destination: Path) -> PreparedSlurmAccountingUpdate:
+    return replace(
+        _prepared(destination),
+        accounting_stack_name="dayec-sacct-pl-vpc-exact",
+        privatelink_stack_name="dayec-sacct-pl-vpc-exact",
     )
 
 
@@ -75,6 +86,8 @@ def _write_bound_receipt(tmp_path: Path, output_dir: Path) -> tuple[Path, Path, 
                 "aws_profile": "lsmc",
                 "aws_account_id": "123456789012",
                 "accounting_stack_name": "dayec-slurm-accounting-us-west-2",
+                "privatelink_stack_name": None,
+                "consumer_vpc_id": "vpc-exact",
                 "database_name": "dayec_slurm_acct",
                 "db_username": "slurm_acct",
                 "instance_type": "t4g.micro",
@@ -129,6 +142,8 @@ def _write_render_intent(
         aws_profile="lsmc",
         aws_account_id="123456789012",
         stack_name="dayec-slurm-accounting-us-west-2",
+        privatelink_stack_name=None,
+        consumer_vpc_id="vpc-exact",
         database_name="dayec_slurm_acct",
         db_username="slurm_acct",
         instance_type="t4g.micro",
@@ -154,6 +169,7 @@ def _recover(tmp_path: Path, **overrides):
         "cluster_configuration": _source(tmp_path / "source.yaml"),
         "output_dir": tmp_path / "receipts",
         "stack_name": "dayec-slurm-accounting-us-west-2",
+        "privatelink_stack_name": "",
         "database_name": "dayec_slurm_acct",
         "db_username": "slurm_acct",
         "instance_type": "t4g.micro",
@@ -162,6 +178,7 @@ def _recover(tmp_path: Path, **overrides):
         "timeout_seconds": 600,
         "poll_interval_seconds": 1,
         "account_id_resolver": lambda **_kwargs: "123456789012",
+        "network_identity_resolver": lambda **_kwargs: SimpleNamespace(vpc_id="vpc-exact"),
     }
     values.update(overrides)
     return recover_slurm_accounting(**values)
@@ -328,6 +345,72 @@ def test_update_in_progress_reclaims_existing_update_without_duplicate(
     assert result.accounting_verified is True
 
 
+def test_exact_privatelink_recovery_binds_bridge_and_consumer_in_terminal_receipt(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    cluster_states = iter(("CREATE_COMPLETE", "UPDATE_COMPLETE"))
+    fleet_states = iter(("STOPPED", "RUNNING"))
+    monkeypatch.setattr(
+        recovery_module,
+        "_describe_cluster_state",
+        lambda *_args, **_kwargs: (next(cluster_states), {}),
+    )
+    monkeypatch.setattr(
+        recovery_module,
+        "_describe_fleet_state",
+        lambda *_args, **_kwargs: next(fleet_states),
+    )
+    prepare_calls: list[dict] = []
+
+    def prepare(**kwargs) -> PreparedSlurmAccountingUpdate:
+        prepare_calls.append(kwargs)
+        return _prepared_bridge(kwargs["destination_config"])
+
+    monkeypatch.setattr(recovery_module, "prepare_slurm_accounting_update", prepare)
+    monkeypatch.setattr(
+        recovery_module,
+        "run_compute_fleet_transition",
+        lambda **_kwargs: _fleet_result(submitted=False),
+    )
+    monkeypatch.setattr(
+        recovery_module,
+        "update_cluster",
+        lambda *_args, **_kwargs: SimpleNamespace(success=True),
+    )
+    monkeypatch.setattr(
+        recovery_module,
+        "wait_for_cluster_update",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            success=True,
+            final_status="UPDATE_COMPLETE",
+        ),
+    )
+    monkeypatch.setattr(recovery_module, "_verify_accounting", lambda **_kwargs: "i-headnode")
+
+    result = _recover(
+        tmp_path,
+        privatelink_stack_name="dayec-sacct-pl-vpc-exact",
+        idle_probe_fn=lambda **_kwargs: _idle(),
+    )
+
+    assert len(prepare_calls) == 2
+    assert all(
+        call["stack_name"] == "dayec-slurm-accounting-us-west-2"
+        and call["privatelink_stack_name"] == "dayec-sacct-pl-vpc-exact"
+        and call["exact_target_only"] is True
+        and call["create_if_missing"] is False
+        for call in prepare_calls
+    )
+    assert result.accounting_stack_name == "dayec-slurm-accounting-us-west-2"
+    assert result.privatelink_stack_name == "dayec-sacct-pl-vpc-exact"
+    assert result.consumer_vpc_id == "vpc-exact"
+    receipt = json.loads(Path(result.recovery_receipt_path).read_text(encoding="utf-8"))
+    assert receipt["accounting_stack_name"] == "dayec-slurm-accounting-us-west-2"
+    assert receipt["privatelink_stack_name"] == "dayec-sacct-pl-vpc-exact"
+    assert receipt["consumer_vpc_id"] == "vpc-exact"
+
+
 def test_update_complete_only_restores_and_verifies(tmp_path, monkeypatch) -> None:
     output_dir = tmp_path / "receipts"
     _write_bound_receipt(tmp_path, output_dir)
@@ -453,6 +536,25 @@ def test_paired_creation_and_cost_flags_fail_before_provider_calls(tmp_path, mon
         )
 
 
+def test_explicit_privatelink_rejects_provider_creation_flags_before_provider_calls(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        recovery_module,
+        "_describe_cluster_state",
+        lambda *_args, **_kwargs: pytest.fail("validation must precede provider calls"),
+    )
+
+    with pytest.raises(SlurmAccountingRecoveryError, match="cannot create"):
+        _recover(
+            tmp_path,
+            privatelink_stack_name="dayec-sacct-pl-vpc-exact",
+            create_slurm_accounting_if_missing=True,
+            acknowledge_slurm_accounting_create_cost=True,
+        )
+
+
 @pytest.mark.parametrize("preexisting_update", [False, True])
 def test_pre_render_write_ahead_receipt_resumes_interrupted_render(
     tmp_path, monkeypatch, preexisting_update
@@ -517,6 +619,9 @@ def test_pre_render_write_ahead_receipt_resumes_interrupted_render(
     ("field", "wrong_value"),
     [
         ("accounting_stack_name", "wrong-stack"),
+        ("provider_accounting_stack_name", "wrong-provider"),
+        ("privatelink_stack_name", "unexpected-bridge"),
+        ("consumer_vpc_id", "vpc-wrong"),
         ("database_name", "wrong_database"),
         ("db_username", "wrong_user"),
     ],
@@ -634,6 +739,8 @@ def test_exact_revalidation_preserves_safe_preparation_diagnostics(
             update_config=update,
             update_sha256=hashlib.sha256(update.read_bytes()).hexdigest(),
             stack_name="dayec-slurm-accounting-us-west-2",
+            privatelink_stack_name=None,
+            consumer_vpc_id="vpc-exact",
             database_name="dayec_slurm_acct",
             db_username="slurm_acct",
             instance_type="t4g.micro",
@@ -734,7 +841,17 @@ def test_work_appearing_during_preparation_blocks_before_stop_or_update(
         )
 
 
-@pytest.mark.parametrize("corruption", ["source_hash", "update_file", "profile"])
+@pytest.mark.parametrize(
+    "corruption",
+    [
+        "source_hash",
+        "update_file",
+        "profile",
+        "consumer_vpc",
+        "bridge",
+        "missing_bridge_field",
+    ],
+)
 def test_resumed_recovery_rejects_identity_and_file_hash_mismatch(
     tmp_path, monkeypatch, corruption
 ) -> None:
@@ -746,8 +863,14 @@ def test_resumed_recovery_rejects_identity_and_file_hash_mismatch(
         payload = json.loads(receipt.read_text(encoding="utf-8"))
         if corruption == "source_hash":
             payload["cluster_configuration_sha256"] = "0" * 64
-        else:
+        elif corruption == "profile":
             payload["aws_profile"] = "different-profile"
+        elif corruption == "consumer_vpc":
+            payload["consumer_vpc_id"] = "vpc-wrong"
+        elif corruption == "bridge":
+            payload["privatelink_stack_name"] = "unexpected-bridge"
+        else:
+            payload.pop("privatelink_stack_name")
         receipt.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     monkeypatch.setattr(
         recovery_module,
@@ -991,7 +1114,12 @@ def _patch_exact_resolution(monkeypatch, db: SlurmAccountingDb) -> None:
     monkeypatch.setattr(
         attach_module,
         "list_regional_slurm_accounting_stacks",
-        lambda *_args, **_kwargs: [{"StackName": "dayec-slurm-accounting-us-west-2"}],
+        lambda *_args, **_kwargs: [
+            {
+                "StackName": "dayec-slurm-accounting-us-west-2",
+                "Tags": [{"Key": "daylily-ec:vpc-id", "Value": "vpc-exact"}],
+            }
+        ],
     )
     monkeypatch.setattr(
         attach_module,

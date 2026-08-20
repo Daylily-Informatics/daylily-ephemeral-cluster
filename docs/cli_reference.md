@@ -137,6 +137,15 @@ work, same-root continuation, and no-delete export—read
 
 ## Cluster lifecycle
 
+Upstream services must execute the installed public `dyec` console script for
+every cluster operation. They must not run `pcluster`, import DYEC Python
+internals, or substitute a module entrypoint. `dyec create` owns pricing,
+accounting-provider/bridge lifecycle, and initial cluster provisioning. The
+recovery commands below only repair their explicitly documented states; they do
+not reproduce create-time discovery or pricing. If an upstream service needs an
+operation not exposed here, the missing interface must be added as a reviewed
+public `dyec` CLI contract before that service can use it.
+
 Preflight:
 
 ```bash
@@ -268,6 +277,77 @@ bounded `error` string.
 
 ### Crash-safe Slurm-accounting recovery
 
+Before recovery, inspect the regional provider singleton and, when applicable,
+one exact existing PrivateLink bridge without changing AWS:
+
+```bash
+dyec --json slurm-accounting inspect \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --stack-name <exact-regional-provider-stack> \
+  --privatelink-stack-name <exact-existing-bridge-stack>
+```
+
+Both expected names are optional inspection filters; omitting the bridge name
+does not trigger bridge discovery. The command lists at most 100 bounded
+regional provider identities and reports the exact bridge only when that name
+was supplied. It is read-only and never creates, updates, reconciles, or
+selects infrastructure. Its `dyec.slurm_accounting_inspection.v1` JSON includes
+the explicit profile/account/region/AZ, provider names/status/VPC/DB/user and
+contract-health evidence, plus bridge provider/consumer VPC binding and target
+health. `bridge_provider_binding_matches_regional_provider` compares the exact
+bridge with the singleton's provider VPC, database, user, and instance evidence.
+Database endpoints, private IPs, password-secret ARNs, IAM policy ARNs,
+and raw provider errors are excluded. An unhealthy exact target can still
+return its bounded bridge identity with `contract_healthy: false` and
+`exact_bridge_error_code: exact_bridge_target_unhealthy_or_unverified`.
+
+```json
+{
+  "schema_version": "dyec.slurm_accounting_inspection.v1",
+  "ok": true,
+  "read_only": true,
+  "aws_profile": "<trimmed profile>",
+  "aws_account_id": "<resolved account id>",
+  "region": "us-west-2",
+  "region_az": "us-west-2d",
+  "expected_accounting_stack_name": "<provider or null>",
+  "expected_privatelink_stack_name": "<bridge or null>",
+  "regional_provider_count": 1,
+  "regional_singleton": true,
+  "regional_provider_matches_expected": true,
+  "regional_providers": [
+    {
+      "stack_name": "<provider>",
+      "status": "CREATE_COMPLETE",
+      "region": "us-west-2",
+      "region_az": "us-west-2c",
+      "vpc_id": "<provider VPC>",
+      "database_name": "<database>",
+      "db_username": "<user>",
+      "instance_id": "<accounting instance>",
+      "required_outputs_present": true,
+      "contract_healthy": true
+    }
+  ],
+  "exact_bridge": {
+    "stack_name": "<bridge>",
+    "status": "UPDATE_COMPLETE",
+    "provider_accounting_stack_name": "<provider>",
+    "provider_vpc_id": "<provider VPC>",
+    "consumer_vpc_id": "<consumer VPC>",
+    "database_name": "<database>",
+    "db_username": "<user>",
+    "accounting_instance_id": "<accounting instance>",
+    "contract_healthy": true
+  },
+  "exact_bridge_resolved": true,
+  "exact_bridge_error_code": null,
+  "bridge_provider_matches_expected": true,
+  "bridge_provider_binding_matches_regional_provider": true
+}
+```
+
 `slurm-accounting recover` repairs the incomplete post-create accounting phase
 without rerunning `dyec create`. It accepts only the exact persisted cluster
 identity and pre-accounting configuration. The supported initial cluster
@@ -282,7 +362,28 @@ dyec --json slurm-accounting recover \
   --profile "$AWS_PROFILE" \
   --cluster-configuration <exact-persisted-cluster.yaml> \
   --output-dir <stable-per-cluster-recovery-directory> \
-  --stack-name <exact-accounting-stack> \
+  --stack-name <exact-regional-provider-stack> \
+  --privatelink-stack-name <exact-existing-bridge-stack> \
+  --database-name <exact-database-name> \
+  --db-username <exact-database-user> \
+  --instance-type <exact-accounting-instance-type> \
+  --timeout-seconds 5400 \
+  --poll-interval-seconds 30
+```
+
+For direct same-VPC recovery that is explicitly authorized to create a missing
+provider singleton and accept its ongoing cost, omit the bridge and supply the
+paired creation/cost flags:
+
+```bash
+dyec --json slurm-accounting recover \
+  --cluster "$CLUSTER" \
+  --region "$REGION" \
+  --region-az "$REGION_AZ" \
+  --profile "$AWS_PROFILE" \
+  --cluster-configuration <exact-persisted-cluster.yaml> \
+  --output-dir <stable-per-cluster-recovery-directory> \
+  --stack-name <exact-regional-provider-stack> \
   --database-name <exact-database-name> \
   --db-username <exact-database-user> \
   --instance-type <exact-accounting-instance-type> \
@@ -293,26 +394,33 @@ dyec --json slurm-accounting recover \
 ```
 
 The two creation/cost flags must be supplied together. Omit both when recovery
-may reuse only an existing compatible singleton. Supply both only when the
-caller has persisted authority to create a missing singleton and accept its
-ongoing cost.
+may reuse only existing infrastructure. They are invalid when
+`--privatelink-stack-name` is supplied because recovery never creates or
+reconciles a bridge or its provider.
 
 For `CREATE_COMPLETE`, DYEC proves the cluster idle, prepares the exact regional
 accounting service and update YAML before changing capacity, stops the fleet,
 dry-runs and submits the accounting update, waits for `UPDATE_COMPLETE`, starts
 the fleet, and verifies accounting. An already-running update is reclaimed and
 never submitted again. `UPDATE_COMPLETE` proceeds only to fleet restoration and
-verification. Exact recovery resolves only the supplied stack in the cluster
-VPC and requires its database and user outputs to match exactly; automatic
-alternate-stack selection and PrivateLink discovery/reconciliation are disabled.
+verification. `--stack-name` always names the regional provider singleton. With
+no bridge flag, direct attachment is allowed only when that provider and the
+cluster headnode subnet are in the same VPC; cross-VPC direct attachment fails
+with `exact_direct_vpc_mismatch`. With `--privatelink-stack-name`, recovery
+requires the region to contain exactly the named provider and resolves only the
+named existing healthy bridge. Its provider stack, provider VPC, consumer VPC,
+database, user, accounting instance, and secret binding must match the exact
+provider and request. Automatic alternate-stack or bridge selection and all
+bridge creation/reconciliation are disabled.
 DYEC repeats its authoritative controller/job proof after service preparation
 and before update handling, even if the fleet was already stopped; work that
 appeared during preparation fails the recovery before any update or restart.
 
 The recovery receipt is a write-ahead identity/phase record. Before rendering,
 DYEC atomically records the trimmed AWS profile, resolved AWS account, cluster,
-region/AZ, source path and hash, deterministic update path, exact
-stack/database/user, instance type, and creation/cost flags. An interrupted
+region/AZ, source path and hash, deterministic update path, exact provider
+stack, exact bridge name (or JSON `null` for direct mode), consumer VPC,
+database/user, instance type, and creation/cost flags. An interrupted
 `render_intent` may resume whether or not the update file appeared. After
 rendering, DYEC rehashes the source and binds the rendered update hash before
 any fleet mutation. Every resumed update revalidates the receipt plus both
@@ -364,7 +472,9 @@ A successful JSON response has schema
   "region_az": "<availability zone>",
   "aws_profile": "<trimmed profile>",
   "aws_account_id": "<resolved account id>",
-  "accounting_stack_name": "<stack>",
+  "accounting_stack_name": "<regional provider stack>",
+  "privatelink_stack_name": "<exact bridge stack or null>",
+  "consumer_vpc_id": "<cluster headnode VPC>",
   "database_name": "<database>",
   "db_username": "<database user>",
   "instance_type": "<requested accounting instance type>",
@@ -407,7 +517,11 @@ bounded lowercase machine tokens in `stage` and `reason_code`. Exact-target
 `exact_regional_stack_inventory_failed`, `exact_regional_stack_conflict`,
 `exact_database_discovery_failed`, `exact_database_multiple`,
 `exact_stack_missing`, `exact_stack_create_failed`, and
-`exact_service_identity_mismatch`. Provider/SDK text and credentials are never
+`exact_service_identity_mismatch`. Explicit bridge recovery additionally uses
+`exact_privatelink_creation_forbidden`, `exact_privatelink_unavailable`,
+`exact_privatelink_identity_mismatch`,
+`exact_privatelink_provider_binding_mismatch`, and
+`exact_direct_vpc_mismatch`. Provider/SDK text and credentials are never
 copied into those fields or the generic public error message; other recovery
 failures omit the two preparation fields.
 
