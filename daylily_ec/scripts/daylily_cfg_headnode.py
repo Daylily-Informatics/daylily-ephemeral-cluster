@@ -74,8 +74,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--force",
         action="store_true",
         help=(
-            "Explicitly remove only the DAYOA and DAY-EC Conda environments before "
-            "rebuilding the pinned headnode toolchain"
+            "Explicitly remove the DAYOA and DAY-EC Conda environments, clean all local "
+            "Conda caches, and rebuild the pinned headnode toolchain"
         ),
     )
     return parser

@@ -491,7 +491,7 @@ def _build_headnode_config_yaml_sync_command(repo_name: str) -> str:
 
 
 def _build_headnode_conda_environment_reset_command() -> str:
-    """Return the explicit, opt-in reset for the two named headnode environments."""
+    """Return the explicit reset for the named environments and local Conda caches."""
     return "\n".join(
         (
             "set -euo pipefail",
@@ -504,6 +504,7 @@ def _build_headnode_conda_environment_reset_command() -> str:
             '    conda env remove -n "$env_name"',
             "  fi",
             "done",
+            "conda clean --all --yes",
             'rm -f "$HOME/.config/daylily/headnode_dayoa_bootstrap.tsv"',
         )
     )
@@ -4496,7 +4497,7 @@ def configure_headnode(
     if force:
         steps.append(
             (
-                "Remove requested DAYOA and DAY-EC environments",
+                "Remove requested DAYOA and DAY-EC environments and clean Conda caches",
                 _build_headnode_conda_environment_reset_command(),
                 None,
             )

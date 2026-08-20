@@ -50,6 +50,7 @@ from daylily_ec.workflow.create_cluster import (
     EXIT_VALIDATION_FAILURE,
     az_cluster_template_relative_path,
     attach_headnode_managed_policy,
+    _build_headnode_conda_environment_reset_command,
     _build_connection_command,
     _default_budget_email,
     _default_cluster_name,
@@ -2759,6 +2760,15 @@ class TestConfigureHeadnode:
         monkeypatch.setattr(
             "daylily_ec.versioning.get_release_version",
             lambda: "16.1.85",
+        )
+
+    def test_force_reset_cleans_all_conda_caches_after_removing_named_environments(self):
+        reset_lines = _build_headnode_conda_environment_reset_command().splitlines()
+
+        assert reset_lines.count("conda clean --all --yes") == 1
+        assert reset_lines.index("done") < reset_lines.index("conda clean --all --yes")
+        assert reset_lines.index("conda clean --all --yes") < reset_lines.index(
+            'rm -f "$HOME/.config/daylily/headnode_dayoa_bootstrap.tsv"'
         )
 
     @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")

@@ -5235,8 +5235,8 @@ def headnode_configure(
         False,
         "--force",
         help=(
-            "Explicitly remove only the DAYOA and DAY-EC Conda environments before "
-            "rebuilding the pinned headnode toolchain."
+            "Explicitly remove the DAYOA and DAY-EC Conda environments, clean all local "
+            "Conda caches, and rebuild the pinned headnode toolchain."
         ),
     ),
 ) -> None:
