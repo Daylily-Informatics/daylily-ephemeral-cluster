@@ -14,7 +14,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "16.0.2"
+DAYOA_BLESSED_TAG = "16.0.3"
 ULTIMA_DOWNSAMPLE_DAYOA_TAG = DAYOA_BLESSED_TAG
 CURRENT_VALIDATED_DAYOA_TAG = "15.0.1"
 RUN_QC_VALIDATED_DAYOA_TAG = "15.0.9"
@@ -333,7 +333,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.compatible_platforms == ["ILMN"]
     assert command.compatible_cluster_types == ["daywgs"]
     assert command.compatible_data_modes == ["ilmn_solo"]
-    assert "bin/day_run" in command.dy_command
+    assert command.dy_command.startswith("dy-r ")
     assert command.dryrun_dy_command.endswith(" -n")
     assert command.artifact_registration is None
 
@@ -611,8 +611,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert validation_run.live_status == "success"
             assert "produce_metagenomics" in validation_run.tested_command
             assert "produce_multiqc_all" in validation_run.tested_command
-            assert command.dy_command.startswith("bin/day_run ")
-            assert command.dryrun_dy_command.startswith("bin/day_run ")
+            assert command.dy_command.startswith("dy-r ")
+            assert command.dryrun_dy_command.startswith("dy-r ")
             assert command.dryrun_dy_command.endswith(" -n")
             assert command.compatible_platforms
             assert command.compatible_cluster_types == ["daywgs"]

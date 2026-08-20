@@ -20,6 +20,8 @@ PACKAGED_CATALOG = (
 DYEC_RELEASE = "19.0.1"
 PREVIOUS_DYEC_RELEASE = "19.0.0"
 DAYOA_RELEASE = "16.0.2"
+CURRENT_DYEC_RELEASE = "19.0.3"
+CURRENT_DAYOA_RELEASE = "16.0.3"
 PANGENOME_COMMAND_IDS = {
     "illumina_sentieon_pangenome_kitchensink",
     "ultima_sentieon_pangenome_kitchensink",
@@ -59,7 +61,7 @@ def _retargeted(snapshot: dict) -> dict:
     return expected
 
 
-def test_19_0_1_is_current_and_reconciles_active_membership() -> None:
+def test_19_0_1_remains_frozen_while_current_reconciles_active_membership() -> None:
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
 
     raw = _catalog()
@@ -67,16 +69,23 @@ def test_19_0_1_is_current_and_reconciles_active_membership() -> None:
     active = {item["command_id"]: item for item in repository["analysis_commands"]}
     current = raw["dyec_builds"]["current"]
 
-    assert current == raw["dyec_builds"][DYEC_RELEASE]
-    assert repository["default_ref"] == DAYOA_RELEASE
+    release = raw["dyec_builds"][DYEC_RELEASE]
+
+    assert current == raw["dyec_builds"][CURRENT_DYEC_RELEASE]
+    assert current != release
+    assert release["dayoa_git_tags"] == [DAYOA_RELEASE]
+    assert {item["git_tag"] for item in release["commands"].values()} == {
+        DAYOA_RELEASE
+    }
+    assert repository["default_ref"] == CURRENT_DAYOA_RELEASE
     assert len(active) == len(current["commands"]) == 31
     assert set(active) == set(current["commands"])
     assert "inflection-bjuice-product-v0.2" not in active
     assert PANGENOME_COMMAND_IDS <= set(active)
-    assert {item["git_tag"] for item in active.values()} == {DAYOA_RELEASE}
-    assert current["dayoa_git_tags"] == [DAYOA_RELEASE]
+    assert {item["git_tag"] for item in active.values()} == {CURRENT_DAYOA_RELEASE}
+    assert current["dayoa_git_tags"] == [CURRENT_DAYOA_RELEASE]
     assert {item["git_tag"] for item in current["commands"].values()} == {
-        DAYOA_RELEASE
+        CURRENT_DAYOA_RELEASE
     }
     assert {
         item["command_id"]
