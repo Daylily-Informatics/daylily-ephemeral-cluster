@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import multiprocessing
+import os
+from multiprocessing.queues import Queue
+from multiprocessing.synchronize import Barrier
 from pathlib import Path
 
 import pytest
@@ -11,6 +15,20 @@ from daylily_ec.resources import (
     ensure_extracted,
     resource_path,
 )
+
+
+def _extract_resources_concurrently(
+    config_home: str,
+    start_barrier: Barrier,
+    results: Queue,
+) -> None:
+    os.environ.pop("DAYLILY_EC_RESOURCES_DIR", None)
+    os.environ["XDG_CONFIG_HOME"] = config_home
+    start_barrier.wait()
+    try:
+        results.put(("ok", str(ensure_extracted())))
+    except Exception as exc:  # pragma: no cover - reported to the parent process
+        results.put(("error", repr(exc)))
 
 
 def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
@@ -78,3 +96,32 @@ def test_ensure_extracted_refreshes_stale_boot_scripts(tmp_path, monkeypatch):
 
     assert refreshed == root
     assert "stale boot script" not in boot_script.read_text(encoding="utf-8")
+
+
+def test_ensure_extracted_serializes_concurrent_cold_cache_publish(tmp_path):
+    process_count = 4
+    context = multiprocessing.get_context("spawn")
+    start_barrier = context.Barrier(process_count)
+    results = context.Queue()
+    config_home = str(tmp_path / "xdg")
+    processes = [
+        context.Process(
+            target=_extract_resources_concurrently,
+            args=(config_home, start_barrier, results),
+        )
+        for _ in range(process_count)
+    ]
+
+    for process in processes:
+        process.start()
+    for process in processes:
+        process.join(timeout=60)
+
+    assert all(not process.is_alive() for process in processes)
+    assert [process.exitcode for process in processes] == [0] * process_count
+    outcomes = [results.get(timeout=5) for _ in range(process_count)]
+    assert {status for status, _ in outcomes} == {"ok"}
+    assert len({path for _, path in outcomes}) == 1
+    extracted = Path(outcomes[0][1])
+    assert (extracted / ".complete").is_file()
+    assert not list(extracted.parent.glob(f"{extracted.name}.tmp-*"))

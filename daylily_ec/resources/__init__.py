@@ -17,6 +17,7 @@ an existing directory containing the expected layout (config/, etc/, bin/).
 
 from __future__ import annotations
 
+import fcntl
 import os
 import shutil
 import tempfile
@@ -176,43 +177,45 @@ def ensure_extracted() -> Path:
     version = versioning.get_version()
     dest = _xdg_config_home() / "daylily" / "resources" / version
     marker = dest / ".complete"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = dest.parent / f".{dest.name}.lock"
 
     payload = ir.files(__name__).joinpath("payload")
-    with ir.as_file(payload) as src:
-        if marker.is_file() and not _resources_need_refresh(dest, src):
-            return dest
+    # A version directory is shared by all local DYEC processes. Hold a stable
+    # sibling lock across the cache recheck and publish so concurrent startups
+    # cannot delete or rename over one another's extraction.
+    with lock_path.open("a+b") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        with ir.as_file(payload) as src:
+            if marker.is_file() and not _resources_need_refresh(dest, src):
+                return dest
 
-        # If a previous extraction partially succeeded, replace it cleanly.
-        if dest.exists():
-            shutil.rmtree(dest, ignore_errors=True)
-
-        dest.parent.mkdir(parents=True, exist_ok=True)
-
-        # Copy into a temp dir first, then rename into place.
-        tmp_parent = dest.parent
-        tmp_dir = Path(
-            tempfile.mkdtemp(prefix=f"{dest.name}.tmp-", dir=str(tmp_parent))
-        )
-        try:
-            shutil.copytree(src, tmp_dir, dirs_exist_ok=True, symlinks=True)
-            quarantine_dir = tmp_dir / "quarantine"
-            if quarantine_dir.exists():
-                shutil.rmtree(quarantine_dir, ignore_errors=True)
-            (tmp_dir / ".complete").write_text(
-                f"daylily-ephemeral-cluster resources {version}\n",
-                encoding="utf-8",
-            )
-            # Ensure destination does not exist so rename is atomic.
+            # If a previous extraction partially succeeded, replace it cleanly.
             if dest.exists():
                 shutil.rmtree(dest, ignore_errors=True)
-            tmp_dir.replace(dest)
-        finally:
-            # If anything failed before rename, best-effort cleanup.
-            if tmp_dir.exists() and tmp_dir != dest:
-                shutil.rmtree(tmp_dir, ignore_errors=True)
 
-    _validate_resources_dir(dest)
-    return dest
+            # Copy into a temp dir first, then rename into place.
+            tmp_parent = dest.parent
+            tmp_dir = Path(
+                tempfile.mkdtemp(prefix=f"{dest.name}.tmp-", dir=str(tmp_parent))
+            )
+            try:
+                shutil.copytree(src, tmp_dir, dirs_exist_ok=True, symlinks=True)
+                quarantine_dir = tmp_dir / "quarantine"
+                if quarantine_dir.exists():
+                    shutil.rmtree(quarantine_dir, ignore_errors=True)
+                (tmp_dir / ".complete").write_text(
+                    f"daylily-ephemeral-cluster resources {version}\n",
+                    encoding="utf-8",
+                )
+                tmp_dir.replace(dest)
+            finally:
+                # If anything failed before rename, best-effort cleanup.
+                if tmp_dir.exists() and tmp_dir != dest:
+                    shutil.rmtree(tmp_dir, ignore_errors=True)
+
+            _validate_resources_dir(dest)
+            return dest
 
 
 def resource_path(rel_path: str) -> Path:
