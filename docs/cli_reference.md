@@ -195,6 +195,214 @@ dyec cluster wait \
   --cluster "$CLUSTER"
 ```
 
+### Guarded compute-fleet lifecycle
+
+`cluster compute-fleet` is the public automation boundary for stopping or
+starting one exact ParallelCluster compute fleet. Upstream services must invoke
+the installed `dyec` console script; they must not invoke `pcluster`, import
+`daylily_ec.pcluster`, or call a DYEC Python module entrypoint.
+
+The only accepted request/terminal pairs are:
+
+| `--status` | `--wait-for` |
+|---|---|
+| `STOP_REQUESTED` | `STOPPED` |
+| `START_REQUESTED` | `RUNNING` |
+
+The spellings are case-sensitive. A mismatch fails before a provider call.
+
+```bash
+dyec --json cluster compute-fleet \
+  --cluster "$CLUSTER" \
+  --region "$REGION" \
+  --profile "$AWS_PROFILE" \
+  --status STOP_REQUESTED \
+  --wait-for STOPPED \
+  --timeout-seconds 1200 \
+  --poll-interval-seconds 30
+```
+
+Every stop first obtains an authoritative, bounded headnode proof that no
+DayOA controller and no Slurm job remains. Without `--drain`, active work fails
+the command immediately. With `--drain`, DYEC waits for the work to finish
+naturally before submitting the stop request. `--drain` never cancels a job,
+signals a controller, changes a Slurm node state, or otherwise drains scheduler
+work. It is invalid with `START_REQUESTED`.
+
+The command is idempotent when the fleet is already at the requested terminal
+state. It reclaims a same-direction transition without submitting a duplicate;
+an opposite-direction transition fails closed. A successful JSON response has
+schema `dyec.cluster_compute_fleet.v1` and these fields:
+
+```json
+{
+  "schema_version": "dyec.cluster_compute_fleet.v1",
+  "ok": true,
+  "cluster": "<cluster>",
+  "region": "<region>",
+  "request_status": "STOP_REQUESTED",
+  "wait_for_status": "STOPPED",
+  "drain_requested": false,
+  "initial_status": "RUNNING",
+  "final_status": "STOPPED",
+  "request_submitted": true,
+  "resumed_existing_request": false,
+  "idle_proof": {
+    "authoritative": true,
+    "controller_count": 0,
+    "slurm_job_count": 0,
+    "observed_at": "<UTC timestamp>",
+    "instance_id": "<headnode instance id>",
+    "ssm_command_ids": ["<controller probe>", "<queue probe>"]
+  },
+  "started_at": "<UTC timestamp>",
+  "completed_at": "<UTC timestamp>",
+  "elapsed_seconds": 0.0
+}
+```
+
+`idle_proof` is `null` for a start or an already-`STOPPED` no-op. A callback
+failure in JSON mode returns the same schema with `ok: false`,
+`error_code: compute_fleet_operation_failed` (or `internal_error`), and a
+bounded `error` string.
+
+### Crash-safe Slurm-accounting recovery
+
+`slurm-accounting recover` repairs the incomplete post-create accounting phase
+without rerunning `dyec create`. It accepts only the exact persisted cluster
+identity and pre-accounting configuration. The supported initial cluster
+states are `CREATE_COMPLETE`, `UPDATE_IN_PROGRESS`,
+`UPDATE_COMPLETE_CLEANUP_IN_PROGRESS`, and `UPDATE_COMPLETE`.
+
+```bash
+dyec --json slurm-accounting recover \
+  --cluster "$CLUSTER" \
+  --region "$REGION" \
+  --region-az "$REGION_AZ" \
+  --profile "$AWS_PROFILE" \
+  --cluster-configuration <exact-persisted-cluster.yaml> \
+  --output-dir <stable-per-cluster-recovery-directory> \
+  --stack-name <exact-accounting-stack> \
+  --database-name <exact-database-name> \
+  --db-username <exact-database-user> \
+  --instance-type <exact-accounting-instance-type> \
+  --create-slurm-accounting-if-missing \
+  --acknowledge-slurm-accounting-create-cost \
+  --timeout-seconds 5400 \
+  --poll-interval-seconds 30
+```
+
+The two creation/cost flags must be supplied together. Omit both when recovery
+may reuse only an existing compatible singleton. Supply both only when the
+caller has persisted authority to create a missing singleton and accept its
+ongoing cost.
+
+For `CREATE_COMPLETE`, DYEC proves the cluster idle, prepares the exact regional
+accounting service and update YAML before changing capacity, stops the fleet,
+dry-runs and submits the accounting update, waits for `UPDATE_COMPLETE`, starts
+the fleet, and verifies accounting. An already-running update is reclaimed and
+never submitted again. `UPDATE_COMPLETE` proceeds only to fleet restoration and
+verification. Exact recovery resolves only the supplied stack in the cluster
+VPC and requires its database and user outputs to match exactly; automatic
+alternate-stack selection and PrivateLink discovery/reconciliation are disabled.
+DYEC repeats its authoritative controller/job proof after service preparation
+and before update handling, even if the fleet was already stopped; work that
+appeared during preparation fails the recovery before any update or restart.
+
+The recovery receipt is a write-ahead identity/phase record. Before rendering,
+DYEC atomically records the trimmed AWS profile, resolved AWS account, cluster,
+region/AZ, source path and hash, deterministic update path, exact
+stack/database/user, instance type, and creation/cost flags. An interrupted
+`render_intent` may resume whether or not the update file appeared. After
+rendering, DYEC rehashes the source and binds the rendered update hash before
+any fleet mutation. Every resumed update revalidates the receipt plus both
+current file hashes and re-renders against the exact singleton before fleet
+start.
+
+Immediately before the non-dry-run update call, DYEC writes
+`update_submission_intent`. If that invocation is interrupted, a retry polls
+provider state for up to 300 seconds. A visible update is reclaimed. If the
+cluster remains `CREATE_COMPLETE`, the intent is intrinsically ambiguous, so
+recovery fails closed for operator review and never resubmits it. A terminal
+receipt is accepted only while the provider reports `UPDATE_COMPLETE`.
+
+Recovery also enforces an explicit provider-state/receipt-phase matrix.
+`CREATE_COMPLETE` accepts only pre-update phases or the two submission phases;
+either submission phase is treated as ambiguous and resolved without
+resubmission. `UPDATE_IN_PROGRESS` and
+`UPDATE_COMPLETE_CLEANUP_IN_PROGRESS` accept only
+`update_submission_intent` or `update_submission`. `UPDATE_COMPLETE` accepts
+only those submission phases or `update_complete`,
+`post_update_exact_target_verified`, `fleet_running`, and
+`accounting_verified`. Unknown phases and every impossible state/phase pair
+fail before fleet or update mutation.
+
+`--output-dir` may already exist and may contain unrelated artifacts. Use one
+stable directory for one exact recovery identity; a profile/account, identity,
+path, or hash mismatch fails closed. DYEC atomically replaces only:
+
+- `slurm-accounting-update.yaml`
+- `slurm-accounting-recovery.json`
+
+The final verification proves `slurmdbd` and `slurmctld` active, the Slurm
+accounting storage configuration enabled, the exact cluster registered through
+`sacctmgr`, and a bounded `sacct -X` query working. Therefore
+`accounting_verified: true` is sufficient proof of working `sacct`; callers do
+not need a second headnode probe.
+
+A successful JSON response has schema
+`dyec.slurm_accounting_recovery.v1` and these fields:
+
+```json
+{
+  "schema_version": "dyec.slurm_accounting_recovery.v1",
+  "ok": true,
+  "terminal": true,
+  "status": "complete",
+  "cluster": "<cluster>",
+  "region": "<region>",
+  "region_az": "<availability zone>",
+  "aws_profile": "<trimmed profile>",
+  "aws_account_id": "<resolved account id>",
+  "accounting_stack_name": "<stack>",
+  "database_name": "<database>",
+  "db_username": "<database user>",
+  "instance_type": "<requested accounting instance type>",
+  "create_slurm_accounting_if_missing": false,
+  "acknowledge_slurm_accounting_create_cost": false,
+  "service_created": false,
+  "cluster_configuration_path": "<absolute source path>",
+  "cluster_configuration_sha256": "<sha256>",
+  "update_configuration_path": "<absolute rendered path>",
+  "update_configuration_sha256": "<sha256>",
+  "initial_cluster_state": "CREATE_COMPLETE",
+  "initial_fleet_state": "RUNNING",
+  "final_cluster_state": "UPDATE_COMPLETE",
+  "final_fleet_state": "RUNNING",
+  "update_submitted": true,
+  "update_reclaimed": false,
+  "fleet_stop_submitted": true,
+  "fleet_start_submitted": true,
+  "accounting_verified": true,
+  "phase_receipts": [
+    {"phase": "accounting_verified", "status": "complete", "observed_at": "<UTC>"}
+  ],
+  "started_at": "<UTC timestamp>",
+  "completed_at": "<UTC timestamp>",
+  "elapsed_seconds": 0.0,
+  "recovery_receipt_path": "<absolute receipt path>",
+  "recovery_receipt_sha256": "<sha256>"
+}
+```
+
+During recovery, the persisted file uses the same schema with `ok: false`,
+`terminal: false`, `status: in_progress`, a stable `phase`, and the bound
+identity/hashes available at that phase. The JSON and persisted receipt exclude
+database endpoints, passwords, secret ARNs, raw provider output, and raw
+exception text. A callback failure in JSON mode returns the same schema with `ok: false`,
+`error_code: slurm_accounting_recovery_failed` (or `internal_error`), and a
+bounded `error` string.
+
 Tags:
 
 ```bash

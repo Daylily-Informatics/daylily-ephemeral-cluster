@@ -3,19 +3,24 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable
 
 import yaml
 
 from daylily_ec.aws.context import AWSContext
 from daylily_ec.aws.slurm_accounting import (
     DEFAULT_ACCOUNTING_DATABASE_NAME,
+    DEFAULT_ACCOUNTING_INSTANCE_TYPE,
     DEFAULT_ACCOUNTING_USERNAME,
     SlurmAccountingDb,
     SlurmAccountingError,
+    create_slurm_accounting_stack,
+    discover_slurm_accounting_dbs,
     list_regional_slurm_accounting_stacks,
     resolve_slurm_accounting_db,
 )
@@ -58,6 +63,8 @@ class PreparedSlurmAccountingUpdate:
     accounting_stack_name: str
     update_config_path: Path
     service_created: bool
+    database_name: str = ""
+    db_username: str = ""
 
 
 @dataclass(frozen=True)
@@ -76,7 +83,7 @@ def _latest_cluster_config(
     cluster_name: str,
     region: str,
     *,
-    profile: Optional[str],
+    profile: str | None,
 ) -> Path:
     """Return the newest persisted create config for an exact cluster identity."""
     matches: list[tuple[str, Path]] = []
@@ -194,11 +201,23 @@ def render_slurm_accounting_update_config(
         "DatabaseName": db.database_name,
     }
 
+    rendered = yaml.safe_dump(payload, sort_keys=False)
     destination_config.parent.mkdir(parents=True, exist_ok=True)
-    destination_config.write_text(
-        yaml.safe_dump(payload, sort_keys=False),
-        encoding="utf-8",
+    fd, temporary_name = tempfile.mkstemp(
+        dir=str(destination_config.parent),
+        prefix=f".{destination_config.name}.tmp-",
+        text=True,
     )
+    temporary_path = Path(temporary_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(rendered)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_path, destination_config)
+    except Exception:
+        temporary_path.unlink(missing_ok=True)
+        raise
     return destination_config
 
 
@@ -206,14 +225,18 @@ def prepare_slurm_accounting_update(
     *,
     cluster_name: str,
     region: str,
-    profile: Optional[str] = None,
-    cluster_configuration: Optional[Path] = None,
+    profile: str | None = None,
+    cluster_configuration: Path | None = None,
     stack_name: str = "",
     privatelink_stack_name: str = "",
     database_name: str = DEFAULT_ACCOUNTING_DATABASE_NAME,
     db_username: str = DEFAULT_ACCOUNTING_USERNAME,
+    instance_type: str = DEFAULT_ACCOUNTING_INSTANCE_TYPE,
     create_if_missing: bool,
-    output_dir: Optional[Path] = None,
+    output_dir: Path | None = None,
+    destination_config: Path | None = None,
+    expected_region_az: str = "",
+    exact_target_only: bool = False,
     warning_callback: Callable[[str], None] | None = None,
     sleep_fn: Callable[[float], None] | None = None,
 ) -> PreparedSlurmAccountingUpdate:
@@ -284,9 +307,16 @@ def prepare_slurm_accounting_update(
                 stage="network",
                 reason_code="subnet_missing_az",
             )
+        if expected_region_az and region_az != expected_region_az:
+            raise SlurmAccountingPreparationError(
+                "The cluster head-node subnet availability zone does not match "
+                "the explicitly requested recovery availability zone.",
+                stage="network",
+                reason_code="subnet_az_mismatch",
+            )
     except SlurmAccountingPreparationError:
         raise
-    except Exception:
+    except Exception:  # noqa: BLE001 - SDK exceptions are normalized at this boundary
         raise SlurmAccountingPreparationError(
             "The cluster head-node subnet could not be inspected safely.",
             stage="network",
@@ -295,7 +325,82 @@ def prepare_slurm_accounting_update(
 
     regional_stack_count: int | None = None
     regional_stacks: list[dict] = []
-    if privatelink_stack_name.strip():
+    exact_stack_name = stack_name.strip()
+    if exact_target_only:
+        if not exact_stack_name:
+            raise SlurmAccountingPreparationError(
+                "Exact accounting preparation requires an explicit stack name.",
+                stage="service_resolution",
+                reason_code="exact_stack_required",
+            )
+        if privatelink_stack_name.strip():
+            raise SlurmAccountingPreparationError(
+                "Exact accounting preparation does not permit PrivateLink target fallback.",
+                stage="service_resolution",
+                reason_code="exact_privatelink_forbidden",
+            )
+        try:
+            exact_regional_stacks = list_regional_slurm_accounting_stacks(
+                aws_ctx,
+                region_az=region_az,
+            )
+            exact_regional_names = [
+                str(item.get("StackName") or "").strip() for item in exact_regional_stacks
+            ]
+            if len(exact_regional_names) > 1 or (
+                exact_regional_names and exact_regional_names != [exact_stack_name]
+            ):
+                raise SlurmAccountingError(
+                    "The regional accounting singleton does not match the exact requested stack."
+                )
+            exact_matches = discover_slurm_accounting_dbs(
+                aws_ctx,
+                region_az=region_az,
+                vpc_id=vpc_id,
+                stack_name=exact_stack_name,
+            )
+            if len(exact_matches) > 1:
+                raise SlurmAccountingError(
+                    "Exact accounting stack resolution returned more than one target."
+                )
+            if exact_matches:
+                db = exact_matches[0]
+                service_created = False
+            elif create_if_missing:
+                db = create_slurm_accounting_stack(
+                    aws_ctx,
+                    region_az=region_az,
+                    vpc_id=vpc_id,
+                    private_subnet_id=headnode_subnet_id,
+                    stack_name=exact_stack_name,
+                    database_name=database_name,
+                    username=db_username,
+                    instance_type=instance_type,
+                )
+                service_created = True
+            else:
+                raise SlurmAccountingError(
+                    f"Exact Slurm accounting stack {exact_stack_name!r} does not exist."
+                )
+        except SlurmAccountingError:
+            raise SlurmAccountingPreparationError(
+                "The exact Slurm accounting stack is unavailable or incompatible; "
+                "no alternate stack or PrivateLink target was considered.",
+                stage="service_resolution",
+                reason_code="exact_service_incompatible",
+            ) from None
+        if (
+            db.stack_name != exact_stack_name
+            or db.database_name != database_name
+            or db.username != db_username
+        ):
+            raise SlurmAccountingPreparationError(
+                "The resolved Slurm accounting stack/database/user identity does not "
+                "match the explicitly requested target.",
+                stage="service_resolution",
+                reason_code="exact_service_identity_mismatch",
+            )
+    elif privatelink_stack_name.strip():
         from daylily_ec.aws.slurm_accounting_privatelink import (
             SlurmAccountingPrivateLinkError,
             resolve_slurm_accounting_privatelink_bridge,
@@ -347,6 +452,7 @@ def prepare_slurm_accounting_update(
                 stack_name=stack_name.strip(),
                 database_name=database_name,
                 username=db_username,
+                instance_type=instance_type,
                 warning_callback=warning_callback,
                 sleep_fn=sleep_fn,
             )
@@ -362,9 +468,9 @@ def prepare_slurm_accounting_update(
                 )
 
                 try:
-                    provider_stack_name = stack_name.strip() or str(
-                        regional_stacks[0].get("StackName") or ""
-                    ).strip()
+                    provider_stack_name = (
+                        stack_name.strip() or str(regional_stacks[0].get("StackName") or "").strip()
+                    )
                     if not provider_stack_name:
                         raise SlurmAccountingPrivateLinkError(
                             "The regional accounting stack is missing its identity."
@@ -398,9 +504,14 @@ def prepare_slurm_accounting_update(
             db = bridge.as_accounting_db()
             service_created = False
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-    destination_dir = output_dir.expanduser() if output_dir else config_dir()
-    update_config = destination_dir / (f"{cluster_name}_slurm_accounting_update_{timestamp}.yaml")
+    if destination_config is not None:
+        update_config = destination_config.expanduser()
+    else:
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+        destination_dir = output_dir.expanduser() if output_dir else config_dir()
+        update_config = destination_dir / (
+            f"{cluster_name}_slurm_accounting_update_{timestamp}.yaml"
+        )
     try:
         render_slurm_accounting_update_config(source_config, update_config, db)
     except (OSError, SlurmAccountingAttachError, SlurmAccountingError, yaml.YAMLError):
@@ -418,6 +529,8 @@ def prepare_slurm_accounting_update(
         accounting_stack_name=db.stack_name,
         update_config_path=update_config,
         service_created=service_created,
+        database_name=db.database_name,
+        db_username=db.username,
     )
 
 
@@ -425,14 +538,14 @@ def attach_slurm_accounting(
     *,
     cluster_name: str,
     region: str,
-    profile: Optional[str] = None,
-    cluster_configuration: Optional[Path] = None,
+    profile: str | None = None,
+    cluster_configuration: Path | None = None,
     stack_name: str = "",
     privatelink_stack_name: str = "",
     database_name: str = DEFAULT_ACCOUNTING_DATABASE_NAME,
     db_username: str = DEFAULT_ACCOUNTING_USERNAME,
     dry_run_only: bool = False,
-    output_dir: Optional[Path] = None,
+    output_dir: Path | None = None,
     pcluster_executable: str = "pcluster",
 ) -> SlurmAccountingAttachResult:
     """Attach a direct or PrivateLink accounting service to a stopped cluster.

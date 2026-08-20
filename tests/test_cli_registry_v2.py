@@ -42,6 +42,7 @@ EXPECTED_COMMANDS = {
     ("cluster", "jobs"),
     ("cluster", "describe"),
     ("cluster", "wait"),
+    ("cluster", "compute-fleet"),
     ("cluster", "tags"),
     ("export",),
     ("exports", "attach"),
@@ -77,6 +78,7 @@ EXPECTED_COMMANDS = {
     ("aws", "audit", "cost-resources"),
     ("slurm-accounting", "ensure"),
     ("slurm-accounting", "attach"),
+    ("slurm-accounting", "recover"),
     ("slurm-accounting", "privatelink", "ensure"),
     ("cost-centers", "ensure-registry"),
     ("cost-centers", "create"),
@@ -331,6 +333,11 @@ def test_agent_guidance_json() -> None:
     assert result.exit_code == 0, result.stdout + result.stderr
     payload = json.loads(result.stdout)
     assert "raw Snakemake" in payload["summary"]
+    assert "raw pcluster" in payload["summary"]
+    assert any("cluster compute-fleet" in item for item in payload["cluster_lifecycle_contract"])
+    assert any(
+        "slurm-accounting recover" in item for item in payload["cluster_lifecycle_contract"]
+    )
     assert any("headnode upload" in item for item in payload["headnode_file_transfer"])
     assert any("dy-r" in item for item in payload["dayoa_controller_contract"])
     cache_guidance = payload["runtime_cache_export_contract"]
@@ -481,6 +488,8 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     aws_audit_cost_resources_cmd = registry.get_command(("aws", "audit", "cost-resources"))
     slurm_accounting_ensure_cmd = registry.get_command(("slurm-accounting", "ensure"))
     slurm_accounting_attach_cmd = registry.get_command(("slurm-accounting", "attach"))
+    slurm_accounting_recover_cmd = registry.get_command(("slurm-accounting", "recover"))
+    cluster_compute_fleet_cmd = registry.get_command(("cluster", "compute-fleet"))
     cost_centers_put_usage_cmd = registry.get_command(("cost-centers", "put-usage"))
     cost_centers_ensure_cur_export_cmd = registry.get_command(("cost-centers", "ensure-cur-export"))
 
@@ -549,6 +558,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert cluster_tags_cmd.policy.supports_json is True
     assert cluster_tags_cmd.policy.mutates_state is True
     assert cluster_tags_cmd.policy.long_running is True
+
+    assert cluster_compute_fleet_cmd is not None
+    assert cluster_compute_fleet_cmd.policy.supports_json is True
+    assert cluster_compute_fleet_cmd.policy.mutates_state is True
+    assert cluster_compute_fleet_cmd.policy.long_running is True
 
     assert env_status_cmd is not None
     assert env_status_cmd.policy.supports_json is True
@@ -806,6 +820,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert slurm_accounting_attach_cmd.policy.supports_json is True
     assert slurm_accounting_attach_cmd.policy.mutates_state is True
     assert slurm_accounting_attach_cmd.policy.long_running is True
+
+    assert slurm_accounting_recover_cmd is not None
+    assert slurm_accounting_recover_cmd.policy.supports_json is True
+    assert slurm_accounting_recover_cmd.policy.mutates_state is True
+    assert slurm_accounting_recover_cmd.policy.long_running is True
 
     assert cost_centers_put_usage_cmd is not None
     assert cost_centers_put_usage_cmd.policy.supports_json is True

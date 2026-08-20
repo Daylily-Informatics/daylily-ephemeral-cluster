@@ -459,7 +459,10 @@ def agent_guidance() -> None:
     """Print operational guidance for agents using DYEC and DayOA safely."""
 
     guidance = {
-        "summary": "Use DYEC as the supported control plane; do not bypass it with raw Snakemake.",
+        "summary": (
+            "Use the installed DYEC console script as the supported control plane; "
+            "do not bypass it with raw pcluster or raw Snakemake."
+        ),
         "local_setup": [
             "cd /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster",
             "source ./activate",
@@ -469,6 +472,14 @@ def agent_guidance() -> None:
             "dyec headnode connect --profile <profile> --region <region> --cluster <cluster>",
             "Use the interactive ubuntu bash login shell.",
             "For DayOA controllers, use a named one-pane tmux session.",
+        ],
+        "cluster_lifecycle_contract": [
+            "Upstream services invoke the installed dyec console script; never pcluster, daylily_ec.pcluster, or python -m daylily_ec.cli.",
+            "Use dyec cluster compute-fleet with exact STOP_REQUESTED/STOPPED or START_REQUESTED/RUNNING state pairs.",
+            "Use dyec slurm-accounting recover for partial post-create accounting; never rerun create against CREATE_COMPLETE.",
+            "Accounting recovery binds the exact AWS profile/account, config hashes, stack, database, and user; it never selects a fallback target.",
+            "Reuse its stable output directory; an ambiguous reclaimed update-submission intent fails closed and is never resubmitted.",
+            "accounting_verified=true includes a bounded working sacct probe.",
         ],
         "dayoa_controller_contract": [
             "Inside tmux, run setup as separate commands: source dyoainit; dy-a <profile> <genome>; dy-r <targets> <flags>.",
@@ -1405,6 +1416,139 @@ def slurm_accounting_attach(
         output.success("ParallelCluster update dry-run succeeded; no update was submitted.")
     else:
         output.success("ParallelCluster accounting update submitted.")
+
+
+def slurm_accounting_recover(
+    cluster: str = typer.Option(
+        ...,
+        "--cluster",
+        help="Exact existing ParallelCluster name.",
+    ),
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
+        "--region",
+        help="AWS region containing the exact recovery cluster.",
+        required=True,
+    ),
+    region_az: Optional[str] = context_option(
+        "aws_region_az",
+        None,
+        "--region-az",
+        help="Exact AWS region + availability zone (for example us-west-2d).",
+        required=True,
+    ),
+    profile: str = typer.Option(
+        ...,
+        "--profile",
+        help="Exact AWS CLI profile for every recovery operation.",
+    ),
+    cluster_configuration: Path = typer.Option(
+        ...,
+        "--cluster-configuration",
+        help="Exact persisted pre-accounting ParallelCluster YAML.",
+    ),
+    output_dir: Path = typer.Option(
+        ...,
+        "--output-dir",
+        help="Stable directory for deterministic update config and recovery receipt files.",
+    ),
+    stack_name: str = typer.Option(
+        ...,
+        "--stack-name",
+        help="Exact regional DayEC Slurm accounting stack name.",
+    ),
+    database_name: str = typer.Option(
+        ...,
+        "--database-name",
+        help="Exact Slurm accounting database name.",
+    ),
+    db_username: str = typer.Option(
+        ...,
+        "--db-username",
+        help="Exact Slurm accounting database user name.",
+    ),
+    instance_type: str = typer.Option(
+        ...,
+        "--instance-type",
+        help="Exact accounting instance type used only if singleton creation is approved.",
+    ),
+    create_slurm_accounting_if_missing: bool = typer.Option(
+        False,
+        "--create-slurm-accounting-if-missing",
+        help="Allow creation of the missing regional accounting singleton.",
+    ),
+    acknowledge_slurm_accounting_create_cost: bool = typer.Option(
+        False,
+        "--acknowledge-slurm-accounting-create-cost",
+        help="Acknowledge the ongoing AWS cost of creating the accounting singleton.",
+    ),
+    timeout_seconds: int = typer.Option(
+        5400,
+        "--timeout-seconds",
+        min=1,
+        help="Maximum seconds for the complete recovery.",
+    ),
+    poll_interval_seconds: int = typer.Option(
+        30,
+        "--poll-interval-seconds",
+        min=1,
+        help="Seconds between bounded provider-state polls.",
+    ),
+) -> None:
+    """Recover one partial accounting attach and verify working ``sacct``."""
+
+    from daylily_ec.workflow.recover_slurm_accounting import (
+        SLURM_ACCOUNTING_RECOVERY_SCHEMA,
+        SlurmAccountingRecoveryError,
+        recover_slurm_accounting,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        result = recover_slurm_accounting(
+            cluster_name=cluster,
+            region=region,
+            region_az=region_az,
+            profile=profile,
+            cluster_configuration=cluster_configuration,
+            output_dir=output_dir,
+            stack_name=stack_name,
+            database_name=database_name,
+            db_username=db_username,
+            instance_type=instance_type,
+            create_slurm_accounting_if_missing=create_slurm_accounting_if_missing,
+            acknowledge_slurm_accounting_create_cost=(acknowledge_slurm_accounting_create_cost),
+            timeout_seconds=timeout_seconds,
+            poll_interval_seconds=poll_interval_seconds,
+        )
+    except SlurmAccountingRecoveryError as exc:
+        _exit_versioned_contract_error(
+            schema_version=SLURM_ACCOUNTING_RECOVERY_SCHEMA,
+            error_code="slurm_accounting_recovery_failed",
+            message=str(exc),
+        )
+    except Exception:  # noqa: BLE001
+        _exit_versioned_contract_error(
+            schema_version=SLURM_ACCOUNTING_RECOVERY_SCHEMA,
+            error_code="internal_error",
+            message="Unexpected DYEC Slurm-accounting recovery failure.",
+        )
+
+    payload = result.to_payload()
+    if _json_mode():
+        output.emit_json(payload)
+        return
+
+    output.heading("Slurm accounting recovery")
+    output.print_text(f"Cluster:     {payload['cluster']}")
+    output.print_text(f"Region/AZ:   {payload['region_az']}")
+    output.print_text(f"Stack:       {payload['accounting_stack_name']}")
+    output.print_text(f"Stack state: {payload['final_cluster_state']}")
+    output.print_text(f"Fleet:       {payload['final_fleet_state']}")
+    output.print_text(f"Config SHA:  {payload['cluster_configuration_sha256']}")
+    output.print_text(f"Receipt:     {payload['recovery_receipt_path']}")
+    output.success("Slurm accounting recovered and sacct verified.")
 
 
 def slurm_accounting_privatelink_ensure(
@@ -2392,6 +2536,107 @@ def cluster_wait(
         if not _json_mode():
             output.print_text("Status: %s" % (current_status or "UNKNOWN"))
         time.sleep(max(poll_interval, 1))
+
+
+def cluster_compute_fleet(
+    cluster: str = typer.Option(
+        ...,
+        "--cluster",
+        help="Exact ParallelCluster name.",
+    ),
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
+        "--region",
+        help="AWS region containing the exact cluster.",
+        required=True,
+    ),
+    profile: str = typer.Option(
+        ...,
+        "--profile",
+        help="Exact AWS CLI profile for every fleet operation.",
+    ),
+    status: str = typer.Option(
+        ...,
+        "--status",
+        click_type=click.Choice(
+            ["STOP_REQUESTED", "START_REQUESTED"],
+            case_sensitive=True,
+        ),
+        help="Exact compute-fleet request state.",
+    ),
+    wait_for: str = typer.Option(
+        ...,
+        "--wait-for",
+        click_type=click.Choice(["STOPPED", "RUNNING"], case_sensitive=True),
+        help="Exact terminal state paired with --status.",
+    ),
+    drain: bool = typer.Option(
+        False,
+        "--drain",
+        help=(
+            "For STOP_REQUESTED, wait for controllers/jobs to become empty naturally; "
+            "never cancel or signal work."
+        ),
+    ),
+    timeout_seconds: int = typer.Option(
+        1200,
+        "--timeout-seconds",
+        min=1,
+        help="Maximum seconds for idle proof and terminal-state wait.",
+    ),
+    poll_interval_seconds: int = typer.Option(
+        30,
+        "--poll-interval-seconds",
+        min=1,
+        help="Seconds between bounded idle/state polls.",
+    ),
+) -> None:
+    """Request or reclaim one guarded compute-fleet transition."""
+
+    from daylily_ec.workflow.compute_fleet import (
+        COMPUTE_FLEET_SCHEMA,
+        ComputeFleetOperationError,
+        run_compute_fleet_transition,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        result = run_compute_fleet_transition(
+            cluster_name=cluster,
+            region=region,
+            profile=profile,
+            request_status=status,
+            wait_for_status=wait_for,
+            drain=drain,
+            timeout_seconds=timeout_seconds,
+            poll_interval_seconds=poll_interval_seconds,
+        )
+    except ComputeFleetOperationError as exc:
+        _exit_versioned_contract_error(
+            schema_version=COMPUTE_FLEET_SCHEMA,
+            error_code="compute_fleet_operation_failed",
+            message=str(exc),
+        )
+    except Exception:  # noqa: BLE001
+        _exit_versioned_contract_error(
+            schema_version=COMPUTE_FLEET_SCHEMA,
+            error_code="internal_error",
+            message="Unexpected DYEC compute-fleet operation failure.",
+        )
+
+    payload = result.to_payload()
+    if _json_mode():
+        output.emit_json(payload)
+        return
+
+    output.heading("Compute fleet transition")
+    output.print_text(f"Cluster:   {payload['cluster']}")
+    output.print_text(f"Region:    {payload['region']}")
+    output.print_text(f"Initial:   {payload['initial_status']}")
+    output.print_text(f"Final:     {payload['final_status']}")
+    output.print_text(f"Submitted: {str(payload['request_submitted']).lower()}")
+    output.success(f"Compute fleet reached {payload['final_status']}.")
 
 
 def _emit_cluster_tags_text(payload: dict[str, Any]) -> None:
@@ -4091,6 +4336,28 @@ def _describe_headnode_cluster(
 
 def _exit_headnode_error(exc: BaseException) -> None:
     output.error(str(exc))
+    raise typer.Exit(1)
+
+
+def _exit_versioned_contract_error(
+    *,
+    schema_version: str,
+    error_code: str,
+    message: str,
+) -> None:
+    """Exit one public JSON contract without leaking raw provider diagnostics."""
+
+    if _json_mode():
+        output.emit_json(
+            {
+                "schema_version": schema_version,
+                "ok": False,
+                "error_code": error_code,
+                "error": message,
+            }
+        )
+    else:
+        output.error(message)
     raise typer.Exit(1)
 
 
@@ -10525,6 +10792,11 @@ def register(registry, cli_spec) -> None:
                 slurm_accounting_attach,
                 required_policy(supports_json=True, mutates_state=True, long_running=True),
             ),
+            (
+                "recover",
+                slurm_accounting_recover,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
         ],
     )
     register_group_commands(
@@ -10597,6 +10869,11 @@ def register(registry, cli_spec) -> None:
             ("jobs", cluster_jobs, REQUIRED_JSON),
             ("describe", cluster_describe, REQUIRED_JSON),
             ("wait", cluster_wait, REQUIRED_LONG_RUNNING),
+            (
+                "compute-fleet",
+                cluster_compute_fleet,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
             (
                 "tags",
                 cluster_tags,

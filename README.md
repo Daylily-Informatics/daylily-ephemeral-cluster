@@ -62,6 +62,9 @@ Use `--cluster` for DYEC commands. Keep `--cluster-name` for tools such as `pclu
 ## Safety contracts
 
 - Use `dyec`; do not launch DayOA by invoking raw `snakemake`.
+- Upstream services use the installed `dyec` console script for every cluster
+  lifecycle operation. They do not run `pcluster`, import DYEC Python
+  internals, or use a module entrypoint as an alternate control path.
 - New DayOA checkouts must be explicit-tag checkouts.
 - A DYEC controller never mutates a pinned DayOA release: no runtime rule/script/environment/config patches, source overlays, or generated helpers in the checkout. It verifies the selected ref is clean before dispatch and after the workflow returns. Missing behavior is a hard error that must be fixed and released in DayOA, never repaired on the headnode.
 - Headnode work uses a cluster-appropriate remote user selected by platform: Ubuntu/Intel DayOA headnodes use `ubuntu`; DRAGEN/RHEL-style headnodes use `ec2-user`.
@@ -81,7 +84,7 @@ Run `dyec --help` for the live list. Current major groups are:
 | `version`, `info`, `runtime`, `env`, `resources-dir`, `state`, `set-vars`, `unset-vars` | Local/runtime introspection and per-checkout local context. |
 | `agent` | Compact operational guidance for an automated or human operator. |
 | `preflight`, `create`, `drift`, `delete` | Cluster lifecycle. |
-| `cluster`, `cluster-info` | ParallelCluster inspection and tag helpers. |
+| `cluster`, `cluster-info` | ParallelCluster inspection, guarded compute-fleet lifecycle, and tag helpers. |
 | `headnode` | SSM-backed headnode connection, command execution, file transfer, and observability. |
 | `mounts`, `mount` | FSx run-directory Data Repository Associations. |
 | `workflow`, `repositories`, `catalog` | Standard workflow clone/launch/status helpers plus repository and command-catalog discovery, exact rendering, and launch. |

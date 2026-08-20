@@ -16,6 +16,8 @@ DYEC is neither an identity service nor a replacement for DayOA.
 | Identify the installed CLI and catalog pin | `dyec --json version`, `dyec --json catalog list` | A release tag is not a DayOA tag; inspect the rendered catalog row. |
 | Inspect cluster, headnode, controllers, or queue | `dyec cluster describe`, `dyec headnode dayoa-controllers`, `dyec headnode jobs` | Inspection does not authorize Slurm or node intervention. |
 | Create a cluster | `dyec preflight`, then `dyec create` | Creation is a cloud change; use only with the approved exact config and budget. |
+| Stop/start a compute fleet | `dyec cluster compute-fleet` | Exact state pairs only; every stop proves controllers/jobs idle, and `--drain` only waits naturally. |
+| Recover incomplete accounting | `dyec slurm-accounting recover` | Never rerun create against `CREATE_COMPLETE`; recovery owns stop, attach, restart, and working-`sacct` proof. |
 | Make an S3 run directory available on FSx | `dyec mounts create`, then `dyec mounts verify` | Run mounts are read-only by default. Wait generously for DRA availability. |
 | Run a known production workflow | `dyec catalog show`, `dyec catalog render`, `dyec catalog launch` | Render first; honor the command's exact input contract and DayOA pin. |
 | Run a reviewed non-catalog workflow | `dyec workflow launch` | Supply the exact DayOA tag, input contract, and `--dy-command`; do not improvise defaults. |
@@ -98,6 +100,51 @@ dyec create \
   --profile "$AWS_PROFILE" --region-az <region-az> \
   --config <approved-cluster-config.yaml>
 ```
+
+Automation and upstream services use the installed `dyec` console script as
+the sole cluster-operation boundary. They must not run `pcluster` directly,
+import `daylily_ec.pcluster` or another DYEC Python internal, or replace the
+console script with `python -m daylily_ec.cli`.
+
+Use the guarded fleet command for an exact lifecycle transition:
+
+```bash
+dyec --json cluster compute-fleet \
+  --cluster "$CLUSTER" --region "$REGION" --profile "$AWS_PROFILE" \
+  --status STOP_REQUESTED --wait-for STOPPED \
+  --timeout-seconds 1200 --poll-interval-seconds 30
+```
+
+Use `--drain` only when the approved action is to wait for controllers and jobs
+to finish naturally. It does not cancel, signal, or alter scheduler state.
+
+If a base cluster reached `CREATE_COMPLETE` but its accounting phase did not
+finish, do not rerun `dyec create`. Invoke the exact persisted recovery
+contract:
+
+```bash
+dyec --json slurm-accounting recover \
+  --cluster "$CLUSTER" --region "$REGION" --region-az <region-az> \
+  --profile "$AWS_PROFILE" \
+  --cluster-configuration <persisted-cluster.yaml> \
+  --output-dir <stable-recovery-directory> \
+  --stack-name <accounting-stack> \
+  --database-name <database> --db-username <user> \
+  --instance-type <accounting-instance-type> \
+  --timeout-seconds 5400 --poll-interval-seconds 30
+```
+
+Add both `--create-slurm-accounting-if-missing` and
+`--acknowledge-slurm-accounting-create-cost` only when that creation and cost
+were explicitly approved. Recovery binds the trimmed AWS profile/account,
+cluster/config hashes, and exact stack/database/user; it never selects an
+alternate stack or PrivateLink bridge. Keep the same output directory on
+retry. A reclaimed update-submission intent is polled for provider visibility
+and never blindly resubmitted. A success response is terminal only when it
+reports `status: complete`, `terminal: true`, cluster `UPDATE_COMPLETE`, fleet
+`RUNNING`, and `accounting_verified: true`; that boolean includes a working
+`sacct` probe. The exact state machine, stable output filenames, and JSON fields are in
+[cli_reference.md](cli_reference.md#crash-safe-slurm-accounting-recovery).
 
 For an interactive headnode shell, use DYEC rather than an ad hoc SSM command:
 
