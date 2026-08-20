@@ -105,6 +105,56 @@ CLUSTER_BOOT_CONFIG_FILENAMES = (
 )
 BOOT_CONFIG_REFERENCE_COMPAT_LINE = b'reference_compat_root="/fsx/data"'
 DEFAULT_CREATE_CLUSTER_TYPE = "intel"
+
+# -- Cluster-level IAM containment (ISS-80) ---------------------------------
+# ParallelCluster creates 18 roles and 16 instance profiles per cluster. These
+# two settings are what make that safe to grant: PermissionsBoundary caps every
+# role PC creates, and ResourcePrefix puts them under a known path so a
+# deployer's iam:CreateRole can be scoped to a namespace instead of the account.
+#
+# Both are opt-in via environment. Unset -> render_iam_cluster_block() returns
+# "" and the rendered YAML is byte-identical to today's, so this change cannot
+# affect any existing deploy.
+IAM_BOUNDARY_ENV_VAR = "DAY_IAM_PERMISSIONS_BOUNDARY"
+IAM_RESOURCE_PREFIX_ENV_VAR = "DAY_IAM_RESOURCE_PREFIX"
+DEFAULT_IAM_RESOURCE_PREFIX = "/daylily-pc/"
+
+
+def render_iam_cluster_block(
+    boundary_arn: str = "",
+    resource_prefix: str = "",
+) -> str:
+    """Render the cluster-level ``Iam:`` block, or an empty string.
+
+    ``PermissionsBoundary`` caps every IAM role ParallelCluster creates for the
+    cluster; ``ResourcePrefix`` puts those roles under a known path. Together
+    they are what allow a deployer to hold *bounded* IAM-write permissions
+    rather than unconstrained ones.
+
+    Returns ``""`` when no boundary is configured. This is deliberate: emitting
+    a reference to a boundary policy that does not exist would fail every
+    cluster create, so containment stays opt-in until Terraform has applied the
+    policy. Set ``DAY_IAM_PERMISSIONS_BOUNDARY`` to enable it.
+
+    The rendered value begins with a newline: the template carries the token
+    inside a YAML comment so the *unrendered* template stays parseable, and the
+    leading newline moves real content onto the lines below that comment.
+    """
+    arn = str(boundary_arn or _os.environ.get(IAM_BOUNDARY_ENV_VAR, "")).strip()
+    if not arn:
+        return ""
+    prefix = str(
+        resource_prefix
+        or _os.environ.get(IAM_RESOURCE_PREFIX_ENV_VAR, "")
+        or DEFAULT_IAM_RESOURCE_PREFIX
+    ).strip()
+    return (
+        "\n"
+        "Iam:\n"
+        f"  PermissionsBoundary: {arn}\n"
+        f"  ResourcePrefix: {prefix}"
+    )
+
 DRAGEN_CLUSTER_TYPE = "dragen"
 SENTIEON_SINGLE_CLUSTER_TYPE = "sentieon-single"
 SENTIEON_SINGLE_REGION_AZ = "us-west-2c"
@@ -3681,6 +3731,7 @@ def run_create_workflow(
         # a supported mode, so the ParallelCluster-managed Scratch path is
         # always deleted with its stack.
         "REGSUB_SAVE_FSX": "Delete",
+        "REGSUB_IAM_CLUSTER_BLOCK": render_iam_cluster_block(),
         # Tag values must be quoted strings, not bare YAML booleans.
         "REGSUB_ENFORCE_BUDGET": '"' + post_create_inputs.enforce_budget + '"',
         "REGSUB_COST_CENTER_REGION": DEFAULT_COST_CENTER_HOME_REGION,
