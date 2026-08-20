@@ -78,6 +78,9 @@ invent a fallback or bypass the supported DYEC/DAYOA CLI path.
 - Ordinary DayOA/HIOMRS execution must work with no EUIDs and no identity
   service. Customer-release preparation may require owner-issued identifiers,
   but they must already be present in the supplied manifests and receipts.
+- The installed literal `dyec` console script is also the only supported upstream orchestration boundary. Ursa and other callers must use public `dyec` commands and bounded JSON receipts; `daylily_ec` Python modules are implementation details, not an integration API.
+- `dyec create` owns the complete cluster-create lifecycle, including registered template rendering, live spot-price calculation, provider creation/update, Slurm-accounting enablement, and terminal verification. Do not require an upstream service to reproduce any of those phases.
+- Provider tools such as `pcluster`, boto3, and AWS SDK helpers may be implementation details behind DYEC, but they must never become a required upstream call path. When an upstream use case lacks a public command, add and test that public command instead of documenting an internal-module workaround.
 
 # Analysis-Root Agent Locking
 
