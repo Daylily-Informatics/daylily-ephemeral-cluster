@@ -28,6 +28,7 @@ from daylily_ec.pcluster.runner import (
 )
 from daylily_ec.workflow.attach_slurm_accounting import (
     PreparedSlurmAccountingUpdate,
+    SlurmAccountingPreparationError,
     prepare_slurm_accounting_update,
 )
 from daylily_ec.workflow.compute_fleet import (
@@ -44,6 +45,7 @@ RECOVERY_STATUS_IN_PROGRESS = "in_progress"
 RECOVERY_STATUS_COMPLETE = "complete"
 MAX_RECOVERY_RECEIPT_BYTES = 1024 * 1024
 SUBMISSION_INTENT_RESOLUTION_SECONDS = 300.0
+MAX_PUBLIC_DIAGNOSTIC_TOKEN_LENGTH = 64
 
 PHASE_RENDER_INTENT = "render_intent"
 PHASE_SERVICE_READY = "service_ready"
@@ -119,6 +121,55 @@ SUPPORTED_INITIAL_FLEET_STATES = frozenset(
 
 class SlurmAccountingRecoveryError(RuntimeError):
     """Raised when accounting recovery cannot continue without ambiguity."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        stage: str | None = None,
+        reason_code: str | None = None,
+    ) -> None:
+        super().__init__(message)
+        safe_stage = _bounded_diagnostic_token(stage)
+        safe_reason_code = _bounded_diagnostic_token(reason_code)
+        if (safe_stage is None) != (safe_reason_code is None):
+            safe_stage = None
+            safe_reason_code = None
+        self.stage = safe_stage
+        self.reason_code = safe_reason_code
+
+
+def _bounded_diagnostic_token(value: object) -> str | None:
+    """Return one bounded non-secret machine token, or omit unsafe input."""
+
+    if not isinstance(value, str) or not value:
+        return None
+    if len(value) > MAX_PUBLIC_DIAGNOSTIC_TOKEN_LENGTH:
+        return None
+    if not value[0].isascii() or not value[0].islower():
+        return None
+    if any(
+        not (
+            character.isascii() and (character.islower() or character.isdigit() or character == "_")
+        )
+        for character in value
+    ):
+        return None
+    return value
+
+
+def _preparation_recovery_error(
+    error: SlurmAccountingPreparationError,
+    *,
+    message: str,
+) -> SlurmAccountingRecoveryError:
+    """Normalize preparation failure without carrying provider exception text."""
+
+    return SlurmAccountingRecoveryError(
+        message,
+        stage=error.stage,
+        reason_code=error.reason_code,
+    )
 
 
 def _utc_now() -> str:
@@ -551,6 +602,11 @@ def _verify_exact_target_binding(
                 expected_region_az=region_az,
                 exact_target_only=True,
             )
+        except SlurmAccountingPreparationError as exc:
+            raise _preparation_recovery_error(
+                exc,
+                message="The exact accounting singleton could not be revalidated safely.",
+            ) from None
         except Exception:  # noqa: BLE001 - exact target errors are normalized here
             raise SlurmAccountingRecoveryError(
                 "The exact accounting singleton could not be revalidated safely."
@@ -961,6 +1017,13 @@ def recover_slurm_accounting(
                         expected_region_az=region_az,
                         exact_target_only=True,
                     )
+                except SlurmAccountingPreparationError as exc:
+                    raise _preparation_recovery_error(
+                        exc,
+                        message=(
+                            "The exact accounting service/update configuration was not prepared."
+                        ),
+                    ) from None
                 except Exception:  # noqa: BLE001 - preparation errors normalized here
                     raise SlurmAccountingRecoveryError(
                         "The exact accounting service/update configuration was not prepared."

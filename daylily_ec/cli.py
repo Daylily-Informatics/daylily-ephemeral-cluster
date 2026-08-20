@@ -1527,6 +1527,8 @@ def slurm_accounting_recover(
             schema_version=SLURM_ACCOUNTING_RECOVERY_SCHEMA,
             error_code="slurm_accounting_recovery_failed",
             message=str(exc),
+            stage=exc.stage,
+            reason_code=exc.reason_code,
         )
     except Exception:  # noqa: BLE001
         _exit_versioned_contract_error(
@@ -4344,18 +4346,22 @@ def _exit_versioned_contract_error(
     schema_version: str,
     error_code: str,
     message: str,
+    stage: str | None = None,
+    reason_code: str | None = None,
 ) -> None:
     """Exit one public JSON contract without leaking raw provider diagnostics."""
 
     if _json_mode():
-        output.emit_json(
-            {
-                "schema_version": schema_version,
-                "ok": False,
-                "error_code": error_code,
-                "error": message,
-            }
-        )
+        payload = {
+            "schema_version": schema_version,
+            "ok": False,
+            "error_code": error_code,
+            "error": message,
+        }
+        if stage is not None and reason_code is not None:
+            payload["stage"] = stage
+            payload["reason_code"] = reason_code
+        output.emit_json(payload)
     else:
         output.error(message)
     raise typer.Exit(1)

@@ -401,7 +401,15 @@ identity/hashes available at that phase. The JSON and persisted receipt exclude
 database endpoints, passwords, secret ARNs, raw provider output, and raw
 exception text. A callback failure in JSON mode returns the same schema with `ok: false`,
 `error_code: slurm_accounting_recovery_failed` (or `internal_error`), and a
-bounded `error` string.
+bounded `error` string. A normalized accounting-preparation failure also returns
+bounded lowercase machine tokens in `stage` and `reason_code`. Exact-target
+`service_resolution` distinguishes
+`exact_regional_stack_inventory_failed`, `exact_regional_stack_conflict`,
+`exact_database_discovery_failed`, `exact_database_multiple`,
+`exact_stack_missing`, `exact_stack_create_failed`, and
+`exact_service_identity_mismatch`. Provider/SDK text and credentials are never
+copied into those fields or the generic public error message; other recovery
+failures omit the two preparation fields.
 
 Tags:
 

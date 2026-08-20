@@ -549,6 +549,125 @@ def test_prepared_exact_identity_mismatch_blocks_before_fleet(
         _recover(tmp_path, idle_probe_fn=lambda **_kwargs: _idle())
 
 
+def test_preparation_failure_preserves_safe_stage_and_reason_without_provider_text(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    output_dir = tmp_path / "receipts"
+    monkeypatch.setattr(
+        recovery_module,
+        "_describe_cluster_state",
+        lambda *_args, **_kwargs: ("CREATE_COMPLETE", {}),
+    )
+    monkeypatch.setattr(
+        recovery_module,
+        "_describe_fleet_state",
+        lambda *_args, **_kwargs: "STOPPED",
+    )
+
+    def fail_preparation(**_kwargs):
+        raise attach_module.SlurmAccountingPreparationError(
+            "AccessDenied SDK detail password=do-not-expose",
+            stage="service_resolution",
+            reason_code="exact_database_discovery_failed",
+        )
+
+    monkeypatch.setattr(recovery_module, "prepare_slurm_accounting_update", fail_preparation)
+    monkeypatch.setattr(
+        recovery_module,
+        "run_compute_fleet_transition",
+        lambda **_kwargs: pytest.fail("preparation failure must precede fleet mutation"),
+    )
+    monkeypatch.setattr(
+        recovery_module,
+        "update_cluster",
+        lambda *_args, **_kwargs: pytest.fail("preparation failure must precede update"),
+    )
+
+    with pytest.raises(SlurmAccountingRecoveryError) as caught:
+        _recover(
+            tmp_path,
+            output_dir=output_dir,
+            idle_probe_fn=lambda **_kwargs: _idle(),
+        )
+
+    assert str(caught.value) == (
+        "The exact accounting service/update configuration was not prepared."
+    )
+    assert caught.value.stage == "service_resolution"
+    assert caught.value.reason_code == "exact_database_discovery_failed"
+    assert "AccessDenied" not in str(caught.value)
+    assert "password" not in str(caught.value)
+    receipt = json.loads((output_dir / RECOVERY_RECEIPT_FILENAME).read_text(encoding="utf-8"))
+    assert receipt["status"] == "in_progress"
+    assert receipt["phase"] == "render_intent"
+    assert not (output_dir / UPDATE_CONFIGURATION_FILENAME).exists()
+
+
+def test_exact_revalidation_preserves_safe_preparation_diagnostics(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    source = _source(tmp_path / "source.yaml")
+    update = tmp_path / UPDATE_CONFIGURATION_FILENAME
+    update.write_text("accounting: rendered\n", encoding="utf-8")
+    monkeypatch.setattr(
+        recovery_module,
+        "prepare_slurm_accounting_update",
+        lambda **_kwargs: (_ for _ in ()).throw(
+            attach_module.SlurmAccountingPreparationError(
+                "AccessDenied SDK detail password=do-not-expose",
+                stage="service_resolution",
+                reason_code="exact_regional_stack_inventory_failed",
+            )
+        ),
+    )
+
+    with pytest.raises(SlurmAccountingRecoveryError) as caught:
+        recovery_module._verify_exact_target_binding(
+            cluster_name="cluster-a",
+            region="us-west-2",
+            region_az="us-west-2d",
+            profile="lsmc",
+            source_config=source,
+            source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),
+            update_config=update,
+            update_sha256=hashlib.sha256(update.read_bytes()).hexdigest(),
+            stack_name="dayec-slurm-accounting-us-west-2",
+            database_name="dayec_slurm_acct",
+            db_username="slurm_acct",
+            instance_type="t4g.micro",
+        )
+
+    assert str(caught.value) == ("The exact accounting singleton could not be revalidated safely.")
+    assert caught.value.stage == "service_resolution"
+    assert caught.value.reason_code == "exact_regional_stack_inventory_failed"
+    assert "AccessDenied" not in str(caught.value)
+    assert "password" not in str(caught.value)
+
+
+@pytest.mark.parametrize(
+    ("stage", "reason_code"),
+    [
+        ("service resolution", "exact_database_discovery_failed"),
+        ("service_resolution", "x" * 65),
+        ("service_resolution", "sdk:error"),
+    ],
+)
+def test_recovery_error_omits_unbounded_or_unstructured_diagnostics(
+    stage,
+    reason_code,
+) -> None:
+    error = SlurmAccountingRecoveryError(
+        "Safe generic recovery failure.",
+        stage=stage,
+        reason_code=reason_code,
+    )
+
+    assert error.stage is None
+    assert error.reason_code is None
+
+
 def test_source_mutation_during_render_blocks_before_fleet(tmp_path, monkeypatch) -> None:
     monkeypatch.setattr(
         recovery_module,
@@ -884,6 +1003,104 @@ def _patch_exact_resolution(monkeypatch, db: SlurmAccountingDb) -> None:
         "create_slurm_accounting_stack",
         lambda *_args, **_kwargs: pytest.fail("existing exact stack must not be recreated"),
     )
+
+
+@pytest.mark.parametrize(
+    ("scenario", "expected_reason", "create_if_missing"),
+    [
+        ("inventory_failure", "exact_regional_stack_inventory_failed", False),
+        ("inventory_conflict", "exact_regional_stack_conflict", False),
+        ("database_discovery_failure", "exact_database_discovery_failed", False),
+        ("database_multiple", "exact_database_multiple", False),
+        ("stack_missing", "exact_stack_missing", False),
+        ("stack_create_failure", "exact_stack_create_failed", True),
+    ],
+)
+def test_exact_preparation_reports_actionable_safe_reason_without_fallback(
+    tmp_path,
+    monkeypatch,
+    scenario,
+    expected_reason,
+    create_if_missing,
+) -> None:
+    exact_db = _exact_db()
+    _patch_exact_resolution(monkeypatch, exact_db)
+    provider_detail = "AccessDenied SDK detail password=do-not-expose"
+
+    if scenario == "inventory_failure":
+        monkeypatch.setattr(
+            attach_module,
+            "list_regional_slurm_accounting_stacks",
+            lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError(provider_detail)),
+        )
+    elif scenario == "inventory_conflict":
+        monkeypatch.setattr(
+            attach_module,
+            "list_regional_slurm_accounting_stacks",
+            lambda *_args, **_kwargs: [{"StackName": "wrong-exact-stack"}],
+        )
+        monkeypatch.setattr(
+            attach_module,
+            "discover_slurm_accounting_dbs",
+            lambda *_args, **_kwargs: pytest.fail(
+                "inventory conflict must precede database discovery"
+            ),
+        )
+    elif scenario == "database_discovery_failure":
+        monkeypatch.setattr(
+            attach_module,
+            "discover_slurm_accounting_dbs",
+            lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError(provider_detail)),
+        )
+    elif scenario == "database_multiple":
+        monkeypatch.setattr(
+            attach_module,
+            "discover_slurm_accounting_dbs",
+            lambda *_args, **_kwargs: [exact_db, exact_db],
+        )
+    else:
+        monkeypatch.setattr(
+            attach_module,
+            "list_regional_slurm_accounting_stacks",
+            lambda *_args, **_kwargs: [],
+        )
+        monkeypatch.setattr(
+            attach_module,
+            "discover_slurm_accounting_dbs",
+            lambda *_args, **_kwargs: [],
+        )
+        if scenario == "stack_create_failure":
+            monkeypatch.setattr(
+                attach_module,
+                "create_slurm_accounting_stack",
+                lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError(provider_detail)),
+            )
+
+    source = tmp_path / "source.yaml"
+    source.write_text(
+        "HeadNode:\n  Networking:\n    SubnetId: subnet-exact\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(attach_module.SlurmAccountingPreparationError) as caught:
+        attach_module.prepare_slurm_accounting_update(
+            cluster_name="cluster-a",
+            region="us-west-2",
+            profile="lsmc",
+            cluster_configuration=source,
+            stack_name="dayec-slurm-accounting-us-west-2",
+            database_name="dayec_slurm_acct",
+            db_username="slurm_acct",
+            instance_type="t4g.micro",
+            create_if_missing=create_if_missing,
+            destination_config=tmp_path / "update.yaml",
+            expected_region_az="us-west-2d",
+            exact_target_only=True,
+        )
+
+    assert caught.value.stage == "service_resolution"
+    assert caught.value.reason_code == expected_reason
+    assert "AccessDenied" not in str(caught.value)
+    assert "password" not in str(caught.value)
 
 
 def test_exact_preparation_uses_only_supplied_stack_without_fallback(tmp_path, monkeypatch) -> None:

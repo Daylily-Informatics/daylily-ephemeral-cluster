@@ -347,26 +347,46 @@ def prepare_slurm_accounting_update(
             exact_regional_names = [
                 str(item.get("StackName") or "").strip() for item in exact_regional_stacks
             ]
-            if len(exact_regional_names) > 1 or (
-                exact_regional_names and exact_regional_names != [exact_stack_name]
-            ):
-                raise SlurmAccountingError(
-                    "The regional accounting singleton does not match the exact requested stack."
-                )
+        except Exception:  # noqa: BLE001 - provider text is normalized here
+            raise SlurmAccountingPreparationError(
+                "The regional accounting singleton inventory could not be read safely.",
+                stage="service_resolution",
+                reason_code="exact_regional_stack_inventory_failed",
+            ) from None
+        if len(exact_regional_names) > 1 or (
+            exact_regional_names and exact_regional_names != [exact_stack_name]
+        ):
+            raise SlurmAccountingPreparationError(
+                "The regional accounting singleton inventory conflicts with the exact "
+                "requested stack.",
+                stage="service_resolution",
+                reason_code="exact_regional_stack_conflict",
+            )
+        try:
             exact_matches = discover_slurm_accounting_dbs(
                 aws_ctx,
                 region_az=region_az,
                 vpc_id=vpc_id,
                 stack_name=exact_stack_name,
             )
-            if len(exact_matches) > 1:
-                raise SlurmAccountingError(
-                    "Exact accounting stack resolution returned more than one target."
-                )
-            if exact_matches:
-                db = exact_matches[0]
-                service_created = False
-            elif create_if_missing:
+            exact_match_count = len(exact_matches)
+        except Exception:  # noqa: BLE001 - provider text is normalized here
+            raise SlurmAccountingPreparationError(
+                "The exact accounting database target could not be discovered safely.",
+                stage="service_resolution",
+                reason_code="exact_database_discovery_failed",
+            ) from None
+        if exact_match_count > 1:
+            raise SlurmAccountingPreparationError(
+                "Exact accounting database discovery returned more than one target.",
+                stage="service_resolution",
+                reason_code="exact_database_multiple",
+            )
+        if exact_match_count == 1:
+            db = exact_matches[0]
+            service_created = False
+        elif create_if_missing:
+            try:
                 db = create_slurm_accounting_stack(
                     aws_ctx,
                     region_az=region_az,
@@ -377,23 +397,28 @@ def prepare_slurm_accounting_update(
                     username=db_username,
                     instance_type=instance_type,
                 )
-                service_created = True
-            else:
-                raise SlurmAccountingError(
-                    f"Exact Slurm accounting stack {exact_stack_name!r} does not exist."
-                )
-        except SlurmAccountingError:
+            except Exception:  # noqa: BLE001 - provider text is normalized here
+                raise SlurmAccountingPreparationError(
+                    "The exact Slurm accounting stack could not be created safely.",
+                    stage="service_resolution",
+                    reason_code="exact_stack_create_failed",
+                ) from None
+            service_created = True
+        else:
             raise SlurmAccountingPreparationError(
-                "The exact Slurm accounting stack is unavailable or incompatible; "
-                "no alternate stack or PrivateLink target was considered.",
+                "The exact Slurm accounting stack is missing and creation was not approved.",
                 stage="service_resolution",
-                reason_code="exact_service_incompatible",
-            ) from None
-        if (
-            db.stack_name != exact_stack_name
-            or db.database_name != database_name
-            or db.username != db_username
-        ):
+                reason_code="exact_stack_missing",
+            )
+        try:
+            exact_identity_matches = (
+                db.stack_name == exact_stack_name
+                and db.database_name == database_name
+                and db.username == db_username
+            )
+        except Exception:  # noqa: BLE001 - malformed provider result is normalized here
+            exact_identity_matches = False
+        if not exact_identity_matches:
             raise SlurmAccountingPreparationError(
                 "The resolved Slurm accounting stack/database/user identity does not "
                 "match the explicitly requested target.",

@@ -11,6 +11,7 @@ from daylily_ec.workflow.compute_fleet import (
     ComputeFleetOperationResult,
 )
 from daylily_ec.workflow.recover_slurm_accounting import (
+    SlurmAccountingRecoveryError,
     SlurmAccountingRecoveryResult,
 )
 
@@ -321,3 +322,66 @@ def test_slurm_accounting_recover_cli_emits_versioned_json_failure(
             "--acknowledge-slurm-accounting-create-cost must be supplied together."
         ),
     }
+
+
+def test_slurm_accounting_recover_cli_emits_safe_preparation_diagnostics(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import daylily_ec.workflow.recover_slurm_accounting as recovery_module
+
+    _activate(monkeypatch)
+    source = tmp_path / "cluster.yaml"
+    source.write_text("Region: us-west-2\n", encoding="utf-8")
+
+    def fail_recovery(**_kwargs):
+        try:
+            raise RuntimeError("AccessDenied SDK detail password=do-not-expose")
+        except RuntimeError as provider_error:
+            raise SlurmAccountingRecoveryError(
+                "The exact accounting service/update configuration was not prepared.",
+                stage="service_resolution",
+                reason_code="exact_database_discovery_failed",
+            ) from provider_error
+
+    monkeypatch.setattr(recovery_module, "recover_slurm_accounting", fail_recovery)
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "slurm-accounting",
+            "recover",
+            "--cluster",
+            "cluster-a",
+            "--region",
+            "us-west-2",
+            "--region-az",
+            "us-west-2d",
+            "--profile",
+            "lsmc",
+            "--cluster-configuration",
+            str(source),
+            "--output-dir",
+            str(tmp_path / "receipts"),
+            "--stack-name",
+            "dayec-slurm-accounting-us-west-2",
+            "--database-name",
+            "dayec_slurm_acct",
+            "--db-username",
+            "slurm_acct",
+            "--instance-type",
+            "t4g.micro",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert json.loads(result.stdout) == {
+        "schema_version": "dyec.slurm_accounting_recovery.v1",
+        "ok": False,
+        "error_code": "slurm_accounting_recovery_failed",
+        "error": "The exact accounting service/update configuration was not prepared.",
+        "stage": "service_resolution",
+        "reason_code": "exact_database_discovery_failed",
+    }
+    assert "AccessDenied" not in result.stdout
+    assert "password" not in result.stdout
