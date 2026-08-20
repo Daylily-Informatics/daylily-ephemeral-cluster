@@ -228,7 +228,7 @@ For cost/performance reports, aggregate directly from those rows: `sum(s)` for t
 - Jobs in Slurm `CF`/`CONFIGURING` can legitimately remain there while ParallelCluster creates spot instances from scratch; this can take tens of minutes. This is information for status reporting only, not a trigger for action or job management.
 - Do not actively manage workflow jobs. Scheduling, retries, queue state, and job lifecycle are Snakemake/Slurm responsibilities. Do not cancel, requeue, hold, release, reprioritize, drain/resume, restart services for, or otherwise manipulate jobs or scheduler state unless the user explicitly approves that exact action in the current thread.
 - Monitoring and reporting are allowed. Jobs running for more than 3 hours may be flagged as `needs investigation`, but do not take corrective action without confirmed user approval.
-- If Slurm is unavailable or unhealthy, record the blocker and route the durable fix through ParallelCluster/pcluster configuration or infrastructure code changes.
+- If Slurm is unavailable or unhealthy, record the blocker and use the public `dyec` CLI for the live operation. Any required ParallelCluster/pcluster configuration or infrastructure implementation must remain behind a reviewed DYEC command and release; upstream callers must not invoke the provider directly.
 
 # Brainstorming and Advice Disposition
 
