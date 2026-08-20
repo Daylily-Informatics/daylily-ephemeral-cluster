@@ -109,9 +109,16 @@ ephemeral_cluster:
     dragen_license_secret_arn: [USESETVALUE, "", ""]
 
     # --- deploy keys (headnode clones DYEC + DayOA from lsmc-bio) ------------
-    dyec_deploy_key_policy_arn:  [USESETVALUE, "", "arn:aws:iam::108782052779:policy/DayECHeadnodeGitHubClone"]
+    # Pointed at a Daylily-owned single-statement policy rather than the shared
+    # DayECHeadnodeGitHubClone. That shared policy gained a second statement on
+    # 2026-08-19 (a dayec/github-token grant) and switched its region to "*";
+    # DYEC's preflight requires exactly one statement whose resource string
+    # matches the configured secret ARN's region exactly, so it now fails for
+    # everyone. See docs/plans/20260820T010000Z_deploy_key_policy_split_plan.md.
+    # This does NOT fix the account-wide breakage — it only unblocks this config.
+    dyec_deploy_key_policy_arn:  [USESETVALUE, "", "arn:aws:iam::108782052779:policy/daylily/DayecHeadnodeDeployKeyRead"]
     dyec_deploy_key_secret_arn:  [USESETVALUE, "", "arn:aws:secretsmanager:us-west-2:108782052779:secret:dayec/github-deploy-keys/lsmc-bio/daylily-ephemeral-cluster-pE4FFN"]
-    dayoa_deploy_key_policy_arn: [USESETVALUE, "", "arn:aws:iam::108782052779:policy/DayECHeadnodeGitHubClone"]
+    dayoa_deploy_key_policy_arn: [USESETVALUE, "", "arn:aws:iam::108782052779:policy/daylily/DayecHeadnodeDeployKeyRead"]
     dayoa_deploy_key_secret_arn: [USESETVALUE, "", "arn:aws:secretsmanager:us-west-2:108782052779:secret:dayec/github-deploy-keys/lsmc-bio-daylily-omics-analysis-igtfHD"]
 
     # --- heartbeat -----------------------------------------------------------
