@@ -27,25 +27,25 @@ Make `dyec headnode configure --force` run a non-interactive `conda clean --all`
 |---|---|---|---|---|---|---|---|---|---|
 | HC-001 | DYEC headnode force reset | Add non-interactive full Conda cleanup after both named environments are removed | SUCCESS | config_or_startup_contract | Gate 2 | orchestrator | `_build_headnode_conda_environment_reset_command()` now emits `conda clean --all --yes` after the environment-removal loop and before bootstrap-receipt removal; both CLI help surfaces disclose the behavior. |  | Non-force configuration remains unchanged. |
 | HC-002 | DYEC tests | Add a focused contract assertion for cleanup presence and ordering | SUCCESS | contract_test | Gate 5 | orchestrator | `tests/test_workflow.py` asserts exactly one cleanup command and its ordering after `done` and before receipt removal. Test execution intentionally omitted by user instruction. |  | Contract coverage added without executing a test suite. |
-| HC-003 | DYEC release | Review exact scope, commit, push branch, annotate `19.0.2`, and push tag | OPEN | feature_implementation | Gate 5 | orchestrator | Candidate tag and branch were unoccupied at Gate 0 |  |  |
+| HC-003 | DYEC release | Review exact scope, commit, push branch, annotate `19.0.2`, and push tag | SUCCESS | feature_implementation | Gate 5 | orchestrator | Implementation commit `96ae4eaf` was pushed to `origin/codex/headnode-force-conda-clean`; the final ledger-bearing release commit is identified by the pushed annotated tag `19.0.2`. |  | Branch and immutable release tag published without a GitHub Release. |
 | HC-004 | Publication boundary | Do not run test suites or create a GitHub Release/package publication | SUCCESS | plan_amendment | Gate 5 | orchestrator | No pytest or repository test command was run; no PR, GitHub Release, distribution build, or package publication was performed. `git diff --check` returned `rc=0`. |  | Requested publication boundary preserved. |
 
 ## Final Report
 
-All rows terminal: no
+All rows terminal: yes
 
-Objective complete: no
+Objective complete: yes
 
 Status counts:
 
-- SUCCESS: 3
+- SUCCESS: 4
 - DUPLICATE: 0
 - NO_LONGER_NEEDED: 0
 - FAIL: 0
 - BLOCKED: 0
 - IN_PROGRESS: 0
-- OPEN: 1
+- OPEN: 0
 
 Validation: exact diff review and `git diff --check -> rc=0`; test suites intentionally not run.
 
-Publication: pending commit, branch push, annotated tag creation, and tag push.
+Publication: `origin/codex/headnode-force-conda-clean` and annotated tag `19.0.2`; no PR, GitHub Release, distribution build, or package publication.
