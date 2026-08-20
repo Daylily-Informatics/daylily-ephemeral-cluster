@@ -22,8 +22,57 @@ cycle. That is the entire reason this phase exists.
 | Template | `config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml` — the only one carrying the token |
 
 Pick a distinct cluster name so no delete prompt can be confused with a live
-run, e.g. `dayec-boundary-test-0820`. Edit `cluster_name` in
+run, e.g. `dayec-boundary-0820`. **DYEC caps cluster names at 20 characters**
+(5-20, lowercase, digits and hyphens) and rejects longer ones at preflight in
+0s — `dayec-boundary-test-0820` is 24 and fails. With a `dayec-` prefix you have
+14 characters to work with. Edit `cluster_name` in
 `config/baseline-cluster-request.yaml`.
+
+---
+
+## 0. Two gates that reject before anything is created
+
+Both were hit on 2026-08-20. Each failed in seconds and created nothing, which is
+the behaviour you want — but they cost a cycle each if you meet them cold.
+
+### Cluster name: 5-20 characters
+
+DYEC rejects longer names at preflight in 0s. `dayec-boundary-test-0820` is 24
+and fails; `dayec-boundary-0820` is 19 and passes. With a `dayec-` prefix you
+have 14 characters to work with. This is the fail-fast behaviour B7 is meant to
+generalise, already present for the name length.
+
+### DYEC will not deploy from a working branch
+
+```
+The running DYEC version is not an exact non-v release tag:
+'18.0.18.dev6+gb5f76fbc1.d20260820'
+```
+
+`get_release_version()` (`versioning.py:84`) requires an exact semver tag. Any
+commit past a release tag makes setuptools-scm derive a `.devN` version, so
+**every phase that deploys with modified DYEC hits this** — Phase 3 and Phase 5
+both.
+
+The gate is correct: that version is the ref the head node clones DYEC at, and a
+dev version has no tag on `lsmc-bio`. But our change is *deployer-side only* —
+`render_iam_cluster_block()` runs locally to produce the cluster YAML, and
+ParallelCluster attaches the boundary at stack-creation time. The head node never
+needs it and should run a released DYEC.
+
+Options, in preference order:
+
+1. **Release ISS-80 upstream, then deploy from the tag.** No misreporting, and
+   Phase 6's template rollout needs the merge anyway. Correct for Phase 5, whose
+   result is the acceptance evidence.
+2. **`SETUPTOOLS_SCM_PRETEND_VERSION=18.0.17`** — verified to satisfy the gate.
+   Local DYEC renders the boundary from the branch; the head node clones released
+   18.0.17. Each side runs what it should. Acceptable for Phase 3, whose purpose
+   is isolating the boundary variable — but record in the run notes that the
+   deployer reported a version it was not running.
+3. **Tagging the branch locally is worse**, not better: `git describe` would
+   satisfy the gate, but the head node would then try to clone a tag that does
+   not exist on the remote, trading a clean failure for a confusing one.
 
 ---
 
@@ -76,7 +125,7 @@ under a role. Two `iam.policy.*` WARNs are expected.
 the phase proves nothing and you should stop.
 
 ```bash
-CL=dayec-boundary-test-0820
+CL=dayec-boundary-0820
 for R in $(aws iam list-roles --path-prefix /daylily-pc/ \
             --query "Roles[?starts_with(RoleName,'${CL}')].RoleName" --output text); do
   printf "%-62s %s\n" "$R" \
@@ -109,7 +158,7 @@ rejected by the enforcement wrapper.
 ## 7. Tear down
 
 ```bash
-dyec delete --cluster-name dayec-boundary-test-0820 --profile daylily-baseline --region us-west-2
+dyec delete --cluster-name dayec-boundary-0820 --profile daylily-baseline --region us-west-2
 date -u +%Y-%m-%dT%H:%M:%SZ        # <-- T1
 ```
 

@@ -43,7 +43,7 @@ ephemeral_cluster:
 
     # --- identity ------------------------------------------------------------
     # Distinctive name so a delete prompt can never be confused with a live run.
-    cluster_name:            [USESETVALUE, "", "dayec-boundary-test-0820"]
+    cluster_name:            [USESETVALUE, "", "dayec-boundary-0820"]
 
     # --- budget --------------------------------------------------------------
     budget_email:            [USESETVALUE, "", "joshd@lsmc.com"]
@@ -60,7 +60,7 @@ ephemeral_cluster:
     # --- cost centre ---------------------------------------------------------
     # New at 18.0.17 and PROMPTUSER, so omitting these blocks on a prompt.
     # The name is the value dyec offered as its own default.
-    cost_center_name:        [USESETVALUE, "", "dayec-boundary-test-0820-ccenter"]
+    cost_center_name:        [USESETVALUE, "", "dayec-boundary-0820-cc"]
     cost_center_monthly_cap_usd: [USESETVALUE, "", "200"]
     cost_center_allowed_users:   [USESETVALUE, "", "ubuntu"]
 
