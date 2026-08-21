@@ -4595,6 +4595,49 @@ def run_create_workflow(
 # ---------------------------------------------------------------------------
 
 
+def _resolve_headnode_cluster_cache_namespace(
+    cluster_name: str,
+    region: str,
+    profile: str,
+) -> str:
+    """Resolve the immutable cache namespace from the local cluster authority.
+
+    This deliberately runs on the DYEC controller rather than the headnode.
+    A forced configuration is the supported repair path for a broken remote
+    DAY-EC environment, so no pre-reset headnode step may depend on its
+    ``aws`` executable or Python interpreter.
+    """
+    from daylily_ec.aws.cluster_tags import ClusterTagError, stack_id_from_describe_cluster
+    from daylily_ec.pcluster.runner import describe_cluster
+
+    described = describe_cluster(cluster_name, region, profile=profile)
+    if not described.success:
+        detail = described.stderr or described.message or described.stdout or "no detail returned"
+        raise RuntimeError(
+            "Local pcluster describe-cluster failed while resolving the immutable "
+            f"CloudFormation generation for {cluster_name!r}: {detail}"
+        )
+    try:
+        stack_id = stack_id_from_describe_cluster(described.json_body)
+    except ClusterTagError as exc:
+        raise RuntimeError(str(exc)) from exc
+
+    expected_stack_path = f":stack/{cluster_name}/"
+    if not stack_id.startswith("arn:aws") or expected_stack_path not in stack_id:
+        raise RuntimeError(
+            "pcluster describe-cluster returned a CloudFormation stack identity "
+            f"that is not bound to cluster {cluster_name!r}: {stack_id!r}"
+        )
+    stack_generation = stack_id.rsplit("/", 1)[-1]
+    cache_namespace = f"{cluster_name}-{stack_generation}"
+    if not re.fullmatch(r"[a-z0-9-]+", cache_namespace):
+        raise RuntimeError(
+            "Derived DayOA cluster cache namespace is invalid: "
+            f"{cache_namespace!r}"
+        )
+    return cache_namespace
+
+
 def configure_headnode(
     cluster_name: str,
     head_node_instance_id: str,
@@ -4670,6 +4713,16 @@ def configure_headnode(
     if not CLUSTER_NAME_PATTERN.fullmatch(cluster_name):
         logger.error("  ✗ Invalid cluster name for the DayOA cache namespace: %s", cluster_name)
         return False
+    try:
+        cluster_cache_namespace = _resolve_headnode_cluster_cache_namespace(
+            cluster_name,
+            region,
+            profile,
+        )
+    except RuntimeError as exc:
+        logger.error("  ✗ Cannot resolve the immutable DayOA cache namespace locally: %s", exc)
+        return False
+    logger.info("  ▸ DayOA cluster cache namespace: %s", cluster_cache_namespace)
     if bool(github_token_secret_arn) != bool(github_token_region):
         logger.error("  ✗ GitHub token secret ARN and region must be provided together")
         return False
@@ -4817,20 +4870,12 @@ def configure_headnode(
             logger.error("  ✗ Managed GitHub token credential helper deployment failed: %s", exc)
             return False
 
-    cluster_name_q = shlex.quote(cluster_name)
+    cluster_cache_namespace_q = shlex.quote(cluster_cache_namespace)
     steps = [
         (
             "Configure cluster-scoped DayOA cache namespace",
             (
-                f"cluster_name={cluster_name_q}; "
-                f'stack_id="$(aws cloudformation describe-stacks --region {shlex.quote(region)} '
-                '--stack-name "$cluster_name" --query \'Stacks[0].StackId\' --output text)"; '
-                'case "$stack_id" in '
-                'arn:aws*:cloudformation:*:*:stack/"$cluster_name"/*) ;; '
-                '*) echo "Unable to resolve immutable CloudFormation stack generation: $stack_id" >&2; exit 1;; '
-                "esac; "
-                'stack_generation="${stack_id##*/}"; '
-                'cluster_cache_namespace="$cluster_name-$stack_generation"; '
+                f"cluster_cache_namespace={cluster_cache_namespace_q}; "
                 'case "$cluster_cache_namespace" in '
                 "*[!a-z0-9-]*|'') echo 'Invalid DayOA cluster cache namespace' >&2; exit 1;; "
                 "esac; "

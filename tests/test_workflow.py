@@ -2664,6 +2664,10 @@ class TestConfigureHeadnode:
             "daylily_ec.versioning.get_release_version",
             lambda: "16.1.85",
         )
+        monkeypatch.setattr(
+            "daylily_ec.workflow.create_cluster._resolve_headnode_cluster_cache_namespace",
+            lambda cluster_name, region, profile: f"{cluster_name}-00000000-0000-0000-0000-000000000000",
+        )
 
     def test_force_reset_cleans_all_conda_caches_after_removing_named_environments(self):
         reset_lines = _build_headnode_conda_environment_reset_command().splitlines()
