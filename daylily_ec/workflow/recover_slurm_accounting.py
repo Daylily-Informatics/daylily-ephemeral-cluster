@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import stat
 import tempfile
 import time
 from dataclasses import dataclass, replace
@@ -242,9 +243,15 @@ def _describe_cluster_state(
     region: str,
     *,
     profile: str | None,
+    pcluster_executable: str,
 ) -> tuple[str, dict[str, Any]]:
     try:
-        result = describe_cluster(cluster_name, region, profile=profile)
+        result = describe_cluster(
+            cluster_name,
+            region,
+            profile=profile,
+            executable=pcluster_executable,
+        )
     except Exception:  # noqa: BLE001 - provider exceptions are normalized at this boundary
         raise SlurmAccountingRecoveryError("Could not describe the recovery cluster.") from None
     if not result.success or not isinstance(result.json_body, dict):
@@ -260,9 +267,15 @@ def _describe_fleet_state(
     region: str,
     *,
     profile: str | None,
+    pcluster_executable: str,
 ) -> str:
     try:
-        result = describe_compute_fleet(cluster_name, region, profile=profile)
+        result = describe_compute_fleet(
+            cluster_name,
+            region,
+            profile=profile,
+            executable=pcluster_executable,
+        )
     except Exception:  # noqa: BLE001 - provider exceptions are normalized at this boundary
         raise SlurmAccountingRecoveryError("Could not describe the recovery fleet.") from None
     if not result.success:
@@ -283,9 +296,14 @@ def _remaining(deadline: float, monotonic_fn: Callable[[], float]) -> float:
 def _existing_update_config(path: Path) -> tuple[str, str]:
     if not path.exists():
         return "", ""
-    if not path.is_file():
+    mode = path.lstat().st_mode
+    if (
+        not stat.S_ISREG(mode)
+        or stat.S_ISLNK(mode)
+        or stat.S_IMODE(mode) != 0o600
+    ):
         raise SlurmAccountingRecoveryError(
-            "The deterministic accounting update path exists but is not a file."
+            "The deterministic accounting update path is not a protected regular file."
         )
     return str(path), _sha256_path(path)
 
@@ -465,7 +483,13 @@ def _load_bound_recovery_receipt(
     update_config: Path,
 ) -> dict[str, Any]:
     try:
-        if not receipt_path.is_file() or receipt_path.stat().st_size > MAX_RECOVERY_RECEIPT_BYTES:
+        receipt_mode = receipt_path.lstat().st_mode
+        if (
+            not stat.S_ISREG(receipt_mode)
+            or stat.S_ISLNK(receipt_mode)
+            or stat.S_IMODE(receipt_mode) != 0o600
+            or receipt_path.stat().st_size > MAX_RECOVERY_RECEIPT_BYTES
+        ):
             raise OSError
         payload = json.loads(receipt_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
@@ -676,6 +700,7 @@ def _resolve_delayed_update_submission(
     cluster_name: str,
     region: str,
     profile: str,
+    pcluster_executable: str,
     deadline: float,
     poll_interval: float,
     monotonic_fn: Callable[[], float],
@@ -690,6 +715,7 @@ def _resolve_delayed_update_submission(
             cluster_name,
             region,
             profile=profile,
+            pcluster_executable=pcluster_executable,
         )
         if status in {*UPDATE_PROGRESS_STATES, "UPDATE_COMPLETE"}:
             return status
@@ -708,6 +734,7 @@ def _verify_accounting(
     cluster_name: str,
     region: str,
     profile: str | None,
+    pcluster_executable: str,
     timeout: float,
 ) -> str:
     bounded_timeout = min(int(timeout), 600)
@@ -715,7 +742,12 @@ def _verify_accounting(
         raise SlurmAccountingRecoveryError(
             "Less than 120 seconds remain for bounded Slurm accounting verification."
         )
-    _status, payload = _describe_cluster_state(cluster_name, region, profile=profile)
+    _status, payload = _describe_cluster_state(
+        cluster_name,
+        region,
+        profile=profile,
+        pcluster_executable=pcluster_executable,
+    )
     head_node = payload.get("headNode")
     instance_id = head_node.get("instanceId") if isinstance(head_node, dict) else None
     if not isinstance(instance_id, str) or not instance_id:
@@ -838,6 +870,7 @@ def recover_slurm_accounting(
     region: str,
     region_az: str,
     profile: str | None,
+    pcluster_executable: str,
     cluster_configuration: Path,
     output_dir: Path,
     stack_name: str,
@@ -861,6 +894,10 @@ def recover_slurm_accounting(
     region = _required_text(region, field="region")
     region_az = _required_text(region_az, field="region_az")
     profile = _required_text(profile, field="profile")
+    pcluster_executable = _required_text(
+        pcluster_executable,
+        field="pcluster_executable",
+    )
     stack_name = _required_text(stack_name, field="stack_name")
     exact_privatelink_stack_name = _optional_trimmed_text(
         privatelink_stack_name,
@@ -921,13 +958,26 @@ def recover_slurm_accounting(
         raise SlurmAccountingRecoveryError(
             "The exact cluster consumer VPC identity is missing or invalid."
         ) from None
-    destination_dir = output_dir.expanduser().resolve()
-    if destination_dir.exists() and not destination_dir.is_dir():
-        raise SlurmAccountingRecoveryError("output_dir exists but is not a directory.")
+    destination_dir = output_dir.expanduser()
+    if not destination_dir.is_absolute():
+        raise SlurmAccountingRecoveryError("output_dir must be an absolute path.")
     try:
-        destination_dir.mkdir(parents=True, exist_ok=True)
+        destination_mode = destination_dir.lstat().st_mode
+        destination_owner = destination_dir.stat().st_uid
     except OSError:
-        raise SlurmAccountingRecoveryError("Could not create output_dir.") from None
+        raise SlurmAccountingRecoveryError(
+            "output_dir must already exist as an owned 0700 directory."
+        ) from None
+    if (
+        not stat.S_ISDIR(destination_mode)
+        or stat.S_ISLNK(destination_mode)
+        or stat.S_IMODE(destination_mode) != 0o700
+        or destination_owner != os.geteuid()
+    ):
+        raise SlurmAccountingRecoveryError(
+            "output_dir must be an owned non-symlink directory with mode 0700."
+        )
+    destination_dir = destination_dir.resolve(strict=True)
     update_config = destination_dir / UPDATE_CONFIGURATION_FILENAME
     receipt_path = destination_dir / RECOVERY_RECEIPT_FILENAME
 
@@ -939,13 +989,19 @@ def recover_slurm_accounting(
         cluster_name,
         region,
         profile=profile,
+        pcluster_executable=pcluster_executable,
     )
     if initial_cluster_state not in SUPPORTED_INITIAL_CLUSTER_STATES:
         raise SlurmAccountingRecoveryError(
             "Recovery supports only CREATE_COMPLETE, UPDATE_IN_PROGRESS, "
             "UPDATE_COMPLETE_CLEANUP_IN_PROGRESS, or UPDATE_COMPLETE."
         )
-    initial_fleet_state = _describe_fleet_state(cluster_name, region, profile=profile)
+    initial_fleet_state = _describe_fleet_state(
+        cluster_name,
+        region,
+        profile=profile,
+        pcluster_executable=pcluster_executable,
+    )
     if initial_cluster_state in UPDATE_PROGRESS_STATES and initial_fleet_state in {
         "RUNNING",
         "START_REQUESTED",
@@ -1041,6 +1097,7 @@ def recover_slurm_accounting(
             cluster_name=cluster_name,
             region=region,
             profile=profile,
+            pcluster_executable=pcluster_executable,
             timeout=max(1, int(_remaining(deadline, monotonic_fn))),
         )
         if not idle_proof.idle:
@@ -1055,6 +1112,7 @@ def recover_slurm_accounting(
                 cluster_name=cluster_name,
                 region=region,
                 profile=profile,
+                pcluster_executable=pcluster_executable,
                 deadline=deadline,
                 poll_interval=poll_interval,
                 monotonic_fn=monotonic_fn,
@@ -1154,6 +1212,7 @@ def recover_slurm_accounting(
                 cluster_name=cluster_name,
                 region=region,
                 profile=profile,
+                pcluster_executable=pcluster_executable,
                 timeout=max(1, int(_remaining(deadline, monotonic_fn))),
             )
             if not post_prepare_idle_proof.idle:
@@ -1168,6 +1227,7 @@ def recover_slurm_accounting(
                 cluster_name=cluster_name,
                 region=region,
                 profile=profile,
+                pcluster_executable=pcluster_executable,
                 request_status="STOP_REQUESTED",
                 wait_for_status="STOPPED",
                 drain=False,
@@ -1188,6 +1248,7 @@ def recover_slurm_accounting(
                     region,
                     profile=profile,
                     dry_run=True,
+                    executable=pcluster_executable,
                 )
             except Exception:  # noqa: BLE001 - dry-run provider errors normalized here
                 dry_run = None
@@ -1204,6 +1265,7 @@ def recover_slurm_accounting(
                     region,
                     profile=profile,
                     dry_run=False,
+                    executable=pcluster_executable,
                 )
             except Exception:  # noqa: BLE001 - bounded provider resolution follows
                 submitted = None
@@ -1212,6 +1274,7 @@ def recover_slurm_accounting(
                     cluster_name=cluster_name,
                     region=region,
                     profile=profile,
+                    pcluster_executable=pcluster_executable,
                     deadline=deadline,
                     poll_interval=poll_interval,
                     monotonic_fn=monotonic_fn,
@@ -1242,6 +1305,7 @@ def recover_slurm_accounting(
                 cluster_name,
                 region,
                 profile=profile,
+                executable=pcluster_executable,
                 timeout=_remaining(deadline, monotonic_fn),
                 update_start_timeout=min(300.0, _remaining(deadline, monotonic_fn)),
                 poll_interval=poll_interval,
@@ -1285,6 +1349,7 @@ def recover_slurm_accounting(
         cluster_name=cluster_name,
         region=region,
         profile=profile,
+        pcluster_executable=pcluster_executable,
         request_status="START_REQUESTED",
         wait_for_status="RUNNING",
         drain=False,
@@ -1300,6 +1365,7 @@ def recover_slurm_accounting(
         cluster_name=cluster_name,
         region=region,
         profile=profile,
+        pcluster_executable=pcluster_executable,
         timeout=_remaining(deadline, monotonic_fn),
     )
     phases.append(_phase(PHASE_ACCOUNTING_VERIFIED, "complete"))
@@ -1308,8 +1374,14 @@ def recover_slurm_accounting(
         cluster_name,
         region,
         profile=profile,
+        pcluster_executable=pcluster_executable,
     )
-    final_fleet_state = _describe_fleet_state(cluster_name, region, profile=profile)
+    final_fleet_state = _describe_fleet_state(
+        cluster_name,
+        region,
+        profile=profile,
+        pcluster_executable=pcluster_executable,
+    )
     if final_cluster_state != "UPDATE_COMPLETE" or final_fleet_state != "RUNNING":
         raise SlurmAccountingRecoveryError(
             "Final cluster/fleet states changed before the recovery receipt was persisted."

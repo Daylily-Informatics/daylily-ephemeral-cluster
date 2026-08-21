@@ -28,6 +28,7 @@ import logging
 import os as _os
 import re
 import shlex
+import stat
 import subprocess
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
@@ -2814,6 +2815,7 @@ def run_create_workflow(
     budget_email_fallback: Optional[str] = None,
     preparation_receipt: Optional[str] = None,
     expected_preparation_receipt_sha256: Optional[str] = None,
+    output_dir: Optional[str] = None,
     result_out: Optional[dict[str, Any]] = None,
 ) -> int:
     """End-to-end cluster creation: preflight → create → post-create.
@@ -2866,7 +2868,7 @@ def run_create_workflow(
     from daylily_ec.pcluster.runner import (
         list_clusters as pcluster_list_clusters,
     )
-    from daylily_ec.render.renderer import CONFIG_DIR, write_init_artifacts
+    from daylily_ec.render.renderer import write_init_artifacts
     from daylily_ec.resources import resource_path
     from daylily_ec.workflow.create_request import (
         SPOT_PRICE_POLICY,
@@ -2887,8 +2889,38 @@ def run_create_workflow(
     if result_out is not None:
         result_out.clear()
 
-    CONFIG_DIR.mkdir(parents=True, exist_ok=True, mode=0o700)
-    CONFIG_DIR.chmod(0o700)
+    raw_output_dir = str(output_dir or "").strip()
+    if not raw_output_dir:
+        logger.error("The current create contract requires an explicit artifact output directory.")
+        ui.fail("--output-dir is required for durable create and recovery evidence.")
+        return EXIT_VALIDATION_FAILURE
+    create_artifact_dir = Path(raw_output_dir).expanduser()
+    if not create_artifact_dir.is_absolute():
+        logger.error("Create artifact output directory is not absolute.")
+        ui.fail("--output-dir must be an absolute path.")
+        return EXIT_VALIDATION_FAILURE
+    try:
+        output_mode = create_artifact_dir.lstat().st_mode
+        output_owner = create_artifact_dir.stat().st_uid
+        output_entries = tuple(create_artifact_dir.iterdir())
+    except OSError as exc:
+        logger.error("Create artifact output directory is unavailable: %s", exc)
+        ui.fail("--output-dir must already exist as an owned 0700 directory.")
+        return EXIT_VALIDATION_FAILURE
+    if (
+        not stat.S_ISDIR(output_mode)
+        or stat.S_ISLNK(output_mode)
+        or stat.S_IMODE(output_mode) != 0o700
+        or output_owner != _os.geteuid()
+    ):
+        logger.error("Create artifact output directory is not an owned 0700 directory.")
+        ui.fail("--output-dir must be an owned non-symlink directory with mode 0700.")
+        return EXIT_VALIDATION_FAILURE
+    if output_entries:
+        logger.error("Create artifact output directory is not empty.")
+        ui.fail("--output-dir must be empty so create evidence cannot be overwritten.")
+        return EXIT_VALIDATION_FAILURE
+    create_artifact_dir = create_artifact_dir.resolve(strict=True)
 
     if debug:
         logging.getLogger("daylily_ec").setLevel(logging.DEBUG)
@@ -3053,35 +3085,23 @@ def run_create_workflow(
             cfg,
             non_interactive=non_interactive,
         )
-        enable_detailed_monitoring = (
-            _resolve_config_value(
-                cfg,
-                "enable_detailed_monitoring",
-                "Enable detailed monitoring",
-                non_interactive=non_interactive,
-                default_fallback="false",
-            )
-            or "false"
+        enable_detailed_monitoring = _resolve_config_value(
+            cfg,
+            "enable_detailed_monitoring",
+            "Enable detailed monitoring",
+            non_interactive=non_interactive,
         )
-        delete_local_root = (
-            _resolve_config_value(
-                cfg,
-                "delete_local_root",
-                "Delete local root",
-                non_interactive=non_interactive,
-                default_fallback="false",
-            )
-            or "false"
+        delete_local_root = _resolve_config_value(
+            cfg,
+            "delete_local_root",
+            "Delete local root",
+            non_interactive=non_interactive,
         )
-        spot_instance_allocation_strategy = (
-            _resolve_config_value(
-                cfg,
-                "spot_instance_allocation_strategy",
-                "Spot allocation strategy",
-                non_interactive=non_interactive,
-                default_fallback="price-capacity-optimized",
-            )
-            or "price-capacity-optimized"
+        spot_instance_allocation_strategy = _resolve_config_value(
+            cfg,
+            "spot_instance_allocation_strategy",
+            "Spot allocation strategy",
+            non_interactive=non_interactive,
         )
         template_yaml = resolve_cluster_template_yaml(
             cfg,
@@ -3275,7 +3295,7 @@ def run_create_workflow(
                 profile=aws_ctx.profile,
                 region_az=region_az,
                 spot_price_policy=SPOT_PRICE_POLICY,
-                output_dir=str(CONFIG_DIR / f"{cluster_name}_admission_{ts}"),
+                output_dir=str(create_artifact_dir / "admission"),
                 global_spot_max_cost=global_spot_max_cost,
                 spot_cost_limit_pct=spot_cost_limit_pct,
                 write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
@@ -3830,6 +3850,7 @@ def run_create_workflow(
             ts,
             template_yaml,
             substitutions,
+            config_dir=create_artifact_dir,
         )
     except (FileNotFoundError, ValueError) as exc:
         logger.error("YAML render failed: %s", exc)
@@ -3840,12 +3861,10 @@ def run_create_workflow(
 
     # Attach all structural policy mutations to the unpriced effective YAML.
     # The final live reprice runs only after every structural/P2 mutation.
-    cluster_yaml_path = str(CONFIG_DIR / f"{cluster_name}_cluster_{ts}.yaml")
-    spot_price_summary_path = str(CONFIG_DIR / f"{cluster_name}_spot_price_summary_{ts}.json")
-    create_pricing_receipt_path = str(
-        CONFIG_DIR / f"{cluster_name}_create_pricing_{ts}_receipt.json"
-    )
-    spot_price_summary_table_path = CONFIG_DIR / f"{cluster_name}-{ts}.md"
+    cluster_yaml_path = str(create_artifact_dir / "dyec-final-cluster.yaml")
+    spot_price_summary_path = str(create_artifact_dir / "dyec-final-spot-price-summary.json")
+    create_pricing_receipt_path = str(create_artifact_dir / "dyec-final-pricing-receipt.json")
+    spot_price_summary_table_path = create_artifact_dir / "dyec-final-spot-price-summary.md"
     try:
         attach_headnode_managed_policy(
             init_template_path,
@@ -4253,15 +4272,19 @@ def run_create_workflow(
     # The successful accounting-free base state above is intentionally durable
     # before any service discovery, creation, or compute-fleet mutation.
     ui.phase("POST-CREATE: SLURM ACCOUNTING")
-    from daylily_ec.state.models import SlurmAccountingOutcome, SlurmAccountingStage
+    from daylily_ec.state.models import (
+        SlurmAccountingOutcome,
+        SlurmAccountingReceipt,
+        SlurmAccountingStage,
+    )
     from daylily_ec.state.slurm_accounting import (
         apply_receipt_to_state,
         status_message,
-        warning_message,
     )
     from daylily_ec.state.store import write_slurm_accounting_receipt
-    from daylily_ec.workflow.postcreate_slurm_accounting import (
-        run_postcreate_slurm_accounting,
+    from daylily_ec.workflow.recover_slurm_accounting import (
+        SlurmAccountingRecoveryError,
+        recover_slurm_accounting,
     )
 
     def _configure_replacement_headnode(instance_id: str) -> bool:
@@ -4279,68 +4302,150 @@ def run_create_workflow(
             repo_overrides=repo_overrides,
         )
 
-    accounting_result = run_postcreate_slurm_accounting(
-        cluster_name=cluster_name,
-        region=aws_ctx.region,
-        region_az=region_az,
-        profile=aws_ctx.profile,
-        cluster_configuration=Path(cluster_yaml_path),
-        initial_headnode_instance_id=monitor_result.head_node_instance_id,
-        slurm_accounting=slurm_accounting,
-        non_interactive=non_interactive,
-        create_slurm_accounting_if_missing=create_slurm_accounting_if_missing,
-        acknowledge_slurm_accounting_create_cost=(acknowledge_slurm_accounting_create_cost),
-        accounting_stack_name=slurm_accounting_stack_name,
-        accounting_privatelink_stack_name=slurm_accounting_privatelink_stack_name,
-        accounting_direct=slurm_accounting_direct,
-        accounting_consumer_vpc_id=slurm_accounting_consumer_vpc_id,
-        accounting_database_name=slurm_accounting_database_name,
-        accounting_db_username=slurm_accounting_db_username,
-        accounting_instance_type=slurm_accounting_instance_type,
-        pcluster_executable=pcluster_executable,
-        configure_replacement_headnode=_configure_replacement_headnode,
+    try:
+        accounting_recovery = recover_slurm_accounting(
+            cluster_name=cluster_name,
+            region=aws_ctx.region,
+            region_az=region_az,
+            profile=aws_ctx.profile,
+            pcluster_executable=pcluster_executable,
+            cluster_configuration=Path(cluster_yaml_path),
+            output_dir=create_artifact_dir,
+            stack_name=slurm_accounting_stack_name,
+            privatelink_stack_name=slurm_accounting_privatelink_stack_name,
+            database_name=slurm_accounting_database_name,
+            db_username=slurm_accounting_db_username,
+            instance_type=slurm_accounting_instance_type,
+            create_slurm_accounting_if_missing=create_slurm_accounting_if_missing,
+            acknowledge_slurm_accounting_create_cost=(
+                acknowledge_slurm_accounting_create_cost
+            ),
+            timeout_seconds=7200,
+            poll_interval_seconds=30,
+        )
+    except SlurmAccountingRecoveryError as exc:
+        logger.error(
+            "Crash-safe Slurm accounting failed closed (stage=%s reason=%s).",
+            exc.stage or "unknown",
+            exc.reason_code or "unknown",
+        )
+        ui.fail(
+            "Crash-safe Slurm accounting did not produce a terminal verification receipt."
+        )
+        return EXIT_AWS_FAILURE
+
+    exact_recovery_identity = (
+        accounting_recovery.cluster == cluster_name
+        and accounting_recovery.region == aws_ctx.region
+        and accounting_recovery.region_az == region_az
+        and accounting_recovery.aws_profile == aws_ctx.profile
+        and accounting_recovery.aws_account_id == aws_ctx.account_id
+        and accounting_recovery.accounting_stack_name == slurm_accounting_stack_name
+        and (accounting_recovery.privatelink_stack_name or "")
+        == slurm_accounting_privatelink_stack_name
+        and accounting_recovery.consumer_vpc_id == slurm_accounting_consumer_vpc_id
+        and accounting_recovery.database_name == slurm_accounting_database_name
+        and accounting_recovery.db_username == slurm_accounting_db_username
+        and accounting_recovery.instance_type == slurm_accounting_instance_type
+        and accounting_recovery.final_cluster_state == "UPDATE_COMPLETE"
+        and accounting_recovery.final_fleet_state == "RUNNING"
+        and accounting_recovery.accounting_verified is True
     )
-    accounting_receipt = accounting_result.to_receipt()
+    if not exact_recovery_identity:
+        logger.error("Crash-safe Slurm accounting returned a different terminal identity.")
+        ui.fail("Slurm accounting terminal identity did not match the exact create request.")
+        return EXIT_AWS_FAILURE
+
+    try:
+        described_after_accounting = pcluster_describe_cluster(
+            cluster_name,
+            aws_ctx.region,
+            profile=aws_ctx.profile,
+            executable=pcluster_executable,
+        )
+        replacement_headnode = (
+            described_after_accounting.json_body.get("headNode")
+            if described_after_accounting.success
+            else None
+        )
+        replacement_headnode_id = (
+            replacement_headnode.get("instanceId")
+            if isinstance(replacement_headnode, dict)
+            else None
+        )
+        if not isinstance(replacement_headnode_id, str) or not replacement_headnode_id:
+            raise RuntimeError("replacement headnode identity is missing")
+        wait_for_ssm_online(
+            replacement_headnode_id,
+            aws_ctx.region,
+            profile=aws_ctx.profile,
+        )
+        if replacement_headnode_id != monitor_result.head_node_instance_id:
+            if not _configure_replacement_headnode(replacement_headnode_id):
+                raise RuntimeError("replacement headnode configuration failed")
+        else:
+            validate_headnode_readiness(
+                replacement_headnode_id,
+                aws_ctx.region,
+                profile=aws_ctx.profile,
+                timeout=120,
+                comment="Validate post-accounting headnode readiness",
+                repo_name="daylily-ephemeral-cluster",
+                remote_user="ubuntu",
+            )
+    except Exception:  # noqa: BLE001 - provider detail remains outside receipts/output
+        logger.error("Post-accounting headnode configuration failed closed.")
+        ui.fail("Post-accounting headnode configuration did not complete.")
+        return EXIT_AWS_FAILURE
+
+    accounting_receipt = SlurmAccountingReceipt(
+        requested_mode="on",
+        create_approval_flag=create_slurm_accounting_if_missing,
+        cost_acknowledgement_flag=acknowledge_slurm_accounting_create_cost,
+        service_created=accounting_recovery.service_created,
+        stage_reached=SlurmAccountingStage.COMPLETE,
+        update_config_path=accounting_recovery.update_configuration_path,
+        terminal_cluster_state=accounting_recovery.final_cluster_state,
+        terminal_fleet_state=accounting_recovery.final_fleet_state,
+        fleet_restored=True,
+        recovery_required=False,
+        stack_name=slurm_accounting_stack_name,
+        provider_accounting_stack_name=slurm_accounting_stack_name,
+        privatelink_stack_name=slurm_accounting_privatelink_stack_name,
+        consumer_vpc_id=slurm_accounting_consumer_vpc_id,
+        database_name=slurm_accounting_database_name,
+        db_username=slurm_accounting_db_username,
+        provider_instance_type=slurm_accounting_instance_type,
+    )
     accounting_receipt_path = write_slurm_accounting_receipt(
         accounting_receipt,
         cluster_name=cluster_name,
         run_id=ts,
+        destination=create_artifact_dir / "dyec-slurm-accounting-receipt.json",
     )
     state = apply_receipt_to_state(state, accounting_receipt, accounting_receipt_path)
     state_path = write_state_record(state)
-    accounting_outcome = SlurmAccountingOutcome(accounting_result.outcome)
-    if accounting_outcome in {
-        SlurmAccountingOutcome.WARNING,
-        SlurmAccountingOutcome.RECOVERY_REQUIRED,
-    }:
-        ui.warn(
-            warning_message(
-                accounting_receipt.error_stage or SlurmAccountingStage.SERVICE_PREPARATION,
-                accounting_receipt.recovery_required,
-            )
-        )
-    else:
-        ui.ok(status_message(accounting_outcome))
+    accounting_outcome = SlurmAccountingOutcome.ENABLED
+    ui.ok(status_message(accounting_outcome))
     ui.detail("Slurm accounting receipt", str(accounting_receipt_path))
 
-    accounting_failed = slurm_accounting == "on" and not accounting_result.succeeded
+    accounting_failed = False
     terminal_create_receipt: dict[str, Any] | None = None
     if not accounting_failed:
         exact_accounting_result = (
-            accounting_result.outcome == "ENABLED"
-            and accounting_result.stage_reached == "complete"
-            and accounting_result.terminal_cluster_state == "UPDATE_COMPLETE"
-            and accounting_result.terminal_fleet_state == "RUNNING"
-            and accounting_result.recovery_required is False
-            and accounting_result.stack_name == slurm_accounting_stack_name
-            and accounting_result.provider_accounting_stack_name
+            accounting_receipt.stage_reached == SlurmAccountingStage.COMPLETE
+            and accounting_receipt.terminal_cluster_state == "UPDATE_COMPLETE"
+            and accounting_receipt.terminal_fleet_state == "RUNNING"
+            and accounting_receipt.recovery_required is False
+            and accounting_receipt.stack_name == slurm_accounting_stack_name
+            and accounting_receipt.provider_accounting_stack_name
             == slurm_accounting_stack_name
-            and accounting_result.privatelink_stack_name
+            and accounting_receipt.privatelink_stack_name
             == slurm_accounting_privatelink_stack_name
-            and accounting_result.consumer_vpc_id == slurm_accounting_consumer_vpc_id
-            and accounting_result.database_name == slurm_accounting_database_name
-            and accounting_result.db_username == slurm_accounting_db_username
-            and accounting_result.provider_instance_type == slurm_accounting_instance_type
+            and accounting_receipt.consumer_vpc_id == slurm_accounting_consumer_vpc_id
+            and accounting_receipt.database_name == slurm_accounting_database_name
+            and accounting_receipt.db_username == slurm_accounting_db_username
+            and accounting_receipt.provider_instance_type == slurm_accounting_instance_type
         )
         try:
             described_cluster = pcluster_describe_cluster(
@@ -4381,7 +4486,7 @@ def run_create_workflow(
         else:
             try:
                 terminal_create_receipt = write_create_terminal_receipt(
-                    receipt_path=(CONFIG_DIR / f"{cluster_name}_create_terminal_{ts}_receipt.json"),
+                    receipt_path=(create_artifact_dir / "dyec-create-terminal-receipt.json"),
                     cluster_name=cluster_name,
                     profile=aws_ctx.profile,
                     account_id=aws_ctx.account_id,
@@ -4392,6 +4497,9 @@ def run_create_workflow(
                     final_cluster_config_sha256=final_cluster_config_sha256,
                     pricing_receipt_path=create_pricing_receipt_path,
                     accounting_receipt_path=accounting_receipt_path,
+                    accounting_recovery_receipt_path=(
+                        accounting_recovery.recovery_receipt_path
+                    ),
                     provider_cluster_state=provider_cluster_state,
                     fleet_state=provider_fleet_state,
                     accounting_state="ENABLED",
@@ -4441,6 +4549,9 @@ def run_create_workflow(
                     "final_cluster_config_sha256": final_cluster_config_sha256,
                     "pricing_receipt_sha256": create_pricing_receipt["receipt_sha256"],
                     "accounting_receipt_sha256": sha256_path(accounting_receipt_path),
+                    "accounting_recovery_receipt_sha256": (
+                        accounting_recovery.recovery_receipt_sha256
+                    ),
                     "accounting_target": dict(terminal_create_receipt["accounting_target"]),
                     "terminal_receipt_path": terminal_create_receipt["terminal_receipt_path"],
                     "terminal_receipt_sha256": terminal_create_receipt["terminal_receipt_sha256"],

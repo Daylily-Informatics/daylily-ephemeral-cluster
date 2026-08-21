@@ -224,13 +224,14 @@ the creation input.
 Create with the reviewed admission receipt:
 
 ```bash
-dyec --json create \
+dyec create --json \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
   --cluster-type intel \
   --non-interactive \
   --slurm-accounting on \
   --config <absolute-protected-request.yaml> \
+  --output-dir <absolute-empty-owned-0700-create-directory> \
   --preparation-receipt \
     <absolute-protected-admission-directory>/create-preparation.json \
   --expected-preparation-receipt-sha256 <sha256>
@@ -244,6 +245,14 @@ the exact final bytes to both provider dry-run and create. The exact cluster
 name is checked at admission, immediately before the first create-side AWS
 mutation, and again immediately before provider create; every provider state
 other than `DELETE_COMPLETE` blocks reuse.
+
+The required `--output-dir` is a fresh, empty, owned `0700` directory. It
+contains deterministic protected filenames for the final provider input,
+final pricing receipt, Slurm-accounting receipt, accounting update,
+accounting-recovery receipt, and terminal create receipt. The terminal receipt
+binds the exact pricing, accounting, and recovery artifact digests. This is the
+only supported restart-recovery source for a create interrupted after provider
+submission; DYEC does not discover a configuration from ambient state.
 
 Standalone `dyec create` remains authoritative when the preparation pair is
 omitted: it performs its own live admission pass and still performs the

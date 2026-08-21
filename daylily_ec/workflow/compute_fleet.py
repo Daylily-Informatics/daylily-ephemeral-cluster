@@ -184,12 +184,21 @@ def probe_cluster_idle(
     cluster_name: str,
     region: str,
     profile: str | None,
+    pcluster_executable: str,
     timeout: int = 180,
 ) -> ClusterIdleProof:
     """Prove no live DayOA controller or Slurm job exists on a cluster."""
 
     try:
-        described = describe_cluster(cluster_name, region, profile=profile)
+        described = describe_cluster(
+            cluster_name,
+            region,
+            profile=profile,
+            executable=_required_text(
+                pcluster_executable,
+                field="pcluster_executable",
+            ),
+        )
     except Exception:  # noqa: BLE001 - provider exceptions are normalized at this boundary
         raise ComputeFleetOperationError("Could not describe the cluster for idle proof.") from None
     if not described.success:
@@ -305,6 +314,7 @@ def _idle_before_stop(
     cluster_name: str,
     region: str,
     profile: str | None,
+    pcluster_executable: str,
     drain: bool,
     deadline: float,
     poll_interval: float,
@@ -322,6 +332,7 @@ def _idle_before_stop(
             cluster_name=cluster_name,
             region=region,
             profile=profile,
+            pcluster_executable=pcluster_executable,
             timeout=max(1, int(remaining)),
         )
         if proof.idle:
@@ -344,6 +355,7 @@ def run_compute_fleet_transition(
     cluster_name: str,
     region: str,
     profile: str | None,
+    pcluster_executable: str,
     request_status: str,
     wait_for_status: str,
     drain: bool,
@@ -357,6 +369,10 @@ def run_compute_fleet_transition(
 
     cluster_name = _required_text(cluster_name, field="cluster")
     region = _required_text(region, field="region")
+    pcluster_executable = _required_text(
+        pcluster_executable,
+        field="pcluster_executable",
+    )
     timeout = _positive_number(timeout_seconds, field="timeout_seconds")
     poll_interval = _positive_number(poll_interval_seconds, field="poll_interval_seconds")
     expected_target = REQUEST_TO_TARGET.get(request_status)
@@ -375,7 +391,12 @@ def run_compute_fleet_transition(
     start = monotonic_fn()
     deadline = start + timeout
     try:
-        described = describe_compute_fleet(cluster_name, region, profile=profile)
+        described = describe_compute_fleet(
+            cluster_name,
+            region,
+            profile=profile,
+            executable=pcluster_executable,
+        )
     except Exception:  # noqa: BLE001 - provider exceptions are normalized at this boundary
         raise ComputeFleetOperationError("Could not describe the compute fleet.") from None
     if not described.success:
@@ -395,6 +416,7 @@ def run_compute_fleet_transition(
                 cluster_name=cluster_name,
                 region=region,
                 profile=profile,
+                pcluster_executable=pcluster_executable,
                 drain=drain,
                 deadline=deadline,
                 poll_interval=poll_interval,
@@ -417,12 +439,18 @@ def run_compute_fleet_transition(
                     request_status,
                     region,
                     profile=profile,
+                    executable=pcluster_executable,
                 )
             except Exception:  # noqa: BLE001 - re-describe resolves ambiguous submission
                 requested = None
             if requested is None or not requested.success:
                 try:
-                    observed = describe_compute_fleet(cluster_name, region, profile=profile)
+                    observed = describe_compute_fleet(
+                        cluster_name,
+                        region,
+                        profile=profile,
+                        executable=pcluster_executable,
+                    )
                 except Exception:  # noqa: BLE001 - failed re-describe remains indeterminate
                     observed = None
                 observed_status = (
@@ -451,6 +479,7 @@ def run_compute_fleet_transition(
                 region,
                 wait_for_status,
                 profile=profile,
+                executable=pcluster_executable,
                 timeout=remaining,
                 poll_interval=poll_interval,
             )

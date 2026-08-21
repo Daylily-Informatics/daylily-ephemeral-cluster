@@ -10,6 +10,7 @@ from daylily_ec.workflow.create_cluster import run_create_workflow
 def create_cluster(
     *,
     region_az: str,
+    output_dir: str,
     profile: Optional[str] = None,
     config_path: Optional[str] = None,
     pass_on_warn: bool = False,
@@ -19,6 +20,7 @@ def create_cluster(
     """Create a cluster using the supported daylily-ec workflow."""
     return run_create_workflow(
         region_az,
+        output_dir=output_dir,
         profile=profile,
         config_path=config_path,
         pass_on_warn=pass_on_warn,

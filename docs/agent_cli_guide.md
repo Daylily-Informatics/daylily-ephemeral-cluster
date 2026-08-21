@@ -115,10 +115,11 @@ dyec --json create-request prepare \
   --spot-price-policy CALCULATE_MAX_SPOT_PRICE \
   --output-dir <absolute-protected-admission-directory>
 
-dyec --json create \
+dyec create --json \
   --profile "$AWS_PROFILE" --region-az <region-az> \
   --cluster-type intel --non-interactive --slurm-accounting on \
   --config <absolute-protected-request.yaml> \
+  --output-dir <absolute-empty-owned-0700-create-directory> \
   --preparation-receipt \
     <absolute-protected-admission-directory>/create-preparation.json \
   --expected-preparation-receipt-sha256 <sha256>
@@ -133,11 +134,24 @@ same SHA-256 reaches both provider operations. A standalone operator create may
 omit the preparation pair; DYEC then performs its own admission pass. Upstream
 production callers should require the exact receipt path and digest pair.
 
-`dyec --json create` emits one `dyec.create.v1` object on stdout. Success is
+`dyec create --json` emits one `dyec.create.v1` object on stdout. Success is
 possible only after the cluster is `UPDATE_COMPLETE`, the compute fleet is
 `RUNNING`, accounting is `ENABLED`, and the create-side accounting receipt
 proves a working `sacct` probe. Operational progress and failure detail go to
 stderr; a failure emits one bounded `status: failed` object.
+
+`--output-dir` is mandatory and must already be an empty, owned, non-symlink
+directory with mode `0700`. DYEC writes the pre-provider final configuration as
+`dyec-final-cluster.yaml`, its final pricing receipt as
+`dyec-final-pricing-receipt.json`, its accounting result as
+`dyec-slurm-accounting-receipt.json`, its crash-recovery progress and terminal
+evidence as `slurm-accounting-update.yaml` and
+`slurm-accounting-recovery.json`, and terminal create success evidence as
+`dyec-create-terminal-receipt.json`, all with mode `0600`. The terminal create
+receipt binds the pricing, accounting, and accounting-recovery artifact
+digests. These deterministic paths let an upstream durable claim recover an
+interrupted create without rerunning provider creation or searching alternate
+state paths.
 
 Automation and upstream services use the installed `dyec` console script as
 the sole cluster-operation boundary. They must not run `pcluster` directly,

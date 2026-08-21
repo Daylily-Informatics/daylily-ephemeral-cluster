@@ -1749,6 +1749,7 @@ def write_create_terminal_receipt(
     final_cluster_config_sha256: str,
     pricing_receipt_path: str | Path,
     accounting_receipt_path: str | Path,
+    accounting_recovery_receipt_path: str | Path,
     provider_cluster_state: str,
     fleet_state: str,
     accounting_state: str,
@@ -1773,6 +1774,10 @@ def write_create_terminal_receipt(
     accounting_path = require_protected_file(
         accounting_receipt_path,
         label="accounting receipt",
+    )
+    recovery_path = require_protected_file(
+        accounting_recovery_receipt_path,
+        label="accounting recovery receipt",
     )
     pricing_payload = _load_bounded_json(pricing_path)
     if (
@@ -1821,8 +1826,42 @@ def write_create_terminal_receipt(
         if key != "privatelink_stack_name"
     ):
         raise CreateRequestError("Terminal create accounting identity is incomplete")
+    recovery_payload = _load_bounded_json(recovery_path)
+    expected_recovery_identity = {
+        "schema_version": "dyec.slurm_accounting_recovery.v1",
+        "ok": True,
+        "terminal": True,
+        "status": "complete",
+        "cluster": cluster_name,
+        "region": region,
+        "region_az": region_az,
+        "aws_profile": profile,
+        "aws_account_id": account_id,
+        "accounting_stack_name": accounting_payload.provider_accounting_stack_name,
+        "privatelink_stack_name": accounting_payload.privatelink_stack_name or None,
+        "consumer_vpc_id": accounting_payload.consumer_vpc_id,
+        "database_name": accounting_payload.database_name,
+        "db_username": accounting_payload.db_username,
+        "instance_type": accounting_payload.provider_instance_type,
+        "cluster_configuration_path": str(final_cluster_path),
+        "cluster_configuration_sha256": final_cluster_config_sha256,
+        "final_cluster_state": "UPDATE_COMPLETE",
+        "final_fleet_state": "RUNNING",
+        "accounting_verified": True,
+    }
+    if any(
+        recovery_payload.get(key) != value
+        for key, value in expected_recovery_identity.items()
+    ):
+        raise CreateRequestError(
+            "Terminal create recovery receipt does not bind the exact accounting operation"
+        )
+    phase_receipts = recovery_payload.get("phase_receipts")
+    if not isinstance(phase_receipts, list) or not phase_receipts:
+        raise CreateRequestError("Terminal create recovery receipt has no phase evidence")
     pricing_receipt_sha256 = sha256_path(pricing_path)
     accounting_receipt_sha256 = sha256_path(accounting_path)
+    recovery_receipt_sha256 = sha256_path(recovery_path)
     payload = {
         "schema_version": CREATE_TERMINAL_RECEIPT_SCHEMA,
         "dyec_version": _dyec_version(),
@@ -1848,6 +1887,8 @@ def write_create_terminal_receipt(
         "pricing_receipt_sha256": pricing_receipt_sha256,
         "accounting_receipt": _artifact_identity(accounting_path),
         "accounting_receipt_sha256": accounting_receipt_sha256,
+        "accounting_recovery_receipt": _artifact_identity(recovery_path),
+        "accounting_recovery_receipt_sha256": recovery_receipt_sha256,
         "provider_cluster_state": provider_cluster_state,
         "fleet_state": fleet_state,
         "accounting_state": accounting_state,
@@ -1868,6 +1909,7 @@ def validate_create_success_payload(payload: Mapping[str, Any]) -> None:
     expected_keys = {
         "account_id",
         "accounting_receipt_sha256",
+        "accounting_recovery_receipt_sha256",
         "accounting_state",
         "accounting_target",
         "captured_at",
@@ -1922,6 +1964,7 @@ def validate_create_success_payload(payload: Mapping[str, Any]) -> None:
         "final_cluster_config_sha256",
         "pricing_receipt_sha256",
         "accounting_receipt_sha256",
+        "accounting_recovery_receipt_sha256",
         "terminal_receipt_sha256",
     ):
         _require_sha256(str(payload.get(key) or ""), label=key)
@@ -1968,6 +2011,8 @@ def validate_create_success_payload(payload: Mapping[str, Any]) -> None:
         "account_id",
         "accounting_receipt",
         "accounting_receipt_sha256",
+        "accounting_recovery_receipt",
+        "accounting_recovery_receipt_sha256",
         "accounting_state",
         "accounting_target",
         "captured_at",
@@ -2007,6 +2052,9 @@ def validate_create_success_payload(payload: Mapping[str, Any]) -> None:
         "final_cluster_config_sha256": payload["final_cluster_config_sha256"],
         "pricing_receipt_sha256": payload["pricing_receipt_sha256"],
         "accounting_receipt_sha256": payload["accounting_receipt_sha256"],
+        "accounting_recovery_receipt_sha256": payload[
+            "accounting_recovery_receipt_sha256"
+        ],
         "provider_cluster_state": "UPDATE_COMPLETE",
         "fleet_state": "RUNNING",
         "accounting_state": "ENABLED",
@@ -2016,7 +2064,12 @@ def validate_create_success_payload(payload: Mapping[str, Any]) -> None:
     for key, expected in terminal_exact_values.items():
         if terminal_payload.get(key) != expected:
             raise CreateRequestError(f"Create success terminal receipt {key} does not match")
-    for label in ("final_cluster_config", "pricing_receipt", "accounting_receipt"):
+    for label in (
+        "final_cluster_config",
+        "pricing_receipt",
+        "accounting_receipt",
+        "accounting_recovery_receipt",
+    ):
         _verify_artifact_identity(
             terminal_path.parent,
             terminal_payload.get(label),

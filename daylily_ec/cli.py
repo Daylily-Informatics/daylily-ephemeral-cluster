@@ -87,8 +87,6 @@ WORKFLOW_BENCHMARK_RECEIPT_SCHEMA = "dyec.workflow.collect_benchmarks.v1"
 MAX_COLLECTED_BENCHMARK_BYTES = 4 * 1024 * 1024
 MAX_COLLECTED_BENCHMARK_ROWS = 10_000
 _IDEMPOTENCY_KEY_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$")
-DEFAULT_CREATE_REGION_AZ = "us-west-2d"
-DEFAULT_CREATE_CLUSTER_TYPE = "intel"
 ANALYSIS_MANIFEST_SNAPSHOT_SCHEMA = "dyec.analysis_manifest_snapshot.v1"
 MAX_ANALYSIS_MANIFEST_SNAPSHOT_BYTES = 4 * 1024 * 1024
 
@@ -1074,25 +1072,23 @@ def _emit_cluster_table(
 
 @_report_create_runtime
 def create(
-    region_az: Optional[str] = context_option(
-        "aws_region_az",
-        None,
+    region_az: str = typer.Option(
+        ...,
         "--region-az",
-        help=f"AWS region + availability zone. Defaults to {DEFAULT_CREATE_REGION_AZ}.",
-        fallback=DEFAULT_CREATE_REGION_AZ,
+        help="Exact AWS region + availability zone for this create request.",
     ),
     cluster_type: str = typer.Option(
-        DEFAULT_CREATE_CLUSTER_TYPE,
+        ...,
         "--cluster-type",
         help=(
-            "Cluster template family used to validate the exact rendered request. "
+            "Exact cluster template family used to validate the rendered request. "
             "One of: dragen, intel, rhel, sentieon-single."
         ),
     ),
-    profile: Optional[str] = typer.Option(
-        None,
+    profile: str = typer.Option(
+        ...,
         "--profile",
-        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+        help="Exact AWS CLI profile authorized for this create request.",
     ),
     regional_cluster_cap: Optional[int] = typer.Option(
         None,
@@ -1112,10 +1108,18 @@ def create(
         "--acknowledge-regional-cap-risk",
         help="Acknowledge the regional capacity and cost risk when raising the cap above 5.",
     ),
-    config: Optional[str] = typer.Option(
-        None,
+    config: str = typer.Option(
+        ...,
         "--config",
         help="Required protected dyec.create_request.v1 request YAML path.",
+    ),
+    output_dir: str = typer.Option(
+        ...,
+        "--output-dir",
+        help=(
+            "Required empty, owned 0700 directory for deterministic private create "
+            "artifacts and restart recovery."
+        ),
     ),
     preparation_receipt: Optional[str] = typer.Option(
         None,
@@ -1317,6 +1321,8 @@ def create(
         )
     except ValueError as exc:
         _invalid_create_options(str(exc))
+    if not profile.strip():
+        _invalid_create_options("--profile must be an exact nonblank AWS CLI profile.")
     if budget_project:
         _invalid_create_options(
             "--budget-project is retired; cluster budgets are named by cluster name."
@@ -1426,6 +1432,7 @@ def create(
         "budget_email_fallback": None,
         "preparation_receipt": preparation_receipt,
         "expected_preparation_receipt_sha256": expected_preparation_receipt_sha256,
+        "output_dir": output_dir,
         "result_out": result,
     }
     if json_mode:
@@ -1945,6 +1952,7 @@ def slurm_accounting_recover(
             region=region,
             region_az=region_az,
             profile=profile,
+            pcluster_executable="pcluster",
             cluster_configuration=cluster_configuration,
             output_dir=output_dir,
             stack_name=stack_name,
@@ -3299,6 +3307,7 @@ def cluster_compute_fleet(
             cluster_name=cluster,
             region=region,
             profile=profile,
+            pcluster_executable="pcluster",
             request_status=status,
             wait_for_status=wait_for,
             drain=drain,

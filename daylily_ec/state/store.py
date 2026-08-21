@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import tempfile
 from pathlib import Path
 from typing import Optional
 
@@ -118,6 +119,7 @@ def write_slurm_accounting_receipt(
     *,
     cluster_name: str,
     run_id: str,
+    destination: Path | None = None,
 ) -> Path:
     """Persist a non-secret post-create Slurm accounting receipt.
 
@@ -126,12 +128,43 @@ def write_slurm_accounting_receipt(
     secrets, credentials, or arbitrary exception text to this artifact.
     """
 
-    cluster = _safe_cluster_name(cluster_name)
-    filename = f"slurm_accounting_{cluster}_{run_id}_receipt.json"
-    dest = config_dir() / filename
+    explicit_destination = destination is not None
+    if destination is None:
+        cluster = _safe_cluster_name(cluster_name)
+        filename = f"slurm_accounting_{cluster}_{run_id}_receipt.json"
+        dest = config_dir() / filename
+    else:
+        dest = destination.expanduser()
+        if not dest.is_absolute():
+            raise ValueError("Explicit Slurm accounting receipt destination must be absolute")
+        dest = dest.resolve()
+        if dest.exists():
+            raise FileExistsError(
+                f"Explicit Slurm accounting receipt destination already exists: {dest}"
+            )
+        if not dest.parent.is_dir():
+            raise ValueError(
+                "Explicit Slurm accounting receipt parent must already be a directory"
+            )
     payload = json.dumps(receipt.model_dump(mode="json"), indent=2, sort_keys=True)
-    dest.write_text(payload + "\n", encoding="utf-8")
-    os.chmod(dest, 0o600)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{dest.name}.",
+        suffix=".tmp",
+        dir=str(dest.parent),
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            handle.write(payload + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.chmod(temporary, 0o600)
+        if explicit_destination:
+            os.link(temporary, dest)
+        else:
+            os.replace(temporary, dest)
+    finally:
+        temporary.unlink(missing_ok=True)
     logger.info("Slurm accounting receipt written to %s", dest)
     return dest
 
