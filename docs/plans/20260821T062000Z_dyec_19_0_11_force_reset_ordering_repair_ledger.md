@@ -35,7 +35,8 @@ remaining pre-reset Git credential-helper dependency.
 | --- | --- | --- |
 | Source repair | complete | Forced reset is now the first mutable bootstrap step. |
 | Pytest / git tests | intentionally not run | User explicitly requested no pytest or git tests. |
-| Release commit, branch, and annotated tag | pending | Publish before configuration retry. |
+| Functional source commit | complete | `987bfb2be11deec891bfd00edba5e5a1e2f1385f` (`Run forced headnode reset before bootstrap`). |
+| Release evidence commit, branch, and annotated tag | pending | This ledger finalization will be the annotated release commit. |
 | Serialized forced configuration | pending | One public `dyec headnode configure --state-file … --force` attempt only. |
 
 ## Terminal record
