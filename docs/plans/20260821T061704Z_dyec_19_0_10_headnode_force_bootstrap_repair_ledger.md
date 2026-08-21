@@ -35,7 +35,8 @@ same explicit-state configuration once.
 | Focused source change | complete | `configure_headnode` now calls `_resolve_headnode_cluster_cache_namespace` before remote steps. |
 | Test updates | complete, not executed | Existing headnode configure tests isolate the local authority resolver. |
 | Pytest / git tests | intentionally not run | User explicitly requested no pytest or git tests. |
-| Release commit, branch, and tag | pending | Must follow source review. |
+| Functional source commit | complete | `eb6fb3626bad2d2850b5ef2084f3174f35374771` (`Repair forced headnode bootstrap cache setup`). |
+| Release evidence commit, branch, and tag | pending | This ledger finalization will be the annotated release commit. |
 | Forced configuration rerun | pending | Must use only `dyec headnode configure --state-file … --force`. |
 
 ## Terminal record
