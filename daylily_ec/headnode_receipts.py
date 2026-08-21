@@ -422,32 +422,72 @@ def build_runtime_identity_script() -> str:
 
     return _python_script(f"""
 import importlib.metadata
+import importlib.util
 import json
+from pathlib import Path
 import re
+import subprocess
 
 SCHEMA = {RUNTIME_IDENTITY_SCHEMA!r}
 MARKER = {_RUNTIME_IDENTITY_MARKER!r}
 try:
     distribution = importlib.metadata.distribution("daylily-ephemeral-cluster")
-    direct_url = json.loads(distribution.read_text("direct_url.json") or "")
-    vcs_info = direct_url.get("vcs_info")
-    source_url = str(direct_url.get("url") or "").strip()
-    requested_revision = str((vcs_info or {{}}).get("requested_revision") or "").strip()
-    commit_id = str((vcs_info or {{}}).get("commit_id") or "").strip().lower()
+    version = str(distribution.version or "").strip()
+    repo_root = (Path.home() / "projects" / "daylily-ephemeral-cluster").resolve()
+    package_spec = importlib.util.find_spec("daylily_ec")
+    package_origin = Path(str(getattr(package_spec, "origin", "") or "")).resolve()
+    source_remote = subprocess.run(
+        ["git", "-C", str(repo_root), "remote", "get-url", "origin"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    commit_id = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip().lower()
+    tag_type = subprocess.run(
+        ["git", "-C", str(repo_root), "cat-file", "-t", f"refs/tags/{{version}}"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    tag_commit = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", f"refs/tags/{{version}}^{{commit}}"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip().lower()
+    worktree_status = subprocess.run(
+        ["git", "-C", str(repo_root), "status", "--porcelain", "--untracked-files=all"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    allowed_remotes = {{
+        "git@github.com:lsmc-bio/daylily-ephemeral-cluster.git",
+        "ssh://git@github.com/lsmc-bio/daylily-ephemeral-cluster.git",
+        "https://github.com/lsmc-bio/daylily-ephemeral-cluster",
+        "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
+    }}
     if (
-        not isinstance(vcs_info, dict)
-        or vcs_info.get("vcs") != "git"
-        or not source_url
-        or not requested_revision
+        re.fullmatch(r"[0-9]+\\.[0-9]+\\.[0-9]+(?:\\.[0-9]+)?", version) is None
+        or source_remote not in allowed_remotes
         or re.fullmatch(r"[0-9a-f]{{40}}", commit_id) is None
+        or tag_type != "tag"
+        or tag_commit != commit_id
+        or worktree_status
+        or not package_origin.is_relative_to(repo_root / "daylily_ec")
     ):
         raise RuntimeError("installed_dyec_provenance_invalid")
     payload = {{
         "schema_version": SCHEMA,
         "ok": True,
-        "dyec_version": distribution.version,
-        "source_url": source_url,
-        "requested_revision": requested_revision,
+        "dyec_version": version,
+        "source_url": "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
+        "requested_revision": version,
         "commit_id": commit_id,
     }}
 except Exception:
