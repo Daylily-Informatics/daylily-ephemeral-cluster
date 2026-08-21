@@ -4871,7 +4871,21 @@ def configure_headnode(
             return False
 
     cluster_cache_namespace_q = shlex.quote(cluster_cache_namespace)
-    steps = [
+    steps = []
+    if force:
+        # A forced configuration is the recovery path for a broken ambient
+        # DAY-EC shell.  It must precede every clone or bootstrap operation:
+        # Git credential helpers and repository activation can otherwise
+        # invoke the broken environment before it is removed.
+        steps.append(
+            (
+                "Remove requested DAYOA and DAY-EC environments and clean Conda caches",
+                _build_headnode_conda_environment_reset_command(),
+                None,
+            )
+        )
+    steps.extend(
+        [
         (
             "Configure cluster-scoped DayOA cache namespace",
             (
@@ -4930,15 +4944,8 @@ def configure_headnode(
             ),
             None,
         ),
-    ]
-    if force:
-        steps.append(
-            (
-                "Remove requested DAYOA and DAY-EC environments and clean Conda caches",
-                _build_headnode_conda_environment_reset_command(),
-                None,
-            )
-        )
+        ]
+    )
     steps.append(
         (
             "Rebuild DAY-EC and install headnode tools",
