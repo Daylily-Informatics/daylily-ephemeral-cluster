@@ -131,6 +131,7 @@ def write_slurm_accounting_receipt(
     dest = config_dir() / filename
     payload = json.dumps(receipt.model_dump(mode="json"), indent=2, sort_keys=True)
     dest.write_text(payload + "\n", encoding="utf-8")
+    os.chmod(dest, 0o600)
     logger.info("Slurm accounting receipt written to %s", dest)
     return dest
 

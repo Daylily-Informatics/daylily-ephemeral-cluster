@@ -47,7 +47,7 @@ session-manager-plugin
 
 Installed packages use packaged resources under `daylily_ec/resources/payload/`.
 The packaged repository catalog must match the source catalog. Current launch
-targets are DayOA `15.0.37`; retained validation receipts can describe an earlier
+targets are DayOA `16.0.3`; retained validation receipts can describe an earlier
 `validated_version`, which catalog output marks with `validation_pending: true`
 rather than rewriting the evidence.
 

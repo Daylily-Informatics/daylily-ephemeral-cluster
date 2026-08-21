@@ -314,6 +314,7 @@ def _validate_prepared_identity(
     consumer_vpc_id: str,
     database_name: str,
     db_username: str,
+    instance_type: str,
 ) -> None:
     if (
         prepared.cluster_name != cluster_name
@@ -324,6 +325,7 @@ def _validate_prepared_identity(
         or prepared.consumer_vpc_id != consumer_vpc_id
         or prepared.database_name != database_name
         or prepared.db_username != db_username
+        or prepared.provider_instance_type != instance_type
     ):
         raise SlurmAccountingRecoveryError(
             "The prepared accounting provider/bridge/VPC/database/user identity does not "
@@ -652,6 +654,7 @@ def _verify_exact_target_binding(
             consumer_vpc_id=consumer_vpc_id,
             database_name=database_name,
             db_username=db_username,
+            instance_type=instance_type,
         )
         candidate_sha256 = _sha256_path(candidate_path)
     if _sha256_path(source_config) != source_sha256:
@@ -1111,6 +1114,7 @@ def recover_slurm_accounting(
                     consumer_vpc_id=consumer_vpc_id,
                     database_name=database_name,
                     db_username=db_username,
+                    instance_type=instance_type,
                 )
                 if prepared.update_config_path.resolve() != update_config:
                     raise SlurmAccountingRecoveryError(

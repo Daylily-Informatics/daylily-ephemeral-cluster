@@ -32,8 +32,8 @@ resolve_daylily_res_dir() {
         echo "${repo_root}"
         return 0
     fi
-    if command -v daylily-ec >/dev/null 2>&1; then
-        daylily-ec resources-dir
+    if command -v dyec >/dev/null 2>&1; then
+        dyec resources-dir
         return 0
     fi
     echo "Error: could not resolve Daylily resources dir. Set DAYLILY_EC_RESOURCES_DIR or install daylily-ephemeral-cluster." >&2
@@ -73,12 +73,12 @@ if [[ "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" != "1" || "${CONDA_DEFAULT_ENV:-}
         }
     fi
 
-    if ! command -v daylily-ec >/dev/null 2>&1; then
-        echo "Error: daylily-ec is not available after sourcing $activate_script" >&2
+    if ! command -v dyec >/dev/null 2>&1; then
+        echo "Error: dyec is not available after sourcing $activate_script" >&2
         return 1
     fi
 
-    eval "$(daylily-ec headnode init --emit-shell --non-interactive --skip-project-check)"
+    eval "$(dyec headnode init --emit-shell --non-interactive --skip-project-check)"
     DAYLILY_EC_HEADNODE_BOOTSTRAPPED=1
 fi
 

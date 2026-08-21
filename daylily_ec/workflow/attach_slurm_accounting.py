@@ -69,6 +69,7 @@ class PreparedSlurmAccountingUpdate:
     service_created: bool
     database_name: str = ""
     db_username: str = ""
+    provider_instance_type: str = ""
 
 
 @dataclass(frozen=True)
@@ -78,6 +79,54 @@ class ClusterAccountingNetworkIdentity:
     subnet_id: str
     vpc_id: str
     region_az: str
+
+
+def _resolve_exact_provider_instance_type(
+    aws_ctx: Any,
+    *,
+    instance_id: str,
+    expected_instance_type: str,
+) -> str:
+    """Resolve one exact accounting host type without alternate discovery."""
+
+    instance_id = str(instance_id or "").strip()
+    expected_instance_type = str(expected_instance_type or "").strip()
+    if not instance_id or not expected_instance_type:
+        raise SlurmAccountingPreparationError(
+            "The exact accounting provider instance identity is incomplete.",
+            stage="service_resolution",
+            reason_code="exact_instance_identity_missing",
+        )
+    try:
+        response = aws_ctx.client("ec2").describe_instances(InstanceIds=[instance_id])
+    except Exception:  # noqa: BLE001 - provider detail is normalized here
+        raise SlurmAccountingPreparationError(
+            "The exact accounting provider instance type could not be inspected safely.",
+            stage="service_resolution",
+            reason_code="exact_instance_inventory_failed",
+        ) from None
+    instances: list[dict[str, Any]] = []
+    reservations = response.get("Reservations")
+    if isinstance(reservations, list):
+        for reservation in reservations:
+            if isinstance(reservation, dict) and isinstance(reservation.get("Instances"), list):
+                instances.extend(
+                    item for item in reservation["Instances"] if isinstance(item, dict)
+                )
+    if len(instances) != 1 or str(instances[0].get("InstanceId") or "") != instance_id:
+        raise SlurmAccountingPreparationError(
+            "The exact accounting provider instance inventory is incomplete or ambiguous.",
+            stage="service_resolution",
+            reason_code="exact_instance_inventory_invalid",
+        )
+    observed = str(instances[0].get("InstanceType") or "").strip()
+    if observed != expected_instance_type:
+        raise SlurmAccountingPreparationError(
+            "The exact accounting provider instance type does not match the request.",
+            stage="service_resolution",
+            reason_code="exact_instance_type_mismatch",
+        )
+    return observed
 
 
 @dataclass(frozen=True)
@@ -378,6 +427,7 @@ def prepare_slurm_accounting_update(
     exact_stack_name = stack_name.strip()
     provider_accounting_stack_name = ""
     resolved_privatelink_stack_name: str | None = None
+    provider_instance_type = ""
     if exact_target_only:
         if not exact_stack_name:
             raise SlurmAccountingPreparationError(
@@ -587,6 +637,11 @@ def prepare_slurm_accounting_update(
                     reason_code="exact_service_identity_mismatch",
                 )
             provider_accounting_stack_name = exact_stack_name
+        provider_instance_type = _resolve_exact_provider_instance_type(
+            aws_ctx,
+            instance_id=db.instance_id,
+            expected_instance_type=instance_type,
+        )
     elif privatelink_stack_name.strip():
         from daylily_ec.aws.slurm_accounting_privatelink import (
             SlurmAccountingPrivateLinkError,
@@ -726,6 +781,7 @@ def prepare_slurm_accounting_update(
         service_created=service_created,
         database_name=db.database_name,
         db_username=db.username,
+        provider_instance_type=provider_instance_type,
     )
 
 

@@ -1,6 +1,6 @@
 # DYEC 19.0.6 Ursa Recovery CLI Ledger
 
-Controlling request: implement the DYEC lane of the approved multi-agent plan by adding public, JSON-capable `dyec cluster compute-fleet` and `dyec slurm-accounting recover` contracts. After the coordinator-owned first live attempt exposed the retained cross-VPC topology, the lane also adds read-only `dyec slurm-accounting inspect` and explicit existing-bridge recovery. DYEC owns every underlying ParallelCluster call. This lane performs no live AWS mutation, production recovery, build, deployment, release tag, or package publication.
+Controlling request: implement the DYEC lane of the approved multi-agent plan by adding public, JSON-capable `dyec cluster compute-fleet` and `dyec slurm-accounting recover` contracts. After the coordinator-owned first live attempt exposed the retained cross-VPC topology, the lane also adds read-only `dyec slurm-accounting inspect` and explicit existing-bridge recovery. Slice A then adds strict create-request rendering, live admission and final pricing receipts, atomic cost-center activation, truthful regional capacity evidence, and terminal create-side accounting proof. DYEC owns every underlying ParallelCluster call. This lane performs no live AWS mutation, production recovery, build, deployment, release tag, or package publication.
 
 Cross-repo coordination: the parent coordinator owns the authoritative `daylily-ursa` ledger and the Ursa, Dayhoff, OWY, production, and release gates. This repo-local ledger records only the isolated DYEC source lane.
 
@@ -47,22 +47,57 @@ Cross-repo coordination: the parent coordinator owns the authoritative `daylily-
 | DYEC-006 | Docs | Document exact syntax, state spellings, safety boundary, and output schemas | SUCCESS | historical_docs_only | Gate 5 | DYEC agent | `README.md`, `docs/agent_cli_guide.md`, `docs/cli_reference.md`, and `dyec --json agent guidance` |  | Docs require the installed `dyec` console script for upstream services and define both exact argv/schema contracts. |
 | DYEC-007 | Live proof | Recover `ursa-m-rgx-hx01` and prove accounting/fleet/sacct live | BLOCKED | feature_implementation | Live coordinator gate | coordinator | Supporting-agent assignment explicitly prohibits AWS/production mutation | Production authority intentionally retained by coordinator | Coordinator must run the released CLI after reviewing this source handoff. |
 | DYEC-008 | Release | Create/push annotated `19.0.6` tag or fix forward | BLOCKED | config_or_startup_contract | Release coordinator gate | coordinator | Supporting-agent assignment explicitly prohibits tagging/publication | Release promotion depends on coordinator-owned live proof | Coordinator owns tag and any fix-forward version after live gates. |
-| DYEC-009 | Git handoff | Commit and push the isolated `codex/` branch | OPEN | feature_implementation | Gate 5 | DYEC agent | Initial candidate `327f8faa6187c19744f20677ffb885cdb602ad01` and diagnostic delta `54cee0c65e3df01583e4c1133b68019d8e93279d` are pushed; exact-topology corrective delta awaits review/commit |  | Current source commit remains coordinator-gated. |
-| DYEC-010 | Exact topology | Add read-only bounded provider/bridge inspection and bind an explicit existing bridge into recovery receipts | IN_PROGRESS | active_product_contract | D2 corrective gate | DYEC agent | `368 passed in 3.49s` affected suite; `115 passed, 135 deselected in 4.97s` registry/help selection; scoped Ruff, new-file Ruff format, Python compile, and `git diff --check` pass | Retained regional provider name and cross-VPC bridge cannot be represented by the direct-only first candidate | Source/tests/docs are locally frozen; independent review remains. |
+| DYEC-009 | Git handoff | Commit and push the isolated `codex/` branch | SUCCESS | feature_implementation | WIP source freeze | coordinator | Initial candidate `327f8faa6187c19744f20677ffb885cdb602ad01`, diagnostic delta `54cee0c65e3df01583e4c1133b68019d8e93279d`, and independently cleared exact-topology commit `c135088feff5a3d9f9e0b4e6c7f55ae172a05f74` are pushed; this ledger is included in the one unpublished all-slices WIP snapshot whose exact commit is recorded by the parent Ursa ledger after commit |  | Addressable WIP source only; no tag, package publication, merge, or release was created. |
+| DYEC-010 | Exact topology | Add read-only bounded provider/bridge inspection and bind an explicit existing bridge into recovery receipts | SUCCESS | active_product_contract | D2 corrective gate | DYEC agent | Independent clear on 15-file manifest `ae6e1beca8951ab5d61aefda359d27a909b5245cd5d4aa16ba36442c5e26ebbf`; commit `c135088feff5a3d9f9e0b4e6c7f55ae172a05f74` pushed | Retained regional provider name and cross-VPC bridge cannot be represented by the direct-only first candidate | Exact provider/bridge inspection and recovery binding are reviewed and pushed; live use remains coordinator-owned. |
+| DYEC-011 | Slice A create contract | Add strict current-schema request render, read-only live admission, independent immediate pre-create reprice, exact provider-input byte binding, and one versioned terminal create result | SUCCESS | active_product_contract | WIP source freeze | coordinator | `daylily_ec/workflow/create_request.py`; `daylily_ec/workflow/create_cluster.py`; `daylily_ec/cli.py`; protected request, final-YAML, terminal-receipt, duplicate-name, price-receipt, accounting, and result contracts | Upstream services previously had to mutate request YAML and could not retain typed admission/final pricing or terminal accounting evidence | Source is frozen for the WIP image. Live proof and post-hotfix validation remain parent-ledger gates. |
+| DYEC-012 | Slice A cost center | Add atomic exact-or-conflict `cost-centers ensure-active` shared by root create | SUCCESS | active_product_contract | WIP source freeze | coordinator | `daylily_ec/aws/cost_centers.py`; `daylily_ec/cli.py`; exact canonical controlled-field comparison; bounded mismatch fields; root create uses the same operation | Separate show/create operations are race-prone and root create used different controlled fields | No table bootstrap, reactivation, owner/user disclosure, or alternate policy path remains in the source contract. |
+| DYEC-013 | Slice A capacity | Add truthful Service Quotas UsageMetric-backed `aws capacity-snapshot` | SUCCESS | active_product_contract | WIP source freeze | coordinator | `daylily_ec/aws/capacity_snapshot.py`; `daylily_ec/cli.py`; UsageMetric/freshness/completeness receipt and incomplete/null behavior | Partial instance inventory made quota display stale or misleading under recent load | Source is frozen with authoritative usage evidence and no partial-inventory relabeling. |
+| DYEC-014 | Accounting inspection identity | Expose exact provider instance type in public accounting inspection | SUCCESS | active_product_contract | WIP source freeze | coordinator | `daylily_ec/workflow/inspect_slurm_accounting.py`; `regional_providers[].instance_type`; `exact_bridge.accounting_instance_type`; missing/ambiguous inventory failure | Ursa cannot safely infer the accounting instance type required by recovery | Public inspection binds exact provider/bridge identity and returns no database endpoint or raw provider error. |
+
+## Slice A Validation Baseline
+
+- Pre-slice baseline commit: pushed `c135088feff5a3d9f9e0b4e6c7f55ae172a05f74`.
+- Coordinator detached-baseline command:
+  `source ./activate && python -m pytest -q tests/test_cli_registry_v2.py::test_headnode_configure_requires_both_deploy_key_references tests/test_cli_registry_v2.py::test_headnode_configure_rejects_blank_deploy_key_before_target_resolution tests/test_cli_registry_v2.py::test_headnode_configure_uses_workflow_configure tests/test_cli_registry_v2.py::test_headnode_configure_dragen_uses_ec2_user tests/test_workflow.py::TestConfigureHeadnode`
+  -> `27 collected, 12 failed, 15 passed in 97.26s`.
+- Candidate affected command before the additional protected-file regression:
+  `source ./activate && python -m pytest -q tests/test_cli_registry_v2.py tests/test_workflow.py tests/test_spot_pricing.py tests/test_cost_centers.py tests/test_capacity_snapshot.py tests/test_create_request_contracts.py tests/test_slurm_accounting_inspection.py`
+  -> `489 collected, 12 failed, 477 passed in 191.38s`.
+- The 12 candidate failures are the exact same 12 headnode-configure node IDs as
+  the detached pre-slice baseline: deploy-key validation exit/order, stale
+  `force=False` expectations, and stale 7-call SSM mock sequences against the
+  existing 10-call workflow. Slice A introduces zero new failures relative to
+  its pushed base and intentionally does not change this unrelated area.
+
+## WIP Source Freeze Inventory
+
+- Recorded at: `2026-08-21T00:00:07Z`.
+- Worktree state before the unpublished snapshot: 45 modified tracked paths and
+  7 new paths, all within the reviewed DYEC source/docs/focused-contract-test
+  boundary; the complete path inventory is the snapshot commit itself.
+- The catalog source and packaged mirror differ from the 19.0.4 base by the
+  exact numeric `19.0.6` build promotion only and remain byte-identical to each
+  other.
+- The packaged headnode paths now invoke literal `dyec`; no operational helper
+  falls back to `python -m daylily_ec` when the public console script is absent.
+- Per the controlling Ursa ledger, no new test, formatter, linter, compiler,
+  import, build, AWS, deployment, or live-workflow command was run during this
+  all-slices source-freeze pass.
 
 ## Final Report
 
-All rows terminal: no (git handoff remains open)
+All rows terminal: yes
 
-Objective complete: no
+Objective complete: yes for this DYEC source lane; live proof and release
+promotion remain explicitly coordinator-owned.
 
 Status counts:
-- SUCCESS: 6
+- SUCCESS: 12
 - DUPLICATE: 0
 - NO_LONGER_NEEDED: 0
 - FAIL: 0
 - BLOCKED: 2
-- IN_PROGRESS: 1
-- OPEN: 1
+- IN_PROGRESS: 0
+- OPEN: 0
 
 Live actions performed: none.

@@ -2,7 +2,7 @@
 
 This is the day-2 runbook for current DayEC clusters.
 
-This guide describes the `18.0.57` CLI. For repeated work, `dyec set-vars` can
+This guide describes the `19.0.6` CLI. For repeated work, `dyec set-vars` can
 store the four supported values in `$PWD/.dyec.config.yaml`; explicit flags
 still win, and direct `aws`/`pcluster` commands keep their normal environment
 requirements. Start with [agent_cli_guide.md](agent_cli_guide.md) for the
@@ -126,7 +126,7 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --dry-run
 ```
 
-The active catalog pin for DayOA commands is `15.0.37`. A catalog row can retain
+The active catalog pin for DayOA commands is `16.0.3`. A catalog row can retain
 an older `validated_version`; `validation_pending: true` reports the difference
 without rewriting historical evidence or blocking a launch.
 
@@ -245,7 +245,7 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 15.0.37 \
+  --git-tag 16.0.3 \
   --genome hg38_broad \
   --jobs 5 \
   --target produce_illumina_run_qc \
@@ -381,8 +381,8 @@ For repo-native work that is not a catalog workflow command, clone the pinned re
 
 ```bash
 day-clone --list
-day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 15.0.37 --executing-entity "$EXECUTING_ENTITY"
-day-clone -d "$ANALYSIS_ID" -t 15.0.37
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 16.0.3 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 16.0.3
 ```
 
 `-t` is the short form of `--git-tag`; `-d` is required and is the short form of `--destination`. The clone target is `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`.

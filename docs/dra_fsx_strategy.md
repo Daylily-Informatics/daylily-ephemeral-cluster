@@ -93,7 +93,7 @@ flowchart LR
 `config/daylily_pipeline_command_catalog.yaml` defines repositories and launch
 profiles. Its packaged copy under
 `daylily_ec/resources/payload/config/` must remain identical. The active DayOA
-repository and active command targets are pinned to `15.0.37`; older
+repository and active command targets are pinned to `16.0.3`; older
 `validated_version` values remain historical evidence and appear as
 `validation_pending: true` when they differ from a current target.
 
@@ -108,7 +108,7 @@ set.
 
 ```mermaid
 flowchart TB
-  Catalog["Repository catalog v6"] --> Repo["daylily-omics-analysis @ 15.0.37"]
+  Catalog["Repository catalog v6"] --> Repo["daylily-omics-analysis @ 16.0.3"]
   Repo --> Sample["sample_analysis"]
   Repo --> Run["run_analysis"]
 

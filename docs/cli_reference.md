@@ -1,6 +1,6 @@
 # DYEC CLI Reference
 
-This document is the operator-facing reference for the `18.0.57` `dyec` command surface. It favors explicit commands and receipts over implicit state. `daylily-ec` is an installed compatibility entrypoint for the same CLI, but current docs and ledgers use `dyec`.
+This document is the operator-facing reference for the `19.0.6` `dyec` command surface. It favors explicit commands and receipts over implicit state. Operators and upstream services use the installed literal `dyec` console script.
 
 ## Conventions
 
@@ -146,39 +146,141 @@ not reproduce create-time discovery or pricing. If an upstream service needs an
 operation not exposed here, the missing interface must be added as a reviewed
 public `dyec` CLI contract before that service can use it.
 
-Preflight:
+Render one exact current-schema request from an immutable source config, a
+packaged template, and a protected override object:
 
 ```bash
-dyec preflight \
+dyec --json create-request render \
+  --source-config <exact-source-config-resource> \
+  --expected-source-config-sha256 <sha256> \
+  --source-template \
+    config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml \
+  --expected-source-template-sha256 <sha256> \
+  --overrides-json <absolute-protected-overrides.json> \
+  --region-az "$REGION_AZ" \
+  --output <absolute-protected-request.yaml>
+```
+
+The override input has schema `dyec.create_request_overrides.v1` and exactly
+two top-level fields: `schema_version` and `values`. `values` must contain
+exactly these 11 nonblank keys, with no aliases or optional extras:
+
+- `cluster_name`
+- `cost_center_name`, `cost_center_monthly_cap_usd`,
+  `cost_center_allowed_users`
+- `budget_amount`, `allowed_budget_users`, `budget_email`
+- `dyec_deploy_key_policy_arn`, `dyec_deploy_key_secret_arn`,
+  `dayoa_deploy_key_policy_arn`, `dayoa_deploy_key_secret_arn`
+
+`budget_amount` must equal `cost_center_monthly_cap_usd`; the two allowed-user
+fields must also match. Project budget identity is exactly `cluster_name`;
+`budget_project` is retired and rejected. The protected rendered request is an
+exact `dyec.create_request.v1` document: all 46 current config triplets use
+`[USESETVALUE, "", <explicit value>]`, with only the four documented optional
+empty fields allowed to be blank. The render success object contains status,
+created/no-op, DYEC version, region/AZ, cluster name, request path/digest,
+source config/template logical identities and digests, override file/canonical
+digests and sorted key names, plus repository-credential key names and their
+combined digest. It never returns the override values.
+
+The override input and rendered request must have no group/other permission
+bits (mode `0600`). A same-content existing render output is accepted only when
+it is already protected; different content or broader permissions fail closed.
+Relative source config/template identities always name packaged DYEC resources;
+they never fall back to a same-named file in the current directory. An external
+source config must be supplied by absolute path and exact digest.
+
+Generate read-only live-pricing admission evidence:
+
+```bash
+dyec --json create-request prepare \
+  --request-config <absolute-protected-request.yaml> \
+  --expected-request-sha256 <sha256> \
+  --source-template \
+    config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml \
+  --expected-source-template-sha256 <sha256> \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
-  --config ~/.config/daylily/daylily_ephemeral_cluster.yaml
+  --spot-price-policy CALCULATE_MAX_SPOT_PRICE \
+  --output-dir <absolute-protected-admission-directory>
 ```
 
-Create:
+`dyec.create_preparation.v1` binds the exact request/template/source/override
+and repository-credential-reference digests, DYEC version, profile, resolved
+account, region/AZ, cluster name, policy and pricing limits. Its
+`pricing_source` contains the EC2 operation, capture time, observation window,
+freshness/future-skew bounds, and provider observation timestamps. Artifact
+entries expose only deterministic basenames, sizes, and SHA-256 values. The
+receipt never returns raw overrides, credentials, emails, or S3 paths. A stale,
+future, missing, nonpositive, or malformed provider observation fails closed.
+The admission directory must be protected with mode `0700`; its files are
+written with mode `0600`.
+
+Saved templates must contain exactly `SpotPrice: CALCULATE_MAX_SPOT_PRICE` for
+every Spot compute resource and no `SpotPrice` on On-Demand resources. Prepared
+numeric YAML is admission evidence only; it is neither the saved template nor
+the creation input.
+
+Create with the reviewed admission receipt:
 
 ```bash
-dyec create \
+dyec --json create \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
-  --config ~/.config/daylily/daylily_ephemeral_cluster.yaml
+  --cluster-type intel \
+  --non-interactive \
+  --slurm-accounting on \
+  --config <absolute-protected-request.yaml> \
+  --preparation-receipt \
+    <absolute-protected-admission-directory>/create-preparation.json \
+  --expected-preparation-receipt-sha256 <sha256>
 ```
 
-When create is explicitly approved to prepare missing Slurm-accounting
-infrastructure and the regional database is reached through an existing
-cross-VPC PrivateLink bridge, DYEC first reconciles the deterministic bridge
-stack to the packaged template. It reuses only the endpoint subnet CIDR stored
-as that stack's CloudFormation parameter. A missing bridge or missing parameter
-fails before any compute-fleet mutation; DYEC does not invent network values.
+The two preparation arguments are all-or-none. Create verifies their content
+identity and freshness but never reuses admission bids. After all policy and
+structural mutations, including any cluster-bound PERSISTENT_2 resources, it
+queries Spot prices again, writes `dyec.create_pricing_receipt.v1`, and binds
+the exact final bytes to both provider dry-run and create. The exact cluster
+name is checked at admission, immediately before the first create-side AWS
+mutation, and again immediately before provider create; every provider state
+other than `DELETE_COMPLETE` blocks reuse.
 
-For this command only, `--admin-email` overrides the AWS Budget notification
-email. Its precedence is `--admin-email`, then `budget_email` in the create
-YAML, then local `cluster_admin_email`, then the pre-existing default. It does
-not change heartbeat email behavior:
+Standalone `dyec create` remains authoritative when the preparation pair is
+omitted: it performs its own live admission pass and still performs the
+independent final reprice. Creation owns pricing, provider provisioning, and
+the mandatory accounting lifecycle. Add
+`--create-slurm-accounting-if-missing` together with
+`--acknowledge-slurm-accounting-create-cost` only when creation of the regional
+accounting service and its ongoing cost were explicitly approved.
 
-```bash
-dyec create --admin-email oncall@example.org --region-az us-west-2d
+In JSON mode, stdout contains exactly one object. A successful
+`dyec.create.v1` object has exactly these fields:
+
+```text
+schema_version, dyec_version, status, terminal, phase, captured_at,
+cluster_name, profile, account_id, region, region_az,
+provider_cluster_state, fleet_state, accounting_state, sacct_verified,
+request_config_sha256, final_cluster_config_sha256,
+pricing_receipt_sha256, accounting_receipt_sha256,
+terminal_receipt_path, terminal_receipt_sha256
 ```
+
+The only success tuple is `status=complete`, `terminal=true`,
+`phase=terminal`, provider `UPDATE_COMPLETE`, fleet `RUNNING`, accounting
+`ENABLED`, and `sacct_verified=true`. The protected
+`dyec.create_terminal.v1` receipt binds the same identities and the create-side
+pricing/accounting receipt digests. Any other outcome emits one
+`dyec.create.v1` failure object with `status=failed`, `terminal=false`, a safe
+`error_code`, and optional exit code; operational detail is written to stderr.
+
+The root `--admin-email`, `--budget-project`, and
+`--disable-budget-enforcement` options are retired and rejected. Budget email,
+cluster-name project identity, and budget enforcement come only from the exact
+rendered request.
+
+`dyec preflight` remains available for operator inspection of an existing
+configuration, but it does not replace the strict request-render, admission,
+or independent final-pricing gates above.
 
 Inspect:
 
@@ -326,6 +428,7 @@ return its bounded bridge identity with `contract_healthy: false` and
       "database_name": "<database>",
       "db_username": "<user>",
       "instance_id": "<accounting instance>",
+      "instance_type": "<accounting instance type>",
       "required_outputs_present": true,
       "contract_healthy": true
     }
@@ -339,6 +442,7 @@ return its bounded bridge identity with `contract_healthy: false` and
     "database_name": "<database>",
     "db_username": "<user>",
     "accounting_instance_id": "<accounting instance>",
+    "accounting_instance_type": "<accounting instance type>",
     "contract_healthy": true
   },
   "exact_bridge_resolved": true,
@@ -888,8 +992,8 @@ Show one command:
 
 ```bash
 dyec --json catalog show hybrid_ilmn_ont_hiomr_kitchensink
-dyec --json catalog show package_inflection_hybrid_data
-dyec --json catalog show illumina_run_qc
+dyec --json catalog show package_inflection_hybrid_data --dyec-version 19.0.6
+dyec --json catalog show illumina_run_qc --dyec-version 19.0.6
 ```
 
 The catalog exposes:
@@ -899,12 +1003,11 @@ The catalog exposes:
 - repository and DayOA git tag;
 - `validated_version` and derived `validation_pending` state;
 - input contract;
-- exact `dy-r` or `bin/day_run` command string;
-- dry-run command string;
+- resolved command digest and immutable repository/runtime identities;
 - targets, callers, aligners, dedupers, jobs, and keep-going settings;
 - validated version metadata when present.
 
-The active catalog targets DayOA `15.0.37`. `validation_pending: true` means a
+The `19.0.6` catalog targets DayOA `16.0.3`. `validation_pending: true` means a
 command's launch `git_tag` differs from its recorded `validated_version`; it is
 an honest pending-validation indicator, not a launch block or a rewritten
 receipt. Existing validation runs and receipt tags remain historical evidence.
@@ -1000,7 +1103,7 @@ dyec workflow launch \
   --cluster "$CLUSTER" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$CLUSTER" \
-  --git-tag 15.0.37 \
+  --git-tag 16.0.3 \
   --manifest-dir ./config \
   --payload-staging-s3-uri "$STAGING_S3_URI" \
   --session-name "$ANALYSIS_ID" \
@@ -1416,6 +1519,12 @@ Cost-center examples:
 
 ```bash
 dyec cost-centers ensure-registry --profile "$AWS_PROFILE"
+dyec --json cost-centers ensure-active project-a \
+  --monthly-cap-usd 200 \
+  --allowed-user ubuntu \
+  --owner-email owner@example.org \
+  --profile "$AWS_PROFILE" \
+  --home-region us-west-2
 dyec cost-centers create project-a --monthly-cap-usd 200 --allowed-user ubuntu
 dyec --json cost-centers show project-a
 dyec --json cost-centers list --status active
@@ -1426,6 +1535,17 @@ dyec --json cost-centers refresh-usage project-a \
   --profile "$AWS_PROFILE" \
   --dry-run
 ```
+
+`ensure-active` requires both registry tables to exist and be `ACTIVE`; it
+never bootstraps them. It conditionally creates one row or strongly consistently
+rereads an exact concurrent row, then compares status, cap, canonical sorted
+users/groups, the single canonical owner email, empty notes, and unset
+expiry/usage-age overrides. It never
+reactivates or edits a mismatched row. Its
+`dyec.cost_center_ensure_active.v1` response includes `created`, exact
+profile/account/home-region, name/status/cap, principal counts and SHA-256
+digests, `notes_empty`, and one controlled-fields digest. Raw user and owner
+values are not returned.
 
 Budget/cap changes require the workspace double-approval process before live mutation.
 For an existing fixed monthly USD AWS Budget, plan the exact change first:
@@ -1452,9 +1572,21 @@ AWS readiness and quota helpers:
 ```bash
 dyec aws --help
 dyec pricing --help
+
+dyec --json aws capacity-snapshot \
+  --region "$REGION" \
+  --profile "$AWS_PROFILE" \
+  --quota-family standard
 ```
 
-Use these before live cluster creation or quota-heavy launches.
+`dyec.aws_capacity_snapshot.v1` obtains each requested EC2 vCPU quota and uses
+that quota's own Service Quotas `UsageMetric` definition to query CloudWatch.
+Every quota row includes quota code/name/limit/unit, exact metric
+namespace/name/dimensions/statistic, observation timestamp/age, authoritative
+used vCPUs, headroom, and bounded non-authoritative EC2 inventory context.
+Missing metric metadata, query failure, no datapoint, or a stale/future
+datapoint yields `complete=false`, safe reason codes, and null authoritative
+used/headroom for every row. Callers must reject an incomplete snapshot.
 
 ## Tests and validation helpers
 

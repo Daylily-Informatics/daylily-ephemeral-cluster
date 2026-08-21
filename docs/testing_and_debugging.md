@@ -61,7 +61,7 @@ The source and packaged catalogs must match:
 cmp -s config/daylily_pipeline_command_catalog.yaml daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml
 ```
 
-The active DayOA pin is `15.0.37`. Inspect it through the public surface and
+The active DayOA pin is `16.0.3`. Inspect it through the public surface and
 verify both checked-in catalog copies before relying on launch examples:
 
 ```bash
@@ -79,7 +79,7 @@ catalog validation or permission to relabel old receipts.
 
 ## Docs Sweeps
 
-The supported operator docs must match the `18.0.57` root help, current `15.0.37`
+The supported operator docs must match the `19.0.6` root help and exact `16.0.3`
 catalog target, project-local context contract, and provider-neutral export
 surface. `tests/test_cli_docs_contract.py` checks those durable claims. Keep
 old evidence in `docs/archive/**`, dated reports, or historical ledgers rather

@@ -11,8 +11,9 @@ At runtime we extract the payload to a stable per-version directory:
 
   ${XDG_CONFIG_HOME:-~/.config}/daylily/resources/<pkg-version>/
 
-Users may override extraction by setting ``DAYLILY_EC_RESOURCES_DIR`` to
-an existing directory containing the expected layout (config/, etc/, bin/).
+The packaged release is the only active resource identity. Callers that need a
+file outside that immutable bundle use the versioned ``dyec resources`` receipt
+surface; an environment override would make a rendered request non-portable.
 """
 
 from __future__ import annotations
@@ -21,13 +22,12 @@ import fcntl
 import os
 import shutil
 import tempfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Iterable
 
 import importlib.resources as ir
 from daylily_ec import versioning
 
-RES_DIR_ENV = "DAYLILY_EC_RESOURCES_DIR"
 INTEL_TEMPLATE_REGION_AZS = (
     "ap-south-1a",
     "ap-south-1b",
@@ -132,8 +132,7 @@ def _validate_resources_dir(root: Path) -> None:
             "Invalid Daylily resources dir. Missing expected paths:\n"
             + "\n".join(missing)
             + "\n\n"
-            f"Set {RES_DIR_ENV} to a directory containing config/, etc/, bin/ "
-            "or reinstall daylily-ephemeral-cluster."
+            "Reinstall the exact daylily-ephemeral-cluster release."
         )
 
 
@@ -168,12 +167,6 @@ def ensure_extracted() -> Path:
 
     Extraction is idempotent and safe to call at process startup.
     """
-    override = os.environ.get(RES_DIR_ENV, "")
-    if override:
-        root = Path(override).expanduser()
-        _validate_resources_dir(root)
-        return root
-
     version = versioning.get_version()
     dest = _xdg_config_home() / "daylily" / "resources" / version
     marker = dest / ".complete"
@@ -226,13 +219,18 @@ def resource_path(rel_path: str) -> Path:
     rel_path:
         Repo-relative path inside the payload.
     """
-    rel = rel_path.lstrip("/").replace("\\", "/")
+    raw = str(rel_path or "").strip().replace("\\", "/")
+    if not raw or raw.startswith("/"):
+        raise FileNotFoundError("Resource path must be a non-empty relative payload path")
+    rel_path_obj = PurePosixPath(raw)
+    if any(part in {"", ".", ".."} for part in rel_path_obj.parts):
+        raise FileNotFoundError("Resource path must not contain traversal segments")
+    rel = rel_path_obj.as_posix()
     root = ensure_extracted()
     p = root / rel
     if not p.exists():
         raise FileNotFoundError(
             f"Resource not found: {rel_path}\n"
-            f"Resolved resources dir: {root}\n"
-            f"Override with {RES_DIR_ENV} if needed."
+            f"Resolved resources dir: {root}"
         )
     return p

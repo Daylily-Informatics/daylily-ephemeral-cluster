@@ -47,6 +47,7 @@ POLL_INTERVAL_SECONDS = 30
 ANALYSIS_EXPORT_KIND = "analysis"
 RUNTIME_CACHE_EXPORT_KIND = "runtime_cache"
 EXPORT_KINDS = frozenset({ANALYSIS_EXPORT_KIND, RUNTIME_CACHE_EXPORT_KIND})
+MAX_DESTINATION_EVIDENCE_PAGES = 100
 
 
 class ExportError(RuntimeError):
@@ -333,6 +334,79 @@ def verify_exported_clone_status_v2_evidence(
         "schema_version": EXECUTION_STATUS_SCHEMA_VERSION,
         "attempt_count": len(attempts),
         "latest_attempt_id": attempts[-1]["attempt_id"],
+    }
+
+
+def verify_exported_destination_evidence(
+    s3_client: Any,
+    *,
+    source_path: str,
+    destination_s3_uri: str,
+    cluster_name: Optional[str] = None,
+    destination_analysis_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Return bounded, exact-prefix evidence for a completed DRA export.
+
+    This verification stays inside DYEC so callers never substitute their own
+    S3 listing logic for the public export receipt. It fails closed if a
+    bounded listing cannot prove the complete destination is non-empty.
+    """
+
+    destination = validate_export_destination_s3_uri(
+        destination_s3_uri,
+        source_path=source_path,
+        cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
+    )
+    parsed = urlparse(destination)
+    bucket = parsed.netloc
+    prefix = parsed.path.lstrip("/")
+    continuation_token: str | None = None
+    object_count = 0
+    total_bytes = 0
+    list_request_count = 0
+    try:
+        for _page in range(MAX_DESTINATION_EVIDENCE_PAGES):
+            request: Dict[str, Any] = {"Bucket": bucket, "Prefix": prefix, "MaxKeys": 1000}
+            if continuation_token is not None:
+                request["ContinuationToken"] = continuation_token
+            response = s3_client.list_objects_v2(**request)
+            list_request_count += 1
+            contents = response.get("Contents") or []
+            if not isinstance(contents, list):
+                raise ExportError("S3 export destination listing returned malformed contents")
+            for item in contents:
+                if not isinstance(item, dict):
+                    raise ExportError("S3 export destination listing returned malformed object rows")
+                size = item.get("Size")
+                if isinstance(size, bool) or not isinstance(size, int) or size < 0:
+                    raise ExportError("S3 export destination listing returned an invalid object size")
+                object_count += 1
+                total_bytes += size
+            if response.get("IsTruncated") is not True:
+                break
+            continuation_token = str(response.get("NextContinuationToken") or "").strip()
+            if not continuation_token:
+                raise ExportError("S3 export destination listing was truncated without a token")
+        else:
+            raise ExportError(
+                "S3 export destination exceeds the bounded verification page limit"
+            )
+    except (BotoCoreError, ClientError, OSError) as exc:
+        raise ExportError(
+            f"Unable to verify exported S3 destination {destination}: {exc}"
+        ) from exc
+    if object_count < 1:
+        raise ExportError(f"Exported S3 destination contains no objects: {destination}")
+    return {
+        "required": True,
+        "verified": True,
+        "schema_version": "dyec.export.destination_evidence.v1",
+        "s3_uri": destination,
+        "list_request_count": list_request_count,
+        "object_count": object_count,
+        "total_bytes": total_bytes,
+        "max_page_limit": MAX_DESTINATION_EVIDENCE_PAGES,
     }
 
 
@@ -833,6 +907,7 @@ def cleanup_exported_analysis(
         "source_path": record.file_system_path,
         "headnode_path": record.headnode_path,
         "destination_s3_uri": record.destination_s3_uri,
+        "destination_analysis_id": destination_analysis_id,
         "detach_lifecycle": lifecycle,
         "delete_data_in_file_system": True,
         "s3_delete_requested": False,
@@ -865,6 +940,7 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
     )
     headnode_path = analysis_headnode_path(normalized_source)
     clone_status_evidence: Dict[str, Any] | None = None
+    destination_evidence: Dict[str, Any] | None = None
     if options.export_kind == ANALYSIS_EXPORT_KIND:
         clone_status_evidence = {
             "required": True,
@@ -875,6 +951,12 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
                 cluster_name=options.cluster_name,
                 destination_analysis_id=options.destination_analysis_id,
             ),
+        }
+        destination_evidence = {
+            "required": True,
+            "verified": False,
+            "schema_version": "dyec.export.destination_evidence.v1",
+            "s3_uri": destination_s3_uri,
         }
     receipt = {
         "fsx_export": {
@@ -887,6 +969,7 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
             "source_path": normalized_source,
             "headnode_path": headnode_path,
             "destination_s3_uri": destination_s3_uri,
+            "destination_analysis_id": options.destination_analysis_id,
             "fsx_root": headnode_path,
             "s3_root": destination_s3_uri,
             "dayoa_analysis_root": f"{headnode_path}daylily-omics-analysis/",
@@ -898,6 +981,8 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
     }
     if clone_status_evidence is not None:
         receipt["fsx_export"]["clone_status_v2_evidence"] = clone_status_evidence
+    if destination_evidence is not None:
+        receipt["fsx_export"]["destination_s3_evidence"] = destination_evidence
     return receipt
 
 
@@ -918,6 +1003,7 @@ def run_export_workflow(options: ExportOptions) -> int:
                 "region": options.region,
                 "source_path": options.source_path,
                 "destination_s3_uri": options.destination_s3_uri,
+                "destination_analysis_id": options.destination_analysis_id,
                 "detached": False,
                 "delete_data_in_file_system": options.delete_data_in_file_system,
                 "failure_details": {"message": str(exc)},
@@ -979,6 +1065,15 @@ def run_export_workflow(options: ExportOptions) -> int:
         if options.export_kind == ANALYSIS_EXPORT_KIND:
             receipt["fsx_export"]["clone_status_v2_evidence"] = (
                 verify_exported_clone_status_v2_evidence(
+                    session.client("s3"),
+                    source_path=record.headnode_path,
+                    destination_s3_uri=record.destination_s3_uri,
+                    cluster_name=record.cluster_name,
+                    destination_analysis_id=options.destination_analysis_id,
+                )
+            )
+            receipt["fsx_export"]["destination_s3_evidence"] = (
+                verify_exported_destination_evidence(
                     session.client("s3"),
                     source_path=record.headnode_path,
                     destination_s3_uri=record.destination_s3_uri,

@@ -23,6 +23,25 @@ CONSUMER_VPC = "vpc-06b01782f2abece1c"
 class _AwsContext:
     account_id = "123456789012"
 
+    def client(self, service: str):
+        assert service == "ec2"
+        return self
+
+    def describe_instances(self, *, InstanceIds):
+        return {
+            "Reservations": [
+                {
+                    "Instances": [
+                        {
+                            "InstanceId": instance_id,
+                            "InstanceType": "t4g.micro",
+                        }
+                        for instance_id in InstanceIds
+                    ]
+                }
+            ]
+        }
+
 
 def _provider_stack() -> dict:
     return {
@@ -128,8 +147,10 @@ def test_inspection_reports_exact_bounded_provider_and_bridge_without_secrets(
         "database_name": "dayec_slurm_acct",
         "db_username": "slurm_acct",
         "accounting_instance_id": "i-accounting",
+        "accounting_instance_type": "t4g.micro",
         "contract_healthy": True,
     }
+    assert payload["regional_providers"][0]["instance_type"] == "t4g.micro"
     assert bridge_calls == [
         {"stack_name": BRIDGE_NAME, "require_healthy_target": False},
         {"stack_name": BRIDGE_NAME, "require_healthy_target": True},
@@ -253,6 +274,29 @@ def test_inspection_rejects_unbounded_or_non_ascii_provider_identity(
     )
 
     with pytest.raises(SlurmAccountingInspectionError, match="bounded identity"):
+        inspect_slurm_accounting(profile="lsmc", region_az="us-west-2d")
+
+
+def test_inspection_fails_closed_when_provider_instance_type_is_unavailable(
+    monkeypatch,
+) -> None:
+    class _MissingInstanceContext(_AwsContext):
+        def describe_instances(self, *, InstanceIds):
+            _ = InstanceIds
+            return {"Reservations": []}
+
+    monkeypatch.setattr(
+        inspection_module.AWSContext,
+        "build_region",
+        classmethod(lambda _cls, region, profile=None: _MissingInstanceContext()),
+    )
+    monkeypatch.setattr(
+        inspection_module,
+        "list_regional_slurm_accounting_stacks",
+        lambda *_args, **_kwargs: [_provider_stack()],
+    )
+
+    with pytest.raises(SlurmAccountingInspectionError, match="incomplete"):
         inspect_slurm_accounting(profile="lsmc", region_az="us-west-2d")
 
 

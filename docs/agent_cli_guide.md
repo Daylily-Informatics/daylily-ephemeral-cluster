@@ -15,7 +15,7 @@ DYEC is neither an identity service nor a replacement for DayOA.
 |---|---|---|
 | Identify the installed CLI and catalog pin | `dyec --json version`, `dyec --json catalog list` | A release tag is not a DayOA tag; inspect the rendered catalog row. |
 | Inspect cluster, headnode, controllers, or queue | `dyec cluster describe`, `dyec headnode dayoa-controllers`, `dyec headnode jobs` | Inspection does not authorize Slurm or node intervention. |
-| Create a cluster | `dyec preflight`, then `dyec create` | Creation is a cloud change; use only with the approved exact config and budget. |
+| Create a cluster | `dyec create-request render`, `dyec create-request prepare`, then `dyec create` | Saved templates remain dynamic; create independently reprices the exact final provider input. |
 | Stop/start a compute fleet | `dyec cluster compute-fleet` | Exact state pairs only; every stop proves controllers/jobs idle, and `--drain` only waits naturally. |
 | Inspect accounting topology | `dyec slurm-accounting inspect` | Read-only exact provider/bridge evidence; it never creates, reconciles, or selects a bridge. |
 | Recover incomplete accounting | `dyec slurm-accounting recover` | Never rerun create against `CREATE_COMPLETE`; recovery owns stop, attach, restart, and working-`sacct` proof. |
@@ -88,19 +88,56 @@ Those are separate, explicitly approved operations.
 
 ## 3. Cluster lifecycle and headnode access
 
-Use `dyec preflight` before a requested cluster creation. `dyec create` is a
-cloud mutation and must use the approved exact config, region/AZ, and budget
-inputs. Do not substitute raw `pcluster create-cluster` for DYEC.
+Use the strict request contract before a requested cluster creation. The source
+config must contain the complete current triplet schema, the protected override
+document must contain exactly the 11 current override keys, and the saved
+ParallelCluster template must retain
+`SpotPrice: CALCULATE_MAX_SPOT_PRICE` for every Spot resource. Missing values,
+`PROMPTUSER`, legacy actions, extra keys, and numeric bids in the saved template
+fail closed.
 
 ```bash
-dyec preflight \
-  --profile "$AWS_PROFILE" --region-az <region-az> \
-  --config <approved-cluster-config.yaml>
+dyec --json create-request render \
+  --source-config <exact-source-config-resource> \
+  --expected-source-config-sha256 <sha256> \
+  --source-template <exact-packaged-template-resource> \
+  --expected-source-template-sha256 <sha256> \
+  --overrides-json <protected-overrides.json> \
+  --region-az <region-az> \
+  --output <absolute-protected-request.yaml>
 
-dyec create \
+dyec --json create-request prepare \
+  --request-config <absolute-protected-request.yaml> \
+  --expected-request-sha256 <sha256> \
+  --source-template <exact-packaged-template-resource> \
+  --expected-source-template-sha256 <sha256> \
   --profile "$AWS_PROFILE" --region-az <region-az> \
-  --config <approved-cluster-config.yaml>
+  --spot-price-policy CALCULATE_MAX_SPOT_PRICE \
+  --output-dir <absolute-protected-admission-directory>
+
+dyec --json create \
+  --profile "$AWS_PROFILE" --region-az <region-az> \
+  --cluster-type intel --non-interactive --slurm-accounting on \
+  --config <absolute-protected-request.yaml> \
+  --preparation-receipt \
+    <absolute-protected-admission-directory>/create-preparation.json \
+  --expected-preparation-receipt-sha256 <sha256>
 ```
+
+The preparation receipt is read-only admission evidence. It binds content
+digests, AWS profile/account/AZ, pricing limits, and timestamped provider
+observations, but its numeric bids are never reused by create. Immediately
+before provider dry-run and create, `dyec create` independently renders and
+reprices the final bytes after all structural mutations, then verifies the
+same SHA-256 reaches both provider operations. A standalone operator create may
+omit the preparation pair; DYEC then performs its own admission pass. Upstream
+production callers should require the exact receipt path and digest pair.
+
+`dyec --json create` emits one `dyec.create.v1` object on stdout. Success is
+possible only after the cluster is `UPDATE_COMPLETE`, the compute fleet is
+`RUNNING`, accounting is `ENABLED`, and the create-side accounting receipt
+proves a working `sacct` probe. Operational progress and failure detail go to
+stderr; a failure emits one bounded `status: failed` object.
 
 Automation and upstream services use the installed `dyec` console script as
 the sole cluster-operation boundary. They must not run `pcluster` directly,

@@ -89,6 +89,12 @@ class PostCreateSlurmAccountingResult:
     fleet_restored: Optional[bool] = None
     error_stage: str = ""
     recovery_required: bool = False
+    provider_accounting_stack_name: str = ""
+    privatelink_stack_name: str = ""
+    consumer_vpc_id: str = ""
+    database_name: str = ""
+    db_username: str = ""
+    provider_instance_type: str = ""
 
     @property
     def succeeded(self) -> bool:
@@ -109,6 +115,12 @@ class PostCreateSlurmAccountingResult:
             error_stage=(SlurmAccountingStage(self.error_stage) if self.error_stage else None),
             recovery_required=self.recovery_required,
             stack_name=self.stack_name,
+            provider_accounting_stack_name=self.provider_accounting_stack_name,
+            privatelink_stack_name=self.privatelink_stack_name,
+            consumer_vpc_id=self.consumer_vpc_id,
+            database_name=self.database_name,
+            db_username=self.db_username,
+            provider_instance_type=self.provider_instance_type,
         )
 
 
@@ -296,6 +308,13 @@ def run_postcreate_slurm_accounting(
     non_interactive: bool,
     create_slurm_accounting_if_missing: bool,
     acknowledge_slurm_accounting_create_cost: bool,
+    accounting_stack_name: str,
+    accounting_privatelink_stack_name: str,
+    accounting_direct: bool,
+    accounting_consumer_vpc_id: str,
+    accounting_database_name: str,
+    accounting_db_username: str,
+    accounting_instance_type: str,
     pcluster_executable: str = "pcluster",
     configure_replacement_headnode: Optional[Callable[[str], bool]] = None,
     confirm_fn: Callable[..., bool] = typer.confirm,
@@ -311,6 +330,28 @@ def run_postcreate_slurm_accounting(
         create_slurm_accounting_if_missing=create_slurm_accounting_if_missing,
         acknowledge_slurm_accounting_create_cost=acknowledge_slurm_accounting_create_cost,
     )
+    exact_stack_name = str(accounting_stack_name or "").strip()
+    exact_bridge_name = str(accounting_privatelink_stack_name or "").strip()
+    exact_consumer_vpc_id = str(accounting_consumer_vpc_id or "").strip()
+    exact_database_name = str(accounting_database_name or "").strip()
+    exact_db_username = str(accounting_db_username or "").strip()
+    exact_instance_type = str(accounting_instance_type or "").strip()
+    if not all(
+        (
+            exact_stack_name,
+            exact_consumer_vpc_id,
+            exact_database_name,
+            exact_db_username,
+            exact_instance_type,
+        )
+    ):
+        raise ValueError("Exact Slurm-accounting target fields are required")
+    if bool(exact_bridge_name) == bool(accounting_direct):
+        raise ValueError(
+            "Specify exactly one exact PrivateLink bridge or --slurm-accounting-direct"
+        )
+    if exact_bridge_name and create_slurm_accounting_if_missing:
+        raise ValueError("An exact PrivateLink target forbids provider creation")
     result = PostCreateSlurmAccountingResult(
         requested_mode=cast(Literal["on", "off"], slurm_accounting),
         outcome=(
@@ -336,6 +377,13 @@ def run_postcreate_slurm_accounting(
             profile=profile,
             cluster_configuration=cluster_configuration,
             create_if_missing=create_if_missing,
+            stack_name=exact_stack_name,
+            privatelink_stack_name=exact_bridge_name,
+            database_name=exact_database_name,
+            db_username=exact_db_username,
+            instance_type=exact_instance_type,
+            expected_region_az=region_az,
+            exact_target_only=True,
         )
     except SlurmAccountingPreparationError as exc:
         missing_service_at_interactive_terminal = (
@@ -361,6 +409,13 @@ def run_postcreate_slurm_accounting(
                 profile=profile,
                 cluster_configuration=cluster_configuration,
                 create_if_missing=True,
+                stack_name=exact_stack_name,
+                privatelink_stack_name=exact_bridge_name,
+                database_name=exact_database_name,
+                db_username=exact_db_username,
+                instance_type=exact_instance_type,
+                expected_region_az=region_az,
+                exact_target_only=True,
             )
         except SlurmAccountingPreparationError:
             return _warning(result, "service_preparation")
@@ -369,12 +424,20 @@ def run_postcreate_slurm_accounting(
     except Exception:
         return _warning(result, "service_preparation")
 
+    if prepared.consumer_vpc_id != exact_consumer_vpc_id:
+        return _warning(result, "service_preparation")
     result = replace(
         result,
         service_created=prepared.service_created,
-        stack_name=prepared.accounting_stack_name,
+        stack_name=exact_stack_name,
         stage_reached="service_ready",
         update_config_path=str(prepared.update_config_path),
+        provider_accounting_stack_name=prepared.provider_accounting_stack_name,
+        privatelink_stack_name=prepared.privatelink_stack_name or "",
+        consumer_vpc_id=prepared.consumer_vpc_id,
+        database_name=prepared.database_name,
+        db_username=prepared.db_username,
+        provider_instance_type=prepared.provider_instance_type,
     )
 
     try:

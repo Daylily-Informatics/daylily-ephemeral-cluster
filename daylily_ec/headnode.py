@@ -524,7 +524,7 @@ def run_headnode_init(
         sys.stdout.write(build_shell_code(state))
         return 0
 
-    print('To apply shell context, run: eval "$(daylily-ec headnode init --emit-shell)"')
+    print('To apply shell context, run: eval "$(dyec headnode init --emit-shell)"')
     return 0
 
 

@@ -1,6 +1,6 @@
 # Daylily Ephemeral Cluster
 
-Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the CLI control plane for short-lived AWS ParallelCluster bioinformatics work. Release `18.0.57` creates and configures clusters, mounts sequencing-run data into FSx, launches pinned workflow repositories on the headnode, monitors exact analysis roots, moves files between local and headnode storage, and exports finished results to S3 with receipts.
+Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the CLI control plane for short-lived AWS ParallelCluster bioinformatics work. Release `19.0.6` creates and configures clusters, mounts sequencing-run data into FSx, launches pinned workflow repositories on the headnode, monitors exact analysis roots, moves files between local and headnode storage, and exports finished results to S3 with receipts.
 
 DYEC is not an identity service and not a workflow engine. It does not require or contact a metadata or identity service. It consumes explicit local configuration, explicit manifests, explicit S3 paths, and explicit command-catalog entries. DayOA owns its workflow rules and `dy-r` execution. DYEC owns cluster/headnode orchestration and the launch/export envelope.
 
@@ -27,7 +27,7 @@ Inspect the installed CLI before mutating anything:
 dyec --json version
 dyec --help
 dyec agent guidance
-dyec --json catalog list
+dyec --json catalog list --dyec-version 19.0.6
 ```
 
 ### Optional project-local context
@@ -65,6 +65,10 @@ Use `--cluster` for DYEC commands. Keep `--cluster-name` for tools such as `pclu
 - Upstream services use the installed `dyec` console script for every cluster
   lifecycle operation. They do not run `pcluster`, import DYEC Python
   internals, or use a module entrypoint as an alternate control path.
+- Saved cluster templates keep `SpotPrice: CALCULATE_MAX_SPOT_PRICE` on every
+  Spot compute resource. `dyec create` owns both live admission pricing and an
+  independent final reprice immediately before provider dry-run/create; saved
+  templates never persist a calculated numeric bid.
 - New DayOA checkouts must be explicit-tag checkouts.
 - A DYEC controller never mutates a pinned DayOA release: no runtime rule/script/environment/config patches, source overlays, or generated helpers in the checkout. It verifies the selected ref is clean before dispatch and after the workflow returns. Missing behavior is a hard error that must be fixed and released in DayOA, never repaired on the headnode.
 - Headnode work uses a cluster-appropriate remote user selected by platform: Ubuntu/Intel DayOA headnodes use `ubuntu`; DRAGEN/RHEL-style headnodes use `ec2-user`.
@@ -81,9 +85,9 @@ Run `dyec --help` for the live list. Current major groups are:
 
 | Group | Purpose |
 |---|---|
-| `version`, `info`, `runtime`, `env`, `resources-dir`, `state`, `set-vars`, `unset-vars` | Local/runtime introspection and per-checkout local context. |
+| `version`, `info`, `runtime`, `env`, `resources`, `state`, `set-vars`, `unset-vars` | Versioned resource/runtime introspection and per-checkout local context. |
 | `agent` | Compact operational guidance for an automated or human operator. |
-| `preflight`, `create`, `drift`, `delete` | Cluster lifecycle. |
+| `create-request`, `preflight`, `create`, `drift`, `delete` | Strict request rendering, live admission evidence, and cluster lifecycle. |
 | `cluster`, `cluster-info` | ParallelCluster inspection, guarded compute-fleet lifecycle, and tag helpers. |
 | `headnode` | SSM-backed headnode connection, command execution, file transfer, and observability. |
 | `mounts`, `mount` | FSx run-directory Data Repository Associations. |
@@ -206,17 +210,15 @@ licenses, and runtime assets remain external.
 
 Large local payloads are staged through S3 with `--payload-staging-s3-uri`. DYEC uploads a tarball containing input manifests, a payload manifest, and the controller launch script. The headnode downloads and expands that tarball into the workflow run directory, starts the tmux controller, and then saves the exact executed script under `<analysis-root>/bin/dyec-controller-launch.sh` after `day-clone` creates the analysis root. This avoids SSM document-size limits without pre-creating the analysis root.
 
-### Current and released command shapes
+### Immutable command shapes
 
-Catalog version 6 uses `dyec_builds.current` for every command-catalog action
-unless `--dyec-version` explicitly selects an immutable numeric release
-snapshot. When a new DYEC release is created, copy `current` to that release's
-numeric key before changing `current`; never edit an existing numeric snapshot:
+Catalog version 6 requires an exact numeric `--dyec-version` for every public
+catalog action. The `19.0.6` snapshot is immutable; there is no mutable
+`current` alias or implicit catalog selection:
 
 ```bash
-dyec --json catalog list --type prod
-dyec --json catalog list --dyec-version 18.0.57 --type prod
-dyec --json catalog render <command-id> --dyec-version 18.0.57 ...
+dyec --json catalog list --dyec-version 19.0.6 --type prod
+dyec --json catalog render <command-id> --dyec-version 19.0.6 ...
 ```
 
 A build may also declare one-hop, same-build aliases. An alias inherits one
@@ -227,7 +229,7 @@ bases, duplicate IDs, mixed extension/replacement modes, and partial command
 replacements fail catalog validation. Existing catalog APIs return aliases as
 fully resolved `AnalysisCommand` records.
 
-The active catalog targets DayOA `15.0.37`. Public catalog output includes a
+The `19.0.6` catalog targets DayOA `16.0.3`. Public catalog output includes a
 derived `validation_pending` field: `true` means the command now targets a
 different DayOA tag than its retained `validated_version`. It is a visibility
 signal only; it does not relabel older validation receipts or block a launch.
@@ -238,7 +240,7 @@ prefix must contain `command_registry.json` and `summary.json` from a successful
 
 ```bash
 dyec --json catalog validation-compare <command-id> \
-  --dyec-version 18.0.57 --profile "$AWS_PROFILE" --region "$REGION"
+  --dyec-version 19.0.6 --profile "$AWS_PROFILE" --region "$REGION"
 ```
 
 The comparison fails hard when no prefix is declared, the receipts are missing,
@@ -255,7 +257,7 @@ dyec workflow launch \
   --cluster "$CLUSTER" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$CLUSTER" \
-  --git-tag 15.0.37 \
+  --git-tag 16.0.3 \
   --manifest-dir ./config \
   --payload-staging-s3-uri "$STAGING_S3_URI" \
   --session-name "$ANALYSIS_ID" \
@@ -566,4 +568,4 @@ python -m pytest tests/test_cli_registry_v2.py -q
 git diff --check
 ```
 
-Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. The checked-in release baseline is `18.0.57`; choose any future version only through the explicit release process on a clean release commit.
+Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. The checked-in release target is `19.0.6`; tag only the exact clean release commit after live acceptance.

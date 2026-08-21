@@ -29,12 +29,14 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "15.0.28"
+DAYOA_BLESSED_TAG = "16.0.3"
 
 EXPECTED_COMMANDS = {
     ("version",),
     ("info",),
     ("create",),
+    ("create-request", "render"),
+    ("create-request", "prepare"),
     ("preflight",),
     ("drift",),
     ("cluster-info",),
@@ -71,6 +73,7 @@ EXPECTED_COMMANDS = {
     ("pricing", "snapshot"),
     ("pricing", "spot-logs"),
     ("aws", "budget", "set-limit"),
+    ("aws", "capacity-snapshot"),
     ("aws", "validate", "permissions"),
     ("aws", "validate", "quotas"),
     ("aws", "validate", "all"),
@@ -83,6 +86,7 @@ EXPECTED_COMMANDS = {
     ("slurm-accounting", "privatelink", "ensure"),
     ("cost-centers", "ensure-registry"),
     ("cost-centers", "create"),
+    ("cost-centers", "ensure-active"),
     ("cost-centers", "edit"),
     ("cost-centers", "disable"),
     ("cost-centers", "show"),
@@ -336,9 +340,7 @@ def test_agent_guidance_json() -> None:
     assert "raw Snakemake" in payload["summary"]
     assert "raw pcluster" in payload["summary"]
     assert any("cluster compute-fleet" in item for item in payload["cluster_lifecycle_contract"])
-    assert any(
-        "slurm-accounting recover" in item for item in payload["cluster_lifecycle_contract"]
-    )
+    assert any("slurm-accounting recover" in item for item in payload["cluster_lifecycle_contract"])
     assert any("headnode upload" in item for item in payload["headnode_file_transfer"])
     assert any("dy-r" in item for item in payload["dayoa_controller_contract"])
     cache_guidance = payload["runtime_cache_export_contract"]
@@ -938,13 +940,246 @@ def test_root_json_is_global_for_info(monkeypatch, tmp_path) -> None:
     assert payload["Config Dir"] == str((tmp_path / "config" / "daylily").resolve())
 
 
-def test_json_rejected_for_non_json_command() -> None:
+def test_root_create_json_invalid_options_emit_one_versioned_object() -> None:
     result = runner.invoke(app, ["--json", "create", "--region-az", "us-west-2b"])
 
-    assert result.exit_code == 2
+    assert result.exit_code == 1
     payload = json.loads(result.stdout)
-    assert payload["error"]["code"] == "contract_violation"
-    assert payload["error"]["details"]["command"] == "create"
+    assert payload == {
+        "dyec_version": versioning.get_version(),
+        "error_code": "invalid_create_options",
+        "exit_code": 1,
+        "region_az": "us-west-2b",
+        "schema_version": "dyec.create.v1",
+        "status": "failed",
+        "terminal": False,
+    }
+    assert "--config is required" in result.stderr
+
+
+def test_root_create_json_success_is_exactly_one_versioned_object(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+    import daylily_ec.workflow.create_request as request_module
+
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "request.yaml"
+    config_path.write_text("protected: true\n", encoding="utf-8")
+    expected = {
+        "schema_version": "dyec.create.v1",
+        "dyec_version": versioning.get_version(),
+        "status": "complete",
+        "terminal": True,
+        "phase": "terminal",
+        "captured_at": "2026-08-20T18:05:00Z",
+        "cluster_name": "ursa-test",
+    }
+
+    def fake_run(_region_az: str, **kwargs) -> int:
+        print("workflow diagnostic")
+        kwargs["result_out"].update(expected)
+        return 0
+
+    validated: list[dict[str, object]] = []
+    monkeypatch.setattr(create_module, "run_create_workflow", fake_run)
+    monkeypatch.setattr(
+        request_module,
+        "validate_create_success_payload",
+        lambda payload: validated.append(dict(payload)),
+    )
+
+    result = runner.invoke(
+        app,
+        ["--json", "create", "--config", str(config_path), "--non-interactive"],
+    )
+
+    assert result.exit_code == 0
+    assert json.loads(result.stdout) == expected
+    assert result.stdout.count("{") == 1
+    assert validated == [expected]
+    assert "Total DYEC create runtime" not in result.stdout
+    assert "workflow diagnostic" in result.stderr
+
+
+def test_root_create_json_failure_is_exactly_one_versioned_object(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "request.yaml"
+    config_path.write_text("protected: true\n", encoding="utf-8")
+
+    def fake_failure(*_args, **_kwargs) -> int:
+        print("workflow failed diagnostic")
+        return 7
+
+    monkeypatch.setattr(create_module, "run_create_workflow", fake_failure)
+
+    result = runner.invoke(app, ["--json", "create", "--config", str(config_path)])
+
+    assert result.exit_code == 7
+    assert json.loads(result.stdout) == {
+        "dyec_version": versioning.get_version(),
+        "error_code": "create_workflow_failed",
+        "exit_code": 7,
+        "region_az": "us-west-2d",
+        "schema_version": "dyec.create.v1",
+        "status": "failed",
+        "terminal": False,
+    }
+    assert result.stdout.count("{") == 1
+    assert "workflow failed diagnostic" in result.stderr
+
+
+def test_cost_center_ensure_active_public_payload_uses_principal_digests(
+    monkeypatch,
+) -> None:
+    import daylily_ec.aws.cost_centers as cost_module
+
+    _activate_dayec_runtime(monkeypatch)
+    aws_ctx = SimpleNamespace(
+        profile="lsmc",
+        account_id="123456789012",
+        region="us-west-2",
+        caller_arn="arn:aws:iam::123456789012:user/operator",
+    )
+    monkeypatch.setattr(
+        cli_module,
+        "_cost_center_context",
+        lambda *_args, **_kwargs: (aws_ctx, object()),
+    )
+    monkeypatch.setattr(
+        cost_module,
+        "ensure_active_cost_center",
+        lambda *_args, **_kwargs: (
+            SimpleNamespace(
+                name="ursa-production",
+                status="active",
+                monthly_cap_usd="1200",
+                allowed_users=("operator-a",),
+                allowed_groups=(),
+                owner_emails=("owner@example.org",),
+                notes="",
+                max_usage_age_hours=None,
+                active_until="",
+            ),
+            True,
+        ),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "cost-centers",
+            "ensure-active",
+            "ursa-production",
+            "--monthly-cap-usd",
+            "1200",
+            "--allowed-user",
+            "operator-a",
+            "--owner-email",
+            "owner@example.org",
+            "--profile",
+            "lsmc",
+            "--home-region",
+            "us-west-2",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["schema_version"] == "dyec.cost_center_ensure_active.v1"
+    assert payload["created"] is True
+    assert payload["record"]["cost_center"] == "ursa-production"
+    assert payload["record"]["allowed_user_count"] == 1
+    assert payload["record"]["owner_email_count"] == 1
+    assert len(payload["record"]["controlled_fields_sha256"]) == 64
+    assert "operator-a" not in result.stdout
+    assert "owner@example.org" not in result.stdout
+
+
+def test_cost_center_ensure_active_provider_failure_is_bounded(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    monkeypatch.setattr(
+        cli_module,
+        "_cost_center_context",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            RuntimeError("provider secret credential text")
+        ),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "cost-centers",
+            "ensure-active",
+            "ursa-production",
+            "--monthly-cap-usd",
+            "1200",
+            "--allowed-user",
+            "operator-a",
+            "--owner-email",
+            "owner@example.org",
+            "--profile",
+            "lsmc",
+            "--home-region",
+            "us-west-2",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert json.loads(result.stdout) == {
+        "error": "The exact active cost-center contract was not satisfied.",
+        "error_code": "cost_center_provider_failed",
+        "ok": False,
+        "schema_version": "dyec.cost_center_ensure_active.v1",
+    }
+    assert "credential" not in result.stdout
+    assert "credential" not in result.stderr
+
+
+def test_capacity_snapshot_provider_failure_is_bounded(monkeypatch) -> None:
+    import daylily_ec.aws.context as context_module
+
+    _activate_dayec_runtime(monkeypatch)
+    monkeypatch.setattr(
+        context_module.AWSContext,
+        "build_region",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            RuntimeError("provider secret credential text")
+        ),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "aws",
+            "capacity-snapshot",
+            "--region",
+            "us-west-2",
+            "--profile",
+            "lsmc",
+            "--quota-family",
+            "standard",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert json.loads(result.stdout) == {
+        "error": "The exact regional capacity snapshot could not be constructed.",
+        "error_code": "capacity_snapshot_provider_failed",
+        "ok": False,
+        "schema_version": "dyec.aws_capacity_snapshot.v1",
+    }
+    assert "credential" not in result.stdout
+    assert "credential" not in result.stderr
 
 
 def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
@@ -977,7 +1212,6 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
             "--pass-on-warn",
             "--debug",
             "--non-interactive",
-            "--disable-budget-enforcement",
         ],
     )
 
@@ -990,7 +1224,7 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "pass_on_warn": True,
         "debug": True,
         "non_interactive": True,
-        "disable_budget_enforcement": True,
+        "disable_budget_enforcement": False,
         "budget_project": None,
         "global_spot_max_cost": 9.99,
         "spot_cost_limit_pct": 1.70,
@@ -1001,10 +1235,13 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "acknowledge_regional_cap_risk": False,
         "slurm_accounting": "on",
         "create_slurm_accounting_if_missing": False,
-            "acknowledge_slurm_accounting_create_cost": False,
-            "budget_email_override": None,
-            "budget_email_fallback": None,
-        }
+        "acknowledge_slurm_accounting_create_cost": False,
+        "budget_email_override": None,
+        "budget_email_fallback": None,
+        "preparation_receipt": None,
+        "expected_preparation_receipt_sha256": None,
+        "result_out": {},
+    }
 
 
 def test_create_command_prints_and_info_logs_total_runtime(
@@ -1043,7 +1280,6 @@ def test_create_command_prints_and_info_logs_total_runtime(
     [
         ([], "on"),
         (["--slurm-accounting", "on"], "on"),
-        (["--slurm-accounting", "off"], "off"),
     ],
 )
 def test_create_command_slurm_accounting_mode_contract(
@@ -1082,6 +1318,41 @@ def test_create_command_slurm_accounting_mode_contract(
     assert calls[0]["slurm_accounting"] == expected_mode
     assert calls[0]["create_slurm_accounting_if_missing"] is False
     assert calls[0]["acknowledge_slurm_accounting_create_cost"] is False
+
+
+def test_create_command_rejects_disabled_slurm_accounting_before_workflow(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    called = False
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+
+    def fake_run_create_workflow(_region_az: str, **_kwargs) -> int:
+        nonlocal called
+        called = True
+        return 0
+
+    monkeypatch.setattr(create_module, "run_create_workflow", fake_run_create_workflow)
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            "--config",
+            str(config_path),
+            "--slurm-accounting",
+            "off",
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert called is False
+    assert "must be exactly 'on'" in result.output
 
 
 @pytest.mark.parametrize("invalid_mode", ["ON", "On", "OFF", "true", "enabled"])
@@ -1477,11 +1748,14 @@ def test_create_command_defaults_region_az_to_us_west_2d(monkeypatch, tmp_path) 
 )
 def test_create_command_rejects_invalid_spot_pricing_options(
     monkeypatch,
+    tmp_path,
     flag: str,
     value: str,
     message: str,
 ) -> None:
     _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "request.yaml"
+    config_path.write_text("placeholder: true\n", encoding="utf-8")
 
     result = runner.invoke(
         app,
@@ -1489,6 +1763,8 @@ def test_create_command_rejects_invalid_spot_pricing_options(
             "create",
             "--region-az",
             "us-west-2d",
+            "--config",
+            str(config_path),
             flag,
             value,
         ],
@@ -1498,7 +1774,7 @@ def test_create_command_rejects_invalid_spot_pricing_options(
     assert message in result.output
 
 
-def test_create_command_requires_explicit_dragen_backport_manifest(monkeypatch, caplog) -> None:
+def test_create_command_requires_exact_request_before_dragen_workflow(monkeypatch) -> None:
     _activate_dayec_runtime(monkeypatch)
 
     result = runner.invoke(
@@ -1512,8 +1788,8 @@ def test_create_command_requires_explicit_dragen_backport_manifest(monkeypatch, 
         ],
     )
 
-    assert result.exit_code == 1
-    assert "requires explicit config key 'pcluster_backport_manifest'" in caplog.text
+    assert result.exit_code == 2
+    assert "--config is required" in result.output
 
 
 def test_create_command_rejects_retired_budget_project(monkeypatch) -> None:
@@ -3033,7 +3309,16 @@ def test_headnode_configure_has_no_version_override() -> None:
 
 @pytest.mark.parametrize("command", ("configure", "configure-dragen"))
 def test_headnode_configure_requires_both_deploy_key_references(command: str) -> None:
-    base = ["headnode", command, "--profile", "dev", "--region", "us-west-2", "--cluster", "cluster-a"]
+    base = [
+        "headnode",
+        command,
+        "--profile",
+        "dev",
+        "--region",
+        "us-west-2",
+        "--cluster",
+        "cluster-a",
+    ]
 
     missing_dyec = runner.invoke(app, base)
     assert missing_dyec.exit_code == 2
@@ -3041,7 +3326,11 @@ def test_headnode_configure_requires_both_deploy_key_references(command: str) ->
 
     missing_dayoa = runner.invoke(
         app,
-        base + ["--dyec-deploy-key-secret-arn", "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key"],
+        base
+        + [
+            "--dyec-deploy-key-secret-arn",
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+        ],
     )
     assert missing_dayoa.exit_code == 2
     assert "--dayoa-deploy-key-secret-arn" in missing_dayoa.output
@@ -3050,8 +3339,16 @@ def test_headnode_configure_requires_both_deploy_key_references(command: str) ->
 @pytest.mark.parametrize(
     ("command", "blank_option", "expected_message"),
     (
-        ("configure", "--dyec-deploy-key-secret-arn", "--dyec-deploy-key-secret-arn must be non-empty"),
-        ("configure-dragen", "--dayoa-deploy-key-secret-arn", "--dayoa-deploy-key-secret-arn must be non-empty"),
+        (
+            "configure",
+            "--dyec-deploy-key-secret-arn",
+            "--dyec-deploy-key-secret-arn must be non-empty",
+        ),
+        (
+            "configure-dragen",
+            "--dayoa-deploy-key-secret-arn",
+            "--dayoa-deploy-key-secret-arn must be non-empty",
+        ),
     ),
 )
 def test_headnode_configure_rejects_blank_deploy_key_before_target_resolution(

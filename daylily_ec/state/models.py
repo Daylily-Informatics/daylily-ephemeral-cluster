@@ -94,6 +94,12 @@ class SlurmAccountingReceipt(BaseModel):
     error_stage: Optional[SlurmAccountingStage] = None
     recovery_required: bool = False
     stack_name: str = ""
+    provider_accounting_stack_name: str = ""
+    privatelink_stack_name: str = ""
+    consumer_vpc_id: str = ""
+    database_name: str = ""
+    db_username: str = ""
+    provider_instance_type: str = ""
 
     @field_validator("update_config_path")
     @classmethod
@@ -136,7 +142,7 @@ class SlurmAccountingReceipt(BaseModel):
             raise ValueError("terminal_fleet_state is not a supported lifecycle state")
         return value
 
-    @field_validator("stack_name")
+    @field_validator("stack_name", "provider_accounting_stack_name", "privatelink_stack_name")
     @classmethod
     def _validate_stack_name(cls, value: str) -> str:
         """Restrict the optional stack identity to CloudFormation name syntax."""
@@ -146,6 +152,20 @@ class SlurmAccountingReceipt(BaseModel):
             raise ValueError("stack_name is not a valid CloudFormation stack name")
         if not all(char.isalnum() or char == "-" for char in value):
             raise ValueError("stack_name is not a valid CloudFormation stack name")
+        return value
+
+    @field_validator(
+        "consumer_vpc_id",
+        "database_name",
+        "db_username",
+        "provider_instance_type",
+    )
+    @classmethod
+    def _validate_exact_identity_text(cls, value: str) -> str:
+        if not value:
+            return value
+        if len(value) > 128 or any(char in value for char in "\r\n\x00"):
+            raise ValueError("accounting identity field is invalid")
         return value
 
 
@@ -293,6 +313,12 @@ class StateRecord(BaseModel):
     preflight_report_path: str = ""
     spot_price_summary_path: str = ""
     spot_price_partitions: List[Dict[str, Any]] = Field(default_factory=list)
+    create_request_config_sha256: str = ""
+    create_pricing_receipt_path: str = ""
+    create_pricing_receipt_sha256: str = ""
+    final_cluster_config_sha256: str = ""
+    create_terminal_receipt_path: str = ""
+    create_terminal_receipt_sha256: str = ""
 
     # -- CloudFormation ------------------------------------------------------
     cfn_stack_name: str = ""

@@ -3915,7 +3915,7 @@ dyec_builds:
         no_containerized: false
         return_results: false
         repository: daylily-omics-analysis
-  current:
+  19.0.6: &dyec_19_0_6_catalog
     repository: daylily-omics-analysis
     dayoa_git_tags:
     - 16.0.3

@@ -104,18 +104,29 @@ def _outputs(stack: dict[str, Any]) -> dict[str, str]:
     return result
 
 
-def _provider_payload(stack: dict[str, Any]) -> dict[str, Any]:
+def _provider_payload(
+    stack: dict[str, Any],
+    *,
+    instance_types: dict[str, str],
+) -> dict[str, Any]:
     tags = _tags(stack)
     outputs = _outputs(stack)
     stack_name = _bounded_text(stack.get("StackName"), field="provider stack name")
     status = _bounded_text(stack.get("StackStatus"), field="provider stack status")
     required_outputs_present = all(outputs.get(key) for key in REQUIRED_OUTPUTS)
+    instance_id = _bounded_text(
+        outputs.get("AccountingInstanceId", ""),
+        field="provider instance id",
+        allow_empty=True,
+    )
+    instance_type = instance_types.get(instance_id, "")
     contract_healthy = (
         status in HEALTHY_STACK_STATUSES
         and tags.get(ACCOUNTING_COMPONENT_TAG_KEY) == ACCOUNTING_COMPONENT_TAG_VALUE
         and tags.get(ACCOUNTING_MANAGED_BY_TAG_KEY) == ACCOUNTING_MANAGED_BY_TAG_VALUE
         and bool(tags.get(ACCOUNTING_VPC_TAG_KEY))
         and required_outputs_present
+        and bool(instance_type)
     )
     return {
         "stack_name": stack_name,
@@ -145,14 +156,61 @@ def _provider_payload(stack: dict[str, Any]) -> dict[str, Any]:
             field="provider database user",
             allow_empty=True,
         ),
-        "instance_id": _bounded_text(
-            outputs.get("AccountingInstanceId", ""),
-            field="provider instance id",
-            allow_empty=True,
-        ),
+        "instance_id": instance_id,
+        "instance_type": instance_type,
         "required_outputs_present": required_outputs_present,
         "contract_healthy": contract_healthy,
     }
+
+
+def _exact_instance_types(aws_ctx: Any, instance_ids: set[str]) -> dict[str, str]:
+    if not instance_ids:
+        return {}
+    try:
+        response = aws_ctx.client("ec2").describe_instances(InstanceIds=sorted(instance_ids))
+    except Exception:  # noqa: BLE001 - provider text is never public
+        raise SlurmAccountingInspectionError(
+            "The accounting provider instance inventory could not be inspected safely."
+        ) from None
+    resolved: dict[str, str] = {}
+    reservations = response.get("Reservations")
+    if not isinstance(reservations, list):
+        raise SlurmAccountingInspectionError(
+            "The accounting provider instance inventory is invalid."
+        )
+    for reservation in reservations:
+        if not isinstance(reservation, dict):
+            raise SlurmAccountingInspectionError(
+                "The accounting provider instance inventory is invalid."
+            )
+        instances = reservation.get("Instances")
+        if not isinstance(instances, list):
+            raise SlurmAccountingInspectionError(
+                "The accounting provider instance inventory is invalid."
+            )
+        for instance in instances:
+            if not isinstance(instance, dict):
+                raise SlurmAccountingInspectionError(
+                    "The accounting provider instance inventory is invalid."
+                )
+            instance_id = _bounded_text(
+                instance.get("InstanceId"),
+                field="accounting provider instance id",
+            )
+            instance_type = _bounded_text(
+                instance.get("InstanceType"),
+                field="accounting provider instance type",
+            )
+            if instance_id not in instance_ids or instance_id in resolved:
+                raise SlurmAccountingInspectionError(
+                    "The accounting provider instance inventory is ambiguous."
+                )
+            resolved[instance_id] = instance_type
+    if set(resolved) != instance_ids:
+        raise SlurmAccountingInspectionError(
+            "The accounting provider instance inventory is incomplete."
+        )
+    return resolved
 
 
 @dataclass(frozen=True)
@@ -202,6 +260,8 @@ class SlurmAccountingInspectionResult:
             and matching_providers[0]["database_name"] == self.exact_bridge["database_name"]
             and matching_providers[0]["db_username"] == self.exact_bridge["db_username"]
             and matching_providers[0]["instance_id"] == self.exact_bridge["accounting_instance_id"]
+            and matching_providers[0]["instance_type"]
+            == self.exact_bridge["accounting_instance_type"]
         )
         return {
             "schema_version": SLURM_ACCOUNTING_INSPECTION_SCHEMA,
@@ -262,7 +322,15 @@ def inspect_slurm_accounting(
         raise SlurmAccountingInspectionError(
             "The regional accounting provider inventory exceeds the bounded result limit."
         )
-    providers = tuple(_provider_payload(stack) for stack in stacks)
+    provider_instance_ids: set[str] = set()
+    for stack in stacks:
+        instance_id = _outputs(stack).get("AccountingInstanceId", "")
+        if instance_id:
+            provider_instance_ids.add(instance_id)
+    provider_instance_types = _exact_instance_types(aws_ctx, provider_instance_ids)
+    providers = tuple(
+        _provider_payload(stack, instance_types=provider_instance_types) for stack in stacks
+    )
 
     exact_bridge: dict[str, Any] | None = None
     bridge_resolved: bool | None = None
@@ -278,6 +346,12 @@ def inspect_slurm_accounting(
                 raise SlurmAccountingInspectionError(
                     "The exact bridge resolver returned a different stack identity."
                 )
+            bridge_instance_type = provider_instance_types.get(bridge.accounting_instance_id)
+            if bridge_instance_type is None:
+                bridge_instance_type = _exact_instance_types(
+                    aws_ctx,
+                    {bridge.accounting_instance_id},
+                )[bridge.accounting_instance_id]
             exact_bridge = {
                 "stack_name": _bounded_text(bridge.stack_name, field="bridge stack name"),
                 "status": _bounded_text(bridge.status, field="bridge stack status"),
@@ -304,6 +378,10 @@ def inspect_slurm_accounting(
                 "accounting_instance_id": _bounded_text(
                     bridge.accounting_instance_id,
                     field="bridge accounting instance id",
+                ),
+                "accounting_instance_type": _bounded_text(
+                    bridge_instance_type,
+                    field="bridge accounting instance type",
                 ),
                 "contract_healthy": False,
             }

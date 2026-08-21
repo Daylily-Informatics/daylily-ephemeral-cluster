@@ -107,6 +107,25 @@ def load_partition_instance_types(
     return result
 
 
+def load_cluster_partition_names(
+    *,
+    cluster_config_path: Optional[str] = None,
+) -> List[str]:
+    """Return every unique explicit Slurm queue name in one exact cluster config."""
+
+    config = _load_cluster_config(cluster_config_path)
+    scheduling = config.get("Scheduling")
+    if not isinstance(scheduling, dict):
+        raise ValueError("Cluster config Scheduling must be a mapping")
+    queues = scheduling.get("SlurmQueues")
+    if not isinstance(queues, list) or not queues:
+        raise ValueError("Cluster config must define at least one Slurm queue")
+    names = [_partition_name(queue) for queue in queues if isinstance(queue, dict)]
+    if len(names) != len(queues) or len(set(names)) != len(names):
+        raise ValueError("Cluster config Slurm queue identities are incomplete or duplicate")
+    return sorted(names)
+
+
 def _chunked(values: Sequence[str], size: int) -> Iterable[Sequence[str]]:
     for index in range(0, len(values), size):
         yield values[index : index + size]

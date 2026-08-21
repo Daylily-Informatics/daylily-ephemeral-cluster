@@ -5,7 +5,6 @@ from __future__ import annotations
 import base64
 import binascii
 import contextlib
-from concurrent.futures import ThreadPoolExecutor
 import csv
 import functools
 import hashlib
@@ -23,9 +22,10 @@ import tempfile
 import time
 import traceback
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path, PurePosixPath
 from time import monotonic as _monotonic
-from typing import Any, List, Optional
+from typing import Any, List, Mapping, Optional
 
 import click
 import typer
@@ -63,13 +63,6 @@ from daylily_ec._registry_v2 import (
     register_root_command,
     required_policy,
 )
-from daylily_ec.cli_context import (
-    CONTEXT_FIELDS,
-    clear_local_context,
-    context_option,
-    load_local_context,
-    update_local_context,
-)
 from daylily_ec.aws.spot_pricing import (
     DEFAULT_GLOBAL_SPOT_MAX_COST,
     DEFAULT_SPOT_COST_LIMIT_PCT,
@@ -79,11 +72,21 @@ from daylily_ec.aws.spot_pricing import (
     MIN_SPOT_COST_LIMIT_PCT,
     validate_spot_pricing_limits,
 )
-from daylily_ec.resources import ensure_extracted
+from daylily_ec.cli_context import (
+    CONTEXT_FIELDS,
+    clear_local_context,
+    context_option,
+    load_local_context,
+    update_local_context,
+)
 from daylily_ec.workflow.snakemake_resources import DEFAULT_JOB_MAX_RUNTIME_MINUTES
 
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 BENCHMARK_GENOME_BUILDS = {"hg38", "hg38_broad", "b37"}
+WORKFLOW_BENCHMARK_RECEIPT_SCHEMA = "dyec.workflow.collect_benchmarks.v1"
+MAX_COLLECTED_BENCHMARK_BYTES = 4 * 1024 * 1024
+MAX_COLLECTED_BENCHMARK_ROWS = 10_000
+_IDEMPOTENCY_KEY_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$")
 DEFAULT_CREATE_REGION_AZ = "us-west-2d"
 DEFAULT_CREATE_CLUSTER_TYPE = "intel"
 ANALYSIS_MANIFEST_SNAPSHOT_SCHEMA = "dyec.analysis_manifest_snapshot.v1"
@@ -111,6 +114,7 @@ def _report_create_runtime(callback):
     @functools.wraps(callback)
     def wrapped(*args, **kwargs):
         started_at = _monotonic()
+        json_output = bool(kwargs.get("json_output", False)) or _json_mode()
         try:
             return callback(*args, **kwargs)
         finally:
@@ -120,7 +124,7 @@ def _report_create_runtime(callback):
                 f"{_format_create_runtime(elapsed_seconds)} ({elapsed_seconds:.1f}s)"
             )
             logger.info(message)
-            typer.echo(message)
+            typer.echo(message, err=json_output)
 
     return wrapped
 
@@ -528,15 +532,56 @@ def agent_guidance() -> None:
 
 def _cluster_row_from_details(name: str, details: dict[str, Any]) -> dict[str, Any]:
     head_node = details.get("headNode") if isinstance(details.get("headNode"), dict) else {}
+    scheduler = details.get("scheduler") if isinstance(details.get("scheduler"), dict) else {}
+
+    def bounded(value: Any, *, maximum: int = 256) -> str | None:
+        text = str(value or "").strip()
+        if not text or len(text) > maximum or any(char in text for char in "\r\n\x00"):
+            return None
+        return text
+
+    safe_tags: list[dict[str, str]] = []
+    raw_tags = details.get("tags")
+    if isinstance(raw_tags, list):
+        for raw_tag in raw_tags[:64]:
+            if not isinstance(raw_tag, dict):
+                continue
+            key = bounded(raw_tag.get("key") or raw_tag.get("Key"), maximum=128)
+            value = bounded(raw_tag.get("value") or raw_tag.get("Value"))
+            if key is None or value is None:
+                continue
+            if any(token in key.lower() for token in ("secret", "token", "password", "credential")):
+                continue
+            safe_tags.append({"key": key, "value": value})
+    safe_details = {
+        "clusterName": name,
+        "clusterStatus": bounded(details.get("clusterStatus")) or "UNKNOWN",
+        "computeFleetStatus": bounded(details.get("computeFleetStatus")) or "UNKNOWN",
+        "creationTime": bounded(details.get("creationTime")),
+        "lastUpdatedTime": bounded(details.get("lastUpdatedTime")),
+        "version": bounded(details.get("version")),
+        "availabilityZone": bounded(details.get("availabilityZone")),
+        "scheduler": {"type": bounded(scheduler.get("type")) or "slurm"},
+        "tags": sorted(safe_tags, key=lambda item: (item["key"], item["value"])),
+        "headNode": {
+            "instanceType": bounded(head_node.get("instanceType")),
+            "publicIpAddress": bounded(head_node.get("publicIpAddress")),
+            "privateIpAddress": bounded(head_node.get("privateIpAddress")),
+            "state": bounded(head_node.get("state")) or "unknown",
+            "instanceId": bounded(head_node.get("instanceId")),
+            "availabilityZone": bounded(head_node.get("availabilityZone")),
+            "launchTime": bounded(head_node.get("launchTime")),
+        },
+    }
     return {
         "name": name,
-        "status": details.get("clusterStatus", "N/A"),
-        "created_at": details.get("creationTime", "N/A"),
-        "updated_at": details.get("lastUpdatedTime", "N/A"),
-        "headnode_launched_at": head_node.get("launchTime", "N/A"),
-        "ip": head_node.get("publicIpAddress", "N/A"),
-        "instance_id": head_node.get("instanceId", ""),
-        "details": details,
+        "status": safe_details["clusterStatus"],
+        "created_at": safe_details["creationTime"] or "N/A",
+        "updated_at": safe_details["lastUpdatedTime"] or "N/A",
+        "headnode_launched_at": safe_details["headNode"]["launchTime"] or "N/A",
+        "ip": safe_details["headNode"]["publicIpAddress"] or "N/A",
+        "instance_id": safe_details["headNode"]["instanceId"] or "",
+        "details": safe_details,
     }
 
 
@@ -560,7 +605,7 @@ def _cluster_headnode_config_status(
             "set -euo pipefail",
             'case "$(whoami)" in ubuntu|ec2-user) ;; *) exit 1 ;; esac',
             'test "${CONDA_DEFAULT_ENV:-}" = "DAY-EC"',
-            "command -v daylily-ec >/dev/null",
+            "command -v dyec >/dev/null",
             "command -v day-clone >/dev/null",
             "day-clone --list >/dev/null",
         ]
@@ -575,17 +620,15 @@ def _cluster_headnode_config_status(
             timeout=60,
             comment=f"Check headnode configuration for {row['name']}",
         )
-    except SsmCommandFailedError as exc:
+    except SsmCommandFailedError:
         row["headnode_configured"] = False
         row["headnode_configured_text"] = "NO"
-        row["headnode_config_error"] = (
-            exc.result.stderr.strip() or exc.result.stdout.strip() or str(exc)
-        )
+        row["headnode_config_error"] = "headnode readiness command failed"
         return
-    except (SsmError, TimeoutError, RuntimeError) as exc:
+    except (SsmError, TimeoutError, RuntimeError):
         row["headnode_configured"] = False
         row["headnode_configured_text"] = "NO"
-        row["headnode_config_error"] = str(exc)
+        row["headnode_config_error"] = "headnode readiness is unavailable"
         return
 
     row["headnode_configured"] = True
@@ -680,9 +723,7 @@ def _summarize_squeue_jobs(
             f"Could not inspect Slurm jobs for cluster '{cluster}': {detail}"
         ) from exc
     except (SsmError, TimeoutError) as exc:
-        raise CommandError(
-            f"Could not inspect Slurm jobs for cluster '{cluster}': {exc}"
-        ) from exc
+        raise CommandError(f"Could not inspect Slurm jobs for cluster '{cluster}': {exc}") from exc
 
     states: dict[str, int] = {}
     seen_begin = False
@@ -820,7 +861,9 @@ def cluster_jobs(
                 raise CommandError("pcluster list-clusters returned a non-list clusters value.")
             for item in clusters:
                 if not isinstance(item, dict):
-                    raise CommandError("pcluster list-clusters returned a non-object cluster entry.")
+                    raise CommandError(
+                        "pcluster list-clusters returned a non-object cluster entry."
+                    )
                 name = str(item.get("clusterName") or "").strip()
                 if not name:
                     raise CommandError(
@@ -878,7 +921,15 @@ def cluster_jobs(
     except CommandError as exc:
         _exit_headnode_error(exc)
 
-    result = {"regions": requested_regions, "clusters": rows}
+    result = {
+        "schema_version": "dyec.cluster.list.v1",
+        "ok": True,
+        "dyec_version": versioning.get_version(),
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "profile": resolved_profile,
+        "regions": requested_regions,
+        "clusters": rows,
+    }
     if _json_mode():
         output.emit_json(result)
         return
@@ -1034,8 +1085,8 @@ def create(
         DEFAULT_CREATE_CLUSTER_TYPE,
         "--cluster-type",
         help=(
-            "Cluster template family to autoselect when config does not set "
-            "cluster_template_yaml. One of: dragen, intel, rhel, sentieon-single."
+            "Cluster template family used to validate the exact rendered request. "
+            "One of: dragen, intel, rhel, sentieon-single."
         ),
     ),
     profile: Optional[str] = typer.Option(
@@ -1064,9 +1115,20 @@ def create(
     config: Optional[str] = typer.Option(
         None,
         "--config",
+        help="Required protected dyec.create_request.v1 request YAML path.",
+    ),
+    preparation_receipt: Optional[str] = typer.Option(
+        None,
+        "--preparation-receipt",
         help=(
-            "Path to daylily config YAML. Default: config/daylily_ephemeral_cluster_template.yaml"
+            "Optional complete dyec.create_preparation.v1 admission receipt. "
+            "Must be paired with --expected-preparation-receipt-sha256."
         ),
+    ),
+    expected_preparation_receipt_sha256: Optional[str] = typer.Option(
+        None,
+        "--expected-preparation-receipt-sha256",
+        help="Exact SHA-256 of --preparation-receipt.",
     ),
     pass_on_warn: bool = typer.Option(
         False,
@@ -1116,10 +1178,50 @@ def create(
             "service. Requires --create-slurm-accounting-if-missing."
         ),
     ),
+    expected_account_id: str = typer.Option(
+        ...,
+        "--expected-account-id",
+        help="Exact AWS account identity authorized for this create.",
+    ),
+    slurm_accounting_stack_name: str = typer.Option(
+        ...,
+        "--slurm-accounting-stack-name",
+        help="Exact existing or approved direct accounting provider stack.",
+    ),
+    slurm_accounting_privatelink_stack_name: str = typer.Option(
+        "",
+        "--slurm-accounting-privatelink-stack-name",
+        help="Exact existing PrivateLink bridge stack.",
+    ),
+    slurm_accounting_direct: bool = typer.Option(
+        False,
+        "--slurm-accounting-direct",
+        help="Explicitly require a same-VPC direct accounting target.",
+    ),
+    slurm_accounting_consumer_vpc_id: str = typer.Option(
+        ...,
+        "--slurm-accounting-consumer-vpc-id",
+        help="Exact cluster consumer VPC identity.",
+    ),
+    slurm_accounting_database_name: str = typer.Option(
+        ...,
+        "--slurm-accounting-database-name",
+        help="Exact accounting database name.",
+    ),
+    slurm_accounting_db_username: str = typer.Option(
+        ...,
+        "--slurm-accounting-db-username",
+        help="Exact accounting database username.",
+    ),
+    slurm_accounting_instance_type: str = typer.Option(
+        ...,
+        "--slurm-accounting-instance-type",
+        help="Exact provider EC2 instance type.",
+    ),
     disable_budget_enforcement: bool = typer.Option(
         False,
         "--disable-budget-enforcement",
-        help="Skip cluster AWS Budget enforcement; sbatch cost-center validation remains required.",
+        help="Retired. Budget enforcement is defined only by the exact create request.",
     ),
     budget_project: Optional[str] = typer.Option(
         None,
@@ -1129,7 +1231,7 @@ def create(
     admin_email: Optional[str] = typer.Option(
         None,
         "--admin-email",
-        help="Override the AWS Budget notification email for this create only.",
+        help="Retired. The exact create request supplies budget_email.",
     ),
     global_spot_max_cost: float = typer.Option(
         DEFAULT_GLOBAL_SPOT_MAX_COST,
@@ -1158,6 +1260,11 @@ def create(
             f"Defaults to {DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD:.2f}."
         ),
     ),
+    json_output: bool = typer.Option(
+        False,
+        "--json",
+        help="Emit the single dyec.create.v1 JSON receipt after the create command name.",
+    ),
 ) -> None:
     """Create an ephemeral AWS ParallelCluster environment."""
 
@@ -1169,7 +1276,36 @@ def create(
         validate_regional_cluster_cap_options,
     )
 
-    _warn_if_dayec_env_inactive()
+    json_mode = _json_mode() or json_output
+    if not json_mode:
+        _warn_if_dayec_env_inactive()
+
+    def _create_failure_payload(
+        error_code: str,
+        *,
+        exit_code: int | None = None,
+    ) -> dict[str, Any]:
+        from daylily_ec import __version__
+
+        payload: dict[str, Any] = {
+            "schema_version": "dyec.create.v1",
+            "dyec_version": __version__,
+            "status": "failed",
+            "terminal": False,
+            "region_az": region_az,
+            "error_code": error_code,
+        }
+        if exit_code is not None:
+            payload["exit_code"] = exit_code
+        return payload
+
+    def _invalid_create_options(message: str) -> None:
+        if json_mode:
+            click.echo(message, err=True)
+            output.emit_json(_create_failure_payload("invalid_create_options", exit_code=1))
+            raise SystemExit(1)
+        raise typer.BadParameter(message)
+
     try:
         cluster_type = normalize_create_cluster_type(cluster_type)
         validate_create_cluster_type_region(cluster_type, region_az)
@@ -1180,10 +1316,31 @@ def create(
             acknowledge_regional_cap_risk=acknowledge_regional_cap_risk,
         )
     except ValueError as exc:
-        raise typer.BadParameter(str(exc)) from exc
+        _invalid_create_options(str(exc))
     if budget_project:
-        raise typer.BadParameter(
+        _invalid_create_options(
             "--budget-project is retired; cluster budgets are named by cluster name."
+        )
+    if disable_budget_enforcement:
+        _invalid_create_options(
+            "--disable-budget-enforcement is retired; use the exact enforce_budget request value."
+        )
+    if (admin_email or "").strip():
+        _invalid_create_options(
+            "--admin-email is retired; use the exact budget_email request value."
+        )
+    if not (config or "").strip():
+        _invalid_create_options(
+            "--config is required and must be a rendered dyec.create_request.v1 request."
+        )
+    if slurm_accounting != "on":
+        _invalid_create_options(
+            "--slurm-accounting must be exactly 'on' for the current create contract."
+        )
+    if (preparation_receipt is None) != (expected_preparation_receipt_sha256 is None):
+        _invalid_create_options(
+            "--preparation-receipt and --expected-preparation-receipt-sha256 "
+            "must be supplied together."
         )
     if create_slurm_accounting_if_missing != acknowledge_slurm_accounting_create_cost:
         missing_flag = (
@@ -1191,10 +1348,34 @@ def create(
             if create_slurm_accounting_if_missing
             else "--create-slurm-accounting-if-missing"
         )
-        raise typer.BadParameter(
+        _invalid_create_options(
             "--create-slurm-accounting-if-missing and "
             "--acknowledge-slurm-accounting-create-cost must be supplied together; "
             f"missing {missing_flag}."
+        )
+    exact_accounting_fields = {
+        "--expected-account-id": expected_account_id,
+        "--slurm-accounting-stack-name": slurm_accounting_stack_name,
+        "--slurm-accounting-consumer-vpc-id": slurm_accounting_consumer_vpc_id,
+        "--slurm-accounting-database-name": slurm_accounting_database_name,
+        "--slurm-accounting-db-username": slurm_accounting_db_username,
+        "--slurm-accounting-instance-type": slurm_accounting_instance_type,
+    }
+    missing_accounting = [
+        option for option, value in exact_accounting_fields.items() if not str(value).strip()
+    ]
+    if missing_accounting:
+        _invalid_create_options(
+            "Exact Slurm-accounting identity is incomplete: " + ", ".join(missing_accounting)
+        )
+    if bool(slurm_accounting_privatelink_stack_name.strip()) == bool(slurm_accounting_direct):
+        _invalid_create_options(
+            "Specify exactly one --slurm-accounting-privatelink-stack-name or "
+            "--slurm-accounting-direct."
+        )
+    if slurm_accounting_privatelink_stack_name.strip() and create_slurm_accounting_if_missing:
+        _invalid_create_options(
+            "An exact PrivateLink target cannot be combined with accounting creation flags."
         )
     try:
         (
@@ -1207,36 +1388,210 @@ def create(
             write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
         )
     except ValueError as exc:
-        raise typer.BadParameter(str(exc)) from exc
+        _invalid_create_options(str(exc))
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    local_context = load_local_context()
-    output.action("Creating cluster in %s ..." % region_az)
-    rc = run_create_workflow(
-        region_az,
-        profile=profile,
-        config_path=config,
-        cluster_type=cluster_type,
-        pass_on_warn=pass_on_warn,
-        debug=debug,
-        non_interactive=non_interactive,
-        disable_budget_enforcement=disable_budget_enforcement,
-        budget_project=budget_project,
-        global_spot_max_cost=global_spot_max_cost,
-        spot_cost_limit_pct=spot_cost_limit_pct,
-        write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
-        repo_overrides=repo_overrides or None,
-        regional_cluster_cap=regional_cluster_cap,
-        acknowledge_regional_cap_increase=acknowledge_regional_cap_increase,
-        acknowledge_regional_cap_risk=acknowledge_regional_cap_risk,
-        slurm_accounting=slurm_accounting,
-        create_slurm_accounting_if_missing=create_slurm_accounting_if_missing,
-        acknowledge_slurm_accounting_create_cost=(acknowledge_slurm_accounting_create_cost),
-        budget_email_override=(admin_email or "").strip() or None,
-        budget_email_fallback=local_context.cluster_admin_email,
-    )
+    if not json_mode:
+        output.action("Creating cluster in %s ..." % region_az)
+    result: dict[str, Any] = {}
+    workflow_kwargs = {
+        "profile": profile,
+        "config_path": config,
+        "cluster_type": cluster_type,
+        "pass_on_warn": pass_on_warn,
+        "debug": debug,
+        "non_interactive": non_interactive,
+        "disable_budget_enforcement": disable_budget_enforcement,
+        "budget_project": budget_project,
+        "global_spot_max_cost": global_spot_max_cost,
+        "spot_cost_limit_pct": spot_cost_limit_pct,
+        "write_spot_pricing_warn_threshold": write_spot_pricing_warn_threshold,
+        "repo_overrides": repo_overrides or None,
+        "regional_cluster_cap": regional_cluster_cap,
+        "acknowledge_regional_cap_increase": acknowledge_regional_cap_increase,
+        "acknowledge_regional_cap_risk": acknowledge_regional_cap_risk,
+        "slurm_accounting": slurm_accounting,
+        "create_slurm_accounting_if_missing": create_slurm_accounting_if_missing,
+        "acknowledge_slurm_accounting_create_cost": (acknowledge_slurm_accounting_create_cost),
+        "expected_account_id": expected_account_id,
+        "slurm_accounting_stack_name": slurm_accounting_stack_name,
+        "slurm_accounting_privatelink_stack_name": slurm_accounting_privatelink_stack_name,
+        "slurm_accounting_direct": slurm_accounting_direct,
+        "slurm_accounting_consumer_vpc_id": slurm_accounting_consumer_vpc_id,
+        "slurm_accounting_database_name": slurm_accounting_database_name,
+        "slurm_accounting_db_username": slurm_accounting_db_username,
+        "slurm_accounting_instance_type": slurm_accounting_instance_type,
+        "budget_email_override": None,
+        "budget_email_fallback": None,
+        "preparation_receipt": preparation_receipt,
+        "expected_preparation_receipt_sha256": expected_preparation_receipt_sha256,
+        "result_out": result,
+    }
+    if json_mode:
+        try:
+            with contextlib.redirect_stdout(sys.stderr):
+                rc = run_create_workflow(region_az, **workflow_kwargs)
+        except Exception:  # noqa: BLE001 - public JSON must remain one bounded object
+            click.echo("DYEC create failed before a terminal receipt was produced.", err=True)
+            rc = 2
+            output.emit_json(_create_failure_payload("create_workflow_exception", exit_code=rc))
+            raise SystemExit(rc) from None
+        if rc == 0:
+            from daylily_ec.workflow.create_request import (
+                CreateRequestError,
+                validate_create_success_payload,
+            )
+
+            try:
+                validate_create_success_payload(result)
+            except (CreateRequestError, OSError, ValueError):
+                click.echo("DYEC create did not produce valid terminal evidence.", err=True)
+                rc = 1
+            else:
+                output.emit_json(result)
+        if rc != 0:
+            output.emit_json(_create_failure_payload("create_workflow_failed", exit_code=rc))
+    else:
+        rc = run_create_workflow(region_az, **workflow_kwargs)
     raise SystemExit(rc)
+
+
+def create_request_render(
+    source_config: str = typer.Option(
+        ..., "--source-config", help="Exact source request resource."
+    ),
+    expected_source_config_sha256: str = typer.Option(
+        ...,
+        "--expected-source-config-sha256",
+        help="Expected source request SHA-256.",
+    ),
+    source_template: str = typer.Option(
+        ...,
+        "--source-template",
+        help="Exact packaged ParallelCluster template resource path.",
+    ),
+    expected_source_template_sha256: str = typer.Option(
+        ...,
+        "--expected-source-template-sha256",
+        help="Expected source template SHA-256.",
+    ),
+    overrides_json: str = typer.Option(
+        ...,
+        "--overrides-json",
+        help="Protected dyec.create_request_overrides.v1 JSON path.",
+    ),
+    region_az: str = typer.Option(..., "--region-az", help="Exact AWS availability zone."),
+    output_path: str = typer.Option(
+        ...,
+        "--output",
+        help="Absolute protected output request YAML path.",
+    ),
+) -> None:
+    """Render one strict, explicit, current-schema create request."""
+
+    from daylily_ec.workflow.create_request import (
+        CREATE_REQUEST_SCHEMA,
+        CreateRequestError,
+        render_create_request,
+    )
+
+    try:
+        payload = render_create_request(
+            source_config=source_config,
+            expected_source_config_sha256=expected_source_config_sha256,
+            source_template=source_template,
+            expected_source_template_sha256=expected_source_template_sha256,
+            overrides_json=overrides_json,
+            region_az=region_az,
+            output_path=output_path,
+        )
+    except (CreateRequestError, OSError, ValueError) as exc:
+        click.echo(str(exc), err=True)
+        _exit_versioned_contract_error(
+            schema_version=CREATE_REQUEST_SCHEMA,
+            error_code="create_request_render_failed",
+            message="The exact create request could not be rendered.",
+        )
+    _emit_payload(payload, json.dumps(payload, indent=2, sort_keys=True))
+
+
+def create_request_prepare(
+    request_config: str = typer.Option(
+        ...,
+        "--request-config",
+        help="Protected dyec.create_request.v1 YAML path.",
+    ),
+    expected_request_sha256: str = typer.Option(
+        ...,
+        "--expected-request-sha256",
+        help="Expected rendered request SHA-256.",
+    ),
+    source_template: str = typer.Option(
+        ...,
+        "--source-template",
+        help="Exact source ParallelCluster template path or packaged resource.",
+    ),
+    expected_source_template_sha256: str = typer.Option(
+        ...,
+        "--expected-source-template-sha256",
+        help="Expected source template SHA-256.",
+    ),
+    profile: str = typer.Option(..., "--profile", help="Exact AWS CLI profile."),
+    region_az: str = typer.Option(..., "--region-az", help="Exact AWS availability zone."),
+    spot_price_policy: str = typer.Option(
+        ...,
+        "--spot-price-policy",
+        help="Must be exactly CALCULATE_MAX_SPOT_PRICE.",
+    ),
+    output_dir: str = typer.Option(
+        ...,
+        "--output-dir",
+        help="Absolute protected output directory for deterministic evidence.",
+    ),
+    global_spot_max_cost: float = typer.Option(
+        DEFAULT_GLOBAL_SPOT_MAX_COST,
+        "--global-spot-max-cost",
+    ),
+    spot_cost_limit_pct: float = typer.Option(
+        DEFAULT_SPOT_COST_LIMIT_PCT,
+        "--spot-cost-limit-pct",
+    ),
+    write_spot_pricing_warn_threshold: float = typer.Option(
+        DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
+        "--write-spot-pricing-warn-threshold",
+    ),
+) -> None:
+    """Generate read-only live-pricing admission evidence without creating resources."""
+
+    from daylily_ec.workflow.create_request import (
+        CREATE_PREPARATION_SCHEMA,
+        CreateRequestError,
+        prepare_create_request,
+    )
+
+    try:
+        payload = prepare_create_request(
+            request_config=request_config,
+            expected_request_sha256=expected_request_sha256,
+            source_template=source_template,
+            expected_source_template_sha256=expected_source_template_sha256,
+            profile=profile,
+            region_az=region_az,
+            spot_price_policy=spot_price_policy,
+            output_dir=output_dir,
+            global_spot_max_cost=global_spot_max_cost,
+            spot_cost_limit_pct=spot_cost_limit_pct,
+            write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+        )
+    except (CreateRequestError, OSError, RuntimeError, ValueError) as exc:
+        click.echo(str(exc), err=True)
+        _exit_versioned_contract_error(
+            schema_version=CREATE_PREPARATION_SCHEMA,
+            error_code="create_request_preparation_failed",
+            message="The read-only create admission preparation failed.",
+        )
+    _emit_payload(payload, json.dumps(payload, indent=2, sort_keys=True))
 
 
 def slurm_accounting_inspect(
@@ -1796,6 +2151,112 @@ def cost_centers_create(
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
     _emit_payload(item.to_dict(), f"Created cost center: {item.name}")
+
+
+def cost_centers_ensure_active(
+    name: str = typer.Argument(..., help="Exact cost-center name."),
+    monthly_cap_usd: str = typer.Option(..., "--monthly-cap-usd", help="Exact monthly cap."),
+    allowed_user: Optional[List[str]] = typer.Option(
+        None,
+        "--allowed-user",
+        help="Exact allowed user; repeat for each user.",
+    ),
+    owner_email: Optional[List[str]] = typer.Option(
+        None,
+        "--owner-email",
+        help="Single canonical owner email; provide exactly once.",
+    ),
+    profile: str = typer.Option(..., "--profile", help="Exact AWS CLI profile."),
+    home_region: str = typer.Option(..., "--home-region", help="Exact registry AWS region."),
+    table_name: str = typer.Option(
+        "dayec-cost-centers",
+        "--table-name",
+        help="Existing registry table name.",
+    ),
+    usage_table_name: str = typer.Option(
+        "dayec-cost-center-usage",
+        "--usage-table-name",
+        help="Existing usage table name.",
+    ),
+) -> None:
+    """Atomically create-or-verify one exact active cost-center contract."""
+
+    from daylily_ec.aws.cost_centers import CostCenterError, ensure_active_cost_center
+
+    try:
+        aws_ctx, dynamodb = _cost_center_context(profile, home_region)
+        item, created = ensure_active_cost_center(
+            dynamodb,
+            name,
+            monthly_cap_usd=monthly_cap_usd,
+            allowed_users=allowed_user or (),
+            allowed_groups=(),
+            owner_emails=owner_email or (),
+            notes="",
+            actor_arn=aws_ctx.caller_arn,
+            table_name=table_name,
+            usage_table_name=usage_table_name,
+        )
+    except (CostCenterError, ValueError):
+        click.echo("The exact active cost-center contract was not satisfied.", err=True)
+        _exit_versioned_contract_error(
+            schema_version="dyec.cost_center_ensure_active.v1",
+            error_code="cost_center_ensure_active_failed",
+            message="The exact active cost-center contract was not satisfied.",
+        )
+    except Exception:  # noqa: BLE001 - never surface raw provider diagnostics
+        click.echo("The cost-center provider operation failed closed.", err=True)
+        _exit_versioned_contract_error(
+            schema_version="dyec.cost_center_ensure_active.v1",
+            error_code="cost_center_provider_failed",
+            message="The exact active cost-center contract was not satisfied.",
+        )
+    payload = {
+        "schema_version": "dyec.cost_center_ensure_active.v1",
+        "ok": True,
+        "dyec_version": versioning.get_version(),
+        "status": "complete",
+        "created": created,
+        "profile": aws_ctx.profile,
+        "account_id": aws_ctx.account_id,
+        "home_region": aws_ctx.region,
+        "record": {
+            "cost_center": item.name,
+            "status": item.status,
+            "monthly_cap_usd": str(item.monthly_cap_usd),
+            "allowed_user_count": len(item.allowed_users),
+            "allowed_users_sha256": hashlib.sha256(
+                json.dumps(list(item.allowed_users), separators=(",", ":")).encode("utf-8")
+            ).hexdigest(),
+            "allowed_group_count": len(item.allowed_groups),
+            "allowed_groups_sha256": hashlib.sha256(
+                json.dumps(list(item.allowed_groups), separators=(",", ":")).encode("utf-8")
+            ).hexdigest(),
+            "owner_email_count": len(item.owner_emails),
+            "owner_emails_sha256": hashlib.sha256(
+                json.dumps(list(item.owner_emails), separators=(",", ":")).encode("utf-8")
+            ).hexdigest(),
+            "notes_empty": item.notes == "",
+            "max_usage_age_hours": item.max_usage_age_hours,
+            "active_until": item.active_until or None,
+            "controlled_fields_sha256": hashlib.sha256(
+                json.dumps(
+                    {
+                        "allowed_groups": list(item.allowed_groups),
+                        "allowed_users": list(item.allowed_users),
+                        "cost_center": item.name,
+                        "monthly_cap_usd": str(item.monthly_cap_usd),
+                        "notes": item.notes,
+                        "owner_emails": list(item.owner_emails),
+                        "status": item.status,
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            ).hexdigest(),
+        },
+    }
+    _emit_payload(payload, json.dumps(payload, indent=2, sort_keys=True))
 
 
 def cost_centers_edit(
@@ -2477,7 +2938,15 @@ def cluster_list(
     except CommandError as exc:
         _exit_headnode_error(exc)
 
-    result = {"regions": requested_regions, "clusters": rows}
+    result = {
+        "schema_version": "dyec.cluster.list.v1",
+        "ok": True,
+        "dyec_version": versioning.get_version(),
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "profile": resolved_profile,
+        "regions": requested_regions,
+        "clusters": rows,
+    }
     if _json_mode():
         output.emit_json(result)
         return
@@ -2527,6 +2996,139 @@ def cluster_describe(
         output.emit_json(payload)
         return
     typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+
+
+def cluster_inspect(
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
+        "--region",
+        help="Exact AWS region for the target cluster.",
+        required=True,
+    ),
+    cluster: str = typer.Option(..., "--cluster", "--cluster-name", help="Exact cluster name."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="Exact AWS CLI profile."),
+    region_az: Optional[str] = typer.Option(
+        None,
+        "--region-az",
+        help="Exact region/AZ required when an accounting topology is included.",
+    ),
+    accounting_stack_name: Optional[str] = typer.Option(
+        None,
+        "--accounting-stack-name",
+        help="Exact regional accounting provider stack; never discovered.",
+    ),
+    accounting_privatelink_stack_name: Optional[str] = typer.Option(
+        None,
+        "--accounting-privatelink-stack-name",
+        help="Exact existing PrivateLink bridge; omit only for direct same-VPC mode.",
+    ),
+) -> None:
+    """Return cohesive bounded cluster, FSx, cost, health, and accounting evidence."""
+
+    from daylily_ec.aws.context import AWSContext
+    from daylily_ec.cluster_inspection import (
+        CLUSTER_INSPECTION_SCHEMA,
+        ClusterInspectionError,
+        build_cluster_inspection,
+    )
+    from daylily_ec.workflow.inspect_slurm_accounting import inspect_slurm_accounting
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile = _resolved_aws_profile(profile)
+        details = _describe_cluster_payload(
+            profile=resolved_profile,
+            region=str(region),
+            cluster=cluster,
+        )
+        topology_requested = any(
+            value is not None
+            for value in (region_az, accounting_stack_name, accounting_privatelink_stack_name)
+        )
+        accounting_payload: dict[str, Any] | None = None
+        if topology_requested:
+            if not region_az or not accounting_stack_name:
+                raise ClusterInspectionError(
+                    "accounting inspection requires exact --region-az and --accounting-stack-name"
+                )
+            try:
+                accounting_payload = inspect_slurm_accounting(
+                    profile=resolved_profile,
+                    region_az=region_az,
+                    expected_accounting_stack_name=accounting_stack_name,
+                    expected_privatelink_stack_name=accounting_privatelink_stack_name or "",
+                ).to_payload()
+            except Exception as exc:  # noqa: BLE001 - never expose raw provider errors
+                raise ClusterInspectionError(
+                    "The exact Slurm-accounting inspection is unavailable"
+                ) from exc
+            accounting_payload["compute_fleet_state"] = details.get("computeFleetStatus")
+            accounting_payload["sacct_verified"] = False
+            accounting_payload["sacct_status"] = "FAILED"
+            head_node = details.get("headNode")
+            instance_id = (
+                str(head_node.get("instanceId") or "").strip()
+                if isinstance(head_node, Mapping)
+                else ""
+            )
+            if not instance_id:
+                accounting_payload["sacct_status"] = "HEADNODE_ID_UNAVAILABLE"
+            elif str(details.get("computeFleetStatus") or "").strip() != "RUNNING":
+                accounting_payload["sacct_status"] = "COMPUTE_FLEET_NOT_RUNNING"
+            else:
+                from daylily_ec.aws.ssm import run_shell, wait_for_ssm_online
+                from daylily_ec.workflow.postcreate_slurm_accounting import (
+                    ACCOUNTING_VERIFICATION_COMMAND,
+                )
+
+                try:
+                    wait_for_ssm_online(
+                        instance_id,
+                        str(region),
+                        profile=resolved_profile,
+                        timeout=120,
+                    )
+                    run_shell(
+                        instance_id,
+                        str(region),
+                        ACCOUNTING_VERIFICATION_COMMAND,
+                        profile=resolved_profile,
+                        as_user="ubuntu",
+                        timeout=120,
+                        comment="Inspect Slurm accounting read-only",
+                    )
+                except Exception:  # noqa: BLE001 - emit one bounded status only
+                    accounting_payload["sacct_status"] = "FAILED"
+                else:
+                    accounting_payload["sacct_verified"] = True
+                    accounting_payload["sacct_status"] = "VERIFIED"
+        aws_ctx = AWSContext.build_region(str(region), profile=resolved_profile)
+        payload = build_cluster_inspection(
+            cluster_name=cluster,
+            region=str(region),
+            profile=resolved_profile,
+            details=details,
+            ec2_client=aws_ctx.client("ec2"),
+            cloudformation_client=aws_ctx.client("cloudformation"),
+            fsx_client=aws_ctx.client("fsx"),
+            cloudwatch_client=aws_ctx.client("cloudwatch"),
+            cost_explorer_client=aws_ctx.client("ce"),
+            accounting=accounting_payload,
+        )
+    except (ClusterInspectionError, ValueError, RuntimeError) as exc:
+        _exit_versioned_contract_error(
+            schema_version=CLUSTER_INSPECTION_SCHEMA,
+            error_code="cluster_inspection_failed",
+            message=str(exc),
+        )
+    except Exception:  # noqa: BLE001 - no raw provider errors in this public receipt
+        _exit_versioned_contract_error(
+            schema_version=CLUSTER_INSPECTION_SCHEMA,
+            error_code="cluster_inspection_provider_failed",
+            message="The exact cluster inspection could not be constructed.",
+        )
+    _emit_payload(payload, json.dumps(payload, indent=2, sort_keys=True))
 
 
 def cluster_wait(
@@ -2590,10 +3192,19 @@ def cluster_wait(
         current_status = str(payload.get("clusterStatus") or "")
         if current_status == target_status:
             result = {
+                "schema_version": "dyec.cluster.wait.v1",
+                "ok": True,
+                "dyec_version": versioning.get_version(),
+                "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "profile": resolved_profile,
                 "cluster": cluster,
                 "region": region,
                 "status": current_status,
-                "details": payload,
+                "headnode_instance_id": (
+                    payload.get("headNode", {}).get("instanceId")
+                    if isinstance(payload.get("headNode"), dict)
+                    else None
+                ),
             }
             if _json_mode():
                 output.emit_json(result)
@@ -2835,7 +3446,13 @@ def cluster_tags(
     except (ClusterTagError, CommandError) as exc:
         _exit_headnode_error(exc)
 
-    payload = result.to_payload(cluster=cluster, region=region)
+    payload = {
+        "schema_version": "dyec.cluster.tags.v1",
+        "ok": True,
+        "dyec_version": versioning.get_version(),
+        "profile": resolved_profile,
+        **result.to_payload(cluster=cluster, region=region),
+    }
     if _json_mode():
         output.emit_json(payload)
         return
@@ -2904,6 +3521,7 @@ def export(
         configure_logging,
         run_export_workflow,
     )
+
     _warn_if_dayec_env_inactive()
     configure_logging(verbose)
     rc = run_export_workflow(
@@ -2950,10 +3568,7 @@ def runtime_cache_export(
     destination_s3_uri: str = typer.Option(
         ...,
         "--destination-s3-uri",
-        help=(
-            "Empty non-overlapping S3 prefix ending in "
-            "<executing-entity>/<cache-export-id>/."
-        ),
+        help=("Empty non-overlapping S3 prefix ending in <executing-entity>/<cache-export-id>/."),
     ),
     region: Optional[str] = context_option(
         "aws_region",
@@ -3060,8 +3675,14 @@ def exports_attach(
             wait=wait,
             timeout_seconds=timeout_seconds,
         )
+        export_payload = {
+            "schema_version": "dyec.exports.attach.v1",
+            "ok": True,
+            "operation": "attach",
+            **record.to_payload(),
+        }
         _emit_export_payload(
-            record.to_payload(),
+            export_payload,
             text=(
                 f"Export DRA attached: {record.association_id}\n"
                 f"Headnode path: {record.headnode_path}\n"
@@ -3107,6 +3728,12 @@ def exports_run(
             fsx_client=client,
         )
         payload["fsx_file_system_id"] = resolved_fsx_id
+        payload = {
+            "schema_version": "dyec.exports.run.v1",
+            "ok": True,
+            "operation": "run",
+            **payload,
+        }
         _emit_export_payload(
             payload,
             text=(
@@ -3163,9 +3790,7 @@ def exports_transfer(
             if not status_path.is_file():
                 raise RuntimeError("DYEC export transfer did not write its status receipt")
             receipt = yaml.safe_load(status_path.read_text(encoding="utf-8"))
-            if not isinstance(receipt, dict) or not isinstance(
-                receipt.get("fsx_export"), dict
-            ):
+            if not isinstance(receipt, dict) or not isinstance(receipt.get("fsx_export"), dict):
                 raise RuntimeError("DYEC export transfer status receipt is invalid")
             payload = dict(receipt["fsx_export"])
             if rc != 0 or payload.get("status") != "success":
@@ -3178,9 +3803,13 @@ def exports_transfer(
             if payload.get("delete_data_in_file_system") is not False:
                 raise RuntimeError("DYEC export transfer must preserve FSx data")
             if payload.get("detached") is not True:
-                raise RuntimeError(
-                    "DYEC export transfer did not detach its temporary DRA"
-                )
+                raise RuntimeError("DYEC export transfer did not detach its temporary DRA")
+            payload = {
+                "schema_version": "dyec.exports.transfer.v1",
+                "ok": True,
+                "operation": "transfer",
+                **payload,
+            }
             _emit_export_payload(
                 payload,
                 text=(
@@ -3230,6 +3859,12 @@ def exports_cleanup(
             profile=profile,
             timeout_seconds=timeout_seconds,
         )
+        payload = {
+            **payload,
+            "schema_version": "dyec.exports.cleanup.v1",
+            "ok": True,
+            "operation": "cleanup",
+        }
         _emit_export_payload(
             payload,
             text=(
@@ -3267,6 +3902,12 @@ def exports_detach(
             timeout_seconds=timeout_seconds,
             delete_data_in_file_system=delete_data_in_file_system,
         )
+        payload = {
+            "schema_version": "dyec.exports.detach.v1",
+            "ok": True,
+            "operation": "detach",
+            **payload,
+        }
         _emit_export_payload(
             payload,
             text=(
@@ -3327,17 +3968,100 @@ def delete(
         state_file=state_file,
         yes=yes,
     )
+    if _json_mode():
+        schema_version = "dyec.cluster.delete.v1"
+        if not cluster_name or not region or not profile:
+            _exit_versioned_contract_error(
+                schema_version=schema_version,
+                error_code="cluster_delete_identity_required",
+                message=(
+                    "JSON cluster deletion requires explicit --cluster-name, --region, "
+                    "and --profile"
+                ),
+            )
+        started_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        started = time.monotonic()
+        captured_stdout = io.StringIO()
+        captured_stderr = io.StringIO()
+        with (
+            contextlib.redirect_stdout(captured_stdout),
+            contextlib.redirect_stderr(captured_stderr),
+        ):
+            rc = run_delete_dry_run(options) if dry_run else run_delete_workflow(options)
+        if rc != 0:
+            _exit_versioned_contract_error(
+                schema_version=schema_version,
+                error_code=(
+                    "cluster_delete_plan_failed" if dry_run else "cluster_delete_failed"
+                ),
+                message=(
+                    "The exact cluster delete plan could not be verified"
+                    if dry_run
+                    else "The exact cluster deletion did not complete"
+                ),
+            )
+        payload = {
+            "schema_version": schema_version,
+            "ok": True,
+            "operation": "delete",
+            "status": "planned" if dry_run else "deleted",
+            "dry_run": dry_run,
+            "cluster": cluster_name,
+            "region": region,
+            "profile": profile,
+            "destructive_action_performed": not dry_run,
+            "started_at": started_at,
+            "completed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "elapsed_seconds": round(max(0.0, time.monotonic() - started), 3),
+        }
+        output.emit_json(payload)
+        return
     rc = run_delete_dry_run(options) if dry_run else run_delete_workflow(options)
     raise typer.Exit(rc)
 
 
-def resources_dir() -> None:
-    """Print the extracted resource directory used by Daylily."""
-    path = str(ensure_extracted())
-    if _json_mode():
-        output.emit_json({"resources_dir": path})
-        return
-    output.print_text(path)
+def resources_resolve(
+    resource: str = typer.Argument(..., help="Exact relative file path inside the DYEC payload."),
+) -> None:
+    """Resolve one immutable packaged resource as a versioned receipt."""
+
+    from daylily_ec.resources.contracts import PublicContractError, resolve_resource_receipt
+
+    try:
+        payload = resolve_resource_receipt(resource)
+    except PublicContractError as exc:
+        _exit_versioned_contract_error(
+            schema_version="dyec.resources.resolve.v1",
+            error_code="resource_resolution_failed",
+            message=str(exc),
+        )
+    _emit_payload(payload, json.dumps(payload, indent=2, sort_keys=True))
+
+
+def resources_materialize(
+    resource: str = typer.Argument(..., help="Exact relative file path inside the DYEC payload."),
+    output_path: str = typer.Option(
+        ...,
+        "--output",
+        help="Absolute protected file path to write atomically.",
+    ),
+) -> None:
+    """Materialize one immutable resource with a protected versioned receipt."""
+
+    from daylily_ec.resources.contracts import (
+        PublicContractError,
+        materialize_resource_receipt,
+    )
+
+    try:
+        payload = materialize_resource_receipt(resource, output_path)
+    except PublicContractError as exc:
+        _exit_versioned_contract_error(
+            schema_version="dyec.resources.materialize.v1",
+            error_code="resource_materialization_failed",
+            message=str(exc),
+        )
+    _emit_payload(payload, json.dumps(payload, indent=2, sort_keys=True))
 
 
 def set_vars(
@@ -3870,6 +4594,11 @@ def pricing_snapshot(
         "--partition",
         help="Production partition name. Repeat for multiple partitions.",
     ),
+    all_config_partitions: bool = typer.Option(
+        False,
+        "--all-config-partitions",
+        help="Use every exact Slurm queue from the explicitly supplied cluster config.",
+    ),
     config: Optional[str] = typer.Option(
         None,
         "--config",
@@ -3897,6 +4626,8 @@ def pricing_snapshot(
     from daylily_ec.aws.pricing_snapshots import (
         collect_pricing_snapshot,
         format_pricing_snapshot_table,
+        load_cluster_partition_names,
+        load_partition_instance_types,
     )
 
     _warn_if_dayec_env_inactive()
@@ -3904,6 +4635,16 @@ def pricing_snapshot(
         raise typer.BadParameter("--table-view cannot be combined with --json")
     if table_view and target_capacity_vcpus is None:
         raise typer.BadParameter("--target-capacity-vcpus is required with --table-view")
+    if all_config_partitions:
+        if partition:
+            raise typer.BadParameter(
+                "--all-config-partitions cannot be combined with --partition"
+            )
+        if not str(config or "").strip():
+            raise typer.BadParameter(
+                "--all-config-partitions requires an explicit --config"
+            )
+        partition = load_cluster_partition_names(cluster_config_path=config)
     payload = collect_pricing_snapshot(
         regions=region,
         partitions=partition,
@@ -3911,6 +4652,19 @@ def pricing_snapshot(
         profile=profile,
         target_capacity_vcpus=target_capacity_vcpus,
     ).to_dict()
+    payload.update(
+        {
+            "schema_version": "dyec.pricing.snapshot.v1",
+            "ok": True,
+            "dyec_version": versioning.get_version(),
+            "profile": _resolved_aws_profile(profile),
+            "all_config_partitions": all_config_partitions,
+            "partition_instance_types": load_partition_instance_types(
+                cluster_config_path=str(payload["cluster_config_path"]),
+                partitions=payload["partitions"],
+            ),
+        }
+    )
 
     if table_view:
         typer.echo(format_pricing_snapshot_table(payload))
@@ -4051,9 +4805,7 @@ def pricing_spot_logs(
         )
 
     ec2_client = None
-    if cost_price_source == "history" and any(
-        row.get("node_type") == "ComputeFleet" for row in rows
-    ):
+    if cost_price_source == "history" and rows:
         import boto3
 
         ec2_client = boto3.Session(
@@ -4061,7 +4813,13 @@ def pricing_spot_logs(
             region_name=resolved_region,
         ).client("ec2")
     try:
-        cost_intervals = build_spot_cost_intervals(
+        node_headnode_cost_intervals = build_spot_cost_intervals(
+            rows,
+            price_source=cost_price_source,
+            ec2_client=ec2_client,
+            compute_only=False,
+        )
+        compute_cost_intervals = build_spot_cost_intervals(
             rows,
             price_source=cost_price_source,
             ec2_client=ec2_client,
@@ -4071,6 +4829,11 @@ def pricing_spot_logs(
         _exit_headnode_error(exc)
 
     payload = {
+        "schema_version": "dyec.pricing.spot_logs.v1",
+        "ok": True,
+        "dyec_version": versioning.get_version(),
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "profile": resolved_profile,
         "cluster": resolved_cluster,
         "headnode_instance_id": target.instance_id,
         "region": resolved_region,
@@ -4079,12 +4842,18 @@ def pricing_spot_logs(
         "visited_files": remote_payload.get("visited_files", 0),
         "row_count": len(rows),
         "rows": rows,
-        "cost_interval_count": len(cost_intervals),
-        "cost_intervals": cost_intervals,
+        "node_headnode_cost_interval_count": len(node_headnode_cost_intervals),
+        "node_headnode_cost_intervals": node_headnode_cost_intervals,
+        "compute_cost_interval_count": len(compute_cost_intervals),
+        "compute_cost_intervals": compute_cost_intervals,
+        "cost_price_source": cost_price_source,
+        "all_node_intervals": True,
     }
     if cost_output is not None:
         cost_output.parent.mkdir(parents=True, exist_ok=True)
-        cost_output.write_text(spot_cost_intervals_to_csv(cost_intervals), encoding="utf-8")
+        cost_output.write_text(
+            spot_cost_intervals_to_csv(node_headnode_cost_intervals), encoding="utf-8"
+        )
     if _json_mode():
         output.emit_json(payload)
         return
@@ -4181,6 +4950,54 @@ def _run_aws_validate_command(
     else:
         output.error("AWS validation found permission, readiness, or quota gaps.")
     raise SystemExit(rc)
+
+
+def aws_capacity_snapshot(
+    region: str = typer.Option(..., "--region", help="Exact AWS region."),
+    profile: str = typer.Option(..., "--profile", help="Exact AWS CLI profile."),
+    quota_family: Optional[List[str]] = typer.Option(
+        None,
+        "--quota-family",
+        help="EC2 vCPU quota family; repeat for each required family.",
+    ),
+) -> None:
+    """Return exact regional vCPU use/headroom or an explicit incomplete snapshot."""
+
+    from daylily_ec.aws.capacity_snapshot import (
+        CAPACITY_SNAPSHOT_SCHEMA,
+        CapacitySnapshotError,
+        build_capacity_snapshot,
+    )
+    from daylily_ec.aws.context import AWSContext
+
+    try:
+        aws_ctx = AWSContext.build_region(region, profile=profile)
+        payload = build_capacity_snapshot(
+            ec2_client=aws_ctx.client("ec2"),
+            autoscaling_client=aws_ctx.client("autoscaling"),
+            service_quotas_client=aws_ctx.client("service-quotas"),
+            cloudwatch_client=aws_ctx.client("cloudwatch"),
+            profile=aws_ctx.profile,
+            account_id=aws_ctx.account_id,
+            region=aws_ctx.region,
+            quota_families=quota_family or (),
+        )
+    except (CapacitySnapshotError, ValueError) as exc:
+        click.echo(str(exc), err=True)
+        _exit_versioned_contract_error(
+            schema_version=CAPACITY_SNAPSHOT_SCHEMA,
+            error_code="capacity_snapshot_failed",
+            message="The exact regional capacity snapshot could not be constructed.",
+        )
+    except Exception:  # noqa: BLE001 - never surface raw provider diagnostics
+        click.echo("The regional capacity provider operation failed closed.", err=True)
+        _exit_versioned_contract_error(
+            schema_version=CAPACITY_SNAPSHOT_SCHEMA,
+            error_code="capacity_snapshot_provider_failed",
+            message="The exact regional capacity snapshot could not be constructed.",
+        )
+    payload["dyec_version"] = versioning.get_version()
+    _emit_payload(payload, json.dumps(payload, indent=2, sort_keys=True))
 
 
 def aws_validate_permissions(
@@ -4534,6 +5351,40 @@ def headnode_connect(
             f"--target {target.instance_id} "
             "--document-name SSM-SessionManagerRunShell"
         )
+        public_argv = [
+            "dyec",
+            "headnode",
+            "connect",
+            "--profile",
+            resolved_profile,
+            "--region",
+            resolved_region,
+            "--cluster",
+            resolved_cluster,
+            "--remote-user",
+            resolved_remote_user,
+        ]
+        payload = {
+            "schema_version": "dyec.headnode.connection.v1",
+            "ok": True,
+            "available": True,
+            "profile": resolved_profile,
+            "region": resolved_region,
+            "cluster": resolved_cluster,
+            "instance_id": target.instance_id,
+            "remote_user": resolved_remote_user,
+            "command_argv": public_argv,
+            "command": shlex.join(public_argv),
+        }
+        if _json_mode():
+            if not dry_run:
+                _exit_versioned_contract_error(
+                    schema_version="dyec.headnode.connection.v1",
+                    error_code="json_connection_requires_dry_run",
+                    message="JSON headnode connection inspection requires --dry-run.",
+                )
+            output.emit_json(payload)
+            return
         output.print_text(
             f"Opening Session Manager session as {resolved_remote_user} to {target.instance_id} "
             f"(cluster={resolved_cluster} region={resolved_region} profile={resolved_profile})"
@@ -4789,6 +5640,7 @@ def _run_headnode_semantic_script(
     comment: str,
     timeout: int = 120,
 ) -> dict[str, Any]:
+    from daylily_ec.aws.context import AWSContext
     from daylily_ec.aws.ssm import SsmCommandFailedError, SsmError, run_shell, wait_for_ssm_online
     from daylily_ec.scripts.common import CommandError
 
@@ -4800,6 +5652,7 @@ def _run_headnode_semantic_script(
             region=region,
             cluster=cluster,
         )
+        aws_context = AWSContext.build_region(resolved_region, resolved_profile)
         wait_for_ssm_online(
             target.instance_id,
             resolved_region,
@@ -4819,9 +5672,7 @@ def _run_headnode_semantic_script(
         except SsmCommandFailedError as exc:
             payload = parser(exc.result.stdout)
             error = payload.get("error") if isinstance(payload, dict) else None
-            raise CommandError(
-                f"Semantic headnode command failed: {error or exc}"
-            ) from exc
+            raise CommandError(f"Semantic headnode command failed: {error or exc}") from exc
         payload = parser(result.stdout)
         if not isinstance(payload, dict):
             raise ValueError("semantic headnode parser must return a JSON object")
@@ -4831,6 +5682,8 @@ def _run_headnode_semantic_script(
             )
         return {
             **payload,
+            "profile": resolved_profile,
+            "account_id": aws_context.account_id,
             "cluster": resolved_cluster,
             "region": resolved_region,
             "instance_id": target.instance_id,
@@ -4995,6 +5848,196 @@ def headnode_dayoa_controllers(
             timeout=timeout,
         )
         _emit_headnode_payload(payload)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def headnode_scheduler_snapshot(
+    profile: Optional[str] = typer.Option(None, "--profile", help="Exact AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="Exact AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    max_jobs: int = typer.Option(100, "--max-jobs", help="Maximum queued/running jobs returned."),
+    max_nodes: int = typer.Option(100, "--max-nodes", help="Maximum Slurm node rows returned."),
+    timeout: int = typer.Option(120, "--timeout", help="Bounded SSM timeout in seconds."),
+) -> None:
+    """Return a bounded, versioned scheduler snapshot for one exact headnode."""
+
+    from daylily_ec.headnode_receipts import (
+        HeadnodeReceiptError,
+        build_scheduler_snapshot_script,
+        parse_scheduler_snapshot,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        payload = _run_headnode_semantic_script(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            script=build_scheduler_snapshot_script(max_jobs=max_jobs, max_nodes=max_nodes),
+            parser=parse_scheduler_snapshot,
+            comment="DYEC bounded scheduler snapshot",
+            timeout=timeout,
+        )
+        _emit_headnode_payload(payload)
+    except HeadnodeReceiptError as exc:
+        _exit_versioned_contract_error(
+            schema_version="dyec.headnode.scheduler_snapshot.v1",
+            error_code="scheduler_snapshot_failed",
+            message=str(exc),
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def headnode_runtime_identity(
+    profile: Optional[str] = typer.Option(None, "--profile", help="Exact AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="Exact AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    timeout: int = typer.Option(120, "--timeout", help="Bounded SSM timeout in seconds."),
+) -> None:
+    """Return one typed installed-DYEC version and Git-provenance receipt."""
+
+    from daylily_ec.headnode_receipts import (
+        HeadnodeReceiptError,
+        RUNTIME_IDENTITY_SCHEMA,
+        build_runtime_identity_script,
+        parse_runtime_identity,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        payload = _run_headnode_semantic_script(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            script=build_runtime_identity_script(),
+            parser=parse_runtime_identity,
+            comment="DYEC headnode runtime identity",
+            timeout=timeout,
+        )
+        _emit_headnode_payload(payload)
+    except HeadnodeReceiptError as exc:
+        _exit_versioned_contract_error(
+            schema_version=RUNTIME_IDENTITY_SCHEMA,
+            error_code="runtime_identity_failed",
+            message=str(exc),
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def headnode_controller_evidence(
+    profile: str = typer.Option(..., "--profile", help="Exact AWS CLI profile."),
+    region: str = typer.Option(..., "--region", help="Exact AWS region."),
+    cluster: str = typer.Option(..., "--cluster", "--cluster-name"),
+    analysis_root: str = typer.Option(
+        ...,
+        "--analysis-root",
+        help="Exact /fsx/analysis_results/<owner>/<analysis_id> root.",
+    ),
+    controller_pid: str = typer.Option(..., "--controller-pid", help="Persisted controller PID."),
+    confirm_pid: str = typer.Option(..., "--confirm-pid", help="Must exactly match controller PID."),
+    expected_cwd: str = typer.Option(
+        ...,
+        "--expected-cwd",
+        help="Persisted exact controller working directory beneath the analysis root.",
+    ),
+    log_file: str = typer.Option(
+        ...,
+        "--log-file",
+        help="Exact relative Snakemake log path beneath the analysis root.",
+    ),
+    dag_file: str = typer.Option(
+        ...,
+        "--dag-file",
+        help="Exact relative existing DAG path beneath the analysis root.",
+    ),
+    output_dir: str = typer.Option(
+        ...,
+        "--output-dir",
+        help="Absolute owned 0700 directory for atomic local evidence materialization.",
+    ),
+    staging_s3_uri: str = typer.Option(
+        ...,
+        "--staging-s3-uri",
+        help="Required Ursa-managed s3://bucket/prefix relay; one unique object is retained.",
+    ),
+    timeout: int = typer.Option(180, "--timeout", help="Bounded SSM timeout in seconds."),
+) -> None:
+    """Stage and atomically materialize one fixed controller log/DAG evidence pair."""
+
+    from daylily_ec.headnode_receipts import (
+        CONTROLLER_EVIDENCE_SCHEMA,
+        HeadnodeReceiptError,
+        MAX_ENVELOPE_BYTES,
+        build_controller_evidence_script,
+        materialize_controller_evidence,
+        parse_controller_evidence_envelope,
+        parse_staged_controller_evidence,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        transfer_prefix = _headnode_transfer_prefix(
+            staging_s3_uri=staging_s3_uri,
+            cluster=cluster,
+        )
+        envelope_s3_uri = f"{transfer_prefix}/controller-evidence.json"
+        remote_payload = _run_headnode_semantic_script(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            script=build_controller_evidence_script(
+                analysis_root=analysis_root,
+                controller_pid=controller_pid,
+                confirm_pid=confirm_pid,
+                expected_cwd=expected_cwd,
+                log_file=log_file,
+                dag_file=dag_file,
+                staging_s3_uri=envelope_s3_uri,
+            ),
+            parser=parse_staged_controller_evidence,
+            comment="DYEC bounded controller evidence",
+            timeout=timeout,
+        )
+        if remote_payload.get("envelope_s3_uri") != envelope_s3_uri:
+            raise HeadnodeReceiptError("controller evidence relay identity changed")
+        with tempfile.TemporaryDirectory(prefix="dyec-controller-evidence-") as temporary_dir:
+            envelope_path = Path(temporary_dir) / "controller-evidence.json"
+            _run_aws_s3_cp(
+                [envelope_s3_uri, str(envelope_path)],
+                profile=remote_payload["profile"],
+                region=remote_payload["region"],
+            )
+            if envelope_path.stat().st_size > MAX_ENVELOPE_BYTES:
+                raise HeadnodeReceiptError("controller evidence relay exceeded the fixed size bound")
+            envelope = parse_controller_evidence_envelope(
+                envelope_path.read_bytes(),
+                staged_receipt=remote_payload,
+            )
+        materialized = materialize_controller_evidence(
+            envelope,
+            output_dir=output_dir,
+            staged_receipt=remote_payload,
+        )
+        materialized.update(
+            {
+                "profile": remote_payload["profile"],
+                "region": remote_payload["region"],
+                "cluster": remote_payload["cluster"],
+                "instance_id": remote_payload["instance_id"],
+                "ssm_command_id": remote_payload["ssm_command_id"],
+                "generated_at": remote_payload["collected_at"],
+            }
+        )
+        _emit_headnode_payload(materialized)
+    except HeadnodeReceiptError as exc:
+        _exit_versioned_contract_error(
+            schema_version="dyec.headnode.controller_evidence.v1",
+            error_code="controller_evidence_failed",
+            message=str(exc),
+        )
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
 
@@ -5263,7 +6306,7 @@ def headnode_upload(
                     f"remote_path={shlex.quote(remote_path)}",
                     'if [[ "$remote_path" == */ ]]; then mkdir -p "$remote_path"; '
                     'else mkdir -p "$(dirname "$remote_path")"; fi',
-                    f"aws s3 cp {shlex.quote(relay_source)} \"$remote_path\"",
+                    f'aws s3 cp {shlex.quote(relay_source)} "$remote_path"',
                 ]
             )
 
@@ -5488,9 +6531,7 @@ def _configure_headnode_command(
         )
         overrides = _load_repo_overrides(str(repo_overrides) if repo_overrides else None)
         try:
-            dyec_repo_spec = resolve_configured_headnode_repo_spec(
-                deploy_key_auth=True
-            )
+            dyec_repo_spec = resolve_configured_headnode_repo_spec(deploy_key_auth=True)
         except RuntimeError as exc:
             raise CommandError(f"Unable to resolve the running DYEC release: {exc}") from exc
         wait_for_ssm_online(
@@ -6421,7 +7462,9 @@ def _run_identity_operation(operation, *, output_path: Optional[Path], **kwargs:
 
 def identities_validate(
     manifest_dir: Path = typer.Option(..., "--manifest-dir", help="Exact six-manifest directory."),
-    output_path: Optional[Path] = typer.Option(None, "--output", help="Optional JSON receipt path."),
+    output_path: Optional[Path] = typer.Option(
+        None, "--output", help="Optional JSON receipt path."
+    ),
 ) -> None:
     """Validate local six-manifest topology and identity eligibility."""
 
@@ -6986,67 +8029,88 @@ def workflow_launch(
 
 
 def repositories_commands(
-    config: Optional[Path] = typer.Option(
-        None,
-        "--config",
-        help="Path to daylily_pipeline_command_catalog.yaml.",
+    dyec_version: str = typer.Option(
+        ...,
+        "--dyec-version",
+        help="Exact immutable numeric DYEC catalog build.",
     ),
     repository: Optional[str] = typer.Option(
         None,
         "--repository",
-        help="Limit output to one repository key.",
+        help="Limit the receipt result to one exact repository identity.",
     ),
     command_id: Optional[str] = typer.Option(
         None,
         "--command-id",
-        help="Limit output to one analysis command id.",
+        help="Limit the receipt result to one exact command identity.",
     ),
 ) -> None:
-    """List blessed analysis command profiles from the repository catalog."""
+    """List immutable repository-command identities for one numeric DYEC build."""
 
-    from daylily_ec.repositories import load_repository_catalog
-    from daylily_ec.scripts.common import CommandError
+    from daylily_ec.resources.contracts import (
+        PublicContractError,
+        REPOSITORIES_COMMANDS_SCHEMA,
+        canonical_json_digest,
+        catalog_receipt,
+    )
 
     try:
-        catalog = load_repository_catalog(config)
-        payload = catalog.to_public_payload()
+        payload = catalog_receipt(REPOSITORIES_COMMANDS_SCHEMA, dyec_version)
+        commands = list(payload["contract"]["commands"])
         if repository:
-            repo_key = repository.strip()
-            repositories = payload["repositories"]
-            if not isinstance(repositories, dict) or repo_key not in repositories:
-                raise CommandError(f"Unknown repository: {repo_key}")
-            payload["repositories"] = {repo_key: repositories[repo_key]}
-            payload["commands"] = [
-                command
-                for command in payload["commands"]
-                if isinstance(command, dict) and command.get("repository") == repo_key
+            selected_repository = repository.strip()
+            commands = [
+                row for row in commands if row.get("repository") == selected_repository
             ]
+            if not commands:
+                raise PublicContractError("requested repository is not present in the exact build")
         if command_id:
-            command_key = command_id.strip()
-            payload["commands"] = [
-                command
-                for command in payload["commands"]
-                if isinstance(command, dict) and command.get("command_id") == command_key
-            ]
-            if not payload["commands"]:
-                raise CommandError(f"Unknown analysis command: {command_key}")
+            selected_command = command_id.strip()
+            commands = [row for row in commands if row.get("command_id") == selected_command]
+            if len(commands) != 1:
+                raise PublicContractError("requested command is not present in the exact build")
+        payload["result"] = {
+            "repository": repository.strip() if repository else None,
+            "command_id": command_id.strip() if command_id else None,
+            "commands": commands,
+        }
+        payload["receipt_sha256"] = canonical_json_digest(
+            {key: value for key, value in payload.items() if key != "receipt_sha256"}
+        )
         if _json_mode():
             output.emit_json(payload)
             return
-        typer.echo(json.dumps(payload, indent=2, sort_keys=False))
-    except Exception as exc:  # noqa: BLE001
-        _exit_headnode_error(exc)
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+    except PublicContractError as exc:
+        _exit_versioned_contract_error(
+            schema_version=REPOSITORIES_COMMANDS_SCHEMA,
+            error_code="repositories_commands_failed",
+            message=str(exc),
+        )
 
 
 def _catalog_load_command(
-    config: Optional[Path], command_id: str, *, dyec_version: Optional[str] = None
+    command_id: str,
+    *,
+    dyec_version: Optional[str] = None,
+    features: Optional[List[str]] = None,
 ):
     from daylily_ec.repositories import load_repository_catalog
+    from daylily_ec.resources.contracts import PublicContractError, require_numeric_catalog_build
     from daylily_ec.scripts.common import CommandError
 
-    catalog = load_repository_catalog(config)
     try:
-        command = catalog.get_command_for_dyec_build(command_id, dyec_version)
+        build = require_numeric_catalog_build(dyec_version)
+    except PublicContractError as exc:
+        raise CommandError(str(exc)) from exc
+    catalog = load_repository_catalog()
+    try:
+        command = catalog.get_command_for_dyec_build(command_id, build)
+        if features:
+            feature_values = [str(value or "").strip() for value in features]
+            if any(not value for value in feature_values) or len(set(feature_values)) != len(feature_values):
+                raise CommandError("--feature values must be explicit and unique")
+            command = command.with_features(feature_values)
     except KeyError as exc:
         raise CommandError(str(exc)) from exc
     return catalog, command
@@ -7074,8 +8138,6 @@ def _catalog_command_summary(command: Any) -> dict[str, Any]:
         "genome": command.genome,
         "day_profile": command.day_profile,
         "jobs": command.jobs,
-        "dy_command": command.dy_command,
-        "dryrun_dy_command": command.dryrun_dy_command,
     }
 
 
@@ -7211,7 +8273,6 @@ def _append_dy_config_overrides(workflow_argv: list[str], values: Optional[list[
 
 def _catalog_render_payload(
     *,
-    config: Optional[Path],
     command_id: str,
     dyec_version: Optional[str],
     analysis_id: str,
@@ -7241,9 +8302,14 @@ def _catalog_render_payload(
     delete_on_export_success: bool,
     replace_existing_analysis_dir: bool,
     dy_config: Optional[list[str]] = None,
+    features: Optional[List[str]] = None,
     require_staging_receipt: bool = False,
 ) -> dict[str, Any]:
-    catalog, command = _catalog_load_command(config, command_id, dyec_version=dyec_version)
+    catalog, command = _catalog_load_command(
+        command_id,
+        dyec_version=dyec_version,
+        features=features,
+    )
     resolved_dyec_version = catalog.resolve_dyec_build_key(dyec_version)
     resolved_executing_entity = _resolve_executing_entity_option(
         executing_entity=executing_entity,
@@ -7306,7 +8372,6 @@ def _catalog_render_payload(
         workflow_argv.extend(["--payload-staging-s3-uri", payload_staging_s3_uri])
     workflow_argv.extend(["--max-runtime-minutes", str(max_runtime_minutes)])
     normalized_dy_config = _append_dy_config_overrides(workflow_argv, dy_config)
-    dy_command = workflow_argv[workflow_argv.index("--dy-command") + 1]
     return {
         "command_catalog_version": catalog.command_catalog_version,
         "dyec_version": resolved_dyec_version,
@@ -7321,21 +8386,14 @@ def _catalog_render_payload(
         "git_tag": resolved_git_tag,
         "dry_run": dry_run,
         "cost_center": resolved_cost_center,
-        "dy_command": dy_command,
         "dy_config": normalized_dy_config,
         "workflow_argv": workflow_argv,
-        "workflow_command": shlex.join(["dyec", *workflow_argv]),
         "export_destination_s3_uri": resolved_export_destination_s3_uri,
         "payload_staging_s3_uri": payload_staging_s3_uri,
     }
 
 
 def catalog_list(
-    config: Optional[Path] = typer.Option(
-        None,
-        "--config",
-        help="Path to daylily_pipeline_command_catalog.yaml.",
-    ),
     repository: Optional[str] = typer.Option(
         None,
         "--repository",
@@ -7351,95 +8409,104 @@ def catalog_list(
         "--type",
         help="Limit output to prod, test, dev, or research.",
     ),
-    dyec_version: Optional[str] = typer.Option(
-        None,
+    dyec_version: str = typer.Option(
+        ...,
         "--dyec-version",
-        help="Use an immutable numeric DYEC snapshot instead of the default current view.",
+        help="Exact immutable numeric DYEC catalog build.",
     ),
 ) -> None:
-    """List command-catalog entries as launchable command summaries."""
+    """List versioned immutable command-catalog entries."""
 
-    from daylily_ec.repositories import load_repository_catalog
-    from daylily_ec.scripts.common import CommandError
+    from daylily_ec.resources.contracts import (
+        CATALOG_LIST_SCHEMA,
+        PublicContractError,
+        canonical_json_digest,
+        catalog_receipt,
+    )
 
     try:
-        catalog = load_repository_catalog(config)
-        resolved_dyec_version = catalog.resolve_dyec_build_key(dyec_version)
-        commands = catalog.commands_for_dyec_build(dyec_version)
+        payload = catalog_receipt(CATALOG_LIST_SCHEMA, dyec_version)
+        commands = list(payload["contract"]["commands"])
         if repository:
             repo_key = repository.strip()
-            if repo_key not in catalog.repositories:
-                raise CommandError(f"Unknown repository: {repo_key}")
-            commands = [command for command in commands if command.repository == repo_key]
+            commands = [command for command in commands if command.get("repository") == repo_key]
+            if not commands:
+                raise PublicContractError("requested repository is not present in the exact build")
         if command_class:
-            commands = [command for command in commands if command.command_class == command_class]
+            commands = [command for command in commands if command.get("command_class") == command_class]
         if command_type:
-            commands = [command for command in commands if command.type == command_type]
-        payload = {
-            "command_catalog_version": catalog.command_catalog_version,
-            "default_repository": catalog.default_repository,
-            "dyec_version": resolved_dyec_version,
-            "result_export": (
-                catalog.result_export.model_dump(mode="json")
-                if catalog.result_export is not None
-                else None
-            ),
-            "commands": [_catalog_command_summary(command) for command in commands],
+            commands = [command for command in commands if command.get("type") == command_type]
+        payload["result"] = {
+            "repository": repository.strip() if repository else None,
+            "command_class": command_class,
+            "type": command_type,
+            "commands": commands,
         }
+        payload["receipt_sha256"] = canonical_json_digest(
+            {key: value for key, value in payload.items() if key != "receipt_sha256"}
+        )
         if _json_mode():
             output.emit_json(payload)
             return
-        typer.echo(json.dumps(payload, indent=2, sort_keys=False))
-    except Exception as exc:  # noqa: BLE001
-        _exit_headnode_error(exc)
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+    except PublicContractError as exc:
+        _exit_versioned_contract_error(
+            schema_version=CATALOG_LIST_SCHEMA,
+            error_code="catalog_list_failed",
+            message=str(exc),
+        )
 
 
 def catalog_show(
     command_id: str = typer.Argument(..., help="Repository catalog command id."),
-    config: Optional[Path] = typer.Option(
-        None,
-        "--config",
-        help="Path to daylily_pipeline_command_catalog.yaml.",
-    ),
-    dyec_version: Optional[str] = typer.Option(
-        None,
+    dyec_version: str = typer.Option(
+        ...,
         "--dyec-version",
-        help="Show an immutable numeric DYEC snapshot instead of the default current view.",
+        help="Exact immutable numeric DYEC catalog build.",
+    ),
+    feature: Optional[List[str]] = typer.Option(
+        None,
+        "--feature",
+        help="Explicit optional feature identifier; repeat for multiple features.",
     ),
 ) -> None:
-    """Show one command-catalog entry, including exact dy-r command strings."""
+    """Show one exact command-catalog entry and its resolved-command digest."""
 
     try:
-        catalog, command = _catalog_load_command(config, command_id, dyec_version=dyec_version)
-        payload = {
-            "command_catalog_version": catalog.command_catalog_version,
-            "dyec_version": catalog.resolve_dyec_build_key(dyec_version),
-            "result_export": (
-                catalog.result_export.model_dump(mode="json")
-                if catalog.result_export is not None
-                else None
-            ),
-            "command": command.to_public_payload(),
-        }
+        from daylily_ec.resources.contracts import (
+            CATALOG_SHOW_SCHEMA,
+            canonical_json_digest,
+            catalog_receipt,
+        )
+
+        payload = catalog_receipt(
+            CATALOG_SHOW_SCHEMA,
+            dyec_version,
+            command_id=command_id,
+            features=feature or (),
+        )
+        payload["result"] = {"command": payload["contract"]["commands"][0]}
+        payload["receipt_sha256"] = canonical_json_digest(
+            {key: value for key, value in payload.items() if key != "receipt_sha256"}
+        )
         if _json_mode():
             output.emit_json(payload)
             return
-        typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
     except Exception as exc:  # noqa: BLE001
-        _exit_headnode_error(exc)
+        _exit_versioned_contract_error(
+            schema_version="dyec.catalog.show.v1",
+            error_code="catalog_show_failed",
+            message=str(exc),
+        )
 
 
 def catalog_validation_compare(
     command_id: str = typer.Argument(..., help="Repository catalog command id."),
-    config: Optional[Path] = typer.Option(
-        None,
-        "--config",
-        help="Path to daylily_pipeline_command_catalog.yaml.",
-    ),
-    dyec_version: Optional[str] = typer.Option(
-        None,
+    dyec_version: str = typer.Option(
+        ...,
         "--dyec-version",
-        help="Compare an immutable numeric snapshot instead of the default current view.",
+        help="Exact immutable numeric DYEC catalog build.",
     ),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
@@ -7449,7 +8516,7 @@ def catalog_validation_compare(
     try:
         from daylily_ec.catalog_validation import compare_command_validation_evidence
 
-        catalog, command = _catalog_load_command(config, command_id, dyec_version=dyec_version)
+        catalog, command = _catalog_load_command(command_id, dyec_version=dyec_version)
         payload = compare_command_validation_evidence(
             command,
             profile=profile,
@@ -7515,7 +8582,9 @@ def catalog_config_bjuice_preval(
         "--analysis-label",
         help="Prefix for generated ANALYSIS_UNIT_UID values.",
     ),
-    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile for S3 listing."),
+    profile: Optional[str] = typer.Option(
+        None, "--profile", help="AWS CLI profile for S3 listing."
+    ),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region for S3 listing."),
     fsx_run_mount_root: str = typer.Option(
         "/fsx/run_dir_mounts",
@@ -7629,7 +8698,9 @@ def catalog_config_bjuice_v2_hg002_multi_au(
             "--retarget-plan-json."
         ),
     ),
-    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile for S3 listing."),
+    profile: Optional[str] = typer.Option(
+        None, "--profile", help="AWS CLI profile for S3 listing."
+    ),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region for S3 listing."),
     fsx_run_mount_root: str = typer.Option(
         "/fsx/run_dir_mounts",
@@ -7698,11 +8769,15 @@ def catalog_render(
         "-u",
         help="User/system identifier under /fsx/analysis_results. Defaults to --cluster.",
     ),
-    config: Optional[Path] = typer.Option(None, "--config", help="Catalog YAML path."),
-    dyec_version: Optional[str] = typer.Option(
-        None,
+    dyec_version: str = typer.Option(
+        ...,
         "--dyec-version",
-        help="Render an immutable numeric snapshot instead of the default current view.",
+        help="Exact immutable numeric DYEC catalog build.",
+    ),
+    feature: Optional[List[str]] = typer.Option(
+        None,
+        "--feature",
+        help="Explicit optional feature identifier; repeat for multiple features.",
     ),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
@@ -7774,7 +8849,6 @@ def catalog_render(
 
     try:
         payload = _catalog_render_payload(
-            config=config,
             command_id=command_id,
             dyec_version=dyec_version,
             analysis_id=analysis_id,
@@ -7804,6 +8878,21 @@ def catalog_render(
             delete_on_export_success=delete_on_export_success,
             replace_existing_analysis_dir=replace_existing_analysis_dir,
             dy_config=dy_config,
+            features=feature,
+        )
+        from daylily_ec.resources.contracts import CATALOG_RENDER_SCHEMA, catalog_receipt
+
+        payload = catalog_receipt(
+            CATALOG_RENDER_SCHEMA,
+            dyec_version,
+            command_id=command_id,
+            features=feature or (),
+            extra={
+                "render": payload,
+                "render_sha256": hashlib.sha256(
+                    json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+                ).hexdigest(),
+            },
         )
         if _json_mode():
             output.emit_json(payload)
@@ -7822,11 +8911,15 @@ def catalog_launch(
         "-u",
         help="User/system identifier under /fsx/analysis_results. Defaults to --cluster.",
     ),
-    config: Optional[Path] = typer.Option(None, "--config", help="Catalog YAML path."),
-    dyec_version: Optional[str] = typer.Option(
-        None,
+    dyec_version: str = typer.Option(
+        ...,
         "--dyec-version",
-        help="Launch an immutable numeric snapshot instead of the default current view.",
+        help="Exact immutable numeric DYEC catalog build.",
+    ),
+    feature: Optional[List[str]] = typer.Option(
+        None,
+        "--feature",
+        help="Explicit optional feature identifier; repeat for multiple features.",
     ),
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
@@ -7887,7 +8980,6 @@ def catalog_launch(
     _warn_if_dayec_env_inactive()
     try:
         payload = _catalog_render_payload(
-            config=config,
             command_id=command_id,
             dyec_version=dyec_version,
             analysis_id=analysis_id,
@@ -7917,6 +9009,7 @@ def catalog_launch(
             delete_on_export_success=delete_on_export_success,
             replace_existing_analysis_dir=replace_existing_analysis_dir,
             dy_config=dy_config,
+            features=feature,
             require_staging_receipt=True,
         )
         launch_stdout_buffer = io.StringIO()
@@ -7928,7 +9021,24 @@ def catalog_launch(
                 typer.echo(launch_stdout, nl=False)
             raise typer.Exit(launch_rc)
         launch_metadata = _parse_workflow_launch_metadata(launch_stdout)
-        payload["workflow_launch"] = launch_metadata
+        from daylily_ec.resources.contracts import CATALOG_LAUNCH_SCHEMA, catalog_receipt
+
+        render_payload = payload
+        payload = catalog_receipt(
+            CATALOG_LAUNCH_SCHEMA,
+            dyec_version,
+            command_id=command_id,
+            features=feature or (),
+            extra={
+                "render": render_payload,
+                "render_sha256": hashlib.sha256(
+                    json.dumps(render_payload, sort_keys=True, separators=(",", ":")).encode(
+                        "utf-8"
+                    )
+                ).hexdigest(),
+                "workflow_launch": launch_metadata,
+            },
+        )
         if _json_mode():
             output.emit_json(payload)
             return
@@ -8096,7 +9206,13 @@ def mounts_create(
             timeout_seconds=timeout_seconds,
             tag=tag,
         )
-        _emit_mount_payload(record.to_output_payload(), text=format_mount_created(record))
+        payload = {
+            "schema_version": "dyec.mounts.create.v1",
+            "ok": True,
+            "operation": "create",
+            **record.to_output_payload(),
+        }
+        _emit_mount_payload(payload, text=format_mount_created(record))
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
 
@@ -8176,7 +9292,12 @@ def mounts_list(
             profile=profile,
             purpose=purpose,
         )
-        payload = {"mounts": [record.to_output_payload() for record in records]}
+        payload = {
+            "schema_version": "dyec.mounts.list.v1",
+            "ok": True,
+            "operation": "list",
+            "mounts": [record.to_output_payload() for record in records],
+        }
         _emit_mount_payload(payload, text=format_mount_list(records))
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
@@ -8203,7 +9324,13 @@ def mounts_describe(
             region=region,
             profile=profile,
         )
-        _emit_mount_payload(record.to_output_payload(), text=format_mount_described(record))
+        payload = {
+            "schema_version": "dyec.mounts.describe.v1",
+            "ok": True,
+            "operation": "describe",
+            **record.to_output_payload(),
+        }
+        _emit_mount_payload(payload, text=format_mount_described(record))
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
 
@@ -8233,7 +9360,13 @@ def mounts_delete(
             wait=wait,
             timeout_seconds=timeout_seconds,
         )
-        _emit_mount_payload(record.to_output_payload(), text=format_mount_deleted(record))
+        payload = {
+            "schema_version": "dyec.mounts.delete.v1",
+            "ok": True,
+            "operation": "delete",
+            **record.to_output_payload(),
+        }
+        _emit_mount_payload(payload, text=format_mount_deleted(record))
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
 
@@ -8263,6 +9396,12 @@ def mounts_verify(
             platform=platform,
             timeout_seconds=timeout_seconds,
         )
+        payload = {
+            "schema_version": "dyec.mounts.verify.v1",
+            "ok": True,
+            "operation": "verify",
+            **payload,
+        }
         _emit_mount_payload(payload, text=format_mount_verified(payload))
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
@@ -8555,11 +9694,7 @@ def _collect_workflow_observability(
 def _parse_marked_json_payload(stdout: str, *, marker: str, context: str) -> dict[str, Any]:
     from daylily_ec.scripts.common import CommandError
 
-    marked = [
-        line[len(marker) :]
-        for line in stdout.splitlines()
-        if line.startswith(marker)
-    ]
+    marked = [line[len(marker) :] for line in stdout.splitlines() if line.startswith(marker)]
     if len(marked) != 1:
         raise CommandError(f"{context} output did not contain exactly one marker")
     try:
@@ -8668,8 +9803,8 @@ def _collect_remote_json_payload(
             f"remote_raw={shlex.quote(remote_raw)}",
             f"remote_manifest={shlex.quote(remote_manifest)}",
             f"manifest_marker={shlex.quote(manifest_marker)}",
-            f"{shlex.join(remote_argv)} > \"$remote_raw\"",
-            "python3 - \"$remote_raw\" \"$remote_json\" \"$remote_manifest\" \"$manifest_marker\" <<'PY'",
+            f'{shlex.join(remote_argv)} > "$remote_raw"',
+            'python3 - "$remote_raw" "$remote_json" "$remote_manifest" "$manifest_marker" <<\'PY\'',
             "import hashlib, json, pathlib, sys",
             "raw_path = pathlib.Path(sys.argv[1])",
             "path = pathlib.Path(sys.argv[2])",
@@ -8808,7 +9943,9 @@ def _materialize_analysis_manifest_snapshot(
     total_size = payload.get("total_size_bytes")
     if not isinstance(analysis_root, str) or not analysis_root.startswith("/fsx/"):
         raise CommandError("analysis manifest snapshot did not include a valid analysis root")
-    if not isinstance(source_config_dir, str) or not source_config_dir.startswith(analysis_root + "/"):
+    if not isinstance(source_config_dir, str) or not source_config_dir.startswith(
+        analysis_root + "/"
+    ):
         raise CommandError("analysis manifest snapshot did not include a valid config directory")
     if not isinstance(file_payloads, dict) or set(file_payloads) != set(MANIFEST_NAMES):
         raise CommandError("analysis manifest snapshot did not contain exactly the six manifests")
@@ -8828,14 +9965,23 @@ def _materialize_analysis_manifest_snapshot(
         expected_hash = record.get("sha256")
         if not isinstance(encoded, str):
             raise CommandError(f"analysis manifest snapshot entry has no content: {name}")
-        if isinstance(expected_size, bool) or not isinstance(expected_size, int) or expected_size < 0:
+        if (
+            isinstance(expected_size, bool)
+            or not isinstance(expected_size, int)
+            or expected_size < 0
+        ):
             raise CommandError(f"analysis manifest snapshot entry has an invalid size: {name}")
-        if not isinstance(expected_hash, str) or re.fullmatch(r"[0-9a-f]{64}", expected_hash) is None:
+        if (
+            not isinstance(expected_hash, str)
+            or re.fullmatch(r"[0-9a-f]{64}", expected_hash) is None
+        ):
             raise CommandError(f"analysis manifest snapshot entry has an invalid digest: {name}")
         try:
             content = base64.b64decode(encoded, validate=True)
         except (ValueError, binascii.Error) as exc:
-            raise CommandError(f"analysis manifest snapshot entry is not valid base64: {name}") from exc
+            raise CommandError(
+                f"analysis manifest snapshot entry is not valid base64: {name}"
+            ) from exc
         if len(content) != expected_size:
             raise CommandError(f"analysis manifest snapshot entry size mismatch: {name}")
         if hashlib.sha256(content).hexdigest() != expected_hash:
@@ -8849,7 +9995,9 @@ def _materialize_analysis_manifest_snapshot(
     if destination.exists():
         raise CommandError(f"refusing to overwrite manifest snapshot destination: {destination}")
     if not destination.parent.is_dir():
-        raise CommandError(f"manifest snapshot destination parent does not exist: {destination.parent}")
+        raise CommandError(
+            f"manifest snapshot destination parent does not exist: {destination.parent}"
+        )
     temporary = destination.with_name(f".{destination.name}.partial-{uuid.uuid4().hex}")
     try:
         temporary.mkdir(mode=0o700)
@@ -9113,13 +10261,27 @@ def _normalize_benchmark_analysis_root(analysis_root: str) -> str:
     return path.as_posix()
 
 
+def _normalize_benchmark_idempotency_key(value: str) -> str:
+    resolved = str(value or "").strip()
+    if not _IDEMPOTENCY_KEY_RE.fullmatch(resolved):
+        raise typer.BadParameter(
+            "--idempotency-key must be 8-128 characters using letters, numbers, '.', '_', ':', or '-'"
+        )
+    return resolved
+
+
 def _build_workflow_collect_benchmarks_script(
     *,
     analysis_root: str,
     genome_build: str,
     cluster: str,
     human_requestor: str,
+    idempotency_key: str,
+    input_digest: str,
+    target: str,
     remote_user: str,
+    max_bytes: int,
+    max_rows: int,
 ) -> str:
     return f"""
 set -euo pipefail
@@ -9132,6 +10294,11 @@ ANALYSIS_ROOT={shlex.quote(analysis_root)}
 GENOME_BUILD={shlex.quote(genome_build)}
 DYEC_CLUSTER_NAME={shlex.quote(cluster)}
 export DAYOA_HUMAN_REQUESTOR={shlex.quote(human_requestor)}
+export DAYLILY_BENCHMARK_IDEMPOTENCY_KEY={shlex.quote(idempotency_key)}
+export DAYLILY_BENCHMARK_INPUT_DIGEST={shlex.quote(input_digest)}
+export DAYLILY_BENCHMARK_TARGET={shlex.quote(target)}
+export DAYLILY_BENCHMARK_MAX_BYTES={max_bytes}
+export DAYLILY_BENCHMARK_MAX_ROWS={max_rows}
 agent_stamp="$(date -u +%Y%m%dT%H%M%SZ)"
 export DAYOA_AGENT_ID="dyec-benchmark-${{GENOME_BUILD}}-${{agent_stamp}}-$$"
 export DAYOA_AGENT_KIND="dyec-cli"
@@ -9143,6 +10310,38 @@ DAYOA_ROOT="${{ANALYSIS_ROOT}}/daylily-omics-analysis"
 COLLECTOR="bin/util/benchmarks/collect_day_benchmark_data.sh"
 REPORT_DIR="${{DAYOA_ROOT}}/results/day/${{GENOME_BUILD}}/reports"
 SUMMARY_TSV="${{REPORT_DIR}}/benchmarks_summary.tsv"
+COLLECTION_RECEIPT="${{REPORT_DIR}}/benchmarks_collection_receipt.json"
+
+if [[ -f "$COLLECTION_RECEIPT" ]]; then
+  replay_payload="$(python3 - "$COLLECTION_RECEIPT" "$SUMMARY_TSV" "$DAYLILY_BENCHMARK_IDEMPOTENCY_KEY" <<'PY'
+import hashlib
+import json
+import os
+import pathlib
+import sys
+
+receipt_path = pathlib.Path(sys.argv[1])
+summary_path = pathlib.Path(sys.argv[2])
+requested_key = sys.argv[3]
+payload = json.loads(receipt_path.read_text(encoding="utf-8"))
+if payload.get("idempotency_key") == requested_key:
+    if payload.get("input_digest") != os.environ["DAYLILY_BENCHMARK_INPUT_DIGEST"]:
+        raise SystemExit("existing benchmark idempotency receipt input digest mismatch")
+    if payload.get("target") != os.environ["DAYLILY_BENCHMARK_TARGET"]:
+        raise SystemExit("existing benchmark idempotency receipt target mismatch")
+    content = summary_path.read_bytes()
+    if payload.get("summary_sha256") != hashlib.sha256(content).hexdigest():
+        raise SystemExit("existing benchmark idempotency receipt digest mismatch")
+    if payload.get("bytes") != len(content):
+        raise SystemExit("existing benchmark idempotency receipt size mismatch")
+    print("__DAYLILY_BENCHMARK_COLLECTION__=" + json.dumps(payload, sort_keys=True))
+PY
+)"
+  if [[ -n "$replay_payload" ]]; then
+    printf '%s\n' "$replay_payload"
+    exit 0
+  fi
+fi
 
 case "$GENOME_BUILD" in
   hg38|hg38_broad|b37) ;;
@@ -9220,11 +10419,29 @@ export DAYLILY_BENCHMARK_REPORT_DIR="$REPORT_DIR"
 export DAYLILY_BENCHMARK_SUMMARY_TSV="$SUMMARY_TSV"
 export DAYLILY_BENCHMARK_ROW_COUNT="$(wc -l < "$SUMMARY_TSV" | tr -d ' ')"
 export DAYLILY_BENCHMARK_BYTES="$(wc -c < "$SUMMARY_TSV" | tr -d ' ')"
+if (( DAYLILY_BENCHMARK_BYTES > DAYLILY_BENCHMARK_MAX_BYTES )); then
+  echo "Benchmark summary exceeds the requested byte limit." >&2
+  exit 65
+fi
+if (( DAYLILY_BENCHMARK_ROW_COUNT > DAYLILY_BENCHMARK_MAX_ROWS )); then
+  echo "Benchmark summary exceeds the requested row limit." >&2
+  exit 65
+fi
+export DAYLILY_BENCHMARK_SHA256="$(sha256sum "$SUMMARY_TSV" | awk '{{print $1}}')"
+export DAYLILY_BENCHMARK_RECEIPT="$COLLECTION_RECEIPT"
+export DAYLILY_BENCHMARK_CLUSTER="$DYEC_CLUSTER_NAME"
 python3 - <<'PY'
+import datetime
 import json
 import os
 
 payload = {{
+    "schema_version": "dyec.workflow.collect_benchmarks.v1",
+    "ok": True,
+    "status": "complete",
+    "collected_at": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
+    "cluster": os.environ["DAYLILY_BENCHMARK_CLUSTER"],
+    "requestor": os.environ["DAYOA_HUMAN_REQUESTOR"],
     "analysis_root": os.environ["DAYLILY_BENCHMARK_ANALYSIS_ROOT"],
     "dayoa_root": os.environ["DAYLILY_BENCHMARK_DAYOA_ROOT"],
     "genome_build": os.environ["DAYLILY_BENCHMARK_GENOME_BUILD"],
@@ -9232,7 +10449,23 @@ payload = {{
     "summary_tsv": os.environ["DAYLILY_BENCHMARK_SUMMARY_TSV"],
     "row_count": int(os.environ["DAYLILY_BENCHMARK_ROW_COUNT"] or "0"),
     "bytes": int(os.environ["DAYLILY_BENCHMARK_BYTES"] or "0"),
+    "summary_sha256": os.environ["DAYLILY_BENCHMARK_SHA256"],
+    "idempotency_key": os.environ["DAYLILY_BENCHMARK_IDEMPOTENCY_KEY"],
+    "input_digest": os.environ["DAYLILY_BENCHMARK_INPUT_DIGEST"],
+    "target": os.environ["DAYLILY_BENCHMARK_TARGET"],
+    "max_bytes": int(os.environ["DAYLILY_BENCHMARK_MAX_BYTES"]),
+    "max_rows": int(os.environ["DAYLILY_BENCHMARK_MAX_ROWS"]),
+    "receipt_path": os.environ["DAYLILY_BENCHMARK_RECEIPT"],
 }}
+receipt_path = payload["receipt_path"]
+temporary_path = receipt_path + ".tmp"
+with open(temporary_path, "w", encoding="utf-8") as handle:
+    json.dump(payload, handle, sort_keys=True)
+    handle.write("\\n")
+    handle.flush()
+    os.fsync(handle.fileno())
+os.chmod(temporary_path, 0o600)
+os.replace(temporary_path, receipt_path)
 print("__DAYLILY_BENCHMARK_COLLECTION__=" + json.dumps(payload, sort_keys=True))
 PY
 """
@@ -9266,11 +10499,26 @@ def workflow_collect_benchmarks(
         "--build",
         help="DayOA genome build: hg38, hg38_broad, or b37.",
     ),
-    human_requestor: Optional[str] = typer.Option(
-        None,
+    human_requestor: str = typer.Option(
+        ...,
         "--human-requestor",
         "--human",
-        help="Human recorded in analysis-root lock and visit metadata.",
+        help="Explicit human requestor recorded in the receipt and analysis-root lock.",
+    ),
+    idempotency_key: str = typer.Option(
+        ...,
+        "--idempotency-key",
+        help="Explicit stable request idempotency key for this exact collection request.",
+    ),
+    max_bytes: int = typer.Option(
+        MAX_COLLECTED_BENCHMARK_BYTES,
+        "--max-bytes",
+        help="Maximum complete benchmark summary bytes, at most 4194304.",
+    ),
+    max_rows: int = typer.Option(
+        MAX_COLLECTED_BENCHMARK_ROWS,
+        "--max-rows",
+        help="Maximum complete benchmark summary rows, at most 10000.",
     ),
     timeout: int = typer.Option(
         1800,
@@ -9297,13 +10545,14 @@ def workflow_collect_benchmarks(
     try:
         resolved_build = _normalize_benchmark_genome_build(genome_build)
         resolved_analysis_root = _normalize_benchmark_analysis_root(analysis_root)
-        resolved_human = (
-            str(human_requestor or "").strip()
-            or os.environ.get("DAYOA_HUMAN_REQUESTOR", "").strip()
-            or os.environ.get("USER", "").strip()
-            or os.environ.get("LOGNAME", "").strip()
-            or "dyec"
-        )
+        resolved_human = str(human_requestor or "").strip()
+        if not resolved_human or any(character in resolved_human for character in "\r\n\x00"):
+            raise typer.BadParameter("--human-requestor must be explicit single-line text")
+        resolved_idempotency_key = _normalize_benchmark_idempotency_key(idempotency_key)
+        if isinstance(max_bytes, bool) or not 1 <= max_bytes <= MAX_COLLECTED_BENCHMARK_BYTES:
+            raise typer.BadParameter("--max-bytes must be between 1 and 4194304")
+        if isinstance(max_rows, bool) or not 1 <= max_rows <= MAX_COLLECTED_BENCHMARK_ROWS:
+            raise typer.BadParameter("--max-rows must be between 1 and 10000")
         from daylily_ec.aws.ssm import resolve_remote_user
 
         resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
@@ -9323,12 +10572,34 @@ def workflow_collect_benchmarks(
             profile=resolved_profile,
             as_user=remote_user,
         )
+        benchmark_target = f"results/day/{resolved_build}/reports/benchmarks_summary.tsv"
+        benchmark_input = {
+            "schema_version": WORKFLOW_BENCHMARK_RECEIPT_SCHEMA,
+            "profile": resolved_profile,
+            "region": resolved_region,
+            "cluster": resolved_cluster,
+            "analysis_root": resolved_analysis_root,
+            "target": benchmark_target,
+            "genome_build": resolved_build,
+            "requestor": resolved_human,
+            "max_bytes": max_bytes,
+            "max_rows": max_rows,
+            "remote_user": resolved_remote_user,
+        }
+        benchmark_input_digest = hashlib.sha256(
+            json.dumps(benchmark_input, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
         script = _build_workflow_collect_benchmarks_script(
             analysis_root=resolved_analysis_root,
             genome_build=resolved_build,
             cluster=resolved_cluster,
             human_requestor=resolved_human,
+            idempotency_key=resolved_idempotency_key,
+            input_digest=benchmark_input_digest,
+            target=benchmark_target,
             remote_user=resolved_remote_user,
+            max_bytes=max_bytes,
+            max_rows=max_rows,
         )
         result = run_shell(
             target.instance_id,
@@ -9339,15 +10610,61 @@ def workflow_collect_benchmarks(
             timeout=timeout,
             comment=f"Collect DayOA benchmarks for {resolved_analysis_root}",
         )
-        payload = _parse_benchmark_collection_payload(result.stdout)
+        collected = _parse_benchmark_collection_payload(result.stdout)
+        summary_sha256 = str(collected.get("summary_sha256") or "")
+        if not re.fullmatch(r"[0-9a-f]{64}", summary_sha256):
+            raise CommandError("Benchmark collection receipt has no valid summary SHA-256.")
+        if collected.get("idempotency_key") != resolved_idempotency_key:
+            raise CommandError("Benchmark collection receipt idempotency key does not match.")
+        if not isinstance(collected.get("bytes"), int) or int(collected["bytes"]) < 1:
+            raise CommandError("Benchmark collection receipt has an invalid output size.")
+        if int(collected["bytes"]) > max_bytes:
+            raise CommandError("Benchmark collection receipt exceeds the requested byte limit.")
+        row_count = collected.get("row_count")
+        if isinstance(row_count, bool) or not isinstance(row_count, int) or not 1 <= row_count <= max_rows:
+            raise CommandError("Benchmark collection receipt has an invalid row count.")
+        if collected.get("schema_version") != WORKFLOW_BENCHMARK_RECEIPT_SCHEMA:
+            raise CommandError("Benchmark collection receipt schema does not match.")
+        if (
+            collected.get("requestor") != resolved_human
+            or collected.get("cluster") != resolved_cluster
+            or collected.get("analysis_root") != resolved_analysis_root
+            or collected.get("genome_build") != resolved_build
+            or collected.get("target") != benchmark_target
+            or collected.get("input_digest") != benchmark_input_digest
+        ):
+            raise CommandError("Benchmark collection receipt identity does not match.")
+        payload = {
+            "schema_version": WORKFLOW_BENCHMARK_RECEIPT_SCHEMA,
+            "ok": True,
+            "status": "complete",
+            "profile": resolved_profile,
+            "region": resolved_region,
+            "cluster": resolved_cluster,
+            "instance_id": target.instance_id,
+            "ssm_command_id": result.command_id,
+            "requestor": resolved_human,
+            "idempotency_key": resolved_idempotency_key,
+            "analysis_root": resolved_analysis_root,
+            "target": benchmark_target,
+            "input_digest": benchmark_input_digest,
+            "output": collected,
+        }
+        payload["receipt_sha256"] = hashlib.sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
     except SsmCommandFailedError as exc:
         if exc.result.stdout.strip():
             typer.echo(exc.result.stdout.rstrip())
         if exc.result.stderr.strip():
             typer.echo(exc.result.stderr.rstrip(), err=True)
         _exit_headnode_error(exc)
-    except (CommandError, SsmError, TimeoutError, json.JSONDecodeError) as exc:
-        _exit_headnode_error(exc)
+    except (CommandError, SsmError, TimeoutError, json.JSONDecodeError, typer.BadParameter) as exc:
+        _exit_versioned_contract_error(
+            schema_version=WORKFLOW_BENCHMARK_RECEIPT_SCHEMA,
+            error_code="benchmark_collection_failed",
+            message=str(exc),
+        )
 
     if result.stderr:
         typer.echo(result.stderr.rstrip(), err=True)
@@ -9355,11 +10672,12 @@ def workflow_collect_benchmarks(
         output.emit_json(payload)
         return
     output.success("Benchmark summary collected.")
-    output.print_text(f"Analysis root: {payload['analysis_root']}")
-    output.print_text(f"DayOA root:    {payload['dayoa_root']}")
-    output.print_text(f"Genome build:  {payload['genome_build']}")
-    output.print_text(f"Summary TSV:   {payload['summary_tsv']}")
-    output.print_text(f"Rows:          {payload['row_count']}")
+    collected_output = payload["output"]
+    output.print_text(f"Analysis root: {collected_output['analysis_root']}")
+    output.print_text(f"DayOA root:    {collected_output['dayoa_root']}")
+    output.print_text(f"Genome build:  {collected_output['genome_build']}")
+    output.print_text(f"Summary TSV:   {collected_output['summary_tsv']}")
+    output.print_text(f"Rows:          {collected_output['row_count']}")
 
 
 def workflow_benchmark_report(
@@ -9719,6 +11037,16 @@ PY
             comment=f"Stop Daylily workflow {resolved_session}",
         )
         payload = _parse_workflow_stop_payload(result.stdout)
+        payload = {
+            "schema_version": "dyec.workflow.stop.v1",
+            "ok": True,
+            "profile": resolved_profile,
+            "region": resolved_region,
+            "cluster": _resolved_cluster,
+            "instance_id": target.instance_id,
+            "ssm_command_id": result.command_id,
+            **payload,
+        }
     except SsmCommandFailedError as exc:
         if exc.result.stdout.strip():
             typer.echo(exc.result.stdout.rstrip())
@@ -9825,6 +11153,12 @@ def state_show(
             if state_file
             else _latest_state_for_cluster(str(cluster_name))
         )
+        payload = {
+            **payload,
+            "schema_version": "dyec.state.show.v1",
+            "ok": True,
+            "dyec_version": versioning.get_version(),
+        }
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
 
@@ -9864,20 +11198,107 @@ def analysis_visit(
         "--s3-visit-uri",
         help="Optional S3 analysis/report prefix where a no-delete visit marker is written.",
     ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="Exact AWS profile when the analysis root is on one persisted headnode.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="Exact AWS region when --cluster is supplied.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="Exact cluster whose headnode owns the analysis root.",
+    ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote SSM login user; remote analysis visits must resolve to ubuntu.",
+    ),
 ) -> None:
-    """Record an analysis-root visit without requiring write-lock ownership."""
+    """Record an exact local or typed remote analysis-root visit without a write lock."""
 
     try:
         from daylily_ec.analysis_lock import write_visit
 
-        payload = write_visit(
-            analysis_root,
-            mode=mode,
-            intent=intent,
-            note=note,
-            human_requestor=human_requestor,
-            s3_visit_uri=s3_visit_uri,
-        )
+        supplied_remote = (profile is not None, region is not None, cluster is not None)
+        if any(supplied_remote) and not all(supplied_remote):
+            raise ValueError("remote analysis visit requires exact --profile, --region, and --cluster")
+        if cluster is None:
+            if remote_user != "auto":
+                raise ValueError("--remote-user requires --cluster")
+            payload = write_visit(
+                analysis_root,
+                mode=mode,
+                intent=intent,
+                note=note,
+                human_requestor=human_requestor,
+                s3_visit_uri=s3_visit_uri,
+            )
+        else:
+            from daylily_ec.aws.ssm import resolve_remote_user, wait_for_ssm_online
+
+            _warn_if_dayec_env_inactive()
+            resolved_profile, resolved_region, resolved_cluster, target = (
+                _resolve_headnode_cli_target(
+                    profile=profile,
+                    region=region,
+                    cluster=cluster,
+                )
+            )
+            wait_for_ssm_online(
+                target.instance_id,
+                resolved_region,
+                profile=resolved_profile,
+                timeout=120,
+            )
+            resolved_remote_user = resolve_remote_user(
+                target.instance_id,
+                resolved_region,
+                profile=resolved_profile,
+                as_user=remote_user,
+            )
+            if resolved_remote_user != "ubuntu":
+                raise ValueError("remote analysis visits must run as ubuntu")
+            remote_argv = [
+                "dyec",
+                "--json",
+                "analysis",
+                "visit",
+                "--analysis-root",
+                analysis_root,
+                "--mode",
+                mode,
+                "--intent",
+                intent,
+            ]
+            if note:
+                remote_argv.extend(("--note", note))
+            if human_requestor:
+                remote_argv.extend(("--human-requestor", human_requestor))
+            if s3_visit_uri:
+                remote_argv.extend(("--s3-visit-uri", s3_visit_uri))
+            payload = _collect_remote_json_payload(
+                instance_id=target.instance_id,
+                region=resolved_region,
+                profile=resolved_profile,
+                remote_user=resolved_remote_user,
+                remote_argv=remote_argv,
+                operation="analysis_visit",
+                timeout=180,
+            )
+            payload.update(
+                {
+                    "profile": resolved_profile,
+                    "region": resolved_region,
+                    "cluster": resolved_cluster,
+                    "instance_id": target.instance_id,
+                }
+            )
         _emit_analysis_payload(
             payload,
             text=f"recorded {mode} visit for {payload['analysis_root']}",
@@ -10052,10 +11473,7 @@ def analysis_snapshot_manifests(
         }
         _emit_analysis_payload(
             result,
-            text=(
-                "materialized validated six-manifest snapshot at "
-                f"{result['output_dir']}"
-            ),
+            text=(f"materialized validated six-manifest snapshot at {result['output_dir']}"),
         )
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
@@ -10745,7 +12163,7 @@ def register(registry, cli_spec) -> None:
         registry,
         "create",
         create,
-        REQUIRED_MUTATING_LONG_RUNNING,
+        required_policy(supports_json=True, mutates_state=True, long_running=True),
     )
     register_root_command(
         registry,
@@ -10779,12 +12197,6 @@ def register(registry, cli_spec) -> None:
     )
     register_root_command(
         registry,
-        "resources-dir",
-        resources_dir,
-        EXEMPT,
-    )
-    register_root_command(
-        registry,
         "set-vars",
         set_vars,
         EXEMPT,
@@ -10803,6 +12215,19 @@ def register(registry, cli_spec) -> None:
     )
     register_group_commands(
         registry,
+        "resources",
+        "Immutable packaged resource resolution and materialization receipts.",
+        [
+            ("resolve", resources_resolve, REQUIRED_JSON),
+            (
+                "materialize",
+                resources_materialize,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+        ],
+    )
+    register_group_commands(
+        registry,
         "pricing",
         "Spot pricing inspection helpers.",
         [
@@ -10814,7 +12239,7 @@ def register(registry, cli_spec) -> None:
         registry,
         "aws",
         "AWS readiness validation helpers.",
-        [],
+        [("capacity-snapshot", aws_capacity_snapshot, REQUIRED_JSON)],
     )
     register_group_commands(
         registry,
@@ -10860,6 +12285,23 @@ def register(registry, cli_spec) -> None:
                 "cost-resources",
                 aws_audit_cost_resources,
                 required_policy(supports_json=True, long_running=True),
+            ),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "create-request",
+        "Strict current-schema cluster create request and admission evidence.",
+        [
+            (
+                "render",
+                create_request_render,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
+                "prepare",
+                create_request_prepare,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
             ),
         ],
     )
@@ -10918,6 +12360,11 @@ def register(registry, cli_spec) -> None:
                 required_policy(supports_json=True, mutates_state=True),
             ),
             (
+                "ensure-active",
+                cost_centers_ensure_active,
+                required_policy(supports_json=True, mutates_state=True),
+            ),
+            (
                 "edit",
                 cost_centers_edit,
                 required_policy(supports_json=True, mutates_state=True),
@@ -10959,6 +12406,7 @@ def register(registry, cli_spec) -> None:
             ("list", cluster_list, REQUIRED_JSON),
             ("jobs", cluster_jobs, REQUIRED_JSON),
             ("describe", cluster_describe, REQUIRED_JSON),
+            ("inspect", cluster_inspect, REQUIRED_JSON),
             ("wait", cluster_wait, REQUIRED_LONG_RUNNING),
             (
                 "compute-fleet",
@@ -10978,7 +12426,11 @@ def register(registry, cli_spec) -> None:
         "Headnode bootstrap and shell-context helpers.",
         [
             ("init", headnode_init, REQUIRED_MUTATING_INTERACTIVE),
-            ("connect", headnode_connect, required_policy(interactive=True)),
+            (
+                "connect",
+                headnode_connect,
+                required_policy(supports_json=True, interactive=True),
+            ),
             ("info", headnode_info, REQUIRED_JSON),
             (
                 "run",
@@ -10990,6 +12442,13 @@ def register(registry, cli_spec) -> None:
             ("fsx-usage", headnode_fsx_usage, REQUIRED_JSON),
             ("analysis-roots", headnode_analysis_roots, REQUIRED_JSON),
             ("dayoa-controllers", headnode_dayoa_controllers, REQUIRED_JSON),
+            ("scheduler-snapshot", headnode_scheduler_snapshot, REQUIRED_JSON),
+            ("runtime-identity", headnode_runtime_identity, REQUIRED_JSON),
+            (
+                "controller-evidence",
+                headnode_controller_evidence,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
             (
                 "dayoa-controller-action",
                 headnode_dayoa_controller_action,

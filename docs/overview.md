@@ -1,6 +1,6 @@
 # DYEC Overview
 
-This is the living overview for DYEC `18.0.57`. The command surface is defined
+This is the living overview for DYEC `19.0.6`. The command surface is defined
 by `dyec --help`; [agent_cli_guide.md](agent_cli_guide.md) is the task-oriented
 operator/agent guide and [cli_reference.md](cli_reference.md) is the detailed
 option reference. Dated release reports, archived documents, and plan ledgers
@@ -88,7 +88,7 @@ cluster-scoped runtime caches.
 ## Catalog state
 
 The source and packaged command catalogs must remain byte-identical. The active
-DayOA repository and active DayOA command targets are pinned to `15.0.37`.
+DayOA repository and active DayOA command targets are pinned to `16.0.3`.
 Catalog output preserves older validation evidence and exposes
 `validation_pending: true` when a command's current `git_tag` differs from its
 recorded `validated_version`. The indicator is informational: it does not
