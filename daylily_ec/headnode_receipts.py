@@ -455,7 +455,7 @@ try:
         text=True,
     ).stdout.strip()
     tag_commit = subprocess.run(
-        ["git", "-C", str(repo_root), "rev-parse", f"refs/tags/{{version}}^{{commit}}"],
+        ["git", "-C", str(repo_root), "rev-parse", "refs/tags/" + version + "^" + "{{commit}}"],
         check=True,
         capture_output=True,
         text=True,
