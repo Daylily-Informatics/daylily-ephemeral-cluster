@@ -24,9 +24,12 @@ export EXPORT_DIR="$PWD/export-receipts/$ANALYSIS_ID"
 export EXPORT_S3_URI=s3://<analysis-results-bucket>/<prefix>/$EXECUTING_ENTITY/$ANALYSIS_ID/
 
 dyec --json version
-dyec preflight --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
-dyec create --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
+dyec preflight --profile "$AWS_PROFILE" --region-az "$REGION_AZ"
+dyec create --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --cluster-type intel
 ```
+
+Add `--config "$DAY_EX_CFG"` only when this run intentionally uses an explicit
+config; the restored root create entrypoint does not require it.
 
 For repeated work, these three values can instead be saved locally with
 `dyec set-vars --profile ... --region ... --region-az ...`; explicit flags still

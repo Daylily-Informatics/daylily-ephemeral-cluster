@@ -15,10 +15,9 @@ DYEC is neither an identity service nor a replacement for DayOA.
 |---|---|---|
 | Identify the installed CLI and catalog pin | `dyec --json version`, `dyec --json catalog list` | A release tag is not a DayOA tag; inspect the rendered catalog row. |
 | Inspect cluster, headnode, controllers, or queue | `dyec cluster describe`, `dyec headnode dayoa-controllers`, `dyec headnode jobs` | Inspection does not authorize Slurm or node intervention. |
-| Create a cluster | `dyec create-request render`, `dyec create-request prepare`, then `dyec create` | Saved templates remain dynamic; create independently reprices the exact final provider input. |
+| Create a cluster | `dyec preflight`, then `dyec create` | The normal create entrypoint resolves the shipped config and needs only profile, region/AZ, and cluster type. |
 | Stop/start a compute fleet | `dyec cluster compute-fleet` | Exact state pairs only; every stop proves controllers/jobs idle, and `--drain` only waits naturally. |
 | Inspect accounting topology | `dyec slurm-accounting inspect` | Read-only exact provider/bridge evidence; it never creates, reconciles, or selects a bridge. |
-| Recover incomplete accounting | `dyec slurm-accounting recover` | Never rerun create against `CREATE_COMPLETE`; recovery owns stop, attach, restart, and working-`sacct` proof. |
 | Make an S3 run directory available on FSx | `dyec mounts create`, then `dyec mounts verify` | Run mounts are read-only by default. Wait generously for DRA availability. |
 | Run a known production workflow | `dyec catalog show`, `dyec catalog render`, `dyec catalog launch` | Render first; honor the command's exact input contract and DayOA pin. |
 | Run a reviewed non-catalog workflow | `dyec workflow launch` | Supply the exact DayOA tag, input contract, and `--dy-command`; do not improvise defaults. |
@@ -88,133 +87,33 @@ Those are separate, explicitly approved operations.
 
 ## 3. Cluster lifecycle and headnode access
 
-Use the strict request contract before a requested cluster creation. The source
-config must contain the complete current triplet schema, the protected override
-document must contain exactly the 11 current override keys, and the saved
-ParallelCluster template must retain
-`SpotPrice: CALCULATE_MAX_SPOT_PRICE` for every Spot resource. Missing values,
-`PROMPTUSER`, legacy actions, extra keys, and numeric bids in the saved template
-fail closed.
+Use `dyec preflight` when you want a read-only validation pass before an
+approved cluster creation. Root `dyec create` owns the complete 19.0.4 create
+workflow: it resolves the shipped config and inputs, renders and prices the
+cluster, creates it, configures the headnode, and runs post-create accounting.
+Do not substitute raw `pcluster create-cluster` for DYEC.
+
+The normal entrypoint needs only the original three operator flags:
 
 ```bash
-dyec --json create-request render \
-  --source-config <exact-source-config-resource> \
-  --expected-source-config-sha256 <sha256> \
-  --source-template <exact-packaged-template-resource> \
-  --expected-source-template-sha256 <sha256> \
-  --overrides-json <protected-overrides.json> \
-  --region-az <region-az> \
-  --output <absolute-protected-request.yaml>
+dyec preflight \
+  --profile "$AWS_PROFILE" --region-az <region-az>
 
-dyec --json create-request prepare \
-  --request-config <absolute-protected-request.yaml> \
-  --expected-request-sha256 <sha256> \
-  --source-template <exact-packaged-template-resource> \
-  --expected-source-template-sha256 <sha256> \
+dyec create \
   --profile "$AWS_PROFILE" --region-az <region-az> \
-  --spot-price-policy CALCULATE_MAX_SPOT_PRICE \
-  --output-dir <absolute-protected-admission-directory>
-
-dyec create --json \
-  --profile "$AWS_PROFILE" --region-az <region-az> \
-  --cluster-type intel --non-interactive --slurm-accounting on \
-  --config <absolute-protected-request.yaml> \
-  --output-dir <absolute-empty-owned-0700-create-directory> \
-  --preparation-receipt \
-    <absolute-protected-admission-directory>/create-preparation.json \
-  --expected-preparation-receipt-sha256 <sha256>
+  --cluster-type intel
 ```
 
-The preparation receipt is read-only admission evidence. It binds content
-digests, AWS profile/account/AZ, pricing limits, and timestamped provider
-observations, but its numeric bids are never reused by create. Immediately
-before provider dry-run and create, `dyec create` independently renders and
-reprices the final bytes after all structural mutations, then verifies the
-same SHA-256 reaches both provider operations. A standalone operator create may
-omit the preparation pair; DYEC then performs its own admission pass. Upstream
-production callers should require the exact receipt path and digest pair.
+`--config <approved-cluster-config.yaml>` remains available when an operator
+wants to supply explicit triplet values. It is optional; root create does not
+require a `create-request` receipt, an output directory, or a separate recovery
+workflow.
 
-`dyec create --json` emits one `dyec.create.v1` object on stdout. Success is
-possible only after the cluster is `UPDATE_COMPLETE`, the compute fleet is
-`RUNNING`, accounting is `ENABLED`, and the create-side accounting receipt
-proves a working `sacct` probe. Operational progress and failure detail go to
-stderr; a failure emits one bounded `status: failed` object.
-
-`--output-dir` is mandatory and must already be an empty, owned, non-symlink
-directory with mode `0700`. DYEC writes the pre-provider final configuration as
-`dyec-final-cluster.yaml`, its final pricing receipt as
-`dyec-final-pricing-receipt.json`, its accounting result as
-`dyec-slurm-accounting-receipt.json`, its crash-recovery progress and terminal
-evidence as `slurm-accounting-update.yaml` and
-`slurm-accounting-recovery.json`, and terminal create success evidence as
-`dyec-create-terminal-receipt.json`, all with mode `0600`. The terminal create
-receipt binds the pricing, accounting, and accounting-recovery artifact
-digests. These deterministic paths let an upstream durable claim recover an
-interrupted create without rerunning provider creation or searching alternate
-state paths.
-
-Automation and upstream services use the installed `dyec` console script as
-the sole cluster-operation boundary. They must not run `pcluster` directly,
-import `daylily_ec.pcluster` or another DYEC Python internal, or replace the
-console script with `python -m daylily_ec.cli`. `dyec create` owns live pricing,
-accounting-provider/bridge lifecycle, and initial cluster provisioning. A
-missing upstream operation is a public CLI contract gap to implement in DYEC;
-it is never permission to import or execute an internal helper.
-
-Use the guarded fleet command for an exact lifecycle transition:
-
-```bash
-dyec --json cluster compute-fleet \
-  --cluster "$CLUSTER" --region "$REGION" --profile "$AWS_PROFILE" \
-  --status STOP_REQUESTED --wait-for STOPPED \
-  --timeout-seconds 1200 --poll-interval-seconds 30
-```
-
-Use `--drain` only when the approved action is to wait for controllers and jobs
-to finish naturally. It does not cancel, signal, or alter scheduler state.
-
-If a base cluster reached `CREATE_COMPLETE` but its accounting phase did not
-finish, do not rerun `dyec create`. Invoke the exact persisted recovery
-contract:
-
-```bash
-dyec --json slurm-accounting inspect \
-  --profile "$AWS_PROFILE" --region-az <region-az> \
-  --stack-name <regional-provider-stack> \
-  --privatelink-stack-name <existing-bridge-stack>
-```
-
-The bridge option is omitted for a direct same-VPC attachment. Inspection is
-read-only and never derives another bridge name. For cross-VPC recovery, review
-the returned exact provider, provider VPC, consumer VPC, provider binding, and
-`contract_healthy` evidence before invoking recovery.
-
-```bash
-dyec --json slurm-accounting recover \
-  --cluster "$CLUSTER" --region "$REGION" --region-az <region-az> \
-  --profile "$AWS_PROFILE" \
-  --cluster-configuration <persisted-cluster.yaml> \
-  --output-dir <stable-recovery-directory> \
-  --stack-name <regional-provider-stack> \
-  --privatelink-stack-name <existing-bridge-stack> \
-  --database-name <database> --db-username <user> \
-  --instance-type <accounting-instance-type> \
-  --timeout-seconds 5400 --poll-interval-seconds 30
-```
-
-Omit `--privatelink-stack-name` for direct same-VPC recovery. Add both
-`--create-slurm-accounting-if-missing` and
-`--acknowledge-slurm-accounting-create-cost` only when that creation and cost
-were explicitly approved; those flags are forbidden with an exact bridge.
-Recovery binds the trimmed AWS profile/account, cluster/config hashes, exact
-regional provider, exact bridge-or-null, consumer VPC, database, and user. It
-never selects an alternate bridge or creates/reconciles any bridge. Keep the
-same output directory on retry. A reclaimed update-submission intent is polled
-for provider visibility and never blindly resubmitted. A success response is
-terminal only when it reports `status: complete`, `terminal: true`, cluster
-`UPDATE_COMPLETE`, fleet `RUNNING`, and `accounting_verified: true`; that
-boolean includes a working `sacct` probe. The exact state machine, stable output filenames, and JSON fields are in
-[cli_reference.md](cli_reference.md#crash-safe-slurm-accounting-recovery).
+The newer `create-request`, `cluster compute-fleet`, `slurm-accounting inspect`,
+and `slurm-accounting recover` commands remain separately registered tools.
+They are not prerequisites for, phases of, or commands invoked by root
+`dyec create`; their standalone option contracts remain in
+[cli_reference.md](cli_reference.md).
 
 For an interactive headnode shell, use DYEC rather than an ad hoc SSM command:
 

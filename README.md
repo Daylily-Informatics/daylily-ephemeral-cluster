@@ -66,8 +66,8 @@ Use `--cluster` for DYEC commands. Keep `--cluster-name` for tools such as `pclu
   lifecycle operation. They do not run `pcluster`, import DYEC Python
   internals, or use a module entrypoint as an alternate control path.
 - Saved cluster templates keep `SpotPrice: CALCULATE_MAX_SPOT_PRICE` on every
-  Spot compute resource. `dyec create` owns both live admission pricing and an
-  independent final reprice immediately before provider dry-run/create; saved
+  Spot compute resource. Root `dyec create` resolves the normal config and
+  performs live spot-price calculation before provider dry-run/create; saved
   templates never persist a calculated numeric bid.
 - New DayOA checkouts must be explicit-tag checkouts.
 - A DYEC controller never mutates a pinned DayOA release: no runtime rule/script/environment/config patches, source overlays, or generated helpers in the checkout. It verifies the selected ref is clean before dispatch and after the workflow returns. Missing behavior is a hard error that must be fixed and released in DayOA, never repaired on the headnode.
@@ -87,7 +87,8 @@ Run `dyec --help` for the live list. Current major groups are:
 |---|---|
 | `version`, `info`, `runtime`, `env`, `resources`, `state`, `set-vars`, `unset-vars` | Versioned resource/runtime introspection and per-checkout local context. |
 | `agent` | Compact operational guidance for an automated or human operator. |
-| `create-request`, `preflight`, `create`, `drift`, `delete` | Strict request rendering, live admission evidence, and cluster lifecycle. |
+| `preflight`, `create`, `drift`, `delete` | Cluster lifecycle; root create retains the original profile/region-AZ/cluster-type entrypoint and automatic resolution. |
+| `create-request` | Standalone protected request and admission tooling; it is not required or invoked by root create. |
 | `cluster`, `cluster-info` | ParallelCluster inspection, guarded compute-fleet lifecycle, and tag helpers. |
 | `headnode` | SSM-backed headnode connection, command execution, file transfer, and observability. |
 | `mounts`, `mount` | FSx run-directory Data Repository Associations. |
@@ -213,12 +214,12 @@ Large local payloads are staged through S3 with `--payload-staging-s3-uri`. DYEC
 ### Immutable command shapes
 
 Catalog version 6 requires an exact numeric `--dyec-version` for every public
-catalog action. The `19.0.11` snapshot is immutable; there is no mutable
+catalog action. The `19.0.12` snapshot is immutable; there is no mutable
 `current` alias or implicit catalog selection:
 
 ```bash
-dyec --json catalog list --dyec-version 19.0.11 --type prod
-dyec --json catalog render <command-id> --dyec-version 19.0.11 ...
+dyec --json catalog list --dyec-version 19.0.12 --type prod
+dyec --json catalog render <command-id> --dyec-version 19.0.12 ...
 ```
 
 A build may also declare one-hop, same-build aliases. An alias inherits one
@@ -229,7 +230,7 @@ bases, duplicate IDs, mixed extension/replacement modes, and partial command
 replacements fail catalog validation. Existing catalog APIs return aliases as
 fully resolved `AnalysisCommand` records.
 
-The `19.0.11` catalog targets DayOA `16.0.4`. Public catalog output includes a
+The `19.0.12` catalog targets DayOA `16.0.4`. Public catalog output includes a
 derived `validation_pending` field: `true` means the command now targets a
 different DayOA tag than its retained `validated_version`. It is a visibility
 signal only; it does not relabel older validation receipts or block a launch.
@@ -240,7 +241,7 @@ prefix must contain `command_registry.json` and `summary.json` from a successful
 
 ```bash
 dyec --json catalog validation-compare <command-id> \
-  --dyec-version 19.0.6 --profile "$AWS_PROFILE" --region "$REGION"
+  --dyec-version 19.0.12 --profile "$AWS_PROFILE" --region "$REGION"
 ```
 
 The comparison fails hard when no prefix is declared, the receipts are missing,
@@ -568,4 +569,13 @@ python -m pytest tests/test_cli_registry_v2.py -q
 git diff --check
 ```
 
-Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. The checked-in release target is `19.0.6`; tag only the exact clean release commit after live acceptance.
+The repository-catalog snapshot modules are optional and skipped by default.
+Run them explicitly when catalog snapshot validation is needed:
+
+```bash
+python -m pytest --run-catalog-snapshot-tests \
+  tests/test_repository_catalog.py \
+  tests/test_repository_catalog_aliases.py
+```
+
+Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. The checked-in release target is `19.0.12`; tag only the exact clean release commit after required acceptance.

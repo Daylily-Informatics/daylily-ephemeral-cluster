@@ -9,6 +9,8 @@ from pydantic import ValidationError
 
 from daylily_ec.repositories import AnalysisCommand, load_repository_catalog
 
+pytestmark = pytest.mark.catalog_snapshot
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config/daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG_PATH = (

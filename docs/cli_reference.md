@@ -137,159 +137,60 @@ work, same-root continuation, and no-delete export—read
 
 ## Cluster lifecycle
 
-Upstream services must execute the installed public `dyec` console script for
-every cluster operation. They must not run `pcluster`, import DYEC Python
-internals, or substitute a module entrypoint. `dyec create` owns pricing,
-accounting-provider/bridge lifecycle, and initial cluster provisioning. The
-recovery commands below only repair their explicitly documented states; they do
-not reproduce create-time discovery or pricing. If an upstream service needs an
-operation not exposed here, the missing interface must be added as a reviewed
-public `dyec` CLI contract before that service can use it.
-
-Render one exact current-schema request from an immutable source config, a
-packaged template, and a protected override object:
+Preflight:
 
 ```bash
-dyec --json create-request render \
-  --source-config <exact-source-config-resource> \
-  --expected-source-config-sha256 <sha256> \
-  --source-template \
-    config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml \
-  --expected-source-template-sha256 <sha256> \
-  --overrides-json <absolute-protected-overrides.json> \
-  --region-az "$REGION_AZ" \
-  --output <absolute-protected-request.yaml>
+dyec preflight \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ"
 ```
 
-The override input has schema `dyec.create_request_overrides.v1` and exactly
-two top-level fields: `schema_version` and `values`. `values` must contain
-exactly these 11 nonblank keys, with no aliases or optional extras:
-
-- `cluster_name`
-- `cost_center_name`, `cost_center_monthly_cap_usd`,
-  `cost_center_allowed_users`
-- `budget_amount`, `allowed_budget_users`, `budget_email`
-- `dyec_deploy_key_policy_arn`, `dyec_deploy_key_secret_arn`,
-  `dayoa_deploy_key_policy_arn`, `dayoa_deploy_key_secret_arn`
-
-`budget_amount` must equal `cost_center_monthly_cap_usd`; the two allowed-user
-fields must also match. Project budget identity is exactly `cluster_name`;
-`budget_project` is retired and rejected. The protected rendered request is an
-exact `dyec.create_request.v1` document: all 46 current config triplets use
-`[USESETVALUE, "", <explicit value>]`, with only the four documented optional
-empty fields allowed to be blank. The render success object contains status,
-created/no-op, DYEC version, region/AZ, cluster name, request path/digest,
-source config/template logical identities and digests, override file/canonical
-digests and sorted key names, plus repository-credential key names and their
-combined digest. It never returns the override values.
-
-The override input and rendered request must have no group/other permission
-bits (mode `0600`). A same-content existing render output is accepted only when
-it is already protected; different content or broader permissions fail closed.
-Relative source config/template identities always name packaged DYEC resources;
-they never fall back to a same-named file in the current directory. An external
-source config must be supplied by absolute path and exact digest.
-
-Generate read-only live-pricing admission evidence:
+Create with the restored 19.0.4 entrypoint:
 
 ```bash
-dyec --json create-request prepare \
-  --request-config <absolute-protected-request.yaml> \
-  --expected-request-sha256 <sha256> \
-  --source-template \
-    config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml \
-  --expected-source-template-sha256 <sha256> \
+dyec create \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
-  --spot-price-policy CALCULATE_MAX_SPOT_PRICE \
-  --output-dir <absolute-protected-admission-directory>
+  --cluster-type intel
 ```
 
-`dyec.create_preparation.v1` binds the exact request/template/source/override
-and repository-credential-reference digests, DYEC version, profile, resolved
-account, region/AZ, cluster name, policy and pricing limits. Its
-`pricing_source` contains the EC2 operation, capture time, observation window,
-freshness/future-skew bounds, and provider observation timestamps. Artifact
-entries expose only deterministic basenames, sizes, and SHA-256 values. The
-receipt never returns raw overrides, credentials, emails, or S3 paths. A stale,
-future, missing, nonpositive, or malformed provider observation fails closed.
-The admission directory must be protected with mode `0700`; its files are
-written with mode `0600`.
-
-Saved templates must contain exactly `SpotPrice: CALCULATE_MAX_SPOT_PRICE` for
-every Spot compute resource and no `SpotPrice` on On-Demand resources. Prepared
-numeric YAML is admission evidence only; it is neither the saved template nor
-the creation input.
-
-Create with the reviewed admission receipt:
+That command resolves the shipped/default config and owns the complete create
+workflow. An explicit config is still supported when desired:
 
 ```bash
-dyec create --json \
+dyec create \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
   --cluster-type intel \
-  --non-interactive \
-  --slurm-accounting on \
-  --config <absolute-protected-request.yaml> \
-  --output-dir <absolute-empty-owned-0700-create-directory> \
-  --preparation-receipt \
-    <absolute-protected-admission-directory>/create-preparation.json \
-  --expected-preparation-receipt-sha256 <sha256>
+  --config ~/.config/daylily/daylily_ephemeral_cluster.yaml
 ```
 
-The two preparation arguments are all-or-none. Create verifies their content
-identity and freshness but never reuses admission bids. After all policy and
-structural mutations, including any cluster-bound PERSISTENT_2 resources, it
-queries Spot prices again, writes `dyec.create_pricing_receipt.v1`, and binds
-the exact final bytes to both provider dry-run and create. The exact cluster
-name is checked at admission, immediately before the first create-side AWS
-mutation, and again immediately before provider create; every provider state
-other than `DELETE_COMPLETE` blocks reuse.
+Root create does not require `--config`, `--output-dir`, a preparation receipt,
+or a recovery flow. It does not call `create-request`, `cluster compute-fleet`,
+`slurm-accounting inspect`, or `slurm-accounting recover`.
 
-The required `--output-dir` is a fresh, empty, owned `0700` directory. It
-contains deterministic protected filenames for the final provider input,
-final pricing receipt, Slurm-accounting receipt, accounting update,
-accounting-recovery receipt, and terminal create receipt. The terminal receipt
-binds the exact pricing, accounting, and recovery artifact digests. This is the
-only supported restart-recovery source for a create interrupted after provider
-submission; DYEC does not discover a configuration from ambient state.
+When create is explicitly approved to prepare missing Slurm-accounting
+infrastructure and the regional database is reached through an existing
+cross-VPC PrivateLink bridge, DYEC first reconciles the deterministic bridge
+stack to the packaged template. It reuses only the endpoint subnet CIDR stored
+as that stack's CloudFormation parameter. A missing bridge or missing parameter
+fails before any compute-fleet mutation; DYEC does not invent network values.
 
-Standalone `dyec create` remains authoritative when the preparation pair is
-omitted: it performs its own live admission pass and still performs the
-independent final reprice. Creation owns pricing, provider provisioning, and
-the mandatory accounting lifecycle. Add
-`--create-slurm-accounting-if-missing` together with
-`--acknowledge-slurm-accounting-create-cost` only when creation of the regional
-accounting service and its ongoing cost were explicitly approved.
+For this command only, `--admin-email` overrides the AWS Budget notification
+email. Its precedence is `--admin-email`, then `budget_email` in the create
+YAML, then local `cluster_admin_email`, then the pre-existing default. It does
+not change heartbeat email behavior:
 
-In JSON mode, stdout contains exactly one object. A successful
-`dyec.create.v1` object has exactly these fields:
-
-```text
-schema_version, dyec_version, status, terminal, phase, captured_at,
-cluster_name, profile, account_id, region, region_az,
-provider_cluster_state, fleet_state, accounting_state, sacct_verified,
-request_config_sha256, final_cluster_config_sha256,
-pricing_receipt_sha256, accounting_receipt_sha256,
-terminal_receipt_path, terminal_receipt_sha256
+```bash
+dyec create --admin-email oncall@example.org --region-az us-west-2d
 ```
 
-The only success tuple is `status=complete`, `terminal=true`,
-`phase=terminal`, provider `UPDATE_COMPLETE`, fleet `RUNNING`, accounting
-`ENABLED`, and `sacct_verified=true`. The protected
-`dyec.create_terminal.v1` receipt binds the same identities and the create-side
-pricing/accounting receipt digests. Any other outcome emits one
-`dyec.create.v1` failure object with `status=failed`, `terminal=false`, a safe
-`error_code`, and optional exit code; operational detail is written to stderr.
+### Standalone request tools
 
-The root `--admin-email`, `--budget-project`, and
-`--disable-budget-enforcement` options are retired and rejected. Budget email,
-cluster-name project identity, and budget enforcement come only from the exact
-rendered request.
-
-`dyec preflight` remains available for operator inspection of an existing
-configuration, but it does not replace the strict request-render, admission,
-or independent final-pricing gates above.
+`dyec create-request render` and `dyec create-request prepare` remain available
+for callers that independently need protected request or admission artifacts.
+They are standalone commands, not steps that root create invokes or requires.
+Use `dyec create-request --help` for their current option contracts.
 
 Inspect:
 
@@ -386,7 +287,11 @@ failure in JSON mode returns the same schema with `ok: false`,
 `error_code: compute_fleet_operation_failed` (or `internal_error`), and a
 bounded `error` string.
 
-### Crash-safe Slurm-accounting recovery
+### Standalone Slurm-accounting recovery command
+
+This newer command remains registered for callers that explicitly choose its
+specialized contract. It is not part of root create and root create never
+invokes it.
 
 Before recovery, inspect the regional provider singleton and, when applicable,
 one exact existing PrivateLink bridge without changing AWS:
@@ -1605,6 +1510,15 @@ Local tests:
 dyec tests pytest
 dyec tests pytest --coverage
 python -m pytest tests/test_cli_registry_v2.py -q
+```
+
+The repository-catalog snapshot modules are optional and skipped by default.
+Opt in when catalog snapshot validation is needed:
+
+```bash
+python -m pytest --run-catalog-snapshot-tests \
+  tests/test_repository_catalog.py \
+  tests/test_repository_catalog_aliases.py
 ```
 
 Catalog validation:

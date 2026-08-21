@@ -107,11 +107,12 @@ Do not run `pcluster create-cluster`, `pcluster update-cluster`, or `pcluster de
 dyec create \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
-  --config "$DAY_EX_CFG" \
-  --global-spot-max-cost 9.99 \
-  --spot-cost-limit-pct 1.7 \
-  --write-spot-pricing-warn-threshold 6.00
+  --cluster-type intel
 ```
+
+The shipped config and spot-price defaults are resolved automatically. Add
+`--config "$DAY_EX_CFG"` or the documented spot-price flags only when this
+create intentionally overrides them.
 
 For one create, `--admin-email oncall@example.org` overrides the AWS Budget
 notification recipient. The create YAML `budget_email` otherwise takes

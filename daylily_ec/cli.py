@@ -83,6 +83,8 @@ from daylily_ec.workflow.snakemake_resources import DEFAULT_JOB_MAX_RUNTIME_MINU
 
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 BENCHMARK_GENOME_BUILDS = {"hg38", "hg38_broad", "b37"}
+DEFAULT_CREATE_REGION_AZ = "us-west-2d"
+DEFAULT_CREATE_CLUSTER_TYPE = "intel"
 WORKFLOW_BENCHMARK_RECEIPT_SCHEMA = "dyec.workflow.collect_benchmarks.v1"
 MAX_COLLECTED_BENCHMARK_BYTES = 4 * 1024 * 1024
 MAX_COLLECTED_BENCHMARK_ROWS = 10_000
@@ -112,7 +114,6 @@ def _report_create_runtime(callback):
     @functools.wraps(callback)
     def wrapped(*args, **kwargs):
         started_at = _monotonic()
-        json_output = bool(kwargs.get("json_output", False)) or _json_mode()
         try:
             return callback(*args, **kwargs)
         finally:
@@ -122,7 +123,7 @@ def _report_create_runtime(callback):
                 f"{_format_create_runtime(elapsed_seconds)} ({elapsed_seconds:.1f}s)"
             )
             logger.info(message)
-            typer.echo(message, err=json_output)
+            typer.echo(message)
 
     return wrapped
 
@@ -461,10 +462,7 @@ def agent_guidance() -> None:
     """Print operational guidance for agents using DYEC and DayOA safely."""
 
     guidance = {
-        "summary": (
-            "Use the installed DYEC console script as the supported control plane; "
-            "do not bypass it with raw pcluster or raw Snakemake."
-        ),
+        "summary": "Use DYEC as the supported control plane; do not bypass it with raw Snakemake.",
         "local_setup": [
             "cd /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster",
             "source ./activate",
@@ -474,14 +472,6 @@ def agent_guidance() -> None:
             "dyec headnode connect --profile <profile> --region <region> --cluster <cluster>",
             "Use the interactive ubuntu bash login shell.",
             "For DayOA controllers, use a named one-pane tmux session.",
-        ],
-        "cluster_lifecycle_contract": [
-            "Upstream services invoke the installed dyec console script; never pcluster, daylily_ec.pcluster, or python -m daylily_ec.cli.",
-            "Use dyec cluster compute-fleet with exact STOP_REQUESTED/STOPPED or START_REQUESTED/RUNNING state pairs.",
-            "Use dyec slurm-accounting recover for partial post-create accounting; never rerun create against CREATE_COMPLETE.",
-            "Accounting recovery binds the exact AWS profile/account, config hashes, stack, database, and user; it never selects a fallback target.",
-            "Reuse its stable output directory; an ambiguous reclaimed update-submission intent fails closed and is never resubmitted.",
-            "accounting_verified=true includes a bounded working sacct probe.",
         ],
         "dayoa_controller_contract": [
             "Inside tmux, run setup as separate commands: source dyoainit; dy-a <profile> <genome>; dy-r <targets> <flags>.",
@@ -1072,23 +1062,25 @@ def _emit_cluster_table(
 
 @_report_create_runtime
 def create(
-    region_az: str = typer.Option(
-        ...,
+    region_az: Optional[str] = context_option(
+        "aws_region_az",
+        None,
         "--region-az",
-        help="Exact AWS region + availability zone for this create request.",
+        help=f"AWS region + availability zone. Defaults to {DEFAULT_CREATE_REGION_AZ}.",
+        fallback=DEFAULT_CREATE_REGION_AZ,
     ),
     cluster_type: str = typer.Option(
-        ...,
+        DEFAULT_CREATE_CLUSTER_TYPE,
         "--cluster-type",
         help=(
-            "Exact cluster template family used to validate the rendered request. "
-            "One of: dragen, intel, rhel, sentieon-single."
+            "Cluster template family to autoselect when config does not set "
+            "cluster_template_yaml. One of: dragen, intel, rhel, sentieon-single."
         ),
     ),
-    profile: str = typer.Option(
-        ...,
+    profile: Optional[str] = typer.Option(
+        None,
         "--profile",
-        help="Exact AWS CLI profile authorized for this create request.",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
     ),
     regional_cluster_cap: Optional[int] = typer.Option(
         None,
@@ -1108,31 +1100,12 @@ def create(
         "--acknowledge-regional-cap-risk",
         help="Acknowledge the regional capacity and cost risk when raising the cap above 5.",
     ),
-    config: str = typer.Option(
-        ...,
+    config: Optional[str] = typer.Option(
+        None,
         "--config",
-        help="Required protected dyec.create_request.v1 request YAML path.",
-    ),
-    output_dir: str = typer.Option(
-        ...,
-        "--output-dir",
         help=(
-            "Required empty, owned 0700 directory for deterministic private create "
-            "artifacts and restart recovery."
+            "Path to daylily config YAML. Default: config/daylily_ephemeral_cluster_template.yaml"
         ),
-    ),
-    preparation_receipt: Optional[str] = typer.Option(
-        None,
-        "--preparation-receipt",
-        help=(
-            "Optional complete dyec.create_preparation.v1 admission receipt. "
-            "Must be paired with --expected-preparation-receipt-sha256."
-        ),
-    ),
-    expected_preparation_receipt_sha256: Optional[str] = typer.Option(
-        None,
-        "--expected-preparation-receipt-sha256",
-        help="Exact SHA-256 of --preparation-receipt.",
     ),
     pass_on_warn: bool = typer.Option(
         False,
@@ -1182,50 +1155,10 @@ def create(
             "service. Requires --create-slurm-accounting-if-missing."
         ),
     ),
-    expected_account_id: str = typer.Option(
-        ...,
-        "--expected-account-id",
-        help="Exact AWS account identity authorized for this create.",
-    ),
-    slurm_accounting_stack_name: str = typer.Option(
-        ...,
-        "--slurm-accounting-stack-name",
-        help="Exact existing or approved direct accounting provider stack.",
-    ),
-    slurm_accounting_privatelink_stack_name: str = typer.Option(
-        "",
-        "--slurm-accounting-privatelink-stack-name",
-        help="Exact existing PrivateLink bridge stack.",
-    ),
-    slurm_accounting_direct: bool = typer.Option(
-        False,
-        "--slurm-accounting-direct",
-        help="Explicitly require a same-VPC direct accounting target.",
-    ),
-    slurm_accounting_consumer_vpc_id: str = typer.Option(
-        ...,
-        "--slurm-accounting-consumer-vpc-id",
-        help="Exact cluster consumer VPC identity.",
-    ),
-    slurm_accounting_database_name: str = typer.Option(
-        ...,
-        "--slurm-accounting-database-name",
-        help="Exact accounting database name.",
-    ),
-    slurm_accounting_db_username: str = typer.Option(
-        ...,
-        "--slurm-accounting-db-username",
-        help="Exact accounting database username.",
-    ),
-    slurm_accounting_instance_type: str = typer.Option(
-        ...,
-        "--slurm-accounting-instance-type",
-        help="Exact provider EC2 instance type.",
-    ),
     disable_budget_enforcement: bool = typer.Option(
         False,
         "--disable-budget-enforcement",
-        help="Retired. Budget enforcement is defined only by the exact create request.",
+        help="Skip cluster AWS Budget enforcement; sbatch cost-center validation remains required.",
     ),
     budget_project: Optional[str] = typer.Option(
         None,
@@ -1235,7 +1168,7 @@ def create(
     admin_email: Optional[str] = typer.Option(
         None,
         "--admin-email",
-        help="Retired. The exact create request supplies budget_email.",
+        help="Override the AWS Budget notification email for this create only.",
     ),
     global_spot_max_cost: float = typer.Option(
         DEFAULT_GLOBAL_SPOT_MAX_COST,
@@ -1264,11 +1197,6 @@ def create(
             f"Defaults to {DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD:.2f}."
         ),
     ),
-    json_output: bool = typer.Option(
-        False,
-        "--json",
-        help="Emit the single dyec.create.v1 JSON receipt after the create command name.",
-    ),
 ) -> None:
     """Create an ephemeral AWS ParallelCluster environment."""
 
@@ -1280,36 +1208,7 @@ def create(
         validate_regional_cluster_cap_options,
     )
 
-    json_mode = _json_mode() or json_output
-    if not json_mode:
-        _warn_if_dayec_env_inactive()
-
-    def _create_failure_payload(
-        error_code: str,
-        *,
-        exit_code: int | None = None,
-    ) -> dict[str, Any]:
-        from daylily_ec import __version__
-
-        payload: dict[str, Any] = {
-            "schema_version": "dyec.create.v1",
-            "dyec_version": __version__,
-            "status": "failed",
-            "terminal": False,
-            "region_az": region_az,
-            "error_code": error_code,
-        }
-        if exit_code is not None:
-            payload["exit_code"] = exit_code
-        return payload
-
-    def _invalid_create_options(message: str) -> None:
-        if json_mode:
-            click.echo(message, err=True)
-            output.emit_json(_create_failure_payload("invalid_create_options", exit_code=1))
-            raise SystemExit(1)
-        raise typer.BadParameter(message)
-
+    _warn_if_dayec_env_inactive()
     try:
         cluster_type = normalize_create_cluster_type(cluster_type)
         validate_create_cluster_type_region(cluster_type, region_az)
@@ -1320,33 +1219,10 @@ def create(
             acknowledge_regional_cap_risk=acknowledge_regional_cap_risk,
         )
     except ValueError as exc:
-        _invalid_create_options(str(exc))
-    if not profile.strip():
-        _invalid_create_options("--profile must be an exact nonblank AWS CLI profile.")
+        raise typer.BadParameter(str(exc)) from exc
     if budget_project:
-        _invalid_create_options(
+        raise typer.BadParameter(
             "--budget-project is retired; cluster budgets are named by cluster name."
-        )
-    if disable_budget_enforcement:
-        _invalid_create_options(
-            "--disable-budget-enforcement is retired; use the exact enforce_budget request value."
-        )
-    if (admin_email or "").strip():
-        _invalid_create_options(
-            "--admin-email is retired; use the exact budget_email request value."
-        )
-    if not (config or "").strip():
-        _invalid_create_options(
-            "--config is required and must be a rendered dyec.create_request.v1 request."
-        )
-    if slurm_accounting != "on":
-        _invalid_create_options(
-            "--slurm-accounting must be exactly 'on' for the current create contract."
-        )
-    if (preparation_receipt is None) != (expected_preparation_receipt_sha256 is None):
-        _invalid_create_options(
-            "--preparation-receipt and --expected-preparation-receipt-sha256 "
-            "must be supplied together."
         )
     if create_slurm_accounting_if_missing != acknowledge_slurm_accounting_create_cost:
         missing_flag = (
@@ -1354,34 +1230,10 @@ def create(
             if create_slurm_accounting_if_missing
             else "--create-slurm-accounting-if-missing"
         )
-        _invalid_create_options(
+        raise typer.BadParameter(
             "--create-slurm-accounting-if-missing and "
             "--acknowledge-slurm-accounting-create-cost must be supplied together; "
             f"missing {missing_flag}."
-        )
-    exact_accounting_fields = {
-        "--expected-account-id": expected_account_id,
-        "--slurm-accounting-stack-name": slurm_accounting_stack_name,
-        "--slurm-accounting-consumer-vpc-id": slurm_accounting_consumer_vpc_id,
-        "--slurm-accounting-database-name": slurm_accounting_database_name,
-        "--slurm-accounting-db-username": slurm_accounting_db_username,
-        "--slurm-accounting-instance-type": slurm_accounting_instance_type,
-    }
-    missing_accounting = [
-        option for option, value in exact_accounting_fields.items() if not str(value).strip()
-    ]
-    if missing_accounting:
-        _invalid_create_options(
-            "Exact Slurm-accounting identity is incomplete: " + ", ".join(missing_accounting)
-        )
-    if bool(slurm_accounting_privatelink_stack_name.strip()) == bool(slurm_accounting_direct):
-        _invalid_create_options(
-            "Specify exactly one --slurm-accounting-privatelink-stack-name or "
-            "--slurm-accounting-direct."
-        )
-    if slurm_accounting_privatelink_stack_name.strip() and create_slurm_accounting_if_missing:
-        _invalid_create_options(
-            "An exact PrivateLink target cannot be combined with accounting creation flags."
         )
     try:
         (
@@ -1394,73 +1246,35 @@ def create(
             write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
         )
     except ValueError as exc:
-        _invalid_create_options(str(exc))
+        raise typer.BadParameter(str(exc)) from exc
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    if not json_mode:
-        output.action("Creating cluster in %s ..." % region_az)
-    result: dict[str, Any] = {}
-    workflow_kwargs = {
-        "profile": profile,
-        "config_path": config,
-        "cluster_type": cluster_type,
-        "pass_on_warn": pass_on_warn,
-        "debug": debug,
-        "non_interactive": non_interactive,
-        "disable_budget_enforcement": disable_budget_enforcement,
-        "budget_project": budget_project,
-        "global_spot_max_cost": global_spot_max_cost,
-        "spot_cost_limit_pct": spot_cost_limit_pct,
-        "write_spot_pricing_warn_threshold": write_spot_pricing_warn_threshold,
-        "repo_overrides": repo_overrides or None,
-        "regional_cluster_cap": regional_cluster_cap,
-        "acknowledge_regional_cap_increase": acknowledge_regional_cap_increase,
-        "acknowledge_regional_cap_risk": acknowledge_regional_cap_risk,
-        "slurm_accounting": slurm_accounting,
-        "create_slurm_accounting_if_missing": create_slurm_accounting_if_missing,
-        "acknowledge_slurm_accounting_create_cost": (acknowledge_slurm_accounting_create_cost),
-        "expected_account_id": expected_account_id,
-        "slurm_accounting_stack_name": slurm_accounting_stack_name,
-        "slurm_accounting_privatelink_stack_name": slurm_accounting_privatelink_stack_name,
-        "slurm_accounting_direct": slurm_accounting_direct,
-        "slurm_accounting_consumer_vpc_id": slurm_accounting_consumer_vpc_id,
-        "slurm_accounting_database_name": slurm_accounting_database_name,
-        "slurm_accounting_db_username": slurm_accounting_db_username,
-        "slurm_accounting_instance_type": slurm_accounting_instance_type,
-        "budget_email_override": None,
-        "budget_email_fallback": None,
-        "preparation_receipt": preparation_receipt,
-        "expected_preparation_receipt_sha256": expected_preparation_receipt_sha256,
-        "output_dir": output_dir,
-        "result_out": result,
-    }
-    if json_mode:
-        try:
-            with contextlib.redirect_stdout(sys.stderr):
-                rc = run_create_workflow(region_az, **workflow_kwargs)
-        except Exception:  # noqa: BLE001 - public JSON must remain one bounded object
-            click.echo("DYEC create failed before a terminal receipt was produced.", err=True)
-            rc = 2
-            output.emit_json(_create_failure_payload("create_workflow_exception", exit_code=rc))
-            raise SystemExit(rc) from None
-        if rc == 0:
-            from daylily_ec.workflow.create_request import (
-                CreateRequestError,
-                validate_create_success_payload,
-            )
-
-            try:
-                validate_create_success_payload(result)
-            except (CreateRequestError, OSError, ValueError):
-                click.echo("DYEC create did not produce valid terminal evidence.", err=True)
-                rc = 1
-            else:
-                output.emit_json(result)
-        if rc != 0:
-            output.emit_json(_create_failure_payload("create_workflow_failed", exit_code=rc))
-    else:
-        rc = run_create_workflow(region_az, **workflow_kwargs)
+    local_context = load_local_context()
+    output.action("Creating cluster in %s ..." % region_az)
+    rc = run_create_workflow(
+        region_az,
+        profile=profile,
+        config_path=config,
+        cluster_type=cluster_type,
+        pass_on_warn=pass_on_warn,
+        debug=debug,
+        non_interactive=non_interactive,
+        disable_budget_enforcement=disable_budget_enforcement,
+        budget_project=budget_project,
+        global_spot_max_cost=global_spot_max_cost,
+        spot_cost_limit_pct=spot_cost_limit_pct,
+        write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+        repo_overrides=repo_overrides or None,
+        regional_cluster_cap=regional_cluster_cap,
+        acknowledge_regional_cap_increase=acknowledge_regional_cap_increase,
+        acknowledge_regional_cap_risk=acknowledge_regional_cap_risk,
+        slurm_accounting=slurm_accounting,
+        create_slurm_accounting_if_missing=create_slurm_accounting_if_missing,
+        acknowledge_slurm_accounting_create_cost=(acknowledge_slurm_accounting_create_cost),
+        budget_email_override=(admin_email or "").strip() or None,
+        budget_email_fallback=local_context.cluster_admin_email,
+    )
     raise SystemExit(rc)
 
 
@@ -12221,7 +12035,7 @@ def register(registry, cli_spec) -> None:
         registry,
         "create",
         create,
-        required_policy(supports_json=True, mutates_state=True, long_running=True),
+        REQUIRED_MUTATING_LONG_RUNNING,
     )
     register_root_command(
         registry,

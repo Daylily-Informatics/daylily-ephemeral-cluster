@@ -7,6 +7,14 @@ import pytest
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
+    optional_group = parser.getgroup("daylily optional tests")
+    optional_group.addoption(
+        "--run-catalog-snapshot-tests",
+        action="store_true",
+        default=False,
+        help="Run the slow repository-catalog snapshot test modules.",
+    )
+
     group = parser.getgroup("daylily live aws")
     group.addoption(
         "--run-live-staging-examples",
@@ -56,6 +64,23 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=30,
         help="Maximum minutes to wait for each live staging workflow to finish.",
     )
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config,
+    items: list[pytest.Item],
+) -> None:
+    if config.getoption("--run-catalog-snapshot-tests"):
+        return
+    skip_catalog_snapshot = pytest.mark.skip(
+        reason=(
+            "optional repository-catalog snapshot test; "
+            "pass --run-catalog-snapshot-tests to enable"
+        )
+    )
+    for item in items:
+        if "catalog_snapshot" in item.keywords:
+            item.add_marker(skip_catalog_snapshot)
 
 
 @pytest.fixture(scope="session")

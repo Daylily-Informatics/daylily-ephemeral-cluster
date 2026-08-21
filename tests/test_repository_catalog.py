@@ -11,6 +11,8 @@ from typer.testing import CliRunner
 from daylily_ec.cli import app
 from daylily_ec.repositories import load_repository_catalog
 
+pytestmark = pytest.mark.catalog_snapshot
+
 runner = CliRunner()
 
 

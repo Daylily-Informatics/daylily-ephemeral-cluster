@@ -2803,33 +2803,32 @@ def run_create_workflow(
     slurm_accounting: str = "on",
     create_slurm_accounting_if_missing: bool = False,
     acknowledge_slurm_accounting_create_cost: bool = False,
-    expected_account_id: str = "",
-    slurm_accounting_stack_name: str = "",
-    slurm_accounting_privatelink_stack_name: str = "",
-    slurm_accounting_direct: bool = False,
-    slurm_accounting_consumer_vpc_id: str = "",
-    slurm_accounting_database_name: str = "",
-    slurm_accounting_db_username: str = "",
-    slurm_accounting_instance_type: str = "",
     budget_email_override: Optional[str] = None,
     budget_email_fallback: Optional[str] = None,
-    preparation_receipt: Optional[str] = None,
-    expected_preparation_receipt_sha256: Optional[str] = None,
-    output_dir: Optional[str] = None,
-    result_out: Optional[dict[str, Any]] = None,
 ) -> int:
     """End-to-end cluster creation: preflight → create → post-create.
 
     Returns one of the ``EXIT_*`` constants.
     """
     from daylily_ec.aws.budgets import ensure_cluster_budget, ensure_global_budget
-    from daylily_ec.aws.cloudformation import derive_stack_name
-    from daylily_ec.aws.context import AWSContext
     from daylily_ec.aws.cost_centers import (
         DEFAULT_COST_CENTER_HOME_REGION,
         DEFAULT_COST_CENTER_TABLE,
         DEFAULT_COST_CENTER_USAGE_TABLE,
         ensure_active_cost_center,
+    )
+    from daylily_ec.aws.cloudformation import (
+        StackOutputs,
+        derive_stack_name,
+        ensure_pcluster_env_stack,
+    )
+    from daylily_ec.aws.context import AWSContext
+    from daylily_ec.aws.ec2 import (
+        list_pcluster_tags_budget_policies,
+        list_private_subnets,
+        list_public_subnets,
+        select_policy_arn,
+        select_subnet,
     )
     from daylily_ec.aws.heartbeat import ensure_heartbeat
     from daylily_ec.aws.iam import (
@@ -2848,79 +2847,24 @@ def run_create_workflow(
         empty_slurm_accounting_render_blocks,
     )
     from daylily_ec.aws.ssm import wait_for_ssm_online
+    from daylily_ec.aws.spot_pricing import apply_spot_prices
     from daylily_ec.config.triplets import (
+        DERIVED_MAX_COUNT_KEYS,
         load_config,
+        write_next_run_template,
     )
     from daylily_ec.pcluster.monitor import wait_for_creation
     from daylily_ec.pcluster.runner import (
         create_cluster as pcluster_create,
-    )
-    from daylily_ec.pcluster.runner import (
-        describe_cluster as pcluster_describe_cluster,
-    )
-    from daylily_ec.pcluster.runner import (
-        describe_compute_fleet as pcluster_describe_compute_fleet,
-    )
-    from daylily_ec.pcluster.runner import (
         dry_run_create,
+        list_clusters as pcluster_list_clusters,
         should_break_after_dry_run,
     )
-    from daylily_ec.pcluster.runner import (
-        list_clusters as pcluster_list_clusters,
-    )
-    from daylily_ec.render.renderer import write_init_artifacts
     from daylily_ec.resources import resource_path
-    from daylily_ec.workflow.create_request import (
-        SPOT_PRICE_POLICY,
-        CreateRequestError,
-        load_strict_create_request_payload,
-        load_verified_preparation_receipt,
-        prepare_create_request,
-        price_create_input_and_write_receipt,
-        repository_credential_identity_from_values,
-        require_protected_file,
-        sha256_path,
-        write_create_terminal_receipt,
-    )
+    from daylily_ec.render.renderer import CONFIG_DIR, write_init_artifacts
     from daylily_ec.workflow.postcreate_slurm_accounting import (
         validate_postcreate_slurm_accounting_options,
     )
-
-    if result_out is not None:
-        result_out.clear()
-
-    raw_output_dir = str(output_dir or "").strip()
-    if not raw_output_dir:
-        logger.error("The current create contract requires an explicit artifact output directory.")
-        ui.fail("--output-dir is required for durable create and recovery evidence.")
-        return EXIT_VALIDATION_FAILURE
-    create_artifact_dir = Path(raw_output_dir).expanduser()
-    if not create_artifact_dir.is_absolute():
-        logger.error("Create artifact output directory is not absolute.")
-        ui.fail("--output-dir must be an absolute path.")
-        return EXIT_VALIDATION_FAILURE
-    try:
-        output_mode = create_artifact_dir.lstat().st_mode
-        output_owner = create_artifact_dir.stat().st_uid
-        output_entries = tuple(create_artifact_dir.iterdir())
-    except OSError as exc:
-        logger.error("Create artifact output directory is unavailable: %s", exc)
-        ui.fail("--output-dir must already exist as an owned 0700 directory.")
-        return EXIT_VALIDATION_FAILURE
-    if (
-        not stat.S_ISDIR(output_mode)
-        or stat.S_ISLNK(output_mode)
-        or stat.S_IMODE(output_mode) != 0o700
-        or output_owner != _os.geteuid()
-    ):
-        logger.error("Create artifact output directory is not an owned 0700 directory.")
-        ui.fail("--output-dir must be an owned non-symlink directory with mode 0700.")
-        return EXIT_VALIDATION_FAILURE
-    if output_entries:
-        logger.error("Create artifact output directory is not empty.")
-        ui.fail("--output-dir must be empty so create evidence cannot be overwritten.")
-        return EXIT_VALIDATION_FAILURE
-    create_artifact_dir = create_artifact_dir.resolve(strict=True)
 
     if debug:
         logging.getLogger("daylily_ec").setLevel(logging.DEBUG)
@@ -2933,35 +2877,6 @@ def run_create_workflow(
     except ValueError as exc:
         logger.error("Slurm accounting option validation failed: %s", exc)
         ui.fail(str(exc))
-        return EXIT_VALIDATION_FAILURE
-    if slurm_accounting != "on":
-        logger.error("Slurm accounting is mandatory for the current create contract.")
-        ui.fail("--slurm-accounting must be exactly 'on' for the current create contract.")
-        return EXIT_VALIDATION_FAILURE
-    exact_accounting_values = (
-        expected_account_id,
-        slurm_accounting_stack_name,
-        slurm_accounting_consumer_vpc_id,
-        slurm_accounting_database_name,
-        slurm_accounting_db_username,
-        slurm_accounting_instance_type,
-    )
-    if any(not str(value or "").strip() for value in exact_accounting_values):
-        logger.error("Exact Slurm accounting identity is incomplete.")
-        ui.fail("Exact Slurm accounting identity is required for cluster creation.")
-        return EXIT_VALIDATION_FAILURE
-    if bool(str(slurm_accounting_privatelink_stack_name or "").strip()) == bool(
-        slurm_accounting_direct
-    ):
-        logger.error("Exact accounting transport selection is invalid.")
-        ui.fail("Specify exactly one exact PrivateLink bridge or direct accounting mode.")
-        return EXIT_VALIDATION_FAILURE
-    if (preparation_receipt is None) != (expected_preparation_receipt_sha256 is None):
-        logger.error("Preparation receipt arguments were not supplied as an exact pair.")
-        ui.fail(
-            "--preparation-receipt and --expected-preparation-receipt-sha256 "
-            "must be supplied together."
-        )
         return EXIT_VALIDATION_FAILURE
     try:
         cluster_type = normalize_create_cluster_type(cluster_type)
@@ -2984,16 +2899,6 @@ def run_create_workflow(
         logger.error("--budget-project is retired; cluster budgets are named by cluster name.")
         ui.fail("--budget-project is retired; cluster budgets are named by cluster name.")
         return EXIT_VALIDATION_FAILURE
-    if disable_budget_enforcement:
-        logger.error("The current create contract forbids command-line budget overrides.")
-        ui.fail(
-            "disable_budget_enforcement is retired; use the exact enforce_budget request value."
-        )
-        return EXIT_VALIDATION_FAILURE
-    if (budget_email_override or "").strip() or (budget_email_fallback or "").strip():
-        logger.error("The current create contract forbids inferred budget email inputs.")
-        ui.fail("Budget email must come only from the exact rendered request.")
-        return EXIT_VALIDATION_FAILURE
     try:
         (
             global_spot_max_cost,
@@ -3012,21 +2917,17 @@ def run_create_workflow(
     ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
 
     # -- 0. Load config -------------------------------------------------------
-    if not config_path:
-        logger.error("The current create contract requires an explicit rendered request config.")
-        ui.fail("--config is required and must be a rendered dyec.create_request.v1 request.")
-        return EXIT_VALIDATION_FAILURE
-    effective_config = str(Path(config_path).expanduser().resolve())
-    try:
-        require_protected_file(effective_config, label="create request")
-        request_payload = load_strict_create_request_payload(effective_config)
-        request_config_sha256 = sha256_path(effective_config)
-    except (OSError, CreateRequestError, ValueError) as exc:
-        logger.error("Create request validation failed: %s", exc)
-        ui.fail(f"Create request validation: {exc}")
-        return EXIT_VALIDATION_FAILURE
+    effective_config = config_path or "config/daylily_ephemeral_cluster_template.yaml"
+    if config_path is None and not Path(effective_config).is_file():
+        effective_config = str(resource_path(effective_config))
     cfg = load_config(effective_config)
     ec = cfg.ephemeral_cluster
+    legacy_derived_max_counts = sorted(DERIVED_MAX_COUNT_KEYS.intersection(ec.config))
+    if legacy_derived_max_counts:
+        ui.warn(
+            "Ignoring legacy unprompted subtype max-count keys; the five prompted "
+            "family max-count values are authoritative: " + ", ".join(legacy_derived_max_counts)
+        )
 
     try:
         dragen_inputs = resolve_dragen_create_inputs(
@@ -3054,13 +2955,18 @@ def run_create_workflow(
         post_create_inputs = _resolve_post_create_inputs(
             cfg,
             non_interactive=non_interactive,
-            budget_email_default="",
-            heartbeat_email_default="",
-            allowed_budget_users_default="",
+            budget_email_default=(budget_email_fallback or _default_budget_email()),
+            heartbeat_email_default=_default_budget_email(),
+            allowed_budget_users_default="ubuntu",
             cluster_name=cluster_name,
-            disable_budget_enforcement=False,
+            disable_budget_enforcement=disable_budget_enforcement,
             slurm_accounting=slurm_accounting,
         )
+        if (budget_email_override or "").strip():
+            post_create_inputs = replace(
+                post_create_inputs,
+                budget_email=budget_email_override.strip(),
+            )
     except ValueError as exc:
         logger.error("Create input validation failed: %s", exc)
         ui.fail(str(exc))
@@ -3085,23 +2991,35 @@ def run_create_workflow(
             cfg,
             non_interactive=non_interactive,
         )
-        enable_detailed_monitoring = _resolve_config_value(
-            cfg,
-            "enable_detailed_monitoring",
-            "Enable detailed monitoring",
-            non_interactive=non_interactive,
+        enable_detailed_monitoring = (
+            _resolve_config_value(
+                cfg,
+                "enable_detailed_monitoring",
+                "Enable detailed monitoring",
+                non_interactive=non_interactive,
+                default_fallback="false",
+            )
+            or "false"
         )
-        delete_local_root = _resolve_config_value(
-            cfg,
-            "delete_local_root",
-            "Delete local root",
-            non_interactive=non_interactive,
+        delete_local_root = (
+            _resolve_config_value(
+                cfg,
+                "delete_local_root",
+                "Delete local root",
+                non_interactive=non_interactive,
+                default_fallback="false",
+            )
+            or "false"
         )
-        spot_instance_allocation_strategy = _resolve_config_value(
-            cfg,
-            "spot_instance_allocation_strategy",
-            "Spot allocation strategy",
-            non_interactive=non_interactive,
+        spot_instance_allocation_strategy = (
+            _resolve_config_value(
+                cfg,
+                "spot_instance_allocation_strategy",
+                "Spot allocation strategy",
+                non_interactive=non_interactive,
+                default_fallback="price-capacity-optimized",
+            )
+            or "price-capacity-optimized"
         )
         template_yaml = resolve_cluster_template_yaml(
             cfg,
@@ -3139,10 +3057,6 @@ def run_create_workflow(
     except RuntimeError as exc:
         logger.error("AWS context failed: %s", exc)
         ui.fail(f"AWS context: {exc}")
-        return EXIT_AWS_FAILURE
-    if aws_ctx.account_id != str(expected_account_id).strip():
-        logger.error("AWS account identity differs from the exact create target.")
-        ui.fail("AWS account identity does not match --expected-account-id.")
         return EXIT_AWS_FAILURE
 
     logger.info(
@@ -3198,10 +3112,6 @@ def run_create_workflow(
             cluster_name=cluster_name,
             records=cluster_inventory.json_body.get("clusters"),
             effective_cap=effective_regional_cluster_cap,
-        )
-        require_cluster_name_available(
-            cluster_name=cluster_name,
-            records=cluster_inventory.json_body.get("clusters"),
         )
     except ValueError as exc:
         logger.error("Regional ParallelCluster inventory validation failed: %s", exc)
@@ -3261,53 +3171,6 @@ def run_create_workflow(
     ui.detail("DYEC deploy-key policy", dyec_deploy_key_inputs.policy_arn)
     ui.detail("DayOA deploy-key secret", "validated")
     ui.detail("DayOA deploy-key policy", dayoa_deploy_key_inputs.policy_arn)
-    try:
-        credential_reference_keys, credential_references_sha256 = (
-            repository_credential_identity_from_values(
-                dayoa_policy_arn=dayoa_deploy_key_inputs.policy_arn,
-                dayoa_secret_arn=dayoa_deploy_key_inputs.secret_arn,
-                dyec_policy_arn=dyec_deploy_key_inputs.policy_arn,
-                dyec_secret_arn=dyec_deploy_key_inputs.secret_arn,
-            )
-        )
-        source_template_sha256 = sha256_path(template_yaml)
-        if preparation_receipt is not None:
-            admission_receipt_payload = load_verified_preparation_receipt(
-                receipt_path=preparation_receipt,
-                expected_receipt_sha256=expected_preparation_receipt_sha256 or "",
-                request_config_path=effective_config,
-                source_template_path=template_yaml,
-                profile=aws_ctx.profile,
-                account_id=aws_ctx.account_id,
-                region_az=region_az,
-                global_spot_max_cost=global_spot_max_cost,
-                spot_cost_limit_pct=spot_cost_limit_pct,
-                write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
-            )
-            admission_receipt_path = str(Path(preparation_receipt).expanduser().resolve())
-            admission_receipt_sha256 = sha256_path(admission_receipt_path)
-        else:
-            admission_receipt_payload = prepare_create_request(
-                request_config=effective_config,
-                expected_request_sha256=request_config_sha256,
-                source_template=template_yaml,
-                expected_source_template_sha256=source_template_sha256,
-                profile=aws_ctx.profile,
-                region_az=region_az,
-                spot_price_policy=SPOT_PRICE_POLICY,
-                output_dir=str(create_artifact_dir / "admission"),
-                global_spot_max_cost=global_spot_max_cost,
-                spot_cost_limit_pct=spot_cost_limit_pct,
-                write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
-            )
-            admission_receipt_path = str(admission_receipt_payload["receipt_path"])
-            admission_receipt_sha256 = str(admission_receipt_payload["receipt_sha256"])
-    except (CreateRequestError, ValueError, RuntimeError) as exc:
-        logger.error("Create admission failed closed: %s", exc)
-        ui.fail(f"Create admission: {exc}. No create-side AWS mutations were attempted.")
-        return EXIT_AWS_FAILURE
-    ui.ok("Live pricing admission receipt verified")
-    ui.detail("Admission receipt", admission_receipt_path)
     try:
         dyec_repo_spec = resolve_configured_headnode_repo_spec(deploy_key_auth=True)
     except RuntimeError as exc:
@@ -3560,54 +3423,99 @@ def run_create_workflow(
         _has_explicit_set_value(cfg, key)
         for key in ("public_subnet_id", "private_subnet_id", "iam_policy_arn")
     )
-    if not explicit_core_resources:
-        logger.error("Exact subnet and IAM policy inputs are required by the create request.")
-        ui.fail(
-            "The current create contract requires explicit public_subnet_id, "
-            "private_subnet_id, and iam_policy_arn values."
-        )
-        return EXIT_VALIDATION_FAILURE
 
-    # 3a. Resolve exact request-owned resources without discovery/defaults.
+    # 3a. Resolve the only live-resource choice that can remain interactive.
+    # When an account has multiple matching policies, collect that selection
+    # before waiting for the baseline stack.
     iam_client = aws_ctx.client("iam")
+    policy_arns = list_pcluster_tags_budget_policies(iam_client)
     iam_t = ec.config.get("iam_policy_arn")
-    policy_arn = iam_t.set_value.strip() if iam_t else ""
+    policy_arn = select_policy_arn(
+        policy_arns,
+        cfg_action=iam_t.action if iam_t else "",
+        cfg_set_value=iam_t.set_value if iam_t else "",
+        cfg_fallback="",
+    )
+    if not policy_arn and iam_t and _has_explicit_set_value(cfg, "iam_policy_arn"):
+        policy_arn = iam_t.set_value.strip()
+    if not policy_arn and not non_interactive and policy_arns:
+        policy_arn = _prompt_select("IAM policy ARN", policy_arns)
 
     ui.ok("Create inputs resolved; provisioning can now run unattended")
 
-    # 3b. The forward-only request owns exact resources; baseline discovery
-    # and implicit baseline creation are intentionally unavailable.
+    # 3b. Baseline CFN stack (first long-running provisioning step)
     stack_name = derive_stack_name(region_az)
-    ui.step("Using exact request resources; no baseline discovery is performed.")
-    ui.ok("Exact request resources selected")
+    if explicit_core_resources:
+        cfn_outputs = StackOutputs()
+        ui.step("Skipping baseline CFN stack; explicit subnet and IAM policy config present.")
+        ui.ok("Baseline CFN stack not required")
+    else:
+        ui.step("Ensuring baseline CFN stack ...")
+        try:
+            cfn_outputs = ensure_pcluster_env_stack(aws_ctx, region_az)
+        except (FileNotFoundError, RuntimeError) as exc:
+            logger.error("CFN stack ensure failed: %s", exc)
+            ui.fail(f"CFN stack: {exc}")
+            return EXIT_AWS_FAILURE
+        ui.ok("CFN stack ready")
 
-    # 3c. Validate the exact subnets selected by the request.
+    # 3c. Subnet resolution is deterministic once baseline outputs exist.
     ec2 = aws_ctx.client("ec2")
+    pub_list = list_public_subnets(ec2, region_az)
+    priv_list = list_private_subnets(ec2, region_az)
+
+    pub_t = ec.config.get("public_subnet_id")
+    priv_t = ec.config.get("private_subnet_id")
+
+    public_subnet = (
+        select_subnet(
+            pub_list,
+            cfg_action=pub_t.action if pub_t else "",
+            cfg_set_value=pub_t.set_value if pub_t else "",
+            cfg_fallback=cfn_outputs.public_subnet_id,
+        )
+        or cfn_outputs.public_subnet_id
+    )
     try:
-        public_subnet = _resolve_explicit_subnet_id(
+        explicit_public_subnet = _resolve_explicit_subnet_id(
             ec2,
             cfg,
             "public_subnet_id",
             label="public subnet",
             region_az=region_az,
         )
+        if explicit_public_subnet:
+            public_subnet = explicit_public_subnet
     except ValueError as exc:
         logger.error("Public subnet validation failed: %s", exc)
         ui.fail(str(exc))
         return EXIT_VALIDATION_FAILURE
 
+    private_subnet = (
+        select_subnet(
+            priv_list,
+            cfg_action=priv_t.action if priv_t else "",
+            cfg_set_value=priv_t.set_value if priv_t else "",
+            cfg_fallback=cfn_outputs.private_subnet_id,
+        )
+        or cfn_outputs.private_subnet_id
+    )
     try:
-        private_subnet = _resolve_explicit_subnet_id(
+        explicit_private_subnet = _resolve_explicit_subnet_id(
             ec2,
             cfg,
             "private_subnet_id",
             label="private subnet",
             region_az=region_az,
         )
+        if explicit_private_subnet:
+            private_subnet = explicit_private_subnet
     except ValueError as exc:
         logger.error("Private subnet validation failed: %s", exc)
         ui.fail(str(exc))
         return EXIT_VALIDATION_FAILURE
+
+    policy_arn = policy_arn or cfn_outputs.policy_arn
 
     missing_resources = _require_values(
         {
@@ -3643,37 +3551,6 @@ def run_create_workflow(
     ui.detail("Export destination", export_destination_s3_uri)
     ui.detail("Subnets", f"pub={public_subnet}  priv={private_subnet}")
     ui.detail("Policy", policy_arn)
-
-    # Recheck provider identity and the regional cap immediately before the
-    # first create-side AWS mutation (boot-config publication).  Every
-    # non-DELETE_COMPLETE same-name record blocks this request.
-    pre_mutation_inventory = pcluster_list_clusters(
-        aws_ctx.region,
-        profile=aws_ctx.profile,
-        executable=pcluster_executable,
-    )
-    if not pre_mutation_inventory.success:
-        logger.error("Pre-mutation provider inventory failed closed.")
-        ui.fail("Pre-mutation provider inventory failed; no create-side mutation was attempted.")
-        return EXIT_AWS_FAILURE
-    try:
-        require_cluster_name_available(
-            cluster_name=cluster_name,
-            records=pre_mutation_inventory.json_body.get("clusters"),
-        )
-        refreshed_cap_decision = evaluate_regional_cluster_cap(
-            cluster_name=cluster_name,
-            records=pre_mutation_inventory.json_body.get("clusters"),
-            effective_cap=effective_regional_cluster_cap,
-        )
-    except ValueError as exc:
-        logger.error("Pre-mutation provider inventory validation failed: %s", exc)
-        ui.fail(f"Pre-mutation provider inventory rejected create: {exc}")
-        return EXIT_VALIDATION_FAILURE
-    if refreshed_cap_decision.projected_count > refreshed_cap_decision.effective_cap:
-        logger.error("Regional cluster cap changed before create-side mutation.")
-        ui.fail("Regional cluster cap no longer permits this create; no mutation was attempted.")
-        return EXIT_VALIDATION_FAILURE
 
     accounting_render_blocks = empty_slurm_accounting_render_blocks()
     ui.step("Publishing cluster boot config to runtime assets ...")
@@ -3752,8 +3629,7 @@ def run_create_workflow(
                     for value in post_create_inputs.cost_center_allowed_users.split(",")
                     if value.strip()
                 ),
-                owner_emails=(post_create_inputs.budget_email,),
-                notes="",
+                notes=f"Provisioned by dyec create for cluster {cluster_name}.",
                 actor_arn=aws_ctx.caller_arn,
                 table_name=DEFAULT_COST_CENTER_TABLE,
                 usage_table_name=DEFAULT_COST_CENTER_USAGE_TABLE,
@@ -3786,7 +3662,7 @@ def run_create_workflow(
         "REGSUB_FSX_SIZE": fsx_size,
         "REGSUB_DETAILED_MONITORING": enable_detailed_monitoring,
         "REGSUB_CLUSTER_NAME": cluster_name,
-        "REGSUB_USERNAME": aws_ctx.iam_username,
+        "REGSUB_USERNAME": f"{_os.environ.get('USER', 'unknown')}-{aws_ctx.iam_username}",
         "REGSUB_PROJECT": cluster_name,
         "REGSUB_DELETE_LOCAL_ROOT": delete_local_root,
         "REGSUB_DRAGEN_PCLUSTER_AMI": (
@@ -3850,28 +3726,40 @@ def run_create_workflow(
             ts,
             template_yaml,
             substitutions,
-            config_dir=create_artifact_dir,
         )
     except (FileNotFoundError, ValueError) as exc:
         logger.error("YAML render failed: %s", exc)
         ui.fail(f"YAML render: {exc}")
         return EXIT_VALIDATION_FAILURE
-    Path(_yaml_init).chmod(0o600)
-    Path(init_template_path).chmod(0o600)
 
-    # Attach all structural policy mutations to the unpriced effective YAML.
-    # The final live reprice runs only after every structural/P2 mutation.
-    cluster_yaml_path = str(create_artifact_dir / "dyec-final-cluster.yaml")
-    spot_price_summary_path = str(create_artifact_dir / "dyec-final-spot-price-summary.json")
-    create_pricing_receipt_path = str(create_artifact_dir / "dyec-final-pricing-receipt.json")
-    spot_price_summary_table_path = create_artifact_dir / "dyec-final-spot-price-summary.md"
+    # 4b. Apply spot prices
+    cluster_yaml_path = str(CONFIG_DIR / f"{cluster_name}_cluster_{ts}.yaml")
+    spot_price_summary_path = str(CONFIG_DIR / f"{cluster_name}_spot_price_summary_{ts}.json")
+    spot_price_summary_table_path = CONFIG_DIR / f"{cluster_name}-{ts}.md"
+    ui.step("Applying spot prices ...")
+    try:
+        spot_price_summary = apply_spot_prices(
+            init_template_path,
+            cluster_yaml_path,
+            region_az,
+            ec2_client=ec2,
+            global_spot_max_cost=global_spot_max_cost,
+            spot_cost_limit_pct=spot_cost_limit_pct,
+            write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
+            summary_output_path=spot_price_summary_path,
+        )
+    except Exception as exc:
+        logger.error("Spot price application failed: %s", exc)
+        ui.fail(f"Spot pricing: {exc}")
+        return EXIT_AWS_FAILURE
+
     try:
         attach_headnode_managed_policy(
-            init_template_path,
+            cluster_yaml_path,
             dayoa_deploy_key_inputs.policy_arn,
         )
         attach_headnode_managed_policy(
-            init_template_path,
+            cluster_yaml_path,
             dyec_deploy_key_inputs.policy_arn,
         )
     except ValueError as exc:
@@ -3907,7 +3795,7 @@ def run_create_workflow(
             storage_capacity_gib=int(persistent2_config["fsx_fs_size"]),
             throughput_mbps_per_tib=int(persistent2_config["fsx_throughput_mbps_per_tib"]),
             reference_s3_uri=reference_s3_uri,
-            username_tag=aws_ctx.iam_username,
+            username_tag=f"{_os.environ.get('USER', 'unknown')}-{aws_ctx.iam_username}",
             account_profile_tag=f"aws_profile-{aws_ctx.profile}",
             enforce_budget_tag=post_create_inputs.enforce_budget,
             cost_center_region=DEFAULT_COST_CENTER_HOME_REGION,
@@ -3927,8 +3815,8 @@ def run_create_workflow(
                 persistent2_spec,
                 status_callback=_report_persistent2_status,
             )
-            render_external_mount(init_template_path, persistent2_resources)
-            validate_external_mount(init_template_path, persistent2_resources)
+            render_external_mount(cluster_yaml_path, persistent2_resources)
+            validate_external_mount(cluster_yaml_path, persistent2_resources)
             fsx_resource_receipt_path = str(
                 write_resource_receipt(
                     cluster_name=cluster_name,
@@ -3957,39 +3845,6 @@ def run_create_workflow(
             persistent2_resources.data_repository_association_id,
         )
         ui.detail("P2 resource receipt", fsx_resource_receipt_path)
-
-    ui.step("Repricing the exact final create input from live Spot observations ...")
-    try:
-        spot_price_summary, create_pricing_receipt = price_create_input_and_write_receipt(
-            effective_path=init_template_path,
-            priced_path=cluster_yaml_path,
-            summary_path=spot_price_summary_path,
-            receipt_path=create_pricing_receipt_path,
-            request_config_path=effective_config,
-            source_template_path=template_yaml,
-            profile=aws_ctx.profile,
-            account_id=aws_ctx.account_id,
-            region=aws_ctx.region,
-            region_az=region_az,
-            cluster_name=cluster_name,
-            repository_credential_reference_keys=credential_reference_keys,
-            repository_credential_references_sha256=(credential_references_sha256),
-            ec2_client=ec2,
-            global_spot_max_cost=global_spot_max_cost,
-            spot_cost_limit_pct=spot_cost_limit_pct,
-            write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
-            admission_receipt_path=admission_receipt_path,
-            admission_receipt_sha256=admission_receipt_sha256,
-        )
-        final_cluster_config_sha256 = str(
-            create_pricing_receipt["artifacts"]["priced_cluster"]["sha256"]
-        )
-        if sha256_path(cluster_yaml_path) != final_cluster_config_sha256:
-            raise CreateRequestError("Final priced cluster bytes changed after receipt")
-    except (CreateRequestError, RuntimeError, ValueError, OSError) as exc:
-        logger.error("Final Spot price application failed: %s", exc)
-        ui.fail(f"Final Spot pricing: {exc}")
-        return EXIT_AWS_FAILURE
 
     logger.info("Cluster YAML ready: %s", cluster_yaml_path)
     ui.ok(f"Cluster YAML ready: {cluster_yaml_path}")
@@ -4046,16 +3901,6 @@ def run_create_workflow(
         logger.error("Dry-run failed: %s", dry_result.message or dry_result.stderr)
         ui.fail(f"Dry-run failed: {dry_result.message or dry_result.stderr}")
         return EXIT_AWS_FAILURE
-    try:
-        dry_run_input_sha256 = sha256_path(cluster_yaml_path)
-    except (CreateRequestError, OSError) as exc:
-        logger.error("Final cluster YAML became unavailable during provider dry-run: %s", exc)
-        ui.fail("Final cluster YAML could not be revalidated after provider dry-run.")
-        return EXIT_VALIDATION_FAILURE
-    if dry_run_input_sha256 != final_cluster_config_sha256:
-        logger.error("Final cluster YAML changed during provider dry-run.")
-        ui.fail("Final cluster YAML changed during provider dry-run; create is blocked.")
-        return EXIT_VALIDATION_FAILURE
     ui.ok("Dry-run passed")
 
     if should_break_after_dry_run():
@@ -4065,34 +3910,6 @@ def run_create_workflow(
 
     # -- 7. CREATE (Phase 2c) -------------------------------------------------
     ui.phase("CREATE CLUSTER")
-    final_inventory = pcluster_list_clusters(
-        aws_ctx.region,
-        profile=aws_ctx.profile,
-        executable=pcluster_executable,
-    )
-    if not final_inventory.success:
-        logger.error("Final provider cluster-name inventory failed closed.")
-        ui.fail("Final provider cluster-name inventory failed; create is blocked.")
-        return EXIT_AWS_FAILURE
-    try:
-        require_cluster_name_available(
-            cluster_name=cluster_name,
-            records=final_inventory.json_body.get("clusters"),
-        )
-    except ValueError as exc:
-        logger.error("Final provider cluster-name recheck failed: %s", exc)
-        ui.fail(str(exc))
-        return EXIT_VALIDATION_FAILURE
-    try:
-        provider_create_input_sha256 = sha256_path(cluster_yaml_path)
-    except (CreateRequestError, OSError) as exc:
-        logger.error("Final cluster YAML became unavailable before provider create: %s", exc)
-        ui.fail("Final cluster YAML could not be revalidated before provider create.")
-        return EXIT_VALIDATION_FAILURE
-    if provider_create_input_sha256 != final_cluster_config_sha256:
-        logger.error("Final cluster YAML changed before provider create submission.")
-        ui.fail("Final cluster YAML changed before provider create; create is blocked.")
-        return EXIT_VALIDATION_FAILURE
     ui.step(f"Submitting cluster creation: {cluster_name} ...")
     create_result = pcluster_create(
         cluster_name,
@@ -4219,6 +4036,44 @@ def run_create_workflow(
     # -- 11. STATE SNAPSHOT ---------------------------------------------------
     ui.phase("STATE SNAPSHOT")
     ui.step("Writing state record ...")
+    # Write next-run template
+    final_values: Dict[str, str] = {
+        "cluster_name": cluster_name,
+        "reference_s3_uri": reference_s3_uri,
+        "control_data_s3_uri": control_data_s3_uri,
+        "stage_s3_uri": stage_s3_uri,
+        "export_destination_s3_uri": export_destination_s3_uri,
+        "public_subnet_id": public_subnet,
+        "private_subnet_id": private_subnet,
+        "iam_policy_arn": policy_arn,
+        "enforce_budget": post_create_inputs.enforce_budget,
+        "budget_email": post_create_inputs.budget_email,
+        "budget_amount": post_create_inputs.budget_amount,
+        "global_budget_amount": post_create_inputs.global_budget_amount,
+        "allowed_budget_users": post_create_inputs.allowed_budget_users,
+        "cost_center_name": post_create_inputs.cost_center_name,
+        "cost_center_monthly_cap_usd": post_create_inputs.cost_center_monthly_cap_usd,
+        "cost_center_allowed_users": post_create_inputs.cost_center_allowed_users,
+        "heartbeat_email": post_create_inputs.heartbeat_email,
+        "heartbeat_schedule": post_create_inputs.heartbeat_schedule,
+        "heartbeat_scheduler_role_arn": (post_create_inputs.heartbeat_scheduler_role_arn),
+        "dyec_deploy_key_secret_arn": dyec_deploy_key_inputs.secret_arn,
+        "dyec_deploy_key_policy_arn": dyec_deploy_key_inputs.policy_arn,
+        "dayoa_deploy_key_secret_arn": dayoa_deploy_key_inputs.secret_arn,
+        "dayoa_deploy_key_policy_arn": dayoa_deploy_key_inputs.policy_arn,
+        "fsx_deployment_type": fsx_deployment_type,
+        "fsx_fs_size": fsx_size,
+        "fsx_throughput_mbps_per_tib": (
+            persistent2_config["fsx_throughput_mbps_per_tib"]
+            if persistent2_config is not None
+            else ""
+        ),
+        **(persistent2_config or {}),
+        **max_count_values,
+    }
+    next_run_path = CONFIG_DIR / f"{cluster_name}_next_run_{ts}.yaml"
+    write_next_run_template(cfg, final_values, next_run_path)
+
     state = StateRecord(
         run_id=ts,
         cluster_name=cluster_name,
@@ -4255,13 +4110,9 @@ def run_create_workflow(
         heartbeat_schedule_expression=post_create_inputs.heartbeat_schedule,
         init_template_path=init_template_path,
         cluster_yaml_path=cluster_yaml_path,
-        resolved_cli_config_path=effective_config,
+        resolved_cli_config_path=str(next_run_path),
         cfn_stack_name=stack_name,
         slurm_accounting_requested_mode=cast(Literal["on", "off"], slurm_accounting),
-        create_request_config_sha256=request_config_sha256,
-        create_pricing_receipt_path=create_pricing_receipt_path,
-        create_pricing_receipt_sha256=str(create_pricing_receipt["receipt_sha256"]),
-        final_cluster_config_sha256=final_cluster_config_sha256,
         spot_price_summary_path=spot_price_summary_path,
         spot_price_partitions=spot_price_summary.get("partitions", []),
     )
@@ -4272,19 +4123,15 @@ def run_create_workflow(
     # The successful accounting-free base state above is intentionally durable
     # before any service discovery, creation, or compute-fleet mutation.
     ui.phase("POST-CREATE: SLURM ACCOUNTING")
-    from daylily_ec.state.models import (
-        SlurmAccountingOutcome,
-        SlurmAccountingReceipt,
-        SlurmAccountingStage,
-    )
+    from daylily_ec.state.models import SlurmAccountingOutcome, SlurmAccountingStage
     from daylily_ec.state.slurm_accounting import (
         apply_receipt_to_state,
         status_message,
+        warning_message,
     )
     from daylily_ec.state.store import write_slurm_accounting_receipt
-    from daylily_ec.workflow.recover_slurm_accounting import (
-        SlurmAccountingRecoveryError,
-        recover_slurm_accounting,
+    from daylily_ec.workflow.postcreate_slurm_accounting import (
+        run_postcreate_slurm_accounting,
     )
 
     def _configure_replacement_headnode(instance_id: str) -> bool:
@@ -4302,223 +4149,44 @@ def run_create_workflow(
             repo_overrides=repo_overrides,
         )
 
-    try:
-        accounting_recovery = recover_slurm_accounting(
-            cluster_name=cluster_name,
-            region=aws_ctx.region,
-            region_az=region_az,
-            profile=aws_ctx.profile,
-            pcluster_executable=pcluster_executable,
-            cluster_configuration=Path(cluster_yaml_path),
-            output_dir=create_artifact_dir,
-            stack_name=slurm_accounting_stack_name,
-            privatelink_stack_name=slurm_accounting_privatelink_stack_name,
-            database_name=slurm_accounting_database_name,
-            db_username=slurm_accounting_db_username,
-            instance_type=slurm_accounting_instance_type,
-            create_slurm_accounting_if_missing=create_slurm_accounting_if_missing,
-            acknowledge_slurm_accounting_create_cost=(
-                acknowledge_slurm_accounting_create_cost
-            ),
-            timeout_seconds=7200,
-            poll_interval_seconds=30,
-        )
-    except SlurmAccountingRecoveryError as exc:
-        logger.error(
-            "Crash-safe Slurm accounting failed closed (stage=%s reason=%s).",
-            exc.stage or "unknown",
-            exc.reason_code or "unknown",
-        )
-        ui.fail(
-            "Crash-safe Slurm accounting did not produce a terminal verification receipt."
-        )
-        return EXIT_AWS_FAILURE
-
-    exact_recovery_identity = (
-        accounting_recovery.cluster == cluster_name
-        and accounting_recovery.region == aws_ctx.region
-        and accounting_recovery.region_az == region_az
-        and accounting_recovery.aws_profile == aws_ctx.profile
-        and accounting_recovery.aws_account_id == aws_ctx.account_id
-        and accounting_recovery.accounting_stack_name == slurm_accounting_stack_name
-        and (accounting_recovery.privatelink_stack_name or "")
-        == slurm_accounting_privatelink_stack_name
-        and accounting_recovery.consumer_vpc_id == slurm_accounting_consumer_vpc_id
-        and accounting_recovery.database_name == slurm_accounting_database_name
-        and accounting_recovery.db_username == slurm_accounting_db_username
-        and accounting_recovery.instance_type == slurm_accounting_instance_type
-        and accounting_recovery.final_cluster_state == "UPDATE_COMPLETE"
-        and accounting_recovery.final_fleet_state == "RUNNING"
-        and accounting_recovery.accounting_verified is True
+    accounting_result = run_postcreate_slurm_accounting(
+        cluster_name=cluster_name,
+        region=aws_ctx.region,
+        region_az=region_az,
+        profile=aws_ctx.profile,
+        cluster_configuration=Path(cluster_yaml_path),
+        initial_headnode_instance_id=monitor_result.head_node_instance_id,
+        slurm_accounting=slurm_accounting,
+        non_interactive=non_interactive,
+        create_slurm_accounting_if_missing=create_slurm_accounting_if_missing,
+        acknowledge_slurm_accounting_create_cost=(acknowledge_slurm_accounting_create_cost),
+        pcluster_executable=pcluster_executable,
+        configure_replacement_headnode=_configure_replacement_headnode,
     )
-    if not exact_recovery_identity:
-        logger.error("Crash-safe Slurm accounting returned a different terminal identity.")
-        ui.fail("Slurm accounting terminal identity did not match the exact create request.")
-        return EXIT_AWS_FAILURE
-
-    try:
-        described_after_accounting = pcluster_describe_cluster(
-            cluster_name,
-            aws_ctx.region,
-            profile=aws_ctx.profile,
-            executable=pcluster_executable,
-        )
-        replacement_headnode = (
-            described_after_accounting.json_body.get("headNode")
-            if described_after_accounting.success
-            else None
-        )
-        replacement_headnode_id = (
-            replacement_headnode.get("instanceId")
-            if isinstance(replacement_headnode, dict)
-            else None
-        )
-        if not isinstance(replacement_headnode_id, str) or not replacement_headnode_id:
-            raise RuntimeError("replacement headnode identity is missing")
-        wait_for_ssm_online(
-            replacement_headnode_id,
-            aws_ctx.region,
-            profile=aws_ctx.profile,
-        )
-        if replacement_headnode_id != monitor_result.head_node_instance_id:
-            if not _configure_replacement_headnode(replacement_headnode_id):
-                raise RuntimeError("replacement headnode configuration failed")
-        else:
-            validate_headnode_readiness(
-                replacement_headnode_id,
-                aws_ctx.region,
-                profile=aws_ctx.profile,
-                timeout=120,
-                comment="Validate post-accounting headnode readiness",
-                repo_name="daylily-ephemeral-cluster",
-                remote_user="ubuntu",
-            )
-    except Exception:  # noqa: BLE001 - provider detail remains outside receipts/output
-        logger.error("Post-accounting headnode configuration failed closed.")
-        ui.fail("Post-accounting headnode configuration did not complete.")
-        return EXIT_AWS_FAILURE
-
-    accounting_receipt = SlurmAccountingReceipt(
-        requested_mode="on",
-        create_approval_flag=create_slurm_accounting_if_missing,
-        cost_acknowledgement_flag=acknowledge_slurm_accounting_create_cost,
-        service_created=accounting_recovery.service_created,
-        stage_reached=SlurmAccountingStage.COMPLETE,
-        update_config_path=accounting_recovery.update_configuration_path,
-        terminal_cluster_state=accounting_recovery.final_cluster_state,
-        terminal_fleet_state=accounting_recovery.final_fleet_state,
-        fleet_restored=True,
-        recovery_required=False,
-        stack_name=slurm_accounting_stack_name,
-        provider_accounting_stack_name=slurm_accounting_stack_name,
-        privatelink_stack_name=slurm_accounting_privatelink_stack_name,
-        consumer_vpc_id=slurm_accounting_consumer_vpc_id,
-        database_name=slurm_accounting_database_name,
-        db_username=slurm_accounting_db_username,
-        provider_instance_type=slurm_accounting_instance_type,
-    )
+    accounting_receipt = accounting_result.to_receipt()
     accounting_receipt_path = write_slurm_accounting_receipt(
         accounting_receipt,
         cluster_name=cluster_name,
         run_id=ts,
-        destination=create_artifact_dir / "dyec-slurm-accounting-receipt.json",
     )
     state = apply_receipt_to_state(state, accounting_receipt, accounting_receipt_path)
     state_path = write_state_record(state)
-    accounting_outcome = SlurmAccountingOutcome.ENABLED
-    ui.ok(status_message(accounting_outcome))
+    accounting_outcome = SlurmAccountingOutcome(accounting_result.outcome)
+    if accounting_outcome in {
+        SlurmAccountingOutcome.WARNING,
+        SlurmAccountingOutcome.RECOVERY_REQUIRED,
+    }:
+        ui.warn(
+            warning_message(
+                accounting_receipt.error_stage or SlurmAccountingStage.SERVICE_PREPARATION,
+                accounting_receipt.recovery_required,
+            )
+        )
+    else:
+        ui.ok(status_message(accounting_outcome))
     ui.detail("Slurm accounting receipt", str(accounting_receipt_path))
 
-    accounting_failed = False
-    terminal_create_receipt: dict[str, Any] | None = None
-    if not accounting_failed:
-        exact_accounting_result = (
-            accounting_receipt.stage_reached == SlurmAccountingStage.COMPLETE
-            and accounting_receipt.terminal_cluster_state == "UPDATE_COMPLETE"
-            and accounting_receipt.terminal_fleet_state == "RUNNING"
-            and accounting_receipt.recovery_required is False
-            and accounting_receipt.stack_name == slurm_accounting_stack_name
-            and accounting_receipt.provider_accounting_stack_name
-            == slurm_accounting_stack_name
-            and accounting_receipt.privatelink_stack_name
-            == slurm_accounting_privatelink_stack_name
-            and accounting_receipt.consumer_vpc_id == slurm_accounting_consumer_vpc_id
-            and accounting_receipt.database_name == slurm_accounting_database_name
-            and accounting_receipt.db_username == slurm_accounting_db_username
-            and accounting_receipt.provider_instance_type == slurm_accounting_instance_type
-        )
-        try:
-            described_cluster = pcluster_describe_cluster(
-                cluster_name,
-                aws_ctx.region,
-                profile=aws_ctx.profile,
-                executable=pcluster_executable,
-            )
-            described_fleet = pcluster_describe_compute_fleet(
-                cluster_name,
-                aws_ctx.region,
-                profile=aws_ctx.profile,
-                executable=pcluster_executable,
-            )
-        except Exception:  # noqa: BLE001 - provider detail stays out of receipts/output
-            described_cluster = None
-            described_fleet = None
-        provider_cluster_state = (
-            str(described_cluster.json_body.get("clusterStatus") or "")
-            if described_cluster is not None and described_cluster.success
-            else ""
-        )
-        provider_fleet_state = (
-            str(described_fleet.json_body.get("status") or "")
-            if described_fleet is not None and described_fleet.success
-            else ""
-        )
-        if (
-            not exact_accounting_result
-            or provider_cluster_state != "UPDATE_COMPLETE"
-            or provider_fleet_state != "RUNNING"
-        ):
-            accounting_failed = True
-            logger.error(
-                "Terminal accounting/fleet verification failed closed for cluster %s.",
-                cluster_name,
-            )
-        else:
-            try:
-                terminal_create_receipt = write_create_terminal_receipt(
-                    receipt_path=(create_artifact_dir / "dyec-create-terminal-receipt.json"),
-                    cluster_name=cluster_name,
-                    profile=aws_ctx.profile,
-                    account_id=aws_ctx.account_id,
-                    region=aws_ctx.region,
-                    region_az=region_az,
-                    request_config_sha256=request_config_sha256,
-                    final_cluster_config_path=cluster_yaml_path,
-                    final_cluster_config_sha256=final_cluster_config_sha256,
-                    pricing_receipt_path=create_pricing_receipt_path,
-                    accounting_receipt_path=accounting_receipt_path,
-                    accounting_recovery_receipt_path=(
-                        accounting_recovery.recovery_receipt_path
-                    ),
-                    provider_cluster_state=provider_cluster_state,
-                    fleet_state=provider_fleet_state,
-                    accounting_state="ENABLED",
-                    sacct_verified=True,
-                )
-                state = state.model_copy(
-                    update={
-                        "create_terminal_receipt_path": terminal_create_receipt[
-                            "terminal_receipt_path"
-                        ],
-                        "create_terminal_receipt_sha256": terminal_create_receipt[
-                            "terminal_receipt_sha256"
-                        ],
-                    }
-                )
-                state_path = write_state_record(state)
-            except (CreateRequestError, OSError, ValueError) as exc:
-                accounting_failed = True
-                logger.error("Terminal create receipt failed closed: %s", exc)
+    accounting_failed = slurm_accounting == "on" and not accounting_result.succeeded
     if accounting_failed:
         logger.error(
             "Cluster %s base creation completed, but requested Slurm accounting failed.",
@@ -4526,37 +4194,6 @@ def run_create_workflow(
         )
     else:
         logger.info("✅ Cluster %s creation complete.", cluster_name)
-        if result_out is not None and terminal_create_receipt is not None:
-            result_out.update(
-                {
-                    "schema_version": "dyec.create.v1",
-                    "dyec_version": terminal_create_receipt["dyec_version"],
-                    "status": "complete",
-                    "terminal": True,
-                    "phase": "terminal",
-                    "captured_at": terminal_create_receipt["captured_at"],
-                    "cluster_name": cluster_name,
-                    "profile": aws_ctx.profile,
-                    "account_id": aws_ctx.account_id,
-                    "region": aws_ctx.region,
-                    "region_az": region_az,
-                    "provider_cluster_state": "UPDATE_COMPLETE",
-                    "fleet_state": "RUNNING",
-                    "accounting_state": "ENABLED",
-                    "sacct_verified": True,
-                    "request_config_sha256": request_config_sha256,
-                    "final_cluster_config_path": str(cluster_yaml_path),
-                    "final_cluster_config_sha256": final_cluster_config_sha256,
-                    "pricing_receipt_sha256": create_pricing_receipt["receipt_sha256"],
-                    "accounting_receipt_sha256": sha256_path(accounting_receipt_path),
-                    "accounting_recovery_receipt_sha256": (
-                        accounting_recovery.recovery_receipt_sha256
-                    ),
-                    "accounting_target": dict(terminal_create_receipt["accounting_target"]),
-                    "terminal_receipt_path": terminal_create_receipt["terminal_receipt_path"],
-                    "terminal_receipt_sha256": terminal_create_receipt["terminal_receipt_sha256"],
-                }
-            )
     elapsed_total = monitor_result.elapsed_seconds
     final_body = (
         f"[bold]Cluster:[/]  {cluster_name}\n"

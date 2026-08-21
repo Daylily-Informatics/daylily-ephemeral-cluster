@@ -28,6 +28,7 @@ import daylily_ec.aws.context as aws_context
 import daylily_ec.aws.ec2 as aws_ec2
 import daylily_ec.aws.heartbeat as aws_heartbeat
 import daylily_ec.aws.iam as aws_iam
+import daylily_ec.aws.slurm_accounting as aws_slurm_accounting
 import daylily_ec.aws.spot_pricing as spot_pricing
 import daylily_ec.config.triplets as triplets
 import daylily_ec.pcluster.monitor as pcluster_monitor
@@ -1942,44 +1943,6 @@ class TestRunCreateWorkflow:
         )
 
     @pytest.mark.parametrize(
-        "provider_state",
-        [
-            "CREATE_COMPLETE",
-            "CREATE_IN_PROGRESS",
-            "CREATE_FAILED",
-            "UPDATE_COMPLETE",
-            "UPDATE_IN_PROGRESS",
-            "UPDATE_FAILED",
-            "DELETE_IN_PROGRESS",
-            "DELETE_FAILED",
-        ],
-    )
-    def test_cluster_name_availability_rejects_every_non_deleted_state(
-        self,
-        provider_state,
-    ):
-        with pytest.raises(ValueError, match="already exists"):
-            require_cluster_name_available(
-                cluster_name="requested-cluster",
-                records=[
-                    {
-                        "clusterName": "requested-cluster",
-                        "clusterStatus": provider_state,
-                    }
-                ],
-            )
-
-        require_cluster_name_available(
-            cluster_name="requested-cluster",
-            records=[
-                {
-                    "clusterName": "requested-cluster",
-                    "clusterStatus": "DELETE_COMPLETE",
-                }
-            ],
-        )
-
-    @pytest.mark.parametrize(
         "kwargs",
         [
             {"global_spot_max_cost": 10.01},
@@ -2028,8 +1991,8 @@ class TestRunCreateWorkflow:
         mock_build.assert_not_called()
 
     @patch("daylily_ec.aws.context.AWSContext.build")
-    def test_retired_accounting_off_is_rejected_before_aws(self, mock_build, tmp_path, monkeypatch):
-        """The current create contract cannot disable accounting."""
+    def test_aws_context_failure(self, mock_build, tmp_path, monkeypatch):
+        """AWS context build failure returns EXIT_AWS_FAILURE."""
         monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
         monkeypatch.setenv("AWS_PROFILE", "test")
         mock_build.side_effect = RuntimeError("no creds")
@@ -2058,8 +2021,7 @@ class TestRunCreateWorkflow:
             non_interactive=True,
             slurm_accounting="off",
         )
-        assert rc == EXIT_VALIDATION_FAILURE
-        mock_build.assert_not_called()
+        assert rc == EXIT_AWS_FAILURE
 
     def test_fifth_projected_cluster_is_allowed(self, tmp_path, monkeypatch):
         clusters = [
@@ -2077,11 +2039,9 @@ class TestRunCreateWorkflow:
         )
 
         assert records["rc"] == EXIT_SUCCESS
-        assert records["baseline_stack_calls"] == 0
+        assert records["baseline_stack_calls"] == 1
         assert records["regional_cluster_list_calls"] == [
-            ("us-west-2", {"profile": "lsmc", "executable": "pcluster"}),
-            ("us-west-2", {"profile": "lsmc", "executable": "pcluster"}),
-            ("us-west-2", {"profile": "lsmc", "executable": "pcluster"}),
+            ("us-west-2", {"profile": "lsmc", "executable": "pcluster"})
         ]
 
     def test_sixth_projected_cluster_is_blocked_before_mutations(self, tmp_path, monkeypatch):
@@ -2106,7 +2066,7 @@ class TestRunCreateWorkflow:
         assert "cluster-0=CREATE_COMPLETE" in records["failures"][0]
         assert "projected=6, cap=5" in records["failures"][0]
 
-    def test_same_existing_cluster_name_is_rejected_before_mutations(self, tmp_path, monkeypatch):
+    def test_same_existing_cluster_name_does_not_increase_projection(self, tmp_path, monkeypatch):
         clusters = [
             {"clusterName": "majors-cluster", "clusterStatus": "CREATE_COMPLETE"},
             {"clusterName": "cluster-one", "clusterStatus": "CREATE_COMPLETE"},
@@ -2124,135 +2084,9 @@ class TestRunCreateWorkflow:
             regional_clusters=clusters,
         )
 
-        assert records["rc"] == EXIT_AWS_FAILURE
-        assert records["baseline_stack_calls"] == 0
-        assert "cluster_budget_kwargs" not in records
-        assert "already exists" in records["failures"][0]
-
-    def test_name_recheck_blocks_work_appearing_before_first_mutation(
-        self,
-        tmp_path,
-        monkeypatch,
-    ):
-        records = _run_stubbed_create_workflow(
-            tmp_path,
-            monkeypatch,
-            interactive=False,
-            head_node_ip="54.1.2.3",
-            say_available=False,
-            regional_cluster_snapshots=[
-                [],
-                [
-                    {
-                        "clusterName": "majors-cluster",
-                        "clusterStatus": "CREATE_IN_PROGRESS",
-                    }
-                ],
-            ],
-        )
-
-        assert records["rc"] == EXIT_VALIDATION_FAILURE
-        assert records["boot_config_publishes"] == []
-        assert "cluster_budget_kwargs" not in records
-        assert "provider_dry_run" not in records
-        assert "provider_create" not in records
-        assert [event for event in records["events"] if event[0] == "list_clusters"] == [
-            ("list_clusters", 1),
-            ("list_clusters", 2),
-        ]
-
-    def test_final_name_recheck_blocks_work_appearing_before_provider_create(
-        self,
-        tmp_path,
-        monkeypatch,
-    ):
-        records = _run_stubbed_create_workflow(
-            tmp_path,
-            monkeypatch,
-            interactive=False,
-            head_node_ip="54.1.2.3",
-            say_available=False,
-            regional_cluster_snapshots=[
-                [],
-                [],
-                [
-                    {
-                        "clusterName": "majors-cluster",
-                        "clusterStatus": "UPDATE_COMPLETE",
-                    }
-                ],
-            ],
-        )
-
-        assert records["rc"] == EXIT_VALIDATION_FAILURE
-        assert "provider_dry_run" in records
-        assert "provider_create" not in records
-        assert [event for event in records["events"] if event[0] == "list_clusters"] == [
-            ("list_clusters", 1),
-            ("list_clusters", 2),
-            ("list_clusters", 3),
-        ]
-
-    def test_final_reprice_precedes_dry_run_and_exact_bytes_reach_create(
-        self,
-        tmp_path,
-        monkeypatch,
-    ):
-        records = _run_stubbed_create_workflow(
-            tmp_path,
-            monkeypatch,
-            interactive=False,
-            head_node_ip="54.1.2.3",
-            say_available=False,
-        )
-
         assert records["rc"] == EXIT_SUCCESS
-        events = records["events"]
-        assert events.index(("list_clusters", 1)) < events.index(("prepare_create_request", None))
-        assert events.index(("list_clusters", 2)) < events.index(
-            ("publish_cluster_boot_config", None)
-        )
-        assert events.index(("publish_cluster_boot_config", None)) < events.index(
-            ("final_reprice", None)
-        )
-        assert events.index(("final_reprice", None)) < events.index(("dry_run_create", None))
-        assert events.index(("dry_run_create", None)) < events.index(("list_clusters", 3))
-        assert events.index(("list_clusters", 3)) < events.index(("create_cluster", None))
-        assert (
-            records["provider_dry_run"]["cluster_config"] == records["final_pricing"]["priced_path"]
-        )
-        assert (
-            records["provider_create"]["cluster_config"] == records["final_pricing"]["priced_path"]
-        )
-        assert records["provider_dry_run"]["sha256"] == records["final_pricing"]["sha256"]
-        assert records["provider_create"]["sha256"] == records["final_pricing"]["sha256"]
-
-    def test_persistent2_structure_is_final_before_reprice_and_provider_bytes(
-        self,
-        tmp_path,
-        monkeypatch,
-    ):
-        records = _run_stubbed_create_workflow(
-            tmp_path,
-            monkeypatch,
-            interactive=False,
-            head_node_ip="54.1.2.3",
-            say_available=False,
-            config_overrides={
-                "fsx_deployment_type": ["USESETVALUE", "", "PERSISTENT_2"],
-            },
-        )
-
-        assert records["rc"] == EXIT_SUCCESS
-        events = records["events"]
-        assert events.index(("ensure_persistent2_resources", None)) < events.index(
-            ("render_external_mount", None)
-        )
-        assert events.index(("render_external_mount", None)) < events.index(("final_reprice", None))
-        final_bytes = Path(records["final_pricing"]["priced_path"]).read_text(encoding="utf-8")
-        assert "# DYEC_TEST_PERSISTENT2_MOUNT" in final_bytes
-        assert records["provider_dry_run"]["sha256"] == records["final_pricing"]["sha256"]
-        assert records["provider_create"]["sha256"] == records["final_pricing"]["sha256"]
+        cap_details = [value for key, value in records["details"] if key == "Regional cluster cap"]
+        assert cap_details == ["current=5, projected=5, cap=5"]
 
     def test_regional_cluster_list_failure_fails_closed_before_mutations(
         self, tmp_path, monkeypatch
@@ -2321,6 +2155,127 @@ class TestRunCreateWorkflow:
         cap_details = [value for key, value in records["details"] if key == "Regional cluster cap"]
         assert cap_details == ["current=5, projected=6, cap=6"]
 
+    def test_collects_budget_and_heartbeat_inputs_before_dry_run(self, tmp_path, monkeypatch):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=True,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            config_overrides={
+                "cost_center_name": ["PROMPTUSER", "project-a", ""],
+                "cost_center_monthly_cap_usd": ["PROMPTUSER", "200", ""],
+                "cost_center_allowed_users": ["PROMPTUSER", "ubuntu", ""],
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert records["prompt_labels"] == [
+            "Budget email",
+            "Budget amount",
+            "Global budget amount",
+            "Allowed budget users",
+            "Cost center name",
+            "Cost center monthly cap (USD)",
+            "Cost center allowed users (comma-separated)",
+            "Heartbeat email",
+            "Heartbeat schedule",
+            "Heartbeat scheduler role ARN (leave blank to skip)",
+        ]
+
+        dry_run_phase_index = records["events"].index(("phase", "DRY-RUN VALIDATION"))
+        create_phase_index = records["events"].index(("phase", "CREATE CLUSTER"))
+        budget_index = records["events"].index(("ensure_cluster_budget", None))
+        cost_center_index = records["events"].index(("ensure_active_cost_center", "bjuice"))
+        resolve_role_index = records["events"].index(("resolve_scheduler_role", None))
+        prompt_indices = [
+            idx for idx, event in enumerate(records["events"]) if event[0] == "prompt"
+        ]
+
+        assert prompt_indices
+        assert max(prompt_indices) < dry_run_phase_index
+        assert budget_index < dry_run_phase_index
+        assert cost_center_index < dry_run_phase_index
+        assert create_phase_index < resolve_role_index
+        assert records["global_budget_kwargs"]["email"] == "johnm@lsmc.com"
+        assert records["global_budget_kwargs"]["amount"] == "200"
+        assert records["global_budget_kwargs"]["allowed_users"] == "root"
+        assert records["cluster_budget_kwargs"]["email"] == "johnm@lsmc.com"
+        assert records["cluster_budget_kwargs"]["cluster_name"] == "majors-cluster"
+        assert records["cost_center_kwargs"]["name"] == "bjuice"
+        assert records["cost_center_kwargs"]["monthly_cap_usd"] == "200"
+        assert records["cost_center_kwargs"]["allowed_users"] == ("ubuntu",)
+        assert records["heartbeat_kwargs"]["email"] == "johnm@lsmc.com"
+        assert records["heartbeat_kwargs"]["schedule_expression"] == "rate(60 minutes)"
+        assert "budget_project" not in records["next_run_values"]
+        assert records["next_run_values"]["enforce_budget"] == "true"
+        assert records["next_run_values"]["budget_email"] == "johnm@lsmc.com"
+        assert records["next_run_values"]["heartbeat_email"] == "johnm@lsmc.com"
+        assert records["next_run_values"]["heartbeat_schedule"] == "rate(60 minutes)"
+        assert records["next_run_values"]["heartbeat_scheduler_role_arn"] == ""
+        assert records["resolve_scheduler_role_kwargs"]["preconfigured"] == ""
+        assert records["next_run_values"]["dyec_deploy_key_secret_arn"].endswith(
+            ":secret:dayec/dyec-key"
+        )
+        assert records["next_run_values"]["dyec_deploy_key_policy_arn"].endswith(
+            ":policy/DayECHeadnodeDYECClone"
+        )
+        assert records["next_run_values"]["dayoa_deploy_key_secret_arn"].endswith(
+            ":secret:dayec/dayoa-key"
+        )
+        assert records["next_run_values"]["dayoa_deploy_key_policy_arn"].endswith(
+            ":policy/DayECHeadnodeDayOAClone"
+        )
+        assert records["configure_headnode_kwargs"]["dayoa_deploy_key_region"] == "us-west-2"
+        assert records["configure_headnode_kwargs"]["dyec_deploy_key_region"] == "us-west-2"
+        assert records["configure_headnode_kwargs"]["dyec_deploy_key_secret_arn"].endswith(
+            ":secret:dayec/dyec-key"
+        )
+        assert records["configure_headnode_kwargs"]["dayoa_deploy_key_secret_arn"].endswith(
+            ":secret:dayec/dayoa-key"
+        )
+
+    def test_collects_every_prompt_before_baseline_provisioning(self, tmp_path, monkeypatch):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=True,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            policy_candidates=["arn:policy:existing-a", "arn:policy:existing-b"],
+            config_overrides={
+                "enable_detailed_monitoring": ["PROMPTUSER", "false", ""],
+                "delete_local_root": ["PROMPTUSER", "true", ""],
+                "spot_instance_allocation_strategy": [
+                    "PROMPTUSER",
+                    "price-capacity-optimized",
+                    "",
+                ],
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert {
+            "Enable detailed monitoring",
+            "Delete local root",
+            "Spot allocation strategy",
+        }.issubset(records["prompt_labels"])
+        assert records["prompt_labels"].count("Enter selection number") == 1
+        first_provisioning_index = records["events"].index(("ensure_pcluster_env_stack", None))
+        prompt_indices = [
+            index for index, event in enumerate(records["events"]) if event[0] == "prompt"
+        ]
+        assert prompt_indices
+        assert max(prompt_indices) < first_provisioning_index
+        assert ("Subnets", "pub=subnet-pub  priv=subnet-priv") in records["details"]
+        assert ("Policy", "arn:policy:existing-a") in records["details"]
+        assert records["render_substitutions"]["REGSUB_DETAILED_MONITORING"] == "false"
+        assert records["render_substitutions"]["REGSUB_DELETE_LOCAL_ROOT"] == "true"
+        assert (
+            records["render_substitutions"]["REGSUB_ALLOCATION_STRATEGY"]
+            == "price-capacity-optimized"
+        )
+
     def test_create_output_never_prints_deploy_key_secret_arns(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
             tmp_path,
@@ -2364,7 +2319,9 @@ class TestRunCreateWorkflow:
 
         assert records["rc"] == EXIT_VALIDATION_FAILURE
 
-    def test_disable_budget_enforcement_is_rejected_before_mutation(self, tmp_path, monkeypatch):
+    def test_disable_budget_enforcement_renders_skip_without_budget_project(
+        self, tmp_path, monkeypatch
+    ):
         records = _run_stubbed_create_workflow(
             tmp_path,
             monkeypatch,
@@ -2376,10 +2333,13 @@ class TestRunCreateWorkflow:
             },
         )
 
-        assert records["rc"] == EXIT_VALIDATION_FAILURE
-        assert "cluster_budget_kwargs" not in records
-        assert "create_cluster" not in [event[0] for event in records["events"]]
-        assert any("retired" in failure for failure in records["failures"])
+        assert records["rc"] == EXIT_SUCCESS
+        assert records["cluster_budget_kwargs"]["cluster_name"] == "majors-cluster"
+        substitutions = records["render_substitutions"]
+        assert substitutions["REGSUB_PROJECT"] == "majors-cluster"
+        assert substitutions["REGSUB_ENFORCE_BUDGET"] == '"skip"'
+        assert "budget_project" not in records["next_run_values"]
+        assert records["next_run_values"]["enforce_budget"] == "skip"
 
     def test_spot_warn_threshold_renders_as_custom_action_string_arg(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
@@ -2457,7 +2417,92 @@ class TestRunCreateWorkflow:
         ]:
             assert substitutions[key] == "16"
 
-        assert "next_run_values" not in records
+        next_run_values = records["next_run_values"]
+        for key in [
+            "max_count_8I",
+            "max_count_96I_NVME",
+            "max_count_128I",
+            "max_count_192I",
+            "max_count_384I",
+            "max_count_128I_C",
+            "max_count_128I_M",
+            "max_count_128I_R",
+            "max_count_128I_NVME",
+            "max_count_192I_C",
+            "max_count_192I_M",
+            "max_count_192I_R",
+            "max_count_192I_NVME_C",
+            "max_count_192I_NVME_M",
+            "max_count_192I_NVME_R",
+            "max_count_192I_HUGENVME",
+            "max_count_384I_NVME_C",
+            "max_count_384I_NVME_M",
+            "max_count_384I_NVME_R",
+        ]:
+            assert next_run_values[key] == "16"
+
+    def test_stale_subtype_max_count_cannot_override_broad_user_count(self, tmp_path, monkeypatch):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            config_overrides={
+                "max_count_128I": ["USESETVALUE", "1", "16"],
+                "max_count_128I_C": ["USESETVALUE", "1", "7"],
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        substitutions = records["render_substitutions"]
+        assert substitutions["REGSUB_MAX_COUNT_128I"] == "16"
+        assert substitutions["REGSUB_MAX_COUNT_128I_C"] == "16"
+        assert substitutions["REGSUB_MAX_COUNT_128I_M"] == "16"
+        legacy_warnings = [
+            warning
+            for warning in records["warnings"]
+            if "Ignoring legacy unprompted subtype max-count keys" in warning
+        ]
+        assert len(legacy_warnings) == 1
+        assert "max_count_128I_C" in legacy_warnings[0]
+
+    def test_prompts_only_public_max_counts_and_propagates_each_answer(self, tmp_path, monkeypatch):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=True,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            config_overrides={
+                "max_count_8I": ["PROMPTUSER", "1", ""],
+                "max_count_96I_NVME": ["PROMPTUSER", "1", ""],
+                "max_count_128I": ["PROMPTUSER", "1", ""],
+                "max_count_192I": ["PROMPTUSER", "1", ""],
+                "max_count_384I": ["PROMPTUSER", "1", ""],
+                "max_count_128I_C": ["USESETVALUE", "1", "1"],
+                "max_count_192I_NVME_R": ["USESETVALUE", "1", "1"],
+                "max_count_384I_NVME_R": ["USESETVALUE", "1", "1"],
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        max_count_prompts = [
+            label for label in records["prompt_labels"] if label.startswith("Max ")
+        ]
+        assert max_count_prompts == [
+            "Max 8xlarge count",
+            "Max 96-vCPU local-NVMe count",
+            "Max 128xlarge count",
+            "Max 192xlarge count",
+            "Max 384xlarge count",
+        ]
+        substitutions = records["render_substitutions"]
+        assert substitutions["REGSUB_MAX_COUNT_8I"] == "8"
+        assert substitutions["REGSUB_MAX_COUNT_96I_NVME"] == "9"
+        assert substitutions["REGSUB_MAX_COUNT_128I_C"] == "12"
+        assert substitutions["REGSUB_MAX_COUNT_192I_NVME_R"] == "19"
+        assert substitutions["REGSUB_MAX_COUNT_384I_NVME_R"] == "38"
 
     def test_prints_idle_cost_and_connection_command(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
@@ -2508,6 +2553,55 @@ class TestRunCreateWorkflow:
             "...fin!",
         ]
         assert records["subprocess_calls"] == [["/bin/sh", "-lc", "command -v say >/dev/null 2>&1"]]
+
+    def test_initial_create_ignores_legacy_accounting_config_and_renders_without_it(
+        self, tmp_path, monkeypatch
+    ):
+        monkeypatch.setattr(
+            aws_slurm_accounting,
+            "ensure_slurm_accounting_db",
+            lambda *_args, **_kwargs: pytest.fail(
+                "default create must not resolve Slurm accounting"
+            ),
+        )
+
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            config_overrides={
+                "slurm_accounting_enabled": ["USESETVALUE", "", "true"],
+                "slurm_accounting_create_db": ["USESETVALUE", "", "true"],
+                "slurm_accounting_stack_name": [
+                    "USESETVALUE",
+                    "",
+                    "legacy-stack-must-be-ignored",
+                ],
+                "slurm_accounting_database_name": [
+                    "USESETVALUE",
+                    "",
+                    "legacy-database-must-be-ignored",
+                ],
+                "slurm_accounting_db_username": [
+                    "USESETVALUE",
+                    "",
+                    "legacy-user-must-be-ignored",
+                ],
+                "slurm_accounting_instance_type": [
+                    "USESETVALUE",
+                    "",
+                    "legacy-instance-must-be-ignored",
+                ],
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert not any(key.startswith("slurm_accounting_") for key in records["next_run_values"])
+        assert records["render_substitutions"]["REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING"] == ""
+        assert records["render_substitutions"]["REGSUB_SLURM_ACCOUNTING_DATABASE"] == ""
+        assert not any(key.startswith("Accounting ") for key, _value in records["details"])
 
     def test_base_state_is_persisted_before_postcreate_accounting(self, tmp_path, monkeypatch):
         from daylily_ec.workflow.postcreate_slurm_accounting import (
@@ -2573,20 +2667,24 @@ class TestRunCreateWorkflow:
 
         assert records["rc"] == EXIT_AWS_FAILURE
         assert "Accounting:[/] WARNING" in records["error_panel"][1]
-        assert records["error_panel"][0] == ("CLUSTER BASE CREATED · SLURM ACCOUNTING FAILED")
+        assert records["error_panel"][0] == (
+            "CLUSTER BASE CREATED · SLURM ACCOUNTING FAILED"
+        )
 
     @pytest.mark.parametrize(
-        "outcome,stage,recovery_required",
+        "mode,outcome,stage,recovery_required",
         [
-            ("ENABLED", "complete", False),
-            ("WARNING", "verification", False),
-            ("RECOVERY REQUIRED", "update_wait", True),
+            ("off", "OFF", "off", False),
+            ("on", "ENABLED", "complete", False),
+            ("on", "WARNING", "verification", False),
+            ("on", "RECOVERY REQUIRED", "update_wait", True),
         ],
     )
     def test_final_panel_distinguishes_accounting_outcomes(
         self,
         tmp_path,
         monkeypatch,
+        mode,
         outcome,
         stage,
         recovery_required,
@@ -2596,15 +2694,13 @@ class TestRunCreateWorkflow:
         )
 
         result = PostCreateSlurmAccountingResult(
-            requested_mode="on",
+            requested_mode=mode,
             outcome=outcome,
             create_approval_flag=False,
             cost_acknowledgement_flag=False,
             stage_reached=stage,
             terminal_cluster_state=(
-                "UPDATE_COMPLETE"
-                if outcome == "ENABLED"
-                else ("UPDATE_ROLLBACK_FAILED" if recovery_required else "CREATE_COMPLETE")
+                "UPDATE_ROLLBACK_FAILED" if recovery_required else "CREATE_COMPLETE"
             ),
             terminal_fleet_state=("STOPPED" if recovery_required else "RUNNING"),
             error_stage=(stage if outcome in {"WARNING", "RECOVERY REQUIRED"} else ""),
@@ -2616,10 +2712,13 @@ class TestRunCreateWorkflow:
             interactive=False,
             head_node_ip="54.1.2.3",
             say_available=False,
+            run_kwargs={"slurm_accounting": mode},
             postcreate_result=result,
         )
 
-        expected_rc = EXIT_AWS_FAILURE if outcome != "ENABLED" else EXIT_SUCCESS
+        expected_rc = (
+            EXIT_AWS_FAILURE if mode == "on" and outcome != "ENABLED" else EXIT_SUCCESS
+        )
         panel_key = "error_panel" if expected_rc == EXIT_AWS_FAILURE else "success_panel"
         assert records["rc"] == expected_rc
         assert f"Accounting:[/] {outcome}" in records[panel_key][1]
@@ -3505,13 +3604,6 @@ def _build_workflow_config(
         "cluster_template_yaml": ["USESETVALUE", "", str(template_path)],
         "fsx_deployment_type": ["USESETVALUE", "", "SCRATCH_2"],
         "fsx_fs_size": ["USESETVALUE", "", "2400"],
-        "fsx_throughput_mbps_per_tib": ["USESETVALUE", "", "500"],
-        "fsx_lustre_version": ["USESETVALUE", "", "2.15"],
-        "fsx_metadata_mode": ["USESETVALUE", "", "AUTOMATIC"],
-        "fsx_encryption_mode": ["USESETVALUE", "", "AWS_MANAGED_FSX"],
-        "fsx_owner": ["USESETVALUE", "", "DYEC"],
-        "fsx_lifecycle": ["USESETVALUE", "", "CLUSTER_BOUND"],
-        "sweep_protection_tag": ["USESETVALUE", "", "dyec-preserve=true"],
         "enable_detailed_monitoring": ["USESETVALUE", "", "false"],
         "delete_local_root": ["USESETVALUE", "", "false"],
         "enforce_budget": ["USESETVALUE", "", "true"],
@@ -3521,24 +3613,18 @@ def _build_workflow_config(
             "capacity-optimized",
         ],
         "headnode_instance_type": ["USESETVALUE", "", "r7i.2xlarge"],
-        "budget_email": ["USESETVALUE", "", "johnm@lsmc.com"],
-        "budget_amount": ["USESETVALUE", "", "200"],
-        "global_budget_amount": ["USESETVALUE", "", "200"],
-        "allowed_budget_users": ["USESETVALUE", "", "root"],
-        "global_allowed_budget_users": ["USESETVALUE", "", "root"],
+        "budget_email": ["PROMPTUSER", "johnm@lsmc.com", ""],
+        "budget_amount": ["PROMPTUSER", "200", ""],
+        "global_budget_amount": ["PROMPTUSER", "200", ""],
+        "allowed_budget_users": ["PROMPTUSER", "root", ""],
         "cost_center_name": ["USESETVALUE", "", "project-a"],
         "cost_center_monthly_cap_usd": ["USESETVALUE", "", "200"],
         "cost_center_allowed_users": ["USESETVALUE", "", "ubuntu"],
-        "heartbeat_email": ["USESETVALUE", "", "johnm@lsmc.com"],
-        "heartbeat_schedule": ["USESETVALUE", "", "rate(60 minutes)"],
-        "heartbeat_scheduler_role_arn": ["USESETVALUE", "", ""],
-        "public_subnet_id": ["USESETVALUE", "", "subnet-explicit-pub"],
-        "private_subnet_id": ["USESETVALUE", "", "subnet-explicit-priv"],
-        "iam_policy_arn": [
-            "USESETVALUE",
-            "",
-            "arn:aws:iam::123456789012:policy/DayEC",
-        ],
+        "heartbeat_email": ["PROMPTUSER", "johnm@lsmc.com", ""],
+        "heartbeat_schedule": ["PROMPTUSER", "rate(60 minutes)", ""],
+        "heartbeat_scheduler_role_arn": ["PROMPTUSER", "", ""],
+        "slurm_accounting_enabled": ["USESETVALUE", "", "false"],
+        "slurm_accounting_create_db": ["USESETVALUE", "", "false"],
         "dyec_deploy_key_secret_arn": [
             "USESETVALUE",
             "",
@@ -3582,7 +3668,6 @@ def _run_stubbed_create_workflow(
     config_overrides: dict[str, list[str]] | None = None,
     run_kwargs: dict[str, object] | None = None,
     regional_clusters: list[dict[str, str]] | None = None,
-    regional_cluster_snapshots: list[list[dict[str, str]]] | None = None,
     regional_cluster_list_result: object | None = None,
     postcreate_result: object | None = None,
     policy_candidates: list[str] | None = None,
@@ -3612,8 +3697,6 @@ HeadNode:
     RootVolume:
       Size: 421
       VolumeType: gp3
-  Iam:
-    AdditionalIamPolicies: []
 """.lstrip(),
         encoding="utf-8",
     )
@@ -3634,79 +3717,6 @@ HeadNode:
     config_dir.mkdir()
     records["config_dir"] = config_dir
     cfg = _build_workflow_config(template_path, config_overrides=config_overrides)
-    from daylily_ec import __version__ as dyec_version
-    from daylily_ec.config.models import REQUIRED_CONFIG_KEYS
-    from daylily_ec.workflow.create_request import (
-        CREATE_REQUEST_METADATA_KEYS,
-        CREATE_REQUEST_OVERRIDE_KEYS,
-        CREATE_REQUEST_SCHEMA,
-        REPOSITORY_CREDENTIAL_REFERENCE_KEYS,
-    )
-
-    fallback_values = {
-        "budget_email": "johnm@lsmc.com",
-        "budget_amount": "200",
-        "allowed_budget_users": "root",
-        "global_budget_amount": "200",
-        "global_allowed_budget_users": "root",
-        "heartbeat_email": "johnm@lsmc.com",
-        "heartbeat_schedule": "rate(60 minutes)",
-        "iam_policy_arn": "arn:aws:iam::123456789012:policy/DayEC",
-        "public_subnet_id": "subnet-explicit-pub",
-        "private_subnet_id": "subnet-explicit-priv",
-        "fsx_throughput_mbps_per_tib": "500",
-        "fsx_lustre_version": "2.15",
-        "fsx_metadata_mode": "AUTOMATIC",
-        "fsx_encryption_mode": "AWS_MANAGED_FSX",
-        "fsx_owner": "DYEC",
-        "fsx_lifecycle": "CLUSTER_BOUND",
-        "sweep_protection_tag": "dyec-preserve=true",
-    }
-    request_config: dict[str, list[str]] = {}
-    optional_empty = {
-        "dragen_license_policy_arn",
-        "dragen_license_secret_arn",
-        "heartbeat_scheduler_role_arn",
-        "pcluster_backport_manifest",
-    }
-    for key in REQUIRED_CONFIG_KEYS:
-        triplet = cfg.ephemeral_cluster.config.get(key)
-        value = str(
-            ((triplet.set_value or triplet.default_value) if triplet is not None else "")
-            or fallback_values.get(key, "")
-        )
-        if not value and key not in optional_empty:
-            value = f"explicit-{key.replace('_', '-')}"
-        request_config[key] = ["USESETVALUE", "", value]
-    request_config["cluster_template_yaml"] = ["USESETVALUE", "", str(template_path)]
-    metadata = {
-        "schema_version": CREATE_REQUEST_SCHEMA,
-        "dyec_version": dyec_version,
-        "region_az": "us-west-2d",
-        "cluster_name": request_config["cluster_name"][2],
-        "source_config_identity": "external-file:source.yaml",
-        "source_config_sha256": "1" * 64,
-        "source_template_identity": f"external-file:{template_path.name}",
-        "source_template_sha256": hashlib.sha256(template_path.read_bytes()).hexdigest(),
-        "overrides_file_sha256": "2" * 64,
-        "overrides_sha256": "3" * 64,
-        "override_keys": sorted(CREATE_REQUEST_OVERRIDE_KEYS),
-        "repository_credential_reference_keys": list(REPOSITORY_CREDENTIAL_REFERENCE_KEYS),
-        "repository_credential_references_sha256": "4" * 64,
-    }
-    assert set(metadata) == CREATE_REQUEST_METADATA_KEYS
-    request_path = tmp_path / "config.yaml"
-    request_path.write_text(
-        yaml.safe_dump(
-            {
-                "ephemeral_cluster": {"config": request_config},
-                "dyec_create_request": metadata,
-            },
-            sort_keys=False,
-        ),
-        encoding="utf-8",
-    )
-    request_path.chmod(0o600)
 
     class FakeAWSContext:
         profile = "lsmc"
@@ -3753,7 +3763,6 @@ HeadNode:
             shared_client = FakeSharedClient()
             self._clients = {
                 "ec2": shared_client,
-                "fsx": shared_client,
                 "iam": shared_client,
                 "budgets": shared_client,
                 "dynamodb": shared_client,
@@ -3849,15 +3858,8 @@ HeadNode:
     def fake_echo(message: str):
         records["echoes"].append(message)
 
-    def fake_create_cluster(cluster_name, cluster_config, region, **kwargs):
+    def fake_create_cluster(*_args, **_kwargs):
         records["events"].append(("create_cluster", None))
-        records["provider_create"] = {
-            "cluster_name": cluster_name,
-            "cluster_config": str(cluster_config),
-            "region": region,
-            "kwargs": kwargs,
-            "sha256": hashlib.sha256(Path(cluster_config).read_bytes()).hexdigest(),
-        }
         return SimpleNamespace(success=True, returncode=0, stderr="", message="")
 
     def fake_resolve_scheduler_role(*_args, **kwargs):
@@ -3982,25 +3984,16 @@ HeadNode:
         records["render_run_id"] = run_id
         records["render_template_yaml"] = template_yaml
         records["render_substitutions"] = dict(substitutions)
-        init_template = tmp_path / "init-template.yaml"
-        init_template.write_text(Path(template_yaml).read_text(encoding="utf-8"), encoding="utf-8")
         return (
             str(tmp_path / "cluster.yaml.init"),
-            str(init_template),
+            str(tmp_path / "init-template.yaml"),
         )
 
     monkeypatch.setattr(renderer, "write_init_artifacts", fake_write_init_artifacts)
 
     def fake_apply_spot_prices(_init_template_path, cluster_yaml_path, *_args, **_kwargs):
-        effective_text = Path(_init_template_path).read_text(encoding="utf-8")
-        persistent2_marker = (
-            "# DYEC_TEST_PERSISTENT2_MOUNT\n"
-            if "# DYEC_TEST_PERSISTENT2_MOUNT" in effective_text
-            else ""
-        )
         Path(cluster_yaml_path).write_text(
-            persistent2_marker
-            + """
+            """
 Region: us-west-2
 HeadNode:
   CustomActions:
@@ -4061,166 +4054,25 @@ SharedStorage:
 
     monkeypatch.setattr(spot_pricing, "apply_spot_prices", fake_apply_spot_prices)
 
-    import daylily_ec.aws.fsx_persistent2 as persistent2_module
-
-    def fake_ensure_persistent2_resources(*_args, **_kwargs):
-        records["events"].append(("ensure_persistent2_resources", None))
-        return persistent2_module.Persistent2Resources(
-            file_system_id="fs-test",
-            security_group_id="sg-test",
-            data_repository_association_id="dra-test",
-            subnet_id="subnet-explicit-priv",
-            vpc_id="vpc-explicit-priv",
-        )
-
-    def fake_render_external_mount(path, _resources):
-        records["events"].append(("render_external_mount", None))
-        candidate = Path(path)
-        candidate.write_text(
-            candidate.read_text(encoding="utf-8") + "\n# DYEC_TEST_PERSISTENT2_MOUNT\n",
-            encoding="utf-8",
-        )
-
-    def fake_validate_external_mount(path, _resources):
-        records["events"].append(("validate_external_mount", None))
-        assert "# DYEC_TEST_PERSISTENT2_MOUNT" in Path(path).read_text(encoding="utf-8")
-
-    monkeypatch.setattr(
-        persistent2_module,
-        "ensure_persistent2_resources",
-        fake_ensure_persistent2_resources,
-    )
-    monkeypatch.setattr(
-        persistent2_module,
-        "render_external_mount",
-        fake_render_external_mount,
-    )
-    monkeypatch.setattr(
-        persistent2_module,
-        "validate_external_mount",
-        fake_validate_external_mount,
-    )
-    monkeypatch.setattr(
-        create_cluster_module,
-        "write_resource_receipt",
-        lambda **_kwargs: tmp_path / "persistent2-resource-receipt.json",
-    )
-
-    import daylily_ec.workflow.create_request as create_request_module
-
-    def fake_prepare_create_request(**_kwargs):
-        records["events"].append(("prepare_create_request", None))
-        receipt_path = config_dir / "admission.json"
-        receipt_path.write_text("{}\n", encoding="utf-8")
-        receipt_path.chmod(0o600)
-        return {
-            "receipt_path": str(receipt_path),
-            "receipt_sha256": hashlib.sha256(receipt_path.read_bytes()).hexdigest(),
-        }
-
-    def fake_price_create_input_and_write_receipt(**kwargs):
-        records["events"].append(("final_reprice", None))
-        summary = fake_apply_spot_prices(
-            kwargs["effective_path"],
-            kwargs["priced_path"],
-        )
-        Path(kwargs["summary_path"]).write_text(
-            json.dumps(summary) + "\n",
-            encoding="utf-8",
-        )
-        priced_sha256 = hashlib.sha256(Path(kwargs["priced_path"]).read_bytes()).hexdigest()
-        records["final_pricing"] = {
-            "effective_path": str(kwargs["effective_path"]),
-            "priced_path": str(kwargs["priced_path"]),
-            "sha256": priced_sha256,
-        }
-        receipt_path = Path(kwargs["receipt_path"])
-        receipt_path.write_text("{}\n", encoding="utf-8")
-        receipt_path.chmod(0o600)
-        return summary, {
-            "artifacts": {"priced_cluster": {"sha256": priced_sha256}},
-            "receipt_path": str(receipt_path),
-            "receipt_sha256": hashlib.sha256(receipt_path.read_bytes()).hexdigest(),
-        }
-
-    def fake_write_create_terminal_receipt(**kwargs):
-        receipt_path = Path(kwargs["receipt_path"])
-        receipt_path.write_text("{}\n", encoding="utf-8")
-        receipt_path.chmod(0o600)
-        return {
-            "dyec_version": dyec_version,
-            "captured_at": "2026-08-20T18:05:00Z",
-            "terminal_receipt_path": str(receipt_path),
-            "terminal_receipt_sha256": hashlib.sha256(receipt_path.read_bytes()).hexdigest(),
-        }
-
-    monkeypatch.setattr(
-        create_request_module,
-        "prepare_create_request",
-        fake_prepare_create_request,
-    )
-    monkeypatch.setattr(
-        create_request_module,
-        "price_create_input_and_write_receipt",
-        fake_price_create_input_and_write_receipt,
-    )
-    monkeypatch.setattr(
-        create_request_module,
-        "write_create_terminal_receipt",
-        fake_write_create_terminal_receipt,
-    )
-
     def fake_list_clusters(region: str, **kwargs):
         records["regional_cluster_list_calls"].append((region, kwargs))
-        call_number = len(records["regional_cluster_list_calls"])
-        records["events"].append(("list_clusters", call_number))
         if regional_cluster_list_result is not None:
             return regional_cluster_list_result
-        if regional_cluster_snapshots is not None:
-            if call_number > len(regional_cluster_snapshots):
-                raise AssertionError("regional cluster snapshot sequence was exhausted")
-            clusters = regional_cluster_snapshots[call_number - 1]
-        else:
-            clusters = regional_clusters or []
         return SimpleNamespace(
             success=True,
             returncode=0,
             message="",
-            json_body={"clusters": clusters},
+            json_body={"clusters": regional_clusters or []},
         )
 
     monkeypatch.setattr(pcluster_runner, "list_clusters", fake_list_clusters)
-
-    def fake_dry_run_create(cluster_name, cluster_config, region, **kwargs):
-        records["events"].append(("dry_run_create", None))
-        records["provider_dry_run"] = {
-            "cluster_name": cluster_name,
-            "cluster_config": str(cluster_config),
-            "region": region,
-            "kwargs": kwargs,
-            "sha256": hashlib.sha256(Path(cluster_config).read_bytes()).hexdigest(),
-        }
-        return SimpleNamespace(success=True, message="", stderr="")
-
-    monkeypatch.setattr(pcluster_runner, "dry_run_create", fake_dry_run_create)
+    monkeypatch.setattr(
+        pcluster_runner,
+        "dry_run_create",
+        lambda *_args, **_kwargs: SimpleNamespace(success=True, message="", stderr=""),
+    )
     monkeypatch.setattr(pcluster_runner, "should_break_after_dry_run", lambda: False)
     monkeypatch.setattr(pcluster_runner, "create_cluster", fake_create_cluster)
-    monkeypatch.setattr(
-        pcluster_runner,
-        "describe_cluster",
-        lambda *_args, **_kwargs: SimpleNamespace(
-            success=True,
-            json_body={"clusterStatus": "UPDATE_COMPLETE"},
-        ),
-    )
-    monkeypatch.setattr(
-        pcluster_runner,
-        "describe_compute_fleet",
-        lambda *_args, **_kwargs: SimpleNamespace(
-            success=True,
-            json_body={"status": "RUNNING"},
-        ),
-    )
 
     def fake_wait_for_creation(*_args, **_kwargs):
         records["events"].append(("wait_for_creation", None))
@@ -4306,21 +4158,13 @@ SharedStorage:
             error="skipped",
         ),
     )
-
-    def fake_publish_cluster_boot_config(
-        _s3_client,
-        *,
-        cluster_boot_s3_uri,
-        source_dir,
-    ):
-        records["events"].append(("publish_cluster_boot_config", None))
-        records["boot_config_publishes"].append((cluster_boot_s3_uri, str(source_dir)))
-        return [f"{cluster_boot_s3_uri}/post_install_ubuntu_combined.sh"]
-
     monkeypatch.setattr(
         create_cluster_module,
         "publish_cluster_boot_config",
-        fake_publish_cluster_boot_config,
+        lambda _s3_client, *, cluster_boot_s3_uri, source_dir: (
+            records["boot_config_publishes"].append((cluster_boot_s3_uri, str(source_dir)))
+            or [f"{cluster_boot_s3_uri}/post_install_ubuntu_combined.sh"]
+        ),
     )
 
     import daylily_ec.aws.budgets as budgets
