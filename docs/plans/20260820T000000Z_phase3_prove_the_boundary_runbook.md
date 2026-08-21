@@ -309,6 +309,40 @@ Cluster `dayec-boundary-0820`, us-west-2d, identity `DaylilyBaselineDeploy`
 | SSM agent stayed `Online` | the `AmazonSSMManagedInstanceCore`-derived block was correct |
 | `ec2:CreateFleet` under the boundary | compute node launched, 0 denials in `slurm_resume.log` |
 | Cluster create | 14m 20s |
+| Teardown under the boundary | clean after gap 3 fixed — 0 orphans |
+| Window | 23:25:01Z -> 00:42:32Z (~77 min) |
+
+Final state verified: stack gone, FSx `FileSystemNotFound`, no instances, **0
+roles remaining under `/daylily-pc/`**. Boundary went v1 -> v4; 4 of the 5
+permitted policy versions used, so a fifth iteration would have required pruning.
+
+## Gap 3 — `s3:ListBucketVersions` on ParallelCluster's own bucket — **blocked teardown**
+
+```
+CleanupResourcesS3BucketCustomResource
+  not authorized to perform: s3:ListBucketVersions
+  on arn:aws:s3:::parallelcluster-4da281c1dc024f1c-v1-do-not-delete
+  because no permissions boundary allows the s3:ListBucketVersions action
+```
+
+PC's cleanup Lambda empties PC's **own internal bucket** during stack DELETE. The
+boundary's `DaylilyS3Only` statement scopes S3 to Daylily buckets, which that is
+not. Result: `DELETE_FAILED`, cluster will not tear down, FSx keeps billing.
+
+**This gap breaks the tidy story that boundary failures show up at runtime.** The
+cluster created and ran perfectly, then would not delete — you discover it when
+you are trying to stop paying.
+
+**No capture could have found it.** Both baselines ran with *no boundary in
+force*, so nothing was denied; the call succeeded and was attributed to the
+deployer rather than flagged as a node-plane requirement. Observation reports what
+a principal *did*, never what a *ceiling* would have blocked. That is a fourth
+distinct limit of observe-over-derive, alongside conditional branches that did not
+fire, S3 object-level calls, and CloudTrail-invisible services.
+
+Fixed with a `ParallelClusterInternalBucketCleanup` statement scoped to
+`arn:aws:s3:::parallelcluster-*` — tight despite the unpredictable hash, because
+AWS creates those buckets with a fixed prefix.
 
 ## Gap 1 — `dynamodb:GetItem` on the cost-centre registry
 
