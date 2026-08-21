@@ -213,12 +213,12 @@ Large local payloads are staged through S3 with `--payload-staging-s3-uri`. DYEC
 ### Immutable command shapes
 
 Catalog version 6 requires an exact numeric `--dyec-version` for every public
-catalog action. The `19.0.6` snapshot is immutable; there is no mutable
+catalog action. The `19.0.7` snapshot is immutable; there is no mutable
 `current` alias or implicit catalog selection:
 
 ```bash
-dyec --json catalog list --dyec-version 19.0.6 --type prod
-dyec --json catalog render <command-id> --dyec-version 19.0.6 ...
+dyec --json catalog list --dyec-version 19.0.7 --type prod
+dyec --json catalog render <command-id> --dyec-version 19.0.7 ...
 ```
 
 A build may also declare one-hop, same-build aliases. An alias inherits one
@@ -229,7 +229,7 @@ bases, duplicate IDs, mixed extension/replacement modes, and partial command
 replacements fail catalog validation. Existing catalog APIs return aliases as
 fully resolved `AnalysisCommand` records.
 
-The `19.0.6` catalog targets DayOA `16.0.3`. Public catalog output includes a
+The `19.0.7` catalog targets DayOA `16.0.4`. Public catalog output includes a
 derived `validation_pending` field: `true` means the command now targets a
 different DayOA tag than its retained `validated_version`. It is a visibility
 signal only; it does not relabel older validation receipts or block a launch.
