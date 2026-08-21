@@ -59,6 +59,30 @@ def test_hg002_bjuice_catalog_uses_verified_5x5x_fixture() -> None:
     assert any("f35e79a5601271f6" in note for note in profile.source_notes)
 
 
+def test_inflection_v09_slim_clone_changes_only_the_input_contract() -> None:
+    catalog = load_repository_catalog(SOURCE_CATALOG)
+    full = catalog.get_command("inflection-bjuice-product-v0.9")
+    slim = catalog.get_command("inflection-bjuice-product-v0.9-slim-5x5x-validation")
+
+    assert slim.type == "test"
+    assert slim.validation_pending is True
+    assert slim.validated_version == "unvalidated"
+    assert slim.test_data_profile == "hg002_bjuice_verified_5x5x_fastq"
+    assert slim.manifest_dir_template == "examples/staging/hg002_bjuice_verified_5x5x_fastq"
+    assert slim.requires_run_mount is False
+    assert full.test_data_profile == "hg002_bjuice_v2_full_preval_run_mounts"
+    assert full.requires_run_mount is True
+
+    assert slim.targets == full.targets
+    assert slim.dy_command == full.dy_command
+    assert slim.dryrun_dy_command == full.dryrun_dy_command
+    assert slim.runtime_parameters == full.runtime_parameters
+    assert slim.git_tag == full.git_tag == "16.0.4"
+    assert slim.return_results is False
+    assert "schema" in slim.description
+    assert "identical calls" in slim.description
+
+
 def test_hg002_bjuice_fixture_topology_and_input_identities() -> None:
     manifest = load_manifest_set(FIXTURE_ROOT)
     assert {name: len(rows) for name, rows in manifest.rows.items()} == {

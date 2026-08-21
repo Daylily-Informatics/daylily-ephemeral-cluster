@@ -60,6 +60,7 @@ UNVALIDATED_COMMAND_IDS = {
     "inflection-bjuice-product-v0.2",
     "hiomr2_slim_kitchensink_mega",
     "inflection-bjuice-product-v0.9",
+    "inflection-bjuice-product-v0.9-slim-5x5x-validation",
     "inflection-bjuice-bundle1b-product-v0.9",
     "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega",
     "sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x",
@@ -178,7 +179,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert {command.command_id for command in current_build} == {
         command.command_id for command in catalog.commands()
     }
-    assert len(current_build) == 32
+    assert len(current_build) == 33
     assert {command.git_tag for command in current_build} == {
         DAYOA_BLESSED_TAG,
         ULTIMA_DOWNSAMPLE_DAYOA_TAG,

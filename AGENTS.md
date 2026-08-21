@@ -11,6 +11,20 @@ The detailed rules below are mandatory. When guidance conflicts, follow the
 current instruction hierarchy and the closest applicable safety contract; do not
 invent a fallback or bypass the supported DYEC/DAYOA CLI path.
 
+## Catalog Live-Sweep Protocol
+
+- For a live command-catalog sweep, render and launch each named command with
+  `dyec catalog`, then continue the same successful dry analysis root through
+  `dyec workflow launch --reuse-existing-analysis-dir --input-contract none
+  --no-input-staging --reuse-local-git-ref --reuse-local-git-commit <sha>`.
+  The continued `dy-r` command must differ only by removal of `-n`.
+- Do not use `dyec tests command-catalog` as a live dry-to-live controller: it
+  creates separate warmup, dry, and live analysis IDs. Use only an explicit
+  supplied six-manifest directory; never synthesize or discover a replacement.
+- For each successful lane, record an export visit, complete and verify the
+  detached full-root `dyec export` receipt and S3 evidence before proposing any
+  FSx cleanup. FSx deletion remains a separate exact-root confirmation gate.
+
 # Shell Session Defaults
 
 - Default to an interactive shell for shell work. On this Mac, use the user's default shell unless the user explicitly asks for another shell.
