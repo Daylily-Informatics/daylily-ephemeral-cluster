@@ -12202,7 +12202,7 @@ def register(registry, cli_spec) -> None:
         registry,
         "delete",
         delete,
-        REQUIRED_MUTATING_INTERACTIVE,
+        required_policy(supports_json=True, mutates_state=True, long_running=True),
     )
     register_root_command(
         registry,
