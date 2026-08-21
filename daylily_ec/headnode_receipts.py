@@ -31,6 +31,12 @@ class HeadnodeReceiptError(RuntimeError):
     """Raised for bounded public headnode receipt violations."""
 
 
+def _python_script(body: str) -> str:
+    """Run one static Python receipt body through the supported Bash transport."""
+
+    return "python3 - <<'PY'\n" + body.rstrip() + "\nPY\n"
+
+
 def _positive_pid(value: object, *, field: str) -> int:
     text = str(value or "").strip()
     if not _PID_RE.fullmatch(text):
@@ -105,7 +111,7 @@ def build_scheduler_snapshot_script(*, max_jobs: int, max_nodes: int) -> str:
         raise HeadnodeReceiptError("max_jobs must be between 1 and 500")
     if isinstance(max_nodes, bool) or not isinstance(max_nodes, int) or not 1 <= max_nodes <= 500:
         raise HeadnodeReceiptError("max_nodes must be between 1 and 500")
-    return f"""
+    return _python_script(f"""
 import datetime
 import json
 import subprocess
@@ -159,7 +165,7 @@ else:
                 "max_nodes": MAX_NODES,
             }}
 print(MARKER + json.dumps(payload, sort_keys=True, separators=(",", ":")))
-"""
+""")
 
 
 def build_controller_evidence_script(
@@ -185,7 +191,7 @@ def build_controller_evidence_script(
     if requested_log == requested_dag:
         raise HeadnodeReceiptError("log_file and dag_file must be different exact paths")
     relay_uri = _staging_s3_uri(staging_s3_uri)
-    return f"""
+    return _python_script(f"""
 import base64
 import datetime
 import hashlib
@@ -321,7 +327,7 @@ receipt = {{
     "complete": True,
 }}
 print(MARKER + json.dumps(receipt, sort_keys=True, separators=(",", ":")))
-"""
+""")
 
 
 def _parse_marker(stdout: object, *, marker: str, schema: str) -> dict[str, Any]:
@@ -414,7 +420,7 @@ def parse_staged_controller_evidence(stdout: object) -> dict[str, Any]:
 def build_runtime_identity_script() -> str:
     """Return a bounded remote probe for the installed DYEC package provenance."""
 
-    return f"""
+    return _python_script(f"""
 import importlib.metadata
 import json
 import re
@@ -447,7 +453,7 @@ try:
 except Exception:
     payload = {{"schema_version": SCHEMA, "ok": False, "error": "installed_dyec_provenance_invalid"}}
 print(MARKER + json.dumps(payload, sort_keys=True, separators=(",", ":")))
-"""
+""")
 
 
 def parse_runtime_identity(stdout: object) -> dict[str, Any]:
