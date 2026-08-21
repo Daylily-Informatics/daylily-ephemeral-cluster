@@ -291,3 +291,96 @@ One clean create → scale-up → delete with the boundary enforced, and every
 widening recorded with the denial that motivated it. That list is a direct input
 to Phase 5: anything the boundary needed is something the node plane genuinely
 does, and belongs in the permanent record next to the 32 observed actions.
+
+---
+
+# Phase 3 run record — 2026-08-20
+
+Cluster `dayec-boundary-0820`, us-west-2d, identity `DaylilyBaselineDeploy`
+(over-privileged, deliberately), boundary **enforced**.
+
+## Result: the boundary is sound. Two gaps found and fixed in place.
+
+| Check | Outcome |
+|---|---|
+| Roles created under `/daylily-pc/` | 18 of 18 |
+| All roles carry the boundary | 18 of 18 (verify with `GetRole` — `ListRoles` does **not** return `PermissionsBoundary`) |
+| Head node full boot under the boundary | zero denials |
+| SSM agent stayed `Online` | the `AmazonSSMManagedInstanceCore`-derived block was correct |
+| `ec2:CreateFleet` under the boundary | compute node launched, 0 denials in `slurm_resume.log` |
+| Cluster create | 14m 20s |
+
+## Gap 1 — `dynamodb:GetItem` on the cost-centre registry
+
+```
+not authorized to perform: dynamodb:GetItem on table/dayec-cost-centers
+because no permissions boundary allows the dynamodb:GetItem action
+```
+
+The `sbatch` wrapper reads the cost-centre registry on **every** submission, so
+this denied *all* job submission — no job, no compute node, nothing to observe.
+The boundary scoped DynamoDB to `table/parallelcluster-*`.
+
+Neither baseline capture found it: they recorded `budgets:DescribeBudget` from
+that same code path but not the DynamoDB read behind it.
+
+Fixed by adding `table/dayec-cost-centers` and `table/dayec-cost-center-usage`.
+
+## Gap 2 — `ssm:GetParameter` scoped too tightly
+
+The Inspector agent was denied `ssm:GetParameter`. The boundary allowed it only
+on `parameter/daylily/*`; `AmazonSSMManagedInstanceCore` grants it on `*`,
+because agents read AWS-owned parameters outside any Daylily path.
+
+## R1 confirmed in practice
+
+Both fixes: edit → `terraform apply` → **the new policy version took effect on
+already-running roles**. No cluster recreate, ~2 minutes each. A boundary is
+referenced by ARN and IAM evaluates the current default version, exactly as the
+recovery section claims. Boundary went v1 → v3 during the run.
+
+## Not a boundary problem: Slurm accounting
+
+Post-create ran a cluster **update** to attach Slurm accounting, which failed and
+left the stack `UPDATE_ROLLBACK_COMPLETE` with the fleet stopped
+(`fleet_restored: False`).
+
+```
+fatal: Database schema is from a newer version of Slurm, downgrading is not possible.
+```
+
+`slurmdbd` refused to start against the shared accounting database — its schema
+was written by a newer Slurm than this cluster runs. Nothing listened on 6819,
+`sacctmgr` got connection refused, and the chef recipe
+`aws-parallelcluster-slurm::config_slurm_accounting:85` failed.
+
+The boundary is exonerated: `slurmdbd` reached MariaDB, read the schema and
+rejected it on version — far past any IAM check. Its secret scope
+(`secret:dayec/*`, `AccountingPassword*`) covers accounting fine.
+
+**Two things follow.**
+
+1. **Version skew in shared infrastructure.** Any cluster on the older Slurm can
+   no longer attach to that accounting DB. Not caused by this work; affects
+   others.
+2. **18.0.17 defaults `--slurm-accounting` to `on`**, and the config keys that
+   used to disable it (`slurm_accounting_enabled`) were dropped from the
+   template — so setting them does nothing. The only way off is the CLI flag:
+   ```
+   dyec create ... --slurm-accounting off
+   ```
+   Use it for future capture runs: accounting is not wanted, and its failure
+   stops the fleet and rolls the stack back.
+
+## Recovery actually used
+
+The fleet was left `STOPPED` by the failed update, which reads as
+`sbatch: Required partition not available (inactive or drain)` — a lifecycle
+state, not a permission. Restarted with:
+
+```
+pcluster update-compute-fleet --cluster-name <name> --region us-west-2 --status START_REQUESTED
+```
+
+Worth adding to the recovery section: **a stopped fleet looks like a Slurm
+problem and is not one.**
