@@ -15,7 +15,7 @@ import re
 
 from daylily_ec.config.triplets import load_config
 from daylily_ec.scripts.common import CommandError
-from daylily_ec.state.store import config_dir, load_state_record
+from daylily_ec.state.store import load_state_record
 
 
 _SECRET_ARN_PATTERN = re.compile(
@@ -43,24 +43,6 @@ def _load_state_record(path: Path):
         return load_state_record(candidate), candidate.resolve()
     except Exception as exc:  # noqa: BLE001 - convert persisted-state failures to CLI errors
         raise CommandError(f"Unable to read headnode state file {candidate}: {exc}") from exc
-
-
-def _latest_state_for_cluster(cluster_name: str):
-    matches: list[tuple[str, Path, object]] = []
-    for candidate in sorted(config_dir().glob("state_*.json")):
-        try:
-            record, resolved_path = _load_state_record(candidate)
-        except CommandError:
-            continue
-        if record.cluster_name == cluster_name:
-            matches.append((record.run_id, resolved_path, record))
-    if not matches:
-        raise CommandError(
-            "No usable local create-state record was found for cluster "
-            f"'{cluster_name}'. Supply --state-file or both exact deploy-key options."
-        )
-    _run_id, state_path, record = sorted(matches, key=lambda item: (item[0], str(item[1])))[-1]
-    return record, state_path
 
 
 def _validate_secret_arn(value: str, *, field: str, region: str) -> str:
@@ -94,10 +76,9 @@ def resolve_headnode_deploy_key_inputs(
 ) -> HeadnodeDeployKeyInputs:
     """Resolve either both direct key references or the exact create-state config.
 
-    Direct inputs are deliberately all-or-nothing.  With neither supplied,
-    this uses the newest local create-state record for the selected cluster,
-    or an explicit ``--state-file`` when provided.  It never combines values
-    from those two authority sources.
+    Direct inputs are deliberately all-or-nothing. Operators must provide an
+    explicit ``--state-file`` or both direct key references. It never discovers
+    a newest state record or combines values from those two authority sources.
     """
 
     dyec_value = dyec_deploy_key_secret_arn.strip()
@@ -126,11 +107,13 @@ def resolve_headnode_deploy_key_inputs(
             source="explicit-options",
         )
 
-    record, resolved_state_path = (
-        _load_state_record(state_file)
-        if state_file is not None
-        else _latest_state_for_cluster(cluster_name)
-    )
+    if state_file is None:
+        raise CommandError(
+            "Supply an exact --state-file or both exact deploy-key options; "
+            "automatic state discovery is not allowed."
+        )
+
+    record, resolved_state_path = _load_state_record(state_file)
     if record.cluster_name != cluster_name:
         raise CommandError(
             f"Headnode state {resolved_state_path} belongs to cluster "

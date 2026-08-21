@@ -4620,6 +4620,19 @@ def configure_headnode(
     from daylily_ec.resources import resource_path
     from daylily_ec.versioning import get_release_version
 
+    def log_step_failure(label: str, exc: Exception) -> None:
+        """Log bounded remote evidence when an SSM-backed configure step fails."""
+        logger.error("  ✗ %s failed: %s", label, exc)
+        if not isinstance(exc, SsmCommandFailedError):
+            return
+        for stream_name, content in (("stderr", exc.result.stderr), ("stdout", exc.result.stdout)):
+            rendered = content.strip()
+            if not rendered:
+                continue
+            if len(rendered) > 4_000:
+                rendered = "[truncated to final 4000 characters]\n" + rendered[-4_000:]
+            logger.error("    remote %s:\n%s", stream_name, rendered)
+
     repo_name = "daylily-ephemeral-cluster"
     try:
         expected_dyec_version = get_release_version()
@@ -4934,7 +4947,7 @@ def configure_headnode(
             )
             logger.info("  ✓ %s", label)
         except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
-            logger.error("  ✗ %s failed: %s", label, exc)
+            log_step_failure(label, exc)
             return False
 
     expected_version_line = f"Daylily Ephemeral Cluster {expected_dyec_version}"

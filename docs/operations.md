@@ -36,6 +36,7 @@ dyec headnode configure \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
+  --state-file "$DYEC_STATE_FILE" \
   --dyec-deploy-key-secret-arn "$DYEC_DEPLOY_KEY_SECRET_ARN" \
   --dayoa-deploy-key-secret-arn "$DAYOA_DEPLOY_KEY_SECRET_ARN"
 ```
@@ -55,6 +56,7 @@ dyec headnode configure \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
+  --state-file "$DYEC_STATE_FILE" \
   --dyec-deploy-key-secret-arn "$DYEC_DEPLOY_KEY_SECRET_ARN" \
   --dayoa-deploy-key-secret-arn "$DAYOA_DEPLOY_KEY_SECRET_ARN" \
   --github-token-secret-arn "$GITHUB_TOKEN_SECRET_ARN"

@@ -3308,7 +3308,7 @@ def test_headnode_configure_has_no_version_override() -> None:
 
 
 @pytest.mark.parametrize("command", ("configure", "configure-dragen"))
-def test_headnode_configure_requires_both_deploy_key_references(command: str) -> None:
+def test_headnode_configure_requires_an_explicit_credential_authority(command: str) -> None:
     base = [
         "headnode",
         command,
@@ -3320,9 +3320,10 @@ def test_headnode_configure_requires_both_deploy_key_references(command: str) ->
         "cluster-a",
     ]
 
-    missing_dyec = runner.invoke(app, base)
-    assert missing_dyec.exit_code == 2
-    assert "--dyec-deploy-key-secret-arn" in missing_dyec.output
+    missing_authority = runner.invoke(app, base)
+    assert missing_authority.exit_code == 2
+    assert "--state-file" in missing_authority.output
+    assert "automatic state discovery is not allowed" in missing_authority.output
 
     missing_dayoa = runner.invoke(
         app,

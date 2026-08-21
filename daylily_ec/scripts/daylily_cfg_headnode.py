@@ -51,7 +51,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--state-file",
         help=(
             "Exact local DYEC create-state JSON to use for deploy-key references "
-            "(defaults to the newest state for --cluster)"
+            "(required unless both exact deploy-key options are supplied)"
         ),
     )
     parser.add_argument(

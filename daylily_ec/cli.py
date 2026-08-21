@@ -6606,7 +6606,7 @@ def headnode_configure(
         "--state-file",
         help=(
             "Exact local DYEC create-state JSON to use for deploy-key references. "
-            "Defaults to the newest state for --cluster."
+            "Required unless both exact deploy-key options are supplied."
         ),
     ),
     dyec_deploy_key_secret_arn: str = typer.Option(
@@ -6686,7 +6686,7 @@ def headnode_configure_dragen(
         "--state-file",
         help=(
             "Exact local DYEC create-state JSON to use for deploy-key references. "
-            "Defaults to the newest state for --cluster."
+            "Required unless both exact deploy-key options are supplied."
         ),
     ),
     dyec_deploy_key_secret_arn: str = typer.Option(

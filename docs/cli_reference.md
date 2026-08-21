@@ -733,15 +733,15 @@ Configure/repair the headnode:
 dyec headnode configure \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER"
+  --cluster "$CLUSTER" \
+  --state-file "$DYEC_STATE_FILE"
 ```
 
-The default credential authority is the newest local DYEC create-state record for
-`$CLUSTER`. Its exact saved next-run config supplies both deploy-key references. Use
-`--state-file <state.json>` when the intended cluster generation is not the newest one.
-The two direct deploy-key options are an all-or-nothing recovery override; a partial pair,
-mixed state/direct inputs, malformed state, missing config, wrong cluster, or wrong region
-fails before an SSM command is sent.
+Credential authority must be explicit. Supply `--state-file <state.json>`; its exact saved
+next-run config supplies both deploy-key references. The two direct deploy-key options are
+an all-or-nothing recovery override. A missing authority source, partial pair, mixed
+state/direct inputs, malformed state, missing config, wrong cluster, or wrong region fails
+before an SSM command is sent.
 
 Run this after a DYEC upgrade when the headnode is missing new commands such as `dyec analysis status`, `dyec headnode run`, or current `dy-r` analysis-lock support.
 
