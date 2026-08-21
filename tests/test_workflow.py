@@ -2205,6 +2205,7 @@ class TestRunCreateWorkflow:
         assert records["cost_center_kwargs"]["name"] == "bjuice"
         assert records["cost_center_kwargs"]["monthly_cap_usd"] == "200"
         assert records["cost_center_kwargs"]["allowed_users"] == ("ubuntu",)
+        assert records["cost_center_kwargs"]["owner_emails"] == ("johnm@lsmc.com",)
         assert records["heartbeat_kwargs"]["email"] == "johnm@lsmc.com"
         assert records["heartbeat_kwargs"]["schedule_expression"] == "rate(60 minutes)"
         assert "budget_project" not in records["next_run_values"]
@@ -2234,6 +2235,25 @@ class TestRunCreateWorkflow:
         assert records["configure_headnode_kwargs"]["dayoa_deploy_key_secret_arn"].endswith(
             ":secret:dayec/dayoa-key"
         )
+
+    def test_noninteractive_create_uses_budget_email_as_cost_center_owner(
+        self, tmp_path, monkeypatch
+    ):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            config_overrides={
+                "budget_email": ["USESETVALUE", "", "owner@example.org"],
+                "cost_center_name": ["USESETVALUE", "", "p-19012-ccenter"],
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert records["prompt_labels"] == []
+        assert records["cost_center_kwargs"]["owner_emails"] == ("owner@example.org",)
 
     def test_collects_every_prompt_before_baseline_provisioning(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(

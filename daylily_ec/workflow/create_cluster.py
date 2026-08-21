@@ -3629,6 +3629,7 @@ def run_create_workflow(
                     for value in post_create_inputs.cost_center_allowed_users.split(",")
                     if value.strip()
                 ),
+                owner_emails=(post_create_inputs.budget_email,),
                 notes=f"Provisioned by dyec create for cluster {cluster_name}.",
                 actor_arn=aws_ctx.caller_arn,
                 table_name=DEFAULT_COST_CENTER_TABLE,
