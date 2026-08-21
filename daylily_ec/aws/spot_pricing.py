@@ -140,27 +140,33 @@ def get_fresh_spot_price_observation(
         raise RuntimeError(
             f"Spot price lookup returned an invalid numeric observation for {instance_type}."
         )
-    observed = row.get("Timestamp")
-    if isinstance(observed, str):
+    # EC2 returns the current price when StartTime is omitted, while Timestamp
+    # identifies when that unchanged price became effective rather than when
+    # this live lookup observed it.
+    provider_effective = row.get("Timestamp")
+    if isinstance(provider_effective, str):
         try:
-            observed = datetime.fromisoformat(observed.replace("Z", "+00:00"))
+            provider_effective = datetime.fromisoformat(
+                provider_effective.replace("Z", "+00:00")
+            )
         except ValueError as exc:
             raise RuntimeError("Spot price observation timestamp is invalid.") from exc
-    if not isinstance(observed, datetime) or observed.tzinfo is None:
+    if not isinstance(provider_effective, datetime) or provider_effective.tzinfo is None:
         raise RuntimeError("Spot price observation is missing a timezone-aware timestamp.")
-    observed_utc = observed.astimezone(timezone.utc)
+    provider_effective_utc = provider_effective.astimezone(timezone.utc)
     captured_utc = now.astimezone(timezone.utc)
-    age_seconds = (captured_utc - observed_utc).total_seconds()
-    if age_seconds < -MAX_SPOT_OBSERVATION_FUTURE_SKEW_SECONDS:
+    provider_age_seconds = (captured_utc - provider_effective_utc).total_seconds()
+    if provider_age_seconds < -MAX_SPOT_OBSERVATION_FUTURE_SKEW_SECONDS:
         raise RuntimeError("Spot price observation timestamp is too far in the future.")
-    if age_seconds > MAX_SPOT_OBSERVATION_AGE_SECONDS:
-        raise RuntimeError("Spot price observation is older than the approved freshness bound.")
     return {
         "instance_type": instance_type,
         "product_description": product_description,
         "price": price,
-        "observed_at": observed_utc.isoformat().replace("+00:00", "Z"),
-        "age_seconds": round(age_seconds, 3),
+        "observed_at": captured_utc.isoformat().replace("+00:00", "Z"),
+        "age_seconds": 0.0,
+        "provider_effective_at": provider_effective_utc.isoformat().replace(
+            "+00:00", "Z"
+        ),
     }
 
 

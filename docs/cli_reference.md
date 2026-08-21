@@ -155,7 +155,15 @@ dyec create \
 ```
 
 That command resolves the shipped/default config and owns the complete create
-workflow. An explicit config is still supported when desired:
+workflow. Spot bids are calculated from live EC2 `DescribeSpotPriceHistory`
+calls during every create; saved summaries and previous bids are evidence only
+and are never reused. AWS can retain a current Spot price without changing it
+for longer than an hour, so DYEC records the live query capture as
+`observed_at` and the AWS price-effective timestamp separately as
+`provider_effective_at`. It does not reject a current live response merely
+because that provider-effective timestamp is old.
+
+An explicit config is still supported when desired:
 
 ```bash
 dyec create \

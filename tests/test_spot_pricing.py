@@ -131,12 +131,14 @@ class TestGetSpotPrice:
 
 
 class TestFreshSpotPriceObservation:
-    def test_preserves_provider_timestamp_and_age(self) -> None:
+    def test_records_live_capture_and_provider_effective_time(self) -> None:
         captured_at = datetime(2026, 8, 20, 18, 5, tzinfo=timezone.utc)
-        observed_at = captured_at - timedelta(seconds=90)
+        provider_effective_at = captured_at - timedelta(seconds=90)
         ec2 = MagicMock()
         ec2.describe_spot_price_history.return_value = {
-            "SpotPriceHistory": [{"SpotPrice": "1.25", "Timestamp": observed_at}]
+            "SpotPriceHistory": [
+                {"SpotPrice": "1.25", "Timestamp": provider_effective_at}
+            ]
         }
 
         result = get_fresh_spot_price_observation(
@@ -146,27 +148,43 @@ class TestFreshSpotPriceObservation:
             captured_at=captured_at,
         )
 
-        assert result["observed_at"] == "2026-08-20T18:03:30Z"
-        assert result["age_seconds"] == 90.0
+        assert result["observed_at"] == "2026-08-20T18:05:00Z"
+        assert result["age_seconds"] == 0.0
+        assert result["provider_effective_at"] == "2026-08-20T18:03:30Z"
 
-    @pytest.mark.parametrize(
-        ("offset", "message"),
-        [
-            (timedelta(seconds=-3601), "older than"),
-            (timedelta(seconds=301), "future"),
-        ],
-    )
-    def test_rejects_stale_or_future_observation(
-        self,
-        offset: timedelta,
-        message: str,
-    ) -> None:
+    def test_accepts_long_lived_current_price(self) -> None:
+        captured_at = datetime(2026, 8, 20, 18, 5, tzinfo=timezone.utc)
+        provider_effective_at = captured_at - timedelta(days=30)
+        ec2 = MagicMock()
+        ec2.describe_spot_price_history.return_value = {
+            "SpotPriceHistory": [
+                {"SpotPrice": "1.25", "Timestamp": provider_effective_at}
+            ]
+        }
+
+        result = get_fresh_spot_price_observation(
+            ec2,
+            "r7i.2xlarge",
+            "us-west-2d",
+            captured_at=captured_at,
+        )
+
+        assert result["observed_at"] == "2026-08-20T18:05:00Z"
+        assert result["age_seconds"] == 0.0
+        assert result["provider_effective_at"] == "2026-07-21T18:05:00Z"
+
+    def test_rejects_future_provider_effective_time(self) -> None:
         captured_at = datetime(2026, 8, 20, 18, 5, tzinfo=timezone.utc)
         ec2 = MagicMock()
         ec2.describe_spot_price_history.return_value = {
-            "SpotPriceHistory": [{"SpotPrice": "1.25", "Timestamp": captured_at + offset}]
+            "SpotPriceHistory": [
+                {
+                    "SpotPrice": "1.25",
+                    "Timestamp": captured_at + timedelta(seconds=301),
+                }
+            ]
         }
-        with pytest.raises(RuntimeError, match=message):
+        with pytest.raises(RuntimeError, match="future"):
             get_fresh_spot_price_observation(
                 ec2,
                 "r7i.2xlarge",
