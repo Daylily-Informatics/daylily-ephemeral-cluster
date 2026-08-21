@@ -7566,6 +7566,14 @@ def workflow_launch(
         "--manifest-dir",
         help="Local directory containing exactly the six DayOA 13 manifests.",
     ),
+    runtime_config_file: Optional[Path] = typer.Option(
+        None,
+        "--runtime-config-file",
+        help=(
+            "Explicit UTF-8 YAML staged only as config/dyec_runtime_config.yaml with "
+            "a six-manifest launch."
+        ),
+    ),
     payload_staging_s3_uri: Optional[str] = typer.Option(
         None,
         "--payload-staging-s3-uri",
@@ -7835,6 +7843,7 @@ def workflow_launch(
             (
                 stage_dir,
                 manifest_dir,
+                runtime_config_file,
                 run_context_file,
                 specimens_file,
                 samples_file,
@@ -7938,6 +7947,17 @@ def workflow_launch(
             "six_manifest workflow launch requires --manifest-dir",
             param_hint="--manifest-dir",
         )
+    if runtime_config_file is not None:
+        if input_contract != "six_manifest" or not input_staging:
+            raise typer.BadParameter(
+                "--runtime-config-file requires staged --input-contract six_manifest",
+                param_hint="--runtime-config-file",
+            )
+        if not runtime_config_file.expanduser().is_file():
+            raise typer.BadParameter(
+                f"Runtime config file not found: {runtime_config_file.expanduser()}",
+                param_hint="--runtime-config-file",
+            )
     producer_option_values: dict[str, str] = {}
     for flag, value in (
         ("--produce-analysis-artifact-manifest", produce_analysis_artifact_manifest),
@@ -7973,6 +7993,10 @@ def workflow_launch(
         ("--cluster", cluster),
         ("--stage-dir", stage_dir),
         ("--manifest-dir", str(manifest_dir.expanduser()) if manifest_dir else None),
+        (
+            "--runtime-config-file",
+            str(runtime_config_file.expanduser()) if runtime_config_file else None,
+        ),
         ("--payload-staging-s3-uri", payload_staging_s3_uri),
         ("--remote-user", remote_user),
         ("--input-contract", input_contract),
@@ -8292,6 +8316,7 @@ def _catalog_render_payload(
     git_tag: Optional[str],
     stage_dir: Optional[str],
     manifest_dir: Optional[Path],
+    runtime_config_file: Optional[Path],
     payload_staging_s3_uri: Optional[str],
     remote_user: str,
     run_context_file: Optional[Path],
@@ -8334,6 +8359,9 @@ def _catalog_render_payload(
     )
     resolved_cost_center = _resolve_cost_center_option(cost_center)
     manifest_dir_text = str(manifest_dir.expanduser()) if manifest_dir else None
+    runtime_config_file_text = (
+        str(runtime_config_file.expanduser()) if runtime_config_file else None
+    )
     run_context_file_text = str(run_context_file.expanduser()) if run_context_file else None
     specimens_file_text = str(specimens_file.expanduser()) if specimens_file else None
     samples_file_text = str(samples_file.expanduser()) if samples_file else None
@@ -8351,6 +8379,15 @@ def _catalog_render_payload(
         allow_stage_discovery=allow_stage_discovery,
         require_staging_receipt=require_staging_receipt,
     )
+    if command.runtime_config_target and not runtime_config_file_text:
+        raise ValueError(
+            f"{command.command_id} requires --runtime-config-file for "
+            f"{command.runtime_config_target}"
+        )
+    if runtime_config_file_text and not command.runtime_config_target:
+        raise ValueError(
+            f"{command.command_id} does not declare a runtime config staging target"
+        )
     resolved_git_tag = git_tag or command.git_tag
     workflow_argv = command.launch_argv(
         analysis_id=analysis_id,
@@ -8361,6 +8398,7 @@ def _catalog_render_payload(
         cluster=cluster,
         stage_dir=stage_dir,
         manifest_dir=manifest_dir_text,
+        runtime_config_file=runtime_config_file_text,
         run_context_file=run_context_file_text,
         specimens_file=specimens_file_text,
         samples_file=samples_file_text,
@@ -8802,6 +8840,11 @@ def catalog_render(
         "--manifest-dir",
         help="Local directory containing exact six-manifest DayOA inputs.",
     ),
+    runtime_config_file: Optional[Path] = typer.Option(
+        None,
+        "--runtime-config-file",
+        help="Explicit YAML staged to the catalog command's declared in-clone runtime path.",
+    ),
     payload_staging_s3_uri: Optional[str] = typer.Option(
         None,
         "--payload-staging-s3-uri",
@@ -8868,6 +8911,7 @@ def catalog_render(
             git_tag=git_tag,
             stage_dir=stage_dir,
             manifest_dir=manifest_dir,
+            runtime_config_file=runtime_config_file,
             payload_staging_s3_uri=payload_staging_s3_uri,
             remote_user=remote_user,
             run_context_file=run_context_file,
@@ -8936,6 +8980,7 @@ def catalog_launch(
     git_tag: Optional[str] = typer.Option(None, "--git-tag", "-t", help="Override DayOA tag."),
     stage_dir: Optional[str] = typer.Option(None, "--stage-dir"),
     manifest_dir: Optional[Path] = typer.Option(None, "--manifest-dir"),
+    runtime_config_file: Optional[Path] = typer.Option(None, "--runtime-config-file"),
     payload_staging_s3_uri: Optional[str] = typer.Option(
         None,
         "--payload-staging-s3-uri",
@@ -8999,6 +9044,7 @@ def catalog_launch(
             git_tag=git_tag,
             stage_dir=stage_dir,
             manifest_dir=manifest_dir,
+            runtime_config_file=runtime_config_file,
             payload_staging_s3_uri=payload_staging_s3_uri,
             remote_user=remote_user,
             run_context_file=run_context_file,
@@ -9521,6 +9567,9 @@ def _read_workflow_controller_log(
         cluster=cluster,
         session=session,
         run_dir=run_dir,
+        repo_path=None,
+        controller_pid=None,
+        snakemake_log=None,
         remote_user=remote_user,
     )
     repo_text = str(observability.get("repo_path") or "").strip()

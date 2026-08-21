@@ -292,6 +292,15 @@ test_data_profiles:
     source_notes:
     - "Gate 0 must verify the two named Bjuice run mounts and their non-overlapping full-prevalence sources before rendering or launch."
     - "The generated six manifests carry direct mounted FASTQ paths; no run-context discovery, DRA creation, or slim fixture substitution is allowed."
+  bundle1b_full_au_run_mounts:
+    description: "Bundle 1b full analysis-unit Bjuice ILMN and ONT inputs read from the explicitly verified existing run mounts."
+    source_mount_mode: explicit_run_mounts
+    source_s3_uri_template: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/
+    source_fsx_prefix: /fsx/run_dir_mounts/
+    locations: []
+    source_notes:
+    - "Use only the supplied Bundle 1b six-manifest directory and its matching runtime YAML; no sample, read, or analysis-unit discovery is allowed."
+    - "Gate 0 verifies the named 20260629_LH01106_0014_B23WV5HLT4 ILMN and pca100-2026 ONT run mounts before rendering or launch."
   illumina_run_directory:
     description: "Illumina run-directory validation profile for run QC and BCL Convert rows."
     source_mount_mode: run_dra_required
@@ -1617,6 +1626,46 @@ repositories:
       return_results: false
       repository: daylily-omics-analysis
       cost_center_required: true
+    - command_id: inflection-bjuice-bundle1b-product-v0.9
+      type: test
+      validated_version: unvalidated
+      test_data_profile: bundle1b_full_au_run_mounts
+      display_name: Bundle 1b Full-AU Bjuice Product + Analytical Inflection v0.9
+      description: "Bundle 1b's supplied 32-analysis-unit, 64-sequencing-input Bjuice manifest set. This test-only catalog row runs the HIOMR2 kitchen-sink mega target and analytical Inflection packaging from the explicitly supplied ILMN and ONT run mounts. Its runtime YAML is hash-bound and staged only in the clone at config/dyec_runtime_config.yaml; it retains HG002 SNV and SV truth configuration and does not infer truth data for other samples."
+      datasource: Hybrid ILMN+ONT
+      launcher: workflow_launch
+      command_class: sample_analysis
+      input_contract: six_manifest
+      requires_staging: true
+      requires_run_mount: true
+      staging_receipt_required: false
+      cost_center_required: true
+      runtime_config_target: config/dyec_runtime_config.yaml
+      runtime_parameters:
+        ont_fastq_hour_window_mode: per_analysis_unit
+      input_requirements:
+        accepted_source_column_sets:
+        - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_R1_FQ]
+      targets:
+      - produce_sentdhiomr2_slim_kitchensink_mega
+      - produce_sentdhiomr2_inflection_analytical_package
+      genome: hg38
+      jobs: 456
+      keep_going: true
+      restart_times: 1
+      aligners: [sentmm2ont]
+      dedupers: [na]
+      snv_callers: [sentdhiomr2]
+      sv_callers: []
+      dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/dyec_runtime_config.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'ont_fastq_hour_window_mode=per_analysis_unit' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 456 -T 1 -p -k --rerun-triggers mtime"
+      dryrun_dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/dyec_runtime_config.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'ont_fastq_hour_window_mode=per_analysis_unit' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 456 -T 1 -p -k --rerun-triggers mtime -n"
+      compatible_platforms: [ILMN, ONT]
+      compatible_cluster_types: [sentieon-single]
+      compatible_data_modes: [hybrid_ilmn_ont]
+      git_tag: 16.0.3
+      no_containerized: false
+      return_results: false
+      repository: daylily-omics-analysis
     - command_id: sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x
       type: research
       validated_version: "15.0.1"
@@ -6200,6 +6249,48 @@ dyec_builds:
           notes: "Fresh pclu-18045 same-root dry/live controller evidence: dry controller/day-run rc=0; live controller/day-run/Snakemake rc=0. Full-root export task task-06be83f0601a7e82a succeeded, detached dra-08f8548757bfb61f5, preserved FSx, and clone-status-v2 status evidence was re-HEADed. Direct delivery provenance only; the actual execution DayOA tag is retained and does not assert execution at the current 15.0.37 catalog pin."
         repository: daylily-omics-analysis
         cost_center_required: true
+      inflection-bjuice-bundle1b-product-v0.9:
+        command_id: inflection-bjuice-bundle1b-product-v0.9
+        type: test
+        validated_version: unvalidated
+        test_data_profile: bundle1b_full_au_run_mounts
+        display_name: Bundle 1b Full-AU Bjuice Product + Analytical Inflection v0.9
+        description: "Bundle 1b's supplied 32-analysis-unit, 64-sequencing-input Bjuice manifest set. This test-only catalog row runs the HIOMR2 kitchen-sink mega target and analytical Inflection packaging from the explicitly supplied ILMN and ONT run mounts. Its runtime YAML is hash-bound and staged only in the clone at config/dyec_runtime_config.yaml; it retains HG002 SNV and SV truth configuration and does not infer truth data for other samples."
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: true
+        staging_receipt_required: false
+        cost_center_required: true
+        runtime_config_target: config/dyec_runtime_config.yaml
+        runtime_parameters:
+          ont_fastq_hour_window_mode: per_analysis_unit
+        input_requirements:
+          accepted_source_column_sets:
+          - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_R1_FQ]
+        targets:
+        - produce_sentdhiomr2_slim_kitchensink_mega
+        - produce_sentdhiomr2_inflection_analytical_package
+        genome: hg38
+        jobs: 456
+        keep_going: true
+        restart_times: 1
+        aligners: [sentmm2ont]
+        dedupers: [na]
+        snv_callers: [sentdhiomr2]
+        sv_callers: []
+        dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/dyec_runtime_config.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'ont_fastq_hour_window_mode=per_analysis_unit' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 456 -T 1 -p -k --rerun-triggers mtime"
+        dryrun_dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/dyec_runtime_config.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'ont_fastq_hour_window_mode=per_analysis_unit' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 456 -T 1 -p -k --rerun-triggers mtime -n"
+        compatible_platforms: [ILMN, ONT]
+        compatible_cluster_types: [sentieon-single]
+        compatible_data_modes: [hybrid_ilmn_ont]
+        git_tag: 16.0.3
+        no_containerized: false
+        return_results: false
+        validation_runs: []
+        repository: daylily-omics-analysis
       illumina_sentieon_pangenome_kitchensink:
         command_id: illumina_sentieon_pangenome_kitchensink
         type: prod

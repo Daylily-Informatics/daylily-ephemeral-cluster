@@ -573,6 +573,7 @@ class AnalysisCommand(BaseModel):
     requires_run_mount: bool
     staging_receipt_required: bool = False
     cost_center_required: bool = False
+    runtime_config_target: str = ""
     runtime_parameters: Dict[str, Any] = Field(default_factory=dict)
     input_requirements: CommandInputRequirements = Field(default_factory=CommandInputRequirements)
     targets: List[str]
@@ -678,6 +679,18 @@ class AnalysisCommand(BaseModel):
             raise ValueError("manifest template paths must be relative and must not contain '..'")
         return cleaned
 
+    @field_validator("runtime_config_target")
+    @classmethod
+    def _validate_runtime_config_target(cls, value: str) -> str:
+        cleaned = str(value or "").strip()
+        if not cleaned:
+            return ""
+        if cleaned != "config/dyec_runtime_config.yaml":
+            raise ValueError(
+                "runtime_config_target must be exactly config/dyec_runtime_config.yaml"
+            )
+        return cleaned
+
     @field_validator("validation_evidence_s3_uri_prefix")
     @classmethod
     def _validate_validation_evidence_s3_uri_prefix(cls, value: str) -> str:
@@ -695,6 +708,19 @@ class AnalysisCommand(BaseModel):
             raise ValueError("manifest_dir_template requires the six_manifest input contract")
         if self.staging_receipt_required and self.input_contract != "six_manifest":
             raise ValueError("staging_receipt_required requires the six_manifest input contract")
+        if self.runtime_config_target:
+            if self.input_contract != "six_manifest" or not self.requires_staging:
+                raise ValueError(
+                    "runtime_config_target requires a staged six_manifest command"
+                )
+            required_configfile = f"--configfile {self.runtime_config_target}"
+            if (
+                required_configfile not in self.dy_command
+                or required_configfile not in self.dryrun_dy_command
+            ):
+                raise ValueError(
+                    "runtime_config_target must be the exact --configfile path in both commands"
+                )
         if self.sample_manifest_template and self.input_contract == "six_manifest":
             raise ValueError(
                 "six_manifest commands must use manifest_dir_template, not sample_manifest_template"
@@ -797,6 +823,7 @@ class AnalysisCommand(BaseModel):
         samples_file: Optional[str] = None,
         libraries_file: Optional[str] = None,
         units_file: Optional[str] = None,
+        runtime_config_file: Optional[str] = None,
         dry_run: bool = False,
         skip_project_check: bool = True,
         export_destination_s3_uri: Optional[str] = None,
@@ -853,8 +880,15 @@ class AnalysisCommand(BaseModel):
                 raise ValueError(
                     "manifest_dir cannot be combined with legacy stage or manifest arguments"
                 )
+            if self.runtime_config_target and not runtime_config_file:
+                raise ValueError(
+                    f"{self.command_id} requires runtime_config_file for "
+                    f"{self.runtime_config_target}"
+                )
         elif manifest_dir:
             raise ValueError("manifest_dir requires the six_manifest input contract")
+        elif runtime_config_file:
+            raise ValueError("runtime_config_file requires the six_manifest input contract")
         elif self.input_contract == "sample_manifest_v12":
             if units_file:
                 raise ValueError(
@@ -917,6 +951,8 @@ class AnalysisCommand(BaseModel):
         argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
         if self.no_containerized:
             argv.append("--no-containerized")
+        if runtime_config_file:
+            argv.extend(["--runtime-config-file", runtime_config_file])
         if not self.default_activation:
             argv.append("--no-default-activation")
         if self.input_contract == "none":

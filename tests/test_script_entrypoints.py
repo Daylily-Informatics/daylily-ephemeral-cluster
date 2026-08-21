@@ -95,6 +95,7 @@ def _assert_immutable_pinned_dayoa_controller(script: str) -> None:
         "config/analysis_units.tsv",
         "config/analysis_unit_inputs.tsv",
         "config/dyec_manifest_stage_receipt.json",
+        "config/dyec_runtime_config.yaml",
         "config/day_profiles/slurm/.template-source.sha256",
     ):
         assert allowed_path in script

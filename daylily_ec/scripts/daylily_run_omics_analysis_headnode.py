@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import base64
 import gzip
+import hashlib
 import json
 import os
 import posixpath
@@ -593,6 +594,8 @@ def stage_workflow_launch_payload(
     units_content: Optional[str],
     six_manifest_contents: Mapping[str, str],
     six_manifest_receipt: Optional[Mapping[str, object]],
+    runtime_config_content: Optional[str],
+    runtime_config_sha256: Optional[str],
 ) -> str:
     """Upload a workflow launch payload tarball and return its S3 URI."""
 
@@ -619,6 +622,10 @@ def stage_workflow_launch_payload(
             _write_text_payload(payload_root / "inputs" / "units.tsv", units_content)
         for name, content in six_manifest_contents.items():
             _write_text_payload(payload_root / "inputs" / name, content)
+        if runtime_config_content is not None:
+            _write_text_payload(
+                payload_root / "inputs" / "dyec_runtime_config.yaml", runtime_config_content
+            )
         if six_manifest_receipt is not None:
             _write_text_payload(
                 payload_root / "inputs" / "dyec_manifest_stage_receipt.json",
@@ -632,6 +639,14 @@ def stage_workflow_launch_payload(
             "git_tag": args.git_tag,
             "input_contract": args.input_contract,
             "dy_command": args.dy_command,
+            "runtime_config": (
+                {
+                    "target": "config/dyec_runtime_config.yaml",
+                    "sha256": runtime_config_sha256,
+                }
+                if runtime_config_content is not None
+                else None
+            ),
             "files": sorted(
                 str(path.relative_to(payload_root))
                 for path in payload_root.rglob("*")
@@ -667,6 +682,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--manifest-dir",
         help="Local directory containing exactly the six DayOA 13 manifests",
+    )
+    parser.add_argument(
+        "--runtime-config-file",
+        help=(
+            "Explicit YAML staged only as config/dyec_runtime_config.yaml beside a "
+            "six-manifest contract; its SHA-256 is verified in the clone."
+        ),
     )
     parser.add_argument(
         "--payload-staging-s3-uri",
@@ -1042,6 +1064,22 @@ def main(argv: Optional[List[str]] = None) -> int:
     units_content: Optional[str] = None
     six_manifest_contents: dict[str, str] = {}
     six_manifest_receipt: dict[str, object] | None = None
+    runtime_config_content: str | None = None
+    runtime_config_sha256: str | None = None
+    if args.runtime_config_file:
+        if args.input_contract != "six_manifest" or not args.input_staging:
+            raise CommandError(
+                "--runtime-config-file requires staged --input-contract six_manifest."
+            )
+        runtime_config_path = Path(args.runtime_config_file).expanduser()
+        if not runtime_config_path.is_file():
+            raise CommandError(f"Runtime config file not found: {runtime_config_path}")
+        runtime_config_bytes = runtime_config_path.read_bytes()
+        try:
+            runtime_config_content = runtime_config_bytes.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise CommandError("--runtime-config-file must be UTF-8 YAML text") from exc
+        runtime_config_sha256 = hashlib.sha256(runtime_config_bytes).hexdigest()
     if args.run_context_file:
         if not args.input_staging:
             raise CommandError("--run-context-file cannot be used with --no-input-staging.")
@@ -1228,6 +1266,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         if six_manifest_receipt
         else ""
     )
+    runtime_config_payload = shlex.quote(runtime_config_content or "")
+    runtime_config_sha256_literal = shlex.quote(runtime_config_sha256 or "")
     export_destination_literal = shlex.quote(args.export_destination_s3_uri or "")
     delete_on_export_success = "true" if args.delete_on_export_success else "false"
     replace_existing_analysis_dir = "true" if args.replace_existing_analysis_dir else "false"
@@ -1304,6 +1344,8 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	ANALYSIS_UNITS_PAYLOAD={six_manifest_payloads['analysis_units.tsv']}
 	ANALYSIS_UNIT_INPUTS_PAYLOAD={six_manifest_payloads['analysis_unit_inputs.tsv']}
 	SIX_MANIFEST_RECEIPT_PAYLOAD={six_manifest_receipt_payload}
+	RUNTIME_CONFIG_PAYLOAD={runtime_config_payload}
+	RUNTIME_CONFIG_SHA256={runtime_config_sha256_literal}
 	STAGE_SPECIMENS={shlex.quote(stage_specimens_path)}
 	STAGE_SAMPLES={shlex.quote(stage_samples_path)}
 	STAGE_LIBRARIES={shlex.quote(stage_libraries_path)}
@@ -1567,6 +1609,15 @@ mkdir -p "$(dirname "$CONTROLLER_LOG_PATH")" "$(dirname "$CONTROLLER_DAG_PATH")"
 # completion and terminal receipt persistence until those descendants exit.
 exec >> "$CONTROLLER_LOG_PATH" 2>&1
 mkdir -p config
+if [[ -n "$RUNTIME_CONFIG_SHA256" ]]; then
+  printf '%s' "$RUNTIME_CONFIG_PAYLOAD" > config/dyec_runtime_config.yaml
+  observed_runtime_config_sha256="$(sha256sum config/dyec_runtime_config.yaml | awk '{{print $1}}')"
+  if [[ "$observed_runtime_config_sha256" != "$RUNTIME_CONFIG_SHA256" ]]; then
+    echo "[ERROR] staged runtime config SHA-256 mismatch"
+    exit 12
+  fi
+  echo "[INFO] Verified runtime config SHA-256: $observed_runtime_config_sha256"
+fi
 
 extract_runtime_config_path() {{
   local key="$1"
@@ -1842,7 +1893,7 @@ verify_pinned_dayoa_checkout() {{
   # a source-mutation bypass.
   is_allowed_catalog_runtime_path() {{
     case "$1" in
-      .dyec/controller.log|.dyec/status.json.lock|.dyec/status.json.tmp-*|status.json|analysis_artifacts.tsv|artifact_lineage.tsv|pipeline_details.md|pipeline_workflow_planned.mmd|pipeline_workflow_planned.pdf|pipeline_workflow_checkpoint_*.mmd|pipeline_workflow_checkpoint_*.pdf|pipeline_workflow_final_success.mmd|pipeline_workflow_final_success.pdf|pipeline_workflow_final_failed.mmd|pipeline_workflow_final_failed.pdf|config/specimens.tsv|config/samples.tsv|config/libraries.tsv|config/sequencing_inputs.tsv|config/analysis_units.tsv|config/analysis_unit_inputs.tsv|config/dyec_manifest_stage_receipt.json|config/day_profiles/slurm/.template-source.sha256)
+      .dyec/controller.log|.dyec/status.json.lock|.dyec/status.json.tmp-*|status.json|analysis_artifacts.tsv|artifact_lineage.tsv|pipeline_details.md|pipeline_workflow_planned.mmd|pipeline_workflow_planned.pdf|pipeline_workflow_checkpoint_*.mmd|pipeline_workflow_checkpoint_*.pdf|pipeline_workflow_final_success.mmd|pipeline_workflow_final_success.pdf|pipeline_workflow_final_failed.mmd|pipeline_workflow_final_failed.pdf|config/specimens.tsv|config/samples.tsv|config/libraries.tsv|config/sequencing_inputs.tsv|config/analysis_units.tsv|config/analysis_unit_inputs.tsv|config/dyec_manifest_stage_receipt.json|config/dyec_runtime_config.yaml|config/day_profiles/slurm/.template-source.sha256)
         return 0
         ;;
       *)
@@ -2151,6 +2202,8 @@ exec bash -il
             units_content=units_content,
             six_manifest_contents=six_manifest_contents,
             six_manifest_receipt=six_manifest_receipt,
+            runtime_config_content=runtime_config_content,
+            runtime_config_sha256=runtime_config_sha256,
         )
 
     if payload_s3_uri:
