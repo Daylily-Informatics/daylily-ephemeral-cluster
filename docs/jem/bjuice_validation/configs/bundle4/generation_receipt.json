@@ -10923,26 +10923,33 @@
   "crosswalk": "docs/jem/bjuice_validation/sample_crosswalk.tsv",
   "crosswalk_sha256": "860b0d1e82824d46b669be78b3890b8c2a92b2e64488cc023ba886998e4077c9",
   "dayoa": {
-    "requested_commit": "e838b3aedd4a38078f916e4ef3c6fe22d3d8414f",
-    "requested_version": "15.0.22",
+    "requested_commit": "9cd4e43fded97ea57f11f19c164ab1fbe3fa77d4",
+    "requested_version": "15.0.24",
     "targets": [
       "produce_sentdhiomr2_slim_kitchensink_mega",
       "produce_sentdhiomr2_inflection_analytical_package"
     ]
   },
+  "dyec": {
+    "catalog_snapshot": "dyec_builds.18.0.43",
+    "command_contract": "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega",
+    "pinned_dayoa_version": "15.0.24",
+    "release_commit": "7e7e9a1bb0ce9b6989ab31b19e945a83c8a6fcbe",
+    "release_tag_object": "f46b58b6bdae0ccc9a621fb9f5d88ef8feafd6dd",
+    "release_version": "18.0.43"
+  },
   "generated_at": "2026-08-18T11:55:36+00:00",
   "launch_blockers": [
-    "CANONICAL_OWY_OOW_DONE_MISSING",
-    "DYEC_V0_9_CATALOG_DAYOA_VERSION_VALIDATION_PENDING"
+    "CANONICAL_OWY_OOW_DONE_MISSING"
   ],
   "launch_status": "LAUNCH_BLOCKED",
   "logical_run": 4,
   "runtime_yaml": "bjuice_validation_bundle4_hiomr2.yaml",
   "runtime_yaml_sha256": "28e5034f35505f8ccc14e4fef5fc37444ba9ce931f504b119422f58a6644ae9f",
-  "saved_dy_r_command": "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/bjuice_validation_bundle4_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime",
+  "saved_dy_r_command": "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/bjuice_validation_bundle4_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'ont_fastq_hour_window_mode=per_analysis_unit' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 345 -T 1 -p -k --rerun-triggers mtime",
   "schema": "dyec.bjuice_validation_config_generation.v1",
   "source_inventory": "docs/jem/bjuice_validation/source_inventory.json",
-  "source_inventory_sha256": "3943667953917ac4d9292d5f18f8377b574a8ec125f641a6e9dcb06ebff07127",
+  "source_inventory_sha256": "fc81dcd80e8e6c6566c8a2ba3ad3cdbfe26fd9720d9ce84263ee945e67ffc816",
   "source_roots": {
     "ilmn-run4": {
       "excluded_object_counts": {},
@@ -12066,7 +12073,7 @@
     }
   },
   "source_spec": "docs/jem/bjuice_validation/source_spec.json",
-  "source_spec_sha256": "a1ac9dbd0131e00d1d301c3701b0f94aa36380b51b2f5727b9b142b9690c4de9",
+  "source_spec_sha256": "3697302511815ca5761c197e92dddaf01843d225beb7ff85e57bbeb52aa98217",
   "topology": {
     "analysis_unit_count": 31,
     "analysis_unit_input_count": 62,

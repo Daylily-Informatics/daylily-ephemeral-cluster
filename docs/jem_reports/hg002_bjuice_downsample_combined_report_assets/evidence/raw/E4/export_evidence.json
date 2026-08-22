@@ -1,0 +1,22 @@
+{
+  "schema_version": "lsmc.hg002_bjuice_e4_export_evidence.v1",
+  "captured_at_utc": "2026-08-19T08:01:00Z",
+  "analysis_id": "prerel18025-bjuice-v2-hg002-20au-18042-20260818t1255z-live",
+  "fsx_file_system_id": "fs-0b1dadc673c44817f",
+  "fsx_storage_capacity_gib": 12000,
+  "source_path": "/analysis_results/pre-rel-18025/prerel18025-bjuice-v2-hg002-20au-18042-20260818t1255z-live/",
+  "destination_s3_uri": "s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025-bjuice-v2-hg002-20au-18042-20260818t1255z-live/",
+  "dra_id": "dra-039b79323a5aaddf9",
+  "dra_detached": true,
+  "task_id": "task-08e04406a00b92553",
+  "task_type": "EXPORT_TO_REPOSITORY",
+  "task_lifecycle": "SUCCEEDED",
+  "total_count": 78651,
+  "succeeded_count": 78651,
+  "failed_count": 0,
+  "failure_details": null,
+  "delete_data_in_file_system": false,
+  "status_s3_uri": "s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025-bjuice-v2-hg002-20au-18042-20260818t1255z-live/daylily-omics-analysis/status.json",
+  "status_schema_version": "daylily.analysis_status.v2",
+  "status_attempt_count": 5
+}

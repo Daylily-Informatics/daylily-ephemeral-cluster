@@ -15,7 +15,7 @@ hard_vcf_giabhc_del_50_fp_heatmap.png	heatmap	Combined hard-VCF GIAB-HC DEL_50: 
 hard_vcf_giabhc_del_50_precision_recall.png	scatter	Combined hard-VCF GIAB-HC DEL_50: precision versus recall	hard_vcf_giabhc_metrics.tsv	precision versus recall
 truvari_trussv_global_fscore_heatmap.png	heatmap	Combined Truvari tagged TrussSV: global F-score	truvari_metrics.tsv	fscore
 truvari_trussv_gt_concordance_heatmap.png	heatmap	Combined Truvari tagged TrussSV: genotype concordance	truvari_metrics.tsv	gt_concordance
-truvari_all_callers_precision_recall.png	scatter	Structural-variant precision versus recall — all callers	truvari_metrics.tsv	precision versus recall
+truvari_all_callers_precision_recall.png	faceted scatter	Combined Truvari precision versus recall: solo callers and TrussSV	truvari_metrics.tsv	precision versus recall
 segdup_call_heatmap.png	heatmap	SegDup calls at measured native-SR × LR coordinates	segdup_calls.tsv	non-reference record count
 smn12_copy_number_heatmap.png	heatmap	SMN copy-number calls at measured native-SR × LR coordinates	smn12_calls.tsv	SMN1 SMN2 copy number
 benchmark_per_task_walltime.png	small-multiple bar	Per-task walltime by retained observation	benchmark_task_groups.tsv	longest_walltime_s

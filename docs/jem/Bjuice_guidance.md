@@ -1,13 +1,23 @@
 # Bjuice Validation Guidance
 
-Inventory snapshot: `2026-08-18T11:55:36+00:00`  
-Scope: non-prevalence Betelgeuse/Bjuice validation only  
-Configuration state: `CONFIG_COMPLETE`  
-Execution state: `LAUNCH_BLOCKED`  
+Inventory snapshot: `2026-08-18T11:55:36+00:00`
+
+Scope: non-prevalence Betelgeuse/Bjuice validation only
+
+Configuration state: `CONFIG_COMPLETE`
+
+Software baseline: released DYEC `18.0.43`, immutable `dyec_builds.18.0.43`,
+DayOA `15.0.24`
+
+Execution state: `LAUNCH_BLOCKED`
 
 No DayOA controller, dry-run controller, workflow, cluster, DRA, run mount, S3 write,
 OWY repair, release, or cleanup was started while producing this guidance. The commands
 near the end are retained for a future explicitly approved dry run; they were not executed.
+
+The concise Bundle 1a operator handoff, including DRA, run-level SeqQC, control/NTC scope,
+and the current mixed-sample command-catalog blocker, is
+`docs/jem/Bjuice_validation_bundle_handoff.md`.
 
 ## Outcome
 
@@ -241,26 +251,41 @@ Only HG002 receives the separately verified v5.0q SV Truvari VCF/TBI/BED mapping
 contains no verified GIAB sample, so its Truvari truthset map is empty. No truth path is
 invented for another sample.
 
-The five six-manifest sets and runtime YAMLs pass the manifest contract and configuration
-schema read directly from annotated DayOA tag `15.0.22`, peeled commit
-`e838b3aedd4a38078f916e4ef3c6fe22d3d8414f`. That tag contains both exact targets:
+The fixed execution baseline is the released DYEC `18.0.43` tag. Its annotated tag object
+`f46b58b6bdae0ccc9a621fb9f5d88ef8feafd6dd` peels to commit
+`7e7e9a1bb0ce9b6989ab31b19e945a83c8a6fcbe`. The immutable
+`dyec_builds.18.0.43` snapshot pins DayOA `15.0.24`; annotated DayOA tag `15.0.24` peels to
+commit `9cd4e43fded97ea57f11f19c164ab1fbe3fa77d4`.
+
+The five six-manifest sets and runtime YAML overlays pass the manifest contract and Draft 4
+configuration schema read directly from that exact DayOA commit. The released snapshot's
+`bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega` command supplies the
+per-analysis-unit ONT command contract and both exact targets:
 
 - `produce_sentdhiomr2_slim_kitchensink_mega`
 - `produce_sentdhiomr2_inflection_analytical_package`
 
-The Gate 0 DYEC catalog targeted DayOA `15.0.23`; a concurrent unrelated worktree edit later
-advanced the uncommitted catalog target to `15.0.24`. In both observations the direct
-`inflection-bjuice-product-v0.9` entry retained historical `validated_version: 15.0.3`, used
-the HG002-specific overlay, and described only a global ONT slice. Therefore the current
-catalog route is validation-pending and is not substituted for this reviewed DayOA `15.0.22`
-per-AU configuration. The concurrent catalog/test edits were not changed by this work.
+The generated `bjuice_validation_<bundle>_hiomr2.yaml` remains the analysis-specific runtime
+configuration for each mixed-sample bundle. Do not replace it with the catalog command's
+checked-in HG002 overlay, and do not use `inflection-bjuice-product-v0.9`, whose global ONT
+window contract is not this cohort's per-AU `[0,24)` contract. The saved `dy-r` command uses
+the released multi-AU target shape (`-j 345 -T 1 -p -k`) while naming the reviewed bundle
+YAML inside the fresh DayOA `15.0.24` clone.
 
 ## Future dry-run sequence — documented only, not executed
 
 Do not perform even this dry run until all 37 canonical `OOW.done` records are restored or
-the owning OWY operator formally supplies an alternate publication receipt, the exact
-15.0.22-versus-current-catalog version route is reviewed, and every declared mount exists.
-No mount-creation command is included here.
+the owning OWY operator formally supplies an alternate publication receipt, every declared
+mount exists, and a human explicitly authorizes the dry run. The software-version decision
+is no longer open. No mount-creation command is included here.
+
+Before entering the tmux pane, verify the installed release and its immutable command
+contract read-only. Both commands must resolve `18.0.43` and DayOA `15.0.24`:
+
+```bash
+dyec --version
+dyec --json catalog show bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega --dyec-version 18.0.43
+```
 
 For one future bundle, set the variables explicitly and use an interactive Ubuntu login shell
 inside one persistent tmux pane. `BUNDLE_SOURCE` must be the reviewed capsule directory on
@@ -268,6 +293,8 @@ the headnode; it is not an alternate source-data root.
 
 ```bash
 export BUNDLE=bundle1a
+export DYEC_VERSION=18.0.43
+export DAYOA_TAG=15.0.24
 export ANALYSIS_ID=<future-approved-analysis-id>
 export EXECUTING_ENTITY=<future-approved-executing-entity>
 export BUNDLE_SOURCE=<absolute-reviewed-capsule-directory-on-headnode>
@@ -275,13 +302,13 @@ export SESSION=bjuice-validation-${BUNDLE}-dryrun
 
 tmux new-session -d -s "$SESSION" 'bash -il'
 tmux send-keys -t "$SESSION" "dyec analysis lock acquire --analysis-root /fsx/analysis_results/${EXECUTING_ENTITY}/${ANALYSIS_ID} --operation write --intent 'Bjuice validation dry run'" Enter
-tmux send-keys -t "$SESSION" "day-clone -t 15.0.22 -d ${ANALYSIS_ID} --executing-entity ${EXECUTING_ENTITY}" Enter
+tmux send-keys -t "$SESSION" "day-clone -t ${DAYOA_TAG} -d ${ANALYSIS_ID} --executing-entity ${EXECUTING_ENTITY}" Enter
 tmux send-keys -t "$SESSION" "cd /fsx/analysis_results/${EXECUTING_ENTITY}/${ANALYSIS_ID}/daylily-omics-analysis" Enter
 tmux send-keys -t "$SESSION" "cp ${BUNDLE_SOURCE}/specimens.tsv ${BUNDLE_SOURCE}/samples.tsv ${BUNDLE_SOURCE}/libraries.tsv ${BUNDLE_SOURCE}/sequencing_inputs.tsv ${BUNDLE_SOURCE}/analysis_units.tsv ${BUNDLE_SOURCE}/analysis_unit_inputs.tsv config/" Enter
 tmux send-keys -t "$SESSION" "cp ${BUNDLE_SOURCE}/bjuice_validation_${BUNDLE}_hiomr2.yaml config/" Enter
 tmux send-keys -t "$SESSION" 'source dyoainit' Enter
 tmux send-keys -t "$SESSION" 'dy-a slurm hg38' Enter
-tmux send-keys -t "$SESSION" "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/bjuice_validation_${BUNDLE}_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=${ANALYSIS_ID}\" -j 333 -T 0 -p --rerun-triggers mtime -n" Enter
+tmux send-keys -t "$SESSION" "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/bjuice_validation_${BUNDLE}_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'ont_fastq_hour_window_mode=per_analysis_unit' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=${ANALYSIS_ID}\" -j 345 -T 1 -p -k --rerun-triggers mtime -n" Enter
 ```
 
 After the dry controller is terminal, capture its attributable exit code and zero-submission
@@ -312,9 +339,9 @@ inventory is the read-only live evidence snapshot.
 | Artifact | SHA-256 |
 |---|---|
 | Lab workbook `/Users/jmajor/Downloads/Betelgeuse Validation - LAB.xlsx` | `face0fc30a241b87ee02223c3f8117a831a6c16b17233b395ae8a15f4ba8bdd7` |
-| `docs/jem/bjuice_validation/source_spec.json` | `a1ac9dbd0131e00d1d301c3701b0f94aa36380b51b2f5727b9b142b9690c4de9` |
+| `docs/jem/bjuice_validation/source_spec.json` | `3697302511815ca5761c197e92dddaf01843d225beb7ff85e57bbeb52aa98217` |
 | `docs/jem/bjuice_validation/sample_crosswalk.tsv` | `860b0d1e82824d46b669be78b3890b8c2a92b2e64488cc023ba886998e4077c9` |
-| `docs/jem/bjuice_validation/source_inventory.json` | `3943667953917ac4d9292d5f18f8377b574a8ec125f641a6e9dcb06ebff07127` |
+| `docs/jem/bjuice_validation/source_inventory.json` | `fc81dcd80e8e6c6566c8a2ba3ad3cdbfe26fd9720d9ce84263ee945e67ffc816` |
 
 Each `generation_receipt.json` contains the exact six manifest hashes, runtime YAML hash,
 inventory hash, selected source topology, and every exact S3 and projected FSx FASTQ path for

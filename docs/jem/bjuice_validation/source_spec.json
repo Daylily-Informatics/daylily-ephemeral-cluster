@@ -9,9 +9,17 @@
     "profile": "lsmc",
     "region": "us-west-2"
   },
+  "dyec": {
+    "release_version": "18.0.43",
+    "release_tag_object": "f46b58b6bdae0ccc9a621fb9f5d88ef8feafd6dd",
+    "release_commit": "7e7e9a1bb0ce9b6989ab31b19e945a83c8a6fcbe",
+    "catalog_snapshot": "dyec_builds.18.0.43",
+    "pinned_dayoa_version": "15.0.24",
+    "command_contract": "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega"
+  },
   "dayoa": {
-    "requested_version": "15.0.22",
-    "requested_commit": "e838b3aedd4a38078f916e4ef3c6fe22d3d8414f",
+    "requested_version": "15.0.24",
+    "requested_commit": "9cd4e43fded97ea57f11f19c164ab1fbe3fa77d4",
     "targets": [
       "produce_sentdhiomr2_slim_kitchensink_mega",
       "produce_sentdhiomr2_inflection_analytical_package"

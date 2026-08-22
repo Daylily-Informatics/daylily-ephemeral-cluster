@@ -6,3 +6,4 @@ Shared HG002 ONT FC3 source	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/
 E1 completed output export	s3://lsmc-dayoa-analysis-results-usw2/derived/bjuice-v2-multi-analysis-unit/prod-cand-1703/prod-cand-1703-hg002-bjuice-v2-multiau-20260814T114522Z/daylily-omics-analysis/
 E3 completed output export	s3://lsmc-dayoa-analysis-results-usw2/derived/bjuice-v2-multi-analysis-unit/prod-cand-1703/prod-cand-1703-hg002-bjuice-4au-kitchensink-20260817T025004Z/daylily-omics-analysis/
 P1 completed output export	s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-bjuice-preval6-15014-dry-20260817t112900z/daylily-omics-analysis/
+E4 exported interrupted clone	s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025-bjuice-v2-hg002-20au-18042-20260818t1255z-live/daylily-omics-analysis/

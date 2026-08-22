@@ -62433,7 +62433,7 @@
     }
   },
   "source_spec": "docs/jem/bjuice_validation/source_spec.json",
-  "source_spec_sha256": "a1ac9dbd0131e00d1d301c3701b0f94aa36380b51b2f5727b9b142b9690c4de9",
+  "source_spec_sha256": "3697302511815ca5761c197e92dddaf01843d225beb7ff85e57bbeb52aa98217",
   "sources": {
     "ilmn-run1a": {
       "excluded_object_counts": {},

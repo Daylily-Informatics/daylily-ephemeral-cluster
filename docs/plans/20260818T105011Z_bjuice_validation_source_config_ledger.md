@@ -10,10 +10,11 @@ This ledger controls a read-only source inventory and local configuration build 
 non-prevalence Betelgeuse/Bjuice validation cohort. It does not authorize a workflow run,
 dry-run controller, DRA creation, S3 write, OWY repair, release, cluster mutation, or cleanup.
 
-The requested configuration baseline is DayOA `15.0.22` and the exact Bjuice v0.9 targets
+The fixed configuration baseline is released DYEC `18.0.43`, its immutable
+`dyec_builds.18.0.43` snapshot, and DayOA `15.0.24`. The required targets remain
 `produce_sentdhiomr2_slim_kitchensink_mega` plus
-`produce_sentdhiomr2_inflection_analytical_package`. Current repository state advertises
-DayOA `15.0.23`; that drift is tracked explicitly rather than silently substituted.
+`produce_sentdhiomr2_inflection_analytical_package`. Bundle-specific runtime YAML remains
+authoritative for the mixed-sample truth and raw-FASTQ configuration.
 
 ## Gate 0: inventory freeze
 
@@ -32,6 +33,16 @@ DayOA `15.0.23`; that drift is tracked explicitly rather than silently substitut
     `e838b3aedd4a38078f916e4ef3c6fe22d3d8414f`.
   - Annotated DayOA `15.0.23` peels to
     `33624a81c167e1e3dcc671d94be3240c7c315ce3`.
+- Fixed-baseline amendment at `2026-08-18T13:25:40Z`:
+  - Annotated DYEC `18.0.43` tag object
+    `f46b58b6bdae0ccc9a621fb9f5d88ef8feafd6dd` peels to release commit
+    `7e7e9a1bb0ce9b6989ab31b19e945a83c8a6fcbe`.
+  - Immutable `dyec_builds.18.0.43` declares DayOA `15.0.24`.
+  - Annotated DayOA `15.0.24` peels to
+    `9cd4e43fded97ea57f11f19c164ab1fbe3fa77d4`.
+  - The snapshot command contract
+    `bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega` includes
+    per-analysis-unit ONT windows and both required targets.
 - Workbook: `/Users/jmajor/Downloads/Betelgeuse Validation - LAB.xlsx`
   - SHA-256: `face0fc30a241b87ee02223c3f8117a831a6c16b17233b395ae8a15f4ba8bdd7`.
   - Size: 1,717,129 bytes; observed mtime: `2026-08-18T05:47:04-0400`.
@@ -50,8 +61,9 @@ DayOA `15.0.23`; that drift is tracked explicitly rather than silently substitut
   - Every ONT Set directory has three `final_summary_*.txt`, three
     `output_hash_*.csv`, and three `report_*.json` files.
   - None of the 37 source directories contains a local root `OOW.done` or `OOW.err`.
-- S3 sentinel check: representative canonical ILMN and ONT prefixes return `404` for
-  `OOW.done`; the complete 37-prefix inventory remains an in-progress ledger row.
+- S3 inventory: all 37 canonical roots are nonempty and vendor-ready; all 37 lack root
+  `OOW.done` and `OOW.err`. The inventory covers 450,599 objects and
+  38,603,057,564,236 bytes at snapshot `2026-08-18T11:55:36+00:00`.
 - Known limits: no launch or mount was attempted. Canonical OWY publication evidence is a
   hard launch gate even when source/S3 byte parity is otherwise demonstrated.
 
@@ -60,41 +72,77 @@ Gate 0 sweep commands include `git status --short --branch`, `git rev-parse HEAD
 `aws s3api get-bucket-accelerate-configuration`, read-only S3 list/head operations,
 `tailscale status --json`, and read-only xfer1 `find` checks.
 
+## Execution evidence
+
+- Source specification: `docs/jem/bjuice_validation/source_spec.json` defines exactly five
+  ILMN and 32 ONT canonical roots, five bundles, and explicit mount projections.
+- Reviewed crosswalk: `docs/jem/bjuice_validation/sample_crosswalk.tsv` has 157 rows:
+  logical-run totals `48/33/35/41`, paired totals `32/19/17/31`, 29 ILMN-only rows, and
+  29 ONT-only rows.
+- Read-only inventory: `docs/jem/bjuice_validation/source_inventory.json`; SHA-256
+  `fc81dcd80e8e6c6566c8a2ba3ad3cdbfe26fd9720d9ce84263ee945e67ffc816`.
+- Local configuration generator: `daylily_ec/bjuice_validation_config.py`; no prevalence
+  generator or existing catalog implementation was altered.
+- Generated capsules: `docs/jem/bjuice_validation/configs/{bundle1a,bundle1b,bundle2,bundle3,bundle4}/`.
+  AU counts are `32/32/19/17/31`; every AU has exactly one SR and one LR input.
+- Guidance: `docs/jem/Bjuice_guidance.md` expands all 37 URIs, SeqNAS paths, object/byte
+  counts, timestamps, mount projections, config paths, exclusions, runtime contract, and a
+  future dry-run-only command sequence marked not executed.
+- Focused tests: `pytest -q tests/test_bjuice_validation_config.py` -> `15 passed`.
+- DayOA `15.0.24` validation: the tag's own `manifest_contract.load_manifest_set` and
+  Draft 4 runtime config schema accepted all five capsules; source inspection confirmed the
+  per-AU ONT contract and both requested targets.
+- Baseline regeneration: all receipts identify DYEC `18.0.43`,
+  `dyec_builds.18.0.43`, and DayOA `15.0.24`; the obsolete catalog-version blocker is gone.
+  `CANONICAL_OWY_OOW_DONE_MISSING` remains the sole launch blocker.
+- Determinism: a second generation into a new empty directory was byte-identical under
+  `diff -qr`.
+- Full pytest: `2623 passed, 32 failed, 11 skipped` in both normal and coverage runs. The
+  failures are outside the new Bjuice files and cover existing Conda activation, CLI/core,
+  concurrent catalog/package parity, and headnode-mock drift.
+- Coverage: `python -m coverage report -m --fail-under=70` -> `TOTAL 90%`, gate passed;
+  `tests/test_bjuice_validation_config.py` was 100% covered.
+- Ruff: the two changed Python files pass. Repository-wide `ruff check .` reports 4,085
+  pre-existing/untracked-tree findings, including `bin/` and the pre-existing
+  `tmp/dayoa-ont-headnode-proof/` tree.
+- No DayOA dry run or live run was invoked. No cluster, DRA, mount, S3, OWY, release, or
+  cleanup mutation occurred.
+
 ## Control ledger
 
 | ID | Area/Repo | Requirement/Surface | Status | Category | Approval Gate | Owner | Evidence | Root Cause | Terminal Note |
 |---|---|---|---|---|---|---|---|---|---|
-| BJV-001 | Gate 0 | Freeze repo, workbook, AWS, xfer1, and S3 baseline | IN_PROGRESS | legitimate_safety_handling | Gate 0 | orchestrator | Baseline above; complete S3 aggregates pending |  |  |
-| BJV-002 | Workbook | Normalize all 157 logical-run rows into a reviewed crosswalk | OPEN | feature_implementation | Gate 1 | orchestrator | Workbook ranges `SN Validation Run Mapping!A3:J102`, `ONT Barcode decoder!B3:O49`, `ONT Plate map!A1:P59` inspected |  |  |
-| BJV-003 | Sources | Inventory all 37 canonical prefixes and exclusions | OPEN | feature_implementation | Gate 1 | orchestrator | Five ILMN plus 32 ONT source directories present on xfer1 |  |  |
-| BJV-004 | Generator | Add deterministic crosswalk/inventory/config generator with fail-closed validation | OPEN | feature_implementation | Gate 1 | orchestrator | Existing prevalence and HG002-only generators inspected and frozen |  |  |
-| BJV-005 | Bundle 1a | Generate 32 paired AUs from ILMN run 0012 plus Run 1 ONT | OPEN | feature_implementation | Gate 1 | orchestrator | Expected cardinality supplied by workbook plan |  |  |
-| BJV-006 | Bundle 1b | Generate 32 paired AUs from ILMN run 0014 plus the same Run 1 ONT | OPEN | feature_implementation | Gate 1 | orchestrator | Expected cardinality supplied by workbook plan |  |  |
-| BJV-007 | Bundle 2 | Generate 19 paired AUs using literal ONT `2025/20250629_*` prefixes | OPEN | feature_implementation | Gate 1 | orchestrator | Literal xfer1 directories present |  |  |
-| BJV-008 | Bundle 3 | Generate 17 paired AUs from Run 3 sources | OPEN | feature_implementation | Gate 1 | orchestrator | Source directories present |  |  |
-| BJV-009 | Bundle 4 | Generate 31 paired AUs from Run 4 sources | OPEN | feature_implementation | Gate 1 | orchestrator | Source directories present |  |  |
-| BJV-010 | DayOA | Validate six-manifest topology and runtime YAML against exact tag `15.0.22` | OPEN | contract_test | Gate 4 | orchestrator | Tag resolves to `e838b3...`; per-AU `[start,end)` mode exists at this tag |  |  |
-| BJV-011 | DYEC catalog | Reconcile current v0.9 catalog target/version with requested baseline | OPEN | plan_amendment | Gate 4 | orchestrator | Current catalog targets `15.0.23`; request specifies `15.0.22` |  |  |
-| BJV-012 | Guidance | Create `docs/jem/Bjuice_guidance.md` with expanded URIs, mounts, commands, hashes, counts, and exclusions | OPEN | feature_implementation | Gate 1 | orchestrator | Pending generated receipts |  |  |
-| BJV-013 | Tests | Add focused tests for totals, topology, exact path filtering, and negative exclusions | OPEN | contract_test | Gate 5 | orchestrator | Pending implementation |  |  |
-| BJV-014 | Acceptance | Run focused/full pytest, Ruff, coverage 70%, and `git diff --check` | OPEN | contract_test | Gate 5 | orchestrator | Pending implementation |  |  |
-| BJV-015 | Launch gate | Preserve `LAUNCH_BLOCKED` until canonical `OOW.done` publication evidence exists | OPEN | legitimate_safety_handling | Gate 5 | orchestrator | Canonical sentinel checks presently negative |  |  |
-
-## Release integration update
-
-At 2026-08-18T12:32Z the generated five-bundle configuration set and the
-companion `docs/jem/Bjuice_guidance.md` were included in the DYEC `18.0.42`
-release candidate. The focused contract suite now validates the generated
-topology, runtime YAML, manifest hashes, exclusions, and launch blockers from
-a clean release worktree (`15 passed`). This release integration does not
-remove the canonical OWY `OOW.done` gate, create a mount, or authorize a
-workflow.
+| BJV-001 | Gate 0 | Freeze repo, workbook, AWS, xfer1, and S3 baseline | SUCCESS | legitimate_safety_handling | Gate 0 | orchestrator | Gate 0 plus complete inventory snapshot above |  | Baseline and later concurrent drift are explicitly separated. |
+| BJV-002 | Workbook | Normalize all 157 logical-run rows into a reviewed crosswalk | SUCCESS | feature_implementation | Gate 1 | orchestrator | `sample_crosswalk.tsv`; exact totals `48/33/35/41`, paired `32/19/17/31` |  | All rows reviewed; 58 one-sided rows retain explicit blockers. |
+| BJV-003 | Sources | Inventory all 37 canonical prefixes and exclusions | SUCCESS | feature_implementation | Gate 1 | orchestrator | `source_inventory.json`; 450,599 objects, 38,603,057,564,236 bytes; 37/37 ready; 0/37 `OOW.done` |  | Every selected and excluded source class is recorded. |
+| BJV-004 | Generator | Add deterministic crosswalk/inventory/config generator with fail-closed validation | SUCCESS | feature_implementation | Gate 1 | orchestrator | `daylily_ec/bjuice_validation_config.py`; deterministic regeneration pass |  | Separate from prevalence; ambiguous/missing/unexpected inputs fail loudly. |
+| BJV-005 | Bundle 1a | Generate 32 paired AUs from ILMN run 0012 plus Run 1 ONT | SUCCESS | feature_implementation | Gate 1 | orchestrator | `configs/bundle1a/`; 32 AUs, 64 inputs/links |  | Receipt is `CONFIG_COMPLETE`, `LAUNCH_BLOCKED`. |
+| BJV-006 | Bundle 1b | Generate 32 paired AUs from ILMN run 0014 plus the same Run 1 ONT | SUCCESS | feature_implementation | Gate 1 | orchestrator | `configs/bundle1b/`; identical ONT paths to 1a, disjoint ILMN root |  | Receipt is `CONFIG_COMPLETE`, `LAUNCH_BLOCKED`. |
+| BJV-007 | Bundle 2 | Generate 19 paired AUs using literal ONT `2025/20250629_*` prefixes | SUCCESS | feature_implementation | Gate 1 | orchestrator | `configs/bundle2/`; literal 2025 parent retained; 19 AUs |  | Receipt is `CONFIG_COMPLETE`, `LAUNCH_BLOCKED`. |
+| BJV-008 | Bundle 3 | Generate 17 paired AUs from Run 3 sources | SUCCESS | feature_implementation | Gate 1 | orchestrator | `configs/bundle3/`; explicit reviewed GIAB `-c` to BCL `-b` translations; 17 AUs |  | Receipt is `CONFIG_COMPLETE`, `LAUNCH_BLOCKED`. |
+| BJV-009 | Bundle 4 | Generate 31 paired AUs from Run 4 sources | SUCCESS | feature_implementation | Gate 1 | orchestrator | `configs/bundle4/`; 31 AUs; no unverified truthset |  | Receipt is `CONFIG_COMPLETE`, `LAUNCH_BLOCKED`. |
+| BJV-010 | DayOA | Validate six-manifest topology and runtime YAML against exact tag `15.0.24` | SUCCESS | contract_test | Gate 4 | orchestrator | Tag-native manifest loader and Draft 4 config schema pass all five; exact targets/per-AU source present |  | Local contract validation complete; no controller invoked. |
+| BJV-011 | DYEC catalog | Fix the immutable DYEC/DayOA baseline for the per-AU bundle contract | SUCCESS | plan_amendment | Gate 4 | orchestrator | Annotated DYEC `18.0.43` -> commit `7e7e9a1b`; `dyec_builds.18.0.43` -> DayOA `15.0.24`; DayOA commit `9cd4e43f` |  | Source spec, generator, receipts, guidance, and saved command now use the released baseline. |
+| BJV-012 | Guidance | Create `docs/jem/Bjuice_guidance.md` with expanded URIs, mounts, commands, hashes, counts, and exclusions | SUCCESS | feature_implementation | Gate 1 | orchestrator | `docs/jem/Bjuice_guidance.md` |  | All 37 URIs and all five capsule file sets are expanded. |
+| BJV-013 | Tests | Add focused tests for totals, topology, exact path filtering, and negative exclusions | SUCCESS | contract_test | Gate 5 | orchestrator | `tests/test_bjuice_validation_config.py` -> 15 passed; mocked AWS |  | Covers counts, topology, paths, exclusions, aliases, mates, runtime, and receipts. |
+| BJV-014 | Acceptance | Run focused/full pytest, Ruff, coverage 70%, and `git diff --check` | BLOCKED | contract_test | Gate 5 | orchestrator | Focused green; coverage 90%; scoped Ruff/diff green; full pytest 32 unrelated failures; repo-wide Ruff 4,085 existing findings | Unrelated existing/concurrent activation, CLI, catalog/package, legacy bin/tmp, and headnode-mock drift keeps repository-wide gates red. | Bjuice acceptance is green; repository-wide green requires the owners of those independent changes to reconcile them. |
+| BJV-015 | Launch gate | Preserve `LAUNCH_BLOCKED` until canonical `OOW.done` publication evidence exists | BLOCKED | legitimate_safety_handling | Gate 5 | orchestrator | All five receipts; inventory reports 37 missing `OOW.done` | Canonical OWY publication evidence is absent and the user prohibited launch. | Unblock only after OWY evidence plus explicit future launch approval; nothing was launched. |
 
 ## Final report
 
-All rows terminal: no — the original broader acceptance row requires its
-separately requested full validation gate.
-Configuration production complete: yes — 5 explicit bundle capsules are
-checked in and focused-contract validated.
+All rows terminal: yes
+
+Configuration production complete: yes
+
 Live launch authorized: no
+
 Live launch state: `LAUNCH_BLOCKED`
+
+Status counts: `SUCCESS=13`, `BLOCKED=2`, all other terminal states `=0`
+
+The local source-inventory and configuration-production objective is complete. The broader
+live execution objective is not complete because BJV-015 requires canonical OWY publication
+evidence and explicit future authorization. Repository-wide acceptance also remains blocked
+by BJV-014's unrelated dirty-worktree/test debt; those files were not modified or reverted by
+this work. The previous baseline blocker BJV-011 is resolved by the released immutable
+DYEC `18.0.43` snapshot.

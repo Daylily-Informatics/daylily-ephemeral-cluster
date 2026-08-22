@@ -53,7 +53,7 @@ sentdhiomr2_jasmine:
   enabled: false
 truvari_sv_benchmark:
   enabled: true
-  env_yaml: ../envs/truvari_v0.2.yaml
+  env_yaml: ../envs/truari_v0.2.yaml
   threads: 32
   mem_mb: 64000
   partition: i128nvme,i192nvme,i192hugenvme,i384nvme

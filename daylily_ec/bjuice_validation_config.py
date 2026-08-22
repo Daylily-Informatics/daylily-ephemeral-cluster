@@ -49,6 +49,18 @@ EXPECTED_ONT_ROWS = {1: 32, 2: 32, 3: 32, 4: 32}
 EXPECTED_SOURCE_COUNT = 37
 ONT_START_HOUR = 0
 ONT_END_HOUR = 24
+DYEC_BASELINE = {
+    "release_version": "18.0.43",
+    "release_tag_object": "f46b58b6bdae0ccc9a621fb9f5d88ef8feafd6dd",
+    "release_commit": "7e7e9a1bb0ce9b6989ab31b19e945a83c8a6fcbe",
+    "catalog_snapshot": "dyec_builds.18.0.43",
+    "pinned_dayoa_version": "15.0.24",
+    "command_contract": "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega",
+}
+DAYOA_BASELINE = {
+    "requested_version": "15.0.24",
+    "requested_commit": "9cd4e43fded97ea57f11f19c164ab1fbe3fa77d4",
+}
 
 ANALYSIS_UNIT_COLUMNS_WITH_ONT_HOURS = (
     *ANALYSIS_UNIT_COLUMNS[:8],
@@ -521,6 +533,16 @@ def _source_spec(path: Path) -> Mapping[str, Any]:
     workbook = spec.get("workbook")
     if not isinstance(workbook, Mapping) or workbook.get("sha256") != EXPECTED_WORKBOOK_SHA256:
         raise BjuiceConfigError("source spec does not identify the approved workbook SHA-256")
+    dyec = spec.get("dyec")
+    if not isinstance(dyec, Mapping) or any(
+        dyec.get(key) != value for key, value in DYEC_BASELINE.items()
+    ):
+        raise BjuiceConfigError("source spec does not identify the fixed DYEC 18.0.43 baseline")
+    dayoa = spec.get("dayoa")
+    if not isinstance(dayoa, Mapping) or any(
+        dayoa.get(key) != value for key, value in DAYOA_BASELINE.items()
+    ):
+        raise BjuiceConfigError("source spec does not identify the DayOA 15.0.24 pin")
     sources = spec.get("sources")
     bundles = spec.get("bundles")
     if not isinstance(sources, list) or len(sources) != EXPECTED_SOURCE_COUNT:
@@ -1396,7 +1418,6 @@ def generate_bundle_configs(
         used_source_ids = [str(bundle["ilmn_source_id"]), *map(str, bundle["ont_source_ids"])]
         if any(not bool(sources[source_id].get("oow_done")) for source_id in used_source_ids):
             launch_blockers.append("CANONICAL_OWY_OOW_DONE_MISSING")
-        launch_blockers.append("DYEC_V0_9_CATALOG_DAYOA_VERSION_VALIDATION_PENDING")
         receipt: dict[str, Any] = {
             "schema": GENERATION_RECEIPT_SCHEMA,
             # Configuration generation is deterministic for one reviewed
@@ -1407,6 +1428,7 @@ def generate_bundle_configs(
             "configuration_status": "CONFIG_COMPLETE",
             "launch_status": "LAUNCH_BLOCKED",
             "launch_blockers": launch_blockers,
+            "dyec": spec["dyec"],
             "dayoa": spec["dayoa"],
             "aws": {"profile": profile, "region": region, "account": aws.get("account", "")},
             "source_spec": str(source_spec_json),
@@ -1429,9 +1451,10 @@ def generate_bundle_configs(
                 "'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' "
                 '\'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}\' '
                 "'sv_callers=[]' 'htd_callers=[\"smn12\"]' "
+                "'ont_fastq_hour_window_mode=per_analysis_unit' "
                 "'hiomr2_inflection_package_mode=analytical' "
                 '"seqone_delivery_batch_id=$ANALYSIS_ID" '
-                "-j 333 -T 0 -p --rerun-triggers mtime"
+                "-j 345 -T 1 -p -k --rerun-triggers mtime"
             ),
         }
         receipt_path = bundle_dir / "generation_receipt.json"

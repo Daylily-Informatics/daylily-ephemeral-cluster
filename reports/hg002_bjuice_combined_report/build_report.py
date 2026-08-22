@@ -20,7 +20,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap, Normalize
+from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 import numpy as np
 
@@ -115,7 +115,6 @@ SOURCE_S3_URIS = [
 ]
 CIRCLE_MARKER_AREA = 600  # 25% larger area than the former 480 pt² squares.
 CIRCLE_LABEL_FONTSIZE = 7.2
-HEATMAP_FONT_SCALE = 1.35
 DENSITY_KERNEL_BANDWIDTH_X = 1.25  # Measured LR× units; each retained AU contributes one kernel.
 DENSITY_KERNEL_BANDWIDTH_Y = 1.25  # Measured native-SR× units; axes remain numerically equal-scale.
 DENSITY_GRID_SIZE = 180
@@ -191,114 +190,35 @@ def marker_label_color(cmap: Any, norm: Any, value: float) -> str:
     return "white" if luminance < 0.46 else "#111827"
 
 
-def heatmap_font_size(base_size: float) -> float:
-    """Apply the report-wide typography increase to 2D density/heatmap figures."""
-    return base_size * HEATMAP_FONT_SCALE
-
-
-def style_heatmap_colorbar(bar: Any, label: str) -> None:
-    bar.set_label(label, fontsize=heatmap_font_size(14))
-    bar.ax.tick_params(labelsize=heatmap_font_size(11))
-
-
-def coverage_group_label(group: list[dict[str, Any]], include_fscore: bool = False) -> str:
-    """Compact exact-coordinate duplicates while retaining every measured pair."""
-    pairs = [f"{row['ilmn_measured_token']}x / {row['ont_measured_token']}x" for row in group]
-    lines = ["  ·  ".join(pairs[index:index + 2]) for index in range(0, len(pairs), 2)]
-    if include_fscore:
-        lines.insert(0, "F=" + fmt(group[0]["fscore"], 3))
-    return "\n".join(lines)
-
-
-def annotate_point_labels(
+def annotate_side_labels(
     ax: Any,
     points: list[dict[str, Any]],
     x_key: str,
     y_key: str,
-    group_label_fn: Any,
+    label_fn: Any,
     fontsize: float,
-    offset_scale: float = 1.0,
-) -> list[Any]:
-    """Label exact point groups locally without experiment encoding or leaders."""
-    grouped: dict[tuple[float, float], list[dict[str, Any]]] = defaultdict(list)
-    for row in points:
-        grouped[(round(float(row[x_key]), 4), round(float(row[y_key]), 4))].append(row)
-    angles = (45, -45, 135, -135, 0, 180, 90, -90)
-    ordered_groups = sorted(grouped.values(), key=lambda group: (float(group[0][x_key]), float(group[0][y_key]), group[0].get("caller", "")))
-    annotations: list[Any] = []
-    for index, group in enumerate(ordered_groups):
-        group = sorted(group, key=lambda item: (item.get("caller", ""), float(item["ilmn_measured_token"]), float(item["ont_measured_token"])))
-        angle = math.radians(angles[index % len(angles)])
-        radius = (7 + 4 * ((index // len(angles)) % 3)) * offset_scale
-        row = group[0]
-        annotations.append(
-            ax.annotate(
-                group_label_fn(group),
-                (float(row[x_key]), float(row[y_key])),
-                xytext=(math.cos(angle) * radius, math.sin(angle) * radius),
-                textcoords="offset points",
-                fontsize=fontsize,
-                ha="left" if math.cos(angle) >= 0 else "right",
-                va="center",
-                linespacing=0.93,
-                color="#111827",
-                bbox={"boxstyle": "round,pad=0.08", "facecolor": "white", "edgecolor": "none", "alpha": 0.66},
-                annotation_clip=True,
-            )
+) -> None:
+    """Place dense point labels in stable experiment-specific callout columns."""
+    for experiment, x_fraction in zip(EXPERIMENTS, np.linspace(0.02, 0.77, len(EXPERIMENTS))):
+        group = sorted(
+            [row for row in points if row["experiment"] == experiment],
+            key=lambda row: (float(row[y_key]), float(row[x_key]), row["au"]),
+            reverse=True,
         )
-    return annotations
-
-
-def relax_annotation_collisions(fig: Any, ax: Any, annotations: list[Any], iterations: int = 120) -> None:
-    """Deterministically separate enlarged direct labels in display space."""
-    if not annotations:
-        return
-    fig.canvas.draw()
-    renderer = fig.canvas.get_renderer()
-    points_per_pixel = 72.0 / fig.dpi
-    for _ in range(iterations):
-        boxes = [annotation.get_window_extent(renderer).expanded(1.04, 1.12) for annotation in annotations]
-        shifts = [[0.0, 0.0] for _ in annotations]
-        collisions = 0
-        for left in range(len(boxes)):
-            left_box = boxes[left]
-            for right in range(left + 1, len(boxes)):
-                right_box = boxes[right]
-                overlap_x = min(left_box.x1, right_box.x1) - max(left_box.x0, right_box.x0)
-                overlap_y = min(left_box.y1, right_box.y1) - max(left_box.y0, right_box.y0)
-                if overlap_x <= 0 or overlap_y <= 0:
-                    continue
-                collisions += 1
-                left_center = ((left_box.x0 + left_box.x1) / 2, (left_box.y0 + left_box.y1) / 2)
-                right_center = ((right_box.x0 + right_box.x1) / 2, (right_box.y0 + right_box.y1) / 2)
-                if overlap_y <= overlap_x:
-                    direction = -1.0 if left_center[1] <= right_center[1] else 1.0
-                    distance = (overlap_y + 2.0) / 2
-                    shifts[left][1] += direction * distance
-                    shifts[right][1] -= direction * distance
-                else:
-                    direction = -1.0 if left_center[0] <= right_center[0] else 1.0
-                    distance = (overlap_x + 2.0) / 2
-                    shifts[left][0] += direction * distance
-                    shifts[right][0] -= direction * distance
-        if collisions == 0:
-            break
-        axes_box = ax.get_window_extent(renderer)
-        for index, annotation in enumerate(annotations):
-            box = boxes[index]
-            dx, dy = shifts[index]
-            if box.x0 + dx < axes_box.x0 + 2:
-                dx += axes_box.x0 + 2 - (box.x0 + dx)
-            if box.x1 + dx > axes_box.x1 - 2:
-                dx -= box.x1 + dx - (axes_box.x1 - 2)
-            if box.y0 + dy < axes_box.y0 + 2:
-                dy += axes_box.y0 + 2 - (box.y0 + dy)
-            if box.y1 + dy > axes_box.y1 - 2:
-                dy -= box.y1 + dy - (axes_box.y1 - 2)
-            x_offset, y_offset = annotation.get_position()
-            annotation.set_position((x_offset + dx * points_per_pixel, y_offset + dy * points_per_pixel))
-        fig.canvas.draw()
-        renderer = fig.canvas.get_renderer()
+        for row, y_fraction in zip(group, np.linspace(0.91, 0.09, len(group))):
+            ax.annotate(
+                label_fn(row),
+                (float(row[x_key]), float(row[y_key])),
+                xycoords="data",
+                xytext=(x_fraction, y_fraction),
+                textcoords="axes fraction",
+                fontsize=fontsize,
+                ha="left",
+                va="center",
+                color="#111827",
+                bbox={"boxstyle": "round,pad=0.16", "facecolor": "white", "edgecolor": EXPERIMENT_COLORS[experiment], "alpha": 0.78, "linewidth": 0.6},
+                arrowprops={"arrowstyle": "-", "color": EXPERIMENT_COLORS[experiment], "alpha": 0.42, "linewidth": 0.55},
+            )
 
 
 def sha256_file(path: Path) -> str:
@@ -495,11 +415,36 @@ def parse_compact_p1(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
     return [observation], {"inventory": inventory, "dayoa_root": None, "bundle_root": bundle_root}
 
 
+def parse_e4_export_evidence(bundle_root: Path) -> dict[str, Any]:
+    path = bundle_root / "export_evidence.json"
+    if not path.is_file():
+        return {}
+    evidence = json.loads(path.read_text())
+    if evidence.get("schema_version") != "lsmc.hg002_bjuice_e4_export_evidence.v1":
+        raise ValueError("E4: unexpected export-evidence schema")
+    if evidence.get("analysis_id") != EXPERIMENTS["E4"]["analysis_id"]:
+        raise ValueError("E4: export-evidence analysis identity mismatch")
+    if evidence.get("task_lifecycle") != "SUCCEEDED":
+        raise ValueError("E4: export task is not terminal success")
+    if evidence.get("failed_count") != 0 or evidence.get("succeeded_count") != evidence.get("total_count"):
+        raise ValueError("E4: export task contains failed objects")
+    if evidence.get("delete_data_in_file_system") is not False:
+        raise ValueError("E4: export evidence does not prove source preservation")
+    return evidence
+
+
+def e4_s3_source(export_root: str, relative_path: str) -> str:
+    return export_root.rstrip("/") + "/daylily-omics-analysis/" + relative_path.lstrip("/")
+
+
 def parse_compact_e4(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """Read the checksum-bound, in-flight E4 snapshot collected through DYEC."""
+    """Read the checksum-bound E4 snapshot and any terminal export receipt."""
     bundle_root = evidence_root / "E4"
     compact_path = bundle_root / "compact_evidence.json"
     compact = json.loads(compact_path.read_text())
+    export_evidence = parse_e4_export_evidence(bundle_root)
+    if export_evidence:
+        compact["export_evidence"] = export_evidence
     if compact.get("schema_version") != "lsmc.hg002_bjuice_e4_compact_evidence.v1":
         raise ValueError("E4: unexpected compact-evidence schema")
     if compact.get("analysis_id") != EXPERIMENTS["E4"]["analysis_id"]:
@@ -547,6 +492,7 @@ def parse_compact_e4(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
             raise ValueError(f"E4:{runtime}: RSR audit source mismatch")
         if "/align/sentdhiomr2lr/na/alignqc/mosdepth/" not in coverage["lr_source"]:
             raise ValueError(f"E4:{runtime}: LR source is not sentdhiomr2lr/na")
+        export_root = export_evidence.get("destination_s3_uri") if export_evidence else None
         observations.append(
             {
                 "experiment": "E4",
@@ -569,10 +515,10 @@ def parse_compact_e4(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
                 "ont_end_hour": expected_end_hour,
                 "ilmn_abs_error": float(native_sr - target_sr),
                 "ont_abs_error": float(lr - target_lr),
-                "coverage_source_ilmn": coverage["native_sr_source"],
-                "coverage_source_rsr": coverage["rsr_source"],
-                "coverage_source_ont": coverage["lr_source"],
-                "coverage_capture_method": "bounded live-FSx snapshot through DYEC",
+                "coverage_source_ilmn": e4_s3_source(export_root, coverage["native_sr_source"]) if export_root else coverage["native_sr_source"],
+                "coverage_source_rsr": e4_s3_source(export_root, coverage["rsr_source"]) if export_root else coverage["rsr_source"],
+                "coverage_source_ont": e4_s3_source(export_root, coverage["lr_source"]) if export_root else coverage["lr_source"],
+                "coverage_capture_method": "successful no-delete S3 export of E4 clone" if export_root else "bounded live-FSx snapshot through DYEC",
                 "evidence_captured_at": compact["captured_at_end_utc"],
                 "direct_s3_captured_at": None,
                 "snapshot_workflow_state": snapshot_state,
@@ -587,11 +533,11 @@ def parse_compact_e4(evidence_root: Path) -> tuple[list[dict[str, Any]], dict[st
     inventory = [
         {
             "experiment": "E4",
-            "analysis_root": compact["analysis_root"],
+            "analysis_root": export_evidence.get("destination_s3_uri", compact["analysis_root"]),
             **row,
-            "local_path": "NA (bounded DYEC headnode extract)",
+            "local_path": "NA (successful S3 export extract)" if export_evidence else "NA (bounded DYEC headnode extract)",
             "local_sha256": "NA",
-            "local_sha256_match": "remote_hash_only",
+            "local_sha256_match": "export_receipt_task_success" if export_evidence else "remote_hash_only",
         }
         for row in compact["inventory"]
     ]
@@ -857,9 +803,8 @@ def configure_coverage_axes(ax: Any, observations: list[dict[str, Any]]) -> None
     y_ticks = np.arange(0.0, math.ceil((max(y_values) + y_margin) / y_step) * y_step + y_step / 2, y_step)
     ax.set_xticks(x_ticks, [f"{value:g}×" for value in x_ticks], rotation=35, ha="right")
     ax.set_yticks(y_ticks, [f"{value:g}×" for value in y_ticks])
-    ax.tick_params(axis="both", labelsize=heatmap_font_size(11))
-    ax.set_xlabel("Measured ONT LR coverage (Mosdepth total mean)", fontsize=heatmap_font_size(14))
-    ax.set_ylabel("Measured Illumina native SR coverage (Mosdepth total mean)", fontsize=heatmap_font_size(14))
+    ax.set_xlabel("Measured ONT LR coverage (Mosdepth total mean)")
+    ax.set_ylabel("Measured Illumina native SR coverage (Mosdepth total mean)")
     ax.set_aspect("equal", adjustable="box")
     ax.grid(color="#d6d9de", linewidth=0.65, alpha=0.85)
     ax.set_axisbelow(True)
@@ -917,13 +862,13 @@ def coverage_grid(observations: list[dict[str, Any]], figures: Path, tables: Pat
     label_offsets = coordinate_label_offsets(groups)
     fig, ax = plt.subplots(figsize=(11.5, 20), constrained_layout=True)
     configure_coverage_axes(ax, observations)
-    ax.set_title("Measured native-SR × LR coverage availability", pad=14, fontsize=heatmap_font_size(17))
+    ax.set_title("Measured native-SR × LR coverage availability", pad=14)
     for (sr, lr), members in sorted(groups.items()):
         ax.scatter(lr, sr, marker="o", s=CIRCLE_MARKER_AREA, facecolor="#dbeaf4", edgecolors="none", linewidths=0, zorder=3)
     overlay_coordinate_density(ax, observations)
     for (sr, lr), members in sorted(groups.items()):
         offset_x, offset_y = label_offsets[(sr, lr)]
-        ax.text(lr + offset_x, sr + offset_y, f"n={len(members)}", ha="center", va="center", fontsize=heatmap_font_size(CIRCLE_LABEL_FONTSIZE), color="#111827", zorder=4)
+        ax.text(lr + offset_x, sr + offset_y, f"n={len(members)}", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color="#111827", zorder=4)
     ax.text(
         0.02,
         0.015,
@@ -931,7 +876,7 @@ def coverage_grid(observations: list[dict[str, Any]], figures: Path, tables: Pat
         transform=ax.transAxes,
         ha="left",
         va="bottom",
-        fontsize=heatmap_font_size(8.5),
+        fontsize=8.5,
         color="#374151",
         bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": "#9ca3af", "alpha": 0.92, "linewidth": 0.6},
     )
@@ -995,7 +940,7 @@ def plot_metric_heatmap(
     cmap.set_bad("#f0f1f2")
     fig, ax = plt.subplots(figsize=(12.5, 20), constrained_layout=True)
     configure_coverage_axes(ax, observations)
-    ax.set_title(f"{title} — numeric native-SR × LR coordinates", pad=14, fontsize=heatmap_font_size(17))
+    ax.set_title(f"{title} — numeric native-SR × LR coordinates", pad=14)
     colored_x: list[float] = []
     colored_y: list[float] = []
     colored_values: list[float] = []
@@ -1012,9 +957,9 @@ def plot_metric_heatmap(
         offset_x, offset_y = label_offsets[(sr, lr)]
         if values:
             value = float(np.mean(values))
-            ax.text(lr + offset_x, sr + offset_y, value_format.format(value), ha="center", va="center", fontsize=heatmap_font_size(CIRCLE_LABEL_FONTSIZE), color=marker_label_color(cmap, image.norm, value), zorder=4)
+            ax.text(lr + offset_x, sr + offset_y, value_format.format(value), ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color=marker_label_color(cmap, image.norm, value), zorder=4)
         else:
-            ax.text(lr + offset_x, sr + offset_y, "NA", ha="center", va="center", fontsize=heatmap_font_size(CIRCLE_LABEL_FONTSIZE), color="#4b5563", zorder=4)
+            ax.text(lr + offset_x, sr + offset_y, "NA", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color="#4b5563", zorder=4)
     ax.text(
         0.02,
         0.015,
@@ -1022,13 +967,13 @@ def plot_metric_heatmap(
         transform=ax.transAxes,
         ha="left",
         va="bottom",
-        fontsize=heatmap_font_size(8.0),
+        fontsize=8.0,
         color="#374151",
         bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": "#9ca3af", "alpha": 0.92, "linewidth": 0.6},
         zorder=5,
     )
     bar = fig.colorbar(image, ax=ax, shrink=0.76, pad=0.02)
-    style_heatmap_colorbar(bar, cbar_label)
+    bar.set_label(cbar_label)
     output = figures / filename
     save_figure(fig, output)
     chart_map.append({"figure": filename, "chart_type": "heatmap", "title": title, "source_table": source_table, "metric": value_field})
@@ -1103,30 +1048,28 @@ def hard_vcf_plots(observations: list[dict[str, Any]], rows: list[dict[str, Any]
                 chart_map,
             )
 
-        fig, ax = plt.subplots(figsize=(15, 10), constrained_layout=True)
-        plotted_points = [row for row in subset if row["precision"] is not None and row["recall"] is not None]
-        ax.scatter(
-            [row["recall"] for row in plotted_points],
-            [row["precision"] for row in plotted_points],
-            s=88,
-            marker="o",
-            color="#315f88",
-            edgecolor="#20242a",
-            linewidth=0.6,
-            alpha=0.82,
-        )
-        annotate_point_labels(
-            ax,
-            plotted_points,
-            "recall",
-            "precision",
-            coverage_group_label,
-            7.0,
-        )
+        fig, ax = plt.subplots(figsize=(11.5, 8.5), constrained_layout=True)
+        plotted_points: list[dict[str, Any]] = []
+        for experiment in EXPERIMENTS:
+            points = [row for row in subset if row["experiment"] == experiment and row["precision"] is not None and row["recall"] is not None]
+            plotted_points.extend(points)
+            ax.scatter(
+                [row["recall"] for row in points],
+                [row["precision"] for row in points],
+                s=88,
+                marker=EXPERIMENT_MARKERS[experiment],
+                color=EXPERIMENT_COLORS[experiment],
+                edgecolor="#20242a",
+                linewidth=0.6,
+                alpha=0.88,
+                label=EXPERIMENTS[experiment]["title"],
+            )
+        annotate_side_labels(ax, plotted_points, "recall", "precision", lambda row: f"{row['plot_label']}  F={row['fscore']:.4f}", 7.8)
         ax.set_title(f"Combined hard-VCF GIAB-HC {title_class}: precision versus recall")
         ax.set_xlabel("Recall")
         ax.set_ylabel("Precision")
         ax.grid(alpha=0.25)
+        fig.legend(loc="outside lower center", ncol=len(EXPERIMENTS), fontsize=8.5)
         output = figures / f"hard_vcf_giabhc_{token}_precision_recall.png"
         save_figure(fig, output)
         chart_map.append({"figure": output.name, "chart_type": "scatter", "title": ax.get_title(), "source_table": "hard_vcf_giabhc_metrics.tsv", "metric": "precision versus recall"})
@@ -1181,157 +1124,53 @@ def truvari_plots(observations: list[dict[str, Any]], rows: list[dict[str, Any]]
     ):
         plot_metric_heatmap(observations, trussv, metric, title, filename, "{:.4f}", cmap, cbar, figures, "truvari_metrics.tsv", chart_map)
 
-    plotted_points = [
-        row
-        for row in rows
-        if number(row["precision"]) is not None
-        and number(row["recall"]) is not None
-        and number(row["ilmn_measured_token"]) is not None
-        and number(row["ont_measured_token"]) is not None
-    ]
-    callers = sorted({row["caller"] for row in plotted_points})
-    coverage_values = [float(row["ilmn_measured_token"]) + float(row["ont_measured_token"]) for row in plotted_points]
-    coverage_norm = Normalize(vmin=min(coverage_values), vmax=max(coverage_values))
-    coverage_cmap = LinearSegmentedColormap.from_list(
-        "measured_total_coverage",
-        ["#f6d746", "#f28e2b", "#9b4f96", "#173f5f"],
+    callers = sorted({row["caller"] for row in rows})
+    fig, axes = plt.subplots(2, 2, figsize=(17, 13), constrained_layout=True, sharex=True, sharey=True)
+    for ax, caller in zip(axes.ravel(), callers):
+        color, marker = CALLER_STYLES.get(caller, ("#555555", "o"))
+        plotted_points: list[dict[str, Any]] = []
+        for experiment in EXPERIMENTS:
+            points = [row for row in rows if row["caller"] == caller and row["experiment"] == experiment and number(row["precision"]) is not None and number(row["recall"]) is not None]
+            if not points:
+                continue
+            plotted_points.extend(points)
+            face = {
+                "E1": "none",
+                "E3": "#777777",
+                "P1": EXPERIMENT_COLORS["P1"],
+                "E4": EXPERIMENT_COLORS["E4"],
+            }[experiment]
+            ax.scatter(
+                [row["recall"] for row in points],
+                [row["precision"] for row in points],
+                s=70,
+                marker=marker,
+                facecolors=face,
+                edgecolors=color,
+                linewidth=1.2,
+                alpha=0.9,
+            )
+        annotate_side_labels(ax, plotted_points, "recall", "precision", lambda row: f"{row['plot_label']}  F={fmt(row['fscore'], 3)}", 6.4)
+        ax.set_title(caller)
+        ax.set_xlabel("Recall")
+        ax.set_ylabel("Precision")
+        ax.set_xlim(-0.02, 1.02)
+        ax.set_ylim(-0.02, 1.02)
+        ax.grid(alpha=0.22)
+    legend_handles = [Line2D([0], [0], marker=CALLER_STYLES.get(caller, ("", "o"))[1], color="none", markerfacecolor=CALLER_STYLES.get(caller, ("#555", "o"))[0], markeredgecolor=CALLER_STYLES.get(caller, ("#555", "o"))[0], markersize=8, label=caller) for caller in callers]
+    legend_handles.extend(
+        [
+            Line2D([0], [0], marker="o", color="none", markerfacecolor="none", markeredgecolor="#444", label="E1 open markers"),
+            Line2D([0], [0], marker="o", color="none", markerfacecolor="#777", markeredgecolor="#444", label="E3 filled markers"),
+            Line2D([0], [0], marker="o", color="none", markerfacecolor=EXPERIMENT_COLORS["P1"], markeredgecolor="#444", label="P1 purple markers"),
+            Line2D([0], [0], marker="o", color="none", markerfacecolor=EXPERIMENT_COLORS["E4"], markeredgecolor="#444", label="E4 orange markers"),
+        ]
     )
-    fig, ax = plt.subplots(figsize=(21, 17), constrained_layout=True)
-    for caller in callers:
-        marker = CALLER_STYLES.get(caller, ("#555555", "o"))[1]
-        points = [row for row in plotted_points if row["caller"] == caller]
-        ax.scatter(
-            [row["recall"] for row in points],
-            [row["precision"] for row in points],
-            c=[float(row["ilmn_measured_token"]) + float(row["ont_measured_token"]) for row in points],
-            cmap=coverage_cmap,
-            norm=coverage_norm,
-            s=82,
-            marker=marker,
-            edgecolors="#20242a",
-            linewidth=0.7,
-            alpha=0.82,
-            label=caller,
-        )
-    sv_annotations = annotate_point_labels(
-        ax,
-        plotted_points,
-        "recall",
-        "precision",
-        lambda group: "F=" + fmt(group[0]["fscore"], 3),
-        13.77,
-        offset_scale=2.2,
-    )
-    ax.set_xlabel("Recall", fontsize=47.6)
-    ax.set_ylabel("Precision", fontsize=47.6)
-    ax.tick_params(axis="both", labelsize=37.4)
-    ax.margins(x=0.055, y=0.08)
-    ax.grid(alpha=0.22)
-    legend_handles = [Line2D([0], [0], marker=CALLER_STYLES.get(caller, ("", "o"))[1], color="none", markerfacecolor="#6b7280", markeredgecolor="#20242a", markersize=8, label=caller) for caller in callers]
-    ax.legend(handles=legend_handles, fontsize=17, ncol=4, loc="upper center", bbox_to_anchor=(0.5, -0.12))
-    coverage_mappable = matplotlib.cm.ScalarMappable(norm=coverage_norm, cmap=coverage_cmap)
-    coverage_bar = fig.colorbar(coverage_mappable, ax=ax, shrink=0.76, pad=0.025)
-    coverage_bar.set_label("Measured coverage (ILMN SRx + ONTx)", fontsize=28)
-    coverage_bar.ax.tick_params(labelsize=24)
-    ax.set_title("Structural-variant precision versus recall — all callers", fontsize=68)
-    relax_annotation_collisions(fig, ax, sv_annotations, iterations=200)
+    fig.legend(handles=legend_handles, fontsize=9, ncol=4, loc="outside lower center")
+    fig.suptitle("Combined Truvari precision versus recall: solo callers and TrussSV", fontsize=19)
     output = figures / "truvari_all_callers_precision_recall.png"
     save_figure(fig, output)
-    chart_map.append({"figure": output.name, "chart_type": "scatter", "title": "Structural-variant precision versus recall — all callers", "source_table": "truvari_metrics.tsv", "metric": "precision versus recall"})
-
-    scored_rows = [
-        row
-        for row in rows
-        if number(row["fscore"]) is not None
-        and number(row["ilmn_measured_token"]) is not None
-        and number(row["ont_measured_token"]) is not None
-    ]
-    highest_pair = max(
-        (float(row["ilmn_measured_token"]), float(row["ont_measured_token"]))
-        for row in scored_rows
-    )
-    highest_rows = [
-        row
-        for row in scored_rows
-        if (float(row["ilmn_measured_token"]), float(row["ont_measured_token"])) == highest_pair
-    ]
-    expected_callers = {"LongReadSV", "Sniffles2", "TIDDIT", "TrussSV"}
-    if len(highest_rows) != 4 or {row["caller"] for row in highest_rows} != expected_callers:
-        raise ValueError(
-            "Highest measured ILMN-SR/ONT coverage pair must contain exactly one F-score for each SV caller"
-        )
-    technology = {
-        "TIDDIT": "SHORT READ",
-        "LongReadSV": "LONG READ",
-        "Sniffles2": "LONG READ",
-        "TrussSV": "ENSEMBLE",
-    }
-    caller_order = ["Sniffles2", "LongReadSV", "TrussSV", "TIDDIT"]
-    highest_by_caller = {row["caller"]: row for row in highest_rows}
-    fig, ax = plt.subplots(figsize=(11, 10), constrained_layout=True)
-    legend_handles: list[Any] = []
-    for caller in caller_order:
-        row = highest_by_caller[caller]
-        color, marker = CALLER_STYLES[caller]
-        fscore = float(row["fscore"])
-        precision = float(row["precision"])
-        recall = float(row["recall"])
-        ax.scatter(
-            recall,
-            precision,
-            s=340,
-            marker=marker,
-            facecolor=color,
-            edgecolor="#20242a",
-            linewidth=1.2,
-            zorder=3,
-        )
-        ax.annotate(
-            f"F={fscore:.4f}",
-            (recall, precision),
-            xytext=(13, 10),
-            textcoords="offset points",
-            va="bottom",
-            fontsize=18,
-            color="#111827",
-        )
-        legend_handles.append(
-            Line2D(
-                [0],
-                [0],
-                marker=marker,
-                color="none",
-                markerfacecolor=color,
-                markeredgecolor="#20242a",
-                markersize=12,
-                label=f"{caller} — {technology[caller]}",
-            )
-        )
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.set_aspect("equal", adjustable="box")
-    ax.set_xlabel("Recall", fontsize=19)
-    ax.set_ylabel("Precision", fontsize=19)
-    ax.tick_params(axis="both", labelsize=15)
-    ax.grid(alpha=0.22)
-    ax.legend(handles=legend_handles, fontsize=13, ncol=2, loc="upper center", bbox_to_anchor=(0.5, -0.10))
-    ax.set_title(
-        "Highest-coverage SV precision versus recall\n"
-        f"HG002 — {highest_pair[0]:g}× ILMN SR / {highest_pair[1]:g}× ONT",
-        fontsize=24,
-        pad=18,
-    )
-    output = figures / "truvari_highest_coverage_caller_fscore.png"
-    save_figure(fig, output)
-    chart_map.append(
-        {
-            "figure": output.name,
-            "chart_type": "scatter",
-            "title": "Highest-coverage SV precision versus recall",
-            "source_table": "truvari_metrics.tsv",
-            "metric": "precision versus recall with F-score labels at maximum measured ILMN-SR/ONT coverage",
-        }
-    )
+    chart_map.append({"figure": output.name, "chart_type": "faceted scatter", "title": "Combined Truvari precision versus recall: solo callers and TrussSV", "source_table": "truvari_metrics.tsv", "metric": "precision versus recall"})
 
 
 def coverage_plots(observations: list[dict[str, Any]], figures: Path, chart_map: list[dict[str, str]]) -> None:
@@ -1478,7 +1317,7 @@ def call_tables_and_plots(observations: list[dict[str, Any]], figures: Path, cha
     image = None
     for ax, gene in zip(axes, gene_order):
         configure_coverage_axes(ax, observations)
-        ax.set_title(f"{gene}: non-reference SegDup calls", fontsize=heatmap_font_size(12))
+        ax.set_title(f"{gene}: non-reference SegDup calls", fontsize=12)
         coordinates = sorted(groups)
         counts = [
             float(np.mean([sum(summary[(observation["observation_id"], gene)]) for observation in groups[coordinate]]))
@@ -1501,14 +1340,14 @@ def call_tables_and_plots(observations: list[dict[str, Any]], figures: Path, cha
         overlay_coordinate_density(ax, observations)
         for (sr, lr), count in zip(coordinates, counts):
             offset_x, offset_y = label_offsets[(sr, lr)]
-            ax.text(lr + offset_x, sr + offset_y, f"{count:g}", ha="center", va="center", fontsize=heatmap_font_size(CIRCLE_LABEL_FONTSIZE), color=marker_label_color(cmap, image.norm, count), zorder=4)
+            ax.text(lr + offset_x, sr + offset_y, f"{count:g}", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color=marker_label_color(cmap, image.norm, count), zorder=4)
     for ax in axes[len(gene_order):]:
         ax.set_visible(False)
-    fig.suptitle("SegDup calls at measured native-SR × LR coordinates\nDashed contours = retained-AU coordinate density, not a metric interpolation", fontsize=heatmap_font_size(18))
+    fig.suptitle("SegDup calls at measured native-SR × LR coordinates\nDashed contours = retained-AU coordinate density, not a metric interpolation", fontsize=18)
     if image is None:
         raise AssertionError("SegDup numeric-coordinate heatmap has no panels")
     bar = fig.colorbar(image, ax=list(axes[:len(gene_order)]), shrink=0.76, pad=0.02)
-    style_heatmap_colorbar(bar, "Non-reference VCF record count")
+    bar.set_label("Non-reference VCF record count")
     output = figures / "segdup_call_heatmap.png"
     save_figure(fig, output)
     chart_map.append({"figure": output.name, "chart_type": "heatmap", "title": "SegDup calls at measured native-SR × LR coordinates", "source_table": "segdup_calls.tsv", "metric": "non-reference record count"})
@@ -1524,7 +1363,7 @@ def call_tables_and_plots(observations: list[dict[str, Any]], figures: Path, cha
     labels = {"SMN1_CN": "SMN1 copy number", "SMN2_CN": "SMN2 copy number", "SMN2delta7_8_CN": "SMN2 Δ7–8 copy number"}
     for ax, metric in zip(np.atleast_1d(axes).ravel(), metrics):
         configure_coverage_axes(ax, observations)
-        ax.set_title(labels[metric], fontsize=heatmap_font_size(12))
+        ax.set_title(labels[metric], fontsize=12)
         coordinate_values = {
             coordinate: [
                 value
@@ -1554,17 +1393,17 @@ def call_tables_and_plots(observations: list[dict[str, Any]], figures: Path, cha
         overlay_coordinate_density(ax, observations)
         for sr, lr in missing_coordinates:
             offset_x, offset_y = label_offsets[(sr, lr)]
-            ax.text(lr + offset_x, sr + offset_y, "NA", ha="center", va="center", fontsize=heatmap_font_size(CIRCLE_LABEL_FONTSIZE), color="#4b5563", zorder=4)
+            ax.text(lr + offset_x, sr + offset_y, "NA", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color="#4b5563", zorder=4)
         for coordinate in numeric_coordinates:
             value = float(np.mean(coordinate_values[coordinate]))
             sr, lr = coordinate
             offset_x, offset_y = label_offsets[coordinate]
-            ax.text(lr + offset_x, sr + offset_y, f"{value:g}", ha="center", va="center", fontsize=heatmap_font_size(CIRCLE_LABEL_FONTSIZE), color=marker_label_color(smn_cmap, image.norm, value), zorder=4)
-    fig.suptitle("SMN copy-number calls at measured native-SR × LR coordinates\nDashed contours = retained-AU coordinate density, not a metric interpolation", fontsize=heatmap_font_size(18))
+            ax.text(lr + offset_x, sr + offset_y, f"{value:g}", ha="center", va="center", fontsize=CIRCLE_LABEL_FONTSIZE, color=marker_label_color(smn_cmap, image.norm, value), zorder=4)
+    fig.suptitle("SMN copy-number calls at measured native-SR × LR coordinates\nDashed contours = retained-AU coordinate density, not a metric interpolation", fontsize=18)
     if image is None:
         raise AssertionError("SMN numeric-coordinate heatmap has no panels")
     bar = fig.colorbar(image, ax=list(np.atleast_1d(axes).ravel()), shrink=0.74, pad=0.02)
-    style_heatmap_colorbar(bar, "Copy-number call")
+    bar.set_label("Copy-number call")
     output = figures / "smn12_copy_number_heatmap.png"
     save_figure(fig, output)
     chart_map.append({"figure": output.name, "chart_type": "heatmap", "title": "SMN copy-number calls at measured native-SR × LR coordinates", "source_table": "smn12_calls.tsv", "metric": "SMN1 SMN2 copy number"})
@@ -1760,6 +1599,10 @@ def build_report(
     if len(prior_observations) != 12 or len(e4_observations) != 20:
         raise ValueError("report requires 12 prior observations plus 20 E4 observations")
     e4_compact = e4_observations[0]["compact_evidence"]
+    e4_export = e4_compact.get("export_evidence", {})
+    source_rows = list(SOURCE_S3_URIS)
+    if e4_export:
+        source_rows.append(("E4 exported interrupted clone", e4_export["destination_s3_uri"] + "daylily-omics-analysis/"))
     e4_capture_time = e4_compact["captured_at_end_utc"]
     e4_workflow = e4_compact["workflow_status_end"]["attempts"][-1]
     e4_benchmark_rejections = e4_compact["benchmark_rejections"]
@@ -1767,7 +1610,7 @@ def build_report(
     e4_invalid_success_rows = sum("invalid successful benchmark" in row["reason"] for row in e4_benchmark_rejections)
     cost_parts = []
     for experiment in EXPERIMENTS:
-        suffix = " (in-flight partial snapshot)" if experiment == "E4" else ""
+        suffix = " (preserved interrupted-export snapshot)" if experiment == "E4" else ""
         cost_parts.append(f"**${total_cost_by_experiment[experiment]:,.2f}** for {experiment}{suffix}")
     top_coverage_table = [
         [
@@ -1808,6 +1651,7 @@ def build_report(
 
     image = lambda name: f"![{name}]({relative_asset(report_path, figures / name)})"
     table_link = lambda name: f"[{name}]({relative_asset(report_path, tables / name)})"
+    status_v2_link = relative_asset(report_path, assets / "evidence/raw/E4/status_v2.json")
     lines: list[str] = [
         "# HG002 Bjuice native-SR × LR measured-coverage matrix report",
         "",
@@ -1815,11 +1659,11 @@ def build_report(
         "",
         markdown_table(["ID", "target ILMNx", "SR ILMNx", "RSR ILMNx", "target ONTx", "LRONTx"], top_coverage_table),
         "",
-        "This is the only report table that presents requested coverage targets. E1/E3/P1 values were re-read from three completed S3 exports; E4 values were read from the live FSx analysis root in a bounded DYEC snapshot. Every source path and SHA-256 is retained in " + table_link("direct_s3_coverage_regather.tsv") + " and " + table_link("source_inventory.tsv") + ".",
+        "This is the only report table that presents requested coverage targets. E1/E3/P1 values were re-read from three completed S3 exports; E4 values were retained from the checksum-bound snapshot and are now provenance-linked to its successful no-delete S3 clone export. Every source path and SHA-256 is retained in " + table_link("direct_s3_coverage_regather.tsv") + " and " + table_link("source_inventory.tsv") + ".",
         "",
         "## Technical summary",
         "",
-        f"This report contains **{len(observations)} observations**: all **12 prior E1/E3/P1 observations** plus **20 E4 controlled-matrix AUs** captured at **{e4_capture_time}**. E4 remained **{e4_workflow['state']}** with no controller, `day_run`, or Snakemake return code at capture, so E4 benchmark accounting is explicitly partial.",
+        f"This report contains **{len(observations)} observations**: all **12 prior E1/E3/P1 observations** plus **20 E4 controlled-matrix AUs** captured at **{e4_capture_time}**. The E4 snapshot was captured while the workflow state was **{e4_workflow['state']}** with no terminal controller, `day_run`, or Snakemake return code; the full clone was subsequently preserved by a successful no-delete export (task `{e4_export.get('task_id', 'not recorded')}`), so E4 benchmark accounting remains explicitly partial.",
         "",
         "Every coverage-positioned figure uses **measured native SR×** on its vertical axis and **measured LR×** on its horizontal axis, with equal numeric scale. RSR× is audit-only. The strongest retained tagged-TrussSV global F-score is **" + f"{best_trussv['fscore']:.4f}** at **{best_trussv['plot_label']}**. Captured successful benchmark rows sum to " + ", ".join(cost_parts) + ".",
         "",
@@ -1827,7 +1671,7 @@ def build_report(
         "",
         "RSR is not a conventional random Illumina downsample. The E1 Sentieon hybrid log shows stage 3 running on a generated `hybrid_stage2.bed` interval set, followed by `hybrid_transfer` from the full SR alignment into `g_sr_realigned.cram`. Its retained-record fraction and Mosdepth therefore vary with the hybrid-selected regions and LR input. The 8.54–14.01× E1 RSR range is expected to differ from the uniform 43.73× native-SR evidence and must not form a coverage-matrix axis.",
         "",
-        "## E4 in-flight snapshot completeness",
+        "## E4 exported snapshot completeness",
         "",
         f"All 20 E4 AUs supplied parseable native-SR, RSR-audit, LR, hard-VCF GIAB-HC, four-caller Truvari, SMN12, and 15-gene SegDup artifacts. Their measured native-SR range is **{min(row['ilmn_measured'] for row in e4_observations):g}×–{max(row['ilmn_measured'] for row in e4_observations):g}×** and measured LR range is **{min(row['ont_measured'] for row in e4_observations):g}×–{max(row['ont_measured'] for row in e4_observations):g}×**.",
         "",
@@ -1836,13 +1680,13 @@ def build_report(
             e4_completeness_markdown,
         ),
         "",
-        f"The E4 snapshot contains **{len(e4_compact['benchmarks']):,} usable successful raw benchmark rows**. Because the controller was still running, these are not final cost or runtime totals. The collector also retained an audit of **{e4_failed_benchmark_rows} failed-attempt rows** and excluded **{e4_invalid_success_rows} rows labelled successful whose walltime was `NA`**. Exact per-AU counts are in " + table_link("e4_snapshot_completeness.tsv") + ".",
+        f"The exported E4 clone preserves **{len(e4_compact['benchmarks']):,} usable successful raw benchmark rows** from the snapshot. Because the workflow was nonterminal when captured, these are not final cost or runtime totals. The collector also retained an audit of **{e4_failed_benchmark_rows} failed-attempt rows** and excluded **{e4_invalid_success_rows} rows labelled successful whose walltime was `NA`**. Exact per-AU counts are in " + table_link("e4_snapshot_completeness.tsv") + ". The export receipt and retained status-v2 history are linked in the audit section below.",
         "",
         "## Source locations",
         "",
-        markdown_table(["Source", "S3 URI"], [[label, f"`{uri}`"] for label, uri in SOURCE_S3_URIS]),
+        markdown_table(["Source", "S3 URI"], [[label, f"`{uri}`"] for label, uri in source_rows]),
         "",
-        f"E4 live source at capture: `{e4_compact['analysis_root']}` (DayOA {e4_compact['dayoa_git']['exact_tag']} at `{e4_compact['dayoa_git']['commit']}`). The exact completed-export S3 roots and direct summary-file URIs are recorded in " + table_link("source_s3_uris.tsv") + " and " + table_link("direct_s3_coverage_regather.tsv") + "; E4 file hashes and paths are in " + table_link("source_inventory.tsv") + ".",
+        f"E4 snapshot source: `{e4_compact['analysis_root']}` (DayOA {e4_compact['dayoa_git']['exact_tag']} at `{e4_compact['dayoa_git']['commit']}`); the complete clone was subsequently preserved at `{e4_export.get('destination_s3_uri', 'export not recorded')}`. The exact S3 roots and direct summary-file URIs are recorded in " + table_link("source_s3_uris.tsv") + " and " + table_link("direct_s3_coverage_regather.tsv") + "; E4 file hashes and paths are in " + table_link("source_inventory.tsv") + ".",
         "",
         "## Measured native-SR × LR availability",
         "",
@@ -1873,7 +1717,7 @@ def build_report(
             [
                 f"### {title}",
                 "",
-                "F-score, false-negative, false-positive, and precision–recall views below all use the measured native-SR/LR coverage contract; no RSR or nominal coverage is used to position an observation. Precision–recall points use one neutral style without experiment encoding or connecting lines, and each point is labelled `measured ILMN× / measured ONT×`.",
+                "F-score, false-negative, false-positive, and precision–recall views below all use the measured native-SR/LR coverage contract; no RSR or nominal coverage is used to position an observation.",
                 "",
                 image(f"hard_vcf_giabhc_{klass}_fscore_heatmap.png"),
                 "",
@@ -1891,7 +1735,7 @@ def build_report(
             "",
             "## Truvari structural-variant concordance",
             "",
-            "The two coverage-coordinate maps use tagged TrussSV values. The final precision–recall plot combines all callers and all retained observations in one panel; raw summary metrics remain available for audit.",
+            "The two coverage-coordinate maps use tagged TrussSV values. The precision–recall facets retain all E1/E3/P1/E4 observations and label each point directly; raw summary metrics remain available for audit.",
             "",
             image("truvari_trussv_global_fscore_heatmap.png"),
             "",
@@ -1899,11 +1743,7 @@ def build_report(
             "",
             image("truvari_all_callers_precision_recall.png"),
             "",
-            "Marker shape encodes the caller (TIDDIT, LongReadSV, Sniffles2, or tagged TrussSV); a continuous color scale encodes total measured coverage as ILMN native-SR× plus ONT-LR×. Experiment is not encoded. There are no connecting or leader lines. Every exact-coordinate point group is labelled directly with its F-score; coverage-number labels are omitted from the plot for legibility and remain available in the exact raw-summary table. Points with undefined raw precision or recall remain in the table as `NA` and are not plotted. Exact raw-summary values: " + table_link("truvari_metrics.tsv") + ".",
-            "",
-            image("truvari_highest_coverage_caller_fscore.png"),
-            "",
-            "The four-point summary isolates the maximum retained measured-coverage observation and flags TIDDIT as short-read, LongReadSV and Sniffles2 as long-read, and TrussSV as ensemble.",
+            "Caller color and marker shape encode the caller (TIDDIT, LongReadSV, Sniffles2, or tagged TrussSV); experiment is encoded by marker fill. Every plotted point is labelled with experiment, AU, and F-score. Points with undefined raw precision or recall remain in the table as `NA` and are not plotted. Exact raw-summary values: " + table_link("truvari_metrics.tsv") + ".",
             "",
             "## SegDup and SMN1/2 calls",
             "",
@@ -1919,7 +1759,7 @@ def build_report(
             "",
             "## Benchmark cost and parallel-aware runtime",
             "",
-            "The per-task panels retain individual-AU task groups; the summary uses the exact retained observations. Neither view uses requested coverage values. E4 bars are explicitly an in-flight snapshot and must not be interpreted as final AU cost or duration.",
+            "The per-task panels retain individual-AU task groups; the summary uses the exact retained observations. Neither view uses requested coverage values. E4 bars are explicitly a preserved nonterminal snapshot and must not be interpreted as final AU cost or duration.",
             "",
             image("benchmark_per_task_walltime.png"),
             "",
@@ -1927,7 +1767,7 @@ def build_report(
             "",
             image("benchmark_au_totals.png"),
             "",
-            "The task plots show the top 12 groups per retained observation; the TSV retains every usable successful task group. Observed makespan spans the first through last benchmark timestamp. Active-interval union merges overlapping task intervals. Longest task is a lower bound, not a DAG-derived critical path. E4 values stop at the snapshot timestamp and will increase as the controller finishes.",
+            "The task plots show the top 12 groups per retained observation; the TSV retains every usable successful task group. Observed makespan spans the first through last benchmark timestamp. Active-interval union merges overlapping task intervals. Longest task is a lower bound, not a DAG-derived critical path. E4 values stop at the captured snapshot timestamp because the controller was interrupted before a terminal workflow receipt.",
             "",
             "Supporting benchmark tables: " + table_link("benchmark_task_groups.tsv") + " and " + table_link("benchmark_au_totals.tsv") + ".",
             "",
@@ -1940,17 +1780,18 @@ def build_report(
             "- Truvari metrics come from raw `summary.json`. Undefined no-call rates are `NA`, even where a downstream report-oriented artifact normalized them to zero.",
             "- SegDup is descriptive callset output, not truth/query concordance. A no-call state is not evidence of reference genotype truth.",
             "- E1, E3, P1, and E4 reuse the same HG002 source material; input subsets are nested and P1 is a full-input production observation. Results are descriptive and no causal or inferential claim is made.",
-            f"- E4 was nonterminal at {e4_capture_time}. Its 20 core metric sets were complete and parseable, but its {len(e4_compact['benchmarks']):,} benchmark rows are a lower-bound snapshot, not final workflow accounting.",
+            f"- E4 was nonterminal at {e4_capture_time}; the complete clone was later preserved by export task `{e4_export.get('task_id', 'not recorded')}`. Its 20 core metric sets were complete and parseable, but its {len(e4_compact['benchmarks']):,} benchmark rows are a lower-bound snapshot, not final workflow accounting.",
             "- The executions may have different runtime software provenance. The report uses produced artifacts and does not relabel a later execution as a pristine re-execution of an earlier release.",
             "",
             "## Audit and reproducibility",
             "",
             "- Direct S3 native-SR, RSR, and LR values with exact source paths and SHA-256 values: " + table_link("direct_s3_coverage_regather.tsv") + ".",
             "- E4 per-AU metric and benchmark completeness at capture: " + table_link("e4_snapshot_completeness.tsv") + ".",
+            "- E4 export receipt: " + table_link("e4_export_evidence.tsv") + f"; retained clone status-v2 history: [status_v2.json]({status_v2_link}).",
             "- Existing bounded evidence inventory for detailed call/benchmark inputs: " + table_link("source_inventory.tsv") + ".",
             "- Figure-to-table mapping: " + table_link("chart_map.tsv") + ".",
             "",
-            f"Generated from bounded E1/E3/P1 evidence, direct S3 reads of their 36 Mosdepth summaries, and the checksum-bound E4 live-FSx snapshot captured {e4_compact['captured_at_start_utc']} through {e4_capture_time}.",
+            f"Generated from bounded E1/E3/P1 evidence, direct S3 reads of their 36 Mosdepth summaries, and the checksum-bound E4 snapshot captured {e4_compact['captured_at_start_utc']} through {e4_capture_time}, with the full E4 clone preserved by the recorded no-delete S3 export.",
         ]
     )
     report_path.write_text("\n".join(lines) + "\n")
@@ -2038,6 +1879,19 @@ def main() -> None:
     write_tsv(tables / "benchmark_au_totals.tsv", benchmark_summaries, ["observation_id", "experiment", "analysis_id", "au", "runtime_au", "plot_label", "ilmn_measured_token", "ont_measured_token", "successful_records", "priced_records", "unpriced_records", "task_groups", "total_cost_usd", "allocated_vcpu_h", "observed_cpu_h", "sum_task_wall_h", "observed_makespan_h", "active_interval_union_h", "longest_task_h", "benchmark_scope"])
     e4_observations = [row for row in retained if row["experiment"] == "E4"]
     e4_compact = e4_observations[0]["compact_evidence"]
+    e4_export = e4_compact.get("export_evidence", {})
+    if not e4_export:
+        raise ValueError("E4 export evidence is required for this report build")
+    write_tsv(
+        tables / "e4_export_evidence.tsv",
+        [e4_export],
+        [
+            "captured_at_utc", "analysis_id", "fsx_file_system_id", "fsx_storage_capacity_gib", "source_path",
+            "destination_s3_uri", "dra_id", "dra_detached", "task_id", "task_type", "task_lifecycle",
+            "total_count", "succeeded_count", "failed_count", "failure_details", "delete_data_in_file_system",
+            "status_s3_uri", "status_schema_version", "status_attempt_count",
+        ],
+    )
     e4_completeness_rows = []
     for observation in sorted(e4_observations, key=lambda row: AU_INDEX[row["au"]]):
         completeness = e4_compact["completeness"][observation["runtime_au"]]
@@ -2075,7 +1929,10 @@ def main() -> None:
         ],
     )
     write_tsv(tables / "source_inventory.tsv", source_inventory, ["experiment", "analysis_root", "category", "relative_path", "bytes", "mtime_epoch", "sha256", "local_path", "local_sha256", "local_sha256_match"])
-    write_tsv(tables / "source_s3_uris.tsv", [{"source": label, "s3_uri": uri} for label, uri in SOURCE_S3_URIS], ["source", "s3_uri"])
+    source_s3_rows = list(SOURCE_S3_URIS)
+    if e4_export:
+        source_s3_rows.append(("E4 exported interrupted clone", e4_export["destination_s3_uri"] + "daylily-omics-analysis/"))
+    write_tsv(tables / "source_s3_uris.tsv", [{"source": label, "s3_uri": uri} for label, uri in source_s3_rows], ["source", "s3_uri"])
     write_tsv(tables / "chart_map.tsv", chart_map, ["figure", "chart_type", "title", "source_table", "metric"])
 
     heatmaps = [row for row in chart_map if row["chart_type"] == "heatmap"]
@@ -2089,7 +1946,7 @@ def main() -> None:
 
     expected_tables = {
         "retained_observations.tsv", "direct_s3_coverage_regather.tsv", "coverage_grid.tsv",
-        "e4_snapshot_completeness.tsv",
+        "e4_snapshot_completeness.tsv", "e4_export_evidence.tsv",
         "hard_vcf_giabhc_metrics.tsv", "truvari_metrics.tsv", "segdup_calls.tsv", "smn12_calls.tsv",
         "benchmark_task_groups.tsv", "benchmark_au_totals.tsv", "source_inventory.tsv", "source_s3_uris.tsv", "chart_map.tsv",
     }
