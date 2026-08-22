@@ -29,7 +29,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "16.0.3"
+DAYOA_BLESSED_TAG = "16.0.4"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -4123,6 +4123,8 @@ def test_catalog_list_and_show_expose_command_catalog_entries() -> None:
             "--json",
             "catalog",
             "list",
+            "--dyec-version",
+            "19.0.19",
             "--command-class",
             "sample_analysis",
             "--type",
@@ -4132,29 +4134,35 @@ def test_catalog_list_and_show_expose_command_catalog_entries() -> None:
 
     assert list_result.exit_code == 0, list_result.output
     list_payload = json.loads(list_result.stdout)
-    assert list_payload["dyec_version"] == "current"
-    assert "--intent" in list_payload["result_export"]["manual_visit_command"]
-    assert list_payload["result_export"]["preserves_fsx_by_default"] is True
-    command_ids = {item["command_id"] for item in list_payload["commands"]}
+    assert list_payload["contract"]["dyec_build"] == "19.0.19"
+    assert "--intent" in list_payload["contract"]["result_export"]["manual_visit_command"]
+    assert list_payload["contract"]["result_export"]["preserves_fsx_by_default"] is True
+    command_ids = {item["command_id"] for item in list_payload["result"]["commands"]}
     assert "package_inflection_hybrid_data" in command_ids
 
     show_result = runner.invoke(
         app,
-        ["--json", "catalog", "show", "package_inflection_hybrid_data"],
+        [
+            "--json",
+            "catalog",
+            "show",
+            "package_inflection_hybrid_data",
+            "--dyec-version",
+            "19.0.19",
+        ],
     )
 
     assert show_result.exit_code == 0, show_result.output
     show_payload = json.loads(show_result.stdout)
-    assert show_payload["dyec_version"] == "current"
-    assert "--mode export" in show_payload["result_export"]["manual_visit_command"]
-    assert "--intent" in show_payload["result_export"]["manual_visit_command"]
-    assert "dyec export" in show_payload["result_export"]["manual_export_command"]
-    assert show_payload["command"]["command_id"] == "package_inflection_hybrid_data"
-    assert show_payload["command"]["input_contract"] == "six_manifest"
-    assert show_payload["command"]["dy_command"].startswith(
-        "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_inflection_seqone_v2"
-    )
-    assert show_payload["command"]["return_results"] is False
+    assert show_payload["contract"]["dyec_build"] == "19.0.19"
+    result_export = show_payload["contract"]["result_export"]
+    assert "--mode export" in result_export["manual_visit_command"]
+    assert "--intent" in result_export["manual_visit_command"]
+    assert "dyec export" in result_export["manual_export_command"]
+    command = show_payload["result"]["command"]
+    assert command["command_id"] == "package_inflection_hybrid_data"
+    assert command["input_contract"] == "six_manifest"
+    assert command["return_results"] is False
 
 
 def test_catalog_validation_compare_uses_declared_command_evidence(monkeypatch) -> None:
@@ -4171,13 +4179,20 @@ def test_catalog_validation_compare_uses_declared_command_evidence(monkeypatch) 
 
     result = runner.invoke(
         app,
-        ["--json", "catalog", "validation-compare", "illumina_run_qc"],
+        [
+            "--json",
+            "catalog",
+            "validation-compare",
+            "illumina_run_qc",
+            "--dyec-version",
+            "19.0.19",
+        ],
     )
 
     assert result.exit_code == 0, result.output
     assert json.loads(result.stdout) == {
         "command_id": "illumina_run_qc",
-        "dyec_version": "current",
+        "dyec_version": "19.0.19",
         "matches": True,
     }
 
@@ -4192,6 +4207,8 @@ def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
             "catalog",
             "render",
             "package_inflection_hybrid_data",
+            "--dyec-version",
+            "19.0.19",
             "--analysis-id",
             "pkg-run",
             "--executing-entity",
@@ -4213,7 +4230,9 @@ def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
     )
 
     assert result.exit_code == 0, result.output
-    payload = json.loads(result.stdout)
+    envelope = json.loads(result.stdout)
+    payload = envelope["result"]["render"]
+    assert envelope["contract"]["dyec_build"] == "19.0.19"
     assert "--intent" in payload["result_export"]["manual_visit_command"]
     assert any(
         "DYEC must wait for a successful controller exit" in step
@@ -4222,17 +4241,17 @@ def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
     assert payload["command"]["command_id"] == "package_inflection_hybrid_data"
     assert payload["git_tag"] == payload["command"]["git_tag"]
     assert payload["dry_run"] is True
-    assert payload["dy_command"].startswith(
+    argv = payload["workflow_argv"]
+    dy_command = argv[argv.index("--dy-command") + 1]
+    assert dy_command.startswith(
         "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_inflection_seqone_v2"
     )
-    assert " -n" in payload["dy_command"]
-    argv = payload["workflow_argv"]
+    assert " -n" in dy_command
     assert argv[:2] == ["workflow", "launch"]
     assert argv[argv.index("--manifest-dir") + 1] == str(manifest_dir)
     assert argv[argv.index("--session-name") + 1] == "pkg-session"
     assert argv[argv.index("--project") + 1] == "project-alpha"
-    assert argv[argv.index("--dy-command") + 1] == payload["dy_command"]
-    assert "dyec workflow launch" in payload["workflow_command"]
+    assert argv[argv.index("--dy-command") + 1] == dy_command
 
 
 def test_catalog_render_appends_dy_config_overrides(tmp_path) -> None:
@@ -4245,6 +4264,8 @@ def test_catalog_render_appends_dy_config_overrides(tmp_path) -> None:
             "catalog",
             "render",
             "hybrid_ilmn_ont_hiomr_kitchensink",
+            "--dyec-version",
+            "19.0.19",
             "--analysis-id",
             "hg-run",
             "--executing-entity",
@@ -4265,12 +4286,16 @@ def test_catalog_render_appends_dy_config_overrides(tmp_path) -> None:
     )
 
     assert result.exit_code == 0, result.output
-    payload = json.loads(result.stdout)
+    envelope = json.loads(result.stdout)
+    payload = envelope["result"]["render"]
+    assert envelope["contract"]["dyec_build"] == "19.0.19"
     assert payload["dy_config"] == [
         "use_fq_data_starting_hrs=0",
         "use_fq_data_up_to_hrs=7",
     ]
-    dy_tokens = shlex.split(payload["dy_command"])
+    argv = payload["workflow_argv"]
+    dy_command = argv[argv.index("--dy-command") + 1]
+    dy_tokens = shlex.split(dy_command)
     assert dy_tokens.count("--config") == 1
     config_index = dy_tokens.index("--config")
     config_values = []
@@ -4283,8 +4308,7 @@ def test_catalog_render_appends_dy_config_overrides(tmp_path) -> None:
     assert 'htd_callers=["smn12"]' in config_values
     assert "use_fq_data_starting_hrs=0" in config_values
     assert "use_fq_data_up_to_hrs=7" in config_values
-    argv = payload["workflow_argv"]
-    assert argv[argv.index("--dy-command") + 1] == payload["dy_command"]
+    assert argv[argv.index("--dy-command") + 1] == dy_command
 
 
 def test_catalog_quick_launch_uses_rendered_workflow_argv(monkeypatch, tmp_path) -> None:
@@ -4309,6 +4333,8 @@ def test_catalog_quick_launch_uses_rendered_workflow_argv(monkeypatch, tmp_path)
             "catalog",
             "quick-launch",
             "package_inflection_hybrid_data",
+            "--dyec-version",
+            "19.0.19",
             "--analysis-id",
             "pkg-run",
             "--executing-entity",
@@ -4328,12 +4354,16 @@ def test_catalog_quick_launch_uses_rendered_workflow_argv(monkeypatch, tmp_path)
     )
 
     assert result.exit_code == 0, result.output
-    payload = json.loads(result.stdout)
+    envelope = json.loads(result.stdout)
+    payload = envelope["result"]["render"]
+    assert envelope["contract"]["dyec_build"] == "19.0.19"
     launch_argv = calls["launch_argv"]
     assert launch_argv[launch_argv.index("--manifest-dir") + 1] == str(manifest_dir)
     assert launch_argv[launch_argv.index("--analysis-id") + 1] == "pkg-run"
-    assert payload["workflow_launch"]["session_name"] == "pkg-session"
-    assert payload["workflow_launch"]["dy_command"] == payload["dy_command"]
+    assert envelope["result"]["workflow_launch"]["session_name"] == "pkg-session"
+    rendered_argv = payload["workflow_argv"]
+    rendered_dy_command = rendered_argv[rendered_argv.index("--dy-command") + 1]
+    assert envelope["result"]["workflow_launch"]["dy_command"] == rendered_dy_command
 
 
 def test_catalog_render_requires_explicit_staged_inputs_for_sample_commands() -> None:
@@ -4343,6 +4373,8 @@ def test_catalog_render_requires_explicit_staged_inputs_for_sample_commands() ->
             "catalog",
             "render",
             "complete_genomics_cg_snv_concordance",
+            "--dyec-version",
+            "19.0.19",
             "--analysis-id",
             "cg-run",
             "--executing-entity",
@@ -4369,6 +4401,8 @@ def test_catalog_launch_requires_materialized_complete_staging_receipt(
             "catalog",
             "launch",
             "complete_genomics_cg_snv_concordance",
+            "--dyec-version",
+            "19.0.19",
             "--analysis-id",
             "cg-run",
             "--executing-entity",

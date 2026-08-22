@@ -5822,7 +5822,7 @@ def headnode_controller_evidence(
     staging_s3_uri: str = typer.Option(
         ...,
         "--staging-s3-uri",
-        help="Required Ursa-managed s3://bucket/prefix relay; one unique object is retained.",
+        help="Required caller-managed s3://bucket/prefix relay; one unique object is retained.",
     ),
     timeout: int = typer.Option(180, "--timeout", help="Bounded SSM timeout in seconds."),
 ) -> None:

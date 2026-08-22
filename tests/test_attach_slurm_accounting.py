@@ -137,6 +137,21 @@ class _Ec2:
             ]
         }
 
+    def describe_instances(self, *, InstanceIds):
+        assert InstanceIds == ["i-accounting"]
+        return {
+            "Reservations": [
+                {
+                    "Instances": [
+                        {
+                            "InstanceId": "i-accounting",
+                            "InstanceType": "t4g.micro",
+                        }
+                    ]
+                }
+            ]
+        }
+
 
 class _AwsContext:
     def client(self, service: str):

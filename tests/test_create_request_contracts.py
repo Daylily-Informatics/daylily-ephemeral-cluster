@@ -569,7 +569,7 @@ def test_prepare_and_final_reprice_are_independent_and_content_bound(
 
     effective_path = admission_dir / admission["artifacts"]["effective_cluster"]["name"]
     final_dir = tmp_path / "final"
-    final_dir.mkdir()
+    final_dir.mkdir(mode=0o700)
     final_summary, final_receipt = price_create_input_and_write_receipt(
         effective_path=effective_path,
         priced_path=final_dir / "cluster.yaml",
@@ -711,7 +711,7 @@ def test_terminal_create_receipt_and_public_success_require_working_sacct(
     )
     effective = tmp_path / "admission" / admission["artifacts"]["effective_cluster"]["name"]
     final_dir = tmp_path / "final"
-    final_dir.mkdir()
+    final_dir.mkdir(mode=0o700)
     _summary, pricing = price_create_input_and_write_receipt(
         effective_path=effective,
         priced_path=final_dir / "priced.yaml",
@@ -747,12 +747,56 @@ def test_terminal_create_receipt_and_public_success_require_working_sacct(
         fleet_restored=True,
         recovery_required=False,
         stack_name="dayec-slurm-accounting-us-west-2c",
+        provider_accounting_stack_name="dayec-slurm-accounting-us-west-2c",
+        privatelink_stack_name="",
+        consumer_vpc_id="vpc-cluster",
+        database_name="dayec_slurm_acct",
+        db_username="slurm_acct",
+        provider_instance_type="t4g.micro",
     )
     accounting_path.write_text(
         accounting.model_dump_json(indent=2) + "\n",
         encoding="utf-8",
     )
     accounting_path.chmod(0o600)
+    final_config_path = final_dir / "priced.yaml"
+    recovery_path = final_dir / "recovery.json"
+    recovery_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "dyec.slurm_accounting_recovery.v1",
+                "ok": True,
+                "terminal": True,
+                "status": "complete",
+                "cluster": "ursa-m-rgx-test",
+                "region": "us-west-2",
+                "region_az": "us-west-2d",
+                "aws_profile": "lsmc",
+                "aws_account_id": "123456789012",
+                "accounting_stack_name": "dayec-slurm-accounting-us-west-2c",
+                "privatelink_stack_name": None,
+                "consumer_vpc_id": "vpc-cluster",
+                "database_name": "dayec_slurm_acct",
+                "db_username": "slurm_acct",
+                "instance_type": "t4g.micro",
+                "cluster_configuration_path": str(final_config_path),
+                "cluster_configuration_sha256": pricing[
+                    "final_cluster_config_sha256"
+                ],
+                "final_cluster_state": "UPDATE_COMPLETE",
+                "final_fleet_state": "RUNNING",
+                "accounting_verified": True,
+                "phase_receipts": [
+                    {"phase": "accounting_verified", "status": "complete"}
+                ],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    recovery_path.chmod(0o600)
     terminal = write_create_terminal_receipt(
         receipt_path=final_dir / "terminal.json",
         cluster_name="ursa-m-rgx-test",
@@ -761,9 +805,11 @@ def test_terminal_create_receipt_and_public_success_require_working_sacct(
         region="us-west-2",
         region_az="us-west-2d",
         request_config_sha256=sha256_path(request),
+        final_cluster_config_path=final_config_path,
         final_cluster_config_sha256=pricing["final_cluster_config_sha256"],
         pricing_receipt_path=pricing["receipt_path"],
         accounting_receipt_path=accounting_path,
+        accounting_recovery_receipt_path=recovery_path,
         provider_cluster_state="UPDATE_COMPLETE",
         fleet_state="RUNNING",
         accounting_state="ENABLED",
@@ -786,9 +832,12 @@ def test_terminal_create_receipt_and_public_success_require_working_sacct(
         "accounting_state": "ENABLED",
         "sacct_verified": True,
         "request_config_sha256": sha256_path(request),
+        "final_cluster_config_path": str(final_config_path),
         "final_cluster_config_sha256": pricing["final_cluster_config_sha256"],
         "pricing_receipt_sha256": pricing["receipt_sha256"],
         "accounting_receipt_sha256": sha256_path(accounting_path),
+        "accounting_recovery_receipt_sha256": sha256_path(recovery_path),
+        "accounting_target": terminal["accounting_target"],
         "terminal_receipt_path": terminal["terminal_receipt_path"],
         "terminal_receipt_sha256": terminal["terminal_receipt_sha256"],
     }
@@ -814,9 +863,11 @@ def test_terminal_create_receipt_and_public_success_require_working_sacct(
             region="us-west-2",
             region_az="us-west-2d",
             request_config_sha256=sha256_path(request),
+            final_cluster_config_path=final_config_path,
             final_cluster_config_sha256=pricing["final_cluster_config_sha256"],
             pricing_receipt_path=pricing["receipt_path"],
             accounting_receipt_path=accounting_path,
+            accounting_recovery_receipt_path=recovery_path,
             provider_cluster_state="UPDATE_COMPLETE",
             fleet_state="RUNNING",
             accounting_state="ENABLED",

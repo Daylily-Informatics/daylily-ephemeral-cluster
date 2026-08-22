@@ -183,7 +183,12 @@ class FakeS3Client:
 
     def list_objects_v2(self, **kwargs):
         self.list_requests.append(kwargs)
-        return {"KeyCount": self.key_count}
+        if kwargs.get("MaxKeys") == 1:
+            return {"KeyCount": self.key_count}
+        return {
+            "Contents": [{"Key": f"{kwargs['Prefix']}result.txt", "Size": 1}],
+            "IsTruncated": False,
+        }
 
     def get_object(self, **kwargs):
         self.get_requests.append(kwargs)

@@ -55,6 +55,7 @@ def _prepared(destination: Path) -> PreparedSlurmAccountingUpdate:
         service_created=False,
         database_name="dayec_slurm_acct",
         db_username="slurm_acct",
+        provider_instance_type="t4g.micro",
     )
 
 
@@ -68,9 +69,11 @@ def _prepared_bridge(destination: Path) -> PreparedSlurmAccountingUpdate:
 
 def _write_bound_receipt(tmp_path: Path, output_dir: Path) -> tuple[Path, Path, Path]:
     source = _source(tmp_path / "source.yaml").resolve()
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    output_dir.chmod(0o700)
     update = output_dir / UPDATE_CONFIGURATION_FILENAME
     update.write_text("accounting: rendered\n", encoding="utf-8")
+    update.chmod(0o600)
     receipt = output_dir / RECOVERY_RECEIPT_FILENAME
     receipt.write_text(
         json.dumps(
@@ -112,6 +115,7 @@ def _write_bound_receipt(tmp_path: Path, output_dir: Path) -> tuple[Path, Path, 
         + "\n",
         encoding="utf-8",
     )
+    receipt.chmod(0o600)
     return source, update, receipt
 
 
@@ -122,10 +126,12 @@ def _write_render_intent(
     preexisting_update: bool,
 ) -> tuple[Path, Path]:
     source = _source(tmp_path / "source.yaml").resolve()
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    output_dir.chmod(0o700)
     update = output_dir / UPDATE_CONFIGURATION_FILENAME
     if preexisting_update:
         update.write_text("interrupted render\n", encoding="utf-8")
+        update.chmod(0o600)
     phases = [
         {
             "phase": "render_intent",
@@ -166,6 +172,7 @@ def _recover(tmp_path: Path, **overrides):
         "region": "us-west-2",
         "region_az": "us-west-2d",
         "profile": "lsmc",
+        "pcluster_executable": "pcluster",
         "cluster_configuration": _source(tmp_path / "source.yaml"),
         "output_dir": tmp_path / "receipts",
         "stack_name": "dayec-slurm-accounting-us-west-2",
@@ -181,6 +188,9 @@ def _recover(tmp_path: Path, **overrides):
         "network_identity_resolver": lambda **_kwargs: SimpleNamespace(vpc_id="vpc-exact"),
     }
     values.update(overrides)
+    output_dir = Path(values["output_dir"])
+    output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    output_dir.chmod(0o700)
     return recover_slurm_accounting(**values)
 
 
@@ -1089,6 +1099,7 @@ def _exact_db(**overrides) -> SlurmAccountingDb:
         "password_secret_arn": "arn:aws:secretsmanager:us-west-2:123456789012:secret:test",
         "client_security_group_id": "sg-accounting",
         "client_secret_read_policy_arn": "arn:aws:iam::123456789012:policy/test",
+        "instance_id": "i-accounting",
     }
     values.update(overrides)
     return SlurmAccountingDb(**values)
@@ -1098,7 +1109,19 @@ def _patch_exact_resolution(monkeypatch, db: SlurmAccountingDb) -> None:
     ec2 = SimpleNamespace(
         describe_subnets=lambda **_kwargs: {
             "Subnets": [{"VpcId": "vpc-exact", "AvailabilityZone": "us-west-2d"}]
-        }
+        },
+        describe_instances=lambda **_kwargs: {
+            "Reservations": [
+                {
+                    "Instances": [
+                        {
+                            "InstanceId": "i-accounting",
+                            "InstanceType": "t4g.micro",
+                        }
+                    ]
+                }
+            ]
+        },
     )
     context = SimpleNamespace(client=lambda service: ec2 if service == "ec2" else None)
     monkeypatch.setattr(

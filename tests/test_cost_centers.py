@@ -352,7 +352,7 @@ def test_ensure_active_cost_center_never_reactivates_disabled_row() -> None:
         table_name="cc",
     )
 
-    with pytest.raises(CostCenterError, match="status='disabled'"):
+    with pytest.raises(CostCenterError, match="mismatched fields only.*status"):
         ensure_active_cost_center(
             dynamo,
             "project-a",

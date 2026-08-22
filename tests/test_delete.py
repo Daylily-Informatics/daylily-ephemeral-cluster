@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -298,6 +299,51 @@ class TestDeleteCli:
         assert options.profile == "prof"
         assert options.state_file == state_file
         assert options.yes is True
+
+    def test_root_json_delete_emits_versioned_plan_receipt(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
+        with patch(
+            "daylily_ec.workflow.delete_cluster.run_delete_dry_run", return_value=0
+        ) as mock_run:
+            result = runner.invoke(
+                app,
+                [
+                    "--json",
+                    "delete",
+                    "--cluster-name",
+                    "alpha",
+                    "--region",
+                    "us-west-2",
+                    "--profile",
+                    "prof",
+                    "--dry-run",
+                ],
+            )
+
+        assert result.exit_code == 0, result.output
+        payload = json.loads(result.stdout)
+        assert payload["schema_version"] == "dyec.cluster.delete.v1"
+        assert payload["operation"] == "delete"
+        assert payload["status"] == "planned"
+        assert payload["destructive_action_performed"] is False
+        mock_run.assert_called_once()
+
+    def test_root_json_delete_requires_exact_identity(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
+
+        result = runner.invoke(app, ["--json", "delete", "--dry-run"])
+
+        assert result.exit_code == 1
+        payload = json.loads(result.stdout)
+        assert payload == {
+            "error": (
+                "JSON cluster deletion requires explicit --cluster-name, --region, "
+                "and --profile"
+            ),
+            "error_code": "cluster_delete_identity_required",
+            "ok": False,
+            "schema_version": "dyec.cluster.delete.v1",
+        }
 
     def test_resolve_delete_options_raises_for_missing_state(self, tmp_path):
         with pytest.raises(RuntimeError, match="State file not found"):
